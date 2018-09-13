@@ -1,0 +1,78 @@
+!groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK
+pyetl;pl_etl_batch;;definition batch;NOGEOM;;oui;table;;3948;0;;;;fin;P:gid;
+pyetl;pl_etl_batch;gid;;serial;non;oui;;oui;;0;0;0;;fin;P:1;
+pyetl;pl_etl_batch;nom;nom du batch;texte;non;oui;nom;non;;0;0;0;;fin;;
+pyetl;pl_etl_batch;commandes;liste de commandes;texte;non;oui;;non;;3;0;0;;fin;;
+pyetl;pl_etl_batch;entree;repertoire d entree;texte;non;oui;;non;;3;0;0;;fin;;
+pyetl;pl_etl_batch;sortie;repertoire de sortie;texte;non;oui;;non;;3;0;0;;fin;;
+pyetl;pl_etl_batch;parametres;liste des parametres;hstore;non;oui;;non;;0;0;0;;fin;;
+pyetl;pl_etl_batch;jours;jours de declenchement;texte;non;oui;;non;;0;0;0;;fin;;
+pyetl;pl_etl_batch;actif;jours de declenchement;booleen;non;oui;;non;;0;0;0;;fin;;
+pyetl;pl_etl_batch;commentaire;description;texte;non;oui;;non;;0;0;0;;fin;;
+pyetl;pl_etl_macro;;definition macro;NOGEOM;;oui;table;;3948;0;;;;fin;P:gid;
+pyetl;pl_etl_macro;gid;;serial;non;oui;;oui;;0;0;0;;fin;P:1;
+pyetl;pl_etl_macro;nom;nom de la macro;texte;non;oui;;oui;;0;0;0;;fin;;
+pyetl;pl_etl_macro;ordre;ordre des lignes;entier;non;oui;;oui;;3;0;0;;fin;;
+pyetl;pl_etl_macro;att_tri1;attribut selection 1;texte;non;oui;;non;;0;0;0;;fin;;
+pyetl;pl_etl_macro;valeur_tri1;valeur selection 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;att_tri2;attribut selection 2 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;valeur_tri2;valeur selection 2;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;att_sortie;attribut resultant;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;att_entree;attribut en entree;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;defaut;valeur par defaut;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;commande;commande;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;cmp1;parametres complementaires 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;cmp2;parametres complementaires 2;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_macro;commentaire;description;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;;definition script;NOGEOM;;oui;table;;3948;0;;;;fin;P:gid
+pyetl;pl_etl_script;gid;;serial;non;oui;;oui;;0;0;0;;fin;P:1
+pyetl;pl_etl_script;auteur;proprietaire;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_script;nom;nom du script;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_script;ordre;ordre des lignes;entier;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_script;att_tri1;attribut selection 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;valeur_tri1;valeur selection 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;att_tri2;attribut selection 2 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;valeur_tri2;valeur selection 2;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;att_sortie;attribut resultant;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;att_entree;attribut en entree;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;defaut;valeur par defaut;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;commande;commande;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;cmp1;parametres complementaires 1;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;cmp2;parametres complementaires 2;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_script;commentaire;description;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;;log execution;NOGEOM;;oui;table;;3948;0;;;;fin;P:gid
+pyetl;pl_etl_log_batch;gid;;serial;non;oui;;oui;;0;0;0;;fin;P:1
+pyetl;pl_etl_log_batch;date;date_declenchement;D;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;nom;nom du script;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;duree;duree du batch;entier;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_log_batch;etat;reussite;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;entree;objets lus;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;sortie;objets ecrits;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_log_batch;erreurs;nombre d erreurs;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_job;;definition d un traitement;NOGEOM;;oui;table;;3948;0;;;;fin;P:gid
+pyetl;pl_etl_job;gid;;serial;non;oui;;oui;;0;0;0;;fin;P:1
+pyetl;pl_etl_job;nom;nom du batch;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_job;commandes;liste de commandes;texte;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_job;entree;repertoire d entree;texte;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_job;sortie;repertoire de sortie;texte;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_job;parametres;liste des parametres;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_job;etat;attente / encours / fini;texte;non;oui;;oui;;0;0;0;;fin;
+pyetl;pl_etl_job;duree;duree du batch;entier;non;oui;;oui;;3;0;0;;fin;
+pyetl;pl_etl_job;etat;reussite;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_job;nb_entree;objets lus;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_job;nb_sortie;objets ecrits;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_job;nb_erreurs;nombre d erreurs;entier;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes; ;listes de parametres;NOGEOM;non;oui;table;non;3948;0;0;0;;fin;P:gid
+pyetl;pl_etl_listes;gid;;serial;non;oui;;non;;0;0;0;;fin;P:1
+pyetl;pl_etl_listes;nom;nom de la liste;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes;type;type de liste;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes;clef;clef ou niveau;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes;valeur;valeur ou classe;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes;complements;champs clef valeur;hstore;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_listes;commentaire;description;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_paramgroups;;;NOGEOM;non;oui;table;non;3948;0;0;0;;fin;P:gid
+pyetl;pl_etl_paramgroups;gid;;serial;non;oui;;non;;0;0;0;;fin;P:1
+pyetl;pl_etl_paramgroups;nom;nom de la liste;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_paramgroups;clef;nom du parametre;texte;non;oui;;non;;0;0;0;;fin;
+pyetl;pl_etl_paramgroups;valeur;valeur;texte;non;oui;;non;;0;0;0;;fin;
+

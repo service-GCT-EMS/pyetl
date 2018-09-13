@@ -1,0 +1,20 @@
+!att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin
+&&#define;#start_test;enchainements;;;;;;;;
+$F_sortie=#poubelle;;;;;;;;;;
+$mode_sortie=D;;;;;;;;;;
+$force_schema=0;;;;;;;;;;
+!======================================test ;;;;;;;;;;
+<#obj;;1;;;;;;;;
+;;;;;;;pass;;;
+|:;;;;;;V0;print;enchainement\b;;
+|:;;;;;;V0;print;enchainement 2;;
+|sinon:;;;;;;V0;print;erreur sinon ;;
+|:;;;;;;V0;print;erreur sinon1;;
+;;;;;;V0;print ;all;;
+;;;;;;;fail;;;debug
+|:;;;;;;V0;print;erreur enchainement;;
+|:;;;;;;V0;print;erreur enchainement 2;;
+|sinon:;;;;;;V0;print;sinon;;
+|:;;;;;;V0;print;sinon 1;;
+|fail:;;;;;;V0;print;sinon;;
+|:;;;;;;V0;print;sinon 1;;

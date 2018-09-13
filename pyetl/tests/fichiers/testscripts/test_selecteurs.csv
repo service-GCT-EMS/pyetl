@@ -1,0 +1,67 @@
+!att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin;
+&&#define;#start_test;variables de base;;;;;;;;;
+$F_sortie=%format%;asc;;;;;;;;;;
+$mode_sortie=D;;;;;;;;;;;
+$force_schema=2;;;;;;;;;;;
+$_sortie=sortie/test;;;;;;;;;
+$#%acces%;;;;;;;;;;;
+!;;;;schema_entree;;;lire_schema ;entree\tests\schem;csv;;
+;;;;C1,C2,C3,V1,V2;A,B,AB,1,2;;testobj;test;18;fin;# on cree des objets de test
+;;;;V3;;;cnt;1;1;fin;
+;;;;#test;00 fail;;set;;;fin;
+V3;N: ==1;C1;;#test;01 exist;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==2;C3;A;#test;02 regex A;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==3;C2;[A-Z];#test;03 regex [A-Z];;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==4;C3;[A-Z]+;#test;04 regex [A-Z]+;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==5;C2;!A;#test;05 negatif;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==6;V2;N: >1;#test;06 numerique;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==7;V1;!N: >1;#test;07 ! numerique;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==8;V2;N: >N:V1;#test;08 expression;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==9;V2;;#test;09 exist;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==10;C1;in:{A,B,C};#test;10 in liste;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==11;;;;;;pass;;;fin;
++:C1;in:{B,C};;;#test;11 fail not liste;;set;;;fin;
+++sinon:;;;;#test;11 not liste;;set;;;fin;
+++:;;;;ok;ok;;set;;;fin;
+
+
+;;;;;;;schema;test;;fin;
+V3;N: ==12;;has:schema;#test;12 schema;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+;;;;gid(S,P);g;;cnt;1;;fin;
+V3;N: ==13;;has:pk;#test;13 has pk;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==14;gid;is:pk;#test;14 is pk;;set;;;fin;
++:;;;;ok;ok;;set;;;fin;
+!;;;;;;;;;;fin;# test des enchainements
+V3;N: ==15;;;;;;pass+;;;fin
++:;;;;#test;15a lien;;set;;;fin
++:;;;;ok;ok;;set;;;fin;
++next:;;;;#test;15b copie ;;set;;;fin
++:;;;;ok;ok;;set;;;fin;
+V3;N: ==16;C1;A;;;;pass;;;fin
++:;;;;#test;16  2 select;;set;;;fin
++:;;;;ok;ok;;set;;;fin;
+
+
+V3;N: >16;;;;;;pass>;;;fin
+
+
+
+;;;;#schema;schema_sortie;;set;;;fin
+#test;;;;code test;;V3;stat;val;;fin
+#test;;;;resultat;;ok;stat;val;;fin
+;;;;;;;statprint;;;fin
+
+;;;;test(-3:T);;#test;set;;;fin
+;;;;#schema;toto;;sortir>;txt;;fin

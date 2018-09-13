@@ -1,0 +1,12 @@
+!att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin
+&&#define;#start_test;variables de base;;;;;;;;
+$F_sortie=txt;;;;;;;;;;
+$mode_sortie=D;;;;;;;;;;
+$fstat=log;;;;;;;;;;
+$force_schema=2;;;;;;;;;;
+$_sortie=sortie/test;;;;;;;;;
+$#%acces%;;;;;;;;;;
+
+;;;;;;;lire_schema;%schema%/schema_test;csv;
+#classe ;_chargement;;;C1,f,g,h;1,2,a,b;;testobj;test,test1;1;fin
+;;;;nouveau(-3:E);;;set;;;fin
