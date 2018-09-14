@@ -89,50 +89,50 @@ def decode_ewkt(code):
 
 
 
-def _parse_ligne(geometrie, texte, start, dim):
-    '''decode une ligne en liste de coordonnees'''
-    if ', ' in texte[start:]:
-        points = texte[start:].split(', ')
-    else:
-        points = texte[start:].split(',')
-    points[0] = points[0].replace('(', '')
-    points[-1] = points[-1].replace(')', '')
-    print('parseligne : ', points)
+#def _parse_ligne(geometrie, texte, start, dim):
+#    '''decode une ligne en liste de coordonnees'''
+#    if ', ' in texte[start:]:
+#        points = texte[start:].split(', ')
+#    else:
+#        points = texte[start:].split(',')
+#    points[0] = points[0].replace('(', '')
+#    points[-1] = points[-1].replace(')', '')
+#    print('parseligne : ', points)
+#
+#    for i in points:
+#        print('points', i)
+#        coords = [float(c) for c in i.split(' ')]
+#        geometrie.addpoint(coords, dim)
+#    geometrie.fin_section(1, 0)
+#
+#
+#def _parse_multiligne(geometrie, texte, start, dim):
+#    '''decode une multiligne en lignes'''
+#    lignes = texte[start:].split('),(')
+#    for i in lignes:
+#        _parse_ligne(geometrie, i, 0, dim)
+#
+#
+#def _parse_multipolygon(geometrie, texte, start, dim):
+#    '''decode un multipolygone en multilignes'''
+#
+#    polygones = texte[start:].split(')),((')
+#    for i in polygones:
+#        _parse_multiligne(geometrie, i, 0, dim)
 
-    for i in points:
-        print('points', i)
-        coords = [float(c) for c in i.split(' ')]
-        geometrie.addpoint(coords, dim)
-    geometrie.fin_section(1, 0)
 
-
-def _parse_multiligne(geometrie, texte, start, dim):
-    '''decode une multiligne en lignes'''
-    lignes = texte[start:].split('),(')
-    for i in lignes:
-        _parse_ligne(geometrie, i, 0, dim)
-
-
-def _parse_multipolygon(geometrie, texte, start, dim):
-    '''decode un multipolygone en multilignes'''
-
-    polygones = texte[start:].split(')),((')
-    for i in polygones:
-        _parse_multiligne(geometrie, i, 0, dim)
-
-
-def _getdim(texte, start):
-    '''retourne la dimension de l'objet'''
-    if texte[start] == 'Z':
-        dim = 3
-        start = start + 1
-    else:
-        dim = 2
-    while texte[start] == ' ':
-        start += 1
-    if texte[start] == '(':
-        start += 1
-    return start, dim
+#def _getdim(texte, start):
+#    '''retourne la dimension de l'objet'''
+#    if texte[start] == 'Z':
+#        dim = 3
+#        start = start + 1
+#    else:
+#        dim = 2
+#    while texte[start] == ' ':
+#        start += 1
+#    if texte[start] == '(':
+#        start += 1
+#    return start, dim
 
 #def _parse_start(nature, niveau, poly, ring, nbring):
 #    """demarre un nouvel element"""

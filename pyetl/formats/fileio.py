@@ -29,7 +29,7 @@ class FileWriter(object):
     def __init__(self, nom, liste_att=None, converter=str, separ=None,
                  encoding='utf-8', liste_fich=None, srid='3948', schema=None):
         self.nom = nom
-        self.liste_att = liste_att
+        self.liste_att = _set_liste_attributs(schema, liste_att)
         self.fichier = None
         self.etat = self.INIT
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)

@@ -395,6 +395,9 @@ def _ecrire_point_asc(point):
     except ValueError:
         print('erreur ecriture point', point.coords, dim)
 
+def format_date(date):
+    ''' genere une date ne format entete elyx'''
+    return date.replace('/', '-').replace(' ', ',').split('.')[0] if date else '01-01-1000,00:00:00'
 
 def _ecrire_entete_asc(obj):
     ''' genere le texte d'entete asc a partir d'un objet en memoire'''
@@ -420,11 +423,9 @@ def _ecrire_entete_asc(obj):
             print("geometrie invalide ", obj.geom)
             type_geom_sortie = ';5 '
 
-    fin_ent = (";"+attr.get("#_sys_date_cre",
-                            '01-01-1000,00:00:00').replace('/', '-').replace(' ', ',')
-               +','+attr.get("#_sys_date_mod",
-                             '01-01-1000,00:00:00').replace('/', '-').replace(' ', ',')
-               +";"+attr.get('#complement', ''))
+    dcre = format_date(attr.get("#_sys_date_cre"))
+    dmod = format_date(attr.get("#_sys_date_mod"))
+    fin_ent = (";"+dcre+','+dmod+";"+attr.get('#complement', ''))
     idobj = id_num+','+classe+','+index
     if fin_ent[-1] == '\n':
         fin_ent = fin_ent[:-1]
@@ -498,9 +499,9 @@ def _convertir_objet_asc(obj, liste):
 
 class AscWriter(FileWriter):
     ''' gestionnaire d'ecriture pour fichiers asc'''
-    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None):
+    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None):
         super().__init__(nom, liste_att=liste_att, converter=_convertir_objet_asc,
-                         encoding='cp1252', liste_fich=liste_fich)
+                         encoding='cp1252', liste_fich=liste_fich, schema=schema)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         self.ttext = "FIN\n"
 
@@ -535,8 +536,10 @@ def asc_streamer(obj, regle, _, attributs=None):
             streamwriter = AscWriter(nom,
                                      encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
                                      liste_att=attributs,
-                                     liste_fich=regle.stock_param.liste_fich)
+                                     liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
             ressource = sorties.creres(regle.numero, nom, streamwriter)
+        else:
+            ressource.handler.changeclasse(obj.schema,attributs)
 #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
 
         regle.ressource = ressource

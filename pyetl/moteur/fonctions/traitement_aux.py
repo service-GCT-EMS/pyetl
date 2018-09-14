@@ -328,7 +328,6 @@ def fschema_garder_attributs(regle, obj):
 
 def fschema_change_schema(regle, obj):
     '''changement de schema '''
-#    print ('regles : changement de schema')
 
     nom_schema = obj.attributs.get("#schema")
     if not nom_schema:
@@ -337,6 +336,7 @@ def fschema_change_schema(regle, obj):
     if nom_schema == obj.schema.schema.nom:
         return
     ident = obj.ident
+    schemaclasseold = obj.schema
     schema2 = regle.stock_param.init_schema(nom_schema, fich=regle.nom_fich_schema
                                             if regle.nom_fich_schema else nom_schema,
                                             origine='S', modele=obj.schema.schema)
@@ -346,4 +346,16 @@ def fschema_change_schema(regle, obj):
 #        print ("moteur : copie schema ", nom_schema, ident,  schema2.nom)
 #        raise
         schema_classe = copyschema(obj.schema, ident, schema2, filiation=True)
+    if schema_classe.amodifier(regle):
+        mode = regle.getvar('schema_nocase',False,loc=0)
+        if mode: # on adapte la casse
+            print('adaptation schema ', mode)
+            fonction = lambda x: x.lower() if mode == 'min' else lambda x: x.upper()
+            schema_classe.adapte_attributs(fonction)
+
     obj.setschema(schema_classe)
+    if schemaclasseold is None:
+        return
+    if regle.getvar('supp_schema',False,loc=0):
+        schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
+

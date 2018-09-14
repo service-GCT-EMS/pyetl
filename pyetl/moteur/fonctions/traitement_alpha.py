@@ -67,6 +67,26 @@ def f_setval(regle, obj):
                                    regle.params.val_entree.val))
     return True
 
+def h_setschema(regle):
+    '''helper : positionne le nocase'''
+    if regle.params.cmp1.val:
+        regle.vloc['schema_nocase']=regle.params.cmp1.val
+
+
+def f_setschema(regle, obj):
+    '''#aide||affectation d un schema en adaptant la casse des attributs du schema a l'objet
+       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #schema||change_schema
+       #pattern||=#schema;?;?A;set;?=maj;||sortie
+       #pattern2||=#schema;?;?A;set;?=min;||sortie
+    '''
+    obj.attributs["#schema"] = obj.attributs.get(regle.params.att_entree.val,
+                                                regle.params.val_entree.val)
+    return True
+
+
+
+
 def f_setgeom(regle, obj):
     '''#aide||affectation d un attribut
        #aide_spec||cree une geometrie texte

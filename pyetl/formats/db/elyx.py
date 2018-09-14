@@ -28,14 +28,9 @@ class ElyConnect(ora.OraConnect):
         self.adminschema = "ELYX_ADMIN_P"
         self.modelschema = "ELYX_MODELE"
 #        print ('code de la base', code, params)
-        self.params = params
         if params and code:
-            self.adminschema = params.get_param("adminschema_"+code,
-                                                params.get_param("elyx_adminschema", self.adminschema ))
-            self.modelschema = params.get_param("modelschema"+code,
-                                                params.get_param("elyx_modelschema", self.modelschema ))
-
-
+            self.adminschema = params.get_param("elyx_adminschema_", defaut=self.adminschema, groupe=code)
+            self.modelschema = params.get_param("elyx_modelschema", defaut=self.modelschema, groupe=code)
 
 
 
@@ -60,29 +55,46 @@ class ElyConnect(ora.OraConnect):
         if fini.returncode:
             print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
 
+    def setenv(self):
+        '''positionne les variables d'nevironnement pour les programmes externes '''
+        orahome = self.params.get_param("feaora_oracle_home_", groupe=self.code)
+        env = dict(os.environ)
+        if orahome: # on manipule les variables d'environnement
+            env['ORACLE_HOME'] = orahome
+            env['Path'] = orahome+'\\bin;'+env['Path']
+        return env
+
+    def getservparams(self, env):
+        '''recherche les parametres serveur via tnsping'''
+
+
+
+
 
 
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
-        serveur = ' --'.join(self.serveur.split(' '))
-        chaine_connect = serveur + ' --dbname=' + self.base
 
-        if self.user:
-            chaine_connect = chaine_connect + ' --username=' + self.user
-        if logfile:
-            chaine_connect = chaine_connect + ' --log-file='+logfile + ' --quiet'
-
-        chaine = " --".join((helper, chaine_connect, 'file='+file))
-#        print ('loader ', chaine)
-        env = dict(os.environ)
-        env['PGCLIENTENCODING'] = "UTF8"
-        if self.passwd:
-            env['PGPASSWORD'] = self.passwd
+        env = self.setenv()
+        serv, port, sid, base = self.getservparams(env)
+        chaine = helper+' '+serv+':'+port+' '+sid+' '+base
+        chaine = chaine+' '+self.user+' '+self.passwd
+        chaine = chaine+' '+file+' '+logfile +' '+syscoords+' 1'
         fini = subprocess.run(chaine, env=env)
         if fini.returncode:
             print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
 
-    def extract(self, helper, dest ,)
+
+
+
+    def extdump(self, helper, dest ,liste, logfile=None):
+        '''extrait des donnees par ORA2FEA'''
+        # mise en place de l'environnement:
+        env = self.setenv()
+
+
+
+
 
 
 

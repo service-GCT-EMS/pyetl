@@ -437,6 +437,7 @@ class Objet(object):
     def dupplique(self):
         '''retourne une copie de l'objet
             sert dans toutes les fonctions avec dupplication d'objets'''
+#        print ('dupplication objets',self.ident)
         old_sc = self.schema # on traite le cas des schemas qui doivent rester un lien
         self.schema = None
         self.liste_attributs = None

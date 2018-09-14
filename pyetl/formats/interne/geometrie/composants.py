@@ -130,7 +130,11 @@ class Section(object):
 
     def addpoint(self, pnt):
         '''ajoute un point'''
+        if self.coords and self.coords[-1] == pnt: # on evite les points doubles
+            print('detecte point_double', pnt)
+            return
         self.coords.append(pnt[:])
+#        print ('coords',pnt,self.coords)
 
     def addpoints(self, liste):
         '''ajoute une liste de points'''
@@ -138,7 +142,10 @@ class Section(object):
 
     def setsect(self, liste,couleur,courbe):
         '''ajoute une liste de points'''
-        self.coords = [i[:] for i in liste]
+        tmp = [liste[0][:]]
+        [tmp.append(i[:]) for i in liste if i != tmp[-1]]
+        self.coords = tmp
+#        self.coords = [i[:] for i in liste]
         self.encours = False
         self.courbe = courbe
         #if courbe==3: raise
@@ -286,6 +293,7 @@ class Ligne(object):
 
     def addpoint(self, pnt, dim):
         '''on ajoute un point a une ligne'''
+        print ('addpoint_ligne')
         if self.termine:
             return pnt # pas possible la ligne est fermee
         sc=self.sections[-1]

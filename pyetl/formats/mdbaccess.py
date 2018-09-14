@@ -222,8 +222,8 @@ def _get_tables(connect):
         if schemaclasse.info["type_geom"] == 'indef':
             schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
             schemaclasse.info['nom_geometrie'] = 'geometrie'
-        else:
-            print ('geometrie_connue',schemaclasse.info["type_geom"])
+#        else:
+#            print ('geometrie_connue',schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
 
@@ -829,7 +829,7 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
 
         res += sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
                                 sortie, v_sortie, schema_classe_postgis.info["type_geom"],
-                                schema_classe_travail, treq=treq)
+                                schema_classe_travail, treq=treq, cond=('geom',fonction))
 
 
 #    print('recup_req geom: traitement ', res, 'objets en', round(time.time()-interm, 2), 's')

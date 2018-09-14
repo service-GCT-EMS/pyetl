@@ -187,7 +187,6 @@ class RegleTraitement(object): # regle de mapping
 #        self.nom_base = 'defaut'
         self.changeclasse = None
         self.changeschema = None
-
         self.elements = None
         self.f_sortie = None
 

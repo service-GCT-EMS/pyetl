@@ -48,58 +48,58 @@ def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
 class Schema(object):
     ''' definition d'un schema : ensemble de classes et de conformites '''
     #types_G={0:"NOGEOM",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
-    dic_abrev = {'COMMUNE':'COM',
-                 'DATE':'DT', 'ANNEE':'AN',
-                 'CODE':'CD',
-                 'LIBELLE':'LIB', 'FINAL':'FIN',
-                 'NIVEAU':'NIV', 'NIV':'N',
-                 'INTERVENTION':'INTRV',
-                 'BATIMENT':'BAT',
-                 'CIRCULATION':'CIRC',
-                 'CORRESPONDANCE':'CORRESP', 'CORRESP':'CRSP',
-                 'CONCESSIONAIRE':'CONCESS', 'CONCESS':'CCS',
-                 'CONCESSION':'CONCESS',
-                 'DEPENDANCE':'DEP', 'DEPENDANCES':'DEP',
-                 'DOMANIALITE':'DOM',
-                 'DISTANCE':'DIST',
-                 'DEFORMATION':'DEF',
-                 'EMPLACEMENT':'EMPLACT', 'EMPLACT':'EMP',
-                 'EMPRISE':'EMPR',
-                 'FISSURE':'FIS',
-                 'GESTION':'GEST',
-                 'NUMERO':'NUM', 'NUM':'N',
-                 'PRESTATAIRE':'PREST',
-                 'PROPRIETAIRE':'PROP', 'PROPRIETE':'PROP',
-                 'REMPLISSAGE':'REMP',
-                 'ROUTE':'RTE',
-                 'SURFACE':'SURF', 'SURF':'S',
-                 'TAUX':'TX',
-                 'TAUX_REMPLISSAGE':'TR',
-                 'TOPONYME':'TPNY',
-                 'TRANSVERSALE':'TRV',
-                 'USAGE':'USG',
-                 'GEOMETRIE':'GEOM', 'GEOMETRIQUE':"GEOM", "GEOM":"G",
-                 'COMMENTAIRE':'COMMENT', 'COMENT':'CMT',
-                 'LARGEUR':'LARG', 'LONGUEUR':'LONG',
-                 "SOURCE":"SRC", "COMPTAGE":"COMPT", "COMPT":"CTG",
-                 "CREATION":"CRE", "DATE_MISE_A_JOUR":"DATE_MAJ",
-                 'DATE_CREATION':'DATE_CREAT',
-                 'DERNIER':'DER', "DEPLACEMENT":"DEPL",
-                 'DOSSIER':'DOS', "REGISTRE":"REG",
-                 'IDENTIFIANT':'ID', 'PRIMAIRE':"PRIM",
-                 'SOUS':'SS', 'TRONCON':'TRC',
-                 'ADRESSE':'ADR',
-                 'PARCELLE':'PARC', 'PARCELLAIRE':'PARC', 'SECTION':'SEC',
-                 'DESCRIPTION':'DESC',
-                 'EXPLOITANT':'EXP',
-                 'VOLUME':'VOL', 'DIAMETRE':'D', ' DIAM':'D',
-                 'DROIT':'D', 'GAUCHE':'G',
-                 'GESTIONNAIRE':'GEST',
-                 'NATURE_MATERIAU':'MAT',
-                 'FICHE_PDF':'PDF',
-                 'REPARATION':'REPAR', 'CHAUSSEE':'CH', 'STRUCTURE':'STR',
-                 'PANN1':'P1', 'PANN2':'P2', 'PANN3':'P3',
-                 'PANNEAU':'PAN', 'PANNEAUX':'PAN'
+    dic_abrev = {'commune':'com',
+                 'date':'dt', 'annee':'an',
+                 'code':'cd',
+                 'libelle':'lib', 'final':'fin',
+                 'niveau':'niv', 'niv':'n',
+                 'intervention':'intrv',
+                 'batiment':'bat',
+                 'circulation':'circ',
+                 'correspondance':'corresp', 'corresp':'crsp',
+                 'concessionaire':'concess', 'concess':'ccs',
+                 'concession':'concess',
+                 'dependance':'dep', 'dependances':'dep',
+                 'domanialite':'dom',
+                 'distance':'dist',
+                 'deformation':'def',
+                 'emplacement':'emplact', 'emplact':'emp',
+                 'emprise':'empr',
+                 'fissure':'fis',
+                 'gestion':'gest',
+                 'numero':'num', 'num':'n',
+                 'prestataire':'prest',
+                 'proprietaire':'prop', 'propriete':'prop',
+                 'remplissage':'remp',
+                 'route':'rte',
+                 'surface':'surf', 'surf':'s',
+                 'taux':'tx',
+                 'taux_remplissage':'tr',
+                 'toponyme':'tpny',
+                 'transversale':'trv',
+                 'usage':'usg',
+                 'geometrie':'geom', 'geometrique':"geom", "geom":"g",
+                 'commentaire':'comment', 'coment':'cmt',
+                 'largeur':'larg', 'longueur':'long',
+                 "source":"src", "comptage":"compt", "compt":"ctg",
+                 "creation":"cre", "date_mise_a_jour":"date_maj",
+                 'date_creation':'date_creat',
+                 'dernier':'der', "deplacement":"depl",
+                 'dossier':'dos', "registre":"reg",
+                 'identifiant':'id', 'primaire':"prim",
+                 'sous':'ss', 'troncon':'trc',
+                 'adresse':'adr',
+                 'parcelle':'parc', 'parcellaire':'parc', 'section':'sec',
+                 'description':'desc',
+                 'exploitant':'exp',
+                 'volume':'vol', 'diametre':'d', ' diam':'d',
+                 'droit':'d', 'gauche':'g',
+                 'gestionnaire':'gest',
+                 'nature_materiau':'mat',
+                 'fiche_pdf':'pdf',
+                 'reparation':'repar', 'chaussee':'ch', 'structure':'str',
+                 'pann1':'p1', 'pann2':'p2', 'pann3':'p3',
+                 'panneau':'pan', 'panneaux':'pan'
                 }
     def __init__(self, nom_schema, fich='', origine='G', defmodeconf=0, alias=''):
         self.classes = dict()
@@ -155,32 +155,32 @@ class Schema(object):
 
     def guess_classe(self, nom):
         ''' essaye de matcher une classe au mieux avec un nom approximatif '''
-        ref = nom.upper()
+        ref = nom.lower()
         for i in self.classes:
-            if i == nom:
+            if i[1].lower() == ref:
                 return self.classes[i]
         for i in self.classes:
-            if ref == i[1].upper():
+            if ref in i[1].lower():
                 return self.classes[i]
         for i in self.classes:
-            if ref in i[1].upper():
-                return self.classes[i]
-        for i in self.classes:
-            if  i[1].upper() in ref:
+            if  i[1].lower() in ref:
                 return self.classes[i]
         return None
 
 
-    def renomme_classe(self, ancien_nom, nouveau_nom, spec=False):
+    def renomme_classe(self, ancien_ident, nouvel_ident, spec=False):
         '''gere un renommage de classe en terant compte des clefs etrangeres'''
 #        print ('renommage classe ',self.nom,ancien_nom, nouveau_nom)
-        self.classes[nouveau_nom] = self.classes[ancien_nom]
-        self.classes[nouveau_nom].setident(nouveau_nom)
-        del self.classes[ancien_nom]
+        self.classes[nouvel_ident] = self.classes[ancien_ident]
+        self.classes[nouvel_ident].setident(nouvel_ident)
+        del self.classes[ancien_ident]
         for scl in self.classes.values():
-            scl.renomme_cible_classe(ancien_nom, nouveau_nom)
+            scl.renomme_cible_classe(ancien_ident, nouvel_ident)
 
-
+    def supp_classe(self, ident):
+        '''supprime une classe du schema'''
+        if ident in self.classes and self.classes[ident].objcnt==0:
+            del self.classes[ident]
 
 
 

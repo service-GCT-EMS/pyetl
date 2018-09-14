@@ -589,8 +589,12 @@ class Pyetl(object):
                           ])
 #        self.parms['xmlheader'] = self.get_param('xmldefaultheader')
 
-    def get_param(self, nom, defaut='', local=False):
+    def get_param(self, nom, defaut='', local=False, groupe=None):
         ''' fournit la valeur d'un parametre '''
+        if groupe:
+            valeur = self.get_param(nom+'_'+groupe, defaut=None)
+            if valeur is not None:
+                return valeur
         if nom in self.parms:
 #            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
             return self.parms[nom]
