@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 '''modification d'attributs en fonction d'un fichier de parametrage avec
 prise en charge des expressions regulieres'''
 import time
@@ -26,25 +26,25 @@ from  .schema.schema_io import ecrire_schemas # schemas
 
 VERSION = "0.8.2.2_d"
 def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
-    """ création de l'objet logger qui va nous servir à écrire dans les logs"""
+    """ crÃ©ation de l'objet logger qui va nous servir Ã  Ã©crire dans les logs"""
     logger = logging.getLogger(nom)
-    # on met le niveau du logger à DEBUG, comme ça il écrit tout
+    # on met le niveau du logger Ã  DEBUG, comme Ã§a il Ã©crit tout
     if not logger.handlers:
         logger.setLevel(niveau_f)
-        # création d'un formateur qui va ajouter le temps, le niveau
-        # de chaque message quand on écrira un message dans le log
+        # crÃ©ation d'un formateur qui va ajouter le temps, le niveau
+        # de chaque message quand on Ã©crira un message dans le log
         fileformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(module)s.%(funcName)s'+
                                           '::%(message)s')
-        # création d'un handler qui va rediriger une écriture du log vers
+        # crÃ©ation d'un handler qui va rediriger une Ã©criture du log vers
         # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
         if fichier:
             file_handler = logging.FileHandler(fichier)
             # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-            # créé précédement et on ajoute ce handler au logger
+            # crÃ©Ã© prÃ©cÃ©dement et on ajoute ce handler au logger
             file_handler.setLevel(niveau_f)
             file_handler.setFormatter(fileformatter)
             logger.addHandler(file_handler)
-        # création d'un second handler qui va rediriger chaque écriture de log
+        # crÃ©ation d'un second handler qui va rediriger chaque Ã©criture de log
         # sur la console
         print_handler = logging.StreamHandler()
         printformatter = logging.Formatter('%(levelname)s %(funcName)s: %(message)s')
@@ -512,7 +512,7 @@ class Pyetl(object):
         if clef in self.site_params:
 #            print("chargement", valeur, self.site_params[valeur])
             for var, val in self.site_params[clef]:
-                val, _ = map_vars(self, val) # on fait du remplacement à la volee
+                val, _ = map_vars(self, val) # on fait du remplacement Ã  la volee
                 self.parms[var] = val
                 if nom:
                     self.parms[var+'_'+nom] = val

@@ -74,7 +74,7 @@ class ElyConnect(ora.OraConnect):
 
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
-
+        syscoords = ""
         env = self.setenv()
         serv, port, sid, base = self.getservparams(env)
         chaine = helper+' '+serv+':'+port+' '+sid+' '+base

@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """gestion des reprojections"""
 import math as M
 from . import defgrille3 as G
@@ -119,7 +119,7 @@ class Projection(object):
 
 
     def calcule_point_grille_cus(self, xinit, yinit):
-        '''Transformation de coordonnées en utilisant une grille locale'''
+        '''Transformation de coordonnÃ©es en utilisant une grille locale'''
         if self.sens == 0:
             return xinit, yinit, 'nogrille'
         ecart_x, ecart_y, nom = self.grilles.recup_corrections(xinit, yinit)
@@ -130,7 +130,7 @@ class Projection(object):
 
 
     def inv_liso(self, liso, exc, tol):
-        '''inversion de la latitude isométrique'''
+        '''inversion de la latitude isomÃ©trique'''
         p_1 = 2*M.atan(M.exp(liso))-PI/2
         p_0 = 9999
         t2 = M.exp(liso)
@@ -139,39 +139,39 @@ class Projection(object):
             p_1 = 2*M.atan(pow(((1+exc*M.sin(p_0))/(1-exc*M.sin(p_0))),
                                (exc/2))*t2)-PI/2
 #            print ('calcul',p)
-        return p_1                    # RETOUR : latitude isométrique
+        return p_1                    # RETOUR : latitude isomÃ©trique
 
     def en_geo(self, x_en, y_en, tol):
-        '''passage de coordonnées planes à géographiques'''
+        '''passage de coordonnÃ©es planes Ã  gÃ©ographiques'''
         yn0, lc, n, c, exc, _, xn0 = self.proj1
         R = M.sqrt((x_en-xn0)**2+(y_en-yn0)**2)
         ga = M.atan((x_en-xn0)/(yn0-y_en))
         lam = lc+ga/n
         liso = -M.log(abs(R/c))/n
         phi = self.inv_liso(liso, exc, tol)
-        return lam, phi                      # RETOUR : coordonnées géographiques (radian)
+        return lam, phi                      # RETOUR : coordonnÃ©es gÃ©ographiques (radian)
 
     def geo_EN(self, lam, phi):
-        '''passage de coordonnées géographiques à planes'''
+        '''passage de coordonnÃ©es gÃ©ographiques Ã  planes'''
         yn, lc, n, c, exc, _, xn = self.proj2
         liso = M.log(M.tan(PI/4+phi/2)*pow((1-exc*M.sin(phi))/(1+exc*M.sin(phi)),
                                            exc/2))
         X = xn+c*M.exp(-n*liso)*M.sin(n*(lam-lc))
         Y = yn-c*M.exp(-n*liso)*M.cos(n*(lam-lc))
 #        print ('dans geo_en',X,Y)
-        return X, Y                       # RETOUR : coordonnées planes (m)
+        return X, Y                       # RETOUR : coordonnÃ©es planes (m)
 
     def geo_xyz(self, lam, phi, hel, gra, exc):
-        '''passage de coordonnées géographiques à cartésiennes géocentriques'''
+        '''passage de coordonnÃ©es gÃ©ographiques Ã  cartÃ©siennes gÃ©ocentriques'''
         n_interm = gra/M.sqrt(1-(exc*exc)*pow(M.sin(phi), 2))
         x_cart = (n_interm+hel)*M.cos(phi)*M.cos(lam)
         y_cart = (n_interm+hel)*M.cos(phi)*M.sin(lam)
         z_cart = (n_interm*(1-exc*exc)+hel)*M.sin(phi)
         return x_cart, y_cart, z_cart
-        # RETOUR : coordonnées artésiennes géocentriques (m)
+        # RETOUR : coordonnÃ©es artÃ©siennes gÃ©ocentriques (m)
 
     def xyz_geo(self, x_ca, y_ca, z_ca, v_a, exc, tol):
-        '''passage de coordonnées cartésiennes géocentriques à géographiques'''
+        '''passage de coordonnÃ©es cartÃ©siennes gÃ©ocentriques Ã  gÃ©ographiques'''
         lam = M.atan(y_ca/x_ca)
         dist = M.sqrt(x_ca*x_ca+y_ca*y_ca)
         exc2 = exc*exc
@@ -182,7 +182,7 @@ class Projection(object):
             phi = phi1
             phi1 = M.atan(z_ca/dist*pow(1-(v_a*(exc2)*M.cos(phi))/
                                         (dist*M.sqrt(1-exc2*M.sin(phi)**2)), -1))
-        return lam, phi1                   # RETOUR : coordonnées géographiques (radian)
+        return lam, phi1                   # RETOUR : coordonnÃ©es gÃ©ographiques (radian)
 
     def optimise_grilleign(self):
         ''' indexe la grille ign pour un acces plus rapide'''
@@ -209,10 +209,10 @@ class Projection(object):
                                            xSO, ySO, zSO, xNE, yNE, zNE)
 
 
-    #PROG : changement de système de coordonnées avec la grille IGN
+    #PROG : changement de systÃ¨me de coordonnÃ©es avec la grille IGN
     def calcule_point_grille_ign(self, x_orig, y_orig, z_orig, lam_r, phi_r):
         ''' calcule un point par la grille ign'''
-        # passage en degré (on travaille en x 10 comme cela la maille vaut 1)
+        # passage en degrÃ© (on travaille en x 10 comme cela la maille vaut 1)
         lam = lam_r*1800/PI
         phi = phi_r*1800/PI
 
@@ -254,33 +254,33 @@ class Projection(object):
     def lamb_to_cc_grille_ign(self, lam_r, phi_r, tol=TOLDEF):
         '''applique la grille de correction IGN dans le sens L->C'''
         haut_elips = 0
-        # passage en coordonnées cartésiennes
+        # passage en coordonnÃ©es cartÃ©siennes
         x_cart, y_cart, z_cart = self.geo_xyz(lam_r, phi_r, haut_elips, self.ga1, self.ex1)
-        x_trans = x_cart - 168   # transformation approchée NTF->RGF93
+        x_trans = x_cart - 168   # transformation approchÃ©e NTF->RGF93
         y_trans = y_cart - 60
         z_trans = z_cart + 320
-        # calcul des coordonnées géographiques approchées dans le nouveau système
+        # calcul des coordonnÃ©es gÃ©ographiques approchÃ©es dans le nouveau systÃ¨me
         lamt, phit = self.xyz_geo(x_trans, y_trans, z_trans, self.ga2, self.ex2, tol)
         x_trans, y_trans, z_trans = self.calcule_point_grille_ign(x_cart, y_cart,
                                                                   z_cart, lamt, phit)
-        # passage en coordonnées géographiques précises dans le nouveau système
+        # passage en coordonnÃ©es gÃ©ographiques prÃ©cises dans le nouveau systÃ¨me
         return self.xyz_geo(x_trans, y_trans, z_trans, self.ga2, self.ex2, tol)
 
     def cc_to_lamb_grille_ign(self, lam_r, phi_r, tol=TOLDEF):
         '''applique la grille de correction IGN dans le sens C->L'''
         haut_elips = 0
-        # passage en coordonnées cartésiennes
+        # passage en coordonnÃ©es cartÃ©siennes
         x_cart, y_cart, z_cart = self.geo_xyz(lam_r, phi_r, haut_elips, self.ga1, self.ex1)
-        #  calcul des coordonnées cartésienne précises dans le nouveau système (grille IGN)
+        #  calcul des coordonnÃ©es cartÃ©sienne prÃ©cises dans le nouveau systÃ¨me (grille IGN)
         x_grid, y_grid, z_grid = self.calcule_point_grille_ign(x_cart, y_cart, z_cart,\
                                                                lam_r, phi_r)
-        # passage en coordonnées géographiques
+        # passage en coordonnÃ©es gÃ©ographiques
         return self.xyz_geo(x_grid, y_grid, z_grid, self.ga2, self.ex2, tol)
 
 
 
 def param(v_a, ext, _, p_0, p_1, p_2):
-    '''détermination des paramètres dérivés de projection à partir des paramètres publics'''
+    '''dÃ©termination des paramÃ¨tres dÃ©rivÃ©s de projection Ã  partir des paramÃ¨tres publics'''
     n_1 = v_a/M.sqrt(1-ext**2*M.sin(p_1)**2)
     n_2 = v_a/M.sqrt(1-ext**2*M.sin(p_2)**2)
     liso1 = M.log(M.tan(PI/4+p_1/2)*pow((1-ext*M.sin(p_1))/(1+ext*M.sin(p_1)), ext/2))

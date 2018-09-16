@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Wed Dec 10 09:28:45 2014
 

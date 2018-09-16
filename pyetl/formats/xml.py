@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 # formats d'entree sortie
 ''' format xml en sortie '''
 
@@ -12,10 +12,9 @@ from .fileio import FileWriter
 #print ('osm start')
 #import pyetl.schema as SC
 
-# ewkt ##################################################################
-#def parse_ewkb(geometrie,texte):
 def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
-return ""
+    """ecrit une geometrie en xml (gml)"""
+    return ""
 
 class XmlWriter(FileWriter):
     """ gestionnaire des fichiers xml en sortie """

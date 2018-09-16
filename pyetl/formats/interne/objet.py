@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' definition interne des objets
 attributs et geometrie '''
 

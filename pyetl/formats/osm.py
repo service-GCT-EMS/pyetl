@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 # formats d'entree sortie
 ''' format osm '''
 

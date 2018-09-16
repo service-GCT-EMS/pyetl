@@ -635,15 +635,15 @@ def lire_commandes_en_base(mapper, fichier_regles, vloc):
         nomtable = mapper.get_param('macrotable')
     else:
         nomtable = mapper.get_param('scripttable')
-    print('lecture de regles en base ', serv, type_base, nomschema+"."+nomtable,
-          "->", nom)
+#    print('lecture de regles en base ', serv, type_base, nomschema+"."+nomtable,
+#          "->", nom)
     recup = recup_table_parametres(mapper, serv, nomschema, nomtable, clef='nom',
                                    valeur=nom, ordre='ordre', type_base=type_base)
 
     liste_regles = [(v[3], ';'.join([str(i) if i is not None else ''
                                      for i in v[4:]])) for v in recup]
 
-    print('regles lues en base:', serv, nom, liste_regles)
+#    print('regles lues en base:', serv, nom, liste_regles)
 
     return liste_regles
 

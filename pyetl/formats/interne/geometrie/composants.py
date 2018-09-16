@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' definition interne des objets
 attributs et geometrie '''
 
@@ -293,7 +293,7 @@ class Ligne(object):
 
     def addpoint(self, pnt, dim):
         '''on ajoute un point a une ligne'''
-        print ('addpoint_ligne')
+#        print ('addpoint_ligne')
         if self.termine:
             return pnt # pas possible la ligne est fermee
         sc=self.sections[-1]

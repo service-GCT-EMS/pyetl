@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Wed Dec 10 09:28:45 2014
 
@@ -449,7 +449,7 @@ class SchemaClasse(object):
             self._pkey.add(pkey)
 
     def controle_conformites(self, obj, err):
-        ''' valide les conformites à la lecture'''
+        ''' valide les conformites Ã  la lecture'''
     #    print ('conformites a controler',confs)
 
         for i in self.confs.items():
@@ -504,7 +504,7 @@ class SchemaClasse(object):
                 att = self.attributs[i]
 #                print('---------attributs a supprimer ', i, att.nom, att.oblig)
 
-                if att.oblig: #on peut pas creer un obligatoire sautf si defaut (pas encore géré)
+                if att.oblig: #on peut pas creer un obligatoire sautf si defaut (pas encore gÃ©rÃ©)
                     if not att.defaut:
                         continue
                     if att.type_att == "S" or att.type_att == "BS":
@@ -727,7 +727,7 @@ class SchemaClasse(object):
             return self.attributs[nom_attr]
         type_attribut = definition.type_attribut
         if type_attribut == 'X':
-            return # attribut non géré
+            return # attribut non gÃ©rÃ©
         elif type_attribut in CODES_G:
             self.info["nom_geometrie"] = nom_attr
             self.stocke_geometrie(CODES_G[type_attribut], definition.dimension)
@@ -802,7 +802,7 @@ class SchemaClasse(object):
             else:
                 return self.attributs[nom]
         if type_attribut == 'X':
-            return # attribut non géré
+            return # attribut non gÃ©rÃ©
         elif type_attribut in TYPES_G:
             self.info["nom_geometrie"] = nom
             self.stocke_geometrie(type_attribut, dimension)

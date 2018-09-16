@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Fri Dec 11 14:34:04 2015
@@ -133,6 +132,7 @@ def f_map(regle, obj):
  #aide_spec2||si #schema est indique les objets changent de schema
     #pattern||=#schema;C;;map;C;;
   #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||atv;toto;A
+ #test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||cnt;2
     '''
 #    print ("dans map ===============",obj)
     if regle.dynlevel: # attention la regle est dynamique
@@ -144,17 +144,21 @@ def f_map(regle, obj):
         _map_schemas(regle, obj)
     clef = obj.ident
     schema2 = regle.schema
-    nouv = regle.mapping.get(clef, clef)
-    obj.setident(nouv, schema2=schema2)
-    if clef in regle.mapping_attributs:
-        for orig, dest in regle.mapping_attributs[clef].items():
-            try:
-                obj.attributs[dest] = obj.attributs[orig]
-                del obj.attributs[orig]
-            except KeyError:
-                obj.attributs[dest] = ''
+    if clef in regle.mapping:
+        nouv = regle.mapping.get(clef)
+        obj.setident(nouv, schema2=schema2)
+        if clef in regle.mapping_attributs:
+            for orig, dest in regle.mapping_attributs[clef].items():
+                try:
+                    obj.attributs[dest] = obj.attributs[orig]
+                    del obj.attributs[orig]
+                except KeyError:
+                    obj.attributs[dest] = ''
+                    
         return True
-#    print ('mapping non trouve', clef)
+#    print ('====================== mapping non trouve', clef)
+#    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
+#                                            for i in sorted(regle.mapping)]))
     return False
 
 def store_traite_stock(regle):

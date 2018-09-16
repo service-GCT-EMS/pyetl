@@ -1,8 +1,8 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' lecture du format geocity '''
 
 # test de lecture de fichiers geocity depuis fme
-# modif pour la lecure de classes réseau
+# modif pour la lecure de classes rÃ©seau
 # modif pour la lecture de partitions et la lecture de classes complexes
 # modif 17 05 2010 pour lecture trous de partition
 # passage des lignes en multicurve pour etre conforma apic
@@ -61,7 +61,7 @@ def sens_reseau(noeud):
 def coorderror(obj):
     ''' affiche une erreur de coordonnees dans un fichier '''
     LOGGER.error('gy: erreur coordonnees dans le fichier geocity')
-    LOGGER.error('gy: objet rejeté: '+obj.__repr__())
+    LOGGER.error('gy: objet rejetÃ©: '+obj.__repr__())
 
 
 
@@ -118,7 +118,7 @@ def gestion_types_geocity(description):
     return type_a
 
 def prepare_liste_attributs(classe_courante, attr, iter_gy):
-    '''adapte la liste des attributs a des classes réseau'''
+    '''adapte la liste des attributs a des classes rÃ©seau'''
     suite = next(iter_gy)
     attsup = ""
     atttop = ""
@@ -189,7 +189,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
 
     obj.attributs["#type_reseau"] = "arc"
     #print ('mode arc,lecture type reseau:',t1)
-    if tk1 == "0": #arc non orienté
+    if tk1 == "0": #arc non orientÃ©
         obj.attributs["#sens_reseau"] = "0"
 
     elif tk1 == "1":
@@ -204,8 +204,8 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
             obj.infogeom()
             obj_ouvert = 0
             return obj_ouvert, attsup
-    elif tk1 == "2": # point orienté
-        #####debug####self.logger.log("pt_orienté",0) #*debug______
+    elif tk1 == "2": # point orientÃ©
+        #####debug####self.logger.log("pt_orientÃ©",0) #*debug______
         obj.attributs["#type_reseau"] = "noeud"
 
         cx1, cy1 = numconv(iter_gy), numconv(iter_gy)
@@ -379,8 +379,8 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                         obj.attributs[i] = val_attr  # stockage des attributs
                         #if atttop or ast:
                             #print ('attribut' ,i,'->',at)
-    #                if atttop or ast: # on est en présence d'attributs de topologie
-                    if topo: # gestion des classes en  topologie de réseau
+    #                if atttop or ast: # on est en prÃ©sence d'attributs de topologie
+                    if topo: # gestion des classes en  topologie de rÃ©seau
                         try:
                             obj_ouvert, attsup = gestion_noeuds(obj, attr, attsup, iter_gy,
                                                                 unit)
@@ -487,7 +487,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     couleur = 1
                     courbe = 0
                 elif val == 'D':
-                    couleur = 0 # deplacement : on mets le style à 0
+                    couleur = 0 # deplacement : on mets le style Ã  0
                     courbe = 0
                 elif val == 'FA':
                     obj.geom_v.fin_section(couleur, courbe)

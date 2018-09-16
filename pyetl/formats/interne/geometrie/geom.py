@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' definition interne des objets
 attributs et geometrie '''
 
@@ -389,7 +389,7 @@ class Geometrie(object):
                 for i in self.lignes:
                     aire = i.aire_orientee()
                     if aire == 0:
-                        self.erreurs.ajout_erreur("contour degénéré "+typegeom)
+                        self.erreurs.ajout_erreur("contour degÃ©nÃ©rÃ© "+typegeom)
                         self.valide = False
                         return False
                     if orientation == 'R':

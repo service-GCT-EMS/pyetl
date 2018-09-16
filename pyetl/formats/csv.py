@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 # formats d'entree sortie
 '''gestion des formats d'entree et de sortie.
     actuellement les formats suivants sont supportes
@@ -7,10 +7,6 @@
     csv entree et sortie
     shape entree et sortie
 '''
-
-
-
-
 
 
 import os

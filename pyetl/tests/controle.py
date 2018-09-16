@@ -15,21 +15,6 @@ import platform
 from pyetl.moteur.fonctions.outils import scandirs
 
 
-#def scandirs(rac, chemin, rec):
-#    '''parcours recursif d'un repertoire.'''
-#    path = os.path.join(rac, chemin)
-#    if os.path.exists(path):
-#        for element in os.listdir(path):
-#            #print path,element
-#            if os.path.isdir(os.path.join(path, element)):
-#                #print 'trouve directory: ' + element
-#                if rec:
-#                    for fich in scandirs(rac, os.path.join(chemin, element), rec):
-#                        yield fich
-#            else:
-#                yield (os.path.basename(element), chemin)
-
-
 def getdefcodec():
     '''recupere l'encodage systeme'''
     system = platform.system()

@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 '''moteur de traitement principal : gere l'enchainement des regles '''
 import logging
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion

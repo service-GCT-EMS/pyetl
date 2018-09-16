@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' format geojson en lecture et ecriture'''
 
 import os

@@ -338,8 +338,10 @@ def get_schemabase(connect, mode_force_enums=1):
 
     connect.get_elements_specifiques(schema_base)
     schema_base.dialecte = connect.dialecte
-    print('mdbacc: lecture schema base', schema_base.nom, len(schema_base.classes),
-          'tables en', int(time.time()-debut), 's (', schema_base.dialecte, ')')
+    LOGGER.info('lecture schema base '+schema_base.nom+":"+str(len(schema_base.classes))+
+                ' tables en '+str(int(time.time()-debut))+'s ('+schema_base.dialecte+')')
+#    print('mdbacc: lecture schema base', schema_base.nom, len(schema_base.classes),
+#          'tables en', int(time.time()-debut), 's (', schema_base.dialecte, ')')
 #    print('dialectes sql : ', schema_base.dialecte, schema_base.dbsql)
 
 def dbaccess(stock_param, nombase, type_base=None, chemin=""):
@@ -739,12 +741,13 @@ def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, che
 def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, valeur=None,
                            ordre=None, type_base=None):
     '''lit une table en base de donnees et retourne le tableau de valeurs '''
-    print('recup_table', nombase, niveau, classe, "type_base", type_base)
+#    print('recup_table', nombase, niveau, classe, "type_base", type_base)
+    LOGGER.info("recup table en base "+nombase+":"+niveau+"."+classe+" type_base"+type_base)
     connect, schema_travail, _ = get_connect(stock_param, nombase, [niveau], [classe],
                                              'A', False, mode='data', type_base=type_base)
     if connect is None:
         return None
-    print("connection base", connect.type_base)
+#    print("connection base", connect.type_base)
     ident = (niveau, classe)
     curs = connect.req_alpha(ident, schema_travail.get_classe(ident), clef, valeur,
                              '', 0, ordre=ordre)

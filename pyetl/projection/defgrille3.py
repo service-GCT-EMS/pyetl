@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """gestion des grilles de conversion"""
 import csv
 #import pickle
@@ -54,8 +54,8 @@ class ListeGrilles():
         self.grilles = list()
 #        print ('grilles a lire ',repertoire,liste)
         lgrille = os.path.join(repertoire, liste)
-        for i in open(lgrille, "r"):     # fichier contenant la liste des grilles à utiliser
-            nom = i.strip('\n')          # lecture des différents noms de fichiers de grille
+        for i in open(lgrille, "r"):     # fichier contenant la liste des grilles Ã  utiliser
+            nom = i.strip('\n')          # lecture des diffÃ©rents noms de fichiers de grille
             grille = lire(repertoire+"/"+nom) # chargement de la grille
 # modification du nom pour tenir compte du sens d'utilisation de la grille
             if sens == 2:
@@ -65,14 +65,14 @@ class ListeGrilles():
             self.grilles.append(grille)       # liste des definitions de grilles
 
     def recup_corrections(self, x_orig, y_orig):
-        """Transformation de coordonnées en utilisant une grille locale"""
+        """Transformation de coordonnÃ©es en utilisant une grille locale"""
         for grille in self.grilles:          # on cherche la bonne grille
             dec_x, dec_y, calcul = grille.recup_corrections(x_orig, y_orig)
              #if calcul : print (dx,dy,g.nom)
             if calcul:
                 return(dec_x, dec_y, grille.nom)
         return(0.0, 0.0, "nogrille")
-        # RETOUR : coordonées planes transformées et grille utilisée
+        # RETOUR : coordonÃ©es planes transformÃ©es et grille utilisÃ©e
 
     def controle_coherence(self, correct=0):
         """controle la coherence d'une liste de grilles"""
@@ -103,7 +103,7 @@ class ListeGrilles():
 
                         if correct: # on force la coherence
                             grille.valeurs[noeud] = dx1, dy1, calcul
-                            #print "modifié,",noeud,dx1,dy1,calcul
+                            #print "modifiÃ©,",noeud,dx1,dy1,calcul
                         else:
                             print("dg3:grille incoherente", grille.nom, "<>", nom,
                                   noeud, dx0, "<>", dx1, dy0, "<>", dy1)

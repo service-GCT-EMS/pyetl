@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 ''' format asc en lecture et ectiture'''
 
 import os
@@ -515,7 +515,7 @@ def asc_streamer(obj, regle, _, attributs=None):
     #raise
     rep_sortie = regle.getvar('_sortie', loc=2)
     if not rep_sortie:
-        raise NotADirectoryError('repertoire de sortie non défini')
+        raise NotADirectoryError('repertoire de sortie non dÃ©fini')
 #    print('asc:', obj.ident,regle.dident, 'sortie:', rep_sortie)
 
     sorties = regle.stock_param.sorties
