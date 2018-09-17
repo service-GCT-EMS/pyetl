@@ -480,7 +480,7 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
     connect = dbaccess(stock_param, base, type_base=type_base, chemin=chemin)
 
     if connect is None:
-        return None, None, None, None
+        return None, None, None
 
 #    print ('get_connect: schemabase',connect.schemabase.classes.keys())
 
@@ -629,26 +629,25 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
 #    tables = [i for i in cmp1 if i in DBACMODS]
     if not tables:
         tables = 'A'
-#    if 'V' in cmp1 and not 'T' in cmp1:
-#        tables = 'V'
-#    elif 'T' in cmp1 and not 'V' in cmp1:
-#        tables = 'T'
-#    else:
-#        tables = 'A'
-    connect, schema_travail, liste_tables =\
-    get_connect(stock_param, base, niveau, classe, tables, multi, nocase=nocase,
-                nomschema=nom_schema, mode=mode, type_base=type_base, chemin=chemin)
-    print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables, nocase, '->',
-          len(liste_tables), 'tables a sortir')
+
+    retour = get_connect(stock_param, base, niveau, classe, tables, multi, nocase=nocase,
+                         nomschema=nom_schema, mode=mode, type_base=type_base, chemin=chemin)
+
+    if retour:
+        connect, schema_travail, liste_tables = retour
 
 #    print('mdb:recup_schema', type_base, connect.idconnect)
-    if connect:
-#        print('dialecte base ', connect.dialecte, connect.gensql.dialecte)
-        schema_base = connect.schemabase
-        if mode == 'schema':
-            print('schematravail enums', len(schema_travail.conformites))
-            return True
-        return connect, schema_base, schema_travail, liste_tables
+        if connect:
+    #        print('dialecte base ', connect.dialecte, connect.gensql.dialecte)
+            print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables, nocase, '->',
+                  len(liste_tables), 'tables a sortir')
+            schema_base = connect.schemabase
+            if mode == 'schema':
+                print('schematravail enums', len(schema_travail.conformites))
+                return True
+            return connect, schema_base, schema_travail, liste_tables
+    else:
+        print ('erreur de connection a la base',base, niveau, classe )
     return None, None, None, None
 
 
@@ -743,8 +742,12 @@ def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, vale
     '''lit une table en base de donnees et retourne le tableau de valeurs '''
 #    print('recup_table', nombase, niveau, classe, "type_base", type_base)
     LOGGER.info("recup table en base "+nombase+":"+niveau+"."+classe+" type_base"+type_base)
-    connect, schema_travail, _ = get_connect(stock_param, nombase, [niveau], [classe],
-                                             'A', False, mode='data', type_base=type_base)
+    retour = get_connect(stock_param, nombase, [niveau], [classe],
+                         'A', False, mode='data', type_base=type_base)
+    if retour:
+        connect, schema_travail, _ = retour
+    else:
+        return None
     if connect is None:
         return None
 #    print("connection base", connect.type_base)
@@ -761,8 +764,12 @@ def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, vale
 def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
     ''' recupere la valeur maxi d'un champ en base '''
 #    print('recup_table', nombase, niveau, classe, type_base)
-    connect, schema_travail, _ = get_connect(stock_param, nombase, niveau, classe,
+    retour = get_connect(stock_param, nombase, niveau, classe,
                                              'A', False, mode='data', type_base=type_base)
+    if retour:
+        connect, schema_travail, _ = retour
+    else:
+        return None
     if connect is None:
         return None
     retour = dict()
@@ -850,11 +857,12 @@ class DbWriter(object):
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.schema_base = None
-        connect, schema_travail, liste_tables =\
-               get_connect(stock_param, nom, None, None, tables='A', multi=True,
-                           nomschema='', mode='data', type_base=None, chemin="")
-        self.connect = connect
-        self.schema_base = connect.schema_base
+        retour =get_connect(stock_param, nom, None, None, tables='A', multi=True,
+                            nomschema='', mode='data', type_base=None, chemin="")
+        if retour:
+            connect, schema_travail, liste_tables =retour
+            self.connect = connect
+            self.schema_base = connect.schema_base
 
 
 

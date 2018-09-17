@@ -279,9 +279,10 @@ class Objet(object):
         '''affichage de debug'''
         virtuel = '_v' if self.virtuel else ''
         invariant = 'obj'+virtuel+' '+str(self.ido)+': '+code+":clone"+str(self.copie)+' '+\
-                     str(self.attributs.get('#classe'))+'('+str(self.ido)+"):"
+            str(self.attributs.get('#classe'))+'.'+str(self.attributs.get('#classe'))
+        schema = 'schema:'+ ('.'.join((self.schema.schema.nom, ) +self.schema.identclasse)) if self.schema else 'non defini'
         attlist = sorted(self.attributs.keys()) if attlist is None else attlist
-        print(invariant, [(i, self.attributs.get(i, '<non defini>')) for i in attlist])
+        print(invariant+'\n' ,schema+'\n', [(i, self.attributs.get(i, '<non defini>')) for i in attlist])
 
 
 
@@ -328,10 +329,10 @@ class Objet(object):
 
     def setschema(self, schemaclasse, remap=False):
         '''affecte un schema de classe a l'objet et gere le comptage de references'''
+
         if self.schema is not None:
             if not self.virtuel:
                 self.schema.objcnt -= 1
-
         self.schema = schemaclasse
         if schemaclasse is not None:
             if not self.virtuel:

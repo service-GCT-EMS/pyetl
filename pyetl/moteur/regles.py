@@ -372,16 +372,8 @@ class RegleTraitement(object): # regle de mapping
         '''change le schema d'une classe et le cree si besoin'''
         ident = obj.ident
         #groupe, classe = ident
-#        print ("changeschema:",obj.ident,obj.schema.schema.nom,"->",nom_schema)
-        schema2 = self.stock_param.schemas.get(nom_schema)
-        if not schema2:
-#            print ('------------------------------------creation schema',
-#                   obj.schema.schema.nom, '->', nom_schema)
-            schema2 = self.stock_param.init_schema(nom_schema,
-                                                   fich=self.nom_fich_schema,
-                                                   origine='S',
-                                                   modele=obj.schema.schema
-                                                   if obj.schema else None)
+        schema2 = self.stock_param.init_schema(nom_schema, fich=self.nom_fich_schema, origine='S',
+                                               modele=obj.schema.schema if obj.schema else None)
 
         schema_classe = schema2.get_classe(ident, cree=True, modele=obj.schema,
                                            filiation=True)

@@ -30,13 +30,13 @@ def _map_schemas(regle, obj):
         if regle.getvar("schema_entree"):
             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]
             print('-------------------------mapping', schema_origine)
-        else:
-            return
-        if regle.params.val_entree.val:
-            schema2 = regle.stock_param.init_schema(regle.params.val_entree.val,
-                                                    modele=schema_origine, origine='B')
-        else:
-            return
+#        else:
+#            return
+#        if regle.params.val_entree.val:
+#            schema2 = regle.stock_param.init_schema(regle.params.val_entree.val,
+#                                                    modele=schema_origine, origine='B')
+#        else:
+        return
     else:
         schema_origine = obj.schema.schema
         if regle.params.val_entree.val:
@@ -110,6 +110,7 @@ def h_map(regle):
     regle.schema = None
 #    if regle.params.att_sortie.val == '#schema': # mapping d un schema existant
 #        schema2 =
+    regle.changeschema = True
     fich = regle.params.cmp1.val
     if "[F]" in fich:
         regle.dynlevel = 2
@@ -130,7 +131,7 @@ def f_map(regle, obj):
     '''#aide||mapping en fonction d'un fichier
   #aide_spec||parametres: map; nom du fichier de mapping
  #aide_spec2||si #schema est indique les objets changent de schema
-    #pattern||=#schema;C;;map;C;;
+    #pattern||?=#schema;?C;;map;C;;
   #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||atv;toto;A
  #test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||cnt;2
     '''
@@ -154,7 +155,7 @@ def f_map(regle, obj):
                     del obj.attributs[orig]
                 except KeyError:
                     obj.attributs[dest] = ''
-                    
+
         return True
 #    print ('====================== mapping non trouve', clef)
 #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
@@ -377,13 +378,16 @@ def f_sortir(regle, obj):
     astocker = regle.f_sortie.calcule_schema and\
         (not obj.schema or not obj.schema.stable)
 
+    freeze = not regle.final # faudra geler les objets si on les stocke
+
     if not astocker:
 #        print( "sortie_stream",obj.ido,regle,regle.f_sortie.writerparms )
         regle.f_sortie.ecrire_objets_stream(obj, regle, False)
-        return True
+        if regle.final:
+            obj.schema = None
+            return True
 
 # la on stocke
-    freeze = not regle.final # faudra geler les objets si on les stocke
 
 #    print ('changement schema ',obj.schema.schema.nom,regle.nom_fich_schema)
     if astocker:

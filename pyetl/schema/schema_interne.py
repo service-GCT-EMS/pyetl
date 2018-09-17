@@ -30,7 +30,7 @@ def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
     if not nom_schema:
         print('pyetl: schema sans nom')
         raise ValueError
-#    print ('creation schema ',nom_schema)
+#    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas)
     if nom_schema not in mapper.schemas:
         mapper.schemas[nom_schema] = Schema(nom_schema, origine=origine,
                                             fich=fich, defmodeconf=defmodeconf)

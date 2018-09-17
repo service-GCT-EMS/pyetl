@@ -37,6 +37,8 @@ def fdebug(regle, obj):
               liens_num["ok:"] if succes else liens_num["fail:"],
               regle.branchements.brch[obj.redirect+':'] if obj.redirect else
               regle.branchements.brch['ok:'] if succes else regle.branchements.brch['fail:'])
+        if regle.copy:
+            print ('copy :  ->', liens_num["copy:"], regle.branchements.brch['copy:'])
 
     else:
         succes = regle.f_init(regle, obj)
@@ -383,10 +385,10 @@ def traite_helpers(regle, fonc):
                 afficher_erreurs(regle, fonc, "fonction non implementee:")
     if regle.shelper:
         regle.shelper(regle)
-        if regle.changeclasse:
-            regle.changeclasse = fonc.changeclasse
-        if regle.changeschema:
-            regle.changeschema = fonc.changeschema
+    if regle.changeclasse:
+        regle.changeclasse = fonc.changeclasse
+    if regle.changeschema:
+        regle.changeschema = fonc.changeschema
     else:
         if regle.action_schema:
             if (regle.params.att_sortie.dyn

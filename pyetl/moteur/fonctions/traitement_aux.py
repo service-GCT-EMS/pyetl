@@ -328,7 +328,6 @@ def fschema_garder_attributs(regle, obj):
 
 def fschema_change_schema(regle, obj):
     '''changement de schema '''
-
     nom_schema = obj.attributs.get("#schema")
     if not nom_schema:
         print('F-schema: schema sans nom ', obj.ident, regle.ligne)
@@ -340,7 +339,7 @@ def fschema_change_schema(regle, obj):
     schema2 = regle.stock_param.init_schema(nom_schema, fich=regle.nom_fich_schema
                                             if regle.nom_fich_schema else nom_schema,
                                             origine='S', modele=obj.schema.schema)
-
+#    print ('schema2 ',schema2.classes.keys())
     schema_classe = schema2.get_classe(ident)
     if not schema_classe:
 #        print ("moteur : copie schema ", nom_schema, ident,  schema2.nom)
@@ -354,8 +353,14 @@ def fschema_change_schema(regle, obj):
             schema_classe.adapte_attributs(fonction)
 
     obj.setschema(schema_classe)
+#    print( 'changement de schema ',schemaclasseold.schema.nom, obj.schema.schema.nom)
+#    print( 'destination',obj.schema.schema.nom, obj.schema.schema.classes.keys())
+
     if schemaclasseold is None:
         return
     if regle.getvar('supp_schema',False,loc=0):
         schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
 
+def fschema_map(regle,obj):
+    '''gere la fonction de mapping sur l'objet'''
+    return
