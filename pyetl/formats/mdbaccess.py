@@ -430,8 +430,6 @@ def setpath(stock_param, nom):
     return nom
 
 
-
-
 def dbextload(stock_param, base, file):
     '''charge un fichier a travers un loader'''
     connect = dbaccess(stock_param, base)
@@ -733,7 +731,44 @@ def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, che
     return script1+script2+script3
 
 
+def recup_count(regle_courante, base, niveau, classe, attribut, valeur, mods=None,
+                type_base=None, chemin=""):
+    ''' recupere des comptages en base'''
+    connect, schema_base, schema_travail, liste_tables =\
+    recup_schema(regle_courante, base, niveau, classe,
+                 type_base=type_base, chemin=chemin, mode='data', mods=mods)
+    if connect is None:
+        return 0
+    reqdict = dict()
+    if isinstance(attribut, list):
+        for niv, cla, att, val in zip(niveau, classe, attribut, valeur):
+            reqdict[(niv, cla)] = (att, val)
 
+    total = 0
+    for ident in liste_tables:
+        if ident is not None:
+
+            niveau, classe = ident
+
+            schema_classe_travail = schema_travail.get_classe(ident)
+            if isinstance(attribut, list):
+                if ident in reqdict:
+                    attr, val = reqdict[ident]
+                else:
+                    attr, val = "", ""
+            else:
+                attr, val = attribut, valeur
+    #        print("id attr,val", ident, attr, val)
+    #        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
+#    classe)), end='', flush=True)
+            if attr and attr not in schema_classe_travail.attributs\
+                        and attr not in connect.sys_fields:
+                continue #on a fait une requete sur un attribut inexistant: on passe
+        nb = connect.req_count(ident, schema_classe_travail, attr, val, mods)
+#        print ('retour ',nb)
+        if nb and nb[0]:
+            total += nb[0][0]
+    return total
 
 
 

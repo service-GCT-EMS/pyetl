@@ -176,7 +176,7 @@ class SqltConnect(base_sqlite.SqltConnect):
         return cond
 
     def execrequest(self, requete, data, attlist=None):
-        cur = self.get_curseur()
+        cur = self.get_cursinfo()
 #        print('sqlite:execution requete', requete)
         try:
             cur.execute(requete, data, attlist=attlist)

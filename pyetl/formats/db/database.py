@@ -149,7 +149,7 @@ class DbConnect(object):
 
 #  methodes specifiques a ecraser dans les subclasses ####
 
-    def get_curseur(self):
+    def get_cursinfo(self):
         '''recupere un curseur'''
         return Cursinfo(self.connection) if self.connection else None
 
@@ -214,7 +214,7 @@ class DbConnect(object):
 
     def execrequest(self, requete, data=None, attlist=None):
         ''' lancement requete specifique base'''
-        cur = self.get_curseur()
+        cur = self.get_cursinfo()
 #        cur.execute(requete, data=data, attlist=attlist)
 
         try:
@@ -376,57 +376,110 @@ class DbConnect(object):
         return atttext, attlist
 
 
+    def prepare_attribut(self, schema, attribut, valeur):
+        ''' prepare une requete faisant appel a des attributs'''
+
+        if attribut in self.sys_fields: # c est un champ systeme
+            attribut, type_att = self.sys_fields[attribut]
+        else:
+            type_att = schema.attributs[attribut].type_att
+        cast = self.nocast
+        if type_att == 'D':
+            cast = self.datecast
+        elif type_att in 'EFS':
+            cast = self.numcast
+        elif schema.attributs[attribut].conformite:
+            cast = self.textcast
+
+        if isinstance(valeur, (set, list)) and len(valeur) > 1:
+
+            data = self.multivaldata(valeur)
+#                data = {'val':"{'"+"','".join(valeur)+"'}"}
+            cond = self.multival(len(data), cast=cast)
+        else:
+            if isinstance(valeur, (set, list)):
+                val = valeur[0]
+            else:
+                val = valeur
+                oper = '='
+#                oper = '='
+#                val = valeur
+#                print ('dbalpha valeur a traiter',val)
+
+            if val:
+                if val[0] in '<>=~':
+                    oper = val[0]
+                    val = val[1:]
+                if val[0] == '\\':
+                    val = val[1:]
+            cond = self.monoval(oper, cast)
+            data = {'val':val}
+#                print('valeur simple', valeur, oper, cond, cast, data)
+
+        condition = " WHERE "+cast(attribut) + cond
+        return condition, data
 
 
+    def req_count(self, ident, schema, attribut, valeur, mods):
+        '''compte un enesemble de valeurs en base'''
+        niveau, classe = ident
+        data=()
+        condition = ''
+        if attribut:
+            condition, data = self.prepare_attribut(schema, attribut, valeur)
+
+        requete = " SELECT count(*) FROM "+niveau+"."+classe+ condition
+        resultat = self.request(requete, data)
+        return resultat
 
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         '''recupere les elements d'une requete alpha'''
         niveau, classe = ident
-        requete = ''
-        data = ''
+
         attlist = []
         atttext, attlist = self.construction_champs(schema, 'S' in mods, 'L' in mods)
         if attribut:
-            if attribut in self.sys_fields: # c est un champ systeme
-                attribut, type_att = self.sys_fields[attribut]
-            else:
-                type_att = schema.attributs[attribut].type_att
-            cast = self.nocast
-            if type_att == 'D':
-                cast = self.datecast
-            elif type_att in 'EFS':
-                cast = self.numcast
-            elif schema.attributs[attribut].conformite:
-                cast = self.textcast
+            condition, data = self.prepare_attribut(schema, attribut, valeur)
+#            if attribut in self.sys_fields: # c est un champ systeme
+#                attribut, type_att = self.sys_fields[attribut]
+#            else:
+#                type_att = schema.attributs[attribut].type_att
+#            cast = self.nocast
+#            if type_att == 'D':
+#                cast = self.datecast
+#            elif type_att in 'EFS':
+#                cast = self.numcast
+#            elif schema.attributs[attribut].conformite:
+#                cast = self.textcast
+#
+#            if isinstance(valeur, (set, list)) and len(valeur) > 1:
+#
+#                data = self.multivaldata(valeur)
+##                data = {'val':"{'"+"','".join(valeur)+"'}"}
+#                cond = self.multival(len(data), cast=cast)
+#            else:
+#                if isinstance(valeur, (set, list)):
+#                    val = valeur[0]
+#                else:
+#                    val = valeur
+#                    oper = '='
+##                oper = '='
+##                val = valeur
+##                print ('dbalpha valeur a traiter',val)
+#
+#                if val:
+#                    if val[0] in '<>=~':
+#                        oper = val[0]
+#                        val = val[1:]
+#                    if val[0] == '\\':
+#                        val = val[1:]
+#                cond = self.monoval(oper, cast)
+#                data = {'val':val}
+##                print('valeur simple', valeur, oper, cond, cast, data)
 
-            if isinstance(valeur, (set, list)) and len(valeur) > 1:
-
-                data = self.multivaldata(valeur)
-#                data = {'val':"{'"+"','".join(valeur)+"'}"}
-                cond = self.multival(len(data), cast=cast)
-            else:
-                if isinstance(valeur, (set, list)):
-                    val = valeur[0]
-                else:
-                    val = valeur
-                    oper = '='
-#                oper = '='
-#                val = valeur
-#                print ('dbalpha valeur a traiter',val)
-
-                if val:
-                    if val[0] in '<>=~':
-                        oper = val[0]
-                        val = val[1:]
-                    if val[0] == '\\':
-                        val = val[1:]
-                cond = self.monoval(oper, cast)
-                data = {'val':val}
-#                print('valeur simple', valeur, oper, cond, cast, data)
-
-            requete = " SELECT "+atttext+" FROM "+niveau+"."+classe+\
-                          " WHERE "+cast(attribut) + cond
+            requete = " SELECT "+atttext+" FROM "+niveau+"."+classe+ condition
+#                          " WHERE "+cast(attribut) + cond
         else:
             requete = " SELECT "+atttext+" FROM "+niveau+"."+classe
             data = ()

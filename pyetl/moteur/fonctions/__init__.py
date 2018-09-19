@@ -209,7 +209,7 @@ def interprete_doc(listedoc):
             elements = ligne.split('||')
             description_fonction[elements[0]] = elements[1:]
             lastel = elements[0]
-        if ligne.startswith("+"):
+        if ligne.startswith("+") or ligne.startswith('||'):
             elements = ligne.split('||')
             description_fonction[lastel].extend(elements[1:])
 

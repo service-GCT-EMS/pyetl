@@ -282,7 +282,7 @@ class OraConnect(database.DbConnect):
 
     def execrequest(self, requete, data, attlist=None):
         '''passage de la requete sur la base'''
-        cur = self.get_curseur()
+        cur = self.get_cursinfo()
 #        print ('ora:execution_requet',requete)
         try:
             cur.execute(requete, data, attlist=attlist)

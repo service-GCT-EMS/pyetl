@@ -137,19 +137,14 @@ def h_dbalpha(regle):
     regle.erreurs.append("dbalpha: erreur base non definie")
     return False
 
-def f_dbalpha(regle, obj):
-    '''#aide||recuperation d'objets depuis la base de donnees
-     #groupe||database
-    #pattern||?A;?;?;dbalpha;?;?
 
-    '''
-    #regle.stock_param.regle_courante=regle
-    type_base = None
-    chemin = ''
+def setdb(regle,obj):
+    '''positionne des parametres d'acces aux bases de donnees'''
+    base, niveau, classe, attribut = regle.cible_base
     attrs = []
     cmp = []
-    valeur = []
-    base, niveau, classe, attribut = regle.cible_base
+    type_base = None
+    chemin = ''
     if attribut: #attention on traite des attributs
         if isinstance(attribut, tuple):
             attrs, cmp = attribut
@@ -179,6 +174,53 @@ def f_dbalpha(regle, obj):
     else:
         valeur = cmp
 
+    return (base, niveau, classe, attrs, valeur, chemin, type_base)
+
+
+
+def f_dbalpha(regle, obj):
+    '''#aide||recuperation d'objets depuis la base de donnees
+     #groupe||database
+    #pattern||?A;?;?;dbalpha;?;?
+
+    '''
+    #regle.stock_param.regle_courante=regle
+#    type_base = None
+#    chemin = ''
+#    attrs = []
+#    cmp = []
+#    valeur = []
+    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle,obj)
+#    base, niveau, classe, attribut = regle.cible_base
+#    if attribut: #attention on traite des attributs
+#        if isinstance(attribut, tuple):
+#            attrs, cmp = attribut
+#        else:
+#            attrs = attribut
+##    print ('f_alpha :',attrs, cmp)
+#    if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
+#
+#        chemin = obj.attributs["#chemin"]
+#        if not base:
+#            base = obj.attributs["#base"]
+#        type_base = obj.attributs["#type_base"]
+#        regle.setvar("db", type_base, loc=1)
+#        regle.setvar("server", chemin, loc=1)
+##    print ('regles alpha: acces base ', base, niveau, classe, attribut)
+#
+#    if niveau and niveau[0].startswith('['): # nom de classe contenu dans un attribut
+#        niveau = [obj.attributs.get(niveau[0][1:-1], 'xx')]
+#    if classe and classe[0].startswith('['): # nom de classe contenu dans un attribut
+#        classe = [obj.attributs.get(classe[0][1:-1], 'xx')]
+#    if regle.params.att_entree.liste:
+##        print('on a mis un attribut', regle.params.att_entree.liste)
+#        valeur = [obj.attributs.get(a, d) for a, d
+#                  in zip_longest(regle.params.att_entree.liste, regle.params.val_entree.liste)]
+#    elif regle.params.val_entree.liste:
+#        valeur = regle.params.val_entree.liste
+#    else:
+#        valeur = cmp
+#
     mods = regle.params.cmp1.liste
 
 
@@ -370,8 +412,8 @@ def f_dbmaxval(regle, obj):
     '''#aide||valeur maxi d une claef en base de donnees
      #groupe||database
     #pattern||?P;;;dbmaxval;?C;
-    #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
-    -||ptv;toto;1
+       #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
+            ||ptv;toto;1
     '''
     pass
 
@@ -379,28 +421,34 @@ def f_dbmaxval(regle, obj):
 
 
 def h_dbcount(regle):
-    ''' stocke la valeur maxi '''
-    param_base(regle)
-    base, niveau, classe, attribut = regle.cible_base
-    retour = DB.count(regle.stock_param, base, niveau, classe)
-    if len(retour) == 1 and regle.params.att_sortie.val:
-        # cas simple on stocke l' attribut dans le parametre
-        valeur = list(retour.values())[0]
-        regle.stock_param.set_param(regle.params.att_sortie.val, str(valeur))
-        print('comptage', regle.params.att_sortie.val, str(valeur))
-    nom = regle.params.cmp1.val if regle.params.cmp1.val else '#nbvals'
-    regle.stock_param.store[nom] = retour
-    regle.valide = 'done'
-    return True
+    ''' recupere le nombre d'objets '''
+    retour = h_dbalpha(regle)
+    regle.chargeur = False
+    return retour
+
 
 def f_dbcount(regle, obj):
-    '''#aide||valeur maxi d une claef en base de donnees
+    '''#aide||nombre d'objets dans un groupe de tables
      #groupe||database
-    #pattern||?P;;;dbcount;?C;
-       #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbcount
-           -||ptv;toto;1
+    #pattern||S;;;dbcount;?C;
+       #test||obj||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;toto;;;dbcount;
+            ||atv;toto;1
     '''
-    pass
+    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle,obj)
+#    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)
+
+    mods = regle.params.cmp1.liste
+
+    LOGGER.debug('regles count:ligne  '+ repr(regle)+ repr(type_base)+ repr(mods))
+
+    if base:
+        retour = DB.recup_count(regle, base, niveau, classe, attrs, valeur, mods=mods,
+                type_base=type_base, chemin=chemin)
+#        print ('regles cnt: valeur retour',retour,obj)
+        obj.attributs[regle.params.att_sortie.val]=str(retour)
+        return True
+    print('fdbalpha: base non definie ', base)
+    return False
 
 
 
