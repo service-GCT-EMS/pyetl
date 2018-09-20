@@ -19,7 +19,7 @@ from pyetl.schema.fonctions_schema import copyschema
 from .interne.objet import Objet
 
 
-
+DEBUG = False
 LOGGER = logging.getLogger('pyetl')
 # modificateurs de comportement reconnus
 DBACMODS = {'A', 'T', 'V', '=', 'NOCASE'}
@@ -227,11 +227,11 @@ def _get_tables(connect):
 
         schemaclasse.type_table = type_table
 
-def _get_attributs(connect, debug=0):
+def _get_attributs(connect):
     """recupere les attributs"""
     types_base = connect.types_base
     schema_base = connect.schemabase
-    if debug:
+    if DEBUG:
         print('ecriture debug:', 'lecture_base_attr_'+connect.type_serveur+'.csv')
         fdebug = open('lecture_base_attr_'+connect.type_serveur+'.csv', 'w')
         fdebug.write('nom_groupe;nom_classe;nom_attr;alias;type_attr;graphique;multiple;\
@@ -244,7 +244,7 @@ def _get_attributs(connect, debug=0):
 #            defaut, obligatoire, enum, dimension, num_attribut, index, unique, clef_primaire,\
 #            clef_etrangere, cible_clef, taille, decimales = i
 #        ident = (atd.nom_groupe, atd.nom_classe)
-        if debug:
+        if DEBUG:
             fdebug.write(';'.join([str(v) if v is not None else '' for v in i]))
             fdebug.write('\n')
         num_attribut = float(atd.num_attribut)
@@ -306,7 +306,7 @@ def _get_attributs(connect, debug=0):
                                index=index, unique=atd.unique, obligatoire=obligatoire,
                                multiple=atd.multiple)
 
-    if debug:
+    if DEBUG:
         fdebug.close()
 
 
@@ -316,7 +316,6 @@ def _get_attributs(connect, debug=0):
 def get_schemabase(connect, mode_force_enums=1):
     """ recupere le schema complet de la base """
     debut = time.time()
-    debug = 0
     schema_base = connect.schemabase
 #    types_base = connect.types_base
 
@@ -326,7 +325,7 @@ def get_schemabase(connect, mode_force_enums=1):
         conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
 
 
-    _get_attributs(connect, debug)
+    _get_attributs(connect)
     _get_tables(connect)
 
 
@@ -377,7 +376,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         return None
 #    print( 'avant connection')
     connection = db.DATABASES[servertyp].acces(serveur, base, user, passwd,
-                                               debug=0, system=systables,
+                                               system=systables,
                                                params=stock_param, code=codebase)
 
 #    print( 'apres connection')
@@ -473,17 +472,15 @@ def dbrunsql(stock_param, base, file, log=None, out=None):
 
 
 def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocase=False,
-                nomschema='', mode='data', type_base=None, chemin=""):
+                nomschema='', type_base=None, chemin=""):
     ''' recupere la connection a la base et les schemas qui vont bien'''
     connect = dbaccess(stock_param, base, type_base=type_base, chemin=chemin)
 
     if connect is None:
-        return None, None, None
-
-#    print ('get_connect: schemabase',connect.schemabase.classes.keys())
+        LOGGER.error('connection base invalide'+str(base))
+        return None
 
     nomschema = nomschema if nomschema else 'schema_'+connect.nombase
-#    print("get_connect:schema travail", nomschema)
     schema_travail = stock_param.init_schema(nomschema, 'B', modele=connect.schemabase)
     liste2 = []
 #    print ( 'schema base ',schema_base.classes.keys())
@@ -494,21 +491,14 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
         clas2.setinfo('objcnt_init', classe.getinfo('objcnt_init', '0'))
         # on renseigne le nombre d'objets de la table
         clas2.type_table = classe.type_table # pour eviter qu elle soit marqueee interne
-#        print ('mdba:transfert classes ', ident, clas2.type_table, classe.type_table)
 
-#        if mode == 'schema':
-#            clas2.utilise = True
-#        else:
-#            clas2.objcnt = 0
         liste2.append(ident)
-    if mode != 'schema':
-        niveau = tablesorter(liste2, connect.schemabase)
+#    if mode != 'schema':
+    niveau = tablesorter(liste2, connect.schemabase)
 #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:
         connect.select_elements_specifiques(schema_travail, liste2)
-#    schema_travail.alias_groupes=dict(schema_base.alias_groupes)
-#    print('get_connect schema_travail', len(connect.schemabase.classes), '-->',
-#          len(schema_travail.classes), len(schema_travail.conformites))
+
     LOGGER.info('get_connect schema_travail '+ str(len(connect.schemabase.classes))+
                 '-->'+str(len(schema_travail.classes)) + str(len(schema_travail.conformites)))
     return connect, schema_travail, liste2
@@ -615,7 +605,7 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
     return nbvals
 
 def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
-                 type_base=None, chemin="", mode='schema', mods=None):
+                 type_base=None, chemin="", mods=None):
     ''' recupere juste les schemas de la base sans donnees '''
     stock_param = regle_courante.stock_param
     cmp1 = mods if mods is not None else [i.upper() for i in regle_courante.params.cmp1.liste]
@@ -629,24 +619,20 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
         tables = 'A'
 
     retour = get_connect(stock_param, base, niveau, classe, tables, multi, nocase=nocase,
-                         nomschema=nom_schema, mode=mode, type_base=type_base, chemin=chemin)
+                         nomschema=nom_schema, type_base=type_base, chemin=chemin)
 
     if retour:
         connect, schema_travail, liste_tables = retour
 
-#    print('mdb:recup_schema', type_base, connect.idconnect)
-        if connect:
-    #        print('dialecte base ', connect.dialecte, connect.gensql.dialecte)
-            print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables, nocase, '->',
-                  len(liste_tables), 'tables a sortir')
-            schema_base = connect.schemabase
-            if mode == 'schema':
-                print('schematravail enums', len(schema_travail.conformites))
-                return True
-            return connect, schema_base, schema_travail, liste_tables
+        if not liste_tables or DEBUG:
+            print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables,
+                  nocase, '->', len(liste_tables), 'tables a sortir')
+        schema_base = connect.schemabase
+
+        return (connect, schema_base, schema_travail, liste_tables)
     else:
-        print ('erreur de connection a la base',base, niveau, classe )
-    return None, None, None, None
+        print('erreur de connection a la base', base, niveau, classe)
+    return (None, None, None, None)
 
 
 def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, valeur,
@@ -657,7 +643,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 #    print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, v_sortie)
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
-                 type_base=type_base, chemin=chemin, mode='data', mods=mods)
+                 type_base=type_base, chemin=chemin, mods=mods)
     if connect is None:
         return 0
     reqdict = dict()
@@ -719,7 +705,7 @@ def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, che
     ''' genere un script de reset de tables'''
     connect, schema_base, schema_travail, liste_tables =\
         recup_schema(regle_courante, base, niveau, classe,
-                     type_base=type_base, chemin=chemin, mode='data', mods=mods)
+                     type_base=type_base, chemin=chemin, mods=mods)
     travail = reversed(liste_tables) # on inverse l'ordre c est de la destruction
     gensql = connect.gensql
 
@@ -736,7 +722,7 @@ def recup_count(regle_courante, base, niveau, classe, attribut, valeur, mods=Non
     ''' recupere des comptages en base'''
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
-                 type_base=type_base, chemin=chemin, mode='data', mods=mods)
+                 type_base=type_base, chemin=chemin, mods=mods)
     if connect is None:
         return 0
     reqdict = dict()
@@ -764,10 +750,10 @@ def recup_count(regle_courante, base, niveau, classe, attribut, valeur, mods=Non
             if attr and attr not in schema_classe_travail.attributs\
                         and attr not in connect.sys_fields:
                 continue #on a fait une requete sur un attribut inexistant: on passe
-        nb = connect.req_count(ident, schema_classe_travail, attr, val, mods)
+        reponse = connect.req_count(ident, schema_classe_travail, attr, val, mods)
 #        print ('retour ',nb)
-        if nb and nb[0]:
-            total += nb[0][0]
+        if reponse and reponse[0]:
+            total += reponse[0][0]
     return total
 
 
@@ -777,15 +763,13 @@ def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, vale
     '''lit une table en base de donnees et retourne le tableau de valeurs '''
 #    print('recup_table', nombase, niveau, classe, "type_base", type_base)
     LOGGER.info("recup table en base "+nombase+":"+niveau+"."+classe+" type_base"+type_base)
-    retour = get_connect(stock_param, nombase, [niveau], [classe],
-                         'A', False, mode='data', type_base=type_base)
+    retour = get_connect(stock_param, nombase, [niveau], [classe], tables='A', multi=0,
+                         type_base=type_base)
     if retour:
         connect, schema_travail, _ = retour
     else:
         return None
-    if connect is None:
-        return None
-#    print("connection base", connect.type_base)
+
     ident = (niveau, classe)
     curs = connect.req_alpha(ident, schema_travail.get_classe(ident), clef, valeur,
                              '', 0, ordre=ordre)
@@ -800,7 +784,7 @@ def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
     ''' recupere la valeur maxi d'un champ en base '''
 #    print('recup_table', nombase, niveau, classe, type_base)
     retour = get_connect(stock_param, nombase, niveau, classe,
-                                             'A', False, mode='data', type_base=type_base)
+                                             'A', False, type_base=type_base)
     if retour:
         connect, schema_travail, _ = retour
     else:
@@ -828,7 +812,7 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
 
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
-                 type_base=type_base, chemin=chemin, mode='data', mods=mods)
+                 type_base=type_base, chemin=chemin, mods=mods)
     if connect is None:
         return 0
     maxobj = int(stock_param.get_param('lire_maxi', 0))
@@ -874,7 +858,7 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
 
         res += sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
                                 sortie, v_sortie, schema_classe_postgis.info["type_geom"],
-                                schema_classe_travail, treq=treq, cond=('geom',fonction))
+                                schema_classe_travail, treq=treq, cond=('geom', fonction))
 
 
 #    print('recup_req geom: traitement ', res, 'objets en', round(time.time()-interm, 2), 's')
@@ -892,10 +876,10 @@ class DbWriter(object):
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.schema_base = None
-        retour =get_connect(stock_param, nom, None, None, tables='A', multi=True,
-                            nomschema='', mode='data', type_base=None, chemin="")
+        retour = get_connect(stock_param, nom, None, None, tables='A', multi=True,
+                             nomschema='', type_base=None, chemin="")
         if retour:
-            connect, schema_travail, liste_tables =retour
+            connect, schema_travail, liste_tables = retour
             self.connect = connect
             self.schema_base = connect.schema_base
 

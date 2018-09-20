@@ -6,6 +6,8 @@ import os
 import time
 import xml.etree.cElementTree as ET
 import re
+import itertools
+from  .ressources import DEFCODEC
 from .interne.objet import Objet
 from .fileio import FileWriter
 
@@ -28,6 +30,7 @@ class XmlWriter(FileWriter):
         self.schema = schema
         self.null = null
         self.writerparms = writerparms
+        self.entete = entete
         template = self.writerparms.get('template')
         if template:
             self.readtemplate(template)
@@ -46,9 +49,9 @@ class XmlWriter(FileWriter):
 
     def readtemplate(self, templatefile, codec=DEFCODEC):
         """lit un fichier de description de template xml"""
-        
+
         self.template = dict()
-        
+
         try:
             with open(templatefile, "r", encoding=codec) as fich:
                 for i in fich:
@@ -61,8 +64,8 @@ class XmlWriter(FileWriter):
 
                     if i.statrswith("xmltemplate"):
                         liste = []
-                        classe = args[1] if if args[1] else "#generique"
-                            
+                        classe = args[1] if args[1] else "#generique"
+
                     liste = i[:-1].split(";")
                     if taille == -1:
                         stock[i[:-1]] = liste

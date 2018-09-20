@@ -131,15 +131,15 @@ class Projection(object):
 
     def inv_liso(self, liso, exc, tol):
         '''inversion de la latitude isométrique'''
-        p_1 = 2*M.atan(M.exp(liso))-PI/2
-        p_0 = 9999
-        t2 = M.exp(liso)
-        while abs(p_1-p_0) >= tol:
-            p_0 = p_1
-            p_1 = 2*M.atan(pow(((1+exc*M.sin(p_0))/(1-exc*M.sin(p_0))),
-                               (exc/2))*t2)-PI/2
+        phi1 = 2*M.atan(M.exp(liso))-PI/2
+        phi0 = 9999
+        expliso = M.exp(liso)
+        while abs(phi1-phi0) >= tol:
+            phi0 = phi1
+            phi1 = 2*M.atan(pow(((1+exc*M.sin(phi0))/(1-exc*M.sin(phi0))),
+                               (exc/2))*expliso)-PI/2
 #            print ('calcul',p)
-        return p_1                    # RETOUR : latitude isométrique
+        return phi1                    # RETOUR : latitude isométrique
 
     def en_geo(self, x_en, y_en, tol):
         '''passage de coordonnées planes à géographiques'''
@@ -154,8 +154,7 @@ class Projection(object):
     def geo_EN(self, lam, phi):
         '''passage de coordonnées géographiques à planes'''
         yn, lc, n, c, exc, _, xn = self.proj2
-        liso = M.log(M.tan(PI/4+phi/2)*pow((1-exc*M.sin(phi))/(1+exc*M.sin(phi)),
-                                           exc/2))
+        liso = M.log(M.tan(PI/4+phi/2)*pow((1-exc*M.sin(phi))/(1+exc*M.sin(phi)), exc/2))
         X = xn+c*M.exp(-n*liso)*M.sin(n*(lam-lc))
         Y = yn-c*M.exp(-n*liso)*M.cos(n*(lam-lc))
 #        print ('dans geo_en',X,Y)

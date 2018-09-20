@@ -139,8 +139,10 @@ class PgConnect(database.DbConnect):
         if self.passwd:
             env['PGPASSWORD'] = self.passwd
         if not logfile:
+            print('pas de fichier log : affichage console')
             fini = subprocess.run(chaine, env=env, stderr=subprocess.STDOUT)
         else:
+            print('Le fichier de log se trouve la:',logfile)
             with open(logfile, 'a') as sortie:
                 fini = subprocess.run(chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT)
         if fini.returncode:

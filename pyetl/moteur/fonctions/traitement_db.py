@@ -482,6 +482,7 @@ def h_recup_schema(regle):
                     regle.setvar("schema_sortie", nomschema)
             regle.valide = 'done'
             DB.recup_schema(regle, base, niveau, classe, nomschema)
+    return True
 
 def f_recup_schema(regle, obj):
     '''#aide||recupere les schemas des base de donnees

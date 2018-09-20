@@ -179,7 +179,7 @@ class Schema(object):
 
     def supp_classe(self, ident):
         '''supprime une classe du schema'''
-        if ident in self.classes and self.classes[ident].objcnt==0:
+        if ident in self.classes and self.classes[ident].objcnt == 0:
             del self.classes[ident]
 
 

@@ -539,7 +539,7 @@ def asc_streamer(obj, regle, _, attributs=None):
                                      liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
             ressource = sorties.creres(regle.numero, nom, streamwriter)
         else:
-            ressource.handler.changeclasse(obj.schema,attributs)
+            ressource.handler.changeclasse(obj.schema, attributs)
 #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
 
         regle.ressource = ressource

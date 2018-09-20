@@ -15,7 +15,8 @@ from collections import defaultdict
 
 from  .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
 from  .formats.formats import Reader, Stat
-from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle, interprete_ligne_csv, map_vars
+from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
+         interprete_ligne_csv, map_vars
 from  .moteur.compilateur import compile_regles
 from  .moteur.moteur import Moteur, Macro
 from  .moteur.fonctions import COMMANDES, SELECTEURS
@@ -999,7 +1000,7 @@ def runpyetl(mapping, args, env=None, log=None):
     if env is None:
         env = os.environ
     traitement = Pyetl(env=env)
-    traitement.runpyetl=runpyetl
+    traitement.runpyetl = runpyetl
     try:
         if log:
             traitement.set_param('logfile', log)
@@ -1036,10 +1037,10 @@ def runpyetl(mapping, args, env=None, log=None):
 
 
 def input_multiprocessing(nprocs, mapping, inputs, outdir, params):
-    # Let the executor divide the work among processes by using 'map'.
+    ''' Let the executor divide the work among processes by using 'map'.'''
 
     mlist = [mapping]*len(inputs)
-    plist = [' '.join((i,outdir,params) for i in inputs)]
+    plist = [' '.join((i, outdir, params) for i in inputs)]
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         return {i:res for i, res in zip(inputs,
                                         executor.map(runpyetl, mlist, plist))}
