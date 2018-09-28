@@ -9,7 +9,6 @@ import copy
 import logging
 import datetime as D
 #import re
-from dateutil.parser import parse
 from .elements.schemaclasse import SchemaClasse
 #import logging
 LOGGER = logging.getLogger()
@@ -158,19 +157,6 @@ def _valide_dates(val, format_dates=''):
     if date:
         return err, date
     return err, ""
-
-def _valide_dates_new(val, format_dates=''):
-    err = ''
-    if not val:
-        return err, None
-    date = parse(val, default=DDEF)
-    if date == DDEF:
-        err = 'date'
-        return err, None
-    if format_dates:
-        return err, date.strftime(DFORM[format_dates])
-    return err, val
-
 
 
 def _valide_entiers(val):

@@ -12,7 +12,7 @@ DEFCODEC = "utf-8"
 if platform.system() == 'Windows' and platform.release() == 'XP':
     DEFCODEC = "cp1252"
 #print('codec ES positionne par defaut a ', DEFCODEC)
-
+DEBUG = False
 
 
 

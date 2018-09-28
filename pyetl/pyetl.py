@@ -113,7 +113,7 @@ class Pyetl(object):
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
-
+        self.runpyetl = None
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
@@ -721,9 +721,9 @@ class Pyetl(object):
                     #traitement.racine_fich = os.path.dirname(i)
                     try:
                         nb_lu = self.lecture(i)
-                    except StopIteration as abort:
+                    except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
-                        if abort.args[0] == '2':
+                        if arret.args[0] == '2':
                             continue
                         abort = True
                         break
@@ -738,8 +738,10 @@ class Pyetl(object):
 ##                self._setformat_sortie(mode) # on force le format de sortie si necessaire
 #                print('process: forcage sortie', mode, self.moteur.regle_sortir)
 ##            print('traitement sans entree')
-            self.moteur.traitement_virtuel(unique=1)
-
+            try:
+                self.moteur.traitement_virtuel(unique=1)
+            except StopIteration as arret:
+                abort = True
         if abort:
             nb_total, nb_fichs = self.sorties.final()
         else:

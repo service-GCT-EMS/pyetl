@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 # formats d'entree sortie
 ''' format xml en sortie '''
-
 import os
-import time
-import xml.etree.cElementTree as ET
-import re
-import itertools
-from  .ressources import DEFCODEC
-from .interne.objet import Objet
+from .ressources import DEFCODEC, DEBUG
 from .fileio import FileWriter
 
 #print ('osm start')
@@ -20,24 +14,26 @@ def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
 
 class XmlWriter(FileWriter):
     """ gestionnaire des fichiers xml en sortie """
-    def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
-                 liste_fich=None, null='', writerparms=None):
+    def __init__(self, nom, schema=None, entete='', encoding='utf-8',
+                 liste_fich=None, null='', writerparms=None, liste_att=None):
         super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema)
 
-        self.extension = extension
-        self.separ = separ
         self.nom = nom
         self.schema = schema
         self.null = null
         self.writerparms = writerparms
         self.entete = entete
-        template = self.writerparms.get('template')
+        self.liste_atts = liste_att
+        template = self.writerparms.get('template') if self.writerparms else None
+        self.templates = dict()
         if template:
             self.readtemplate(template)
         self.classes = set()
 
         self.stats = liste_fich if liste_fich is not None else dict()
         self.encoding = encoding
+        self.curtemp = None
+        self.curclasse = None
 
 
     def header(self, init=1):
@@ -49,9 +45,10 @@ class XmlWriter(FileWriter):
 
     def readtemplate(self, templatefile, codec=DEFCODEC):
         """lit un fichier de description de template xml"""
-
-        self.template = dict()
-
+        niveau_courant = 0
+        blocs = []
+        classe = ''
+        key = False
         try:
             with open(templatefile, "r", encoding=codec) as fich:
                 for i in fich:
@@ -60,68 +57,164 @@ class XmlWriter(FileWriter):
                             i = i[1:]
                         else:
                             continue
-                    args = i.split(";")+[""]
+                    args = i.split(";")+["", ""]
 
                     if i.statrswith("xmltemplate"):
-                        liste = []
+                        while blocs: #on ferme les blocs
+                            self.templates[classe].append('</'+blocs.pop()+'>')
+
                         classe = args[1] if args[1] else "#generique"
-
+                        self.template[classe] = []
+                        niveau_courant = 0
+                        continue
                     liste = i[:-1].split(";")
-                    if taille == -1:
-                        stock[i[:-1]] = liste
-                    else:
-                        if len(liste) < taille:
-                            liste = list(itertools.islice(itertools.cycle(liste), taille))
-                        stock[';'.join([liste[i] for i in positions])] = liste
-            if debug:
-                print("chargement liste", fichier)
+                    niveau = 0
+                    for element in liste:
+                        if not element:
+                            niveau += 1
+                            continue
+                        while niveau < niveau_courant:
+                            self.templates[classe].append('</'+blocs.pop()+'>\n')
+                            niveau_courant -= 1
+                        if niveau > niveau_courant:
+                            niveau_courant = niveau
+                            if liste[niveau+1] == '':
+                                self.blocs.append(element)
+                                self.template[classe].append('<'+element+'>\n')
+                                continue
+                            self.templates[classe].append('<'+element+' ')
+                            key = True
+                            continue
+                        if key:
+                            if element == '#':
+                                continue
+                            self.templates[classe].append(element+'=')
+                            key = False
+                        else:
+                            key = True
+                            if '[' in element:
+                                arg = element[1:-1]
+                                self.templates[classe].append('='+arg)
+                            else:
+                                self.templates[classe].append('"'+element+'"')
+                    if not self.templates[classe][-1].endswith('\n'):
+                        self.templates[classe].append('/>\n')
+
+            if DEBUG:
+                print("chargement template", templatefile)
+                print('resultat ', self.templates)
         except FileNotFoundError:
-            print("fichier liste introuvable ", fichier)
+            print("fichier template  introuvable ", templatefile)
     #    print('prechargement csv', stock)
-        return stock
 
 
+
+    def changeclasse(self, schemaclasse, attributs=None):
+        ''' initialise un fichier '''
+        clef = '.'.join(schemaclasse.identclasse)
+        self.liste_atts = attributs
+        self.schema = schemaclasse
+        self.curtemp = self.templates.get(clef, self.templates.get('#generique', []))
 
     def write(self, obj):
         '''ecrit un objet'''
         if obj.virtuel:
             return False#  les objets virtuels ne sont pas sortis
-        template = self.templates.get(obj.ident,"")
-        if not template:
-            template = self.templates.get("#generique")
-        sortie = []
+        template = self.curtemp
+
         for i in template:
-            balise = i[0]
-            nargs = len(i)
-            if nargs == 1:
-                sortie.append(balise)
+            if i.startswith('='):
+                val = obj.attributs.get(i[1], '')
+                self.fichier.write('"'+val+'" ')
             else:
-                args = ' '.join(i[k]+'="'+obj.attributs.get(i[k+1],i[k+2])+'"'
-                                for k in range(1,nargs,3))
-                sortie.append(balise+args+"/>")
-                geom=""
-                if obj.initgeom():
-                    if self.type_geom:
-                        geom = ecrire_geom_xml(self.tempates, obj.geom_v, self.type_geom,
-                                               self.multi, obj.erreurs)
-                else:
-                    print('xml: geometrie invalide : erreur geometrique',
-                          obj.ident, obj.numobj, obj.geom_v.erreurs.errs,
-                          obj.attributs['#type_geom'],
-                          self.schema.info["type_geom"], obj.geom)
-                    geom = ""
-                if not geom:
-                    geom = self.null
-                obj.format_natif = "xml"
-                obj.geom = geom
-                obj.geomnatif = True
-                if obj.erreurs.actif == 2:
-                    print('error: writer xml :', obj.ident, obj.ido, 'erreur geometrique',
-                          obj.attributs['#type_geom'], self.schema.identclasse,
-                          obj.schema.info["type_geom"], obj.erreurs.errs)
-                    return False
-            ligne = '\n'.join("sortie")
-        self.fichier.write(ligne)
-        self.fichier.write('\n')
+                self.fichier.write(i)
+
+        if obj.initgeom():
+            if self.type_geom:
+                geom = ecrire_geom_xml(self.tempates, obj.geom_v, self.type_geom,
+                                       self.multi, obj.erreurs)
+        else:
+            print('xml: geometrie invalide : erreur geometrique',
+                  obj.ident, obj.numobj, obj.geom_v.erreurs.errs,
+                  obj.attributs['#type_geom'],
+                  self.schema.info["type_geom"], obj.geom)
+            geom = ""
+        if not geom:
+            geom = self.null
+        obj.format_natif = "xml"
+        obj.geom = geom
+        obj.geomnatif = True
+        if obj.erreurs.actif == 2:
+            print('error: writer xml :', obj.ident, obj.ido, 'erreur geometrique',
+                  obj.attributs['#type_geom'], self.schema.identclasse,
+                  obj.schema.info["type_geom"], obj.erreurs.errs)
+            return False
         self.stats[self.nom] += 1
         return True
+
+
+def get_ressource(obj, regle, attributs=None):
+    ''' recupere une ressource en fonction du fanout'''
+    groupe, classe = obj.ident
+    sorties = regle.stock_param.sorties
+    rep_sortie = regle.getvar('_sortie', loc=2)
+    if not rep_sortie:
+        raise NotADirectoryError('repertoire de sortie non défini')
+    if regle.fanout == 'no':
+        nom = sorties.get_id(rep_sortie, 'all', '', '.xml')
+    if regle.fanout == 'groupe':
+        nom = sorties.get_id(rep_sortie, groupe, '', '.xml')
+    else:
+        nom = sorties.get_id(rep_sortie, groupe, classe, '.xml')
+
+    ressource = sorties.get_res(regle.numero, nom)
+    if ressource is None:
+        if os.path.dirname(nom):
+            os.makedirs(os.path.dirname(nom), exist_ok=True)
+#            print ('ascstr:creation liste',attributs)
+        streamwriter = XmlWriter(nom,
+                                 encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
+                                 liste_att=attributs,
+                                 liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
+        ressource = sorties.creres(regle.numero, nom, streamwriter)
+        ressource.handler.changeclasse(obj.schema, attributs)
+    else:
+        ressource.handler.changeclasse(obj.schema, attributs)
+    regle.ressource = ressource
+    regle.dident = obj.ident
+
+    return ressource
+
+
+
+def xml_streamer(obj, regle, _, attributs=None):
+    '''ecrit des objets en xml au fil de l'eau.
+        dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
+        a la sortie du pipeline (mode streaming)
+    '''
+    if obj.virtuel: # on ne traite pas les virtuels
+        return
+    #raise
+    if obj.ident == regle.dident:
+        ressource = regle.ressource
+    else:
+        ressource = get_ressource(obj, regle, attributs=None)
+    ressource.write(obj, regle.numero)
+
+def ecrire_objets_xml(regle, _, attributs=None):
+    '''ecrit un ensemble de fichiers xml a partir d'un stockage memoire ou temporaire'''
+    #ng, nf = 0, 0
+    #memoire = defs.stockage
+#    print( "ecrire_objets asc")
+    numero = regle.numero
+    dident = None
+    ressource = None
+    for groupe in list(regle.stockage.keys()):
+        for obj in regle.recupobjets(groupe):# on parcourt les objets
+            if obj.virtuel: # on ne stocke pas les virtuels
+                continue
+            ident = obj.ident
+            if ident != dident:
+                ressource = get_ressource(obj, regle, attributs=None)
+                dident = ident
+            ressource.write(obj, numero)

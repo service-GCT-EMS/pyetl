@@ -280,9 +280,11 @@ class Objet(object):
         virtuel = '_v' if self.virtuel else ''
         invariant = 'obj'+virtuel+' '+str(self.ido)+': '+code+":clone"+str(self.copie)+' '+\
             str(self.attributs.get('#classe'))+'.'+str(self.attributs.get('#classe'))
-        schema = 'schema:'+ ('.'.join((self.schema.schema.nom, ) +self.schema.identclasse)) if self.schema else 'non defini'
+        schema = 'schema:'+ ('.'.join((self.schema.schema.nom, ) +\
+                             self.schema.identclasse)) if self.schema else 'non defini'
         attlist = sorted(self.attributs.keys()) if attlist is None else attlist
-        print(invariant+'\n' ,schema+'\n', [(i, self.attributs.get(i, '<non defini>')) for i in attlist])
+        print(invariant+'\n', schema+'\n', [(i, self.attributs.get(i, '<non defini>'))
+                                            for i in attlist])
 
 
 

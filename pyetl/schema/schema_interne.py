@@ -6,6 +6,7 @@ Created on Wed Dec 10 09:28:45 2014
 """
 import copy
 #import re
+from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
@@ -122,7 +123,7 @@ class Schema(object):
         self.rep_sortie = ''
         self.dbsql = None # generateur sql
         self.alias_groupes = dict()
-
+        self.compteurs = defaultdict(int)
 
     def def_classe(self, ident):
         ''' cree un schema pour une nouvelle classe'''

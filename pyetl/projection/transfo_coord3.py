@@ -137,7 +137,7 @@ class Projection(object):
         while abs(phi1-phi0) >= tol:
             phi0 = phi1
             phi1 = 2*M.atan(pow(((1+exc*M.sin(phi0))/(1-exc*M.sin(phi0))),
-                               (exc/2))*expliso)-PI/2
+                                (exc/2))*expliso)-PI/2
 #            print ('calcul',p)
         return phi1                    # RETOUR : latitude isométrique
 

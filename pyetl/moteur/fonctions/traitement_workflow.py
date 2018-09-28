@@ -7,8 +7,11 @@ Created on Fri Dec 11 14:34:04 2015
 fonctions de gestion de strucures diverses
 """
 import os
+import sys
 import re
 import zipfile
+import time
+import requests
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import ftplib
@@ -203,6 +206,8 @@ def f_printvar(regle, _):
 def h_version(regle):
     '''affiche la version'''
     print('pyetl version: ', regle.stock_param.version)
+    if regle.params.cmp1.val:
+        print('version python', sys.version)
     regle.valide = 'done'
 
 
@@ -210,7 +215,7 @@ def h_version(regle):
 
 def f_version(*_):
     '''#aide||affiche la version du logiciel et les infos
-        #pattern||;;;version;;;
+        #pattern||;;;version;?=full;;
         #test||notest'''
     return True
 
@@ -338,7 +343,7 @@ def f_creobj(regle, obj):
 #    regle.sortie = dest
 
 def h_ftpupload(regle):
-    '''definit la regle comme declenchable'''
+    '''prepare les parametres ftp'''
     regle.chargeur = True
     codeftp = regle.params.cmp1.val
     serveur = regle.getvar("server_"+codeftp, '')
@@ -377,6 +382,71 @@ def f_ftpupload(regle, obj):
 
 
 
+def f_ftpdownload(regle, obj):
+    '''#aide||charge un fichier sur ftp
+  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;
+    #pattern||;?C;?A;ftp_download;C;?C
+     #helper||ftpupload
+       #test||notest
+    '''
+    if not regle.ftp:
+        codeftp, serveur, servertyp, user, passwd = regle.getvar('acces_ftp')
+#        print ('ouverture acces ',regle.getvar('acces_ftp'))
+        if servertyp == "ftp":
+            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
+        else:
+            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+
+    filename = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    distname = os.path.basename(filename)
+    try:
+        localfile = open(filename, 'wb')
+        regle.ftp.retrbinary("RETR "+distname, localfile.write)
+        localfile.close()
+        return True
+
+    except ftplib.error_perm:
+        print("!!!!! erreur ftp: acces non autorisé")
+        return False
+
+
+def h_httpdownload(regle):
+    '''prepare les parametres http'''
+    regle.chargeur = True
+    path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar('_sortie')
+    os.makedirs(path, exist_ok=True)
+    name = os.path.join(path,regle.params.cmp2.val)
+    regle.fichier = name
+
+
+def f_httpdownload(regle, obj):
+    '''aide||telecharge un fichier via http
+ #aide_spec||;nom fichier; (attribut contenant le nom);http_download;url;
+   #pattern||;?C;?A;download;?C;C
+      #test||notest
+      '''
+    url = obj.attributs.get(regle.params.att_entree.val,regle.params.val_entree.val)
+    print( 'telechargement',url)
+    retour = requests.get(url, stream=True)
+    print('info',retour.headers)
+    taille = int(retour.headers['Content-Length'])
+    decile = taille/10
+    recup = 0
+    bloc = 4096
+    nb_pts = 0
+    debut=time.time()
+    if retour.status_code == 200:
+        with open(regle.fichier, 'wb') as fich:
+            for chunk in retour.iter_content(bloc):
+                recup += bloc # ca c'est la deco avec des petits points ....
+                if recup > decile:
+                    recup = recup - decile
+                    nb_pts += 1
+                    print('.', end='', flush=True)
+                fich.write(chunk)
+        print('    ',taille, 'octets télecharges en ', int(time.time()-debut), 'secondes')
+        return True
+    return False
 
 def h_archive(regle):
     '''definit la regle comme declenchable'''
@@ -428,10 +498,10 @@ def traite_parallelbatch(regle):
     '''traite les batchs en parallele'''
     commande = []
     args = []
-    idobj =[]
+    idobj = []
     mapper = regle.stock_param
-    for n, obj in enumerate(regle.store):
-        idobj.append(n)
+    for num, obj in enumerate(regle.store):
+        idobj.append(num)
         comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
         commande.append(comm if comm else obj.attributs.get('commandes'))
         entree = obj.attributs.get('entree', mapper.get_param("_entree"))
@@ -439,7 +509,7 @@ def traite_parallelbatch(regle):
         param_attr = obj.attributs.get('parametres') # parametres en format hstore
         if param_attr:
             params_obj = ['='.join(re.split('"=>"', i))
-                      for i in re.split('" *, *"', param_attr[1:-1])]
+                          for i in re.split('" *, *"', param_attr[1:-1])]
         else:
             params_obj = []
         params = ' '.join(params_obj)
@@ -470,7 +540,8 @@ def f_parallelbatch(regle, obj):
   #aide_spec||parametres:attribut_resultat,commandes,attribut_commandes,batch
     #pattern||?A;?C;?A;multiprocess;N
      #schema||ajout_attribut
-       #!test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set||^X;#obj,#atv;;multiprocess;2||atv;X;1
+      #!test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
+            ||^X;#obj,#atv;;multiprocess;2||atv;X;1
 '''
     regle.tmpstore.append(obj)
     regle.nbstock += 1

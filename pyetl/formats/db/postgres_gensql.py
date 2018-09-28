@@ -430,8 +430,8 @@ class GenSql(database.GenSql):
                     attype = "S" # sequence
                 elif self.types_db.get(attype) == 'bigint':
                     attype = "BS" # sequence
-                if attype not in {'S','BS'}:
-                    print('type serial incompatible avec le type',attype)
+                if attype not in {'S', 'BS'}:
+                    print('type serial incompatible avec le type', attype)
                     seq = False
             conf = attribut.conformite
             if conf:
@@ -457,7 +457,8 @@ class GenSql(database.GenSql):
                     classe.setpkey([attname])
                     pkey = classe.getpkey
 
-                    if self.types_db.get(attype) == 'integer' or self.types_db.get(attype) == 'bigint':
+                    if self.types_db.get(attype) == 'integer'\
+                        or self.types_db.get(attype) == 'bigint':
                         seq = True
             elif pkey == attname:
                 if self.types_db.get(attype) == 'integer' or self.types_db.get(attype) == 'bigint':

@@ -156,7 +156,7 @@ def init_osm(mapper=None):
     config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm2.csv')
     config_osm = mapper.get_var('config_osm',
                                 config_osm_def)if mapper is not None else config_osm_def
-    print('fichier osm ', config_osm)
+#    print('fichier osm ', config_osm)
 
 #    CONFIGFILE = os.path.join(os.path.dirname(__file__), config_osm)
     for conf in open(config_osm, 'r').readlines():

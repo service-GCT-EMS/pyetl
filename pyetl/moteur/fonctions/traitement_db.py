@@ -138,18 +138,21 @@ def h_dbalpha(regle):
     return False
 
 
-def setdb(regle,obj):
+def setdb(regle, obj, att=True):
     '''positionne des parametres d'acces aux bases de donnees'''
     base, niveau, classe, attribut = regle.cible_base
     attrs = []
     cmp = []
     type_base = None
     chemin = ''
-    if attribut: #attention on traite des attributs
-        if isinstance(attribut, tuple):
-            attrs, cmp = attribut
-        else:
-            attrs = attribut
+    if att:
+        if attribut: #attention on traite des attributs
+            if isinstance(attribut, tuple):
+                attrs, cmp = attribut
+            else:
+                attrs = attribut
+    else:
+        attrs = attribut
 #    print ('f_alpha :',attrs, cmp)
     if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
 
@@ -190,7 +193,7 @@ def f_dbalpha(regle, obj):
 #    attrs = []
 #    cmp = []
 #    valeur = []
-    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle,obj)
+    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
 #    base, niveau, classe, attribut = regle.cible_base
 #    if attribut: #attention on traite des attributs
 #        if isinstance(attribut, tuple):
@@ -285,29 +288,30 @@ def f_dbgeo(regle, obj):
 
     '''
     #regle.stock_param.regle_courante=regle
-    base, niveau, classe, fonction = regle.cible_base
-    type_base = None
-    chemin = ''
-    if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
-        chemin = obj.attributs["#chemin"]
-        if not base:
-            base = obj.attributs["#base"]
-        type_base = obj.attributs["#type_base"]
-        regle.setvar("db", type_base, loc=1)
-        regle.setvar("server", chemin, loc=1)
-    if niveau and niveau[0] == '[': # nom de classe contenu dans un attribut
-        niveau = obj.attributs.get(niveau[1:-1], 'xx')
-    if classe and classe[0] == '[': # nom de classe contenu dans un attribut
-        classe = obj.attributs.get(classe[1:-1], 'xx')
-    if regle.params.att_entree.liste:
-        if regle.params.val_entree.liste and regle.params.att_entree.liste:
-            valeur = [obj.attributs.get(a, d) for a, d
-                      in zip(regle.params.att_entree.liste,
-                             regle.params.val_entree.liste)]
-        else:
-            valeur = [obj.attributs.get(a, '') for a in regle.params.att_entree.liste]
-    else:
-        valeur = regle.params.val_entree.liste
+    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(regle, obj, att=False)
+#    base, niveau, classe, fonction = regle.cible_base
+#    type_base = None
+#    chemin = ''
+#    if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
+#        chemin = obj.attributs["#chemin"]
+#        if not base:
+#            base = obj.attributs["#base"]
+#        type_base = obj.attributs["#type_base"]
+#        regle.setvar("db", type_base, loc=1)
+#        regle.setvar("server", chemin, loc=1)
+#    if niveau and niveau[0] == '[': # nom de classe contenu dans un attribut
+#        niveau = obj.attributs.get(niveau[1:-1], 'xx')
+#    if classe and classe[0] == '[': # nom de classe contenu dans un attribut
+#        classe = obj.attributs.get(classe[1:-1], 'xx')
+#    if regle.params.att_entree.liste:
+#        if regle.params.val_entree.liste and regle.params.att_entree.liste:
+#            valeur = [obj.attributs.get(a, d) for a, d
+#                      in zip(regle.params.att_entree.liste,
+#                             regle.params.val_entree.liste)]
+#        else:
+#            valeur = [obj.attributs.get(a, '') for a in regle.params.att_entree.liste]
+#    else:
+#        valeur = regle.params.val_entree.liste
 #    print('preparation attribut', valeur, regle.params.att_entree)
     if not fonction:
         print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
@@ -359,7 +363,7 @@ def h_dbextload(regle):
     param_base(regle)
 
 def f_dbextload(regle, obj):
-    '''#aide||lancement d'un script sql
+    '''#aide||lancement d'un chargement de base par un loader externe
   #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
      #groupe||database
     #pattern||;?C;?A;dbextload;?C
@@ -372,7 +376,33 @@ def f_dbextload(regle, obj):
         print('chargement donnees', nom)
         DB.dbextload(regle.stock_param, base, nom, log=regle.params.cmp1.val)
 
+def h_dbextdump(regle):
+    """execution de commandes de lecture externe"""
+#    regle.chargeur = True # c est une regle qui cree des objets
+    param_base(regle)
+    regle.chargeur = True # c est une regle qui cree des objets
 
+
+
+def f_dbextdump(regle, obj):
+    '''#aide||lancement d'une extraction par une extracteur externe
+  #aide_spec||parametres:base;;;;;;dbextdump;dest;?log
+     #groupe||database
+    #pattern||;;;dbextdump;?C;?C
+    '''
+    base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
+    dest = regle.params.cmp1.val
+    if not dest:
+        dest = regle.getvar('_sortie')
+    os.makedirs(dest, exist_ok=True)
+    log = regle.params.cmp2.val
+    if not log:
+        log = os.path.join(dest, 'log')
+    os.makedirs(log, exist_ok=True)
+
+    print('traitement db: extraction donnees de', base, 'vers', dest)
+
+    return DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
 
 
 def f_dbwrite(regle, obj):
@@ -434,7 +464,7 @@ def f_dbcount(regle, obj):
        #test||obj||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;toto;;;dbcount;
             ||atv;toto;1
     '''
-    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle,obj)
+    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
 #    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)
 
     mods = regle.params.cmp1.liste
@@ -443,9 +473,9 @@ def f_dbcount(regle, obj):
 
     if base:
         retour = DB.recup_count(regle, base, niveau, classe, attrs, valeur, mods=mods,
-                type_base=type_base, chemin=chemin)
+                                type_base=type_base, chemin=chemin)
 #        print ('regles cnt: valeur retour',retour,obj)
-        obj.attributs[regle.params.att_sortie.val]=str(retour)
+        obj.attributs[regle.params.att_sortie.val] = str(retour)
         return True
     print('fdbalpha: base non definie ', base)
     return False

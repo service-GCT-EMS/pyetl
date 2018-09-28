@@ -101,7 +101,7 @@ class DbConnect(object):
                          'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
                          'clef_etrangere', 'cible_clef', 'taille', 'decimales'))
     typenum = {'1':"POINT", '2':"LIGNE", '3':"POLYGONE",
-                        '-1':"GEOMETRIE", '0':"ALPHA", 'indef':'ALPHA'}
+               '-1':"GEOMETRIE", '0':"ALPHA", 'indef':'ALPHA'}
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -423,7 +423,7 @@ class DbConnect(object):
     def req_count(self, ident, schema, attribut, valeur, mods):
         '''compte un enesemble de valeurs en base'''
         niveau, classe = ident
-        data=()
+        data = ()
         condition = ''
         if attribut:
             condition, data = self.prepare_attribut(schema, attribut, valeur)
@@ -441,42 +441,6 @@ class DbConnect(object):
         atttext, attlist = self.construction_champs(schema, 'S' in mods, 'L' in mods)
         if attribut:
             condition, data = self.prepare_attribut(schema, attribut, valeur)
-#            if attribut in self.sys_fields: # c est un champ systeme
-#                attribut, type_att = self.sys_fields[attribut]
-#            else:
-#                type_att = schema.attributs[attribut].type_att
-#            cast = self.nocast
-#            if type_att == 'D':
-#                cast = self.datecast
-#            elif type_att in 'EFS':
-#                cast = self.numcast
-#            elif schema.attributs[attribut].conformite:
-#                cast = self.textcast
-#
-#            if isinstance(valeur, (set, list)) and len(valeur) > 1:
-#
-#                data = self.multivaldata(valeur)
-##                data = {'val':"{'"+"','".join(valeur)+"'}"}
-#                cond = self.multival(len(data), cast=cast)
-#            else:
-#                if isinstance(valeur, (set, list)):
-#                    val = valeur[0]
-#                else:
-#                    val = valeur
-#                    oper = '='
-##                oper = '='
-##                val = valeur
-##                print ('dbalpha valeur a traiter',val)
-#
-#                if val:
-#                    if val[0] in '<>=~':
-#                        oper = val[0]
-#                        val = val[1:]
-#                    if val[0] == '\\':
-#                        val = val[1:]
-#                cond = self.monoval(oper, cast)
-#                data = {'val':val}
-##                print('valeur simple', valeur, oper, cond, cast, data)
 
             requete = " SELECT "+atttext+" FROM "+niveau+"."+classe+ condition
 #                          " WHERE "+cast(attribut) + cond
@@ -645,19 +609,9 @@ class DbConnect(object):
             return False
 
 
-    def dbextload(self, schema, ident, source):
+    def extload(self, helper, file, log=None):
         ''' charge des objets en base de donnees par dbload'''
-        cur = self.connection.cursor()
-        colonnes = tuple(schema.classes[ident].getcodes_erreur_liste_attributs())
-        nom = '.'.join(ident)
-        try:
-            cur.copy_from(source, nom, columns=colonnes, sep="\t")
-            cur.close()
-            return True
-        except Exception as erreur:
-            print('error: sigli: chargement ', ident, '-->', erreur)
-            cur.close()
-            return False
+        return False
 
 
     def recup_maxval(self, niveau, classe, clef):
@@ -740,16 +694,6 @@ class GenSql(object):
             return True
 
         conf.nombase = self.ajuste_nom(conf.nom)
-#        ctrl=set()
-#        for j in sorted(list(conf.stock.values()),key=lambda v:v[2]):
-#            #print (nom,j[0])
-#            v=j[0].replace("'","''")
-#            if len(j[0])>62 :
-#                print("valeur trop longue ",v," : conformite ignoree",nom)
-#                return False
-#            if v not in ctrl:
-#                ctrl.add(v)
-#            else: print("attention valeur ",v ,"en double dans", nom)
 
         req = ''
         valide, supp = self.conf_en_base(conf)

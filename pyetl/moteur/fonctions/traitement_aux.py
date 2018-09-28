@@ -265,7 +265,7 @@ def fschema_ajout_att_from_obj_dyn(regle, obj):
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
-def fschema_ajout_attributs_from_liste_d(regle, obj, liste):
+def fschema_ajout_att_from_liste_d(regle, obj, liste):
     '''ajoute des attributs a partir de la definition de l'objet'''
     if liste is None:
         return
@@ -273,11 +273,11 @@ def fschema_ajout_attributs_from_liste_d(regle, obj, liste):
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
-def fschema_ajout_attributs_from_liste(regle, obj, liste=None):
+def fschema_ajout_att_from_liste(regle, obj, liste=None):
     '''ajoute un attribut au schema'''
     if obj.schema.amodifier(regle):
 #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
-        fschema_ajout_attributs_from_liste_d(regle, obj, liste)
+        fschema_ajout_att_from_liste_d(regle, obj, liste)
 
 
 
@@ -346,7 +346,7 @@ def fschema_change_schema(regle, obj):
 #        raise
         schema_classe = copyschema(obj.schema, ident, schema2, filiation=True)
     if schema_classe.amodifier(regle):
-        mode = regle.getvar('schema_nocase',False,loc=0)
+        mode = regle.getvar('schema_nocase', False, loc=0)
         if mode: # on adapte la casse
             print('adaptation schema ', mode)
             fonction = lambda x: x.lower() if mode == 'min' else lambda x: x.upper()
@@ -358,9 +358,9 @@ def fschema_change_schema(regle, obj):
 
     if schemaclasseold is None:
         return
-    if regle.getvar('supp_schema',False,loc=0):
+    if regle.getvar('supp_schema', False, loc=0):
         schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
 
-def fschema_map(regle,obj):
+def fschema_map(regle, obj):
     '''gere la fonction de mapping sur l'objet'''
     return

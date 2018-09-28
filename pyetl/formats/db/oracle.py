@@ -288,13 +288,16 @@ class OraConnect(database.DbConnect):
             cur.execute(requete, data, attlist=attlist)
             return cur
         except cx_Oracle.Error as errs:
+            cursor =cur.cursor
             error, = errs.args
-            print('error: oracle: erreur acces base ', cur.statement, '-->', data)
-            print('error: oracle: variables ', cur.bindnames())
+            print('error: oracle: erreur acces base ', self.base, self.connection)
+            print('error: oracle: erreur acces base ', cursor.statement, '-->', data)
+            print('error: oracle: variables ', cursor.bindnames())
             print("Oracle-Error-Code:", error.code)
             print("Oracle-Error-Message:", error.message)
             print("Oracle-offset:", error.offset)
             print("Oracle-context:", error.context)
+#            print("Oracle-complet:", errs)
             cur.close()
 #            raise
             return None

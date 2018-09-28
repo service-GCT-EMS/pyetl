@@ -212,7 +212,7 @@ def set_test_path(mapper):
     print('------------------------------------repertoire de tests', rep)
     mapper.set_param("_test_path", rep)
     mapper.charge_cmd_internes(test='unittest') # on charge les ressources
-
+    mapper.load_paramgroup('testconfig') # on charge les configs de test
 
 
 

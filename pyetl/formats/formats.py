@@ -6,6 +6,7 @@ Created on Mon Dec 21 12:03:23 2015
 """
 import os
 from . import asc
+from . import xml
 from . import shape
 from . import csv
 from . import geocity
@@ -106,6 +107,8 @@ SORTIES = {'asc':(asc.ecrire_objets_asc, asc.asc_streamer, asc.ecrire_geom_asc,
                   True, 'low', 0, 'txt', 'classe', '#ewkt'),
            'sql':(csv.ecrire_objets_sql, csv.sqlstreamer, csv.ecrire_geom_ewkt,
                   True, 'low', 0, 'txt', 'all', '#ewkt'),
+           'xml':(xml.ecrire_objets_xml, xml.xml_streamer, xml.ecrire_geom_xml,
+                  False, 'up', 0, '', 'all', 'xml'),
 
            'shp':(shape.ecrire_objets_shp, shape.shapestreamer, csv.ecrire_geom_ewkt,
                   True, 'up', 10, 'shp', 'classe', '#tmp'),

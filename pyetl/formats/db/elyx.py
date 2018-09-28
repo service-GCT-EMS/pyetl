@@ -7,7 +7,9 @@ acces a la base de donnees
 """
 import os
 import subprocess
+import tempfile
 from  . import oraclespatial as ora
+#from ..xml import XmlWriter
 
 
 class ElyConnect(ora.OraConnect):
@@ -19,8 +21,10 @@ class ElyConnect(ora.OraConnect):
         self.confs = dict()
         self.compos_id = dict()
         self.tables = dict()
+        self.attributs = dict()
         self.load_helper = 'prog_fea2ora'
         self.dump_helper = 'prog_ora2fea'
+        self.dump_paramwriter = None
         self.sys_fields = {'#_sys_date_cre':('APIC_CDATE', 'D'),
                            '#_sys_date_mod':('APIC_MDATE', 'D'),
                            '#_sys_E_ETAT':('APIC_STATE', 'T'),
@@ -29,8 +33,10 @@ class ElyConnect(ora.OraConnect):
         self.modelschema = "ELYX_MODELE"
 #        print ('code de la base', code, params)
         if params and code:
-            self.adminschema = params.get_param("elyx_adminschema_", defaut=self.adminschema, groupe=code)
-            self.modelschema = params.get_param("elyx_modelschema", defaut=self.modelschema, groupe=code)
+            self.adminschema = params.get_param("elyx_adminschema_",
+                                                defaut=self.adminschema, groupe=code)
+            self.modelschema = params.get_param("elyx_modelschema",
+                                                defaut=self.modelschema, groupe=code)
 
 
 
@@ -57,48 +63,116 @@ class ElyConnect(ora.OraConnect):
 
     def setenv(self):
         '''positionne les variables d'nevironnement pour les programmes externes '''
-        orahome = self.params.get_param("feaora_oracle_home_", groupe=self.code)
+        orahome = self.params.get_param("feaora_oracle_home", groupe=self.code)
         env = dict(os.environ)
+#        print('modif_environnement ',env)
         if orahome: # on manipule les variables d'environnement
             env['ORACLE_HOME'] = orahome
-            env['Path'] = orahome+'\\bin;'+env['Path']
+            env['PATH'] = orahome+'\\bin;'+env['PATH']
         return env
 
-    def getservparams(self, env):
-        '''recherche les parametres serveur via tnsping'''
-
-
+    def extrunner(self, helper, xml):
+        '''lance les exports ou les imports a partitr du fichier xml'''
+        with tempfile.TemporaryDirectory() as tmpdir:
+            paramfile = os.path.join(tmpdir, 'param_export.xml')
+            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+                tmpf.write('\n'.join(xml))
+            chaine = helper + ' -c '+paramfile
+            env = self.setenv()
+            fini = subprocess.run(chaine, env=env)
+            if fini.returncode:
+                print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
+                return False
+        return True
 
 
 
 
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
-        syscoords = ""
-        env = self.setenv()
-        serv, port, sid, base = self.getservparams(env)
-        chaine = helper+' '+serv+':'+port+' '+sid+' '+base
-        chaine = chaine+' '+self.user+' '+self.passwd
-        chaine = chaine+' '+file+' '+logfile +' '+syscoords+' 1'
-        fini = subprocess.run(chaine, env=env)
-        if fini.returncode:
-            print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
+        reinit = self.params.get_param('reinit', '0') if self.params else '0'
+        loadxml = ['<Fea2OraConfig>',
+                   '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'
+                   +self.passwd+'" role=""/>',
+                   '<apicBase name="'+self.base+'" version="5"/>',
+                   '<filePath>',
+                   '<srcFile path="'+file+'"/>',
+                   '<reportDir path="'+logfile+'"/>',
+                   '<logDir path="'+logfile+'"/>',
+                   '<logObject path=""/>',
+                   '</filePath>',
+                   '<checkOption>',
+                   '<creationDate value="1"/>',
+                   '<attribute value="1"/>',
+                   '<commitDelay value="1000"/>',
+                   '<geomInSpace value="1"/>',
+                   '<doublePoints value="1"/>',
+                   '<dimension value=""/>',
+                   '<section value="1"/>',
+                   '<replaceObj value="'+reinit+'"/>',
+                   '<conformNbCar value="0"/>',
+                   '<conformEnum  value="2"/>',
+                   '<validateGeometry value="1" allowSelfIntersectSurface="0"'+
+                   ' allowDoublePoints="0" />',
+                   '</checkOption>',
+                   '</Fea2OraConfig>']
+
+        retour = self.extrunner(helper, loadxml)
+        return retour
 
 
 
-
-    def extdump(self, helper, dest ,liste, logfile=None):
+    def extdump(self, helper, base, classes, dest, log):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
-        env = self.setenv()
+        if len(classes) == 1:
+            nom = classes[0][1]
+        else:
+            noms = {i[1] for i in classes}
+            if len(noms) == 1:
+                nom = noms.pop()
+            else:
+                nom = 'export'
+        destination = os.path.join(dest, nom)
+        exportxml = ['<Ora2FeaConfig>',
+                     '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'+
+                     self.passwd+'" role=""/>',
+                     '<apicBase name="'+self.base+'" version="5"/>',
+                     '<filePath>',
+                     '<dstFile path="'+destination+'"/>',
+                     '<logDir path="'+log+'"/>',
+                     '</filePath>',
+                     '<classes list="'+','.join([i[1] for i in classes])+'"/>',
+                     '<coordinateSystem value="0"/>',
+                     '</Ora2FeaConfig>']
+#                     '<logSql value="1"/>',
+#        print ('export demande',exportxml)
+        retour = self.extrunner(helper, exportxml)
+        return retour
 
 
 
+    def traite_defaut(self, nom_att, defaut):
+        '''analyse les defauts et les convertit en fonctions internes'''
+        if defaut is None:
+            return defaut
+        resultat = defaut
+        if defaut.startswith('!GENNUM'):
+            compteur = defaut[9:-2]
+            resultat = 'S.'+compteur
+            self.schemabase.compteurs[compteur] += 1
+            return resultat
+        if defaut.startswith('!GENSUR'):
+            resultat = 'TIN.'+defaut[8:-2]
+#        print(nom_att, 'valeur defaut', defaut, '->', resultat)
 
+        return resultat
 
-
-
-
+    def traite_enums_en_table(self):
+        ''' fait le menage dans les enums speciales'''
+        for nom in self.schemabase.conformites:
+            if self.schemabase.conformites.special:
+                print('traitement ', nom)
 
 
     def get_type(self, nom_type):
@@ -110,17 +184,37 @@ class ElyConnect(ora.OraConnect):
 
     def get_enums(self):
         ''' recupere la description de toutes les enums depuis la base de donnees '''
-        requete = 'SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums'
 #        print("conformites")
         schema = self.adminschema
+        enums_en_table = dict()
         requete = self.constructeur(schema, "APICD_CONFORMITE",
-                                    ["NUMERO_AD", "ACTION", "VERSION",
-                                     "NUMERO_MODELE", "NOM"])
+                                    ["NUMERO_AD", "ACTION", "VERSION", "NUMERO_MODELE", "NOM",
+                                     "ENUM_OBJCLASS", "ENUM_KEY_ATTRIBUTE",
+                                     "ENUM_VALUE_ATTRIBUTE", "ENUM_ORDER_ATTRIBUTE", "ENUM_FILTER"])
+
 
         dict_conf = self.menage_version(self.request(requete, ()), 1, 0, 2)
+        self.get_attributs()
+
         #liste_conf=menage_version(liste_conf.values(),1,4,2)
+        def_enums = dict()
         for i in dict_conf.values():
             self.confs[i[0]] = i[4]
+            if i[5]: # attention c'est un truc_special
+                noms_schema, nom_table = self.compos_id[i[5]]
+                filtredef = i[9].split('=')
+                champ_filtre = filtredef[0]
+                val_filtre = filtredef[1].strip("'")
+                champ_clef = self.attributs[i[6]][2]
+                champ_val = self.attributs[i[7]][2]
+                champ_ordre = self.attributs[i[8]][2]
+                enums_en_table[i[4]] = (noms_schema, nom_table, champ_filtre, val_filtre,
+                                        champ_clef, champ_val, champ_ordre)
+                def_enums[(noms_schema, nom_table, champ_filtre, champ_clef,
+                           champ_val, champ_ordre)] = None
+
+
+
 
         requete = self.constructeur(schema, "APICD_CONFORMITEVALEUR",
                                     ["NUMERO_AD", "NUMERO_MODELE", "NOM", "NUMERO_CONF",
@@ -128,6 +222,7 @@ class ElyConnect(ora.OraConnect):
         vals = self.menage_version(self.request(requete, ()), 6, 0, 7)
         vals = self.menage_version(list(vals.values()), 6, 2, 7, 3)
         enums = []
+
         for i in list(vals.values()):
             num_conf = i[3]
             nom = self.confs[num_conf]
@@ -136,6 +231,30 @@ class ElyConnect(ora.OraConnect):
             alias = str(i[4]).replace("\n", ":")
             ordre = i[5]
             enums.append((nom, ordre, valeur, alias, 1))
+
+
+        if enums_en_table:
+            if def_enums: # cas particulier des enums en tables : il faut lire la table des enums:
+                for table in def_enums:
+                    noms_schema, nom_table, champ_filtre, champ_clef, champ_val, champ_ordre = table
+                    print('traitement table', table)
+                    requete = self.constructeur(noms_schema, nom_table,
+                                                [champ_filtre, champ_clef, champ_val, champ_ordre])
+                    print('requete base', requete)
+                    def_enums[table] = self.request(requete)
+#                    print ('valeurs en table',table,  valtable)
+
+            for nom in enums_en_table:
+                noms_schema, nom_table, champ_filtre, val_filtre, champ_clef, champ_val,\
+                    champ_ordre = enums_en_table[nom]
+                table = def_enums[noms_schema, nom_table, champ_filtre, champ_clef,
+                                  champ_val, champ_ordre]
+                enum = {i[1]: i for i in table if i[0] == val_filtre}
+                for i in enum:
+                    filtre, clef, val, ordre = enum[i]
+#                    print ('enum_en_table',nom, ordre, clef, val)
+                    enums.append((nom, int(ordre) if ordre else 0, clef, val, 1))
+
             #print "stockage_conformite",valeur,alias
         return enums
 
@@ -144,7 +263,8 @@ class ElyConnect(ora.OraConnect):
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,defaut,obligatoire
             enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef'''
         schema = self.adminschema
-
+        if self.attributs:
+            return list(self.attributs.values())
         requete = self.constructeur(schema, "APICD_COMPOSANT",
                                     ["NOM", "ACTION", "VERSION", "NUMERO_AD", "ALIAS",
                                      "NATURE", "FERMETURE", "TRAIT", "ABSTRAIT",
@@ -233,8 +353,6 @@ class ElyConnect(ora.OraConnect):
 
         liste_atts = self.menage_version(self.request(requete, ()), 1, 0, 2)
         code_type = {1:"ENTIER", 2:"REEL", 3:"TEXTE", 4:"BOOLEEN", 5:"DATE"}
-        table_attributs = []
-
 
         for i in liste_atts.values():
 #            print ('num_table',i[4])
@@ -250,7 +368,7 @@ class ElyConnect(ora.OraConnect):
                         # (cas particulier des booleens on en fait une enum)
                         conf = self.confs.get("BOOLEEN")
                         type_att = "TEXTE"
-                    defaut = i[12]
+                    defaut = self.traite_defaut(nom_att, i[12])
 
                     graphique = i[7] == 2
                     obligatoire = i[11] == 1
@@ -268,38 +386,27 @@ class ElyConnect(ora.OraConnect):
 #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
 #                                              True, ordre = ordre) # on force
 #                    print ("nom_att ",nom_att)
-                    table_attributs.append((nomschema, nomtable, nom_att, alias,
-                                            type_att, graphique, multiple, defaut,
-                                            obligatoire, conf,
-                                            dimension, ordre, '', '', '', '', '', 0, 0))
+                    attdef = (nomschema, nomtable, nom_att, alias, type_att, graphique,
+                              multiple, defaut, obligatoire, conf, dimension, ordre, '',
+                              '', '', '', '', 0, 0)
+                    self.attributs[i[0]] = attdef
                     if graphique:
-                        table_attributs.append((nomschema, nomtable,
-                                                nom_att+'_X', 'X '+str(alias),
-                                                'REEL', 'False', multiple, '', obligatoire, '',
-                                                dimension, ordre+0.1, '', '', '', '', '', 0, 0))
-                        table_attributs.append((nomschema, nomtable,
-                                                nom_att+'_Y', 'Y '+str(alias),
-                                                'REEL', 'False', multiple, '', obligatoire, '',
-                                                dimension, ordre+0.2, '', '', '', '', '', 0, 0))
+                        attdef = (nomschema, nomtable, nom_att+'_X', 'X '+str(alias),
+                                  'REEL', 'False', multiple, '', obligatoire, '',
+                                  dimension, ordre+0.1, '', '', '', '', '', 0, 0)
+                        self.attributs[i[0]+0.1] = attdef
+                        attdef = (nomschema, nomtable, nom_att+'_Y', 'Y '+str(alias),
+                                  'REEL', 'False', multiple, '', obligatoire, '',
+                                  dimension, ordre+0.2, '', '', '', '', '', 0, 0)
+                        self.attributs[i[0]+0.2] = attdef
 
                 else:
                     print("error: elyx : attribut de composant inconnu", i, compos_id[0])
             else:
                 print("error: elyx : nom_non trouve", i[4], i)
         self.compos_id = compos_id
-#        for i in self.tables: # on genere les dates_systeme
-#            nomschema, nomtable = i
-#            table = self.tables[i]
-#            dimension = table[4]
-#            geom_type = table[3]
-#            if geom_type:
-#                geometrie = (nomschema, nomtable, 'geometrie', 'geometrie', str(geom_type),
-#                             'False', 'False', '', 'oui', '', dimension, 0, 'P:1', 1, 1,
-#                             '', '', 0, 0)
-#
-#                table_attributs.append(geometrie)
-##            print ('champs defaut ',nomschema,nomtable,gid)
-        return table_attributs
+
+        return list(self.attributs.values())
 
 
 
@@ -459,7 +566,8 @@ class ElyConnect(ora.OraConnect):
 
         FROM "'''+self.modelschema+'''"."LXMD_OBJCLASS" oc
         LEFT JOIN "'''+self.modelschema+'''"."LXMD_THEME" t  on t."GID" = oc."THEME"
-        LEFT JOIN "'''+self.modelschema+'''"."LXMD_OBJCLASS_STORAGE" n on oc."GID" = n."KEY_OBJCLASS"
+        LEFT JOIN "'''+self.modelschema+'''"."LXMD_OBJCLASS_STORAGE" n
+        on oc."GID" = n."KEY_OBJCLASS"
 
         '''
         if liste_tables:

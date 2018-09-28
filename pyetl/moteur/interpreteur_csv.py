@@ -38,7 +38,7 @@ def fdebug(regle, obj):
               regle.branchements.brch[obj.redirect+':'] if obj.redirect else
               regle.branchements.brch['ok:'] if succes else regle.branchements.brch['fail:'])
         if regle.copy:
-            print ('copy :  ->', liens_num["copy:"], regle.branchements.brch['copy:'])
+            print('copy :  ->', liens_num["copy:"], regle.branchements.brch['copy:'])
 
     else:
         succes = regle.f_init(regle, obj)

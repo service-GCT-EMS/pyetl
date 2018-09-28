@@ -126,7 +126,7 @@ class HcubeCrypter(Crypter):
     def backcrypt(self, bloc, clef=0):
         '''transposeur inverse'''
         hc1 = list(self.hcube[i] for i in bloc)
-        hyc = [1]*4
+        hyc = list([1]*4)
         for i, j in enumerate(self.transposer[clef]):
             hyc[j] = hc1[i]
         thc = (tuple(j[i] for j in hyc) for i in range(4))

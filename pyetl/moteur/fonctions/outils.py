@@ -356,7 +356,8 @@ def charge_mapping(regle, mapping=None):
 
     regle.elmap = prepare_elmap(mapping)
 #    print ('definition intmap2', intmap2)
-#    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i]) for i in sorted(mapping)]))
+#    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i])
+#           for i in sorted(mapping)]))
 
 
     if not mapping:

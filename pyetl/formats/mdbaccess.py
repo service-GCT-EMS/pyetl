@@ -221,7 +221,10 @@ def _get_tables(connect):
 #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
         if schemaclasse.info["type_geom"] == 'indef':
             schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
-            schemaclasse.info['nom_geometrie'] = 'geometrie'
+#            print('stockage type geometrique', ident, type_geometrique,
+#                  schemaclasse.info["type_geom"])
+            if schemaclasse.info["type_geom"] != '0':
+                schemaclasse.info['nom_geometrie'] = 'geometrie'
 #        else:
 #            print ('geometrie_connue',schemaclasse.info["type_geom"])
 
@@ -311,37 +314,28 @@ def _get_attributs(connect):
 
 
 
-
-
 def get_schemabase(connect, mode_force_enums=1):
     """ recupere le schema complet de la base """
     debut = time.time()
     schema_base = connect.schemabase
 #    types_base = connect.types_base
-
     for i in connect.get_enums():
         nom_enum, ordre, valeur, alias = i[:4]
         conf = schema_base.get_conf(nom_enum)
         conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
 
-
     _get_attributs(connect)
     _get_tables(connect)
-
 
     for i in connect.db_get_schemas():
         nom, alias = i
         schema_base.alias_groupes[nom] = alias if alias else ''
 #        print ('recuperation alias',nom,alias)
-
-
     connect.get_elements_specifiques(schema_base)
     schema_base.dialecte = connect.dialecte
     LOGGER.info('lecture schema base '+schema_base.nom+":"+str(len(schema_base.classes))+
                 ' tables en '+str(int(time.time()-debut))+'s ('+schema_base.dialecte+')')
-#    print('mdbacc: lecture schema base', schema_base.nom, len(schema_base.classes),
-#          'tables en', int(time.time()-debut), 's (', schema_base.dialecte, ')')
-#    print('dialectes sql : ', schema_base.dialecte, schema_base.dbsql)
+
 
 def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     '''ouvre l'acces a la base de donnees et lit le schema'''
@@ -374,12 +368,9 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     if servertyp not in db.DATABASES:
         print('acces inconnu', nombase, base, serveur, servertyp)
         return None
-#    print( 'avant connection')
     connection = db.DATABASES[servertyp].acces(serveur, base, user, passwd,
                                                system=systables,
                                                params=stock_param, code=codebase)
-
-#    print( 'apres connection')
 
     if connection.valide:
 #        print('connection valide', serveur)
@@ -394,7 +385,6 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
 
     print('connection invalide', base, type_base)
     return None
-
 
 
 def dbclose(stock_param, base):
@@ -429,7 +419,7 @@ def setpath(stock_param, nom):
     return nom
 
 
-def dbextload(stock_param, base, file):
+def dbextload(stock_param, base, file, log=None):
     '''charge un fichier a travers un loader'''
     connect = dbaccess(stock_param, base)
     if connect is None:
@@ -439,19 +429,21 @@ def dbextload(stock_param, base, file):
     loadext = connect.load_ext
     helper = get_helper(base, file, loadext, helpername, stock_param)
     if helper:
-        return connect.extload(helper, file)
+        return connect.extload(helper, file, logfile=log)
     return False
 
-def dbextdump(stock_param, base, file, tablelist):
-    '''charge un fichier a travers un loader'''
-    connect = dbaccess(stock_param, base)
+def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
+    '''extrait un fichier a travers un loader'''
+
+    connect, schema_base, schema_travail, liste_tables =\
+        recup_schema(regle_courante, base, niveau, classe)
     if connect is None:
         return False
-    connect = stock_param.dbconnect[base]
+
     helpername = connect.dump_helper
-    helper = get_helper(base, None, '', helpername, stock_param)
+    helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
     if helper:
-        return connect.extdump(helper, file)
+        return connect.extdump(helper, base, liste_tables, dest, log)
     return False
 
 def dbrunsql(stock_param, base, file, log=None, out=None):
@@ -510,13 +502,9 @@ def get_typecode(curs, typecode):
     connection.request()
 
 
-
 def schema_from_curs(curs):
     ''' cree un schema de classe a partir d'une requete generique'''
     nom, typecode, _, _, taille, dec, _ = curs.description
-
-
-
 
 
 def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect, sortie, v_sortie,
@@ -537,9 +525,6 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
             print('mdba: mapping:', (niveau, classe), '->', newid)
             niveau, classe = newid
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
-
-
-#    print ('patience',a_recuperer,decile)
 
     print('...%-50s'%('%s : %s.%s'% (connect.type_serveur, niveau, classe)), end='', flush=True)
 
@@ -603,6 +588,7 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
 
     print('%8d en %8d ms (%8d) %s' % (nbvals, (tget+treq)*1000, treq*1000, cdef))
     return nbvals
+
 
 def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
                  type_base=None, chemin="", mods=None):
@@ -757,7 +743,6 @@ def recup_count(regle_courante, base, niveau, classe, attribut, valeur, mods=Non
     return total
 
 
-
 def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, valeur=None,
                            ordre=None, type_base=None):
     '''lit une table en base de donnees et retourne le tableau de valeurs '''
@@ -777,14 +762,11 @@ def recup_table_parametres(stock_param, nombase, niveau, classe, clef=None, vale
     return resultat
 
 
-
-#    schema = connect.
-
 def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
     ''' recupere la valeur maxi d'un champ en base '''
 #    print('recup_table', nombase, niveau, classe, type_base)
     retour = get_connect(stock_param, nombase, niveau, classe,
-                                             'A', False, type_base=type_base)
+                         'A', False, type_base=type_base)
     if retour:
         connect, schema_travail, _ = retour
     else:
@@ -817,9 +799,6 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
         return 0
     maxobj = int(stock_param.get_param('lire_maxi', 0))
     buffer = regle_courante.params.cmp2.num
-
-
-
 
     traite_objet = stock_param.moteur.traite_objet
 
@@ -860,8 +839,6 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
                                 sortie, v_sortie, schema_classe_postgis.info["type_geom"],
                                 schema_classe_travail, treq=treq, cond=('geom', fonction))
 
-
-#    print('recup_req geom: traitement ', res, 'objets en', round(time.time()-interm, 2), 's')
     stock_param.dbread += res
     return res
 
@@ -884,12 +861,10 @@ class DbWriter(object):
             self.schema_base = connect.schema_base
 
 
-
     def dbtable(self, idtable):
         """ cree une table """
         schematable = self.schema_base.get_classe(idtable)
         return self.connect.valide_table(schematable)
-
 
 
     def open(self, idtable):
@@ -916,18 +891,8 @@ class DbWriter(object):
 
     def write(self, obj):
         '''ecrit un objet complet'''
-
-#        chaine = _convertir_objet_asc(obj, self.liste_att)
-#        self.fichier.write(chaine)
-#        if chaine[-1] != "\n":
-#            self.fichier.write("\n")
-#        self.stats[self.nom] += 1
         return True
 
-#con.execute("create table person(firstname, lastname)")
-
-# Fill the table
-#con.executemany("insert into person(firstname, lastname) values (?,?)", persons)
 
 def _set_liste_attributs(obj, attributs):
     '''positionne la liste d'attributs a sortir'''
@@ -1030,5 +995,3 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
     fich = ressource.handler
 #    print ("fichier de sortie ",fich.nom)
     fich.write(obj)
-
-#########################################################################
