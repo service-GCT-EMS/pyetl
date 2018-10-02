@@ -57,7 +57,6 @@ def fkref(liste, niveau, niv_ref, schema):
     return trouve
 
 
-
 def tablesorter(liste, schema):
     ''' trie les tables en fonction des cibles de clef etrangeres '''
     schema.calcule_cibles()
@@ -172,8 +171,10 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
 
 #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
     if not tables_a_sortir:
-        print("taille schema", len(schema.classes))
+        print('pas de tables a sortir')
         print("select tables: requete", tables, niveau, classe, multi)
+        print("taille schema", schema.nom, len(schema.classes))
+
     return tables_a_sortir
 
 def ihmtablelist(liste):
@@ -340,7 +341,9 @@ def get_schemabase(connect, mode_force_enums=1):
 def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     '''ouvre l'acces a la base de donnees et lit le schema'''
     codebase = nombase
-#    print('--------acces base de donnees', codebase, "->", type_base)
+#    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
+#          codebase in stock_param.dbconnect)
+#    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
     if type_base and type_base not in db.DATABASES:
@@ -419,8 +422,10 @@ def setpath(stock_param, nom):
     return nom
 
 
-def dbextload(stock_param, base, file, log=None):
+def dbextload(regle_courante, base, file, log=None):
     '''charge un fichier a travers un loader'''
+    print('extload chargement ', base, file)
+    stock_param = regle_courante.stock_param
     connect = dbaccess(stock_param, base)
     if connect is None:
         return False
@@ -485,7 +490,6 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
         clas2.type_table = classe.type_table # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
-#    if mode != 'schema':
     niveau = tablesorter(liste2, connect.schemabase)
 #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:
@@ -558,7 +562,6 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
 
         obj.setschema(schema_classe_travail)
 #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
-
         nbvals += 1
         obj.attributs['#gid'] = obj.attributs.get('gid', str(nbvals))
         if sys_cre:
@@ -643,7 +646,6 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
     traite_objet = stock_param.moteur.traite_objet
     res = 0
 #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
-
     curs = None
     for ident in liste_tables:
         if ident is not None:

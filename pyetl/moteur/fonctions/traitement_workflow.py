@@ -11,10 +11,11 @@ import sys
 import re
 import zipfile
 import time
-import requests
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import ftplib
+
+import requests
 from pyetl.formats.interne.objet import Objet
 
 #
@@ -415,7 +416,7 @@ def h_httpdownload(regle):
     regle.chargeur = True
     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar('_sortie')
     os.makedirs(path, exist_ok=True)
-    name = os.path.join(path,regle.params.cmp2.val)
+    name = os.path.join(path, regle.params.cmp2.val)
     regle.fichier = name
 
 
@@ -425,16 +426,16 @@ def f_httpdownload(regle, obj):
    #pattern||;?C;?A;download;?C;C
       #test||notest
       '''
-    url = obj.attributs.get(regle.params.att_entree.val,regle.params.val_entree.val)
-    print( 'telechargement',url)
+    url = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    print('telechargement', url)
     retour = requests.get(url, stream=True)
-    print('info',retour.headers)
+    print('info', retour.headers)
     taille = int(retour.headers['Content-Length'])
     decile = taille/10
     recup = 0
     bloc = 4096
     nb_pts = 0
-    debut=time.time()
+    debut = time.time()
     if retour.status_code == 200:
         with open(regle.fichier, 'wb') as fich:
             for chunk in retour.iter_content(bloc):
@@ -444,7 +445,7 @@ def f_httpdownload(regle, obj):
                     nb_pts += 1
                     print('.', end='', flush=True)
                 fich.write(chunk)
-        print('    ',taille, 'octets télecharges en ', int(time.time()-debut), 'secondes')
+        print('    ', taille, 'octets télecharges en ', int(time.time()-debut), 'secondes')
         return True
     return False
 

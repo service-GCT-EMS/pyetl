@@ -124,11 +124,10 @@ class Pyetl(object):
             except PermissionError:
                 pass
         self.site_params_def = env.get('PYETL_SITE_PARAMS', "")
-        if parent is None:
-            self._init_params() # positionne les parametres predefinis
         self.liste_params = None
 
         if parent is None:
+            self._init_params() # positionne les parametres predefinis
             self.macros = dict()
             self.site_params = dict()
             if self.site_params_def:
@@ -145,6 +144,7 @@ class Pyetl(object):
             self.macros = dict(self.parent.macros)
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
+#            self.dbconnect = self.parent.dbconnect
             # on partage les sorties pour pas se manger les fichiers
 
 #        print('params', sorted(self.parms.items()))
@@ -698,6 +698,8 @@ class Pyetl(object):
         if debug:
             self.debug = debug
         entree = self.get_param('_entree')
+        if self.get_param('sans_entree'):
+            entree = None
 #        print("process",entree, self.regles)
         if isinstance(entree, Stat):
             nb_total = self._lecture_stats(entree)
@@ -817,10 +819,12 @@ class Pyetl(object):
 
         entree = self.get_param('entree_final', self.get_param('_sortie'))
         sortie = self.get_param('sortie_final', self.get_param('_sortie'))
-        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vloc)
+#        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vloc)
 #        return True
         processor = self.getpyetl(nom_macro, liste_params=params,
                                   entree=entree, rep_sortie=sortie)
+#        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
+#                                                       for i in macro.vloc])
         if processor is not None:
             processor.process()
             print('script final effectue', nom_macro, self.idpyetl, '->', processor.idpyetl)

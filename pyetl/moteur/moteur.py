@@ -143,6 +143,7 @@ class Moteur(object):
                 printexception()
 #                if regle:
                 print('==========erreur de traitement', exc)
+                print('====pyetl :', regle.stock_param.nompyetl, regle.stock_param.idpyetl)
                 print('====regle courante:', regle)
                 print('====objet courant :', obj)
                 print("====parametres", regle.params)

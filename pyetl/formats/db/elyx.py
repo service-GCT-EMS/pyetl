@@ -8,6 +8,7 @@ acces a la base de donnees
 import os
 import subprocess
 import tempfile
+import time
 from  . import oraclespatial as ora
 #from ..xml import XmlWriter
 
@@ -23,6 +24,7 @@ class ElyConnect(ora.OraConnect):
         self.tables = dict()
         self.attributs = dict()
         self.load_helper = 'prog_fea2ora'
+        self.load_ext = 'asc'
         self.dump_helper = 'prog_ora2fea'
         self.dump_paramwriter = None
         self.sys_fields = {'#_sys_date_cre':('APIC_CDATE', 'D'),
@@ -74,15 +76,21 @@ class ElyConnect(ora.OraConnect):
     def extrunner(self, helper, xml):
         '''lance les exports ou les imports a partitr du fichier xml'''
         with tempfile.TemporaryDirectory() as tmpdir:
-            paramfile = os.path.join(tmpdir, 'param_export.xml')
+            paramfile = os.path.join(tmpdir, 'param_FEA.xml')
             with open(paramfile, mode='w', encoding='cp1252') as tmpf:
                 tmpf.write('\n'.join(xml))
             chaine = helper + ' -c '+paramfile
+            if self.params.get_param('noload') == '1': #simulation de chargement pour debug
+                print('extrunner elyx: mode simulation -------->', chaine)
+                print('extrunner elyx: param_file \n', '\n'.join(xml))
+                return True
+
             env = self.setenv()
             fini = subprocess.run(chaine, env=env)
             if fini.returncode:
                 print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
                 return False
+#            time.sleep(10000)
         return True
 
 
@@ -91,6 +99,9 @@ class ElyConnect(ora.OraConnect):
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
         reinit = self.params.get_param('reinit', '0') if self.params else '0'
+#        print('valeur de reinit',self.params.nompyetl, self.params.get_param('reinit'))
+        csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
+        logobject = os.path.join(logfile, 'log_import.txt')
         loadxml = ['<Fea2OraConfig>',
                    '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'
                    +self.passwd+'" role=""/>',
@@ -99,7 +110,8 @@ class ElyConnect(ora.OraConnect):
                    '<srcFile path="'+file+'"/>',
                    '<reportDir path="'+logfile+'"/>',
                    '<logDir path="'+logfile+'"/>',
-                   '<logObject path=""/>',
+                   '<coordinateSystem sysgeoPath="'+csystem+'" sysgeoValue=""/>',
+                   '<logObject path="'+logobject+'"/>',
                    '</filePath>',
                    '<checkOption>',
                    '<creationDate value="1"/>',
@@ -237,10 +249,10 @@ class ElyConnect(ora.OraConnect):
             if def_enums: # cas particulier des enums en tables : il faut lire la table des enums:
                 for table in def_enums:
                     noms_schema, nom_table, champ_filtre, champ_clef, champ_val, champ_ordre = table
-                    print('traitement table', table)
+#                    print('traitement table', table)
                     requete = self.constructeur(noms_schema, nom_table,
                                                 [champ_filtre, champ_clef, champ_val, champ_ordre])
-                    print('requete base', requete)
+#                    print('requete base', requete)
                     def_enums[table] = self.request(requete)
 #                    print ('valeurs en table',table,  valtable)
 

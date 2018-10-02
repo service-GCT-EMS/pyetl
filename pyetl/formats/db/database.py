@@ -139,7 +139,7 @@ class DbConnect(object):
         self.sys_fields = dict()
         self.sql_helper = None
         self.load_helper = None
-        self.load_ext = None
+        self.load_ext = ''
         self.dump_helper = None
         self.valide = self.connection is not None
         self.dialecte = 'sql'
@@ -235,7 +235,7 @@ class DbConnect(object):
         cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
         if cur is None:
             self.rowcount = 0
-            return()
+            return ()
         liste = cur.fetchall()
         cur.close()
         return liste

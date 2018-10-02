@@ -29,11 +29,14 @@ def main():
     else:
         mapping = sys.argv[1]
         runpyetl(mapping, sys.argv[2:])
+        print ('temps total %.2f secondes' % (time.time()-starttime))
+
 
 #profile.run('main()','schemamapper.profile')
 #import pstats
 #pstats.Stats('schemamapper.profile').sort_stats('time').print_stats()
 
-main()
-print ('temps total %.2f secondes' % (time.time()-starttime))
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
 

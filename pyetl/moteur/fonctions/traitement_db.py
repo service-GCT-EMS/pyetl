@@ -165,9 +165,9 @@ def setdb(regle, obj, att=True):
 #    print ('regles alpha: acces base ', base, niveau, classe, attribut)
 
     if niveau and niveau[0].startswith('['): # nom de classe contenu dans un attribut
-        niveau = [obj.attributs.get(niveau[0][1:-1], 'xx')]
+        niveau = [obj.attributs.get(niveau[0][1:-1], 'niveau non defini '+niveau[0])]
     if classe and classe[0].startswith('['): # nom de classe contenu dans un attribut
-        classe = [obj.attributs.get(classe[0][1:-1], 'xx')]
+        classe = [obj.attributs.get(classe[0][1:-1], 'classe non definie '+classe[0])]
     if regle.params.att_entree.liste:
 #        print('on a mis un attribut', regle.params.att_entree.liste)
         valeur = [obj.attributs.get(a, d) for a, d
@@ -364,17 +364,17 @@ def h_dbextload(regle):
 
 def f_dbextload(regle, obj):
     '''#aide||lancement d'un chargement de base par un loader externe
-  #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
+  #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;dbextload;log;
      #groupe||database
-    #pattern||;?C;?A;dbextload;?C
+    #pattern||;?C;?A;dbextload;C;;
     '''
     base, _, _, _ = regle.cible_base
     datas = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
+#    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
     fichs = sorted(glob.glob(datas))
     for nom in fichs:
-        print('chargement donnees', nom)
-        DB.dbextload(regle.stock_param, base, nom, log=regle.params.cmp1.val)
+#        print('chargement donnees', nom)
+        DB.dbextload(regle, base, nom, log=regle.params.cmp1.val)
 
 def h_dbextdump(regle):
     """execution de commandes de lecture externe"""

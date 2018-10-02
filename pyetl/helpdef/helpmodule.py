@@ -84,3 +84,6 @@ def print_aide_macros(mapper):
                            '\n'.join([i for i in
                                       mapper.macros[nom_macro].help[:-1].split(';')
                                       if i.strip()])))
+
+def autodoc(mapper):
+    '''genere une documentation automatique du programme'''

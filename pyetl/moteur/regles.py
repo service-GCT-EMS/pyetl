@@ -89,7 +89,8 @@ class ParametresFonction(object):
             if r'\;' in val:
                 val = val.replace(r'\;', ';') # permet de specifier un ;
 #                val = val.replace(r'\b', 'b')
-        except (IndexError, AttributeError):
+        except (IndexError, AttributeError, KeyError):
+#            print ('creent erreur', self.valeurs)
             val = ""
         try:
             defin = self.valeurs[nom].group(2).split(',')
