@@ -767,19 +767,19 @@ class Pyetl(object):
 
         self.debug = 0
 
-        if self.debug:
-            print('pyetl: debug ecriture_finale ', self.get_param('_sortie'))
-        ng2, nf2 = 0, 0
-        for regle in self.regles:
-            if regle.menage:
-                if self.debug:
-                    print("menage_final:", regle.ligne)
-#                if regle.params.cmp2.val:
-#                    regle.setvar('_sortie', regle.params.cmp2.val)
-                try:
-                    regle.f_sortie.ecrire_objets(regle, True)
-                except NotADirectoryError as err:
-                    print('!!!!!!!', self.nompyetl, 'menage final:', err)
+#        if self.debug:
+#            print('pyetl: debug ecriture_finale ', self.get_param('_sortie'))
+#        ng2, nf2 = 0, 0
+#        for regle in self.regles:
+#            if regle.menage:
+#                if self.debug:
+#                    print("menage_final:", regle.ligne)
+##                if regle.params.cmp2.val:
+##                    regle.setvar('_sortie', regle.params.cmp2.val)
+#                try:
+#                    regle.f_sortie.ecrire_objets(regle, True)
+#                except NotADirectoryError as err:
+#                    print('!!!!!!!', self.nompyetl, 'menage final:', err)
 
         self._ecriture_schemas()
 #        self.sorties.closeall()

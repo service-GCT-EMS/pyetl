@@ -90,7 +90,7 @@ class SchemaClasse(object):
     def __init__(self, ident, schema, debug=0):
         groupe, nom = ident
         self.info = {"nom_geometrie":"geometrie", "dimension":"2",
-                     "type_geom":"indef", "objcnt_init":'0'}
+                     "type_geom":"indef", "objcnt_init":'0', "courbe":""}
         self.ident_origine = ident
         self.nom = nom
         self.autodim = False
@@ -101,7 +101,7 @@ class SchemaClasse(object):
         self.sridmixte = False
 #        self.nom_geometrie = 'geometrie'
         self.multigeom = False
-        self.courbe = False
+#        self.courbe = False
         self.changed = False
 #        self.dimension = 2
         self.force_dim = False
@@ -683,7 +683,9 @@ class SchemaClasse(object):
                 self.info["type_geom"] = '0'
         self.srid = srid
         self.multigeom = multiple
-        self.courbe = courbe
+#        self.courbe = courbe
+        if courbe:
+            self.info['courbe'] = '1'
 #        self.is_3d = dimension==3
         self.info["dimension"] = str(dimension)
 #        print ("apres stockage geometrie ",self.info["nom_geometrie"],type_geom,

@@ -68,7 +68,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     description = dict()
     type_geom = sc_classe.info["type_geom"]
     if type_geom > '0':
-        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.courbe
+        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.info['courbe']
                     else nom_g_s[type_geom])
         if sc_classe.info["dimension"] == '3':
             nom_geom = '3D '+ nom_geom
@@ -303,7 +303,7 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
 
     if obj.geom_v.type != '0':
 #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
-        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.courbe
+        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
 
     ressource.write(obj, regle.numero)
     if final:

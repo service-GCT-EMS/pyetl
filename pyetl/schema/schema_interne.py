@@ -118,6 +118,7 @@ class Schema(object):
         self.conf_deja_analyse = False
         self.mode_sortie = None
         self.elements_specifiques = dict()
+        self.init = False # le schema a ete analyse en mode initial
 #        self.dialecte = None # dialecte (sql)
         self.format_sortie = '' # format de sortie
         self.rep_sortie = ''

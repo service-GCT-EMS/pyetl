@@ -334,7 +334,7 @@ class GenSql(database.GenSql):
         type_geom = schemaclasse.info["type_geom"]
 
         if type_geom != '0':
-            arc = schemaclasse.courbe
+            arc = schemaclasse.info['courbe']
 
             geomt = type_geom
             if geomt in self.typenum:

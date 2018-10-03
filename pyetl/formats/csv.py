@@ -14,7 +14,7 @@ import re
 #from numba import jit
 from .interne.objet import Objet
 from .fileio import FileWriter
-
+from ..schema.fonctions_schema import analyse_interne
 
 # ewkt ##################################################################
 #def parse_ewkb(geometrie,texte):
@@ -330,16 +330,16 @@ def _ecrire_ligne_ewkt(ligne, poly, erreurs, multiline=False):
                                             for i in sec2))+")"
     return _ecrire_section_ewkt(sec2[0], poly or multiline)
 
-def _ecrire_multiligne_ewkt(lignes, courbe, erreurs):
+def _ecrire_multiligne_ewkt(lignes, courbe, erreurs, force_courbe=False):
     '''ecrit une multiligne en ewkt'''
     #courbe=True # test courbes
-    code = "MULTICURVE(" if courbe else "MULTILINESTRING("
+    code = "MULTICURVE(" if courbe or force_courbe else "MULTILINESTRING("
     return code +",".join((_ecrire_ligne_ewkt(i, False, erreurs, True)
                            for i in lignes)) +')'
 
-def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False):
+def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=False):
     '''ecrit un polygone en ewkt'''
-    if courbe:
+    if courbe or force_courbe:
         code = "CURVEPOLYGON("
     elif  multi:
         code = "("
@@ -359,11 +359,11 @@ def _ecrire_poly_tin(polygones, tin, _):
                             for i in polygones))+')'
 
 
-def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs):
+def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
     '''ecrit un multipolygone en ewkt'''
     #print 'dans ecrire_polygone',len(polygones)
     #courbe=True # test courbes
-    code = "MULTISURFACE(" if courbe else "MULTIPOLYGON("
+    code = "MULTISURFACE(" if courbe or force_courbe else "MULTIPOLYGON("
     return code + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True)
                             for i in polygones))+')'
 
@@ -382,7 +382,7 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     else:
         return 0
 
-def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs):
+def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=False):
     '''ecrit une geometrie en ewkt'''
 
     if geometrie_demandee == "0" or geom.type == '0' or geom.null:
@@ -406,8 +406,10 @@ def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs):
             return None
     elif geometrie_demandee == '3':
         if geom.polygones:
-            geomt = _ecrire_multipolygone_ewkt(geom.polygones, courbe, erreurs) if multiple\
-                    else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs, False)
+            geomt = _ecrire_multipolygone_ewkt(geom.polygones, courbe, erreurs,
+                                               force_courbe) if multiple\
+                    else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs,
+                                               False, force_courbe)
         else:
             erreurs.ajout_erreur("polygone non ferme")
             return None
@@ -565,23 +567,29 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
 class CsvWriter(FileWriter):
     """ gestionnaire des fichiers csv en sortie """
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
-                 liste_fich=None, null='', writerparms=None):
+                 liste_fich=None, null='', f_sortie=None):
         super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema)
 
         self.extension = extension
         self.separ = separ
         self.nom = nom
         self.schema = schema
+
         self.entete = entete
         self.null = null
-        self.writerparms = writerparms
+        self.f_sortie = f_sortie
+        self.writerparms = f_sortie.writerparms
         self.classes = set()
         if schema:
+#            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
+            if schema.info['type_geom'] == 'indef':
+                schema.info['type_geom'] = '0'
             self.type_geom = self.schema.info["type_geom"]
             self.multi = self.schema.multigeom
             self.liste_att = schema.get_liste_attributs()
+            self.force_courbe = self.schema.info["courbe"]
         else:
-            print("attention csvwriter a besoin d'un schema")
+            print("attention csvwriter a besoin d'un schema", self.nom)
             raise ValueError("csvwriter: schema manquant")
         self.escape = '\\'+separ
         self.repl = '\\'+self.escape
@@ -609,7 +617,7 @@ class CsvWriter(FileWriter):
 #                obj.geomnatif, obj.type_geom)
 #        print ('orig',obj.attributs)
         attributs = self.separ.join((i if i else self.null for i in atlist))
-        if self.schema.info["type_geom"] != '0':
+        if self.type_geom != '0':
             if obj.format_natif == "#ewkt" and obj.geomnatif: # on a pas change la geometrie
                 geom = obj.geom[0] if obj.geom else self.null# on recupere la geometrie native
 #                print("sortie ewkt geom0",len(geom))
@@ -619,7 +627,7 @@ class CsvWriter(FileWriter):
 
                 else:
                     print('csv: geometrie invalide : erreur geometrique',
-                          obj.ident, obj.numobj, obj.geom_v.erreurs.errs,
+                          obj.ident, obj.numobj, 'demandé:', self.type_geom, obj.geom_v.erreurs.errs,
                           obj.attributs['#type_geom'],
                           self.schema.info["type_geom"], obj.geom)
                     geom = ""
@@ -629,8 +637,8 @@ class CsvWriter(FileWriter):
                 obj.geom = geom
                 obj.geomnatif = True
                 if obj.erreurs.actif == 2:
-                    print('error: writer csv :', obj.ident, obj.ido, 'erreur geometrique',
-                          obj.attributs['#type_geom'], self.schema.identclasse,
+                    print('error: writer csv :', obj.ident, obj.ido, 'erreur geometrique: type',
+                          obj.attributs['#type_geom'], 'demandé:',
                           obj.schema.info["type_geom"], obj.erreurs.errs)
                     return False
             ligne = attributs+self.separ+geom
@@ -649,9 +657,22 @@ class CsvWriter(FileWriter):
 
 class SqlWriter(CsvWriter):
     """getionnaire decriture sql en fichier"""
+    def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
+                 liste_fich=None, null='', f_sortie=None):
+        super().__init__(nom, schema, extension, separ, entete, encoding,
+                         liste_fich, null, f_sortie)
+        if self.writerparms:
+            self.schema.setsortie(self.f_sortie)
+
+
 
     def header(self, init=1):
         separ = ','
+        gensql = self.schema.schema.dbsql
+        if not gensql:
+            print('header sql: erreur generateur sql non defini', self.schema.schema.nom,
+                  self.schema.identclasse, self.schema.schema.format_sortie)
+            raise StopIteration(3)
         niveau, classe = self.schema.identclasse
         nouveau = self.schema.identclasse not in self.classes
         self.classes.add(self.schema.identclasse)
@@ -662,7 +683,7 @@ class SqlWriter(CsvWriter):
             reinit = self.writerparms.get('reinit')
 #            dialecte = self.writerparms.get('dialecte', 'sql')
             nodata = self.writerparms.get('nodata')
-            gensql = self.schema.schema.dbsql
+
             gensql.initschema(self.schema.schema)
             # on positionne les infos de schema pour le generateur sql
 
@@ -681,11 +702,16 @@ class SqlWriter(CsvWriter):
         """fin de classe pour remettre les sequences"""
         reinit = self.writerparms.get('reinit', '0')
         niveau, classe = self.schema.identclasse
+        gensql = self.schema.schema.dbsql
+        if not gensql:
+            print('finclasse sql: erreur generateur sql non defini', self.schema.identclasse,
+                  self.schema.schema.format_sortie)
+            raise StopIteration(3)
         if self.writerparms.get('nodata'):
-            self.fichier.write(self.schema.schema.dbsql.tail_charge(niveau, classe, reinit))
+            self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
             return
         self.fichier.write(r'\.'+'\n')
-        self.fichier.write(self.schema.schema.dbsql.tail_charge(niveau, classe, reinit))
+        self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
 
 
 
@@ -699,6 +725,8 @@ class SqlWriter(CsvWriter):
 #        print( 'dans changeclasse')
         self.fin_classe()
         self.schema = schemaclasse
+        if schemaclasse.info['type_geom'] == 'indef': # pas de geometrie
+            schemaclasse.info['type_geom'] = '0'
         self.type_geom = schemaclasse.info["type_geom"]
         self.multi = schemaclasse.multigeom
         self.liste_att = schemaclasse.get_liste_attributs(attributs)
@@ -771,7 +799,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
         str_w = writer(nom, obj.schema, extention, separ, entete,
                        encoding=regle.stock_param.get_param('codec_sortie', 'utf-8'),
                        liste_fich=regle.stock_param.liste_fich, null=null,
-                       writerparms=regle.f_sortie.writerparms)
+                       f_sortie=regle.f_sortie)
         ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
     regle.stock_param.set_param('derniere_sortie', nom, parent=1)
     regle.ressource = ressource
@@ -792,8 +820,8 @@ def csvstreamer(obj, regle, _, entete='csv', separ=None,
                                      extention, entete, null, initial=True)
 
     ressource.write(obj, regle.numero)
-    if obj.geom_v.courbe:
-        obj.schema.courbe = True
+#    if obj.geom_v.courbe:
+#        obj.schema.info['courbe'] = '1'
 
 
 def ecrire_objets_csv(regle, _, entete='csv', separ=None,
@@ -802,21 +830,25 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
     ''' ecrit des objets csv a partir du stockage interne'''
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
-#    print("csv:ecrire csv", regle.stockage.keys())
+    print("csv:ecrire csv", regle.stockage.keys())
 #    rep_sortie = regle.getvar('_sortie', loc=2)
 
     for groupe in list(regle.stockage.keys()):
         # on determine le schema
-#        nom = ''
+        print("csv:ecrire groupe", groupe)
+
         for obj in regle.recupobjets(groupe):
+#            print("csv:ecrire csv", obj)
+#            print( regle.stockage)
 #            groupe, classe = obj.ident
             if obj.ident != regle.dident:
                 ressource = change_ressource(regle, obj, writer,
                                              separ, extention, entete, null, initial=False)
 
             ressource.write(obj, regle.numero)
-            if obj.geom_v.courbe:
-                obj.schema.courbe = True
+
+#            if obj.geom_v.courbe:
+#                obj.schema.info['courbe'] = '1'
     return
 
 

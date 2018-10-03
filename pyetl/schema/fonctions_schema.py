@@ -368,7 +368,7 @@ def valide_schema(schemaclasse, obj, mode='', repl='inconnu', schema=None):
             if multigeom:
                 schemaclasse.multigeom = True
             if courbe:
-                schemaclasse.courbe = True
+                schemaclasse.info['courbe'] = '1'
             if srid != schemaclasse.srid:
                 schemaclasse.sridmix = True
     else:
@@ -522,8 +522,8 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
         obj.attributs_geom(obj)
     type_geom = obj.geom_v.type
     multigeom = obj.geom_v.multi
-#    print("ajuste_schema:recup type_geom", type_geom,schemaclasse.srid,
-#          schemaclasse.info["type_geom"])
+#    print("avant ajuste_schema:",schemaclasse.nom, "recup type_geom", type_geom,
+#          schemaclasse.info["type_geom"], schemaclasse.objcnt, schemaclasse)
 
     courbe = obj.geom_v.courbe
     dimension = str(obj.geom_v.dimension)
@@ -556,11 +556,12 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     if multigeom:
         schemaclasse.multigeom = True
     if courbe:
-        schemaclasse.courbe = True
+        schemaclasse.info['courbe'] = '1'
     schemaclasse.info["dimension"] = max(dimension, schemaclasse.info["dimension"])
     schemaclasse.type_table = "i"
     obj.setschema(schemaclasse)
-
+#    print("apres ajuste_schema:",schemaclasse.nom, "recup type_geom", type_geom,
+#          schemaclasse.info["type_geom"], schemaclasse.objcnt, schemaclasse)
 
 
 def adapte_schema_classe(schema_classe_dest, schema_classe_orig):
@@ -706,6 +707,12 @@ def analyse_interne(schema, mode='util'):
             else:
                 schema_classe.a_sortir = False
     elif mode == 'init':
+        schema.init = True
+        for schema_classe in schema.classes.values():
+            #on mets les geometrie a 0 sie elles ne sont pas definies
+#            print('traitement info', schema_classe, schema_classe.info['type_geom'])
+            if schema_classe.info['type_geom'] == 'indef':
+                schema_classe.info['type_geom'] = '0'
         retour = True
     else:
         for schema_classe in schema.classes.values():

@@ -132,7 +132,7 @@ def sortir_schema_classe_xml(sc_classe, mode='util'):
             attribut.taille = attribut.conformite.taille
         description.extend(sortir_attribut_xml(sc_classe, attribut, keys))
     complement = 'MULTIPLE' if sc_classe.multigeom else 'SIMPLE'
-    arc = 'COURBE' if sc_classe.courbe else 'LIGNE'
+    arc = 'COURBE' if sc_classe.info['courbe'] else 'LIGNE'
     dimension = sc_classe.info["dimension"]
     #print 'type_geom',self.info["type_geom"]
     if sc_classe.info["type_geom"]:
@@ -164,7 +164,7 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, '')
 #    sc_classe.setindexes()
-    arc = 'courbe' if sc_classe.courbe else ''
+    arc = 'courbe' if sc_classe.info['courbe'] else ''
 #    if 'GID' in sc_classe.attributs and not sc_classe.attributs['GID'].alias:
 #        sc_classe.attributs['GID'].alias = sc_classe.alias # on pose l'alias de la table sur le GID
     srid = 'mixte' if sc_classe.sridmixte else str(sc_classe.srid)
@@ -383,7 +383,10 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
         gref = gref.split(',')[0]
         gref = gref.replace('Z', '')
 
-    classe.courbe = v_tmp[5] == 'courbe'
+#    classe.courbe = v_tmp[5] == 'courbe'
+    if v_tmp[5] == 'courbe':
+        classe.info['courbe'] = '1'
+
 
     if gref not in SCI.CODES_G:
         print("schema: erreur type ", v_tmp[4])
@@ -514,7 +517,6 @@ def lire_classes_csv(schema_courant, fichier, cod):
                 if not ident:
                     ident = idorig
                 classe = schema_courant.setdefault_classe(ident)
-
                 attr = v_tmp[2]
 #                print ("sio : lecture", classe.identclasse, attr)
 #                if not attr:
@@ -567,6 +569,7 @@ def lire_classes_csv(schema_courant, fichier, cod):
                     classe.alias = v_tmp[3]
                     if v_tmp[5] == 'courbe':
                         classe.courbe = True
+                        classe.info['courbe'] = '1'
                     if v_tmp[9].isnumeric():
                         classe.srid = str(int(v_tmp[9]))
 

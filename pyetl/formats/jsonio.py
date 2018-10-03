@@ -219,8 +219,8 @@ def jsonstreamer(obj, regle, _, rep_sortie=None): #ecritures non bufferisees
     retour = ressource.handler.write(obj)
 
     if retour:
-        if not schema_courant.courbe and obj.geom_v.courbe:
-            schema_courant.courbe = True
+        if not schema_courant.info['courbe'] and obj.geom_v.courbe:
+            schema_courant.info['courbe'] = '1'
 #        ressource.compte(1)
 
 

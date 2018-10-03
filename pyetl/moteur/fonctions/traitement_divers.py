@@ -283,7 +283,18 @@ def f_uniqcnt(regle, obj):
         return False
     return True
 
-
+def sortir_traite_stock(regle):
+    '''ecriture finale'''
+    print('traite stock sortir',regle.final)
+    if regle.final:
+        regle.f_sortie.ecrire_objets(regle, True)
+        regle.nbstock=0
+        return
+    for groupe in list(regle.stockage.keys()):
+        for obj in regle.recup_objets(groupe):
+            regle.f_sortie.ecrire_objets_stream(obj, regle, False)
+        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
+    regle.nbstock=0
 
 
 def h_sortir(regle):
@@ -336,6 +347,9 @@ def h_sortir(regle):
 #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
     regle.memlimit = int(regle.getvar('memlimit'))
+    regle.store = None
+    regle.nbstock = 0
+    regle.traite_stock = sortir_traite_stock
 #    regle.liste_attributs = regle.params.att_entree.liste
     if regle.stock_param.debug:
         print('sortir :', regle.params.att_entree.liste)
@@ -374,25 +388,17 @@ def f_sortir(regle, obj):
     schemaclasse_ref = obj.schema
 
     setschemasortie(regle, obj)
+    if regle.store is None: # on decide si la regle est stockante ou pas
+        regle.store = regle.f_sortie.calcule_schema and\
+            (not obj.schema or not obj.schema.stable)
+        if regle.store: # on ajuste les branchements
+            regle.branchements.brch["end:"] = regle.branchements.brch["ok:"]
+            regle.branchements.brch["ok:"] = None
 
-    astocker = regle.f_sortie.calcule_schema and\
-        (not obj.schema or not obj.schema.stable)
-
-    freeze = not regle.final # faudra geler les objets si on les stocke
-
-    if not astocker:
-#        print( "sortie_stream",obj.ido,regle,regle.f_sortie.writerparms )
-        regle.f_sortie.ecrire_objets_stream(obj, regle, False)
-        if regle.final:
-            obj.schema = None
-            return True
-
-# la on stocke
-
-#    print ('changement schema ',obj.schema.schema.nom,regle.nom_fich_schema)
-    if astocker:
+    if regle.store:
+        regle.nbstock += 1
         groupe = obj.attributs["#groupe"]
-        print("stockage", obj.ido, groupe, regle)
+#        print("stockage", obj.ido, groupe, regle)
         if groupe != "#poubelle":
             nom_base = regle.nom_base
             #regle.stock_param.nb_obj+=1
@@ -400,14 +406,18 @@ def f_sortir(regle, obj):
                 if groupe  not in regle.stockage:
                     regle.f_sortie.ecrire_objets(regle, False) # on sort le groupe precedent
                     regle.compt_stock = 0
-            regle.endstore(nom_base, groupe, obj, freeze,
+            regle.endstore(nom_base, groupe, obj, regle.final,
                            geomwriter=regle.f_sortie.tmp_geom, nomgeom=regle.f_sortie.nom_fgeo)
+            return True
 
-    if freeze:
-        obj.schema = None # on oublie le schema de sortie pour ne pas fausser
-        # le comtage de references
-        obj.setschema(schemaclasse_ref)
-        obj.liste_attributs = listeref
+    regle.f_sortie.ecrire_objets_stream(obj, regle, False)
+    obj.schema = None
+
+    if regle.final:
+        return True
+    # la on regenere l'objet et on l'envoie dans le circuit poutr la suite
+    obj.setschema(schemaclasse_ref)
+    obj.liste_attributs = listeref
         # on reattribue le schema pour la sortie en simulant une copie
     return True
 

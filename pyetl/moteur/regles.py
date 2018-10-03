@@ -266,7 +266,7 @@ class RegleTraitement(object): # regle de mapping
               " copy "+str(self.copy) if self.copy else ''+\
               " final "+str(self.final) if self.final else '')
 
-    def endstore(self, nom_base, groupe, obj, freeze, geomwriter=None, nomgeom=None):
+    def endstore(self, nom_base, groupe, obj, final, geomwriter=None, nomgeom=None):
         ''' fonction de stockage avant ecriture finale necessiare si le schema
     doit etre determine a partir des donnees avant de les ecrire sur disque'''
 #        print ('regle:dans endstore',self.numero,nom_base,groupe)
@@ -276,7 +276,7 @@ class RegleTraitement(object): # regle de mapping
             return
         if self.f_sortie.calcule_schema:
             if not obj.schema:
-                nomschem = nom_base if nom_base else "defaut"
+                nomschem = nom_base if nom_base else "defaut_auto"
                 schem = self.stock_param.schemas.get(nomschem)
                 if not schem:
                     schem = SC.Schema(nomschem)
@@ -289,7 +289,7 @@ class RegleTraitement(object): # regle de mapping
                 obj.schema.stocke_attribut(nom_att+"_X", "float", '', 'reel')
                 obj.schema.stocke_attribut(nom_att+"_Y", "float", '', 'reel')
 
-        if freeze:
+        if not final:
             obj = obj.dupplique() # on cree une copie si on veut reutiliser l'objet original
 #            print ("endstore:copie de l'objet ",obj.ident,self.stock_param.stream)
         groupe_courant = self.stockage.get(groupe)
@@ -311,6 +311,7 @@ class RegleTraitement(object): # regle de mapping
             print("stockage disque")
 #            raise
             self.tmpwrite(groupe, geomwriter, nomgeom)
+        obj.stored=True
 
     def tmpwrite(self, groupe, geomwriter, nomgeom):
         ''' stockage intermediaire sur disque pour limiter la consommation memoire'''
@@ -353,11 +354,15 @@ class RegleTraitement(object): # regle de mapping
                 print("nombre d'objets relus :", nb_recup)
             os.remove(self.discstore[groupe]) # on fait le menage
             del self.discstore[groupe]
+#        print ('recupobjets',self.stockage[groupe].keys())
+#        print(self.stockage[groupe])
+
         for classe in self.stockage[groupe]:
             liste = self.stockage[groupe][classe]
             for obj in liste:
                 if obj.schema is None:
-                    print('recupliste: objet sans schema', obj.ido)
+                    print('recupliste: objet sans schema', obj.ido, obj.ident, obj.virtuel)
+                    continue
 #                print ('recup obj',obj.ido,obj.copie,obj.ident,'->',obj.schema,obj.virtuel)
                 yield obj
         del self.stockage[groupe]

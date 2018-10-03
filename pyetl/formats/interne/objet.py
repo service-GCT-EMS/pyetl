@@ -47,6 +47,7 @@ class Objet(object):
 #        print ("nouveau",self.ido)
         #self.ccx, self.ccy, self.ccz, self.angle = 0, 0, 0, 0
         self.copie = 0
+        self.stored = False
         self.is_ok = True
         self.redirect = None # pour traitement de sorties calculees
         self.classe_is_att = False

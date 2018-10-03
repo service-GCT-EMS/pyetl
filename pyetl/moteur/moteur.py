@@ -78,7 +78,7 @@ class Moteur(object):
     def traite_objet(self, obj, regle):
         '''traitement basique toutes les regles sont testees '''
         while regle:
-#            last = regle
+            last = regle
             regle.declenchee = True
             self.ncont += 1
             try:
@@ -153,7 +153,7 @@ class Moteur(object):
                                         for i in sorted(regle.stock_param.parms)])
                 raise StopIteration(3)
 #                raise
-        if obj.schema: # c est un objet qui a ete jete par une regle filtrante
+        if obj.schema and not last.store: # c est un objet qui a ete jete par une regle filtrante
             obj.schema.objcnt -= 1
 #            print ('fin de l objet ', last.affiche(), obj.schema.schema.nom,
 #                   obj.schema.identclasse, obj.schema.objcnt)
