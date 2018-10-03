@@ -75,7 +75,7 @@ $F_sortie=%format%;asc;;;;;;;;;;
 &&#define;#extract;niveau;classe;;;;;;;;
 #!help;extraction de niveaux ou de classes;;;;;;;;;;
 <#stdvar;;;;;;;;;;;
-K:%schema%;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
+K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 #groupe;%niveau%;#classe;%classe%;;;;pass-;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#extract+gid;niveau;classe;;;;;;;;;;
@@ -86,7 +86,7 @@ K:%schema%;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 &&#define;#valide;niveau;classe;;;;;;;;
 #!help;validation de niveaux ou de classes;;;;;;;;;;
 <#stdvar;txt;;;;;;;;;;
-K:%schema%;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
+K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 #groupe;%niveau%;#classe;%classe%;;;;valide_schema;;;fin;10,date_creation
 !===========================================================================================;;;;;;;;;;;
 &&#define;#analyse;;;;;;;;;;
