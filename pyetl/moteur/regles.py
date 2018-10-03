@@ -266,6 +266,12 @@ class RegleTraitement(object): # regle de mapping
               " copy "+str(self.copy) if self.copy else ''+\
               " final "+str(self.final) if self.final else '')
 
+    def setstore(self):
+        '''definit une regle comme stockante et ajuste les sorties'''
+        self.branchements.brch["end:"] = self.branchements.brch["ok:"]
+        self.branchements.brch["ok:"] = None
+
+
     def endstore(self, nom_base, groupe, obj, final, geomwriter=None, nomgeom=None):
         ''' fonction de stockage avant ecriture finale necessiare si le schema
     doit etre determine a partir des donnees avant de les ecrire sur disque'''

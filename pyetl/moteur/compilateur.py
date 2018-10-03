@@ -30,8 +30,7 @@ def _affiche_debug(regles, debug):
 def _finalise(regle, debug):
     ''' gere les modifieurs de comportement'''
     if regle.store: # regle demandant un stockage de l'ensemble des entrees
-        regle.branchements.brch["end:"] = regle.branchements.brch["ok:"]
-        regle.branchements.brch["ok:"] = None
+        regle.setstore()
     if regle.final:
         regle.branchements.brch["ok:"] = None
     if regle.filter:

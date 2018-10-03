@@ -392,8 +392,8 @@ def f_sortir(regle, obj):
         regle.store = regle.f_sortie.calcule_schema and\
             (not obj.schema or not obj.schema.stable)
         if regle.store: # on ajuste les branchements
-            regle.branchements.brch["end:"] = regle.branchements.brch["ok:"]
-            regle.branchements.brch["ok:"] = None
+            regle.setstore()
+
 
     if regle.store:
         regle.nbstock += 1
