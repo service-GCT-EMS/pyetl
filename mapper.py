@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 '''modification d'attributs en fonction d'un fichier de parametrage avec
 prise en charge des expressions regulieres'''
 import time

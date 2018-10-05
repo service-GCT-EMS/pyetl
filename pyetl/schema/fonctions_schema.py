@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Wed Dec 10 09:28:45 2014
 
@@ -296,7 +296,7 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
         atdef.conformite = False
         atdef.nom_conformite = ''
     elif mode == 'change_conf':
-        print("schema:", nom_schema, ": modification conformité ", atdef.nom,
+        print("schema:", nom_schema, ": modification conformitÃ© ", atdef.nom,
               atdef.type_att, val)
         warnings.append(nom_classe + '.' + atdef.nom + ":-->" + val +
                         '<-- non conforme enum:modification enum' +
@@ -572,7 +572,7 @@ def adapte_schema_classe(schema_classe_dest, schema_classe_orig):
         # on essaye de creer un attribut on regarde si on a le droit
         if i not in schema_classe_orig.attributs:
             att = schema_classe_dest.attributs[i]
-            #on peut pas creer un obligatoire sautf si defaut (pas encore géré)
+            #on peut pas creer un obligatoire sautf si defaut (pas encore gÃ©rÃ©)
             if att.oblig:
                 del schema_classe_dest.attributs[i]
                 print('FSC: adapte_schema: attribut obligatoire inexistant supprime', i)
@@ -743,7 +743,7 @@ def analyse_interne(schema, mode='util'):
 
 
 def analyse_conformites(schema):
-    '''en cas de schema autogénére analyse les conformites et essaye de les regrouper'''
+    '''en cas de schema autogÃ©nÃ©re analyse les conformites et essaye de les regrouper'''
     print("analyse conformites", schema.nom, len(schema.classes))
     schema.conf_deja_analyse = True
     for i in schema.classes:
