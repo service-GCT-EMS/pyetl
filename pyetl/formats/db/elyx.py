@@ -95,7 +95,6 @@ class ElyConnect(ora.OraConnect):
 
 
 
-
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
         reinit = self.params.get_param('reinit', '0') if self.params else '0'
@@ -132,33 +131,71 @@ class ElyConnect(ora.OraConnect):
         retour = self.extrunner(helper, loadxml)
         return retour
 
+    def genexportxml(self, destination, log, classes):
+        '''prepare les fichiers de confix xml pour l'export'''
+        return ['<Ora2FeaConfig>',
+                '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'+
+                self.passwd+'" role=""/>',
+                '<apicBase name="'+self.base+'" version="5"/>',
+                '<filePath>',
+                '<dstFile path="'+destination+'"/>',
+                '<logDir path="'+log+'"/>',
+                '</filePath>',
+                '<classes list="'+','.join([i[1] for i in classes])+'"/>',
+                '<coordinateSystem value="0"/>',
+                '</Ora2FeaConfig>']
+
+
+
+    def multidump(self, helper, base, classes, dest, log, fanout, maxexport):
+        '''prepare une extraction multiple '''
+        blocks = dict()
+        size = dict()
+        for i in classes:
+            if fanout == 'niveau':
+                if i[0] in blocks:
+                    blocks[i[0]].append(i)
+                    size[i[0]] += classes[i].nbval
+                else:
+                    blocks[i[1]] = [i]
+                    size[i[0]] = classes[i].nbval
+            else:
+                blocks[i[1]]=[i]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for i in blocks:
+                nom = i
+                destination = os.path.join(dest, nom)
+                xml = self.genexportxml(self, destination, log, classes)
+                paramfile = os.path.join(tmpdir, nom+'_param_FEA.xml')
+                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+                    tmpf.write('\n'.join(xml))
+                chaine = helper + ' -c '+paramfile
+                if self.params.get_param('noload') == '1': #simulation de chargement pour debug
+                    print('extrunner elyx: mode simulation -------->', chaine)
+                    print('extrunner elyx: param_file \n', '\n'.join(xml))
+                    return True
+
+                env = self.setenv()
+                fini = subprocess.run(chaine, env=env)
+                if fini.returncode:
+                    print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
+                    return False
+#            time.sleep(10000)
+        return True
+
+
 
 
     def extdump(self, helper, base, classes, dest, log):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
-        if len(classes) == 1:
-            nom = classes[0][1]
-        else:
-            noms = {i[1] for i in classes}
-            if len(noms) == 1:
-                nom = noms.pop()
-            else:
-                nom = 'export'
+
+        noms = {i[1] for i in classes}
+        nom = noms.pop() if len(noms) == 1 else 'export'
+
         destination = os.path.join(dest, nom)
-        exportxml = ['<Ora2FeaConfig>',
-                     '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'+
-                     self.passwd+'" role=""/>',
-                     '<apicBase name="'+self.base+'" version="5"/>',
-                     '<filePath>',
-                     '<dstFile path="'+destination+'"/>',
-                     '<logDir path="'+log+'"/>',
-                     '</filePath>',
-                     '<classes list="'+','.join([i[1] for i in classes])+'"/>',
-                     '<coordinateSystem value="0"/>',
-                     '</Ora2FeaConfig>']
-#                     '<logSql value="1"/>',
-#        print ('export demande',exportxml)
+        exportxml = self.genexportxml(destination, log, classes)
         retour = self.extrunner(helper, exportxml)
         return retour
 

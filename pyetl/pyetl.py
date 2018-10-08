@@ -58,6 +58,46 @@ def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
 MODULEDEBUG = False
 
 
+def runpyetl(mapping, args, env=None, log=None, context=None):
+    """ lancement standardise"""
+    print("pyetl", VERSION, mapping, args)
+    if env is None:
+        env = os.environ
+    traitement = Pyetl(env=env)
+
+
+    try:
+        if log:
+            traitement.set_param('logfile', log)
+        if traitement.prepare_module(mapping, args, context=context):
+            nb_total, nb_fichs, ng2, nf2 = traitement.process()
+        else:
+            print('runpyetl: traitement impossible', mapping, args)
+            return
+    except SyntaxError:
+        print('erreur script')
+        return
+
+    print()
+    if nb_total:
+        print(nb_total, "objets lus")
+    if traitement.dbread:
+        print(traitement.dbread, "objets lus en base de donnees")
+    if traitement.moteur:
+        print(traitement.moteur.dupcnt, "objets dupliques")
+    if ng2:
+        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
+    traitement.signale_fin()
+    duree, _ = next(traitement.maintimer)
+    duree += 0.001
+    print("fin traitement total :", nb_fichs, "fichiers traites en ",
+          int(duree*1000), "millisecondes")
+
+    if nb_total:
+        print('perf lecture  :', int(nb_total/duree), 'o/s')
+    if ng2:
+        print('perf ecriture :', int(ng2/duree), 'o/s')
+    return (nb_total, ng2)
 
 #class Worker(Process):
 #    ''' thread de base executant pyetl'''
@@ -113,7 +153,7 @@ class Pyetl(object):
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
-        self.runpyetl = None
+        self.runpyetl = runpyetl
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
@@ -255,16 +295,11 @@ class Pyetl(object):
             elif len(self.posparm) == 1:
                 self.set_param('_sortie', self.posparm[0])
 
-    def prepare_module(self, regles, liste_params, mode=None):
+    def prepare_module(self, regles, liste_params, mode=None, context=None):
         ''' prepare le module pyetl pour l'execution'''
         if self.parent:
             self.logger = self.parent.logger
 
-        if mode == 'worker': #mode multiprocessing
-            self.regles = [i.dupplique() for i in self.parent.regles]
-            for regle in self.regles:
-                regle.branchements.changeliens(self.regles)
-            return True
 
         if isinstance(regles, list):
             self.nompyetl = 'pyetl'
@@ -276,6 +311,13 @@ class Pyetl(object):
 #        print ('prepare_module1b',self.get_param('_sortie'))
         self._traite_params(liste_params)
 #        print ('prepare_module1c',self.get_param('_sortie'))
+        if mode == 'worker': #mode multiprocessing
+            if context:
+                macros, parms = context
+                self.macros.update(macros)
+                self.parls.update(parms)
+
+
         if self.parent:
             self.logger = self.parent.logger
         else:
@@ -1000,45 +1042,6 @@ class Pyetl(object):
 
         return nb_obj
 
-def runpyetl(mapping, args, env=None, log=None):
-    """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args)
-    if env is None:
-        env = os.environ
-    traitement = Pyetl(env=env)
-    traitement.runpyetl = runpyetl
-    try:
-        if log:
-            traitement.set_param('logfile', log)
-        if traitement.prepare_module(mapping, args):
-            nb_total, nb_fichs, ng2, nf2 = traitement.process()
-        else:
-            print('runpyetl: traitement impossible', mapping, args)
-            return
-    except SyntaxError:
-        print('erreur script')
-        return
-
-    print()
-    if nb_total:
-        print(nb_total, "objets lus")
-    if traitement.dbread:
-        print(traitement.dbread, "objets lus en base de donnees")
-    if traitement.moteur:
-        print(traitement.moteur.dupcnt, "objets dupliques")
-    if ng2:
-        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
-    traitement.signale_fin()
-    duree, _ = next(traitement.maintimer)
-    duree += 0.001
-    print("fin traitement total :", nb_fichs, "fichiers traites en ",
-          int(duree*1000), "millisecondes")
-
-    if nb_total:
-        print('perf lecture  :', int(nb_total/duree), 'o/s')
-    if ng2:
-        print('perf ecriture :', int(ng2/duree), 'o/s')
-    return (nb_total, ng2)
 
 
 
