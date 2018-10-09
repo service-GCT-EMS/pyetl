@@ -79,6 +79,8 @@ class DefinitionAttribut(object):
               'in:mem':(r'^in:(#[a-zA-Z][a-zA-Z0-9_]*)$', "C", ''),
               'in:list':(r'^in:\{(.+(?:,.*)*)\}$', "C", ''),
               'haskey:A':(r'^haskey:('+asdef+')$', "A", ''),
+              'schema:A':(r'^schema:('+asdef+')$', "A", ''),
+              'schema:A:':(r'^schema:('+asdef+')=$', "A", ''),
               'hasval:C':(r'^hasval:(.*)$', "A", ''),
               'C:C':(r'^C:(.*)$', "C", ''),
               'A:C':(r'^('+asdef+'):(.*)$', "A", ''),
@@ -138,7 +140,7 @@ class DefinitionAttribut(object):
 
 
     def __repr__(self):
-        return 'definition_attribut '+self.ident+':'+self.pattern+':'+self.expression+'\n'
+        return 'definition_attribut '+self.ident+'||'+self.pattern+'||'+self.expression+'\n'
 
 
 

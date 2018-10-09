@@ -755,7 +755,11 @@ class Pyetl(object):
         if entree and entree != '!!vide':
             print('mapper: debut traitement donnees:>', entree, '-->',
                   self.regle_sortir.params.cmp1.val)
-            fichs = self.scan_entree()
+            try:
+                fichs = self.scan_entree()
+            except NotADirectoryError as err:
+                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+                fichs = None
             if fichs:
                 self.aff = self._patience(lu_fichs, lu_total)
                 next(self.aff)
@@ -775,6 +779,8 @@ class Pyetl(object):
                     lu_fichs += 1
                     self.aff.send(('fich', 1, nb_lu))
                 duree, _ = self.aff.send(('end', 0, 0))
+            else:
+                print('pas de fichiers en entree')
             print('mapper: ---------> fin traitement donnees:', int(duree))
             print('mapper: ---------> finalisation:')
         else:
@@ -988,6 +994,8 @@ class Pyetl(object):
             entree = os.path.dirname(entree) # on extrait le repertoire
             self.set_param('_entree', entree)
         else:
+            if not os.path.isdir(entree):
+                raise NotADirectoryError(entree)
             fichs = [i for i in scandirs(entree, '', True,
                                          pattern=self.get_param('_fileselect'))]
 #        print ('scan_entree:fichiers a traiter',fichs)
