@@ -11,6 +11,33 @@ import tempfile
 import time
 from  . import oraclespatial as ora
 #from ..xml import XmlWriter
+def get_slot(pool):
+    '''surveille un pool de process et determine s'il y a une disponibilité'''
+    while True:
+        for i in pool:
+            if pool[i] is None:
+                return i
+            if pool[i].poll() is not None:
+                if pool[i] .returncode != 0:
+                    print('erreur process ', pool[i].args(), pool[i] .returncode)
+                pool[i] = None
+                return i
+    time.sleep(0.1)
+
+def wait_end(pool):
+    '''attend que le dernier process d'un pool ait terminé'''
+    actifs = [pool[i] for i in pool if pool[i] is not None]
+    while actifs:
+        reste=[]
+        for process in actifs:
+            if process.poll() is None:
+                reste.append(process)
+            else:
+                if process.returncode != 0:
+                    print('erreur process ', process.args(), process.returncode)
+        actifs = reste
+        time.sleep(1)
+    return
 
 
 class ElyConnect(ora.OraConnect):
@@ -73,26 +100,36 @@ class ElyConnect(ora.OraConnect):
             env['PATH'] = orahome+'\\bin;'+env['PATH']
         return env
 
-    def extrunner(self, helper, xml):
-        '''lance les exports ou les imports a partitr du fichier xml'''
-        with tempfile.TemporaryDirectory() as tmpdir:
-            paramfile = os.path.join(tmpdir, 'param_FEA.xml')
-            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-                tmpf.write('\n'.join(xml))
-            chaine = helper + ' -c '+paramfile
-            if self.params.get_param('noload') == '1': #simulation de chargement pour debug
-                print('extrunner elyx: mode simulation -------->', chaine)
-                print('extrunner elyx: param_file \n', '\n'.join(xml))
-                return True
+    def lanceur(self, helper, xml, paramfile, wait=True):
+        '''gere le programme externe '''
+        chaine = helper + ' -c '+paramfile
 
-            env = self.setenv()
+        if self.params.get_param('noload') == '1': #simulation de chargement pour debug
+            print('extrunner elyx: mode simulation -------->', chaine)
+            print('extrunner elyx: param_file \n', '\n'.join(xml))
+            return True
+
+        with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+            tmpf.write('\n'.join(xml))
+
+        env = self.setenv()
+        if wait:
             fini = subprocess.run(chaine, env=env)
             if fini.returncode:
                 print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
                 return False
+            return True
+        else:
+            process = subprocess.Popen(chaine, env=env, stdout=subprocess.DEVNULL)
+            return process
 #            time.sleep(10000)
-        return True
 
+
+    def singlerunner(self, helper, xml):
+        '''lance les exports ou les imports a partitr du fichier xml'''
+        with tempfile.TemporaryDirectory() as tmpdir:
+            paramfile = os.path.join(tmpdir, 'param_FEA.xml')
+            return self.lanceur(helper, xml, paramfile)
 
 
     def extload(self, helper, file, logfile=None):
@@ -128,7 +165,7 @@ class ElyConnect(ora.OraConnect):
                    '</checkOption>',
                    '</Fea2OraConfig>']
 
-        retour = self.extrunner(helper, loadxml)
+        retour = self.singlerunner(helper, loadxml)
         return retour
 
     def genexportxml(self, destination, log, classes):
@@ -147,56 +184,57 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def multidump(self, helper, base, classes, dest, log, fanout, maxexport):
+    def multidump(self, helper, base, classes, dest, log, fanout):
         '''prepare une extraction multiple '''
         blocks = dict()
         size = dict()
+        maxworkers = self.params.get_param('max_export_workers', '1')
         for i in classes:
             if fanout == 'niveau':
                 if i[0] in blocks:
-                    blocks[i[0]].append(i)
+                    blocks[(i[0],)].append(i)
                     size[i[0]] += classes[i].nbval
                 else:
-                    blocks[i[1]] = [i]
-                    size[i[0]] = classes[i].nbval
+                    blocks[(i[0],)] = [i]
+                    size[i[1]] = classes[i].nbval
             else:
-                blocks[i[1]]=[i]
+                blocks[i]=[i]
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            for i in blocks:
-                nom = i
-                destination = os.path.join(dest, nom)
-                xml = self.genexportxml(self, destination, log, classes)
-                paramfile = os.path.join(tmpdir, nom+'_param_FEA.xml')
-                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-                    tmpf.write('\n'.join(xml))
-                chaine = helper + ' -c '+paramfile
-                if self.params.get_param('noload') == '1': #simulation de chargement pour debug
-                    print('extrunner elyx: mode simulation -------->', chaine)
-                    print('extrunner elyx: param_file \n', '\n'.join(xml))
-                    return True
+            if maxworkers == '1':
+                for nom in blocks:
+                    destination = os.path.join(dest, *nom)
+                    os.makedirs(os.path.dirname(destination), exist_ok=True)
+                    xml = self.genexportxml(destination, log, blocks[nom])
+                    paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+                    self.lanceur(helper, xml, paramfile)
+            else:
+                pool = {i:None for i in range(int(maxworkers))}
+                for nom in blocks:
+                    destination = os.path.join(dest, *nom)
+                    os.makedirs(os.path.dirname(destination), exist_ok=True)
 
-                env = self.setenv()
-                fini = subprocess.run(chaine, env=env)
-                if fini.returncode:
-                    print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
-                    return False
-#            time.sleep(10000)
+                    xml = self.genexportxml(destination, log, blocks[nom])
+                    paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+                    slot = get_slot(pool)
+                    pool[slot] = self.lanceur(helper, xml, paramfile, wait=False)
+                    time.sleep(0.1)
+                wait_end(pool)
         return True
-
-
 
 
     def extdump(self, helper, base, classes, dest, log):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
-
-        noms = {i[1] for i in classes}
-        nom = noms.pop() if len(noms) == 1 else 'export'
-
-        destination = os.path.join(dest, nom)
-        exportxml = self.genexportxml(destination, log, classes)
-        retour = self.extrunner(helper, exportxml)
+        fanout = self.params.get_param('fanout', 'no')
+        if fanout == 'no' or len(classes) == 1:
+            noms = {i[1] for i in classes}
+            nom = noms.pop() if len(noms) == 1 else 'export'
+            destination = os.path.join(dest, nom)
+            exportxml = self.genexportxml(destination, log, classes)
+            retour = self.singlerunner(helper, exportxml)
+        else:
+            retour = self.multidump(helper, base, classes, dest, log, fanout)
         return retour
 
 
