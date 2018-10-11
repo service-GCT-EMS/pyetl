@@ -57,20 +57,20 @@ def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
 
 MODULEDEBUG = False
 
-def runpyetl(mapping, args, env=None, log=None, mode=None, params=None, macros=None):
+def runpyetl(mapping, args, mode=None, params=None, macros=None, env=None, log=None):
     """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args, mode if mode else "")
+    print("pyetl", VERSION, mapping, args, mode if mode else "") 
     if env is None:
         env = os.environ
     traitement = Pyetl(env=env)
-    traitement.runpyetl = runpyetl
     try:
         if log:
             traitement.set_param('logfile', log)
-        if traitement.prepare_module(mapping, args):
+
+        if traitement.prepare_module(mapping, args, mode=mode, context=(macros, params)):
             if mode:
-                traitement.macros.update(macros)
-                traitement.params.update(params)
+                print(" merge macros","macro obj", "#obj" in macros)
+
             nb_total, nb_fichs, ng2, nf2 = traitement.process()
         else:
             print('runpyetl: traitement impossible', mapping, args)
@@ -108,55 +108,7 @@ def test_pb(mapping, args, env=None, log=None):
 
 
 
-def runpyetl(mapping, args, env=None, log=None, context=None):
-    """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args)
-    if env is None:
-        env = os.environ
-    traitement = Pyetl(env=env)
 
-
-    try:
-        if log:
-            traitement.set_param('logfile', log)
-        if traitement.prepare_module(mapping, args, context=context):
-            nb_total, nb_fichs, ng2, nf2 = traitement.process()
-        else:
-            print('runpyetl: traitement impossible', mapping, args)
-            return
-    except SyntaxError:
-        print('erreur script')
-        return
-
-    print()
-    if nb_total:
-        print(nb_total, "objets lus")
-    if traitement.dbread:
-        print(traitement.dbread, "objets lus en base de donnees")
-    if traitement.moteur:
-        print(traitement.moteur.dupcnt, "objets dupliques")
-    if ng2:
-        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
-    traitement.signale_fin()
-    duree, _ = next(traitement.maintimer)
-    duree += 0.001
-    print("fin traitement total :", nb_fichs, "fichiers traites en ",
-          int(duree*1000), "millisecondes")
-
-    if nb_total:
-        print('perf lecture  :', int(nb_total/duree), 'o/s')
-    if ng2:
-        print('perf ecriture :', int(ng2/duree), 'o/s')
-    return (nb_total, ng2)
-
-#class Worker(Process):
-#    ''' thread de base executant pyetl'''
-#    def __init__(self, parent, nom, mode=None):
-#        self.pyetl = parent.getpyetl(parent=parent, mode=mode, nom=nom)
-#        super().__init__()
-#
-#    def run(self):
-#        self.pyetl.process()
 #---------------debut programme ---------------
 
 class Pyetl(object):
@@ -204,10 +156,8 @@ class Pyetl(object):
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
         self.runpyetl = runpyetl
-<<<<<<< HEAD
         self.test_pb = test_pb
-=======
->>>>>>> 53b41b4e9e57821c1ca2603cc1729955e871f482
+
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
@@ -365,11 +315,10 @@ class Pyetl(object):
 #        print ('prepare_module1b',self.get_param('_sortie'))
         self._traite_params(liste_params)
 #        print ('prepare_module1c',self.get_param('_sortie'))
-        if mode == 'worker': #mode multiprocessing
-            if context:
-                macros, parms = context
-                self.macros.update(macros)
-                self.parls.update(parms)
+        if mode: #mode multiprocessing
+            macros, parms = context
+            self.macros.update(macros)
+            self.parms.update(parms)
 
 
         if self.parent:
@@ -806,8 +755,8 @@ class Pyetl(object):
         lu_total, lu_fichs = 0, 0
 #        interv_affich = int(self.get_param("nbaffich", "100000"))
 #        nbaffich = interv_affich
-        if entree and entree != '!!vide':
-            print('mapper: debut traitement donnees:>', entree, '-->',
+        if entree and entree.strip() and entree != '!!vide':
+            print('mapper: debut traitement donnees:>'+entree+ '-->',
                   self.regle_sortir.params.cmp1.val)
             try:
                 fichs = self.scan_entree()
