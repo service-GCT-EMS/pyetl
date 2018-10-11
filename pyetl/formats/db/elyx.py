@@ -15,19 +15,20 @@ def get_slot(pool):
     '''surveille un pool de process et determine s'il y a une disponibilité'''
     while True:
         for i in pool:
-            if pool[i] is None:
+            if pool[i] is None or pool[i].poll() is not None:
                 return i
-            if pool[i].poll() is not None:
-                if pool[i] .returncode != 0:
-                    print('erreur process ', pool[i].args(), pool[i] .returncode)
-                pool[i] = None
-                return i
+#            if pool[i].poll() is not None:
+#                if pool[i].returncode != 0:
+#                    print('erreur process ', pool[i].args(), pool[i].returncode)
+##                pool[i] = None
+#                return i
     time.sleep(0.1)
 
 def wait_end(pool):
     '''attend que le dernier process d'un pool ait terminé'''
     actifs = [pool[i] for i in pool if pool[i] is not None]
     while actifs:
+#        print('attente ',len(actifs), actifs[0].poll(), actifs[0].args)
         reste=[]
         for process in actifs:
             if process.poll() is None:
@@ -100,16 +101,16 @@ class ElyConnect(ora.OraConnect):
             env['PATH'] = orahome+'\\bin;'+env['PATH']
         return env
 
-    def lanceur(self, helper, xml, paramfile, wait=True):
+    def lanceur(self, helper, xml, paramfile, outfile, wait=True):
         '''gere le programme externe '''
         chaine = helper + ' -c '+paramfile
-
+        encoding = 'cp1252'
         if self.params.get_param('noload') == '1': #simulation de chargement pour debug
             print('extrunner elyx: mode simulation -------->', chaine)
             print('extrunner elyx: param_file \n', '\n'.join(xml))
             return True
 
-        with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+        with open(paramfile, mode='w', encoding=encoding) as tmpf:
             tmpf.write('\n'.join(xml))
 
         env = self.setenv()
@@ -120,7 +121,9 @@ class ElyConnect(ora.OraConnect):
                 return False
             return True
         else:
-            process = subprocess.Popen(chaine, env=env, stdout=subprocess.DEVNULL)
+            outdesc = open(outfile, mode='w', encoding=encoding)
+            process = subprocess.Popen(chaine, env=env, stdout=outdesc,
+                                       stderr=subprocess.STDOUT)
             return process
 #            time.sleep(10000)
 
@@ -183,43 +186,62 @@ class ElyConnect(ora.OraConnect):
                 '</Ora2FeaConfig>']
 
 
+    def export_statprint(self, slot, pool, runcode, size):
+        '''affiche une stat d'export'''
+        if pool[slot] is not None:
+#                    print('fini', slot, pool[slot].returncode, pool[slot].args)
+            idclasse, outfile = runcode[slot]
+            retour = open(outfile,'r',encoding='cp1252').readlines()
+            for i in retour:
+                if "Nombre total d'objets" in i:
+                    print('%-40s objets: %10d exportes: %10d ' % ('.'.join(idclasse),
+                                                                 size[idclasse],
+                                                                 int(i.split(':')[-1][:-1])))
+            pool[slot] = None
+
 
     def multidump(self, helper, base, classes, dest, log, fanout):
         '''prepare une extraction multiple '''
         blocks = dict()
         size = dict()
+        runcode = dict()
         maxworkers = self.params.get_param('max_export_workers', '1')
+        pool = {i:None for i in range(int(maxworkers))}
+        schemabase = self.schemabase
         for i in classes:
+            if schemabase.classes[i].info['objcnt_init'] == '0':
+                print('classe vide ',i)
+                continue
             if fanout == 'niveau':
                 if i[0] in blocks:
                     blocks[(i[0],)].append(i)
-                    size[i[0]] += classes[i].nbval
+                    size[(i[0],)] += int(schemabase.classes[i].info['objcnt_init'])
                 else:
                     blocks[(i[0],)] = [i]
-                    size[i[1]] = classes[i].nbval
+                    size[(i[0],)] = int(schemabase.classes[i].info['objcnt_init'])
             else:
-                blocks[i]=[i]
-
+                blocks[i] = [i]
+                size[i] = int(schemabase.classes[i].info['objcnt_init'])
         with tempfile.TemporaryDirectory() as tmpdir:
-            if maxworkers == '1':
-                for nom in blocks:
-                    destination = os.path.join(dest, *nom)
-                    os.makedirs(os.path.dirname(destination), exist_ok=True)
-                    xml = self.genexportxml(destination, log, blocks[nom])
-                    paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-                    self.lanceur(helper, xml, paramfile)
-            else:
-                pool = {i:None for i in range(int(maxworkers))}
-                for nom in blocks:
-                    destination = os.path.join(dest, *nom)
-                    os.makedirs(os.path.dirname(destination), exist_ok=True)
+#            total = len(blocks)
+            for nom in blocks:
+#                print('traitement', nom, size[nom])
+                destination = os.path.join(dest, *nom)
+                os.makedirs(os.path.dirname(destination), exist_ok=True)
+                logdir = os.path.join(log, nom[0])
+                os.makedirs(logdir, exist_ok=True)
+                xml = self.genexportxml(destination, logdir, blocks[nom])
+                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
+                slot = get_slot(pool) # on cherche une place
+                self.export_statprint(slot, pool, runcode, size)
+                runcode[slot] = (nom, outfile)
+                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
+                time.sleep(0.1)
+            wait_end(pool)
+            for slot in pool:
+                self.export_statprint(slot, pool, runcode, size)
 
-                    xml = self.genexportxml(destination, log, blocks[nom])
-                    paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-                    slot = get_slot(pool)
-                    pool[slot] = self.lanceur(helper, xml, paramfile, wait=False)
-                    time.sleep(0.1)
-                wait_end(pool)
         return True
 
 
