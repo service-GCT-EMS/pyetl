@@ -57,6 +57,56 @@ def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
 
 MODULEDEBUG = False
 
+def runpyetl(mapping, args, env=None, log=None, mode=None, params=None, macros=None):
+    """ lancement standardise"""
+    print("pyetl", VERSION, mapping, args, mode if mode else "")
+    if env is None:
+        env = os.environ
+    traitement = Pyetl(env=env)
+    traitement.runpyetl = runpyetl
+    try:
+        if log:
+            traitement.set_param('logfile', log)
+        if traitement.prepare_module(mapping, args):
+            if mode:
+                traitement.macros.update(macros)
+                traitement.params.update(params)
+            nb_total, nb_fichs, ng2, nf2 = traitement.process()
+        else:
+            print('runpyetl: traitement impossible', mapping, args)
+            return 0, 0
+    except SyntaxError:
+        print('erreur script')
+        return 0, 0
+
+    print()
+    if nb_total:
+        print(nb_total, "objets lus")
+    if traitement.dbread:
+        print(traitement.dbread, "objets lus en base de donnees")
+    if traitement.moteur:
+        print(traitement.moteur.dupcnt, "objets dupliques")
+    if ng2:
+        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
+    traitement.signale_fin()
+    duree, _ = next(traitement.maintimer)
+    duree += 0.001
+    print("fin traitement total :", nb_fichs, "fichiers traites en ",
+          int(duree*1000), "millisecondes")
+
+    if nb_total:
+        print('perf lecture  :', int(nb_total/duree), 'o/s')
+    if ng2:
+        print('perf ecriture :', int(ng2/duree), 'o/s')
+    return (nb_total, ng2)
+
+
+def test_pb(mapping, args, env=None, log=None):
+    print ("test lancement",mapping,args)
+
+
+
+
 
 
 #class Worker(Process):
@@ -113,7 +163,8 @@ class Pyetl(object):
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
-        self.runpyetl = None
+        self.runpyetl = runpyetl
+        self.test_pb = test_pb
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
@@ -1000,45 +1051,6 @@ class Pyetl(object):
 
         return nb_obj
 
-def runpyetl(mapping, args, env=None, log=None):
-    """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args)
-    if env is None:
-        env = os.environ
-    traitement = Pyetl(env=env)
-    traitement.runpyetl = runpyetl
-    try:
-        if log:
-            traitement.set_param('logfile', log)
-        if traitement.prepare_module(mapping, args):
-            nb_total, nb_fichs, ng2, nf2 = traitement.process()
-        else:
-            print('runpyetl: traitement impossible', mapping, args)
-            return
-    except SyntaxError:
-        print('erreur script')
-        return
-
-    print()
-    if nb_total:
-        print(nb_total, "objets lus")
-    if traitement.dbread:
-        print(traitement.dbread, "objets lus en base de donnees")
-    if traitement.moteur:
-        print(traitement.moteur.dupcnt, "objets dupliques")
-    if ng2:
-        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
-    traitement.signale_fin()
-    duree, _ = next(traitement.maintimer)
-    duree += 0.001
-    print("fin traitement total :", nb_fichs, "fichiers traites en ",
-          int(duree*1000), "millisecondes")
-
-    if nb_total:
-        print('perf lecture  :', int(nb_total/duree), 'o/s')
-    if ng2:
-        print('perf ecriture :', int(ng2/duree), 'o/s')
-    return (nb_total, ng2)
 
 
 

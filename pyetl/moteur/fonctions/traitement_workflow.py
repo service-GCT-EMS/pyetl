@@ -501,7 +501,7 @@ def traite_parallelbatch(regle):
     args = []
     idobj = []
     mapper = regle.stock_param
-    for num, obj in enumerate(regle.store):
+    for num, obj in enumerate(regle.tmpstore):
         idobj.append(num)
         comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
         commande.append(comm if comm else obj.attributs.get('commandes'))
@@ -515,16 +515,32 @@ def traite_parallelbatch(regle):
             params_obj = []
         params = ' '.join(params_obj)
         args.append(entree+' '+rep_sortie+' '+params)
-    nprocs = regle.params.cmp1.num
-    runpyetl = regle.params.runpyetl
+    nprocs = int(regle.params.cmp1.num)
+    runpyetl = regle.stock_param.runpyetl
+#    runpyetl = regle.stock_param.test_pb
+    print('multiprocessing:',commande,args)
+    params = regle.stock_param.parms
+    macros = regle.stock_param.macros
+    mode ="FF"
+    mode = None
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
-        results = {i:res for i, res in zip(idobj, executor.map(runpyetl, commande, args))}
+#        res = executor.map(runpyetl, commande, args)
+#        results = {i:res for i,res in zip(idobj,res)}
+#    results = res
+
+        results = {i:res for i, res in 
+                   zip(idobj, executor.map(runpyetl, commande, args, mode,
+                                           params, macros))}
     traite = regle.stock_param.moteur.traite_objet
+    print("retour multiprocessing ",results)
+
     for i in sorted(results):
-        obj = regle.store[i]
+        obj = regle.tmpstore[i]
         obj.attributs[regle.params.att_sortie.val] = str(results[i])
         regle.branchements.brch["end:"]
         traite(obj, regle.branchements.brch["end:"])
+    regle.nbstock = 0
+
 
 
 def h_parallelbatch(regle):
@@ -539,9 +555,9 @@ def h_parallelbatch(regle):
 def f_parallelbatch(regle, obj):
     '''#aide||execute un traitement batch en processing a partir des parametres de l'objet
   #aide_spec||parametres:attribut_resultat,commandes,attribut_commandes,batch
-    #pattern||?A;?C;?A;multiprocess;N
+    #pattern||?A;?C;?A;multiprocess;N;
      #schema||ajout_attribut
-      #!test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
+       #test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
             ||^X;#obj,#atv;;multiprocess;2||atv;X;1
 '''
     regle.tmpstore.append(obj)
