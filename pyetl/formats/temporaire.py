@@ -140,7 +140,7 @@ def tmp_geom(obj, convertisseur):
     if obj.geom_v.valide:
         if convertisseur is None:
             convertisseur = ecrire_geometrie_tmp
-        geom = convertisseur(obj.geom_v)
+        geom = convertisseur(obj.geom_v,'-1', True, obj.erreurs)
     else:
         geom = obj.geom
     if isinstance(geom, list):

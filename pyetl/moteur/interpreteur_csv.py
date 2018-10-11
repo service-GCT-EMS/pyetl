@@ -95,7 +95,7 @@ def choix_fonction_select(attribut, valeur, regle):
     select = Selecteur(regle, attribut, valeur, isnot)
 #    debug=1
     for candidat in mapper.sortedsels:
-#        print ("test sel ", , candidat.nom, candidat.priorite)
+#        print ("test sel ", candidat.nom, candidat.priorite)
         valide, elements, erreurs = validepattern(select, candidat.definition)
 #        if elements["attr"] is not None:
 #            print ("elements",elements,candidat.definition)
@@ -241,6 +241,7 @@ def validepattern(regle, definition):
 #    print (definition)
     try:
         elements = {i:definition[i].match(regle.v_nommees[i]) for i in definition}
+#        print ('elements',elements)
     except KeyError:
         print("definition erronnee", regle.ligne, definition)
     valide = None not in elements.values()

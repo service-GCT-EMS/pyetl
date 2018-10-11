@@ -63,12 +63,30 @@ def selh_regex(selecteur):
     selecteur.fselect = re.compile(selecteur.params.vals.val).search
 
 
+def sel_infoschema(selecteur, obj):
+    '''#aide||teste la valeur d un parametre de schema
+     #helper||regex
+    #pattern||schema:A;re||50
+      #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom;3;;;X;1;;set;||atv;X;1;
+    '''
+    return selecteur.fselect(obj.schema.info.get(selecteur.params.attr.val, "")) \
+            if  obj.schema else False
+
+def sel_infoschema_egal(selecteur, obj):
+    ''' #aide||test sur un parametre de schema
+     #pattern||schema:A:;C||1
+       #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom=;3;;;X;1;;set;||atv;X;1;
+        '''
+#    print('test ',selecteur.params.attr.val,'->',obj.schema.info.get(selecteur.params.attr.val),selecteur.params.vals.val)
+    return obj.schema and (obj.schema.info.get(selecteur.params.attr.val) == selecteur.params.vals.val)
+
+
 def sel_regex(selecteur, obj):
     '''#aide||selection sur la valeur d un attribut
        #pattern||A;re||99
        #pattern2||A;re:re||1
        #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
-       #test2||obj||^A;is:pk;;set||^?A;0;;set||A;re:is:pk;;;res;1;;set||atv;res;1
+       #test2||obj||^A;is:pk;;set||^?A;0;;set||A;re:is;;;res;1;;set||atv;res;1
     '''
 #    print (" attributs",selecteur,obj)
     return selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
@@ -160,16 +178,7 @@ def sel_hascouleur(selecteur, obj):
     return obj.geom_v.has_couleur(selecteur.params.vals.num)
 
 
-def selh_valschema(selecteur):
-    '''recupere le nom de l'attribut'''
-    selecteur.info = selecteur.params.attr.val.split(':')[-1]
 
-
-def sel_valschema(selecteur, obj):
-    ''' #aide||test sur un parametre de schema
-        #pattern||=schema:(.*);C||1
-        '''
-    return obj.schema and obj.schema.info.get(selecteur.info) == selecteur.params.vals.val
 
 def selh_ininfoschema(selecteur):
     '''recupere le nom de l'attribut'''

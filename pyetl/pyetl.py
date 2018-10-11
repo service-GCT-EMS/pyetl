@@ -108,6 +108,46 @@ def test_pb(mapping, args, env=None, log=None):
 
 
 
+def runpyetl(mapping, args, env=None, log=None, context=None):
+    """ lancement standardise"""
+    print("pyetl", VERSION, mapping, args)
+    if env is None:
+        env = os.environ
+    traitement = Pyetl(env=env)
+
+
+    try:
+        if log:
+            traitement.set_param('logfile', log)
+        if traitement.prepare_module(mapping, args, context=context):
+            nb_total, nb_fichs, ng2, nf2 = traitement.process()
+        else:
+            print('runpyetl: traitement impossible', mapping, args)
+            return
+    except SyntaxError:
+        print('erreur script')
+        return
+
+    print()
+    if nb_total:
+        print(nb_total, "objets lus")
+    if traitement.dbread:
+        print(traitement.dbread, "objets lus en base de donnees")
+    if traitement.moteur:
+        print(traitement.moteur.dupcnt, "objets dupliques")
+    if ng2:
+        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
+    traitement.signale_fin()
+    duree, _ = next(traitement.maintimer)
+    duree += 0.001
+    print("fin traitement total :", nb_fichs, "fichiers traites en ",
+          int(duree*1000), "millisecondes")
+
+    if nb_total:
+        print('perf lecture  :', int(nb_total/duree), 'o/s')
+    if ng2:
+        print('perf ecriture :', int(ng2/duree), 'o/s')
+    return (nb_total, ng2)
 
 #class Worker(Process):
 #    ''' thread de base executant pyetl'''
@@ -164,7 +204,10 @@ class Pyetl(object):
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
         self.runpyetl = runpyetl
+<<<<<<< HEAD
         self.test_pb = test_pb
+=======
+>>>>>>> 53b41b4e9e57821c1ca2603cc1729955e871f482
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
@@ -306,16 +349,11 @@ class Pyetl(object):
             elif len(self.posparm) == 1:
                 self.set_param('_sortie', self.posparm[0])
 
-    def prepare_module(self, regles, liste_params, mode=None):
+    def prepare_module(self, regles, liste_params, mode=None, context=None):
         ''' prepare le module pyetl pour l'execution'''
         if self.parent:
             self.logger = self.parent.logger
 
-        if mode == 'worker': #mode multiprocessing
-            self.regles = [i.dupplique() for i in self.parent.regles]
-            for regle in self.regles:
-                regle.branchements.changeliens(self.regles)
-            return True
 
         if isinstance(regles, list):
             self.nompyetl = 'pyetl'
@@ -327,6 +365,13 @@ class Pyetl(object):
 #        print ('prepare_module1b',self.get_param('_sortie'))
         self._traite_params(liste_params)
 #        print ('prepare_module1c',self.get_param('_sortie'))
+        if mode == 'worker': #mode multiprocessing
+            if context:
+                macros, parms = context
+                self.macros.update(macros)
+                self.parls.update(parms)
+
+
         if self.parent:
             self.logger = self.parent.logger
         else:
@@ -764,7 +809,11 @@ class Pyetl(object):
         if entree and entree != '!!vide':
             print('mapper: debut traitement donnees:>', entree, '-->',
                   self.regle_sortir.params.cmp1.val)
-            fichs = self.scan_entree()
+            try:
+                fichs = self.scan_entree()
+            except NotADirectoryError as err:
+                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+                fichs = None
             if fichs:
                 self.aff = self._patience(lu_fichs, lu_total)
                 next(self.aff)
@@ -784,6 +833,8 @@ class Pyetl(object):
                     lu_fichs += 1
                     self.aff.send(('fich', 1, nb_lu))
                 duree, _ = self.aff.send(('end', 0, 0))
+            else:
+                print('pas de fichiers en entree')
             print('mapper: ---------> fin traitement donnees:', int(duree))
             print('mapper: ---------> finalisation:')
         else:
@@ -997,6 +1048,8 @@ class Pyetl(object):
             entree = os.path.dirname(entree) # on extrait le repertoire
             self.set_param('_entree', entree)
         else:
+            if not os.path.isdir(entree):
+                raise NotADirectoryError(entree)
             fichs = [i for i in scandirs(entree, '', True,
                                          pattern=self.get_param('_fileselect'))]
 #        print ('scan_entree:fichiers a traiter',fichs)

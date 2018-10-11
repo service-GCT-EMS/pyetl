@@ -25,8 +25,8 @@ REMPLACE = dict(zip('-~èéà', '__eea'))
 
 RESERVES = {'in':'ins', 'as':'ass'}
 
-GTYPES_DISC = {"alpha":""}
-GTYPES_CURVE = {"alpha":""}
+GTYPES_DISC = {"alpha":"", "ALPHA":""}
+GTYPES_CURVE = {"alpha":"", "ALPHA":""}
 
 class SpecDefs(object):
     """gere les elements speciaux d une base de donnees"""

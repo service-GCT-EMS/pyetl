@@ -3,31 +3,42 @@
 Created on Fri Dec 11 14:34:04 2015
 
 @author: 89965
-fonctions de auxiliaires
 
-# description des patterns pour les attributs :
-# chaque pattern cmprend 5 champs sous la forme:
-# C1,C2,C3,C4,C5,C6
-# C1) sortie A : attribut
-#           L : liste
-#           [A] : indirect
-#           =nom : nom impose
-# modifieurs +  : composition autorisee
-#            ?  : facultatif
-#
-# C2 defaut  C : chaine caractere
-#           [A] : indirect
-#            N : numerique
-# C3 entree  A: attribut
-#           L liste
-#          / obligatoire si pas defaut
-#          :NC expression de calcul
-# C4 commande
-# C5 parametre 1
-# C6 parametre 2
-#
-# description des tests:
-#
+
+fonctions de sortie et de schema auxiliaires
+
+ description des patterns pour les fonctions :
+     un pattern est la description de la syntaxe de la fonction, il est déclare dans
+     la docstring de la fonction sous la forme '#patternX||description||clef'
+         si une fonction accepte plusieures descriptions il est possible de declarer des patterns 1 a N
+         la clef est un champs permettan de faire la distinction entre les differents patterns autorises
+         la description comprend 5 champs (eventuellemnt vides) seule la commande est obligatoire
+     chaque description comprend 5 champs sous la forme:
+     C1;C2;C3;C4;C5;C6
+     C1: sortie
+         A : attribut
+         L : liste
+         [A] : indirect
+         =nom : nom impose
+
+         modifieurs +  : composition autorisee
+                    ?  : facultatif
+
+    C2: defaut
+        C   : chaine de caractère
+        [A] : indirect
+        N   : numerique
+    C3: entree
+        A: attribut
+        L liste
+        / obligatoire si pas defaut
+        :NC expression de calcul
+    C4: commande
+    C5: parametre 1
+    C6: parametre 2
+
+ description des tests:
+
 
 """
 #from pyetl.formats.formats import Stat
@@ -346,7 +357,7 @@ def fschema_change_schema(regle, obj):
 #        raise
         schema_classe = copyschema(obj.schema, ident, schema2, filiation=True)
     if schema_classe.amodifier(regle):
-        mode = regle.getvar('schema_nocase', False, loc=0)
+        mode = regle.getvar('schema_nocase', False, loc=2)
         if mode: # on adapte la casse
             print('adaptation schema ', mode)
             fonction = lambda x: x.lower() if mode == 'min' else lambda x: x.upper()

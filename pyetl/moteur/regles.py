@@ -287,7 +287,8 @@ class RegleTraitement(object): # regle de mapping
                 if not schem:
                     schem = SC.Schema(nomschem)
                     self.stock_param.schemas[nomschem] = schem
-
+                if classe_ob not in schem.classes:
+                    print('init schema de sortie ',nomschem, classe_ob)
                 FSC.ajuste_schema(schem, obj)
 #                print (obj.schema.nom)
 

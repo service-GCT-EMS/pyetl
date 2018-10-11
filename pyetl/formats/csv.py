@@ -641,6 +641,7 @@ class CsvWriter(FileWriter):
                           obj.attributs['#type_geom'], 'demandé:',
                           obj.schema.info["type_geom"], obj.erreurs.errs)
                     return False
+#            print ('prep ligne ', attributs,'G:', geom)
             ligne = attributs+self.separ+geom
         else:
             ligne = attributs
