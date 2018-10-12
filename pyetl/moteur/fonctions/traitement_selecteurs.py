@@ -139,6 +139,7 @@ def sel_isok(_, obj):
 def sel_isvirtuel(_, obj):
     '''#aide||objet virtuel
        #pattern||;=is:virtuel||1
+       #pattern2||=is:virtuel;||1
        #test||obj||^;;;virtuel||^?;;;reel||;is:virtuel;;;C1;1;;set||^;;;reel||atv;C1;1
 
     '''

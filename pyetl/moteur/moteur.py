@@ -193,6 +193,12 @@ class Macro(object):
         """recupere les commandes de la macro"""
         return [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
 
+    def __repr__(self):
+        """affichage lisible de la macro"""
+        header = '&&#def;'+self.nom
+        return '\n'.join([header]+[self.help]+self.help_detaillee+
+                         [self.commandes_macro[i] for i in sorted(self.commandes_macro)])
+
 
 
 class Macroenv(object):

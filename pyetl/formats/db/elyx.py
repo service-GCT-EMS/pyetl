@@ -121,9 +121,9 @@ class ElyConnect(ora.OraConnect):
                 return False
             return True
         else:
-            outdesc = open(outfile, mode='w', encoding=encoding)
+            outdesc = open(outfile, mode='w', encoding='cp1252')
             process = subprocess.Popen(chaine, env=env, stdout=outdesc,
-                                       stderr=subprocess.STDOUT)
+                                       stderr=subprocess.STDOUT, universal_newlines=True)
             return process
 #            time.sleep(10000)
 
@@ -186,18 +186,30 @@ class ElyConnect(ora.OraConnect):
                 '</Ora2FeaConfig>']
 
 
-    def export_statprint(self, slot, pool, runcode, size):
+    def export_statprint(self, slot, pool, runcode, size, resultats):
         '''affiche une stat d'export'''
+
         if pool[slot] is not None:
 #                    print('fini', slot, pool[slot].returncode, pool[slot].args)
-            idclasse, outfile = runcode[slot]
+            idexport, outfile = runcode[slot]
             retour = open(outfile,'r',encoding='cp1252').readlines()
             for i in retour:
-                if "Nombre total d'objets" in i:
-                    print('%-40s objets: %10d exportes: %10d ' % ('.'.join(idclasse),
-                                                                 size[idclasse],
-                                                                 int(i.split(':')[-1][:-1])))
+#                print('lu:', i)
+                if "Nombre d'objets export" in i:
+                    tmp = i.split(':')
+                    classe = tmp[-2].split(' ')[-1]
+                    niveau = idexport[0]
+                    idclasse = (niveau, classe)
+                    exportes = int(tmp[-1][:-1])
+                    resultats[idclasse] = exportes
+                    if len(idexport) == 1:
+                        print('%-45s objets exportes: %10d ' %
+                              ('.'.join(idclasse), exportes))
+                if "Nombre total d'objets export" in i:
+                    print('%-33s objets: %10d exportes: %10d '
+                          % ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
             pool[slot] = None
+
 
 
     def multidump(self, helper, base, classes, dest, log, fanout):
@@ -205,15 +217,17 @@ class ElyConnect(ora.OraConnect):
         blocks = dict()
         size = dict()
         runcode = dict()
+        resultats = dict()
         maxworkers = self.params.get_param('max_export_workers', '1')
         pool = {i:None for i in range(int(maxworkers))}
         schemabase = self.schemabase
         for i in classes:
             if schemabase.classes[i].info['objcnt_init'] == '0':
                 print('classe vide ',i)
+                resultats[i] = 0
                 continue
             if fanout == 'niveau':
-                if i[0] in blocks:
+                if (i[0],) in blocks:
                     blocks[(i[0],)].append(i)
                     size[(i[0],)] += int(schemabase.classes[i].info['objcnt_init'])
                 else:
@@ -225,7 +239,7 @@ class ElyConnect(ora.OraConnect):
         with tempfile.TemporaryDirectory() as tmpdir:
 #            total = len(blocks)
             for nom in blocks:
-#                print('traitement', nom, size[nom])
+#                print('traitement', nom, size[nom], blocks[nom])
                 destination = os.path.join(dest, *nom)
                 os.makedirs(os.path.dirname(destination), exist_ok=True)
                 logdir = os.path.join(log, nom[0])
@@ -234,15 +248,15 @@ class ElyConnect(ora.OraConnect):
                 paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
                 outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
                 slot = get_slot(pool) # on cherche une place
-                self.export_statprint(slot, pool, runcode, size)
+                self.export_statprint(slot, pool, runcode, size, resultats)
+
                 runcode[slot] = (nom, outfile)
                 pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
                 time.sleep(0.1)
             wait_end(pool)
             for slot in pool:
-                self.export_statprint(slot, pool, runcode, size)
-
-        return True
+                self.export_statprint(slot, pool, runcode, size, resultats)
+        return resultats
 
 
     def extdump(self, helper, base, classes, dest, log):
@@ -365,6 +379,16 @@ class ElyConnect(ora.OraConnect):
                     enums.append((nom, int(ordre) if ordre else 0, clef, val, 1))
 
             #print "stockage_conformite",valeur,alias
+#        print ('confs',self.confs)
+        for i in self.attributs.values():
+            conf = self.confs.get(i[9])
+    #                    if conf is None:
+    #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))
+            if i[4] == "BOOLEEN":
+                # (cas particulier des booleens on en fait une enum)
+                conf = self.confs.get("BOOLEEN")
+                i[4] = 'TEXT'
+            i[9] = conf
         return enums
 
     def get_attributs(self):
@@ -379,7 +403,7 @@ class ElyConnect(ora.OraConnect):
                                      "NATURE", "FERMETURE", "TRAIT", "ABSTRAIT",
                                      "ECHELLE_LIMITE", "ECHELLE_DISPARITION"])
 
-#        print("composants")
+        print("composants", len(self.confs))
         compos = self.menage_version(self.request(requete, ()), 1, 0, 2)
         compos = self.menage_version(list(compos.values()), 1, 3, 2)
         compos_id = dict()
@@ -472,11 +496,15 @@ class ElyConnect(ora.OraConnect):
                 if id_compo in self.tables:
                     nom_att = i[5]
                     type_att = code_type[i[10]]
-                    conf = self.confs.get(i[13])
-                    if type_att == "BOOLEEN":
-                        # (cas particulier des booleens on en fait une enum)
-                        conf = self.confs.get("BOOLEEN")
-                        type_att = "TEXTE"
+#                    if traite_enums:
+                    conf = i[13]
+#                        conf = self.confs.get(i[13])
+#    #                    if conf is None:
+#    #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))
+#                        if type_att == "BOOLEEN":
+#                            # (cas particulier des booleens on en fait une enum)
+#                            conf = self.confs.get("BOOLEEN")
+#                            type_att = "TEXTE"
                     defaut = self.traite_defaut(nom_att, i[12])
 
                     graphique = i[7] == 2
@@ -495,18 +523,19 @@ class ElyConnect(ora.OraConnect):
 #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
 #                                              True, ordre = ordre) # on force
 #                    print ("nom_att ",nom_att)
-                    attdef = (nomschema, nomtable, nom_att, alias, type_att, graphique,
+                    attdef = [nomschema, nomtable, nom_att, alias, type_att, graphique,
                               multiple, defaut, obligatoire, conf, dimension, ordre, '',
-                              '', '', '', '', 0, 0)
+                              '', '', '', '', 0, 0]
+#                    print ('attribut',nomschema, nomtable, nom_att,conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
-                        attdef = (nomschema, nomtable, nom_att+'_X', 'X '+str(alias),
+                        attdef = [nomschema, nomtable, nom_att+'_X', 'X '+str(alias),
                                   'REEL', 'False', multiple, '', obligatoire, '',
-                                  dimension, ordre+0.1, '', '', '', '', '', 0, 0)
+                                  dimension, ordre+0.1, '', '', '', '', '', 0, 0]
                         self.attributs[i[0]+0.1] = attdef
-                        attdef = (nomschema, nomtable, nom_att+'_Y', 'Y '+str(alias),
+                        attdef = [nomschema, nomtable, nom_att+'_Y', 'Y '+str(alias),
                                   'REEL', 'False', multiple, '', obligatoire, '',
-                                  dimension, ordre+0.2, '', '', '', '', '', 0, 0)
+                                  dimension, ordre+0.2, '', '', '', '', '', 0, 0]
                         self.attributs[i[0]+0.2] = attdef
 
                 else:

@@ -57,20 +57,16 @@ def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
 
 MODULEDEBUG = False
 
-def runpyetl(mapping, args, mode=None, params=None, macros=None, env=None, log=None):
+def runpyetl(mapping, args, env=None, log=None):
     """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args, mode if mode else "") 
+    print("pyetl", VERSION, mapping, args)
     if env is None:
         env = os.environ
     traitement = Pyetl(env=env)
     try:
         if log:
             traitement.set_param('logfile', log)
-
-        if traitement.prepare_module(mapping, args, mode=mode, context=(macros, params)):
-            if mode:
-                print(" merge macros","macro obj", "#obj" in macros)
-
+        if traitement.prepare_module(mapping, args):
             nb_total, nb_fichs, ng2, nf2 = traitement.process()
         else:
             print('runpyetl: traitement impossible', mapping, args)
@@ -98,12 +94,30 @@ def runpyetl(mapping, args, mode=None, params=None, macros=None, env=None, log=N
         print('perf lecture  :', int(nb_total/duree), 'o/s')
     if ng2:
         print('perf ecriture :', int(ng2/duree), 'o/s')
-    return (nb_total, ng2)
 
 
-def test_pb(mapping, args, env=None, log=None):
-    print ("test lancement",mapping,args)
 
+def runparallel(mapping, args, mode=None, params=None, macros=None, env=None, log=None):
+    """ lancement standardise"""
+    print("pyetl", VERSION, mapping, args, mode if mode else "")
+    if env is None:
+        env = os.environ
+    traitement = Pyetl(env=env)
+    try:
+        if log:
+            traitement.set_param('logfile', log)
+        if traitement.prepare_module(mapping, args, mode=mode, context=(macros, params)):
+#            print(" merge macros","macro obj", "#obj" in macros)
+            nb_total, nb_fichs, ng2, nf2 = traitement.process()
+        else:
+            print('runpyetl: traitement impossible', mapping, args)
+            return 0, 0, None
+    except SyntaxError:
+        print('erreur script')
+        return 0, 0, None
+    retour = traitement.retour
+    print('retour ', retour)
+    return (nb_total, ng2, retour)
 
 
 
@@ -156,7 +170,7 @@ class Pyetl(object):
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
         self.runpyetl = runpyetl
-        self.test_pb = test_pb
+        self.runparallel = runparallel
 
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
@@ -739,7 +753,12 @@ class Pyetl(object):
     def process(self, debug=0):
         '''traite les entrees '''
         if self.done:
-            return 0, 0, 0, 0
+            try:
+                nb_total, nb_fichs = self.menage_final()
+            except StopIteration:
+                nb_total, nb_fichs = self.sorties.final()
+
+            return 0, 0, nb_total, nb_fichs
         if debug:
             self.debug = debug
         entree = self.get_param('_entree')
@@ -899,7 +918,7 @@ class Pyetl(object):
         if self.logger:
             self.logger.info('ecriture schemas '+ str(mode_schema))
 #        print ('ecriture schemas ', mode_schema)
-        if mode_schema in {'all', 'int', 'fusion'}:
+        if mode_schema in {'all', 'int', 'fusion'} and not self.done:
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
         ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))
 

@@ -187,55 +187,8 @@ def f_dbalpha(regle, obj):
     #pattern||?A;?;?;dbalpha;?;?
 
     '''
-    #regle.stock_param.regle_courante=regle
-#    type_base = None
-#    chemin = ''
-#    attrs = []
-#    cmp = []
-#    valeur = []
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
-#    base, niveau, classe, attribut = regle.cible_base
-#    if attribut: #attention on traite des attributs
-#        if isinstance(attribut, tuple):
-#            attrs, cmp = attribut
-#        else:
-#            attrs = attribut
-##    print ('f_alpha :',attrs, cmp)
-#    if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
-#
-#        chemin = obj.attributs["#chemin"]
-#        if not base:
-#            base = obj.attributs["#base"]
-#        type_base = obj.attributs["#type_base"]
-#        regle.setvar("db", type_base, loc=1)
-#        regle.setvar("server", chemin, loc=1)
-##    print ('regles alpha: acces base ', base, niveau, classe, attribut)
-#
-#    if niveau and niveau[0].startswith('['): # nom de classe contenu dans un attribut
-#        niveau = [obj.attributs.get(niveau[0][1:-1], 'xx')]
-#    if classe and classe[0].startswith('['): # nom de classe contenu dans un attribut
-#        classe = [obj.attributs.get(classe[0][1:-1], 'xx')]
-#    if regle.params.att_entree.liste:
-##        print('on a mis un attribut', regle.params.att_entree.liste)
-#        valeur = [obj.attributs.get(a, d) for a, d
-#                  in zip_longest(regle.params.att_entree.liste, regle.params.val_entree.liste)]
-#    elif regle.params.val_entree.liste:
-#        valeur = regle.params.val_entree.liste
-#    else:
-#        valeur = cmp
-#
     mods = regle.params.cmp1.liste
-
-
-#    vue = 0
-#    ordre = None
-#    if regle.params.cmp2.val == '#v':
-#        vue = 1
-#    elif regle.params.cmp2.val == '#+v':
-#        vue = 2
-#    elif regle.params.cmp2.val == '!#v':
-#        vue = -1
-#    elif regle.params.cmp2.liste:
     ordre = regle.params.cmp2.liste
 #    print ('regles alpha: acces base apres ', base, niveau, classe, attribut)
 
@@ -483,7 +436,7 @@ def f_dbcount(regle, obj):
 
 
 
-
+#TODO meilleure gestion des schemas
 
 def h_recup_schema(regle):
     """ lecture de schemas """
@@ -510,8 +463,9 @@ def h_recup_schema(regle):
                     regle.setvar("schema_entree", nomschema)
                 if regle.schema_sortie:
                     regle.setvar("schema_sortie", nomschema)
-            regle.valide = 'done'
-            DB.recup_schema(regle, base, niveau, classe, nomschema)
+        regle.valide = 'done'
+        print ('h_recup_schema')
+        DB.recup_schema(regle, base, niveau, classe, nomschema)
     return True
 
 def f_recup_schema(regle, obj):

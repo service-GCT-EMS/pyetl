@@ -500,7 +500,7 @@ def traite_parallelbatch(regle):
     commande = []
     args = []
     idobj = []
-    
+
     mapper = regle.stock_param
     taille_batch = len(regle.tmpstore)
     for num, obj in enumerate(regle.tmpstore):
@@ -518,7 +518,7 @@ def traite_parallelbatch(regle):
         params = ' '.join(params_obj)
         args.append(entree+' '+rep_sortie+' '+params)
     nprocs = int(regle.params.cmp1.num)
-    runpyetl = regle.stock_param.runpyetl
+    runparallel = regle.stock_param.runparallel
 #    runpyetl = regle.stock_param.test_pb
     print('multiprocessing:',commande,args)
     params = regle.stock_param.parms
@@ -531,8 +531,8 @@ def traite_parallelbatch(regle):
 #        results = {i:res for i,res in zip(idobj,res)}
 #    results = res
 
-        results = {i:res for i, res in 
-                   zip(idobj, executor.map(runpyetl, commande, args, [mode]*taille_batch,
+        results = {i:res for i, res in
+                   zip(idobj, executor.map(runparallel, commande, args, [mode]*taille_batch,
                                            [params]*taille_batch, [macros]*taille_batch))}
     traite = regle.stock_param.moteur.traite_objet
     print("retour multiprocessing ",results)
@@ -561,7 +561,7 @@ def f_parallelbatch(regle, obj):
     #pattern||?A;?C;?A;multiprocess;N;
      #schema||ajout_attribut
        #test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
-            ||^X;#obj,#atv:X:1;;multiprocess;2||atv;X;1
+            ||^X;#obj,#set:V::1,#atv:V:1;;multiprocess;2||atv;V;1
 '''
     regle.tmpstore.append(obj)
     regle.nbstock += 1

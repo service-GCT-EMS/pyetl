@@ -448,7 +448,10 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     helpername = connect.dump_helper
     helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
     if helper:
-        return connect.extdump(helper, base, liste_tables, dest, log)
+        resultats = connect.extdump(helper, base, liste_tables, dest, log)
+        if resultats:
+            for idclasse in resultats:
+                schema_travail.classes[idclasse].objcnt=resultats[idclasse]
     return False
 
 def dbrunsql(stock_param, base, file, log=None, out=None):

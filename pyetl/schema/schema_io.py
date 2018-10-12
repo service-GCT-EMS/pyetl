@@ -972,7 +972,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
 #        nombase = os.path.basename(os.path.join(rep_sortie, schemas[i].fich))
         if stock_param.schemas[i].origine == 'G':
             FSC.analyse_conformites(schemas[i])
-#        print ('avant analyse ',i,len(schemas[i].classes))
+#        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites))
         if FSC.analyse_interne(schemas[i], mode_sortie):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:

@@ -288,7 +288,7 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
     if mode == 'supp_conf':
         atdef.type_att = 'T' # on supprime automatiquement la conformite
         print("schema:", nom_schema, ":suppression conformite ", atdef.nom, atdef.nom_conformite,
-              '->', atdef.type_att, str(val))
+              '->', atdef.type_att, ascii(str(val)))
 
         warnings.append(nom_classe+'.' + atdef.nom +":-->" + val +
                         '<-- non conforme enum:suppression enum' +
