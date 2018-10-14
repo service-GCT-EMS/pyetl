@@ -26,6 +26,8 @@ from  .schema.schema_io import ecrire_schemas # schemas
 #from  .outils.crypt import crypter, decrypt
 
 VERSION = "0.8.2.2_d"
+MAINMAPPER = [None]
+
 def initlogger(nom, fichier, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     logger = logging.getLogger(nom)
@@ -63,6 +65,8 @@ def runpyetl(mapping, args, env=None, log=None):
     if env is None:
         env = os.environ
     traitement = Pyetl(env=env)
+    MAINMAPPER[0] = traitement
+
     try:
         if log:
             traitement.set_param('logfile', log)
@@ -96,25 +100,49 @@ def runpyetl(mapping, args, env=None, log=None):
         print('perf ecriture :', int(ng2/duree), 'o/s')
 
 
-
-def runparallel(mapping, args, mode=None, params=None, macros=None, env=None, log=None):
-    """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args, mode if mode else "")
+def runparallel(mapping, args, entree, mode, params, macros, env=None, log=None):
+    """ lancement en mode multiprocessing"""
     if env is None:
         env = os.environ
-    traitement = Pyetl(env=env)
-    try:
+#    MAINMAPPER[0] = None
+    if MAINMAPPER[0] is None or mode == "PB":
+        traitement = Pyetl(env=env)
+        print("pyetl worker", os.getpid(), traitement.idpyetl, VERSION,
+              mapping, args, mode if mode else "")
         if log:
             traitement.set_param('logfile', log)
-        if traitement.prepare_module(mapping, args, mode=mode, context=(macros, params)):
-#            print(" merge macros","macro obj", "#obj" in macros)
-            nb_total, nb_fichs, ng2, nf2 = traitement.process()
-        else:
-            print('runpyetl: traitement impossible', mapping, args)
-            return 0, 0, None
+        try:
+            if traitement.prepare_module(mapping, args, mode=mode, context=(macros, params)):
+                print(" module pret ", os.getpid(), traitement.idpyetl)
+                MAINMAPPER[0] = traitement
+            else:
+                return 0, 0, []
+        except SyntaxError:
+            print('erreur script')
+            return 0, 0, []
+        try:
+            traitement.set_param("entree", entree)
+            nb_total, nb_fichs, ng2, nf2 = traitement.process(entree)
+        except SyntaxError:
+            print('erreur execution')
+            return 0, 0, []
+    else:
+        try:
+            traitement = MAINMAPPER[0]
+            print("trouve module", os.getpid(), MAINMAPPER[0].idpyetl)
+        except:
+            print('erreur script', os.getpid(), traitement.idpyetl, mapping, args)
+            return 0, 0, []
+        
+    print("pyetl work:", os.getpid(), traitement.idpyetl, VERSION,
+          mapping, args, mode if mode else "")
+    try:
+        traitement.set_param("entree", entree)
+        nb_total, nb_fichs, ng2, nf2 = traitement.process()
     except SyntaxError:
-        print('erreur script')
-        return 0, 0, None
+        print('erreur execution')
+        return 0, 0, []
+        
     retour = traitement.retour
     print('retour ', retour)
     return (nb_total, ng2, retour)
@@ -280,6 +308,7 @@ class Pyetl(object):
 
         if commande == '#help' or commande == "help":
             from .helpdef.helpmodule import print_help
+            self.set_param("_sortie", "")
             print_help(self, nom)
             self.done = True
 
@@ -297,6 +326,7 @@ class Pyetl(object):
 
         elif commande == '#unittest' or commande == "unittest":
             from .tests.testmodule import unittests
+            self.set_param("_sortie", "")
             unittests(self, nom=nom, debug=self.get_param("debug"))
             self.done = True
 
@@ -457,7 +487,7 @@ class Pyetl(object):
                  liste_params=None, env=None, nom="", mode=None):
         ''' retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch'''
-
+        print(" dans getpyetl",mode)
         if not regles:
             if mode is None:
                 return None
@@ -473,8 +503,8 @@ class Pyetl(object):
             petl.set_param('_entree', entree)
         if nom:
             petl.nompyetl = nom
-#        print('getpyetl:preparation_module' ,liste_params, petl.idpyetl, petl.get_param('_sortie'))
-        if petl.prepare_module(regles, liste_params, mode):
+        print('getpyetl:preparation_module' ,liste_params, petl.idpyetl, petl.get_param('_sortie'))
+        if petl.prepare_module(regles, liste_params, mode, context=None):
 #            print('getpyetl:apres preparation_module' ,petl.idpyetl, petl.get_param('_sortie'))
             return petl
         print('erreur getpyetl', regles)
@@ -596,8 +626,8 @@ class Pyetl(object):
             testrep = self.get_param("_test_path")
             configfile = os.path.join(testrep, str(test)+'.csv')
         if site:
-            print("chargement parametres de site", self.nompyetl,
-                  self.site_params_def, site)
+#            print("chargement parametres de site", self.nompyetl,
+#                  self.site_params_def, site)
             configfile = os.path.join(self.site_params_def, site+'.csv')
         if direct:
             configfile = direct+'.csv'

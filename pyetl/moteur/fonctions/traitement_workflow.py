@@ -500,7 +500,7 @@ def traite_parallelbatch(regle):
     commande = []
     args = []
     idobj = []
-
+    entrees =[]
     mapper = regle.stock_param
     taille_batch = len(regle.tmpstore)
     for num, obj in enumerate(regle.tmpstore):
@@ -516,24 +516,23 @@ def traite_parallelbatch(regle):
         else:
             params_obj = []
         params = ' '.join(params_obj)
+        entrees.append(entree)
         args.append(entree+' '+rep_sortie+' '+params)
     nprocs = int(regle.params.cmp1.num)
     runparallel = regle.stock_param.runparallel
 #    runpyetl = regle.stock_param.test_pb
-    print('multiprocessing:',commande,args)
-    params = regle.stock_param.parms
-    macros = regle.stock_param.macros
-    print ("macro obj", "#obj" in macros)
-    mode ="FF"
+    print('multiprocessing:',commande,"\n args",args)
+    params = [regle.stock_param.parms]*taille_batch
+    macros = [regle.stock_param.macros]*taille_batch
+#    print("macro obj", "#obj" in macros)
+    mode = "FF"*taille_batch
 #    mode = None
+    if regle.mode == "multibatch":
+        mode = "PB"*taille_batch
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
-#        res = executor.map(runpyetl, commande, args)
-#        results = {i:res for i,res in zip(idobj,res)}
-#    results = res
-
         results = {i:res for i, res in
-                   zip(idobj, executor.map(runparallel, commande, args, [mode]*taille_batch,
-                                           [params]*taille_batch, [macros]*taille_batch))}
+                   zip(idobj, executor.map(runparallel, commande, args, entrees,
+                                           mode, params, macros))}
     traite = regle.stock_param.moteur.traite_objet
     print("retour multiprocessing ",results)
 
@@ -559,9 +558,10 @@ def f_parallelbatch(regle, obj):
     '''#aide||execute un traitement batch en processing a partir des parametres de l'objet
   #aide_spec||parametres:attribut_resultat,commandes,attribut_commandes,batch
     #pattern||?A;?C;?A;multiprocess;N;
+    #pattern2||?A;?C;?A;multibatch;N;
      #schema||ajout_attribut
        #test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
-            ||^X;#obj,#set:V::1,#atv:V:1;;multiprocess;2||atv;V;1
+            ||^X;#obj,#set:V::1,#atv:V:1;;multibatch;1||atv;V;1
 '''
     regle.tmpstore.append(obj)
     regle.nbstock += 1
