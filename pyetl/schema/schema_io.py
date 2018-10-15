@@ -728,7 +728,7 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
 
 
 
-def ecrire_schema_csv(rep, schema, mode, cod, modeconf=-1):
+def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
     ''' ecrit un schema en csv '''
     init = False
     if schema.origine == 'B' or schema.origine == 'L':
@@ -736,20 +736,24 @@ def ecrire_schema_csv(rep, schema, mode, cod, modeconf=-1):
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
     mapping = schema.mapping_schema()
     nomschema = schema.nom.replace('#', '_')
-    chemref = os.path.join(rep, nomschema)
-    if len(classes) > 1:
-        #print (conf,'\n',schemas)
-#        print("schema: ecriture schema csv", chemref+" en csv ("+cod+")")
-        ecrire_fich_csv(chemref, "_classes.csv", classes, cod)
-        ecrire_fich_csv(chemref, "_enumerations.csv", conf, cod)
-        ecrire_fich_csv(chemref, "_mapping.csv", mapping, cod)
-        if 'def_triggers' in schema.elements_specifiques:
-            deftrig = []
-            for trig in schema.elements_specifiques['def_triggers']:
-                ligne = ";".join(str(i) for i in trig)
-                deftrig.append(ligne)
-            ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
+    deftrig = []
+    if 'def_triggers' in schema.elements_specifiques:
+        for trig in schema.elements_specifiques['def_triggers']:
+            ligne = ";".join(str(i) for i in trig)
+            deftrig.append(ligne)
 
+    if rep:
+        chemref = os.path.join(rep, nomschema)
+        if len(classes) > 1:
+            #print (conf,'\n',schemas)
+    #        print("schema: ecriture schema csv", chemref+" en csv ("+cod+")")
+            ecrire_fich_csv(chemref, "_classes.csv", classes, cod)
+            ecrire_fich_csv(chemref, "_enumerations.csv", conf, cod)
+            ecrire_fich_csv(chemref, "_mapping.csv", mapping, cod)
+            if deftrig:
+                ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
+    else:
+        return classes, conf, mapping, deftrig
 #            for element in schema.elements_specifiques:
 #                specs = schema.elements_specifiques[element].to_csv()
 #                for nom, liste in specs:
@@ -863,6 +867,11 @@ def copier_xsl(rep):
     with ZipFile(xslref) as xsl:
         xsl.extractall(path=os.path.join(rep, 'xsl'))
 
+def retour_schema(schema, mode='util'):
+    '''renvoie une description en csv ces schemas'''
+    return ecrire_schema_csv(None, schema, mode)
+
+
 
 def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
     ''' sort un schema dans les differents formats disponibles '''
@@ -906,7 +915,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
         if 'csv' in form:
             cod_csv = stock_param.get_param('codec_sortie_schema', "cp1252")
             ecrire_schema_csv(rep_s, schema, mode,
-                              cod_csv, modeconf=confs)
+                              codec=cod_csv, modeconf=confs)
         if form == 'xml':
 #            header = stock_param.get_param('xmlheader', '')
 #            if header:
@@ -933,8 +942,25 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
             else:
                 print('header distant (xmlheader_dist) non defini')
 
-
-
+def retour_schemas(schemas, mode='util'):
+    '''renvoie les schemas pour un retour'''
+    retour = dict()
+    if mode == 'no':
+        return retour
+    for i in schemas:
+#        print('ecriture schema', i, len(schemas[i].classes))
+        if not i:
+            continue
+        nom = schemas[i].nom
+        mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
+        if i.startswith("#") and mode_sortie != 'int':
+            continue # on affiche pas les schemas de travail
+        if schemas[i].origine == 'G':
+            FSC.analyse_conformites(schemas[i])
+#        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites))
+        if FSC.analyse_interne(schemas[i], mode_sortie):
+            retour[nom] = ecrire_schema_csv(None, schemas[i], mode, modeconf=-1)
+    return retour
 
 
 def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
@@ -964,6 +990,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
         if i.startswith("#") and mode_sortie != 'int':
             continue # on affiche pas les schemas de travail
         if not rep_sortie:
+
             print('sio:pas de repertoire de sortie ', stock_param.get_param('_sortie'),
                   stock_param.liste_params)
             raise NotADirectoryError('repertoire de sortie non défini')

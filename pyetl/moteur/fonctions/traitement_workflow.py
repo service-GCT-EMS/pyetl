@@ -495,6 +495,51 @@ def f_archive(regle, obj):
 
 
 
+def traite_parallelprocess(regle):
+    '''traite les batchs en parallele'''
+    commande = []
+    args = []
+    idobj = []
+    entrees =[]
+    mapper = regle.stock_param
+    commande = regle.params.val_entree.val
+    param_attr = regle.params.att_entree.val
+    rep_sortie = mapper.get_param("_sortie")
+    if param_attr:
+        params_obj = ['='.join(re.split('"=>"', i))
+                      for i in re.split('" *, *"', param_attr[1:-1])]
+    else:
+        params_obj = []
+    params_obj.append(rep_sortie)
+    args = ' '.join(params_obj)
+    for num, obj in enumerate(regle.tmpstore):
+        idobj.append(num)
+        entrees.append(obj.attributs.get('entree'))
+    nprocs = int(regle.params.cmp1.num)
+    initparallel = regle.stock_param.initparallel
+    parallelprocess = regle.stock_param.parallelprocess
+    endparallel = regle.stock_param.endparallel
+    print('multiprocessing:',commande,"\n args",args)
+    params = regle.stock_param.parms
+    macros = regle.stock_param.macros
+    results = []
+    retour = []
+    with ProcessPoolExecutor(max_workers=nprocs) as executor:
+        executor.submit(initparallel, commande, args, params, macros)
+        results = {i:res for i, res in zip(idobj, executor.map(parallelprocess, entrees))}
+        retour = executor.submit(endparallel)
+
+
+    traite = regle.stock_param.moteur.traite_objet
+    print("retour multiprocessing ",results, retour)
+
+    for i in sorted(results):
+        obj = regle.tmpstore[i]
+        obj.attributs[regle.params.att_sortie.val] = str(results[i])
+        regle.branchements.brch["end:"]
+        traite(obj, regle.branchements.brch["end:"])
+    regle.nbstock = 0
+
 def traite_parallelbatch(regle):
     '''traite les batchs en parallele'''
     commande = []
@@ -519,20 +564,30 @@ def traite_parallelbatch(regle):
         entrees.append(entree)
         args.append(entree+' '+rep_sortie+' '+params)
     nprocs = int(regle.params.cmp1.num)
-    runparallel = regle.stock_param.runparallel
-#    runpyetl = regle.stock_param.test_pb
+    initparallel = regle.stock_param.initparallel
+    parallelprocess = regle.stock_param.parallelprocess
+    endparallel = regle.stock_param.endparallel
     print('multiprocessing:',commande,"\n args",args)
-    params = [regle.stock_param.parms]*taille_batch
-    macros = [regle.stock_param.macros]*taille_batch
+    params = regle.stock_param.parms
+    macros = regle.stock_param.macros
 #    print("macro obj", "#obj" in macros)
-    mode = "FF"*taille_batch
 #    mode = None
     if regle.mode == "multibatch":
         mode = "PB"*taille_batch
-    with ProcessPoolExecutor(max_workers=nprocs) as executor:
-        results = {i:res for i, res in
-                   zip(idobj, executor.map(runparallel, commande, args, entrees,
-                                           mode, params, macros))}
+#        with ProcessPoolExecutor(max_workers=nprocs) as executor:
+#            results = {i:res for i, res in
+#                       zip(idobj, executor.map(runparallel, commande, args, entrees,
+#                                               mode, params, macros))}
+    else:
+        mode = regle.params.cmp2.val if regle.params.cmp2.val else "FF"
+        with ProcessPoolExecutor(max_workers=nprocs) as executor:
+            executor.submit(initparallel, mapping, args, entree, mode, params, macros, env=None, log=None)
+
+            results = {i:res for i, res in
+                       zip(idobj, executor.map(parallelprocess, commande, args, entrees,
+                                               mode, params, macros))}
+
+
     traite = regle.stock_param.moteur.traite_objet
     print("retour multiprocessing ",results)
 
@@ -542,8 +597,6 @@ def traite_parallelbatch(regle):
         regle.branchements.brch["end:"]
         traite(obj, regle.branchements.brch["end:"])
     regle.nbstock = 0
-
-
 
 def h_parallelbatch(regle):
     '''charge la librairie threading sino repasse en mode batch'''
@@ -557,7 +610,8 @@ def h_parallelbatch(regle):
 def f_parallelbatch(regle, obj):
     '''#aide||execute un traitement batch en processing a partir des parametres de l'objet
   #aide_spec||parametres:attribut_resultat,commandes,attribut_commandes,batch
-    #pattern||?A;?C;?A;multiprocess;N;
+    #pattern||?A;?C;?A;multiprocess;N;?=FF
+    #pattern1||?A;?C;?A;multiprocess;N;?=SS
     #pattern2||?A;?C;?A;multibatch;N;
      #schema||ajout_attribut
        #test||obj;;2||^parametres;"nom"=>"V1", "valeur"=>"1";;set;
@@ -661,8 +715,8 @@ def f_statprocess(*_):
 
 
 def f_schema_liste_classes(regle, obj):
-    '''#aide||cree des objets ou reeels a partir des descriptions de schemas (1 objet par classe)
-    #helper||chargeur
+    '''#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
+     #helper||chargeur
     #pattern||;;;liste_schema;C;?=reel
     '''
     schema = regle.stock_params.schemas.get(regle.params.cmp1.val)
