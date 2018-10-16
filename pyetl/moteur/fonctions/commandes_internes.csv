@@ -1,6 +1,10 @@
 !att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin;
 !============================== bloc utilitaires ===========================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#init_mp;;;;;;;;;;
+#!help;initialise un module en mode multiprocessing (ne fait rien et attends)
+;;;;;;;idle;;;fin;
+!===========================================================================================;;;;;;;;;;;
 &&#define;#stdvar;;;;;;;;;;
 #!help;variables de base appele par tous les autres elements p:format: format de sortie>acces: acces base de donnees si necessaire;;;;;;;;;;
 $F_sortie=%format%;txt;;;;;;;;;;

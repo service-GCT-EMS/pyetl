@@ -66,6 +66,7 @@ def initpyetl(traitement, mapping, args, env=None, log=None):
         traitement.set_param('logfile', log)
         initlogger(fichier=log)
     traitement.init_environ(env)
+    traitement.inited = True
     try:
         traitement.prepare_module(mapping, args)
         return True
@@ -105,20 +106,32 @@ def runpyetl(mapping, args, env=None, log=None):
 
 def initparallel(mapping, args, params, macros, env=None, log=None):
     """initialisatin d'un process worker pour un traitement parallele"""
+    print("pyetl initworker", os.getpid(), mapping, args)
     if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
        MAINMAPPER.macros.update(macros)
        MAINMAPPER.parms.update(params)
-       return True
+       MAINMAPPER.inited = True
+#       time.sleep(2)
+       return os.getpid()
     return False
 
-def parallelbatch(mapping, entree, sortie, args):
+def parallelbatch(parametres_batch):
     """execute divers traitements en parallele"""
+    print ("pyetl startbatch",os.getpid(), parametres_batch[:3])
+    numero, mapping, entree, sortie, args, params, macros = parametres_batch
+    if not MAINMAPPER.inited:
+        initparallel('#init_mp', '',params, macros)
     processor = MAINMAPPER.getpyetl(mapping, liste_params=args,
                                     entree=entree, rep_sortie=sortie)
+
     if processor is None:
+        print("pyetl echec batchworker", os.getpid(), mapping, args)
         return False
+
     lu_total, lu_fichs, nb_total, nb_fichs = processor.process()
-    return lu_total, lu_fichs, nb_total, nb_fichs
+    print("pyetl batchworker", os.getpid(),processor.idpyetl, mapping, args,
+          '->', processor.retour)
+    return numero, lu_total, lu_fichs, nb_total, nb_fichs, processor.retour
 
 def parallelprocess(file):
     '''traitement individuel d'un fichier'''
@@ -130,9 +143,12 @@ def parallelprocess(file):
 #    MAINMAPPER.aff.send(('fich', 1, nb_lu))
     return nb_lu
 
-def endparallel():
+def endparallel(test=None):
     '''termine un traitement parallele'''
     schema = None
+    if MAINMAPPER.ended:
+        time.sleep(2)
+        return None
     try:
         nb_total, nb_fichs, schema = MAINMAPPER.menage_final()
         retour = True
@@ -140,7 +156,9 @@ def endparallel():
         nb_total, nb_fichs = MAINMAPPER.sorties.final()
         retour = False
 #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-    return (retour, nb_total, nb_fichs, schema)
+    print("pyetl batchworker end", os.getpid(), retour, schema)
+    MAINMAPPER.ended = True
+    return (os.getpid(), retour, nb_total, nb_fichs, schema)
 
 
 def runparallel(mapping, args, entree, mode, params, macros, env=None, log=None):
@@ -245,7 +263,8 @@ class Pyetl(object):
         self.parallelprocess = parallelprocess
         self.parallelbatch = parallelbatch
         self.endparallel = endparallel
-
+        self.inited = False
+        self.ended = False
 
 #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
