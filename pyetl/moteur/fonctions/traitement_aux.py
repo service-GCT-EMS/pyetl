@@ -10,9 +10,12 @@ fonctions de sortie et de schema auxiliaires
  description des patterns pour les fonctions :
      un pattern est la description de la syntaxe de la fonction, il est déclare dans
      la docstring de la fonction sous la forme '#patternX||description||clef'
-         si une fonction accepte plusieures descriptions il est possible de declarer des patterns 1 a N
-         la clef est un champs permettan de faire la distinction entre les differents patterns autorises
-         la description comprend 5 champs (eventuellemnt vides) seule la commande est obligatoire
+         si une fonction accepte plusieures descriptions il est possible de declarer
+         des patterns 1 a N
+         la clef est un champs permettan de faire la distinction entre les differents
+         patterns autorises
+         la description comprend 5 champs (eventuellemnt vides) seule la commande
+         est obligatoire
      chaque description comprend 5 champs sous la forme:
      C1;C2;C3;C4;C5;C6
      C1: sortie

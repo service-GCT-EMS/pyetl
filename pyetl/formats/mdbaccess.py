@@ -7,15 +7,12 @@ acces aux bases de donnees
 """
 import re
 import time
-#import sys
 import os
 import logging
-
 from collections import defaultdict
+
 import pyetl.formats.db as db
 from pyetl.schema.fonctions_schema import copyschema
-#from pyetl.schema.elements.attribut import TYPES_A
-
 from .interne.objet import Objet
 
 
@@ -26,6 +23,7 @@ DBACMODS = {'A', 'T', 'V', '=', 'NOCASE'}
 DBDATAMODS = {'S', 'L'}
 DBMODS = DBACMODS|DBDATAMODS
 
+
 def coroutine(func):
     """ decorateur de coroutine"""
     def wrapper(*arg, **kwargs):
@@ -34,6 +32,7 @@ def coroutine(func):
         next(generator)
         return generator
     return wrapper
+
 
 def fkref(liste, niveau, niv_ref, schema):
     '''identifie les tables referenceees par des fk'''
@@ -81,7 +80,6 @@ def invalide(schemaclasse, tables):
     return True
 
 
-
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
     ''' determine si une table est a retenir '''
     if nocase:
@@ -104,7 +102,6 @@ def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
     return vniv and vclass
 
 
-
 def selection_directe(schema, niveau):
     ''' selection directe d une table '''
     tables_a_sortir = set()
@@ -119,6 +116,7 @@ def selection_directe(schema, niveau):
             tables_a_sortir.add(i)
             return tables_a_sortir
 
+
 def get_type_tables(tables):
     '''ajuste les types de tables a retourner'''
     tables = tables.lower()
@@ -130,6 +128,7 @@ def get_type_tables(tables):
         return 'r'
     return tables
 
+
 def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
     '''produit la liste des tables a partir du schema utile pour id_in:'''
     tables_a_sortir = set()
@@ -138,8 +137,7 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
         return selection_directe(schema, niveau)
 
     tables = get_type_tables(tables)
-
-#        print('db:sortie liste', len(niveau), len(classe))
+#    print('db:sortie liste', len(niveau), len(classe))
 #    print('db:sortie liste', tables,niveau,classe)
     for exp_niv, exp_clas in zip(niveau, classe):
 #            trouve = False
@@ -168,7 +166,6 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
                 continue
             if choix_simple(schema.classes[i], exp_niv, exp_clas, negniv, negclass, nocase):
                 tables_a_sortir.add(i)
-
 #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
     if not tables_a_sortir:
         print('pas de tables a sortir')
@@ -176,6 +173,7 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
         print("taille schema", schema.nom, len(schema.classes))
 
     return tables_a_sortir
+
 
 def ihmtablelist(liste):
     """retourne une liste hierarchique de niveaux classe"""
@@ -191,6 +189,7 @@ def ihmtablelist(liste):
         liste.append(valeur)
     return '<'+','.join(liste)+'>'
 
+
 def _get_tables(connect):
     """recupere la structure des tables"""
     schema_base = connect.schemabase
@@ -202,11 +201,11 @@ def _get_tables(connect):
         _, _, _, _ = i
 #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
 #        index_geometrique, clef_primaire, index, clef_etrangere = i
-    #        print ('mdba:select tables' ,i)
+#        print ('mdba:select tables' ,i)
         ident = (nom_groupe, nom_classe)
         schemaclasse = schema_base.get_classe(ident)
         if not schemaclasse:
-    #            print ("schema incoherent",ident,sorted(schema_base.classes.keys()))
+#            print ("schema incoherent",ident,sorted(schema_base.classes.keys()))
             if type_table == 'r':
                 LOGGER.info("table sans attributs"+'.'.join(ident))
 #                print("table sans attributs", ident)
@@ -226,10 +225,9 @@ def _get_tables(connect):
 #                  schemaclasse.info["type_geom"])
             if schemaclasse.info["type_geom"] != '0':
                 schemaclasse.info['nom_geometrie'] = 'geometrie'
-#        else:
-#            print ('geometrie_connue',schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
+
 
 def _get_attributs(connect):
     """recupere les attributs"""
@@ -244,10 +242,7 @@ def _get_attributs(connect):
 
     for i in connect.get_attributs():
         atd = connect.attdef(*i)
-#        nom_groupe, nom_classe, nom_attr, alias, type_attr, graphique, multiple,\
-#            defaut, obligatoire, enum, dimension, num_attribut, index, unique, clef_primaire,\
-#            clef_etrangere, cible_clef, taille, decimales = i
-#        ident = (atd.nom_groupe, atd.nom_classe)
+
         if DEBUG:
             fdebug.write(';'.join([str(v) if v is not None else '' for v in i]))
             fdebug.write('\n')
@@ -269,9 +264,6 @@ def _get_attributs(connect):
         else:
             type_attr = connect.get_type(type_ref)
 
-#        if 'G' in nom_attr:print ('type apres',nom_classe,nom_attr,type_attr)
-#        print (atd)
-#        raise
         if atd.enum:
 #            print ('detection enums ',atd.enum)
 #            if enum in schema_base.conformites:
@@ -314,7 +306,6 @@ def _get_attributs(connect):
         fdebug.close()
 
 
-
 def get_schemabase(connect, mode_force_enums=1):
     """ recupere le schema complet de la base """
     debut = time.time()
@@ -352,8 +343,8 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     systables = stock_param.get_param("tables_systeme")
     if type_base and db.DATABASES[type_base].svtyp == 'file':
 # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
-#            if stock_param.get_param("racine",''):
-#            serveur = os.path.join(stock_param.get_param("racine"), chemin)
+#       if stock_param.get_param("racine",''):
+#       serveur = os.path.join(stock_param.get_param("racine"), chemin)
         serveur = ''
         servertyp = type_base
         base = nombase
@@ -437,6 +428,7 @@ def dbextload(regle_courante, base, file, log=None):
         return connect.extload(helper, file, logfile=log)
     return False
 
+
 def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     '''extrait un fichier a travers un loader'''
 
@@ -451,8 +443,9 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
         resultats = connect.extdump(helper, base, liste_tables, dest, log)
         if resultats:
             for idclasse in resultats:
-                schema_travail.classes[idclasse].objcnt=resultats[idclasse]
+                schema_travail.classes[idclasse].objcnt = resultats[idclasse]
     return False
+
 
 def dbrunsql(stock_param, base, file, log=None, out=None):
     '''charge un fichier sql a travers un client sql externe'''
@@ -501,6 +494,7 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
     LOGGER.info('get_connect schema_travail '+ str(len(connect.schemabase.classes))+
                 '-->'+str(len(schema_travail.classes)) + str(len(schema_travail.conformites)))
     return connect, schema_travail, liste2
+
 
 def get_typecode(curs, typecode):
     '''recupere le type du retour par defaut texte'''
@@ -904,6 +898,7 @@ def _set_liste_attributs(obj, attributs):
     if attributs:
         return attributs
     return obj.schema.get_liste_attributs()
+
 
 def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
     '''ecrit un ensemble d'objets en base'''

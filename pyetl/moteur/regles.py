@@ -168,6 +168,7 @@ class RegleTraitement(object): # regle de mapping
         self.debug = False # modificateurs de comportement
         self.champsdebug = None
         self.store = False
+        self.blocksize = 0
         self.nonext = False
         self.fonc = None
         self.fstore = None
@@ -208,7 +209,7 @@ class RegleTraitement(object): # regle de mapping
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
-            return self.ligne[:-1] if self.ligne[-1] == '\n' else self.ligne
+            return str(self.numero)+':'+(self.ligne[:-1] if self.ligne[-1] == '\n' else self.ligne)
         return 'regle vide'
 
 
@@ -288,7 +289,7 @@ class RegleTraitement(object): # regle de mapping
                     schem = SC.Schema(nomschem)
                     self.stock_param.schemas[nomschem] = schem
                 if classe_ob not in schem.classes:
-                    print('init schema de sortie ',nomschem, classe_ob)
+                    print('init schema de sortie ', nomschem, classe_ob)
                 FSC.ajuste_schema(schem, obj)
 #                print (obj.schema.nom)
 
@@ -318,7 +319,7 @@ class RegleTraitement(object): # regle de mapping
             print("stockage disque")
 #            raise
             self.tmpwrite(groupe, geomwriter, nomgeom)
-        obj.stored=True
+        obj.stored = True
 
     def tmpwrite(self, groupe, geomwriter, nomgeom):
         ''' stockage intermediaire sur disque pour limiter la consommation memoire'''

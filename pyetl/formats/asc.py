@@ -301,7 +301,7 @@ def _finalise(obj, schema_init, schema, numero, chemin):
             obj.setident(newid)
             objid = newid
         if objid not in schema_init.classes:
-            print ("!!!!!!!attention objet non defini dans le schema d'entree",
+            print("!!!!!!!attention objet non defini dans le schema d'entree",
                    schema_init.nom, objid)
         obj.setschema_auto(schema_init)
 #                    if objid in schema.classes:

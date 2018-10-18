@@ -29,7 +29,7 @@ def wait_end(pool):
     actifs = [pool[i] for i in pool if pool[i] is not None]
     while actifs:
 #        print('attente ',len(actifs), actifs[0].poll(), actifs[0].args)
-        reste=[]
+        reste = []
         for process in actifs:
             if process.poll() is None:
                 reste.append(process)
@@ -192,7 +192,7 @@ class ElyConnect(ora.OraConnect):
         if pool[slot] is not None:
 #                    print('fini', slot, pool[slot].returncode, pool[slot].args)
             idexport, outfile = runcode[slot]
-            retour = open(outfile,'r',encoding='cp1252').readlines()
+            retour = open(outfile, 'r', encoding='cp1252').readlines()
             for i in retour:
 #                print('lu:', i)
                 if "Nombre d'objets export" in i:
@@ -223,7 +223,7 @@ class ElyConnect(ora.OraConnect):
         schemabase = self.schemabase
         for i in classes:
             if schemabase.classes[i].info['objcnt_init'] == '0':
-                print('classe vide ',i)
+                print('classe vide ', i)
                 resultats[i] = 0
                 continue
             if fanout == 'niveau':

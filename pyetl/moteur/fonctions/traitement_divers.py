@@ -89,6 +89,7 @@ def applique_mapping(regle):
 def h_map2(regle):
     """ prepare le mapping des structures"""
     regle.store = True
+    regle.blocksize = 1
     regle.nbstock = 0
     regle.traite_stock = applique_mapping
 
@@ -285,16 +286,16 @@ def f_uniqcnt(regle, obj):
 
 def sortir_traite_stock(regle):
     '''ecriture finale'''
-    print('traite stock sortir',regle.final)
+    print('traite stock sortir', regle.final)
     if regle.final:
         regle.f_sortie.ecrire_objets(regle, True)
-        regle.nbstock=0
+        regle.nbstock = 0
         return
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recup_objets(groupe):
             regle.f_sortie.ecrire_objets_stream(obj, regle, False)
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
-    regle.nbstock=0
+    regle.nbstock = 0
 
 
 def h_sortir(regle):
@@ -670,52 +671,6 @@ def f_compare(regle, obj):
     # on remet l'original dans le circuit
     return False
 
-def h_fileloader(regle):
-    """prepare la lecture"""
-    regle.dyn = False
-    if "[" in regle.params.cmp1.val:
-        regle.dyn = True
-
-def f_fileloader(regle, obj):
-    '''#aide||chargement d objets en fichier
-  #aide_spec||cette fonction est l' équivalent du chargement initial
-    #pattern||?A;?C;?A;charge;C;?C
-   #pattern2||?A;?C;?A;charge;[A];?C
-     #schema||ajout_attribut
-
-    #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-    '''
-
-    rep = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
-    mapper = regle.stock_param
-#    print( "charge fichiers", rep)
-    fichs = mapper.scan_entree(rep=rep)
-#    print ("liste_fichiers ", fichs)
-#    lu_total = 0
-#    lu_fichs = 0
-    nb_lu = 0
-    if fichs:
-#        regle.aff = mapper._patience(lu_fichs, lu_total)
-
-#        next(regle.aff)
-#        regle.aff.send(('init', 0, 0))
-        for i in fichs:
-#            print( "charge fichier", i)
-
-            try:
-                nb_lu += mapper.lecture(i, regle=regle)
-            except StopIteration as abort:
-#            print("intercepte abort",abort.args[0])
-                if abort.args[0] == '2':
-                    continue
-                abort = True
-                return False
-#            regle.aff.send(('fich', 1, nb_lu))
-
-#        duree, _ = regle.aff.send(('end', 0, 0))
-    if regle.params.att_sortie.val:
-        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return True
 
 
 def f_run(regle, obj):

@@ -538,16 +538,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, vloc=None):
     et la stocke en structure interne'''
 
     liste_val = [i[1:-1] if i.startswith("'") else i.strip()  for i in ligne.split(';')]
-#    condmatch = re.match("^[\|\+\-]*:?K:(.*)", liste_val[0])
-#    if condmatch: # interpretation conditionelle
-#        print( " condmatch",condmatch.groups(), liste_val[0],liste_val[1])
-#        if condmatch.group(1) == '':
-#            return None
-#        if liste_val[1] and condmatch.group(1) != liste_val[1]:
-#            return None
-#        liste_val = liste_val[2:]
-##        liste_val[0] = ''
-##        liste_val[1] = ''
+
 #    print('traitement_ligne', fichier, ligne, liste_val)
     regle = RegleTraitement(ligne, mapper, fichier, numero, vloc=vloc)
     regle.valide = "inconnu"
@@ -558,11 +549,6 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, vloc=None):
 
     if not regle.valide:
         return regle
-
-#    regle.geom = regle.mode in ("geom", "2D", "3D", "mod3D", "grid", "split", "csplit", "prolonge")
-    #regles geometriques
-#    regle.store = regle.mode in ("doublon", "doublon_G", "Doublon_A", "classif", "struct")
-    # traitements a accumulation
 
     if regle.debug:
         print("---------debug ligne--->", regle.numero, regle.ligne)

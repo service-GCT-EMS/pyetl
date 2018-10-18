@@ -464,7 +464,7 @@ def h_recup_schema(regle):
                 if regle.schema_sortie:
                     regle.setvar("schema_sortie", nomschema)
         regle.valide = 'done'
-        print ('h_recup_schema')
+        print('h_recup_schema')
         DB.recup_schema(regle, base, niveau, classe, nomschema)
     return True
 

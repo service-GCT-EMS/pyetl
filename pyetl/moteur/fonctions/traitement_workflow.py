@@ -496,13 +496,12 @@ def f_archive(regle, obj):
     return True
 
 
-
 def traite_parallelprocess(regle):
     '''traite les batchs en parallele'''
     commande = []
     args = []
     idobj = []
-    entrees =[]
+    entrees = []
     mapper = regle.stock_param
     commande = regle.params.val_entree.val
     param_attr = regle.params.att_entree.val
@@ -521,7 +520,7 @@ def traite_parallelprocess(regle):
     initparallel = regle.stock_param.initparallel
     parallelprocess = regle.stock_param.parallelprocess
     endparallel = regle.stock_param.endparallel
-    print('multiprocessing:',commande,"\n args",args)
+    print('multiprocessing:', commande, "\n args", args)
     params = regle.stock_param.parms
     macros = regle.stock_param.macros
     results = []
@@ -531,9 +530,8 @@ def traite_parallelprocess(regle):
         results = {i:res for i, res in zip(idobj, executor.map(parallelprocess, entrees))}
         retour = executor.submit(endparallel)
 
-
     traite = regle.stock_param.moteur.traite_objet
-    print("retour multiprocessing ",results, retour)
+    print("retour multiprocessing ", results, retour)
 
     for i in sorted(results):
         obj = regle.tmpstore[i]
@@ -567,6 +565,32 @@ def f_parallelprocess(regle, obj):
     return True
 
 
+def parallelexec(executor, nprocs, fonction, args):
+    '''gere les appels de fonction uniques d'un pool de process
+       et s'assure que chaque process du pool est appelé'''
+    retours = []
+    nretours = 0
+    rfin = dict()
+#    print('start pexec')
+    while nretours < nprocs:
+        if len(retours) < nprocs+1:
+            retours.append(executor.submit(fonction, args))
+        attente = []
+#        print ('retours', retours)
+        for i in retours:
+            if not i.running():
+#                print ('termine',i)
+                retour_final = i.result()
+#                print('retour pexec ',retour_final)
+                if retour_final is not None:
+                    rfin[retour_final[0]] = retour_final[1:]
+            else:
+                attente.append(i)
+        nretours = len(rfin)
+        retours = attente
+    return rfin
+
+
 def prepare_batch_from_object(regle, obj):
     '''extrait les parametres pertinents de l'objet decrivant le batch'''
     comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
@@ -577,7 +601,7 @@ def prepare_batch_from_object(regle, obj):
     mapper = regle.stock_param
     entree = obj.attributs.get('entree', mapper.get_param("_entree"))
     sortie = obj.attributs.get('sortie', mapper.get_param("_sortie"))
-    numero = obj.attributs.get('#_batchnum','0')
+    numero = obj.attributs.get('#_batchnum', '0')
 #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
     parametres = obj.attributs.get('parametres') # parametres en format hstore
     params = None
@@ -609,46 +633,28 @@ def traite_parallelbatch(regle):
     endparallel = mapper.endparallel
 
     for num, obj in enumerate(regle.tmpstore):
-        obj.attributs['#_batchnum']= str(num)
-        parametres.append((*prepare_batch_from_object(regle, obj), mapper.parms, mapper.macros))
-
-
-#    a faire en 3.7
-#    params = mapper.parms
-#    macros = mapper.macros
-#    print('multiprocessing:',parametres)
+        obj.attributs['#_batchnum'] = str(num)
+        parametres.append(prepare_batch_from_object(regle, obj))
 
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
-#        retours = [executor.submit(initparallel, '#init_mp', '', params, macros, env=None, log=None)
-#                   for i in range(nprocs)]
-#        fin = {i.result() for i in retours}
-#        print ('init_pool',len(fin))
-#        print ('apres initparallel', fin)
+#TODO en python 3.7 l'initialisation peut se faire dans le pool
+        rinit = parallelexec(executor, nprocs, initparallel,
+                             ('#init_mp', '', mapper.parms, mapper.macros, None, None))
+        if regle.debug:
+            print('retour init', rinit)
         results = executor.map(parallelbatch, parametres)
+#        print('retour map',results)
         rdict = {i[0]:i[1:] for i in results}
-        nretours = 0
-        rfin = dict()
-        print ('traitement des resultats')
-        retours = []
-#        retours = [(executor.submit(endparallel,'') for i in range(nprocs*2)]
-        while nretours < nprocs:
-            if len(retours) < nprocs+1:
-                retours.append(executor.submit(endparallel,''))
-            attente = []
-            for i in retours:
-                if not i.running():
-                    print ('termine',i)
-                    retour_final = i.result()
-                    rfin[retour_final[0]]=retour_final[1:]
-                else:
-                    attente.append(i)
-            nretours = len(rfin)
-            retours = attente
+#        print('retour map rdict',rdict)
 
-
+        rfin = parallelexec(executor, nprocs, endparallel, '')
+#        print(' retour exec')
+        if regle.debug:
+            print('retour end', rfin)
 
     traite = mapper.moteur.traite_objet
-    print("retour multiprocessing ",results)
+    if regle.debug:
+        print("retour multiprocessing ", rdict.items()[:10])
 #    print (finaux)
     for obj in regle.tmpstore:
         numero = obj.attributs['#_batchnum']
@@ -662,13 +668,15 @@ def h_batch(regle):
     '''definit la fonction comme etant a declencher'''
     if regle.params.cmp1.val:
         regle.chargeur = True
-    if regle.params.cmp2.num and regle.params.cmp2.num > 1:
-        print ('mode paralelbatch')
+
+    if regle.params.cmp2.num and not regle.stock_param.worker:
+        print('mode paralelbatch')
         regle.store = True
         regle.traite_stock = traite_parallelbatch
         regle.nbstock = 0
         regle.traite = 0
         regle.tmpstore = []
+
 
 def f_batch(regle, obj):
     '''#aide||execute un traitement batch a partir des parametres de l'objet
@@ -677,7 +685,7 @@ def f_batch(regle, obj):
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"1";;set||^X;#obj,#atv;;batch||atv;X;1
       #test2||obj||^X;#obj,#atv:V1:1;;batch||atv;X;1
-      #test3||obj;;10||^X;#obj,#atv:V1:1;;batch;;3||atv;X;1
+      #test3||obj;;10||^X;#obj,#atv:V1:1;;batch;;3;||atv;X;1
     '''
     if regle.store:
         regle.tmpstore.append(obj)
@@ -701,6 +709,157 @@ def f_batch(regle, obj):
     return True
 
 
+def getfichs(regle, obj):
+    '''recupere une liste de fichiers'''
+
+    mapper = regle.stock_param
+    racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
+    if not racine:
+        racine = regle.stock_param['_entree']
+    rep = os.path.join(racine, obj.attributs.get(regle.params.att_entree.val,
+                                                 regle.params.val_entree.val))
+#    print( "charge fichiers", rep)
+    fichs = mapper.scan_entree(rep=rep)
+    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
+    return fparm
+
+def parallelmap(executor, nprocs, fonction, args):
+    '''gere les appels classique mais avec des retours d'infos'''
+    retours = []
+    nretours = 0
+    rfin = dict()
+#    print('start pexec')
+    while nretours < nprocs:
+        if len(retours) < nprocs+1:
+            retours.append(executor.submit(fonction, args))
+        attente = []
+#        print ('retours', retours)
+        for i in retours:
+            if not i.running():
+#                print ('termine',i)
+                retour_final = i.result()
+#                print('retour pexec ',retour_final)
+                if retour_final is not None:
+                    rfin[retour_final[0]] = retour_final[1:]
+            else:
+                attente.append(i)
+        nretours = len(rfin)
+        retours = attente
+    return rfin
+
+
+
+
+
+
+
+def traite_parallel_load(regle):
+    '''traite les batchs en parallele'''
+
+    idobj = []
+    entrees = []
+    mapper = regle.stock_param
+
+    for num, obj in enumerate(regle.tmpstore):
+        fichs = getfichs(regle, obj)
+        idobj.extend([num]*len(fichs))
+        entrees.extend(fichs)
+    nprocs = int(regle.params.cmp2.num)
+    initparallel = regle.stock_param.initparallel
+    setparallelid = regle.stock_param.setparallelid
+    parallelprocess = regle.stock_param.parallelprocess
+    endparallel = regle.stock_param.endparallel
+    num_regle = [regle.index]*len(entrees)
+    rdict = dict()
+#    print('parallel load',entrees,idobj, type(mapper.env))
+    env = mapper.env if isinstance(mapper.env, dict) else None
+    with ProcessPoolExecutor(max_workers=nprocs) as executor:
+#TODO en python 3.7 l'initialisation peut se faire dans le pool
+        def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
+        print("preparation exec parallele", def_regles, mapper.liste_params)
+
+        rinit = parallelexec(executor, nprocs, initparallel,
+                             (def_regles, mapper.liste_params,
+                              mapper.parms, mapper.macros, env, None))
+        workids = {pid:n+1 for n,pid in enumerate(rinit)}
+        print ('workids',workids)
+        parallelexec(executor, nprocs, setparallelid, workids)
+        if regle.debug:
+            print('retour init', rinit, num_regle)
+        results = executor.map(parallelprocess, idobj, entrees, num_regle)
+        for i in results:
+            rdict[i[0]] = rdict.get(i[0],0)+i[1]
+
+        rfin = parallelexec(executor, nprocs, endparallel, '')
+        if regle.debug:
+            print('retour end', rfin)
+
+    traite = regle.stock_param.moteur.traite_objet
+#    print("retour multiprocessing ", results, retour)
+
+    for i in sorted(rdict):
+        obj = regle.tmpstore[i]
+        obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
+        regle.branchements.brch["end:"]
+        traite(obj, regle.branchements.brch["end:"])
+    regle.nbstock = 0
+
+
+
+
+
+
+
+
+def h_fileloader(regle):
+    """prepare la lecture"""
+#    print("preparation fileloader",regle.stock_param.worker, regle.params.cmp2)
+    if "[" in regle.params.cmp1.val:
+        regle.dyn = True
+    else:
+        regle.dyn = False
+        regle.chargeur = True
+    if regle.params.cmp2.num and not regle.stock_param.worker:
+        regle.store = True
+        regle.traite_stock = traite_parallel_load
+        regle.nbstock = 0
+        regle.traite = 0
+        regle.tmpstore = []
+
+
+def f_fileloader(regle, obj):
+    '''#aide||chargement d objets en fichier
+  #aide_spec||cette fonction est l' équivalent du chargement initial
+    #pattern||?A;?C;?A;charge;?C;?N
+   #pattern2||?A;?C;?A;charge;[A];?N
+     #schema||ajout_attribut
+       #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
+      #test2||obj||^;;;charge>;%testrep%/refdata;2;||^;;;pass;;||atv;valeur;1
+    '''
+    if regle.store:
+#        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
+#        print ('regles', regle.stock_param.regles)
+        regle.tmpstore.append(obj)
+        regle.nbstock += 1
+        return True
+    mapper = regle.stock_param
+    fichs = getfichs(regle, obj)
+
+#    print ("liste_fichiers ", fichs)
+#    lu_total = 0
+#    lu_fichs = 0
+    nb_lu = 0
+    if fichs:
+        for i, parms in fichs:
+            try:
+                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+            except StopIteration as abort:
+                if abort.args[0] == '2':
+                    continue
+                raise
+    if regle.params.att_sortie.val:
+        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+    return True
 
 
 def h_statprint(regle):
@@ -820,4 +979,3 @@ def f_idle(regle, obj):
     #pattern||;;;idle;;
     '''
     return True
-

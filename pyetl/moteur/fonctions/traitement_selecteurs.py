@@ -77,8 +77,10 @@ def sel_infoschema_egal(selecteur, obj):
      #pattern||schema:A:;C||1
        #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom=;3;;;X;1;;set;||atv;X;1;
         '''
-#    print('test ',selecteur.params.attr.val,'->',obj.schema.info.get(selecteur.params.attr.val),selecteur.params.vals.val)
-    return obj.schema and (obj.schema.info.get(selecteur.params.attr.val) == selecteur.params.vals.val)
+#    print('test ',selecteur.params.attr.val,'->',obj.schema.info.get(selecteur.params.attr.val),
+#          selecteur.params.vals.val)
+    return obj.schema and (obj.schema.info.get(selecteur.params.attr.val)
+                           == selecteur.params.vals.val)
 
 
 def sel_regex(selecteur, obj):

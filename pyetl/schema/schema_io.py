@@ -39,12 +39,10 @@ def sortir_conformite_csv(conf, mode=-1, init=False):
 #    print ([";".join((conf.nom, str(i[2]), i[4] if init else i[0], i[1],
 #                      str(i[3]) if mode == -1 else mode))
 #                      for i in sorted(conf.stock.values(), key=lambda v: v[2])])
-
     return [";".join((conf.nombase, str(i[2]), i[4] if conf.ajust and not init else i[0], i[1],
                       str(i[3]) if mode == -1 else str(mode)))
             for i in sorted(conf.stock.values(), key=lambda v: v[2])]
-    #print ('sortir conf conf.nom',liste,conf.stock,conf.valeurs)
-#    return liste
+
 
 def sortir_attribut_xml(classe, attr, keys):
     '''ecrit une definition d'attribut en xml'''
@@ -58,8 +56,6 @@ def sortir_attribut_xml(classe, attr, keys):
             "' alias='" +ESC_XML(attr.alias) +\
             "' taille='" + str(attr.taille) +\
             "' decimales='" + str(attr.dec) + "'"
-
-
 
     if  attr.nom in keys:
 #        print ("clefs primaires",keys)
@@ -103,11 +99,10 @@ def sortir_attribut_xml(classe, attr, keys):
         description = [texte+"/>"]
     return description
 
+
 def sortir_schema_classe_xml(sc_classe, mode='util'):
     '''ecrit une definition de classe en xml'''
-#    types_stock = {'r':'table', 'v':'vue', 'm':'vue materialisee', 's':'table_systeme',
-#                   'f':'fichier', 'c':'couche', 'i':'interne'}
-#    sc_classe.setindexes()
+
     nom_atts = sc_classe.get_liste_attributs(sys=True)
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, '')
     nb_obj = sc_classe.objcnt
@@ -145,14 +140,13 @@ def sortir_schema_classe_xml(sc_classe, mode='util'):
     #print "description",description
     return "\n".join(description)
 
+
 def sortir_schema_classe_csv(sc_classe, mode='util'):
     '''ecrit une definition de classe en csv'''
-
 
     nom_compo = sc_classe.nom
 #    print ('ssc:\n','\n'.join([str((a.nom,a.nom_conformite,a.type_att,a.type_att_base))
 #    for a in sc_classe.attributs.values()]))
-
     liste_att_csv = list()
 #    if sc_classe.nom=='rg_fil_troncon':
 #        print ('sortir_schema -----------------',sc_classe.schema.nom, sc_classe.nom)
@@ -163,10 +157,8 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
 #    print('sio: sortir schema', sc_classe.info['type_geom'], type_geom)
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, '')
-#    sc_classe.setindexes()
     arc = 'courbe' if sc_classe.info['courbe'] else ''
-#    if 'GID' in sc_classe.attributs and not sc_classe.attributs['GID'].alias:
-#        sc_classe.attributs['GID'].alias = sc_classe.alias # on pose l'alias de la table sur le GID
+
     srid = 'mixte' if sc_classe.sridmixte else str(sc_classe.srid)
     nbr = sc_classe.objcnt
     if not nbr:
@@ -178,14 +170,9 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
                                    complement, type_stockage, '', srid, dimension, str(nbr), '',
                                    '', 'fin', sc_classe.listindexes, sc_classe.listfkeys()]))
 
-
     iatt = sc_classe.index_par_attributs()
-#    if iatt: print ('recup index' , iatt)
-
 
     for i in sc_classe.get_liste_attributs(sys=True):
-
-
         att = sc_classe.attributs.get(i)
         if not att:
             print('attribut inconnu :', i, '\nk: ', sorted(sc_classe.attributs.keys()),
@@ -193,7 +180,6 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
             continue
         #print "attribut",i
         nom = sc_classe.minmajfunc(str(att.nom))
-
 
         if att.conformite:
             #print "nom conformite",att.nom_conformite,att.conformite
@@ -269,10 +255,10 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode='util'):
             description.append("</schema>")
         description.append("</schemas>")
         classes = '\n'.join(description)
-
     if nbclasses:
         return entete + '\n' + conf + '\n' + classes + "\n</structure>"
     return None
+
 
 def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False):
     '''ecrit un schema complet en csv'''
@@ -299,9 +285,6 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
     #print("schema:  csv sortir_classes",len(self.classes))
     if sch.classes:
         for i in sorted(sch.classes.keys()):
-#            if i[1]=='rg_fil_troncon':
-#                print ('sortie schema_________',sch.nom, i[1], sch.classes[i].a_sortir(mode),
-#                       sch.classes[i].objcnt )
             if sch.classes[i].a_sortir:
 #                print ("csv classe a sortir",i,sch.classes[i])
 #                print ('\n'.join([str((a.nom,a.nom_conformite,a.type_att,a.type_att_base))
@@ -309,7 +292,7 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
                 description.extend(sortir_schema_classe_csv(sch.classes[i], mode))
     #print ("schema: debug " , conf,cl)
     return conf, description
-    #return '\n'.join(conf),'\n'.join(cl)
+
 
 def lire_mapping(schema_courant, fichier, codec):
     ''' lit un fichier de mapping externe'''
@@ -327,7 +310,6 @@ def lire_mapping(schema_courant, fichier, codec):
     schema_courant.init_mapping(liste_mapping)
 #    print ('lecture_mapping','\n'.join(liste_mapping[:10]))
 
-#    return liste_mapping
 
 def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
     '''lit un fichier de conformites au format csv'''
@@ -337,8 +319,6 @@ def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
 #    n=0
     codes_force = {'force_base':0, 'force_num':1, 'force_alias':2, 'force_inv':3}
     codes_alias = {'num':1, 'alias':2, 'inv':3}
-#    f= open("toto", "w", encoding='cp1252')
-#    print (f)
 
     with open(fichier, 'r', encoding=cod) as entree:
 
@@ -371,6 +351,7 @@ def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
             else:
                 print("schema: conformite non conforme ", val_conf)
 
+
 def _lire_geometrie_csv(classe, v_tmp, dimension):
     ''''decode une geometrie en fichier csv'''
     #l=v[3].split('_')
@@ -383,10 +364,8 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
         gref = gref.split(',')[0]
         gref = gref.replace('Z', '')
 
-#    classe.courbe = v_tmp[5] == 'courbe'
     if v_tmp[5] == 'courbe':
         classe.info['courbe'] = '1'
-
 
     if gref not in SCI.CODES_G:
         print("schema: erreur type ", v_tmp[4])
@@ -416,6 +395,7 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
         classe.autodim = True
 #    print( 'geometrie lue',classe.info["type_geom"], classe.info["dimension"], v_tmp)
 
+
 def _valide_entete_csv(ligne, cod, sep):
     ''' valide la presence de l'entete'''
 
@@ -429,6 +409,7 @@ def _valide_entete_csv(ligne, cod, sep):
         return True
     print('ligne bizarre', ligne)
     return False
+
 
 def _toint(val):
     try:
@@ -450,7 +431,6 @@ def _decode_attribut_csv(liste):
     att_dict['graphique'] = att_dict['graphique'] == 'oui'
     att_dict['multiple'] = att_dict['multiple'] == 'oui'
     att_dict['obligatoire'] = att_dict['obligatoire'] == 'oui'
-    #nom_conformite = ''
 
     if att_dict['conformite']:
         #print 'conformite',v
@@ -464,18 +444,6 @@ def _decode_attribut_csv(liste):
         att_dict['nom_court'] = ''
     return att_dict
 
-#def _stocke_attribut_csv(classe, definition, graphique):
-#
-#    classe.ajout_attribut_tuple(definition)
-##                    print ('sio:stocke_attribut',attr,type_attr,nom_court)
-##                    print ('stocke',classe.attributs[attr].type_att)
-#    if graphique:
-#        classe.stocke_attribut(attr+'_X', 'reel', '', 'reel',
-#                               ordre=-1, obligatoire=obligatoire,
-#                               multiple=multiple)
-#        classe.stocke_attribut(attr+'_Y', 'reel', '', 'reel',
-#                               ordre=-1, obligatoire=obligatoire,
-#                               multiple=multiple)
 
 def lire_classes_csv(schema_courant, fichier, cod):
     '''lit un fichier de description de classes au format csv'''
@@ -505,8 +473,7 @@ def lire_classes_csv(schema_courant, fichier, cod):
             if len(v_tmp) >= 17:
                 if v_tmp[16].replace('\n', '').strip() != '':
                     clef_etr = v_tmp[16].replace('\n', '')
-    #        groupe = v[0].lower()
-    #        nom = v[1].lower()
+
             groupe = v_tmp[0]
             nom = v_tmp[1]
 #            print ('schema_io:lecture_attribut ', nom, v_tmp[2])
@@ -573,6 +540,7 @@ def lire_classes_csv(schema_courant, fichier, cod):
                     if v_tmp[9].isnumeric():
                         classe.srid = str(int(v_tmp[9]))
 
+
 def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, specifique=None):
     '''lit un schema conplet en csv'''
     if schema is None:
@@ -608,7 +576,6 @@ def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, 
                 contenu = liste[1:]
                 schema.elements_specifiques.divers[i] = (entete, contenu)
 
-
     FSC.analyse_interne(schema, 'init')
 #    print("schema: lecture_schema realisee --->", fichier, len(schema.classes),
 #          "<-----")
@@ -636,7 +603,6 @@ def fusion_schema(schema, schema_tmp):
     del schema_tmp
 
 
-
 def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='cp1252', specifique=None):
     '''initialise le schema et rajoute tous les elements necessaires'''
     schema = SCI.Schema(nom)
@@ -658,10 +624,6 @@ def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='cp1252', spe
     return schema
 
 
-
-
-
-
 def fusion_schema_xml(schema, fichier, cod='utf-8'):
     '''# complete la lecture d'un fichier'''
     origine = ET.parse(open(fichier, 'r', encoding=cod))
@@ -675,7 +637,6 @@ def fusion_schema_xml(schema, fichier, cod='utf-8'):
         for j in i.getiterator("VALEUR"):
             conf.stocke_valeur(j.get('v'), j.get('alias'))
         #print "stockage_conf",conf.valeurs
-
     for i in origine.getiterator("classe"):
         nom = i.get("nom")
         groupe = i.get("schema")
@@ -698,6 +659,7 @@ def fusion_schema_xml(schema, fichier, cod='utf-8'):
             dimension = j.get('dimension', '2')
             classe.setdim(dimension)
 
+
 def lire_schema_xml(base, fichier, cod='utf-8'):
     '''lit un ensemble de fichiers schema en xml'''
     print("lecture xml")
@@ -715,6 +677,7 @@ def ecrire_schema_xml(rep, schema, mode='util', cod='utf-8', header='', alias=''
         print("schema: ecriture schema xml", os.path.join(rep, nomschema)+".xml")
         open(os.path.join(rep, nomschema+".xml"), "w", encoding=cod).write(xml)
 
+
 def ecrire_fich_csv(chemin, nom, contenu, cod):
     ''' ecriture physique du csv'''
 #    print ('ecriture_csv', nom, cod)
@@ -724,8 +687,6 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
             fich.write('\n')
     except PermissionError:
         print("!"*30+"impossible d'ecrire le fichier ", chemin+nom)
-
-
 
 
 def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
@@ -754,14 +715,6 @@ def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
                 ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
     else:
         return classes, conf, mapping, deftrig
-#            for element in schema.elements_specifiques:
-#                specs = schema.elements_specifiques[element].to_csv()
-#                for nom, liste in specs:
-#                    print('schema:sortie specifique', nom, len(liste))
-#                    ecrire_fich_csv(chemref, "_"+nom+".csv", liste, cod)
-#        else:
-##            print("schema:pas d'elements specifiques de schema", schema.nom)
-#            pass
 
 
 def set_transaction(liste):
@@ -770,12 +723,10 @@ def set_transaction(liste):
     liste.append('COMMIT;\n')
 
 
-
 def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod='utf-8', transact=False):
     ''' ecrit la description du schema en sql '''
     if valeurs is None:
         return
-
     if numero:
         nomfich = os.path.join(rep, '_'.join((numero, nomschema, nomfich+'.sql')))
     else:
@@ -859,17 +810,12 @@ def ecrire_schema_sql(rep, schema, type_base='std',
             ecrire_fichier_sql(rep, nomschema, '13', 'dropschemas', dsc, cod)
 
 
-
 def copier_xsl(rep):
     ''' copie un xsl par defaut pour la visibilite du schema'''
     xslref = os.path.join(os.path.dirname(__file__), 'xsl.zip')
 #    print(" copie fichier ", xslref)
     with ZipFile(xslref) as xsl:
         xsl.extractall(path=os.path.join(rep, 'xsl'))
-
-def retour_schema(schema, mode='util'):
-    '''renvoie une description en csv ces schemas'''
-    return ecrire_schema_csv(None, schema, mode)
 
 
 
@@ -881,9 +827,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                                          schema.fich if schema.fich else ''))
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
-
     for form in formats_a_sortir:
-
         if 'sql' in form: # on met le sql en premier car on modifie des choses
 #            print('sio:sortie sql', schema.nom, 'rep:',
 #                  rep_s, schema.dbsql, schema.dbsql.connection if schema.dbsql else 'NC', form)
@@ -941,6 +885,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                                   header=header, alias=alias, prefix=prefix)
             else:
                 print('header distant (xmlheader_dist) non defini')
+
 
 def retour_schemas(schemas, mode='util'):
     '''renvoie les schemas pour un retour'''
@@ -1008,12 +953,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
             ecrire_au_format(schemas[i], formats_a_sortir, stock_param, mode_sortie, confs)
             if 'xml' in formats_a_sortir:
                 xml = True
-#        else:
-#            pass
-#            print('schema non sorti ', i)
+
     if xml:
 #        print("ecriture xsl local", rep)
         copier_xsl(rep)
-#    else:
-#        pass
-#        print ("pas d'ecriture xsl locale",header,stock_param.get_param('xmldefaultheader'))

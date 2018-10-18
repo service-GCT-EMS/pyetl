@@ -627,8 +627,8 @@ class CsvWriter(FileWriter):
 
                 else:
                     print('csv: geometrie invalide : erreur geometrique',
-                          obj.ident, obj.numobj, 'demandé:', self.type_geom, obj.geom_v.erreurs.errs,
-                          obj.attributs['#type_geom'],
+                          obj.ident, obj.numobj, 'demandé:', self.type_geom,
+                          obj.geom_v.erreurs.errs, obj.attributs['#type_geom'],
                           self.schema.info["type_geom"], obj.geom)
                     geom = ""
                 if not geom:
