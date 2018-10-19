@@ -25,6 +25,23 @@ def getdefcodec():
 #    global DEFCODEC
 #    DEFCODEC = codec
 
+class RessourceDistante(object):
+    '''une ressource distante est geree par un worker en traitement parallele
+        on simule son existance pour les stats'''
+    def __init__(self, nom):
+        self.nom = nom
+        self.etat = 0 # 0: non cree 1:ouvert 2:ferme 3:finalise
+        self.nbo = 0
+
+    def finalise(self):
+        ''' retouren le nombre d'objet'''
+        self.etat = 3
+        return self.nbo
+
+
+
+
+
 class Ressource(object):
     """ stockage des infos d'une ressource
     une ressource peut etre un fichier ou une table"""
@@ -110,6 +127,12 @@ class GestionSorties(object):
             self.lock(id_demand, id_ressource)
             return self.ressources[id_ressource]
         return self.get_res(id_demand, id_ressource)
+
+    def creres_distante(self, nom, nbo):
+        if nom not in self.nom:
+            self.ressources[nom] = RessourceDistante(nom)
+        self.ressources[nom].nbo += nbo
+        return self.ressources[nom]
 
 
     def lock(self, id_demand, id_ressource):

@@ -65,7 +65,7 @@ def initcontext(traitement, env=None, log=None):
     if traitement.inited:
         return # on a deja fait le boulot
     env = env if env is not None else os.environ
-    if log:
+    if log and not traitement.worker:
         traitement.set_param('logfile', log)
         initlogger(fichier=log)
     traitement.init_environ(env)
@@ -119,9 +119,9 @@ def initparallel(parametres):
         time.sleep(1)
         return None
     print("pyetl initworker", os.getpid(), mapping, args)
+    MAINMAPPER.worker = True
     initcontext(MAINMAPPER, env, log)
     MAINMAPPER.inited = True
-    MAINMAPPER.worker = True
     MAINMAPPER.macros.update(macros)
     MAINMAPPER.parms.update(params)
 
@@ -136,8 +136,12 @@ def setparallelid(parametres):
     if MAINMAPPER.get_param('_wid'):
         time.sleep(1)
         return None
-
-    MAINMAPPER.set_param('_wid',pidset[os.getpid()])
+    wid = str(pidset[os.getpid()])
+    MAINMAPPER.set_param('_wid', wid)
+    if MAINMAPPER.get_param('logfile'):
+        base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
+        log=base+'_'+wid+'.'+ext
+        initlogger(fichier=log)
     return (os.getpid(), MAINMAPPER.get_param('_wid'))
 
 
@@ -186,7 +190,12 @@ def endparallel(test=None):
         retour = False
 #    print("pyetl batchworker end", os.getpid(), retour, schema)
     MAINMAPPER.ended = True
-    return (os.getpid(), retour, nb_total, nb_fichs, schema)
+    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
+    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': retour,
+              'nb_objs': nb_total, 'nb_fichs': nb_fichs,
+              'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
+
+    return (os.getpid(), retour)
 
 #---------------debut programme ---------------
 
@@ -470,6 +479,7 @@ class Pyetl(object):
         '''petits messages d'avancement pour faire patienter'''
         temps = self._timer()
         nbaffich = int(self.get_param('nbaffich'))
+#        print ('init_patience ',self.worker, self.get_param('_wid', -1))
         prochain = nbaffich
         nop = 0
         nbtotal = 0
@@ -988,11 +998,17 @@ class Pyetl(object):
                 statdef = self.get_param("stat_defaut")
                 codec_sortie = self.get_param("codec_sortie", 'utf-8')
                 self.stats[i].ecrire(dest, self.statprint, self.statfilter, statdef,
-                                     codec=codec_sortie)
+                                     codec=codec_sortie, wid=self.get_param('_wid', ''))
 
         if self.get_param('fstat'):  # ecriture de statistiques de fichier
+            if self.worker and self.parent is None:
+                return #on ecrit pas on remonte
             if rep_sortie:
-                fstat = os.path.join(rep_sortie, self.get_param('fstat')+".csv")
+                if self.worker:
+                    fstat = os.path.join(rep_sortie, self.get_param('fstat')+
+                                         '_'+self.get_param('_wid')+".csv")
+                else:
+                    fstat = os.path.join(rep_sortie, self.get_param('fstat')+".csv")
                 print("moteur : info ecriture stat fichier ", fstat)
                 os.makedirs(os.path.dirname(fstat), exist_ok=True)
                 fichier = open(fstat, "w", encoding=self.get_param('codec_sortie', 'utf-8'))
@@ -1010,6 +1026,8 @@ class Pyetl(object):
 
     def signale_fin(self):
         '''ecrit un fichier pour signaler la fin du traitement'''
+        if self.worker:
+            return
         if self.get_param("job_control") and self.get_param("job_control") != 'no':
             print("info: pyetl:job_control", self.get_param("job_control"))
             open(self.get_param("job_control"), 'w').write("fin mapper\n")

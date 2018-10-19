@@ -311,6 +311,12 @@ class Statdef(object):# definition d'une statistique
         self.get_names(colonnes_indirectes)
         return ";".join([self.nom]+self.colonnes_sortie)
 
+    def entete_liste(self, colonnes_indirectes):
+        '''retourne la ligne d'entete pour l'ecriture finale.'''
+        # s'il y a des colonnes par contenu : il faut refaire la liste des colonnes
+        self.get_names(colonnes_indirectes)
+        return [self.nom]+self.colonnes_sortie
+
     def get_vals(self, categorie, valeurs):
         ''' retourne la liste des valeurs pour une categorie'''
         try:
@@ -325,6 +331,8 @@ class Statdef(object):# definition d'une statistique
         '''retourne une ligne formatee pour l'ecriture finale.'''
         return ";".join([categorie]+self.get_vals(categorie, valeurs))
 
+    def ligne_liste(self, categorie, valeurs):
+        return [categorie]+self.get_vals(categorie, valeurs)
 #    @staticmethod
 #    def sortir_moyenne(valeur):
 #        '''calcul de la moyenne pour l'ecriture finale'''
@@ -519,10 +527,21 @@ class Stat(object):
                     break
         return nlignes
 
+    def retour(self, filtre=''):
+        nom = '_'.join(self.nom)
+        result = sorted(self.lignes)
+        entete = self.structure.entete_liste(self.colonnes_indirect)
+        corps = [self.structure.ligne_liste(i, self.valeurs)
+                             for i in result if filtre in i]
+        return (nom, entete, corps)
 
-    def ecrire(self, rep_sortie, affiche=False, filtre='', defaut=None, codec='utf-8'):
+
+
+    def ecrire(self, rep_sortie, affiche=False, filtre='', defaut=None, codec='utf-8', wid=''):
         ''' sortie stat en format csv'''
         nom = '_'.join(self.nom).replace('#', '')
+        if wid:
+            nom = nom+'_'+wid
         result = sorted(self.lignes)
 #        print ("stats:",result)
 

@@ -568,25 +568,24 @@ def f_parallelprocess(regle, obj):
 def parallelexec(executor, nprocs, fonction, args):
     '''gere les appels de fonction uniques d'un pool de process
        et s'assure que chaque process du pool est appelé'''
-    retours = []
-    nretours = 0
+
     rfin = dict()
 #    print('start pexec')
-    while nretours < nprocs:
-        if len(retours) < nprocs+1:
+    retours= [executor.submit(fonction, args) for i in range(nprocs)]
+    while len(rfin) < nprocs:
+        if len(retours) < nprocs:
             retours.append(executor.submit(fonction, args))
         attente = []
 #        print ('retours', retours)
         for i in retours:
-            if not i.running():
+            if i.running():
+                attente.append(i)
+            else:
 #                print ('termine',i)
                 retour_final = i.result()
 #                print('retour pexec ',retour_final)
                 if retour_final is not None:
                     rfin[retour_final[0]] = retour_final[1:]
-            else:
-                attente.append(i)
-        nretours = len(rfin)
         retours = attente
     return rfin
 
@@ -765,10 +764,7 @@ def traite_parallel_load(regle):
         idobj.extend([num]*len(fichs))
         entrees.extend(fichs)
     nprocs = int(regle.params.cmp2.num)
-    initparallel = regle.stock_param.initparallel
-    setparallelid = regle.stock_param.setparallelid
-    parallelprocess = regle.stock_param.parallelprocess
-    endparallel = regle.stock_param.endparallel
+    parallelprocess = mapper.parallelprocess
     num_regle = [regle.index]*len(entrees)
     rdict = dict()
 #    print('parallel load',entrees,idobj, type(mapper.env))
@@ -778,21 +774,29 @@ def traite_parallel_load(regle):
         def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
         print("preparation exec parallele", def_regles, mapper.liste_params)
 
-        rinit = parallelexec(executor, nprocs, initparallel,
+        rinit = parallelexec(executor, nprocs, mapper.initparallel,
                              (def_regles, mapper.liste_params,
                               mapper.parms, mapper.macros, env, None))
         workids = {pid:n+1 for n,pid in enumerate(rinit)}
         print ('workids',workids)
-        parallelexec(executor, nprocs, setparallelid, workids)
+        parallelexec(executor, nprocs, mapper.setparallelid, workids)
         if regle.debug:
             print('retour init', rinit, num_regle)
         results = executor.map(parallelprocess, idobj, entrees, num_regle)
         for i in results:
             rdict[i[0]] = rdict.get(i[0],0)+i[1]
 
-        rfin = parallelexec(executor, nprocs, endparallel, '')
-        if regle.debug:
-            print('retour end', rfin)
+        rfin = parallelexec(executor, nprocs, mapper.endparallel, '')
+#        if regle.debug:
+        print ('retour')
+        for i in rfin:
+            retour = rfin[i][0]
+            print (i, retour['wid'], retour['nb_objs'], retour['schemas'].keys())
+            fichs = retour['fichs']
+            for nom, nb in fichs.items():
+                mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
+#            retour, nobj, nfich, schema =rfin[i]
+#            print (i,retour,nfich,nobj,schema.keys())
 
     traite = regle.stock_param.moteur.traite_objet
 #    print("retour multiprocessing ", results, retour)
