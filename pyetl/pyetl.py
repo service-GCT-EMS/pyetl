@@ -498,7 +498,7 @@ class Pyetl(object):
             msg = " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "+\
                   "secondes %5d o/s, inst %5d"
             if self.worker:
-                msg = 'worker%3d:'% self.get_param('_wid', -1) + msg
+                msg = 'worker%3s:'% self.get_param('_wid', -1) + msg
             else:
                 msg = 'mapper   :' + msg
             LOGGER.info(msg, cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),

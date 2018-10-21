@@ -311,45 +311,57 @@ def lire_mapping(schema_courant, fichier, codec):
 #    print ('lecture_mapping','\n'.join(liste_mapping[:10]))
 
 
+def decode_conf_csv(schema_courant, entree, mode_alias):
+    """decode un tableau de conformites"""
+    codes_force = {'force_base':0, 'force_num':1, 'force_alias':2, 'force_inv':3}
+    codes_alias = {'num':1, 'alias':2, 'inv':3}
+    lin = 0
+    for i in entree:
+        if lin == 0 and '!' in i[:4]:
+#                print (" schema conf io:detecte commentaire utf8")
+            lin = 1
+            continue
+        if i[0] == '!':
+#                print (" schema conf io:detecte commentaire")
+            continue
+        val_conf = i.replace('\n', '').split(';')
+        nom = val_conf[0].lower()
+        if not nom:
+            continue
+        conf = schema_courant.get_conf(nom)
+        mode = codes_force.get(mode_alias, None)
+        if not mode and len(val_conf) > 4 and val_conf[4].isdigit():
+            mode = int(val_conf[4])
+#                print ('scio:lecture mode conf ', mode)
+        else:
+            mode = codes_alias.get(mode_alias, 1)
+        conf.type_conf = 1
+#        n=n+1
+#        if n<3 : print("schema: stockage ", val_conf,'..',val_conf[4],'----->',mode,mode_alias)
+        if len(val_conf) > 3:
+
+            conf.stocke_valeur(val_conf[2], val_conf[3].replace('\n', ''), mode) # on ignore
+        else:
+            print("schema: conformite non conforme ", val_conf)
+
+
+
+
 def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
     '''lit un fichier de conformites au format csv'''
     if not os.path.isfile(fichier):
         print("schema: ::: warning fichier conformites introuvable ", fichier)
         return
 #    n=0
-    codes_force = {'force_base':0, 'force_num':1, 'force_alias':2, 'force_inv':3}
-    codes_alias = {'num':1, 'alias':2, 'inv':3}
-
     with open(fichier, 'r', encoding=cod) as entree:
+        decode_conf_csv(schema_courant, entree, mode_alias)
 
-        lin = 0
-        for i in entree:
-            if lin == 0 and '!' in i[:4]:
-#                print (" schema conf io:detecte commentaire utf8")
-                lin = 1
-                continue
-            if i[0] == '!':
-#                print (" schema conf io:detecte commentaire")
-                continue
-            val_conf = i.replace('\n', '').split(';')
-            nom = val_conf[0].lower()
-            if not nom:
-                continue
-            conf = schema_courant.get_conf(nom)
-            mode = codes_force.get(mode_alias, None)
-            if not mode and len(val_conf) > 4 and val_conf[4].isdigit():
-                mode = int(val_conf[4])
-#                print ('scio:lecture mode conf ', mode)
-            else:
-                mode = codes_alias.get(mode_alias, 1)
-            conf.type_conf = 1
-    #        n=n+1
-    #        if n<3 : print("schema: stockage ", val_conf,'..',val_conf[4],'----->',mode,mode_alias)
-            if len(val_conf) > 3:
 
-                conf.stocke_valeur(val_conf[2], val_conf[3].replace('\n', ''), mode) # on ignore
-            else:
-                print("schema: conformite non conforme ", val_conf)
+
+
+
+
+
 
 
 def _lire_geometrie_csv(classe, v_tmp, dimension):
@@ -445,6 +457,95 @@ def _decode_attribut_csv(liste):
     return att_dict
 
 
+def decode_classes_csv(schema_courant, entree):
+    """stocke les  classes  dans le schema"""
+    for i in entree:
+        if not i:
+            continue
+        if i[0] == '!':
+            continue
+        v_tmp = [j.strip() for j in i.split(';')]
+    
+        if len(v_tmp) < 11:
+            print('sio:ligne trop courte ', len(v_tmp))
+            continue
+        clef_etr = ''
+        index = ''
+        if len(v_tmp) >= 16:
+            index = v_tmp[15]
+        if len(v_tmp) >= 17:
+            if v_tmp[16].replace('\n', '').strip() != '':
+                clef_etr = v_tmp[16].replace('\n', '')
+    
+        groupe = v_tmp[0]
+        nom = v_tmp[1]
+    #            print ('schema_io:lecture_attribut ', nom, v_tmp[2])
+        if groupe and nom:
+            schema_courant.origine = 'L'
+            idorig = (groupe, nom)
+            ident = schema_courant.map_dest(idorig)
+            if not ident:
+                ident = idorig
+            classe = schema_courant.setdefault_classe(ident)
+            attr = v_tmp[2]
+    #                print ("sio : lecture", classe.identclasse, attr)
+    #                if not attr:
+    #                    print ('sio: definition classe', idorig, ident)
+    #                    continue
+            alias = v_tmp[3]
+            ll_tmp = v_tmp[4].split(':')
+            if len(ll_tmp) > 1:
+                clef_etr = ll_tmp[1]
+            type_attr = ll_tmp[0].lower()
+            type_attr_base = type_attr
+            graphique = v_tmp[5] == 'oui'
+            multiple = v_tmp[6] == 'oui'
+            defaut = v_tmp[7]
+            obligatoire = v_tmp[8] == 'oui'
+            #nom_conformite = ''
+            if v_tmp[9]:
+                #print 'conformite',v
+                type_attr = v_tmp[9].lower()
+                type_attr_base = "text"
+                #nom_conformite = type_attr
+            dimension = v_tmp[10]
+            taille = int(v_tmp[11]) if len(v_tmp) > 11 and v_tmp[11].isnumeric() else 0
+            dec = int(v_tmp[12]) if len(v_tmp) > 12 and v_tmp[12].isnumeric() else 0
+            nom_court = ''
+            if len(v_tmp) > 13:
+                nom_court = v_tmp[13] if v_tmp[13] != "fin" else""
+    
+            if attr == 'geometrie':
+                _lire_geometrie_csv(classe, v_tmp, dimension)
+            elif attr: #c'est un attribut
+                classe.stocke_attribut(attr, type_attr, defaut=defaut,
+                                       type_attr_base=type_attr_base,
+                                       force=True, taille=taille, dec=dec,
+                                       alias=alias, ordre=-1,
+                                       nom_court=nom_court, clef_etr=clef_etr, index=index,
+                                       obligatoire=obligatoire, multiple=multiple)
+    #                    print ('sio:stocke_attribut',attr,type_attr,nom_court)
+    #                    print ('stocke',classe.attributs[attr].type_att)
+                if graphique:
+                    classe.stocke_attribut(attr+'_X', 'reel', '', 'reel',
+                                           ordre=-1, obligatoire=obligatoire,
+                                           multiple=multiple)
+                    classe.stocke_attribut(attr+'_Y', 'reel', '', 'reel',
+                                           ordre=-1, obligatoire=obligatoire,
+                                           multiple=multiple)
+            else: #on ne fait que definir l'alias de la classe
+                if v_tmp[11].isnumeric():
+                    classe.poids = int(v_tmp[11])
+                classe.alias = v_tmp[3]
+                if v_tmp[5] == 'courbe':
+                    classe.courbe = True
+                    classe.info['courbe'] = '1'
+                if v_tmp[9].isnumeric():
+                    classe.srid = str(int(v_tmp[9]))
+
+
+
+
 def lire_classes_csv(schema_courant, fichier, cod):
     '''lit un fichier de description de classes au format csv'''
     if not os.path.isfile(fichier):
@@ -456,89 +557,16 @@ def lire_classes_csv(schema_courant, fichier, cod):
         if not ent:
             print('entete invalide ', ent)
             entree.seek(0)
-        for i in entree:
-            if not i:
-                continue
-            if i[0] == '!':
-                continue
-            v_tmp = [j.strip() for j in i.split(';')]
+        decode_classes_csv(schema_courant, entree)
 
-            if len(v_tmp) < 11:
-                print('sio:ligne trop courte ', len(v_tmp))
-                continue
-            clef_etr = ''
-            index = ''
-            if len(v_tmp) >= 16:
-                index = v_tmp[15]
-            if len(v_tmp) >= 17:
-                if v_tmp[16].replace('\n', '').strip() != '':
-                    clef_etr = v_tmp[16].replace('\n', '')
 
-            groupe = v_tmp[0]
-            nom = v_tmp[1]
-#            print ('schema_io:lecture_attribut ', nom, v_tmp[2])
-            if groupe and nom:
-                schema_courant.origine = 'L'
-                idorig = (groupe, nom)
-                ident = schema_courant.map_dest(idorig)
-                if not ident:
-                    ident = idorig
-                classe = schema_courant.setdefault_classe(ident)
-                attr = v_tmp[2]
-#                print ("sio : lecture", classe.identclasse, attr)
-#                if not attr:
-#                    print ('sio: definition classe', idorig, ident)
-#                    continue
-                alias = v_tmp[3]
-                ll_tmp = v_tmp[4].split(':')
-                if len(ll_tmp) > 1:
-                    clef_etr = ll_tmp[1]
-                type_attr = ll_tmp[0].lower()
-                type_attr_base = type_attr
-                graphique = v_tmp[5] == 'oui'
-                multiple = v_tmp[6] == 'oui'
-                defaut = v_tmp[7]
-                obligatoire = v_tmp[8] == 'oui'
-                #nom_conformite = ''
-                if v_tmp[9]:
-                    #print 'conformite',v
-                    type_attr = v_tmp[9].lower()
-                    type_attr_base = "text"
-                    #nom_conformite = type_attr
-                dimension = v_tmp[10]
-                taille = int(v_tmp[11]) if len(v_tmp) > 11 and v_tmp[11].isnumeric() else 0
-                dec = int(v_tmp[12]) if len(v_tmp) > 12 and v_tmp[12].isnumeric() else 0
-                nom_court = ''
-                if len(v_tmp) > 13:
-                    nom_court = v_tmp[13] if v_tmp[13] != "fin" else""
-
-                if attr == 'geometrie':
-                    _lire_geometrie_csv(classe, v_tmp, dimension)
-                elif attr: #c'est un attribut
-                    classe.stocke_attribut(attr, type_attr, defaut=defaut,
-                                           type_attr_base=type_attr_base,
-                                           force=True, taille=taille, dec=dec,
-                                           alias=alias, ordre=-1,
-                                           nom_court=nom_court, clef_etr=clef_etr, index=index,
-                                           obligatoire=obligatoire, multiple=multiple)
-#                    print ('sio:stocke_attribut',attr,type_attr,nom_court)
-#                    print ('stocke',classe.attributs[attr].type_att)
-                    if graphique:
-                        classe.stocke_attribut(attr+'_X', 'reel', '', 'reel',
-                                               ordre=-1, obligatoire=obligatoire,
-                                               multiple=multiple)
-                        classe.stocke_attribut(attr+'_Y', 'reel', '', 'reel',
-                                               ordre=-1, obligatoire=obligatoire,
-                                               multiple=multiple)
-                else: #on ne fait que definir l'alias de la classe
-                    if v_tmp[11].isnumeric():
-                        classe.poids = int(v_tmp[11])
-                    classe.alias = v_tmp[3]
-                    if v_tmp[5] == 'courbe':
-                        classe.courbe = True
-                        classe.info['courbe'] = '1'
-                    if v_tmp[9].isnumeric():
-                        classe.srid = str(int(v_tmp[9]))
+def recup_schema_csv(base, classes, confs, mapping):
+    """recompose un schema a partir du retour de traitements paralleles"""
+    schema = SCI.Schema(base, origine='L')
+    decode_conf_csv(schema, confs, mode_alias="num")
+    decode_classes_csv(schema, classes)
+    schema.init_mapping(mapping)
+    return schema
 
 
 def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, specifique=None):

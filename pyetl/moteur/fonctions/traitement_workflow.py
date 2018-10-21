@@ -19,6 +19,7 @@ import ftplib
 
 import requests
 from pyetl.formats.interne.objet import Objet
+from pyetl.schema.schema_io import recup_schema_csv, fusion_schema
 
 #
 #def f_true(*_):
@@ -578,7 +579,7 @@ def parallelexec(executor, nprocs, fonction, args):
         attente = []
 #        print ('retours', retours)
         for i in retours:
-            if i.running():
+            if not i.done():
                 attente.append(i)
             else:
 #                print ('termine',i)
@@ -722,28 +723,27 @@ def getfichs(regle, obj):
     fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
     return fparm
 
-def parallelmap(executor, nprocs, fonction, args):
+def parallelmap_suivi(mapper, executor, fonction, arglist):
     '''gere les appels classique mais avec des retours d'infos'''
-    retours = []
-    nretours = 0
+
     rfin = dict()
 #    print('start pexec')
-    while nretours < nprocs:
-        if len(retours) < nprocs+1:
-            retours.append(executor.submit(fonction, args))
+    work = [executor.submit(fonction, *arg) for arg in arglist]
+    
+    while work:
         attente = []
-#        print ('retours', retours)
-        for i in retours:
-            if not i.running():
-#                print ('termine',i)
-                retour_final = i.result()
-#                print('retour pexec ',retour_final)
-                if retour_final is not None:
-                    rfin[retour_final[0]] = retour_final[1:]
+        for job in work:
+            if not job.done():
+                attente.append(job)
             else:
-                attente.append(i)
-        nretours = len(rfin)
-        retours = attente
+#                print ('termine',i)
+                retour_process = job.result()
+#                print('retour pexec ',retour_process)
+                if retour_process is not None:
+                    num_obj, lus = retour_process
+                    rfin[num_obj] = lus
+                    mapper.aff.send(('fich', 1, lus))
+        work = attente
     return rfin
 
 
@@ -763,6 +763,7 @@ def traite_parallel_load(regle):
         fichs = getfichs(regle, obj)
         idobj.extend([num]*len(fichs))
         entrees.extend(fichs)
+    arglist =[(i, j, regle.index) for i, j in zip(idobj, fichs)]
     nprocs = int(regle.params.cmp2.num)
     parallelprocess = mapper.parallelprocess
     num_regle = [regle.index]*len(entrees)
@@ -782,7 +783,8 @@ def traite_parallel_load(regle):
         parallelexec(executor, nprocs, mapper.setparallelid, workids)
         if regle.debug:
             print('retour init', rinit, num_regle)
-        results = executor.map(parallelprocess, idobj, entrees, num_regle)
+#        results = executor.map(parallelprocess, idobj, entrees, num_regle)
+        results = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
         for i in results:
             rdict[i[0]] = rdict.get(i[0],0)+i[1]
 
@@ -795,6 +797,12 @@ def traite_parallel_load(regle):
             fichs = retour['fichs']
             for nom, nb in fichs.items():
                 mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
+            for nom, schema in retour["schemas"].items():
+                classes, conf, mapping, deftrig = schema
+                tmp = recup_schema_csv(nom, classes, conf, mapping)
+                mapper.schemas[nom] = fusion_schema(mapper.schemas[nom], tmp)\
+                                      if nom in mapper.schemas else tmp
+
 #            retour, nobj, nfich, schema =rfin[i]
 #            print (i,retour,nfich,nobj,schema.keys())
 
