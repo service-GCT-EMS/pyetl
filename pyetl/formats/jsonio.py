@@ -124,7 +124,7 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
     sorties = regle.stock_param.sorties
 #    numero = regle.numero
     extention = '.json'
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
 #    print("csv:ecrire csv", regle.stockage.keys())
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -151,7 +151,7 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
                 ressource = sorties.get_res(regle.numero, nom)
                 if ressource is None:
 #                    print ('creation ressource csv' , nom)
-                    encoding = regle.getvar('codec_sortie', 'utf-8', loc=2)
+                    encoding = regle.getvar('codec_sortie', 'utf-8')
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
                     str_w = JsonWriter(nom, schema_courant, extention,
                                        encoding=encoding,
@@ -175,7 +175,7 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
 def jsonstreamer(obj, regle, _, rep_sortie=None): #ecritures non bufferisees
     ''' ecrit des objets json en streaming'''
     sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
     extention = '.json'
     groupe, classe = obj.ident
 #    print ('json: ecriture ',groupe,classe,obj.schema)

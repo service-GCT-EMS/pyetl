@@ -360,7 +360,7 @@ def fschema_change_schema(regle, obj):
 #        raise
         schema_classe = copyschema(obj.schema, ident, schema2, filiation=True)
     if schema_classe.amodifier(regle):
-        mode = regle.getvar('schema_nocase', False, loc=2)
+        mode = regle.getvar('schema_nocase', False)
         if mode: # on adapte la casse
             print('adaptation schema ', mode)
             fonction = lambda x: x.lower() if mode == 'min' else lambda x: x.upper()
@@ -372,7 +372,7 @@ def fschema_change_schema(regle, obj):
 
     if schemaclasseold is None:
         return
-    if regle.getvar('supp_schema', False, loc=0):
+    if regle.getvar('supp_schema', False):
         schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
 
 def fschema_map(regle, obj):

@@ -113,7 +113,7 @@ def f_stock_schema(regle, obj):
             regle.stock_param.schemas[nom_base] = regle.schema_courant
         if regle.stock_param.get_param("taux_conformite"):
             print('reglage_taux conformite', int(regle.getvar("taux_conformite")))
-            regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite", loc=2))
+            regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
     FSC.ajuste_schema(regle.schema_courant, obj,
                       regle.params.cmp2.num if regle.params.cmp2.num else 30)
     if regle.final: # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
@@ -187,7 +187,7 @@ def h_def_schema(regle):
     """
 #    print('interpreteur: lire schema_entree', regle.numero, regle.params)
 
-    cod = regle.getvar("codec_entree_schema", "cp1252", loc=2)
+    cod = regle.getvar("codec_entree", 'cp1252')
     fusion = False
     if regle.params.cmp1.dyn:
         fusion = True
@@ -223,12 +223,12 @@ def h_def_schema(regle):
         return
     if regle.schema_entree:
         regle.setvar("schema_entree", nom)
-#        print('interpreteur: lire schema_entree', regle.numero, nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
 
     if ext == 'csv':
-        mode_alias = regle.getvar("mode_alias", 'num', loc=2)
+        mode_alias = regle.getvar("mode_alias", 'num')
+#        print('interpreteur: lire schema_entree', regle.numero, nom, cod, mode_alias, regle.vloc)
         if fusion:
             rep = os.path.dirname(regle.fichier)
             racine = os.path.basename(regle.fichier)

@@ -465,7 +465,7 @@ def decode_classes_csv(schema_courant, entree):
         if i[0] == '!':
             continue
         v_tmp = [j.strip() for j in i.split(';')]
-    
+
         if len(v_tmp) < 11:
             print('sio:ligne trop courte ', len(v_tmp))
             continue
@@ -476,7 +476,7 @@ def decode_classes_csv(schema_courant, entree):
         if len(v_tmp) >= 17:
             if v_tmp[16].replace('\n', '').strip() != '':
                 clef_etr = v_tmp[16].replace('\n', '')
-    
+
         groupe = v_tmp[0]
         nom = v_tmp[1]
     #            print ('schema_io:lecture_attribut ', nom, v_tmp[2])
@@ -514,7 +514,7 @@ def decode_classes_csv(schema_courant, entree):
             nom_court = ''
             if len(v_tmp) > 13:
                 nom_court = v_tmp[13] if v_tmp[13] != "fin" else""
-    
+
             if attr == 'geometrie':
                 _lire_geometrie_csv(classe, v_tmp, dimension)
             elif attr: #c'est un attribut
@@ -611,8 +611,11 @@ def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, 
     return schema
 
 
-def fusion_schema(schema, schema_tmp):
+def fusion_schema(nom, schema, schema_tmp):
     '''fusionne 2 schemas en se basant sur les poids pour garder le bon'''
+    if not schema or not schema_tmp:
+        print ('schema vide fusion impossible', nom, schema,schema_tmp)
+        return
     for i in schema_tmp.conformites:
         if i in schema.conformites:
             if schema.conformites[i].poids >= schema_tmp.conformites[i].poids:

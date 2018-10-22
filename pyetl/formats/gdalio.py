@@ -272,7 +272,7 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
         if obj.virtuel:
             return
         groupe, classe = obj.ident
-        rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+        rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
         if regle.fanout == 'no':
             nom = sorties.get_id(rep_sortie, 'defaut', '', extension)
         elif regle.fanout == 'groupe':
@@ -316,7 +316,7 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
     #ng, nf = 0, 0
     #memoire = defs.stockage
 #    raise
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
     print("gdalio:ecriture_objets", rep_sortie)
 
 #    extension = regle.f_sortie.ext

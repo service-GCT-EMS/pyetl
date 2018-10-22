@@ -92,7 +92,7 @@ def ecrire_objets(regle, _, attributs=None):
 #ng, nf = 0, 0
 #memoire = defs.stockage
 #    print( "ecrire_objets asc")
-    rep_sortie = regle.getvar('_sortie', loc=2)
+    rep_sortie = regle.getvar('_sortie')
     sorties = regle.stock_param.sorties
     numero = regle.numero
     dident = None

@@ -157,7 +157,7 @@ def get_ressource(obj, regle, attributs=None):
     ''' recupere une ressource en fonction du fanout'''
     groupe, classe = obj.ident
     sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar('_sortie', loc=2)
+    rep_sortie = regle.getvar('_sortie')
     if not rep_sortie:
         raise NotADirectoryError('repertoire de sortie non défini')
     if regle.fanout == 'no':
@@ -173,7 +173,7 @@ def get_ressource(obj, regle, attributs=None):
             os.makedirs(os.path.dirname(nom), exist_ok=True)
 #            print ('ascstr:creation liste',attributs)
         streamwriter = XmlWriter(nom,
-                                 encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
+                                 encoding=regle.getvar('codec_sortie', 'utf-8'),
                                  liste_att=attributs,
                                  liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
         ressource = sorties.creres(regle.numero, nom, streamwriter)

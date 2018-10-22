@@ -189,9 +189,9 @@ class Macro(object):
         ''' recupere unenvironnement d execution '''
         return Macroenv(self, liste, parent, contexte)
 
-    def get_commands(self):
+    def get_commands(self, macroenv=None):
         """recupere les commandes de la macro"""
-        return [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
+        return [(i, self.commandes_macro[i], macroenv) for i in sorted(self.commandes_macro)]
 
     def __repr__(self):
         """affichage lisible de la macro"""

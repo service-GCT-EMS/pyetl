@@ -151,7 +151,8 @@ class RegleTraitement(object): # regle de mapping
         self.ligne = ligne
         self.stock_param = stock_param
         self.branchements = Branch()
-        self.vloc = vloc if vloc is not None else dict() # variables locales a une macro
+        self.vloc = dict() # variables locales a la regle
+        self.macroenv = None # environnemend d'execution d'une macro
         self.params = None
         self.selstd = None
         self.valide = None
@@ -201,7 +202,7 @@ class RegleTraitement(object): # regle de mapping
         self.schema_courant = None
         self.menage = False
 
-        self.memlimit = int(self.getvar("memlimit"))
+        self.memlimit = int(self.getvar("memlimit" , 0))
         self.erreurs = []
         self.v_nommees = dict()
 
@@ -217,7 +218,6 @@ class RegleTraitement(object): # regle de mapping
         """positionne les parametres """
         self.params = ParametresFonction(valeurs, definition)
 
-
     def ftrue(self, *_):
         ''' toujours vrai  pour les expressions sans conditions'''
         return True
@@ -229,33 +229,34 @@ class RegleTraitement(object): # regle de mapping
 # acces aux variables
     def getvar(self, nom, defaut="", loc=1):
         """ retourne la valeur d'une variable
-        si loc =0 on ne regarde pas les variables locales
+        loc= 0 on ne regarde pas les variables locales
+           -1 on ne regarde que les variables locales
+            1 = local avec fallback sur les globales
         """
 #        self.affiche('')
 #        print(' recherche' ,nom,loc,self.vloc)
-        if loc == 2 and nom+str(self.numero) in self.vloc: # superprivé
-            return self.vloc[nom+str(self.numero)]
-        if loc and nom in self.vloc:
+        if loc == -1:
 #            print('variable locale',nom,self.vloc)
-            return self.vloc[nom]
+            return self.vloc.get(nom, defaut)
+        if loc == 1:
+            if nom in self.vloc:
+                return self.vloc[nom]
         return self.stock_param.get_param(nom, defaut)
 
 
-    def setvar(self, nom, valeur, loc=0):
+    def setvar(self, nom, valeur, loc=1):
         """affecte une variable et la cree eventuellement en local
-            loc  0 : affecte la variable en local si elle existe en global sinon
+            loc  0 : affecte la variable en global
                  1 : affecte la variable en local
-                 -1: affecte la variable en global
-                 2 affecte en local mais ne cache pas la globale
+                 -1: affecte la variable en local si elle existe en global sinon
+
                  """
-        if loc == 2:
-            self.vloc[nom+str(self.numero)] = valeur
-        elif (nom in self.vloc and loc != -1) or loc == 1:
+#        print ('avant:',nom, self.stock_param.get_param(nom))
+        if loc == 1:
             self.vloc[nom] = valeur
-        else:
-#            print ('regle:set fallback ',nom,valeur)
-#            raise
-            self.stock_param.parms[nom] = valeur
+            return
+        self.stock_param.set_param(nom, valeur)
+#        print(' setvar', nom, valeur,loc)
 
 
     def affiche(self, origine=''):

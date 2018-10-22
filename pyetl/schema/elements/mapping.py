@@ -168,7 +168,7 @@ class Mapping(object):
         if self.mode_fusion:
             fusion = True
         if fusion:
-            print('sc interne: fusion', len(classes))
+#            print('sc interne: fusion', len(classes))
             def_mapping.extend([';'.join(i + classes[i].ident_origine+(str(classes[i].poids),))
                                 for i in sorted(classes)])
         else:

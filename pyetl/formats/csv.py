@@ -557,7 +557,7 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
             if maxobj and nlignes >= maxobj: # nombre maxi d'objets a lire par fichier
                 break
 
-            if nlignes % 10000 == 0:
+            if nlignes % 100000 == 0:
                 stock_param.aff.send(('interm', 0, nlignes)) # gestion des affichages de patience
 
         if nbwarn:
@@ -738,7 +738,7 @@ def getfanout(regle, extention, ident, initial):
     '''determine le mode de fanout'''
 #    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention)
     sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar('_sortie', loc=2)
+    rep_sortie = regle.getvar('_sortie')
     groupe, classe = ident
     bfich = ''
     if regle.params.cmp2.val:
@@ -793,7 +793,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
         if separ is None:
-            separ = regle.getvar('separ_csv_out', regle.getvar('separ_csv', '|'), loc=2)
+            separ = regle.getvar('separ_csv_out', regle.getvar('separ_csv', '|'))
         if not nom.startswith("#"):
 #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
             os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -832,7 +832,6 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
     print("csv:ecrire csv", regle.stockage.keys())
-#    rep_sortie = regle.getvar('_sortie', loc=2)
 
     for groupe in list(regle.stockage.keys()):
         # on determine le schema

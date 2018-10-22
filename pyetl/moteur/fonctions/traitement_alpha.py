@@ -71,7 +71,7 @@ def h_setschema(regle):
     '''helper : positionne le nocase'''
     regle.changeschema = True
     if regle.params.cmp1.val:
-        regle.setvar('schema_nocase', regle.params.cmp1.val, loc=2)
+        regle.setvar('schema_nocase', regle.params.cmp1.val)
 
 
 def f_setschema(regle, obj):

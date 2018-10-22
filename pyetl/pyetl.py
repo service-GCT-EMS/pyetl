@@ -171,7 +171,7 @@ def parallelprocess(numero, file, regle):
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
-        return -1
+        return numero, -1
 #    MAINMAPPER.aff.send(('fich', 1, nb_lu))
     return numero, nb_lu
 
@@ -481,9 +481,11 @@ class Pyetl(object):
         nbaffich = int(self.get_param('nbaffich'))
 #        print ('init_patience ',self.worker, self.get_param('_wid', -1))
         prochain = nbaffich
+        interm = 0.001 # temps intermediaire pour les affichages interm
         nop = 0
         nbtotal = 0
         tabletotal = 0
+
         def affiche(message, nbobj):
             '''gere l'affichage des messages de patience'''
             duree, interv = next(temps)
@@ -491,6 +493,7 @@ class Pyetl(object):
                 duree = 0.001
             cmp = '---'
             ftype = 'fichiers'
+            tinterm = 0.001
             if message == 'interm':
                 cmp = 'int'
             if message == 'tab':
@@ -503,9 +506,20 @@ class Pyetl(object):
                 msg = 'mapper   :' + msg
             LOGGER.info(msg, cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),
                         int((nbobj-nop)/(interv+0.001)))
-            print(msg %(cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),
-                        int((nbobj-nop)/(interv+0.001))))
-            return (int(prochain/nbaffich)+1)*nbaffich
+            if self.worker:
+                if message == 'interm':
+                    tinterm = interm + interv
+                    msg = " --int----> nombre d'objets lus %8d en %5d secondes: %5d o/s"
+                    msg = 'worker%3s:'% self.get_param('_wid', -1) + msg
+                    if interm > 1:
+                        tinterm = interm + interv
+                    else: # on calcule un temps moyen pour pas afficher n'importe quoi
+                        tinterm = nbval/(nbobj/duree)
+                    print(msg %(nbval, int(tinterm), int((nbval)/tinterm)))
+            else:
+                print(msg %(cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),
+                            int((nbobj-nop)/(interv+0.001))))
+            return (max(int(prochain/nbaffich), int(nbobj/nbaffich))+1)*nbaffich , tinterm
 
         while True:
             message, nbfic, nbval = yield
@@ -513,6 +527,7 @@ class Pyetl(object):
             tabletotal += nbfic
             if message == 'init':
                 duree, interv = next(temps)
+                interm = duree
 #                print("init  : --------->", int(duree*1000), 'ms')
             elif message == 'end':
                 nbtotal += nbval
@@ -520,10 +535,13 @@ class Pyetl(object):
                 affiche(message, nbtotal)
                 break
             elif nbtotal+nbval >= prochain:
-                prochain = affiche(message, nbtotal+nbval)
+                prochain, interm = affiche(message, nbtotal+nbval)
+#                if not self.worker:
+#                    print (self.get_param('_wid', -1), 'prochain', prochain)
                 nop = nbtotal+nbval
             if message != 'interm':
                 nbtotal += nbval
+                interm = 0.001
 
         yield duree, interv
         yield

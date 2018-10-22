@@ -729,7 +729,7 @@ def parallelmap_suivi(mapper, executor, fonction, arglist):
     rfin = dict()
 #    print('start pexec')
     work = [executor.submit(fonction, *arg) for arg in arglist]
-    
+
     while work:
         attente = []
         for job in work:
@@ -784,26 +784,32 @@ def traite_parallel_load(regle):
         if regle.debug:
             print('retour init', rinit, num_regle)
 #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-        results = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-        for i in results:
-            rdict[i[0]] = rdict.get(i[0],0)+i[1]
+        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
+#        for i in results:
+#            rdict[i] = rdict.get(i[0],0)+i[1]
 
         rfin = parallelexec(executor, nprocs, mapper.endparallel, '')
 #        if regle.debug:
         print ('retour')
         for i in rfin:
             retour = rfin[i][0]
-            print (i, retour['wid'], retour['nb_objs'], retour['schemas'].keys())
+            print (i, 'worker', retour['wid'], 'traites', retour['nb_objs'],
+                   list(sorted(retour['schemas'].keys())))
             fichs = retour['fichs']
             for nom, nb in fichs.items():
                 mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
+#            print ('traitement schemas ', retour["schemas"])
             for nom, schema in retour["schemas"].items():
                 classes, conf, mapping, deftrig = schema
                 tmp = recup_schema_csv(nom, classes, conf, mapping)
-                mapper.schemas[nom] = fusion_schema(mapper.schemas[nom], tmp)\
-                                      if nom in mapper.schemas else tmp
-
-#            retour, nobj, nfich, schema =rfin[i]
+#                print ('recup schema ', nom, tmp, mapper.schemas.get(nom))
+                if tmp:
+                    if nom in mapper.schemas:
+                        fusion_schema(nom, mapper.schemas[nom], tmp)
+#                        print ('------apres fusion schema siglc', mapper.schemas.get('siglc'))
+                    else:
+                        mapper.schemas[nom] = tmp
+#                print ('------apres recup schema siglc', mapper.schemas.get('siglc'))
 #            print (i,retour,nfich,nobj,schema.keys())
 
     traite = regle.stock_param.moteur.traite_objet

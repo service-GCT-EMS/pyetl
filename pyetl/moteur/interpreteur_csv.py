@@ -21,7 +21,7 @@ LOGGER = logging.getLogger('pyetl')
 
 NOMS_CHAMPS_N = ['sel1', 'val_sel1', 'sel2', 'val_sel2',
                  'sortie', 'defaut', 'entree', 'commande', 'cmp1', 'cmp2',
-                 'debug', 'nbdebug']
+                 'debug', 'vlocs']
 
 # quelques fonction générales
 def fdebug(regle, obj):
@@ -434,17 +434,28 @@ def prepare_regle(regle, valeurs):
         regle.valide = "vide"
     regle.valeurs = valeurs
     regle.v_nommees = v_nommees
+    ndebug = 10
     if "debug" in v_nommees['debug']:
         vdebug = v_nommees['debug'].split(',')
-        ndebug = v_nommees['nbdebug']
-        regle.debug = int(ndebug) if ndebug.isnumeric() else 10
+        if vdebug[-1].isnumeric():
+            ndebug = vdebug.pop()
+        regle.debug = int(ndebug)
         if len(vdebug) > 1:
             regle.champsdebug = vdebug[1:]
         print("debug regle ::::", valeurs)
     regle.code_classe = v_nommees['sel1']
 #    print ('interpreteur:  ',regle.v_nommees)
-
-
+    vldef = v_nommees['vlocs']
+    if '=>' in vldef:
+        listevlocs = [i.strip().strip('"').replace('"=>"', '=')
+            for i in vldef.split('","')] if vldef else []
+    else:
+        listevlocs = vldef.split(',')
+    for i in listevlocs:
+#        print('detecte', i)
+        nom, val,*_ = i.split('=')+['']
+        regle.vloc[nom] = val
+#    print( 'detection variables locales ', vldef, listevlocs, regle.vloc)
     # decodage des liens entre regles (structure de blocs)
 #    param = valeurs[0]
     # premier parametre : nom de la classe avec elements de structure
@@ -588,11 +599,12 @@ def decoupe_liste_commandes(mapper, fichier_regles, vloc):
 #                print("regles transmises", liste_regles)
         if macro:
             vpos = [i for i in pars if not "=" in i]
+            macroenv = mapper.macros.getenv(vpos)
             if vpos:
                 vloc.update(macro.bind(vpos))
             LOGGER.debug('macro:variables positionelles '+str(vpos)+str(vloc))
 
-            liste_regles.extend(macro.get_commands())
+            liste_regles.extend(macro.get_commands(macroenv))
 #                print('recup lignes macro:',macro.get_commands())
         else:
             print(mapper.nompyetl, 'macro: commande inconnue >'+i+
@@ -708,25 +720,29 @@ def affecte_variable(mapper, commande, vloc):
 
 def prepare_texte(defligne):
     ''' prepare le texte pour l 'interpretation et verifie s 'il y a des choses a faire '''
-    numero, texte_brut = defligne
+    macroenv = None
+    if len(defligne)==2:
+        numero, texte_brut = defligne
+    else:
+        numero, texte_brut, macroenv = defligne
 #        texte_brut = texte
     texte = texte_brut.strip()
     if not texte:
-        return None, None, texte_brut
+        return None, None, texte_brut, macroenv
     if re.match(r"^[\+\-\|]*:?!", texte):
-        return None, None, texte_brut
+        return None, None, texte_brut, macroenv
     if texte[0] == '"': # on a mis des cotes dans les champs : petite touille pour nettoyer
         tmp = texte.replace('""', '&&trucmuch&&') # on sauve les doubles cotes
         tmp = tmp.replace('"', '')
         texte = tmp.replace('&&trucmuch&&', '"')
-    return numero, texte, texte_brut
+    return numero, texte, texte_brut, macroenv
 
 
 
 
 
 
-def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bloc):
+def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bloc, macroenv):
     ''' traite une regle classique '''
 #    texte = texte_brut.strip()
     erreurs = 0
@@ -840,7 +856,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
     for defligne in liste_regles[:]:
 #        print ('lecture regle', defligne)
 #        numero, texte = defligne
-        numero, texte, texte_brut = prepare_texte(defligne)
+        numero, texte, texte_brut, macroenv = prepare_texte(defligne)
 
         if texte is None:
             continue
@@ -861,7 +877,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
                 defligne = (defligne[0], texte_brut.split(';', 1)[1])
         #        liste_val[0] = ''
         #        liste_val[1] = ''
-                numero, texte, texte_brut = prepare_texte(defligne)
+                numero, texte, texte_brut, macroenv = prepare_texte(defligne)
 #                print('traitement_ligne', texte)
 
 
@@ -913,7 +929,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
         else:
 #            print('regles std', defligne)
             bloc, errs = traite_regle_std(mapper, numero, texte, texte_brut,
-                                          vloc, fichier_regles, bloc)
+                                          vloc, fichier_regles, bloc, macroenv)
             erreurs += errs
 #            print('apres,regles std', defligne, errs)
 

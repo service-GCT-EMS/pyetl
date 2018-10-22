@@ -518,7 +518,7 @@ def asc_streamer(obj, regle, _, attributs=None):
     if obj.virtuel: # on ne traite pas les virtuels
         return
     #raise
-    rep_sortie = regle.getvar('_sortie', loc=2)
+    rep_sortie = regle.getvar('_sortie')
     if not rep_sortie:
         raise NotADirectoryError('repertoire de sortie non défini')
 #    print('asc:', obj.ident,regle.dident, 'sortie:', rep_sortie)
@@ -539,7 +539,7 @@ def asc_streamer(obj, regle, _, attributs=None):
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
 #            print ('ascstr:creation liste',attributs)
             streamwriter = AscWriter(nom,
-                                     encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
+                                     encoding=regle.getvar('codec_sortie', 'utf-8'),
                                      liste_att=attributs,
                                      liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
             ressource = sorties.creres(regle.numero, nom, streamwriter)
@@ -558,7 +558,7 @@ def ecrire_objets_asc(regle, _, attributs=None):
     #ng, nf = 0, 0
     #memoire = defs.stockage
 #    print( "ecrire_objets asc")
-    rep_sortie = regle.getvar('_sortie', loc=2)
+    rep_sortie = regle.getvar('_sortie')
     sorties = regle.stock_param.sorties
     numero = regle.numero
     dident = None

@@ -316,7 +316,7 @@ def h_sortir(regle):
         tmplist = regle.params.cmp1.val.find('[')
         #print("valeur ii ", regle.params.cmp1,ii)
 
-        regle.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1], loc=1)
+        regle.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = F.Writer(regle.params.cmp1.val) # tout le reste
     if regle.f_sortie.nom_format == 'sql': # gestion des dialectes sql et du mode connecté
@@ -338,16 +338,18 @@ def h_sortir(regle):
     if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
         rep_base = regle.getvar('_sortie', loc=0)
 #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        regle.setvar('_sortie', os.path.join(rep_base,
-                                             os.path.dirname(regle.params.cmp2.val)), loc=2)
-#        print('v locales', regle.vloc)
-#        print('globales',regle.getvar('_sortie'))
+
+#        print('globales',regle.getvar('_sortie',0))
+        regle.setvar('_sortie', os.path.join(rep_base, regle.params.cmp2.val), loc=1)
+        print('v locales', regle.vloc)
+        print('globales',regle.getvar('_sortie', loc=0))
+        print('globales2',regle.stock_param.get_param('_sortie'))
 #        print('globales2',regle.stock_param.get_param('_sortie'))
-    regle.fanout = regle.getvar("fanout", 'groupe', loc=1)\
+    regle.fanout = regle.getvar("fanout", 'groupe')\
                    if regle.f_sortie.multiclasse else 'classe'
 #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
-    regle.memlimit = int(regle.getvar('memlimit'))
+    regle.memlimit = int(regle.getvar('memlimit',0))
     regle.store = None
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
@@ -369,7 +371,7 @@ def setschemasortie(regle, obj):
     if regle.nom_fich_schema:# on copie le schema pour ne plus le modifier apres ecriture
         regle.change_schema_nom(obj, regle.nom_fich_schema)
     if obj.schema and obj.schema.amodifier(regle):
-        obj.schema.setsortie(regle.f_sortie, regle.getvar('_sortie', loc=2))
+        obj.schema.setsortie(regle.f_sortie, regle.getvar('_sortie'))
         obj.schema.setminmaj(regle.f_sortie.minmaj)
     if regle.params.att_entree.liste:
         obj.liste_atttributs = regle.params.att_entree.liste

@@ -905,7 +905,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
     #ng, nf = 0, 0
     #memoire = defs.stockage
     sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
     numero = regle.numero
     dident = None
     ressource = None
@@ -933,7 +933,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
                     liste_att = _set_liste_attributs(obj, attributs)
                     swr = DbWriter(nom, liste_att,
-                                   encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
+                                   encoding=regle.getvar('codec_sortie', 'utf-8'),
                                    liste_fich=regle.stock_param.liste_fich)
                     sorties.creres(numero, nom, swr)
                     ressource = sorties.get_res(numero, nom)
@@ -953,7 +953,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
     '''
     if obj.virtuel:
         return
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
     sorties = regle.stock_param.sorties
     if obj.ident == regle.dident:
         ressource = regle.ressource
@@ -976,7 +976,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
             os.makedirs(os.path.dirname(nom), exist_ok=True)
             liste_att = _set_liste_attributs(obj, attributs)
             swr = DbWriter(nom, liste_att,
-                           encoding=regle.getvar('codec_sortie', 'utf-8', loc=2),
+                           encoding=regle.getvar('codec_sortie', 'utf-8'),
                            liste_fich=regle.stock_param.liste_fich,
                            stock_param=regle.stock_param)
             sorties.creres(regle.numero, nom, swr)

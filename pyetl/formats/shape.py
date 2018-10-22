@@ -230,7 +230,7 @@ def get_shapewriter(regle, groupe, classe, rep_sortie, schema):
     ''' initialise une sortie shape '''
     sorties = regle.stock_param.sorties
     id_demand = regle.numero
-    rep_sortie = regle.getvar('_sortie', loc=2) if rep_sortie is None else rep_sortie
+    rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
     nom = sorties.get_id(rep_sortie, groupe, classe, ".shp")
     sortie = sorties.get_res(id_demand, nom)
     if sortie is None:
