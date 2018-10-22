@@ -716,8 +716,12 @@ def getfichs(regle, obj):
     racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
         racine = regle.stock_param['_entree']
-    rep = os.path.join(racine, obj.attributs.get(regle.params.att_entree.val,
-                                                 regle.params.val_entree.val))
+    vobj = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    if vobj:
+        rep = os.path.join(racine, vobj)
+    else:
+        rep = racine
+    
 #    print( "charge fichiers", rep)
     fichs = mapper.scan_entree(rep=rep)
     fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
@@ -852,7 +856,7 @@ def f_fileloader(regle, obj):
    #pattern2||?A;?C;?A;charge;[A];?N
      #schema||ajout_attribut
        #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-      #test2||obj||^;;;charge>;%testrep%/refdata;2;||^;;;pass;;||atv;valeur;1
+      #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||^;;;pass;;||atv;NB;4
     '''
     if regle.store:
 #        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
@@ -863,7 +867,7 @@ def f_fileloader(regle, obj):
     mapper = regle.stock_param
     fichs = getfichs(regle, obj)
 
-#    print ("liste_fichiers ", fichs)
+#    print ("-------------liste_fichiers ", fichs)
 #    lu_total = 0
 #    lu_fichs = 0
     nb_lu = 0

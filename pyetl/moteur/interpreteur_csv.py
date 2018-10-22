@@ -599,12 +599,12 @@ def decoupe_liste_commandes(mapper, fichier_regles, vloc):
 #                print("regles transmises", liste_regles)
         if macro:
             vpos = [i for i in pars if not "=" in i]
-            macroenv = mapper.macros.getenv(vpos)
+#            macroenv = mapper.macros.getenv(vpos)
             if vpos:
                 vloc.update(macro.bind(vpos))
             LOGGER.debug('macro:variables positionelles '+str(vpos)+str(vloc))
 
-            liste_regles.extend(macro.get_commands(macroenv))
+            liste_regles.extend(macro.get_commands())
 #                print('recup lignes macro:',macro.get_commands())
         else:
             print(mapper.nompyetl, 'macro: commande inconnue >'+i+
@@ -720,29 +720,25 @@ def affecte_variable(mapper, commande, vloc):
 
 def prepare_texte(defligne):
     ''' prepare le texte pour l 'interpretation et verifie s 'il y a des choses a faire '''
-    macroenv = None
-    if len(defligne)==2:
-        numero, texte_brut = defligne
-    else:
-        numero, texte_brut, macroenv = defligne
+    numero, texte_brut = defligne
 #        texte_brut = texte
     texte = texte_brut.strip()
     if not texte:
-        return None, None, texte_brut, macroenv
+        return None, None, texte_brut
     if re.match(r"^[\+\-\|]*:?!", texte):
-        return None, None, texte_brut, macroenv
+        return None, None, texte_brut
     if texte[0] == '"': # on a mis des cotes dans les champs : petite touille pour nettoyer
         tmp = texte.replace('""', '&&trucmuch&&') # on sauve les doubles cotes
         tmp = tmp.replace('"', '')
         texte = tmp.replace('&&trucmuch&&', '"')
-    return numero, texte, texte_brut, macroenv
+    return numero, texte, texte_brut
 
 
 
 
 
 
-def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bloc, macroenv):
+def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bloc):
     ''' traite une regle classique '''
 #    texte = texte_brut.strip()
     erreurs = 0
@@ -856,7 +852,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
     for defligne in liste_regles[:]:
 #        print ('lecture regle', defligne)
 #        numero, texte = defligne
-        numero, texte, texte_brut, macroenv = prepare_texte(defligne)
+        numero, texte, texte_brut = prepare_texte(defligne)
 
         if texte is None:
             continue
@@ -877,7 +873,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
                 defligne = (defligne[0], texte_brut.split(';', 1)[1])
         #        liste_val[0] = ''
         #        liste_val[1] = ''
-                numero, texte, texte_brut, macroenv = prepare_texte(defligne)
+                numero, texte, texte_brut = prepare_texte(defligne)
 #                print('traitement_ligne', texte)
 
 
@@ -929,7 +925,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
         else:
 #            print('regles std', defligne)
             bloc, errs = traite_regle_std(mapper, numero, texte, texte_brut,
-                                          vloc, fichier_regles, bloc, macroenv)
+                                          vloc, fichier_regles, bloc)
             erreurs += errs
 #            print('apres,regles std', defligne, errs)
 

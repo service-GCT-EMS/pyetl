@@ -131,11 +131,13 @@ class Moteur(object):
                     return
                 raise # on la passe au niveau au dessus
             except NotADirectoryError as exc:
-                print('==========erreur de traitement', exc)
+                print('==========erreur de traitement repertoire inconnu', exc)
+                print('====regle courante:', regle)
+#                printexception()
                 raise StopIteration(3)
 
             except NotImplementedError as exc:
-                print('==========erreur de traitement', exc)
+                print('==========erreur de traitement fonction inexistante', exc)
                 print('====regle courante:', regle)
                 raise StopIteration(3)
 
@@ -189,9 +191,9 @@ class Macro(object):
         ''' recupere unenvironnement d execution '''
         return Macroenv(self, liste, parent, contexte)
 
-    def get_commands(self, macroenv=None):
+    def get_commands(self):
         """recupere les commandes de la macro"""
-        return [(i, self.commandes_macro[i], macroenv) for i in sorted(self.commandes_macro)]
+        return [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
 
     def __repr__(self):
         """affichage lisible de la macro"""

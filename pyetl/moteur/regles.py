@@ -151,8 +151,7 @@ class RegleTraitement(object): # regle de mapping
         self.ligne = ligne
         self.stock_param = stock_param
         self.branchements = Branch()
-        self.vloc = dict() # variables locales a la regle
-        self.macroenv = None # environnemend d'execution d'une macro
+        self.vloc = vloc.copy() if vloc else dict() # variables locales a la regle
         self.params = None
         self.selstd = None
         self.valide = None

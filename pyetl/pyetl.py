@@ -124,7 +124,8 @@ def initparallel(parametres):
     MAINMAPPER.inited = True
     MAINMAPPER.macros.update(macros)
     MAINMAPPER.parms.update(params)
-
+    MAINMAPPER.set_param("_lu_total", 0)
+    MAINMAPPER.set_param("_lu_fichs", 0)
     if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
 #       time.sleep(2)
        return (os.getpid(), True)
@@ -173,6 +174,8 @@ def parallelprocess(numero, file, regle):
 #            print("intercepte abort",abort.args[0])
         return numero, -1
 #    MAINMAPPER.aff.send(('fich', 1, nb_lu))
+#    MAINMAPPER.set_param("_lu_total", MAINMAPPER.get_param("_lu_total"+nb_lu))
+#    MAINMAPPER.set_param("_lu_fichs", MAINMAPPER.get_param("_lu_fichs"+1))
     return numero, nb_lu
 
 def endparallel(test=None):
@@ -188,7 +191,7 @@ def endparallel(test=None):
     except StopIteration:
         nb_total, nb_fichs = MAINMAPPER.sorties.final()
         retour = False
-#    print("pyetl batchworker end", os.getpid(), retour, schema)
+    print("-----pyetl batchworker end", os.getpid(), retour, nb_total, nb_fichs)
     MAINMAPPER.ended = True
     retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
     retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': retour,
