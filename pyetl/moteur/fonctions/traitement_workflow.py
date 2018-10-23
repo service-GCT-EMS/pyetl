@@ -20,7 +20,7 @@ import ftplib
 import requests
 from pyetl.formats.interne.objet import Objet
 from pyetl.schema.schema_io import recup_schema_csv, fusion_schema
-
+from pyetl.formats.formats import ExtStat
 #
 #def f_true(*_):
 #    '''#aide||ne fait rien
@@ -721,7 +721,7 @@ def getfichs(regle, obj):
         rep = os.path.join(racine, vobj)
     else:
         rep = racine
-    
+
 #    print( "charge fichiers", rep)
     fichs = mapper.scan_entree(rep=rep)
     fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
@@ -803,7 +803,9 @@ def traite_parallel_load(regle):
             for nom, nb in fichs.items():
                 mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
 #            print ('traitement schemas ', retour["schemas"])
+            nomschemas = set()
             for nom, schema in retour["schemas"].items():
+                nomschemas.add(nom)
                 classes, conf, mapping, deftrig = schema
                 tmp = recup_schema_csv(nom, classes, conf, mapping)
 #                print ('recup schema ', nom, tmp, mapper.schemas.get(nom))
@@ -813,6 +815,16 @@ def traite_parallel_load(regle):
 #                        print ('------apres fusion schema siglc', mapper.schemas.get('siglc'))
                     else:
                         mapper.schemas[nom] = tmp
+            for nom in nomschemas: # on reporte les comptages d'objets
+                schem = mapper.schemas[nom]
+                for cl in schem.classes.values():
+                    cl.objcnt = cl.poids
+            for nom, entete, contenu in retour["stats"].values():
+                if nom not in mapper.stats:
+                    mapper.stats[nom]=ExtStat(nom, entete)
+                mapper.stats[nom].add(entete, contenu)
+#                    print('ajout_stats',nom, contenu)
+
 #                print ('------apres recup schema siglc', mapper.schemas.get('siglc'))
 #            print (i,retour,nfich,nobj,schema.keys())
 

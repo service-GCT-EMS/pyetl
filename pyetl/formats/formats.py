@@ -346,6 +346,96 @@ def _get_number(valeur):
         val = float(valeur)
     return val
 
+class ExtStat(object):
+    ''' structure de stockage simplifie de stats externes'''
+    def __init__(self, nom, entete):
+        self.nom = nom # nom de la stat (fichier de sortie)
+        self.entete = entete
+        self.lignes = [] # nom des colonnes
+
+    def add(self, entete, contenu):
+        '''ajoute du contenu a une stat'''
+        if (entete != self.entete):
+            print('erreur stats incomtatibles', self.nom, self.entete, '->', entete)
+            return False
+        self.lignes.extend(contenu)
+#        print('contenu de la stat' ,self.nom, len(self.lignes))
+
+    def ecrire(self, rep_sortie, affiche=False, filtre='', defaut=None, codec='utf-8', wid=''):
+        ''' sortie stat en format csv'''
+        nom = self.nom
+        if wid:
+            nom = nom+'_'+wid
+        result = sorted(self.lignes)
+#        print ("extstats:",result)
+        if rep_sortie:
+            try:
+                os.makedirs(rep_sortie, exist_ok=True)
+                fichier = open(os.path.join(rep_sortie, nom+".csv"), "w",
+                               encoding=codec)
+                fichier.write(';'.join(self.entete)+"\n")
+                fichier.write('\n'.join([';'.join(i) for i in result]))
+                fichier.close()
+                return
+            except PermissionError:
+                print('!!!!!!!! erreur ouverture fichier stats',
+                      os.path.join(rep_sortie, nom)+".csv")
+                affiche = True
+            except NotADirectoryError:
+                print('!!!!!!!! repertoire de sortie non defini')
+                affiche = True
+        else:
+            if defaut == "affiche":
+                affiche = True
+
+        if affiche:
+            print('affichage stats', nom, "[", filtre, "]")
+            print(self.entete.replace(';', '\t'))
+            print("\n".join(i.replace(';', '\t') for i in result if filtre in i))
+
+
+    def to_obj(self, stock_param):
+        '''convertit une stat en objets pour traitement'''
+
+        nlignes = 0
+        nom_groupe, nom_classe = self.nom.split('_')
+#        print(" conversion stat en objet", nom_schema, nom_groupe, nom_classe)
+        maxobj = int(stock_param.get_param('lire_maxi', 0))
+
+        if stock_param.get_param("schema_entree"):
+            schema_courant = stock_param.schemas[stock_param.get_param("schema_entree")]
+            nom_groupe, nom_classe = schema_courant.map_dest((nom_groupe, nom_classe))
+        else:
+            schema_courant = stock_param.init_schema(':schema_stats', 'F')
+
+        schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
+
+        colonnes = self.entete
+        noms_attributs = [i.strip().replace(' ', '_') for i in colonnes]
+#        print( "conversion stats,",result, self.valeurs)
+#        print("stattoobj",noms_attributs)
+        for valtmp in sorted(self.lignes):
+#            print ("traitement stat",i)
+            obj = Objet(nom_groupe, nom_classe, format_natif='interne')
+            obj.setschema(schemaclasse)
+
+            obj.attributs.update([(n, v) for n, v in zip(noms_attributs, valtmp)])
+            nlignes = nlignes+1
+            obj.setorig(nlignes)
+            obj.attributs['#type_geom'] = '0'
+#            print("traitement objet stat",obj.attributs)
+            stock_param.moteur.traite_objet(obj, stock_param.regles[0])
+            if maxobj: # nombre maxi d'objets a lire par fichier
+                if nlignes >= maxobj:
+                    obj = None
+                    break
+        return nlignes
+
+
+
+
+
+
 
 
 class Stat(object):
@@ -528,7 +618,7 @@ class Stat(object):
         return nlignes
 
     def retour(self, filtre=''):
-        nom = '_'.join(self.nom)
+        nom = '_'.join(self.nom).replace('#', '')
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
         corps = [self.structure.ligne_liste(i, self.valeurs)
@@ -549,21 +639,22 @@ class Stat(object):
 #        print("info :format: ecriture stat ", os.path.join(rep_sortie, nom)+".csv", affiche)
 
         if rep_sortie:
-            try:
-                os.makedirs(rep_sortie, exist_ok=True)
-                fichier = open(os.path.join(rep_sortie, nom+".csv"), "w",
-                               encoding=codec)
-                fichier.write(self.structure.entete(self.colonnes_indirect)+"\n")
-                fichier.writelines((self.structure.ligne(i, self.valeurs)+"\n" for i in result))
-                fichier.close()
-                return
-            except PermissionError:
-                print('!!!!!!!! erreur ouverture fichier stats',
-                      os.path.join(rep_sortie, nom)+".csv")
-                affiche = True
-            except NotADirectoryError:
-                print('!!!!!!!! repertoire de sortie non defini')
-                affiche = True
+            if not wid:
+                try:
+                    os.makedirs(rep_sortie, exist_ok=True)
+                    fichier = open(os.path.join(rep_sortie, nom+".csv"), "w",
+                                   encoding=codec)
+                    fichier.write(self.structure.entete(self.colonnes_indirect)+"\n")
+                    fichier.writelines((self.structure.ligne(i, self.valeurs)+"\n" for i in result))
+                    fichier.close()
+                    return
+                except PermissionError:
+                    print('!!!!!!!! erreur ouverture fichier stats',
+                          os.path.join(rep_sortie, nom)+".csv")
+                    affiche = True
+                except NotADirectoryError:
+                    print('!!!!!!!! repertoire de sortie non defini')
+                    affiche = True
 
         else:
             if defaut == "affiche":

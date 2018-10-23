@@ -806,7 +806,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
         dialecte = 'sql'
         type_base = 'basic'
         gsql = DATABASES[dialecte].gensql()
-    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
+#    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace('#', '_')
@@ -858,6 +858,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                                          schema.fich if schema.fich else ''))
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
+    print ('sio: ecrire_schemas',schema.nom,formats_a_sortir)
     for form in formats_a_sortir:
         if 'sql' in form: # on met le sql en premier car on modifie des choses
 #            print('sio:sortie sql', schema.nom, 'rep:',
@@ -941,11 +942,11 @@ def retour_schemas(schemas, mode='util'):
 
 def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
     '''prepare les schemas pour la sortie '''
-#    print('ecriture_schemas', mode, len(stock_param.schemas))
+    print('ecriture_schemas', mode, stock_param.schemas.keys())
     if mode == 'no':
         return
     rep_sortie = stock_param.get_param('_sortie')
-#    print('sio:repertoire sortie schema', rep_sortie,formats)
+    print('sio:repertoire sortie schema', rep_sortie,formats)
 #        raise FileNotFoundError
 
     for i in formats.split(','): # en cas de format inconnu on sort en csv
@@ -979,7 +980,16 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
         if FSC.analyse_interne(schemas[i], mode_sortie):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
-                formats_a_sortir.add(schemas[i].format_sortie)
+                if schemas[i].format_sortie=='sql':
+                    dialecte = False
+                    for form in formats_a_sortir:
+                        if 'sql:' in form:
+                            dialecte = True
+                    if not dialecte:
+                        formats_a_sortir.add('sql')
+                else:
+                    formats_a_sortir.add(schemas[i].format_sortie)
+#controle du sql et de ses dialectes
 #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(schemas[i], formats_a_sortir, stock_param, mode_sortie, confs)
             if 'xml' in formats_a_sortir:

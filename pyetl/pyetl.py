@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 '''modification d'attributs en fonction d'un fichier de parametrage avec
 prise en charge des expressions regulieres'''
@@ -13,7 +14,7 @@ import itertools
 from collections import defaultdict
 
 from  .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
-from  .formats.formats import Reader, Stat
+from  .formats.formats import Reader, Stat, ExtStat
 from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
          interprete_ligne_csv, map_vars
 from  .moteur.compilateur import compile_regles
@@ -170,6 +171,7 @@ def parallelprocess(numero, file, regle):
 #        print ('worker:lecture', file)
         nom, parms = file
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
+#        print (MAINMAPPER.sorties.ressources)
     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
         return numero, -1
@@ -853,7 +855,7 @@ class Pyetl(object):
         if self.get_param('sans_entree'):
             entree = None
 #        print("process",entree, self.regles)
-        if isinstance(entree, Stat):
+        if isinstance(entree, (Stat, ExtStat)):
             nb_total = self._lecture_stats(entree)
             return nb_total, 1
 
@@ -982,8 +984,8 @@ class Pyetl(object):
     def _ecriture_schemas(self):
         '''sortie des schemas '''
         modes_schema_num = {'0': 'no', # pas de sortie de schema
-                            '1': 'non_vide', # on ne sort que les schemas des classes non vides
-                            '2': 'util', # sort les schemas des classes utilisees dans le traitement
+                            '1': 'util', # sort les schemas des classes utilisees dans le traitement
+                            '2': 'non_vide', # on ne sort que les schemas des classes non vides
                             '3': 'all', # sort les schemas de toutes les classes definies
                             '4': 'int', # sort les schemas de toutes les classes y compris internes
                             '5': 'fusion' # combine les schemas en fonction des poids}
@@ -995,16 +997,19 @@ class Pyetl(object):
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         LOGGER.info('ecriture schemas '+ str(mode_schema))
-#        print ('ecriture schemas ', mode_schema)
+        print ('ecriture schemas ', mode_schema)
         if mode_schema in {'all', 'int', 'fusion'} and not self.done:
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
         ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))
 
     def _ecriture_stats(self):
         '''stockage des stats '''
-#        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
+        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
         rep_sortie = self.get_param('_sortie')
+
         for i in self.stats:
+#            if self.worker and self.parent is None:
+#                continue #on ecrit pas on remonte
             if self.statprint == "statprocess":
                 petl2 = self.getpyetl(self.statfilter, entree=self.stats[i])
 #                print ("petl2 statprocess",petl2.idpyetl,petl2.stats)

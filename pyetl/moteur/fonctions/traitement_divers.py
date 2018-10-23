@@ -339,12 +339,8 @@ def h_sortir(regle):
         rep_base = regle.getvar('_sortie', loc=0)
 #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
 
-#        print('globales',regle.getvar('_sortie',0))
         regle.setvar('_sortie', os.path.join(rep_base, regle.params.cmp2.val), loc=1)
-        print('v locales', regle.vloc)
-        print('globales',regle.getvar('_sortie', loc=0))
-        print('globales2',regle.stock_param.get_param('_sortie'))
-#        print('globales2',regle.stock_param.get_param('_sortie'))
+
     regle.fanout = regle.getvar("fanout", 'groupe')\
                    if regle.f_sortie.multiclasse else 'classe'
 #    print("fanout de sortie",regle.fanout)

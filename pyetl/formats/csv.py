@@ -747,11 +747,11 @@ def getfanout(regle, extention, ident, initial):
             nom = "#print"
             ressource = sorties.get_res(regle.numero, nom)
             return ressource, nom
-        tmp = os.path.splitext(os.path.basename(nfich))
+#        tmp = os.path.splitext(os.path.basename(nfich))
 #        print ('fichier fourni',tmp)
-        bfich = tmp[0]
-        if tmp[1]: # on a defini une extention
-            extention = tmp[1]
+#        bfich = tmp[0]
+#        if tmp[1]: # on a defini une extention
+#            extention = tmp[1]
 #        if initial:
 #            print ('repertoire de sortie',rep_sortie,bfich,extention)
 #
@@ -770,12 +770,12 @@ def getfanout(regle, extention, ident, initial):
 #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
 #            len(obj.schema.attributs))
         nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, '', extention)
-#            print('csv:recherche fichier', groupe,nom)
+
     else:
         nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention)
 
     ressource = sorties.get_res(regle.numero, nom)
-
+#    print('csv:fichier',regle.fanout, rep_sortie, bfich, groupe,nom)
     return ressource, nom
 
 
