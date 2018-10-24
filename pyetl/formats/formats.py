@@ -400,7 +400,7 @@ class ExtStat(object):
         nlignes = 0
         nom_groupe, nom_classe = self.nom.split('_')
 #        print(" conversion stat en objet", nom_schema, nom_groupe, nom_classe)
-        maxobj = int(stock_param.get_param('lire_maxi', 0))
+        maxobj = stock_param.get_param('lire_maxi', 0)
 
         if stock_param.get_param("schema_entree"):
             schema_courant = stock_param.schemas[stock_param.get_param("schema_entree")]
@@ -583,7 +583,7 @@ class Stat(object):
 
         nom_groupe, nom_classe = self.nom
 #        print(" conversion stat en objet", nom_schema, nom_groupe, nom_classe)
-        maxobj = int(stock_param.get_param('lire_maxi', 0))
+        maxobj = stock_param.get_param('lire_maxi', 0)
 
         if stock_param.get_param("schema_entree"):
             schema_courant = stock_param.schemas[stock_param.get_param("schema_entree")]

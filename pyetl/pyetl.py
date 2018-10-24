@@ -89,18 +89,21 @@ def runpyetl(mapping, args, env=None, log=None):
     """ lancement standardise"""
     print("pyetl", VERSION, mapping, args, log)
     if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
-        nb_total, nb_fichs, ng2, nf2 = MAINMAPPER.process()
+        MAINMAPPER.process()
     else:
         print('arret du traitement ')
         return
+    nb_total = MAINMAPPER.get_param('_st_lu_objs', 0)
+    nb_fichs = MAINMAPPER.get_param('_st_lu_fichs', 0)
     if nb_total:
-        print(nb_total, "objets lus")
-    if MAINMAPPER.dbread:
-        print(MAINMAPPER.dbread, "objets lus en base de donnees")
+        print(nb_total, "objets lus dans", nb_fichs, 'fichiers ')
+
     if MAINMAPPER.moteur:
-        print(MAINMAPPER.moteur.dupcnt, "objets dupliques")
-    if ng2:
-        print(ng2, "objets ecrits dans ", nf2, "fichiers ")
+        print(MAINMAPPER.get_param('_st_obj_duppliques', 0) , "objets dupliques")
+    n_ecrits = MAINMAPPER.get_param('_st_wr_objs' ,0)
+    if n_ecrits:
+        print(n_ecrits, "objets ecrits dans ", MAINMAPPER.get_param('_st_wr_fichs' ,0),
+              "fichiers ")
     MAINMAPPER.signale_fin()
     duree, _ = next(MAINMAPPER.maintimer)
     duree += 0.001
@@ -108,8 +111,8 @@ def runpyetl(mapping, args, env=None, log=None):
           int(duree*1000), "millisecondes")
     if nb_total:
         print('perf lecture  :', int(nb_total/duree), 'o/s')
-    if ng2:
-        print('perf ecriture :', int(ng2/duree), 'o/s')
+    if n_ecrits:
+        print('perf ecriture :', int(n_ecrits/duree), 'o/s')
 
 
 def initparallel(parametres):
@@ -125,8 +128,7 @@ def initparallel(parametres):
     MAINMAPPER.inited = True
     MAINMAPPER.macros.update(macros)
     MAINMAPPER.parms.update(params)
-    MAINMAPPER.set_param("_lu_total", 0)
-    MAINMAPPER.set_param("_lu_fichs", 0)
+
     if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
 #       time.sleep(2)
        return (os.getpid(), True)
@@ -171,6 +173,7 @@ def parallelprocess(numero, file, regle):
 #        print ('worker:lecture', file)
         nom, parms = file
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
+
 #        print (MAINMAPPER.sorties.ressources)
     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
@@ -189,15 +192,20 @@ def endparallel(test=None):
         return None
     try:
         nb_total, nb_fichs, schema = MAINMAPPER.menage_final()
+
         retour = True
     except StopIteration:
         nb_total, nb_fichs = MAINMAPPER.sorties.final()
         retour = False
+    MAINMAPPER.padd('_st_obj_duppliques', MAINMAPPER.moteur.dupcnt)
+    MAINMAPPER.padd('_st_obj_supprimes', MAINMAPPER.moteur.suppcnt)
+    stats_generales = MAINMAPPER.getstats()
+
     print("-----pyetl batchworker end", os.getpid(), retour, nb_total, nb_fichs)
     MAINMAPPER.ended = True
     retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
     retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': retour,
-              'nb_objs': nb_total, 'nb_fichs': nb_fichs,
+              'stats_generales': stats_generales,
               'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
 
     return (os.getpid(), retour)
@@ -291,7 +299,6 @@ class Pyetl(object):
         self.fichier_regles = None
 
         # etats
-        self.dbread = 0 # objets lus en base
 
         self.dupcnt = 0
         self.statfilter = ''
@@ -506,7 +513,7 @@ class Pyetl(object):
             msg = " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "+\
                   "secondes %5d o/s, inst %5d"
             if self.worker:
-                msg = 'worker%3s:'% self.get_param('_wid', -1) + msg
+                msg = 'worker%3s:'% self.get_param('_wid') + msg
             else:
                 msg = 'mapper   :' + msg
             LOGGER.info(msg, cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),
@@ -515,7 +522,7 @@ class Pyetl(object):
                 if message == 'interm':
                     tinterm = interm + interv
                     msg = " --int----> nombre d'objets lus %8d en %5d secondes: %5d o/s"
-                    msg = 'worker%3s:'% self.get_param('_wid', -1) + msg
+                    msg = 'worker%3s:'% self.get_param('_wid') + msg
                     if interm > 1:
                         tinterm = interm + interv
                     else: # on calcule un temps moyen pour pas afficher n'importe quoi
@@ -715,9 +722,12 @@ class Pyetl(object):
         #help||parametres systeme:
         '''
 
-        self.parms.update([("mode_sortie", "B"), ("memlimit", "100000"), ('sans_entree', ''),
-                           ("nbaffich", "100000"), ('filtre_entree', ''), ('sans_sortie', ''),
-                           ("tmpdir", '.'), ("F_entree", ''), ('racine', ''),
+        self.parms.update([("mode_sortie", "B"), ("memlimit", 100000), ('sans_entree', ''),
+                           ("nbaffich", 100000), ('filtre_entree', ''), ('sans_sortie', ''),
+                           ("_st_lu_objs", 0), ("_st_lu_fichs", 0), ("_st_lu_tables", 0),
+                           ("_st_wr_objs", 0), ("_st_wr_fichs", 0), ("_st_wr_tables", 0),
+                           ("_st_obj_duppliques", 0), ("_st_obj_supprimes", 0),
+                           ("tmpdir", './tmp'), ("F_entree", ''), ('racine', '.'),
                            ("job_control", ''), ('aujourdhui', time.strftime('%Y/%m/%d 00:00:00')),
                            ("stat_defaut", "affiche"),
                            ("debug", '0'), ("fstat", ''),
@@ -733,16 +743,20 @@ class Pyetl(object):
                            ('_progdir', os.path.dirname(__file__))
                           ])
 
+    def getstats(self):
+        '''retourne un dictionnaire avec les valeurs des stats'''
+        return {i:self.get_param(i, 0) for i in self.parms if i.startswith('_st')}
 
     def get_param(self, nom, defaut='', local=False, groupe=None):
         ''' fournit la valeur d'un parametre '''
+        converter = type(defaut) if defaut is not None else str
         if groupe:
             valeur = self.get_param(nom+'_'+groupe, defaut=None)
             if valeur is not None:
-                return valeur
+                return converter(valeur)
         if nom in self.parms:
 #            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
-            return self.parms[nom]
+            return converter(self.parms[nom])
 #        print ('non trouve',nom , self.idpyetl, self.parent)
         if local:
             return defaut
@@ -756,6 +770,20 @@ class Pyetl(object):
             return
         self.parms[nom] = valeur
 #        print ('positionnement variable', nom,'-->', valeur, self.idpyetl)
+
+    def padd(self, nom, valeur, parent=0):
+        '''incremente un parametre d'une valeur'''
+        vinit = self.get_param(nom, 0, local=parent)
+        self.set_param(nom, vinit+valeur, parent=parent)
+#        print ('padd',nom,self.get_param(nom, 0, local=parent))
+
+
+    def pasum(self, nom1, nom2, parent=0):
+        '''incremente un parametre d'un autre parametre'''
+        vinit = self.get_param(nom1, defaut=0, local=parent)
+        valeur = self.get_param(nom2, defaut=0, local=parent)
+        self.set_param(nom1, str(vinit+valeur), parent=parent)
+
 
     def _stocke_param(self, parametre):
         '''stockage d'un parametre'''
@@ -861,8 +889,10 @@ class Pyetl(object):
 
         abort = False
         duree = 0
-        lu_total, lu_fichs = 0, 0
-        self.aff = self._patience(lu_fichs, lu_total) # on initialise le gestionnaire d'affichage
+#        lu_total, lu_fichs = 0, 0
+        self.aff = self._patience(self.get_param('_st__lus_objs', 0),
+                                  self.get_param('_st__lus_fichs', 0))
+        # on initialise le gestionnaire d'affichage
         next(self.aff)
 #        interv_affich = int(self.get_param("nbaffich", "100000"))
 #        nbaffich = interv_affich
@@ -882,14 +912,17 @@ class Pyetl(object):
                     #traitement.racine_fich = os.path.dirname(i)
                     try:
                         nb_lu = self.lecture(i)
+                        self.padd('_st_lus_objs', nb_lu)
+                        self.padd('_st_lus_fichs', 1)
                     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
                         if arret.args[0] == '2':
                             continue
                         abort = True
+                        nb_lu = 0
                         break
-                    lu_total += nb_lu
-                    lu_fichs += 1
+
+
 #                    self.aff.send(('fich', 1, nb_lu))
                 duree, _ = self.aff.send(('end', 0, 0))
             else:
@@ -909,7 +942,9 @@ class Pyetl(object):
             except StopIteration:
                 nb_total, nb_fichs = self.sorties.final()
 #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-        return lu_total, lu_fichs, nb_total, nb_fichs
+        self.padd('_st_obj_duppliques', self.moteur.dupcnt)
+#        return (self.get_param('_st_lus_total', 0), self.get_param('_st_lus_fichs', 0),
+#                nb_total, nb_fichs)
 
 
     def menage_final(self, mode_schema=None):
@@ -928,7 +963,8 @@ class Pyetl(object):
 
         self._ecriture_stats()
         self.macro_final()
-
+        self.padd('_st_wr_fichs', nf2)
+        self.padd('_st_wr_objs', ng2)
         if self.worker: # on est en mode esclave
 #            print ('worker ecrire schema csv')
             schemas = retour_schemas(self.schemas, mode=self.get_param('force_schema', 'util'))
@@ -1172,6 +1208,8 @@ class Pyetl(object):
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)
+        self.padd('_st_lu_objs', nb_obj)
+        self.padd('_st_lu_fichs', 1)
         self.aff.send(('fich', 1, nb_obj))
         return nb_obj
 

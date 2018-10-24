@@ -336,7 +336,7 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
     nom = None
     schema, schema_init = _get_schemas(stock_param, rep, fichier)
 
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
 #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
     next(log_erreurs)

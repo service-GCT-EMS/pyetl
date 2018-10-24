@@ -143,7 +143,7 @@ def lire_objets(rep, chemin, fichier, stock_param, regle):
 
 
     traite_objet = stock_param.moteur.traite_objet
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     entree = os.path.join(rep, chemin, fichier)
     layers = fiona.listlayers(entree)
 #    print('fiona:lecture niveaux',  layers)

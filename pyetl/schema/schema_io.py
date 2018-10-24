@@ -891,7 +891,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
         if 'csv' in form:
             cod_csv = stock_param.get_param('codec_sortie_schema', "cp1252")
             ecrire_schema_csv(rep_s, schema, mode,
-                              codec=cod_csv, modeconf=confs)
+                              cod=cod_csv, modeconf=confs)
         if form == 'xml':
 #            header = stock_param.get_param('xmlheader', '')
 #            if header:

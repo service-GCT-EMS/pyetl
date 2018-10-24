@@ -62,7 +62,7 @@ def lire_objets(rep, chemin, fichier, stock_param, regle):
     obj = None
     ouvert = _ouverture_fichier(rep, chemin, fichier, stock_param)
     traite_objet = stock_param.moteur.traite_objet
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     for i in json.load(ouvert):
         if maxobj and n_obj > maxobj:
             break

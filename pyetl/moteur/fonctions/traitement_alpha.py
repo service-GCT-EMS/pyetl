@@ -470,6 +470,7 @@ def f_suppschema(_, obj):
 def h_suppobj(regle):
     '''evite la transmission d'un objet'''
     regle.final = True
+    regle.supobj = True
 
 
 def f_suppobj(_, __):

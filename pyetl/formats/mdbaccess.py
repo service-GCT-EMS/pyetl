@@ -356,7 +356,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         if not base:
             print('dbaccess: base non definie', codebase)
             return None
-    defmodeconf = int(stock_param.get_param("mode_enums_"+codebase, 1))
+    defmodeconf = stock_param.get_param("mode_enums_"+codebase, 1)
     user = stock_param.get_param("user_"+codebase, '')
     passwd = stock_param.get_param("passwd_"+codebase, '')
     if servertyp not in db.DATABASES:
@@ -534,7 +534,7 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
     stock_param = regle_courante.stock_param
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     nb_pts = 0
     sys_cre, sys_mod = None, None
     if connect.sys_cre in attlist:
@@ -639,7 +639,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 #    print ("reqdict",reqdict)
 
     stock_param = regle_courante.stock_param
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     traite_objet = stock_param.moteur.traite_objet
     res = 0
 #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
@@ -682,7 +682,8 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
                         schema_classe_travail.stocke_attribut(nom, 'T')
 
     if stock_param is not None:
-        stock_param.dbread += res
+        stock_param.padd('_st_lu_objs', res)
+        stock_param.padd('_st_lu_tables', len(liste_tables))
     return res
 
 
@@ -789,14 +790,14 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
     ''' recupere les objets de la base de donnees et les passe dans le moteur de regles'''
 #    debut = time.time()
     stock_param = regle_courante.stock_param
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
 
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
                  type_base=type_base, chemin=chemin, mods=mods)
     if connect is None:
         return 0
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     buffer = regle_courante.params.cmp2.num
 
     traite_objet = stock_param.moteur.traite_objet

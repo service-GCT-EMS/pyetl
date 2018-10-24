@@ -225,6 +225,10 @@ def _parse_ewkt(geometrie, texte):
     ring = 0
     nbring = 0
     type_lu = None
+    if not isinstance(texte, str):
+        print('geometrie non decodable', texte)
+        geometrie.type = '0'
+        return
     try:
         for oper, nature, dim, valeurs in decode_ewkt(texte.upper()):
             if oper == "end":
@@ -514,7 +518,7 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
     if separ is None:
         separ = stock_param.get_param('separ_csv_in', stock_param.get_param('separ_csv', ';'))
 #    print('lecture_csv:', rep, chemin, fichier,separ)
-    maxobj = int(stock_param.get_param('lire_maxi', 0))
+    maxobj = stock_param.get_param('lire_maxi', 0)
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     with open(os.path.join(rep, chemin, fichier), "r",
               encoding=stock_param.get_param('codec_entree', 'utf-8')) as fich:

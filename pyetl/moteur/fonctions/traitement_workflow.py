@@ -791,14 +791,19 @@ def traite_parallel_load(regle):
         rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
 #        for i in results:
 #            rdict[i] = rdict.get(i[0],0)+i[1]
-
+#        lus_total = sum(rdict.values())
+#        lus_fichs = len(rdict)
         rfin = parallelexec(executor, nprocs, mapper.endparallel, '')
 #        if regle.debug:
         print ('retour')
         for i in rfin:
             retour = rfin[i][0]
-            print (i, 'worker', retour['wid'], 'traites', retour['nb_objs'],
+            print (i, 'worker', retour['wid'], 'traites',
+                   retour['stats_generales']['_st_lu_objs'],
                    list(sorted(retour['schemas'].keys())))
+            for param in retour['stats_generales']:
+                mapper.padd(param, retour['stats_generales'][param])
+            print ('retour stats', sorted(retour['stats_generales'].items()))
             fichs = retour['fichs']
             for nom, nb in fichs.items():
                 mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
@@ -827,7 +832,8 @@ def traite_parallel_load(regle):
 
 #                print ('------apres recup schema siglc', mapper.schemas.get('siglc'))
 #            print (i,retour,nfich,nobj,schema.keys())
-
+#    mapper.padd('_st_lus_total', lus_total)
+#    mapper.padd('_st_lus_fichs', lus_fichs)
     traite = regle.stock_param.moteur.traite_objet
 #    print("retour multiprocessing ", results, retour)
 

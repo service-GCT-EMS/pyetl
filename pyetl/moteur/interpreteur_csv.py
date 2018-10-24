@@ -214,6 +214,7 @@ def extraction_operation(regle, fonction):
     regle.copy = "+" in fonction
     regle.filter = "-" in fonction
     regle.final = ">"in fonction
+    regle.supobj = regle.final
     mode = fonction.strip('+-> "')
     regle.mode = mode
     if regle.copy:

@@ -18,7 +18,8 @@ class Moteur(object):
         self.ident_courant = ''
         self.regle_debut = 0
         self.dupcnt = 0
-        self.ncont = 0
+        self.ncnt = 0
+        self.suppcnt = 0
 
     @property
     def regle_sortir(self):
@@ -80,7 +81,7 @@ class Moteur(object):
         while regle:
             last = regle
             regle.declenchee = True
-            self.ncont += 1
+            self.ncnt += 1
             try:
                 if regle.selstd is None or regle.selstd(obj):
 #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)
@@ -151,12 +152,15 @@ class Moteur(object):
                 print("====parametres", regle.params)
                 print('====variables locales ', regle.vloc)
                 if regle.stock_param.parms:
-                    print('variables', [i+':'+str(regle.stock_param.get_param(i))
+                    print('variables', [i+':'+regle.stock_param.get_param(i)
                                         for i in sorted(regle.stock_param.parms)])
                 raise StopIteration(3)
 #                raise
-        if obj.schema and not last.store: # c est un objet qui a ete jete par une regle filtrante
-            obj.schema.objcnt -= 1
+        if not last.store:
+            if last.filter or last.supobj:
+                self.suppcnt+=1
+            if obj.schema: # c est un objet qui a ete jete par une regle filtrante
+                obj.schema.objcnt -= 1
 #            print ('fin de l objet ', last.affiche(), obj.schema.schema.nom,
 #                   obj.schema.identclasse, obj.schema.objcnt)
 

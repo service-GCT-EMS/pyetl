@@ -196,7 +196,7 @@ def cryptinit(mapper, key, level):
         key = base64.b32decode(key).decode('utf-8')
 
     if level is None:
-        level = int(mapper.get_param('cryptolevel', 2))
+        level = mapper.get_param('cryptolevel', 2)
     cclass = CRYPTOLEVELS[level](key)
     if cclass.ext:
         if mapper and mapper.get_param('cryptohelper'):

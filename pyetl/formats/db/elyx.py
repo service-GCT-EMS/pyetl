@@ -128,17 +128,19 @@ class ElyConnect(ora.OraConnect):
 #            time.sleep(10000)
 
 
-    def singlerunner(self, helper, xml):
+    def singlerunner(self, helper, xml, nom):
         '''lance les exports ou les imports a partitr du fichier xml'''
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(tmpdir, 'param_FEA.xml')
-            return self.lanceur(helper, xml, paramfile)
+            outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
+            return self.lanceur(helper, xml, paramfile, outfile)
 
 
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
         reinit = self.params.get_param('reinit', '0') if self.params else '0'
 #        print('valeur de reinit',self.params.nompyetl, self.params.get_param('reinit'))
+        nom = os.path.splitext(os.path.basename(file))[0]
         csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
         logobject = os.path.join(logfile, 'log_import.txt')
         loadxml = ['<Fea2OraConfig>',
@@ -168,7 +170,7 @@ class ElyConnect(ora.OraConnect):
                    '</checkOption>',
                    '</Fea2OraConfig>']
 
-        retour = self.singlerunner(helper, loadxml)
+        retour = self.singlerunner(helper, loadxml, nom)
         return retour
 
     def genexportxml(self, destination, log, classes):
@@ -186,28 +188,34 @@ class ElyConnect(ora.OraConnect):
                 '</Ora2FeaConfig>']
 
 
+    def log_decoder(self, idexport, outfile, size, resultats):
+        '''decode un fichier log de ORA2FEA'''
+
+        for i in open(outfile, 'r', encoding='cp1252').readlines():
+#                print('lu:', i)
+            if "Nombre d'objets export" in i:
+                tmp = i.split(':')
+                classe = tmp[-2].split(' ')[-1]
+                niveau = idexport[0]
+                idclasse = (niveau, classe)
+                exportes = int(tmp[-1][:-1])
+                resultats[idclasse] = exportes
+                if len(idexport) == 1:
+                    print('%-45s objets exportes: %10d ' %
+                          ('.'.join(idclasse), exportes))
+            if "Nombre total d'objets export" in i:
+                print('%-33s objets: %10d exportes: %10d '
+                      % ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
+
+
+
     def export_statprint(self, slot, pool, runcode, size, resultats):
         '''affiche une stat d'export'''
 
         if pool[slot] is not None:
 #                    print('fini', slot, pool[slot].returncode, pool[slot].args)
             idexport, outfile = runcode[slot]
-            retour = open(outfile, 'r', encoding='cp1252').readlines()
-            for i in retour:
-#                print('lu:', i)
-                if "Nombre d'objets export" in i:
-                    tmp = i.split(':')
-                    classe = tmp[-2].split(' ')[-1]
-                    niveau = idexport[0]
-                    idclasse = (niveau, classe)
-                    exportes = int(tmp[-1][:-1])
-                    resultats[idclasse] = exportes
-                    if len(idexport) == 1:
-                        print('%-45s objets exportes: %10d ' %
-                              ('.'.join(idclasse), exportes))
-                if "Nombre total d'objets export" in i:
-                    print('%-33s objets: %10d exportes: %10d '
-                          % ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
+            self.log_decoder(idexport, outfile, size, resultats)
             pool[slot] = None
 
 
@@ -218,8 +226,13 @@ class ElyConnect(ora.OraConnect):
         size = dict()
         runcode = dict()
         resultats = dict()
-        maxworkers = self.params.get_param('max_export_workers', '1')
-        pool = {i:None for i in range(int(maxworkers))}
+        maxworkers = self.params.get_param('max_export_workers', 1)
+        if maxworkers < 0:
+            nprocs = os.cpu_count()
+            if nprocs is None:
+                nprocs = 1
+            maxworkers= -nprocs*maxworkers
+        pool = {i:None for i in range(maxworkers)}
         schemabase = self.schemabase
         for i in classes:
             if schemabase.classes[i].info['objcnt_init'] == '0':
@@ -268,7 +281,8 @@ class ElyConnect(ora.OraConnect):
             nom = noms.pop() if len(noms) == 1 else 'export'
             destination = os.path.join(dest, nom)
             exportxml = self.genexportxml(destination, log, classes)
-            retour = self.singlerunner(helper, exportxml)
+            if self.singlerunner(helper, exportxml, nom):
+                retour=[]
         else:
             retour = self.multidump(helper, base, classes, dest, log, fanout)
         return retour
