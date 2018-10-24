@@ -331,6 +331,8 @@ def _get_schemas(stock_param, rep, fichier):
 def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
     ''' lecture d'un fichier asc et stockage des objets en memoire'''
     n_obj = 0
+    affich = 10000
+    nextaff = 10000
     #ouv = None
     obj = None
     nom = None
@@ -359,7 +361,8 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
                     n_obj += 1
                     _finalise(obj, schema_init, schema, n_obj, chemin)
                     stock_param.moteur.traite_objet(obj, regle) # on traite l'objet precedent
-                    if n_obj % 10000 == 0:
+                    if n_obj >= nextaff:
+                        nextaff+=affich
                         stock_param.aff.send(('interm', 0, n_obj))
 #                            print("info: asc  : lecture ", fichier, n_lin,
 #                                  "lignes ", n_obj, "objets ")

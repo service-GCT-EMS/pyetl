@@ -11,7 +11,7 @@ import datetime as D
 #import re
 from .elements.schemaclasse import SchemaClasse
 #import logging
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger('pyetl')
 #from . import schema_interne as SCI
 #
 # schemas : description de la structure des objets
@@ -287,8 +287,10 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
     #print( 'dans gestion ',classe,mode,val)
     if mode == 'supp_conf':
         atdef.type_att = 'T' # on supprime automatiquement la conformite
-        print("schema:", nom_schema, ":suppression conformite ", atdef.nom, atdef.nom_conformite,
-              '->', atdef.type_att, ascii(str(val)))
+        LOGGER.warning("schema: "+nom_schema+" :suppression conformite "+nom_classe+'.'+
+                       atdef.nom+' '+atdef.nom_conformite+' -> '+atdef.type_att+':'+str(val))
+#        print("schema:", nom_schema, ":suppression conformite ", nom_classe, atdef.nom,
+#              atdef.nom_conformite, '->', atdef.type_att, ascii(str(val)))
 
         warnings.append(nom_classe+'.' + atdef.nom +":-->" + val +
                         '<-- non conforme enum:suppression enum' +

@@ -511,7 +511,7 @@ class Pyetl(object):
             if message == 'tab':
                 ftype = 'tables'
             msg = " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "+\
-                  "secondes %5d o/s, inst %5d"
+                  "secondes %5d o/s"
             if self.worker:
                 msg = 'worker%3s:'% self.get_param('_wid') + msg
             else:
@@ -529,8 +529,7 @@ class Pyetl(object):
                         tinterm = nbval/(nbobj/duree)
                     print(msg %(nbval, int(tinterm), int((nbval)/tinterm)))
             else:
-                print(msg %(cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree),
-                            int((nbobj-nop)/(interv+0.001))))
+                print(msg %(cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree)))
             return (max(int(prochain/nbaffich), int(nbobj/nbaffich))+1)*nbaffich , tinterm
 
         while True:

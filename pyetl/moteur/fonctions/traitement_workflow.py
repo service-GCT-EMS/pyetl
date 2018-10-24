@@ -748,6 +748,7 @@ def parallelmap_suivi(mapper, executor, fonction, arglist):
                     rfin[num_obj] = lus
                     mapper.aff.send(('fich', 1, lus))
         work = attente
+        time.sleep(0.1)
     return rfin
 
 
