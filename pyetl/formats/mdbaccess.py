@@ -215,7 +215,7 @@ def _get_tables(connect):
 
             schemaclasse = schema_base.setdefault_classe(ident)
         schemaclasse.alias = alias_classe if alias_classe else ''
-        schemaclasse.setinfo('objcnt_init', str(nb_obj))
+        schemaclasse.setinfo('objcnt_init', str(nb_obj) if nb_obj is not None else '0' )
         schemaclasse.setinfo('dimension', str(dimension))
         schemaclasse.fichier = connect.nombase
 #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])

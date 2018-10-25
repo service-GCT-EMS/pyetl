@@ -235,6 +235,7 @@ class ElyConnect(ora.OraConnect):
         pool = {i:None for i in range(maxworkers)}
         schemabase = self.schemabase
         for i in classes:
+            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
             if schemabase.classes[i].info['objcnt_init'] == '0':
                 print('classe vide ', i)
                 resultats[i] = 0
@@ -242,13 +243,13 @@ class ElyConnect(ora.OraConnect):
             if fanout == 'niveau':
                 if (i[0],) in blocks:
                     blocks[(i[0],)].append(i)
-                    size[(i[0],)] += int(schemabase.classes[i].info['objcnt_init'])
+                    size[(i[0],)] += int(schemabase.classes[i].getinfo('objcnt_init','0'))
                 else:
                     blocks[(i[0],)] = [i]
-                    size[(i[0],)] = int(schemabase.classes[i].info['objcnt_init'])
+                    size[(i[0],)] = int(schemabase.classes[i].getinfo('objcnt_init','0'))
             else:
                 blocks[i] = [i]
-                size[i] = int(schemabase.classes[i].info['objcnt_init'])
+                size[i] = int(schemabase.classes[i].getinfo('objcnt_init','0'))
         with tempfile.TemporaryDirectory() as tmpdir:
 #            total = len(blocks)
             for nom in blocks:

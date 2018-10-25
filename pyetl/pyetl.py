@@ -73,22 +73,22 @@ def initcontext(traitement, env=None, log=None):
     traitement.aff = traitement._patience(0, 0) # on initialise le gestionnaire d'affichage
     next(traitement.aff)
 
-def initpyetl(traitement, mapping, args, env=None, log=None):
+def initpyetl(traitement, commandes, args, env=None, log=None):
     """ initialisation standardisee: cerre l'objet pyetl de base"""
 
     initcontext(traitement, env, log)
     try:
-        traitement.prepare_module(mapping, args)
+        traitement.prepare_module(commandes, args)
         return True
     except SyntaxError:
-        LOGGER.critical('erreur script '+mapping)
+        LOGGER.critical('erreur script '+str(commandes))
     return False
 
 
-def runpyetl(mapping, args, env=None, log=None):
+def runpyetl(commandes, args, env=None, log=None):
     """ lancement standardise"""
-    print("pyetl", VERSION, mapping, args, log)
-    if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
+    print("pyetl", VERSION, commandes, args, log)
+    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
         MAINMAPPER.process()
     else:
         print('arret du traitement ')
@@ -117,22 +117,24 @@ def runpyetl(mapping, args, env=None, log=None):
 
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
-    mapping, args, params, macros, env, log = parametres
+    commandes, args, params, macros, env, log = parametres
     if MAINMAPPER.inited:
 #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
-    print("pyetl initworker", os.getpid(), mapping, args)
+#    print("pyetl initworker", os.getpid(), commandes, args)
+    LOGGER.info("pyetl initworker "+str(os.getpid())+' '+str(commandes)+' '+str(args))
     MAINMAPPER.worker = True
     initcontext(MAINMAPPER, env, log)
     MAINMAPPER.inited = True
     MAINMAPPER.macros.update(macros)
     MAINMAPPER.parms.update(params)
 
-    if initpyetl(MAINMAPPER, mapping, args, env=env, log=log):
+    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
 #       time.sleep(2)
        return (os.getpid(), True)
     return (os.getpid(), False)
+
 
 def setparallelid(parametres):
     """positionne un numero de worker """
@@ -149,6 +151,18 @@ def setparallelid(parametres):
     return (os.getpid(), MAINMAPPER.get_param('_wid'))
 
 
+def set_parallelretour(mapper, valide):
+    '''positionne les variables de retour pour l'execution en parallele'''
+
+    schema = retour_schemas(mapper.schemas, mode=mapper.get_param('force_schema', 'util'))
+    stats_generales = mapper.getstats()
+    retour_stats = {nom: stat.retour() for nom, stat in mapper.stats.items()}
+    retour = {'pid': os.getpid(), 'wid': mapper.get_param('_wid'), 'valide': valide,
+              'stats_generales': stats_generales, 'retour': mapper.retour,
+              'schemas': schema, 'fichs': mapper.liste_fich, 'stats': retour_stats}
+    return retour
+
+
 
 def parallelbatch(parametres_batch):
     """execute divers traitements en parallele"""
@@ -160,12 +174,13 @@ def parallelbatch(parametres_batch):
                                     entree=entree, rep_sortie=sortie)
     if processor is None:
         print("pyetl echec batchworker", os.getpid(), mapping, args)
-        return False
+        return (numero, {})
 
-    lu_total, lu_fichs, nb_total, nb_fichs = processor.process()
+    processor.process()
+    retour = set_parallelretour(processor, True)
 #    print("pyetl batchworker", os.getpid(),processor.idpyetl, mapping, args,
 #          '->', processor.retour)
-    return numero, lu_total, lu_fichs, nb_total, nb_fichs, processor.retour
+    return (numero, retour)
 
 def parallelprocess(numero, file, regle):
     '''traitement individuel d'un fichier'''
@@ -173,14 +188,8 @@ def parallelprocess(numero, file, regle):
 #        print ('worker:lecture', file)
         nom, parms = file
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
-
-#        print (MAINMAPPER.sorties.ressources)
     except StopIteration as arret:
-#            print("intercepte abort",abort.args[0])
         return numero, -1
-#    MAINMAPPER.aff.send(('fich', 1, nb_lu))
-#    MAINMAPPER.set_param("_lu_total", MAINMAPPER.get_param("_lu_total"+nb_lu))
-#    MAINMAPPER.set_param("_lu_fichs", MAINMAPPER.get_param("_lu_fichs"+1))
     return numero, nb_lu
 
 def endparallel(test=None):
@@ -193,20 +202,25 @@ def endparallel(test=None):
     try:
         nb_total, nb_fichs, schema = MAINMAPPER.menage_final()
 
-        retour = True
+        succes = True
     except StopIteration:
         nb_total, nb_fichs = MAINMAPPER.sorties.final()
-        retour = False
-    MAINMAPPER.padd('_st_obj_duppliques', MAINMAPPER.moteur.dupcnt)
-    MAINMAPPER.padd('_st_obj_supprimes', MAINMAPPER.moteur.suppcnt)
-    stats_generales = MAINMAPPER.getstats()
+        succes = False
+    retour = set_parallelretour(MAINMAPPER, succes)
+#    if MAINMAPPER.moteur():
+#        MAINMAPPER.padd('_st_obj_duppliques', MAINMAPPER.moteur.dupcnt)
+#        MAINMAPPER.padd('_st_obj_supprimes', MAINMAPPER.moteur.suppcnt)
+#    stats_generales = MAINMAPPER.getstats()
 
-    print("-----pyetl batchworker end", os.getpid(), retour, nb_total, nb_fichs)
+#    print("-----pyetl batchworker end", os.getpid(), succes, nb_total, nb_fichs)
+    LOGGER.info("-----pyetl batchworker end "+str(os.getpid())+
+                ' succes ' if succes else 'echec '+str(nb_total)+' '+str(nb_fichs))
+
     MAINMAPPER.ended = True
-    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
-    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': retour,
-              'stats_generales': stats_generales,
-              'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
+#    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
+#    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': succes,
+#              'stats_generales': stats_generales,
+#              'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
 
     return (os.getpid(), retour)
 
@@ -748,14 +762,14 @@ class Pyetl(object):
 
     def get_param(self, nom, defaut='', local=False, groupe=None):
         ''' fournit la valeur d'un parametre '''
-        converter = type(defaut) if defaut is not None else str
+        converter = type(defaut) if defaut is not None else None
         if groupe:
             valeur = self.get_param(nom+'_'+groupe, defaut=None)
             if valeur is not None:
-                return converter(valeur)
+                return converter(valeur) if converter else valeur
         if nom in self.parms:
 #            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
-            return converter(self.parms[nom])
+            return converter(self.parms[nom]) if converter else self.parms[nom]
 #        print ('non trouve',nom , self.idpyetl, self.parent)
         if local:
             return defaut
@@ -874,23 +888,22 @@ class Pyetl(object):
                 nb_total, nb_fichs, _ = self.menage_final()
             except StopIteration:
                 nb_total, nb_fichs = self.sorties.final()
-
-            return 0, 0, nb_total, nb_fichs
+            return
         if debug:
             self.debug = debug
-        entree = self.get_param('_entree')
+        entree = self.get_param('_entree', None)
         if self.get_param('sans_entree'):
             entree = None
 #        print("process",entree, self.regles)
         if isinstance(entree, (Stat, ExtStat)):
             nb_total = self._lecture_stats(entree)
-            return nb_total, 1
+            return
 
         abort = False
         duree = 0
 #        lu_total, lu_fichs = 0, 0
-        self.aff = self._patience(self.get_param('_st__lus_objs', 0),
-                                  self.get_param('_st__lus_fichs', 0))
+        self.aff = self._patience(self.get_param('_st_lu_objs', 0),
+                                  self.get_param('_st_lu_fichs', 0))
         # on initialise le gestionnaire d'affichage
         next(self.aff)
 #        interv_affich = int(self.get_param("nbaffich", "100000"))
@@ -902,6 +915,7 @@ class Pyetl(object):
                 fichs = self.scan_entree()
             except NotADirectoryError as err:
                 print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+                print('type entree ', type(entree))
                 fichs = None
             if fichs:
 
@@ -911,8 +925,8 @@ class Pyetl(object):
                     #traitement.racine_fich = os.path.dirname(i)
                     try:
                         nb_lu = self.lecture(i)
-                        self.padd('_st_lus_objs', nb_lu)
-                        self.padd('_st_lus_fichs', 1)
+                        self.padd('_st_lu_objs', nb_lu)
+                        self.padd('_st_lu_fichs', 1)
                     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
                         if arret.args[0] == '2':
@@ -938,10 +952,11 @@ class Pyetl(object):
         else:
             try:
                 nb_total, nb_fichs, _ = self.menage_final()
+                self.padd('_st_obj_duppliques', self.moteur.dupcnt)
             except StopIteration:
                 nb_total, nb_fichs = self.sorties.final()
 #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-        self.padd('_st_obj_duppliques', self.moteur.dupcnt)
+        return
 #        return (self.get_param('_st_lus_total', 0), self.get_param('_st_lus_fichs', 0),
 #                nb_total, nb_fichs)
 
@@ -1039,7 +1054,7 @@ class Pyetl(object):
 
     def _ecriture_stats(self):
         '''stockage des stats '''
-        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
+#        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
         rep_sortie = self.get_param('_sortie')
 
         for i in self.stats:
