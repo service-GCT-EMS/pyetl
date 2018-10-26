@@ -268,6 +268,8 @@ def ajout_attribut_asc(obj, attr):
             print("error: asc  : lecture_asc code inconnu ", code_att, attr)
     elif code == '4':
 #        print('detection code etat ', obj.ident, liste_elts)
+        if obj.etats is None:
+            obj.etats = dict()
         obj.etats[liste_elts[0][1:]] = liste_elts[1][:-1] # code etat
         vatt = liste_elts[1][:-1]
         nom = '#_sys_E_'+liste_elts[0][1:]
@@ -467,14 +469,7 @@ def _convertir_objet_asc(obj, liste):
     eliste = list()
     if liste is None:
         liste = [i for i in obj.attributs if i[0] != '#']
-#    if not liste:
-#        aliste = (i for i in obj.attributs if i[0] != "#" and obj.attributs[i]
-#                  and i not in obj.text_graph and i not in obj.etats and i not in obj.tg_coords)
-#        if obj.text_graph:
-#            tliste = (i for i in obj.attributs if i in obj.text_graph and obj.attributs[i])
-#        if obj.etats:
-#            eliste = (i for i in obj.attributs if i in obj.etats and obj.attributs[i])
-#    else:
+
     a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
 #    print('asc  attributs',liste)
     aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)

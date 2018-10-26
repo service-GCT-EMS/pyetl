@@ -22,6 +22,7 @@ import requests
 from pyetl.formats.interne.objet import Objet
 from pyetl.schema.schema_io import recup_schema_csv, fusion_schema
 from pyetl.formats.formats import ExtStat
+from .outils import renseigne_attributs_batch
 
 LOGGER = logging.getLogger('pyetl')
 #def f_true(*_):
@@ -613,15 +614,7 @@ def prepare_batch_from_object(regle, obj):
     return (numero, commande, entree, sortie, params)
 
 
-def renseigne_attributs_batch(regle, obj, retour):
-    '''stocke les infos du batch dans les objets'''
-#    print ('recu ', parametres)
-    mapper = regle.stock_param
-    obj.attributs["#objets_lus"] = mapper.get_param('_st_lu_objs','0')
-    obj.attributs["#fichiers_lus"] = mapper.get_param('_st_lu_fichs','0')
-    obj.attributs["#objets_ecrits"] = mapper.get_param('_st_wr_objs','0')
-    obj.attributs["#fichiers_ecrits"] = mapper.get_param('_st_wr_fichs','0')
-    obj.attributs[regle.params.att_sortie.val] = str(retour)
+
 
 
 def traite_parallelbatch(regle):

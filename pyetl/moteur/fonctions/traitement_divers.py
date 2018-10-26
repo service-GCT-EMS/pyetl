@@ -9,11 +9,13 @@ import os
 import re
 import logging
 import subprocess
+import psutil
 from collections import defaultdict
 
 import pyetl.formats.formats as F
 import pyetl.formats.mdbaccess as DB
-from .outils import charge_mapping, remap, prepare_elmap
+from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch
+
 
 LOGGER = logging.getLogger('pyetl')
 
@@ -193,7 +195,8 @@ def h_stocke(regle):
     regle.traite_stock = store_traite_stock
     regle.tmpstore = dict() if regle.params.cmp1.val else list()
     # mode comparaison : le stock est reutilise ailleurs (direct_reuse)=False
-    regle.direct_reuse = not regle.params.cmp1.val == 'cmp'
+    regle.direct_reuse = not 'cmp' in regle.params.cmp1.val
+    regle.fold = regle.params.cmp1.val == 'cmpf'
     if regle.params.cmp2.val == 'clef':
         regle.stocke_obj = False
         regle.tmpstore = set()
@@ -208,6 +211,7 @@ def f_stocke(regle, obj):
    #pattern1||;;?L;tmpstore;?=uniq;?=sort;||
    #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||
    #pattern3||;;?L;tmpstore;=cmp;A;?=clef||
+   #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||
        #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     '''
@@ -216,6 +220,7 @@ def f_stocke(regle, obj):
         return True
     if regle.direct_reuse:
         regle.nbstock += 1
+
     if regle.params.cmp1.val:
         if len(regle.params.att_entree.liste) > 1:
             clef = "|".join(obj.attributs.get(i, '') for i in regle.params.att_entree.liste)
@@ -437,41 +442,46 @@ def preload(regle, obj):
     vrep = lambda x: regle.resub.sub(regle.repl, x)
     chaine_comm = vrep(regle.params.cmp1.val)
     regle.setvar('nocomp', False)
+    process = psutil.Process(os.getpid())
 
+    mem1 = process.memory_info()[0]
     if obj and regle.params.att_entree.val:
-        entree = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+        entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
     else:
-        entree = regle.entree if regle.entree else valreplace(regle.params.val_entree.val, obj)
+        entree = regle.entree if regle.entree else valreplace(regle.fich, obj)
 
-    print('------- preload commandes:', chaine_comm, entree)
+    print('------- preload commandes:(', chaine_comm,') f:', entree,
+          'clef', regle.params.att_sortie.val)
     if chaine_comm: # on precharge via une macro
         nomdest = regle.params.cmp2.val if regle.params.cmp2.val.startswith('#') \
                                         else '#'+ regle.params.cmp2.val
         processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest)
-        lu_total, lu_fichs, nb_total, nb_fichs = processor.process()
-        if obj:
-            obj.attributs.update(("#lu_total", lu_total), ("#lu_fichs", lu_fichs),
-                                 ("#nb_total", nb_total), ("#nb_fichs", nb_fichs))
+        processor.process()
+        renseigne_attributs_batch(regle, obj, processor.retour)
+
         print('------- preload ', processor.store)
         regle.stock_param.store.update(processor.store) # on rappatrie les dictionnaires de stockage
         regle.setvar('storekey', processor.retour)  # on stocke la clef
 
     else:
-        racine = regle.stock_param.racine
+#        racine = regle.stock_param.racine
         chemin = os.path.dirname(entree)
         fichier = os.path.basename(entree)
         ext = os.path.splitext(fichier)[1]
         lecteur = regle.stock_param.reader(ext)
         regle.reglestore.tmpstore = dict()
+        nb_total = 0
         try:
-            nb_total = lecteur.lire_objets(racine, chemin, fichier, regle.stock_param,
+            nb_total = lecteur.lire_objets('', chemin, fichier, regle.stock_param,
                                            regle.reglestore)
             regle.stock_param.store[regle.params.cmp2.val] = regle.reglestore.tmpstore
         except FileNotFoundError:
             regle.stock_param.store[regle.params.cmp2.val] = None
+            print ('fichier inconnu',os.path.join(chemin, fichier))
 
-
-    print('------- preload ', nb_total)
+    mem2 = process.memory_info()[0]
+    mem = mem2-mem1
+    print('------- preload ', nb_total, mem, '--------', int(mem/(nb_total+1)))
 
 
 
@@ -485,7 +495,11 @@ def h_preload(regle):
     regle.repl = lambda x: obj.attributs.get(x.group(1), '')
     regle.resub = re.compile(r'\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]')
     fich = regle.params.val_entree.val
+#    fich = fich.replace('[R]', regle.stock_param.racine)
+    regle.fich = fich
     regle.dynlevel = 0
+    if '[R]' in fich:
+        regle.dynlevel = 1
     if "[F]" in fich:
         regle.dynlevel = 2
     elif "[G]" in fich:
@@ -496,6 +510,7 @@ def h_preload(regle):
 
     if regle.dynlevel == 0: # pas de selecteur on precharge avant de lire
         regle.entree = regle.params.val_entree.val
+        regle.fich = regle.entree
         preload(regle, None)
         regle.valide = "done"
 
@@ -505,13 +520,16 @@ def h_preload(regle):
 def f_preload(regle, obj):
     '''#aide||precharge un fichier en appliquant une macro
   #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
- #aide_spec2||si les elements entre [] sont pris dans l objet courant
+ #aide_spec1||les elements entre [] sont pris dans l objet courant
+ #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
     #pattern||A;?C;?A;preload;?C;C
     #!test||
     '''
+    fich = regle.fich
 
     if regle.dynlevel > 0:
-        fich = regle.params.val_entree.val.replace('[G]', obj.attributs['#groupe'])
+        fich = fich.replace('[G]', obj.attributs['#groupe'])
+        fich = fich.replace('[R]', regle.stock_param.racine)
         fich = fich.replace('[F]', obj.attributs['#classe'])
         if fich != regle.entree:
             regle.entree = fich

@@ -57,12 +57,13 @@ class Objet(object):
         self.attributs = {'#statgroupe':'total', '#type_geom':'0',
                           '#groupe':groupe, '#classe':classe,
                           '#groupe_orig':groupe, '#classe_orig':classe}
-        self.hdict = dict()
-        self.multiples = dict() # atributs multiples
-        self.attributs_speciaux = AttributsSpeciaux()
+        self.hdict = None
+        self.multiples = None # atributs multiples
+#        self.attributs_speciaux = AttributsSpeciaux()
+        self.attributs_speciaux = None
         self.text_graph = dict()
         self.tg_coords = dict()
-        self.etats = dict()# stockage des codes etat
+        self.etats = None# stockage des codes etat
 #        self.schema = schema # schema impose
         self.geomnatif = True
         self.erreurs = Erreurs()
@@ -408,11 +409,15 @@ class Objet(object):
     def sethtext(self, nom, dic=None):
         """convertit un dict en hstore et le range"""
         if dic is None:
-            dic = self.hdict.get(nom)
-        else:
+            dic = self.hdict.get(nom) if self.hdict else None
+        elif self.hdict:
             self.hdict[nom] = dict(dic)
-        res = ", ".join([" => ".join((i, dic[i].replace('"', '""')))
-                         for i in sorted(dic.keys())])
+        else:
+            self.hdict = {nom:dict(dic)}
+        res = ''
+        if dic:
+            res = ", ".join([" => ".join((i, dic[i].replace('"', '""')))
+                             for i in sorted(dic.keys())])
         self.attributs[nom] = res
         return res
 
@@ -420,6 +425,8 @@ class Objet(object):
         """ stocke un hstore en dictionnaire et cree le
         dictionnaires de hstore s'il n'existe pas"""
     #    print("conversion hstore en dict", nom, obj.attributs.get(nom))
+        if self.hdict is None:
+            self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
             self.hdict[nom] = dict([i.replace('""', '"').split('" => "')
@@ -464,3 +471,12 @@ class Objet(object):
         ''' retourne un objet compact pour le stockage temporaire en general un namedtuple'''
         return  classe([self.attributs.get(i) for i in alist]+
                        [gsep.join(self.geom) if geom else []])
+
+def unfold(groupe, classe, folded, alist, geom=False, gsep='|'):
+    '''decompacte un objet'''
+    obj = Objet(groupe, classe)
+    obj.attributs.update(zip(alist,folded))
+    if geom:
+        obj.geom = folded[-1].split(gsep)
+    return obj
+

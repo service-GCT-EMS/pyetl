@@ -411,11 +411,11 @@ def f_rename(regle, obj):# fonction de substution
 def _suppatt(obj, nom):
     ''' #aide||suppression d'un element '''
     del obj.attributs[nom] # suppression d'attribut
-    if nom in obj.text_graph:
+    if obj.text_graph and nom in obj.text_graph:
         del obj.text_graph[nom]
-    if nom in obj.etats:
+    if obj.etats and nom in obj.etats:
         del obj.etats[nom]
-    if nom in obj.hdict:
+    if obj.hdict and nom in obj.hdict:
         del obj.hdict[nom]
     return True
 

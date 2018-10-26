@@ -103,7 +103,15 @@ def printexception():
     traceback.print_tb(infodebug)
 
 
-
+def renseigne_attributs_batch(regle, obj, retour):
+    '''stocke les infos du traitement dans les objets'''
+#    print ('recu ', parametres)
+    mapper = regle.stock_param
+    obj.attributs["#objets_lus"] = mapper.get_param('_st_lu_objs','0')
+    obj.attributs["#fichiers_lus"] = mapper.get_param('_st_lu_fichs','0')
+    obj.attributs["#objets_ecrits"] = mapper.get_param('_st_wr_objs','0')
+    obj.attributs["#fichiers_ecrits"] = mapper.get_param('_st_wr_fichs','0')
+    obj.attributs[regle.params.att_sortie.val] = str(retour)
 
 
 

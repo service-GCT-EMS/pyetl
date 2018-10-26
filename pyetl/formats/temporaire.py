@@ -116,18 +116,23 @@ def tmp_attributs(obj):
     '''stockage des attributs.
         c'est de l'asc
     '''
+    elist = []
+    tglist = []
+
     attlist = "\n".join(("2"+i+",NG"+str(len(str(obj.attributs[i])))+","
-                         +str(obj.attributs[i])+";" for i in obj.attributs
-                         if i not in obj.text_graph and i not in obj.etats))
+                     +str(obj.attributs[i])+";" for i in obj.attributs))
+
     if obj.text_graph:
         tglist = "\n".join(("2"+i+",TL"+str(len(str(obj.attributs[i])))+","+
                             ",".join(obj.text_graph[i])+","+str(obj.attributs[i])+";"
                             for i in obj.text_graph))
         attlist = attlist+"\n"+tglist
+
     if obj.etats:
         elist = "\n".join(("4"+i+",NG"+str(len(str(obj.attributs[i])))+","+
                            str(obj.attributs[i])+";" for i in obj.etats))
         attlist = attlist+"\n"+elist
+
     return attlist
 
 
@@ -140,7 +145,7 @@ def tmp_geom(obj, convertisseur):
     if obj.geom_v.valide:
         if convertisseur is None:
             convertisseur = ecrire_geometrie_tmp
-        geom = convertisseur(obj.geom_v, '-1', True, obj.erreurs)
+        geom = convertisseur(obj.geom_v)
     else:
         geom = obj.geom
     if isinstance(geom, list):

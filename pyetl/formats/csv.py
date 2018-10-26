@@ -640,7 +640,7 @@ class CsvWriter(FileWriter):
                 obj.format_natif = "#ewkt"
                 obj.geom = geom
                 obj.geomnatif = True
-                if obj.erreurs.actif == 2:
+                if obj.erreurs and obj.erreurs.actif == 2:
                     print('error: writer csv :', obj.ident, obj.ido, 'erreur geometrique: type',
                           obj.attributs['#type_geom'], 'demandé:',
                           obj.schema.info["type_geom"], obj.erreurs.errs)
