@@ -28,7 +28,7 @@ $#%dest%;%acces%;;;;;;;;;;
 &&#define;#att_sigli_modif;;;;;;;;;;
 #!help;ajoute les attributs standard  date_maj / date_creation;;;;;;;;;;
 ;;;;auteur(T,D:A);;auteur;set;;;fin;
-<#att_elyx_std
+<#att_sigli_std
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cmin;passe les noms de classe en minuscules ;;;;;;;;;
 #!help;passe les noms de classe en minuscules ;;;;;;;;;;
@@ -217,12 +217,14 @@ $sans_entree=True;;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
 $dest=%dest%;sigli;;;;;;;;;;
 $nom=%nom%;donnees;;;;;;;;;;
+$codec_entree=%codec_csv%;;;;;
 $format_schema=sql:%dest%,csv;;;;;;;;;;;
 ;;;;;;;start;;;;
 ;;;;#schema;%nom%;;lire_schema;%nom%;csv;fin;
 <#gid;;;;;;;;;;;
-schema:#modif;;;;;;;pass;;;
-|:<#att_sigli_std;;;;;;
+P:modif;;;;;;;pass;;;
+|:<#att_sigli_modif;;;;;;
+|sinon:<#gid;;;;;;;;;;;
 !============================= manipulation des parametres =================================;;;;;;;;;;fin;
 !===========================================================================================;;;;;;;;;;fin;
 &&#define;#site_params;key;;;;;;;;fin;

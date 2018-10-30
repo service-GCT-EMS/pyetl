@@ -448,7 +448,7 @@ class Pyetl(object):
                     erreurs = self.lecteur_regles(self.fichier_regles,
                                                   liste_regles=self.liste_regles)
                 except KeyError as ker:
-                    LOGGER.critical('erreur lecture '+ker.__repr__())
+                    LOGGER.critical('erreur lecture '+ker.__repr__()+'('+repr(regles)+')')
                     erreurs = erreurs+1 if erreurs else 1
 
             if erreurs:

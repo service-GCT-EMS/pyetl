@@ -81,8 +81,8 @@ def h_end(regle):
 
 def f_end(regle, obj):
     """#aide||finit un traitement sans stats ni ecritures
-    #pattern||;;;end
-    #test||notest
+    #pattern||;;;end;;
+    #test||obj||^;;;end;;||^V;1;;testobj;test;1;||cnt;1
     """
     return True
 
@@ -285,8 +285,8 @@ def f_testobj(regle, obj):
        #pattern||L;LC;;testobj;C;?N||sortie
        #test||rien||^A;1;;testobj;essai;2||cnt;2
     '''
-    if not obj.virtuel:
-        return False
+#    if not obj.virtuel:
+#        return False
     return f_creobj(regle, obj)
 
 
@@ -665,7 +665,7 @@ def h_batch(regle):
         regle.chargeur = True
 
     if regle.params.cmp2.num and not regle.stock_param.worker:
-        print('mode paralelbatch')
+#        print('mode paralelbatch')
         regle.store = True
         regle.traite_stock = traite_parallelbatch
         regle.nbstock = 0

@@ -54,9 +54,9 @@ def sel_pexiste(selecteur, _):
        #pattern||P;||50
        #test1||obj||^?P:AA;0;;set||P:AA;!;;;res;1;;set||atv;res;1
     '''
-    print("test pexiste", selecteur.params.attr.val,
-          selecteur.regle.getvar(selecteur.params.attr.val,"rien"),
-          selecteur.regle.stock_param.get_param(selecteur.params.attr.val,"rien2"))
+##    print("test pexiste", selecteur.params.attr.val,
+#          selecteur.regle.getvar(selecteur.params.attr.val,"rien"),
+#          selecteur.regle.stock_param.get_param(selecteur.params.attr.val,"rien2"))
     return selecteur.regle.getvar(selecteur.params.attr.val)
 
 
@@ -179,7 +179,8 @@ def sel_hasschema(_, obj):
 def sel_hascouleur(selecteur, obj):
     '''#aide||objet possedant un schema
        #pattern||=has:couleur;N||1
-       #!test||obj||^?#schema;;;supp;;;||;has:schema;;;res;1;;set||atv;res;1
+       #test||obj;asc_c;1||^;;;geom;||^?#geom;;;supp||has:couleur;2;;;res;1;;set;;||atv;res;1
+       #test2||obj;asc_c;1||^;;;geom;||^res;0;;set||?has:couleur;!3;;;res;1;;set;;||atv;res;0
     '''
     return obj.geom_v.has_couleur(selecteur.params.vals.num)
 
@@ -220,8 +221,9 @@ def sel_vinfich(selecteur, obj):
     '''#aide||valeur dans un fichier
     #aide_spec||il est possible de preciser des positions a lire dans le ficher
     +||en mettant les positions entre a,b;in:nom,1,3
+     #helper||infich
        #pattern||A;in:fich||20
-       #test||obj||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
+       #test||obj;||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     '''
     return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
 
