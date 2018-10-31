@@ -1,7 +1,14 @@
-
 # -*- coding: utf-8 -*-
 '''modification d'attributs en fonction d'un fichier de parametrage avec
 prise en charge des expressions regulieres'''
+__author__ = 'claude unger EMS'
+__date__ = '2018-10-30'
+__copyright__ = '(C) 2018 by claude unger EMS'
+
+# This will get replaced with a git SHA1 when you do a git archive
+
+__revision__ = '$Format:%H$'
+
 import time
 #t1=time.time()
 #print ('pyetl start import ')
@@ -25,9 +32,14 @@ from  .schema.schema_interne import init_schema # schemas
 from  .schema.schema_io import ecrire_schemas, retour_schemas # schemas
 #from  .outils.crypt import crypter, decrypt
 
-VERSION = "0.8.2.2_d"
+VERSION = "0.8.2.2_d_"+__revision__
 LOGGER = logging.getLogger('pyetl') # un logger
 MODULEDEBUG = False
+
+
+
+
+
 
 def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
