@@ -139,9 +139,9 @@ class GenSql(postgres_gensql.GenSql):
 
 
 
-    def setbasic(self):
+    def setbasic(self, mode):
         """mode basic pour les bases de consultation"""
-        self.basic = True
+        self.basic = mode
         self.types_db["S"] = "integer"
         self.types_db["BS"] = "bigint"
 
@@ -337,7 +337,7 @@ class GenSql(postgres_gensql.GenSql):
     def sio_crestyle(self, liste=None):
         ''' genere les styles de saisie'''
         conf = True
-        if self.basic:
+        if self.basic == 'basic':
             return []
         if liste is None:
             liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]

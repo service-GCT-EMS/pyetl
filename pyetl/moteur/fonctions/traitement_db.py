@@ -453,16 +453,10 @@ def h_recup_schema(regle):
     base = nombase
     if base:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
-        if regle.params.att_sortie.val: # c'est une definition de mapping
-
-            regle.schema_entree = regle.params.att_sortie.val == "schema_entree"
-            regle.schema_sortie = regle.params.att_sortie.val == "schema_sortie"
-            if regle.schema_entree or regle.schema_sortie:
-
-                if regle.schema_entree:
-                    regle.setvar("schema_entree", nomschema)
-                if regle.schema_sortie:
-                    regle.setvar("schema_sortie", nomschema)
+        if regle.params.att_sortie.val == "schema_entree":
+            regle.setvar("schema_entree", nomschema, loc=0)
+        if regle.params.att_sortie.val == "schema_sortie":
+            regle.setvar("schema_sortie", nomschema, loc=0)
         regle.valide = 'done'
         print('h_recup_schema')
         DB.recup_schema(regle, base, niveau, classe, nomschema)

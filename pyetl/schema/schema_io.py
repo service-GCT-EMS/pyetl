@@ -380,7 +380,7 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
         classe.info['courbe'] = '1'
 
     if gref not in SCI.CODES_G:
-        print("schema: erreur type ", v_tmp[4])
+        print("schema:", classe.nom, "erreur type", v_tmp[4], v_tmp)
     classe.info["type_geom"] = SCI.CODES_G[gref]
     classe.alias = v_tmp[3]
     if '#' in v_tmp[5]:
@@ -812,8 +812,8 @@ def ecrire_schema_sql(rep, schema, type_base='std',
     nomschema = nomschema.replace('#', '_')
 
     print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
-    if type_base == 'basic':
-        gsql.setbasic()
+    if type_base == 'basic' or type_base=='consult':
+        gsql.setbasic(type_base)
 
     tsql, dtsql, csql, dcsql = gsql.sio_cretable(cod, autopk=autopk, role=role)
     crsc, dsc = gsql.sio_creschema(cod)
@@ -877,9 +877,12 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
             role = stock_param.get_param('db_role')
             if not role:
                 role = None
-            type_base = 'basic' if stock_param.get_param('dbgenmode') == 'basic' else 'std'
-            if type_base == 'basic':
-                schema.setbasic()
+            type_base = stock_param.get_param('dbgenmode')
+            if type_base and type_base not in {'basic','consult'}:
+                print("type base inconnu ",type_base,'passage en standard')
+                type_base = None
+            if type_base == 'basic' or type_base=='consult':
+                schema.setbasic(type_base)
                 autopk = '' if autopk == 'no' else True
 
             print('dialecte de sortie', dialecte)

@@ -628,13 +628,15 @@ class CsvWriter(FileWriter):
             else:
                 if obj.initgeom():
                     geom = ecrire_geom_ewkt(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
-
                 else:
-                    print('csv: geometrie invalide : erreur geometrique',
-                          obj.ident, obj.numobj, 'demandé:', self.type_geom,
-                          obj.geom_v.erreurs.errs, obj.attributs['#type_geom'],
-                          self.schema.info["type_geom"], obj.geom)
-                    geom = ""
+                    if not obj.geom and self.type_geom == '-1':
+                        geom = 'EMPTY'
+                    else:
+                        print('csv: geometrie invalide : erreur geometrique',
+                              obj.ident, obj.numobj, 'demandé:', self.type_geom,
+                              obj.geom_v.erreurs.errs, obj.attributs['#type_geom'],
+                              self.schema.info["type_geom"], obj.geom)
+                        geom = ""
                 if not geom:
                     geom = self.null
                 obj.format_natif = "#ewkt"

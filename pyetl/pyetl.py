@@ -29,7 +29,7 @@ VERSION = "0.8.2.2_d"
 LOGGER = logging.getLogger('pyetl') # un logger
 MODULEDEBUG = False
 
-def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
+def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
 # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
     if not LOGGER.handlers:
@@ -47,6 +47,7 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
         # de chaque message quand on écrira un message dans le log
         fileformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(module)s.%(funcName)s'+
                                           '::%(message)s')
+#        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
         # création d'un handler qui va rediriger une écriture du log vers
         # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
         file_handler = logging.FileHandler(fichier)
@@ -55,7 +56,7 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.ERROR):
         file_handler.setLevel(niveau_f)
         file_handler.setFormatter(fileformatter)
         LOGGER.addHandler(file_handler)
-        LOGGER.log("pyetl:"+VERSION)
+        LOGGER.info("pyetl:"+VERSION)
 
 initlogger()
 
@@ -80,14 +81,25 @@ def initpyetl(traitement, commandes, args, env=None, log=None):
     try:
         traitement.prepare_module(commandes, args)
         return True
-    except SyntaxError:
-        LOGGER.critical('erreur script '+str(commandes))
+    except SyntaxError as err:
+        LOGGER.critical('erreur script '+str(commandes)+' '+str(err)+
+                        ' worker:'+str(traitement.worker))
     return False
+
+def getlog(args):
+    '''recherche s il y a une demande de fichier log dans les arguments'''
+    log = None
+    for i in args:
+        if 'log=' in i:
+            log = i.split('=')[1]
+    return log
 
 
 def runpyetl(commandes, args, env=None, log=None):
-    """ lancement standardise"""
+    """ lancement standardise c'est la fonction appelee au debut du programme"""
+    log = getlog(args)
     print("pyetl", VERSION, commandes, args, log)
+
     if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
         MAINMAPPER.process()
     else:
@@ -117,38 +129,44 @@ def runpyetl(commandes, args, env=None, log=None):
 
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
-    commandes, args, params, macros, env, log = parametres
+#    commandes, args, params, macros, env, log = parametres
+    params, macros, env, log = parametres
+
     if MAINMAPPER.inited:
 #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
 #    print("pyetl initworker", os.getpid(), commandes, args)
-    LOGGER.info("pyetl initworker "+str(os.getpid())+' '+str(commandes)+' '+str(args))
+    LOGGER.info("pyetl initworker "+str(os.getpid()))
     MAINMAPPER.worker = True
     initcontext(MAINMAPPER, env, log)
     MAINMAPPER.inited = True
     MAINMAPPER.macros.update(macros)
     MAINMAPPER.parms.update(params)
-
-    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
-#       time.sleep(2)
-       return (os.getpid(), True)
-    return (os.getpid(), False)
+    MAINMAPPER.parametres_lancement = parametres
+    time.sleep(1)
+#    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
+##       time.sleep(2)
+#       return (os.getpid(), True)
+    return (os.getpid(), True)
 
 
 def setparallelid(parametres):
-    """positionne un numero de worker """
-    pidset = parametres
+    """positionne un numero de worker et initialise les commandes """
+    pidset, commandes, args = parametres
     if MAINMAPPER.get_param('_wid'):
         time.sleep(1)
         return None
     wid = str(pidset[os.getpid()])
     MAINMAPPER.set_param('_wid', wid)
-    if MAINMAPPER.get_param('logfile'):
+    log = MAINMAPPER.get_param('logfile')
+    if log:
         base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
         log=base+'_'+wid+'.'+ext
-        initlogger(fichier=log)
-    return (os.getpid(), MAINMAPPER.get_param('_wid'))
+    print('avant init', commandes, args)
+    init = initpyetl(MAINMAPPER, commandes, args, log=log)
+
+    return (os.getpid(), MAINMAPPER.get_param('_wid'), init)
 
 
 def set_parallelretour(mapper, valide):

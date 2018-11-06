@@ -30,12 +30,15 @@ class GenSql(database.GenSql):
                          "date":"timestamp", "booleen":"boolean", "B":"boolean",
                          "S":"serial NOT NULL",
                          "BS":"bigserial NOT NULL"}
+
+        self.stdtriggers = set(["auteur"])
+
         if basic:
             self.types_db["S"] = "integer"
             self.types_db["BS"] = "bigint"
+            self.stdtriggers = set()
         self.typenum = {'1':"POINT", '2':"LIGNE", '3':"POLYGONE",
                         '-1':"GEOMETRIE", '0':"ALPHA", 'indef':'ALPHA'}
-        self.stdtriggers = set(["auteur"])
         if self.connection:
             self.reserves = RESERVES #mots reserves et leur remplacement
             self.gtypes_disc = connection.gtypes_disc
@@ -57,12 +60,12 @@ class GenSql(database.GenSql):
 
         return 'SET ROLE "'+ self.role+'";' if self.role is not None else ''
 
-    def setbasic(self):
+    def setbasic(self, mode):
         """mode basic pour les bases de consultation"""
-        self.basic = True
+        self.basic = mode
         self.types_db["S"] = "integer"
         self.types_db["BS"] = "bigint"
-        self.schema.setbasic()
+        self.schema.setbasic(mode)
 
 
     def conf_en_base(self, conf):
@@ -170,7 +173,7 @@ class GenSql(database.GenSql):
 
     def cree_fks(self, ident):
         ''' cree les definitions des foreign keys '''
-        if self.basic:
+        if self.basic == 'basic':
             return []
         classe = self.schema.classes[ident]
 
@@ -204,7 +207,7 @@ class GenSql(database.GenSql):
             # creation des commentaires :
         comments = ['-- ###### definition des commentaires ####']
 
-        if self.basic:
+        if self.basic == 'basic':
             type_table = 'T'
         else:
             type_table = classe.type_table.upper()
@@ -414,15 +417,17 @@ class GenSql(database.GenSql):
         for j in atts:
             seq = False
             deftype = 'text'
+            nomconf=''
             sql_conf = ""
             attribut = classe.attributs[j]
             attname = attribut.nom.lower()
             attname = self.reserves.get(attname, attname)
             attype = attribut.type_att
 #            print ('lecture type_attribut',an,at)
-            defaut = ' DEFAULT '+attribut.defaut if attribut.defaut and attribut.defaut[0] != '!'\
-                                                 else ''
-            if attribut.defaut == 'S' or attribut.defaut == 'BS' or attype == 'S' or attype == 'BS':
+            defaut = None
+            if attribut.defaut == 'S' or attribut.defaut == 'BS'\
+                or (attribut.defaut and  attribut.defaut.startswith('S.'))\
+                or attype == 'S' or attype == 'BS':
                 # on est en presence d'un serial'
                 defaut = ''
                 seq = True
@@ -431,17 +436,18 @@ class GenSql(database.GenSql):
                 elif self.types_db.get(attype) == 'bigint':
                     attype = "BS" # sequence
                 if attype not in {'S', 'BS'}:
-                    print('type serial incompatible avec le type', attype)
+                    print('type serial incompatible avec le type', attype, attribut.defaut)
                     seq = False
             conf = attribut.conformite
+
             if conf:
                 attype = conf.nom
-                if self.basic:
+                if self.basic=='basic':
                     attype = "T"
 
 
             if re.search(r'^t[0-9]+$', attype):
-                attype = "texte"
+                attype = "T"
             if re.search(r'^e[1-6]s*$', attype):
                 attype = 'intervalle'
             if re.search(r'^e[0-9]+_[0-9]+$', attype):
@@ -460,6 +466,9 @@ class GenSql(database.GenSql):
                     if self.types_db.get(attype) == 'integer'\
                         or self.types_db.get(attype) == 'bigint':
                         seq = True
+
+
+
             elif pkey == attname:
                 if self.types_db.get(attype) == 'integer' or self.types_db.get(attype) == 'bigint':
                     seq = True
@@ -488,6 +497,14 @@ class GenSql(database.GenSql):
                     deftype = 'public.'+nomconf
             else:
                 pass
+            # gestion des defauts
+            if defaut is None:
+                if attype == 'T':
+                    if attribut.defaut and attribut.defaut.startswith('='):
+                        predef = attribut.defaut[1:].replace('"',"'")
+                        defaut = " DEFAULT "+predef
+            if defaut is None:
+                defaut = ''
             if self.types_db.get(attype) == 'integer':
 #                print ('test pk',attribut.nom, classe.getpkey)
                 if seq or pkey == attribut.nom and not self.basic:
@@ -497,14 +514,14 @@ class GenSql(database.GenSql):
                 if seq or pkey == attribut.nom and not self.basic:
                     attype = 'BS'
                     defaut = ''
-#            if attype not in self.types_db:
-#                print ('type inconnu',attype,deftype,'par defaut')
+            if attype not in self.types_db and not nomconf:
+                print ('type inconnu',attype,deftype,'par defaut')
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == 'numeric' and attribut.taille != 0:
                 type_sortie = 'numeric'+'('+str(attribut.taille)+','+str(attribut.dec)+')'
             elif type_sortie == 'text' and attribut.taille != 0:
                 type_sortie = 'varchar'+'('+str(attribut.taille)+')'
-            cretable.append('\t'+attname+' '+type_sortie+defaut+",")
+            cretable.append('\t'+attname+' '+type_sortie+defaut +",")
             if sql_conf and not self.basic:
                 creconf[attype] = sql_conf
         if classe.info['type_geom'] != '0':

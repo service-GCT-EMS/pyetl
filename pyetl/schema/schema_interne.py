@@ -316,9 +316,10 @@ class Schema(object):
             self.classes[i].adapte_attributs(fonction)
 
 
-    def setbasic(self):
+    def setbasic(self, mode):
         '''simplifie un schema pour supprimer les enums et les liens / fonctions vues etc...'''
-        self.conformites = dict()
+        if mode == 'basic':
+            self.conformites = dict()
         for i in self.classes:
-            self.classes[i].setbasic()
+            self.classes[i].setbasic(mode)
         self.elements_specifiques = {}

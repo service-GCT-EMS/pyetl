@@ -7,12 +7,13 @@ fonctions de manipulation d'attributs
 """
 import re
 import os
+import logging
 import pyetl.schema.fonctions_schema as FSC
 import pyetl.schema.schema_interne as SC
 import pyetl.schema.schema_io as SCI
 from pyetl.formats.interne.objet import Objet
 #from .outils import charge_mapping
-
+LOGGER = logging.getLogger('pyetl')
 # fonctions de manipulation de schemas
 
 
@@ -193,7 +194,7 @@ def h_def_schema(regle):
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace('*', '') # nom du fichier
     if not regle.fichier:
-        print('interp: pas de schema a lire ', regle.ligne)
+        LOGGER.error('pas de schema a lire '+ regle.ligne)
         regle.mode = ''
         return
     if regle.fichier.startswith == '#schema:': #fichier precharge (base de donnees)
@@ -202,8 +203,7 @@ def h_def_schema(regle):
         regle.valide = True
         return
     ext = regle.params.cmp2.val
-    regle.schema_entree = regle.params.att_sortie.val == "schema_entree"
-    regle.schema_sortie = regle.params.att_sortie.val == "schema_sortie"
+
 
     if re.search(r"\[[CF]\]", regle.fichier):
         regle.statique = False
@@ -218,13 +218,21 @@ def h_def_schema(regle):
         nom = os.path.basename(regle.fichier)
 
     if not nom:
-        print('regle incorrecte', regle.ligne)
+        LOGGER.error('regle incorrecte'+regle.ligne)
         regle.valide = False
         return
-    if regle.schema_entree:
-        regle.setvar("schema_entree", nom)
+
+    if regle.params.att_sortie.val == "schema_entree":
+        regle.setvar("schema_entree", nom, loc=0)
+        LOGGER.info('positionnement schema d entree '+nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
+    if regle.params.att_sortie.val == "schema_sortie":
+        regle.setvar("schema_sortie", nom, loc=0)
+        LOGGER.info('positionnement schema_sortie '+nom)
+        regle.valide = 'done' # on a fait le boulot on peut jeter la regle
+
+    LOGGER.debug('lecture schema '+' '.join((str(regle.numero), nom, cod, str(regle.vloc))))
 
     if ext == 'csv':
         mode_alias = regle.getvar("mode_alias", 'num')
@@ -241,6 +249,9 @@ def h_def_schema(regle):
         regle.stock_param.schemas[nom] = \
             SCI.lire_schema_xml(nom, regle.fichier, cod=cod)
     regle.nomschema = nom
+    LOGGER.info('lecture schema '+nom+':'+
+                str(len(regle.stock_param.schemas[nom].classes))+'classes')
+
     regle.remap = regle.params.att_entree.val == 'map'
 #   print('definition schema entree:', regle.nomschema, len(regle.stock_param.schemas[nom].classes))
 
@@ -280,6 +291,7 @@ def f_def_schema(regle, obj):
     #print "schemas", regle.stock_param.schemas.keys()
     #print ('def_schema:',ident,nom_base,regle.stock_param.schemas)
     if nom_base not in regle.stock_param.schemas:
+        LOGGER.error('schema inconnu '+nom_base)
         print('erreur schema inconnu', nom_base)
         return False
 
@@ -330,7 +342,7 @@ def f_def_schema(regle, obj):
 #            schema_classe = schema2.get_classe(ident2, cree=True,
 #                                               modele=obj.schema, filiation=True)
 #            obj.setschema(schema_classe)
-
+#        print( 'positionnement schema ',obj.schema)
         return True
     else:
         if obj.virtuel:

@@ -491,7 +491,7 @@ def f_keep2(regle, obj):
        #test||obj||^;;C1;garder||^X;2;C2;set||atv;X;2
        #test2||obj||^C1;;;garder||^X;2;C2;set||atv;X;2
     '''
-    asupprimer = [i for i in obj.attributs if i[0] != '#' and i not in regle.selset]
+    asupprimer = [i for i in obj.attributs if not i.startswith('#') and i not in regle.selset]
 #    agarder = [i for i in obj.attributs if i[0] != '#' and i in regle.params.att_entree.liste ]
 #    print ('garder sauf ' , asupprimer)
     regle.asupprimer = asupprimer

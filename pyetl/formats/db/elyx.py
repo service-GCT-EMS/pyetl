@@ -300,10 +300,20 @@ class ElyConnect(ora.OraConnect):
             resultat = 'S.'+compteur
             self.schemabase.compteurs[compteur] += 1
             return resultat
-        if defaut.startswith('!GENSUR'):
+        elif defaut.startswith('!GENSUR'):
             resultat = 'TIN.'+defaut[8:-2]
+            return resultat
+        elif defaut.startswith('!AUTEUR'):
+            resultat = 'F.AUTEUR'
+            return resultat
+        elif defaut.startswith('!CALDAT'):
+            resultat = 'now()'
+            return resultat
+        elif defaut.startswith('="') and defaut.endswith('"') and not '+' in defaut:
+            resultat = defaut[1:].replace("'","''").replace('"',"'")
+            return resultat
 #        print(nom_att, 'valeur defaut', defaut, '->', resultat)
-
+        resultat = None
         return resultat
 
     def traite_enums_en_table(self):
@@ -500,7 +510,7 @@ class ElyConnect(ora.OraConnect):
 #        print("attributs")
 
         liste_atts = self.menage_version(self.request(requete, ()), 1, 0, 2)
-        code_type = {1:"ENTIER", 2:"REEL", 3:"TEXTE", 4:"BOOLEEN", 5:"DATE"}
+        code_type = {1:"E", 2:"F", 3:"T", 4:"B", 5:"D"}
 
         for i in liste_atts.values():
 #            print ('num_table',i[4])
@@ -533,8 +543,8 @@ class ElyConnect(ora.OraConnect):
                     multiple = i[9]
                     dimension = table[4]
 #                    print (dimension,dimension==3)
-        #            if 'PROFONDEUR' in nom :
-        #                print (composant.nom,"attribut",nom,type_att,type_base)
+#                    if defaut and 'S.' in defaut :
+#                        print (nomtable,"attribut",nom,type_att, defaut)
 #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
 #                                              True, ordre = ordre) # on force
 #                    print ("nom_att ",nom_att)

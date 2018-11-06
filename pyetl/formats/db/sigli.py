@@ -119,19 +119,9 @@ class GenSql(postgis.GenSql):
         self.geom = True
         self.courbes = False
         self.schemas = True
-        if basic:
-            self.types_db["S"] = "integer"
-            self.types_db["BS"] = "bigint"
-        self.basic = basic
+
         self.dialecte = 'sigli'
         self.defaut_schema = 'admin_sigli'
-
-
-    def setbasic(self):
-        """mode basic pour les bases de consultation"""
-        self.basic = True
-        self.types_db["S"] = "integer"
-        self.types_db["BS"] = "bigint"
 
 
     def conf_en_base(self, conf):

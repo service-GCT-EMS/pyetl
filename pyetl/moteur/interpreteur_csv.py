@@ -594,7 +594,7 @@ def decoupe_liste_commandes(mapper, fichier_regles, vloc):
         cmd, *pars = i.split("|" if '|' in i else ':')
         macro = mapper.macros.get(cmd)
 
-        LOGGER.debug('lecture macro '+cmd+':'+str(pars))
+        LOGGER.debug('lecture macro '+cmd+','+str(pars))
 
 #                liste_regles.append("<"+i.replace(",",";"))"
 #                print("regles transmises", liste_regles)

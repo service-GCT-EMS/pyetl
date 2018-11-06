@@ -44,17 +44,17 @@ def _gestion_types_simples(attr, type_attribut):
         attr.type_att = "T"
         attr.taille = int(type_attr[1:])
     elif type_attr[0] == 'E' and type_attr[1:].isdigit():
-        attr.type_att = '#intervalle'
+        attr.type_att = 'E'
         attr.type_att_base = "E"
         attr.taille = int(type_attr[1:])
         attr.dec = 0
     elif type_attr[0] == 'E' and type_attr[1:-1].isdigit() and type_attr[-1] == 'S':
-        attr.type_att = '#intervalle'
+        attr.type_att = 'E'
         attr.type_att_base = "E"
         attr.taille = int(type_attr[1:-1])
         attr.dec = 0
     elif type_attr[0] == 'E' and re.match('E[0-9]+_[0-9]+', type_attr):
-        attr.type_att = '#intervalle'
+        attr.type_att = 'E'
         attr.type_att_base = "E"
         attr.taille = len(type_attr.split('_')[1])
     elif type_attr == 'X': # attribut non traite
@@ -143,15 +143,15 @@ class SchemaClasse(object):
         self.cibles = set()
         self.basic = False
 
-    def setbasic(self):
+    def setbasic(self, mode):
         '''simplifie la striucture pour les classes de consultation '''
         self.triggers = dict()
         self.specifique = dict()
         self.changed = True
         self.type_table = 'i'
-        self.basic = True
+        self.basic = mode
         for i in self.attributs.values():
-            i.setbasic()
+            i.setbasic(mode)
 
 
     @property
@@ -199,7 +199,7 @@ class SchemaClasse(object):
     def fkeys(self):
         '''genere le dictionnaire des clefs_etrangeres
             fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut'''
-        if self.basic:
+        if self.basic=='basic':
             return dict()
         return {i:j.clef_etr for i, j in self.attributs.items() if j.clef_etr}
 

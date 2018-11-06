@@ -658,11 +658,12 @@ class GenSql(object):
         self.basic = basic
         self.schema = None
 
-    def setbasic(self):
+    def setbasic(self, mode):
         """mode basic pour les bases de consultation"""
-        self.basic = True
-        self.types_db["S"] = "integer"
-        self.types_db["BS"] = "bigint"
+        if mode:
+            self.basic = mode
+            self.types_db["S"] = "integer"
+            self.types_db["BS"] = "bigint"
 
     def initschema(self, schema, mode='All'):
         """schema courant"""
@@ -960,7 +961,7 @@ class GenSql(object):
         cretables = [codecinfo, "\n-- ########### definition des tables ###############\n"]
         cretables.extend(list([self.cree_tables(ident, creconf) for ident in liste_tables]))
 
-        if not self.basic:
+        if self.basic != 'basic':
             for ident in liste:
                 cretables.extend(self.cree_fks(ident))
 

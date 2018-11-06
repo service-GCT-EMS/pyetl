@@ -222,12 +222,15 @@ class Attribut(object):
             self.type_att = "T"
         return
 
-    def setbasic(self):
+    def setbasic(self, mode):
         ''' retourne une structure basique'''
+        if not mode:
+            return
         self.nom_conformite = ''
-        self.conformite = None
         self.defaut = None
-        self.type_att = self.type_att_base
+        if mode == 'basic':
+            self.conformite = None
+            self.type_att = self.type_att_base
 
 
     def copie(self, nom=None):

@@ -7,6 +7,7 @@ Created on Fri Dec 11 14:34:04 2015
 import re
 import os
 import copy
+import logging
 from collections import namedtuple
 import pyetl.schema.schema_interne as SC
 import pyetl.schema.fonctions_schema as FSC
@@ -16,6 +17,8 @@ import pyetl.schema.fonctions_schema as FSC
 import pyetl.formats.temporaire as T
 #import pyetl.formats.mdbaccess as DB
 #from pyetl.moteur.fonctions import gestion_schema as GS
+LOGGER = logging.getLogger('pyetl')
+
 
 class Branch(object):
     '''gestion des liens avec possibilite de creer de nouvelles sorties'''
@@ -260,12 +263,13 @@ class RegleTraitement(object): # regle de mapping
 
     def affiche(self, origine=''):
         '''fonction d'affichage de debug'''
-
-        print(origine+"regle:----->", self.index, "(", self.numero, ")", self.ligne[:-1],
+        msg =' '.join((origine+"regle:----->", self.index, "(", self.numero, ")", self.ligne[:-1],
               "bloc "+str(self.bloc) if self.bloc else ' '+ "enchainement:"+\
               self.enchainement if self.enchainement else ''+\
               " copy "+str(self.copy) if self.copy else ''+\
-              " final "+str(self.final) if self.final else '')
+              " final "+str(self.final) if self.final else ''))
+        print(msg)
+        LOGGER.debug(msg)
 
     def setstore(self):
         '''definit une regle comme stockante et ajuste les sorties'''
@@ -276,7 +280,7 @@ class RegleTraitement(object): # regle de mapping
     def endstore(self, nom_base, groupe, obj, final, geomwriter=None, nomgeom=None):
         ''' fonction de stockage avant ecriture finale necessiare si le schema
     doit etre determine a partir des donnees avant de les ecrire sur disque'''
-#        print ('regle:dans endstore',self.numero,nom_base,groupe)
+#        print ('regle:dans endstore',self.numero,nom_base,groupe, obj.schema)
 #        raise
         classe_ob = obj.ident
         if obj.virtuel:
@@ -289,7 +293,9 @@ class RegleTraitement(object): # regle de mapping
                     schem = SC.Schema(nomschem)
                     self.stock_param.schemas[nomschem] = schem
                 if classe_ob not in schem.classes:
-                    print('init schema de sortie ', nomschem, classe_ob)
+                    LOGGER.warning('schema de sortie non trouve '+nomschem+' '+
+                                   str(classe_ob)+' -> creation')
+#                    print('init schema de sortie ', nomschem, classe_ob)
                 FSC.ajuste_schema(schem, obj)
 #                print (obj.schema.nom)
 
