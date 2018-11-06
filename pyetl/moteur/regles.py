@@ -263,11 +263,12 @@ class RegleTraitement(object): # regle de mapping
 
     def affiche(self, origine=''):
         '''fonction d'affichage de debug'''
-        msg =' '.join((origine+"regle:----->", self.index, "(", self.numero, ")", self.ligne[:-1],
-              "bloc "+str(self.bloc) if self.bloc else ' '+ "enchainement:"+\
-              self.enchainement if self.enchainement else ''+\
-              " copy "+str(self.copy) if self.copy else ''+\
-              " final "+str(self.final) if self.final else ''))
+        msg =' '.join((origine+"regle:----->", str(self.index),
+                       "(", str(self.numero), ")", self.ligne[:-1],
+                       "bloc "+(str(self.bloc) if self.bloc else ''),
+                       "enchainement:", (str(self.enchainement) if self.enchainement else ''),
+                       " copy ", (str(self.copy) if self.copy else ''),
+                       " final ",(str(self.final) if self.final else '')))
         print(msg)
         LOGGER.debug(msg)
 
