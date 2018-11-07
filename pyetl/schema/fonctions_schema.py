@@ -341,6 +341,9 @@ def _valide_type(classe, atdef, val):
             float(val)
         except ValueError:
             err = 'flottant'
+    elif atdef.type_att == "B":# test numerique
+        if val not in ('t','f','True','False','0','1','-1'):
+            err = 'booleen'
     else:
         print('type non gere ', atdef.type_att, classe.schema.nom, classe.nom, atdef.nom, val)
     return err, repl

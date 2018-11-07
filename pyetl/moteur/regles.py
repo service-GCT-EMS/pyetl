@@ -168,6 +168,7 @@ class RegleTraitement(object): # regle de mapping
         self.niveau = 0
         self.declenchee = False
         self.chargeur = False  # definit si une regle cree des objets
+        self.mode_chargeur = False
         self.debug = False # modificateurs de comportement
         self.champsdebug = None
         self.store = False

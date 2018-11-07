@@ -464,11 +464,12 @@ def h_recup_schema(regle):
 
 def f_recup_schema(regle, obj):
     '''#aide||recupere les schemas des base de donnees
+  #aide_spec||db:base;niveau;classe;;destination;nom_schema;;dbschema;select_tables;
      #groupe||database
-    #pattern1||=schema_entree;C?;A?;dbschema;?;||sortie
-    #pattern2||=schema_sortie;C?;A?;dbschema;?;||sortie
-    #pattern3||=#schema;C?;A?;dbschema;?;||sortie
-    #pattern4||;C?;A?;dbschema;?;
+   #pattern1||=schema_entree;C?;;dbschema;?;||sortie
+   #pattern2||=schema_sortie;C?;;dbschema;?;||sortie
+   #pattern3||=#schema;C?;A?;dbschema;?;||sortie
+   #pattern4||;C?;A?;dbschema;?;
     '''
     chemin = ''
 

@@ -72,6 +72,7 @@ class SgConnect(postgis.PgConnect):
 
     def prepare_conformites(self, schem, nom_conf, creation=False):
         '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
+#        raise
         conf = schem.conformites[nom_conf]
         if conf.valide_base:
             return True, ''

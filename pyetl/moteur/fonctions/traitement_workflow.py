@@ -69,6 +69,7 @@ def f_start(regle, _):
     """
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
+    print ('start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
     return True
 

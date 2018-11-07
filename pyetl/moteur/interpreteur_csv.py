@@ -26,7 +26,7 @@ NOMS_CHAMPS_N = ['sel1', 'val_sel1', 'sel2', 'val_sel2',
 # quelques fonction générales
 def fdebug(regle, obj):
     '''gestion des affichages de debug'''
-    if regle.debug:
+    if regle.debug and obj:
         regle.debug = regle.debug-1
         regle.affiche('------debug------>')
         obj.debug("avant", attlist=regle.champsdebug)

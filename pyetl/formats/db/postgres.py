@@ -22,7 +22,7 @@ TYPES_A = {"T":"T", '':"T", "TEXTE":"T", "TEXT":"T", "ALPHA":"T", "NAME":"T",
            "F":"F", "FLOAT":'F', "REEL":"F", "REAL":"F", "FLOTTANT":"F", "DECIMAL":"N",
            "H":"H", "HSTORE":"H",
            "DOUBLE PRECISION":"F", "NUMERIC":"N",
-           "BOOLEEN":"B", "BOOLEAN":"B", "BOOL":"B",
+           "B":"B", "BOOLEEN":"B", "BOOLEAN":"B", "BOOL":"B",
            "CASE A COCHER":"B", "CASE_A_COCHER":"B",
            "S":"S", "SEQUENCE":"S", "SEQ":"S", "SERIAL":"S", "BIGSERIAL":"BS",
            "I":"I", "SMALLINT":"I", "INTERVALLE":"I", "OID":"I"}

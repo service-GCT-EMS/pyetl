@@ -949,7 +949,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
     if mode == 'no':
         return
     rep_sortie = stock_param.get_param('_sortie')
-    print('sio:repertoire sortie schema', rep_sortie,formats)
+    print('sio:repertoire sortie schema', stock_param.idpyetl, rep_sortie,formats)
 #        raise FileNotFoundError
 
     for i in formats.split(','): # en cas de format inconnu on sort en csv

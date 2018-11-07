@@ -67,12 +67,16 @@ class Moteur(object):
 #        print('moteur: regles de chargement pour un traitement sans entree')
         self.regles[0].chargeur = True # on force la premiere
         if self.regles[0].mode == "start": #on prends la main dans le script
+            self.regles[0].fonc(self.regles[0], None)
             return
         for i in self.regles:
+#            print ('-------------------------------traite_charge ', i.declenchee ,i.chargeur,i )
             if not i.declenchee and i.chargeur:
                 obj = Objet('_declencheur', '_chargement', format_natif='interne',
                             conversion='virtuel')
+                i.mode_chargeur = True
                 self.traite_objet(obj, i)
+                i.mode_chargeur = False
 
 
 
@@ -110,8 +114,7 @@ class Moteur(object):
 
                     obj.is_ok = resultat
 
-                    if regle.chargeur and obj.virtuel and obj.ident == ('_declencheur',
-                                                                        '_chargement'):
+                    if regle.mode_chargeur: # la on fait des monocoups
                         regle = None
                     else:
                         if obj.redirect and obj.redirect in regle.branchements.brch:

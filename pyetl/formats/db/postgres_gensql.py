@@ -27,7 +27,8 @@ class GenSql(database.GenSql):
                          "H":"hstore", "h":"hstore", "hstore":"hstore",
                          "F":"float", "reel":"float", "float":"float", "flottant":"float",
                          "f":"float",
-                         "date":"timestamp", "booleen":"boolean", "B":"boolean",
+                         "date":"timestamp",
+                         "booleen":"boolean", "B":"boolean","b":"boolean",
                          "S":"serial NOT NULL",
                          "BS":"bigserial NOT NULL"}
 
@@ -107,11 +108,15 @@ class GenSql(database.GenSql):
 
     def prepare_conformites(self, nom_conf, schema=None):
         '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
+
         if schema is None:
             schema = self.schema
         conf = schema.conformites.get(nom_conf)
-
+#        print ('confs',sorted(schema.conformites.keys()))
+#        raise
         if conf is None:
+#            print ('conformite non trouvee' , nom_conf)
+#            raise
             return False, ""
 
         conf.nombase = self.ajuste_nom(conf.nom)
@@ -449,15 +454,15 @@ class GenSql(database.GenSql):
             if re.search(r'^t[0-9]+$', attype):
                 attype = "T"
             if re.search(r'^e[1-6]s*$', attype):
-                attype = 'intervalle'
+                attype = 'E'
             if re.search(r'^e[0-9]+_[0-9]+$', attype):
-                attype = 'intervalle'
+                attype = 'E'
             if re.search(r'^e[7-9]s*$', attype):
-                attype = 'intervalle'
+                attype = 'EL'
             # on essaye de gerer les clefs et les sequences les types et les defauts:
 #            print ("gensql, attribut ",an,at,conf)
 
-            elif attname == "gid" and not pkey:
+            if attname == "gid" and not pkey:
                 # on a pas defini la clef par defaut c'est le gid
                 if autopk:
                     classe.setpkey([attname])
@@ -469,26 +474,30 @@ class GenSql(database.GenSql):
 
 
 
-            elif pkey == attname:
+            if pkey == attname:
                 if self.types_db.get(attype) == 'integer' or self.types_db.get(attype) == 'bigint':
                     seq = True
-            elif attname == "auteur":
+            if attname == "auteur":
                 if not attype:
                     attype = 'T'
                 if attype == 'T' and not self.basic:
                     defaut = ' DEFAULT current_user'
-            elif attname == "date_creation" or attname == "date_maj":
+            if attname == "date_creation" or attname == "date_maj":
                 if not attype:
                     attype = 'D'
                 if attype == 'D' and not self.basic:
                     defaut = ' DEFAULT current_timestamp'
-            elif attype in schema.conformites and not self.basic:
+            elif attype in schema.conformites and self.basic != 'basic':
 #                print(' traitement conformite postgresgensql',attype,
 #                      self.prepare_conformites(attype, schema=schema) )
+#                raise
                 valide, sql_conf = self.prepare_conformites(attype, schema=schema)
                 if valide:
                     nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
                     deftype = 'public.'+nomconf
+                else:
+                    print ('conformite non trouvee',attype)
+#                    raise
             elif self.connection and self.connection.schemabase and\
                  attype in self.connection.schemabase.conformites:
                 valide, sql_conf = self.prepare_conformites(attype)
@@ -515,7 +524,7 @@ class GenSql(database.GenSql):
                     attype = 'BS'
                     defaut = ''
             if attype not in self.types_db and not nomconf:
-                print ('type inconnu',attype,deftype,'par defaut')
+                print ('type inconnu',attype,deftype,'par defaut', attype in self.schema.conformites)
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == 'numeric' and attribut.taille != 0:
                 type_sortie = 'numeric'+'('+str(attribut.taille)+','+str(attribut.dec)+')'

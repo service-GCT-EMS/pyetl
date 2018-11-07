@@ -9,16 +9,7 @@ acces a la base de donnees
 import re
 from collections import namedtuple
 
-TYPES_A = {"T":"T",
-           "F":"F",
-           "H":"H",
-           "G":'G',
-           "D":"D",
-           "N":"N",
-           "S":"S",
-           "I":"I",
-           "E":"E",
-           "B":"B"}
+TYPES_A = {i:i for i in 'TFHGDNSIEB'}
 
 REMPLACE = dict(zip('-~èéà', '__eea'))
 

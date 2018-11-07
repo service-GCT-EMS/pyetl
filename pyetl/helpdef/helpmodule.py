@@ -27,9 +27,10 @@ def print_help(mapper, nom):
 
 
         elif nom in mapper.commandes:
-            print("aide commande ", nom)
+            print("aide commande :", nom)
             commande = mapper.commandes[nom]
             print("%-20s: %s"%(commande.nom, commande.description.get("#aide")[0]))
+            print("------- syntaxes acceptees ----------")
             for variante in commande.subfonctions:
                 if variante.description:
                     print("%-20s: %s"% (variante.pattern,
