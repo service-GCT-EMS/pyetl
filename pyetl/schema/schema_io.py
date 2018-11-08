@@ -262,7 +262,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode='util'):
 
 def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False):
     '''ecrit un schema complet en csv'''
-    conf = ["!conformite;Ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"]
+    conf = ["!conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"]
 #    print("schema: info sortir_schema", sch.nom, len(sch.conformites),
 #          'conformites', len(sch.classes), 'classes')
 #    print ('conformites presentes',
@@ -634,9 +634,10 @@ def fusion_schema(nom, schema, schema_tmp):
     del schema_tmp
 
 
-def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='cp1252', specifique=None):
+def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='utf-8', specifique=None):
     '''initialise le schema et rajoute tous les elements necessaires'''
     schema = SCI.Schema(nom)
+
     if os.path.isdir(rep):
         for element in os.listdir(rep):
 #            print ('examen ',element ,racine)
@@ -892,7 +893,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                               dialecte=dialecte, transact=stock_param.get_param('transact'),
                               autopk=autopk, role=role)
         if 'csv' in form:
-            cod_csv = stock_param.get_param('codec_sortie_schema', "cp1252")
+            cod_csv = stock_param.get_param('codec_csv', "utf-8")
             ecrire_schema_csv(rep_s, schema, mode,
                               cod=cod_csv, modeconf=confs)
         if form == 'xml':

@@ -237,14 +237,15 @@ def h_def_schema(regle):
     if ext == 'csv':
         mode_alias = regle.getvar("mode_alias", 'num')
 #        print('interpreteur: lire schema_entree', regle.numero, nom, cod, mode_alias, regle.vloc)
+        cod_csv = regle.stock_param.get_param('codec_csv', cod)
         if fusion:
             rep = os.path.dirname(regle.fichier)
             racine = os.path.basename(regle.fichier)
             regle.stock_param.schemas[nom] = \
-                SCI.lire_schemas_multiples(nom, rep, racine, mode_alias, cod)
+                SCI.lire_schemas_multiples(nom, rep, racine, mode_alias, cod=cod_csv)
         else:
             regle.stock_param.schemas[nom] = \
-                SCI.lire_schema_csv(nom, regle.fichier, mode_alias, cod)
+                SCI.lire_schema_csv(nom, regle.fichier, mode_alias, cod=cod_csv)
     else:
         regle.stock_param.schemas[nom] = \
             SCI.lire_schema_xml(nom, regle.fichier, cod=cod)

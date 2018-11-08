@@ -6,8 +6,9 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
-
+import os
 try:
+    os.environ["NLS_LANG"] ="FRENCH_FRANCE.UTF8"
     import cx_Oracle
     VALIDE = True
 
