@@ -669,8 +669,7 @@ class GenSql(object):
 
     def ajuste_nom(self, nom):
         ''' sort les caracteres speciaux des noms'''
-#        nom=re.sub('['+"".join(self.remplace.keys())+"]",
-#                     lambda x:self.remplace[x.group(0)],nom)
+        nom=re.sub('['+"".join(sorted(self.remplace.keys()))+"]",lambda x:self.remplace[x.group(0)],nom)
         nom = self.reserves.get(nom, nom)
         return nom
 
