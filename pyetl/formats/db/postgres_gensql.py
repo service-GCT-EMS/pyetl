@@ -98,9 +98,9 @@ class GenSql(database.GenSql):
         req = ''
         valide, supp = self.conf_en_base(conf)
         if supp:
-            req = "DROP TYPE public." + conf.nombase +";\n"
+            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
         if not valide:
-            req = req + "CREATE TYPE public." +conf.nombase +\
+            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
             " AS ENUM ('" + "','".join(conf.cc) +"');"
             conf.valide_base = self.connection.request(req, ())
         return conf.valide_base
@@ -137,9 +137,9 @@ class GenSql(database.GenSql):
         valide, supp = self.conf_en_base(conf)
         req = ''
         if supp:
-            req = "DROP TYPE public." + conf.nombase + ";\n"
+            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase + ";\n"
 
-        req = req + "CREATE TYPE public." + conf.nombase + " AS ENUM ('" +\
+        req = req + "CREATE TYPE "+self.schema_conf+"."+ conf.nombase + " AS ENUM ('" +\
                     "','".join(conflist) + "');"
 #        print ("preparation",conf.nombase,req)
         return True, req
@@ -494,7 +494,7 @@ class GenSql(database.GenSql):
                 valide, sql_conf = self.prepare_conformites(attype, schema=schema)
                 if valide:
                     nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
-                    deftype = 'public.'+nomconf
+                    deftype = self.schema_conf+"."+nomconf
                 else:
                     print ('conformite non trouvee',attype)
 #                    raise
@@ -503,7 +503,7 @@ class GenSql(database.GenSql):
                 valide, sql_conf = self.prepare_conformites(attype)
                 if valide:
                     nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
-                    deftype = 'public.'+nomconf
+                    deftype = self.schema_conf+"."+nomconf
             else:
                 pass
             # gestion des defauts
@@ -531,7 +531,7 @@ class GenSql(database.GenSql):
             elif type_sortie == 'text' and attribut.taille != 0:
                 type_sortie = 'varchar'+'('+str(attribut.taille)+')'
             cretable.append('\t'+attname+' '+type_sortie+defaut +",")
-            if sql_conf and not self.basic:
+            if sql_conf and self.basic!='basic':
                 creconf[attype] = sql_conf
         if classe.info['type_geom'] != '0':
             cretable.append(self.getgeomsql(classe)) # la on est pas geometrique on gere en texte
@@ -629,7 +629,7 @@ class GenSql(database.GenSql):
 
     def dropconf(self, liste_confs):
         '''sql de suppression des types '''
-        return ["DROP TYPE IF EXISTS public."+i+';' for i in liste_confs]
+        return ["DROP TYPE IF EXISTS "+self.schema_conf+"."+i+';' for i in liste_confs]
 
 
 # scripts de creation de tables

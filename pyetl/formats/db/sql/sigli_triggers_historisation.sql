@@ -1,6 +1,6 @@
 -- schema historisation
 CREATE SCHEMA histo;
-CREATE type public.histo_origine AS ENUM ('direct','externe','archive');
+CREATE type histo.histo_origine AS ENUM ('direct','externe','archive');
 --DROP table admin_sigli.historisation;
 CREATE TABLE admin_sigli.historisation
 (

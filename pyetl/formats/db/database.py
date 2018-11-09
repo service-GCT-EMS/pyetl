@@ -642,6 +642,7 @@ class GenSql(object):
         self.gtypes_curve = GTYPES_CURVE
         self.types_base = TYPES_A
         self.dialecte = 'sql'
+        self.schema_conf= 'public'
 
 
 
@@ -690,9 +691,9 @@ class GenSql(object):
         req = ''
         valide, supp = self.conf_en_base(conf)
         if supp:
-            req = "DROP TYPE public." + conf.nombase +";\n"
+            req = "DROP TYPE "+self.schema_conf+"."+conf.nombase +";\n"
         if not valide:
-            req = req + "CREATE TYPE public." +conf.nombase +\
+            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
             " AS ENUM ('" + "','".join(conf.cc) +"');"
             conf.valide_base = self.connection.request(req, ())
         return conf.valide_base
@@ -727,9 +728,9 @@ class GenSql(object):
         valide, supp = self.conf_en_base(conf)
         req = ''
         if supp:
-            req = "DROP TYPE public." + conf.nombase + ";\n"
+            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase + ";\n"
 
-        req = req + "CREATE TYPE public." + conf.nombase + " AS ENUM ('" +\
+        req = req + "CREATE TYPE "+self.schema_conf+"."+ conf.nombase + " AS ENUM ('" +\
                     "','".join(conflist) + "');"
 #        print ("preparation",conf.nombase,req)
         return True, req
@@ -927,7 +928,7 @@ class GenSql(object):
 
     def dropconf(self, liste_confs):
         '''sql de suppression des types '''
-        return ["DROP TYPE public."+i+';' for i in liste_confs]
+        return ["DROP TYPE "+self.schema_conf+"."+i+';' for i in liste_confs]
 
 
 

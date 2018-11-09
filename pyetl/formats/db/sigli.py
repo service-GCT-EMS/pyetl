@@ -102,11 +102,11 @@ class SgConnect(postgis.PgConnect):
                 if conf_base == ctrl:
                     conf.valide_base = True
                 else:
-                    req = "DROP TYPE public." + conf.nombase +";\n"
+                    req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
             if conf.valide_base:
                 return True, ''
             if creation:
-                req += "CREATE TYPE public."+conf.nombase+" AS ENUM ('"+"','".join(contenu)+"');"
+                req += "CREATE TYPE "+self.schema_conf+"."+conf.nombase+" AS ENUM ('"+"','".join(contenu)+"');"
 #                conf.valide_base = self.execrequest(self, req, ())
 #TODO reinitialiser le schema de la base en memoire apres modif
         return conf.valide_base, req
@@ -154,9 +154,9 @@ class GenSql(postgis.GenSql):
         req = ''
         valide, supp = self.conf_en_base(conf)
         if supp:
-            req = "DROP TYPE public." + conf.nombase +";\n"
+            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
         if not valide:
-            req = req + "CREATE TYPE public." +conf.nombase +\
+            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
             " AS ENUM ('" + "','".join(conf.cc) +"');"
             conf.valide_base = self.connection.request(req, ())
         return conf.valide_base
