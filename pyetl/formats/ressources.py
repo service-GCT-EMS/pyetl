@@ -129,7 +129,8 @@ class GestionSorties(object):
         return self.get_res(id_demand, id_ressource)
 
     def creres_distante(self, nom, nbo):
-        if nom not in self.nom:
+        """cree une ressource virtuelle pour les traitements parraleles"""
+        if nom not in self.ressources:
             self.ressources[nom] = RessourceDistante(nom)
         self.ressources[nom].nbo += nbo
         return self.ressources[nom]

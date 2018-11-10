@@ -129,7 +129,7 @@ class HcubeCrypter(Crypter):
         hyc = list([1]*4)
         for i, j in enumerate(self.transposer[clef]):
             hyc[j] = hc1[i]
-        thc = (tuple(j[i] for j in hyc) for i in range(4))
+        thc = (tuple(hcr[i] for hcr in hyc) for i in range(4))
         tpbloc = bytes(self.rcube[i] for i in thc)
         return tpbloc
 

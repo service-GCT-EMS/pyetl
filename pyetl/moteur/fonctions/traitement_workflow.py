@@ -68,7 +68,7 @@ def f_start(regle, _):
     """
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
-    print ('start: declenchement ', obj2)
+    print('start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
     return True
 
@@ -496,7 +496,7 @@ def parallelexec(executor, nprocs, fonction, args):
 
     rfin = dict()
 #    print('start pexec')
-    retours= [executor.submit(fonction, args) for i in range(nprocs)]
+    retours = [executor.submit(fonction, args) for i in range(nprocs)]
     while len(rfin) < nprocs:
         if len(retours) < nprocs:
             retours.append(executor.submit(fonction, args))
@@ -554,7 +554,7 @@ def traite_parallelbatch(regle):
         rinit = parallelexec(executor, nprocs, mapper.initparallel,
                              (mapper.parms, mapper.macros, None, None))
 
-        workids = {pid:n+1 for n,pid in enumerate(rinit)}
+        workids = {pid:n+1 for n, pid in enumerate(rinit)}
         parallelexec(executor, nprocs, mapper.setparallelid, (workids, '#init_mp', ''))
         if regle.debug:
             print('retour init', rinit)
@@ -598,17 +598,19 @@ def execbatch(regle, obj):
 
 def h_batch(regle):
     '''definit la fonction comme etant a declencher'''
-    if regle.params.cmp1.val=='run':
+    if regle.params.cmp1.val == 'run':
         regle.chargeur = True
 
-    if regle.params.cmp1.val=='init':
-        # lancement immediat pour utilisation par la suite ( ne se relance pas dans un worker parallele)
+    if regle.params.cmp1.val == 'init':
+        # lancement immediat pour utilisation par la suite
+        # ( ne se relance pas dans un worker parallele)
         if not regle.stock_param.worker:
              execbatch(regle, None)
         regle.valide = 'done' # on a fini on le relance pas
 
-    if regle.params.cmp1.val=='parallel_init' and regle.stock_param.worker:
-        # lancement immediat pour utilisation par la suite ( ne se lance que dans un worker parallele)
+    if regle.params.cmp1.val == 'parallel_init' and regle.stock_param.worker:
+        # lancement immediat pour utilisation par la suite
+        #(se lance dans chaque worker parallele)
         execbatch(regle, None)
         regle.valide = 'done' # on a fini on le relance pas
 
@@ -646,7 +648,7 @@ def getfichs(regle, obj):
     mapper = regle.stock_param
     racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
-        racine = mapper.get_param('_entree','.')
+        racine = mapper.get_param('_entree', '.')
     vobj = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
     if vobj:
         rep = os.path.join(racine, vobj)
@@ -695,7 +697,7 @@ def traite_parallel_load(regle):
         fichs = getfichs(regle, obj)
         idobj.extend([num]*len(fichs))
         entrees.extend(fichs)
-    arglist =[(i, j, regle.index) for i, j in zip(idobj, fichs)]
+    arglist = [(i, j, regle.index) for i, j in zip(idobj, fichs)]
     nprocs = int(regle.params.cmp2.num)
     parallelprocess = mapper.parallelprocess
     num_regle = [regle.index]*len(entrees)
@@ -707,14 +709,14 @@ def traite_parallel_load(regle):
         def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
         print("preparation exec parallele", def_regles, mapper.liste_params)
         LOGGER.info(' '.join(("preparation exec parallele", str(def_regles),
-                             str(mapper.liste_params))))
+                              str(mapper.liste_params))))
         rinit = parallelexec(executor, nprocs, mapper.initparallel,
                              (mapper.parms, mapper.macros, env, None))
-        workids = {pid:n+1 for n,pid in enumerate(rinit)}
+        workids = {pid:n+1 for n, pid in enumerate(rinit)}
 #        print ('workids',workids)
-        LOGGER.info(' '.join(('workids',str(workids))))
+        LOGGER.info(' '.join(('workids', str(workids))))
         parallelexec(executor, nprocs, mapper.setparallelid,
-                     (workids,def_regles, mapper.liste_params))
+                     (workids, def_regles, mapper.liste_params))
         if regle.debug:
             print('retour init', rinit, num_regle)
 #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
@@ -733,10 +735,10 @@ def traite_parallel_load(regle):
 #                   list(sorted(retour['schemas'].keys())))
             for param in retour['stats_generales']:
                 mapper.padd(param, retour['stats_generales'][param])
-            LOGGER.info ('retour stats'+str(sorted(retour['stats_generales'].items())))
+            LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
             fichs = retour['fichs']
-            for nom, nb in fichs.items():
-                mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nb
+            for nom, nbr in fichs.items():
+                mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nbr
 #            print ('traitement schemas ', retour["schemas"])
             nomschemas = set()
             for nom, schema in retour["schemas"].items():
@@ -752,11 +754,11 @@ def traite_parallel_load(regle):
                         mapper.schemas[nom] = tmp
             for nom in nomschemas: # on reporte les comptages d'objets
                 schem = mapper.schemas[nom]
-                for cl in schem.classes.values():
-                    cl.objcnt = cl.poids
+                for cla in schem.classes.values():
+                    cla.objcnt = cla.poids
             for nom, entete, contenu in retour["stats"].values():
                 if nom not in mapper.stats:
-                    mapper.stats[nom]=ExtStat(nom, entete)
+                    mapper.stats[nom] = ExtStat(nom, entete)
                 mapper.stats[nom].add(entete, contenu)
 #                    print('ajout_stats',nom, contenu)
 

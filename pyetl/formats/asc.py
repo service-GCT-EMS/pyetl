@@ -304,7 +304,7 @@ def _finalise(obj, schema_init, schema, numero, chemin):
             objid = newid
         if objid not in schema_init.classes:
             print("!!!!!!!attention objet non defini dans le schema d'entree",
-                   schema_init.nom, objid)
+                  schema_init.nom, objid)
         obj.setschema_auto(schema_init)
 #                    if objid in schema.classes:
     elif schema:
@@ -364,7 +364,7 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
                     _finalise(obj, schema_init, schema, n_obj, chemin)
                     stock_param.moteur.traite_objet(obj, regle) # on traite l'objet precedent
                     if n_obj >= nextaff:
-                        nextaff+=affich
+                        nextaff += affich
                         stock_param.aff.send(('interm', 0, n_obj))
 #                            print("info: asc  : lecture ", fichier, n_lin,
 #                                  "lignes ", n_obj, "objets ")

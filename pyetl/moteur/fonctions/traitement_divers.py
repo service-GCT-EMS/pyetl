@@ -9,8 +9,8 @@ import os
 import re
 import logging
 import subprocess
-import psutil
 from collections import defaultdict
+import psutil
 
 import pyetl.formats.formats as F
 import pyetl.formats.mdbaccess as DB
@@ -350,7 +350,7 @@ def h_sortir(regle):
                    if regle.f_sortie.multiclasse else 'classe'
 #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
-    regle.memlimit = int(regle.getvar('memlimit',0))
+    regle.memlimit = int(regle.getvar('memlimit', 0))
     regle.store = None
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
@@ -450,7 +450,7 @@ def preload(regle, obj):
     else:
         entree = regle.entree if regle.entree else valreplace(regle.fich, obj)
 
-    print('------- preload commandes:(', chaine_comm,') f:', entree,
+    print('------- preload commandes:(', chaine_comm, ') f:', entree,
           'clef', regle.params.att_sortie.val)
     if chaine_comm: # on precharge via une macro
         nomdest = regle.params.cmp2.val if regle.params.cmp2.val.startswith('#') \
@@ -477,7 +477,7 @@ def preload(regle, obj):
             regle.stock_param.store[regle.params.cmp2.val] = regle.reglestore.tmpstore
         except FileNotFoundError:
             regle.stock_param.store[regle.params.cmp2.val] = None
-            print ('fichier inconnu',os.path.join(chemin, fichier))
+            print('fichier inconnu', os.path.join(chemin, fichier))
 
     mem2 = process.memory_info()[0]
     mem = mem2-mem1

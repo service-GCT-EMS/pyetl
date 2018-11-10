@@ -231,7 +231,7 @@ class ElyConnect(ora.OraConnect):
             nprocs = os.cpu_count()
             if nprocs is None:
                 nprocs = 1
-            maxworkers= -nprocs*maxworkers
+            maxworkers = -nprocs*maxworkers
         pool = {i:None for i in range(maxworkers)}
         schemabase = self.schemabase
         for i in classes:
@@ -241,15 +241,15 @@ class ElyConnect(ora.OraConnect):
                 resultats[i] = 0
                 continue
             if fanout == 'niveau':
-                if (i[0],) in blocks:
-                    blocks[(i[0],)].append(i)
-                    size[(i[0],)] += int(schemabase.classes[i].getinfo('objcnt_init','0'))
+                if (i[0], ) in blocks:
+                    blocks[(i[0], )].append(i)
+                    size[(i[0], )] += int(schemabase.classes[i].getinfo('objcnt_init', '0'))
                 else:
-                    blocks[(i[0],)] = [i]
-                    size[(i[0],)] = int(schemabase.classes[i].getinfo('objcnt_init','0'))
+                    blocks[(i[0], )] = [i]
+                    size[(i[0], )] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
             else:
                 blocks[i] = [i]
-                size[i] = int(schemabase.classes[i].getinfo('objcnt_init','0'))
+                size[i] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
         with tempfile.TemporaryDirectory() as tmpdir:
 #            total = len(blocks)
             for nom in blocks:
@@ -283,7 +283,7 @@ class ElyConnect(ora.OraConnect):
             destination = os.path.join(dest, nom)
             exportxml = self.genexportxml(destination, log, classes)
             if self.singlerunner(helper, exportxml, nom):
-                retour=[]
+                retour = []
         else:
             retour = self.multidump(helper, base, classes, dest, log, fanout)
         return retour
@@ -310,7 +310,7 @@ class ElyConnect(ora.OraConnect):
             resultat = 'now()'
             return resultat
         elif defaut.startswith('="') and defaut.endswith('"') and not '+' in defaut:
-            resultat = defaut[1:].replace("'","''").replace('"',"'")
+            resultat = defaut[1:].replace("'", "''").replace('"', "'")
             return resultat
 #        print(nom_att, 'valeur defaut', defaut, '->', resultat)
         resultat = None

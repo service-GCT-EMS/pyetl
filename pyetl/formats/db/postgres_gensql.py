@@ -28,7 +28,7 @@ class GenSql(database.GenSql):
                          "F":"float", "reel":"float", "float":"float", "flottant":"float",
                          "f":"float",
                          "date":"timestamp",
-                         "booleen":"boolean", "B":"boolean","b":"boolean",
+                         "booleen":"boolean", "B":"boolean", "b":"boolean",
                          "S":"serial NOT NULL",
                          "BS":"bigserial NOT NULL"}
 
@@ -422,7 +422,7 @@ class GenSql(database.GenSql):
         for j in atts:
             seq = False
             deftype = 'text'
-            nomconf=''
+            nomconf = ''
             sql_conf = ""
             attribut = classe.attributs[j]
             attname = attribut.nom.lower()
@@ -447,7 +447,7 @@ class GenSql(database.GenSql):
 
             if conf:
                 attype = conf.nom
-                if self.basic=='basic':
+                if self.basic == 'basic':
                     attype = "T"
 
 
@@ -496,7 +496,7 @@ class GenSql(database.GenSql):
                     nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
                     deftype = self.schema_conf+"."+nomconf
                 else:
-                    print ('conformite non trouvee',attype)
+                    print('conformite non trouvee', attype)
 #                    raise
             elif self.connection and self.connection.schemabase and\
                  attype in self.connection.schemabase.conformites:
@@ -510,7 +510,7 @@ class GenSql(database.GenSql):
             if defaut is None:
                 if attype == 'T':
                     if attribut.defaut and attribut.defaut.startswith('='):
-                        predef = attribut.defaut[1:].replace('"',"'")
+                        predef = attribut.defaut[1:].replace('"', "'")
                         defaut = " DEFAULT "+predef
             if defaut is None:
                 defaut = ''
@@ -524,14 +524,15 @@ class GenSql(database.GenSql):
                     attype = 'BS'
                     defaut = ''
             if attype not in self.types_db and not nomconf:
-                print ('type inconnu',attype,deftype,'par defaut', attype in self.schema.conformites)
+                print('type inconnu', attype, deftype, 'defaut',
+                      attype in self.schema.conformites)
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == 'numeric' and attribut.taille != 0:
                 type_sortie = 'numeric'+'('+str(attribut.taille)+','+str(attribut.dec)+')'
             elif type_sortie == 'text' and attribut.taille != 0:
                 type_sortie = 'varchar'+'('+str(attribut.taille)+')'
-            cretable.append('\t'+attname+' '+type_sortie+defaut +",")
-            if sql_conf and self.basic!='basic':
+            cretable.append('\t'+attname+' '+type_sortie+defaut+",")
+            if sql_conf and self.basic != 'basic':
                 creconf[attype] = sql_conf
         if classe.info['type_geom'] != '0':
             cretable.append(self.getgeomsql(classe)) # la on est pas geometrique on gere en texte

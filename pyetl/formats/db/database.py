@@ -622,6 +622,7 @@ class GenSql(object):
         self.courbes = False
         self.schemas = True
         self.reserves = RESERVES #mots reserves et leur remplacement
+        self.remplace = REMPLACE #mots reserves et leur remplacement
         self.types_db = {"T":"text", "texte":"text", '':"text", 't':"text", 'A':'text',
                          "E":"integer", "entier":"integer",
                          "EL":"bigint", "el":'bigint', 'entier_long':'bigint',
@@ -642,7 +643,7 @@ class GenSql(object):
         self.gtypes_curve = GTYPES_CURVE
         self.types_base = TYPES_A
         self.dialecte = 'sql'
-        self.schema_conf= 'public'
+        self.schema_conf = 'public'
 
 
 
@@ -669,7 +670,8 @@ class GenSql(object):
 
     def ajuste_nom(self, nom):
         ''' sort les caracteres speciaux des noms'''
-        nom=re.sub('['+"".join(sorted(self.remplace.keys()))+"]",lambda x:self.remplace[x.group(0)],nom)
+        nom = re.sub('['+"".join(sorted(self.remplace.keys()))+"]",
+                     lambda x: self.remplace[x.group(0)], nom)
         nom = self.reserves.get(nom, nom)
         return nom
 

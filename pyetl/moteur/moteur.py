@@ -161,7 +161,7 @@ class Moteur(object):
 #                raise
         if not last.store:
             if last.filter or last.supobj:
-                self.suppcnt+=1
+                self.suppcnt += 1
             if obj.schema: # c est un objet qui a ete jete par une regle filtrante
                 obj.schema.objcnt -= 1
 #            print ('fin de l objet ', last.affiche(), obj.schema.schema.nom,

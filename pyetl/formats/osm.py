@@ -309,7 +309,7 @@ def _classif_osm(tagdict, geom, type_geom, manquants, ido):
         if obj:
             tags = ", ".join(['"'+i+'" => "'+tagdict[i].replace('"', r'\"')+'"'
                               for i in sorted(tagdict)])
-            obj.hdict={'tags':tagdict}
+            obj.hdict = {'tags':tagdict}
             obj.attributs['tags'] = tags
             obj.attributs['gid'] = ido
             obj.geom_v.srid = '4326'

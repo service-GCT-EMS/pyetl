@@ -8,7 +8,7 @@ acces a la base de donnees
 """
 import os
 try:
-    os.environ["NLS_LANG"] ="FRENCH_FRANCE.UTF8"
+    os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
     import cx_Oracle
     VALIDE = True
 

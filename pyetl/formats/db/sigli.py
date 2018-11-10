@@ -8,7 +8,7 @@ acces a la base de donnees
 from . import postgis
 #from . import database
 
-
+SCHEMA_CONF = "public"
 
 
 
@@ -23,6 +23,7 @@ class SgConnect(postgis.PgConnect):
         self.sys_cre = 'date_creation'
         self.sys_mod = 'date_maj'
         self.dialecte = 'sigli'
+        self.schema_conf = SCHEMA_CONF
 
 
     @property
@@ -106,7 +107,8 @@ class SgConnect(postgis.PgConnect):
             if conf.valide_base:
                 return True, ''
             if creation:
-                req += "CREATE TYPE "+self.schema_conf+"."+conf.nombase+" AS ENUM ('"+"','".join(contenu)+"');"
+                req += "CREATE TYPE "+self.schema_conf+"."+conf.nombase+\
+                       " AS ENUM ('"+"','".join(contenu)+"');"
 #                conf.valide_base = self.execrequest(self, req, ())
 #TODO reinitialiser le schema de la base en memoire apres modif
         return conf.valide_base, req
@@ -123,6 +125,8 @@ class GenSql(postgis.GenSql):
 
         self.dialecte = 'sigli'
         self.defaut_schema = 'admin_sigli'
+        self.schema_conf = SCHEMA_CONF
+
 
 
     def conf_en_base(self, conf):

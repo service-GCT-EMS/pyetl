@@ -332,6 +332,7 @@ class Statdef(object):# definition d'une statistique
         return ";".join([categorie]+self.get_vals(categorie, valeurs))
 
     def ligne_liste(self, categorie, valeurs):
+        """retourne les elements sous forme de liste"""
         return [categorie]+self.get_vals(categorie, valeurs)
 #    @staticmethod
 #    def sortir_moyenne(valeur):
@@ -355,7 +356,7 @@ class ExtStat(object):
 
     def add(self, entete, contenu):
         '''ajoute du contenu a une stat'''
-        if (entete != self.entete):
+        if entete != self.entete:
             print('erreur stats incomtatibles', self.nom, self.entete, '->', entete)
             return False
         self.lignes.extend(contenu)
@@ -618,11 +619,12 @@ class Stat(object):
         return nlignes
 
     def retour(self, filtre=''):
+        """renvoie une description de stats"""
         nom = '_'.join(self.nom).replace('#', '')
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
         corps = [self.structure.ligne_liste(i, self.valeurs)
-                             for i in result if filtre in i]
+                 for i in result if filtre in i]
         return (nom, entete, corps)
 
 

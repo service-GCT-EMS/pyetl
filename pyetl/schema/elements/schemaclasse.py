@@ -199,7 +199,7 @@ class SchemaClasse(object):
     def fkeys(self):
         '''genere le dictionnaire des clefs_etrangeres
             fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut'''
-        if self.basic=='basic':
+        if self.basic == 'basic':
             return dict()
         return {i:j.clef_etr for i, j in self.attributs.items() if j.clef_etr}
 

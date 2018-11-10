@@ -758,7 +758,7 @@ def geocode_traite_stock2(regle, final=True):
     buffer = ('ident;_adresse\n' +\
                 '\n'.join([str(n)+';'+" ".join([obj.attributs.get(i, "") for i in attlist])
                            for n, obj in enumerate(regle.tmpstore)])).encode("utf-8")
-#    print ('geocodage', attlist, buffer)
+    print('geocodage', attlist, buffer)
     geocodeur = regle.getvar('url_geocodeur')
 
     files = {'data': io.BytesIO(buffer)}
@@ -921,6 +921,7 @@ def f_geocode(regle, obj):
     regle.tmpstore.append(obj)
 #    regle.ageocoder[clef] = ";".join([obj.attributs.get(i,"")
 #                                      for i in regle.params.att_entree.liste])
+    print("geocodeur", regle.nbstock)
     regle.nbstock += 1
     if regle.nbstock >= regle.blocksize:
         regle.traite_stock(regle, final=False)

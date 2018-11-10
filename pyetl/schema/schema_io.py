@@ -569,7 +569,8 @@ def recup_schema_csv(base, classes, confs, mapping):
     return schema
 
 
-def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, specifique=None):
+def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None,
+                    specifique=None):
     '''lit un schema conplet en csv'''
     if schema is None:
 #        print ('lecture_csv')
@@ -614,7 +615,7 @@ def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None, 
 def fusion_schema(nom, schema, schema_tmp):
     '''fusionne 2 schemas en se basant sur les poids pour garder le bon'''
     if not schema or not schema_tmp:
-        print ('schema vide fusion impossible', nom, schema,schema_tmp)
+        print('schema vide fusion impossible', nom, schema, schema_tmp)
         return
     for i in schema_tmp.conformites:
         if i in schema.conformites:
@@ -634,7 +635,8 @@ def fusion_schema(nom, schema, schema_tmp):
     del schema_tmp
 
 
-def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='utf-8', specifique=None):
+def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='utf-8',
+                           specifique=None):
     '''initialise le schema et rajoute tous les elements necessaires'''
     schema = SCI.Schema(nom)
 
@@ -646,8 +648,8 @@ def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='utf-8', spec
                 #print("schema:lecture ",element,racine,os.path.splitext(element))
                 element_modif = '_'.join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
-                fusion_schema(schema, lire_schema_csv('tmp', fichier, mode_alias,
-                                                      cod=cod, specifique=specifique))
+                fusion_schema(nom, schema, lire_schema_csv('tmp', fichier, mode_alias,
+                                                           cod=cod, specifique=specifique))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -813,7 +815,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
     nomschema = nomschema.replace('#', '_')
 
     print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
-    if type_base == 'basic' or type_base=='consult':
+    if type_base == 'basic' or type_base == 'consult':
         gsql.setbasic(type_base)
 
     tsql, dtsql, csql, dcsql = gsql.sio_cretable(cod, autopk=autopk, role=role)
@@ -859,7 +861,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                                          schema.fich if schema.fich else ''))
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
-    print ('sio: ecrire_schemas',schema.nom,formats_a_sortir)
+    print('sio: ecrire_schemas', schema.nom, formats_a_sortir)
     for form in formats_a_sortir:
         if 'sql' in form: # on met le sql en premier car on modifie des choses
 #            print('sio:sortie sql', schema.nom, 'rep:',
@@ -879,10 +881,10 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
             if not role:
                 role = None
             type_base = stock_param.get_param('dbgenmode')
-            if type_base and type_base not in {'basic','consult'}:
-                print("type base inconnu ",type_base,'passage en standard')
+            if type_base and type_base not in {'basic', 'consult'}:
+                print("type base inconnu ", type_base, 'passage en standard')
                 type_base = None
-            if type_base == 'basic' or type_base=='consult':
+            if type_base == 'basic' or type_base == 'consult':
                 schema.setbasic(type_base)
                 autopk = '' if autopk == 'no' else True
 
@@ -950,7 +952,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
     if mode == 'no':
         return
     rep_sortie = stock_param.get_param('_sortie')
-    print('sio:repertoire sortie schema', stock_param.idpyetl, rep_sortie,formats)
+    print('sio:repertoire sortie schema', stock_param.idpyetl, rep_sortie, formats)
 #        raise FileNotFoundError
 
     for i in formats.split(','): # en cas de format inconnu on sort en csv
@@ -984,7 +986,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
         if FSC.analyse_interne(schemas[i], mode_sortie):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
-                if schemas[i].format_sortie=='sql':
+                if schemas[i].format_sortie == 'sql':
                     dialecte = False
                     for form in formats_a_sortir:
                         if 'sql:' in form:

@@ -120,7 +120,7 @@ def tmp_attributs(obj):
     tglist = []
 
     attlist = "\n".join(("2"+i+",NG"+str(len(str(obj.attributs[i])))+","
-                     +str(obj.attributs[i])+";" for i in obj.attributs))
+                         +str(obj.attributs[i])+";" for i in obj.attributs))
 
     if obj.text_graph:
         tglist = "\n".join(("2"+i+",TL"+str(len(str(obj.attributs[i])))+","+

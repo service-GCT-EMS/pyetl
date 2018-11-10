@@ -449,12 +449,12 @@ def prepare_regle(regle, valeurs):
     vldef = v_nommees['vlocs']
     if '=>' in vldef:
         listevlocs = [i.strip().strip('"').replace('"=>"', '=')
-            for i in vldef.split('","')] if vldef else []
+                      for i in vldef.split('","')] if vldef else []
     else:
         listevlocs = vldef.split(',')
     for i in listevlocs:
 #        print('detecte', i)
-        nom, val,*_ = i.split('=')+['']
+        nom, val, *_ = i.split('=')+['']
         regle.vloc[nom] = val
 #    print( 'detection variables locales ', vldef, listevlocs, regle.vloc)
     # decodage des liens entre regles (structure de blocs)

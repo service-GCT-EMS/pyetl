@@ -111,10 +111,10 @@ def runpyetl(commandes, args, env=None, log=None):
         print(nb_total, "objets lus dans", nb_fichs, 'fichiers ')
 
     if MAINMAPPER.moteur:
-        print(MAINMAPPER.get_param('_st_obj_duppliques', 0) , "objets dupliques")
-    n_ecrits = MAINMAPPER.get_param('_st_wr_objs' ,0)
+        print(MAINMAPPER.get_param('_st_obj_duppliques', 0), "objets dupliques")
+    n_ecrits = MAINMAPPER.get_param('_st_wr_objs', 0)
     if n_ecrits:
-        print(n_ecrits, "objets ecrits dans ", MAINMAPPER.get_param('_st_wr_fichs' ,0),
+        print(n_ecrits, "objets ecrits dans ", MAINMAPPER.get_param('_st_wr_fichs', 0),
               "fichiers ")
     MAINMAPPER.signale_fin()
     duree, _ = next(MAINMAPPER.maintimer)
@@ -162,7 +162,7 @@ def setparallelid(parametres):
     log = MAINMAPPER.get_param('logfile')
     if log:
         base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
-        log=base+'_'+wid+'.'+ext
+        log = base+'_'+wid+'.'+ext
     print('avant init', commandes, args)
     init = initpyetl(MAINMAPPER, commandes, args, log=log)
 
@@ -562,7 +562,7 @@ class Pyetl(object):
                     print(msg %(nbval, int(tinterm), int((nbval)/tinterm)))
             else:
                 print(msg %(cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj)/duree)))
-            return (max(int(prochain/nbaffich), int(nbobj/nbaffich))+1)*nbaffich , tinterm
+            return (max(int(prochain/nbaffich), int(nbobj/nbaffich))+1)*nbaffich, tinterm
 
         while True:
             message, nbfic, nbval = yield
@@ -1065,7 +1065,7 @@ class Pyetl(object):
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         LOGGER.info('ecriture schemas '+ str(mode_schema))
-        print ('ecriture schemas ', mode_schema)
+        print('ecriture schemas ', mode_schema)
         if mode_schema in {'all', 'int', 'fusion'} and not self.done:
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
         ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))
@@ -1178,7 +1178,7 @@ class Pyetl(object):
             entree = os.path.dirname(entree) # on extrait le repertoire
         else:
             if entree.endswith(os.path.sep) or entree.endswith('/'):
-                entree=entree[:-1]
+                entree = entree[:-1]
             if not os.path.isdir(entree):
                 raise NotADirectoryError(entree)
             fichs = [i for i in scandirs(entree, '', True,

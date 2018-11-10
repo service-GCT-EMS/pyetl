@@ -475,8 +475,7 @@ class Objet(object):
 def unfold(groupe, classe, folded, alist, geom=False, gsep='|'):
     '''decompacte un objet'''
     obj = Objet(groupe, classe)
-    obj.attributs.update(zip(alist,folded))
+    obj.attributs.update(zip(alist, folded))
     if geom:
         obj.geom = folded[-1].split(gsep)
     return obj
-
