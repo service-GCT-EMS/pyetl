@@ -117,12 +117,13 @@ class Conformite(object):
         elif mode_force == 2:
             self.ajust[valeur] = alias
             self.valide.add(alias)
+#            print( '----------------------------------detecte mode 2 ', valeur, alias, self.valide,self.ajust)
+
         elif mode_force == 3:
             self.ajust[alias] = valeur
             self.valide.add(valeur)
 
-        if valeur not in self.stock:
-            self.stock[valeur] = (valeur, alias, ordre, mode_force, self.ajust[valeur])
+        self.stock[valeur] = (valeur, alias, ordre, mode_force, self.ajust[valeur])
 
 
     def copie(self):

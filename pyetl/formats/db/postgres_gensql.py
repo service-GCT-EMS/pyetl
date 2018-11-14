@@ -108,7 +108,10 @@ class GenSql(database.GenSql):
         conflist = []
         ctrl = set()
         for j in sorted(list(conf.stock.values()), key=lambda v: v[2]):
-            #print (nom,j[0])
+#            if conf.nom=='sig_ident_auteur':
+#                print (conf.nom,j[0],j[3])
+#            if j[3]==2:
+#                print(' mode 2', conf.stock)
             val = j[4].replace("'", "''")
             if len(val) > 62:
                 print("postgres: valeur trop longue ", val, " : conformite ignoree", conf.nombase)
@@ -476,14 +479,14 @@ class GenSql(database.GenSql):
                 if attype == 'D' and not self.basic:
                     defaut = ' DEFAULT current_timestamp'
             elif attype in schema.conformites and self.basic != 'basic':
-
-                valide, sql_conf = self.prepare_conformites(attype, schema=schema)
-                if valide:
-                    nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
-                    deftype = self.schema_conf+"."+nomconf
-                else:
-                    print('conformite non trouvee', attype)
-#                    raise
+                nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
+                if attype not in creconf:
+                    valide, sql_conf = self.prepare_conformites(attype, schema=schema)
+                    if valide:
+                        deftype = self.schema_conf+"."+nomconf
+                    else:
+                        print('conformite non trouvee', attype)
+    #                    raise
             elif self.connection and self.connection.schemabase and\
                  attype in self.connection.schemabase.conformites:
                 valide, sql_conf = self.prepare_conformites(attype)
