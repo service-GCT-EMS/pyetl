@@ -151,10 +151,12 @@ class GenSql(postgres_gensql.GenSql):
     def getgeomsql(self, classe):
         '''retourne la definition sql de la geometrie'''
         geomt, arc = self.get_type_geom(classe)
-        if self.type_courbes == 'curve' and arc:
-            return '\tgeometrie public.'+self.gtypes_curve[geomt]+','
-        else:
-            return '\tgeometrie public.'+self.gtypes_disc[geomt]+','
+        if geomt and geomt.upper() != 'ALPHA':
+            if self.type_courbes == 'curve' and arc:
+                return '\tgeometrie public.'+self.gtypes_curve[geomt]+','
+            else:
+                return '\tgeometrie public.'+self.gtypes_disc[geomt]+','
+        return ''
 
 
 
