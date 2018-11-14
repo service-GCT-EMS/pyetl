@@ -409,7 +409,8 @@ def setpath(stock_param, nom):
     if nom:
         nom = os.path.join(stock_param.get_param('_sortie'), nom)
         rep = os.path.dirname(nom)
-        os.makedirs(rep, exist_ok=True)
+        if rep:
+            os.makedirs(rep, exist_ok=True)
     return nom
 
 

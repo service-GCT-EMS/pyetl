@@ -8,7 +8,7 @@ acces a la base de donnees
 from . import postgis
 #from . import database
 
-SCHEMA_CONF = "public"
+SCHEMA_ADM = "admin_sigli"
 
 
 
@@ -23,7 +23,7 @@ class SgConnect(postgis.PgConnect):
         self.sys_cre = 'date_creation'
         self.sys_mod = 'date_maj'
         self.dialecte = 'sigli'
-        self.schema_conf = SCHEMA_CONF
+        self.schema_conf = SCHEMA_ADM
 
 
     @property
@@ -71,49 +71,6 @@ class SgConnect(postgis.PgConnect):
         return vues, vues_mat
 
 
-    def prepare_conformites(self, schem, nom_conf, creation=False):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-#        raise
-        conf = schem.conformites[nom_conf]
-        if conf.valide_base:
-            return True, ''
-#        print ('preparation conformite sigli',nom_conf)
-#        raise
-        conf.nombase = self.gensql.ajuste_nom(conf.nom)
-        contenu = []
-        ctrl = set()
-        for j in sorted(list(conf.stock.values()), key=lambda v: v[2]):
-            #print (nom,j[0])
-            valeur = j[0].replace("'", "''")
-            if len(j[0]) > 62:
-                print("valeur trop longue ", valeur, " : conformite ignoree", conf.nombase)
-                return False, ''
-            if valeur not in ctrl:
-                contenu.append(valeur)
-                ctrl.add(valeur)
-            else: print("attention valeur ", valeur, "en double dans", conf.nombase)
-
-        req = ''
-        conf.valide_base = False
-        if self.connection:
-            if conf.nombase in self.connection.schemabase.conformites:
-                # si elle existe on verifie qu'elle est bonne
-                conf_base = self.schemabase.conformites[conf.nombase]
-                conf_base = {j[0] for j in conf.stock.values()}
-                if conf_base == ctrl:
-                    conf.valide_base = True
-                else:
-                    req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
-            if conf.valide_base:
-                return True, ''
-            if creation:
-                req += "CREATE TYPE "+self.schema_conf+"."+conf.nombase+\
-                       " AS ENUM ('"+"','".join(contenu)+"');"
-#                conf.valide_base = self.execrequest(self, req, ())
-#TODO reinitialiser le schema de la base en memoire apres modif
-        return conf.valide_base, req
-
-
 
 class GenSql(postgis.GenSql):
     """classe de generation des structures sql"""
@@ -124,46 +81,9 @@ class GenSql(postgis.GenSql):
         self.schemas = True
 
         self.dialecte = 'sigli'
-        self.defaut_schema = 'admin_sigli'
-        self.schema_conf = SCHEMA_CONF
+        self.defaut_schema = SCHEMA_ADM
+        self.schema_conf = SCHEMA_ADM
 
-
-
-    def conf_en_base(self, conf):
-        """valide si uneconformiteexisteen base"""
-        return False, False
-
-
-    def ajuste_nom(self, nom):
-        ''' sort les caracteres speciaux des noms'''
-#        nom=re.sub('['+"".join(self.remplace.keys())+"]",
-#                     lambda x:self.remplace[x.group(0)],nom)
-        nom = self.reserves.get(nom, nom)
-        return nom
-
-    def valide_base(self, conf):
-        """valide un schema en base"""
-        return False
-
-
-    def prepare_conformite(self, schem, nom_conf, valide=False):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-
-        conf = schem.conformites[nom_conf]
-        if valide and conf.valide_base:
-            return True
-
-        conf.nombase = self.ajuste_nom(conf.nom)
-
-        req = ''
-        valide, supp = self.conf_en_base(conf)
-        if supp:
-            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
-        if not valide:
-            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
-            " AS ENUM ('" + "','".join(conf.cc) +"');"
-            conf.valide_base = self.connection.request(req, ())
-        return conf.valide_base
 
 # scripts de creation de tables
 

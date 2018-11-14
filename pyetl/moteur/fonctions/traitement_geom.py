@@ -505,7 +505,7 @@ def f_splitcouleur(regle, obj):
 #        print ('decoupage',geoms, couleur)
     else:
         if obj.virtuel:
-            print("objet virtuel")
+#            print("objet virtuel")
             return True
         print('split_couleur,geometrie invalide ', obj.ident, obj.numobj, obj.geom_v.type,
               ' ->', obj.schema.info["type_geom"])

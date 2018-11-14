@@ -87,7 +87,7 @@ class Conformite(object):
 
     def stocke_valeur(self, valeur, alias, mode_force=1, ordre=0):
         '''range une valeur de conformite avec gestion des alias'''
-#        print ("schema stocke valeur ", valeur,alias,mode_force)
+#        print ("schema stocke valeur ", self.nom, valeur,alias,mode_force)
         valeur = str(valeur)
         alias = str(alias)
 
@@ -136,6 +136,7 @@ class Conformite(object):
     def ajuste_valeur(self, val):
         '''cre un mecanisme d'alias permettant d'ajuster les donnees en entree'''
         self.ajuste = True # on a ajuste des valeurs sur ce schema
+
         try:
             return self.ajust[val]
         except KeyError:

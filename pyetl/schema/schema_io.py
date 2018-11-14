@@ -311,11 +311,18 @@ def lire_mapping(schema_courant, fichier, codec):
 #    print ('lecture_mapping','\n'.join(liste_mapping[:10]))
 
 
-def decode_conf_csv(schema_courant, entree, mode_alias):
-    """decode un tableau de conformites"""
+def decode_conf_csv(schema_courant, entree, mode_alias=None):
+    """decode un tableau de conformites
+    se presente sous la forme:  nom;ordre,valeur;alias;mode
+    hierarchie :
+        force / fichier / demande / 1
+    """
     codes_force = {'force_base':0, 'force_num':1, 'force_alias':2, 'force_inv':3}
-    codes_alias = {'num':1, 'alias':2, 'inv':3}
+    codes_alias = {'base':0, 'num':1, 'alias':2, 'inv':3}
     lin = 0
+    force = codes_force.get(mode_alias)
+    mode_demande = codes_alias.get(mode_alias, 1)
+
     for i in entree:
         if lin == 0 and '!' in i[:4]:
 #                print (" schema conf io:detecte commentaire utf8")
@@ -325,24 +332,26 @@ def decode_conf_csv(schema_courant, entree, mode_alias):
 #                print (" schema conf io:detecte commentaire")
             continue
         val_conf = i.replace('\n', '').split(';')
+        if not val_conf:
+            continue
         nom = val_conf[0].lower()
         if not nom:
             continue
+        if len(val_conf) < 2:
+            print('enumeration incomplete ',val_conf)
+            continue
         conf = schema_courant.get_conf(nom)
-        mode = codes_force.get(mode_alias, None)
-        if not mode and len(val_conf) > 4 and val_conf[4].isdigit():
-            mode = int(val_conf[4])
-#                print ('scio:lecture mode conf ', mode)
+        ordre = int(val_conf[1])
+        valeur = val_conf[2]
+        alias = val_conf[3] if len(val_conf) > 3 else ''
+        mode_fichier = int(val_conf[4]) if len(val_conf) > 4 and val_conf[4].isdigit() else None
+        if force is not None:
+            mode = force
         else:
-            mode = codes_alias.get(mode_alias, 1)
-        conf.type_conf = 1
-#        n=n+1
-#        if n<3 : print("schema: stockage ", val_conf,'..',val_conf[4],'----->',mode,mode_alias)
-        if len(val_conf) > 3:
+            mode = mode_fichier if mode_fichier is not None else mode_demande
 
-            conf.stocke_valeur(val_conf[2], val_conf[3].replace('\n', ''), mode) # on ignore
-        else:
-            print("schema: conformite non conforme ", val_conf)
+        conf.stocke_valeur(valeur, alias.replace('\n', ''), mode_force=mode, ordre=ordre) # on ignore
+
 
 
 
@@ -354,7 +363,7 @@ def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
         return
 #    n=0
     with open(fichier, 'r', encoding=cod) as entree:
-        decode_conf_csv(schema_courant, entree, mode_alias)
+        decode_conf_csv(schema_courant, entree, mode_alias=mode_alias)
 
 
 
@@ -560,12 +569,13 @@ def lire_classes_csv(schema_courant, fichier, cod):
         decode_classes_csv(schema_courant, entree)
 
 
-def recup_schema_csv(base, classes, confs, mapping):
+def recup_schema_csv(base, classes, confs, mapping, deftrig):
     """recompose un schema a partir du retour de traitements paralleles"""
     schema = SCI.Schema(base, origine='L')
     decode_conf_csv(schema, confs, mode_alias="num")
     decode_classes_csv(schema, classes)
     schema.init_mapping(mapping)
+    schema.elements_specifiques['def_triggers'] =  deftrig
     return schema
 
 
@@ -814,7 +824,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
     nomschema = schema.nom
     nomschema = nomschema.replace('#', '_')
 
-    print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
+#    print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
     if type_base == 'basic' or type_base == 'consult':
         gsql.setbasic(type_base)
 
@@ -861,8 +871,9 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
                                          schema.fich if schema.fich else ''))
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
-    print('sio: ecrire_schemas', schema.nom, formats_a_sortir)
+
     for form in formats_a_sortir:
+        print('sio: ecrire_schema', rep_s, schema.nom, form)
         if 'sql' in form: # on met le sql en premier car on modifie des choses
 #            print('sio:sortie sql', schema.nom, 'rep:',
 #                  rep_s, schema.dbsql, schema.dbsql.connection if schema.dbsql else 'NC', form)

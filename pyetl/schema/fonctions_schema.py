@@ -358,13 +358,14 @@ def set_err(classe, obj, message, attendu, erreur, affich):
               classe.schema.nom, classe.identclasse)
     return message % (idobj, attendu, erreur)
 
-def valide_schema(schemaclasse, obj, mode='', repl='inconnu', schema=None):
+def valide_schema(schemaclasse, obj, mode='', repl='inconnu'):
     ''' verifie si un objet est conforme a son schema '''
     #print 'dans valide_schema',obj.ident
     # validation des types geometriques
     erreurs = list()
     warnings = list()
     nom_classe = str(obj.ident[1])
+
     if obj.geom_v.valide:
         multigeom = obj.geom_v.multi
         srid = obj.geom_v.srid

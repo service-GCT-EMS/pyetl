@@ -10,7 +10,7 @@ import re
 from . import database
 #from .postgres import RESERVES, GTYPES_DISC, GTYPES_CURVE, TYPES_A
 RESERVES = {"analyse":"analyse_pb", 'type':'type_entite', 'as':'ass'}
-
+SCHEMA_CONF = "public"
 
 class GenSql(database.GenSql):
     """classe de generation des structures sql"""
@@ -40,8 +40,9 @@ class GenSql(database.GenSql):
             self.stdtriggers = set()
         self.typenum = {'1':"POINT", '2':"LIGNE", '3':"POLYGONE",
                         '-1':"GEOMETRIE", '0':"ALPHA", 'indef':'ALPHA'}
+
+        self.reserves = RESERVES #mots reserves et leur remplacement
         if self.connection:
-            self.reserves = RESERVES #mots reserves et leur remplacement
             self.gtypes_disc = connection.gtypes_disc
             self.gtypes_curve = connection.gtypes_curve
             self.types_base.update(connection.types_base)
@@ -76,47 +77,31 @@ class GenSql(database.GenSql):
 
     def ajuste_nom(self, nom):
         ''' sort les caracteres speciaux des noms'''
-#        nom=re.sub('['+"".join(self.remplace.keys())+"]",
-#                     lambda x:self.remplace[x.group(0)],nom)
+        nom = re.sub('['+"".join(sorted(self.remplace.keys()))+"]",
+                     lambda x: self.remplace[x.group(0)], nom)
         nom = self.reserves.get(nom, nom)
         return nom
 
     def valide_base(self, conf):
         """valide un schema en base"""
-        return False
-
-
-    def prepare_conformite(self, schem, nom_conf, valide=False):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-
-        conf = schem.conformites[nom_conf]
-        if valide and conf.valide_base:
-            return True
-
-        conf.nombase = self.ajuste_nom(conf.nom)
-
-        req = ''
-        valide, supp = self.conf_en_base(conf)
-        if supp:
-            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase +";\n"
-        if not valide:
-            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
-            " AS ENUM ('" + "','".join(conf.cc) +"');"
-            conf.valide_base = self.connection.request(req, ())
-        return conf.valide_base
+        if self.connection:
+            confs = self.connection.schemabase.conformites
+            if conf in confs: # la conformite existe en base #on la verifie
+                confb = confs[conf.nombase]
+                if confb.stock == conf.stock: #les 2 sont identiques
+                    return True,False
+                return False, True
+        return False,False
 
 
     def prepare_conformites(self, nom_conf, schema=None):
         '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-
+#        raise
         if schema is None:
             schema = self.schema
         conf = schema.conformites.get(nom_conf)
-#        print ('confs',sorted(schema.conformites.keys()))
-#        raise
+
         if conf is None:
-#            print ('conformite non trouvee' , nom_conf)
-#            raise
             return False, ""
 
         conf.nombase = self.ajuste_nom(conf.nom)
@@ -124,9 +109,10 @@ class GenSql(database.GenSql):
         ctrl = set()
         for j in sorted(list(conf.stock.values()), key=lambda v: v[2]):
             #print (nom,j[0])
-            val = j[0].replace("'", "''")
-            if len(j[0]) > 62:
-                print("valeur trop longue ", val, " : conformite ignoree", conf.nombase)
+            val = j[4].replace("'", "''")
+            if len(val) > 62:
+                print("postgres: valeur trop longue ", val, " : conformite ignoree", conf.nombase)
+                del schema.conformites[nom_conf]
                 return False, ''
             if val not in ctrl:
                 conflist.append(val)
@@ -134,8 +120,9 @@ class GenSql(database.GenSql):
             else:
                 print("attention valeur ", val, "en double dans", conf.nombase)
 
-        valide, supp = self.conf_en_base(conf)
+        valide, supp = self.valide_base(conf)
         req = ''
+
         if supp:
             req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase + ";\n"
 
@@ -143,6 +130,7 @@ class GenSql(database.GenSql):
                     "','".join(conflist) + "');"
 #        print ("preparation",conf.nombase,req)
         return True, req
+
 
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
@@ -488,12 +476,10 @@ class GenSql(database.GenSql):
                 if attype == 'D' and not self.basic:
                     defaut = ' DEFAULT current_timestamp'
             elif attype in schema.conformites and self.basic != 'basic':
-#                print(' traitement conformite postgresgensql',attype,
-#                      self.prepare_conformites(attype, schema=schema) )
-#                raise
+
                 valide, sql_conf = self.prepare_conformites(attype, schema=schema)
                 if valide:
-                    nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
+                    nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
                     deftype = self.schema_conf+"."+nomconf
                 else:
                     print('conformite non trouvee', attype)
@@ -502,7 +488,7 @@ class GenSql(database.GenSql):
                  attype in self.connection.schemabase.conformites:
                 valide, sql_conf = self.prepare_conformites(attype)
                 if valide:
-                    nomconf = schema.conformites.get(attype).nom # on a pu adapter le nom a postgres
+                    nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
                     deftype = self.schema_conf+"."+nomconf
             else:
                 pass
@@ -533,7 +519,7 @@ class GenSql(database.GenSql):
                 type_sortie = 'varchar'+'('+str(attribut.taille)+')'
             cretable.append('\t'+attname+' '+type_sortie+defaut+",")
             if sql_conf and self.basic != 'basic':
-                creconf[attype] = sql_conf
+                creconf[nomconf] = sql_conf
         if classe.info['type_geom'] != '0':
             cretable.append(self.getgeomsql(classe)) # la on est pas geometrique on gere en texte
 
@@ -659,7 +645,7 @@ class GenSql(database.GenSql):
 
 #       for i in liste_tables:
 #            print('type :',i,self.schema.classes[i].type_table)
-        print('postgres definition de tables a sortir:', len(liste_tables), self.dialecte)
+        print('postgres definition de tables a sortir:', self.schema.nom, len(liste_tables), self.dialecte)
         cretables = [idschema, self._setrole(),
                      "\n-- ########### definition des tables ###############\n"]
         cretables.extend(list([self.cree_tables(ident, creconf, autopk=autopk)
@@ -794,46 +780,82 @@ class GenSql(database.GenSql):
 # ============== gestionnaire de reinitialisation de la base===============
 
 
+    @staticmethod
+    def _commande_geom_strict(niveau, classe, strict, gtyp='0', dim='2'):
+        ''' manipulation de la geometrie pour la discretisation des courbes '''
+#        print ('geom strict ',niveau, classe, strict, gtyp)
+        cmpz='Z' if dim=='3' else ''
+        if not strict:
+            return 'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+                ' ALTER COLUMN geometrie TYPE Geometry(Geometry'+cmpz+',3948);\n'
+        else:
+            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
+            return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
+                ' SET geometrie = ST_CurveToLine(geometrie); \n'+\
+                'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+                ' ALTER COLUMN geometrie TYPE Geometry('+geom+cmpz+',3948);\n'
+
+    @staticmethod
+    def _commande_index_gist(niveau, classe, drop):
+        ''' suppression des index geometriques pour accelerer le chargement'''
+        if drop:
+            return 'DROP INDEX '+niveau.lower()+'.'+classe.lower()+'_gist;\n'
+        else:
+            return 'CREATE INDEX '+classe.lower()+'_gist ON '+\
+                    niveau.lower()+'.'+classe.lower()+' USING gist(geometrie);\n'
 
     @staticmethod
     def _commande_reinit(niveau, classe, delete):
         '''commande de reinitialisation de la table'''
+
 #        prefix = 'TRUNCATE TABLE "'+niveau.lower()+'"."'+classe.lower()+'";\n'
-        return 'DELETE FROM "' if delete else 'TRUNCATE TABLE "' +\
-                        +niveau.lower()+'"."'+classe.lower()+'";\n'
+        return ('DELETE FROM ' if delete else 'TRUNCATE TABLE ') +\
+                        niveau.lower()+'.'+classe.lower()+';\n'
     @staticmethod
     def _commande_sequence(niveau, classe):
-        ''' cree une commande de reinitialisation des sequences'''
+        ''' cree une commande de reinitialisation des sequences
+            pour le moment necessite la fonction dans admin_sigli'''
+#TODO remplacer la fonction qui fait le job par du SQL basique
         return  "SELECT admin_sigli.ajuste_sequence('"+niveau.lower()+\
                               "','"+classe.lower()+"');\n"
 
     @staticmethod
     def _commande_trigger(niveau, classe, valide):
         ''' cree une commande de reinitialisation des sequences'''
-        return  'ALTER TABLE '+niveau.lower()+'"."'+classe.lower()+\
-                ' ENABLE ' if valide else ' DISABLE '+'TRIGGER USER;\n'
+        return  'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+                (' ENABLE ' if valide else ' DISABLE ') +'TRIGGER USER;\n'
 
-    def prefix_charge(self, niveau, classe, reinit):
-        ''' grere toutes les reinitialisations eventuelles'''
+    def prefix_charge(self, niveau, classe, reinit, gtyp='0', dim='2'):
+        ''' grere toutes les reinitialisations eventuelles
+        G: devalide les triggers T: Truncate D: delete S: ajuste les sequences'''
         prefix = ''
         if reinit is None:
             reinit = ''
         if 'G' in reinit: # on devalide les triggers
             prefix = prefix+self._commande_trigger(niveau, classe, False)
         if 'T' in reinit: # on reinitialise les tables
-            prefix = prefix+self._commande_reinit(niveau, classe,
-                                                  self.schema.is_cible((niveau, classe)))
+#            prefix = prefix+self._commande_reinit(niveau, classe, self.schema.is_cible((niveau, classe)))
+            prefix = prefix+self._commande_reinit(niveau, classe, False)
         if 'D' in reinit: # on reinitialise les tables
             prefix = prefix+self._commande_reinit(niveau, classe, True)
         if 'S' in reinit:
             prefix = prefix+self._commande_sequence(niveau, classe)
+        if 'I' in reinit and gtyp >'0':
+            prefix = prefix+self._commande_index_gist(niveau, classe, True)
+        if 'L' in reinit and gtyp in '23': # discretisation'
+            prefix = prefix+self._commande_geom_strict(niveau, classe, False, dim=dim)
         return prefix
 
-    def tail_charge(self, niveau, classe, reinit):
+    def tail_charge(self, niveau, classe, reinit, gtyp='0', dim='2'):
         ''' menage de fin de chargement '''
         prefix = ''
+        if 'L' in reinit and gtyp in '23': # discretisation'
+            prefix = prefix+self._commande_geom_strict(niveau, classe, True, gtyp=gtyp, dim=dim)
         if 'S' in reinit:
             prefix = prefix+self._commande_sequence(niveau, classe)
+        if 'I' in reinit and gtyp >'0':
+            prefix = prefix+self._commande_index_gist(niveau, classe, False)
         if 'G' in reinit:
             prefix = prefix+self._commande_trigger(niveau, classe, True)
+
         return prefix

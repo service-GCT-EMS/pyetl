@@ -54,6 +54,7 @@ class Selecteur(object):
         self.v_nommees = {"attr":attribut, "vals":valeur}
         self.select = self.selneg if negatif else self.selpos
         self.info = dict()
+        self.params = None
 
     @staticmethod
     def true(*_):
@@ -102,7 +103,7 @@ def choix_fonction_select(attribut, valeur, regle):
         if valide:
             if debug:
                 print("candidat retenu ", regle.numero, candidat.nom,
-                      candidat.work, candidat.helper)
+                      candidat.work, candidat.helper, erreurs)
             select.setparams(elements, candidat.definition)
             if candidat.helper:
                 candidat.helper(select)

@@ -139,7 +139,6 @@ class ElyConnect(ora.OraConnect):
     def extload(self, helper, file, logfile=None):
         '''charge un fichier par FEA2ORA'''
         reinit = self.params.get_param('reinit', '0') if self.params else '0'
-#        print('valeur de reinit',self.params.nompyetl, self.params.get_param('reinit'))
         nom = os.path.splitext(os.path.basename(file))[0]
         csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
         logobject = os.path.join(logfile, 'log_import.txt')

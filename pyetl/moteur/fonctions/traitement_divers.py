@@ -299,7 +299,7 @@ def sortir_traite_stock(regle):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recup_objets(groupe):
             regle.f_sortie.ecrire_objets_stream(obj, regle, False)
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
     regle.nbstock = 0
 
 

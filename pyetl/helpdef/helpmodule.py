@@ -88,3 +88,4 @@ def print_aide_macros(mapper):
 
 def autodoc(mapper):
     '''genere une documentation automatique du programme'''
+    pass

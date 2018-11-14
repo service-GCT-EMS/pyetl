@@ -62,6 +62,7 @@ def _mode_niv_in(mapper, niv):
 
 def param_base(regle):
     """ extrait les parametres d acces a la base"""
+#TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
 
     niveau, classe, att = '', '', ""
@@ -216,6 +217,7 @@ def f_dblast(regle, obj):
     #pattern||;;;dblast;C
     #pattern2||A;;;dblast
     '''
+    pass
 
 
 def h_dbgeo(regle):
@@ -305,6 +307,8 @@ def f_dbrunsql(regle, obj):
     print('traitement db: execution sql ', base, '->', script, regle.params.cmp1.val,
           regle.params.cmp2.val)
     scripts = sorted(glob.glob(script))
+    if not scripts:
+        print('pas de scripts a executer: ', script)
     for nom in scripts:
         print('traitement sql ', nom)
         DB.dbrunsql(regle.stock_param, base, nom, log=regle.params.cmp1.val,

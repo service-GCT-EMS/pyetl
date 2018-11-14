@@ -121,15 +121,19 @@ def f_stock_schema(regle, obj):
         obj.schema = None
     return True
 
+
+
+
+
 def f_force_alias(regle, obj):
     '''#aide||remplace les valeurs par les alias
        #pattern||;;;force_alias;?C;
     '''
 
     #types_entiers = {'E':1, 'entier':1}
+
     schem = obj.schema
     mode = regle.params.cmp1.num
-    #print "dans force_alias"
     if schem:
         if mode and schem.schema.defmodeconf != mode:
             schem.schema.defmodeconf = mode
@@ -141,11 +145,10 @@ def f_force_alias(regle, obj):
             if attr and attr.conformite:
                 conf = attr.conformite
                 val = obj.attributs[i]
-                attr.type_att_base = 'T'
-                val = conf.ajuste_valeur(val)
-
-                if val:
-                    obj.attributs[i] = val
+#                attr.type_att_base = 'T'
+                obj.attributs[i] = conf.ajuste_valeur(val)
+#                if obj.attributs['#classe'] == 'as_bassin':
+#                    print("dans force_alias", conf.nom, val, '->', obj.attributs[i])
 
         return True
     else:
@@ -169,8 +172,7 @@ def f_valide_schema(regle, obj):
         regle.change_schema_nom(obj, regle.params.val_entree.val)
     schem = obj.schema
     if schem:
-        retour = FSC.valide_schema(schem, obj, regle.params.cmp1.val,
-                                   schema=regle.params.val_entree.val)
+        retour = FSC.valide_schema(schem, obj, regle.params.cmp1.val)
 #        print ('retour validation schema', retour)
         return retour
 #            if not v :
@@ -236,7 +238,6 @@ def h_def_schema(regle):
 
     if ext == 'csv':
         mode_alias = regle.getvar("mode_alias", 'num')
-#        print('interpreteur: lire schema_entree', regle.numero, nom, cod, mode_alias, regle.vloc)
         cod_csv = regle.stock_param.get_param('codec_csv', cod)
         if fusion:
             rep = os.path.dirname(regle.fichier)
@@ -408,10 +409,11 @@ def h_liste_tables(regle):
 
 
 def f_liste_tables(regle, obj):
-    '''#aide||recupere la liste des tables d un schema
+    '''#aide||recupere la liste des tables d un schema a la fin du traitement
      #groupe||schema
     #pattern||;;;liste_tables;C;||sortie
     '''
+#TODO mettre en coherence avec la commande liste schema ( a fusionner)
     pass
 
 

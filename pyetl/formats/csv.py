@@ -14,7 +14,7 @@ import re
 #from numba import jit
 from .interne.objet import Objet
 from .fileio import FileWriter
-from ..schema.fonctions_schema import analyse_interne
+#from ..schema.fonctions_schema import analyse_interne
 
 # ewkt ##################################################################
 #def parse_ewkb(geometrie,texte):
@@ -81,90 +81,6 @@ def decode_ewkt(code):
 
 
 
-
-
-
-
-#def _parse_ligne(geometrie, texte, start, dim):
-#    '''decode une ligne en liste de coordonnees'''
-#    if ', ' in texte[start:]:
-#        points = texte[start:].split(', ')
-#    else:
-#        points = texte[start:].split(',')
-#    points[0] = points[0].replace('(', '')
-#    points[-1] = points[-1].replace(')', '')
-#    print('parseligne : ', points)
-#
-#    for i in points:
-#        print('points', i)
-#        coords = [float(c) for c in i.split(' ')]
-#        geometrie.addpoint(coords, dim)
-#    geometrie.fin_section(1, 0)
-#
-#
-#def _parse_multiligne(geometrie, texte, start, dim):
-#    '''decode une multiligne en lignes'''
-#    lignes = texte[start:].split('),(')
-#    for i in lignes:
-#        _parse_ligne(geometrie, i, 0, dim)
-#
-#
-#def _parse_multipolygon(geometrie, texte, start, dim):
-#    '''decode un multipolygone en multilignes'''
-#
-#    polygones = texte[start:].split(')),((')
-#    for i in polygones:
-#        _parse_multiligne(geometrie, i, 0, dim)
-
-
-#def _getdim(texte, start):
-#    '''retourne la dimension de l'objet'''
-#    if texte[start] == 'Z':
-#        dim = 3
-#        start = start + 1
-#    else:
-#        dim = 2
-#    while texte[start] == ' ':
-#        start += 1
-#    if texte[start] == '(':
-#        start += 1
-#    return start, dim
-
-#def _parse_start(nature, niveau, poly, ring, nbring):
-#    """demarre un nouvel element"""
-#    type_geom = '0'
-#    if nature == 'POINT(':
-#        return '1', None, None, None
-#    elif nature in {'MULTISURFACE(', 'MULTIPOLYGON('}:
-#        type_geom = '3'
-#    elif nature in {"POLYGON(", "CURVEPOLYGON("}:
-#        type_geom = '3'
-#        poly = niveau
-#    elif nature in {"MULTILINESTRING(", "MULTICURVE(", "LINESTRING("}:
-#        type_geom = '2'
-#    elif nature == "COMPOUNDCURVE(":
-#        if niveau == 1:
-#            type_geom = '2'
-#        elif poly:
-#            ring = niveau
-#            nbring += 1
-#    elif nature == "CIRCULARSTRING(":
-#        if niveau == 1:
-#            type_geom = '2'
-#        elif poly and not ring:
-#            ring = niveau
-#            nbring += 1
-#    elif nature == "(":
-#        if poly and not ring:
-#            ring = niveau
-#    elif nature == 'POLYHEDRALSURFACE(':
-#        type_geom = '5'
-#    elif nature == "TIN(":
-#        type_geom = '4'
-#    else:
-#        print('------------type geometrique inconnu', nature)
-#
-#    return type_geom, poly, ring, nbring
 
 def _parse_start(nature, niveau, poly, ring, nbring):
     """demarre un nouvel element"""
@@ -686,6 +602,10 @@ class SqlWriter(CsvWriter):
         prefix = "SET client_encoding = 'UTF8';\n" if init else ''
 #        print ('parametres sql ', self.writerparms)
         nodata = False
+
+        type_geom = self.schema.info['type_geom']
+        dim = self.schema.info['dimension']
+
         if self.writerparms and nouveau:
             reinit = self.writerparms.get('reinit')
 #            dialecte = self.writerparms.get('dialecte', 'sql')
@@ -694,7 +614,8 @@ class SqlWriter(CsvWriter):
             gensql.initschema(self.schema.schema)
             # on positionne les infos de schema pour le generateur sql
 
-            prefix = prefix + gensql.prefix_charge(niveau, classe, reinit)
+            prefix = prefix + gensql.prefix_charge(niveau, classe, reinit,
+                                                   gtyp=type_geom, dim=dim)
 
         if nodata:
             return prefix
@@ -702,7 +623,7 @@ class SqlWriter(CsvWriter):
         end = ") FROM stdin;"
 
         geom = separ+"geometrie"+end+"\n" if self.schema.info["type_geom"] != '0' else end+"\n"
-        return prefix+separ.join([i.lower() for i in self.liste_att])+geom
+        return prefix+separ.join([gensql.ajuste_nom(i.lower()) for i in self.liste_att])+geom
 
 
     def fin_classe(self):
@@ -710,6 +631,9 @@ class SqlWriter(CsvWriter):
         reinit = self.writerparms.get('reinit', '0')
         niveau, classe = self.schema.identclasse
         gensql = self.schema.schema.dbsql
+
+        type_geom = self.schema.info['type_geom']
+        dim = self.schema.info['dimension']
         if not gensql:
             print('finclasse sql: erreur generateur sql non defini', self.schema.identclasse,
                   self.schema.schema.format_sortie)
@@ -718,7 +642,9 @@ class SqlWriter(CsvWriter):
             self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
             return
         self.fichier.write(r'\.'+'\n')
-        self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
+
+        self.fichier.write(gensql.tail_charge(niveau, classe, reinit,
+                                              gtyp=type_geom, dim=dim))
 
 
 
@@ -753,18 +679,6 @@ def getfanout(regle, extention, ident, initial):
             nom = "#print"
             ressource = sorties.get_res(regle.numero, nom)
             return ressource, nom
-#        tmp = os.path.splitext(os.path.basename(nfich))
-#        print ('fichier fourni',tmp)
-#        bfich = tmp[0]
-#        if tmp[1]: # on a defini une extention
-#            extention = tmp[1]
-#        if initial:
-#            print ('repertoire de sortie',rep_sortie,bfich,extention)
-#
-#            nom = sorties.get_id(rep_sortie, bfich, '', extention)
-#            ressource = sorties.get_res(regle.numero, nom)
-#            return ressource, nom
-
 
     if regle.fanout == 'no' and regle.f_sortie.fanoutmax == 'all':
         if not bfich:
@@ -883,14 +797,12 @@ def ecrire_objets_geo(regle, final):
 
 def ecrire_objets_sql(regle, final):
     '''format sql copy pour postgis'''
-#    writerparms = {'reinit':regle.stock_param.get_param('reinit', '0'),
-#                   'groupes':True, "all":True, 'nom':regle.params.cmp2.val}
+
     return ecrire_objets_csv(regle, final, 'sql', '\t', '.sql',
                              null=r'\N', writer=SqlWriter)
 
 def sqlstreamer(obj, regle, final):
     '''format sql copy pour postgis en streaming '''
-#    writerparms = {'reinit':regle.stock_param.get_param('reinit', '0'),
-#                   'groupes':True, "all":True, 'nom':regle.params.cmp2.val}
+
     return csvstreamer(obj, regle, final, 'sql', '\t',
                        '.sql', null=r'\N', writer=SqlWriter)

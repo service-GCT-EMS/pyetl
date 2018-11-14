@@ -40,18 +40,20 @@ class Moteur(object):
             self.traite_regles_chargement()
         else:
             for sch in list(self.mapper.schemas.values()):
-#                print('moteur: traitement schema', sch.nom, sch.origine)
-                LOGGER.info("traitement schema"+ sch.nom+' '+sch.origine)
 
                 if sch.origine in 'LB' and not sch.nom.startswith('#'):
+                    print('moteur: traitement schema', sch.nom, sch.origine, len(sch.classes))
+                    LOGGER.info("traitement schema"+ sch.nom+' '+sch.origine)
+
                 #(on ne traite que les schemas d'entree')
                     for schemaclasse in list(sch.classes.values()):
                         if schemaclasse.utilise:
 #                            print ('traitement virtuel classe ignoree',j.identclasse)
                             continue
-#                        print('traitement objet virtuel ', schemaclasse.identclasse)
+                        print('traitement objet virtuel ', schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
                         obj = Objet(groupe, classe, conversion='virtuel', schema=schemaclasse)
+                        obj.attributs['#categorie'] = 'traitement_virtuel'
 #                        obj = Objet(groupe, classe)
 #                        obj.virtuel = True
 #                        obj.setschema(schemaclasse)

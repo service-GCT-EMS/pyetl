@@ -61,11 +61,13 @@ def h_start(regle):
     return True
 
 
-def f_start(regle, _):
+def f_start(regle, obj):
     """#aide||ne fait rien mais envoie un objet virtuel dans le circuit
     #pattern||;;;start;;
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
+    if obj: # on a deja un objet pas la peirn d'en refaire un
+        return True
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
     print('start: declenchement ', obj2)
@@ -79,14 +81,14 @@ def h_end(regle):
     return True
 
 
-def f_end(regle, obj):
+def f_end(_, __):
     """#aide||finit un traitement sans stats ni ecritures
     #pattern||;;;end;;
     #test||obj||^;;;end;;||^V;1;;testobj;test;1;||cnt;1
     """
     return True
 
-def f_reel(regle, obj):
+def f_reel(_, obj):
     """#aide||transforme un objet virtuel en objet reel
     #pattern||;;;reel;;
     #test||rien||^;;;start||^;;;reel||cnt;1
@@ -99,7 +101,7 @@ def f_reel(regle, obj):
     return False
 
 
-def f_virtuel(regle, obj):
+def f_virtuel(_, obj):
     """#aide||transforme un objet reel en objet virtuel
     #pattern||;;;virtuel;;
        #test||obj;;2||V0;1;;;;;;virtuel||cnt;1
@@ -359,7 +361,7 @@ def f_ftpupload(regle, obj):
        #test||notest
     '''
     if not regle.ftp:
-        codeftp, serveur, servertyp, user, passwd = regle.getvar('acces_ftp')
+        _, serveur, servertyp, user, passwd = regle.getvar('acces_ftp')
 #        print ('ouverture acces ',regle.getvar('acces_ftp'))
         if servertyp == "ftp":
             regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
@@ -387,7 +389,7 @@ def f_ftpdownload(regle, obj):
        #test||notest
     '''
     if not regle.ftp:
-        codeftp, serveur, servertyp, user, passwd = regle.getvar('acces_ftp')
+        _, serveur, servertyp, user, passwd = regle.getvar('acces_ftp')
 #        print ('ouverture acces ',regle.getvar('acces_ftp'))
         if servertyp == "ftp":
             regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
@@ -605,7 +607,7 @@ def h_batch(regle):
         # lancement immediat pour utilisation par la suite
         # ( ne se relance pas dans un worker parallele)
         if not regle.stock_param.worker:
-             execbatch(regle, None)
+            execbatch(regle, None)
         regle.valide = 'done' # on a fini on le relance pas
 
     if regle.params.cmp1.val == 'parallel_init' and regle.stock_param.worker:
@@ -744,7 +746,7 @@ def traite_parallel_load(regle):
             for nom, schema in retour["schemas"].items():
                 nomschemas.add(nom)
                 classes, conf, mapping, deftrig = schema
-                tmp = recup_schema_csv(nom, classes, conf, mapping)
+                tmp = recup_schema_csv(nom, classes, conf, mapping, deftrig)
 #                print ('recup schema ', nom, tmp, mapper.schemas.get(nom))
                 if tmp:
                     if nom in mapper.schemas:
@@ -772,7 +774,7 @@ def traite_parallel_load(regle):
     for i in sorted(rdict):
         obj = regle.tmpstore[i]
         obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-        regle.branchements.brch["end:"]
+#        regle.branchements.brch["end:"]
         traite(obj, regle.branchements.brch["end:"])
     regle.nbstock = 0
 
@@ -803,6 +805,9 @@ def f_fileloader(regle, obj):
        #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
       #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||^;;;pass;;||atv;NB;4
     '''
+    if obj.attributs.get('#categorie') == 'traitement_virtuel':
+        return True
+        # on est en mode virtuel pour completer les schemas  il suffit de laisser passer les objets
     if regle.store:
 #        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
 #        print ('regles', regle.stock_param.regles)
@@ -864,7 +869,7 @@ def f_statprocess(*_):
 
 
 
-def f_schema_liste_classes(regle, obj):
+def f_schema_liste_classes(regle, _):
     '''#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
      #helper||chargeur
     #pattern||;;;liste_schema;C;?=reel
@@ -941,7 +946,7 @@ def h_idle(regle):
     regle.valide = 'done'
 
 
-def f_idle(regle, obj):
+def f_idle(_, __):
     '''#aide||ne fait rien mais laisse le mainmapper en attente (initialisation en mode parallele)
     #pattern||;;;idle;;
     '''

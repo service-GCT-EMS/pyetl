@@ -139,61 +139,6 @@ class GenSql(postgres_gensql.GenSql):
 
 
 
-    def setbasic(self, mode):
-        """mode basic pour les bases de consultation"""
-        self.basic = mode
-        self.types_db["S"] = "integer"
-        self.types_db["BS"] = "bigint"
-
-
-    def conf_en_base(self, conf):
-        """valide si une conformite existe en base"""
-        return False, False
-
-
-    def ajuste_nom(self, nom):
-        ''' sort les caracteres speciaux des noms'''
-#        nom=re.sub('['+"".join(self.remplace.keys())+"]",
-#                     lambda x:self.remplace[x.group(0)],nom)
-        nom = self.reserves.get(nom, nom)
-        return nom
-
-    def valide_base(self, conf):
-        """valide un schema en base"""
-        return False
-
-
-    def prepare_conformite(self, schem, nom_conf, valide=False):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-
-        conf = schem.conformites[nom_conf]
-        if valide and conf.valide_base:
-            return True
-
-        conf.nombase = self.ajuste_nom(conf.nom)
-#        ctrl=set()
-#        for j in sorted(list(conf.stock.values()),key=lambda v:v[2]):
-#            #print (nom,j[0])
-#            v=j[0].replace("'","''")
-#            if len(j[0])>62 :
-#                print("valeur trop longue ",v," : conformite ignoree",nom)
-#                return False
-#            if v not in ctrl:
-#                ctrl.add(v)
-#            else: print("attention valeur ",v ,"en double dans", nom)
-
-        req = ''
-        valide, supp = self.conf_en_base(conf)
-        if supp:
-            req = "DROP TYPE "+self.schema_conf+"." + conf.nombase +";\n"
-        if not valide:
-            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
-            " AS ENUM ('" + "','".join(conf.cc) +"');"
-            conf.valide_base = self.connection.request(req, ())
-        return conf.valide_base
-
-
-
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
         ctr, idx = super().cree_indexes(schemaclasse, groupe, nom)

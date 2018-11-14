@@ -11,7 +11,7 @@ from collections import namedtuple
 
 TYPES_A = {i:i for i in 'TFHGDNSIEB'}
 
-REMPLACE = dict(zip('-~èéà', '__eea'))
+REMPLACE = dict(zip('-~èéà/', '__eea_'))
 
 
 RESERVES = {'in':'ins', 'as':'ass'}
@@ -675,66 +675,20 @@ class GenSql(object):
         nom = self.reserves.get(nom, nom)
         return nom
 
+
     def valide_base(self, conf):
         """valide un schema en base"""
         return False
 
 
-    def prepare_conformite(self, schem, nom_conf, valide=False):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-
-        conf = schem.conformites[nom_conf]
-        if valide and conf.valide_base:
-            return True
-
-        conf.nombase = self.ajuste_nom(conf.nom)
-
-        req = ''
-        valide, supp = self.conf_en_base(conf)
-        if supp:
-            req = "DROP TYPE "+self.schema_conf+"."+conf.nombase +";\n"
-        if not valide:
-            req = req + "CREATE TYPE "+self.schema_conf+"."+conf.nombase +\
-            " AS ENUM ('" + "','".join(conf.cc) +"');"
-            conf.valide_base = self.connection.request(req, ())
-        return conf.valide_base
-
-
 
 
     def prepare_conformites(self, nom_conf, schema=None):
-        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree'''
-        if schema is None:
-            schema = self.schema
-        conf = schema.conformites.get(nom_conf)
+        '''prepare une conformite et verifie qu'elle fait partie de la base sinon la cree
+        non defini pour une base generique '''
 
-        if conf is None:
-            return False, ""
+        return False, ""
 
-        conf.nombase = self.ajuste_nom(conf.nom)
-        conflist = []
-        ctrl = set()
-        for j in sorted(list(conf.stock.values()), key=lambda v: v[2]):
-            #print (nom,j[0])
-            val = j[0].replace("'", "''")
-            if len(j[0]) > 62:
-                print("valeur trop longue ", val, " : conformite ignoree", conf.nombase)
-                return False
-            if val not in ctrl:
-                conflist.append(val)
-                ctrl.add(val)
-            else:
-                print("attention valeur ", val, "en double dans", conf.nombase)
-
-        valide, supp = self.conf_en_base(conf)
-        req = ''
-        if supp:
-            req = "DROP TYPE "+self.schema_conf+"."+ conf.nombase + ";\n"
-
-        req = req + "CREATE TYPE "+self.schema_conf+"."+ conf.nombase + " AS ENUM ('" +\
-                    "','".join(conflist) + "');"
-#        print ("preparation",conf.nombase,req)
-        return True, req
 
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""

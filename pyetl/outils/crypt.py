@@ -30,13 +30,13 @@ class Crypter(object):
         """positionne la clef"""
         self.key = key
 
-    def crypt(self, val):
-        """crypte une valeur"""
-        return val
-
-    def decrypt(self, val):
-        """decrypte une valeur"""
-        return val
+#    def crypt(self, val):
+#        """crypte une valeur"""
+#        return val
+#
+#    def decrypt(self, val):
+#        """decrypte une valeur"""
+#        return val
 
 class BasicCrypter(Crypter):
     """cryptage basique un simple XOR avec le mot de passe"""
