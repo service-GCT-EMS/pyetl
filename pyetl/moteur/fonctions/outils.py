@@ -319,7 +319,13 @@ def charge_mapping(regle, mapping=None):
     """ precharge un mapping"""
     mapping = dict()
     mapping_attributs = dict()
-    if regle.params.cmp1.val:
+    if regle.params.cmp1.val.startswith('{'): # c'est une definitio in line
+        valeurs = regle.params.cmp1.val[1:-1].split(",")
+        for i in valeurs:
+            tmp = i.split('->')
+            mapping[tmp[0]]=tmp[1]
+
+    elif regle.params.cmp1.val:
         regle.fichier = regle.params.cmp1.val # nom du fichier
         fichier = expandfilename(regle.fichier, regle.stock_param.rdef, regle.stock_param.racine,
                                  regle.stock_param.chemin_courant,
@@ -356,7 +362,7 @@ def charge_mapping(regle, mapping=None):
 
             mapping[id1] = id2
             mapping[id2] = id1
-    elif regle.params.att_sortie.val == '#schema':
+    if regle.params.att_sortie.val == '#schema':
         regle.schema_dest = regle.stock_param.schemas.get(regle.params.val_entree.val)
     #        mapping_attributs
     regle.mapping = mapping

@@ -416,7 +416,7 @@ class Objet(object):
             self.hdict = {nom:dict(dic)}
         res = ''
         if dic:
-            res = ", ".join([" => ".join((i, dic[i].replace('"', '""')))
+            res = ", ".join([" => ".join((i, dic[i].replace('"', r'\"')))
                              for i in sorted(dic.keys())])
         self.attributs[nom] = res
         return res
@@ -429,7 +429,7 @@ class Objet(object):
             self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
-            self.hdict[nom] = dict([i.replace('""', '"').split('" => "')
+            self.hdict[nom] = dict([i.replace(r'\"', '"').split('" => "')
                                     for i in hstore[1:-1].split('", "')])
         return self.hdict[nom]
 

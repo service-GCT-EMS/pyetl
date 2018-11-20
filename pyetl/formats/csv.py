@@ -14,17 +14,6 @@ import re
 #from numba import jit
 from .interne.objet import Objet
 from .fileio import FileWriter
-#from ..schema.fonctions_schema import analyse_interne
-
-# ewkt ##################################################################
-#def parse_ewkb(geometrie,texte):
-#CODES_EWKT = {"MULTISURFACE":3, "MULTIPOLYGON":3, "POLYGON":3, "CURVEPOLYGON":3,
-#              "MULTILINESTRING":2, "MULTICURVE":2, "COMPOUNDCURVE":2,
-#              "CIRCULARSTRING":2, "LINESTRING":2, "POINT":1}
-#CODES_STRUCTURE = {"MULTIPOLYGON":"POLYGON", "MULTISURFACE":"POLYGON",
-#                   "POLYGON":"LINESTRING", "MULTILINESTRING":"LINESTRING",
-#                   "MULTICURVE":"LINESTRING", "COMPOUNDCURVE":"SEGMENT"}
-
 
 
 TOKEN_SPECIFICATION = [('N', r'-?\d+(\.\d*)?'),  # Integer or decimal number
@@ -546,7 +535,7 @@ class CsvWriter(FileWriter):
                     geom = ecrire_geom_ewkt(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
                 else:
                     if not obj.geom and self.type_geom == '-1':
-                        geom = 'EMPTY'
+                        geom = ''
                     else:
                         print('csv: geometrie invalide : erreur geometrique',
                               obj.ident, obj.numobj, 'demandé:', self.type_geom,
@@ -633,6 +622,7 @@ class SqlWriter(CsvWriter):
         gensql = self.schema.schema.dbsql
 
         type_geom = self.schema.info['type_geom']
+        courbe = self.schema.info['courbe']
         dim = self.schema.info['dimension']
         if not gensql:
             print('finclasse sql: erreur generateur sql non defini', self.schema.identclasse,
@@ -644,7 +634,7 @@ class SqlWriter(CsvWriter):
         self.fichier.write(r'\.'+'\n')
 
         self.fichier.write(gensql.tail_charge(niveau, classe, reinit,
-                                              gtyp=type_geom, dim=dim))
+                                              gtyp=type_geom, dim=dim, courbe=courbe))
 
 
 

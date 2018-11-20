@@ -89,9 +89,9 @@ class GenSql(database.GenSql):
             if conf in confs: # la conformite existe en base #on la verifie
                 confb = confs[conf.nombase]
                 if confb.stock == conf.stock: #les 2 sont identiques
-                    return True,False
+                    return True, False
                 return False, True
-        return False,False
+        return False, False
 
 
     def prepare_conformites(self, nom_conf, schema=None):
@@ -491,7 +491,8 @@ class GenSql(database.GenSql):
                  attype in self.connection.schemabase.conformites:
                 valide, sql_conf = self.prepare_conformites(attype)
                 if valide:
-                    nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
+                    nomconf = schema.conformites.get(attype).nombase
+                    # on a pu adapter le nom a postgres
                     deftype = self.schema_conf+"."+nomconf
             else:
                 pass
@@ -648,7 +649,8 @@ class GenSql(database.GenSql):
 
 #       for i in liste_tables:
 #            print('type :',i,self.schema.classes[i].type_table)
-        print('postgres definition de tables a sortir:', self.schema.nom, len(liste_tables), self.dialecte)
+        print('postgres definition de tables a sortir:', self.schema.nom,
+              len(liste_tables), self.dialecte)
         cretables = [idschema, self._setrole(),
                      "\n-- ########### definition des tables ###############\n"]
         cretables.extend(list([self.cree_tables(ident, creconf, autopk=autopk)
@@ -786,26 +788,20 @@ class GenSql(database.GenSql):
     @staticmethod
     def _commande_geom_strict(niveau, classe, strict, gtyp='0', dim='2'):
         ''' manipulation de la geometrie pour la discretisation des courbes '''
-#        print ('geom strict ',niveau, classe, strict, gtyp)
-        cmpz='Z' if dim=='3' else ''
-        if not strict:
-            return 'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
-                ' ALTER COLUMN geometrie TYPE Geometry(Geometry'+cmpz+',3948);\n'
-        else:
-            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
-            return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
-                ' SET geometrie = ST_CurveToLine(geometrie); \n'+\
-                'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
-                ' ALTER COLUMN geometrie TYPE Geometry('+geom+cmpz+',3948);\n'
+        return ''
+
+    @staticmethod
+    def _commande_geom_courbe(niveau, classe, gtyp='0', dim='2', courbe=False):
+        ''' manipulation de la geometrie pour la discretisation des courbes '''
+        return ''
+
+
 
     @staticmethod
     def _commande_index_gist(niveau, classe, drop):
         ''' suppression des index geometriques pour accelerer le chargement'''
-        if drop:
-            return 'DROP INDEX '+niveau.lower()+'.'+classe.lower()+'_gist;\n'
-        else:
-            return 'CREATE INDEX '+classe.lower()+'_gist ON '+\
-                    niveau.lower()+'.'+classe.lower()+' USING gist(geometrie);\n'
+        return ''
+
 
     @staticmethod
     def _commande_reinit(niveau, classe, delete):
@@ -830,7 +826,8 @@ class GenSql(database.GenSql):
 
     def prefix_charge(self, niveau, classe, reinit, gtyp='0', dim='2'):
         ''' grere toutes les reinitialisations eventuelles
-        G: devalide les triggers T: Truncate D: delete S: ajuste les sequences'''
+        G: devalide les triggers T: Truncate D: delete S: ajuste les sequences
+        I: gere les indices geometriques C: passe en courbe L: discretise'''
         prefix = ''
         if reinit is None:
             reinit = ''
@@ -845,15 +842,18 @@ class GenSql(database.GenSql):
             prefix = prefix+self._commande_sequence(niveau, classe)
         if 'I' in reinit and gtyp >'0':
             prefix = prefix+self._commande_index_gist(niveau, classe, True)
-        if 'L' in reinit and gtyp in '23': # discretisation'
+        if ('L' in reinit or 'C' in reinit) and gtyp in '23': # ouverture de la geometrie'
             prefix = prefix+self._commande_geom_strict(niveau, classe, False, dim=dim)
         return prefix
 
-    def tail_charge(self, niveau, classe, reinit, gtyp='0', dim='2'):
+    def tail_charge(self, niveau, classe, reinit, gtyp='0', dim='2', courbe=False):
         ''' menage de fin de chargement '''
         prefix = ''
         if 'L' in reinit and gtyp in '23': # discretisation'
             prefix = prefix+self._commande_geom_strict(niveau, classe, True, gtyp=gtyp, dim=dim)
+        if 'C' in reinit and gtyp in '23': # discretisation'
+            prefix = prefix+self._commande_geom_strict(niveau, classe, True,
+                                                       gtyp=gtyp, dim=dim, courbe=courbe)
         if 'S' in reinit:
             prefix = prefix+self._commande_sequence(niveau, classe)
         if 'I' in reinit and gtyp >'0':

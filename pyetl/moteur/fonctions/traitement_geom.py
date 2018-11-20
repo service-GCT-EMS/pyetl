@@ -30,7 +30,7 @@ def setschema_typegeom(regle, obj):
 def f_initgeom(_, obj):
     '''#aide||force l'interpretation de la geometrie
        #aide_spec||test
-       #pattern||;;;geom;;
+       #pattern||;;;geom;?N;
        #schema||set_geom
        #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
     '''

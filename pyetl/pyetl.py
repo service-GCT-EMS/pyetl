@@ -75,7 +75,7 @@ def initcontext(traitement, env=None, log=None):
     next(traitement.aff)
 
 def initpyetl(traitement, commandes, args, env=None, log=None):
-    """ initialisation standardisee: cerre l'objet pyetl de base"""
+    """ initialisation standardisee: cree l'objet pyetl de base"""
 
     initcontext(traitement, env, log)
     try:
@@ -1066,7 +1066,7 @@ class Pyetl(object):
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         LOGGER.info('ecriture schemas '+ str(mode_schema))
         if mode_schema in {'all', 'int', 'fusion'} and not self.done:
-            print ('pyetl: traitement virtuel ', mode_schema)
+#            print('pyetl: traitement virtuel ', mode_schema)
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
         print('pyetl: ecriture schemas ', mode_schema)
         ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))

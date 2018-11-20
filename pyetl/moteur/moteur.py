@@ -105,12 +105,13 @@ class Moteur(object):
     #                print ('params:action schema',regle.params.att_sortie.liste,
 #                           resultat,obj.schema,regle.action_schema)
 
-                    if resultat and obj.schema:
-                        if regle.action_schema:
-    #                    print ('action schema',regle.params.att_sortie.liste)
-                            regle.action_schema(regle, obj)
-                        if regle.changeclasse:
-                            regle.changeclasse(regle, obj)
+                    if resultat:
+                        if obj.schema is not None:
+                            if regle.action_schema:
+        #                    print ('action schema',regle.params.att_sortie.liste)
+                                regle.action_schema(regle, obj)
+                            if regle.changeclasse:
+                                regle.changeclasse(regle, obj)
                         if regle.changeschema:
                             regle.changeschema(regle, obj)
 

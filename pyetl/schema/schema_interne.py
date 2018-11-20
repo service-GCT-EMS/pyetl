@@ -47,7 +47,12 @@ def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
     return mapper.schemas[nom_schema]
 
 class Schema(object):
-    ''' definition d'un schema : ensemble de classes et de conformites '''
+    ''' definition d'un schema : ensemble de classes et de conformites
+        code origine : L schema lu
+                       B base de donnees / fichier
+                       S schema de sortie
+                       G schema généré
+                       '''
     #types_G={0:"NOGEOM",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
     dic_abrev = {'commune':'com',
                  'date':'dt', 'annee':'an',

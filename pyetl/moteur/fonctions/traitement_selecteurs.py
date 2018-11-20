@@ -75,6 +75,50 @@ def sel_infoschema(selecteur, obj):
     return selecteur.fselect(obj.schema.info.get(selecteur.params.attr.val, "")) \
             if  obj.schema else False
 
+
+def selh_infoschema_type(selecteur):
+    '''#initialise les caches'''
+    selecteur.lastschema = None # on mets en cache
+    selecteur.lastvaleur = None
+
+
+def sel_infoschema_has_type(selecteur, obj):
+    '''#aide||vrai si un objet de type donne existe dans le schema
+     #helper||infoschema_type
+    #pattern||schema:T:;||50
+    #pattern||;schema:T:||50
+      #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom;3;;;X;1;;set;||atv;X;1;
+    '''
+    if not obj.schema:
+        return False
+    idschema = obj.schema.identclasse
+    if idschema == selecteur.lastschema:
+        return selecteur.lastvaleur
+    atts = obj.schema.attributs
+    val = selecteur.params.attr.val if selecteur.params.attr.val else selecteur.params.vals.val
+    selecteur.lastschema = idschema # on mets en cache
+    selecteur.lastvaleur = any([i.type_val == val for i in atts])
+    return selecteur.lastvaleur
+
+
+def sel_infoschema_is_type(selecteur, obj):
+    '''#aide||vrai si un objet de type donne existe dans la liste d'attributs
+    #pattern||L;schema:T:||50
+     #helper||infoschema_type
+      #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom;3;;;X;1;;set;||atv;X;1;
+    '''
+    if not obj.schema:
+        return False
+    idschema = obj.schema.identclasse
+    if idschema == selecteur.lastschema:
+        return selecteur.lastvaleur
+    atts = [i  for i in obj.schema.attributs if i in selecteur.params.attr.liste]
+    val = selecteur.params.val.val
+    selecteur.lastschema = idschema # on mets en cache
+    selecteur.lastvaleur = any([i.type_val == val for i in atts])
+    return selecteur.lastvaleur
+
+
 def sel_infoschema_egal(selecteur, obj):
     ''' #aide||test sur un parametre de schema
      #pattern||schema:A:;C||1

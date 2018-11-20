@@ -372,7 +372,8 @@ def setschemasortie(regle, obj):
     if regle.nom_fich_schema:# on copie le schema pour ne plus le modifier apres ecriture
         regle.change_schema_nom(obj, regle.nom_fich_schema)
     if obj.schema and obj.schema.amodifier(regle):
-        obj.schema.setsortie(regle.f_sortie, regle.getvar('_sortie'))
+        obj.schema.setsortie(regle.f_sortie, os.path.join(regle.getvar('_sortie'),
+                                                          os.path.dirname(regle.params.cmp1.val)))
         obj.schema.setminmaj(regle.f_sortie.minmaj)
     if regle.params.att_entree.liste:
         obj.liste_atttributs = regle.params.att_entree.liste

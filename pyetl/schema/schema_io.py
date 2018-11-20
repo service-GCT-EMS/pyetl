@@ -867,8 +867,8 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
     ''' sort un schema dans les differents formats disponibles '''
 
     rep_s = schema.rep_sortie if schema.rep_sortie else\
-            os.path.dirname(os.path.join(stock_param.get_param('_sortie'),
-                                         schema.fich if schema.fich else ''))
+            os.path.join(stock_param.get_param('_sortie'), os.path.dirname(schema.fich) if schema.fich else '')
+    print ('ecrire_schema_sortie' , schema.nom, rep_s, schema.fich)
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
 
@@ -919,6 +919,7 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
             alias = ESC_XML(stock_param.get_param('xmlalias'))
             ecrire_schema_xml(rep_s, schema, mode=mode, cod='utf-8',
                               header=header, alias=alias)
+            copier_xsl(rep_s)
 
         if form == 'xml_d':
 
@@ -963,6 +964,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
     if mode == 'no':
         return
     rep_sortie = stock_param.get_param('_sortie')
+    type_schemas_a_sortir = stock_param.get_param('orig_schema')
     print('sio:repertoire sortie schema', stock_param.idpyetl, rep_sortie, formats)
 #        raise FileNotFoundError
 
@@ -972,7 +974,6 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
             break
 
     schemas = stock_param.schemas
-    xml = False
 
     for i in schemas:
 #        print('ecriture schema', i, len(schemas[i].classes))
@@ -989,12 +990,10 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
                   stock_param.liste_params)
             raise NotADirectoryError('repertoire de sortie non défini')
 
-        rep = os.path.dirname(os.path.join(rep_sortie, schemas[i].fich if schemas[i].fich else ''))
-#        nombase = os.path.basename(os.path.join(rep_sortie, schemas[i].fich))
         if stock_param.schemas[i].origine == 'G':
             FSC.analyse_conformites(schemas[i])
 #        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites))
-        if FSC.analyse_interne(schemas[i], mode_sortie):
+        if FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == 'sql':
@@ -1009,9 +1008,5 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
 #controle du sql et de ses dialectes
 #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(schemas[i], formats_a_sortir, stock_param, mode_sortie, confs)
-            if 'xml' in formats_a_sortir:
-                xml = True
 
-    if xml:
-#        print("ecriture xsl local", rep)
-        copier_xsl(rep)
+

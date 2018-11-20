@@ -312,6 +312,49 @@ class GenSql(postgres_gensql.GenSql):
             print('error: sigli: chargement ', ident, '-->', erreur)
             cur.close()
             return False
+#==== initialiseurs pour la gestion de la geometrie ====
+    @staticmethod
+    def _commande_geom_strict(niveau, classe, strict, gtyp='0', dim='2'):
+        ''' manipulation de la geometrie pour la discretisation des courbes '''
+#        print ('geom strict ',niveau, classe, strict, gtyp)
+        cmpz = 'Z' if dim == '3' else ''
+        if not strict:
+            return 'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+                ' ALTER COLUMN geometrie TYPE Geometry(Geometry'+cmpz+',3948);\n'
+        else:
+            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
+            return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
+                ' SET geometrie = ST_CurveToLine(geometrie); \n'+\
+                'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+                ' ALTER COLUMN geometrie TYPE Geometry('+geom+cmpz+',3948);\n'
+
+    @staticmethod
+    def _commande_geom_courbe(niveau, classe, gtyp='0', dim='2', courbe=False):
+        ''' manipulation de la geometrie pour la discretisation des courbes '''
+        cmpz = 'Z' if dim == '3' else ''
+        if courbe:
+            geom = 'MultiCurve' if gtyp=='2' else 'MultiSurface'
+        else:
+            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
+        return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
+            ' SET geometrie = ST_ForceCurve(geometrie); \n'+\
+            'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
+            ' ALTER COLUMN geometrie TYPE Geometry('+geom+cmpz+',3948);\n'
+
+
+    @staticmethod
+    def _commande_index_gist(niveau, classe, drop):
+        ''' suppression des index geometriques pour accelerer le chargement'''
+        if drop:
+            return 'DROP INDEX '+niveau.lower()+'.'+classe.lower()+'_gist;\n'
+        else:
+            return 'CREATE INDEX '+classe.lower()+'_gist ON '+\
+                    niveau.lower()+'.'+classe.lower()+' USING gist(geometrie);\n'
+
+
+
+
+
 
 # structures specifiques pour stocker les scrips en base
 # cree 4 tables: Macros scripts batchs logs

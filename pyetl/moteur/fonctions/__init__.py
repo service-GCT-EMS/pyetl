@@ -55,6 +55,7 @@ class DefinitionAttribut(object):
                     'S', 'S'), #liste
               'L':(r'^('+asdef+r'(?:,'+asdef+r')*|\*)$', 'L', 'M'), #liste
               'LC':(r'^(.+(?:,.*)*)$', 'C', ''), #liste de valeurs
+              'T:':(r'^T:([A-Z]+)$', 'L', ''), #definition d'attributs par leutr type
               '+L':(r'^\+('+asdef+r'(?:,'+asdef+r')*)$',
                     'L', 'M'), #liste
               'L+':(r'^('+asdef+r'(?:,'+asdef+r')*)\+$',
@@ -81,6 +82,7 @@ class DefinitionAttribut(object):
               'haskey:A':(r'^haskey:('+asdef+')$', "A", ''),
               'schema:A':(r'^schema:('+asdef+')$', "A", ''),
               'schema:A:':(r'^schema:('+asdef+')=$', "A", ''),
+              'schema:T:':(r'^schema:T:([A-Z]+)', "A", ''), # selection par type d'attribut
               'hasval:C':(r'^hasval:(.*)$', "A", ''),
               'C:C':(r'^C:(.*)$', "C", ''),
               'A:C':(r'^('+asdef+'):(.*)$', "A", ''),

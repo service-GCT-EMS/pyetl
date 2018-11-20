@@ -535,7 +535,7 @@ def f_hset1(regle, obj):
     '''
 #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('"', '""')+'"'\
+        obj.attributs.get(i, regle.params.val_entree.val).replace('"', r'\"')+'"'\
         for i in regle.params.att_entree.liste])
 #    print("creation hstore", regle.params.att_sortie.val,
 #          obj.attributs[regle.params.att_sortie.val])
@@ -557,8 +557,8 @@ def f_hset2(regle, obj):
 #    print("hcre2 ", obj.ido, "->", regle.params.att_entree.val)
 
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('"', '""')+ '"'\
-        for i in obj.attributs if i[0] != "#" and regle.re1.search(i)])
+        obj.attributs.get(i, regle.params.val_entree.val).replace('"', r'\"')+ '"'\
+        for i in obj.attributs if not i.startswith("#") and regle.re1.search(i)])
     return True
 
 def f_hset3(regle, obj):
@@ -568,12 +568,38 @@ def f_hset3(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
     '''
+
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs[i].replace('"', '""')+ '"'\
-        for i in obj.attributs if i[0] != "#"])
+        obj.attributs[i].replace('"', r'\"')+ '"'\
+        for i in obj.attributs if not i.startswith("#")])
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
 
+def f_hset4(regle, obj):
+    ''' #aide||transforme des attributs en hstore
+    #aide_spec||tous les attributs visibles passe les noma en minuscule
+    #pattern||A;;;hset;=lower;
+    #schema||ajout_attribut
+    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
+    '''
+    obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.lower()+'" => "'+\
+        obj.attributs[i].replace('"', r'\"')+ '"'\
+        for i in obj.attributs if not i.startswith("#")])
+#    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
+    return True
+
+def f_hset5(regle, obj):
+    ''' #aide||transforme des attributs en hstore
+    #aide_spec||tous les attributs visibles passe les noma en majuscule
+    #pattern||A;;;hset;=upper;
+    #schema||ajout_attribut
+    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
+    '''
+    obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.upper()+'" => "'+\
+        obj.attributs[i].replace('"', r'\"')+ '"'\
+        for i in obj.attributs if not i.startswith("#")])
+#    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
+    return True
 
 
 def f_hget1(regle, obj):
@@ -671,9 +697,9 @@ def f_cnt(regle, obj):
 def h_join(regle):
     '''preparation jointure'''
     regle.fichier = regle.params.cmp1.val # nom du fichier
-    definition = regle.params.cmp2.liste
-    regle.clef = definition.index(regle.params.att_entree.val)
-    regle.champ = definition.index(regle.params.att_sortie.val)
+    definition_jointure = regle.params.cmp2.liste
+    regle.clef = definition_jointure.index(regle.params.att_entree.val)
+    regle.champ = definition_jointure.index(regle.params.att_sortie.val)
     regle.stock_param.jointdef[regle.fichier] = regle.clef
     regle.stock_param.joint_fich[regle.fichier] = ""
     if re.search(r"\[[CDF]\]", regle.fichier):
@@ -718,9 +744,11 @@ def f_sjoin(regle, obj):
                               regle.params.val_entree.val), regle.champ)
     return True
 
+
 def h_round(regle):
     '''helper round : stocke le nombre de decimales'''
     regle.ndec = int(regle.params.cmp1.num if regle.params.cmp1.num  else 0)
+
 
 def f_round(regle, obj):
     """#aide|| arrondit une valeur a n decimales
@@ -933,9 +961,11 @@ def h_map_data(regle):
     ''' precharge le fichier de mapping et prepare les dictionnaires'''
     regle.dynlevel = 0 # les noms de mapping dependent ils des donnees d entree
     regle.mapping = None
-    regle.schema = None
+    regle.identclasse = None
+    regle.liste_att = None
 #    if regle.params.att_sortie.val == '#schema': # mapping d un schema existant
 #        schema2 =
+    regle.lastfich =  None
     fich = regle.params.cmp1.val
     if "[F]" in fich:
         regle.dynlevel = 2
@@ -947,14 +977,43 @@ def h_map_data(regle):
         charge_mapping(regle)
 
 
-
-
-
 def f_map_data(regle, obj):
     '''#aide||applique un mapping complexe aux donnees
-    #aide_spec||en entree clef et liste des champs adresse a geocoder
-    #pattern||A;;A;map_data;C
+    #aide_spec||C: fichier de mapping
+    #pattern||A;?C;A;map_data;C
     #schema||ajout_attribut
     '''
     val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
     obj.attributs[regle.params.att_entree.val] = remap(val, regle.elmap)
+
+
+def f_map_data_liste(regle, obj):
+    '''#aide||applique un mapping complexe aux donnees
+    #aide_spec||C: fichier de mapping
+    #pattern||L;?C;L;map_data;C
+    #helper||map_data
+    #schema||ajout_attribut
+    '''
+    defaut = regle.params.val_entree.val
+    for entree, sortie in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
+        obj.attributs[sortie] = remap(obj.attributs.get(entree, defaut), regle.elmap)
+
+
+def f_map_data_type(regle, obj):
+    '''#aide||applique un mapping complexe aux donnees
+    #aide_spec||C: fichier de mapping
+    #aide_spec||LT: definition de type de donnees (T:)
+    #pattern||*;?C;T:;map_data;C
+    #helper||map_data
+    #schema||ajout_attribut
+    '''
+    if obj.schema is None:
+        return False
+    ident = obj.schema.identclasse
+    if ident != regle.identclasse:
+        regle.identclasse = ident
+        regle.liste_att = [i for i in obj.schema.attribut if i.type_att == regle.params.att_entree.val]
+    defaut = regle.params.val_entree.val
+    for att in regle.regle.liste_att:
+        obj.attributs[att] = remap(obj.attributs.get(att, defaut), regle.elmap)
+

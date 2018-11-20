@@ -690,13 +690,17 @@ def mapping(mapp, classes, id_cl):
         return ''
     return origine, destination
 
-def analyse_interne(schema, mode='util'):
+def analyse_interne(schema, mode='util', type_schema=None):
     '''verifie la coherence interne d'un schema et cree les listes croisees de conformites'''
-#    print ("analyse interne" , schema.nom,schema,mode)
+    print ("analyse interne" , schema.nom,mode,type_schema)
     retour = False
+    if type_schema and schema.origine not in type_schema:
+        return False
     if mode == 'no':
         return False
     if mode == 'non_vide': # on teste si au moins une classe du schema contient un objet
+        if not schema.rep_sortie:
+            return False
         if not schema.classes:
             return False
         if max([cl.objcnt for cl in schema.classes.values()]) >= 1:
@@ -706,6 +710,8 @@ def analyse_interne(schema, mode='util'):
         else:
             return False
     elif mode == 'util':
+        if not schema.rep_sortie:
+            return False
         for schema_classe in schema.classes.values():
             if schema_classe.objcnt > 0:
                 schema_classe.a_sortir = True

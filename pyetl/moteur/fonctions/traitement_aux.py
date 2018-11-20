@@ -314,7 +314,10 @@ def fschema_set_geom(regle, obj):
     if obj.schema.amodifier(regle):
 #        print('modif schema geom', obj.schema.nom, obj.schema.info["type_geom"],
 #        '->', obj.attributs['#type_geom'])
-        obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+        if regle.params.cmp1.val:
+            obj.schema.info["type_geom"]=regle.params.cmp1.val
+        else:
+            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])
 
 
@@ -346,14 +349,22 @@ def fschema_change_schema(regle, obj):
     if not nom_schema:
         print('F-schema: schema sans nom ', obj.ident, regle.ligne)
         return False
+    if obj.schema is None:
+        schema2 = regle.stock_param.init_schema(nom_schema, fich=regle.nom_fich_schema
+                                            if regle.nom_fich_schema else nom_schema,
+                                            origine='S')
+        schema_classe = schema2.setdefault_classe(obj.ident)
+        obj.setschema(schema_classe)
+        return
+
     if nom_schema == obj.schema.schema.nom:
         return
-    ident = obj.ident
     schemaclasseold = obj.schema
-    schema2 = regle.stock_param.init_schema(nom_schema, fich=regle.nom_fich_schema
-                                            if regle.nom_fich_schema else nom_schema,
+    schema2 = regle.stock_param.init_schema(nom_schema, fich=(regle.nom_fich_schema
+                                            if regle.nom_fich_schema else nom_schema),
                                             origine='S', modele=obj.schema.schema)
 #    print ('schema2 ',schema2.classes.keys())
+    ident = obj.ident
     schema_classe = schema2.get_classe(ident)
     if not schema_classe:
 #        print ("moteur : copie schema ", nom_schema, ident,  schema2.nom)
