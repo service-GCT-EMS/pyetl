@@ -535,7 +535,7 @@ def f_hset1(regle, obj):
     '''
 #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('"', r'\"')+'"'\
+        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\').replace('"', r'\"')+'"'\
         for i in regle.params.att_entree.liste])
 #    print("creation hstore", regle.params.att_sortie.val,
 #          obj.attributs[regle.params.att_sortie.val])
@@ -557,7 +557,7 @@ def f_hset2(regle, obj):
 #    print("hcre2 ", obj.ido, "->", regle.params.att_entree.val)
 
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('"', r'\"')+ '"'\
+        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\').replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#") and regle.re1.search(i)])
     return True
 
@@ -570,7 +570,7 @@ def f_hset3(regle, obj):
     '''
 
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs[i].replace('"', r'\"')+ '"'\
+        obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#")])
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
@@ -583,7 +583,7 @@ def f_hset4(regle, obj):
     #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
     '''
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.lower()+'" => "'+\
-        obj.attributs[i].replace('"', r'\"')+ '"'\
+        obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#")])
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
@@ -596,7 +596,7 @@ def f_hset5(regle, obj):
     #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
     '''
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.upper()+'" => "'+\
-        obj.attributs[i].replace('"', r'\"')+ '"'\
+        obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#")])
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
