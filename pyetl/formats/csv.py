@@ -542,8 +542,7 @@ class CsvWriter(FileWriter):
                               obj.geom_v.erreurs.errs, obj.attributs['#type_geom'],
                               self.schema.info["type_geom"], obj.geom)
                         geom = ""
-                if not geom:
-                    geom = self.null
+
                 obj.format_natif = "#ewkt"
                 obj.geom = geom
                 obj.geomnatif = True
@@ -553,6 +552,8 @@ class CsvWriter(FileWriter):
                           obj.schema.info["type_geom"], obj.erreurs.errs)
                     return False
 #            print ('prep ligne ', attributs,'G:', geom)
+            if not geom:
+                geom = self.null
             ligne = attributs+self.separ+geom
         else:
             ligne = attributs

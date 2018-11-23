@@ -38,7 +38,8 @@ DFORM = {'in':'%Y/%m/%d %H:%M:%S.%f',
          'fr':'%d-%m-%Y %H:%M:%S.%f'
         }
 
-
+# ----------------fonctions de validation de contenu-----------------------
+# --------------dates--------------------
 def get_jma(date, sep):
     '''essaye d'extraire le jour et mois eyt annee d'une date'''
     def_mois = DEF_MOIS
@@ -61,8 +62,6 @@ def get_jma(date, sep):
 
 
     return annee, mois, jour, fdate
-
-
 
 def _valide_jour(date, format_date):
     ''' teste si le jour est correct'''
@@ -100,6 +99,7 @@ def _valide_jour(date, format_date):
             return '/'.join((mois, jour, annee))
     return None
 
+
 def _valide_heure(heure):
     ''' controle le format d'une heure '''
     dec = 0
@@ -120,7 +120,6 @@ def _valide_heure(heure):
     if milisecs and int(milisecs):
         return ':'.join((hrs, mins, secs, milisecs))
     return ':'.join((hrs, mins, secs))
-
 
 
 def _valide_dates(val, format_dates=''):
@@ -158,7 +157,7 @@ def _valide_dates(val, format_dates=''):
         return err, date
     return err, ""
 
-
+#--- enters----
 def _valide_entiers(val):
     '''controle la validite d'un entier et modifie le type en entier long si necessaire'''
     err = ''
@@ -180,6 +179,7 @@ def _valide_entiers(val):
             err = 'entier'
     return err, repl, changetype
 
+
 def info_schema(schemaclasse, request, nom=None):
     '''retourne des elements modifiables du schema'''
 #    print('dans info_schema :',classe.nom,classe.info["type_geom"],classe.info["dimension"])
@@ -197,6 +197,7 @@ def info_schema(schemaclasse, request, nom=None):
         return "1" if nom in schemaclasse.attributs else "0"
     print("infoschema: commande inconnue ", schemaclasse, request)
 #    raise
+
 
 def set_val_schema(schemaclasse, nom, valeur):
     '''positionne des elements modifiables du schema.
@@ -315,6 +316,21 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
                        atdef.type_att + " nom:" + conf.nom +' (' + nom_schema + ')')
     return repl, erreurs, warnings
 
+def _valide_bool(orig, val):
+    '''convertit un booleen en format interne'''
+    btypes = {'elyx':{'t':'t', 'f':'f', '-1':'t','0':'f'},
+              'def':{'t':'t', 'f':'f', 'True':'t', 'False':'f', '0':'t', '1':'f'}
+              }
+    try:
+        valides = btypes[orig]
+    except:
+        valides = btypes['def']
+
+    try:
+        return '', valides[val], ''
+    except KeyError:
+        return 'booleen: '+val, val, 'T'
+
 
 def _valide_type(classe, atdef, val):
     ''' gere le controle de type par rapport au schema'''
@@ -342,8 +358,10 @@ def _valide_type(classe, atdef, val):
         except ValueError:
             err = 'flottant'
     elif atdef.type_att == "B":# test numerique
-        if val not in ('t', 'f', 'True', 'False', '0', '1', '-1'):
-            err = 'booleen'
+        err, val, changetype = _valide_bool(classe.schema.systeme_orig, val)
+        if changetype:
+            atdef.type_att = "T"
+
     else:
         print('type non gere ', atdef.type_att, classe.schema.nom, classe.nom, atdef.nom, val)
     return err, repl
@@ -357,6 +375,7 @@ def set_err(classe, obj, message, attendu, erreur, affich):
         print('valide_schema: '+message % (idobj, attendu, erreur),
               classe.schema.nom, classe.identclasse)
     return message % (idobj, attendu, erreur)
+
 
 def valide_schema(schemaclasse, obj, mode='', repl='inconnu'):
     ''' verifie si un objet est conforme a son schema '''
@@ -584,63 +603,7 @@ def adapte_schema_classe(schema_classe_dest, schema_classe_orig):
                 print('FSC: adapte_schema: attribut obligatoire inexistant supprime', i)
 
 
-#def adapte_nom_court(nom_orig, existants, taille):
-#    '''on essaye d'eviter les existants'''
-#    essai = 0
-#    repl = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#    nom = nom_orig.upper()
-#    while nom in existants and essai < 35:
-#        if len(nom) < taille:
-#            nom = nom+'1'
-#        else:
-#            nom = nom[:-1]+repl[essai]
-#        essai += 1
-#    if nom in existants:
-#        print('echec raccourcissement',nom)
-#    existants.add(nom)
-#    return nom
-#
-#def cree_nom_court(schema_classe, longueur=10, abrev=None):
-#    '''genere des noms courts pour les sorties shape '''
-#    noms_courts = set()
-#    a_supp = 'YUOIAEBCDFGHJKLMNPQRSTVWXYZ0123456789'
-#    if abrev is None:
-#        abrev = schema_classe.schema.dic_abrev
-#    for i in schema_classe.attributs:
-#        att = schema_classe.attributs[i]
-#        if att.nom_court:
-#            noms_courts.add(att.nom_court.upper())
-#            continue
-#        nom = att.nom.upper()
-#        nom1 = ""
-#        position = 0
-#        if len(nom) > longueur:
-#            nom = abrev.get(nom, nom)
-#
-#
-#        if len(nom) > longueur:
-#            parts = nom.split('_')
-#            if len(parts) > 2: # on essaye par blocs de 2
-#                essai = '_'.join(parts[0:2])
-#                essai = abrev.get(essai, essai)
-#                nom = essai+"_"+'_'.join(parts[2:])
-#        if len(nom) > longueur:
-#            nom = '_'.join([abrev.get(i, i) for i in nom.split('_')])
-#        if len(nom) > longueur:
-#            nom = '_'.join([abrev.get(i, i) for i in nom.split('_')])
-#
-#        if len(nom) > longueur:
-#            nom = re.sub("_([0-9])", r"\1", nom)
-#        if len(nom) > longueur:
-#            nom1 = nom
-#        while len(nom) > longueur:
-#            nom = nom.replace(a_supp[position], '')
-#            position = position+1
-#        nom = adapte_nom_court(nom, noms_courts, longueur)
-#        if nom1:
-#            print("raccourcissement force", att.nom, "->", nom1, "->", nom)
-#
-#        att.nom_court = nom
+
 
 def ajuste_schema(schema, obj, conf=0):
     ''' deduit un schema a partir des objets'''

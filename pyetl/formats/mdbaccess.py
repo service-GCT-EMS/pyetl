@@ -311,6 +311,9 @@ def get_schemabase(connect, mode_force_enums=1):
     debut = time.time()
     schema_base = connect.schemabase
 #    types_base = connect.types_base
+    metas = {'type_base':connect.idconnect, 'date_extraction':time.asctime(),
+             'serveur':connect.serveur, 'base':connect.base}
+    schema_base.metas = metas
     for i in connect.get_enums():
         nom_enum, ordre, valeur, alias = i[:4]
         conf = schema_base.get_conf(nom_enum)
@@ -476,6 +479,8 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
 
     nomschema = nomschema if nomschema else 'schema_'+connect.nombase
     schema_travail = stock_param.init_schema(nomschema, 'B', modele=connect.schemabase)
+    schema_travail.metas = dict(connect.schemabase.metas)
+    schema_travail.metas['tables']=tables
     liste2 = []
 #    print ( 'schema base ',schema_base.classes.keys())
     for ident in select_tables(connect.schemabase, niveau, classe, tables, multi, nocase):

@@ -283,6 +283,10 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
     description = ["!groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;"+
                    "Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK"]
     #print("schema:  csv sortir_classes",len(self.classes))
+    if sch.metas:
+        print ('sortir metas ',sch.metas)
+        metadef = '!meta;'+';'.join(k+'='+v for k,v in sch.metas.items())
+        description.append(metadef)
     if sch.classes:
         for i in sorted(sch.classes.keys()):
             if sch.classes[i].a_sortir:
@@ -468,10 +472,15 @@ def _decode_attribut_csv(liste):
 
 def decode_classes_csv(schema_courant, entree):
     """stocke les  classes  dans le schema"""
+    metas = dict()
     for i in entree:
         if not i:
             continue
         if i[0] == '!':
+            if i.startswith('!meta;'): # le fichier contient des metadonnees
+                v_tmp = [j.strip().split['='] if '=' in j else [j.strip(),''] for j in i.split(';')]
+                metas = {nom:val for nom,val in v_tmp}
+                schema_courant.metas = metas
             continue
         v_tmp = [j.strip() for j in i.split(';')]
 

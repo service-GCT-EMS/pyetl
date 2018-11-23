@@ -8,7 +8,7 @@ import re
 import os
 import copy
 import logging
-from collections import namedtuple
+#from collections import namedtuple
 import pyetl.schema.schema_interne as SC
 import pyetl.schema.fonctions_schema as FSC
 #from pyetl.moteur.selecteurs import Selecteur
@@ -66,11 +66,25 @@ class Branch(object):
         else:
             self.suivante = self.brch['sinon:'].suivante if self.brch['sinon:'] else None
 
+class Valdef(object):
+    '''classe de stockage d'un parametre'''
+    def __init__(self, val, num, liste, dyn, definition, origine):
+        self.val = val
+        self.num = num
+        self.liste = liste
+        self.dyn = dyn
+        self.definition = definition
+        self.besoin = None
+        self.origine = origine
+
+    def update(self,obj):
+        '''mets a jour les elements a partir de l'objet'''
+        self.val = obj.attributs.get(self.origine,'')
 
 
 class ParametresFonction(object):
     ''' stockage des parametres standanrds des regles '''
-    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
+#    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
 
     def __init__(self, valeurs, definition):
         self.valeurs = valeurs
@@ -84,7 +98,7 @@ class ParametresFonction(object):
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
 
-    def _crent(self, nom, taille=0):
+    def _crent(self, nom, taille=0, besoin=None):
         '''extrait les infos de l'entite selectionnee'''
 #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
         try:
@@ -113,9 +127,15 @@ class ParametresFonction(object):
         if self.definitions[nom].pattern == '|L':
             liste = val.split("|") if val else []
         dyn = "*" in val
+        origine = None
+        if val.startswith('['):
+            dyn = True
+            origine = val[1:-1]
+
 #        var = "P:" in val
 
-        return self.st_val(val, num, liste, dyn, defin)
+#        return self.st_val(val, num, liste, dyn, defin)
+        return Valdef(val, num, liste, dyn, defin, origine)
 
 
     def __repr__(self):

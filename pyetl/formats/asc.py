@@ -333,8 +333,8 @@ def _get_schemas(stock_param, rep, fichier):
 def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
     ''' lecture d'un fichier asc et stockage des objets en memoire'''
     n_obj = 0
-    affich = 10000
-    nextaff = 10000
+    affich = 20000
+    nextaff = 20000
     #ouv = None
     obj = None
     nom = None

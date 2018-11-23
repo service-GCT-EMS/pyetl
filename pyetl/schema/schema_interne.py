@@ -116,6 +116,8 @@ class Schema(object):
 #        self.dic_abrev = dict()
         self.stock_mapping = M.Mapping()
         self.origine = origine  #G: schema genere L: schema lu S: schema de sortie B: schema base
+        self.systeme_orig = 'def' # systeme d'origine : permets de gerer les particularites
+        self.metas = dict() # metadonnees du schema
         self.modele = None
         self.nom = nom_schema
         self.fich = fich if fich else self.nom

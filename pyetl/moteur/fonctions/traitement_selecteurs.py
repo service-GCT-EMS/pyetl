@@ -7,7 +7,7 @@ fonctions s de selections : determine si une regle est eligible ou pas
 """
 import re
 from .outils import compilefonc, prepare_mode_in
-DEBUG = 0
+
 
 def selh_calc(selecteur):
     """prepare les expressions pour le calcul """
@@ -19,7 +19,7 @@ def selh_calc(selecteur):
     exp_final = re.sub("^ *C:(?!#?[A-Za-z])", "C:"+attribut, exp_final)
 
 #    print('exp test final', exp_final, attribut, valeurs)
-    selecteur.fselect = compilefonc(exp_final, 'obj', debug=DEBUG)
+    selecteur.fselect = compilefonc(exp_final, 'obj', debug=selecteur.regle.debug)
 
 def sel_calc(selecteur, obj):
     '''#aide||evaluation d une expression avec un attribut
@@ -32,7 +32,7 @@ def sel_calc(selecteur, obj):
 def selh_calc2(selecteur):
     """prepare les expressions pour le calcul """
     valeurs = selecteur.params.vals.val
-    selecteur.fselect = compilefonc(valeurs, 'obj', debug=DEBUG)
+    selecteur.fselect = compilefonc(valeurs, 'obj', debug=selecteur.regle.debug)
 
 def sel_calc2(selecteur, obj):
     '''#aide||evaluation d une experssion libre
@@ -280,6 +280,33 @@ def sel_infich(selecteur, obj):
        #test||obj||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     '''
     return ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste) in selecteur.info
+
+
+def selh_infich_re(selecteur):
+    '''precharge le fichier
+    '''
+#    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
+    _, valeurs = prepare_mode_in(selecteur.params.vals.val, selecteur.regle.stock_param,
+                                 len(selecteur.params.attr.liste))
+    if isinstance(valeurs, list):
+        valeurs = set(valeurs)
+    selecteur.info = [re.compile(i) for i in valeurs]
+
+
+
+def sel_infich_re(selecteur, obj):
+    '''#aide||valeur dans un fichier
+  #aide_spec||il est possible de preciser des positions a lire dans le ficher
+           +||en mettant les positions entre a,b;in:nom,1,3
+     #helper||infich
+    #pattern||L;in:fich(re)||20
+       #test||obj||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
+    '''
+    if len(selecteur.params.attr.liste) > 1:
+        vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
+    else:
+        vals = selecteur.params.attr.val
+    return any((i.search(vals) for i in selecteur.info))
 
 
 def selh_inlist(selecteur):

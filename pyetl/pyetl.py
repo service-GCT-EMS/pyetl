@@ -846,6 +846,8 @@ class Pyetl(object):
         clef = self.jointdef[ident_fich]
         self.joint_fich[ident_fich] = fichier
         stock = dict()
+#        if fichier.startswith('db:'):
+
         if self.rdef:
             fichier = fichier.replace("D:", self.rdef+"/")
         if os.path.isfile(fichier): #si le fichier n'existe pas on cree une table vide
