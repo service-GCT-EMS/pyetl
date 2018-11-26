@@ -204,7 +204,8 @@ class GestionSorties(object):
         rep_sortie = rep_sortie if rep_sortie else self.rep_sortie
         if not rep_sortie:
             raise NotADirectoryError('repertoire de sortie non défini')
-        if nom is not None:
+        if nom:
+            print('-------------------nom forcé', os.path.join(rep_sortie, nom))
             return os.path.join(rep_sortie, nom)
         if groupe == '#nogroup':
             groupe = ''

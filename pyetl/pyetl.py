@@ -1070,7 +1070,7 @@ class Pyetl(object):
         if mode_schema in {'all', 'int', 'fusion'} and not self.done:
 #            print('pyetl: traitement virtuel ', mode_schema)
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
-        print('pyetl: ecriture schemas ', mode_schema)
+#        print('pyetl: ecriture schemas ', mode_schema)
         ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))
 
     def _ecriture_stats(self):

@@ -27,8 +27,12 @@ class FileWriter(object):
 
 
     def __init__(self, nom, liste_att=None, converter=str, separ=None,
-                 encoding='utf-8', liste_fich=None, srid='3948', schema=None):
+                 encoding='utf-8', liste_fich=None, srid='3948', schema=None,
+                 f_sortie=None):
         self.nom = nom
+        self.f_sortie = f_sortie
+        if f_sortie:
+            self.writerparms = f_sortie.writerparms
         self.liste_att = _set_liste_attributs(schema, liste_att)
         self.fichier = None
         self.etat = self.INIT

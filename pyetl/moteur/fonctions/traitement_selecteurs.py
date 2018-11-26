@@ -288,9 +288,15 @@ def selh_infich_re(selecteur):
 #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(selecteur.params.vals.val, selecteur.regle.stock_param,
                                  len(selecteur.params.attr.liste))
+    # on recupere les complements s'il y en a
+
+    pref, suf = selecteur.params.vals.definition[0].split(':F:')
+#    print ('-------------------------------in fich_re',selecteur.params.vals.definition, pref,suf)
+
     if isinstance(valeurs, list):
         valeurs = set(valeurs)
-    selecteur.info = [re.compile(i) for i in valeurs]
+    selecteur.info = [re.compile(pref+i+suf) for i in valeurs]
+#    print ('selecteur infichre fich charge ',selecteur.info)
 
 
 
@@ -298,7 +304,6 @@ def sel_infich_re(selecteur, obj):
     '''#aide||valeur dans un fichier
   #aide_spec||il est possible de preciser des positions a lire dans le ficher
            +||en mettant les positions entre a,b;in:nom,1,3
-     #helper||infich
     #pattern||L;in:fich(re)||20
        #test||obj||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     '''

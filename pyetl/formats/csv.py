@@ -477,7 +477,8 @@ class CsvWriter(FileWriter):
     """ gestionnaire des fichiers csv en sortie """
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
                  liste_fich=None, null='', f_sortie=None):
-        super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema)
+
+        super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema, f_sortie=f_sortie)
 
         self.extension = extension
         self.separ = separ
@@ -486,8 +487,6 @@ class CsvWriter(FileWriter):
 
         self.entete = entete
         self.null = null
-        self.f_sortie = f_sortie
-        self.writerparms = f_sortie.writerparms
         self.classes = set()
         if schema:
 #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
@@ -659,10 +658,12 @@ class SqlWriter(CsvWriter):
 
 def getfanout(regle, extention, ident, initial):
     '''determine le mode de fanout'''
-#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention)
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar('_sortie')
     groupe, classe = ident
+    dest = regle.f_sortie.writerparms.get('destination')
+    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest)
+
     bfich = ''
     if regle.params.cmp2.val:
         nfich = regle.params.cmp2.val
@@ -672,18 +673,17 @@ def getfanout(regle, extention, ident, initial):
             return ressource, nom
 
     if regle.fanout == 'no' and regle.f_sortie.fanoutmax == 'all':
-        if not bfich:
-            bfich = 'all'
-        nom = sorties.get_id(rep_sortie, bfich, '', extention)
+        bfich = dest if dest else 'all'
+        nom = sorties.get_id(rep_sortie, bfich, '', extention, nom=dest)
 #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
     elif regle.fanout == 'groupe' and (regle.f_sortie.fanoutmax == 'all'
                                        or regle.f_sortie.fanoutmax == 'groupe'):
 #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
 #            len(obj.schema.attributs))
-        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, '', extention)
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, '', extention, nom=dest)
 
     else:
-        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention)
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
 
     ressource = sorties.get_res(regle.numero, nom)
 #    print('csv:fichier',regle.fanout, rep_sortie, bfich, groupe,nom)

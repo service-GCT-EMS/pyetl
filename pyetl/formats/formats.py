@@ -181,13 +181,15 @@ class Writer(object):
     '''wrappers de sortie génériques'''
     databases = DATABASES
     sorties = SORTIES
-
     def __init__(self, nom, debug=0):
+#        print ('dans writer', nom)
+
         self.dialecte = None
         destination = ''
         dialecte = ''
         if ':' in nom:
-            defs = nom.split(':')[:2]
+            defs = nom.split(':')
+#            print ('decoupage writer', nom, defs,nom.split(':'))
             nom = defs[0]
             dialecte = defs[1]
             destination = defs[2] if len(defs) > 2 else ''
@@ -213,8 +215,8 @@ class Writer(object):
             else:
                 dialecte = dialecte if dialecte in self.databases else 'sql'
                 self.writerparms['dialecte'] = self.databases[dialecte]
-                self.writerparms['destination'] = destination
             self.dialecte = dialecte
+        self.writerparms['destination'] = destination
         self.ecrire_objets = ecrire
         self.ecrire_objets_stream = stream
         self.tmp_geom = tmpgeo
@@ -227,7 +229,7 @@ class Writer(object):
         self.ext = '.'+nom
         self.multiclasse = fanoutmax != 'classe'
         self.fanoutmax = fanoutmax
-#        print('writer : positionnement dialecte',self.writerparms)
+#        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
 
     def get_info(self):
         ''' affichage du format courant : debug '''

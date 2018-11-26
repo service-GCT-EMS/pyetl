@@ -324,6 +324,7 @@ def h_sortir(regle):
         regle.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = F.Writer(regle.params.cmp1.val) # tout le reste
+#    print ('positionnement writer ',regle, regle.params.cmp1.val)
     if regle.f_sortie.nom_format == 'sql': # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get('destination')
         dialecte = regle.f_sortie.writerparms.get('dialecte')

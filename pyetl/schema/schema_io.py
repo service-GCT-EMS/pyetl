@@ -877,12 +877,12 @@ def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
 
     rep_s = schema.rep_sortie if schema.rep_sortie else\
             os.path.join(stock_param.get_param('_sortie'), os.path.dirname(schema.fich) if schema.fich else '')
-    print ('ecrire_schema_sortie' , schema.nom, rep_s, schema.fich)
+#    print ('ecrire_schema_sortie' , schema.nom, rep_s, schema.fich)
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
 
     for form in formats_a_sortir:
-        print('sio: ecrire_schema', rep_s, schema.nom, form)
+#        print('sio: ecrire_schema', rep_s, schema.nom, form)
         if 'sql' in form: # on met le sql en premier car on modifie des choses
 #            print('sio:sortie sql', schema.nom, 'rep:',
 #                  rep_s, schema.dbsql, schema.dbsql.connection if schema.dbsql else 'NC', form)
@@ -969,7 +969,7 @@ def retour_schemas(schemas, mode='util'):
 
 def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
     '''prepare les schemas pour la sortie '''
-    print('ecriture_schemas', mode, stock_param.schemas.keys())
+#    print('ecriture_schemas', mode, stock_param.schemas.keys())
     if mode == 'no':
         return
     rep_sortie = stock_param.get_param('_sortie')
