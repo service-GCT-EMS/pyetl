@@ -66,7 +66,7 @@ def f_start(regle, obj):
     #pattern||;;;start;;
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
-    if obj: # on a deja un objet pas la peirn d'en refaire un
+    if obj: # on a deja un objet pas la peine d'en refaire un
         return True
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
@@ -87,6 +87,23 @@ def f_end(_, __):
     #test||obj||^;;;end;;||^V;1;;testobj;test;1;||cnt;1
     """
     return True
+
+
+def h_sync(regle):
+    """helper final"""
+    if regle.stock_params.worker:
+        regle.final = True
+        if regle.params.cmp1.val:
+            regle.stock_params.set_param('_w_end',regle.params.cmp1.val)
+    return True
+
+
+def f_sync(regle, __):
+    """#aide||finit un traitement en parallele et redonne la main sans stats ni ecritures
+    #pattern||;;;sync;?C;
+    """
+    return True
+
 
 def f_reel(_, obj):
     """#aide||transforme un objet virtuel en objet reel
@@ -147,7 +164,7 @@ def printfunc(regle, obj):
     else:
         cmp1 = txt
     noms = regle.params.cmp2.val or regle.params.val_entree.val
-#    print ('affichage noms',noms,regle.params.cmp2)
+#    print ('affichage', obj)
     if regle.params.att_entree.dyn:
         liste = obj.get_dynlisteval(noms=noms)
     elif regle.params.att_entree.val == "#geom":
@@ -709,7 +726,7 @@ def traite_parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
-        print("preparation exec parallele", def_regles, mapper.liste_params)
+#        print("preparation exec parallele", def_regles, mapper.liste_params)
         LOGGER.info(' '.join(("preparation exec parallele", str(def_regles),
                               str(mapper.liste_params))))
         rinit = parallelexec(executor, nprocs, mapper.initparallel,

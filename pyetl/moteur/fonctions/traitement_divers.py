@@ -353,6 +353,9 @@ def h_sortir(regle):
     regle.calcule_schema = regle.f_sortie.calcule_schema
     regle.memlimit = int(regle.getvar('memlimit', 0))
     regle.store = None
+    mode_sortie = regle.getvar("mode_sortie", "A")
+    if mode_sortie == 'B' or mode_sortie=='A':
+        regle.store = True
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
 #    regle.liste_attributs = regle.params.att_entree.liste
@@ -361,7 +364,7 @@ def h_sortir(regle):
     regle.final = True
     regle.menage = True
     #print ('icsv: sortir copy:',regle.copy,'stream:',regle.stock_param.stream)
-    if regle.copy and regle.getvar("mode_sortie", "A") == "D":
+    if regle.copy and mode_sortie == "D":
     # cette regle consomme les objets sauf si on est en mode copie et streaming
         regle.final = False
         regle.copy = False

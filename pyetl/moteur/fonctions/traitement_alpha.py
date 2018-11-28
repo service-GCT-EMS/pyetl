@@ -766,7 +766,7 @@ def f_round(regle, obj):
     return True
 
 
-def geocode_traite_stock2(regle, final=True):
+def geocode_traite_stock(regle, final=True):
     '''libere les objets geocodes '''
     if regle.nbstock == 0:
         return
@@ -786,7 +786,7 @@ def geocode_traite_stock2(regle, final=True):
     buffer = ('ident;_adresse\n' +\
                 '\n'.join([str(n)+';'+" ".join([obj.attributs.get(i, "") for i in attlist])
                            for n, obj in enumerate(regle.tmpstore)])).encode("utf-8")
-    print('geocodage', attlist, buffer)
+#    print('geocodage', attlist, buffer)
     geocodeur = regle.getvar('url_geocodeur')
 
     files = {'data': io.BytesIO(buffer)}
@@ -833,79 +833,6 @@ def geocode_traite_stock2(regle, final=True):
     print('geocodage %d objets en %d secondes (%d obj/sec)' %
           (regle.traite, int(time.time()-regle.tinit), regle.traite/(time.time()-regle.tinit)))
     regle.tmpstore = []
-#    raise
-#    if final:
-#        curl.close()
-##    obj.redirect
-
-
-
-
-
-#def geocode_traite_stock(regle, final=True):
-#    '''libere les objets geocodes '''
-#    if regle.nbstock == 0:
-#        return
-#    attlist = regle.params.att_entree.liste
-#    prefix = regle.params.cmp1.val
-#    outbuffer = ('ident;_adresse\n' +\
-#                '\n'.join([str(n)+';'+" ".join([j.attributs.get(i, "") for i in attlist])
-#                           for n, j in enumerate(regle.tmpstore)])).encode("utf-8")
-#
-#    curl = regle.curl
-##    with open('out.csv', 'wb') as fsortie:
-#    with io.BytesIO() as fsortie:
-#
-#        curl.setopt(curl.HTTPPOST, [('data', (curl.FORM_BUFFER, 'gc.csv',
-#                                              curl.FORM_BUFFERPTR, outbuffer, )),
-#                                    ('columns', '_adresse')])
-#
-#        curl.setopt(curl.WRITEDATA, fsortie)
-#        curl.perform()
-##        curl.close()
-#        buf = fsortie.getvalue().decode("utf-8")
-##        sortie = buf.split("\n")
-#        header = []
-#        suite = regle.branchements.brch["end:"]
-#        fail = regle.branchements.brch["fail:"]
-#
-#        traite = regle.stock_param.moteur.traite_objet
-##        print ('retour ',buf)
-#        for ligne in buf.split("\n"):
-##            print ('traitement sortie',ligne)
-#            if not ligne:
-#                continue
-#            attributs = ligne[:-1].split(";")
-##            attributs = ligne.split(";")
-#            if header:
-#                if attributs[0].isnumeric():
-#                    numero = int(attributs[0])
-#                    obj = regle.tmpstore[numero]
-#                    obj.attributs.update([(nom, contenu) for nom, contenu
-#                                          in zip(header[1:], attributs[1:])])
-#                    score = obj.attributs['result_score']
-#                    vscore = float(score) if score else 0
-#
-#                    traite(obj, suite if vscore > regle.scoremin else fail)
-#
-#
-#                else:
-#                    print('geocodeur: recu truc etrange ', ligne)
-#            else:
-#                header = [prefix+i for i in attributs]
-#                obj = regle.tmpstore[0] # on prends un objet au hasard
-#                if obj.schema:
-#                    if regle.numero in obj.schema.regles_modif: # on force l'adaptation du schema
-#                        obj.schema.regles_modif.remove(regle.numero)
-#                    regle.action_schema(regle, obj, liste=header)
-## and regle in obj.schema.regles_modif
-#    regle.traite += regle.nbstock
-#    regle.nbstock = 0
-#    print('geocodage', regle.traite, int(time.time()-regle.tinit))
-#    regle.tmpstore = []
-#    if final:
-#        curl.close()
-##    obj.redirect
 
 
 
@@ -917,18 +844,17 @@ def h_geocode(regle):
 #        print('pycurl non disponible géocodage impossible ')
 #        return False
 #    curl = pycurl.Curl()
-    geocodeur = regle.getvar('url_geocodeur')
-    print('geocodeur utilise ', geocodeur)
+    print('geocodeur utilise ', regle.getvar('url_geocodeur'))
 #    curl.setopt(curl.URL, geocodeur)
 #    regle.curl = curl
     regle.blocksize = int(regle.getvar('geocodeur_blocks', 1000))
     regle.store = True
     regle.nbstock = 0
     regle.traite = 0
-    regle.traite_stock = geocode_traite_stock2
+    regle.traite_stock = geocode_traite_stock
     regle.tmpstore = []
     regle.scoremin = 0
-    print('liste_filtres', regle.params.cmp2.liste)
+    print('liste_filtres demandes', regle.params.cmp2.liste)
     regle.filtres = dict(i.split(':') for i in regle.params.cmp2.liste)
 #    regle.ageocoder = dict()
     regle.tinit = time.time()
@@ -946,10 +872,11 @@ def f_geocode(regle, obj):
     #schema||ajout_att_from_liste
     '''
 #    clef = obj.attributs.get(regle.params.cmp1.val)
+#    print("avant geocodeur", regle.nbstock)
     regle.tmpstore.append(obj)
 #    regle.ageocoder[clef] = ";".join([obj.attributs.get(i,"")
 #                                      for i in regle.params.att_entree.liste])
-    print("geocodeur", regle.nbstock)
+#    print("geocodeur", regle.nbstock)
     regle.nbstock += 1
     if regle.nbstock >= regle.blocksize:
         regle.traite_stock(regle, final=False)

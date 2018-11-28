@@ -655,7 +655,7 @@ def mapping(mapp, classes, id_cl):
 
 def analyse_interne(schema, mode='util', type_schema=None):
     '''verifie la coherence interne d'un schema et cree les listes croisees de conformites'''
-    print ("analyse interne" , schema.nom,mode,type_schema)
+#    print ("analyse interne" , schema.nom,mode,type_schema)
     retour = False
     if type_schema and schema.origine not in type_schema:
         return False

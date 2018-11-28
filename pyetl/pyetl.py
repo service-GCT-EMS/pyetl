@@ -163,7 +163,7 @@ def setparallelid(parametres):
     if log:
         base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
         log = base+'_'+wid+'.'+ext
-    print('avant init', commandes, args)
+#    print('avant init', commandes, args)
     init = initpyetl(MAINMAPPER, commandes, args, log=log)
 
     return (os.getpid(), MAINMAPPER.get_param('_wid'), init)
@@ -945,8 +945,6 @@ class Pyetl(object):
                     #traitement.racine_fich = os.path.dirname(i)
                     try:
                         nb_lu = self.lecture(i)
-                        self.padd('_st_lu_objs', nb_lu)
-                        self.padd('_st_lu_fichs', 1)
                     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
                         if arret.args[0] == '2':
@@ -993,22 +991,23 @@ class Pyetl(object):
                     regle.traite_stock(regle)
 
         self.debug = 0
-        nf2, ng2 = self.sorties.final()
-
-        self._ecriture_stats()
-        self.macro_final()
-        self.padd('_st_wr_fichs', nf2)
-        self.padd('_st_wr_objs', ng2)
         if self.worker: # on est en mode esclave
 #            print ('worker ecrire schema csv')
             schemas = retour_schemas(self.schemas, mode=self.get_param('force_schema', 'util'))
 #            print ('worker apres ecrire schema csv')
-
-            return ng2, nf2, schemas
-
         else:
             self._ecriture_schemas()
-            return ng2, nf2, None
+
+        nf2, ng2 = self.sorties.final() # on ferme tous les fichiers
+
+        self._ecriture_stats()
+        self.padd('_st_wr_fichs', nf2)
+        self.padd('_st_wr_objs', ng2)
+        schemas = None
+
+
+        self.macro_final()
+        return ng2, nf2, schemas
 
 
     def macro_final(self):
@@ -1019,7 +1018,9 @@ class Pyetl(object):
 #        print ('finalisation commande ', macrofinale, self.idpyetl)
         if not macrofinale or (self.worker and self.parent is None):
             # le worker de base n'execute pas de macro finale
-            return
+            macrofinale = self.get_param('_w_end', local=True)
+            if not macrofinale:
+                return
         mdef = macrofinale.split(':')
         nom_macro = mdef[0]
         variables = mdef[1:]
@@ -1239,7 +1240,7 @@ class Pyetl(object):
         # positionne le stockage au bon format
         self.f_entree = Reader(ext)
         regle = self.regles[reglenum] if regle is None else regle
-        reglestart = regle.branchements.brch['next:']
+        reglestart = regle.branchements.brch['next:'] if reglenum else regle
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)

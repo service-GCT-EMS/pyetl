@@ -68,7 +68,7 @@ class Branch(object):
 
 class Valdef(object):
     '''classe de stockage d'un parametre'''
-    def __init__(self, val, num, liste, dyn, definition, origine):
+    def __init__(self, val, num, liste, dyn, definition, origine, texte):
         self.val = val
         self.num = num
         self.liste = liste
@@ -76,10 +76,14 @@ class Valdef(object):
         self.definition = definition
         self.besoin = None
         self.origine = origine
+        self.texte = texte
 
     def update(self,obj):
         '''mets a jour les elements a partir de l'objet'''
         self.val = obj.attributs.get(self.origine,'')
+
+    def __repr__(self):
+        return self.texte+'->'+str(self.val)
 
 
 class ParametresFonction(object):
@@ -101,6 +105,7 @@ class ParametresFonction(object):
     def _crent(self, nom, taille=0, besoin=None):
         '''extrait les infos de l'entite selectionnee'''
 #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
+        texte = self.valeurs[nom].string
         try:
             val = self.valeurs[nom].group(1)
             if r'\;' in val:
@@ -135,7 +140,7 @@ class ParametresFonction(object):
 #        var = "P:" in val
 
 #        return self.st_val(val, num, liste, dyn, defin)
-        return Valdef(val, num, liste, dyn, defin, origine)
+        return Valdef(val, num, liste, dyn, defin, origine, texte)
 
 
     def __repr__(self):

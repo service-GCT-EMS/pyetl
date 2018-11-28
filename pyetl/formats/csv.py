@@ -512,7 +512,7 @@ class CsvWriter(FileWriter):
         if not self.entete:
             return ''
         geom = self.separ+"geometrie"+"\n" if self.schema.info["type_geom"] != '0' else "\n"
-        return self.separ.join(self.liste_att)+geom
+        return '!'+self.separ.join(self.liste_att)+geom
 
 
     def write(self, obj):
