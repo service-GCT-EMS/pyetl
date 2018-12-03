@@ -1240,7 +1240,8 @@ class Pyetl(object):
         # positionne le stockage au bon format
         self.f_entree = Reader(ext)
         regle = self.regles[reglenum] if regle is None else regle
-        reglestart = regle.branchements.brch['next:'] if reglenum else regle
+#        reglestart = regle.branchements.brch['next:'] if reglenum else regle
+        reglestart = regle.branchements.brch['next:'] if regle else self.regles[0]
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)
