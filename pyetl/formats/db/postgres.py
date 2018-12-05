@@ -351,7 +351,7 @@ class PgConnect(database.DbConnect):
         return " "+operateur+" %(val)s"
 
 
-    def extload(self, helper, file, logfile=None, outfile=None):
+    def extload(self, helper, file, logfile=None, outfile=None, reinit='0'):
         '''charge un fichier par copy'''
         serveur = ' --'.join(self.serveur.split(' '))
         chaine_connect = serveur + ' --dbname=' + self.base

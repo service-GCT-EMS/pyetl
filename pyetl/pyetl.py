@@ -25,7 +25,7 @@ from  .schema.schema_interne import init_schema # schemas
 from  .schema.schema_io import ecrire_schemas, retour_schemas # schemas
 #from  .outils.crypt import crypter, decrypt
 
-VERSION = "0.8.2.2_d"
+VERSION = "0.8.2.2_e"
 LOGGER = logging.getLogger('pyetl') # un logger
 MODULEDEBUG = False
 

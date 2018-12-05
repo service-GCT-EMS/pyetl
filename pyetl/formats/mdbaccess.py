@@ -428,8 +428,9 @@ def dbextload(regle_courante, base, file, log=None):
     helpername = connect.load_helper
     loadext = connect.load_ext
     helper = get_helper(base, file, loadext, helpername, stock_param)
+    reinit = regle_courante.getvar('reinit','0')
     if helper:
-        return connect.extload(helper, file, logfile=log)
+        return connect.extload(helper, file, logfile=log, reinit=reinit)
     return False
 
 

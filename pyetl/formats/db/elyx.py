@@ -136,10 +136,8 @@ class ElyConnect(ora.OraConnect):
             return self.lanceur(helper, xml, paramfile, outfile)
 
 
-    def extload(self, helper, file, logfile=None):
-        '''charge un fichier par FEA2ORA'''
-        reinit = self.params.get_param('reinit', '0') if self.params else '0'
-        nom = os.path.splitext(os.path.basename(file))[0]
+    def gen_importxml(self, helper, file, logfile, reinit):
+        '''prepare le fichier xml pour l'import elyx'''
         csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
         logobject = os.path.join(logfile, 'log_import.txt')
         loadxml = ['<Fea2OraConfig>',
@@ -168,9 +166,25 @@ class ElyConnect(ora.OraConnect):
                    ' allowDoublePoints="0" />',
                    '</checkOption>',
                    '</Fea2OraConfig>']
+        return loadxml
+
+
+
+
+
+    def extload(self, helper, file, logfile=None, reinit='0'):
+        '''charge un fichier par FEA2ORA'''
+        loadxml = self.gen_importxml(helper, file, logfile, reinit)
+        nom = os.path.splitext(os.path.basename(file))[0]
 
         retour = self.singlerunner(helper, loadxml, nom)
         return retour
+
+
+
+
+
+
 
     def genexportxml(self, destination, log, classes):
         '''prepare les fichiers de confix xml pour l'export'''
