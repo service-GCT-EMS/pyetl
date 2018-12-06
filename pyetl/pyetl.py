@@ -1143,7 +1143,7 @@ class Pyetl(object):
 #                    print ('connu ',chemin,nom,extinc,'->',extref)
                     pass
                 else:
-                    print('inconnu ', chemin, nom, extinc)
+                    print('extention inconnue ', extref, '->', chemin, nom, extinc)
 
 
     def fichs_schema(self):
@@ -1234,7 +1234,7 @@ class Pyetl(object):
         self.fichier_courant = fich
         self.chemin_courant = chemin
         self.racine = racine
-#        print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext)
+        print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext)
 
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format

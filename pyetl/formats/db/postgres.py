@@ -105,6 +105,7 @@ class PgConnect(database.DbConnect):
         self.codecinfo = {'utf-8':'UTF8', 'cp1252':'WIN1252'}
         self.load_helper = 'prog_pgsql'
         self.sql_helper = 'prog_pgsql'
+        self.accept_sql = 'alpha'
         self.valide = False
         if self.connection:
             self.set_searchpath()
@@ -351,7 +352,7 @@ class PgConnect(database.DbConnect):
         return " "+operateur+" %(val)s"
 
 
-    def extload(self, helper, file, logfile=None, outfile=None, reinit='0'):
+    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
         '''charge un fichier par copy'''
         serveur = ' --'.join(self.serveur.split(' '))
         chaine_connect = serveur + ' --dbname=' + self.base
@@ -360,8 +361,6 @@ class PgConnect(database.DbConnect):
             chaine_connect = chaine_connect + ' --username=' + self.user
         if logfile:
             chaine_connect = chaine_connect + ' --log-file='+logfile + ' --quiet'
-        if outfile:
-            chaine_connect = chaine_connect + ' --output='+outfile
 
 
 #  \copy  table [ ( column_list ) ] from 'filename' [ with ( option [, ...] ) ]

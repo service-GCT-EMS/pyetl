@@ -51,6 +51,7 @@ class OraConnect(database.DbConnect):
         self.geom_from_natif = geom_from_ewkt
         self.geom_to_natif = ecrire_geom_ewkt
         self.idconnect = 'oracle'
+        self.accept_sql = 'alpha'
         self.dateformat = 'YYYY/MM/DD HH24:MI:SS'
         self.valide = self.connection is not None
 

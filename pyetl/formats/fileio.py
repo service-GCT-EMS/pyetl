@@ -15,7 +15,9 @@ def _set_liste_attributs(schemaclasse, attributs):
         return schemaclasse.get_liste_attributs()
     return None
 
-
+def _defaultconverter(obj, liste_att, transtable=None, separ=None):
+    '''convertisseur d'objets de base'''
+    return obj.__json_if
 
 class FileWriter(object):
     """superclasse des classes writer de fichiers"""
@@ -26,7 +28,7 @@ class FileWriter(object):
     FAIL = 4
 
 
-    def __init__(self, nom, liste_att=None, converter=str, separ=None,
+    def __init__(self, nom, liste_att=None, converter=_defaultconverter, separ=None,
                  encoding='utf-8', liste_fich=None, srid='3948', schema=None,
                  f_sortie=None):
         self.nom = nom
@@ -45,6 +47,7 @@ class FileWriter(object):
         self.htext = ""
         self.hinit = ""
         self.ttext = ""
+        self.transtable = None
 
     def header(self, init=None):
         """entete du fichier"""
@@ -107,7 +110,7 @@ class FileWriter(object):
 
     def write(self, obj):
         '''ecrit un objet complet'''
-        chaine = self.converter(obj, self.liste_att)
+        chaine = self.converter(obj, self.liste_att, transtable=self.transtable)
         self.fichier.write(chaine)
         if chaine[-1] != "\n":
             self.fichier.write("\n")

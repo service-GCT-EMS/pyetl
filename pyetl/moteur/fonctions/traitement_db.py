@@ -177,7 +177,6 @@ def setdb(regle, obj, att=True):
         valeur = regle.params.val_entree.liste
     else:
         valeur = cmp
-
     return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
 
@@ -201,10 +200,36 @@ def f_dbalpha(regle, obj):
 
 #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
     if base:
-        retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
-                                            valeur, mods=mods, sortie=regle.params.att_sortie.liste,
-                                            v_sortie=valeur, ordre=ordre,
-                                            type_base=type_base, chemin=chemin)
+        connect = DB.dbaccess(regle.stock_param, base,type_base=type_base,chemin=chemin)
+        if connect is None:
+            return False
+        if connect.accept_sql == 'non': # pas de requetes directes on essaye le mode dump
+            dest = os.path.join(regle.getvar('_sortie'),'tmp')
+            os.makedirs(dest, exist_ok=True)
+            log = os.path.join(dest, 'log')
+            os.makedirs(log, exist_ok=True)
+            print('traitement db: dump donnees de', base, 'vers', dest)
+            DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
+            mapper = regle.stock_param
+            fichs = mapper.scan_entree(rep=dest)
+            fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
+            nb_lu = 0
+            if fparm:
+                for i, parms in fparm:
+                    try:
+                        nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+                    except StopIteration as abort:
+                        if abort.args[0] == '2':
+                            continue
+                        raise
+            if regle.params.att_sortie.val:
+                obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+            return True
+        else:
+            retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
+                                                valeur, mods=mods, sortie=regle.params.att_sortie.liste,
+                                                v_sortie=valeur, ordre=ordre,
+                                                type_base=type_base, chemin=chemin)
 #    print ('regles alpha: valeur retour',retour,obj)
         return retour
     print('fdbalpha: base non definie ', base)

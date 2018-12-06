@@ -50,7 +50,7 @@ class Moteur(object):
                         if schemaclasse.utilise:
 #                            print ('traitement virtuel classe ignoree',j.identclasse)
                             continue
-                        print('traitement objet virtuel ', schemaclasse.identclasse)
+#                        print('traitement objet virtuel ', schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
                         obj = Objet(groupe, classe, conversion='virtuel', schema=schemaclasse)
                         obj.attributs['#categorie'] = 'traitement_virtuel'

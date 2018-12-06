@@ -22,6 +22,7 @@ class OraConnect(oracle.OraConnect):
         self.type_serveur = 'oracle_spatial'
         self.types_base.update(TYPES_A)
         self.idconnect = 'oracle_spatial'
+        self.accept_sql = 'geo'
 
     @property
     def req_tables(self):

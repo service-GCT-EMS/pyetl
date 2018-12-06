@@ -115,6 +115,7 @@ class DbConnect(object):
         self.nombase = base
         self.type_serveur = 'generique'
         self.idconnect = 'generique'
+        self.accept_sql = 'non' # determine si la base accepte des requetes
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
@@ -600,7 +601,7 @@ class DbConnect(object):
             return False
 
 
-    def extload(self, helper, file, log=None, reinit='0'):
+    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
         ''' charge des objets en base de donnees par dbload'''
         return False
 

@@ -373,7 +373,7 @@ def fschema_change_schema(regle, obj):
     if schema_classe.amodifier(regle):
         mode = regle.getvar('schema_nocase', False)
         if mode: # on adapte la casse
-            print('adaptation schema ', mode)
+#            print('adaptation schema ', mode)
             fonction = lambda x: x.lower() if mode == 'min' else lambda x: x.upper()
             schema_classe.adapte_attributs(fonction)
 

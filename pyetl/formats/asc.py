@@ -449,7 +449,7 @@ def _ecrire_entete_asc(obj):
 
 
 
-def _convertir_objet_asc(obj, liste):
+def _convertir_objet_asc(obj, liste, transtable=None):
     '''sort un objet asc en chaine '''
 
     entete = _ecrire_entete_asc(obj)
@@ -472,20 +472,24 @@ def _convertir_objet_asc(obj, liste):
 
     a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
 #    print('asc  attributs',liste)
-    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
+#    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
+    aliste = ((attmap.get(i, i).upper(),str(obj.attributs[i]).translate(transtable))
+              for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
     if obj.text_graph:
-        tliste = (i for i in a_sortir if i in obj.text_graph)
+        tliste = ((i,str(obj.attributs[i]).translate(transtable))
+                  for i in a_sortir if i in obj.text_graph)
     if obj.etats:
         eliste = (i for i in a_sortir if i in obj.etats)
 
-    attlist = "\n".join(("2"+attmap.get(i, i).upper()+",NG"+str(len(str(obj.attributs[i])))+","+
-                         str(obj.attributs[i])+";" for i in aliste))
+#    attlist = "\n".join(("2"+attmap.get(i, i).upper()+",NG"+str(len(str(obj.attributs[i])))+","+
+#                         str(obj.attributs[i])+";" for i in aliste))
+    attlist = "\n".join(("2"+i+",NG"+str(len(j))+","+j+";" for i,j in aliste))
+
     if tliste:
-        tglist = "\n".join(("2"+attmap.get(i, i).upper()+",TL"+str(len(str(obj.attributs[i])))+","+
+        tglist = "\n".join(("2"+attmap.get(i, i).upper()+",TL"+str(len(j))+","+
                             str(int(float(obj.attributs[i+'_X'])*FC))+","+
                             str(int(float(obj.attributs[i+'_Y'])*FC))+","+
-                            ",".join(obj.text_graph[i])+","+str(obj.attributs[i])+
-                            ";" for i in tliste))
+                            ",".join(obj.text_graph[i])+","+j+";" for i, j in tliste))
         attlist = attlist+"\n"+tglist
     if eliste:
         elist = "\n".join(("4"+attmap.get(i, i).upper()+","+
@@ -507,6 +511,7 @@ class AscWriter(FileWriter):
                          encoding='cp1252', liste_fich=liste_fich, schema=schema)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         self.ttext = "FIN\n"
+        self.transtable = str.maketrans({'\n':'\\'+'n','\r':''})
 
 def asc_streamer(obj, regle, _, attributs=None):
     '''ecrit des objets asc au fil de l'eau.

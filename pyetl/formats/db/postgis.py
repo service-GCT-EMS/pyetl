@@ -74,6 +74,7 @@ class PgConnect(postgres.PgConnect):
         self.geom_to_natif = ecrire_geom_ewkt
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
+        self.accept_sql = 'geo'
         self.gensql = GenSql(self)
         self.geographique = True
         self.rowcount = 0

@@ -429,8 +429,9 @@ def dbextload(regle_courante, base, file, log=None):
     loadext = connect.load_ext
     helper = get_helper(base, file, loadext, helpername, stock_param)
     reinit = regle_courante.getvar('reinit','0')
+    vgeom = regle_courante.getvar('valide_geom','1')
     if helper:
-        return connect.extload(helper, file, logfile=log, reinit=reinit)
+        return connect.extload(helper, file, logfile=log, reinit=reinit, vgeom=vgeom)
     return False
 
 
@@ -441,7 +442,9 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
         recup_schema(regle_courante, base, niveau, classe)
     if connect is None:
         return False
-
+    if not liste_tables:
+        print ('pas de tables a sortir', base, niveau, classe)
+        return False
     helpername = connect.dump_helper
     helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
     if helper:
@@ -648,6 +651,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
     stock_param = regle_courante.stock_param
     maxobj = stock_param.get_param('lire_maxi', 0)
     traite_objet = stock_param.moteur.traite_objet
+
     res = 0
 #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
     curs = None

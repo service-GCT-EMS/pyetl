@@ -51,6 +51,7 @@ class ElyConnect(ora.OraConnect):
         self.compos_id = dict()
         self.tables = dict()
         self.attributs = dict()
+        self.accept_sql = 'non'
         self.load_helper = 'prog_fea2ora'
         self.load_ext = 'asc'
         self.dump_helper = 'prog_ora2fea'
@@ -136,7 +137,7 @@ class ElyConnect(ora.OraConnect):
             return self.lanceur(helper, xml, paramfile, outfile)
 
 
-    def gen_importxml(self, helper, file, logfile, reinit):
+    def gen_importxml(self, helper, file, logfile, reinit, vgeom='1'):
         '''prepare le fichier xml pour l'import elyx'''
         csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
         logobject = os.path.join(logfile, 'log_import.txt')
@@ -151,19 +152,20 @@ class ElyConnect(ora.OraConnect):
                    '<coordinateSystem sysgeoPath="'+csystem+'" sysgeoValue=""/>',
                    '<logObject path="'+logobject+'"/>',
                    '</filePath>',
+                   '<logSql value="0"/>'
                    '<checkOption>',
                    '<creationDate value="1"/>',
                    '<attribute value="1"/>',
                    '<commitDelay value="1000"/>',
                    '<geomInSpace value="1"/>',
                    '<doublePoints value="1"/>',
-                   '<dimension value=""/>',
+                   '<dimension value="1"/>',
                    '<section value="1"/>',
                    '<replaceObj value="'+reinit+'"/>',
                    '<conformNbCar value="0"/>',
                    '<conformEnum  value="2"/>',
-                   '<validateGeometry value="1" allowSelfIntersectSurface="0"'+
-                   ' allowDoublePoints="0" />',
+                   '<validateGeometry value="'+vgeom+'" allowSelfIntersectSurface="0"'+
+                   ' allowDoublePoints="1" />',
                    '</checkOption>',
                    '</Fea2OraConfig>']
         return loadxml
@@ -172,9 +174,9 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def extload(self, helper, file, logfile=None, reinit='0'):
+    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
         '''charge un fichier par FEA2ORA'''
-        loadxml = self.gen_importxml(helper, file, logfile, reinit)
+        loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
         nom = os.path.splitext(os.path.basename(file))[0]
 
         retour = self.singlerunner(helper, loadxml, nom)
