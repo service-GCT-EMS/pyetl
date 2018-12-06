@@ -194,7 +194,8 @@ def cryptinit(mapper, key, level):
         key = mapper.get_param("defaultkey")
     if key.endswith('='):
         key = base64.b32decode(key).decode('utf-8')
-
+#    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
+#
     if level is None:
         level = mapper.get_param('cryptolevel', 2)
     cclass = CRYPTOLEVELS[level](key)

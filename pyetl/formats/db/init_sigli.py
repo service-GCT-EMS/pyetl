@@ -52,16 +52,67 @@ requetes_sigli["info_triggers"] = '''
 #                  avant apres, operation(update...)
 
 requetes_sigli["info_tables_distantes"] = '''
-        SELECT ftrelid::regclass, srvname ,ftoptions
-         FROM pg_foreign_table, pg_foreign_server fs
-         WHERE ftserver =  fs.oid'''
+    SELECT ftrelid::regclass, srvname ,ftoptions
+    FROM pg_foreign_table, pg_foreign_server fs
+    WHERE ftserver =  fs.oid'''
+
+
+requetes_sigli["info_fk"] = '''
+     SELECT c.confrelid::regclass AS cible,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.conrelid AND a.attnum = c.conkey[1]) AS attribut_cible,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attnum = p2.conkey[1]) AS attributpk1_cible,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attnum = p2.conkey[2]) AS attributpk2_cible,
+        ( SELECT a.adsrc
+               FROM pg_attrdef a
+              WHERE a.adrelid = p2.conrelid AND a.adnum = p2.conkey[1]) AS defaut_cible,
+        c.conrelid::regclass AS fk,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attnum = c.confkey[1]) AS attribut_lien,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.conrelid AND a.attnum = p.conkey[1]) AS attributpk1,
+        ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.conrelid AND a.attnum = p.conkey[2]) AS attributpk2,
+        ( SELECT a.adsrc
+               FROM pg_attrdef a
+              WHERE a.adrelid = p.conrelid AND a.adnum = p.conkey[1]) AS defaut
+       FROM pg_constraint c
+         LEFT JOIN pg_constraint p ON c.conrelid = p.conrelid AND p.contype = 'p'::"char"
+         LEFT JOIN pg_constraint p2 ON c.confrelid = p2.conrelid AND p2.contype = 'p'::"char"
+      WHERE c.contype = 'f'::"char";
+   '''
+
+
+
+
+
+
 
 
 requetes_sigli["info_tables"] = '''
 
-    CREATE OR REPLACE VIEW admin_sigli.info_tables AS
-     WITH t AS (
-             SELECT c.oid AS identifiant,
+     WITH info_fk as (
+         SELECT
+         c.confrelid::regclass AS cible,
+         c.conrelid::regclass AS fk,
+         ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.conrelid AND a.attnum = c.conkey[1]) AS attribut_cible,
+         ( SELECT a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attnum = c.confkey[1]) AS attribut_lien
+       FROM pg_constraint c
+      WHERE c.contype = 'f'::"char"),
+
+     t AS ( SELECT c.oid AS identifiant,
                 n.nspname AS nomschema,
                 c.relname AS nomtable,
                 c.relkind AS type_table,
@@ -77,9 +128,9 @@ requetes_sigli["info_tables"] = '''
                  LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                  LEFT JOIN pg_index i ON c.oid = i.indrelid
                  LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
-              WHERE n.nspname <> 'public'::name 
-                  AND n.nspname <> 'information_schema'::name 
-                  AND n.nspname !~~ 'pg_%'::text 
+              WHERE n.nspname <> 'public'::name
+                  AND n.nspname <> 'information_schema'::name
+                  AND n.nspname !~~ 'pg_%'::text
                   AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
             ), t2 AS (
              SELECT t.identifiant,
@@ -106,14 +157,14 @@ requetes_sigli["info_tables"] = '''
                     END AS clef_primaire,
                     CASE
                         WHEN t2.pk THEN NULL::text
-                        WHEN t2.uniq THEN 'U:'::text || 
+                        WHEN t2.uniq THEN 'U:'::text ||
                             string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
-                        WHEN (string_agg(t2.nom_champ::text, ','::text 
+                        WHEN (string_agg(t2.nom_champ::text, ','::text
                                          ORDER BY t2.ordre_champs)
                              IN (SELECT info_fk.attribut_lien::text AS attribut_lien
-                                 FROM admin_sigli.info_fk
+                                 FROM info_fk
                                  WHERE t2.identifiant = info_fk.fk::oid))
-                            THEN 'K:'::text || 
+                            THEN 'K:'::text ||
                                  string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
                         WHEN string_agg(t2.nom_champ::text, ','::text
                                         ORDER BY t2.ordre_champs) <> 'geometrie'::text
@@ -141,7 +192,7 @@ requetes_sigli["info_tables"] = '''
                        FROM pg_class
                       WHERE pg_class.oid = fk.cible::oid))) || '.'::text) || fk.attribut_cible::text AS clef_etrangere
                FROM t3
-                 LEFT JOIN admin_sigli.info_fk fk ON t3.identifiant = fk.fk::oid
+                 LEFT JOIN info_fk fk ON t3.identifiant = fk.fk::oid
               GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible
             )
      SELECT t4.identifiant AS oid,

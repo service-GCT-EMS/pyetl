@@ -313,7 +313,7 @@ def sel_infich_re(selecteur, obj):
     if len(selecteur.params.attr.liste) > 1:
         vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
     else:
-        vals = selecteur.params.attr.val
+        vals = vals = obj.attributs.get(selecteur.params.attr.val,'')
     return any((i.search(vals) for i in selecteur.info))
 
 
@@ -329,6 +329,37 @@ def sel_inlist(selecteur, obj):
        #test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
     '''
     return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
+
+def selh_inlist_re(selecteur):
+    '''precharge le fichier
+    '''
+#    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
+    valeurs = set(selecteur.params.vals.liste)
+    pref, suf = selecteur.params.vals.definition[0].split(':F:')
+#    print ('-------------------------------in fich_re',selecteur.params.vals.definition, pref,suf)
+    selecteur.info = [re.compile(pref+i+suf) for i in valeurs]
+#    print ('selecteur infichre fich charge ',selecteur.info)
+
+
+def sel_inlist_re(selecteur, obj):
+    '''#aide||valeur dans une liste sous forme d'expressions regulieres
+  #aide_spec||il est possible d'ajouter des prefixes et des suffies aux expressions de la liste
+           +||en mettant (pref:F:suff) à la fin de l'expression
+           +||ex: ^:F:.* permet de matcher tout ce qui commence par un element de la liste
+    #pattern||L;in:list(re)||20
+       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set||atv;res;1
+    '''
+    if len(selecteur.params.attr.liste) > 1:
+        vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
+    else:
+        vals = obj.attributs.get(selecteur.params.attr.val,'')
+#    print ('sel _inlist_re ', vals, selecteur.info)
+    return any((i.search(vals) for i in selecteur.info))
+
+
+
+
+
 
 def selh_inmem(selecteur):
     '''stocke la liste'''

@@ -194,11 +194,16 @@ def _get_tables(connect):
     """recupere la structure des tables"""
     schema_base = connect.schemabase
     for i in connect.get_tables():
-        if len(i) < 11:
-            print('mdba:table mal formee ', i)
+        if len(i) == 12:
+            _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
+            _, _, _, _ = i
+        elif len(i) == 11:
+            nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
+            _, _, _, _ = i
+        else:
+            print('mdba:table mal formee ',connect.type_serveur, len(i),i)
             continue
-        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
-        _, _, _, _ = i
+
 #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
 #        index_geometrique, clef_primaire, index, clef_etrangere = i
 #        print ('mdba:select tables' ,i)
@@ -850,7 +855,7 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
                                 sortie, v_sortie, schema_classe_postgis.info["type_geom"],
                                 schema_classe_travail, treq=treq, cond=('geom', fonction))
 
-    stock_param.dbread += res
+#    stock_param.dbread += res
     return res
 
 class DbWriter(object):

@@ -80,6 +80,7 @@ class DefinitionAttribut(object):
               'in:fich(re)':(r'^in:([^#].+?)\((.*)\)$', "C", ''),
               'in:mem':(r'^in:(#[a-zA-Z][a-zA-Z0-9_]*)$', "C", ''),
               'in:list':(r'^in:\{(.+(?:,.*)*)\}$', "C", ''),
+              'in:list(re)':(r'^in:\{(.+(?:,.*)*)\}\((.*)\)$', "C", ''),
               'haskey:A':(r'^haskey:('+asdef+')$', "A", ''),
               'schema:A':(r'^schema:('+asdef+')$', "A", ''),
               'schema:A:':(r'^schema:('+asdef+')=$', "A", ''),

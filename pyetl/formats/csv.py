@@ -662,7 +662,7 @@ def getfanout(regle, extention, ident, initial):
     rep_sortie = regle.getvar('_sortie')
     groupe, classe = ident
     dest = regle.f_sortie.writerparms.get('destination')
-    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest)
+#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest)
 
     bfich = ''
     if regle.params.cmp2.val:
