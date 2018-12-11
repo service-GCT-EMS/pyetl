@@ -193,7 +193,7 @@ class Writer(object):
             nom = defs[0]
             dialecte = defs[1]
             destination = defs[2] if len(defs) > 2 else ''
-
+            fich = defs[3] if len(defs) > 3 else ''
         self.nom_format = nom
 #        self.destination = destination
         self.regle = None
@@ -215,8 +215,11 @@ class Writer(object):
             else:
                 dialecte = dialecte if dialecte in self.databases else 'sql'
                 self.writerparms['dialecte'] = self.databases[dialecte]
-            self.dialecte = dialecte
-        self.writerparms['destination'] = destination
+                self.writerparms['base_dest'] = destination
+                self.writerparms['destination'] = fich
+        else:
+            self.writerparms['destination'] = destination
+        self.dialecte = dialecte
         self.ecrire_objets = ecrire
         self.ecrire_objets_stream = stream
         self.tmp_geom = tmpgeo

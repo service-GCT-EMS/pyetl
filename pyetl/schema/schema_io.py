@@ -478,7 +478,7 @@ def decode_classes_csv(schema_courant, entree):
             continue
         if i[0] == '!':
             if i.startswith('!meta;'): # le fichier contient des metadonnees
-                v_tmp = [j.strip().split['='] if '=' in j else [j.strip(),''] for j in i.split(';')]
+                v_tmp = [j.strip().split('=') if '=' in j else [j.strip(),''] for j in i.split(';')]
                 metas = {nom:val for nom,val in v_tmp}
                 schema_courant.metas = metas
             continue

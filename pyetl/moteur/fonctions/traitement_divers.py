@@ -326,13 +326,13 @@ def h_sortir(regle):
     regle.f_sortie = F.Writer(regle.params.cmp1.val) # tout le reste
 #    print ('positionnement writer ',regle, regle.params.cmp1.val)
     if regle.f_sortie.nom_format == 'sql': # gestion des dialectes sql et du mode connecté
-        destination = regle.f_sortie.writerparms.get('destination')
+        destination = regle.f_sortie.writerparms.get('base_dest')
         dialecte = regle.f_sortie.writerparms.get('dialecte')
         regle.f_sortie.writerparms['reinit'] = regle.getvar('reinit')
         regle.f_sortie.writerparms['nodata'] = regle.getvar('nodata')
         if destination: # on va essayer de se connecter
             connection = DB.dbaccess(regle.stock_param, destination)
-            if connection.valide:
+            if connection and connection.valide:
                 regle.f_sortie.gensql = connection.gensql # la on a une instance connectee
         elif dialecte:
             regle.f_sortie.gensql = dialecte.gensql()

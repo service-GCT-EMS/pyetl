@@ -141,6 +141,9 @@ class ElyConnect(ora.OraConnect):
         '''prepare le fichier xml pour l'import elyx'''
         csystem = os.path.join(os.path.dirname(helper), r'syscoord\sysgeo.dat')
         logobject = os.path.join(logfile, 'log_import.txt')
+        rejectdir = os.path.join(logfile, 'erreurs')
+        os.makedirs(rejectdir, exist_ok=True)
+        print('generation import ', file, logfile, rejectdir)
         loadxml = ['<Fea2OraConfig>',
                    '<oraCnx cnx="'+self.serveur+'" user="'+self.user+'" pwd="'
                    +self.passwd+'" role=""/>',
@@ -151,6 +154,7 @@ class ElyConnect(ora.OraConnect):
                    '<logDir path="'+logfile+'"/>',
                    '<coordinateSystem sysgeoPath="'+csystem+'" sysgeoValue=""/>',
                    '<logObject path="'+logobject+'"/>',
+                   '<rejectDir path="'+rejectdir+'"/>',
                    '</filePath>',
                    '<logSql value="0"/>'
                    '<checkOption>',
