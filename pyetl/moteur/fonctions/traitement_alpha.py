@@ -38,7 +38,7 @@ import itertools
 import requests
 
 #import pycurl
-from .outils import compilefonc, charge_mapping, remap
+from .outils import compilefonc, charge_mapping
 
 
 def f_setliste(regle, obj):
@@ -745,25 +745,6 @@ def f_sjoin(regle, obj):
     return True
 
 
-def f_sjoin_listeT(regle, obj):
-    '''#aide||jointures
-    #aide_spec||jointure statique sur une liste de champs definie par types
-    #pattern||=*;?;LT;join;?C;?C||cmp1
-    #schema||ajout_attribut
-    #helper||join
-    #test||obj||^X;C;;set||^nom;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;nom;tata
-    '''
-#    print ('jointure ', obj.attributs.get(regle.params.att_entree.val,
-#           regle.params.val_entree.val), regle.champ)
-    if regle.lastid != obj.schema.identclasse:
-        regle.liste_att = ([i.nom for i in obj.schema.attributs if i.type_val == regle.type_demande])
-    for att in regle.liste_att:
-        obj.attributs[att] = regle.stock_param.jointure_s(regle.fichier,\
-            obj.attributs.get(att, regle.params.val_entree.val), regle.champ)
-    return True
-
-
-
 
 def h_round(regle):
     '''helper round : stocke le nombre de decimales'''
@@ -836,10 +817,11 @@ def geocode_traite_stock(regle, final=True):
 
 
             else:
-                print('geocodeur: recu truc etrange ', ligne)
-                print('retry')
-                geocode_traite_stock2(regle, final=True)
-                return
+                if not final:
+                    print('geocodeur: recu truc etrange ', ligne)
+                    print('retry')
+                    geocode_traite_stock(regle, final=True)
+                    return
         else:
             header = [prefix+i for i in attributs]
             obj = regle.tmpstore[0] # on prends un objet au hasard
@@ -931,7 +913,7 @@ def f_map_data(regle, obj):
     #schema||ajout_attribut
     '''
     val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    obj.attributs[regle.params.att_entree.val] = remap(val, regle.elmap)
+    obj.attributs[regle.params.att_entree.val] = regle.elmap.get(val, val)
 
 
 def f_map_data_liste(regle, obj):
@@ -943,7 +925,8 @@ def f_map_data_liste(regle, obj):
     '''
     defaut = regle.params.val_entree.val
     for entree, sortie in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
-        obj.attributs[sortie] = remap(obj.attributs.get(entree, defaut), regle.elmap)
+        val = obj.attributs.get(entree, defaut)
+        obj.attributs[sortie] = regle.elmap.get(val, defaut)
 
 
 def f_map_data_type(regle, obj):
@@ -962,5 +945,6 @@ def f_map_data_type(regle, obj):
         regle.liste_att = [i for i in obj.schema.attribut if i.type_att == regle.params.att_entree.val]
     defaut = regle.params.val_entree.val
     for att in regle.regle.liste_att:
-        obj.attributs[att] = remap(obj.attributs.get(att, defaut), regle.elmap)
+        val = obj.attributs.get(att, defaut)
+        obj.attributs[att] = regle.elmap.get(val, defaut)
 

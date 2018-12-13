@@ -111,30 +111,37 @@ class ElyConnect(ora.OraConnect):
             print('extrunner elyx: param_file \n', '\n'.join(xml))
             return True
 
+        env = self.setenv()
         with open(paramfile, mode='w', encoding=encoding) as tmpf:
             tmpf.write('\n'.join(xml))
-
-        env = self.setenv()
+        outdesc = open(outfile, mode='w', encoding='cp1252')
+#        print('traitement externe',paramfile,outfile)
         if wait:
-            fini = subprocess.run(chaine, env=env)
+            fini = subprocess.run(chaine, env=env, stdout=outdesc,
+                                  stderr=subprocess.STDOUT, universal_newlines=True)
+            outdesc.close()
             if fini.returncode:
                 print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
                 return False
             return True
         else:
-            outdesc = open(outfile, mode='w', encoding='cp1252')
             process = subprocess.Popen(chaine, env=env, stdout=outdesc,
                                        stderr=subprocess.STDOUT, universal_newlines=True)
             return process
 #            time.sleep(10000)
 
 
-    def singlerunner(self, helper, xml, nom):
+    def singlerunner(self, helper, xml, nom, classes):
         '''lance les exports ou les imports a partitr du fichier xml'''
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(tmpdir, 'param_FEA.xml')
-            outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-            return self.lanceur(helper, xml, paramfile, outfile)
+            outfile = os.path.join(tmpdir, nom+'_out_FEA.txt')
+            resultats, size, blocks = self.stat_classes(classes, 'no')
+            dinit = time.time()
+            if self.lanceur(helper, xml, paramfile, outfile):
+                self.export_statprint(None, None, ((nom,), outfile), size, resultats)
+            print ('traitement externe %10.1f secondes' % (time.time()- dinit) )
+            return resultats
 
 
     def gen_importxml(self, helper, file, logfile, reinit, vgeom='1'):
@@ -210,65 +217,81 @@ class ElyConnect(ora.OraConnect):
     def log_decoder(self, idexport, outfile, size, resultats):
         '''decode un fichier log de ORA2FEA'''
 
-        for i in open(outfile, 'r', encoding='cp1252').readlines():
-#                print('lu:', i)
+        for i in open(outfile, 'r', encoding='cp1252', errors='backslashreplace').readlines():
+#            print('lu:', ascii(i[:-1]))
             if "Nombre d'objets export" in i:
                 tmp = i.split(':')
-                classe = tmp[-2].split(' ')[-1]
-                niveau = idexport[0]
-                idclasse = (niveau, classe)
+                nomclasse = tmp[-2].split(' ')[-1]
+                classe = self.schemabase.get_classe(('',nomclasse))
+                idclasse = classe.identclasse
                 exportes = int(tmp[-1][:-1])
+                theoriques = int(classe.getinfo('objcnt_init', '0'))
                 resultats[idclasse] = exportes
                 if len(idexport) == 1:
-                    print('%-45s objets exportes: %10d ' %
-                          ('.'.join(idclasse), exportes))
+                    print('%-45s objets exportes: %10d / %10d' %
+                          ('.'.join(idclasse), exportes, theoriques))
             if "Nombre total d'objets export" in i:
-                print('%-33s objets: %10d exportes: %10d '
-                      % ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
+#                print ('analyse log',idexport,ascii(i))
+                print('%-45s objets exportes: %10d / %10d' %
+                      ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
 
 
 
     def export_statprint(self, slot, pool, runcode, size, resultats):
         '''affiche une stat d'export'''
-
-        if pool[slot] is not None:
-#                    print('fini', slot, pool[slot].returncode, pool[slot].args)
-            idexport, outfile = runcode[slot]
+        if slot is None: # acces simple
+            idexport, outfile = runcode
             self.log_decoder(idexport, outfile, size, resultats)
+        elif pool[slot] is not None:
+#            print('fini', slot, pool[slot].returncode, pool[slot].args)
+            idexport, outfile = runcode[slot]
             pool[slot] = None
+            self.log_decoder(idexport, outfile, size, resultats)
 
 
-
-    def multidump(self, helper, base, classes, dest, log, fanout):
-        '''prepare une extraction multiple '''
-        blocks = dict()
-        size = dict()
-        runcode = dict()
-        resultats = dict()
-        maxworkers = self.params.get_param('max_export_workers', 1)
-        if maxworkers < 0:
-            nprocs = os.cpu_count()
-            if nprocs is None:
-                nprocs = 1
-            maxworkers = -nprocs*maxworkers
-        pool = {i:None for i in range(maxworkers)}
+    def stat_classes(self, classes, fanout):
         schemabase = self.schemabase
+        resultats = dict()
+        size = dict()
+        blocks = dict()
+        if fanout == 'no':
+            nom = (classes[0][1],) if len(classes) == 1 else ('export',)
+            size[nom] = 0
         for i in classes:
-            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
+#            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
             if schemabase.classes[i].info['objcnt_init'] == '0':
-                print('classe vide ', i)
+#                print('classe vide ', i)
                 resultats[i] = 0
                 continue
-            if fanout == 'niveau':
+            if fanout == 'no':
+                size[nom] += int(schemabase.classes[i].getinfo('objcnt_init', '0'))
+            elif fanout == 'niveau':
                 if (i[0], ) in blocks:
                     blocks[(i[0], )].append(i)
                     size[(i[0], )] += int(schemabase.classes[i].getinfo('objcnt_init', '0'))
                 else:
                     blocks[(i[0], )] = [i]
                     size[(i[0], )] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
-            else:
+            elif fanout=='classe':
                 blocks[i] = [i]
                 size[i] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
+            else:
+                print ('mode de fanout non géré', fanout)
+        return resultats, size, blocks
+
+
+    def multidump(self, helper, base, classes, dest, log, fanout):
+        '''prepare une extraction multiple '''
+        runcode = dict()
+        maxworkers = int(self.params.get_param('max_export_workers', 1))
+        if maxworkers < 0:
+            nprocs = os.cpu_count()
+            if nprocs is None:
+                nprocs = 1
+            maxworkers = -nprocs*maxworkers
+        print( 'multidump',maxworkers)
+        pool = {i:None for i in range(maxworkers)}
+        resultats, size, blocks = self.stat_classes(classes, fanout)
         with tempfile.TemporaryDirectory() as tmpdir:
 #            total = len(blocks)
             for nom in blocks:
@@ -301,8 +324,7 @@ class ElyConnect(ora.OraConnect):
             nom = noms.pop() if len(noms) == 1 else 'export'
             destination = os.path.join(dest, nom)
             exportxml = self.genexportxml(destination, log, classes)
-            if self.singlerunner(helper, exportxml, nom):
-                retour = []
+            retour = self.singlerunner(helper, exportxml, nom, classes)
         else:
             retour = self.multidump(helper, base, classes, dest, log, fanout)
         return retour

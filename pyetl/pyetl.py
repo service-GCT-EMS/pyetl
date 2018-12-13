@@ -79,8 +79,7 @@ def initpyetl(traitement, commandes, args, env=None, log=None):
 
     initcontext(traitement, env, log)
     try:
-        traitement.prepare_module(commandes, args)
-        return True
+        return traitement.prepare_module(commandes, args)
     except SyntaxError as err:
         LOGGER.critical('erreur script '+str(commandes)+' '+str(err)+
                         ' worker:'+str(traitement.worker))
@@ -468,6 +467,7 @@ class Pyetl(object):
                 except KeyError as ker:
                     LOGGER.critical('erreur lecture '+ker.__repr__()+'('+repr(regles)+')')
                     erreurs = erreurs+1 if erreurs else 1
+                    raise
 
             if erreurs:
 #                print("logger ", self.idpyetl)

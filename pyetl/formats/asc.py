@@ -295,13 +295,20 @@ def _finalise(obj, schema_init, schema, numero, chemin):
             obj.attributs['#dimension'] = '3' if obj.geom[0].find("3D") else '2'
         obj.geompending() #on signale qu on a pas traite la geom
     if schema_init:
-        objid = obj.ident
+#        objid = obj.ident
+        objid = ('',obj.ident[1]) # on ignore les niveaux
         newid = schema_init.map_dest(objid)
+
 #        if not newid:
 #            print ("!!!!!!!attention objet non defini dans le schema d'entree", objid)
+        if newid == objid:
+            classe = schema_init.get_classe(objid)
+            if classe:
+                newid = classe.identclasse
         if newid != objid:
             obj.setident(newid)
             objid = newid
+
         if objid not in schema_init.classes:
             print("!!!!!!!attention objet non defini dans le schema d'entree",
                   schema_init.nom, objid)
@@ -339,7 +346,7 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
     obj = None
     nom = None
     schema, schema_init = _get_schemas(stock_param, rep, fichier)
-
+#    print ('lire_asc ', schema, schema_init)
     maxobj = stock_param.get_param('lire_maxi', 0)
 #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
@@ -563,7 +570,6 @@ def ecrire_objets_asc(regle, _, attributs=None):
 #    print( "ecrire_objets asc")
     rep_sortie = regle.getvar('_sortie')
     sorties = regle.stock_param.sorties
-    numero = regle.numero
     dident = None
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -577,7 +583,7 @@ def ecrire_objets_asc(regle, _, attributs=None):
                 else:
                     nom = sorties.get_id(rep_sortie, groupe, classe, '.asc')
 
-                ressource = sorties.get_res(numero, nom)
+                ressource = sorties.get_res(regle.numero, nom)
                 if ressource is None:
                     if os.path.dirname(nom):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -586,7 +592,7 @@ def ecrire_objets_asc(regle, _, attributs=None):
                                              ('codec_sortie', 'utf-8'),
                                              liste_fich=regle.stock_param.liste_fich)
                     streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(numero, nom, streamwriter)
+                    ressource = sorties.creres(regle.numero, nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
             ressource.write(obj, regle.numero)

@@ -454,9 +454,11 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
     if helper:
         resultats = connect.extdump(helper, base, liste_tables, dest, log)
+        print(' extdump' , resultats)
         if resultats:
             for idclasse in resultats:
                 schema_travail.classes[idclasse].objcnt = resultats[idclasse]
+            regle_courante.setvar('schema_entree', schema_travail.nom, loc=0)
     return False
 
 

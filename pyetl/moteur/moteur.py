@@ -149,17 +149,22 @@ class Moteur(object):
                 raise StopIteration(3)
 
             except Exception as exc:
-                printexception()
-#                if regle:
-                print('==========erreur de traitement', exc)
-                print('====pyetl :', regle.stock_param.nompyetl, regle.stock_param.idpyetl)
+                print('==========erreur de traitement non gérée')
                 print('====regle courante:', regle)
-                print('====objet courant :', obj)
-                print("====parametres", regle.params)
-                print('====variables locales ', regle.vloc)
-                if regle.stock_param.parms:
-                    print('variables', [i+':'+regle.stock_param.get_param(i)
-                                        for i in sorted(regle.stock_param.parms)])
+                printexception()
+                if regle.getvar('debuglevel','0') != "0":
+                    print('==========environnement d\'execution')
+                    print('====pyetl :', regle.stock_param.nompyetl, regle.stock_param.idpyetl)
+                    print('====objet courant :', obj)
+                    print("====parametres\n", regle.params)
+                    print('==============================variables locales========',
+                          '\n\t'+'\n\t'.join([i+':'+regle.vloc[i] for i in sorted(regle.vloc)]))
+                    if regle.getvar('debuglevel','0') > '1':
+                        print('========================= variables globales==========',
+                              '\n\t'+'\n\t'.join([i+':'+regle.stock_param.get_param(i)
+                                                for i in sorted(regle.stock_param.parms)]))
+                    print('========== fin erreur de traitement')
+
                 raise StopIteration(3)
 #                raise
         if not last.store:

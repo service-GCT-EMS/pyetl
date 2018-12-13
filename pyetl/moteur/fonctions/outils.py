@@ -93,13 +93,14 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
 
 def printexception():
     """affichage d exception avec traceback"""
-    _, exc_obj, infodebug = sys.exc_info()
+    err, exc_obj, infodebug = sys.exc_info()
     frame = infodebug.tb_frame
     lineno = infodebug.tb_lineno
     fname = frame.f_code.co_filename
     linecache.checkcache(fname)
     line = linecache.getline(fname, lineno, frame.f_globals)
-    print('''{}\nIN      :{}\nLINE {} {}:'''.format(exc_obj, fname, lineno, line.strip()))
+    nom=err.__name__
+    print('''{}:{}\nIN      :{}\nLINE {} {}:'''.format(nom, exc_obj, fname, lineno, line.strip()))
     traceback.print_tb(infodebug)
 
 
@@ -319,11 +320,14 @@ def charge_mapping(regle, mapping=None):
     """ precharge un mapping"""
     mapping = dict()
     mapping_attributs = dict()
+    mode = None
     if regle.params.cmp1.val.startswith('{'): # c'est une definitio in line
         valeurs = regle.params.cmp1.val[1:-1].split(",")
         for i in valeurs:
             tmp = i.split('->')
             mapping[tmp[0]]=tmp[1]
+        regle.elmap = mapping
+        return
 
     elif regle.params.cmp1.val:
         regle.fichier = regle.params.cmp1.val # nom du fichier
@@ -368,7 +372,7 @@ def charge_mapping(regle, mapping=None):
     regle.mapping = mapping
     regle.mapping_attributs = mapping_attributs
 
-    regle.elmap = prepare_elmap(mapping)
+    regle.elmap = prepare_elmap(mapping, mode=mode)
 #    print ('definition intmap2', intmap2)
 #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i])
 #           for i in sorted(mapping)]))
@@ -437,17 +441,6 @@ def scan_entree(rep, force_format=None, fileselect=None, debug=0):
     if debug:
         print("fichiers a traiter", fichs)
     return fichs, parametres_fichiers
-
-
-
-
-
-
-
-
-
-
-
 
 
 

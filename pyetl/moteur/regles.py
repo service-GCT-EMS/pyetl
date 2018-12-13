@@ -105,7 +105,7 @@ class ParametresFonction(object):
     def _crent(self, nom, taille=0, besoin=None):
         '''extrait les infos de l'entite selectionnee'''
 #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
-        texte = self.valeurs[nom].string
+        val=''
         try:
             val = self.valeurs[nom].group(1)
             if r'\;' in val:
@@ -116,7 +116,7 @@ class ParametresFonction(object):
             val = ""
         try:
             defin = self.valeurs[nom].group(2).split(',')
-        except (IndexError, AttributeError):
+        except (IndexError, AttributeError, KeyError):
             defin = []
         try:
             num = float(val)
@@ -129,8 +129,11 @@ class ParametresFonction(object):
             else:
                 liste.extend([""]*taille)
 #        print (self.definitions)
-        if self.definitions[nom].pattern == '|L':
-            liste = val.split("|") if val else []
+        try:
+            if self.definitions[nom].pattern == '|L':
+                liste = val.split("|") if val else []
+        except (IndexError, AttributeError, KeyError):
+            liste = []
         dyn = "*" in val
         origine = None
         if val.startswith('['):
@@ -138,6 +141,7 @@ class ParametresFonction(object):
             origine = val[1:-1]
 
 #        var = "P:" in val
+        texte = self.valeurs[nom].string if nom in self.valeurs else ''
 
 #        return self.st_val(val, num, liste, dyn, defin)
         return Valdef(val, num, liste, dyn, defin, origine, texte)
@@ -150,7 +154,7 @@ class ParametresFonction(object):
                   "cmp1:%s"%(str(self.cmp1)),
                   "cmp2:%s"%(str(self.cmp2))
                  ]
-        return "\n\t".join(listev)
+        return '\t'+"\n\t".join(listev)
 
 class ParametresSelecteur(ParametresFonction):
     '''stockage des parametres des selecteurs'''
