@@ -397,11 +397,13 @@ def dbclose(stock_param, base):
         del stock_param.dbconnect[base]
 
 
-def get_helper(base, file, loadext, helpername, stock_param):
+def get_helper(base, files, loadext, helpername, stock_param):
     '''affiche les messages d erreur du loader'''
-    if file and not file.endswith(loadext):
-        print('seul des fichiers', loadext, 'peuvent etre lances par cette commande')
-        return False
+    for file in files:
+        if not file.endswith(loadext):
+            print('seul des fichiers', loadext, 'peuvent etre lances par cette commande')
+            print('fichier incompatible', file)
+            return False
     if helpername is None:
         print('pas de loader defini sur la base ', base)
         return False
@@ -422,9 +424,9 @@ def setpath(stock_param, nom):
     return nom
 
 
-def dbextload(regle_courante, base, file, log=None):
+def dbextload(regle_courante, base, files, log=None):
     '''charge un fichier a travers un loader'''
-    print('extload chargement ', base, file)
+    print('extload chargement ', base, files)
     stock_param = regle_courante.stock_param
     connect = dbaccess(stock_param, base)
     if connect is None:
@@ -432,11 +434,11 @@ def dbextload(regle_courante, base, file, log=None):
     connect = stock_param.dbconnect[base]
     helpername = connect.load_helper
     loadext = connect.load_ext
-    helper = get_helper(base, file, loadext, helpername, stock_param)
+    helper = get_helper(base, files, loadext, helpername, stock_param)
     reinit = regle_courante.getvar('reinit','0')
     vgeom = regle_courante.getvar('valide_geom','1')
     if helper:
-        return connect.extload(helper, file, logfile=log, reinit=reinit, vgeom=vgeom)
+        return connect.extload(helper, files, logfile=log, reinit=reinit, vgeom=vgeom)
     return False
 
 
@@ -453,7 +455,7 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     helpername = connect.dump_helper
     helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
     if helper:
-        resultats = connect.extdump(helper, base, liste_tables, dest, log)
+        resultats = connect.extdump(helper, liste_tables, dest, log)
         print(' extdump' , resultats)
         if resultats:
             for idclasse in resultats:

@@ -352,7 +352,7 @@ class PgConnect(database.DbConnect):
         return " "+operateur+" %(val)s"
 
 
-    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
+    def extload(self, helper, files, logfile=None, reinit='0', vgeom='1'):
         '''charge un fichier par copy'''
         serveur = ' --'.join(self.serveur.split(' '))
         chaine_connect = serveur + ' --dbname=' + self.base
@@ -366,17 +366,17 @@ class PgConnect(database.DbConnect):
 #  \copy  table [ ( column_list ) ] from 'filename' [ with ( option [, ...] ) ]
 
 
+        for file in files:
 
-
-        chaine = " --".join((helper, chaine_connect, 'file='+file))
-#        print ('loader ', chaine)
-        env = dict(os.environ)
-        env['PGCLIENTENCODING'] = "UTF8"
-        if self.passwd:
-            env['PGPASSWORD'] = self.passwd
-        fini = subprocess.run(chaine, env=env)
-        if fini.returncode:
-            print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
+            chaine = " --".join((helper, chaine_connect, 'file='+file))
+    #        print ('loader ', chaine)
+            env = dict(os.environ)
+            env['PGCLIENTENCODING'] = "UTF8"
+            if self.passwd:
+                env['PGPASSWORD'] = self.passwd
+            fini = subprocess.run(chaine, env=env)
+            if fini.returncode:
+                print('sortie en erreur ', fini.returncode, fini.args, fini.stderr)
 
 
 

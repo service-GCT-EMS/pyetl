@@ -115,7 +115,7 @@ class ElyConnect(ora.OraConnect):
         with open(paramfile, mode='w', encoding=encoding) as tmpf:
             tmpf.write('\n'.join(xml))
         outdesc = open(outfile, mode='w', encoding='cp1252')
-#        print('traitement externe',paramfile,outfile)
+        print('elyx: traitement externe', chaine)
         if wait:
             fini = subprocess.run(chaine, env=env, stdout=outdesc,
                                   stderr=subprocess.STDOUT, universal_newlines=True)
@@ -185,18 +185,6 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
-        '''charge un fichier par FEA2ORA'''
-        loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
-        nom = os.path.splitext(os.path.basename(file))[0]
-
-        retour = self.singlerunner(helper, loadxml, nom)
-        return retour
-
-
-
-
-
 
 
     def genexportxml(self, destination, log, classes):
@@ -239,7 +227,7 @@ class ElyConnect(ora.OraConnect):
 
     def export_statprint(self, slot, pool, runcode, size, resultats):
         '''affiche une stat d'export'''
-        if slot is None: # acces simple
+        if pool is None: # acces simple
             idexport, outfile = runcode
             self.log_decoder(idexport, outfile, size, resultats)
         elif pool[slot] is not None:
@@ -280,7 +268,7 @@ class ElyConnect(ora.OraConnect):
         return resultats, size, blocks
 
 
-    def multidump(self, helper, base, classes, dest, log, fanout):
+    def multidump(self, helper, classes, dest, log, fanout):
         '''prepare une extraction multiple '''
         runcode = dict()
         maxworkers = int(self.params.get_param('max_export_workers', 1))
@@ -315,7 +303,7 @@ class ElyConnect(ora.OraConnect):
         return resultats
 
 
-    def extdump(self, helper, base, classes, dest, log):
+    def extdump(self, helper, classes, dest, log):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
         fanout = self.params.get_param('fanout', 'no')
@@ -326,8 +314,71 @@ class ElyConnect(ora.OraConnect):
             exportxml = self.genexportxml(destination, log, classes)
             retour = self.singlerunner(helper, exportxml, nom, classes)
         else:
-            retour = self.multidump(helper, base, classes, dest, log, fanout)
+            retour = self.multidump(helper, classes, dest, log, fanout)
         return retour
+
+
+    def multiload(self, helper, fichs, classes, dest, log, fanout):
+        '''prepare une extraction multiple '''
+        runcode = dict()
+        maxworkers = int(self.params.get_param('max_export_workers', 1))
+        if maxworkers < 0:
+            nprocs = os.cpu_count()
+            if nprocs is None:
+                nprocs = 1
+            maxworkers = -nprocs*maxworkers
+        print( 'multiload',maxworkers)
+        pool = {i:None for i in range(maxworkers)}
+        resultats, size, blocks = self.stat_classes(classes, fanout)
+        with tempfile.TemporaryDirectory() as tmpdir:
+#            total = len(blocks)
+            for nom in blocks:
+#                print('traitement', nom, size[nom], blocks[nom])
+                destination = os.path.join(dest, *nom)
+                os.makedirs(os.path.dirname(destination), exist_ok=True)
+                logdir = os.path.join(log, nom[0])
+                os.makedirs(logdir, exist_ok=True)
+                xml = self.genexportxml(destination, logdir, blocks[nom])
+                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
+                slot = get_slot(pool) # on cherche une place
+                self.export_statprint(slot, pool, runcode, size, resultats)
+
+                runcode[slot] = (nom, outfile)
+                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
+                time.sleep(0.1)
+            wait_end(pool)
+            for slot in pool:
+                self.export_statprint(slot, pool, runcode, size, resultats)
+        return resultats
+
+
+
+
+
+
+
+
+
+    def extload(self, helper, files, logfile=None, reinit='0', vgeom='1'):
+        '''charge un fichier par FEA2ORA'''
+        if len(files) == 1:
+            file = files[0]
+            loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
+            nom = os.path.splitext(os.path.basename(file))
+
+            retour = self.singlerunner(helper, loadxml, nom, [])
+            return retour
+        for file in files:
+            loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
+            nom = os.path.splitext(os.path.basename(file))
+
+            retour = self.singlerunner(helper, loadxml, nom, [])
+        return retour
+
+
+
+
 
 
 
@@ -540,7 +591,7 @@ class ElyConnect(ora.OraConnect):
                 #print "association ",i[3],i[0]
             #print cl.nom,cl.type_geom,cl.fermeture
         #print sorted(compos_nom)
-        print(len(self.tables), "info : elyx : composants trouves", len(compos))
+        print("info : elyx : tables/composants trouves", len(self.tables), len(compos))
 
         requete = self.constructeur(schema, "APICD_ATTRIBUT",
                                     ["NUMERO_AD", "ACTION", "VERSION", "NUMERO_MODELE",

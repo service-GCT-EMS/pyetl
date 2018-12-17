@@ -354,9 +354,10 @@ def f_dbextload(regle, obj):
     datas = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
 #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
     fichs = sorted(glob.glob(datas))
-    for nom in fichs:
-#        print('chargement donnees', nom)
-        DB.dbextload(regle, base, nom, log=regle.params.cmp1.val)
+    DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
+#    for nom in fichs:
+##        print('chargement donnees', nom)
+#        DB.dbextload(regle, base, nom, log=regle.params.cmp1.val)
 
 def h_dbextdump(regle):
     """execution de commandes de lecture externe"""

@@ -601,7 +601,7 @@ class DbConnect(object):
             return False
 
 
-    def extload(self, helper, file, logfile=None, reinit='0', vgeom='1'):
+    def extload(self, helper, files, logfile=None, reinit='0', vgeom='1'):
         ''' charge des objets en base de donnees par dbload'''
         return False
 

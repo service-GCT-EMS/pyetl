@@ -557,35 +557,45 @@ def prepare_batch_from_object(regle, obj):
 
 def traite_parallelbatch(regle):
     '''traite les batchs en parallele'''
-    parametres = []
+    parametres = dict()
     mapper = regle.stock_param
-
+    rdict = dict()
     nprocs = int(regle.params.cmp2.num)
     parallelbatch = mapper.parallelbatch
     endparallel = mapper.endparallel
 
     for num, obj in enumerate(regle.tmpstore):
         obj.attributs['#_batchnum'] = str(num)
-        parametres.append(prepare_batch_from_object(regle, obj))
-
-    with ProcessPoolExecutor(max_workers=nprocs) as executor:
+        st_ordre = obj.attributs.get('ordre','999')
+        ordre =  int(st_ordre) if st_ordre.isnumeric() else 999
+        if ordre in parametres:
+            parametres[ordre].append(prepare_batch_from_object(regle, obj))
+        else:
+            parametres[ordre] = [prepare_batch_from_object(regle, obj)]
+    for bloc in sorted(parametres):
+        if len(parametres[bloc]) == 1: # il est tout seul on a pas besoin de toute la tringlerie
+            numero = parametres[bloc][0][0]
+            obj = regle.tmpstore[numero]
+            execbatch(regle, obj)
+            continue
+        with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
-        rinit = parallelexec(executor, nprocs, mapper.initparallel,
-                             (mapper.parms, mapper.macros, None, None))
+            rinit = parallelexec(executor, nprocs, mapper.initparallel,
+                                 (mapper.parms, mapper.macros, None, None))
 
-        workids = {pid:n+1 for n, pid in enumerate(rinit)}
-        parallelexec(executor, nprocs, mapper.setparallelid, (workids, '#init_mp', ''))
-        if regle.debug:
-            print('retour init', rinit)
-        results = executor.map(parallelbatch, parametres)
-#        print('retour map',results)
-        rdict = dict(results)
-#        print('retour map rdict',rdict)
+            workids = {pid:n+1 for n, pid in enumerate(rinit)}
+            parallelexec(executor, nprocs, mapper.setparallelid, (workids, '#init_mp', ''))
+            if regle.debug:
+                print('retour init', rinit)
+            results = executor.map(parallelbatch, parametres[bloc])
+    #        print('retour map',results)
+            rdict.update(results)
+    #        print('retour map rdict',rdict)
 
-        rfin = parallelexec(executor, nprocs, endparallel, '')
-#        print(' retour exec')
-        if regle.debug:
-            print('retour end', rfin)
+            rfin = parallelexec(executor, nprocs, endparallel, '')
+    #        print(' retour exec')
+            if regle.debug:
+                print('retour end', bloc,rfin)
 
     traite = mapper.moteur.traite_objet
     if regle.debug:
@@ -593,8 +603,9 @@ def traite_parallelbatch(regle):
 #    print (finaux)
     for obj in regle.tmpstore:
         numero = obj.attributs['#_batchnum']
-        parametres = rdict[numero]['retour']
-        renseigne_attributs_batch(regle, obj, parametres)
+        if numero in rdict:
+            parametres = rdict[numero]['retour']
+            renseigne_attributs_batch(regle, obj, parametres)
         traite(obj, regle.branchements.brch["end:"])
     regle.nbstock = 0
 
