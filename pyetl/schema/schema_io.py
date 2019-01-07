@@ -326,7 +326,6 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
     lin = 0
     force = codes_force.get(mode_alias)
     mode_demande = codes_alias.get(mode_alias, 1)
-
     for i in entree:
         if lin == 0 and '!' in i[:4]:
 #                print (" schema conf io:detecte commentaire utf8")
@@ -345,7 +344,7 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
             print('enumeration incomplete ',val_conf)
             continue
         conf = schema_courant.get_conf(nom)
-        ordre = int(val_conf[1])
+        ordre = int(val_conf[1]) if val_conf[1].isnumeric() else 0
         valeur = val_conf[2]
         alias = val_conf[3] if len(val_conf) > 3 else ''
         mode_fichier = int(val_conf[4]) if len(val_conf) > 4 and val_conf[4].isdigit() else None
@@ -793,14 +792,14 @@ def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod='utf-8', tr
             try:
                 j.encode(cod)
             except UnicodeEncodeError:
-#                print ('ligne en erreur ',j)
-#                print (j.encode(cod, errors='replace'))
+                print ("!!!!!!!!!!!!!!!!!! erreur d'encodage sur un caractère (?)")
+                print (j.encode(cod, errors='replace'))
                 nberr += 1
     if nberr:
         print("schema: ecriture schema sql", nomfich, cod)
         print('erreurs d''encodage', nberr)
 
-    with open(nomfich, "w", encoding=cod) as fich:
+    with open(nomfich, "w", encoding=cod, errors='replace') as fich:
         codecinfo = "-- ########### encodage fichier "+ str(fich.encoding) +\
                     ' ###(controle: n°1: éàçêè )####\n'
         fich.write(codecinfo)

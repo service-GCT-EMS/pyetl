@@ -182,11 +182,6 @@ class ElyConnect(ora.OraConnect):
         return loadxml
 
 
-
-
-
-
-
     def genexportxml(self, destination, log, classes):
         '''prepare les fichiers de confix xml pour l'export'''
         return ['<Ora2FeaConfig>',
@@ -354,24 +349,18 @@ class ElyConnect(ora.OraConnect):
 
 
 
-
-
-
-
-
-
     def extload(self, helper, files, logfile=None, reinit='0', vgeom='1'):
         '''charge un fichier par FEA2ORA'''
         if len(files) == 1:
             file = files[0]
             loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
-            nom = os.path.splitext(os.path.basename(file))
+            nom = os.path.splitext(os.path.basename(file))[0]
 
             retour = self.singlerunner(helper, loadxml, nom, [])
             return retour
         for file in files:
             loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
-            nom = os.path.splitext(os.path.basename(file))
+            nom = os.path.splitext(os.path.basename(file))[0]
 
             retour = self.singlerunner(helper, loadxml, nom, [])
         return retour

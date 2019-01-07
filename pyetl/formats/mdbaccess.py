@@ -141,6 +141,8 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
 #    print('db:sortie liste', tables,niveau,classe)
     for exp_niv, exp_clas in zip(niveau, classe):
 #            trouve = False
+        exp_niv = exp_niv.strip()
+        exp_clas = exp_clas.strip()
         if nocase:
             exp_niv = exp_niv.lower()
             exp_clas = exp_clas.lower()
@@ -402,14 +404,14 @@ def get_helper(base, files, loadext, helpername, stock_param):
     for file in files:
         if not file.endswith(loadext):
             print('seul des fichiers', loadext, 'peuvent etre lances par cette commande')
-            print('fichier incompatible', file)
+            print('!!!!!!!!!!fichier incompatible', file, files)
             return False
     if helpername is None:
         print('pas de loader defini sur la base ', base)
         return False
     helper = stock_param.get_param(helpername)
     if not helper:
-        print("pas d'emplacement pour le loader", helpername)
+        print("pas de programme externe defini", helpername)
         return False
     return helper
 
@@ -453,7 +455,7 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
         print ('pas de tables a sortir', base, niveau, classe)
         return False
     helpername = connect.dump_helper
-    helper = get_helper(base, None, '', helpername, regle_courante.stock_param)
+    helper = get_helper(base, [], '', helpername, regle_courante.stock_param)
     if helper:
         resultats = connect.extdump(helper, liste_tables, dest, log)
         print(' extdump' , resultats)
@@ -472,7 +474,7 @@ def dbrunsql(stock_param, base, file, log=None, out=None):
         return False
     connect = stock_param.dbconnect[base]
     helpername = connect.sql_helper
-    helper = get_helper(base, file, '.sql', helpername, stock_param)
+    helper = get_helper(base, [file], '.sql', helpername, stock_param)
     if helper:
         logfile = setpath(stock_param, log)
         outfile = setpath(stock_param, out)
