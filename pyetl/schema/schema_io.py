@@ -734,7 +734,7 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
     ''' ecriture physique du csv'''
 #    print ('ecriture_csv', nom, cod)
     try:
-        with open(chemin+nom, "w", encoding=cod) as fich:
+        with open(chemin+nom, "w", encoding=cod, errors='replace') as fich:
             fich.write("\n".join(contenu))
             fich.write('\n')
     except PermissionError:

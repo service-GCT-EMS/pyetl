@@ -54,6 +54,7 @@ class DefinitionAttribut(object):
               '|L':(r'^('+asdef+r'(?:\|'+asdef+r')*)$',
                     'S', 'S'), #liste
               'L':(r'^('+asdef+r'(?:,'+asdef+r')*|\*)$', 'L', 'M'), #liste
+              'L2':(r'^('+asdef+r'(?:\|'+asdef+r')*|\*)$', 'L', 'M'), #liste
               'LC':(r'^(.+(?:,.*)*)$', 'C', ''), #liste de valeurs
               'T:':(r'^T:([A-Z]+)$', 'L', ''), #definition d'attributs par leutr type
               '+L':(r'^\+('+asdef+r'(?:,'+asdef+r')*)$',

@@ -14,7 +14,8 @@ from  . import oraclespatial as ora
 def get_slot(pool):
     '''surveille un pool de process et determine s'il y a une disponibilité'''
     while True:
-        for i in pool:
+        i=0
+        for i in sorted(pool):
             if pool[i] is None or pool[i].poll() is not None:
                 return i
 #            if pool[i].poll() is not None:
@@ -22,7 +23,8 @@ def get_slot(pool):
 #                    print('erreur process ', pool[i].args(), pool[i].returncode)
 ##                pool[i] = None
 #                return i
-    time.sleep(0.1)
+        time.sleep(0.1)
+#        print ('attente zzzz', i)
 
 def wait_end(pool):
     '''attend que le dernier process d'un pool ait terminé'''
@@ -115,7 +117,7 @@ class ElyConnect(ora.OraConnect):
         with open(paramfile, mode='w', encoding=encoding) as tmpf:
             tmpf.write('\n'.join(xml))
         outdesc = open(outfile, mode='w', encoding='cp1252')
-        print('elyx: traitement externe', chaine)
+#        print('elyx: traitement externe', chaine)
         if wait:
             fini = subprocess.run(chaine, env=env, stdout=outdesc,
                                   stderr=subprocess.STDOUT, universal_newlines=True)
@@ -197,39 +199,49 @@ class ElyConnect(ora.OraConnect):
                 '</Ora2FeaConfig>']
 
 
-    def log_decoder(self, idexport, outfile, size, resultats):
+    def log_decoder(self, runcode, size, resultats, num_p):
         '''decode un fichier log de ORA2FEA'''
-
-        for i in open(outfile, 'r', encoding='cp1252', errors='backslashreplace').readlines():
-#            print('lu:', ascii(i[:-1]))
-            if "Nombre d'objets export" in i:
-                tmp = i.split(':')
-                nomclasse = tmp[-2].split(' ')[-1]
-                classe = self.schemabase.get_classe(('',nomclasse))
-                idclasse = classe.identclasse
-                exportes = int(tmp[-1][:-1])
-                theoriques = int(classe.getinfo('objcnt_init', '0'))
-                resultats[idclasse] = exportes
-                if len(idexport) == 1:
-                    print('%-45s objets exportes: %10d / %10d' %
-                          ('.'.join(idclasse), exportes, theoriques))
-            if "Nombre total d'objets export" in i:
-#                print ('analyse log',idexport,ascii(i))
-                print('%-45s objets exportes: %10d / %10d' %
-                      ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1])))
-
-
+        idexport, outfile, starttime = runcode
+        endtime = time.time()
+        try:
+            for i in open(outfile, 'r', encoding='cp1252', errors='backslashreplace').readlines():
+    #            print('lu:', ascii(i[:-1]))
+                if "Nombre d'objets export" in i:
+                    tmp = i.split(':')
+                    nomclasse = tmp[-2].split(' ')[-1]
+                    classe = self.schemabase.get_classe(('',nomclasse))
+                    idclasse = classe.identclasse
+                    exportes = int(tmp[-1][:-1])
+                    theoriques = int(classe.getinfo('objcnt_init', '0'))
+                    resultats[idclasse] = exportes
+                    if len(idexport) == 1:
+                        print('%-45s objets exportes: %10d / %10d en %.2f s (%d)' %
+                              ('.'.join(idclasse), exportes, theoriques, endtime-starttime, num_p))
+                if "Nombre total d'objets export" in i:
+    #                print ('analyse log',idexport,ascii(i))
+                    print('%-45s objets exportes: %10d / %10d en %.2f s (%d)' %
+                          ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1]),
+                           endtime-starttime, num_p))
+            return 0
+        except PermissionError:
+            print ('fichier non pret')
+            time.sleep(0.1) # on est alle trop vite le fichier n'est pas pret
+            return 1
 
     def export_statprint(self, slot, pool, runcode, size, resultats):
         '''affiche une stat d'export'''
         if pool is None: # acces simple
-            idexport, outfile = runcode
-            self.log_decoder(idexport, outfile, size, resultats)
+#            idexport, outfile, starttime = runcode
+            retour = self.log_decoder(runcode, size, resultats, 0)
+            if retour:
+                self.log_decoder(runcode, size, resultats, 0)
         elif pool[slot] is not None:
 #            print('fini', slot, pool[slot].returncode, pool[slot].args)
-            idexport, outfile = runcode[slot]
+#            idexport, outfile, starttime = runcode[slot]
             pool[slot] = None
-            self.log_decoder(idexport, outfile, size, resultats)
+            retour = self.log_decoder(runcode[slot], size, resultats, slot)
+            if retour:
+                self.log_decoder(runcode, size, resultats, slot)
 
 
     def stat_classes(self, classes, fanout):
@@ -289,9 +301,9 @@ class ElyConnect(ora.OraConnect):
                 slot = get_slot(pool) # on cherche une place
                 self.export_statprint(slot, pool, runcode, size, resultats)
 
-                runcode[slot] = (nom, outfile)
+                runcode[slot] = (nom, outfile, time.time())
                 pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
-                time.sleep(0.1)
+#                time.sleep(0.1)
             wait_end(pool)
             for slot in pool:
                 self.export_statprint(slot, pool, runcode, size, resultats)
@@ -333,15 +345,15 @@ class ElyConnect(ora.OraConnect):
                 os.makedirs(os.path.dirname(destination), exist_ok=True)
                 logdir = os.path.join(log, nom[0])
                 os.makedirs(logdir, exist_ok=True)
-                xml = self.genexportxml(destination, logdir, blocks[nom])
+                xml = self.genimportxml(destination, logdir, blocks[nom])
                 paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
                 outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
                 slot = get_slot(pool) # on cherche une place
-                self.export_statprint(slot, pool, runcode, size, resultats)
+                self.import_statprint(slot, pool, runcode, size, resultats)
 
-                runcode[slot] = (nom, outfile)
+                runcode[slot] = (nom, outfile, time.time())
                 pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
-                time.sleep(0.1)
+                --time.sleep(0.1)
             wait_end(pool)
             for slot in pool:
                 self.export_statprint(slot, pool, runcode, size, resultats)

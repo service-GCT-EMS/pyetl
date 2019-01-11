@@ -419,7 +419,6 @@ class GenSql(database.GenSql):
             attname = attribut.nom.lower()
             attname = self.reserves.get(attname, attname)
             attype = attribut.type_att
-#            print ('lecture type_attribut',an,at)
             defaut = None
             if attribut.defaut == 'S' or attribut.defaut == 'BS'\
                 or (attribut.defaut and  attribut.defaut.startswith('S.'))\
@@ -435,11 +434,13 @@ class GenSql(database.GenSql):
                     print('type serial incompatible avec le type', attype, attribut.defaut)
                     seq = False
             conf = attribut.conformite
+#            print ('lecture type_attribut',attname,attype,conf.nom if conf else '')
 
             if conf:
                 attype = conf.nom
                 if self.basic == 'basic':
                     attype = "T"
+#            print ('conv type_attribut',attname,attype,schema.conformites.keys())
 
 
             if re.search(r'^t[0-9]+$', attype):
@@ -480,12 +481,16 @@ class GenSql(database.GenSql):
                     defaut = ' DEFAULT current_timestamp'
             elif attype in schema.conformites and self.basic != 'basic':
                 nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
+#                print ('detection conformite', attname, attype, nomconf)
+
                 if attype not in creconf:
                     valide, sql_conf = self.prepare_conformites(attype, schema=schema)
                     if valide:
                         deftype = self.schema_conf+"."+nomconf
                     else:
                         print('conformite non trouvee', attype)
+                else:
+                    deftype = self.schema_conf+"."+nomconf
     #                    raise
             elif self.connection and self.connection.schemabase and\
                  attype in self.connection.schemabase.conformites:

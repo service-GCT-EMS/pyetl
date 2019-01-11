@@ -379,10 +379,12 @@ class Pyetl(object):
                 self._charge_site_params(self.site_params_def)
                 # charge les parametres de site (fichier ini)
             self._charge_site_params(self.paramdir)
+
             # charge les parametres individuels (fichier ini)
             self._paramdecrypter() # decrypte les parametres cryptes
             self.charge_cmd_internes() # macros internes
-            self.charge_cmd_internes(site="macros") # macros internes
+            self.charge_cmd_internes(site="macros") # macros de site
+            self.charge_cmd_internes(direct=os.path.join(self.paramdir,"macros")) # macros perso
 #            self.charge_cmd_internes(site="macros") # macros internes
             self.sorties = GestionSorties()
             self.debug = int(self.get_param('debug'))
@@ -392,6 +394,12 @@ class Pyetl(object):
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
 
+    def specialenv(self, params, macros):
+        '''lit un bloc de parametres et de macros specifiques'''
+        if params:
+            self._charge_site_params(params)
+        if macros:
+            self.charge_cmd_internes(direct=macros)
 
     def commandes_speciales(self):
         """commandes speciales"""
@@ -666,7 +674,7 @@ class Pyetl(object):
                     nom_p, val = liste[0], liste[1]
                     self.site_params[nom].append((nom_p, val))
 #                    self.site_params[nom].append((liste[0]+'_'+nom, liste[1]))
-        self.load_paramgroup('init')
+        self.load_paramgroup('init', fin=False)
 #        print("parametres de site",origine)
 #        print("variables",self.parms)
 

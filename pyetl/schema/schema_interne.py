@@ -83,6 +83,7 @@ class Schema(object):
                  'taux_remplissage':'tr',
                  'toponyme':'tpny',
                  'transversale':'trv',
+                 'orientation':'orient', 'orient':'ort',
                  'usage':'usg',
                  'geometrie':'geom', 'geometrique':"geom", "geom":"g",
                  'commentaire':'comment', 'coment':'cmt',

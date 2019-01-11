@@ -705,3 +705,17 @@ def f_run(regle, obj):
     fini = subprocess.run(chaine, stderr=subprocess.STDOUT)
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(fini)
+
+
+def h_loadconfig(regle):
+    '''charge des definitions et/ou des macros'''
+    regle.stock_params.loadconfig(regle.params.cmp1,regle.params.cmp2)
+    regle.valide = 'done'
+
+
+def f_loadconfig(regle,obj):
+    '''#aide||charge des definitions et/ou des macros
+  #aide_spec||repertoire des parametres et des macros
+    #pattern||;;;loadconfig;C;C
+    '''
+    return True

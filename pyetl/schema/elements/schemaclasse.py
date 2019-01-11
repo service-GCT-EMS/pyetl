@@ -918,16 +918,16 @@ class SchemaClasse(object):
         '''genere des noms courts pour les sorties shape '''
         self.noms_courts = set()
         a_supp = 'YUOIAEBCDFGHJKLMNPQRSTVWXYZ0123456789'
-        if abrev is None:
+        if not abrev:
             abrev = self.schema.dic_abrev
         for i in self.attributs:
             att = self.attributs[i]
             if att.nom_court:
                 self.noms_courts.add(att.nom_court.upper())
                 continue
-            nom = att.nom.upper()
 #            nom1 = ""
             position = 0
+            nom = att.nom
             if len(nom) > longueur:
                 nom = abrev.get(nom, nom)
 
@@ -940,18 +940,20 @@ class SchemaClasse(object):
                     nom = essai+"_"+'_'.join(parts[2:])
             if len(nom) > longueur:
                 nom = '_'.join([abrev.get(i, i) for i in nom.split('_')])
-            if len(nom) > longueur:
-                nom = '_'.join([abrev.get(i, i) for i in nom.split('_')])
+
+#            print ('tentative raccourcissement',att.nom,nom,
+#                [abrev.get(i, i) for i in nom.split('_')])
 
             if len(nom) > longueur:
                 nom = re.sub("_([0-9])", r"\1", nom)
 #            if len(nom) > longueur:
 #                nom1 = nom
+            nom = nom.upper()
             while len(nom) > longueur:
                 nom = nom.replace(a_supp[position], '')
                 position = position+1
             nom = self.adapte_nom_court(nom, longueur)
 #            if nom1:
 #                print("raccourcissement force", att.nom, "->", nom1, "->", nom)
-
+#            print ('raccourcissement',att.nom,nom)
             att.nom_court = nom

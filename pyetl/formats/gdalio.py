@@ -61,7 +61,7 @@ def recup_schema_fiona(schema_courant, ident, description):
 def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     '''cree une description fiona d un schema'''
     nom_g_s = {'1': 'Point', '2': 'LineString', '3': "Polygon"}
-    nom_g_m = {'2': "MultiLineString", '3': "MultiPolygon"}
+    nom_g_m = {'1': 'Point', '2': "MultiLineString", '3': "MultiPolygon"}
     nom_a = {"texte": "str",
              "entier": "int", "sequence": "int", "entier_long": "str",
              "reel": "float", "date": "date", "hstore": "str"}
