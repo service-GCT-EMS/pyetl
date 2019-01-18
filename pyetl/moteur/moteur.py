@@ -48,7 +48,7 @@ class Moteur(object):
                 #(on ne traite que les schemas d'entree')
                     for schemaclasse in list(sch.classes.values()):
                         if schemaclasse.utilise:
-#                            print ('traitement virtuel classe ignoree',j.identclasse)
+#                            print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
                             continue
 #                        print('traitement objet virtuel ', schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
@@ -59,6 +59,7 @@ class Moteur(object):
 #                        obj.setschema(schemaclasse)
 #                        obj.initattr()
                         obj.attributs['#type_geom'] = schemaclasse.info["type_geom"]
+#                        print ('traitement obj',obj)
                         self.traite_objet(obj, self.regles[0])
 
 
@@ -66,7 +67,7 @@ class Moteur(object):
     def traite_regles_chargement(self):
         ''' declenche les regles de chargement pour les traitements sans entree'''
 #        if self.debug:
-#        print('moteur: regles de chargement pour un traitement sans entree')
+#        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
         self.regles[0].chargeur = True # on force la premiere
         if self.regles[0].mode == "start": #on prends la main dans le script
             self.regles[0].fonc(self.regles[0], None)

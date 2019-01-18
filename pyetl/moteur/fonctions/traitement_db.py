@@ -11,7 +11,7 @@ import glob
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
-from .outils import prepare_mode_in
+from .outils import prepare_mode_in, objloader
 
 LOGGER = logging.getLogger('pyetl')
 
@@ -130,6 +130,7 @@ def h_dbalpha(regle):
             regle.params.val_entree = regle.params.st_val(defaut, None, list(valeurs.keys()),
                                                           False, "")
         regle.chargeur = True # c est une regle qui cree des objets
+        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
             return True
         regle.erreurs.append("dbalpha: modificateurs non autorises seulement:", DB.DBMODS)
@@ -187,6 +188,10 @@ def f_dbalpha(regle, obj):
     #pattern||?A;?;?;dbalpha;?;?
 
     '''
+    if obj.virtuel and obj.attributs.get('#categorie') == 'traitement_virtuel':
+#        print ('detection traitement virtuel : on ignore', obj.ident)
+        return False
+
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
@@ -204,27 +209,37 @@ def f_dbalpha(regle, obj):
         if connect is None:
             return False
         if connect.accept_sql == 'non': # pas de requetes directes on essaye le mode dump
-            dest = os.path.join(regle.getvar('_sortie'),'tmp')
+            dest = regle.getvar('dest')
+            if not dest:
+                dest = os.path.join(regle.getvar('_sortie'),'tmp')
             os.makedirs(dest, exist_ok=True)
-            log = os.path.join(dest, 'log')
+            regle.setvar('_entree', dest)
+            log = regle.getvar('log', os.path.join(dest, 'log'))
             os.makedirs(log, exist_ok=True)
             print('traitement db: dump donnees de', base, 'vers', dest)
             DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
-            mapper = regle.stock_param
-            fichs = mapper.scan_entree(rep=dest)
-            fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
-            nb_lu = 0
-            if fparm:
-                for i, parms in fparm:
-                    try:
-                        nb_lu += mapper.lecture(i, regle=regle, parms=parms)
-                    except StopIteration as abort:
-                        if abort.args[0] == '2':
-                            continue
-                        raise
-            if regle.params.att_sortie.val:
-                obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-            return True
+            if regle.store:
+#        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
+#        print ('regles', regle.stock_param.regles)
+                regle.tmpstore.append(obj)
+                regle.nbstock += 1
+                return True
+            return objloader(regle, obj)
+#            mapper = regle.stock_param
+#            fichs = mapper.scan_entree(rep=dest)
+#            fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
+#            nb_lu = 0
+#            if fparm:
+#                for i, parms in fparm:
+#                    try:
+#                        nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+#                    except StopIteration as abort:
+#                        if abort.args[0] == '2':
+#                            continue
+#                        raise
+#            if regle.params.att_sortie.val:
+#                obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+#            return True
         else:
             retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
                                                 valeur, mods=mods, sortie=regle.params.att_sortie.liste,
@@ -488,7 +503,7 @@ def h_recup_schema(regle):
         if regle.params.att_sortie.val == "schema_sortie":
             regle.setvar("schema_sortie", nomschema, loc=0)
         regle.valide = 'done'
-        print('h_recup_schema')
+        print('h_recup_schema', nomschema)
         DB.recup_schema(regle, base, niveau, classe, nomschema)
     return True
 

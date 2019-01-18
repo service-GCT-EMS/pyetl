@@ -284,7 +284,7 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
                    "Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK"]
     #print("schema:  csv sortir_classes",len(self.classes))
     if sch.metas:
-        print ('sortir metas ',sch.metas)
+#        print ('sortir metas ',sch.metas)
         metadef = '!meta;'+';'.join(k+'='+v for k,v in sch.metas.items())
         description.append(metadef)
     if sch.classes:
@@ -577,13 +577,15 @@ def lire_classes_csv(schema_courant, fichier, cod):
         decode_classes_csv(schema_courant, entree)
 
 
-def recup_schema_csv(base, classes, confs, mapping, deftrig):
+def recup_schema_csv(base, description):
     """recompose un schema a partir du retour de traitements paralleles"""
+    classes, confs, mapping, deftrig, metas = description
     schema = SCI.Schema(base, origine='L')
     decode_conf_csv(schema, confs, mode_alias="num")
     decode_classes_csv(schema, classes)
     schema.init_mapping(mapping)
     schema.elements_specifiques['def_triggers'] =  deftrig
+    schema.origine = metas['origine']
     return schema
 
 
@@ -754,7 +756,8 @@ def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
         for trig in schema.elements_specifiques['def_triggers']:
             ligne = ";".join(str(i) for i in trig)
             deftrig.append(ligne)
-
+    metas = dict()
+    metas['origine']=schema.origine
     if rep:
         chemref = os.path.join(rep, nomschema)
         if len(classes) > 1:
@@ -766,7 +769,7 @@ def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
             if deftrig:
                 ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
     else:
-        return classes, conf, mapping, deftrig
+        return classes, conf, mapping, deftrig, metas
 
 
 def set_transaction(liste):
@@ -871,12 +874,14 @@ def copier_xsl(rep):
 
 
 
-def ecrire_au_format(schema, formats_a_sortir, stock_param, mode, confs):
+def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     ''' sort un schema dans les differents formats disponibles '''
 
-    rep_s = schema.rep_sortie if schema.rep_sortie else\
-            os.path.join(stock_param.get_param('_sortie'), os.path.dirname(schema.fich) if schema.fich else '')
+#    rep_s = schema.rep_sortie if schema.rep_sortie else\
+#            os.path.join(stock_param.get_param('_sortie'), os.path.dirname(schema.fich) if schema.fich else '')
 #    print ('ecrire_schema_sortie' , schema.nom, rep_s, schema.fich)
+    nom = schema.nom.replace('#','')
+    rep_s = os.path.join(rep, nom)
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
 
@@ -966,12 +971,44 @@ def retour_schemas(schemas, mode='util'):
     return retour
 
 
-def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
+def integre_schemas(schemas, nouveaux):
+    ''' recree les schemas apres transmission'''
+    nomschemas = set()
+    for nom, description in nouveaux.items():
+        nomschemas.add(nom)
+        classes, conf, mapping, deftrig, metas = description
+        tmp = recup_schema_csv(nom, description)
+#        print ('recup schema ', nom, tmp, schemas.get(nom))
+        if tmp:
+            if nom in schemas:
+                fusion_schema(nom, schemas[nom], tmp)
+#                        print ('------apres fusion schema siglc', mapper.schemas.get('siglc'))
+            else:
+                schemas[nom] = tmp
+#            schemas[nom].origine=metas['origine']
+    for nom in nomschemas: # on reporte les comptages d'objets
+        schem = schemas[nom]
+#        print ('apres fusion schemas paralleles', nom, len(schem.classes))
+        for cla in schem.classes.values():
+#            if cla.groupe=='ELYBA' or cla.groupe=='elyba':
+#                print ('retour classe ',cla.identclasse, cla.objcnt, cla.utilise,
+#                       cla.poids, cla.info['objcnt_init'])
+            cla.objcnt = cla.poids
+
+
+
+
+
+
+
+
+def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1):
     '''prepare les schemas pour la sortie '''
 #    print('ecriture_schemas', mode, stock_param.schemas.keys())
     if mode == 'no':
         return
-    rep_sortie = stock_param.get_param('_sortie')
+#    rep_sortie = stock_param.get_param('sortie_schema', stock_param.get_param('_sortie'))
+#    rep_sortie = stock_param.get_param('_sortie')
     type_schemas_a_sortir = stock_param.get_param('orig_schema')
     print('sio:repertoire sortie schema', stock_param.idpyetl, rep_sortie, formats)
 #        raise FileNotFoundError
@@ -982,10 +1019,13 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
             break
 
     schemas = stock_param.schemas
-
+    a_sortir = stock_param.get_param('schemas_a_sortir').split(',')
     for i in schemas:
 #        print('ecriture schema', i, len(schemas[i].classes))
         if not i:
+            continue
+        if a_sortir and i not in a_sortir:
+            print ('schema non sorti',i)
             continue
         mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
 #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
@@ -994,7 +1034,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
             continue # on affiche pas les schemas de travail
         if not rep_sortie:
 
-            print('sio:pas de repertoire de sortie ', stock_param.get_param('_sortie'),
+            print('sio:pas de repertoire de sortie ', rep_sortie,
                   stock_param.liste_params)
             raise NotADirectoryError('repertoire de sortie non défini')
 
@@ -1015,6 +1055,7 @@ def ecrire_schemas(stock_param, mode='util', formats='csv', confs=-1):
                     formats_a_sortir.add(schemas[i].format_sortie)
 #controle du sql et de ses dialectes
 #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
-            ecrire_au_format(schemas[i], formats_a_sortir, stock_param, mode_sortie, confs)
+            ecrire_au_format(schemas[i], rep_sortie, formats_a_sortir,
+                             stock_param, mode_sortie, confs)
 
 

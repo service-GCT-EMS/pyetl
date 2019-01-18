@@ -444,3 +444,42 @@ class RegleTraitement(object): # regle de mapping
 #        if old_sc is not None:
 #            old_sc.objcnt += 1 # on a un objet de plus dans le schema
         return reg2
+
+    def runscope(self):
+        '''determine si une regle peut tourner'''
+        pdef = self.getvar('process', 'all')
+#        print('runscope', pdef, self.stock_param.parent is None)
+        if pdef == 'all':
+            return True
+        if pdef == 'worker':
+            return self.stock_param.worker
+        if pdef == 'main':
+            return self.stock_param.parent is None and not self.stock_param.worker
+        if pdef == 'child':
+            return self.stock_param.parent is not None
+        return True
+
+
+    def get_max_workers(self):
+        ''' retourne le nombre de threads paralleles demandes'''
+        try:
+            multi = self.getvar('multi','1')
+            if ':' in multi:
+                tmp = multi.split(':')
+                process = int(tmp[0])
+                ext = int(tmp[1])
+            else:
+                process = int(multi)
+                ext = -1
+        except ValueError:
+            process, ext = 1, 1
+        nprocs = os.cpu_count()
+        if self.stock_param.worker: # si on est deja en parallele on ne multiplie plus
+            process=1
+        if nprocs is None:
+                nprocs = 1
+        if process < 0:
+            process = -nprocs*process
+        if ext < 0:
+            ext = -process*ext
+        return process, ext

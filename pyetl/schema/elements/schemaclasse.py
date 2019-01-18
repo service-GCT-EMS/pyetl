@@ -131,7 +131,7 @@ class SchemaClasse(object):
         self.indexes = dict()
         self.debug = debug
         self.minmaj = ''
-        self.minmajfunc = lambda x: x
+        self.minmajfunc = str
         self.type_table = 'i' # table par defaut
         self.poids = 0
         self.stable = True

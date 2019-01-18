@@ -539,7 +539,7 @@ class GenSql(database.GenSql):
         if ctr:
             cretable.extend(ctr)
 
-        if cretable[-1][-1] == ',':
+        if cretable[-1].endswith(','):
             cretable[-1] = cretable[-1][:-1]
         cretable.append(')')
         cretable.append("WITH (OIDS=FALSE);")

@@ -117,26 +117,14 @@ def selection_directe(schema, niveau):
             return tables_a_sortir
 
 
-def get_type_tables(tables):
-    '''ajuste les types de tables a retourner'''
-    tables = tables.lower()
-    if tables == "a":
-        return 'rtmfv'
-    if tables == 'v':
-        return "mv"
-    if tables == 't':
-        return 'r'
-    return tables
-
-
 def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
     '''produit la liste des tables a partir du schema utile pour id_in:'''
     tables_a_sortir = set()
 #    print('select ', niveau, classe, tables, multi)
     if len(niveau) == 1 and niveau[0][:2] == 's:': #selection directe
         return selection_directe(schema, niveau)
-
-    tables = get_type_tables(tables)
+    convert = {'a': 'rtmfv', 'v': 'vm', 't': 'r' }
+    tables = convert.get(tables.lower(), tables.lower())
 #    print('db:sortie liste', len(niveau), len(classe))
 #    print('db:sortie liste', tables,niveau,classe)
     for exp_niv, exp_clas in zip(niveau, classe):
@@ -319,7 +307,8 @@ def get_schemabase(connect, mode_force_enums=1):
     schema_base = connect.schemabase
 #    types_base = connect.types_base
     metas = {'type_base':connect.idconnect, 'date_extraction':time.asctime(),
-             'serveur':connect.serveur, 'base':connect.base}
+             'serveur':connect.serveur, 'base':connect.base, 'origine':'B',
+             'user':connect.user}
     schema_base.metas = metas
     for i in connect.get_enums():
         nom_enum, ordre, valeur, alias = i[:4]
@@ -457,7 +446,9 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     helpername = connect.dump_helper
     helper = get_helper(base, [], '', helpername, regle_courante.stock_param)
     if helper:
-        resultats = connect.extdump(helper, liste_tables, dest, log)
+        workers, extworkers = regle_courante.get_max_workers()
+        print ('extdump',regle_courante.vloc, extworkers)
+        resultats = connect.extdump(helper, liste_tables, dest, log, workers=extworkers)
 #        print(' extdump' , resultats)
         if resultats:
             for idclasse in resultats:
@@ -492,7 +483,7 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
         LOGGER.error('connection base invalide'+str(base))
         return None
 
-    nomschema = nomschema if nomschema else 'schema_'+connect.nombase
+    nomschema = nomschema if nomschema else connect.schemabase.nom.replace('#','')
     schema_travail = stock_param.init_schema(nomschema, 'B', modele=connect.schemabase)
     schema_travail.metas = dict(connect.schemabase.metas)
     schema_travail.metas['tables']=tables
@@ -566,7 +557,7 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
     for valeurs in curs.cursor:
         obj = Objet(niveau, classe, format_natif=format_natif, conversion=geom_from_natif)
 #        print ("geometrie valide",obj.geom_v.valide)
-#        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
+        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
         obj.attributs['#type_geom'] = type_geom
         if type_geom != '0':
             obj.attributs.update(zip(attlist, [str(i) if i is not None else ''
@@ -624,7 +615,7 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
 #    tables = [i for i in cmp1 if i in DBACMODS]
     if not tables:
         tables = 'A'
-
+#    print ('mdba:recup_schema',nom_schema)
     retour = get_connect(stock_param, base, niveau, classe, tables, multi, nocase=nocase,
                          nomschema=nom_schema, type_base=type_base, chemin=chemin)
 
@@ -635,11 +626,58 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
             print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables,
                   nocase, '->', len(liste_tables), 'tables a sortir')
         schema_base = connect.schemabase
-
+        print ('recup_schema',schema_base.nom, schema_travail.nom,stock_param.schemas.keys())
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print('erreur de connection a la base', base, niveau, classe)
     return (None, None, None, None)
+
+def lire_table(ident, regle=None, reglenum=0, parms=None):
+    if ident is None:
+        return 0
+    niveau, classe = ident
+    base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base, chemin, reqdict, maxobj = parms
+    regle_courante = MAINMAPPER.regles[reglenum] if regle is None else regle
+    traite_objet = regle_courante.stock_param.moteur.traite_objet
+    connect, schema_base, schema_travail, liste_tables =\
+    recup_schema(regle_courante, base, niveau, classe,
+                 type_base=type_base, chemin=chemin, mods=mods)
+
+
+    schema_classe_base = schema_base.get_classe(ident)
+#            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+#        print ('dbaccess : ',ident)
+    schema_classe_travail = schema_travail.get_classe(ident)
+    if isinstance(attribut, list):
+        if ident in reqdict:
+            attr, val = reqdict[ident]
+        else:
+            attr, val = "", ""
+    else:
+        attr, val = attribut, valeur
+#        print("id attr,val", ident, attr, val)
+#        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
+#    classe)), end='', flush=True)
+    if attr and attr not in schema_classe_travail.attributs\
+                and attr not in connect.sys_fields:
+        return 0 #on a fait une requete sur un attribut inexistant: on passe
+    treq = time.time()
+
+    curs = connect.req_alpha(ident, schema_classe_travail, attr, val,
+                             mods, maxobj, ordre=ordre)
+#        print ('-----------------------traitement curseur ', curs,type(curs) )
+    treq = time.time()-treq
+    if curs:
+        res = sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
+                                sortie, v_sortie, schema_classe_base.info["type_geom"],
+                                schema_classe_travail, base=base, treq=treq, cond=(attr, val))
+
+        if sortie:
+            for nom in sortie:
+                if nom and nom[0] != '#':
+                    schema_classe_travail.stocke_attribut(nom, 'T')
+        return res
+    return 0
 
 
 def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, valeur,

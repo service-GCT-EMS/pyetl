@@ -10,37 +10,9 @@ import subprocess
 import tempfile
 import time
 from  . import oraclespatial as ora
+#from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
 #from ..xml import XmlWriter
-def get_slot(pool):
-    '''surveille un pool de process et determine s'il y a une disponibilité'''
-    while True:
-        i=0
-        for i in sorted(pool):
-            if pool[i] is None or pool[i].poll() is not None:
-                return i
-#            if pool[i].poll() is not None:
-#                if pool[i].returncode != 0:
-#                    print('erreur process ', pool[i].args(), pool[i].returncode)
-##                pool[i] = None
-#                return i
-        time.sleep(0.1)
-#        print ('attente zzzz', i)
 
-def wait_end(pool):
-    '''attend que le dernier process d'un pool ait terminé'''
-    actifs = [pool[i] for i in pool if pool[i] is not None]
-    while actifs:
-#        print('attente ',len(actifs), actifs[0].poll(), actifs[0].args)
-        reste = []
-        for process in actifs:
-            if process.poll() is None:
-                reste.append(process)
-            else:
-                if process.returncode != 0:
-                    print('erreur process ', process.args(), process.returncode)
-        actifs = reste
-        time.sleep(1)
-    return
 
 
 class ElyConnect(ora.OraConnect):
@@ -103,6 +75,30 @@ class ElyConnect(ora.OraConnect):
             env['ORACLE_HOME'] = orahome
             env['PATH'] = orahome+'\\bin;'+env['PATH']
         return env
+
+
+    def fearunner(self, parms):
+        ''' gere les programmes elyx externe '''
+        helper, paramfile, outfile = parms
+        chaine = helper + ' -c '+paramfile
+        if self.params.get_param('noload') == '1': #simulation de chargement pour debug
+            print('extrunner elyx: mode simulation -------->', chaine)
+            print('extrunner elyx: param_file \n',
+                  ''.join( open(paramfile, 'r', encoding='cp1252').readlines()))
+            return None
+
+        env = self.setenv()
+
+        outdesc = open(outfile, mode='w', encoding='cp1252')
+#        print('elyx: traitement externe', chaine)
+        process = subprocess.Popen(chaine, env=env, stdout=outdesc,
+                                   stderr=subprocess.STDOUT, universal_newlines=True)
+        return process
+
+
+
+
+
 
     def lanceur(self, helper, xml, paramfile, outfile, wait=True):
         '''gere le programme externe '''
@@ -199,10 +195,12 @@ class ElyConnect(ora.OraConnect):
                 '</Ora2FeaConfig>']
 
 
-    def log_decoder(self, runcode, size, resultats, num_p):
+    def log_decoder(self, idexport, params, runtime):
         '''decode un fichier log de ORA2FEA'''
-        idexport, outfile, starttime = runcode
-        endtime = time.time()
+#        print('analyse', params)
+        outfile = params[-1]
+        resultats = self.resultats
+        size = self.size
         try:
             for i in open(outfile, 'r', encoding='cp1252', errors='backslashreplace').readlines():
     #            print('lu:', ascii(i[:-1]))
@@ -215,33 +213,24 @@ class ElyConnect(ora.OraConnect):
                     theoriques = int(classe.getinfo('objcnt_init', '0'))
                     resultats[idclasse] = exportes
                     if len(idexport) == 1:
-                        print('%-45s objets exportes: %10d / %10d en %.2f s (%d)' %
-                              ('.'.join(idclasse), exportes, theoriques, endtime-starttime, num_p))
+                        print('%-45s objets exportes: %10d / %10d en %.2f s' %
+                              ('.'.join(idclasse), exportes, theoriques, runtime))
                 if "Nombre total d'objets export" in i:
     #                print ('analyse log',idexport,ascii(i))
-                    print('%-45s objets exportes: %10d / %10d en %.2f s (%d)' %
+                    print('%-45s objets exportes: %10d / %10d en %.2f s' %
                           ('.'.join(idexport), size[idexport], int(i.split(':')[-1][:-1]),
-                           endtime-starttime, num_p))
+                           runtime))
             return 0
         except PermissionError:
             print ('fichier non pret')
             time.sleep(0.1) # on est alle trop vite le fichier n'est pas pret
             return 1
 
-    def export_statprint(self, slot, pool, runcode, size, resultats):
+    def export_statprint(self, idexport, params, runtime):
         '''affiche une stat d'export'''
-        if pool is None: # acces simple
-#            idexport, outfile, starttime = runcode
-            retour = self.log_decoder(runcode, size, resultats, 0)
-            if retour:
-                self.log_decoder(runcode, size, resultats, 0)
-        elif pool[slot] is not None:
-#            print('fini', slot, pool[slot].returncode, pool[slot].args)
-#            idexport, outfile, starttime = runcode[slot]
-            pool[slot] = None
-            retour = self.log_decoder(runcode[slot], size, resultats, slot)
-            if retour:
-                self.log_decoder(runcode, size, resultats, slot)
+        retour = self.log_decoder(idexport, params, runtime)
+        if retour:
+            self.log_decoder(idexport, params, runtime)
 
 
     def stat_classes(self, classes, fanout):
@@ -275,67 +264,62 @@ class ElyConnect(ora.OraConnect):
         return resultats, size, blocks
 
 
-    def multidump(self, helper, classes, dest, log, fanout):
-        '''prepare une extraction multiple '''
-        runcode = dict()
-        maxworkers = int(self.params.get_param('max_export_workers', 1))
-        if maxworkers < 0:
-            nprocs = os.cpu_count()
-            if nprocs is None:
-                nprocs = 1
-            maxworkers = -nprocs*maxworkers
-        print( 'multidump',maxworkers)
-        pool = {i:None for i in range(maxworkers)}
-        resultats, size, blocks = self.stat_classes(classes, fanout)
+    def extdump(self, helper, classes, dest, log, fanout= 'classe', workers=1):
+        '''extrait des donnees par ORA2FEA'''
+        # mise en place de l'environnement:
+        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
         with tempfile.TemporaryDirectory() as tmpdir:
-#            total = len(blocks)
-            for nom in blocks:
-#                print('traitement', nom, size[nom], blocks[nom])
+            self.tmpdir = tmpdir
+            subcode = 0
+            for subcode, nom in enumerate(blocks):
+                classes = blocks[nom]
                 destination = os.path.join(dest, *nom)
                 os.makedirs(os.path.dirname(destination), exist_ok=True)
-                logdir = os.path.join(log, nom[0])
+                logdir = os.path.join(log, nom[0], str(subcode % workers))
                 os.makedirs(logdir, exist_ok=True)
                 xml = self.genexportxml(destination, logdir, blocks[nom])
                 paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+                    tmpf.write('\n'.join(xml))
                 outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-                slot = get_slot(pool) # on cherche une place
-                self.export_statprint(slot, pool, runcode, size, resultats)
+                blocks[nom] = (helper, paramfile, outfile)
 
-                runcode[slot] = (nom, outfile, time.time())
-                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
-#                time.sleep(0.1)
-            wait_end(pool)
-            for slot in pool:
-                self.export_statprint(slot, pool, runcode, size, resultats)
-        return resultats
+            self.params.execparallel_ext(blocks, workers, self.fearunner,
+                                         patience=self.export_statprint)
+#            for idexport, retour in sorted(blocks.items()):
+#                print ('decodage',blocks.items())
+#                self.log_decoder(idexport, *retour)
+        return self.resultats
 
 
-    def extdump(self, helper, classes, dest, log):
-        '''extrait des donnees par ORA2FEA'''
-        # mise en place de l'environnement:
-        fanout = self.params.get_param('fanout', 'no')
-        if fanout == 'no' or len(classes) == 1:
-            noms = {i[1] for i in classes}
-            nom = noms.pop() if len(noms) == 1 else 'export'
-            destination = os.path.join(dest, nom)
-            exportxml = self.genexportxml(destination, log, classes)
-            retour = self.singlerunner(helper, exportxml, nom, classes)
-        else:
-            retour = self.multidump(helper, classes, dest, log, fanout)
-        return retour
 
 
-    def multiload(self, helper, fichs, classes, dest, log, fanout):
+#        fanout = self.params.get_param('fanout', 'no')
+#        if fanout == 'no' or len(classes) == 1:
+#            noms = {i[1] for i in classes}
+#            nom = noms.pop() if len(noms) == 1 else 'export'
+#            destination = os.path.join(dest, nom)
+#            exportxml = self.genexportxml(destination, log, classes)
+#            retour = self.singlerunner(helper, exportxml, nom, classes)
+#        else:
+#            retour = self.multidump(helper, classes, dest, log, fanout, workers=workers)
+#        return retour
+
+
+    def multiload(self, helper, fichs, classes, dest, log, fanout, workers=''):
         '''prepare une extraction multiple '''
         runcode = dict()
-        maxworkers = int(self.params.get_param('max_export_workers', 1))
+        if workers.isnumeric():
+            maxworkers = int(workers)
+        else:
+            maxworkers = int(self.params.get_param('max_load_workers', 1))
         if maxworkers < 0:
             nprocs = os.cpu_count()
             if nprocs is None:
                 nprocs = 1
             maxworkers = -nprocs*maxworkers
         print( 'multiload',maxworkers)
-        pool = {i:None for i in range(maxworkers)}
+        pool = get_pool(maxworkers)
         resultats, size, blocks = self.stat_classes(classes, fanout)
         with tempfile.TemporaryDirectory() as tmpdir:
 #            total = len(blocks)

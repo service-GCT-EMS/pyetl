@@ -376,8 +376,11 @@ def setschemasortie(regle, obj):
     if regle.nom_fich_schema:# on copie le schema pour ne plus le modifier apres ecriture
         regle.change_schema_nom(obj, regle.nom_fich_schema)
     if obj.schema and obj.schema.amodifier(regle):
-        obj.schema.setsortie(regle.f_sortie, os.path.join(regle.getvar('_sortie'),
-                                                          os.path.dirname(regle.params.cmp1.val)))
+        rep_sortie = regle.getvar('sortie_schema')
+        if not rep_sortie:
+            rep_sortie = os.path.join(regle.getvar('_sortie'), os.path.dirname(regle.params.cmp1.val))
+        obj.schema.setsortie(regle.f_sortie, rep_sortie)
+
         obj.schema.setminmaj(regle.f_sortie.minmaj)
     if regle.params.att_entree.liste:
         obj.liste_atttributs = regle.params.att_entree.liste
@@ -692,17 +695,28 @@ def f_compare(regle, obj):
     # on remet l'original dans le circuit
     return False
 
-
+def h_run(regle):
+    '''execution unique si pas d'objet dans la definition'''
+    if regle.params.att_entree.val or regle.params.val_entree.val:
+        return
+    if regle.runscope(): # on voit si on doit l'executer
+        chaine = ' '.join((regle.params.cmp1.val, regle.params.cmp2.val))
+        print ('lancement ', chaine)
+        fini =  subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        if regle.params.att_sortie.val:
+            regle.stock_param.set_param(regle.params.att_sortie.val, fini)
+    regle.valide = 'done'
 
 def f_run(regle, obj):
     '''#aide||execute un programme exterieur
   #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
     #pattern||?A;?C;?A;run;C;?C
+    #pattern2||P;;;run;C;?C
      #schema||ajout_attribut
     '''
     chaine = ' '.join((regle.params.cmp1.val, regle.params.cmp2.val,
                        obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)))
-    fini = subprocess.run(chaine, stderr=subprocess.STDOUT)
+    fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(fini)
 

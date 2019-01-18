@@ -10,6 +10,7 @@ from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
+from .fonctions_schema import copyschema
 # schemas : description de la structure des objets
 
 TYPES_G = C.TYPES_G
@@ -26,23 +27,35 @@ def get_attribut(nom, vmax):
     return A.Attribut(nom, vmax, nom_conformite='')
 
 def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
-                stable=True, modele=None):
+                stable=True, modele=None, copie=False):
     ''' retourne le schemas qui va bien et les cree si necsssaire '''
     if not nom_schema:
         print('pyetl: schema sans nom')
         raise ValueError
-#    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas)
+#    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
+    if isinstance(modele, str):
+        if modele in mapper.schemas:
+            modele = mapper.schemas[modele]
+        else:
+            print ('schema introuvable', modele, 'dans', mapper.schemas.keys())
+            modele =  None
     if nom_schema not in mapper.schemas:
-        mapper.schemas[nom_schema] = Schema(nom_schema, origine=origine,
+        nouveau = Schema(nom_schema, origine=origine,
                                             fich=fich, defmodeconf=defmodeconf)
-        mapper.schemas[nom_schema].stable = stable
+        mapper.schemas[nom_schema] = nouveau
+        nouveau.stable = stable
 #            self.schemas[nom_schema].modele = modele
+#        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 
         if modele is not None: # on transmet les informations specifiques
-            mapper.schemas[nom_schema].elements_specifiques =\
-                copy.deepcopy(modele.elements_specifiques)
-            mapper.schemas[nom_schema].alias_groupes = dict(modele.alias_groupes)
-            mapper.schemas[nom_schema].dbsql = modele.dbsql
+            nouveau.elements_specifiques = copy.deepcopy(modele.elements_specifiques)
+            nouveau.alias_groupes = dict(modele.alias_groupes)
+            nouveau.dbsql = modele.dbsql
+            if copie: # la on fait une copie conforme
+                nouveau.origine = modele.origine
+                for ident in modele.classes:
+                    copyschema(modele.classes[ident],ident,nouveau)
+
 #                self.schemas[nom_schema].dic_abrev = modele.dic_abrev
     return mapper.schemas[nom_schema]
 

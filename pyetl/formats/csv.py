@@ -662,7 +662,7 @@ def getfanout(regle, extention, ident, initial):
     rep_sortie = regle.getvar('_sortie')
     groupe, classe = ident
     dest = regle.f_sortie.writerparms.get('destination')
-#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest)
+#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest, regle.vloc)
 
     bfich = ''
     if regle.params.cmp2.val:
@@ -686,7 +686,7 @@ def getfanout(regle, extention, ident, initial):
         nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
 
     ressource = sorties.get_res(regle.numero, nom)
-#    print('csv:fichier',regle.fanout, rep_sortie, bfich, groupe,nom)
+#    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
     return ressource, nom
 
 

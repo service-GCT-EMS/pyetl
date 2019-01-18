@@ -12,7 +12,7 @@ import re
 import logging
 import itertools
 from collections import defaultdict
-
+from  .vglobales import VERSION, set_mainmapper
 from  .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
 from  .formats.formats import Reader, Stat, ExtStat
 from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
@@ -22,12 +22,16 @@ from  .moteur.moteur import Moteur, Macro
 from  .moteur.fonctions import COMMANDES, SELECTEURS
 from  .moteur.fonctions.outils import scandirs
 from  .schema.schema_interne import init_schema # schemas
-from  .schema.schema_io import ecrire_schemas, retour_schemas # schemas
+from  .schema.schema_io import ecrire_schemas, retour_schemas # integre_schemas # schemas
+from  .moteur.fonctions.parallel import setparallel
+#from  .moteur.fonctions.parallel import initl
 #from  .outils.crypt import crypter, decrypt
 
-VERSION = "0.8.2.2_e"
+#VERSION = "0.8.2.2_e"
 LOGGER = logging.getLogger('pyetl') # un logger
-MODULEDEBUG = False
+#MODULEDEBUG = False
+
+
 
 def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
@@ -58,32 +62,7 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
         LOGGER.addHandler(file_handler)
         LOGGER.info("pyetl:"+VERSION)
 
-initlogger()
 
-
-
-def initcontext(traitement, env=None, log=None):
-    """initialise le contexte (parametres de site environnement)"""
-    if traitement.inited:
-        return # on a deja fait le boulot
-    env = env if env is not None else os.environ
-    if log and not traitement.worker:
-        traitement.set_param('logfile', log)
-        initlogger(fichier=log)
-    traitement.init_environ(env)
-    traitement.aff = traitement._patience(0, 0) # on initialise le gestionnaire d'affichage
-    next(traitement.aff)
-
-def initpyetl(traitement, commandes, args, env=None, log=None):
-    """ initialisation standardisee: cree l'objet pyetl de base"""
-
-    initcontext(traitement, env, log)
-    try:
-        return traitement.prepare_module(commandes, args)
-    except SyntaxError as err:
-        LOGGER.critical('erreur script '+str(commandes)+' '+str(err)+
-                        ' worker:'+str(traitement.worker))
-    return False
 
 def getlog(args):
     '''recherche s il y a une demande de fichier log dans les arguments'''
@@ -97,9 +76,9 @@ def getlog(args):
 def runpyetl(commandes, args, env=None, log=None):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
     log = getlog(args)
-    print("pyetl", VERSION, commandes, args, log)
+    print("pyetl", VERSION, commandes, args, log, MAINMAPPER)
 
-    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
+    if MAINMAPPER.initpyetl(commandes, args, env=env, log=log):
         MAINMAPPER.process()
     else:
         print('arret du traitement ')
@@ -125,121 +104,6 @@ def runpyetl(commandes, args, env=None, log=None):
     if n_ecrits:
         print('perf ecriture :', int(n_ecrits/duree), 'o/s')
 
-
-def initparallel(parametres):
-    """initialisatin d'un process worker pour un traitement parallele"""
-#    commandes, args, params, macros, env, log = parametres
-    params, macros, env, log = parametres
-
-    if MAINMAPPER.inited:
-#        print("pyetl double init", os.getpid())
-        time.sleep(1)
-        return None
-#    print("pyetl initworker", os.getpid(), commandes, args)
-    LOGGER.info("pyetl initworker "+str(os.getpid()))
-    MAINMAPPER.worker = True
-    initcontext(MAINMAPPER, env, log)
-    MAINMAPPER.inited = True
-    MAINMAPPER.macros.update(macros)
-    MAINMAPPER.parms.update(params)
-    MAINMAPPER.parametres_lancement = parametres
-    time.sleep(1)
-#    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
-##       time.sleep(2)
-#       return (os.getpid(), True)
-    return (os.getpid(), True)
-
-
-def setparallelid(parametres):
-    """positionne un numero de worker et initialise les commandes """
-    pidset, commandes, args = parametres
-    if MAINMAPPER.get_param('_wid'):
-        time.sleep(1)
-        return None
-    wid = str(pidset[os.getpid()])
-    MAINMAPPER.set_param('_wid', wid)
-    log = MAINMAPPER.get_param('logfile')
-    if log:
-        base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
-        log = base+'_'+wid+'.'+ext
-#    print('avant init', commandes, args)
-    init = initpyetl(MAINMAPPER, commandes, args, log=log)
-
-    return (os.getpid(), MAINMAPPER.get_param('_wid'), init)
-
-
-def set_parallelretour(mapper, valide):
-    '''positionne les variables de retour pour l'execution en parallele'''
-
-    schema = retour_schemas(mapper.schemas, mode=mapper.get_param('force_schema', 'util'))
-    stats_generales = mapper.getstats()
-    retour_stats = {nom: stat.retour() for nom, stat in mapper.stats.items()}
-    retour = {'pid': os.getpid(), 'wid': mapper.get_param('_wid'), 'valide': valide,
-              'stats_generales': stats_generales, 'retour': mapper.retour,
-              'schemas': schema, 'fichs': mapper.liste_fich, 'stats': retour_stats}
-    return retour
-
-
-
-def parallelbatch(parametres_batch):
-    """execute divers traitements en parallele"""
-#    print ("pyetl startbatch",os.getpid(), parametres_batch[:3])
-    numero, mapping, entree, sortie, args = parametres_batch
-#    if not MAINMAPPER.inited:
-#        initparallel('#init_mp', '',params, macros)
-    processor = MAINMAPPER.getpyetl(mapping, liste_params=args,
-                                    entree=entree, rep_sortie=sortie)
-    if processor is None:
-        print("pyetl echec batchworker", os.getpid(), mapping, args)
-        return (numero, {})
-
-    processor.process()
-    retour = set_parallelretour(processor, True)
-#    print("pyetl batchworker", os.getpid(),processor.idpyetl, mapping, args,
-#          '->', processor.retour)
-    return (numero, retour)
-
-def parallelprocess(numero, file, regle):
-    '''traitement individuel d'un fichier'''
-    try:
-#        print ('worker:lecture', file)
-        nom, parms = file
-        nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
-    except StopIteration as arret:
-        return numero, -1
-    return numero, nb_lu
-
-def endparallel(test=None):
-    '''termine un traitement parallele'''
-    schema = None
-    if MAINMAPPER.ended:
-#        print("pyetl double end", os.getpid())
-        time.sleep(1)
-        return None
-    try:
-        nb_total, nb_fichs, schema = MAINMAPPER.menage_final()
-
-        succes = True
-    except StopIteration:
-        nb_total, nb_fichs = MAINMAPPER.sorties.final()
-        succes = False
-    retour = set_parallelretour(MAINMAPPER, succes)
-#    if MAINMAPPER.moteur():
-#        MAINMAPPER.padd('_st_obj_duppliques', MAINMAPPER.moteur.dupcnt)
-#        MAINMAPPER.padd('_st_obj_supprimes', MAINMAPPER.moteur.suppcnt)
-#    stats_generales = MAINMAPPER.getstats()
-
-#    print("-----pyetl batchworker end", os.getpid(), succes, nb_total, nb_fichs)
-    LOGGER.info("-----pyetl batchworker end "+str(os.getpid())+
-                ' succes ' if succes else 'echec '+str(nb_total)+' '+str(nb_fichs))
-
-    MAINMAPPER.ended = True
-#    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
-#    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': succes,
-#              'stats_generales': stats_generales,
-#              'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
-
-    return (os.getpid(), retour)
 
 #---------------debut programme ---------------
 
@@ -287,11 +151,8 @@ class Pyetl(object):
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
         self.parent = parent # permet un appel en cascade
-        self.initparallel = initparallel
-        self.parallelprocess = parallelprocess
-        self.parallelbatch = parallelbatch
-        self.endparallel = endparallel
-        self.setparallelid = setparallelid
+        setparallel(self) # initialise la gestion du parallelisme
+
         self.inited = False
         self.ended = False
         self.worker = False # process esclave
@@ -299,10 +160,7 @@ class Pyetl(object):
         self.username = os.getlogin()
         self.userdir = os.path.expanduser('~')
         self.paramdir = os.path.join(self.userdir, ".pyetl")
-#            self.dbconnect = self.parent.dbconnect
-            # on partage les sorties pour pas se manger les fichiers
 
-#        print('params', sorted(self.parms.items()))
         self.stream = 0
         self.debug = 0
 #        self.stock = False # pas de stockage
@@ -360,6 +218,29 @@ class Pyetl(object):
         self._set_streammode()
         self.done = False
 
+    def initcontext(self, env=None, log=None):
+        """initialise le contexte (parametres de site environnement)"""
+        if self.inited:
+            return # on a deja fait le boulot
+        env = env if env is not None else os.environ
+        if log and not self.worker:
+            self.set_param('logfile', log)
+            self(fichier=log)
+        self.init_environ(env)
+        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
+        next(self.aff)
+
+    def initpyetl(self, commandes, args, env=None, log=None):
+        """ initialisation standardisee: cree l'objet pyetl de base"""
+
+        self.initcontext(env, log)
+        try:
+            return self.prepare_module(commandes, args)
+        except SyntaxError as err:
+            LOGGER.critical('erreur script '+str(commandes)+' '+str(err)+
+                            ' worker:'+str(self.worker))
+        return False
+
     def init_environ(self, env=None):
         """initialise les variables d'environnement et les macros"""
         self.env = os.environ() if env is None else env
@@ -383,8 +264,8 @@ class Pyetl(object):
             # charge les parametres individuels (fichier ini)
             self._paramdecrypter() # decrypte les parametres cryptes
             self.charge_cmd_internes() # macros internes
-            self.charge_cmd_internes(site="macros") # macros de site
-            self.charge_cmd_internes(direct=os.path.join(self.paramdir,"macros")) # macros perso
+            self.charge_cmd_internes(site="macros", opt=1) # macros de site
+            self.charge_cmd_internes(direct=os.path.join(self.paramdir,"macros"), opt=1) # macros perso
 #            self.charge_cmd_internes(site="macros") # macros internes
             self.sorties = GestionSorties()
             self.debug = int(self.get_param('debug'))
@@ -620,7 +501,7 @@ class Pyetl(object):
             petl.set_param('_entree', entree)
         if nom:
             petl.nompyetl = nom
-        if initpyetl(petl, regles, liste_params, env=env):
+        if petl.initpyetl(regles, liste_params, env=env):
             return petl
         print('erreur getpyetl', regles)
         return None
@@ -718,7 +599,7 @@ class Pyetl(object):
         return -1
 
 
-    def charge_cmd_internes(self, test=None, site=None, direct=None):
+    def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
         ''' charge un ensemble de macros utilisables directement '''
         configfile = os.path.join(os.path.dirname(__file__),
                                   'moteur/fonctions/commandes_internes.csv')
@@ -734,7 +615,8 @@ class Pyetl(object):
         nom = ''
         num = 0
         if not os.path.isfile(configfile):
-            print('fichier de config', configfile, 'introuvable')
+            if not opt:
+                print('fichier de config', configfile, 'introuvable')
             return
         for conf in open(configfile, 'r').readlines():
             num += 1
@@ -1071,7 +953,7 @@ class Pyetl(object):
                            }
         rep_sortie = self.get_param('sortie_schema', self.get_param('_sortie'))
         if rep_sortie == '-' or not rep_sortie: # pas de sortie on ecrit pas
-#            print ('schema:pas de repertoire de sortie ')
+            print ('schema:pas de repertoire de sortie ')
             return
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
@@ -1080,7 +962,8 @@ class Pyetl(object):
 #            print('pyetl: traitement virtuel ', mode_schema)
             self.moteur.traitement_virtuel() # on force un peu pour creer toutes les classes
 #        print('pyetl: ecriture schemas ', mode_schema)
-        ecrire_schemas(self, mode_schema, formats=self.get_param("format_schema", 'csv'))
+        ecrire_schemas(self, rep_sortie, mode_schema,
+                       formats=self.get_param("format_schema", 'csv'))
 
     def _ecriture_stats(self):
         '''stockage des stats '''
@@ -1088,8 +971,8 @@ class Pyetl(object):
         rep_sortie = self.get_param('_sortie')
 
         for i in self.stats:
-#            if self.worker and self.parent is None:
-#                continue #on ecrit pas on remonte
+            if self.worker and self.parent is None:
+                continue #on ecrit pas on remonte
             if self.statprint == "statprocess":
                 petl2 = self.getpyetl(self.statfilter, entree=self.stats[i])
 #                print ("petl2 statprocess",petl2.idpyetl,petl2.stats)
@@ -1242,7 +1125,7 @@ class Pyetl(object):
         self.fichier_courant = fich
         self.chemin_courant = chemin
         self.racine = racine
-        print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext)
+#        print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext)
 
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
@@ -1259,8 +1142,9 @@ class Pyetl(object):
         return nb_obj
 
 
-MAINMAPPER = Pyetl() # on cree l'objet parent et l'executeur principal
-
+# on cree l'objet parent et l'executeur principal
+MAINMAPPER = Pyetl()
+set_mainmapper(MAINMAPPER)
 
 def _main():
     ''' mode autotest du module '''

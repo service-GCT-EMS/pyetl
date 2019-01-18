@@ -8,21 +8,20 @@ fonctions de gestion du deroulement d'un script
 """
 import os
 import sys
-import re
+#import re
 import zipfile
 import time
 import logging
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor
+#from concurrent.futures import ProcessPoolExecutor
 #from multiprocessing.pool import Pool
 #import multiprocessing
 import ftplib
 
 import requests
 from pyetl.formats.interne.objet import Objet
-from pyetl.schema.schema_io import recup_schema_csv, fusion_schema
-from pyetl.formats.formats import ExtStat
-from .outils import renseigne_attributs_batch
+from .outils import execbatch, objloader
+
 
 LOGGER = logging.getLogger('pyetl')
 
@@ -70,7 +69,7 @@ def f_start(regle, obj):
         return True
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
-    print('start: declenchement ', obj2)
+    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
     return True
 
@@ -323,9 +322,8 @@ def f_creobj(regle, obj):
 
     ident = (tmp[0], tmp[1]) if len(tmp) == 2 else ('niv_test', tmp[0])
 
-    if regle.getvar("schema_entree"):
-        schema = regle.stock_param.schemas[regle.getvar("schema_entree")]
-    else:
+    schema = regle.stock_param.schemas.get(regle.getvar("schema_entree"))
+    if schema is None:
         schema = regle.stock_param.init_schema('schema_test', origine='B', stable=False)
     gen_schema = ident not in schema.classes
     schemaclasse = schema.setdefault_classe(ident)
@@ -509,148 +507,18 @@ def f_archive(regle, obj):
     return True
 
 
-def parallelexec(executor, nprocs, fonction, args):
-    '''gere les appels de fonction uniques d'un pool de process
-       et s'assure que chaque process du pool est appelé'''
-
-    rfin = dict()
-#    print('start pexec')
-    retours = [executor.submit(fonction, args) for i in range(nprocs)]
-    while len(rfin) < nprocs:
-        if len(retours) < nprocs:
-            retours.append(executor.submit(fonction, args))
-        attente = []
-#        print ('retours', retours)
-        for i in retours:
-            if not i.done():
-                attente.append(i)
-            else:
-#                print ('termine',i)
-                retour_final = i.result()
-#                print('retour pexec ',retour_final)
-                if retour_final is not None:
-                    rfin[retour_final[0]] = retour_final[1:]
-        retours = attente
-    return rfin
 
 
-def prepare_batch_from_object(regle, obj):
-    '''extrait les parametres pertinents de l'objet decrivant le batch'''
 
-    comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    commande = comm if comm else obj.attributs.get('commandes')
-#    print("commande batch", commande)
-    if not commande:
-        return False
-    mapper = regle.stock_param
-    entree = obj.attributs.get('entree', mapper.get_param("_entree"))
-    sortie = obj.attributs.get('sortie', mapper.get_param("_sortie"))
-    numero = obj.attributs.get('#_batchnum', '0')
-#    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
-    parametres = obj.attributs.get('parametres') # parametres en format hstore
-    params = None
-    if parametres:
-        params = ['='.join(re.split('"=>"', i))
-                  for i in re.split('" *, *"', parametres[1:-1])]
-    return (numero, commande, entree, sortie, params)
-
-
-def traite_parallelbatch(regle):
-    '''traite les batchs en parallele'''
-    parametres = dict()
-    mapper = regle.stock_param
-    rdict = dict()
-    nprocs = int(regle.params.cmp2.num)
-    parallelbatch = mapper.parallelbatch
-    endparallel = mapper.endparallel
-
-    for num, obj in enumerate(regle.tmpstore):
-        obj.attributs['#_batchnum'] = str(num)
-        st_ordre = obj.attributs.get('ordre','999')
-        ordre =  int(st_ordre) if st_ordre.isnumeric() else 999
-        if ordre in parametres:
-            parametres[ordre].append(prepare_batch_from_object(regle, obj))
-        else:
-            parametres[ordre] = [prepare_batch_from_object(regle, obj)]
-    for bloc in sorted(parametres):
-        if len(parametres[bloc]) == 1: # il est tout seul on a pas besoin de toute la tringlerie
-            numero = parametres[bloc][0][0]
-            obj = regle.tmpstore[numero]
-            execbatch(regle, obj)
-            continue
-        with ProcessPoolExecutor(max_workers=nprocs) as executor:
-#TODO en python 3.7 l'initialisation peut se faire dans le pool
-            rinit = parallelexec(executor, nprocs, mapper.initparallel,
-                                 (mapper.parms, mapper.macros, None, None))
-
-            workids = {pid:n+1 for n, pid in enumerate(rinit)}
-            parallelexec(executor, nprocs, mapper.setparallelid, (workids, '#init_mp', ''))
-            if regle.debug:
-                print('retour init', rinit)
-            results = executor.map(parallelbatch, parametres[bloc])
-    #        print('retour map',results)
-            rdict.update(results)
-    #        print('retour map rdict',rdict)
-
-            rfin = parallelexec(executor, nprocs, endparallel, '')
-    #        print(' retour exec')
-            if regle.debug:
-                print('retour end', bloc,rfin)
-
-    traite = mapper.moteur.traite_objet
-    if regle.debug:
-        print("retour multiprocessing ", rdict.items()[:10])
-#    print (finaux)
-    for obj in regle.tmpstore:
-        numero = obj.attributs['#_batchnum']
-        if numero in rdict:
-            parametres = rdict[numero]['retour']
-            renseigne_attributs_batch(regle, obj, parametres)
-        traite(obj, regle.branchements.brch["end:"])
-    regle.nbstock = 0
-
-
-def execbatch(regle, obj):
-    '''execute un batch'''
-    if obj is None: # pas d'objet on en fabrique un sur mesure
-        obj = Objet('_batch', '_batch', format_natif='interne')
-    _, commande, entree, sortie, params = prepare_batch_from_object(regle, obj)
-    processor = regle.stock_param.getpyetl(commande, liste_params=params,
-                                           entree=entree, rep_sortie=sortie)
-    if processor is None:
-        return False
-
-
-    processor.process(debug=1)
-    renseigne_attributs_batch(regle, obj, processor.retour)
-    return True
 
 
 def h_batch(regle):
     '''definit la fonction comme etant a declencher'''
     if regle.params.cmp1.val == 'run':
         regle.chargeur = True
+    regle.prog = execbatch
+    regle.stock_param.gestion_parallel_batch(regle)
 
-    if regle.params.cmp1.val == 'init':
-        # lancement immediat pour utilisation par la suite
-        # ( ne se relance pas dans un worker parallele)
-        if not regle.stock_param.worker:
-            execbatch(regle, None)
-        regle.valide = 'done' # on a fini on le relance pas
-
-    if regle.params.cmp1.val == 'parallel_init' and regle.stock_param.worker:
-        # lancement immediat pour utilisation par la suite
-        #(se lance dans chaque worker parallele)
-        execbatch(regle, None)
-        regle.valide = 'done' # on a fini on le relance pas
-
-    if regle.params.cmp2.num and not regle.stock_param.worker:
-#        print('mode paralelbatch')
-        regle.store = True
-        regle.traite_stock = traite_parallelbatch
-        regle.nbstock = 0
-        regle.traite = 0
-        regle.tmpstore = []
 
 
 def f_batch(regle, obj):
@@ -669,159 +537,19 @@ def f_batch(regle, obj):
         regle.nbstock += 1
         return True
 
-    return execbatch(regle, obj)
+    return regle.prog(regle, obj)
 
-
-def getfichs(regle, obj):
-    '''recupere une liste de fichiers'''
-
-    mapper = regle.stock_param
-    racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
-    if not racine:
-        racine = mapper.get_param('_entree', '.')
-    vobj = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    if vobj:
-        rep = os.path.join(racine, vobj)
-    else:
-        rep = racine
-
-#    print( "charge fichiers", rep)
-    fichs = mapper.scan_entree(rep=rep)
-    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
-    return fparm
-
-
-def parallelmap_suivi(mapper, executor, fonction, arglist):
-    '''gere les appels classique mais avec des retours d'infos'''
-
-    rfin = dict()
-#    print('start pexec')
-    work = [executor.submit(fonction, *arg) for arg in arglist]
-
-    while work:
-        attente = []
-        for job in work:
-            if not job.done():
-                attente.append(job)
-            else:
-#                print ('termine',i)
-                retour_process = job.result()
-#                print('retour pexec ',job,retour_process)
-                if retour_process is not None:
-                    num_obj, lus = retour_process
-                    rfin[num_obj] = lus
-                    mapper.aff.send(('fich', 1, lus))
-        work = attente
-        time.sleep(0.1)
-    return rfin
-
-
-def traite_parallel_load(regle):
-    '''traite les batchs en parallele'''
-
-    idobj = []
-    entrees = []
-    mapper = regle.stock_param
-
-    for num, obj in enumerate(regle.tmpstore):
-        fichs = getfichs(regle, obj)
-        idobj.extend([num]*len(fichs))
-        entrees.extend(fichs)
-    arglist = [(i, j, regle.index) for i, j in zip(idobj, fichs)]
-    nprocs = int(regle.params.cmp2.num)
-    parallelprocess = mapper.parallelprocess
-    num_regle = [regle.index]*len(entrees)
-    rdict = dict()
-#    print('parallel load',entrees,idobj, type(mapper.env))
-    env = mapper.env if isinstance(mapper.env, dict) else None
-    with ProcessPoolExecutor(max_workers=nprocs) as executor:
-#TODO en python 3.7 l'initialisation peut se faire dans le pool
-        def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
-#        print("preparation exec parallele", def_regles, mapper.liste_params)
-        LOGGER.info(' '.join(("preparation exec parallele", str(def_regles),
-                              str(mapper.liste_params))))
-        rinit = parallelexec(executor, nprocs, mapper.initparallel,
-                             (mapper.parms, mapper.macros, env, None))
-        workids = {pid:n+1 for n, pid in enumerate(rinit)}
-#        print ('workids',workids)
-        LOGGER.info(' '.join(('workids', str(workids))))
-        parallelexec(executor, nprocs, mapper.setparallelid,
-                     (workids, def_regles, mapper.liste_params))
-        if regle.debug:
-            print('retour init', rinit, num_regle)
-#        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-#        for i in results:
-#            rdict[i] = rdict.get(i[0],0)+i[1]
-#        lus_total = sum(rdict.values())
-#        lus_fichs = len(rdict)
-        rfin = parallelexec(executor, nprocs, mapper.endparallel, '')
-#        if regle.debug:
-#        print ('retour')
-        for i in rfin:
-            retour = rfin[i][0]
-#            print (i, 'worker', retour['wid'], 'traites',
-#                   retour['stats_generales']['_st_lu_objs'],
-#                   list(sorted(retour['schemas'].keys())))
-            for param in retour['stats_generales']:
-                mapper.padd(param, retour['stats_generales'][param])
-            LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
-            fichs = retour['fichs']
-            for nom, nbr in fichs.items():
-                mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nbr
-#            print ('traitement schemas ', retour["schemas"])
-            nomschemas = set()
-            for nom, schema in retour["schemas"].items():
-                nomschemas.add(nom)
-                classes, conf, mapping, deftrig = schema
-                tmp = recup_schema_csv(nom, classes, conf, mapping, deftrig)
-#                print ('recup schema ', nom, tmp, mapper.schemas.get(nom))
-                if tmp:
-                    if nom in mapper.schemas:
-                        fusion_schema(nom, mapper.schemas[nom], tmp)
-#                        print ('------apres fusion schema siglc', mapper.schemas.get('siglc'))
-                    else:
-                        mapper.schemas[nom] = tmp
-            for nom in nomschemas: # on reporte les comptages d'objets
-                schem = mapper.schemas[nom]
-                for cla in schem.classes.values():
-                    cla.objcnt = cla.poids
-            for nom, entete, contenu in retour["stats"].values():
-                if nom not in mapper.stats:
-                    mapper.stats[nom] = ExtStat(nom, entete)
-                mapper.stats[nom].add(entete, contenu)
-#                    print('ajout_stats',nom, contenu)
-
-#                print ('------apres recup schema siglc', mapper.schemas.get('siglc'))
-#            print (i,retour,nfich,nobj,schema.keys())
-#    mapper.padd('_st_lus_total', lus_total)
-#    mapper.padd('_st_lus_fichs', lus_fichs)
-    traite = regle.stock_param.moteur.traite_objet
-#    print("retour multiprocessing ", results, retour)
-
-    for i in sorted(rdict):
-        obj = regle.tmpstore[i]
-        obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-#        regle.branchements.brch["end:"]
-        traite(obj, regle.branchements.brch["end:"])
-    regle.nbstock = 0
 
 
 
 def h_fileloader(regle):
     """prepare la lecture"""
-#    print("preparation fileloader",regle.stock_param.worker, regle.params.cmp2)
     if "[" in regle.params.cmp1.val:
         regle.dyn = True
     else:
         regle.dyn = False
         regle.chargeur = True
-    if regle.params.cmp2.num and not regle.stock_param.worker:
-        regle.store = True
-        regle.traite_stock = traite_parallel_load
-        regle.nbstock = 0
-        regle.traite = 0
-        regle.tmpstore = []
+    regle.stock_param.gestion_parallel_load(regle)
 
 
 def f_fileloader(regle, obj):
@@ -842,24 +570,25 @@ def f_fileloader(regle, obj):
         regle.tmpstore.append(obj)
         regle.nbstock += 1
         return True
-    mapper = regle.stock_param
-    fichs = getfichs(regle, obj)
-
-#    print ("-------------liste_fichiers ", fichs)
-#    lu_total = 0
-#    lu_fichs = 0
-    nb_lu = 0
-    if fichs:
-        for i, parms in fichs:
-            try:
-                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
-            except StopIteration as abort:
-                if abort.args[0] == '2':
-                    continue
-                raise
-    if regle.params.att_sortie.val:
-        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return True
+    return objloader(regle,obj)
+#    mapper = regle.stock_param
+#    fichs = getfichs(regle, obj)
+#
+##    print ("-------------liste_fichiers ", fichs)
+##    lu_total = 0
+##    lu_fichs = 0
+#    nb_lu = 0
+#    if fichs:
+#        for i, parms in fichs:
+#            try:
+#                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+#            except StopIteration as abort:
+#                if abort.args[0] == '2':
+#                    continue
+#                raise
+#    if regle.params.att_sortie.val:
+#        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+#    return True
 
 
 def h_statprint(regle):

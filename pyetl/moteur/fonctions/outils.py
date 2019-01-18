@@ -13,6 +13,7 @@ import linecache
 import traceback
 import logging
 import pyetl.formats.formats as F
+from pyetl.formats.interne.objet import Objet
 
 DEFCODEC = "utf-8"
 MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
@@ -91,6 +92,38 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
                     pass
 #                    print ('not match',pattern, chemin, element)
 
+
+
+def getfichparms(mapper, rep=''):
+    '''recupere une liste de fichiers'''
+#    print( "charge fichiers", rep)
+    fichs, parametres_fichiers = scan_entree(rep=rep)
+    fparm = [(i, parametres_fichiers[i]) for i in fichs]
+    return fparm
+
+
+def getfichs(regle, obj):
+    '''recupere une liste de fichiers'''
+
+    mapper = regle.stock_param
+    racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
+    if not racine:
+        racine = regle.getvar('_entree', '.')
+    vobj = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    if vobj:
+        rep = os.path.join(racine, vobj)
+    else:
+        rep = racine
+
+#    print( "charge fichiers", rep)
+    fichs = mapper.scan_entree(rep=rep)
+    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
+    return fparm
+
+
+
+
+
 def printexception():
     """affichage d exception avec traceback"""
     err, exc_obj, infodebug = sys.exc_info()
@@ -114,6 +147,59 @@ def renseigne_attributs_batch(regle, obj, retour):
     obj.attributs["#fichiers_ecrits"] = mapper.get_param('_st_wr_fichs', '0')
     obj.attributs[regle.params.att_sortie.val] = str(retour)
 
+
+def prepare_batch_from_object(regle, obj):
+    '''extrait les parametres pertinents de l'objet decrivant le batch'''
+
+    comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    commande = comm if comm else obj.attributs.get('commandes')
+#    print("commande batch", commande)
+    if not commande:
+        return False
+    mapper = regle.stock_param
+    entree = obj.attributs.get('entree', mapper.get_param("_entree"))
+    sortie = obj.attributs.get('sortie', mapper.get_param("_sortie"))
+    numero = obj.attributs.get('#_batchnum', '0')
+#    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
+    parametres = obj.attributs.get('parametres') # parametres en format hstore
+    params = None
+    if parametres:
+        params = ['='.join(re.split('"=>"', i))
+                  for i in re.split('" *, *"', parametres[1:-1])]
+    return (numero, commande, entree, sortie, params)
+
+
+def execbatch(regle, obj):
+    '''execute un batch'''
+    if obj is None: # pas d'objet on en fabrique un sur mesure
+        obj = Objet('_batch', '_batch', format_natif='interne')
+    _, commande, entree, sortie, params = prepare_batch_from_object(regle, obj)
+    processor = regle.stock_param.getpyetl(commande, liste_params=params,
+                                           entree=entree, rep_sortie=sortie)
+    if processor is None:
+        return False
+
+    processor.process(debug=1)
+    renseigne_attributs_batch(regle, obj, processor.retour)
+    return True
+
+
+def objloader(regle, obj):
+    '''charge des objets depuis des fichiers'''
+    nb_lu = 0
+    mapper = regle.stock_param
+    fichs = getfichs(regle, obj)
+    if fichs:
+        for i, parms in fichs:
+            try:
+                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+            except StopIteration as abort:
+                if abort.args[0] == '2':
+                    continue
+                raise
+    if regle.params.att_sortie.val:
+        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+    return True
 
 
 def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
@@ -481,3 +567,7 @@ def remap(element, elmap):
     elif isinstance(element, str):
         return remap_noms(*elmap, element)
     return element
+
+
+
+

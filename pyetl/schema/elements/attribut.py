@@ -33,7 +33,7 @@ class Conformite(object):
     '''definition d'une conformite
     pour le moment seul les enums sont utilisees'''
     typeconv = {"E":int, "EL":int, "F":float, "T":str}
-    def __init__(self, nom, typeval='', vmax=0, mode=1, modele=None):
+    def __init__(self, nom, typeval='', vmax=0, mode=1, modele=None, d_if=None):
         self.nom = nom
         self.nombase = nom
         if modele:
@@ -58,6 +58,7 @@ class Conformite(object):
             self.ajuste = modele.ajuste
             self.poids = modele.poids
             self.valide_base = modele.valide_base
+
         else:
             self.force_alias = 0
             self.type_conf = 0
@@ -84,6 +85,10 @@ class Conformite(object):
             self.ajuste = False
             self.poids = 0
             self.valide_base = False
+
+        if d_if:
+            self.from_dic_if(d_if)
+
 
     def stocke_valeur(self, valeur, alias, mode_force=1, ordre=0):
         '''range une valeur de conformite avec gestion des alias'''
@@ -171,6 +176,23 @@ class Conformite(object):
         return str([self.stock[i][0] for i in self.stock])
 
 
+    @property
+    def __dic_if__(self):
+        '''interface de type dictionnaire en sortie pour communication interprocess'''
+
+        vald = {val:desc[:] for val, desc in self.stock}
+        d_if = {'nom':self.nom, 'valeurs':vald, 'poids': self.poids}
+        return d_if
+
+    def from_dic_if(self, d_if):
+       ''' reinitialise a partir d'une interface dict '''
+       self.nom = d_if['nom']
+       self.poids = d_if['poids']
+       for desc in d_if['valeurs'].items:
+           valeur, alias, ordre, mode_force, _ = desc
+           self.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force)
+
+
 class Attribut(object):
     ''' gestion des attributs'''
     types = {type(1):"entier",
@@ -178,7 +200,7 @@ class Attribut(object):
     types_a = TYPES_A
     types_s = TYPES_S
 
-    def __init__(self, nom, vmax, nom_conformite=''):
+    def __init__(self, nom, vmax, nom_conformite='', d_if=None):
         self.nom = nom
         self.valeurs = dict()
         self.conf = True if vmax else False
@@ -202,6 +224,8 @@ class Attribut(object):
         self.unique = False
         self.def_index = ''
         self.clef_etr = ''
+        if d_if:
+            self.from_dic_if(d_if)
 
 
     def set_type(self, val):
@@ -258,8 +282,6 @@ class Attribut(object):
 
 
 
-
-
     def ajout_valeur(self, valeur):
         ''' analyse d'une valeur pour la determination automatique des conformites'''
         if valeur is None:
@@ -285,3 +307,33 @@ class Attribut(object):
 
     def __repr__(self):
         return str((self.nom, self.type_att, self.nom_conformite))
+
+    @property
+    def __dic_if__(self):
+        return {'nom': self.nom, 'type_att': self.type_att,
+                'type_att_base': self.type_att_base,
+                'multiple': self.multiple, 'graphique': self.graphique,
+                'conformite': self.nom_conformite, 'defaut':self.defaut,
+                'alias': self.alias, 'oblig': self.oblig,
+                'taille': self.taille, 'dec':self.dec,
+                'ordre': self.ordre, 'nom_court': self.nom_court,
+                'unique': self.unique, 'index': self.def_index,
+                'clef_etr': self.clef_etr}
+
+    def from_dic_if(self, dic_if):
+        self.nom = dic_if['nom']
+        self.type_att = dic_if['type_att']
+        self.type_att_base = dic_if['type_att_base']
+        self.multiple = dic_if['multiple']
+        self.graphique = dic_if['graphique']
+        self.nom_conformite = dic_if['nom_conformite']
+        self.defaut = dic_if['defaut']
+        self.alias = dic_if['alias']
+        self.oblig = dic_if['oblig']
+        self.taille = dic_if['taille']
+        self.dec = dic_if['dec']
+        self.ordre = dic_if['ordre']
+        self.nom_court = dic_if['nom_court']
+        self.unique = dic_if['unique']
+        self.def_index = dic_if['def_index']
+        self.clef_etr = dic_if['clef_etr']

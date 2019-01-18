@@ -188,21 +188,40 @@ def h_def_schema(regle):
     cmp1: nom du fichier
     cmp2: extension
     """
-#    print('interpreteur: lire schema_entree', regle.numero, regle.params)
 
     cod = regle.getvar("codec_entree", 'cp1252')
     fusion = False
     if regle.params.cmp1.dyn:
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace('*', '') # nom du fichier
+#    print('interpreteur: lire schema_entree', regle.numero, regle.params, regle.fichier)
+    nom = regle.params.val_entree.val
+    regle.differe = False
     if not regle.fichier:
         LOGGER.error('pas de schema a lire '+ regle.ligne)
         regle.mode = ''
         return
-    if regle.fichier.startswith == '#schema:': #fichier precharge (base de donnees)
-        regle.nomschema = regle.params.cmp2.val
+    if regle.fichier.startswith('#schema:'): #fichier precharge (base de donnees)
+        nomschema = regle.params.cmp2.val
+        regle.fichier = nomschema
+        if not nom:
+            nom=nomschema
         regle.remap = regle.params.att_entree.val == 'map'
         regle.valide = True
+
+        if nom != nomschema:
+            if nomschema in regle.stock_param.schemas: # le schema existe deja
+                SC.init_schema(regle.stock_param, nom, origine=None, fich='', defmodeconf=0,
+                    stable=True, modele=nomschema, copie=True)
+                print ('copie de schema', nomschema, '->', nom,
+                       regle.stock_param.worker, regle.getvar('_wid'),
+                       len(regle.stock_param.schemas[nomschema].classes), '->',
+                       len(regle.stock_param.schemas[nom].classes))
+#                raise
+            else:
+                regle.differe = True
+        regle.nomschema = nom
+        print ('demande schema interne',nomschema, '->', nom, 'differe',regle.differe)
         return
     ext = regle.params.cmp2.val
 
@@ -215,7 +234,6 @@ def h_def_schema(regle):
     if regle.stock_param.rdef:
         regle.fichier = regle.fichier.replace("D:", regle.stock_param.rdef+"/")
     # fichier de jointure dans le repertoire de regles
-    nom = os.path.basename(regle.params.val_entree.val)
     if not nom:
         nom = os.path.basename(regle.fichier)
 
@@ -279,9 +297,9 @@ def fschema_change_classe(_, obj):
 def f_def_schema(regle, obj):
     '''#aide||associe un schema lu dans un ficher a un objet
   #aide_spec||type du schema (entree, sortie ou autre);nom;;lire_schema;nom du fichier;extension
-   #pattern1||?=schema_entree;?C;?=map;lire_schema;?C;C
-   #pattern2||?=schema_sortie;?C;?=map;lire_schema;?C;C
-   #pattern3||?=#schema;?C;?=map;lire_schema;?C;C
+   #pattern1||?=schema_entree;?C;?=map;lire_schema;?C;?C
+   #pattern2||?=schema_sortie;?C;?=map;lire_schema;?C;?C
+   #pattern3||?=#schema;?C;?=map;lire_schema;?C;?C
        #test||obj;batch||^#schema;;;lire_schema;%testrep%/schemas/pyetl;csv;||atv;#groupe;pyetl
      '''
 
@@ -293,9 +311,15 @@ def f_def_schema(regle, obj):
     #print "schemas", regle.stock_param.schemas.keys()
     #print ('def_schema:',ident,nom_base,regle.stock_param.schemas)
     if nom_base not in regle.stock_param.schemas:
-        LOGGER.error('schema inconnu '+nom_base)
-        print('erreur schema inconnu', nom_base)
-        return False
+        if regle.differe: # c'etait un schema interne on le cree
+            SC.init_schema(regle.stock_param, nom_base, origine=None, fich='', defmodeconf=0,
+                stable=True, modele=regle.params.cmp2.val, copie=True)
+            print ('copie de schema differee', regle.params.cmp2.val, nom_base)
+#            raise
+        else:
+            LOGGER.error('schema inconnu '+nom_base)
+            print('erreur schema inconnu', nom_base)
+            return False
 
     schema = regle.stock_param.schemas[nom_base]
     ident2 = schema.map_dest(ident) if schema.stock_mapping.existe else ident
@@ -351,9 +375,9 @@ def f_def_schema(regle, obj):
             obj.schema = None
             return True
         print('regles:', regle.numero, 'classe non trouvee', nom_base, ident,
-              'dans ', regle.params.cmp1.val)
-#        print('regles: liste classes ',
-#              list(schema.classes.keys())[:10], "....")
+              'dans ', regle.nomschema)
+        print('regles: liste classes ',
+              list(schema.classes.keys())[:10], "....")
         obj.schema = None
         return False
 
@@ -400,7 +424,7 @@ def liste_table_traite_stock(regle):
     regle.store = False
 
 def h_liste_tables(regle):
-    """pepare la lite des tables"""
+    """pepare la liste des tables"""
     schema = regle.params.cmp1.val
     regle.schema_courant = regle.stock_param.schemas.get(schema)
     regle.store = True

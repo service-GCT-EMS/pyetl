@@ -395,9 +395,9 @@ class ExtStat(object):
                 affiche = True
 
         if affiche:
-            print('affichage stats', nom, "[", filtre, "]")
-            print(self.entete.replace(';', '\t'))
-            print("\n".join(i.replace(';', '\t') for i in result if filtre in i))
+            print('affichage stats ext', nom, "[", filtre, "]")
+            print('\t'.join(self.entete))
+            print('\n'.join(['\t'.join(i) for i in result if filtre in i[0]]))
 
 
     def to_obj(self, stock_param):
@@ -437,6 +437,10 @@ class ExtStat(object):
                     break
         return nlignes
 
+    def retour(self, filtre=''):
+        """renvoie une description de stats"""
+        nom = '_'.join(self.nom).replace('#', '')
+        return (nom, self.entete, self.lignes)
 
 
 

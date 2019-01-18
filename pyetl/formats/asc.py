@@ -319,17 +319,17 @@ def _finalise(obj, schema_init, schema, numero, chemin):
     obj.setorig(numero) # on renseigne l'idenbtifiant d 'origine
     obj.attributs['#chemin'] = chemin
 
-def _get_schemas(stock_param, rep, fichier):
+def _get_schemas(regle, rep, fichier):
     '''definit le schemas de reference et les elementt immuables '''
     schema = None
     schema_init = None
+    stock_param = regle.stock_param
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
-
-    if stock_param.get_param("schema_entree"):
-        schema = stock_param.schemas[stock_param.get_param("schema_entree")]
+    if regle.getvar("schema_entree"):
+        schema = stock_param.schemas.get(regle.getvar("schema_entree"),None)
         schema_init = schema
     else:
-        if stock_param.get_param('autoschema'):
+        if regle.getvar('autoschema'):
             schema = stock_param.init_schema(rep, origine='B', fich=fichier, stable=False)
     return schema, schema_init
 
@@ -345,7 +345,7 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
     #ouv = None
     obj = None
     nom = None
-    schema, schema_init = _get_schemas(stock_param, rep, fichier)
+    schema, schema_init = _get_schemas(regle, rep, fichier)
 #    print ('lire_asc ', schema, schema_init)
     maxobj = stock_param.get_param('lire_maxi', 0)
 #    print('asc:entree', fichier)

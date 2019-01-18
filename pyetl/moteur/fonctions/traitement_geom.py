@@ -35,6 +35,8 @@ def f_initgeom(_, obj):
        #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
     '''
     #print (ob)
+    if obj.virtuel:
+        return True
     return obj.initgeom()
 
 
@@ -47,6 +49,8 @@ def f_resetgeom(_, obj):
        #test||obj;ligne||^;;;resetgeom||;!has:geomV;;;C1;1;;set||atv;C1;1
     '''
     # on fait comme si on avait pas traite la geometrie
+    if obj.virtuel:
+        return True
     obj.geompending()
     return True
 
@@ -72,6 +76,8 @@ def f_setpoint(regle, obj):
    #schema||set_geom
    #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     '''
+    if obj.virtuel:
+        return True
     try:
         point = [float(i) for i in obj.attributs.get(regle.params.att_entree.val,\
                  regle.params.val_entree.val).split(',')]
@@ -97,6 +103,8 @@ def f_setpoint_liste(regle, obj):
        #pattern||;N?;L;setpoint;?N;
        #test||obj||^;;V1,V2;setpoint||atv;#type_geom;1
     '''
+    if obj.virtuel:
+        return True
     try:
         point = [float(obj.attributs.get(i, regle.params.val_entree.val))
                  for i in regle.params.att_entree.liste]
@@ -126,6 +134,8 @@ def f_addgeom(regle, obj):
        #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
        #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
     '''
+    if obj.virtuel:
+        return True
     type_geom = regle.params.cmp1.val
     if type_geom == '1':
         try:
@@ -185,6 +195,8 @@ def f_force_pt(regle, obj):
        #pattern||;?C;?A;force_pt;;
        #test||obj;ligne||^;1;;force_pt||^;0;;coordp;||atn;#y;1
     '''
+    if obj.virtuel:
+        return True
     if obj.attributs['#type_geom'] == '0':
         return False
     if obj.initgeom():
@@ -210,6 +222,8 @@ def f_forceligne(regle, obj): # force la geometrie en ligne
        #test||obj;poly||^;;;force_ligne||atv;#type_geom;2
        #
     '''
+    if obj.virtuel:
+        return True
     obj.geom_v.forceligne()
     obj.infogeom()
     obj.geomnatif = False
@@ -229,6 +243,8 @@ def f_forcepoly(regle, obj):
        #schema||set_geom
        #test||obj;ligne_fermee||^;;;forcepoly;||atv;#type_geom;3
         '''
+    if obj.virtuel:
+        return True
     if obj.initgeom():
 #        print ('force poly',obj.geom_v.valide,obj.attributs['#type_geom'])
         obj.geom_v.forcepoly(force=regle.params.cmp1.val)
@@ -252,6 +268,8 @@ def f_force_couleur(regle, obj):
        #pattern||;;;change_couleur;N;N
        #test||obj;asc_c||^;;;change_couleur;2;3||^;;;extract_couleur;3||atv;#points;2
     '''
+    if obj.virtuel:
+        return True
     if obj.initgeom():
         obj.geom_v.forcecouleur(int(regle.params.cmp1.num), int(regle.params.cmp2.num))
         obj.geomnatif = False
@@ -265,6 +283,8 @@ def f_multigeom(regle, obj):
        #test||obj;ligne||^;1;;multigeom;||^V4;multigeom;;info_schema;;||atv;V4;1
     '''
 #        if obj.schema:
+    if obj.virtuel:
+        return True
     obj.schema.multigeom = bool(regle.params.val_entree.num)
 
     return True
@@ -284,6 +304,8 @@ def f_longueur(regle, obj):
         #test||obj;ligne||^#len;;;longueur||atn;#len;1
     """
 #    if True:
+    if obj.virtuel:
+        return False
     if obj.initgeom():
 #        obj.infogeom()
 #        print ("longueur",obj, obj.geom_v, obj.geom_v.longueur)
@@ -297,6 +319,8 @@ def f_coordp(regle, obj):
        #test||obj;ligne||^;1;;coordp||atn;#y;1
        #test1||obj;point||^;1;;coordp||atn;#y;2
     '''
+    if obj.virtuel:
+        return False
     if obj.initgeom():
         if obj.attributs['#type_geom'] == '0' or obj.geom_v.null:
             return False
@@ -369,6 +393,8 @@ def f_grid(regle, obj):
     #pattern||L;;;grid;LC;N
     #test||obj;point;5||^;;V0,V0,V0;translate||^X,Y;;;grid;0.5,0.5;1||^;;;sample-;3;1||atv;X;3
     '''
+    if obj.virtuel:
+        return False
     pmin = (float(obj.attributs.get('#xmin', 0)), float(obj.attributs.get('#ymin', 0)))
     pmax = (float(obj.attributs.get('#xmax', 0)), float(obj.attributs.get('#ymax', 0)))
     cases = grille2(regle.orig_grille, regle.params.cmp2.num, pmin, pmax)
@@ -400,6 +426,8 @@ def f_gridx(regle, obj):
     #pattern||A;;;gridx;N;N
     #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridx;0.5;1||^;;;sample-;3;1||atv;X;3
     '''
+    if obj.virtuel:
+        return False
     fgrid(regle, obj, grille(regle.params.cmp1.num, regle.params.cmp2.num,
                              float(obj.attributs.get('#xmin', 0)),
                              float(obj.attributs.get('#xmax', 0))))
@@ -413,6 +441,8 @@ def f_gridy(regle, obj):
           #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridy;0.5;1||^;;;sample-;3;1||atv;X;4
 
     '''
+    if obj.virtuel:
+        return False
     fgrid(regle, obj, grille(regle.params.cmp1.num, regle.params.cmp2.num,
                              float(obj.attributs.get('#ymin', 0)),
                              float(obj.attributs.get('#ymax', 0))))
@@ -428,6 +458,8 @@ def f_geom_2d(regle, obj):
        #test||obj;point3D||^;;;geom2D;||atv;#dimension;2
     '''
 #        if obj.is_3d:
+    if obj.virtuel:
+        return True
     if obj.initgeom():
         if obj.dimension == 3:
             obj.geom_v.set_2d()
@@ -442,6 +474,8 @@ def f_geom_3d(regle, obj):
        #pattern||;N;?A;geom3D;?C;
        #test||obj;point||^;1;;geom3D;||atv;#dimension;3
     '''
+    if obj.virtuel:
+        return True
     if obj.initgeom():
         valeur = obj.attributs.get(regle.params.att_entree.val,
                                    regle.params.val_entree.val)
@@ -472,6 +506,8 @@ def f_mod_3d(regle, obj):
        #pattern||;N;;mod3D;C;
        #test||obj;point3D||^;5;;mod3D;z==3||^;;;coordp||atn;#z;5
     '''
+    if obj.virtuel:
+        return True
     if obj.initgeom():
         if obj.dimension == 2:
             return False
@@ -499,6 +535,8 @@ def f_splitcouleur(regle, obj):
         #test||obj;asc_c||^C;;;split_couleur||cnt;2;
     '''
 #    print ('split_couleurs ', regle.params,obj)
+    if obj.virtuel:
+        return True
     couleur = int(regle.params.cmp1.num) if regle.params.cmp1.num is not None else -1
     if obj.initgeom():
         geoms = obj.geom_v.split_couleur(couleur)
@@ -576,6 +614,8 @@ def f_csplit(regle, obj):
        #test||obj;poly||^;;;csplit>;y==1||cnt;2;
        #test1||obj;poly||^;;;csplit;y==1||cnt;3;
     '''
+    if obj.virtuel:
+        return False
     if obj.attributs['#type_geom'] == '0':
         return False
     if obj.initgeom():
@@ -603,7 +643,7 @@ def f_splitgeom(regle, obj):
        #test2||obj;poly||^;;;splitgeom;;||#type_geom;1;;;;;;pass-;;;;||cnt;5;
     '''
     if obj.geom_v.type == '0':
-        return
+        return True
     if obj.initgeom():
         geom = obj.geom_v
         obj.geom_v = None
@@ -627,6 +667,8 @@ def f_prolonge(regle, obj):
        #pattern||;?N;?A;prolonge;?N;
        #test||obj;ligne||^;1;;prolonge;3||atn;#longueur;3
     '''
+    if obj.virtuel:
+        return False
     longueur = obj.attributs.get(regle.params.att_entree.num,
                                  regle.params.val_entree.num)
     if obj.initgeom():
@@ -661,6 +703,8 @@ def f_reproj(regle, obj):
        #schema||ajout_attribut
        #test||obj;point||^;LL;;reproj;CC48;NG||^;1;;coordp||^#x;;#x;round||atn;#x;1404842
         '''
+    if obj.virtuel:
+        return False
     proj = regle.projection
     grilles = dict()
     if obj.initgeom():
@@ -723,6 +767,8 @@ def f_translatel(regle, obj):
     #pattern||;?LN;L;translate;;
       #test2||obj;ligne;||^;1,1;;translate||^;1;;coordp||atn;#x;2
     '''
+    if obj.virtuel:
+        return True
     dec_x = float(obj.attributs.get(regle.tx, regle.dx))
     dec_y = float(obj.attributs.get(regle.ty, regle.dy))
     dec_z = float(obj.attributs.get(regle.tz, regle.dz))
