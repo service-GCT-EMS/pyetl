@@ -30,15 +30,20 @@ def fdebug(regle, obj):
         regle.debug = regle.debug-1
         regle.affiche('------debug------>')
         obj.debug("avant", attlist=regle.champsdebug)
+
         succes = regle.f_init(regle, obj)
         obj.debug("apres", attlist=regle.champsdebug)
+
         liens_num = regle.branchements.liens_num()
-        print("retour fonction ", succes, '->',
-              liens_num["ok:"] if succes else liens_num["fail:"],
-              regle.branchements.brch[obj.redirect+':'] if obj.redirect else
-              regle.branchements.brch['ok:'] if succes else regle.branchements.brch['fail:'])
+        redirect = obj.redirect if obj.redirect else 'ok'
+#        if obj.redirect and obj.redirect not in regle.branchements.brch:
+#            redirect = 'ok'
+#            print ('branchement orphelin', obj.redirect, '(',regle.branchements.brch.keys())
+        print("retour fonction ", succes, '->', redirect if succes else 'fail',
+              liens_num[redirect] if succes else liens_num["fail"],
+              regle.branchements.brch[redirect] if succes else regle.branchements.brch['fail'])
         if regle.copy:
-            print('copy :  ->', liens_num["copy:"], regle.branchements.brch['copy:'])
+            print('copy :  ->', liens_num["copy"], regle.branchements.brch['copy'])
 
     else:
         succes = regle.f_init(regle, obj)
@@ -132,6 +137,8 @@ def prepare_selecteur(regle, v_nommees):
         select = lambda x: sel1.select(x) and sel2.select(x)
 
     regle.selstd = select
+    regle.sel1 = sel1
+    regle.sel2 = sel2 # pour le debug
 #    print("selecteur final",regle.numero, regle.selstd)
 
 
@@ -145,15 +152,18 @@ def regles_liees(regle, param):
         if param[regle.niveau-1] == '-':
             regle.nonext = True
         for i in regle.branchements.enchainements:
-            if param[regle.niveau:regle.niveau+len(i)] == i:
+            cmp = i+':'
+            if param[regle.niveau:regle.niveau+len(cmp)] == cmp:
                 regle.enchainement = i
-                regle.code_classe = param[regle.niveau+len(i):]
-        if regle.enchainement == ':':
-            regle.enchainement = 'ok:'
+                regle.code_classe = param[regle.niveau+len(cmp):]
+        if regle.enchainement == '':
+            regle.enchainement = 'ok'
             # petite magouille pour coller aux branchements sans alourdir la syntaxe
         if not regle.enchainement:
             err = "erreur de syntaxe "+ regle.ligne[:-1]
             print('liaison:', err)
+            print('autorises', regle.branchements.enchainements)
+            print('trouve',param)
             raise SyntaxError("liaison non valide")
 
         if regle.getvar("debug") == '1':
@@ -219,7 +229,7 @@ def extraction_operation(regle, fonction):
     mode = fonction.strip('+-> "')
     regle.mode = mode
     if regle.copy:
-        regle.branchements.addsortie('copy:') # on gagne une sortie
+        regle.branchements.addsortie('copy') # on gagne une sortie
 
 
 def printpattern(commande):

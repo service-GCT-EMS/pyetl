@@ -795,8 +795,8 @@ def geocode_traite_stock(regle, final=True):
     res = requests.post(geocodeur, files=files, data=data)
 
     header = []
-    suite = regle.branchements.brch["end:"]
-    fail = regle.branchements.brch["fail:"]
+    suite = regle.branchements.brch["end"]
+    fail = regle.branchements.brch["fail"]
 
     traite = regle.stock_param.moteur.traite_objet
 #        print ('retour ',buf)
@@ -913,7 +913,8 @@ def f_map_data(regle, obj):
     #schema||ajout_attribut
     '''
     val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    obj.attributs[regle.params.att_entree.val] = regle.elmap.get(val, val)
+    obj.attributs[regle.params.att_sortie.val] = regle.elmap.get(val, val)
+    return val in regle.elmap
 
 
 def f_map_data_liste(regle, obj):
@@ -926,13 +927,14 @@ def f_map_data_liste(regle, obj):
     defaut = regle.params.val_entree.val
     for entree, sortie in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
         val = obj.attributs.get(entree, defaut)
-        obj.attributs[sortie] = regle.elmap.get(val, defaut)
+        obj.attributs[sortie] = regle.elmap.get(val, val)
+    return True
 
 
 def f_map_data_type(regle, obj):
     '''#aide||applique un mapping complexe aux donnees
     #aide_spec||C: fichier de mapping
-    #aide_spec||LT: definition de type de donnees (T:)
+    #aide_spec||T: definition de type de donnees (T:)
     #pattern||*;?C;T:;map_data;C
     #helper||map_data
     #schema||ajout_attribut
@@ -942,9 +944,13 @@ def f_map_data_type(regle, obj):
     ident = obj.schema.identclasse
     if ident != regle.identclasse:
         regle.identclasse = ident
-        regle.liste_att = [i for i in obj.schema.attribut if i.type_att == regle.params.att_entree.val]
+        regle.liste_att = [i for i in obj.schema.attributs
+                           if obj.schema.attributs[i].type_att == regle.params.att_entree.val]
     defaut = regle.params.val_entree.val
-    for att in regle.regle.liste_att:
+    if not regle.liste_att:
+        return False
+    for att in regle.liste_att:
         val = obj.attributs.get(att, defaut)
-        obj.attributs[att] = regle.elmap.get(val, defaut)
+        obj.attributs[att] = regle.elmap.get(val, val)
+    return True
 

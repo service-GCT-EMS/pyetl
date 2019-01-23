@@ -289,7 +289,7 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
     if mode == 'supp_conf':
         atdef.type_att = 'T' # on supprime automatiquement la conformite
         LOGGER.warning("schema: "+nom_schema+" :suppression conformite "+nom_classe+'.'+
-                       atdef.nom+' '+atdef.nom_conformite+' -> '+atdef.type_att+':'+str(val))
+                       atdef.nom+' '+atdef.nom_conformite+' ->'+atdef.type_att+':'+str(val)+'<-')
 #        print("schema:", nom_schema, ":suppression conformite ", nom_classe, atdef.nom,
 #              atdef.nom_conformite, '->', atdef.type_att, ascii(str(val)))
 
@@ -363,7 +363,7 @@ def _valide_type(classe, atdef, val):
             atdef.type_att = "T"
 
     else:
-        print('type non gere ', atdef.type_att, classe.schema.nom, classe.nom, atdef.nom, val)
+        print('valide_type:',atdef.nom, atdef.nom,'type non gere', atdef.type_att, classe.schema.nom,  val)
     return err, repl
 
 def set_err(classe, obj, message, attendu, erreur, affich):
@@ -466,7 +466,7 @@ def valide_schema(schemaclasse, obj, mode='', repl='inconnu'):
         if err:
             nom_schema = schemaclasse.schema.nom
             if mode == 'supp_conf':
-                atdef.type_att = 'texte'
+                atdef.type_att = 'T'
                 warnings.append(nom_classe+'.'+i +":-->"+ val+'<-- non conforme :'+
                                 atdef.type_att+' ('+nom_schema+') '+str(err))
             else:

@@ -314,8 +314,10 @@ def fschema_set_geom(regle, obj):
     if obj.schema.amodifier(regle):
 #        print('modif schema geom', obj.schema.nom, obj.schema.info["type_geom"],
 #        '->', obj.attributs['#type_geom'])
-        if regle.params.cmp1.val:
-            obj.schema.info["type_geom"]=regle.params.cmp1.val
+        if regle.getvar('type_geom'):
+            obj.schema.info["type_geom"] = regle.getvar('type_geom')
+        elif obj.geom_v.valide:
+            obj.schema.info["type_geom"] = obj.geom_v.type
         else:
             obj.schema.info["type_geom"] = obj.attributs['#type_geom']
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])

@@ -110,6 +110,7 @@ class Objet(object):
 #        print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
         if force or not self.geom_v.valide:
             self.attributs_geom(self)
+        self.infogeom()
         return self.geom_v.valide
 
 
@@ -282,10 +283,9 @@ class Objet(object):
         virtuel = '_v' if self.virtuel else ''
         invariant = 'obj'+virtuel+' '+str(self.ido)+': '+code+":clone"+str(self.copie)+' '+\
             str(self.attributs.get('#classe'))+'.'+str(self.attributs.get('#classe'))
-        schema = 'schema:'+ ('.'.join((self.schema.schema.nom, ) +\
-                             self.schema.identclasse) if self.schema else 'non defini')
+        schema = '\t' + self.schema.__repr__() if self.schema else 'non defini'
         attlist = sorted(self.attributs.keys()) if attlist is None else attlist
-        print(invariant+'\n', schema+'\n', [(i, self.attributs.get(i, '<non defini>'))
+        print(invariant+'\n', schema+'\n\t', [(i, self.attributs.get(i, '<non defini>'))
                                             for i in attlist])
 
 

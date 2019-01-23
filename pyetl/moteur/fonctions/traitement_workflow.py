@@ -70,7 +70,7 @@ def f_start(regle, obj):
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
     print('commande start: declenchement ', obj2)
-    regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
+    regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True
 
 
@@ -348,7 +348,7 @@ def f_creobj(regle, obj):
 #        print ("objet_test",obj2.attributs,obj2.schema.schema.nom)
         obj2.setorig(i)
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
         except StopIteration as abort:
 #            print("intercepte abort",abort.args[0])
             if abort.args[0] == '2':
@@ -644,7 +644,7 @@ def f_schema_liste_classes(regle, _):
                      schema=schema.classes[i])
         obj2.initattr()
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
         except StopIteration as abort:
     #            print("intercepte abort",abort.args[0])
             if abort.args[0] == '2':
@@ -662,10 +662,10 @@ def h_filter(regle):
     ls2 = regle.params.cmp2.liste if regle.params.cmp2.liste else regle.params.cmp1.liste
     regle.liste_sortie = dict(zip(ls1, ls2))
     for i in ls2:
-        regle.branchements.addsortie(i+':')
-    regle.branchements.addsortie('#autre:')
-    regle.branchements.addsortie('#blanc:')
-    regle.branchements.addsortie('#vide:')
+        regle.branchements.addsortie(i)
+    regle.branchements.addsortie('#autre')
+    regle.branchements.addsortie('#blanc')
+    regle.branchements.addsortie('#vide')
     return True
 
 

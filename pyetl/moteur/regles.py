@@ -22,10 +22,10 @@ LOGGER = logging.getLogger('pyetl')
 
 class Branch(object):
     '''gestion des liens avec possibilite de creer de nouvelles sorties'''
-    enchainements = {":", "sinon:", "fail:", "next:"}
+    enchainements = {"", "sinon", "fail", "next"}
 
     def __init__(self):
-        self.brch = {'ok:': None, 'sinon:': None, 'fail:': None, 'next:': None, 'gen:': None}
+        self.brch = {'ok': None, 'sinon': None, 'fail': None, 'next': None, 'gen': None}
         self.suivante = False
 
     def setlink(self, lien):
@@ -64,7 +64,7 @@ class Branch(object):
         if regle:
             self.suivante = regle
         else:
-            self.suivante = self.brch['sinon:'].suivante if self.brch['sinon:'] else None
+            self.suivante = self.brch['sinon'].suivante if self.brch['sinon'] else None
 
 class Valdef(object):
     '''classe de stockage d'un parametre'''
@@ -175,9 +175,6 @@ class ParametresSelecteur(ParametresFonction):
 
 class RegleTraitement(object): # regle de mapping
     ''' descripteur de traitement unitaire '''
-#    enchainements = {":", "sinon:", "fail:", "next:"}
-#    debug_ench = {0:'non lie', 1:'suite', 2:"sinon", 3:"fail", 4:"next"}
-#    selecteurs = Selecteur
     def __init__(self, ligne, stock_param, fichier, numero, vloc=None):
 
         self.ligne = ligne
@@ -304,8 +301,8 @@ class RegleTraitement(object): # regle de mapping
 
     def setstore(self):
         '''definit une regle comme stockante et ajuste les sorties'''
-        self.branchements.brch["end:"] = self.branchements.brch["ok:"]
-        self.branchements.brch["ok:"] = None
+        self.branchements.brch["end"] = self.branchements.brch["ok"]
+        self.branchements.brch["ok"] = None
 
 
     def endstore(self, nom_base, groupe, obj, final, geomwriter=None, nomgeom=None):

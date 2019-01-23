@@ -523,7 +523,7 @@ def schema_from_curs(curs):
 def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect, sortie, v_sortie,
                      type_geom, schema_classe_travail, base='', treq=0, cond=''):
     ''' recupere les resultats et génére les objets'''
-    regle_debut = regle_courante.branchements.brch["next:"]
+    regle_debut = regle_courante.branchements.brch["next"]
 #    print ('dbaccess:definition regle debut ',type_geom,regle_debut.ligne)
     #valeurs = curs.fetchone()
     #print ('dbaccess:recuperation valeurs ',valeurs)
@@ -557,7 +557,7 @@ def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect
     for valeurs in curs.cursor:
         obj = Objet(niveau, classe, format_natif=format_natif, conversion=geom_from_natif)
 #        print ("geometrie valide",obj.geom_v.valide)
-        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
+#        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
         obj.attributs['#type_geom'] = type_geom
         if type_geom != '0':
             obj.attributs.update(zip(attlist, [str(i) if i is not None else ''

@@ -90,7 +90,7 @@ class Section(object):
             self.coords = [pnt[:]]
         else:
             self.coords = list()
-        self.couleur = 1
+        self.couleur = '1'
         self.courbe = 0
         self.aire = 0
         self.dimension = dim
@@ -149,7 +149,7 @@ class Section(object):
         self.encours = False
         self.courbe = courbe
         #if courbe==3: raise
-        self.couleur = int(couleur)
+        self.couleur = couleur
 
     def fusion(self, sect):
         '''fusionne 2 sections si possible'''
@@ -166,7 +166,7 @@ class Section(object):
         '''finalise une section et calcule certains parametres'''
         self.encours = False
         self.courbe = courbe
-        self.couleur = int(couleur)
+        self.couleur = couleur
         npt=self.npt
         if npt==0:
             return False

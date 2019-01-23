@@ -225,21 +225,7 @@ def f_dbalpha(regle, obj):
                 regle.nbstock += 1
                 return True
             return objloader(regle, obj)
-#            mapper = regle.stock_param
-#            fichs = mapper.scan_entree(rep=dest)
-#            fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
-#            nb_lu = 0
-#            if fparm:
-#                for i, parms in fparm:
-#                    try:
-#                        nb_lu += mapper.lecture(i, regle=regle, parms=parms)
-#                    except StopIteration as abort:
-#                        if abort.args[0] == '2':
-#                            continue
-#                        raise
-#            if regle.params.att_sortie.val:
-#                obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-#            return True
+
         else:
             retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
                                                 valeur, mods=mods, sortie=regle.params.att_sortie.liste,

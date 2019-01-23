@@ -419,7 +419,7 @@ def liste_table_traite_stock(regle):
         obj.attributs["nom_schema"] = sch
         obj.attributs["nom_classe"] = nom
         obj.setschema(schemaclasse)
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["next:"])
+        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["next"])
     regle.nbstock = 0
     regle.store = False
 

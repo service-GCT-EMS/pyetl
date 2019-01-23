@@ -21,7 +21,9 @@ def _affiche_debug(regles, debug):
             if '+' in regle.v_nommees['debug']:
                 print('\n'.join([str((i, regle.branchements.brch[i]))
                                  for i in sorted(regle.branchements.brch)]))
-            print("   compile: select", regle.selstd)
+            print("   compile: select", regle.selstd.__name__ if regle.sel1 else 'None',
+                  "sel1'", regle.sel1.fonction.__name__ if regle.sel1 else ''
+                  "sel2'", regle.sel2.fonction.__name__ if regle.sel2 else '')
 
 
 
@@ -32,10 +34,10 @@ def _finalise(regle, debug):
     if regle.store: # regle demandant un stockage de l'ensemble des entrees
         regle.setstore()
     if regle.final:
-        regle.branchements.brch["ok:"] = None
+        regle.branchements.brch["ok"] = None
     if regle.filter:
-        regle.branchements.brch["sinon:"] = None
-        regle.branchements.brch["fail:"] = None
+        regle.branchements.brch["sinon"] = None
+        regle.branchements.brch["fail"] = None
         if debug:
             print('regle filtrante ', regle.ligne)
 
@@ -47,8 +49,8 @@ def _gestion_branchements(regles, position, debug):
     if debug:
         print("compil : regles liees niveaux: ", position, regles[position].niveau,
               regles[position+1].niveau)
-    if regles[position+1].enchainement == 'ok:':
-        regle.branchements.brch["ok:"] = regles[position+1]
+    if regles[position+1].enchainement == 'ok':
+        regle.branchements.brch["ok"] = regles[position+1]
     if debug:
         print('calcul enchainements ', regle)
         j = 0
@@ -64,19 +66,9 @@ def _gestion_branchements(regles, position, debug):
             print('examen', regles[j], regles[j].enchainement)
         for i in regle.branchements.brch:
 
-            if i != 'ok:' and regles[j].enchainement == i:
+            if i != 'ok' and regles[j].enchainement == i:
                 regle.branchements.brch[i] = regles[j]
 
-#        for ench in regles[j].enchainements:
-#            if regles[j].enchainement == regles[j].enchainements[ench]:
-#                regle.branchements.brch[ench] = regles[j]
-
-#        if regles[j].enchainement == regles[j].enchainements["sinon:"]:
-#            regle.branchements.brch["sinon"] = regles[j]
-#        if regles[j].enchainement == regles[j].enchainements["fail:"]:
-#            regle.branchements.brch["fail"] = regles[j]
-#        if regles[j].enchainement == regles[j].enchainements["next:"]:
-#            regle.branchements.brch["next"] = regles[j]
     if debug:
         print("recherche", j, sorted(regle.branchements.liens_num()))
 
@@ -89,13 +81,13 @@ def _valide_blocs(regles, position, bloc):
     for regle_courante in regles[position+1:]:
         if regle_courante.mode == "fin_bloc":
             if bloc == bloc_courant:
-                regle.branchements.brch["sinon:"] = regles[regle_courante.index+1]
+                regle.branchements.brch["sinon"] = regles[regle_courante.index+1]
                 break
             else:
                 bloc_courant -= 1
         if regle_courante.mode == "bloc":
             bloc_courant += 1
-    if not regle.branchements.brch["sinon:"]:
+    if not regle.branchements.brch["sinon"]:
         print("cmp:erreur structure de blocs:", regle.ligne, bloc)
         return False
 
@@ -141,7 +133,7 @@ def compile_regles(mapper, regles, debug=0):
             _gestion_branchements(regles, i, debug)
 
         elif regles[i+1].niveau == regle.niveau:
-            if regles[i+1].enchainement and regles[i+1].enchainement != 'ok:':
+            if regles[i+1].enchainement and regles[i+1].enchainement != 'ok':
                 # c'est une regle sinon ou fail ou next
                 propage_liens(regles, i)
 #                niveau_courant = regles[i+1].niveau
@@ -153,7 +145,7 @@ def compile_regles(mapper, regles, debug=0):
             elif regles[i+1].nonext: # c est unbe suite d'acces
                 for j in range(i+1, len(regles)):
                     if not regles[j].nonext:
-                        regle.branchements.brch["next:"] = regles[j]
+                        regle.branchements.brch["next"] = regles[j]
                         break
 
 

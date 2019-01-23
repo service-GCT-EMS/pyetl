@@ -153,6 +153,10 @@ class SchemaClasse(object):
         for i in self.attributs.values():
             i.setbasic(mode)
 
+    def __repr__(self):
+        '''affichage simplifie'''
+        return 'schema ' + self.dbident +' '+ self.info.__repr__()
+
 
     @property
     def identclasse(self):

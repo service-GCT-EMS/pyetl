@@ -93,11 +93,11 @@ class Moteur(object):
                 if regle.selstd is None or regle.selstd(obj):
 #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)
                     if regle.copy:
-#                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy:"],
-#                               regle.branchements.brch["fail:"])
+#                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
+#                               regle.branchements.brch["fail"])
                         if not obj.virtuel:
                             self.traite_objet(obj.dupplique(),
-                                              regle.branchements.brch["copy:"])
+                                              regle.branchements.brch["copy"])
                         # on envoie une copie dans le circuit qui ne passe pas la regle
                             self.dupcnt += 1
                         #print "apres copie ", obj.schema
@@ -109,8 +109,10 @@ class Moteur(object):
                     if resultat:
                         if obj.schema is not None:
                             if regle.action_schema:
-        #                    print ('action schema',regle.params.att_sortie.liste)
+#                                print ('action schema',regle.action_schema)
+#                                print ('schema avant',obj.schema)
                                 regle.action_schema(regle, obj)
+#                                print ('schema apres',obj.schema)
                             if regle.changeclasse:
                                 regle.changeclasse(regle, obj)
                         if regle.changeschema:
@@ -125,14 +127,14 @@ class Moteur(object):
                             regle = regle.branchements.brch[obj.redirect]
                             obj.redirect = None
                         else:
-                            regle = regle.branchements.brch["ok:"] if resultat\
-                                    else regle.branchements.brch["fail:"]
+                            regle = regle.branchements.brch["ok"] if resultat\
+                                    else regle.branchements.brch["fail"]
 
                 else:
                     if regle.debug and '+' in regle.v_nommees['debug']:
                         regle.affiche('--non executee--->')
                         print('suite', regle.branchements.liens_num()["sinon"])
-                    regle = regle.branchements.brch["sinon:"]
+                    regle = regle.branchements.brch["sinon"]
             except StopIteration as abort:
 #                print ('stopiteration', ab.args)
                 if abort.args[0] == '1': # arret de traitement de l'objet

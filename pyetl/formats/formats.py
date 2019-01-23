@@ -395,9 +395,13 @@ class ExtStat(object):
                 affiche = True
 
         if affiche:
-            print('affichage stats ext', nom, "[", filtre, "]")
-            print('\t'.join(self.entete))
-            print('\n'.join(['\t'.join(i) for i in result if filtre in i[0]]))
+#            print('affichage stats ext', nom, "[", filtre, "]")
+#            print('\t'.join(self.entete))
+#            print('\n'.join(['\t'.join(i) for i in result if filtre in i[0]]))
+
+            nom, entete, contenu = self.retour(filtre)
+            print('affichage stats ext', nom, ("["+filtre+"]" if filtre else ''))
+            statprint(nom, entete, contenu)
 
 
     def to_obj(self, stock_param):
@@ -439,7 +443,7 @@ class ExtStat(object):
 
     def retour(self, filtre=''):
         """renvoie une description de stats"""
-        nom = '_'.join(self.nom).replace('#', '')
+        nom = self.nom.replace('#', '')
         return (nom, self.entete, self.lignes)
 
 
@@ -672,13 +676,24 @@ class Stat(object):
                 affiche = True
 
         if affiche:
-            print('affichage stats', nom, "[", filtre, "]")
-            print(self.structure.entete(self.colonnes_indirect).replace(';', '\t'))
-            print("\n".join((self.structure.ligne(i, self.valeurs).replace(';', '\t')
-                             for i in result if filtre in i)))
+            nom, entete, contenu = self.retour(filtre)
+            print('affichage stats', nom, ("["+filtre+"]" if filtre else ''))
+            statprint(nom, entete, contenu)
 
-#def ecrire_stats(rep_sortie, liste_stats):
-#    ''' ecriture finale des stats '''
-#    print("info :format: stats a ecrire", liste_stats.stats.keys())
-#    for i in liste_stats.stats:
-#        liste_stats.stats[i].ecrire(rep_sortie)
+
+def statprint(nom, entete, contenu):
+    '''formatte des stats por l'affichage'''
+
+    tailles = [max(map(len,i)) for i in zip(*contenu, entete)]
+    longueur = sum(tailles)+3*len(tailles)-2
+
+    pformat = '| %-'+str(tailles[0])+'s'+' | '.join('%'+str(i)+'s' for i in tailles[1:])+' |'
+    print('-'*longueur)
+
+    print(pformat % tuple(entete))
+    print('-'*longueur)
+
+#            print("\n".join((self.structure.ligne(i, self.valeurs).replace(';', '\t')
+#                             for i in result if filtre in i)))
+    print("\n".join((pformat % tuple(i) for i in contenu)))
+    print('-'*longueur)

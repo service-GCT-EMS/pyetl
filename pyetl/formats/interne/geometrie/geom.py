@@ -429,15 +429,14 @@ class Geometrie(object):
 #        print ('fin_geom2:type_geom ', self.type, typegeom)
 
 
-    def split_couleur(self, couleur):
+    def split_couleur(self, couleurs):
         '''decoupe une ligne selon la couleur des sections'''
         geoms = dict()
-        couleur = int(couleur)
         for i in self.lignes:
             for j in i.sections:
                 coul_sect = j.couleur
-                if couleur != -1 and coul_sect != couleur:
-                    coul_sect = -1
+                if couleurs and coul_sect not in couleurs:
+                    coul_sect = '#autre'
                 if coul_sect not in geoms:
                     geoms[coul_sect] = Geometrie()
                 geoms[coul_sect].ajout_section(j.dupplique(),False)
@@ -446,19 +445,17 @@ class Geometrie(object):
 #        print ("decoupage en couleurs ", couleur, geoms, self)
         return geoms
 
-    def extract_couleur(self,couleur):
+    def extract_couleur(self,couleurs):
         ''' recupere les sections d'une couleur'''
         geom = Geometrie()
-        couleur = int(couleur)
         for i in self.lignes:
             for j in i.sections:
-                if j.couleur == couleur:
+                if j.couleur in couleurs:
                     geom.ajout_section(j.dupplique(),False)
         return geom
 
-    def has_couleur(self,couleur):
+    def has_couleur(self, couleur):
         '''retourne True si la couleur existe dans l'objet'''
-        couleur = int(couleur)
         liste_couleurs = {j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])}
 #        print('has_couleur',couleur, liste_couleurs, couleur in liste_couleurs)
         return couleur in liste_couleurs
@@ -466,18 +463,18 @@ class Geometrie(object):
 
     def forcecouleur(self, couleur1, couleur2):
         '''remplace une couleur par une autre'''
-        couleur1 = int(couleur1)
-        couleur2 = int(couleur2)
         for i in self.lignes:
             for j in i.sections:
                 if j.couleur == couleur1:
                     j.couleur = couleur2
+
 
     def forceligne(self):
         '''force la geometrie en ligne pour des polygones'''
         if self.type == '3':
             self.type = '2'
         self.multi = len(self.lignes)-1
+
 
     def translate(self,dx,dy,dz):
         """decale une geometrie"""

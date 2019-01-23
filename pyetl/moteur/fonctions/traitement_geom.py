@@ -12,22 +12,31 @@ from .outils import compilefonc
 
 def setschemainfo(regle, obj):
     ''' reporte les infos sur le schema en cas de modification de la geometrie '''
+    obj.attributs['#dimension'] = str(obj.geom_v.dimension)
+    obj.attributs['#type_geom'] = obj.geom_v.type
     if obj.schema and obj.schema.amodifier(regle):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
-        obj.schema.info["type_geom"] = str(obj.geom_v.type)
+        obj.schema.info["type_geom"] = obj.geom_v.type
 
 def setschemadim(regle, obj):
     ''' reporte les infos sur le schema en cas de modification de la geometrie '''
+    obj.attributs['#dimension'] = str(obj.geom_v.dimension)
     if obj.schema and obj.schema.amodifier(regle):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
 
 def setschema_typegeom(regle, obj):
     ''' reporte les infos sur le schema en cas de modification de la geometrie '''
+    obj.attributs['#type_geom'] = obj.geom_v.type
     if obj.schema and obj.schema.amodifier(regle):
-        obj.schema.info["type_geom"] = str(obj.geom_v.type)
+        obj.schema.info["type_geom"] = obj.geom_v.type
 # fonctions de traitement geometrique
 # creation de la geometrie vectorielle
-def f_initgeom(_, obj):
+def h_initgeom(regle):
+    '''prepositionne un type geom'''
+    if regle.params.cmp1.num:
+        regle.setvar("type_geom", regle.params.cmp1.val)
+
+def f_initgeom(regle, obj):
     '''#aide||force l'interpretation de la geometrie
        #aide_spec||test
        #pattern||;;;geom;?N;
@@ -73,7 +82,6 @@ def f_setpoint(regle, obj):
     '''#aide||ajoute une geometrie point a partir des coordonnes en attribut
     #aide_spec||defauts, attribut contenant les coordonnees separees par des , N numero de srid
    #pattern||;LC;?A;setpoint;?N;
-   #schema||set_geom
    #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     '''
     if obj.virtuel:
@@ -197,28 +205,27 @@ def f_force_pt(regle, obj):
     '''
     if obj.virtuel:
         return True
+    if not obj.initgeom():
+        return False
     if obj.attributs['#type_geom'] == '0':
         return False
-    if obj.initgeom():
-        if obj.geom_v.type > '1':
-            position = obj.attributs.get(regle.params.att_entree.val,
-                                         regle.params.val_entree.val)
-            position = int(position) if position else 0
-            try:
+    if obj.geom_v.type > '1':
+        position = obj.attributs.get(regle.params.att_entree.val,
+                                     regle.params.val_entree.val)
+        position = int(position) if position else 0
+        try:
 #                print('changement en point ', obj.attributs['#type_geom'])
-                obj.geom_v.setpoint(obj.geom_v.getpoint(position), 0, obj.dimension)
-                obj.finalise_geom()
+            obj.geom_v.setpoint(obj.geom_v.getpoint(position), 0, obj.dimension)
+            obj.finalise_geom()
 #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
-            except ValueError:
-                return False
-        setschemainfo(regle, obj)
-        return True
-    return False
+        except ValueError:
+            return False
+    setschemainfo(regle, obj)
+    return True
 
 def f_forceligne(regle, obj): # force la geometrie en ligne
     '''#aide||force la geometrie en ligne
        #pattern||;;;force_ligne;;
-       #schema||set_geom
        #test||obj;poly||^;;;force_ligne||atv;#type_geom;2
        #
     '''
@@ -258,6 +265,7 @@ def f_forcepoly(regle, obj):
         if regle.params.cmp1.val: #on force donc si ca passe pas on annulle la geom
 #            print ('fpoly: on invalide la geometrie',regle.params.cmp1.val)
             obj.setnogeom()# on invalide la geometrie
+            setschemainfo(regle, obj)
         print('erreurs force poly', obj.ido, obj.geom_v.valide, obj.attributs['#type_geom'])
 
     return False
@@ -526,25 +534,38 @@ def f_mod_3d(regle, obj):
 
 
 # ----- decoupage
+def h_splitcouleur(regle):
+    ''' ajoute des sorties par couleur '''
+    regle.liste_couleurs = set(regle.params.cmp1.liste)
+    if regle.liste_couleurs:
+        for i in regle.liste_couleurs:
+            regle.branchements.addsortie(i)
+        regle.branchements.addsortie('#autre')
+    print ('preparation split_couleurs',regle.branchements, regle.liste_couleurs)
+    return True
+
+
+
 
 def f_splitcouleur(regle, obj):
     ''' #aide||decoupe la geometrie selon la couleur
-        #aide_spec||  une couleur ou par couleur si aucune couleur n'est precisee
-        #schema||set_geom
-        #pattern||A;;;split_couleur;?N;
+        #aide_spec||  une liste de couleurs ou par couleur si aucune couleur n'est precisee
+        #aide_spec2||  ajoute des sorties par couleur si une liste est donnee
+        #pattern||A;;;split_couleur;?LC;
         #test||obj;asc_c||^C;;;split_couleur||cnt;2;
     '''
 #    print ('split_couleurs ', regle.params,obj)
     if obj.virtuel:
         return True
-    couleur = int(regle.params.cmp1.num) if regle.params.cmp1.num is not None else -1
-    if obj.initgeom():
-        geoms = obj.geom_v.split_couleur(couleur)
-#        print ('decoupage',geoms, couleur)
-    else:
-        if obj.virtuel:
+    couleurs = regle.liste_couleurs
+    if obj.virtuel:
 #            print("objet virtuel")
             return True
+    if obj.initgeom():
+        geoms = obj.geom_v.split_couleur(couleurs)
+#        print ('split_geom:decoupage',geoms, couleurs)
+    else:
+
         print('split_couleur,geometrie invalide ', obj.ident, obj.numobj, obj.geom_v.type,
               ' ->', obj.schema.info["type_geom"])
         if obj.attributs.get('#erreurs'):
@@ -557,32 +578,45 @@ def f_splitcouleur(regle, obj):
     obj.geomnatif = False
 
     liste_coul = list(geoms.keys())
+    defaut_dest = regle.branchements.brch["ok"]
     for i in liste_coul[1:]:
         obj2 = obj.dupplique()
         obj2.geom_v = geoms[i]
+        obj2.finalise_geom(type_geom="2")
         obj2.attributs[regle.params.att_sortie.val] = str(int(i))
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["ok:"])
+        obj2.infogeom()
+        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch.get(i, defaut_dest))
         #on l'envoie dans la tuyauterie'
     if geoms:
         obj.geom_v = geoms[liste_coul[0]]
+        obj.finalise_geom(type_geom="2")
+        obj.redirect = liste_coul[0]
         obj.infogeom()
     else:
+        print ('splitcouleur: attention pas de geometrie', obj)
+        raise
         obj.setnogeom()
-    obj.attributs[regle.params.att_sortie.val] = str(int(liste_coul[0])) if liste_coul else "-1"
+    obj.attributs[regle.params.att_sortie.val] = liste_coul[0] if liste_coul else ''
     return True
+
+def h_extractcouleur(regle):
+    ''' extrait des couleurs '''
+    regle.liste_couleurs = set(regle.params.cmp1.liste)
+    return True
+
 
 def f_extractcouleur(regle, obj):
     ''' #aide||decoupe la geometrie selon la couleur
-        #aide_spec||  une couleur ou par couleur si aucune couleur n'est precisee
+        #aide_spec|| ne garde que les couleurs precisees
         #schema||set_geom
-        #pattern||;;;extract_couleur;N;
+        #pattern||;;;extract_couleur;LC;
         #test||obj;asc_c||^;;;extract_couleur;2||atv;#points;2;
     '''
     if obj.virtuel:
         return True
-    couleur = int(regle.params.cmp1.num)
+    couleurs = regle.liste_couleurs
     if obj.initgeom():
-        geom = obj.geom_v.extract_couleur(couleur)
+        geom = obj.geom_v.extract_couleur(couleurs)
         obj.geom_v = geom
         obj.geomnatif = False
         if obj.finalise_geom(type_geom="2"):
@@ -628,7 +662,7 @@ def f_csplit(regle, obj):
                 obj2.setnogeom(tmp=True)
                 obj2.geom_v.setpoint(point, 0, geom.dimension)
                 obj2.finalise_geom()
-                regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
+                regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
                 valide = True
         obj.geom_v = geom
         return valide
@@ -652,7 +686,7 @@ def f_splitgeom(regle, obj):
             obj2.setnogeom(tmp=True)
             obj2.geom_v.setpoint(point, 0, geom.dimension)
             obj2.finalise_geom()
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next:"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
         obj.geom_v = geom
         return True
     return False

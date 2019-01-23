@@ -178,11 +178,11 @@ def store_traite_stock(regle):
             store.sort(key=keyval, reverse=reverse)
         for obj in store:
 #            print ('store: relecture objet ', obj, obj.schema.identclasse,obj.schema.info)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     else:
         for clef in sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store:
             obj = store[clef]
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     h_stocke(regle) # on reinitialise
 
 
@@ -299,7 +299,7 @@ def sortir_traite_stock(regle):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recup_objets(groupe):
             regle.f_sortie.ecrire_objets_stream(obj, regle, False)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end:"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 
 
@@ -575,10 +575,10 @@ def compare_traite_stock(regle):
 
 def h_compare(regle):
     """comparaison a une reference"""
-    regle.branchements.addsortie('new:')
-    regle.branchements.addsortie('supp:')
-    regle.branchements.addsortie('diff:')
-    regle.branchements.addsortie('orig:')
+    regle.branchements.addsortie('new')
+    regle.branchements.addsortie('supp')
+    regle.branchements.addsortie('diff')
+    regle.branchements.addsortie('orig')
 #    regle.taites = set()
     regle.store = True
     regle.nbstock = 0
@@ -620,7 +620,7 @@ def f_compare2(regle, obj):
         ref = regle.comp2[clef]
         regle.ref.add(clef)
     except KeyError:
-        obj.redirect = "new:"
+        obj.redirect = "new"
         obj.attributs[regle.params.att_sortie.val] = 'new'
         return False
     if regle.params.att_entree.liste:
@@ -634,7 +634,7 @@ def f_compare2(regle, obj):
                                         for i in atts]) and obj.geom == ref.geom
     if compare:
         return True
-    obj.redirect = "diff:"
+    obj.redirect = "diff"
     obj.attributs[regle.params.att_sortie.val] = 'diff'
     ref.attributs[regle.params.att_sortie.val] = 'orig'
     regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
@@ -673,7 +673,7 @@ def f_compare(regle, obj):
         ref = regle.comp.pop(clef)
     except KeyError:
 
-        obj.redirect = "new:"
+        obj.redirect = "new"
         obj.attributs[regle.params.att_sortie.val] = 'new'
         return False
     if regle.params.att_entree.liste:
@@ -687,7 +687,7 @@ def f_compare(regle, obj):
                                         for i in atts]) and obj.geom == ref.geom
     if compare:
         return True
-    obj.redirect = "diff:"
+    obj.redirect = "diff"
     obj.attributs[regle.params.att_sortie.val] = 'diff'
     ref.attributs[regle.params.att_sortie.val] = 'orig'
     ref.setident(obj.ident) # on force l'identite de l'original

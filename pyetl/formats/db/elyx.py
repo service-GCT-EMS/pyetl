@@ -264,27 +264,52 @@ class ElyConnect(ora.OraConnect):
         return resultats, size, blocks
 
 
+
+    def dumpiterator(self, helper, classes, dest, log, fanout, workers):
+        ''' iterateur de blocks de traitement'''
+        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
+        subcode = 0
+        for subcode, nom in enumerate(blocks):
+            destination = os.path.join(dest, *nom)
+            os.makedirs(os.path.dirname(destination), exist_ok=True)
+            logdir = os.path.join(log, nom[0], str(subcode % workers))
+            os.makedirs(logdir, exist_ok=True)
+            xml = self.genexportxml(destination, logdir, blocks[nom])
+            paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
+            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+                tmpf.write('\n'.join(xml))
+                tmpf.close()
+            outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
+            yield nom, (helper, paramfile, outfile)
+
+
+
     def extdump(self, helper, classes, dest, log, fanout= 'classe', workers=1):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
-        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
         with tempfile.TemporaryDirectory() as tmpdir:
             self.tmpdir = tmpdir
-            subcode = 0
-            for subcode, nom in enumerate(blocks):
-                classes = blocks[nom]
-                destination = os.path.join(dest, *nom)
-                os.makedirs(os.path.dirname(destination), exist_ok=True)
-                logdir = os.path.join(log, nom[0], str(subcode % workers))
-                os.makedirs(logdir, exist_ok=True)
-                xml = self.genexportxml(destination, logdir, blocks[nom])
-                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-                    tmpf.write('\n'.join(xml))
-                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-                blocks[nom] = (helper, paramfile, outfile)
+            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, workers)
+#        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
+#        with tempfile.TemporaryDirectory() as tmpdir:
+#            self.tmpdir = tmpdir
+#            subcode = 0
+#            for subcode, nom in enumerate(blocks):
+#                classes = blocks[nom]
+#                destination = os.path.join(dest, *nom)
+#                os.makedirs(os.path.dirname(destination), exist_ok=True)
+#                logdir = os.path.join(log, nom[0], str(subcode % workers))
+#                os.makedirs(logdir, exist_ok=True)
+#                xml = self.genexportxml(destination, logdir, blocks[nom])
+#                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+#                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+#                    tmpf.write('\n'.join(xml))
+#                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
+#                blocks[nom] = (helper, paramfile, outfile)
 
-            self.params.execparallel_ext(blocks, workers, self.fearunner,
+#            self.params.execparallel_ext(blocks, workers, self.fearunner,
+#                                         patience=self.export_statprint)
+            self.params.execparallel_ext(dumpit, workers, self.fearunner,
                                          patience=self.export_statprint)
 #            for idexport, retour in sorted(blocks.items()):
 #                print ('decodage',blocks.items())
