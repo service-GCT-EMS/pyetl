@@ -273,13 +273,13 @@ def f_forcepoly(regle, obj):
 
 def f_force_couleur(regle, obj):
     '''#aide||remplace une couleur par une autre
-       #pattern||;;;change_couleur;N;N
+       #pattern||;;;change_couleur;C;C
        #test||obj;asc_c||^;;;change_couleur;2;3||^;;;extract_couleur;3||atv;#points;2
     '''
     if obj.virtuel:
         return True
     if obj.initgeom():
-        obj.geom_v.forcecouleur(int(regle.params.cmp1.num), int(regle.params.cmp2.num))
+        obj.geom_v.forcecouleur(regle.params.cmp1.val, regle.params.cmp2.val)
         obj.geomnatif = False
         return True
     return False
@@ -563,7 +563,6 @@ def f_splitcouleur(regle, obj):
             return True
     if obj.initgeom():
         geoms = obj.geom_v.split_couleur(couleurs)
-#        print ('split_geom:decoupage',geoms, couleurs)
     else:
 
         print('split_couleur,geometrie invalide ', obj.ident, obj.numobj, obj.geom_v.type,
@@ -583,7 +582,7 @@ def f_splitcouleur(regle, obj):
         obj2 = obj.dupplique()
         obj2.geom_v = geoms[i]
         obj2.finalise_geom(type_geom="2")
-        obj2.attributs[regle.params.att_sortie.val] = str(int(i))
+        obj2.attributs[regle.params.att_sortie.val] = i
         obj2.infogeom()
         regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch.get(i, defaut_dest))
         #on l'envoie dans la tuyauterie'

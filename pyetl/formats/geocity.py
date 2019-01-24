@@ -316,7 +316,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
     '''boucle de lecture principale'''
     n_obj = 0
     #ouv = None
-    couleur = 1
+    couleur = '1'
     courbe = 0
     traite_objet = stock_param.moteur.traite_objet
 
@@ -481,13 +481,13 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     # spline : on rale et on traite comme une polyligne
                     print("attention spline ou autre horreur detectee :"+val+" "+
                           niveau, classe+":"+"|".join(obj.attributs.values()))
-                    couleur = 1
+                    couleur = '1'
                     courbe = 0
                 elif val == 'PL':
-                    couleur = 1
+                    couleur = '1'
                     courbe = 0
                 elif val == 'D':
-                    couleur = 0 # deplacement : on mets le style à 0
+                    couleur = '0' # deplacement : on mets le style à 0
                     courbe = 0
                 elif val == 'FA':
                     obj.geom_v.fin_section(couleur, courbe)
@@ -497,7 +497,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     else:
                         addpoints3d(obj, iter_gy, 3)
                     courbe = 2
-                    couleur = 1
+                    couleur = '1'
                 elif val == 'FL': # ce code n'apparait que pour les brins et les contours complexes
                     if mode == "P":
                         obj.geom_v.fin_section(couleur, 0)    # c'est de la partition

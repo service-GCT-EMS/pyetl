@@ -442,7 +442,8 @@ class Geometrie(object):
                 geoms[coul_sect].ajout_section(j.dupplique(),False)
         for i in geoms:
             geoms[i].finalise_geom('2') # on force en ligne
-#        print ("decoupage en couleurs ", couleur, geoms, self)
+#        liste_couleurs = {j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])}
+#        print ("decoupage en couleurs ", couleurs, len(geoms), liste_couleurs, len(self.lignes))
         return geoms
 
     def extract_couleur(self,couleurs):

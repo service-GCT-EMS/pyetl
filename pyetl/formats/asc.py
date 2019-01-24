@@ -22,12 +22,12 @@ def _ecrire_section_asc(sect, numero_courant):
     numero_courant[0] += 1
     if sect.dimension == 2:
         return "1SEC %d, %d, \n"%(num_sect, len(sect.coords))+\
-        "\n".join(("%d,  %d, " % (i[0]*FC, i[1]*FC) for i in sect.coords))+\
-        " %d,  %d;\n" % (sect.couleur, sect.courbe)
+        "\n".join(("%d, %d, " % (i[0]*FC, i[1]*FC) for i in sect.coords))+\
+        " %s,  %d;\n" % (sect.couleur, sect.courbe)
     return "1SEC3D %d, %d, \n"%(num_sect, len(sect.coords))+\
-    "\n".join(("%d,  %d,  %d, " % (i[0]*FC, i[1]*FC, i[2]*FC)
+    "\n".join(("%d, %d, %d, " % (i[0]*FC, i[1]*FC, i[2]*FC)
                for i in sect.coords))+\
-    " %d,  %d;\n" % (sect.couleur, sect.courbe)
+    " %s, %d;\n" % (sect.couleur, sect.courbe)
 
 def _ecrire_ligne_asc(ligne, numero_courant):
     '''ecrit une ligne en format asc.
@@ -96,8 +96,8 @@ def geom_from_asc(obj):
             if len(lcrd) > dim+1: # fin de ligne
                 #print l
                 try:
-                    couleur = int(lcrd[dim])
-                    if couleur != 500:
+                    couleur = lcrd[dim].strip()
+                    if couleur != '500':
                         courbe = int(lcrd[1+dim].replace(";\n", ''))
                         geom_v.cree_section(coords, dim, couleur, courbe)
 #                            geom_v.fin_section(couleur, courbe)
@@ -389,6 +389,7 @@ def lire_objets_asc(rep, chemin, fichier, stock_param, regle):
             elif obj:
                 obj.geom.append(i)
         if obj:
+            n_obj += 1
             _finalise(obj, schema_init, schema, n_obj, chemin)
             stock_param.moteur.traite_objet(obj, regle) # on traite le dernier objet
         log_erreurs.send('')

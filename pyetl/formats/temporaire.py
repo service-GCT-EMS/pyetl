@@ -24,7 +24,7 @@ def _ecrire_section_tmp(section):
     '''ecrit une section en format temporaire'''
 #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
-    return "S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__
+    return "S,"+section.couleur + "," + str(section.courbe) + ',' + section.__list_if__
 #def ecrire_ligne_tmp(ligne):
 #    return (["L"].extend([ecrire_section_tmp(j) for j in ligne.sections])).append("M")
 def _ecrire_ligne_tmp(ligne):

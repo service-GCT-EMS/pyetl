@@ -532,11 +532,11 @@ def sel_hasgeom(_, obj):
 
 def sel_hascouleur(selecteur, obj):
     '''#aide||objet possedant un schema
-       #pattern||=has:couleur;N||1
+       #pattern||=has:couleur;C||1
        #test||obj;asc_c;1||^;;;geom;||^?#geom;;;supp||has:couleur;2;;;res;1;;set;;||atv;res;1
        #test2||obj;asc_c;1||^;;;geom;||^res;0;;set||?has:couleur;!3;;;res;1;;set;;||atv;res;0
     '''
-    return obj.geom_v.has_couleur(selecteur.params.vals.num)
+    return obj.geom_v.has_couleur(selecteur.params.vals.val)
 
 
 def sel_is2d(_, obj):
@@ -564,13 +564,7 @@ def sel_is_type_geom(selecteur, obj):
 #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.geom_v.type == selecteur.params.vals.val
 
-#def sel_hascouleur(selecteur, obj):
-#    '''#aide||vrai si une couleur est presente dans la geometrie
-#    #pattern||N;=has:couleur||1
-#    #pattern2||N;=has:color||1
-#    #test||obj;asc_c;1||^;;;geom||^?;1;;force_pt||2;has:couleur;;;res;1;;set||atv;res;1
-#    '''
-#    return obj.geom_v.has_couleur(selecteur.params.attr.num)
+
 
 
 
