@@ -541,7 +541,7 @@ def h_splitcouleur(regle):
         for i in regle.liste_couleurs:
             regle.branchements.addsortie(i)
         regle.branchements.addsortie('#autre')
-    print ('preparation split_couleurs',regle.branchements, regle.liste_couleurs)
+#    print ('preparation split_couleurs',regle.branchements, regle.liste_couleurs)
     return True
 
 

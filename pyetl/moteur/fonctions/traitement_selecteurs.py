@@ -89,20 +89,21 @@ def sel_vinfich(selecteur, obj):
            +||en mettant les positions entre a,b;in:nom,1,3
      #helper||infich
     #pattern||A;in:fich||20
-       #test||obj;||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
+       #test||obj;||^A;B;;set||^?A;xxx;;set||
+           +||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     '''
     return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
 
 
-def sel_infich(selecteur, obj):
-    '''#aide||valeur dans un fichier
-  #aide_spec||il est possible de preciser des positions a lire dans le ficher
-           +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
-     #helper||infich
-    #pattern||L;in:fich||20
-       #test||obj||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
-    '''
-    return ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste) in selecteur.info
+#def sel_infich(selecteur, obj):
+#    '''#aide||valeur dans un fichier
+#  #aide_spec||il est possible de preciser des positions a lire dans le ficher
+#           +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
+#     #helper||infich
+#    #pattern||L;in:fich||20
+#       #test||obj||^A;B;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
+#    '''
+#    return ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste) in selecteur.info
 
 
 def selh_infich_re(selecteur):
@@ -169,7 +170,7 @@ def sel_inlist_re(selecteur, obj):
            +||en mettant (pref:F:suff) à la fin de l'expression
            +||ex: ^:F:.* permet de matcher tout ce qui commence par un element de la liste
     #pattern||L;in:list(re)||20
-       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set||atv;res;1
+       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:{A,y,z}(^:F:.);;;res;1;;set||atv;res;1
     '''
     if len(selecteur.params.attr.liste) > 1:
         vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)

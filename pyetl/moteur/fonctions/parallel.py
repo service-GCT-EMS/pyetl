@@ -251,7 +251,7 @@ def prep_parallel(regle, fonction):
 def gestion_parallel_load(regle):
     '''prepare les chargements paralleles'''
     multi = prep_parallel(regle, traite_parallel_load)
-    print("preparation parallel_loader", multi, regle.chargeur, 'st:',regle.store)
+#    print("preparation parallel_loader", multi, regle.chargeur, 'st:',regle.store)
 
 def prepare_env_parallel(regle):
     '''prepare les parametres pour un lancement en parallele'''
@@ -414,7 +414,7 @@ def gestion_parallel_batch(regle):
         regle.valide = 'done' # on a fini on le relance pas
 
     multi = prep_parallel(regle, traite_parallel_batch)
-    print("preparation parallel_batch", multi, regle.chargeur, 'st:',regle.store)
+#    print("preparation parallel_batch", multi, regle.chargeur, 'st:',regle.store)
 
 
 

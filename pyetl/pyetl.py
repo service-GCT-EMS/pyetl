@@ -304,6 +304,7 @@ class Pyetl(object):
 
             from .tests.testmodule import full_autotest
             liste_regles = full_autotest(self, pars[0] if pars else nom)
+            self.set_param("_testmode", "unittest")
             if not liste_regles:
                 self.done = True
             else:
@@ -314,6 +315,7 @@ class Pyetl(object):
         elif commande == '#unittest' or commande == "unittest":
             from .tests.testmodule import unittests
             self.set_param("_sortie", "")
+            self.set_param("_testmode", "unittest")
             unittests(self, nom=nom, debug=self.get_param("debug"))
             self.done = True
 
@@ -953,7 +955,8 @@ class Pyetl(object):
                            }
         rep_sortie = self.get_param('sortie_schema', self.get_param('_sortie'))
         if rep_sortie == '-' or not rep_sortie: # pas de sortie on ecrit pas
-            print ('schema:pas de repertoire de sortie ')
+            if not self.get_param('_testmode'): # en mode test on rale pas
+                print ('schema:pas de repertoire de sortie ')
             return
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)

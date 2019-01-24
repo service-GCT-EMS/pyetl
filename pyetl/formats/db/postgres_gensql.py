@@ -437,7 +437,9 @@ class GenSql(database.GenSql):
 #            print ('lecture type_attribut',attname,attype,conf.nom if conf else '')
 
             if conf:
+                conf.nombase = self.ajuste_nom(conf.nom)
                 attype = conf.nom
+#                attype = self.ajuste_nom(conf.nom)
                 if self.basic == 'basic':
                     attype = "T"
 #            print ('conv type_attribut',attname,attype,schema.conformites.keys())
@@ -480,7 +482,10 @@ class GenSql(database.GenSql):
                 if attype == 'D' and not self.basic:
                     defaut = ' DEFAULT current_timestamp'
             elif attype in schema.conformites and self.basic != 'basic':
+
+                schema.conformites.get(attype).nombase = self.ajuste_nom(attype)
                 nomconf = schema.conformites.get(attype).nombase # on a pu adapter le nom a postgres
+#                nomconf = self.ajuste_nom(nomconf)
 #                print ('detection conformite', attname, attype, nomconf)
 
                 if attype not in creconf:

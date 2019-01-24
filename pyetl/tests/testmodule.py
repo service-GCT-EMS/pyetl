@@ -131,7 +131,7 @@ def controle(mapper, idtest, descript_test, debug=0):
     regles = [re.sub(r'^\^\?', '?;;;;', i) for i in desctest[1:-1]]
     regles = [re.sub(r'^\^', ';;;;', i) for i in regles]
     # gere le raccourci ^ pour 4 ;;;;
-    regles_s = [re.sub(';~', ';', i) for i in regles if i[0] != '?']
+    regles_s = [re.sub(';~', ';', i) for i in regles if not i.startswith('?')]
     # ~ devant une instruction indique qu elle est liee a l'instruction a tester
     regles_c = [re.sub(r'^\?', '', i) for i in regles if ';~' not in i]
     f_controle = desctest[-1]

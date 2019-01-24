@@ -920,9 +920,12 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
             ngroup = champs_var[1].strip() if champs_var[1].strip() else vgroup
             check = champs_var[2].strip() # verif si le groupe n'a pas ete defini d'une autre facon
 #            print ("avt chargement groupe", vgroup, champs_var)
-
-            mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
-
+            try:
+                mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
+            except KeyError:
+                print ('groupe de parametres inconnu', vgroup)
+                erreurs += 1
+                return erreurs
             # genere des variables internes de la forme 'nomDefiniDansLeFichier_nomDuGroupe
 #            print ("apres chargement groupe",vgroup,ngroup)
 #            print ("variables", mapper.parms)
@@ -933,7 +936,9 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
         elif re.match(r'(([\|\+-]+)[a-z_]*:)?<', texte):
 #            print ('avant macro',vloc)
             erreurs += prepare_importe_macro(mapper, texte, vloc, fichier_regles)
-
+            if erreurs:
+                print ('erreur chargement macro', texte)
+                return erreurs
         else:
 #            print('regles std', defligne)
             bloc, errs = traite_regle_std(mapper, numero, texte, texte_brut,

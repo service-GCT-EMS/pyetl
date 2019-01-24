@@ -241,14 +241,15 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
     try:
         with open(fichier, "r", encoding=codec) as fich:
             for i in fich:
-                if i.startswith('!'):
-                    if i.startswith('!!'):
-                        i = i[1:]
+                ligne = i.replace('\n','') # on degage le retour chariot
+                if ligne.startswith('!'):
+                    if ligne.startswith('!!'):
+                        ligne = ligne[1:]
                     else:
                         continue
-                liste = i[:-1].split(";")
+                liste = ligne.split(";")
                 if taille == -1:
-                    stock[i[:-1]] = liste
+                    stock[ligne] = liste
                 else:
                     if len(liste) < taille:
                         liste = list(itertools.islice(itertools.cycle(liste), taille))
@@ -406,7 +407,7 @@ def charge_mapping(regle, mapping=None):
     """ precharge un mapping"""
     mapping = dict()
     mapping_attributs = dict()
-    mode = None
+
     if regle.params.cmp1.val.startswith('{'): # c'est une definitio in line
         valeurs = regle.params.cmp1.val[1:-1].split(",")
         for i in valeurs:
@@ -458,7 +459,7 @@ def charge_mapping(regle, mapping=None):
     regle.mapping = mapping
     regle.mapping_attributs = mapping_attributs
 
-    regle.elmap = prepare_elmap(mapping, mode=mode)
+    regle.elmap = prepare_elmap(mapping)
 #    print ('definition intmap2', intmap2)
 #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i])
 #           for i in sorted(mapping)]))
