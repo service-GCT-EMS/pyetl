@@ -591,6 +591,14 @@ def recup_schema_csv(base, description):
     schema.origine = metas['origine']
     return schema
 
+def recup_schema_d_if(nom, description):
+    """recompose un schema a partir du retour de traitements paralleles interface dict"""
+    schema = SCI.Schema(nom)
+    schema.from_dic_if(description)
+    return schema
+
+
+
 
 def lire_schema_csv(base, fichier, mode_alias='num', cod='cp1252', schema=None,
                     specifique=None):
@@ -953,7 +961,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 print('header distant (xmlheader_dist) non defini')
 
 
-def retour_schemas(schemas, mode='util'):
+def retour_schemas2(schemas, mode='util'):
     '''renvoie les schemas pour un retour'''
     retour = dict()
     if mode == 'no':
@@ -973,8 +981,48 @@ def retour_schemas(schemas, mode='util'):
             retour[nom] = ecrire_schema_csv(None, schemas[i], mode, modeconf=-1)
     return retour
 
+def retour_schemas(schemas, mode='util'):
+    '''renvoie les schemas pour un retour'''
+    retour = dict()
+    if mode == 'no':
+        return retour
+    for nom, schema in schemas.items():
+        print('ecriture schema', nom, len(schema.classes))
+        if not nom:
+            continue
+        mode_sortie = schema.mode_sortie if schema.mode_sortie is not None else mode
+        if nom.startswith("#") and mode_sortie != 'int':
+            continue # on affiche pas les schemas de travail
+        if schema.origine == 'G':
+            FSC.analyse_conformites(schema)
+#        print ('avant analyse ', nom ,FSC.analyse_interne(schema, mode_sortie))
+        if FSC.analyse_interne(schema, mode_sortie):
+            print ('stockage', nom, len(schema.__dic_if__))
+            retour[nom] = schema.__dic_if__
+    return retour
+
+
 
 def integre_schemas(schemas, nouveaux):
+    ''' recree les schemas apres transmission'''
+    nomschemas = set()
+    for nom, description in nouveaux.items():
+        nomschemas.add(nom)
+        tmp = recup_schema_d_if(nom, description)
+#        print ('recup schema ', nom, tmp, schemas.get(nom))
+        if nom in schemas:
+            fusion_schema(nom, schemas[nom], tmp)
+        else:
+            schemas[nom] = tmp
+#            schemas[nom].origine=metas['origine']
+    print ('schemas recuperes ',nomschemas,schemas.keys())
+    for nom in nomschemas: # on reporte les comptages d'objets
+        for cla in schemas[nom].classes.values():
+            cla.objcnt = cla.poids
+    print ('recup_schema_csv',ecrire_schema_csv(None, schemas['elyx_prod'],'all', modeconf=-1))
+    print ('fin integration')
+
+def integre_schemas2(schemas, nouveaux):
     ''' recree les schemas apres transmission'''
     nomschemas = set()
     for nom, description in nouveaux.items():

@@ -180,7 +180,7 @@ class Conformite(object):
     def __dic_if__(self):
         '''interface de type dictionnaire en sortie pour communication interprocess'''
 
-        vald = {val:desc[:] for val, desc in self.stock}
+        vald = {val:desc[:] for val, desc in self.stock.items()}
         d_if = {'nom':self.nom, 'valeurs':vald, 'poids': self.poids}
         return d_if
 
@@ -188,7 +188,7 @@ class Conformite(object):
        ''' reinitialise a partir d'une interface dict '''
        self.nom = d_if['nom']
        self.poids = d_if['poids']
-       for desc in d_if['valeurs'].items:
+       for desc in d_if['valeurs'].values():
            valeur, alias, ordre, mode_force, _ = desc
            self.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force)
 
@@ -306,7 +306,7 @@ class Attribut(object):
         return TYPES_S.get(self.type_att, TYPES_S.get(self.type_att_base, self.type_att))
 
     def __repr__(self):
-        return str((self.nom, self.type_att, self.nom_conformite))
+        return str((self.nom, self.type_att, self.nom_conformite, self.taille))
 
     @property
     def __dic_if__(self):

@@ -160,23 +160,22 @@ class SchemaClasse(object):
     @property
     def __dic_if__(self):
         '''interface de type dictionnaire pour la transmission de schemas entre instances'''
-        attributs = {i: self.attributs[i].__dic_if__ for i in self.attributs}
-        d_if = {'nom': self.nom, 'groupe': self.groupe, 'alias': self.alias,
-                'srid': self.srid,'sridmixte': self.sridmixte,
-                'multigeom':self.multigeom, 'changed': self.changed,
-                'attributs': attributs, 'objcnt':self.objcnt,
-                'triggers': self.triggers,
-                'indexes': self.indexes, 'type_table': self.type_table,
-                'poids': self.poids, 'specifique': self.specifique}
-
+        infos = {'nom', 'groupe', 'alias', 'srid', 'sridmixte', 'info',
+                'multigeom', 'changed', 'objcnt', 'triggers',
+                'indexes', 'type_table', 'poids', 'specifique'}
+        d_if = {i: getattr(self, i) for i in infos}
+        d_if['__infosc__'] = infos
+        d_if['attributs'] = {nom: att.__dic_if__ for nom, att in self.attributs.items()}
         return d_if
 
     def from_dic_if(self, d_if):
         '''interface de type dictionnaire pour la transmission de schemas entre instances'''
-        for nom in d_if:
+#        print ('recup schemaclasse ', d_if.keys())
+        for nom in d_if['__infosc__']:
             setattr(self, nom, d_if[nom])
-        self.attributs = {i: A.Attribut(nom, 0, d_if=j) for i, j in d_if['atttributs'].items()}
 
+        self.attributs = {i: A.Attribut(i, 0, d_if=j) for i, j in d_if['attributs'].items()}
+#        print ('creation attributs ',self.attributs)
 
     @property
     def identclasse(self):

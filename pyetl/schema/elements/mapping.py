@@ -152,6 +152,7 @@ class Mapping(object):
     ''' gestion des mappings permet de conserver le lien entre les classes
     d'entree et les classes de sortie'''
     def __init__(self):
+        self.liste_mapping = []
         self.mapping_classe_schema = dict() # donne le lien classe -> schema
         self.mappings_ambigus = dict() # liste des problemes potentiels
         self.mapping_destination = dict() # liens id_orig -> id_dest
@@ -161,6 +162,16 @@ class Mapping(object):
         self.mode_fusion = False
         self.existe = False
         self.debug = 0
+
+    @property
+    def __dic_if__(self):
+        '''interface de traansfert'''
+        return self.liste_mapping
+
+    def from_dic_if(self, dic_if):
+        '''interface de traansfert'''
+        self.init_mapping(None, dic_if)
+
 
     def mapping_schema(self, classes, fusion):
         ''' sort la table de correspondance entre schemas'''
@@ -194,6 +205,7 @@ class Mapping(object):
 
     def init_mapping(self, classes, liste_mapping):
         '''traitement des mappings initialisation des structures'''
+        self.liste_mapping = liste_mapping
         for i in liste_mapping:
         # traitement des mappings : permet de definir des actions en
         #denominations elyx ou sans preciser les schemas

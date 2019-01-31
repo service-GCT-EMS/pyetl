@@ -38,7 +38,7 @@ def initparallel(parametres):
 #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
-#    print("pyetl initworker", os.getpid(), commandes, args)
+    print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker "+str(os.getpid()))
     MAINMAPPER.worker = True
     MAINMAPPER.initcontext(env, log)
@@ -308,7 +308,7 @@ def traite_parallel(regle):
     num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-    print('parallel')
+    print('passage en mode parallel', schemas.keys())
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,

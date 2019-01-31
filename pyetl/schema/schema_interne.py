@@ -147,6 +147,36 @@ class Schema(object):
         self.alias_groupes = dict()
         self.compteurs = defaultdict(int)
 
+    @property
+    def __dic_if__(self):
+        '''retourne une interface de transfert'''
+        infos = {'defmodeconf', 'taux_conformite', 'origine', 'systeme_orig',
+                 'metas', 'nom', 'fich', 'alias', 'elements_specifiques',
+                 'alias_groupes', 'compteurs'}
+
+        d_if = {i: getattr(self,i) for i in infos}
+        d_if['__infos__'] = infos
+        d_if['classes'] = {nom:cl.__dic_if__ for nom, cl in self.classes.items()}
+        d_if['conformites'] = {nom:conf.__dic_if__ for nom, conf in self.conformites.items()}
+        d_if['stock_mapping'] = self.stock_mapping.__dic_if__
+        return d_if
+
+
+    def from_dic_if(self, d_if):
+        '''regenere la structure apres transfert'''
+        for i in d_if['__infos__']:
+            setattr(self, i, d_if[i])
+        for conf, cd_if in d_if['conformites'].items():
+            self.get_conf(conf).from_dic_if(cd_if)
+        for cls, cd_if in d_if['classes'].items():
+            self.def_classe(cls).from_dic_if(cd_if)
+        self.stock_mapping.from_dic_if(d_if['stock_mapping'])
+#        print ('fin recup_schema')
+
+
+
+
+
     def def_classe(self, ident):
         ''' cree un schema pour une nouvelle classe'''
         return self.ajout_classe(C.SchemaClasse(ident, self))
