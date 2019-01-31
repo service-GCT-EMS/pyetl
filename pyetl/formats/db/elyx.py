@@ -36,6 +36,7 @@ class ElyConnect(ora.OraConnect):
                            '#gid':('GID', 'E')}
         self.adminschema = "ELYX_ADMIN_P"
         self.modelschema = "ELYX_MODELE"
+        self.types_base['REEL'] = 'F'
 #        print ('code de la base', code, params)
         if params and code:
             self.adminschema = params.get_param("elyx_adminschema_",
@@ -265,14 +266,15 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def dumpiterator(self, helper, classes, dest, log, fanout, workers):
+    def dumpiterator(self, helper, classes, dest, log, fanout, nbworkers):
         ''' iterateur de blocks de traitement'''
         self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
         subcode = 0
+#        print ('dumpiter',blocks)
         for subcode, nom in enumerate(blocks):
             destination = os.path.join(dest, *nom)
             os.makedirs(os.path.dirname(destination), exist_ok=True)
-            logdir = os.path.join(log, nom[0], str(subcode % workers))
+            logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
             os.makedirs(logdir, exist_ok=True)
             xml = self.genexportxml(destination, logdir, blocks[nom])
             paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
@@ -280,55 +282,82 @@ class ElyConnect(ora.OraConnect):
                 tmpf.write('\n'.join(xml))
                 tmpf.close()
             outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
-            yield nom, (helper, paramfile, outfile)
+            print ('traitement',nom, (helper, paramfile, outfile), destination)
+            yield (nom, (helper, paramfile, outfile), (dest,nom,'asc'), self.size[nom])
+
+
+    def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
+        ''' decoupe les classes a sortier en blocs pour traitement en parallele'''
+        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
+        subcode = 0
+        retour = []
+        for subcode, nom in enumerate(blocks):
+            destination = os.path.join(dest, *nom)
+            os.makedirs(os.path.dirname(destination), exist_ok=True)
+            logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
+            os.makedirs(logdir, exist_ok=True)
+            xml = self.genexportxml(destination, logdir, blocks[nom])
+            paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
+            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+                tmpf.write('\n'.join(xml))
+            outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
+            retour.append((nom, (helper, paramfile, outfile), (dest,nom,'asc'), self.size[nom]))
+        return retour
 
 
 
-    def extdump(self, helper, classes, dest, log, fanout= 'classe', workers=1):
+
+
+
+    def extalpha(self, regle_courante, helper, classes, dest, log, fanout= 'classe',
+                 nbworkers=(1,1)):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
+#        print ('elyx extalpha',classes)
+#        tmpdirstore = tempfile.TemporaryDirectory()
+#        tmpdir = tmpdirstore.name
+#        print ('tmpdir',tmpdir)
         with tempfile.TemporaryDirectory() as tmpdir:
+#        if True:
             self.tmpdir = tmpdir
-            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, workers)
-#        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
-#        with tempfile.TemporaryDirectory() as tmpdir:
-#            self.tmpdir = tmpdir
-#            subcode = 0
-#            for subcode, nom in enumerate(blocks):
-#                classes = blocks[nom]
-#                destination = os.path.join(dest, *nom)
-#                os.makedirs(os.path.dirname(destination), exist_ok=True)
-#                logdir = os.path.join(log, nom[0], str(subcode % workers))
-#                os.makedirs(logdir, exist_ok=True)
-#                xml = self.genexportxml(destination, logdir, blocks[nom])
-#                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-#                with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-#                    tmpf.write('\n'.join(xml))
-#                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-#                blocks[nom] = (helper, paramfile, outfile)
-
+            nbproc, nbdump = nbworkers
+            blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
+#            print ('calcule blocs ',blocks)
 #            self.params.execparallel_ext(blocks, workers, self.fearunner,
 #                                         patience=self.export_statprint)
-            self.params.execparallel_ext(dumpit, workers, self.fearunner,
+
+
+
+
+
+
+
+#            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, nbdump)
+            fileiter = self.params.iterparallel_ext(blocks, nbdump, self.fearunner,
                                          patience=self.export_statprint)
-#            for idexport, retour in sorted(blocks.items()):
-#                print ('decodage',blocks.items())
-#                self.log_decoder(idexport, *retour)
+            regle_courante.listgen=fileiter
+            self.params.traite_parallel(regle_courante)
+            print ('fin traitement extalpha',flush=True)
+            time.sleep(10)
         return self.resultats
 
 
 
 
-#        fanout = self.params.get_param('fanout', 'no')
-#        if fanout == 'no' or len(classes) == 1:
-#            noms = {i[1] for i in classes}
-#            nom = noms.pop() if len(noms) == 1 else 'export'
-#            destination = os.path.join(dest, nom)
-#            exportxml = self.genexportxml(destination, log, classes)
-#            retour = self.singlerunner(helper, exportxml, nom, classes)
-#        else:
-#            retour = self.multidump(helper, classes, dest, log, fanout, workers=workers)
-#        return retour
+    def extdump(self, helper, classes, dest, log, fanout= 'classe', workers=1, mode='dump'):
+        '''extrait des donnees par ORA2FEA'''
+        # mise en place de l'environnement:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.tmpdir = tmpdir
+#            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, workers)
+            blocks = self.get_blocks(helper, classes, dest, log, fanout, workers)
+
+            self.params.execparallel_ext(blocks, workers, self.fearunner,
+                                         patience=self.export_statprint)
+
+        return self.resultats
+
+
 
 
     def multiload(self, helper, fichs, classes, dest, log, fanout, workers=''):
@@ -426,7 +455,8 @@ class ElyConnect(ora.OraConnect):
 
 
     def get_type(self, nom_type):
-
+        if nom_type.upper() not in self.types_base:
+            print ('elyx:type inconnu ',nom_type)
         return self.types_base.get(nom_type.upper(), 'T')
 
     def get_tables(self):
@@ -460,7 +490,7 @@ class ElyConnect(ora.OraConnect):
                 champ_ordre = self.attributs[i[8]][2]
                 enums_en_table[i[4]] = (noms_schema, nom_table, champ_filtre, val_filtre,
                                         champ_clef, champ_val, champ_ordre)
-                def_enums[(noms_schema, nom_table, champ_filtre, champ_clef,
+                def_enums[(noms_schema, nom_table, champ_filtre, val_filtre, champ_clef,
                            champ_val, champ_ordre)] = None
 
 
@@ -485,19 +515,22 @@ class ElyConnect(ora.OraConnect):
 
         if enums_en_table:
             if def_enums: # cas particulier des enums en tables : il faut lire la table des enums:
-                for table in def_enums:
-                    noms_schema, nom_table, champ_filtre, champ_clef, champ_val, champ_ordre = table
+                for description in def_enums:
+                    noms_schema, nom_table, champ_filtre, val_filtre, champ_clef,\
+                    champ_val, champ_ordre = description
 #                    print('traitement table', table)
                     requete = self.constructeur(noms_schema, nom_table,
                                                 [champ_filtre, champ_clef, champ_val, champ_ordre])
+                    if val_filtre:
+                        requete = requete+ ' WHERE '+champ_filtre+" = '"+val_filtre+"'"
 #                    print('requete base', requete)
-                    def_enums[table] = self.request(requete)
+                    def_enums[description] = self.request(requete)
 #                    print ('valeurs en table',table,  valtable)
 
             for nom in enums_en_table:
                 noms_schema, nom_table, champ_filtre, val_filtre, champ_clef, champ_val,\
                     champ_ordre = enums_en_table[nom]
-                table = def_enums[noms_schema, nom_table, champ_filtre, champ_clef,
+                table = def_enums[noms_schema, nom_table, champ_filtre, val_filtre, champ_clef,
                                   champ_val, champ_ordre]
                 enum = {i[1]: i for i in table if i[0] == val_filtre}
                 for i in enum:
@@ -508,14 +541,14 @@ class ElyConnect(ora.OraConnect):
             #print "stockage_conformite",valeur,alias
 #        print ('confs',self.confs)
         for i in self.attributs.values():
-            conf = self.confs.get(i[9])
+            i[9] = self.confs.get(i[9])
     #                    if conf is None:
     #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))
-            if i[4] == "BOOLEEN":
-                # (cas particulier des booleens on en fait une enum)
-                conf = self.confs.get("BOOLEEN")
-                i[4] = 'TEXT'
-            i[9] = conf
+#            if i[4] == "BOOLEEN":
+#                # (cas particulier des booleens on en fait une enum)
+#                conf = self.confs.get("BOOLEEN")
+#                i[4] = 'TEXT'
+#            i[9] = conf
         return enums
 
     def get_attributs(self):
@@ -625,6 +658,9 @@ class ElyConnect(ora.OraConnect):
                     type_att = code_type[i[10]]
 #                    if traite_enums:
                     conf = i[13]
+                    if conf and type_att !='T' :
+#                        print (id_compo, nom_att, 'type attribut_conformite ', type_att, '->', conf)
+                        conf = '' # on ne sait pas gerer les conformites non texte
 #                        conf = self.confs.get(i[13])
 #    #                    if conf is None:
 #    #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))

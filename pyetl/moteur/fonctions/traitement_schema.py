@@ -221,7 +221,7 @@ def h_def_schema(regle):
             else:
                 regle.differe = True
         regle.nomschema = nom
-        print ('demande schema interne',nomschema, '->', nom, 'differe',regle.differe)
+#        print ('demande schema interne',nomschema, '->', nom, 'differe',regle.differe)
         return
     ext = regle.params.cmp2.val
 

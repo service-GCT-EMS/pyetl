@@ -220,6 +220,8 @@ def _get_tables(connect):
 #                  schemaclasse.info["type_geom"])
             if schemaclasse.info["type_geom"] != '0':
                 schemaclasse.info['nom_geometrie'] = 'geometrie'
+        if schemaclasse.info["type_geom"] == 'indef':
+            print (ident,'apres _get_tables: type_geometrique',schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
 
@@ -457,6 +459,32 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     return False
 
 
+def dbextalpha(regle_courante, base, niveau, classe, dest='', log=''):
+    '''extrait un fichier a travers un loader et lance les traitements'''
+
+    connect, schema_base, schema_travail, liste_tables =\
+        recup_schema(regle_courante, base, niveau, classe)
+    if connect is None:
+        return False
+    if not liste_tables:
+        print ('pas de tables a sortir', base, niveau, classe)
+        return False
+    helpername = connect.dump_helper
+    helper = get_helper(base, [], '', helpername, regle_courante.stock_param)
+    if helper:
+#        workers, extworkers = regle_courante.get_max_workers()
+        print ('extalpha',regle_courante.vloc, regle_courante.get_max_workers())
+        resultats = connect.extalpha(regle_courante, helper, liste_tables, dest, log,
+                                     nbworkers=regle_courante.get_max_workers())
+#        print(' extdump' , resultats)
+        if resultats:
+            for idclasse in resultats:
+                schema_travail.classes[idclasse].objcnt = resultats[idclasse]
+            regle_courante.setvar('schema_entree', schema_travail.nom, loc=0)
+    return False
+
+
+
 def dbrunsql(stock_param, base, file, log=None, out=None):
     '''charge un fichier sql a travers un client sql externe'''
     print('mdba execution sql via un programme externe', base, file)
@@ -520,10 +548,12 @@ def schema_from_curs(curs):
     nom, typecode, _, _, taille, dec, _ = curs.description
 
 
-def sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect, sortie, v_sortie,
+def sortie_resultats(regle_courante, curs, niveau, classe, connect, sortie, v_sortie,
                      type_geom, schema_classe_travail, base='', treq=0, cond=''):
     ''' recupere les resultats et génére les objets'''
     regle_debut = regle_courante.branchements.brch["next"]
+    traite_objet = regle_courante.stock_param.moteur.traite_objet
+
 #    print ('dbaccess:definition regle debut ',type_geom,regle_debut.ligne)
     #valeurs = curs.fetchone()
     #print ('dbaccess:recuperation valeurs ',valeurs)
@@ -638,7 +668,6 @@ def lire_table(ident, regle=None, reglenum=0, parms=None):
     niveau, classe = ident
     base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base, chemin, reqdict, maxobj = parms
     regle_courante = MAINMAPPER.regles[reglenum] if regle is None else regle
-    traite_objet = regle_courante.stock_param.moteur.traite_objet
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
                  type_base=type_base, chemin=chemin, mods=mods)
@@ -668,7 +697,7 @@ def lire_table(ident, regle=None, reglenum=0, parms=None):
 #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time()-treq
     if curs:
-        res = sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
+        res = sortie_resultats(regle_courante, curs, niveau, classe, connect,
                                 sortie, v_sortie, schema_classe_base.info["type_geom"],
                                 schema_classe_travail, base=base, treq=treq, cond=(attr, val))
 
@@ -699,7 +728,6 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 
     stock_param = regle_courante.stock_param
     maxobj = stock_param.get_param('lire_maxi', 0)
-    traite_objet = stock_param.moteur.traite_objet
 
     res = 0
 #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
@@ -709,9 +737,10 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 
             niveau, classe = ident
             schema_classe_base = schema_base.get_classe(ident)
-#            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
     #        print ('dbaccess : ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
+            schema_classe_travail.info["type_geom"] = schema_classe_base.info["type_geom"]
             if isinstance(attribut, list):
                 if ident in reqdict:
                     attr, val = reqdict[ident]
@@ -732,7 +761,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 #        print ('-----------------------traitement curseur ', curs,type(curs) )
         treq = time.time()-treq
         if curs:
-            res += sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
+            res += sortie_resultats(regle_courante, curs, niveau, classe, connect,
                                     sortie, v_sortie, schema_classe_base.info["type_geom"],
                                     schema_classe_travail, base=base, treq=treq, cond=(attr, val))
 
@@ -860,8 +889,6 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
     maxobj = stock_param.get_param('lire_maxi', 0)
     buffer = regle_courante.params.cmp2.num
 
-    traite_objet = stock_param.moteur.traite_objet
-
     if obj.format_natif == connect.format_natif:
         geometrie = obj.geom[0]
     else:
@@ -894,8 +921,8 @@ def recup_donnees_req_geo(regle_courante, base, niveau, classe, fonction, obj, m
                 schema_classe_travail.ajout_attribut_modele(def_att_sortie, nom=nom_att)
             else:
                 schema_classe_travail.stocke_attribut(nom_att, 'T')
-
-        res += sortie_resultats(traite_objet, regle_courante, curs, niveau, classe, connect,
+        schema_classe_travail.info["type_geom"] = schema_classe_postgis.info["type_geom"]
+        res += sortie_resultats(regle_courante, curs, niveau, classe, connect,
                                 sortie, v_sortie, schema_classe_postgis.info["type_geom"],
                                 schema_classe_travail, treq=treq, cond=('geom', fonction))
 

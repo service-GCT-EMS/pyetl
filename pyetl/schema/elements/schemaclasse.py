@@ -157,6 +157,26 @@ class SchemaClasse(object):
         '''affichage simplifie'''
         return 'schema ' + self.dbident +' '+ self.info.__repr__()
 
+    @property
+    def __dic_if__(self):
+        '''interface de type dictionnaire pour la transmission de schemas entre instances'''
+        attributs = {i: self.attributs[i].__dic_if__ for i in self.attributs}
+        d_if = {'nom': self.nom, 'groupe': self.groupe, 'alias': self.alias,
+                'srid': self.srid,'sridmixte': self.sridmixte,
+                'multigeom':self.multigeom, 'changed': self.changed,
+                'attributs': attributs, 'objcnt':self.objcnt,
+                'triggers': self.triggers,
+                'indexes': self.indexes, 'type_table': self.type_table,
+                'poids': self.poids, 'specifique': self.specifique}
+
+        return d_if
+
+    def from_dic_if(self, d_if):
+        '''interface de type dictionnaire pour la transmission de schemas entre instances'''
+        for nom in d_if:
+            setattr(self, nom, d_if[nom])
+        self.attributs = {i: A.Attribut(nom, 0, d_if=j) for i, j in d_if['atttributs'].items()}
+
 
     @property
     def identclasse(self):

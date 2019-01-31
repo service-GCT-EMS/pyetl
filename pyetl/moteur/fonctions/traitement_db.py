@@ -130,7 +130,7 @@ def h_dbalpha(regle):
             regle.params.val_entree = regle.params.st_val(defaut, None, list(valeurs.keys()),
                                                           False, "")
         regle.chargeur = True # c est une regle qui cree des objets
-        regle.stock_param.gestion_parallel_load(regle)
+#        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
             return True
         regle.erreurs.append("dbalpha: modificateurs non autorises seulement:", DB.DBMODS)
@@ -217,15 +217,18 @@ def f_dbalpha(regle, obj):
             log = regle.getvar('log', os.path.join(dest, 'log'))
             os.makedirs(log, exist_ok=True)
             print('traitement db: dump donnees de', base, 'vers', dest)
-            DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
-            if regle.store:
-#        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
-#        print ('regles', regle.stock_param.regles)
-                regle.tmpstore.append(obj)
-                regle.nbstock += 1
-                return True
-            return objloader(regle, obj)
+            retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
 
+#
+#
+#
+#            if regle.store:
+##        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
+##        print ('regles', regle.stock_param.regles)
+#                regle.tmpstore.append(obj)
+#                regle.nbstock += 1
+#                return True
+#            return objloader(regle, obj)
         else:
             retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
                                                 valeur, mods=mods, sortie=regle.params.att_sortie.liste,
@@ -332,10 +335,13 @@ def f_dbrunsql(regle, obj):
     script = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
     print('traitement db: execution sql ', base, '->', script, regle.params.cmp1.val,
           regle.params.cmp2.val)
+
     scripts = sorted(glob.glob(script))
     if not scripts:
         print('pas de scripts a executer: ', script)
     for nom in scripts:
+        if not nom.endswith('.sql'):
+            script = script + '.sql'
         print('traitement sql ', nom)
         DB.dbrunsql(regle.stock_param, base, nom, log=regle.params.cmp1.val,
                     out=regle.params.cmp2.val)

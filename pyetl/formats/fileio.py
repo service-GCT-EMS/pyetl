@@ -17,7 +17,8 @@ def _set_liste_attributs(schemaclasse, attributs):
 
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
     '''convertisseur d'objets de base'''
-    return obj.__json_if
+    obj.liste_attributs = liste_att
+    return obj.__json_if__()
 
 class FileWriter(object):
     """superclasse des classes writer de fichiers"""

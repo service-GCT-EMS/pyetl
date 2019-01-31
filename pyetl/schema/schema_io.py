@@ -559,6 +559,9 @@ def decode_classes_csv(schema_courant, entree):
                     classe.info['courbe'] = '1'
                 if v_tmp[9].isnumeric():
                     classe.srid = str(int(v_tmp[9]))
+                # cas particulier des classes alpha sans attribut geom
+                if v_tmp[4] == 'NOGEOM':
+                    classe.info['type_geom'] = '0'
 
 
 
@@ -1019,13 +1022,15 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
             break
 
     schemas = stock_param.schemas
-    a_sortir = stock_param.get_param('schemas_a_sortir').split(',')
+
+    a_sortir = stock_param.get_param('schemas_a_sortir')
+    a_sortir = a_sortir.split(',') if a_sortir else None
     for i in schemas:
 #        print('ecriture schema', i, len(schemas[i].classes))
         if not i:
             continue
         if a_sortir and i not in a_sortir:
-            print ('schema non sorti',i)
+            print ('schema non sorti',i, '(', a_sortir,')')
             continue
         mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
 #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),

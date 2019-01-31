@@ -321,19 +321,6 @@ class Attribut(object):
                 'clef_etr': self.clef_etr}
 
     def from_dic_if(self, dic_if):
-        self.nom = dic_if['nom']
-        self.type_att = dic_if['type_att']
-        self.type_att_base = dic_if['type_att_base']
-        self.multiple = dic_if['multiple']
-        self.graphique = dic_if['graphique']
-        self.nom_conformite = dic_if['nom_conformite']
-        self.defaut = dic_if['defaut']
-        self.alias = dic_if['alias']
-        self.oblig = dic_if['oblig']
-        self.taille = dic_if['taille']
-        self.dec = dic_if['dec']
-        self.ordre = dic_if['ordre']
-        self.nom_court = dic_if['nom_court']
-        self.unique = dic_if['unique']
-        self.def_index = dic_if['def_index']
-        self.clef_etr = dic_if['clef_etr']
+        ''' recupere les valeurs depuis l'interface'''
+        for nom, valeur in dic_if.items():
+            setattr(self, nom, valeur)

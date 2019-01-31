@@ -305,7 +305,7 @@ actif;True;;;succes;;;batch;;;;
 $sans_sortie=True;;;;;;;;;;;
 $sans_entree=True;;;;;;;;;;;
 $#%dest%;%dest%;;;;;;;;;;
-db:%dest%;;;;;%nom%.sql;;runsql;%log%;%sortie%;fin;
+db:%dest%;;;;;%nom%;;runsql;%log%;%sortie%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#autoload;dest;;;;;;;;;
 #!help;charge les derniers resultats en base de donnees;;;;;;;;;;

@@ -15,7 +15,7 @@ TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
            "TIMESTAMP":"D", "DATE":"D",
            "ROWID":"E",
            "FLOAT":"F", "NUMERIC":"N",
-           "BOOLEEN":"T", "BOOLEAN":"T",
+           "BOOLEEN":"B", "BOOLEAN":"B",
            "S":"S", "SEQUENCE":"S", "SEQ":"S", "SERIAL":"S",
            "I":"I", "SMALLINT":"E", "BIGINT":"I", "OID":"I",
            "INTEGER":"E", "E":"E"}

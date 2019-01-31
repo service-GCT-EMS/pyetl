@@ -21,6 +21,8 @@ LOGGER = logging.getLogger('pyetl') # un logger
 
 def setparallel(mapper):
     mapper.execparallel_ext = execparallel_ext
+    mapper.iterparallel_ext = iterparallel_ext
+    mapper.traite_parallel = traite_parallel
     mapper.gestion_parallel_batch = gestion_parallel_batch
     mapper.gestion_parallel_load = gestion_parallel_load
 
@@ -115,7 +117,7 @@ def parallelprocess(numero, file, regle):
     '''traitement individuel d'un fichier'''
     MAINMAPPER=getmainmapper()
     try:
-#        print ('worker:lecture', file)
+#        print ('worker:lecture', file, regle)
         nom, parms = file
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
@@ -182,56 +184,89 @@ def parallelexec(executor, nprocs, fonction, args):
     return rfin
 
 
-def parallelmap_suivi(mapper, executor, fonction, arglist):
+def suivi_job(mapper, work):
+    rfin=dict()
+    attente = []
+    for job in work:
+        if not job.done():
+            attente.append(job)
+        else:
+#            print ('termine',job)
+#            print ('retour', job.result())
+            retour_process = job.result()
+#            print('retour pexec ',job,retour_process)
+            if retour_process is not None:
+                num_obj, lus = retour_process
+                rfin[num_obj] = lus
+                mapper.aff.send(('fich', 1, lus))
+    work[:] = attente
+    return rfin
+
+
+
+
+
+def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
     '''gere les appels classique mais avec des retours d'infos'''
 
     rfin = dict()
 #    print('start pexec')
-    work = [executor.submit(fonction, *arg) for arg in arglist]
+    if work is None:
+        work = [executor.submit(fonction, *arg) for arg in arglist]
 
     while work:
-        attente = []
-        for job in work:
-            if not job.done():
-                attente.append(job)
-            else:
-#                print ('termine',i)
-                retour_process = job.result()
-#                print('retour pexec ',job,retour_process)
-                if retour_process is not None:
-                    num_obj, lus = retour_process
-                    rfin[num_obj] = lus
-                    mapper.aff.send(('fich', 1, lus))
-        work = attente
+        rfin.update(suivi_job(mapper,work))
         time.sleep(0.1)
     return rfin
 
 
-def paralleliter_suivi(mapper, nprocs, executor, fonction, argiter):
+def paralleliter_suivi(regle, executor, fonction, argiter):
     '''gere les appels classique mais avec des retours d'infos en s'appuyant sur
         un iterateur ce qui permet de lancer les traitements sans que toutes les
         entree soient généréés'''
     rfin = dict()
+    mapper=regle.stock_param
 #    print('start pexec')
 #    work = [executor.submit(fonction, *arg) for arg in arglist]
     jobs = []
     for arg in argiter:
-        jobs.append(executor.submit(fonction, *arg))
-        while len(jobs) > nprocs:
-            attente = []
-            for job in jobs:
-                if job.done():
-                    retour_process = job.result()
-    #                print('retour pexec ',job,retour_process)
-                    if retour_process is not None:
-                        num_obj, lus = retour_process
-                        rfin[num_obj] = lus
-                        mapper.aff.send(('fich', 1, lus))
-                else:
-                    attente.append(job)
-            if len(attente) > nprocs:
+#        print ('piter: ', mapper.get_param('_wid'), 'recu ', arg, jobs)
+
+        if arg is not None:
+            dest,nom,ext = arg
+            file = os.path.join(*nom)+'.'+ext
+            chemin = os.path.dirname(file)
+            nom = os.path.basename(file)
+            clef = os.path.join(dest,chemin,nom)
+            loadarg = (clef , (dest,chemin,nom,ext))
+#            print ('appel parallele ',arg,'->',loadarg, regle, regle.index)
+            jobs.append(executor.submit(fonction, 1,loadarg,regle.index))
+            rfin.update(suivi_job(mapper,jobs))
+            print ('attente', len(jobs))
+
+            while len(jobs) > 20:
+                rfin.update(suivi_job(mapper,jobs))
                 time.sleep(0.1)
-            jobs =  attente
+        time.sleep(0.1)
+#        attente = []
+#        for job in jobs:
+#            if job.done():
+#                retour_process = job.result()
+##                print('retour pexec ',job,retour_process)
+#                if retour_process is not None:
+#                    num_obj, lus = retour_process
+#                    rfin[num_obj] = lus
+#                    mapper.aff.send(('fich', 1, lus))
+#            else:
+#                attente.append(job)
+#        jobs =  attente
+#    print ('---------------fin piter')
+    rfin.update(parallelmap_suivi(mapper, None, None, None, work=jobs))
+
+
+
+
+
     return rfin
 
 
@@ -267,20 +302,13 @@ def prepare_env_parallel(regle):
 def traite_parallel(regle):
     '''traite les operations en parallele'''
 
-    idobj = []
-    entrees = []
     mapper = regle.stock_param
-    listgenerator = regle.listgen # routine de generation des listes
-    for num, obj in enumerate(regle.tmpstore):
-        items = listgenerator(regle, obj)
-        idobj.extend([num]*len(items))
-        entrees.extend(items)
-    arglist = [(i, j, regle.index) for i, j in zip(idobj, entrees)]
+
     nprocs, _ = regle.get_max_workers()
-    num_regle = [regle.index]*len(entrees)
+    num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-#    print('parallel load',entrees,idobj, type(mapper.env))
+    print('parallel')
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,
@@ -293,8 +321,7 @@ def traite_parallel(regle):
         if regle.debug:
             print('retour init', rinit, num_regle)
 #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-
+        rdict = paralleliter_suivi(regle, executor, parallelprocess, regle.listgen)
         rfin = parallelexec(executor, nprocs, endparallel, '')
 #        if regle.debug:
 #        print ('retour')
@@ -319,13 +346,11 @@ def traite_parallel(regle):
             print ('traitement retour stats', mapper.idpyetl, nom,
                    mapper.stats[nom], len(mapper.stats[nom].lignes))
 
-    traite = regle.stock_param.moteur.traite_objet
+#    traite = regle.stock_param.moteur.traite_objet
 #    print("retour multiprocessing ", results, retour)
-
-    for i in sorted(rdict):
-        obj = regle.tmpstore[i]
-        obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-        traite(obj, regle.branchements.brch["end"])
+#    obj = regle.objet_courant
+#    obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
+#    traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 
 
@@ -358,8 +383,8 @@ def traite_parallel_load(regle):
         if regle.debug:
             print('retour init', rinit, num_regle)
 #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-#        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-        rdict = paralleliter_suivi(mapper, nprocs, executor, parallelprocess, arglist)
+        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
+#        rdict = paralleliter_suivi(regle, nprocs, executor, parallelprocess, arglist)
 
         rfin = parallelexec(executor, nprocs, endparallel, '')
 #        if regle.debug:
@@ -479,46 +504,43 @@ def get_pool(maxworkers):
     pool = {i: dict() for i in range(maxworkers)}
     return pool
 
-def add_worker(pool):
-    ''' ajoute un emplacement au pool '''
-    numero = max(pool.keys())+1
-    pool[numero] = dict()
-
-def remove_worker(pool):
-    ''' supprime un emplacement du pool'''
-    pass
 
 def get_slot(pool):
-    '''surveille un pool de process et determine s'il y a une disponibilité'''
-    while True:
-        i=0
-        for i in sorted(pool):
-            if not pool[i]:
-                return i
-            if pool[i]['process'].poll() is not None:
-                pool[i]['end'] = time.time()
-                return i
+    '''surveille un pool de process et determine s'il y a une disponibilité  sans attendre'''
+    i=0
+    for i in sorted(pool):
+        if not pool[i]:
+            return i
+        if pool[i]['process'].poll() is not None:
+            pool[i]['end'] = time.time()
+            return i
+    return -1
 
+def get_slots(pool):
+    '''surveille un pool de process et determine s'il y a une disponibilité  sans attendre'''
+    libres = []
+    for i in sorted(pool):
+        if not pool[i]:
+            libres.append(i)
+        elif pool[i]['process'].poll() is not None:
+            if pool[i]['end'] is None:
+                pool[i]['end'] = time.time()
+            libres.append(i)
+    return libres
+
+def wait_slot(pool):
+    '''surveille un pool de process et attends une disponibilité'''
+    while get_slot(pool) == -1:
         time.sleep(0.1)
-#        print ('attente zzzz', pool)
+        #        print ('attente zzzz', pool)
+    return get_slot(pool)
+
 
 def wait_end(pool):
     '''attend que le dernier process d'un pool ait terminé'''
-    actifs = [i for i in pool if pool[i]]
-    while actifs:
+    while len(get_slots(pool)) < len(pool):
 #        print('attente ',len(actifs), actifs[0].poll(), actifs[0].args)
-        reste = []
-        for i in actifs:
-            if pool[i]['process'].poll() is None:
-                reste.append(i)
-            else:
-                process = pool[i]['process']
-                if process.returncode != 0:
-                    print('erreur process ', process.args(), process.returncode)
-                pool[i]['end'] = time.time()
-        actifs = reste
-        if actifs:
-            time.sleep(0.1)
+        time.sleep(0.1)
     return
 
 
@@ -528,7 +550,7 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
     pool = get_pool(maxworkers)
     for tache in blocks:
         nom, params = tache
-        slot = get_slot(pool) # on cherche une place
+        slot = wait_slot(pool) # on cherche une place
         if pool[slot]:
             retour = pool[slot]
             nom_r = retour['nom']
@@ -541,7 +563,7 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
             del pool[slot]
             continue
         pool[slot] = {'process':lanceur(params), 'nom':nom,
-                      'start':time.time(), 'params':params}
+                      'start':time.time(), 'params':params, 'end': None}
     wait_end(pool)
     for i in pool:
         if pool[i]:
@@ -552,3 +574,117 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
             if patience:
 #                patience(nom, *blocks[nom])
                 patience(nom, retour['params'], retour['end']-retour['start'])
+
+
+
+def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
+    '''lance des process en parallele et retourne les resultats des que disponible'''
+    pool = get_pool(maxworkers)
+    a_traiter = []
+    libres = []
+    print ('dans iter parallelext',maxworkers,len(blocks))
+    while len(libres) < len(pool):
+        try:
+#            print ('itp:',a_traiter, len(libres), len(pool))
+            a_traiter = sorted(a_traiter)
+            taille, nom = a_traiter.pop()
+            yield nom
+        except IndexError:
+            yield None
+        for slot in get_slots(pool):
+            if pool[slot]:
+#                print ('trouve element a traiter',pool[slot])
+                retour = pool[slot]
+                nom_r = retour['nom']
+                if patience:
+                    patience(nom_r, retour['params'], retour['end']-retour['start'])
+                a_traiter.append((retour['taille'],retour['fich']))
+            if blocks:
+                tache = blocks.pop()
+#                print ('recu tache',tache, len(blocks))
+                nom, params, dest, size = tache
+                pool[slot] = {'process':lanceur(params), 'nom':nom, 'end': None,
+                          'start':time.time(), 'params':params, 'fich':dest,
+                          'taille':size}
+            else:
+#                print ('fin de tache')
+                pool[slot] = None
+        libres=get_slots(pool)
+
+    a_traiter = sorted(a_traiter)
+    print ('on finit les restes')
+    for i in a_traiter:
+        taille, nom = i
+        yield nom
+
+
+def parallel_load(regle):
+    '''traite les chargements en parallele'''
+
+    idobj = []
+    entrees = []
+    mapper = regle.stock_param
+
+    for num, obj in enumerate(regle.tmpstore):
+        fichs = getfichs(regle, obj)
+        idobj.extend([num]*len(fichs))
+        entrees.extend(fichs)
+    arglist = [(i, j, regle.index) for i, j in zip(idobj, entrees)]
+    nprocs, _ = regle.get_max_workers()
+    num_regle = [regle.index]*len(entrees)
+    rdict = dict()
+    schemas, env, def_regles = prepare_env_parallel(regle)
+#    print('parallel load',entrees,idobj, type(mapper.env))
+    with ProcessPoolExecutor(max_workers=nprocs) as executor:
+#TODO en python 3.7 l'initialisation peut se faire dans le pool
+        rinit = parallelexec(executor, nprocs, initparallel,
+                             (mapper.parms, mapper.macros, env, None, schemas))
+        workids = {pid:n+1 for n, pid in enumerate(rinit)}
+#        print ('workids',workids)
+        LOGGER.info(' '.join(('workids', str(workids))))
+        parallelexec(executor, nprocs, setparallelid,
+                     (workids, def_regles, mapper.liste_params))
+        if regle.debug:
+            print('retour init', rinit, num_regle)
+#        results = executor.map(parallelprocess, idobj, entrees, num_regle)
+#        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
+        rdict = paralleliter_suivi(mapper, nprocs, executor, parallelprocess, arglist)
+
+        rfin = parallelexec(executor, nprocs, endparallel, '')
+#        if regle.debug:
+#        print ('retour')
+    for i in rfin:
+        retour = rfin[i][0]
+        print (i, 'worker', retour['wid'], 'traites',
+               retour['stats_generales']['_st_lu_objs'],
+               list(sorted(retour['schemas'].keys())))
+        for param in retour['stats_generales']:
+            mapper.padd(param, retour['stats_generales'][param])
+        LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
+        fichs = retour['fichs']
+        for nom, nbr in fichs.items():
+            mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0)+nbr
+#            print ('traitement schemas ', retour["schemas"])
+        integre_schemas(mapper.schemas, retour["schemas"])
+
+        for nom, entete, contenu in retour["stats"].values():
+            if nom not in mapper.stats:
+                mapper.stats[nom] = ExtStat(nom, entete)
+            mapper.stats[nom].add(entete, contenu)
+#            print ('traitement retour stats', mapper.idpyetl, nom,
+#                   mapper.stats[nom], len(mapper.stats[nom].lignes))
+
+    traite = regle.stock_param.moteur.traite_objet
+#    print("retour multiprocessing ", results, retour)
+
+    for i in sorted(rdict):
+        obj = regle.tmpstore[i]
+        if regle.params.att_sortie.val:
+            obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
+        print ('fin traitement parallele', obj)
+        traite(obj, regle.branchements.brch["end"])
+    regle.nbstock = 0
+
+
+
+

@@ -231,6 +231,7 @@ def ajout_attribut_asc(obj, attr):
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
     nom = liste_elts[0][1:]
+    type_att = 'A'
     if obj.schema:
         if nom in obj.schema.attmap:
             nom = obj.schema.attmap[nom].nom
@@ -239,6 +240,7 @@ def ajout_attribut_asc(obj, attr):
                 obj.schema.stocke_attribut(nom, 'A')
             else:
                 nom = '#'+nom
+        type_att = obj.schema.attributs[nom].type_att
     if code == '2':
         code_att = liste_elts[1][0:2]
         long_attrib = int(liste_elts[1][2:])
@@ -275,7 +277,13 @@ def ajout_attribut_asc(obj, attr):
         nom = '#_sys_E_'+liste_elts[0][1:]
     else:
         print("error: asc  : code inconnu", liste_elts)
-
+    if type_att =='B':
+        if vatt == -1:
+            vatt = 't'
+        elif vatt=='0':
+            vatt = 'f'
+        else:
+            print ('erreur booleen ', nom, vatt)
     obj.attributs[nom] = vatt
     return nom, suite
     #print l, l[-1].strip()
@@ -457,54 +465,6 @@ def _ecrire_entete_asc(obj):
 
 
 
-def _convertir_objet_asc(obj, liste, transtable=None):
-    '''sort un objet asc en chaine '''
-
-    entete = _ecrire_entete_asc(obj)
-
-    if obj.format_natif == 'asc' and obj.geomnatif: # on a pas touche a la geometrie
-#        print ('natif asc')
-        if obj.geom:
-            geometrie = "".join(obj.geom)
-        else:
-            geometrie = ''
-    else:
-        geometrie = ecrire_geom_asc(obj.geom_v)
-
-    attmap = obj.schema.attmap if obj.schema else dict()
-#    print "ecriture", liste
-    tliste = list()
-    eliste = list()
-    if liste is None:
-        liste = [i for i in obj.attributs if i[0] != '#']
-
-    a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
-#    print('asc  attributs',liste)
-#    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
-    aliste = ((attmap.get(i, i).upper(),str(obj.attributs[i]).translate(transtable))
-              for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
-    if obj.text_graph:
-        tliste = ((i,str(obj.attributs[i]).translate(transtable))
-                  for i in a_sortir if i in obj.text_graph)
-    if obj.etats:
-        eliste = (i for i in a_sortir if i in obj.etats)
-
-#    attlist = "\n".join(("2"+attmap.get(i, i).upper()+",NG"+str(len(str(obj.attributs[i])))+","+
-#                         str(obj.attributs[i])+";" for i in aliste))
-    attlist = "\n".join(("2"+i+",NG"+str(len(j))+","+j+";" for i,j in aliste))
-
-    if tliste:
-        tglist = "\n".join(("2"+attmap.get(i, i).upper()+",TL"+str(len(j))+","+
-                            str(int(float(obj.attributs[i+'_X'])*FC))+","+
-                            str(int(float(obj.attributs[i+'_Y'])*FC))+","+
-                            ",".join(obj.text_graph[i])+","+j+";" for i, j in tliste))
-        attlist = attlist+"\n"+tglist
-    if eliste:
-        elist = "\n".join(("4"+attmap.get(i, i).upper()+","+
-                           str(obj.attributs.get('#_sys_E_'+i), '')+";" for i in eliste))
-        attlist = attlist+"\n"+elist
-
-    return entete+geometrie+attlist
 
 
 
@@ -515,11 +475,87 @@ def _convertir_objet_asc(obj, liste, transtable=None):
 class AscWriter(FileWriter):
     ''' gestionnaire d'ecriture pour fichiers asc'''
     def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None):
-        super().__init__(nom, liste_att=liste_att, converter=_convertir_objet_asc,
+        super().__init__(nom, liste_att=liste_att, converter=self._convertir_objet_asc,
                          encoding='cp1252', liste_fich=liste_fich, schema=schema)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         self.ttext = "FIN\n"
         self.transtable = str.maketrans({'\n':'\\'+'n','\r':''})
+
+    def changeclasse(self, schemaclasse, attributs=None):
+        ''' ecriture multiclasse on change de schema'''
+#        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        if attributs:
+            self.liste_att = set(attributs)
+        elif schemaclasse:
+            self.liste_att = schemaclasse.get_liste_attributs()
+            self.liste_graphique = {i for i in self.liste_att if schemaclasse.attributs[i].graphique}
+            if self.liste_graphique:
+                self.liste_ordinaire = {i for i in self.liste_att if i not in self.liste_graphique}
+            else:
+                self.liste_ordinaire = set(self.liste_att)
+
+
+    def _convertir_objet_asc(self, obj, liste, transtable=None):
+        '''sort un objet asc en chaine '''
+
+        entete = _ecrire_entete_asc(obj)
+    #    attributs = obj.attributs[:]
+        if obj.format_natif == 'asc' and obj.geomnatif: # on a pas touche a la geometrie
+    #        print ('natif asc')
+            if obj.geom:
+                geometrie = "".join(obj.geom)
+            else:
+                geometrie = ''
+        else:
+            geometrie = ecrire_geom_asc(obj.geom_v)
+
+        attmap = obj.schema.attmap if obj.schema else dict()
+    #    print "ecriture", liste
+        tliste = list()
+        eliste = list()
+        if liste is None:
+            liste = [i for i in obj.attributs if i[0] != '#']
+
+        a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
+
+    #    print('asc  attributs',liste)
+    #    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
+        aliste = ((attmap.get(i, i).upper(),str(obj.attributs[i]).translate(transtable))
+                  for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
+        if obj.text_graph:
+            tliste = ((i,str(obj.attributs[i]).translate(transtable))
+                      for i in a_sortir if i in obj.text_graph)
+        if obj.etats:
+            eliste = (i for i in a_sortir if i in obj.etats)
+
+    #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+",NG"+str(len(str(obj.attributs[i])))+","+
+    #                         str(obj.attributs[i])+";" for i in aliste))
+        attlist = "\n".join(("2"+i+",NG"+str(len(j))+","+j+";" for i,j in aliste))
+
+        if tliste:
+            tglist = "\n".join(("2"+attmap.get(i, i).upper()+",TL"+str(len(j))+","+
+                                str(int(float(obj.attributs[i+'_X'])*FC))+","+
+                                str(int(float(obj.attributs[i+'_Y'])*FC))+","+
+                                ",".join(obj.text_graph[i])+","+j+";" for i, j in tliste))
+            attlist = attlist+"\n"+tglist
+        if eliste:
+            elist = "\n".join(("4"+attmap.get(i, i).upper()+","+
+                               str(obj.attributs.get('#_sys_E_'+i), '')+";" for i in eliste))
+            attlist = attlist+"\n"+elist
+
+        return entete+geometrie+attlist
+
+
+
+
+
+
+
+
+
+
+
+
 
 def asc_streamer(obj, regle, _, attributs=None):
     '''ecrit des objets asc au fil de l'eau.
