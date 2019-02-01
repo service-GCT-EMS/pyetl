@@ -213,10 +213,10 @@ def h_def_schema(regle):
             if nomschema in regle.stock_param.schemas: # le schema existe deja
                 SC.init_schema(regle.stock_param, nom, origine=None, fich='', defmodeconf=0,
                     stable=True, modele=nomschema, copie=True)
-                print ('copie de schema', nomschema, '->', nom,
-                       regle.stock_param.worker, regle.getvar('_wid'),
-                       len(regle.stock_param.schemas[nomschema].classes), '->',
-                       len(regle.stock_param.schemas[nom].classes))
+#                print ('copie de schema', nomschema, '->', nom,
+#                       regle.stock_param.worker, regle.getvar('_wid'),
+#                       len(regle.stock_param.schemas[nomschema].classes), '->',
+#                       len(regle.stock_param.schemas[nom].classes))
 #                raise
             else:
                 regle.differe = True

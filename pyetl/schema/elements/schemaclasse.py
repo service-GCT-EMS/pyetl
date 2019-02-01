@@ -175,7 +175,7 @@ class SchemaClasse(object):
             setattr(self, nom, d_if[nom])
 
         self.attributs = {i: A.Attribut(i, 0, d_if=j) for i, j in d_if['attributs'].items()}
-#        print ('creation attributs ',self.attributs)
+
 
     @property
     def identclasse(self):

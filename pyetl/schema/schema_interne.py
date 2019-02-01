@@ -169,7 +169,11 @@ class Schema(object):
         for conf, cd_if in d_if['conformites'].items():
             self.get_conf(conf).from_dic_if(cd_if)
         for cls, cd_if in d_if['classes'].items():
-            self.def_classe(cls).from_dic_if(cd_if)
+            sc_classe = self.def_classe(cls)
+            sc_classe.from_dic_if(cd_if)
+#            print ('recup schemaclasse',sc_classe)
+            self.gere_conformites(sc_classe)
+
         self.stock_mapping.from_dic_if(d_if['stock_mapping'])
 #        print ('fin recup_schema')
 
@@ -235,8 +239,21 @@ class Schema(object):
         if ident in self.classes and self.classes[ident].objcnt == 0:
             del self.classes[ident]
 
-
-
+    def gere_conformites(self, schemaclasse):
+        ''' recree les liens de conformites vers classe '''
+        for i in schemaclasse.attributs:
+        # il faut verifier les conformites
+            nom_conf = schemaclasse.attributs[i].nom_conformite
+            #print (i,cf.nom if cf else "non reference")
+            if nom_conf:
+                #n = n+1
+                if nom_conf in self.conformites:
+                    # elle existe deja on se branche dessus
+                    schemaclasse.attributs[i].conformite = self.conformites[nom_conf]
+                    #n2 += 1
+                else:
+                    print ('conformite inconnue', nom_conf)#on la stocke
+                    schemaclasse.attributs[i].nom_conformite = ''
 
 
     def _cree_classe(self, ident, modele, filiation=True):

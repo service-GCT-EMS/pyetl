@@ -15,7 +15,8 @@ from pyetl.vglobales import getmainmapper
 
 from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.formats import ExtStat
-from .outils import renseigne_attributs_batch, prepare_batch_from_object, execbatch, getfichs
+from .outils import renseigne_attributs_batch, prepare_batch_from_object,\
+                     execbatch, getfichs, printexception
 
 LOGGER = logging.getLogger('pyetl') # un logger
 
@@ -38,7 +39,7 @@ def initparallel(parametres):
 #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
-    print("pyetl initworker", os.getpid(), schemas.keys())
+#    print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker "+str(os.getpid()))
     MAINMAPPER.worker = True
     MAINMAPPER.initcontext(env, log)
@@ -122,6 +123,11 @@ def parallelprocess(numero, file, regle):
         nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
         return numero, -1
+    except Exception as exc:
+        print('====',+MAINMAPPER.get_param('_wid'),+'=erreur de traitement parallele non gérée')
+        print('====regle courante:', regle)
+        printexception()
+        raise
     return numero, nb_lu
 
 def endparallel(test=None):
@@ -343,8 +349,8 @@ def traite_parallel(regle):
             if nom not in mapper.stats:
                 mapper.stats[nom] = ExtStat(nom, entete)
             mapper.stats[nom].add(entete, contenu)
-            print ('traitement retour stats', mapper.idpyetl, nom,
-                   mapper.stats[nom], len(mapper.stats[nom].lignes))
+#            print ('traitement retour stats', mapper.idpyetl, nom,
+#                   mapper.stats[nom], len(mapper.stats[nom].lignes))
 
 #    traite = regle.stock_param.moteur.traite_objet
 #    print("retour multiprocessing ", results, retour)
@@ -583,11 +589,14 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     a_traiter = []
     libres = []
     print ('dans iter parallelext',maxworkers,len(blocks))
-    while len(libres) < len(pool):
+    # optimiseur de position
+
+    while blocks:
         try:
 #            print ('itp:',a_traiter, len(libres), len(pool))
-            a_traiter = sorted(a_traiter)
+#            a_traiter = sorted(a_traiter)
             taille, nom = a_traiter.pop()
+            print ('envoi pour traitement',nom, taille, len(a_traiter))
             yield nom
         except IndexError:
             yield None
@@ -612,7 +621,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
         libres=get_slots(pool)
 
     a_traiter = sorted(a_traiter)
-    print ('on finit les restes')
+    print ('on finit les restes', len(a_traiter))
     for i in a_traiter:
         taille, nom = i
         yield nom

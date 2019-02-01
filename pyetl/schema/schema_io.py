@@ -143,10 +143,10 @@ def sortir_schema_classe_xml(sc_classe, mode='util'):
 
 def sortir_schema_classe_csv(sc_classe, mode='util'):
     '''ecrit une definition de classe en csv'''
-
+#    print ('sortir_schemaclasse')
     nom_compo = sc_classe.nom
-#    print ('ssc:\n','\n'.join([str((a.nom,a.nom_conformite,a.type_att,a.type_att_base))
-#    for a in sc_classe.attributs.values()]))
+#    print ('ssc:\n','\n'.join([str((a.nom,a.nom_conformite,a.type_att,a.type_att_base, a.taille))
+#            for a in sc_classe.attributs.values()]))
     liste_att_csv = list()
 #    if sc_classe.nom=='rg_fil_troncon':
 #        print ('sortir_schema -----------------',sc_classe.schema.nom, sc_classe.nom)
@@ -282,7 +282,7 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
 
     description = ["!groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;"+
                    "Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK"]
-    #print("schema:  csv sortir_classes",len(self.classes))
+#    print("schema:  csv sortir_classes",len(sch.classes))
     if sch.metas:
 #        print ('sortir metas ',sch.metas)
         metadef = '!meta;'+';'.join(k+'='+v for k,v in sch.metas.items())
@@ -987,7 +987,7 @@ def retour_schemas(schemas, mode='util'):
     if mode == 'no':
         return retour
     for nom, schema in schemas.items():
-        print('ecriture schema', nom, len(schema.classes))
+#        print('ecriture schema', nom, len(schema.classes))
         if not nom:
             continue
         mode_sortie = schema.mode_sortie if schema.mode_sortie is not None else mode
@@ -997,7 +997,7 @@ def retour_schemas(schemas, mode='util'):
             FSC.analyse_conformites(schema)
 #        print ('avant analyse ', nom ,FSC.analyse_interne(schema, mode_sortie))
         if FSC.analyse_interne(schema, mode_sortie):
-            print ('stockage', nom, len(schema.__dic_if__))
+#            print ('stockage', nom, len(schema.__dic_if__))
             retour[nom] = schema.__dic_if__
     return retour
 
@@ -1015,12 +1015,13 @@ def integre_schemas(schemas, nouveaux):
         else:
             schemas[nom] = tmp
 #            schemas[nom].origine=metas['origine']
-    print ('schemas recuperes ',nomschemas,schemas.keys())
+#    print ('schemas recuperes ',nomschemas,schemas.keys())
     for nom in nomschemas: # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids
-    print ('recup_schema_csv',ecrire_schema_csv(None, schemas['elyx_prod'],'all', modeconf=-1))
-    print ('fin integration')
+#    print ('fin_recup_schema')
+#    print ('recup_schema_csv',ecrire_schema_csv(None, schemas['elyx_prod'],'all', modeconf=-1))
+#    print ('fin integration')
 
 def integre_schemas2(schemas, nouveaux):
     ''' recree les schemas apres transmission'''

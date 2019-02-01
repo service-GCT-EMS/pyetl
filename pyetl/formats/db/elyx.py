@@ -302,6 +302,16 @@ class ElyConnect(ora.OraConnect):
                 tmpf.write('\n'.join(xml))
             outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
             retour.append((nom, (helper, paramfile, outfile), (dest,nom,'asc'), self.size[nom]))
+
+        #optimiseur de blocks : on sait qu'il faut commencer par les plus longs
+        tmp = sorted(retour,reverse=True,key=lambda x:x[3])
+        if len(tmp) > nbworkers*2:
+            retour = tmp[nbworkers:nbworkers*2] + tmp[:nbworkers] + tmp[nbworkers*2:]
+            # attention logique mongolienne inverse : on commence par la fin ...
+            retour.reverse()
+
+
+
         return retour
 
 
@@ -325,6 +335,7 @@ class ElyConnect(ora.OraConnect):
 #            print ('calcule blocs ',blocks)
 #            self.params.execparallel_ext(blocks, workers, self.fearunner,
 #                                         patience=self.export_statprint)
+            # optimiseur de process paralleles
 
 
 

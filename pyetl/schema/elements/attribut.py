@@ -313,7 +313,7 @@ class Attribut(object):
         return {'nom': self.nom, 'type_att': self.type_att,
                 'type_att_base': self.type_att_base,
                 'multiple': self.multiple, 'graphique': self.graphique,
-                'conformite': self.nom_conformite, 'defaut':self.defaut,
+                'nom_conformite': self.nom_conformite, 'defaut':self.defaut,
                 'alias': self.alias, 'oblig': self.oblig,
                 'taille': self.taille, 'dec':self.dec,
                 'ordre': self.ordre, 'nom_court': self.nom_court,
