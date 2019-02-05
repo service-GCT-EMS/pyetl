@@ -589,9 +589,11 @@ class GenSql(database.GenSql):
             schemas.add(groupe)
         creschema = ["CREATE SCHEMA IF NOT EXISTS "+i+';' for i in schemas]
         dropschema = ["DROP SCHEMA IF EXISTS "+i+';' for i in schemas]
+        dropschemac = ["DROP SCHEMA IF EXISTS "+i+' CASCADE;' for i in schemas]
         creschema.insert(0, self._setrole())
         dropschema.insert(0, self._setrole())
-        return creschema, dropschema
+        dropschemac.insert(0, self._setrole())
+        return creschema, dropschema, dropschemac
 
 
     def droptables(self, liste):

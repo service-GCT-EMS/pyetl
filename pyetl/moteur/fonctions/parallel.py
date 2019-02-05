@@ -225,6 +225,24 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
         time.sleep(0.1)
     return rfin
 
+def submit_job(jobs, job, regle, executor, fonction):
+#    print ('transmission ',job)
+#    rfin = dict()
+    dest,nom,ext = job
+    file = os.path.join(*nom)+'.'+ext
+    chemin = os.path.dirname(file)
+    nom = os.path.basename(file)
+    clef = os.path.join(dest,chemin,nom)
+    loadarg = (clef , (dest,chemin,nom,ext))
+#            print ('appel parallele ',arg,'->',loadarg, regle, regle.index)
+    jobs.append(executor.submit(fonction, 1,loadarg,regle.index))
+#    print ('attente', len(jobs))
+
+
+
+
+
+
 
 def paralleliter_suivi(regle, executor, fonction, argiter):
     '''gere les appels classique mais avec des retours d'infos en s'appuyant sur
@@ -234,45 +252,29 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
     mapper=regle.stock_param
 #    print('start pexec')
 #    work = [executor.submit(fonction, *arg) for arg in arglist]
+    waitlist = []
     jobs = []
     for arg in argiter:
-#        print ('piter: ', mapper.get_param('_wid'), 'recu ', arg, jobs)
 
         if arg is not None:
-            dest,nom,ext = arg
-            file = os.path.join(*nom)+'.'+ext
-            chemin = os.path.dirname(file)
-            nom = os.path.basename(file)
-            clef = os.path.join(dest,chemin,nom)
-            loadarg = (clef , (dest,chemin,nom,ext))
-#            print ('appel parallele ',arg,'->',loadarg, regle, regle.index)
-            jobs.append(executor.submit(fonction, 1,loadarg,regle.index))
-            rfin.update(suivi_job(mapper,jobs))
-            print ('attente', len(jobs))
-
-            while len(jobs) > 20:
-                rfin.update(suivi_job(mapper,jobs))
-                time.sleep(0.1)
+#            print ('piter: recu ', arg, len(jobs))
+            waitlist.append(arg)
+#            print ('liste:', waitlist)
+            if len(jobs)<20:
+                try:
+                    waitlist.sort()
+                    taille, job = waitlist.pop()
+#                    print ('traitement job', job)
+                    submit_job(jobs, job, regle, executor, fonction)
+                except IndexError:
+                    time.sleep(0.1)
+        rfin.update(suivi_job(mapper,jobs))
         time.sleep(0.1)
-#        attente = []
-#        for job in jobs:
-#            if job.done():
-#                retour_process = job.result()
-##                print('retour pexec ',job,retour_process)
-#                if retour_process is not None:
-#                    num_obj, lus = retour_process
-#                    rfin[num_obj] = lus
-#                    mapper.aff.send(('fich', 1, lus))
-#            else:
-#                attente.append(job)
-#        jobs =  attente
-#    print ('---------------fin piter')
+    for arg in waitlist:
+        taille,job = arg
+        submit_job(jobs, job, regle, executor, fonction)
+
     rfin.update(parallelmap_suivi(mapper, None, None, None, work=jobs))
-
-
-
-
-
     return rfin
 
 
@@ -591,15 +593,16 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     print ('dans iter parallelext',maxworkers,len(blocks))
     # optimiseur de position
 
-    while blocks:
+    while blocks or libres < maxworkers:
         try:
 #            print ('itp:',a_traiter, len(libres), len(pool))
 #            a_traiter = sorted(a_traiter)
             taille, nom = a_traiter.pop()
-            print ('envoi pour traitement',nom, taille, len(a_traiter))
-            yield nom
+#            print ('envoi pour traitement',nom, taille, len(a_traiter))
+            yield (taille, nom)
         except IndexError:
             yield None
+        libres = 0
         for slot in get_slots(pool):
             if pool[slot]:
 #                print ('trouve element a traiter',pool[slot])
@@ -618,13 +621,13 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
             else:
 #                print ('fin de tache')
                 pool[slot] = None
-        libres=get_slots(pool)
+                libres += 1
 
     a_traiter = sorted(a_traiter)
     print ('on finit les restes', len(a_traiter))
     for i in a_traiter:
         taille, nom = i
-        yield nom
+        yield taille, nom
 
 
 def parallel_load(regle):

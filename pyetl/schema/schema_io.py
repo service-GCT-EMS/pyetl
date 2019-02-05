@@ -560,8 +560,8 @@ def decode_classes_csv(schema_courant, entree):
                 if v_tmp[9].isnumeric():
                     classe.srid = str(int(v_tmp[9]))
                 # cas particulier des classes alpha sans attribut geom
-                if v_tmp[4] == 'NOGEOM':
-                    classe.info['type_geom'] = '0'
+                if v_tmp[4] in SCI.CODES_G:
+                    classe.info["type_geom"] = SCI.CODES_G[v_tmp[4]]
 
 
 
@@ -851,7 +851,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
         gsql.setbasic(type_base)
 
     tsql, dtsql, csql, dcsql = gsql.sio_cretable(cod, autopk=autopk, role=role)
-    crsc, dsc = gsql.sio_creschema(cod)
+    crsc, dsc, dscc = gsql.sio_creschema(cod)
 
     csty = gsql.sio_crestyle()
 
@@ -874,6 +874,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
         if crsc:
             ecrire_fichier_sql(rep, nomschema, '01', 'schemas', crsc, cod, transact)
             ecrire_fichier_sql(rep, nomschema, '13', 'dropschemas', dsc, cod)
+            ecrire_fichier_sql(rep, nomschema, '13c', 'dropschemas', dscc, cod)
 
 
 def copier_xsl(rep):

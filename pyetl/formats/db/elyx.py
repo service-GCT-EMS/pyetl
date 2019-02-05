@@ -332,24 +332,15 @@ class ElyConnect(ora.OraConnect):
             self.tmpdir = tmpdir
             nbproc, nbdump = nbworkers
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-#            print ('calcule blocs ',blocks)
+            print ('calcule blocs ',len(blocks))
 #            self.params.execparallel_ext(blocks, workers, self.fearunner,
-#                                         patience=self.export_statprint)
-            # optimiseur de process paralleles
-
-
-
-
-
-
-
 #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, nbdump)
             fileiter = self.params.iterparallel_ext(blocks, nbdump, self.fearunner,
                                          patience=self.export_statprint)
             regle_courante.listgen=fileiter
             self.params.traite_parallel(regle_courante)
             print ('fin traitement extalpha',flush=True)
-            time.sleep(10)
+#            time.sleep(10)
         return self.resultats
 
 

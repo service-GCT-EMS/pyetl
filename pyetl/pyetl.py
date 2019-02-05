@@ -76,7 +76,7 @@ def getlog(args):
 def runpyetl(commandes, args, env=None, log=None):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
     log = getlog(args)
-    print("pyetl", VERSION, commandes, args, log, MAINMAPPER)
+    print("pyetl", VERSION, commandes, args, log)
 
     if MAINMAPPER.initpyetl(commandes, args, env=env, log=log):
         MAINMAPPER.process()
