@@ -353,8 +353,8 @@ def fschema_change_schema(regle, obj):
         return False
     if obj.schema is None:
         schema2 = regle.stock_param.init_schema(nom_schema, fich=regle.nom_fich_schema
-                                            if regle.nom_fich_schema else nom_schema,
-                                            origine='S')
+                                                if regle.nom_fich_schema else nom_schema,
+                                                origine='S')
         schema_classe = schema2.setdefault_classe(obj.ident)
         obj.setschema(schema_classe)
         return
@@ -362,8 +362,9 @@ def fschema_change_schema(regle, obj):
     if nom_schema == obj.schema.schema.nom:
         return
     schemaclasseold = obj.schema
-    schema2 = regle.stock_param.init_schema(nom_schema, fich=(regle.nom_fich_schema
-                                            if regle.nom_fich_schema else nom_schema),
+    schema2 = regle.stock_param.init_schema(nom_schema,
+                                            fich=(regle.nom_fich_schema
+                                                  if regle.nom_fich_schema else nom_schema),
                                             origine='S', modele=obj.schema.schema)
 #    print ('schema2 ',schema2.classes.keys())
     ident = obj.ident

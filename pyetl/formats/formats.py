@@ -682,9 +682,9 @@ class Stat(object):
 
 
 def statprint(nom, entete, contenu):
-    '''formatte des stats por l'affichage'''
+    '''formatte des stats pour l'affichage'''
 
-    tailles = [max(map(len,i)) for i in zip(*contenu, entete)]
+    tailles = [max(map(len, i)) for i in zip(*contenu, entete)]
     longueur = sum(tailles)+3*len(tailles)-2
 
     pformat = '| %-'+str(tailles[0])+'s'+' | '.join('%'+str(i)+'s' for i in tailles[1:])+' |'

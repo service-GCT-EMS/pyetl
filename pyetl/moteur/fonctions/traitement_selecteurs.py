@@ -95,17 +95,6 @@ def sel_vinfich(selecteur, obj):
     return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
 
 
-#def sel_infich(selecteur, obj):
-#    '''#aide||valeur dans un fichier
-#  #aide_spec||il est possible de preciser des positions a lire dans le ficher
-#           +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
-#     #helper||infich
-#    #pattern||L;in:fich||20
-#       #test||obj||^A;B;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
-#    '''
-#    return ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste) in selecteur.info
-
-
 def selh_infich_re(selecteur):
     '''precharge le fichier
     '''
@@ -131,12 +120,13 @@ def sel_infich_re(selecteur, obj):
            +||en mettant (pref:F:suff) à la fin de l'expression
            +||ex: ^:F:.* permet de matcher tout ce qui commence par une ligne du fichier
     #pattern||L;in:fich(re)||20
-       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set||atv;res;1
+       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set
+            ||atv;res;1
     '''
     if len(selecteur.params.attr.liste) > 1:
         vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
     else:
-        vals = vals = obj.attributs.get(selecteur.params.attr.val,'')
+        vals = vals = obj.attributs.get(selecteur.params.attr.val, '')
     return any((i.search(vals) for i in selecteur.info))
 
 
@@ -175,7 +165,7 @@ def sel_inlist_re(selecteur, obj):
     if len(selecteur.params.attr.liste) > 1:
         vals = ';'.join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
     else:
-        vals = obj.attributs.get(selecteur.params.attr.val,'')
+        vals = obj.attributs.get(selecteur.params.attr.val, '')
 #    print ('sel _inlist_re ', vals, selecteur.info)
     return any((i.search(vals) for i in selecteur.info))
 
@@ -548,6 +538,7 @@ def sel_is2d(_, obj):
     '''
     return obj.dimension == 2
 
+
 def sel_is3d(_, obj):
     '''#aide||vrai si l'objet est de dimension 3
     #pattern||;=is:3d||1
@@ -557,6 +548,7 @@ def sel_is3d(_, obj):
 #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.dimension == 3
 
+
 def sel_is_type_geom(selecteur, obj):
     '''#aide||vrai si l'objet est de dimension 3
     #pattern||=type_geom:;N||1
@@ -564,9 +556,3 @@ def sel_is_type_geom(selecteur, obj):
     '''
 #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.geom_v.type == selecteur.params.vals.val
-
-
-
-
-
-

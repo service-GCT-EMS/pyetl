@@ -122,7 +122,8 @@ class Conformite(object):
         elif mode_force == 2:
             self.ajust[valeur] = alias
             self.valide.add(alias)
-#            print( '----------------------------------detecte mode 2 ', valeur, alias, self.valide,self.ajust)
+#            print( '----------------------------------detecte mode 2 ',
+#                  valeur, alias, self.valide,self.ajust)
 
         elif mode_force == 3:
             self.ajust[alias] = valeur

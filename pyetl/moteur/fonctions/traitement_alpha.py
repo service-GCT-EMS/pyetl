@@ -535,8 +535,8 @@ def f_hset1(regle, obj):
     '''
 #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\').replace('"', r'\"')+'"'\
-        for i in regle.params.att_entree.liste])
+        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\')\
+        .replace('"', r'\"')+'"' for i in regle.params.att_entree.liste])
 #    print("creation hstore", regle.params.att_sortie.val,
 #          obj.attributs[regle.params.att_sortie.val])
     return True
@@ -546,20 +546,21 @@ def h_hset2(regle):
 #    print("compilation de la regex", regle.params.att_entree.val)
     regle.re1 = re.compile(regle.params.att_entree.val)
 
+
 def f_hset2(regle, obj):
     ''' #aide||transforme des attributs en hstore
         #aide_spec||expression reguliere
         #pattern||A;?;re;hset;;
         #schema||ajout_attribut
         #test||obj||^X;;C*;hset;||^Z;;X;hget;C1;||atv;Z;A
-
     '''
 #    print("hcre2 ", obj.ido, "->", regle.params.att_entree.val)
-
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
-        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\').replace('"', r'\"')+ '"'\
+        obj.attributs.get(i, regle.params.val_entree.val).replace('\\', '\\\\')\
+        .replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#") and regle.re1.search(i)])
     return True
+
 
 def f_hset3(regle, obj):
     ''' #aide||transforme des attributs en hstore
@@ -568,12 +569,12 @@ def f_hset3(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
     '''
-
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
         obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
         for i in obj.attributs if not i.startswith("#")])
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
+
 
 def f_hset4(regle, obj):
     ''' #aide||transforme des attributs en hstore
@@ -885,7 +886,6 @@ def f_geocode(regle, obj):
     return True
 
 
-
 def h_map_data(regle):
     ''' precharge le fichier de mapping et prepare les dictionnaires'''
     regle.dynlevel = 0 # les noms de mapping dependent ils des donnees d entree
@@ -894,7 +894,7 @@ def h_map_data(regle):
     regle.liste_att = None
 #    if regle.params.att_sortie.val == '#schema': # mapping d un schema existant
 #        schema2 =
-    regle.lastfich =  None
+    regle.lastfich = None
     fich = regle.params.cmp1.val
     if "[F]" in fich:
         regle.dynlevel = 2
@@ -953,4 +953,3 @@ def f_map_data_type(regle, obj):
         val = obj.attributs.get(att, defaut)
         obj.attributs[att] = regle.elmap.get(val, val)
     return True
-

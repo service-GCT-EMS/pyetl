@@ -352,10 +352,8 @@ def h_sortir(regle):
 #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
     regle.memlimit = int(regle.getvar('memlimit', 0))
-    regle.store = None
     mode_sortie = regle.getvar("mode_sortie", "A")
-    if mode_sortie == 'B' or mode_sortie=='A':
-        regle.store = True
+    regle.store = mode_sortie in {'A', 'B'}
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
 #    regle.liste_attributs = regle.params.att_entree.liste
@@ -371,21 +369,22 @@ def h_sortir(regle):
     regle.valide = True
 #    print ('fin preparation sortie ',regle.f_sortie.writerparms)
 
+
 def setschemasortie(regle, obj):
     '''positionne le schema de sortie pour l objet '''
-    if regle.nom_fich_schema:# on copie le schema pour ne plus le modifier apres ecriture
+    if regle.nom_fich_schema:
+# on copie le schema pour ne plus le modifier apres ecriture
         regle.change_schema_nom(obj, regle.nom_fich_schema)
     if obj.schema and obj.schema.amodifier(regle):
         rep_sortie = regle.getvar('sortie_schema')
         if not rep_sortie:
-            rep_sortie = os.path.join(regle.getvar('_sortie'), os.path.dirname(regle.params.cmp1.val))
+            rep_sortie = os.path.join(regle.getvar('_sortie'),
+                                      os.path.dirname(regle.params.cmp1.val))
         obj.schema.setsortie(regle.f_sortie, rep_sortie)
 
         obj.schema.setminmaj(regle.f_sortie.minmaj)
     if regle.params.att_entree.liste:
         obj.liste_atttributs = regle.params.att_entree.liste
-
-
 
 
 def f_sortir(regle, obj):
@@ -695,17 +694,19 @@ def f_compare(regle, obj):
     # on remet l'original dans le circuit
     return False
 
+
 def h_run(regle):
     '''execution unique si pas d'objet dans la definition'''
     if regle.params.att_entree.val or regle.params.val_entree.val:
         return
     if regle.runscope(): # on voit si on doit l'executer
         chaine = ' '.join((regle.params.cmp1.val, regle.params.cmp2.val))
-        print ('lancement ', chaine)
-        fini =  subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        print('lancement ', chaine)
+        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
         if regle.params.att_sortie.val:
             regle.stock_param.set_param(regle.params.att_sortie.val, fini)
     regle.valide = 'done'
+
 
 def f_run(regle, obj):
     '''#aide||execute un programme exterieur
@@ -723,11 +724,11 @@ def f_run(regle, obj):
 
 def h_loadconfig(regle):
     '''charge des definitions et/ou des macros'''
-    regle.stock_params.loadconfig(regle.params.cmp1,regle.params.cmp2)
+    regle.stock_params.loadconfig(regle.params.cmp1, regle.params.cmp2)
     regle.valide = 'done'
 
 
-def f_loadconfig(regle,obj):
+def f_loadconfig(regle, obj):
     '''#aide||charge des definitions et/ou des macros
   #aide_spec||repertoire des parametres et des macros
     #pattern||;;;loadconfig;C;C

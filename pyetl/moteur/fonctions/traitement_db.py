@@ -205,13 +205,13 @@ def f_dbalpha(regle, obj):
 
 #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
     if base:
-        connect = DB.dbaccess(regle.stock_param, base,type_base=type_base,chemin=chemin)
+        connect = DB.dbaccess(regle.stock_param, base, type_base=type_base, chemin=chemin)
         if connect is None:
             return False
         if connect.accept_sql == 'non': # pas de requetes directes on essaye le mode dump
             dest = regle.getvar('dest')
             if not dest:
-                dest = os.path.join(regle.getvar('_sortie'),'tmp')
+                dest = os.path.join(regle.getvar('_sortie'), 'tmp')
             os.makedirs(dest, exist_ok=True)
             regle.setvar('_entree', dest)
             log = regle.getvar('log', os.path.join(dest, 'log'))
@@ -219,9 +219,6 @@ def f_dbalpha(regle, obj):
             print('traitement db: dump donnees de', base, 'vers', dest)
             retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
 
-#
-#
-#
 #            if regle.store:
 ##        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
 ##        print ('regles', regle.stock_param.regles)
@@ -231,7 +228,8 @@ def f_dbalpha(regle, obj):
 #            return objloader(regle, obj)
         else:
             retour = DB.recup_donnees_req_alpha(regle, base, niveau, classe, attrs,
-                                                valeur, mods=mods, sortie=regle.params.att_sortie.liste,
+                                                valeur, mods=mods,
+                                                sortie=regle.params.att_sortie.liste,
                                                 v_sortie=valeur, ordre=ordre,
                                                 type_base=type_base, chemin=chemin)
 #    print ('regles alpha: valeur retour',retour,obj)

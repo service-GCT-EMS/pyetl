@@ -93,7 +93,7 @@ def h_sync(regle):
     if regle.stock_params.worker:
         regle.final = True
         if regle.params.cmp1.val:
-            regle.stock_params.set_param('_w_end',regle.params.cmp1.val)
+            regle.stock_params.set_param('_w_end', regle.params.cmp1.val)
     return True
 
 
@@ -570,7 +570,7 @@ def f_fileloader(regle, obj):
         regle.tmpstore.append(obj)
         regle.nbstock += 1
         return True
-    return objloader(regle,obj)
+    return objloader(regle, obj)
 #    mapper = regle.stock_param
 #    fichs = getfichs(regle, obj)
 #

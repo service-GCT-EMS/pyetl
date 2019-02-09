@@ -285,7 +285,7 @@ def sortir_schema_csv(sch, mode='all', modeconf=-1, conf_used=False, init=False)
 #    print("schema:  csv sortir_classes",len(sch.classes))
     if sch.metas:
 #        print ('sortir metas ',sch.metas)
-        metadef = '!meta;'+';'.join(k+'='+v for k,v in sch.metas.items())
+        metadef = '!meta;'+';'.join(k+'='+v for k, v in sch.metas.items())
         description.append(metadef)
     if sch.classes:
         for i in sorted(sch.classes.keys()):
@@ -341,7 +341,7 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         if not nom:
             continue
         if len(val_conf) < 2:
-            print('enumeration incomplete ',val_conf)
+            print('enumeration incomplete ', val_conf)
             continue
         conf = schema_courant.get_conf(nom)
         ordre = int(val_conf[1]) if val_conf[1].isnumeric() else 0
@@ -353,10 +353,8 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         else:
             mode = mode_fichier if mode_fichier is not None else mode_demande
 
-        conf.stocke_valeur(valeur, alias.replace('\n', ''), mode_force=mode, ordre=ordre) # on ignore
-
-
-
+        conf.stocke_valeur(valeur, alias.replace('\n', ''), mode_force=mode, ordre=ordre)
+        # on ignore
 
 
 def lire_conf_csv(schema_courant, fichier, mode_alias, cod):
@@ -477,8 +475,9 @@ def decode_classes_csv(schema_courant, entree):
             continue
         if i[0] == '!':
             if i.startswith('!meta;'): # le fichier contient des metadonnees
-                v_tmp = [j.strip().split('=') if '=' in j else [j.strip(),''] for j in i.split(';')]
-                metas = {nom:val for nom,val in v_tmp}
+                v_tmp = [j.strip().split('=') if '=' in j else [j.strip(), '']
+                         for j in i.split(';')]
+                metas = {nom:val for nom, val in v_tmp}
                 schema_courant.metas = metas
             continue
         v_tmp = [j.strip() for j in i.split(';')]
@@ -587,7 +586,7 @@ def recup_schema_csv(base, description):
     decode_conf_csv(schema, confs, mode_alias="num")
     decode_classes_csv(schema, classes)
     schema.init_mapping(mapping)
-    schema.elements_specifiques['def_triggers'] =  deftrig
+    schema.elements_specifiques['def_triggers'] = deftrig
     schema.origine = metas['origine']
     return schema
 
@@ -768,7 +767,7 @@ def ecrire_schema_csv(rep, schema, mode, cod='utf-8', modeconf=-1):
             ligne = ";".join(str(i) for i in trig)
             deftrig.append(ligne)
     metas = dict()
-    metas['origine']=schema.origine
+    metas['origine'] = schema.origine
     if rep:
         chemref = os.path.join(rep, nomschema)
         if len(classes) > 1:
@@ -806,8 +805,8 @@ def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod='utf-8', tr
             try:
                 j.encode(cod)
             except UnicodeEncodeError:
-                print ("!!!!!!!!!!!!!!!!!! erreur d'encodage sur un caractère (?)")
-                print (j.encode(cod, errors='replace'))
+                print("!!!!!!!!!!!!!!!!!! erreur d'encodage sur un caractère (?)")
+                print(j.encode(cod, errors='replace'))
                 nberr += 1
     if nberr:
         print("schema: ecriture schema sql", nomfich, cod)
@@ -885,14 +884,10 @@ def copier_xsl(rep):
         xsl.extractall(path=os.path.join(rep, 'xsl'))
 
 
-
 def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     ''' sort un schema dans les differents formats disponibles '''
 
-#    rep_s = schema.rep_sortie if schema.rep_sortie else\
-#            os.path.join(stock_param.get_param('_sortie'), os.path.dirname(schema.fich) if schema.fich else '')
-#    print ('ecrire_schema_sortie' , schema.nom, rep_s, schema.fich)
-    nom = schema.nom.replace('#','')
+    nom = schema.nom.replace('#', '')
     rep_s = os.path.join(rep, nom)
     os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param('codec_sortie', "utf-8")
@@ -1080,7 +1075,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
         if not i:
             continue
         if a_sortir and i not in a_sortir:
-            print ('schema non sorti',i, '(', a_sortir,')')
+            print('schema non sorti', i, '(', a_sortir, ')')
             continue
         mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
 #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
@@ -1112,5 +1107,3 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
 #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(schemas[i], rep_sortie, formats_a_sortir,
                              stock_param, mode_sortie, confs)
-
-

@@ -37,11 +37,11 @@ def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
         if modele in mapper.schemas:
             modele = mapper.schemas[modele]
         else:
-            print ('schema introuvable', modele, 'dans', mapper.schemas.keys())
-            modele =  None
+            print('schema introuvable', modele, 'dans', mapper.schemas.keys())
+            modele = None
     if nom_schema not in mapper.schemas:
         nouveau = Schema(nom_schema, origine=origine,
-                                            fich=fich, defmodeconf=defmodeconf)
+                         fich=fich, defmodeconf=defmodeconf)
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
 #            self.schemas[nom_schema].modele = modele
@@ -54,7 +54,7 @@ def init_schema(mapper, nom_schema, origine='G', fich='', defmodeconf=0,
             if copie: # la on fait une copie conforme
                 nouveau.origine = modele.origine
                 for ident in modele.classes:
-                    copyschema(modele.classes[ident],ident,nouveau)
+                    copyschema(modele.classes[ident], ident, nouveau)
 
 #                self.schemas[nom_schema].dic_abrev = modele.dic_abrev
     return mapper.schemas[nom_schema]
@@ -154,7 +154,7 @@ class Schema(object):
                  'metas', 'nom', 'fich', 'alias', 'elements_specifiques',
                  'alias_groupes', 'compteurs'}
 
-        d_if = {i: getattr(self,i) for i in infos}
+        d_if = {i: getattr(self, i) for i in infos}
         d_if['__infos__'] = infos
         d_if['classes'] = {nom:cl.__dic_if__ for nom, cl in self.classes.items()}
         d_if['conformites'] = {nom:conf.__dic_if__ for nom, conf in self.conformites.items()}
@@ -252,7 +252,7 @@ class Schema(object):
                     schemaclasse.attributs[i].conformite = self.conformites[nom_conf]
                     #n2 += 1
                 else:
-                    print ('conformite inconnue', nom_conf)#on la stocke
+                    print('conformite inconnue', nom_conf)#on la stocke
                     schemaclasse.attributs[i].nom_conformite = ''
 
 

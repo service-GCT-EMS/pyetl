@@ -132,7 +132,7 @@ def printexception():
     fname = frame.f_code.co_filename
     linecache.checkcache(fname)
     line = linecache.getline(fname, lineno, frame.f_globals)
-    nom=err.__name__
+    nom = err.__name__
     print('''{}:{}\nIN      :{}\nLINE {} {}:'''.format(nom, exc_obj, fname, lineno, line.strip()))
     traceback.print_tb(infodebug)
 
@@ -241,7 +241,7 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
     try:
         with open(fichier, "r", encoding=codec) as fich:
             for i in fich:
-                ligne = i.replace('\n','') # on degage le retour chariot
+                ligne = i.replace('\n', '') # on degage le retour chariot
                 if ligne.startswith('!'):
                     if ligne.startswith('!!'):
                         ligne = ligne[1:]
@@ -412,7 +412,7 @@ def charge_mapping(regle, mapping=None):
         valeurs = regle.params.cmp1.val[1:-1].split(",")
         for i in valeurs:
             tmp = i.split('->')
-            mapping[tmp[0]]=tmp[1]
+            mapping[tmp[0]] = tmp[1]
         regle.elmap = mapping
         return
 
@@ -568,7 +568,3 @@ def remap(element, elmap):
     elif isinstance(element, str):
         return remap_noms(*elmap, element)
     return element
-
-
-
-

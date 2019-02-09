@@ -161,8 +161,8 @@ class SchemaClasse(object):
     def __dic_if__(self):
         '''interface de type dictionnaire pour la transmission de schemas entre instances'''
         infos = {'nom', 'groupe', 'alias', 'srid', 'sridmixte', 'info',
-                'multigeom', 'changed', 'objcnt', 'triggers',
-                'indexes', 'type_table', 'poids', 'specifique'}
+                 'multigeom', 'changed', 'objcnt', 'triggers',
+                 'indexes', 'type_table', 'poids', 'specifique'}
         d_if = {i: getattr(self, i) for i in infos}
         d_if['__infosc__'] = infos
         d_if['attributs'] = {nom: att.__dic_if__ for nom, att in self.attributs.items()}

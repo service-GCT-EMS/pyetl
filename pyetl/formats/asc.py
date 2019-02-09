@@ -277,13 +277,13 @@ def ajout_attribut_asc(obj, attr):
         nom = '#_sys_E_'+liste_elts[0][1:]
     else:
         print("error: asc  : code inconnu", liste_elts)
-    if type_att =='B':
-        if vatt == -1:
+    if type_att == 'B':
+        if vatt == "-1":
             vatt = 't'
-        elif vatt=='0':
+        elif vatt == '0':
             vatt = 'f'
         else:
-            print ('erreur booleen ', nom, vatt)
+            print('erreur booleen ', nom, vatt)
     obj.attributs[nom] = vatt
     return nom, suite
     #print l, l[-1].strip()
@@ -304,7 +304,7 @@ def _finalise(obj, schema_init, schema, numero, chemin):
         obj.geompending() #on signale qu on a pas traite la geom
     if schema_init:
 #        objid = obj.ident
-        objid = ('',obj.ident[1]) # on ignore les niveaux
+        objid = ('', obj.ident[1]) # on ignore les niveaux
         newid = schema_init.map_dest(objid)
 
 #        if not newid:
@@ -334,7 +334,7 @@ def _get_schemas(regle, rep, fichier):
     stock_param = regle.stock_param
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
     if regle.getvar("schema_entree"):
-        schema = stock_param.schemas.get(regle.getvar("schema_entree"),None)
+        schema = stock_param.schemas.get(regle.getvar("schema_entree"), None)
         schema_init = schema
     else:
         if regle.getvar('autoschema'):
@@ -446,7 +446,7 @@ def _ecrire_entete_asc(obj):
         if obj.initgeom():
             type_geom_sortie = types_geom_asc.get(type_geom, ';5 ')
         else:
-            print("geometrie invalide ",id_num, obj.geom)
+            print("geometrie invalide ", id_num, obj.geom)
             type_geom_sortie = ';5 '
 
     dcre = format_date(attr.get("#_sys_date_cre"))
@@ -464,14 +464,6 @@ def _ecrire_entete_asc(obj):
     return entete
 
 
-
-
-
-
-
-
-
-
 class AscWriter(FileWriter):
     ''' gestionnaire d'ecriture pour fichiers asc'''
     def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None):
@@ -479,7 +471,10 @@ class AscWriter(FileWriter):
                          encoding='cp1252', liste_fich=liste_fich, schema=schema)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         self.ttext = "FIN\n"
-        self.transtable = str.maketrans({'\n':'\\'+'n','\r':''})
+        self.transtable = str.maketrans({'\n':'\\'+'n', '\r':''})
+        self.liste_graphique = None
+        self.liste_ordinaire = None
+
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' ecriture multiclasse on change de schema'''
@@ -488,7 +483,8 @@ class AscWriter(FileWriter):
             self.liste_att = set(attributs)
         elif schemaclasse:
             self.liste_att = schemaclasse.get_liste_attributs()
-            self.liste_graphique = {i for i in self.liste_att if schemaclasse.attributs[i].graphique}
+            self.liste_graphique = {i for i in self.liste_att
+                                    if schemaclasse.attributs[i].graphique}
             if self.liste_graphique:
                 self.liste_ordinaire = {i for i in self.liste_att if i not in self.liste_graphique}
             else:
@@ -520,17 +516,18 @@ class AscWriter(FileWriter):
 
     #    print('asc  attributs',liste)
     #    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
-        aliste = ((attmap.get(i, i).upper(),str(obj.attributs[i]).translate(transtable))
+        aliste = ((attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
                   for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
         if obj.text_graph:
-            tliste = ((i,str(obj.attributs[i]).translate(transtable))
+            tliste = ((i, str(obj.attributs[i]).translate(transtable))
                       for i in a_sortir if i in obj.text_graph)
         if obj.etats:
             eliste = (i for i in a_sortir if i in obj.etats)
 
-    #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+",NG"+str(len(str(obj.attributs[i])))+","+
+    #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
+#                             ",NG"+str(len(str(obj.attributs[i])))+","+
     #                         str(obj.attributs[i])+";" for i in aliste))
-        attlist = "\n".join(("2"+i+",NG"+str(len(j))+","+j+";" for i,j in aliste))
+        attlist = "\n".join(("2"+i+",NG"+str(len(j))+","+j+";" for i, j in aliste))
 
         if tliste:
             tglist = "\n".join(("2"+attmap.get(i, i).upper()+",TL"+str(len(j))+","+

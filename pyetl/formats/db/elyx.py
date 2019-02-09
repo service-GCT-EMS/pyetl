@@ -85,7 +85,7 @@ class ElyConnect(ora.OraConnect):
         if self.params.get_param('noload') == '1': #simulation de chargement pour debug
             print('extrunner elyx: mode simulation -------->', chaine)
             print('extrunner elyx: param_file \n',
-                  ''.join( open(paramfile, 'r', encoding='cp1252').readlines()))
+                  ''.join(open(paramfile, 'r', encoding='cp1252').readlines()))
             return None
 
         env = self.setenv()
@@ -138,8 +138,9 @@ class ElyConnect(ora.OraConnect):
             resultats, size, blocks = self.stat_classes(classes, 'no')
             dinit = time.time()
             if self.lanceur(helper, xml, paramfile, outfile):
-                self.export_statprint(None, None, ((nom,), outfile), size, resultats)
-            print ('traitement externe %10.1f secondes' % (time.time()- dinit) )
+                self.export_statprint(None, ((nom,), outfile, size, resultats),
+                                      time.time()- dinit)
+            print('traitement externe %10.1f secondes' % (time.time()- dinit))
             return resultats
 
 
@@ -208,7 +209,7 @@ class ElyConnect(ora.OraConnect):
                 if "Nombre d'objets export" in i:
                     tmp = i.split(':')
                     nomclasse = tmp[-2].split(' ')[-1]
-                    classe = self.schemabase.get_classe(('',nomclasse))
+                    classe = self.schemabase.get_classe(('', nomclasse))
                     idclasse = classe.identclasse
                     exportes = int(tmp[-1][:-1])
                     theoriques = int(classe.getinfo('objcnt_init', '0'))
@@ -223,7 +224,7 @@ class ElyConnect(ora.OraConnect):
                            runtime))
             return 0
         except PermissionError:
-            print ('fichier non pret')
+            print('fichier non pret')
             time.sleep(0.1) # on est alle trop vite le fichier n'est pas pret
             return 1
 
@@ -235,6 +236,7 @@ class ElyConnect(ora.OraConnect):
 
 
     def stat_classes(self, classes, fanout):
+        """retourne les stats d export"""
         schemabase = self.schemabase
         resultats = dict()
         size = dict()
@@ -257,11 +259,11 @@ class ElyConnect(ora.OraConnect):
                 else:
                     blocks[(i[0], )] = [i]
                     size[(i[0], )] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
-            elif fanout=='classe':
+            elif fanout == 'classe':
                 blocks[i] = [i]
                 size[i] = int(schemabase.classes[i].getinfo('objcnt_init', '0'))
             else:
-                print ('mode de fanout non géré', fanout)
+                print('mode de fanout non géré', fanout)
         return resultats, size, blocks
 
 
@@ -282,8 +284,8 @@ class ElyConnect(ora.OraConnect):
                 tmpf.write('\n'.join(xml))
                 tmpf.close()
             outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
-            print ('traitement',nom, (helper, paramfile, outfile), destination)
-            yield (nom, (helper, paramfile, outfile), (dest,nom,'asc'), self.size[nom])
+            print('traitement', nom, (helper, paramfile, outfile), destination)
+            yield (nom, (helper, paramfile, outfile), (dest, nom, 'asc'), self.size[nom])
 
 
     def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
@@ -301,10 +303,10 @@ class ElyConnect(ora.OraConnect):
             with open(paramfile, mode='w', encoding='cp1252') as tmpf:
                 tmpf.write('\n'.join(xml))
             outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
-            retour.append((nom, (helper, paramfile, outfile), (dest,nom,'asc'), self.size[nom]))
+            retour.append((nom, (helper, paramfile, outfile), (dest, nom, 'asc'), self.size[nom]))
 
         #optimiseur de blocks : on sait qu'il faut commencer par les plus longs
-        tmp = sorted(retour,reverse=True,key=lambda x:x[3])
+        tmp = sorted(retour, reverse=True, key=lambda x: x[3])
         if len(tmp) > nbworkers*2:
             retour = tmp[nbworkers:nbworkers*2] + tmp[:nbworkers] + tmp[nbworkers*2:]
             # attention logique mongolienne inverse : on commence par la fin ...
@@ -319,8 +321,8 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def extalpha(self, regle_courante, helper, classes, dest, log, fanout= 'classe',
-                 nbworkers=(1,1)):
+    def extalpha(self, regle_courante, helper, classes, dest, log, fanout='classe',
+                 nbworkers=(1, 1)):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
 #        print ('elyx extalpha',classes)
@@ -332,21 +334,21 @@ class ElyConnect(ora.OraConnect):
             self.tmpdir = tmpdir
             nbproc, nbdump = nbworkers
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            print ('calcule blocs ',len(blocks))
+            print('calcule blocs ', len(blocks))
 #            self.params.execparallel_ext(blocks, workers, self.fearunner,
 #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, nbdump)
             fileiter = self.params.iterparallel_ext(blocks, nbdump, self.fearunner,
-                                         patience=self.export_statprint)
-            regle_courante.listgen=fileiter
+                                                    patience=self.export_statprint)
+            regle_courante.listgen = fileiter
             self.params.traite_parallel(regle_courante)
-            print ('fin traitement extalpha',flush=True)
+            print('fin traitement extalpha', flush=True)
 #            time.sleep(10)
         return self.resultats
 
 
 
 
-    def extdump(self, helper, classes, dest, log, fanout= 'classe', workers=1, mode='dump'):
+    def extdump(self, helper, classes, dest, log, fanout='classe', workers=1, mode='dump'):
         '''extrait des donnees par ORA2FEA'''
         # mise en place de l'environnement:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -362,42 +364,42 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def multiload(self, helper, fichs, classes, dest, log, fanout, workers=''):
-        '''prepare une extraction multiple '''
-        runcode = dict()
-        if workers.isnumeric():
-            maxworkers = int(workers)
-        else:
-            maxworkers = int(self.params.get_param('max_load_workers', 1))
-        if maxworkers < 0:
-            nprocs = os.cpu_count()
-            if nprocs is None:
-                nprocs = 1
-            maxworkers = -nprocs*maxworkers
-        print( 'multiload',maxworkers)
-        pool = get_pool(maxworkers)
-        resultats, size, blocks = self.stat_classes(classes, fanout)
-        with tempfile.TemporaryDirectory() as tmpdir:
-#            total = len(blocks)
-            for nom in blocks:
-#                print('traitement', nom, size[nom], blocks[nom])
-                destination = os.path.join(dest, *nom)
-                os.makedirs(os.path.dirname(destination), exist_ok=True)
-                logdir = os.path.join(log, nom[0])
-                os.makedirs(logdir, exist_ok=True)
-                xml = self.genimportxml(destination, logdir, blocks[nom])
-                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-                slot = get_slot(pool) # on cherche une place
-                self.import_statprint(slot, pool, runcode, size, resultats)
-
-                runcode[slot] = (nom, outfile, time.time())
-                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
-                --time.sleep(0.1)
-            wait_end(pool)
-            for slot in pool:
-                self.export_statprint(slot, pool, runcode, size, resultats)
-        return resultats
+#    def multiload(self, helper, fichs, classes, dest, log, fanout, workers=''):
+#        '''prepare une extraction multiple '''
+#        runcode = dict()
+#        if workers.isnumeric():
+#            maxworkers = int(workers)
+#        else:
+#            maxworkers = int(self.params.get_param('max_load_workers', 1))
+#        if maxworkers < 0:
+#            nprocs = os.cpu_count()
+#            if nprocs is None:
+#                nprocs = 1
+#            maxworkers = -nprocs*maxworkers
+#        print( 'multiload',maxworkers)
+#        pool = get_pool(maxworkers)
+#        resultats, size, blocks = self.stat_classes(classes, fanout)
+#        with tempfile.TemporaryDirectory() as tmpdir:
+##            total = len(blocks)
+#            for nom in blocks:
+##                print('traitement', nom, size[nom], blocks[nom])
+#                destination = os.path.join(dest, *nom)
+#                os.makedirs(os.path.dirname(destination), exist_ok=True)
+#                logdir = os.path.join(log, nom[0])
+#                os.makedirs(logdir, exist_ok=True)
+#                xml = self.genimportxml(destination, logdir, blocks[nom])
+#                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
+#                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
+#                slot = get_slot(pool) # on cherche une place
+#                self.import_statprint(slot, pool, runcode, size, resultats)
+#
+#                runcode[slot] = (nom, outfile, time.time())
+#                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
+#                --time.sleep(0.1)
+#            wait_end(pool)
+#            for slot in pool:
+#                self.export_statprint(slot, pool, runcode, size, resultats)
+#        return resultats
 
 
 
@@ -458,7 +460,7 @@ class ElyConnect(ora.OraConnect):
 
     def get_type(self, nom_type):
         if nom_type.upper() not in self.types_base:
-            print ('elyx:type inconnu ',nom_type)
+            print('elyx:type inconnu ', nom_type)
         return self.types_base.get(nom_type.upper(), 'T')
 
     def get_tables(self):
@@ -660,8 +662,8 @@ class ElyConnect(ora.OraConnect):
                     type_att = code_type[i[10]]
 #                    if traite_enums:
                     conf = i[13]
-                    if conf and type_att !='T' :
-#                        print (id_compo, nom_att, 'type attribut_conformite ', type_att, '->', conf)
+                    if conf and type_att != 'T':
+#                       print (id_compo, nom_att, 'type attribut_conformite ', type_att, '->', conf)
                         conf = '' # on ne sait pas gerer les conformites non texte
 #                        conf = self.confs.get(i[13])
 #    #                    if conf is None:

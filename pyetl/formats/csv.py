@@ -478,7 +478,8 @@ class CsvWriter(FileWriter):
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
                  liste_fich=None, null='', f_sortie=None):
 
-        super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema, f_sortie=f_sortie)
+        super().__init__(nom, encoding=encoding, liste_fich=liste_fich,
+                         schema=schema, f_sortie=f_sortie)
 
         self.extension = extension
         self.separ = separ
@@ -662,7 +663,8 @@ def getfanout(regle, extention, ident, initial):
     rep_sortie = regle.getvar('_sortie')
     groupe, classe = ident
     dest = regle.f_sortie.writerparms.get('destination')
-#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident, initial,extention, dest, regle.vloc)
+#    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident,
+#           initial,extention, dest, regle.vloc)
 
     bfich = ''
     if regle.params.cmp2.val:

@@ -318,9 +318,9 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
 
 def _valide_bool(orig, val):
     '''convertit un booleen en format interne'''
-    btypes = {'elyx':{'t':'t', 'f':'f', '-1':'t','0':'f'},
+    btypes = {'elyx':{'t':'t', 'f':'f', '-1':'t', '0':'f'},
               'def':{'t':'t', 'f':'f', 'True':'t', 'False':'f', '0':'t', '1':'f'}
-              }
+             }
     try:
         valides = btypes[orig]
     except:
@@ -363,8 +363,10 @@ def _valide_type(classe, atdef, val):
             atdef.type_att = "T"
 
     else:
-        print('valide_type:',atdef.nom, atdef.nom,'type non gere', atdef.type_att, classe.schema.nom,  val)
+        print('valide_type:', atdef.nom, atdef.nom, 'type non gere',
+              atdef.type_att, classe.schema.nom, val)
     return err, repl
+
 
 def set_err(classe, obj, message, attendu, erreur, affich):
     ''' genere le message d'erreurs qui va bien'''

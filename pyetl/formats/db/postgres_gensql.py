@@ -798,7 +798,8 @@ class GenSql(database.GenSql):
 
 
     @staticmethod
-    def _commande_geom_strict(niveau, classe, strict, gtyp='0', dim='2'):
+    def _commande_geom_strict(niveau, classe, strict, gtyp='0', dim='2',
+                              courbe=False):
         ''' manipulation de la geometrie pour la discretisation des courbes '''
         return ''
 
@@ -846,13 +847,12 @@ class GenSql(database.GenSql):
         if 'G' in reinit: # on devalide les triggers
             prefix = prefix+self._commande_trigger(niveau, classe, False)
         if 'T' in reinit: # on reinitialise les tables
-#            prefix = prefix+self._commande_reinit(niveau, classe, self.schema.is_cible((niveau, classe)))
             prefix = prefix+self._commande_reinit(niveau, classe, False)
         if 'D' in reinit: # on reinitialise les tables
             prefix = prefix+self._commande_reinit(niveau, classe, True)
         if 'S' in reinit:
             prefix = prefix+self._commande_sequence(niveau, classe)
-        if 'I' in reinit and gtyp >'0':
+        if 'I' in reinit and gtyp > '0':
             prefix = prefix+self._commande_index_gist(niveau, classe, True)
         if ('L' in reinit or 'C' in reinit) and gtyp in '23': # ouverture de la geometrie'
             prefix = prefix+self._commande_geom_strict(niveau, classe, False, dim=dim)
@@ -868,7 +868,7 @@ class GenSql(database.GenSql):
                                                        gtyp=gtyp, dim=dim, courbe=courbe)
         if 'S' in reinit:
             prefix = prefix+self._commande_sequence(niveau, classe)
-        if 'I' in reinit and gtyp >'0':
+        if 'I' in reinit and gtyp > '0':
             prefix = prefix+self._commande_index_gist(niveau, classe, False)
         if 'G' in reinit:
             prefix = prefix+self._commande_trigger(niveau, classe, True)

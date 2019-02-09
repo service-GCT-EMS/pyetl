@@ -286,7 +286,7 @@ class Objet(object):
         schema = '\t' + self.schema.__repr__() if self.schema else 'non defini'
         attlist = sorted(self.attributs.keys()) if attlist is None else attlist
         print(invariant+'\n', schema+'\n\t', [(i, self.attributs.get(i, '<non defini>'))
-                                            for i in attlist])
+                                              for i in attlist])
 
 
 

@@ -205,14 +205,14 @@ def h_def_schema(regle):
         nomschema = regle.params.cmp2.val
         regle.fichier = nomschema
         if not nom:
-            nom=nomschema
+            nom = nomschema
         regle.remap = regle.params.att_entree.val == 'map'
         regle.valide = True
 
         if nom != nomschema:
             if nomschema in regle.stock_param.schemas: # le schema existe deja
                 SC.init_schema(regle.stock_param, nom, origine=None, fich='', defmodeconf=0,
-                    stable=True, modele=nomschema, copie=True)
+                               stable=True, modele=nomschema, copie=True)
 #                print ('copie de schema', nomschema, '->', nom,
 #                       regle.stock_param.worker, regle.getvar('_wid'),
 #                       len(regle.stock_param.schemas[nomschema].classes), '->',
@@ -313,8 +313,8 @@ def f_def_schema(regle, obj):
     if nom_base not in regle.stock_param.schemas:
         if regle.differe: # c'etait un schema interne on le cree
             SC.init_schema(regle.stock_param, nom_base, origine=None, fich='', defmodeconf=0,
-                stable=True, modele=regle.params.cmp2.val, copie=True)
-            print ('copie de schema differee', regle.params.cmp2.val, nom_base)
+                           stable=True, modele=regle.params.cmp2.val, copie=True)
+            print('copie de schema differee', regle.params.cmp2.val, nom_base)
 #            raise
         else:
             LOGGER.error('schema inconnu '+nom_base)

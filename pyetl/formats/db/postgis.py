@@ -323,7 +323,7 @@ class GenSql(postgres_gensql.GenSql):
             return 'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
                 ' ALTER COLUMN geometrie TYPE Geometry(Geometry'+cmpz+',3948);\n'
         else:
-            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
+            geom = 'MultiLinestring' if gtyp == '2' else 'Multipolygon'
             return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
                 ' SET geometrie = ST_CurveToLine(geometrie); \n'+\
                 'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\
@@ -334,9 +334,9 @@ class GenSql(postgres_gensql.GenSql):
         ''' manipulation de la geometrie pour la discretisation des courbes '''
         cmpz = 'Z' if dim == '3' else ''
         if courbe:
-            geom = 'MultiCurve' if gtyp=='2' else 'MultiSurface'
+            geom = 'MultiCurve' if gtyp == '2' else 'MultiSurface'
         else:
-            geom = 'MultiLinestring' if gtyp=='2' else 'Multipolygon'
+            geom = 'MultiLinestring' if gtyp == '2' else 'Multipolygon'
         return 'UPDATE '+niveau.lower()+'.'+classe.lower()+\
             ' SET geometrie = ST_ForceCurve(geometrie); \n'+\
             'ALTER TABLE '+niveau.lower()+'.'+classe.lower()+\

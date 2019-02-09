@@ -282,7 +282,3 @@ def full_autotest(mapper, nom):
             print("----------------------------------------------------------------")
         return []
     return autotest_partiel(mapper, nom)
-
-#        print ("-------------------debut test", nom, "-------------------")
-#        ng2, nf2 = mapper.menage_final()
-#        print ('test', nom, ng2, nf2)

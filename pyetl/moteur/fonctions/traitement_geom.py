@@ -592,8 +592,8 @@ def f_splitcouleur(regle, obj):
         obj.redirect = liste_coul[0]
         obj.infogeom()
     else:
-        print ('splitcouleur: attention pas de geometrie', obj)
-        raise
+        print('splitcouleur: attention pas de geometrie', obj)
+#        raise
         obj.setnogeom()
     obj.attributs[regle.params.att_sortie.val] = liste_coul[0] if liste_coul else ''
     return True
@@ -730,8 +730,8 @@ def h_reproj(regle):
 
 def f_reproj(regle, obj):
     '''#aide||reprojette la geometrie
-    #aide_spec||attribut pour la grille utilisee;systeme d'entree;reproj;systeme de sortie;[grilles personnalisées]
-              ||NG: pas de grilles cus
+    #aide_spec||attribut pour la grille utilisee;systeme d'entree;reproj;systeme de sortie;
+              ||[grilles personnalisées] NG: pas de grilles cus
        #pattern||?A;C;;reproj;C;?C
        #schema||ajout_attribut
        #test||obj;point||^;LL;;reproj;CC48;NG||^;1;;coordp||^#x;;#x;round||atn;#x;1404842

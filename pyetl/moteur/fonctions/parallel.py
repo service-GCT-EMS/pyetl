@@ -21,6 +21,7 @@ from .outils import renseigne_attributs_batch, prepare_batch_from_object,\
 LOGGER = logging.getLogger('pyetl') # un logger
 
 def setparallel(mapper):
+    """enregistre les fonctions de gestion du parallelisme"""
     mapper.execparallel_ext = execparallel_ext
     mapper.iterparallel_ext = iterparallel_ext
     mapper.traite_parallel = traite_parallel
@@ -32,22 +33,22 @@ def setparallel(mapper):
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
 #    commandes, args, params, macros, env, log = parametres
-    params, macros, env, log, schemas= parametres
-    MAINMAPPER=getmainmapper()
+    params, macros, env, log, schemas = parametres
+    mainmapper = getmainmapper()
 
-    if MAINMAPPER.inited:
+    if mainmapper.inited:
 #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
 #    print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker "+str(os.getpid()))
-    MAINMAPPER.worker = True
-    MAINMAPPER.initcontext(env, log)
-    MAINMAPPER.inited = True
-    MAINMAPPER.macros.update(macros)
-    MAINMAPPER.parms.update(params)
-    integre_schemas(MAINMAPPER.schemas, schemas)
-    MAINMAPPER.parametres_lancement = parametres
+    mainmapper.worker = True
+    mainmapper.initcontext(env, log)
+    mainmapper.inited = True
+    mainmapper.macros.update(macros)
+    mainmapper.parms.update(params)
+    integre_schemas(mainmapper.schemas, schemas)
+    mainmapper.parametres_lancement = parametres
     time.sleep(1)
 #    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
 ##       time.sleep(2)
@@ -58,21 +59,21 @@ def initparallel(parametres):
 def setparallelid(parametres):
     """positionne un numero de worker et initialise les commandes """
     pidset, commandes, args = parametres
-    MAINMAPPER=getmainmapper()
+    mainmapper = getmainmapper()
 
-    if MAINMAPPER.get_param('_wid'):
+    if mainmapper.get_param('_wid'):
         time.sleep(1)
         return None
     wid = str(pidset[os.getpid()])
-    MAINMAPPER.set_param('_wid', wid)
-    log = MAINMAPPER.get_param('logfile')
+    mainmapper.set_param('_wid', wid)
+    log = mainmapper.get_param('logfile')
     if log:
-        base, ext = os.path.splitext(MAINMAPPER.get_param('logfile'))
+        base, ext = os.path.splitext(mainmapper.get_param('logfile'))
         log = base+'_'+wid+'.'+ext
 #    print('avant init', commandes, args)
-    init = MAINMAPPER.initpyetl(commandes, args, log=log)
+    init = mainmapper.initpyetl(commandes, args, log=log)
 
-    return (os.getpid(), MAINMAPPER.get_param('_wid'), init)
+    return (os.getpid(), mainmapper.get_param('_wid'), init)
 
 
 def set_parallelretour(mapper, valide):
@@ -95,8 +96,8 @@ def parallelbatch(parametres_batch):
     numero, mapping, entree, sortie, args = parametres_batch
 #    if not MAINMAPPER.inited:
 #        initparallel('#init_mp', '',params, macros)
-    MAINMAPPER = getmainmapper()
-    processor = MAINMAPPER.getpyetl(mapping, liste_params=args,
+    mainmapper = getmainmapper()
+    processor = mainmapper.getpyetl(mapping, liste_params=args,
                                     entree=entree, rep_sortie=sortie)
     if processor is None:
         print("pyetl echec batchworker", os.getpid(), mapping, args)
@@ -116,15 +117,15 @@ def parallelbatch(parametres_batch):
 
 def parallelprocess(numero, file, regle):
     '''traitement individuel d'un fichier'''
-    MAINMAPPER=getmainmapper()
+    mainmapper = getmainmapper()
     try:
 #        print ('worker:lecture', file, regle)
         nom, parms = file
-        nb_lu = MAINMAPPER.lecture(file, reglenum=regle, parms=parms)
+        nb_lu = mainmapper.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
         return numero, -1
     except Exception as exc:
-        print('====',+MAINMAPPER.get_param('_wid'),+'=erreur de traitement parallele non gérée')
+        print('===='+mainmapper.get_param('_wid')+'=erreur de traitement parallele non gérée')
         print('====regle courante:', regle)
         printexception()
         raise
@@ -132,20 +133,20 @@ def parallelprocess(numero, file, regle):
 
 def endparallel(test=None):
     '''termine un traitement parallele'''
-    schema = None
-    MAINMAPPER=getmainmapper()
-    if MAINMAPPER.ended:
+    mainmapper = getmainmapper()
+    if mainmapper.ended:
 #        print("pyetl double end", os.getpid())
         time.sleep(1)
         return None
     try:
-        nb_total, nb_fichs, schema = MAINMAPPER.menage_final()
-
+        mainmapper.menage_final()
         succes = True
     except StopIteration:
-        nb_total, nb_fichs = MAINMAPPER.sorties.final()
+        nb_total, nb_fichs = mainmapper.sorties.final()
+        mainmapper.padd('_st_wr_fichs', nb_fichs)
+        mainmapper.padd('_st_wr_objs', nb_total)
         succes = False
-    retour = set_parallelretour(MAINMAPPER, succes)
+    retour = set_parallelretour(mainmapper, succes)
 #    if MAINMAPPER.moteur():
 #        MAINMAPPER.padd('_st_obj_duppliques', MAINMAPPER.moteur.dupcnt)
 #        MAINMAPPER.padd('_st_obj_supprimes', MAINMAPPER.moteur.suppcnt)
@@ -155,7 +156,7 @@ def endparallel(test=None):
     LOGGER.info("-----pyetl batchworker end "+str(os.getpid())+
                 ' succes ' if succes else 'echec '+str(nb_total)+' '+str(nb_fichs))
 
-    MAINMAPPER.ended = True
+    mainmapper.ended = True
 #    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
 #    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': succes,
 #              'stats_generales': stats_generales,
@@ -191,7 +192,8 @@ def parallelexec(executor, nprocs, fonction, args):
 
 
 def suivi_job(mapper, work):
-    rfin=dict()
+    """suit un ensemnle de process en parallele"""
+    rfin = dict()
     attente = []
     for job in work:
         if not job.done():
@@ -209,9 +211,6 @@ def suivi_job(mapper, work):
     return rfin
 
 
-
-
-
 def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
     '''gere les appels classique mais avec des retours d'infos'''
 
@@ -221,27 +220,23 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
         work = [executor.submit(fonction, *arg) for arg in arglist]
 
     while work:
-        rfin.update(suivi_job(mapper,work))
+        rfin.update(suivi_job(mapper, work))
         time.sleep(0.1)
     return rfin
 
 def submit_job(jobs, job, regle, executor, fonction):
+    """ajoute une tache au traitement parallele"""
 #    print ('transmission ',job)
 #    rfin = dict()
-    dest,nom,ext = job
+    dest, nom, ext = job
     file = os.path.join(*nom)+'.'+ext
     chemin = os.path.dirname(file)
     nom = os.path.basename(file)
-    clef = os.path.join(dest,chemin,nom)
-    loadarg = (clef , (dest,chemin,nom,ext))
+    clef = os.path.join(dest, chemin, nom)
+    loadarg = (clef, (dest, chemin, nom, ext))
 #            print ('appel parallele ',arg,'->',loadarg, regle, regle.index)
-    jobs.append(executor.submit(fonction, 1,loadarg,regle.index))
+    jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
 #    print ('attente', len(jobs))
-
-
-
-
-
 
 
 def paralleliter_suivi(regle, executor, fonction, argiter):
@@ -249,7 +244,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
         un iterateur ce qui permet de lancer les traitements sans que toutes les
         entree soient généréés'''
     rfin = dict()
-    mapper=regle.stock_param
+    mapper = regle.stock_param
 #    print('start pexec')
 #    work = [executor.submit(fonction, *arg) for arg in arglist]
     waitlist = []
@@ -260,7 +255,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
 #            print ('piter: recu ', arg, len(jobs))
             waitlist.append(arg)
 #            print ('liste:', waitlist)
-            if len(jobs)<20:
+            if len(jobs) < 20:
                 try:
                     waitlist.sort()
                     taille, job = waitlist.pop()
@@ -268,10 +263,10 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
                     submit_job(jobs, job, regle, executor, fonction)
                 except IndexError:
                     time.sleep(0.1)
-        rfin.update(suivi_job(mapper,jobs))
+        rfin.update(suivi_job(mapper, jobs))
         time.sleep(0.1)
     for arg in waitlist:
-        taille,job = arg
+        taille, job = arg
         submit_job(jobs, job, regle, executor, fonction)
 
     rfin.update(parallelmap_suivi(mapper, None, None, None, work=jobs))
@@ -281,7 +276,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
 def prep_parallel(regle, fonction):
     ''' initialise le mecanisme pour la parallelisation d'une regle'''
     multi, _ = regle.get_max_workers()
-    if multi>1 and not regle.stock_param.worker:
+    if multi > 1 and not regle.stock_param.worker:
         regle.store = True
         regle.traite_stock = fonction
         regle.nbstock = 0
@@ -303,7 +298,7 @@ def prepare_env_parallel(regle):
     def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
 #        print("preparation exec parallele", def_regles, mapper.liste_params)
     LOGGER.info(' '.join(("preparation exec parallele", str(def_regles),
-                              str(mapper.liste_params))))
+                          str(mapper.liste_params))))
     schemas = retour_schemas(mapper.schemas, mode='int')
     return schemas, env, def_regles
 
@@ -335,9 +330,9 @@ def traite_parallel(regle):
 #        print ('retour')
     for i in rfin:
         retour = rfin[i][0]
-        print (i, 'worker', retour['wid'], 'traites',
-               retour['stats_generales']['_st_lu_objs'],
-               list(sorted(retour['schemas'].keys())))
+        print(i, 'worker', retour['wid'], 'traites',
+              retour['stats_generales']['_st_lu_objs'],
+              list(sorted(retour['schemas'].keys())))
         for param in retour['stats_generales']:
             mapper.padd(param, retour['stats_generales'][param])
         LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
@@ -399,9 +394,9 @@ def traite_parallel_load(regle):
 #        print ('retour')
     for i in rfin:
         retour = rfin[i][0]
-        print (i, 'worker', retour['wid'], 'traites',
-               retour['stats_generales']['_st_lu_objs'],
-               list(sorted(retour['schemas'].keys())))
+        print(i, 'worker', retour['wid'], 'traites',
+              retour['stats_generales']['_st_lu_objs'],
+              list(sorted(retour['schemas'].keys())))
         for param in retour['stats_generales']:
             mapper.padd(param, retour['stats_generales'][param])
         LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
@@ -425,7 +420,7 @@ def traite_parallel_load(regle):
         obj = regle.tmpstore[i]
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-        print ('fin traitement parallele', obj)
+        print('fin traitement parallele', obj)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 
@@ -460,8 +455,8 @@ def traite_parallel_batch(regle):
 
     for num, obj in enumerate(regle.tmpstore):
         obj.attributs['#_batchnum'] = str(num)
-        st_ordre = obj.attributs.get('ordre','999')
-        ordre =  int(st_ordre) if st_ordre.isnumeric() else 999
+        st_ordre = obj.attributs.get('ordre', '999')
+        ordre = int(st_ordre) if st_ordre.isnumeric() else 999
         if ordre in parametres:
             parametres[ordre].append(prepare_batch_from_object(regle, obj))
         else:
@@ -489,7 +484,7 @@ def traite_parallel_batch(regle):
             rfin = parallelexec(executor, nprocs, endparallel, '')
     #        print(' retour exec')
             if regle.debug:
-                print('retour end', bloc,rfin)
+                print('retour end', bloc, rfin)
 
     traite = mapper.moteur.traite_objet
     if regle.debug:
@@ -515,7 +510,7 @@ def get_pool(maxworkers):
 
 def get_slot(pool):
     '''surveille un pool de process et determine s'il y a une disponibilité  sans attendre'''
-    i=0
+    i = 0
     for i in sorted(pool):
         if not pool[i]:
             return i
@@ -590,7 +585,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     pool = get_pool(maxworkers)
     a_traiter = []
     libres = []
-    print ('dans iter parallelext',maxworkers,len(blocks))
+    print('dans iter parallelext', maxworkers, len(blocks))
     # optimiseur de position
 
     while blocks or libres < maxworkers:
@@ -610,21 +605,21 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 nom_r = retour['nom']
                 if patience:
                     patience(nom_r, retour['params'], retour['end']-retour['start'])
-                a_traiter.append((retour['taille'],retour['fich']))
+                a_traiter.append((retour['taille'], retour['fich']))
             if blocks:
                 tache = blocks.pop()
 #                print ('recu tache',tache, len(blocks))
                 nom, params, dest, size = tache
                 pool[slot] = {'process':lanceur(params), 'nom':nom, 'end': None,
-                          'start':time.time(), 'params':params, 'fich':dest,
-                          'taille':size}
+                              'start':time.time(), 'params':params, 'fich':dest,
+                              'taille':size}
             else:
 #                print ('fin de tache')
                 pool[slot] = None
                 libres += 1
 
     a_traiter = sorted(a_traiter)
-    print ('on finit les restes', len(a_traiter))
+    print('on finit les restes', len(a_traiter))
     for i in a_traiter:
         taille, nom = i
         yield taille, nom
@@ -660,16 +655,16 @@ def parallel_load(regle):
             print('retour init', rinit, num_regle)
 #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
 #        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-        rdict = paralleliter_suivi(mapper, nprocs, executor, parallelprocess, arglist)
+        rdict = paralleliter_suivi(regle, executor, parallelprocess, arglist)
 
         rfin = parallelexec(executor, nprocs, endparallel, '')
 #        if regle.debug:
 #        print ('retour')
     for i in rfin:
         retour = rfin[i][0]
-        print (i, 'worker', retour['wid'], 'traites',
-               retour['stats_generales']['_st_lu_objs'],
-               list(sorted(retour['schemas'].keys())))
+        print(i, 'worker', retour['wid'], 'traites',
+              retour['stats_generales']['_st_lu_objs'],
+              list(sorted(retour['schemas'].keys())))
         for param in retour['stats_generales']:
             mapper.padd(param, retour['stats_generales'][param])
         LOGGER.info('retour stats'+str(sorted(retour['stats_generales'].items())))
@@ -693,10 +688,6 @@ def parallel_load(regle):
         obj = regle.tmpstore[i]
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-        print ('fin traitement parallele', obj)
+        print('fin traitement parallele', obj)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
-
-
-
-

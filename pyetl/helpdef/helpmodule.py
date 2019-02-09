@@ -35,7 +35,7 @@ def print_help(mapper, nom):
                 if variante.description:
                     print("%-20s: %s"% (variante.pattern,
                                         variante.description.get("#aide_spec", [""])[0]))
-                    for i in (variante.description.get("#aide_spec",[""])[1:]):
+                    for i in variante.description.get("#aide_spec", [""])[1:]:
                         print("%-20s: %s" % ('', i))
                 for i in sorted(variante.description):
                     if "#aide_spec" in i and i != "#aide_spec":

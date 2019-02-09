@@ -163,7 +163,7 @@ def regles_liees(regle, param):
             err = "erreur de syntaxe "+ regle.ligne[:-1]
             print('liaison:', err)
             print('autorises', regle.branchements.enchainements)
-            print('trouve',param)
+            print('trouve', param)
             raise SyntaxError("liaison non valide")
 
         if regle.getvar("debug") == '1':
@@ -923,7 +923,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
             try:
                 mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
             except KeyError:
-                print ('groupe de parametres inconnu', vgroup)
+                print('groupe de parametres inconnu', vgroup)
                 erreurs += 1
                 return erreurs
             # genere des variables internes de la forme 'nomDefiniDansLeFichier_nomDuGroupe
@@ -937,7 +937,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
 #            print ('avant macro',vloc)
             erreurs += prepare_importe_macro(mapper, texte, vloc, fichier_regles)
             if erreurs:
-                print ('erreur chargement macro', texte)
+                print('erreur chargement macro', texte)
                 return erreurs
         else:
 #            print('regles std', defligne)

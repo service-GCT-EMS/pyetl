@@ -225,7 +225,7 @@ class Pyetl(object):
         env = env if env is not None else os.environ
         if log and not self.worker:
             self.set_param('logfile', log)
-            self(fichier=log)
+            self.fichier_log = log
         self.init_environ(env)
         self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
         next(self.aff)
@@ -265,7 +265,8 @@ class Pyetl(object):
             self._paramdecrypter() # decrypte les parametres cryptes
             self.charge_cmd_internes() # macros internes
             self.charge_cmd_internes(site="macros", opt=1) # macros de site
-            self.charge_cmd_internes(direct=os.path.join(self.paramdir,"macros"), opt=1) # macros perso
+            self.charge_cmd_internes(direct=os.path.join(self.paramdir, "macros"),
+                                     opt=1) # macros perso
 #            self.charge_cmd_internes(site="macros") # macros internes
             self.sorties = GestionSorties()
             self.debug = int(self.get_param('debug'))
@@ -797,9 +798,11 @@ class Pyetl(object):
         '''traite les entrees '''
         if self.done:
             try:
-                nb_total, nb_fichs, _ = self.menage_final()
+                self.menage_final()
             except StopIteration:
                 nb_total, nb_fichs = self.sorties.final()
+                self.padd('_st_wr_fichs', nb_fichs)
+                self.padd('_st_wr_objs', nb_total)
             return
         if debug:
             self.debug = debug
@@ -818,8 +821,6 @@ class Pyetl(object):
                                   self.get_param('_st_lu_fichs', 0))
         # on initialise le gestionnaire d'affichage
         next(self.aff)
-#        interv_affich = int(self.get_param("nbaffich", "100000"))
-#        nbaffich = interv_affich
         if entree and entree.strip() and entree != '!!vide':
             print('mapper: debut traitement donnees:>'+entree+ '-->',
                   self.regle_sortir.params.cmp1.val)
@@ -859,19 +860,23 @@ class Pyetl(object):
                 abort = True
         if abort:
             nb_total, nb_fichs = self.sorties.final()
+            self.padd('_st_wr_fichs', nb_fichs)
+            self.padd('_st_wr_objs', nb_total)
         else:
             try:
-                nb_total, nb_fichs, _ = self.menage_final()
+                self.menage_final()
                 self.padd('_st_obj_duppliques', self.moteur.dupcnt)
             except StopIteration:
                 nb_total, nb_fichs = self.sorties.final()
+                self.padd('_st_wr_fichs', nb_fichs)
+                self.padd('_st_wr_objs', nb_total)
 #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
         return
 #        return (self.get_param('_st_lus_total', 0), self.get_param('_st_lus_fichs', 0),
 #                nb_total, nb_fichs)
 
 
-    def menage_final(self, mode_schema=None):
+    def menage_final(self):
         '''vidage de tous les tuyaux et stats finales'''
 
         stock = True
@@ -884,22 +889,20 @@ class Pyetl(object):
 
         self.debug = 0
         if self.worker: # on est en mode esclave
+            pass
 #            print ('worker ecrire schema csv')
-            schemas = retour_schemas(self.schemas, mode=self.get_param('force_schema', 'util'))
+#            schemas = retour_schemas(self.schemas, mode=self.get_param('force_schema', 'util'))
 #            print ('worker apres ecrire schema csv')
         else:
             self._ecriture_schemas()
 
         nf2, ng2 = self.sorties.final() # on ferme tous les fichiers
 
-        self._ecriture_stats()
         self.padd('_st_wr_fichs', nf2)
         self.padd('_st_wr_objs', ng2)
-        schemas = None
-
-
+        self._ecriture_stats()
         self.macro_final()
-        return ng2, nf2, schemas
+        return
 
 
     def macro_final(self):
@@ -956,7 +959,7 @@ class Pyetl(object):
         rep_sortie = self.get_param('sortie_schema', self.get_param('_sortie'))
         if rep_sortie == '-' or not rep_sortie: # pas de sortie on ecrit pas
             if not self.get_param('_testmode'): # en mode test on rale pas
-                print ('schema:pas de repertoire de sortie ')
+                print('schema:pas de repertoire de sortie ')
             return
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)

@@ -78,9 +78,9 @@ class Valdef(object):
         self.origine = origine
         self.texte = texte
 
-    def update(self,obj):
+    def update(self, obj):
         '''mets a jour les elements a partir de l'objet'''
-        self.val = obj.attributs.get(self.origine,'')
+        self.val = obj.attributs.get(self.origine, '')
 
     def __repr__(self):
         return self.texte+'->'+str(self.val)
@@ -105,7 +105,7 @@ class ParametresFonction(object):
     def _crent(self, nom, taille=0, besoin=None):
         '''extrait les infos de l'entite selectionnee'''
 #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
-        val=''
+        val = ''
         try:
             val = self.valeurs[nom].group(1)
             if r'\;' in val:
@@ -460,7 +460,7 @@ class RegleTraitement(object): # regle de mapping
     def get_max_workers(self):
         ''' retourne le nombre de threads paralleles demandes'''
         try:
-            multi = self.getvar('multi','1')
+            multi = self.getvar('multi', '1')
             if ':' in multi:
                 tmp = multi.split(':')
                 process = int(tmp[0])
@@ -472,7 +472,7 @@ class RegleTraitement(object): # regle de mapping
             process, ext = 1, 1
         nprocs = os.cpu_count()
         if self.stock_param.worker: # si on est deja en parallele on ne multiplie plus
-            process=1
+            process = 1
         if nprocs is None:
                 nprocs = 1
         if process < 0:

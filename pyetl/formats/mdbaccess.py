@@ -123,7 +123,7 @@ def select_tables(schema, niveau, classe, tables='A', multi=True, nocase=False):
 #    print('select ', niveau, classe, tables, multi)
     if len(niveau) == 1 and niveau[0][:2] == 's:': #selection directe
         return selection_directe(schema, niveau)
-    convert = {'a': 'rtmfv', 'v': 'vm', 't': 'r' }
+    convert = {'a': 'rtmfv', 'v': 'vm', 't': 'r'}
     tables = convert.get(tables.lower(), tables.lower())
 #    print('db:sortie liste', len(niveau), len(classe))
 #    print('db:sortie liste', tables,niveau,classe)
@@ -185,13 +185,13 @@ def _get_tables(connect):
     schema_base = connect.schemabase
     for i in connect.get_tables():
         if len(i) == 12:
-            _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
-            _, _, _, _ = i
+            _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension,\
+            nb_obj, type_table, _, _, _, _ = i
         elif len(i) == 11:
             nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
             _, _, _, _ = i
         else:
-            print('mdba:table mal formee ',connect.type_serveur, len(i),i)
+            print('mdba:table mal formee ', connect.type_serveur, len(i), i)
             continue
 
 #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
@@ -221,7 +221,8 @@ def _get_tables(connect):
             if schemaclasse.info["type_geom"] != '0':
                 schemaclasse.info['nom_geometrie'] = 'geometrie'
         if schemaclasse.info["type_geom"] == 'indef':
-            print (ident,'apres _get_tables: type_geometrique',schemaclasse.info["type_geom"])
+            print(ident, 'apres _get_tables: type_geometrique',
+                  schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
 
@@ -428,8 +429,8 @@ def dbextload(regle_courante, base, files, log=None):
     helpername = connect.load_helper
     loadext = connect.load_ext
     helper = get_helper(base, files, loadext, helpername, stock_param)
-    reinit = regle_courante.getvar('reinit','0')
-    vgeom = regle_courante.getvar('valide_geom','1')
+    reinit = regle_courante.getvar('reinit', '0')
+    vgeom = regle_courante.getvar('valide_geom', '1')
     if helper:
         return connect.extload(helper, files, logfile=log, reinit=reinit, vgeom=vgeom)
     return False
@@ -443,13 +444,13 @@ def dbextdump(regle_courante, base, niveau, classe, dest='', log=''):
     if connect is None:
         return False
     if not liste_tables:
-        print ('pas de tables a sortir', base, niveau, classe)
+        print('pas de tables a sortir', base, niveau, classe)
         return False
     helpername = connect.dump_helper
     helper = get_helper(base, [], '', helpername, regle_courante.stock_param)
     if helper:
         workers, extworkers = regle_courante.get_max_workers()
-        print ('extdump',regle_courante.vloc, extworkers)
+        print('extdump', regle_courante.vloc, extworkers)
         resultats = connect.extdump(helper, liste_tables, dest, log, workers=extworkers)
 #        print(' extdump' , resultats)
         if resultats:
@@ -467,13 +468,13 @@ def dbextalpha(regle_courante, base, niveau, classe, dest='', log=''):
     if connect is None:
         return False
     if not liste_tables:
-        print ('pas de tables a sortir', base, niveau, classe)
+        print('pas de tables a sortir', base, niveau, classe)
         return False
     helpername = connect.dump_helper
     helper = get_helper(base, [], '', helpername, regle_courante.stock_param)
     if helper:
 #        workers, extworkers = regle_courante.get_max_workers()
-        print ('extalpha',regle_courante.vloc, regle_courante.get_max_workers())
+        print('extalpha', regle_courante.vloc, regle_courante.get_max_workers())
         resultats = connect.extalpha(regle_courante, helper, liste_tables, dest, log,
                                      nbworkers=regle_courante.get_max_workers())
 #        print(' extdump' , resultats)
@@ -511,10 +512,10 @@ def get_connect(stock_param, base, niveau, classe, tables='A', multi=True, nocas
         LOGGER.error('connection base invalide'+str(base))
         return None
 
-    nomschema = nomschema if nomschema else connect.schemabase.nom.replace('#','')
+    nomschema = nomschema if nomschema else connect.schemabase.nom.replace('#', '')
     schema_travail = stock_param.init_schema(nomschema, 'B', modele=connect.schemabase)
     schema_travail.metas = dict(connect.schemabase.metas)
-    schema_travail.metas['tables']=tables
+    schema_travail.metas['tables'] = tables
     liste2 = []
 #    print ( 'schema base ',schema_base.classes.keys())
     for ident in select_tables(connect.schemabase, niveau, classe, tables, multi, nocase):
@@ -656,17 +657,19 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
             print('dbschema :', 'regex' if multi else 'strict', list(cmp1), tables,
                   nocase, '->', len(liste_tables), 'tables a sortir')
         schema_base = connect.schemabase
-        print ('recup_schema',schema_base.nom, schema_travail.nom,stock_param.schemas.keys())
+        print('recup_schema', schema_base.nom, schema_travail.nom, stock_param.schemas.keys())
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print('erreur de connection a la base', base, niveau, classe)
     return (None, None, None, None)
 
 def lire_table(ident, regle=None, reglenum=0, parms=None):
+    """lecture directe"""
     if ident is None:
         return 0
     niveau, classe = ident
-    base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base, chemin, reqdict, maxobj = parms
+    base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base,\
+    chemin, reqdict, maxobj = parms
     regle_courante = MAINMAPPER.regles[reglenum] if regle is None else regle
     connect, schema_base, schema_travail, liste_tables =\
     recup_schema(regle_courante, base, niveau, classe,
@@ -698,8 +701,8 @@ def lire_table(ident, regle=None, reglenum=0, parms=None):
     treq = time.time()-treq
     if curs:
         res = sortie_resultats(regle_courante, curs, niveau, classe, connect,
-                                sortie, v_sortie, schema_classe_base.info["type_geom"],
-                                schema_classe_travail, base=base, treq=treq, cond=(attr, val))
+                               sortie, v_sortie, schema_classe_base.info["type_geom"],
+                               schema_classe_travail, base=base, treq=treq, cond=(attr, val))
 
         if sortie:
             for nom in sortie:
@@ -737,7 +740,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 
             niveau, classe = ident
             schema_classe_base = schema_base.get_classe(ident)
-            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
     #        print ('dbaccess : ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info["type_geom"]

@@ -135,7 +135,7 @@ class HcubeCrypter(Crypter):
 
 
     def crypt(self, val):
-        '''cryptage : le texte a crypter est decompse en modules de 3 lettres
+        '''cryptage : le texte a crypter est decompose en modules de 3 lettres
                       auquel on ajoute une lettre aleatoire
                       ce qui donne les blocs de 4 en entree du transposeur
                       le resultat est encode en base 64'''
