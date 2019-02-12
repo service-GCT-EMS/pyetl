@@ -12,12 +12,6 @@ import itertools
 import random
 import subprocess
 
-CRYPTOCLASS = None
-
-
-
-
-
 
 class Crypter(object):
     """classe de gestion de cryptage la classe de base ne crypte rien"""
@@ -97,14 +91,16 @@ class HcubeCrypter(Crypter):
 
     def setkey(self, key):
         '''initialisation de l'hypercube'''
-
+        if not key:
+            return
+#        print('initialisation', key)
         self.key = key
         inp, pos1, pos2, pos3, pos4 = 0, 0, 0, 0, 0
         propage = lambda x, y: (0, y+1) if x == 4 else (x, y)
         for i in itertools.cycle(key.encode("utf-8")):
             inp = (107+inp+i) % 256
-            if inp in self.hcube:
-                continue
+            while inp in self.hcube:
+                inp = (inp+1) % 256
             self.hcube[inp] = (pos1, pos2, pos3, pos4)
             pos1, pos2 = propage(pos1+1, pos2)
             pos2, pos3 = propage(pos2, pos3)
@@ -139,7 +135,8 @@ class HcubeCrypter(Crypter):
                       auquel on ajoute une lettre aleatoire
                       ce qui donne les blocs de 4 en entree du transposeur
                       le resultat est encode en base 64'''
-
+        if not self.key:
+            return val
         binlist = bytes([i for i in val.encode("utf-8")])
         taille = len(binlist)
         pl1 = taille // 256
@@ -159,8 +156,8 @@ class HcubeCrypter(Crypter):
 
     def decrypt(self, val):
         """decryptage"""
-        if not val:
-            return ''
+        if not val or not self.key:
+            return val
         crypted = base64.b32decode(val)
         retour = bytes()
         clef = 0
@@ -173,27 +170,34 @@ class HcubeCrypter(Crypter):
 #        print ("retour", code, retour)
         taille = retour[0]*256+retour[1]
         if abs(len(retour)-taille) > 5:
-#            print ('clef invalide ', len(retour) - taille)
+#            print ('clef invalide ', len(retour) - taille, self.key)
             return val
         textbuf = bytes(retour[2:taille+2])
         try:
             return textbuf.decode("utf-8")
         except UnicodeDecodeError:
-            print('clef invalide ')
+#            print('clef invalide ')
             return val
 
-
 CRYPTOLEVELS = {0:Crypter, 1:BasicCrypter, 2:HcubeCrypter, 3:ExtCrypter}
-CRYPTOCLASS = [None]
+CRYPTOCLASS = dict()
+
+def descramble(mapper, key):
+    ''' retourne la clef d'origine si elle est planquee'''
+
+    if not key:
+        key = mapper.get_param("defaultkey")
+    if key.endswith('='):
+        return base64.b32decode(key).decode('utf-8')
+    return key
+
 
 def cryptinit(mapper, key, level):
     """initialise la fonction de cryptage"""
 #    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
 
-    if not key:
-        key = mapper.get_param("defaultkey")
-    if key.endswith('='):
-        key = base64.b32decode(key).decode('utf-8')
+
+    key = descramble(mapper, key)
 #    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
 #
     if level is None:
@@ -207,24 +211,29 @@ def cryptinit(mapper, key, level):
             print('cryptohelper non defini ,passage en niveau', level-1)
             cryptinit(mapper, key, level-1)
             return
-    CRYPTOCLASS[0] = cclass
+    CRYPTOCLASS[key] = cclass
 #    print ('initialisation cryptage niveau',level,key)
 
 
 def decrypt(mapper, val, key=None, level=None):
     '''decrypte les mots de passe'''
-    if CRYPTOCLASS[0] is None:
+    if  not val.endswith('='): # ce n'est pas crypte
+#        print('non crypté', val)
+        return val
+    key = descramble(mapper, key)
+    if key not in CRYPTOCLASS:
         cryptinit(mapper, key, level)
-#    print 'decryptage', cryptoclass[0].key, cryptoclass[0].level
-    return CRYPTOCLASS[0].decrypt(val)
+#    print ('decryptage', key, CRYPTOCLASS[key], CRYPTOCLASS[key].decrypt(val))
+    return CRYPTOCLASS[key].decrypt(val)
+
 
 def crypter(mapper, val, key=None, level=None):
     '''decrypte les mots de passe'''
-#    print ('dans cryptage ',val,key,level)
-    if CRYPTOCLASS[0] is None:
+    print ('dans cryptage ',val,key,level)
+    key = descramble(mapper, key)
+    if key not in CRYPTOCLASS:
         cryptinit(mapper, key, level)
-    return CRYPTOCLASS[0].crypt(val)
-
+    return CRYPTOCLASS[key].crypt(val)
 
 
 if __name__ == "__main__":

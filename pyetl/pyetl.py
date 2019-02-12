@@ -20,7 +20,7 @@ from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
 from  .moteur.compilateur import compile_regles
 from  .moteur.moteur import Moteur, Macro
 from  .moteur.fonctions import COMMANDES, SELECTEURS
-from  .moteur.fonctions.outils import scandirs
+from  .moteur.fonctions.outils import scandirs, valide_auxiliaires
 from  .schema.schema_interne import init_schema # schemas
 from  .schema.schema_io import ecrire_schemas, retour_schemas # integre_schemas # schemas
 from  .moteur.fonctions.parallel import setparallel
@@ -564,18 +564,47 @@ class Pyetl(object):
 
 
     def _paramdecrypter(self): # decrypte les parametres cryptes
-        """decrypte d'eventuels parametres cryptes"""
+        """decrypte d'eventuels parametres cryptes gere 2 clefs une clef maitre et une clef utilisateur"""
 #        print ('decryptage parametres',self.parms['cryptokey'])
         keyname = self.get_param('cryptokeyname', 'defaultkey')
         key = self.get_param(keyname)
-#        print ('nom de la clef', keyname, 'clef', key)
+        masterkey = self.get_param('masterkey',key)
+        userkey = self.get_param('userkey')
+        usergroup = self.get_param('usergroup')
+        master = False
+        if masterkey:
+            master = True
+            userkey = self.decrypt(userkey, key=masterkey)
+        else:
+            userkey = self.get_param('key_'+self.username, userkey)
+            userkey = self.decrypt(userkey, key=self.username)
+            usergroup = self.decrypt(userkey, key=userkey)
+            if usergroup == self.get_param('usergroup'):
+                usergroup = None
+
+#        print ('clef', masterkey, 'master', master, 'user',userkey)
         for nom in self.site_params:
             for numero, parametre in enumerate(self.site_params[nom]):
                 nom_p, val = parametre
                 if nom_p.startswith('**'): # cryptage
                     nom_p = nom_p[2:]
-                    val = self.decrypt(val, key=key)
+                    val2 = self.decrypt(val, key=masterkey)
+#                    print ('decryptage ', nom_p, val2)
+                    if val2 == val:
+                        val2 = self.decrypt(val, key=userkey)
+                    val = val2
+                    if val.startswith('#['): # il y a des utilisateurs
+                        ddv = val.index(']#')
+                        if ddv:
+                            ulist = val[2:ddv].split(',')
+
+                            if master or self.username in ulist or usergroup in ulist:
+                                val = val[ddv+2:]
+#                                print ('decode', ulist,val)
+                            else:
+                                val=''
                     self.site_params[nom][numero] = (nom_p, val)
+
 
 
     def load_paramgroup(self, clef, nom='', check='', fin=True):
@@ -793,6 +822,15 @@ class Pyetl(object):
         _, converter, _ = Reader.lecteurs.get(geomnatif, Reader.lecteurs['interne'])
         return converter
 
+    def _finalise_sorties(self):
+        ''' vide les tuyeaux et renseigne les stats'''
+        if self.sorties:
+            nb_total, nb_fichs = self.sorties.final()
+            self.padd('_st_wr_fichs', nb_fichs)
+            self.padd('_st_wr_objs', nb_total)
+        if self.moteur:
+            self.padd('_st_obj_duppliques', self.moteur.dupcnt)
+
 
     def process(self, debug=0):
         '''traite les entrees '''
@@ -800,9 +838,7 @@ class Pyetl(object):
             try:
                 self.menage_final()
             except StopIteration:
-                nb_total, nb_fichs = self.sorties.final()
-                self.padd('_st_wr_fichs', nb_fichs)
-                self.padd('_st_wr_objs', nb_total)
+                self._finalise_sorties()
             return
         if debug:
             self.debug = debug
@@ -859,17 +895,12 @@ class Pyetl(object):
             except StopIteration as arret:
                 abort = True
         if abort:
-            nb_total, nb_fichs = self.sorties.final()
-            self.padd('_st_wr_fichs', nb_fichs)
-            self.padd('_st_wr_objs', nb_total)
+            self._finalise_sorties()
         else:
             try:
                 self.menage_final()
-                self.padd('_st_obj_duppliques', self.moteur.dupcnt)
             except StopIteration:
-                nb_total, nb_fichs = self.sorties.final()
-                self.padd('_st_wr_fichs', nb_fichs)
-                self.padd('_st_wr_objs', nb_total)
+                self._finalise_sorties()
 #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
         return
 #        return (self.get_param('_st_lus_total', 0), self.get_param('_st_lus_fichs', 0),
@@ -888,18 +919,10 @@ class Pyetl(object):
                     regle.traite_stock(regle)
 
         self.debug = 0
-        if self.worker: # on est en mode esclave
-            pass
-#            print ('worker ecrire schema csv')
-#            schemas = retour_schemas(self.schemas, mode=self.get_param('force_schema', 'util'))
-#            print ('worker apres ecrire schema csv')
-        else:
-            self._ecriture_schemas()
 
-        nf2, ng2 = self.sorties.final() # on ferme tous les fichiers
+        self._finalise_sorties()
 
-        self.padd('_st_wr_fichs', nf2)
-        self.padd('_st_wr_objs', ng2)
+        self._ecriture_schemas()
         self._ecriture_stats()
         self.macro_final()
         return
@@ -1028,19 +1051,7 @@ class Pyetl(object):
             open(self.get_param("job_control"), 'w').write("fin mapper\n")
 
 
-    @staticmethod
-    def _valide_auxiliaires(identifies, non_identifies):
-        ''' valide que les fichiers trouves sont connus'''
-#        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
-        auxiliaires = Reader.auxiliaires
-        for chemin, nom, extinc in non_identifies:
-            if (chemin, nom) in identifies:
-                extref = identifies[(chemin, nom)]
-                if auxiliaires.get(extref) and extinc in auxiliaires.get(extref):
-#                    print ('connu ',chemin,nom,extinc,'->',extref)
-                    pass
-                else:
-                    print('extention inconnue ', extref, '->', chemin, nom, extinc)
+
 
 
     def fichs_schema(self):
@@ -1112,7 +1123,7 @@ class Pyetl(object):
 #                print('fichier a traiter', f_courant, entree, chemin, fichier, ext)
             else:
                 non_identifies.append((chemin, nom, ext))
-        self._valide_auxiliaires(identifies, non_identifies)
+        valide_auxiliaires(identifies, non_identifies)
 
         if self.debug:
             print("fichiers a traiter", self.fichs)

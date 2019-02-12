@@ -469,7 +469,7 @@ def charge_mapping(regle, mapping=None):
         print("h_map:mapping introuvable", regle.fichier)
 
 
-def _valide_auxiliaires(identifies, non_identifies):
+def valide_auxiliaires(identifies, non_identifies):
     ''' valide que les fichiers trouves sont connus'''
     auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
     for chemin, nom, extinc in non_identifies:
@@ -479,10 +479,31 @@ def _valide_auxiliaires(identifies, non_identifies):
 #                    print ('connu ',chemin,nom,extinc,'->',extref)
                 pass
             else:
-                print('inconnu ', chemin, nom, extinc)
+                print('extention inconnue ', extref, '->', chemin, nom, extinc)
 
 
-def scan_entree(rep, force_format=None, fileselect=None, debug=0):
+#    def _valide_auxiliaires(identifies, non_identifies):
+#        ''' valide que les fichiers trouves sont connus'''
+##        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
+#        auxiliaires = Reader.auxiliaires
+#        for chemin, nom, extinc in non_identifies:
+#            if (chemin, nom) in identifies:
+#                extref = identifies[(chemin, nom)]
+#                if auxiliaires.get(extref) and extinc in auxiliaires.get(extref):
+##                    print ('connu ',chemin,nom,extinc,'->',extref)
+#                    pass
+#                else:
+#                    print('extention inconnue ', extref, '->', chemin, nom, extinc)
+#
+#
+#
+#
+#
+#
+
+
+
+def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
     " etablit la liste des fichiers a lire"
     entree = rep
     if not entree:
@@ -522,7 +543,7 @@ def scan_entree(rep, force_format=None, fileselect=None, debug=0):
 #                print('fichier a traiter', f_courant, fichier, ext)
         else:
             non_identifies.append((chemin, nom, ext))
-    _valide_auxiliaires(identifies, non_identifies)
+    valide_auxiliaires(identifies, non_identifies)
 
 
     if debug:

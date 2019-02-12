@@ -199,7 +199,7 @@ def h_def_schema(regle):
     regle.differe = False
     if not regle.fichier:
         LOGGER.error('pas de schema a lire '+ regle.ligne)
-        regle.mode = ''
+        regle.valide=False
         return
     if regle.fichier.startswith('#schema:'): #fichier precharge (base de donnees)
         nomschema = regle.params.cmp2.val

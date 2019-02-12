@@ -177,6 +177,10 @@ class Reader(object):
         ''' affichage du format courant : debug '''
         print('info :format: format courant :', self.nom_format)
 
+    def get_converter(self,format_natif):
+        '''retourne la fonction de conversion geometrique'''
+        return self.lecteurs.get(format_natif, self.lecteurs['interne'])[1]
+
 class Writer(object):
     '''wrappers de sortie génériques'''
     databases = DATABASES

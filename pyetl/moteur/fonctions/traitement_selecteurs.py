@@ -29,7 +29,7 @@ def sel_regex(selecteur, obj):
        #pattern||A;re||99
        #pattern2||A;re:re||1
        #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
-       #test2||obj||^A;is:pk;;set||^?A;0;;set||A;re:is;;;res;1;;set||atv;res;1
+       #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
     '''
 #    print (" attributs",selecteur,obj)
     return selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
@@ -198,9 +198,9 @@ def sel_inmem(selecteur, obj):
 
 
 def sel_changed(selecteur, obj):
-    '''#aide||detection de changement d un attribut
+    '''#aide||vrai si l'attribut a change d'un objet au suivant
     #pattern||A;=<>:||1
-    #test||obj;;2||^A;;;cnt;1;0||^?A;0;;set||A;<>:;;;res;1;;set||V0;0;;;;;;supp||atv;res;1
+       #test||obj;;2||^A;;;cnt;1;0||^?A;0;;set||A;<>:;;;res;1;;set||V0;0;;;;;;supp||atv;res;1
     '''
     if selecteur.info != obj.attributs.get(selecteur.params.attr.val, ""):
         selecteur.info = obj.attributs.get(selecteur.params.attr.val, "")
@@ -208,10 +208,10 @@ def sel_changed(selecteur, obj):
     return False
 
 def sel_ispk(selecteur, obj):
-    '''#aide ||vrai si l'attribut est une clef primaire
+    '''#aide||vrai si l'attribut est une clef primaire
     #pattern||A;=is:pk||1
-    #pattern2||A;=is:PK||1
-    #test||obj||^A(E,PK);1;;set||^?pk;;;set_schema||A;is:pk;;;res;1;;set||atv;res;1
+   #pattern2||A;=is:PK||1
+       #test||obj||^A(E,PK);1;;set||^?pk;;;set_schema||A;is:pk;;;res;1;;set||atv;res;1
     '''
 
 #        le test est fait sur le premier objet de  la classe qui arrive
@@ -257,9 +257,9 @@ def sel_hselk(selecteur, obj):
 
 
 def sel_hselv(selecteur, obj):
-    '''#aide||selection sur une valeur dans une valeur d'un hstore
+    '''#aide||selection si une clef de hstore n'est pas vide
     #pattern||H:A;hasval:C||3
-    #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;hasval:0;;;res;1;;set||atv;res;1
+       #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;hasval:0;;;res;1;;set||atv;res;1
 
     '''
     att = selecteur.params.attr.val
@@ -268,7 +268,7 @@ def sel_hselv(selecteur, obj):
 
 
 def sel_hselvk(selecteur, obj):
-    '''#aide||selection sur une valeur dans une valeur d'un hstore
+    '''#aide||selection sur une valeur d'un hstore
     #pattern||H:A;A:C||10
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;V0:0;;;res;1;;set||atv;res;1
     #!test||rien||H:AA;V0:0;;;res;1;;set||rien
@@ -285,7 +285,7 @@ def sel_hselvk(selecteur, obj):
 #--------------------selecteurs sur identifiant-----------------------------
 
 def sel_idregex(selecteur, obj):
-    '''selection sur l identifiant de classe
+    '''#aide||vrai si l identifiant de classe verifie une expression
         #pattern||=ident:;re||10
         #helper||regex
     #test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
@@ -294,7 +294,7 @@ def sel_idregex(selecteur, obj):
 
 
 def sel_idinfich(selecteur, obj):
-    '''selection sur l identifiant de classe
+    '''#aide||vrai si l identifiant de classe est dans un fichier
         #pattern||=ident:;in:fich||1
         #helper||infich
     !test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
@@ -303,7 +303,7 @@ def sel_idinfich(selecteur, obj):
 
 
 def sel_haspk(selecteur, obj):
-    '''#aide || vrai si on a defini un des attributs comme clef primaire
+    '''#aide||vrai si on a defini un des attributs comme clef primaire
     #pattern||;=has:pk||1
     #pattern2||;=has:PK||1
     #test||obj||^A(E,PK);1;;set||^?pk;;;set_schema||;has:pk;;;res;1;;set||atv;res;1
@@ -354,7 +354,7 @@ def selh_constante(selecteur):
 
 
 def sel_constante(selecteur, *_):
-    '''#aide egalite de constantes sert a customiser des scripts
+    '''#aide||egalite de constantes sert a customiser des scripts
     #pattern||C:C;C||50
     #test||obj||C:1;1;;;res;1;;set||?C:1;!2;;;res;0;;set||atv;res;1
     '''
@@ -370,7 +370,7 @@ def selh_cexiste(selecteur):
 
 
 def sel_cexiste(selecteur, *_):
-    '''#aide existance de constantes sert a customiser des scripts
+    '''#aide|| existance de constantes sert a customiser des scripts
     #pattern||C:C;||50
     #test||obj||C:1;;;;res;1;;set||?C:;!;;;res;0;;set||atv;res;1
     '''
@@ -399,7 +399,7 @@ def sel_ininfoschema(selecteur, obj):
     return obj.schema and selecteur.info in obj.schema.info
 
 def sel_inschema(selecteur, obj):
-    '''#aide vrai si un attribut est defini dans le schema
+    '''#aide||vrai si un attribut est defini dans le schema
     #pattern||A;=in_schema||1
        #test||obj||^?C1;;;supp;;;||C1;in_schema;;;res;1;;set||atv;res;1
     '''

@@ -385,15 +385,15 @@ def afficher_erreurs(regle, fonc, message):
 def traite_helpers(regle, fonc):
     """execute les fonctions auxiliaires """
     if fonc.helper:
-        # la fonction prevoit une sequence d'initialisation : on l'execute
-#                print ("execution helper",fonc.nom)
+#         la fonction prevoit une sequence d'initialisation : on l'execute
+#        print ("execution helper",fonc.nom)
         mode_orig = regle.mode
         fonc.helper(regle) # on prepare les elements
 #                print ('retour', regle.valide)
         if regle.mode != mode_orig: # la fonction helper a change la fonction a appeler
-            fonc = regle.stock_param.commandes[regle.mode]
-            if callable(fonc.work):
-                regle.fonc = fonc.work
+            fonc2 = regle.stock_param.commandes.get(regle.mode)
+            if fonc2 and callable(fonc2.work):
+                regle.fonc = fonc2.work
             else:
                 afficher_erreurs(regle, fonc, "fonction non implementee:")
     if regle.shelper:

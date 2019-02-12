@@ -40,7 +40,6 @@ import requests
 #import pycurl
 from .outils import compilefonc, charge_mapping
 
-
 def f_setliste(regle, obj):
     '''#aide||affectation d'un ensemble d'attributs
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
@@ -55,6 +54,7 @@ def f_setliste(regle, obj):
                                                     regle.params.val_entree.liste)])
     return True
 
+
 def f_setval(regle, obj):
     '''#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
@@ -66,6 +66,7 @@ def f_setval(regle, obj):
                  obj.attributs.get(regle.params.att_entree.val,
                                    regle.params.val_entree.val))
     return True
+
 
 def h_setschema(regle):
     '''helper : positionne le nocase'''
@@ -85,8 +86,6 @@ def f_setschema(regle, obj):
     return True
 
 
-
-
 def f_setgeom(regle, obj):
     '''#aide||affectation d un attribut
        #aide_spec||cree une geometrie texte
@@ -104,12 +103,13 @@ def f_setgeom(regle, obj):
     if converter:
         obj.attributs_geom = converter
 #    print (" valeur de geom",obj.geom)
-
     return True
+
 
 def h_setnonvide(regle):
     ''' pour repl_c il faut mettre en forme la liste '''
     regle.params.att_entree.liste.extend(regle.params.att_entree.val.split("|"))
+
 
 def f_setnonvide(regle, obj):
     '''#aide||remplacement d une valeur
@@ -122,6 +122,7 @@ def f_setnonvide(regle, obj):
       	          next((obj.attributs.get(i) for i in regle.params.att_entree.liste
                        if obj.attributs.get(i)), regle.params.val_entree.val))
     return True
+
 
 def h_sub(regle):
     """helper pour sub : compile les expressions regulieres"""
@@ -158,6 +159,7 @@ def f_sub(regle, obj):# fonction de substution
                                                         regle.params.val_entree.val)))
     return True
 
+
 def h_setcalc(regle):
     ''' preparation de l'expression du calculateur de champs'''
 #    print ('dans hcalc',regle.params)
@@ -167,6 +169,7 @@ def h_setcalc(regle):
         print("erreur sur l'expression de calcul", regle.params.att_entree.val)
         regle.valide = False
 
+
 def f_setcalc(regle, obj):
     '''#aide||remplacement d une valeur
         #aide_spec||fonction de calcul libre (attention injection de code)
@@ -175,6 +178,7 @@ def f_setcalc(regle, obj):
     '''
     regle.fstore(regle.params.att_sortie, obj, str(regle.calcul(obj)))
     return True
+
 
 def h_self(regle):
     '''helper generique permettant de gerer les cas ou entree = sortie'''
@@ -191,9 +195,6 @@ def h_self(regle):
             liste.extend([""]*taille)
 
 
-
-
-
 def f_upper(regle, obj):
     '''#aide||remplacement d une valeur
         #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en majuscule
@@ -205,6 +206,7 @@ def f_upper(regle, obj):
                  obj.attributs.get(regle.params.att_entree.val,
                                    regle.params.val_entree.val).upper())
     return True
+
 
 def f_upper2(regle, obj):
     '''#aide||remplacement d une valeur
@@ -220,6 +222,7 @@ def f_upper2(regle, obj):
                                                                 regle.params.val_entree.val).upper()
     return True
 
+
 def f_upper_liste(regle, obj):
     '''#aide||passage en majuscule d'une liste de valeurs
         #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en minuscule
@@ -231,6 +234,7 @@ def f_upper_liste(regle, obj):
                  [obj.attributs.get(i, regle.params.val_entree.val).upper()
                   for i in regle.params.att_entree.liste])
     return True
+
 
 def f_upper_liste2(regle, obj):
     '''#aide||passage en majuscule d'une lister de valeurs
@@ -247,7 +251,6 @@ def f_upper_liste2(regle, obj):
     return True
 
 
-
 def f_lower(regle, obj):
     '''#aide|| passage en minuscule
         #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en minuscule
@@ -259,6 +262,7 @@ def f_lower(regle, obj):
                  obj.attributs.get(regle.params.att_entree.val,
                                    regle.params.val_entree.val).lower())
     return True
+
 
 def f_lower2(regle, obj):
     '''#aide|| passage en minuscule
@@ -289,6 +293,7 @@ def f_lower_liste(regle, obj):
                        for i in regle.params.att_entree.liste])
     return True
 
+
 def f_lower_liste2(regle, obj):
     '''#aide||passage en minuscule d'une lister de valeurs
         #aide_spec||passage enmajuscule d une liste d'attribut avec defaut
@@ -303,6 +308,7 @@ def f_lower_liste2(regle, obj):
     for i, j in zip(regle.params.att_ref.liste, regle.params.val_entree.liste):
         obj.attributs[i] = obj.attributs.get(i, j).lower()
     return True
+
 
 def h_asplit(regle):
     ''' preparation decoupage attributs'''
@@ -337,24 +343,19 @@ def f_asplit(regle, obj):
                  obj.attributs.get(regle.params.att_entree.val,
                                    regle.params.val_entree.val).split
                  (regle.sep, regle.nbdecoup)[regle.defcible])
-#    print ('decoupage', obj.attributs.get(regle.params.att_entree.val,
-#                                          regle.params.val_entree.val),'--->',
-#            obj.attributs.get(regle.params.att_entree.val,
-#                              regle.params.val_entree.val).split(regle.sep,
-#                              regle.nbdecoup)[regle.defcible])
-
     return True
 
-#        print ('asplit',regle.params.att_entree,regle.params.cmp1,liste)
 
 def f_len(regle, obj):
-    '''#aide||calcule la longueur d un attibut
+    '''#aide||calcule la longueur d un attribut
     #pattern||S;?;A;len;;
     #test||obj||^X;toto;;set;||^Y;;X;len;;||atv;Y;4
     '''
     regle.fstore(regle.params.att_sortie, obj,
                  str(len(obj.attributs.get(regle.params.att_entree.val,
                                            regle.params.val_entree.val))))
+    return True
+
 
 def f_crypt(regle, obj):
     '''#aide||crypte des valeurs dans un fichier en utilisant une clef
@@ -368,6 +369,7 @@ def f_crypt(regle, obj):
     obj.attributs[regle.params.att_sortie.val] = crypte
     return True
 
+
 def f_decrypt(regle, obj):
     '''#aide||crypte des valeurs dans un fichier en utilisant une clef
     #pattern||A;?;A;decrypt;C?;
@@ -378,6 +380,7 @@ def f_decrypt(regle, obj):
     decrypte = regle.stock_param.decrypt(val, regle.params.cmp1.val)
     obj.attributs[regle.params.att_sortie.val] = decrypte
     return True
+
 
 def f_vset(regle, obj):
     '''#aide||remplacement d une valeur
@@ -392,6 +395,7 @@ def f_vset(regle, obj):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
     return True
+
 
 def f_rename(regle, obj):# fonction de substution
     '''#aide||renommage d'un attribut
@@ -435,8 +439,8 @@ def f_suppl(regle, obj):
         if i in obj.attributs:
             _suppatt(obj, i)
 #    print ("=========================fin supatt",regle.ligne)
-
     return True
+
 
 def f_suppg(_, obj):
     '''#aide||suppression d'elements
@@ -446,11 +450,11 @@ def f_suppg(_, obj):
        #schema||set_geom
        #testg1||obj;point||^;;#geom;supp||atv;#type_geom;0
        #testg2||obj;point||^#geom;;;supp||atv;#type_geom;0
-
     '''
 #    print ('suppg',obj)
     obj.setnogeom()
     return True
+
 
 def f_suppschema(_, obj):
     '''#aide||suppression d'elements
@@ -460,12 +464,10 @@ def f_suppschema(_, obj):
        #schema||
        #tests1||obj||^;;#schema;supp||;!has:schema;;;V4;1;;set||atv;V4;1
        #tests2||obj||^#schema;;;supp||;!has:schema;;;V4;1;;set||atv;V4;1
-
     '''
-#    print ("=========================dans suppschema")
     obj.resetschema()
-#    print ("=========================fin suppschema",regle.ligne)
     return True
+
 
 def h_suppobj(regle):
     '''evite la transmission d'un objet'''
@@ -481,6 +483,7 @@ def f_suppobj(_, __):
 
     '''
     return True
+
 
 def f_keep2(regle, obj):
     '''#aide||suppression de tous les attributs sauf ceux de la liste
@@ -520,7 +523,6 @@ def f_keep(regle, obj):
 
     return f_keep2(regle, obj)
 
-#    return True
 
 ## ===================================== hstore ===============================
 
@@ -540,6 +542,7 @@ def f_hset1(regle, obj):
 #    print("creation hstore", regle.params.att_sortie.val,
 #          obj.attributs[regle.params.att_sortie.val])
     return True
+
 
 def h_hset2(regle):
     '''compile les expression pour les champs'''
@@ -589,6 +592,7 @@ def f_hset4(regle, obj):
 #    print("hcre3 ", obj.ido, "->", obj.attributs[regle.params.att_sortie.val])
     return True
 
+
 def f_hset5(regle, obj):
     ''' #aide||transforme des attributs en hstore
     #aide_spec||tous les attributs visibles passe les noma en majuscule
@@ -621,6 +625,7 @@ def f_hget1(regle, obj):
                  hdic.get(regle.params.cmp1.val, regle.params.val_entree.val))
     return True
 
+
 def f_hget2(regle, obj):
     ''' #aide||eclatement d un hstore
         #aide_spec||destination;defaut;hstore;hget;liste clefs;
@@ -638,6 +643,7 @@ def f_hget2(regle, obj):
     regle.fstore(regle.params.att_sortie, obj,
                  [hdic.get(i, regle.params.val_entree.val) for i in regle.params.cmp1.liste])
     return True
+
 
 def f_hget3(regle, obj):
     ''' #aide||eclatement d un hstore
@@ -686,7 +692,6 @@ def f_cnt(regle, obj):
         #test1||obj||^V4;t1;;cnt;3;4||atv;V4;4
         #test2||obj;;2||^V4;t1;;cnt;3;4||V4;4;;;;;;supp||atv;V4;7
     '''
-
     nom = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
     val = regle.stock_param.cntr.get(nom, regle.orig)
     obj.attributs[regle.params.att_sortie.val] = "%d" % (val)
@@ -713,9 +718,6 @@ def h_join(regle):
     return True
 
 
-
-
-
 def f_join(regle, obj):
     '''#aide||jointures
     #pattern||A;?;?A;join;?C[];?C||cmp1
@@ -729,6 +731,7 @@ def f_join(regle, obj):
                                                  regle.params.val_entree.val),
                                regle.champ)
     return True
+
 
 def f_sjoin(regle, obj):
     '''#aide||jointures
@@ -744,7 +747,6 @@ def f_sjoin(regle, obj):
             obj.attributs.get(regle.params.att_entree.val,
                               regle.params.val_entree.val), regle.champ)
     return True
-
 
 
 def h_round(regle):
@@ -838,7 +840,6 @@ def geocode_traite_stock(regle, final=True):
     regle.tmpstore = []
 
 
-
 def h_geocode(regle):
     ''' prepare les espaces de stockage et charge le geocodeur addok choisi'''
 #    try:
@@ -862,10 +863,6 @@ def h_geocode(regle):
 #    regle.ageocoder = dict()
     regle.tinit = time.time()
     return True
-
-
-
-
 
 
 def f_geocode(regle, obj):
