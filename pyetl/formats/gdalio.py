@@ -201,7 +201,7 @@ class GdalWriter(FileWriter):
         if self.l_max:
             self.schema.cree_noms_courts(longueur=self.l_max)
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
-        print('fiona: ouverture', self.nom, self.layer)
+#        print('fiona: ouverture', self.nom, self.layer)
         self.fichier = fiona.open(self.nom, 'w', crs=crs, encoding=self.encoding,
                                   driver=self.driver, schema=schema, layer=self.layer)
         self.stats[self.nom] = self.stats.get(self.nom, 0)
@@ -278,9 +278,9 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
         elif regle.fanout == 'groupe':
             nom = sorties.get_id(rep_sortie, groupe, '', extension)
         else:
-            nom = sorties.get_id(rep_sortie, classe, '', extension)
+            nom = sorties.get_id(rep_sortie, groupe, classe, extension)
         ressource = sorties.get_res(regle.numero, nom)
-#        print ('gdal: recup ressource',ressource, nom)
+#        print ('gdal: recup ressource',ressource, nom, regle.fanout, groupe)
 
 
         if ressource is None:
@@ -304,7 +304,8 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
     if obj.geom_v.type != '0':
 #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
         obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
-
+#    print ('gdal: ecriture objet',obj)
+#    print ('gdal: ecriture objet',obj.__geo_interface__)
     ressource.write(obj, regle.numero)
     if final:
         print('gdal:final', regle.stock_param.liste_fich)

@@ -42,6 +42,7 @@ DFORM = {'in':'%Y/%m/%d %H:%M:%S.%f',
 # --------------dates--------------------
 def get_jma(date, sep):
     '''essaye d'extraire le jour et mois eyt annee d'une date'''
+#    print ('extraction date ', date,'->'+sep+'<-')
     def_mois = DEF_MOIS
     el_date1, el_date2, el_date3 = date.split(sep)
     fdate = 'inc'
@@ -49,9 +50,12 @@ def get_jma(date, sep):
         if el_date2.isnumeric() and el_date1.isnumeric():
             annee, mois, jour = el_date3, el_date2, el_date1
             fdate = 'fr'
-        elif el_date2 in def_mois: #jj nom_mois aaaa
+        elif el_date2 in def_mois:
             annee, mois, jour = el_date3, def_mois[el_date2], el_date1
             fdate = 'fr'
+        elif el_date1 in def_mois:
+            annee, mois, jour = el_date3, def_mois[el_date1], el_date2
+            fdate = 'en'
     elif len(el_date1) == 4 and el_date1.isnumeric(): # aaaa-mm-jj
         if el_date2.isnumeric() and el_date3.isnumeric():
             annee, mois, jour = el_date1, el_date2, el_date3
@@ -122,7 +126,7 @@ def _valide_heure(heure):
     return ':'.join((hrs, mins, secs))
 
 
-def _valide_dates(val, format_dates=''):
+def valide_dates(val, format_dates=''):
     '''controle la validite de la definition d'une date et eventuellement la corrige'''
 
     err = ''
@@ -147,7 +151,7 @@ def _valide_dates(val, format_dates=''):
         date = '-'.join((dat1, dat2, dat3))
     if date:
         date = _valide_jour(date, format_dates)
-
+#        print ('date validee', date)
     if heure:
         heure = _valide_heure(heure)
 
@@ -337,7 +341,7 @@ def _valide_type(classe, atdef, val):
     repl = None
     err = ''
     if atdef.type_att == "D":# test dates
-        err, repl = _valide_dates(val, '')
+        err, repl = valide_dates(val, '')
     elif atdef.type_att == "E" or atdef.type_att_base == 'E':# test numerique
         err, repl, changetype = _valide_entiers(val)
         if changetype:

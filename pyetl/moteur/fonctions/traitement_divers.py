@@ -293,7 +293,10 @@ def sortir_traite_stock(regle):
     '''ecriture finale'''
     print('traite stock sortir', regle.final)
     if regle.final:
-        regle.f_sortie.ecrire_objets(regle, True)
+        try:
+            regle.f_sortie.ecrire_objets(regle, True)
+        except IOError as err:
+            LOGGER.error("erreur d'ecriture: "+err.__repr__())
         regle.nbstock = 0
         return
     for groupe in list(regle.stockage.keys()):

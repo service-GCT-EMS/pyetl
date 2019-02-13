@@ -333,6 +333,24 @@ class Ligne(object):
         self.courbe = sect.courbe or self.courbe
         return 0
 
+
+    def ajout_ligne(self, ligne, desordre=False):
+        '''fusionne 2 ligne en les inversant si necessaire'''
+        if self.ferme or ligne.ferme:
+            return False
+        if desordre and self.dpt == ligne.dpt: # on inverse si necessaire
+            ligne.inverse()
+        if self.dpt == ligne.ppt: # cas simple on ajoute les sections sans se poser de questions
+            self.termine = False
+            for sect in ligne.sections:
+                if self.ajout_section(sect):
+                    print ('erreur ajout', sect.coords)
+            return True
+        return False
+
+
+
+
     def fin_section(self, couleur, courbe):
         ''' finalise la geometrie d'une section '''
         sc=self.sections[-1]

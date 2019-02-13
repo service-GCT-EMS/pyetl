@@ -149,9 +149,9 @@ class Objet(object):
 
 
 
-    def finalise_geom(self, type_geom=None, orientation='L'):
+    def finalise_geom(self, type_geom=None, orientation='L', desordre=False):
         '''finalise la geometrie et renseigne les attributs'''
-        self.geom_v.finalise_geom(typegeom=type_geom, orientation=orientation)
+        self.geom_v.finalise_geom(type_geom=type_geom, orientation=orientation, desordre=desordre)
         if not self.geom_v.valide:
             self.setnogeom(tmp=True)
         self.infogeom()
@@ -227,6 +227,7 @@ class Objet(object):
     @property
     def __geo_interface__(self):
         '''interface geo_interface en sortie'''
+#        print ('demande geoif geom:',self.geom_v.type)
         if not self.geom_v.valide:
             self.attributs_geom(self)
         use_noms_courts = False
@@ -239,8 +240,8 @@ class Objet(object):
             self.geom_v.multi = sch.multigeom
             for i in liste:
                 if i in sch.attributs and sch.attributs[i].type_att == 'D':
-                    attributs[i] = self.attributs[i].replace('/', '-').replace(' ', 'T')\
-                                   +'Z' if i in self.attributs else None
+                    attributs[i] = self.attributs[i].replace('/', '-') if self.attributs.get(i) else None
+#                    .replace(' ', 'T')'Z' if self.attributs.get(i) else None
                 else:
                     attributs[i] = self.attributs.get(i, '')
         else:

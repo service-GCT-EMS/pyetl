@@ -505,7 +505,7 @@ class CsvWriter(FileWriter):
         self.fichier = None
         self.stats = liste_fich if liste_fich is not None else dict()
         self.encoding = encoding
-        self.transtable = str.maketrans({'\\':r'\\', '\n':'\\'+'n', '\r':'\\'+'n',
+        self.transtable = str.maketrans({'\n':'\\'+'n', '\r':'\\'+'n',
                                          self.separ:self.escape})
 
     def header(self, init=1):
@@ -576,6 +576,8 @@ class SqlWriter(CsvWriter):
                          liste_fich, null, f_sortie)
         if self.writerparms:
             self.schema.setsortie(self.f_sortie)
+        self.transtable = str.maketrans({'\\':r'\\', '\n':'\\'+'n', '\r':'\\'+'n',
+                                         self.separ:self.escape})
 
 
 

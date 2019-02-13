@@ -17,7 +17,7 @@ import math as M
 import os
 import logging
 from .interne.objet import Objet
-
+from pyetl.schema.fonctions_schema import valide_dates
 LOGGER = logging.getLogger('pyetl')
 
 
@@ -153,7 +153,7 @@ def prepare_liste_attributs(classe_courante, attr, iter_gy):
         type_attribut = gestion_types_geocity(next(iter_gy))
         classe_courante.stocke_attribut(nom_geom, type_attribut, defaut='', type_attr_base='T')
         alpha = 1
-        classe_courante.schema.info["type_geom"] = '0'
+        classe_courante.info["type_geom"] = '0'
         consomme(iter_gy, 2)
     else:
         consomme(iter_gy, 3)
@@ -219,6 +219,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
         return obj_ouvert, attsup
 
     elif tk1 == "4":    # noeud surfacique
+        obj.schema.info['type_geom']= '3'
         obj.attributs['#type_geom'] = '3'
         obj.attributs["#type_reseau"] = "noeud"
     return obj_ouvert, attsup
@@ -231,7 +232,7 @@ def setpoint2d(obj, iter_gy, regle):
         obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy)], 0, 2)
         obj.infogeom()
         if obj.schema.amodifier(regle):
-            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+            obj.schema.info["type_geom"] = '1'
         regle.stock_param.moteur.traite_objet(obj, regle)
     except ValueError:
         coorderror(obj)
@@ -246,7 +247,7 @@ def setpoint3d(obj, iter_gy, regle):
         obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy), numconv(iter_gy)], 0, 3)
         obj.infogeom()
         if obj.schema.amodifier(regle):
-            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+            obj.schema.info["type_geom"] = '1'
         regle.stock_param.moteur.traite_objet(obj, regle)
     except ValueError:
         coorderror(obj)
@@ -260,7 +261,7 @@ def addpoints2d(obj, iter_gy, npts, type_geom=None, regle=None):
     if type_geom:
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
-            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+            obj.schema.info["type_geom"] = type_geom
         regle.stock_param.moteur.traite_objet(obj, regle)
         return 0
     return 1
@@ -273,7 +274,7 @@ def addpoints25d(obj, iter_gy, valz, npts, dimension, type_geom=None, regle=None
     if type_geom:
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
-            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+            obj.schema.info["type_geom"] = type_geom
         regle.stock_param.moteur.traite_objet(obj, regle)
         return 0
     return 1
@@ -285,12 +286,13 @@ def addpoints3d(obj, iter_gy, npts, type_geom=None, regle=None):
     if type_geom:
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
-            obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+            obj.schema.info["type_geom"] = type_geom
         regle.stock_param.moteur.traite_objet(obj, regle)
         return 0
     return 1
 
 def _cotation(iter_gy, obj):
+    '''gere les objets cotation'''
     # stockage des attributs
     for att_cont in range(20):
         obj.attributs['#_cote_'+str(att_cont)] = next(iter_gy)
@@ -300,14 +302,13 @@ def _cotation(iter_gy, obj):
 #    dimcoord = 2
 #    valz = 0
     npts = int(obj.attributs['#_cote_12'])
-    addpoints2d(obj, iter_gy, npts)
+    addpoints2d(obj, iter_gy, npts, type_geom='2')
 
     obj.geom_v.fin_section(1, 0)
     obj.attributs['#_cote_20'] = next(iter_gy)
     obj.finalise_geom(type_geom='2')
     #print ('#_cote_'+str(ac+1),'->', obj.attributs['#_cote_'+str(ac)])
     return 2, 2, 0
-
 
 
 
@@ -329,7 +330,15 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
     stock_param.fichier_courant = fichier_courant
     obj = None
     with open(entree, "r", 65536, encoding=codec) as ouvert:
-        if ouvert.read(1) != '|': # fichier non geocity
+        try:
+            if ouvert.read(1) != '|': # fichier non geocity
+                return n_obj
+        except IOError as err:
+            print ('erreur de lecture du fichier ', entree, err)
+            return n_obj
+
+        except UnicodeError  as err:
+            print ("erreur d'encodage",entree, err)
             return n_obj
         iter_gy = gyr(ouvert)
         unit = 1000.
@@ -352,6 +361,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
         schema_courant = stock_param.schemas[base]
 
         classe_courante = schema_courant.def_classe((niveau, classe))
+#        print ('classe_courante', classe_courante)
         alpha, attsup, topo = prepare_liste_attributs(classe_courante, attr, iter_gy)
         obj_ouvert = 0
         # on attaque les objets
@@ -366,7 +376,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     mode = "N"
                     n_obj += 1
                     obj = Objet(niveau, classe, format_natif='gy')
-                    obj.schema = classe_courante
+                    obj.setschema(classe_courante)
                     obj.attributs.update((('#fichier', fichier_courant), ('#chemin', chemin)))
                     obj.setorig(n_obj)
                     if maxobj and n_obj > maxobj:
@@ -376,6 +386,10 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     for i in attr:
                         val_attr = next(iter_gy)
                         #####debug####self.logger.log("attrib " + i +":"+ at ,0)
+
+                        if obj.schema.attributs[i].type_att=='D': # traitement des dates
+#                            print( 'detecte date', val_attr)
+                            err, val_attr = valide_dates(val_attr, 'in')
                         obj.attributs[i] = val_attr  # stockage des attributs
                         #if atttop or ast:
                             #print ('attribut' ,i,'->',at)
@@ -386,8 +400,8 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                                                                 unit)
 
                             if obj_ouvert == 0:
-                                if obj.schema.amodifier(regle):
-                                    obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+#                                if obj.schema.amodifier(regle):
+#                                    obj.schema.info["type_geom"] = obj.attributs['#type_geom']
                                 traite_objet(obj, regle)
                         except ValueError:
                             coorderror(obj)
@@ -470,7 +484,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
 
                 elif val == 'C3': # cercle :
                     if dimcoord == 2:
-                        addpoints25d(obj, iter_gy, valz, '3', dimension=dimension)
+                        addpoints25d(obj, iter_gy, valz, 3, dimension=dimension)
                         consomme(iter_gy, 2) #jette le 4eme identique au premier
                     else:
                         addpoints3d(obj, iter_gy, 3)
@@ -504,9 +518,16 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     else: # c'est un polygone complexe
                         obj.geom_v.fin_section(couleur, 0)
                 elif val == 'FG':
-                    obj.geom_v.finalise_geom(type_geom=type_geom)
+                    obj.finalise_geom(type_geom=type_geom, desordre=mode=='P')
+#                    print ('erreur geometrique', obj.__geo_interface__)
+
+                    if not obj.geom_v.valide:
+                        print ('erreur geometrique', obj.attributs.get('#erreurs_geometriques'))
+
+#                    print ('finalisation',classe, type_geom)
                     if obj.schema.amodifier(regle):
-                        obj.schema.info["type_geom"] = obj.attributs['#type_geom']
+                        obj.schema.info["type_geom"] = type_geom
+#                    print('gy:objet a traiter ', obj)
                     traite_objet(obj, regle)
                     obj_ouvert = 0
                 elif int(val) > 10000:

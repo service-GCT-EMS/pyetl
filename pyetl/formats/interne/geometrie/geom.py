@@ -116,6 +116,7 @@ class Geometrie(object):
 
     @property
     def __geo_interface__(self):
+#        print ('geo_interface',self.__repr__())
         if self.type == '0':
             return {}
         dim = self.dimension
@@ -143,6 +144,8 @@ class Geometrie(object):
                 }
 
         elif self.type == '3':
+            if not self.polygones:
+                return  {'type': 'Polygon', 'coordinates': ()}
             multi=self.force_multi or self.multi or len(self.polygones)>1
 
             if multi:
@@ -200,11 +203,11 @@ class Geometrie(object):
     def from_geo_interface(self,geo_if): # cree une geometrie a partir de la geo_interface
 #        print ('geom from geo_if',geo_if)
         if not geo_if:
-            self.finalise_geom(typegeom='0')
+            self.finalise_geom(type_geom='0')
             return
         if geo_if["type"] == 'Point':
             self.setpoint(geo_if['coordinates'],0,len(geo_if['coordinates']))
-            self.finalise_geom(typegeom='1')
+            self.finalise_geom(type_geom='1')
 
         elif geo_if["type"] == 'LineString':
             dim = len(geo_if["coordinates"][0])
@@ -213,7 +216,7 @@ class Geometrie(object):
 #            self.nouvelle_ligne_s(C.Section(list(geo_if["coordinates"]),dim))
 #            for pt in geo_if["coordinates"]:
 #                self.addpoint(pt,dim)
-            self.finalise_geom(typegeom='2')
+            self.finalise_geom(type_geom='2')
         elif geo_if["type"] == 'MultiLineString':
             dim = len(geo_if["coordinates"][0][0])
             for ligne in geo_if["coordinates"]:
@@ -224,7 +227,7 @@ class Geometrie(object):
 #                for pt in ligne:
 #                    self.addpoint(pt,dim)
 #                self.fin_section(1,0)
-            self.finalise_geom(typegeom='2')
+            self.finalise_geom(type_geom='2')
         elif geo_if["type"] == 'Polygon':
             dim = len(geo_if["coordinates"][0][0])
 #            print ('gif:polygone',geo_if["coordinates"][0][0])
@@ -240,7 +243,7 @@ class Geometrie(object):
 
 #            for pt in geo_if["coordinates"][0]:
 #                self.addpoint(pt,dim)
-            self.finalise_geom(typegeom='3')
+            self.finalise_geom(type_geom='3')
             self.multi = True
 
 #            print ('creation polygone',len(self.polygones), self.multi)
@@ -255,7 +258,7 @@ class Geometrie(object):
 #                    for pt in ligne:
 #                        self.addpoint(pt,dim)
 #                    self.fin_section(1,0)
-            self.finalise_geom(typegeom='3')
+            self.finalise_geom(type_geom='3')
             self.multi = True
 
         elif geo_if["type"] == 'Tin':
@@ -269,7 +272,7 @@ class Geometrie(object):
 #                    for pt in ligne:
 #                        self.addpoint(pt,dim)
 #                    self.fin_section(1,0)
-            self.finalise_geom(typegeom='4', orientation='L')
+            self.finalise_geom(type_geom='4', orientation='L')
 
         elif geo_if["type"] == 'PolyhedralSurface':
             dim = len(geo_if["coordinates"][0][0][0])
@@ -282,7 +285,7 @@ class Geometrie(object):
 #                    for pt in ligne:
 #                        self.addpoint(pt,dim)
 #                    self.fin_section(1,0)
-            self.finalise_geom(typegeom='5', orientation='L')
+            self.finalise_geom(type_geom='5', orientation='L')
         else:
             print ('geom:geometrie inconnue ',geo_if)
 #        print ('geometrie',self.type,list(self.coords))
@@ -359,7 +362,43 @@ class Geometrie(object):
         if self.lignes[-1].annule_section():
             self.lignes.pop()
 
-    def finalise_geom(self, typegeom='0', orientation='L'):
+
+    def traite_desordre(self):
+        '''on a des lignes dans le desordre'''
+        a_traiter = self.lignes
+        final = []
+        reste = []
+        suite = True
+        while suite:
+#            print ('traitement', len(a_traiter))
+#            for i in final:
+#                print ('final: debut, fin',i.ppt,i.dpt, i.ferme)
+#            for i in a_traiter:
+#                print ('a_traiter: debut, fin',i.ppt,i.dpt, i.ferme)
+            suite = False
+            reste=[]
+            ligne = a_traiter.pop(0)
+            if ligne.ferme:
+                final.append(ligne)
+            else:
+                reste.append(ligne)
+                for ligne2 in a_traiter:
+                    if ligne.ajout_ligne(ligne2, desordre=True):
+                        suite = True
+                    else:
+                        reste.append(ligne2)
+            a_traiter = reste
+        final.extend(reste)
+        self.lignes = final
+#        for i in self.lignes:
+#            print ('sortie: debut, fin',i.ppt,i.dpt, i.ferme)
+#        print ('geometrie',self.ferme)
+        if reste:
+            print ('ligne orpheline', reste)
+
+
+
+    def finalise_geom(self, type_geom='0', orientation='L', desordre=False):
         '''termine une geometrie et finalise la structure'''
         self.valide = 1
         self.multi = False
@@ -367,7 +406,7 @@ class Geometrie(object):
 
 
         self.null =  not self.coords
-        if typegeom=='0':
+        if type_geom=='0':
             self.type='0'
             self.lignes = []
             self.polygones = []
@@ -382,14 +421,17 @@ class Geometrie(object):
             return True
 
 
-        if typegeom != '2':
+        if type_geom != '2':
+            if desordre:
+                self.traite_desordre()
+                #les lignes peuvent etre en desordre (gestion de la partition)
             if self.ferme:
             # toutes les lignes sont fermees et on autorise des polygones
 #                print( 'finalisation', len(self.lignes))
                 for i in self.lignes:
                     aire = i.aire_orientee()
                     if aire == 0:
-                        self.erreurs.ajout_erreur("contour degénéré "+typegeom)
+                        self.erreurs.ajout_erreur("contour degénéré "+type_geom)
                         self.valide = False
                         return False
                     if orientation == 'R':
@@ -405,9 +447,10 @@ class Geometrie(object):
                             self.erreurs.ajout_warning("interieur")
                     else:
                         self.polygones.append(C.Polygone(i))
+
         if self.lignes:
             self.type = '3' if self.polygones else '2'
-#        print ('fin_geom:type_geom ', self.type, typegeom)
+#        print ('fin_geom:type_geom ', self.type, type_geom)
 #        if typegeom==2:
 #            raise
         if self.type == '2':
@@ -419,14 +462,14 @@ class Geometrie(object):
         self.courbe = True in [bool(i.courbe) for i in self.lignes]
         if self.lignes:
             self.dimension = self.lignes[0].dimension
-        if self .type=='3' and (typegeom == '4' or typegeom=='5'):
-            self.type=typegeom
+        if self .type=='3' and (type_geom == '4' or type_geom=='5'):
+            self.type=type_geom
 
-        elif typegeom != '-1' and typegeom != 'indef' and typegeom != self.type:
-            self.erreurs.ajout_warning("attention geometrie demandee: "+ typegeom +' trouve '+self.type)
-
+        elif type_geom != '-1' and type_geom != 'indef' and type_geom != self.type:
+            self.erreurs.ajout_warning("attention geometrie demandee: "+ type_geom +' trouve '+self.type)
+#            self.valide = 0
+#        print ('fin_geom2:type_geom ', self.type, type_geom)
         return self.valide
-#        print ('fin_geom2:type_geom ', self.type, typegeom)
 
 
     def split_couleur(self, couleurs):
