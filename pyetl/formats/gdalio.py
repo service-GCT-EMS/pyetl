@@ -208,11 +208,13 @@ class GdalWriter(FileWriter):
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' change de classe '''
+        super().changeclasse(schemaclasse, attributs=None)
         self.fichier.close()
         _, classe = schemaclasse.identclasse
         self.layer = classe
         crs = from_epsg(int(self.srid))
         self.schema = schemaclasse
+#        self.liste_att = _set_liste_attributs(schemaclasse, attributs)
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
 #        print ('fiona: reouverture' ,self.nom, self.layer)
         self.fichier = fiona.open(self.nom, 'w', crs=crs, encoding=self.encoding,
@@ -242,7 +244,11 @@ class GdalWriter(FileWriter):
         '''ecrit un objet complet'''
         chaine = self.converter(obj, self.liste_att, self.minmajfunc)
 #        print('gdal:write', chaine)
-        self.fichier.write(chaine)
+        try:
+            self.fichier.write(chaine)
+        except:
+            print ('erreur ecriture', obj.ident, self.liste_att, chaine)
+            raise
         self.stats[self.nom] += 1
         return True
 

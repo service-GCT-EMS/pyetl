@@ -50,9 +50,6 @@ def initparallel(parametres):
     integre_schemas(mainmapper.schemas, schemas)
     mainmapper.parametres_lancement = parametres
     time.sleep(1)
-#    if initpyetl(MAINMAPPER, commandes, args, env=env, log=log):
-##       time.sleep(2)
-#       return (os.getpid(), True)
     return (os.getpid(), True)
 
 

@@ -219,9 +219,9 @@ class Objet(object):
         if geom:
             return '{"type": "feature",\n"id": "'+self.attributs.get("#gid", str(self.ido))+\
                      '",\n"properties": {\n'+atts +'},\n'+geom+'}\n'
-        else:
-            return '{"type": "feature",\n"id": "'+self.attributs.get("#gid", str(self.ido))+\
-                     '",\n"properties": {\n'+atts+'}}\n'
+
+        return '{"type": "feature",\n"id": "'+self.attributs.get("#gid", str(self.ido))+\
+                 '",\n"properties": {\n'+atts+'}}\n'
 
 
     @property
