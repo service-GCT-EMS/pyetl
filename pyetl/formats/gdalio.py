@@ -60,7 +60,7 @@ def recup_schema_fiona(schema_courant, ident, description):
 
 def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     '''cree une description fiona d un schema'''
-    nom_g_s = {'1': 'Point', '2': 'LineString', '3': "Polygon"}
+#    nom_g_s = {'1': 'Point', '2': 'LineString', '3': "Polygon"}
     nom_g_m = {'1': 'Point', '2': "MultiLineString", '3': "MultiPolygon"}
     nom_a = {"texte": "str",
              "entier": "int", "sequence": "int", "entier_long": "str",
@@ -68,8 +68,9 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     description = dict()
     type_geom = sc_classe.info["type_geom"]
     if type_geom > '0':
-        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.info['courbe']
-                    else nom_g_s[type_geom])
+        nom_geom = (nom_g_m[type_geom])
+#        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.info['courbe']
+#                    else nom_g_s[type_geom])
         if sc_classe.info["dimension"] == '3':
             nom_geom = '3D '+ nom_geom
         description['geometry'] = nom_geom
@@ -214,7 +215,6 @@ class GdalWriter(FileWriter):
         self.layer = classe
         crs = from_epsg(int(self.srid))
         self.schema = schemaclasse
-#        self.liste_att = _set_liste_attributs(schemaclasse, attributs)
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
 #        print ('fiona: reouverture' ,self.nom, self.layer)
         self.fichier = fiona.open(self.nom, 'w', crs=crs, encoding=self.encoding,
@@ -236,9 +236,11 @@ class GdalWriter(FileWriter):
         self.fichier.close()
         return
 
+
     def set_liste_att(self, liste_att):
         '''stocke la liste des attributs a sortir'''
         self.liste_att = liste_att
+
 
     def write(self, obj):
         '''ecrit un objet complet'''
@@ -309,10 +311,16 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
 
     if obj.geom_v.type != '0':
 #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
-        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
+#        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
+        obj.geom_v.force_multi = True
 #    print ('gdal: ecriture objet',obj)
 #    print ('gdal: ecriture objet',obj.__geo_interface__)
-    ressource.write(obj, regle.numero)
+    try:
+        ressource.write(obj, regle.numero)
+    except Exception as err:
+        print ('erreur gdal:',err,' ecriture objet',obj.__geo_interface__)
+        raise
+
     if final:
         print('gdal:final', regle.stock_param.liste_fich)
         ressource.finalise()

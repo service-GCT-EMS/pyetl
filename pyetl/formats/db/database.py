@@ -695,30 +695,7 @@ class GenSql(object):
         """creation des indexes"""
         ctr = []
         idx = ['-- ###### creation des indexes #######']
-        # clef primaire:
-#        ctr.append('\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+classe.getpkey+'),')
-        table = groupe+'.'+nom
-        if schemaclasse.haspkey:
-            ctr.append('\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+schemaclasse.getpkey+'),')
-#            print ('pkey', '\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+classe.getpkey+'),')
-        dicindexes = schemaclasse.dicindexes()
-        for type_index in sorted(dicindexes):
-            champs = dicindexes[type_index]
-            print('postgres: definition indexes', schemaclasse.nom, type_index,
-                  '->', champs, schemaclasse.getpkey)
-            if type_index[0] == 'U':
-                ctr.append('\tCONSTRAINT '+table.replace('.', '_')+'_'
-                           +champs.replace(',', '_')+'_key UNIQUE('+champs+'),')
-            elif type_index[0] == 'K':
-                idx.append('CREATE INDEX fki_'+table.replace('.', '_')+'_'
-                           +champs.replace(',', '_')+'_fkey')
-                idx.append('\tON '+table)
-                idx.append('\tUSING btree ('+champs+');')
-            elif type_index[0] == 'I' or type_index[0] == 'X':
-                idx.append('CREATE INDEX idx_'+table.replace('.', '_')+'_'
-                           +champs.replace(',', '_')+'_key')
-                idx.append('\tON '+table)
-                idx.append('\tUSING btree ('+champs+');')
+
         return ctr, idx
 
     def cree_fks(self, ident):
@@ -731,39 +708,7 @@ class GenSql(object):
 
     def cree_triggers(self, classe, groupe, nom):
         ''' cree les triggers '''
-        evs = {'B':'BEFORE ', 'A':'AFTER ', 'I':'INSTEAD '}
-        evs2 = {'I':'INSERT ', 'D':'DELETE ', 'U':'UPDATE ', 'T':'TRUNCATE'}
-        table = groupe+'.'+nom
-        trig = ['-- ###### definition des triggers ####']
-        if self.basic:
-            return trig
-        atts = classe.get_liste_attributs()
-        trig_std = 'auteur' in atts and 'date_maj' in atts and 'date_creation' in atts
-#       for i in atts:
-#           if i.defaut[0:1]=='A:': # definition d'un trigger
-#               liste_triggers[i.nom]=i.defaut[2:]
-        if trig_std:
-            trig.append("CREATE TRIGGER tr_auteur")
-            trig.append("\tBEFORE UPDATE")
-            trig.append("\tON "+table)
-            trig.append("\tFOR EACH ROW")
-            trig.append("\tEXECUTE PROCEDURE admin_sigli.auteur();")
-        liste_triggers = classe.triggers
-        for i in liste_triggers:
-            props = liste_triggers[i].split(',')
-            quand = props[0]
-            event = props[1]
-            r_s = props[2]
-            pars = props[3:]
-
-            trig.append("CREATE TRIGGER "+i)
-            trig.append("\t"+evs[quand]+evs2[event])
-            trig.append("\tON "+table)
-            trig.append("\tFOR EACH "+"ROW" if r_s == 'R' else "STATEMENT")
-            trig.append("\tEXECUTE PROCEDURE admin_sigli."+i+
-                        "("+ ','.join(["'"+j+"'" for j in pars])+");")
-        return trig
-
+        return []
 
     def get_nom_base(self, ident):
         ''' adapte les noms a la base de donnees '''

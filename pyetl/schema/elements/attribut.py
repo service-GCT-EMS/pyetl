@@ -225,6 +225,7 @@ class Attribut(object):
         self.unique = False
         self.def_index = ''
         self.clef_etr = ''
+        self.parametres_clef = ''
         if d_if:
             self.from_dic_if(d_if)
 

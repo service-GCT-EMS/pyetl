@@ -231,12 +231,11 @@ def _get_attributs(connect):
     """recupere les attributs"""
     types_base = connect.types_base
     schema_base = connect.schemabase
+    fields = connect.attdef._fields
     if DEBUG:
         print('ecriture debug:', 'lecture_base_attr_'+connect.type_serveur+'.csv')
         fdebug = open('lecture_base_attr_'+connect.type_serveur+'.csv', 'w')
-        fdebug.write('nom_groupe;nom_classe;nom_attr;alias;type_attr;graphique;multiple;\
-            defaut;obligatoire;enum;dimension;num_attribut;index;unique;clef_primaire;\
-            clef_etrangere;cible_clef;taille;decimales\n')
+        fdebug.write('\n'.join(fields)+'\n')
 
     for i in connect.get_attributs():
         atd = connect.attdef(*i)
@@ -290,13 +289,14 @@ def _get_attributs(connect):
                 index = index+' '+code if index else code
 
         obligatoire = atd.obligatoire == 'oui'
+        parametres_clef = atd.parametres_clef if 'parametres_clef' in fields else ''
 #        if type_attr == 'geometry':
 #            print ('attribut',atd)
         classe.stocke_attribut(atd.nom_attr, type_attr, defaut=atd.defaut,
                                type_attr_base=type_attr_base, taille=taille_att,
                                dec=atd.decimales, force=True, alias=atd.alias,
                                dimension=atd.dimension, clef_etr=clef_etr, ordre=num_attribut,
-                               mode_ordre='a',
+                               mode_ordre='a',parametres_clef=parametres_clef,
                                index=index, unique=atd.unique, obligatoire=obligatoire,
                                multiple=atd.multiple)
 

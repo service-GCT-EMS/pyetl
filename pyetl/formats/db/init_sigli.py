@@ -84,6 +84,8 @@ requetes_sigli["info_fk"] = '''
         ( SELECT a.adsrc
                FROM pg_attrdef a
               WHERE a.adrelid = p.conrelid AND a.adnum = p.conkey[1]) AS defaut
+        'u'||c.confupdtype||',d'||c.confdeltype||',m'||c.confmatchtype||','
+        || (case when c.condeferrable then 'defer' else 'nd' end) as parametres
        FROM pg_constraint c
          LEFT JOIN pg_constraint p ON c.conrelid = p.conrelid AND p.contype = 'p'::"char"
          LEFT JOIN pg_constraint p2 ON c.confrelid = p2.conrelid AND p2.contype = 'p'::"char"
@@ -370,6 +372,9 @@ requetes_sigli["info_attributs"] = '''
             pg_attribute a1
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
                   AND (t4.attnum = ANY (c.conkey)) AND a1.attrelid = c.confrelid AND a1.attnum = c.confkey[1]) AS cible_clef,
+   ( SELECT 'u'||c.confupdtype||',d'||c.confdeltype||',m'||c.confmatchtype||','|| (case when c.condeferrable then 'defer' else 'nd' end)
+          FROM pg_constraint c
+          WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char" AND (t4.attnum = ANY (c.conkey))) as parametres_clef,
     0 as taille,
     0 as decimales
    FROM t4;

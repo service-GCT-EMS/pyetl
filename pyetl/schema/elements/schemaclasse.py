@@ -226,6 +226,16 @@ class SchemaClasse(object):
             return dict()
         return {i:j.clef_etr for i, j in self.attributs.items() if j.clef_etr}
 
+    @property
+    def fkprops(self):
+        '''genere le dictionnaire des proprietes des clefs etrangeres
+            fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut'''
+        if self.basic == 'basic':
+            return dict()
+        return {i:j.parametres_clef for i, j in self.attributs.items() if j.clef_etr}
+
+
+
     def getinfo(self, nom, defaut=''):
         '''recupere une info du schema'''
         return self.info.get(nom, defaut)
@@ -349,8 +359,8 @@ class SchemaClasse(object):
         self.type_table = 'i'
 
     def getfkey(self, attribut):
-        ''' ajoute une clef etrangere a la classe '''
-        return self.attributs[attribut].clef_etr
+        ''' recupere les infos de clef_etrangere '''
+        return self.attributs[attribut].clef_etr, self.attributs[attribut].parametres_clef
 
     def renomme_cible_classe(self, id_classe, nouv_classe):
         """renomme les cibles de clef etrangeres"""
@@ -539,7 +549,7 @@ class SchemaClasse(object):
 
 
 
-    def _gestion_clef_etr(self, attr, clef_etr):
+    def _gestion_clef_etr(self, attr, clef_etr, parametres_clef):
         ''' gere les definitions de clef etrangeres sur les attributs '''
         if not clef_etr:
             return
@@ -547,6 +557,7 @@ class SchemaClasse(object):
             print('schema : detection clef >', clef_etr, '<')
         nom = attr.nom
         attr.clef_etr = clef_etr
+        attr.parametres_clef = parametres_clef
         # on verifie qu'il y a un index
         match = 0
         for ind in self.listindexes.split(' '): # on verifie qu'un index ordinaire matche
@@ -570,13 +581,13 @@ class SchemaClasse(object):
 
 
 
-    def _gestion_index(self, attr, index):
+    def _gestion_index(self, attr, index, parametres_clef):
         '''gere les definitions d'index'''
         if not index:
             return
         if index.startswith("FK:"):
             clef = index[3:]
-            self._gestion_clef_etr(attr, clef)
+            self._gestion_clef_etr(attr, clef, parametres_clef)
             attr.oblig = True
         elif index == 'P' or index == 'PK':
             self.addindex({'P:1':attr.nom})
@@ -727,7 +738,7 @@ class SchemaClasse(object):
         ordre = attr.ordre
         self._gestion_ordre_insertion(attr, ordre)
         self.attributs[nom] = attr
-        self._gestion_index(attr, attr.def_index)
+        self._gestion_index(attr, attr.def_index, attr.parametres_clef)
         self._gestion_type_attribut(attr)
         self.liste_attributs_cache = []
         if nom_court is not None:
@@ -809,6 +820,7 @@ class SchemaClasse(object):
     def stocke_attribut(self, nom, type_attribut, defaut='', type_attr_base='T',
                         force=False, taille=0, dec=0, alias='', ordre=-1, mode_ordre='r',
                         nom_court='', clef_etr='', index='', dimension=0,
+                        parametres_clef='',
                         unique=False, obligatoire=False, multiple='non', nb_conf=0):
         """ stocke un attribut dans un schema """
         attr = None
@@ -870,11 +882,11 @@ class SchemaClasse(object):
 
             if index:
                 attr.index = index
-                self._gestion_index(attr, index)
+                self._gestion_index(attr, index, parametres_clef)
 
             if clef_etr:
                 attr.clef_etr = clef_etr
-                self._gestion_clef_etr(attr, clef_etr)
+                self._gestion_clef_etr(attr, clef_etr, parametres_clef)
 
             if type_attribut:
 #                print ('attribut entree_type', type_attribut)

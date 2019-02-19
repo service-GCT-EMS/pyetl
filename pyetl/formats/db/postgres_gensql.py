@@ -176,8 +176,10 @@ class GenSql(database.GenSql):
         groupe, nom = self.get_nom_base(ident)
         table = groupe+'.'+nom
         fkeys = classe.fkeys
+        fkprops = classe.fkprops
         fks = []
         for i in fkeys:
+            props = fkprops[i]
             deffk = fkeys[i].split(".")
 #            print('%-40s clef fk:'%(nom), nom+'.'+i, '->', deffk)
             idfk = (deffk[0], deffk[1])
@@ -189,12 +191,20 @@ class GenSql(database.GenSql):
                     continue
             if not fks:
                 fks.append('-- ###### definition des clefs etrangeres ####')
-            fks.append('ALTER TABLE '+table)
+            fks.append('ALTER TABLE IF EXISTS '+table)
+            fks.append('\tDROP CONSTRAINT IF EXISTS '+ nom+'_'+i+';')
+            fks.append('ALTER TABLE IF EXISTS '+table)
             fks.append('\tADD CONSTRAINT '+ nom+'_'+i+'_fkey FOREIGN KEY ('+i+')')
             fks.append('\t\tREFERENCES '+deffk[0].replace('FK:', '')+'.'+
-                       deffk[1]+' ('+deffk[2]+') MATCH FULL')
-            fks.append('''\t\tON UPDATE CASCADE ON DELETE CASCADE
-                       DEFERRABLE INITIALLY DEFERRED;''')
+                       deffk[1]+' ('+deffk[2]+') '+
+                       ('MATCH FULL' if 'mf' in props else 'MATCH SIMPLE'))
+            fks.append('\t\tON UPDATE CASCADE' if 'uc' in props
+                       else '\t\tON UPDATE NO ACTION')
+            fks.append('\t\tON DELETE CASCADE' if 'dc' in props
+                       else '\t\tON DELETE NO ACTION')
+            fks.append('\t\tDEFERRABLE INITIALLY DEFERRED; ' if 'defer' in props
+                       else '\t\tNOT DEFERRABLE;')
+
         return fks
 
     def cree_comments(self, classe, groupe, nom):

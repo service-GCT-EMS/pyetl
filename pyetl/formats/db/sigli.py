@@ -6,6 +6,7 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees
 """
 from . import postgis
+#from .init_sigli import requetes_sigli as REQS
 #from . import database
 
 SCHEMA_ADM = "admin_sigli"
@@ -43,13 +44,13 @@ class SgConnect(postgis.PgConnect):
         ''' recupere la description de toutes les enums depuis la base de donnees '''
         return 'SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums', None
 
-    @property
-    def req_attributs(self):
-        '''recupere le schema complet'''
-        return 'SELECT nomschema,nomtable,attribut,alias,type_attribut,graphique,\
-                multiple,defaut,obligatoire,\
-            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef,0,0 \
-            FROM admin_sigli.info_attributs order by nomschema,nomtable,num_attribut', None
+#    @property
+#    def req_attributs(self):
+#        '''recupere le schema complet'''
+#        return 'SELECT nomschema,nomtable,attribut,alias,type_attribut,graphique,\
+#                multiple,defaut,obligatoire,\
+#            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef,0,0 \
+#            FROM admin_sigli.info_attributs order by nomschema,nomtable,num_attribut', None
 
 
     def spec_def_vues(self):

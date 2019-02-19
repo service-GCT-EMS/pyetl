@@ -9,6 +9,7 @@ import os
 #import re
 import subprocess
 import re
+from collections import namedtuple
 from . import database
 from .postgres_gensql import GenSql
 from .init_sigli import requetes_sigli as REQS
@@ -111,7 +112,11 @@ class PgConnect(database.DbConnect):
             self.set_searchpath()
             self.valide = True
         self.dialecte = 'postgres'
-
+        self.attdef = namedtuple("attdef",
+                            ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
+                             'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
+                             'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
+                             'clef_etrangere', 'cible_clef','parametres_clef', 'taille', 'decimales'))
 
     def set_searchpath(self):
         '''positionne les path pour la session'''
@@ -280,7 +285,7 @@ class PgConnect(database.DbConnect):
                         ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
                          'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
                          'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
-                         'clef_etrangere', 'cible_clef', 'taille', 'decimales'))
+                         'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
     '''
         requete, data = self.req_attributs
         attributs = self.request(requete, data)
@@ -303,8 +308,8 @@ class PgConnect(database.DbConnect):
                     if len(tmp2) == 2 and tmp2[1].isnumeric():
                         dec = int(tmp2[1])
 #                    print ('detection taille ',i[4],taille,dec)
-            tmp0[17] = taille
-            tmp0[18] = dec
+            tmp0[18] = taille
+            tmp0[19] = dec
             retour.append(tmp0)
 #            if taille != 0:
 #                print ('attributs pg',i)

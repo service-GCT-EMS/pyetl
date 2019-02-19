@@ -14,7 +14,7 @@ class ObjStore(object):
         self.schema = schema
         self.data = dict()
         self.strlist = schema.liste_attributs()
-        struct = self.strlist[:]
+        struct = ['n_'+i for i in self.strlist] #pour avoir des noms valides
         struct.append('geometrie')
         self.structure = namedtuple(nom, struct)
         self.key = clef

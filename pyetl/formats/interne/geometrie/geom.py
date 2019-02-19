@@ -144,11 +144,12 @@ class Geometrie(object):
                 }
 
         elif self.type == '3':
-            if not self.polygones:
-                return  {'type': 'Polygon', 'coordinates': ()}
+
             multi=self.force_multi or self.multi or len(self.polygones)>1
 
             if multi:
+                if not self.polygones:
+                    return  {'type': 'MultiPolygon', 'coordinates': ()}
                 polys=[]
                 for poly in self.polygones:
                     rings=[]
@@ -162,6 +163,8 @@ class Geometrie(object):
                         'coordinates': tuple(polys)
                         }
             else:
+                if not self.polygones:
+                    return  {'type': 'Polygon', 'coordinates': ()}
                 rings=[]
 #                print ('geoif pol',len(self.polygones[0].lignes))
                 for ligne in self.polygones[0].lignes:
