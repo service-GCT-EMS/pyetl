@@ -492,6 +492,8 @@ def prepare_regle(regle, valeurs):
             print(regle.stock_param.nompyetl, regle.stock_param.idpyetl, regle.valide,
                   '------>regle sans fonction', regle.numero)
             morceaux = regle.ligne.replace("\n", "").split(";")
+            if len(morceaux)<8:
+                morceaux = morceaux+['']*8
             morceaux[7] = "???"
             print('                ------>', ";".join(morceaux))
 #            print('decodage champs', ' '.join([i+'->'+j for i, j in regle.v_nommees.items()]))
@@ -763,8 +765,8 @@ def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bl
 #                print ('interp regle',i,erreurs)
     except SyntaxError:
 #        print( 'syntaxerror ',r_cour)
-        erreurs = 1
-        raise
+        return bloc, 1
+#        raise
 #            print ('icsv:traitement ligne ',i[:-1], r_cour)
 #            print ('retour',r_cour)
     if r_cour is None:

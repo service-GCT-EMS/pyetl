@@ -529,6 +529,21 @@ class Pyetl(object):
             self.stream = 2
 #        print('---------pyetl : mode sortie', self.stream, self.get_param("mode_sortie"))
 
+    def valide_ulist(self, val, master, grouplist):
+        ''' valide les autorisations par utilisateur'''
+        if val.endswith(')#'): # il y a des utilisateurs
+            ddv = val.index('#(')
+            if ddv:
+                ulist = val[ddv+2:-2].split(',')
+                if master or self.username in ulist or any([i in ulist for i in grouplist]):
+                    return val[:ddv]
+#                    print ('decode', ulist,val)
+                else:
+                    return None
+        return val
+
+
+
 
     def _charge_site_params(self, origine):
         ''' charge des definitions de variables liees au site '''
@@ -569,20 +584,25 @@ class Pyetl(object):
         keyname = self.get_param('cryptokeyname', 'defaultkey')
         key = self.get_param(keyname)
         masterkey = self.get_param('masterkey',key)
+        if masterkey:
+            masterkey=self.decrypt(masterkey)
         userkey = self.get_param('userkey')
         usergroup = self.get_param('usergroup')
+        grouplist=[]
         master = False
         if masterkey:
             master = True
             userkey = self.decrypt(userkey, key=masterkey)
         else:
-            userkey = self.get_param('key_'+self.username, userkey)
-            userkey = self.decrypt(userkey, key=self.username)
-            usergroup = self.decrypt(userkey, key=userkey)
-            if usergroup == self.get_param('usergroup'):
-                usergroup = None
+            userkey = self.decrypt(userkey, key='key_'+self.username)
+            grouplist = self.decrypt(usergroup, key='key_'+self.username)
+            if grouplist == usergroup:
+                grouplist=[]
+            else:
+                grouplist = grouplist.split(',')
 
 #        print ('clef', masterkey, 'master', master, 'user',userkey)
+        supr = set()
         for nom in self.site_params:
             for numero, parametre in enumerate(self.site_params[nom]):
                 nom_p, val = parametre
@@ -592,17 +612,10 @@ class Pyetl(object):
 #                    print ('decryptage ', nom_p, val2)
                     if val2 == val:
                         val2 = self.decrypt(val, key=userkey)
+                    val = self.valide_ulist(val2, master, grouplist)
                     val = val2
-                    if val.startswith('#['): # il y a des utilisateurs
-                        ddv = val.index(']#')
-                        if ddv:
-                            ulist = val[2:ddv].split(',')
-
-                            if master or self.username in ulist or usergroup in ulist:
-                                val = val[ddv+2:]
-#                                print ('decode', ulist,val)
-                            else:
-                                val=''
+                    if val is None:
+                        supr.add(nom)
                     self.site_params[nom][numero] = (nom_p, val)
 
 
@@ -1147,8 +1160,9 @@ class Pyetl(object):
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         self.f_entree = Reader(ext)
-        regle = self.regles[reglenum] if regle is None else regle
+        regle = self.regles[reglenum] if regle is None and reglenum>0 else regle
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
+        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)

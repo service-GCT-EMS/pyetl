@@ -62,9 +62,10 @@ def f_setval(regle, obj):
        #test1||obj||^V4;;C1;set||atv;V4;A
        #test2||obj||^V4;1;X;set||atv;V4;1
     '''
-    regle.fstore(regle.params.att_sortie, obj,
-                 obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val))
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 obj.attributs.get(regle.params.att_entree.val,
+#                                   regle.params.val_entree.val))
+    regle.setval_sortie(obj, regle.getval_entree(obj))
     return True
 
 
@@ -316,6 +317,7 @@ def h_asplit(regle):
     f_fin = None
     tmp = []
     nbres = len(regle.params.att_sortie.liste)-1
+    regle.multi = nbres == -1
     if nbres == 0:
         nbres = 1
     sep = regle.params.cmp1.val
@@ -328,21 +330,32 @@ def h_asplit(regle):
         f_fin = tmp[1]
     regle.defcible = slice(int(f_debut) if f_debut else None, int(f_fin) if f_fin else None)
     nbdecoup = nbres+(int(f_debut) if f_debut else 0)
-#    print ('cible decoupage',regle.defcible, nbdecoup,regle.params.att_sortie.liste)
+#    print ('cible decoupage',regle.defcible, nbdecoup,regle.params.att_sortie.liste, regle.multi)
     regle.sep = sep
     regle.nbdecoup = nbdecoup
 
 
+
 def f_asplit(regle, obj):
     '''#aide||decoupage d'un attribut en fonction d'un separateur
-       #pattern||M;?;A;split;.;?N:N
+       #pattern||M;?;A;split;.;?N:N||sortie
+       #pattern2||;?;A;split;.;?N:N||sortie
        #test1||obj||^V4;a:b:c:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;c
        '''
+    if regle.multi:
+        elems = obj.attributs.get(regle.params.att_entree.val,
+                                   regle.params.val_entree.val).split(regle.sep)[regle.defcible]
+        obj.attributs[regle.params.att_entree.val] = elems[0]
+        for i in elems[1:]:
+            obj2 = obj.dupplique()
+            obj2.attributs[regle.params.att_entree.val] = i
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
 
-    regle.fstore(regle.params.att_sortie, obj,
-                 obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val).split
-                 (regle.sep, regle.nbdecoup)[regle.defcible])
+    else:
+        regle.fstore(regle.params.att_sortie, obj,
+                     obj.attributs.get(regle.params.att_entree.val,
+                                       regle.params.val_entree.val).split
+                     (regle.sep, regle.nbdecoup)[regle.defcible])
     return True
 
 
@@ -363,8 +376,10 @@ def f_crypt(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     '''
+    clef = obj.attributs.get(regle.params.cmp1.origine,'')\
+        if regle.params.cmp1.dyn else regle.params.cmp1.val
     val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    crypte = regle.stock_param.crypter(val, regle.params.cmp1.val)
+    crypte = regle.stock_param.crypter(val, clef )
 #    print ('dans crypte',val,regle.params.cmp1.val,'--->',crypte)
     obj.attributs[regle.params.att_sortie.val] = crypte
     return True
@@ -375,9 +390,12 @@ def f_decrypt(regle, obj):
     #pattern||A;?;A;decrypt;C?;
     #schema||ajout_attribut
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
+
     '''
+    clef = obj.attributs.get(regle.params.cmp1.origine,'')\
+        if regle.params.cmp1.dyn else regle.params.cmp1.val
     val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-    decrypte = regle.stock_param.decrypt(val, regle.params.cmp1.val)
+    decrypte = regle.stock_param.decrypt(val, clef)
     obj.attributs[regle.params.att_sortie.val] = decrypte
     return True
 

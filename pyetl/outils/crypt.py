@@ -152,12 +152,17 @@ class HcubeCrypter(Crypter):
 #            print(" crypt2", bloc,"->",bloc_crypt,"<-")
             retour = retour+bloc_crypt
         crypted = base64.b32encode(bytes(retour))
-        return ''.join(chr(i) for i in crypted)
+        cryptstr = ''.join(chr(i) for i in crypted)
+        if not cryptstr.endswith('='):
+            cryptstr = cryptstr+ '='
+        return cryptstr
 
     def decrypt(self, val):
         """decryptage"""
         if not val or not self.key:
             return val
+        if len(val)%8 == 1: # on a fait du padding maison
+            val=val[:-1]
         crypted = base64.b32decode(val)
         retour = bytes()
         clef = 0
@@ -190,6 +195,14 @@ def descramble(mapper, key):
     if key.endswith('='):
         return base64.b32decode(key).decode('utf-8')
     return key
+
+def scramble(mapper, key):
+    ''' planque la clef d'origine'''
+
+    if key.endswith('='):
+        return key
+    binlist = bytes([i for i in key.encode("utf-8")])
+    return base64.b32encode(binlist)
 
 
 def cryptinit(mapper, key, level):
@@ -228,9 +241,11 @@ def decrypt(mapper, val, key=None, level=None):
 
 
 def crypter(mapper, val, key=None, level=None):
-    '''decrypte les mots de passe'''
-    print ('dans cryptage ',val,key,level)
+    '''crypte les mots de passe ou tout ce qu'on veur crypter...'''
+#    print ('dans cryptage ',val,key,level)
     key = descramble(mapper, key)
+    if not key:
+        return scramble(val)
     if key not in CRYPTOCLASS:
         cryptinit(mapper, key, level)
     return CRYPTOCLASS[key].crypt(val)

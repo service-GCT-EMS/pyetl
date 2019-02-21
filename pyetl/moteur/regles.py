@@ -8,6 +8,7 @@ import re
 import os
 import copy
 import logging
+from itertools import zip_longest
 #from collections import namedtuple
 import pyetl.schema.schema_interne as SC
 import pyetl.schema.fonctions_schema as FSC
@@ -74,7 +75,7 @@ class Valdef(object):
         self.liste = liste
         self.dyn = dyn
         self.definition = definition
-        self.besoin = None
+#        self.besoin = None
         self.origine = origine
         self.texte = texte
 
@@ -102,7 +103,7 @@ class ParametresFonction(object):
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
 
-    def _crent(self, nom, taille=0, besoin=None):
+    def _crent(self, nom, taille=0):
         '''extrait les infos de l'entite selectionnee'''
 #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
         val = ''
@@ -286,6 +287,25 @@ class RegleTraitement(object): # regle de mapping
             return
         self.stock_param.set_param(nom, valeur)
 #        print(' setvar', nom, valeur,loc)
+# =========================acces standardises aux objets==================
+    def getval_entree(self, obj):
+        '''acces standadise a la valeur d'entree valeur avec defaut'''
+        return obj.attributs.get(self.params.att_entree.val, self.params.val_entree.val)
+
+    def getlist_entree1(self, obj):
+        '''acces standadise a la liste d'entree valeur avec defaut'''
+        return [obj.attributs.get(i, self.params.val_entree.val)
+                for i in self.params.att_entree.liste]
+
+    def getlist_entree2(self, obj):
+        '''acces standadise a la liste d'entree valeur avec defaut en liste'''
+        return [obj.attributs.get(i, self.params.val_entree.val)
+                for i,j in zip_longest(self.params.att_entree.liste,
+                               self.params.val_entree.liste)]
+
+    def setval_sortie(self, obj, valeurs):
+        '''stockage standardise'''
+        self.fstore(self.params.att_sortie, obj, valeurs)
 
 
     def affiche(self, origine=''):
