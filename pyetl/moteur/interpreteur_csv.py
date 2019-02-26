@@ -26,7 +26,7 @@ NOMS_CHAMPS_N = ['sel1', 'val_sel1', 'sel2', 'val_sel2',
 # quelques fonction générales
 def fdebug(regle, obj):
     '''gestion des affichages de debug'''
-    print ('dans debug', regle, obj)
+#    print('dans debug', regle, obj)
     if regle.debug and obj:
         regle.debug = regle.debug-1
         regle.affiche('------debug------>')
@@ -47,7 +47,7 @@ def fdebug(regle, obj):
             print('copy :  ->', liens_num["copy"], regle.branchements.brch['copy'])
 
     else:
-        print ('debug: non affichage ', regle, obj)
+#        print('debug: non affichage ', regle, obj)
         succes = regle.f_init(regle, obj)
     return succes
 # =======================================selecteurs============================
@@ -497,7 +497,7 @@ def prepare_regle(regle, valeurs):
             print(regle.stock_param.nompyetl, regle.stock_param.idpyetl, regle.valide,
                   '------>regle sans fonction', regle.numero)
             morceaux = regle.ligne.replace("\n", "").split(";")
-            if len(morceaux)<8:
+            if len(morceaux) < 8:
                 morceaux = morceaux+['']*8
             morceaux[7] = "???"
             print('                ------>', ";".join(morceaux))

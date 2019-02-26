@@ -162,7 +162,7 @@ class HcubeCrypter(Crypter):
         if not val or not self.key:
             return val
         if len(val)%8 == 1: # on a fait du padding maison
-            val=val[:-1]
+            val = val[:-1]
         crypted = base64.b32decode(val)
         retour = bytes()
         clef = 0
@@ -245,7 +245,7 @@ def crypter(mapper, val, key=None, level=None):
 #    print ('dans cryptage ',val,key,level)
     key = descramble(mapper, key)
     if not key:
-        return scramble(val)
+        return scramble(mapper, val)
     if key not in CRYPTOCLASS:
         cryptinit(mapper, key, level)
     return CRYPTOCLASS[key].crypt(val)

@@ -296,7 +296,7 @@ def _get_attributs(connect):
                                type_attr_base=type_attr_base, taille=taille_att,
                                dec=atd.decimales, force=True, alias=atd.alias,
                                dimension=atd.dimension, clef_etr=clef_etr, ordre=num_attribut,
-                               mode_ordre='a',parametres_clef=parametres_clef,
+                               mode_ordre='a', parametres_clef=parametres_clef,
                                index=index, unique=atd.unique, obligatoire=obligatoire,
                                multiple=atd.multiple)
 
@@ -663,17 +663,16 @@ def recup_schema(regle_courante, base, niveau, classe, nom_schema='',
         print('erreur de connection a la base', base, niveau, classe)
     return (None, None, None, None)
 
-def lire_table(ident, regle=None, reglenum=0, parms=None):
+def lire_table(ident, regle_courante, parms=None):
     """lecture directe"""
     if ident is None:
         return 0
     niveau, classe = ident
     base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base,\
     chemin, reqdict, maxobj = parms
-    regle_courante = MAINMAPPER.regles[reglenum] if regle is None else regle
     connect, schema_base, schema_travail, liste_tables =\
-    recup_schema(regle_courante, base, niveau, classe,
-                 type_base=type_base, chemin=chemin, mods=mods)
+        recup_schema(regle_courante, base, niveau, classe,
+                     type_base=type_base, chemin=chemin, mods=mods)
 
 
     schema_classe_base = schema_base.get_classe(ident)

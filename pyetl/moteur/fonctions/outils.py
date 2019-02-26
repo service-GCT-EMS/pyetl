@@ -197,6 +197,7 @@ def objloader(regle, obj):
                 if abort.args[0] == '2':
                     continue
                 raise
+#    print("lecture",nb_lu)
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
     return True

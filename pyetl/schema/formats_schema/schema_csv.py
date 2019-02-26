@@ -274,7 +274,7 @@ def _toint(val):
 def _decode_attribut_csv(liste):
     ''' decode un attribut en csv et en fait un dictionnaire '''
     noms = ['nom_attr', 'alias', 'type', 'graphique', 'multiple', 'defaut', 'obligatoire',
-            'conformite', 'dimension', 'taille', 'decimales', 'nom_court','fin','index','fkdef']
+            'conformite', 'dimension', 'taille', 'decimales', 'nom_court', 'fin', 'index', 'fkdef']
     att_dict = dict(zip(noms, liste[2:17]))
     ll_tmp = att_dict[type].split(':')
     if len(ll_tmp) > 1:

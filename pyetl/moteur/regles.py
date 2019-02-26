@@ -6,7 +6,6 @@ Created on Fri Dec 11 14:34:04 2015
 """
 import re
 import os
-import copy
 import logging
 from itertools import zip_longest
 #from collections import namedtuple
@@ -28,6 +27,9 @@ class Branch(object):
     def __init__(self):
         self.brch = {'ok': None, 'sinon': None, 'fail': None, 'next': None, 'gen': None}
         self.suivante = False
+
+    def __repr__(self):
+        return self.liens_num().__repr__()
 
     def setlink(self, lien):
         '''positionne les liens'''
@@ -87,6 +89,7 @@ class Valdef(object):
         return self.texte+'->'+str(self.val)
 
 
+
 class ParametresFonction(object):
     ''' stockage des parametres standanrds des regles '''
 #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
@@ -103,6 +106,7 @@ class ParametresFonction(object):
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
         self.fstore = None
+        self.att_ref = None
 
     def _crent(self, nom, taille=0):
         '''extrait les infos de l'entite selectionnee'''
@@ -243,7 +247,8 @@ class RegleTraitement(object): # regle de mapping
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
-            return str(self.numero)+':'+(self.ligne[:-1] if self.ligne.endswith('\n') else self.ligne)
+            return str(self.numero)+':'+(self.ligne[:-1]\
+                   if self.ligne.endswith('\n') else self.ligne)
         return 'regle vide'
 
 
@@ -309,7 +314,8 @@ class RegleTraitement(object): # regle de mapping
 
     def getlist_ref(self, obj):
         '''acces standadise a la liste d'entree valeur avec defaut en liste'''
-        return [obj.attributs.get(i, j) for i, j in zip_longest(self.params.att_ref.liste,
+        return [obj.attributs.get(i, j)
+                for i, j in zip_longest(self.params.att_ref.liste,
                                         self.params.val_entree.liste)]
 
 
@@ -325,7 +331,7 @@ class RegleTraitement(object): # regle de mapping
 
     def process_val(self, obj, fonction):
         '''applique une fonction a un attribut'''
-        self.fstore(self.params.att_sortie, obj, fonction(self.getval_entree(self, obj)))
+        self.fstore(self.params.att_sortie, obj, fonction(self.getval_entree(obj)))
 
 #    def process_list_inplace(self, obj, fonction):
 #        '''applique une fonction a une liste d'attributs'''

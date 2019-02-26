@@ -666,18 +666,18 @@ def f_csplit(regle, obj):
         valide = False
         geom = obj.geom_v
         obj.geom_v = None
-        np = 0
+        npt = 0
         att_sortie = regle.params.att_sortie.val
         for point in geom.coords:
             if regle.selcoords(*point[:3]):
-                np+=1
+                npt += 1
                 obj2 = obj.dupplique()
                 obj2.setnogeom(tmp=True)
                 obj2.geom_v.setpoint(point, 0, geom.dimension)
                 obj2.finalise_geom()
                 obj2.infogeom()
                 if att_sortie:
-                    obj2.attributs[att_sortie] = str(np)
+                    obj2.attributs[att_sortie] = str(npt)
                 regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
                 valide = True
         obj.geom_v = geom
@@ -698,14 +698,14 @@ def f_splitgeom(regle, obj):
         geom = obj.geom_v
         obj.geom_v = None
         att_sortie = regle.params.att_sortie.val
-        for np,point in enumerate(geom.coords):
+        for npt, point in enumerate(geom.coords):
             obj2 = obj.dupplique()
             obj2.setnogeom(tmp=True)
             obj2.geom_v.setpoint(point, 0, geom.dimension)
             obj2.finalise_geom()
             obj2.infogeom()
             if att_sortie:
-                obj2.attributs[att_sortie] = str(np)
+                obj2.attributs[att_sortie] = str(npt)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
         obj.geom_v = geom
         return True

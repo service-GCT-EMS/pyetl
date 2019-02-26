@@ -6,7 +6,7 @@ Created on Tue Jan 15 13:47:55 2019
 """
 #import logging
 
-VERSION = "0.8.2.3"
+VERSION = "0.8.2.3d"
 # version de developpement 21/2/2019
 #LOGGER = logging.getLogger('pyetl') # un logger
 MAINMAPPER = None

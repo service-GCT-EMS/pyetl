@@ -579,16 +579,17 @@ class Pyetl(object):
 
 
     def _paramdecrypter(self): # decrypte les parametres cryptes
-        """decrypte d'eventuels parametres cryptes gere 2 clefs une clef maitre et une clef utilisateur"""
+        """decrypte d'eventuels parametres cryptes
+           gere 2 clefs une clef maitre et une clef utilisateur"""
 #        print ('decryptage parametres',self.parms['cryptokey'])
         keyname = self.get_param('cryptokeyname', 'defaultkey')
         key = self.get_param(keyname)
-        masterkey = self.get_param('masterkey',key)
+        masterkey = self.get_param('masterkey', key)
         if masterkey:
-            masterkey=self.decrypt(masterkey)
+            masterkey = self.decrypt(masterkey)
         userkey = self.get_param('userkey')
         usergroup = self.get_param('usergroup')
-        grouplist=[]
+        grouplist = []
         master = False
         if masterkey:
             master = True
@@ -597,7 +598,7 @@ class Pyetl(object):
             userkey = self.decrypt(userkey, key='key_'+self.username)
             grouplist = self.decrypt(usergroup, key='key_'+self.username)
             if grouplist == usergroup:
-                grouplist=[]
+                grouplist = []
             else:
                 grouplist = grouplist.split(',')
 
@@ -838,7 +839,7 @@ class Pyetl(object):
     def _finalise_sorties(self):
         ''' vide les tuyeaux et renseigne les stats'''
         if self.sorties:
-            nb_fichs, nb_total  = self.sorties.final()
+            nb_fichs, nb_total = self.sorties.final()
             self.padd('_st_wr_fichs', nb_fichs)
             self.padd('_st_wr_objs', nb_total)
         if self.moteur:
@@ -1160,7 +1161,7 @@ class Pyetl(object):
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         self.f_entree = Reader(ext)
-        regle = self.regles[reglenum] if regle is None and reglenum>0 else regle
+        regle = self.regles[reglenum] if regle is None and reglenum > 0 else regle
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
 #        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:

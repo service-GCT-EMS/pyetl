@@ -38,8 +38,8 @@ def print_help(mapper, nom):
                     for i in variante.description.get("#aide_spec", [""])[1:]:
                         print("%-20s: %s" % ('', i))
                 for i in sorted(variante.description):
-                    pn = variante.patternnum
-                    if "#aide_spec"+pn in i and i != "#aide_spec":
+                    pnum = variante.patternnum
+                    if "#aide_spec"+pnum in i and i != "#aide_spec":
                         print("%-20s: %s" % ("", variante.description.get(i)[0]))
 
         elif nom == 'selecteurs':

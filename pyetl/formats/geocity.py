@@ -16,8 +16,8 @@
 import math as M
 import os
 import logging
-from .interne.objet import Objet
 from pyetl.schema.fonctions_schema import valide_dates
+from .interne.objet import Objet
 LOGGER = logging.getLogger('pyetl')
 
 
@@ -219,7 +219,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
         return obj_ouvert, attsup
 
     elif tk1 == "4":    # noeud surfacique
-        obj.schema.info['type_geom']= '3'
+        obj.schema.info['type_geom'] = '3'
         obj.attributs['#type_geom'] = '3'
         obj.attributs["#type_reseau"] = "noeud"
     return obj_ouvert, attsup
@@ -334,11 +334,11 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
             if ouvert.read(1) != '|': # fichier non geocity
                 return n_obj
         except IOError as err:
-            print ('erreur de lecture du fichier ', entree, err)
+            print('erreur de lecture du fichier ', entree, err)
             return n_obj
 
         except UnicodeError  as err:
-            print ("erreur d'encodage",entree, err)
+            print("erreur d'encodage", entree, err)
             return n_obj
         iter_gy = gyr(ouvert)
         unit = 1000.
@@ -387,7 +387,7 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                         val_attr = next(iter_gy)
                         #####debug####self.logger.log("attrib " + i +":"+ at ,0)
 
-                        if obj.schema.attributs[i].type_att=='D': # traitement des dates
+                        if obj.schema.attributs[i].type_att == 'D': # traitement des dates
 #                            print( 'detecte date', val_attr)
                             err, val_attr = valide_dates(val_attr, 'in')
                         obj.attributs[i] = val_attr  # stockage des attributs
@@ -518,11 +518,11 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
                     else: # c'est un polygone complexe
                         obj.geom_v.fin_section(couleur, 0)
                 elif val == 'FG':
-                    obj.finalise_geom(type_geom=type_geom, desordre=mode=='P')
+                    obj.finalise_geom(type_geom=type_geom, desordre=mode == 'P')
 #                    print ('erreur geometrique', obj.__geo_interface__)
 
                     if not obj.geom_v.valide:
-                        print ('erreur geometrique', obj.attributs.get('#erreurs_geometriques'))
+                        print('erreur geometrique', obj.attributs.get('#erreurs_geometriques'))
 
 #                    print ('finalisation',classe, type_geom)
                     if obj.schema.amodifier(regle):

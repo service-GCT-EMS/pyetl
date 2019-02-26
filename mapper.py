@@ -3,8 +3,9 @@
 prise en charge des expressions regulieres'''
 import time
 import sys
-starttime = time.time()
 from pyetl.pyetl import runpyetl, VERSION
+STARTTIME = time.time()
+
 #print ('mapper: fin import modules',int(time.time()-t1))
 #import cProfile as profile
 #---------------debut programme ---------------
@@ -29,7 +30,7 @@ def main():
     else:
         mapping = sys.argv[1]
         runpyetl(mapping, sys.argv[2:])
-        print ('temps total %.2f secondes' % (time.time()-starttime))
+        print('temps total %.2f secondes' % (time.time()-STARTTIME))
 
 
 #profile.run('main()','schemamapper.profile')
@@ -39,4 +40,3 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     main()
-

@@ -241,7 +241,8 @@ class Objet(object):
             self.geom_v.multi = sch.multigeom
             for i in liste:
                 if i in sch.attributs and sch.attributs[i].type_att == 'D':
-                    attributs[i] = self.attributs[i].replace('/', '-') if self.attributs.get(i) else None
+                    attributs[i] = self.attributs[i].replace('/', '-')\
+                                   if self.attributs.get(i) else None
 #                    .replace(' ', 'T')'Z' if self.attributs.get(i) else None
                 else:
                     attributs[i] = self.attributs.get(i, '')

@@ -168,7 +168,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode='util'):
             nbclasses += 1
             for classe in groupes[groupe]:
                 description.append(_sortir_schema_classe_xml(sch.classes[(groupe, classe)],
-                                                            mode=mode))
+                                                             mode=mode))
             description.append("</classes>")
             description.append("</schema>")
         description.append("</schemas>")
@@ -242,6 +242,3 @@ def copier_xsl(rep):
 #    print(" copie fichier ", xslref)
     with ZipFile(xslref) as xsl:
         xsl.extractall(path=os.path.join(rep, 'xsl'))
-
-
-

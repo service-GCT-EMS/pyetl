@@ -188,13 +188,13 @@ class FonctionTraitement(object):
     def subfonc(self, nom, fonction, description, definition,
                 groupe_sortie, clef_sec, style):
         ''' sous fonction : fait partie du meme groupe mais accepte des attributs differents'''
-        pn = description['pn']
-        if not '#aide_spec'+pn in description:
+        pnum = description['pn']
+        if not '#aide_spec'+pnum in description:
             description['#aide_spec'] = description.get('#aide')
         tsubfonc = FonctionTraitement(nom, fonction, description, definition)
         tsubfonc.groupe_sortie = groupe_sortie
         tsubfonc.style = style
-        tsubfonc.patternnum = pn
+        tsubfonc.patternnum = pnum
         priorite = 99
         if clef_sec:
             priorite = tsubfonc.definition[clef_sec].priorite
@@ -248,7 +248,7 @@ def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
         if '#pattern' in i:
             style = "C" if "C" in i else "N"
             description["#pattern"] = description_fonction[i]
-            description["pn"] = i.replace('#pattern','')
+            description["pn"] = i.replace('#pattern', '')
 #                        print ('enregistrement',nom[2:],desc["#pattern"])
 
             descr = description.get('#pattern', [""])

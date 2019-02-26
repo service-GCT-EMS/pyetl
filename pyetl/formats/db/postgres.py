@@ -113,10 +113,11 @@ class PgConnect(database.DbConnect):
             self.valide = True
         self.dialecte = 'postgres'
         self.attdef = namedtuple("attdef",
-                            ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
-                             'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
-                             'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
-                             'clef_etrangere', 'cible_clef','parametres_clef', 'taille', 'decimales'))
+                                 ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
+                                  'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
+                                  'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
+                                  'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille',
+                                  'decimales'))
 
     def set_searchpath(self):
         '''positionne les path pour la session'''

@@ -563,7 +563,8 @@ def f_fileloader(regle, obj):
    #pattern2||?A;?C;?A;charge;[A];?N
      #schema||ajout_attribut
        #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-      #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||^;;;pass;;||atv;NB;4
+      #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
+            ||atv;NB;8
     '''
     if obj.attributs.get('#categorie') == 'traitement_virtuel':
         return True
@@ -670,11 +671,13 @@ def h_filter(regle):
     regle.branchements.addsortie('#autre')
     regle.branchements.addsortie('#blanc')
     regle.branchements.addsortie('#vide')
+#    print("filtre", regle.liste_sortie)
     return True
 
 
 def f_filter(regle, obj):
     '''#aide||filtre en fonction d un attribut
+  #aide_spec||sortie;defaut;attribut;filter;liste sorties;liste valeurs
     #pattern||?S;?C;A;filter;LC;?LC
        #test||obj||^WW;;C1;filter;A,B,C||+A:;;;;X;1;;~set||+B:;;;;X;2;;~set||atv;X;1
       #test2||obj||^WW;;C1;filter;A,B,C;1,2,3||+1:;;;;X;1;;~set||atv;X;1
@@ -698,7 +701,8 @@ def f_filter(regle, obj):
 
     if regle.fstore:
         regle.fstore(regle.params.att_sortie, obj, obj.redirect)
-    obj.redirect = obj.redirect+':'
+#    obj.redirect = obj.redirect+':'
+#    print("redirect", obj.redirect, regle.branchements)
     return True
 
 def h_idle(regle):

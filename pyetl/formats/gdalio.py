@@ -249,7 +249,7 @@ class GdalWriter(FileWriter):
         try:
             self.fichier.write(chaine)
         except:
-            print ('erreur ecriture', obj.ident, self.liste_att, chaine)
+            print('erreur ecriture', obj.ident, self.liste_att, chaine)
             raise
         self.stats[self.nom] += 1
         return True
@@ -318,7 +318,7 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
     try:
         ressource.write(obj, regle.numero)
     except Exception as err:
-        print ('erreur gdal:',err,' ecriture objet',obj.__geo_interface__)
+        print('erreur gdal:', err, ' ecriture objet', obj.__geo_interface__)
         raise
 
     if final:

@@ -9,9 +9,11 @@ import re
 import os
 import logging
 import pyetl.schema.fonctions_schema as FSC
-import pyetl.schema.schema_interne as SC
-import pyetl.schema.schema_io as SCI
+from pyetl.schema.schema_interne import Schema, init_schema
 from pyetl.formats.interne.objet import Objet
+from pyetl.schema.formats_schema.schema_xml import lire_schema_xml
+from pyetl.schema.formats_schema.schema_csv import lire_schema_csv
+from pyetl.schema.schema_io import lire_schemas_multiples
 #from .outils import charge_mapping
 LOGGER = logging.getLogger('pyetl')
 # fonctions de manipulation de schemas
@@ -109,7 +111,7 @@ def f_stock_schema(regle, obj):
 
         regle.schema_courant = regle.stock_param.schemas.get(nom_base)
         if not regle.schema_courant:
-            regle.schema_courant = SC.Schema(nom_base)
+            regle.schema_courant = Schema(nom_base)
             regle.stock_param.schemas[nom_base] = regle.schema_courant
         if regle.stock_param.get_param("taux_conformite"):
             print('reglage_taux conformite', int(regle.getvar("taux_conformite")))
@@ -199,7 +201,7 @@ def h_def_schema(regle):
     regle.differe = False
     if not regle.fichier:
         LOGGER.error('pas de schema a lire '+ regle.ligne)
-        regle.valide=False
+        regle.valide = False
         return
     if regle.fichier.startswith('#schema:'): #fichier precharge (base de donnees)
         nomschema = regle.params.cmp2.val
@@ -211,8 +213,8 @@ def h_def_schema(regle):
 
         if nom != nomschema:
             if nomschema in regle.stock_param.schemas: # le schema existe deja
-                SC.init_schema(regle.stock_param, nom, origine=None, fich='', defmodeconf=0,
-                               stable=True, modele=nomschema, copie=True)
+                init_schema(regle.stock_param, nom, origine=None, fich='', defmodeconf=0,
+                            stable=True, modele=nomschema, copie=True)
 #                print ('copie de schema', nomschema, '->', nom,
 #                       regle.stock_param.worker, regle.getvar('_wid'),
 #                       len(regle.stock_param.schemas[nomschema].classes), '->',
@@ -261,13 +263,13 @@ def h_def_schema(regle):
             rep = os.path.dirname(regle.fichier)
             racine = os.path.basename(regle.fichier)
             regle.stock_param.schemas[nom] = \
-                SCI.lire_schemas_multiples(nom, rep, racine, mode_alias, cod=cod_csv)
+                lire_schemas_multiples(nom, rep, racine, mode_alias, cod=cod_csv)
         else:
             regle.stock_param.schemas[nom] = \
-                SCI.lire_schema_csv(nom, regle.fichier, mode_alias, cod=cod_csv)
+                lire_schema_csv(nom, regle.fichier, mode_alias, cod=cod_csv)
     else:
-        regle.stock_param.schemas[nom] = \
-            SCI.lire_schema_xml(nom, regle.fichier, cod=cod)
+        regle.stock_param.schemas[nom] = lire_schema_xml(nom,
+                                                         regle.fichier, cod=cod)
     regle.nomschema = nom
     LOGGER.info('lecture schema '+nom+':'+
                 str(len(regle.stock_param.schemas[nom].classes))+'classes')
@@ -312,8 +314,8 @@ def f_def_schema(regle, obj):
     #print ('def_schema:',ident,nom_base,regle.stock_param.schemas)
     if nom_base not in regle.stock_param.schemas:
         if regle.differe: # c'etait un schema interne on le cree
-            SC.init_schema(regle.stock_param, nom_base, origine=None, fich='', defmodeconf=0,
-                           stable=True, modele=regle.params.cmp2.val, copie=True)
+            init_schema(regle.stock_param, nom_base, origine=None, fich='', defmodeconf=0,
+                        stable=True, modele=regle.params.cmp2.val, copie=True)
             print('copie de schema differee', regle.params.cmp2.val, nom_base)
 #            raise
         else:

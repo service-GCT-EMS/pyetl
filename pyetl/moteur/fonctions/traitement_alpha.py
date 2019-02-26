@@ -152,7 +152,7 @@ def f_sub(regle, obj):# fonction de substution
         #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;a
     '''
     # substitution
-    regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie,regle.getval_entree(obj)))
+    regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj)))
     return True
 
 
@@ -210,8 +210,6 @@ def f_upper2(regle, obj):
         #test3||obj||^V4;a;;set||^;;V4;upper||atv;V4;A
     '''
     obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).upper()
-#    obj.attributs[regle.params.att_ref.val] = obj.attributs.get(regle.params.att_ref.val,
-#                                                                regle.params.val_entree.val).upper()
     return True
 
 
@@ -301,7 +299,7 @@ def f_lower_liste2(regle, obj):
             #test2||obj||^V4,V5;A,B;;set||^V4,V5;;;lower||atv;V4;a
     '''
     obj.attributs.update(zip(regle.params.att_ref.liste,
-                         map(str.lower, regle.getlist_ref(obj))))
+                             map(str.lower, regle.getlist_ref(obj))))
     return True
 
 
@@ -393,10 +391,10 @@ def f_crypt(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     '''
-    clef = obj.attributs.get(regle.params.cmp1.origine,'')\
+    clef = obj.attributs.get(regle.params.cmp1.origine, '')\
         if regle.params.cmp1.dyn else regle.params.cmp1.val
     val = regle.getval_entree(obj)
-    crypte = regle.stock_param.crypter(val, clef )
+    crypte = regle.stock_param.crypter(val, clef)
 #    print ('dans crypte',val,regle.params.cmp1.val,'--->',crypte)
     obj.attributs[regle.params.att_sortie.val] = crypte
     return True
@@ -409,7 +407,7 @@ def f_decrypt(regle, obj):
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
 
     '''
-    clef = obj.attributs.get(regle.params.cmp1.origine,'')\
+    clef = obj.attributs.get(regle.params.cmp1.origine, '')\
         if regle.params.cmp1.dyn else regle.params.cmp1.val
     val = regle.getval_entree(obj)
 
@@ -796,14 +794,7 @@ def f_round(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;1.534;;set||^X;;X;round;2||atn;X;1.53
     """
-#    regle.fstore(regle.params.att_sortie, obj,
-#                 str(round(float(obj.attributs.get(regle.params.att_entree.val,
-#                                                   regle.params.val_entree.val)),
-#                           regle.ndec)))
-    regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)),regle.ndec)))
-#    print ("round",round(float(obj.attributs.get(regle.params.att_entree.val,
-#                                                   regle.params.val_entree.num)),
-#                         int(regle.params.cmp1.num) if regle.params.cmp1.num  else 0))
+    regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)), regle.ndec)))
     return True
 
 
