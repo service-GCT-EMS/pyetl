@@ -860,7 +860,8 @@ class Pyetl(object):
             entree = None
 #        print("process",entree, self.regles)
         if isinstance(entree, (Stat, ExtStat)):
-            nb_total = self._lecture_stats(entree)
+            nb_total = entree.to_obj(self)
+#            nb_total = self._lecture_stats(entree)
             return
 
         abort = False
@@ -894,7 +895,6 @@ class Pyetl(object):
                         abort = True
                         nb_lu = 0
                         break
-
 
 #                    self.aff.send(('fich', 1, nb_lu))
                 duree, _ = self.aff.send(('end', 0, 0))
@@ -995,7 +995,7 @@ class Pyetl(object):
         rep_sortie = self.get_param('sortie_schema', self.get_param('_sortie'))
         if rep_sortie == '-' or not rep_sortie: # pas de sortie on ecrit pas
             if not self.get_param('_testmode'): # en mode test on rale pas
-                print('schema:pas de repertoire de sortie ')
+                print('schema:pas de repertoire de sortie')
             return
         mode_schema = self.get_param('force_schema', 'util')
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
@@ -1162,7 +1162,7 @@ class Pyetl(object):
         self.f_entree = Reader(ext)
         regle = self.regles[reglenum] if regle is None and reglenum>0 else regle
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
-        print ('lecture fichier ',fichier, regle, reglestart)
+#        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)

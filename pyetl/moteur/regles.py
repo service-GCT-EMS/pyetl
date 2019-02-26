@@ -102,6 +102,7 @@ class ParametresFonction(object):
         self.cmp1 = self._crent("cmp1")
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
+        self.fstore = None
 
     def _crent(self, nom, taille=0):
         '''extrait les infos de l'entite selectionnee'''
@@ -156,6 +157,8 @@ class ParametresFonction(object):
                   "cmp2:%s"%(str(self.cmp2))
                  ]
         return '\t'+"\n\t".join(listev)
+
+
 
 class ParametresSelecteur(ParametresFonction):
     '''stockage des parametres des selecteurs'''
@@ -240,7 +243,7 @@ class RegleTraitement(object): # regle de mapping
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
-            return str(self.numero)+':'+(self.ligne[:-1] if self.ligne[-1] == '\n' else self.ligne)
+            return str(self.numero)+':'+(self.ligne[:-1] if self.ligne.endswith('\n') else self.ligne)
         return 'regle vide'
 
 
@@ -292,32 +295,57 @@ class RegleTraitement(object): # regle de mapping
         '''acces standadise a la valeur d'entree valeur avec defaut'''
         return obj.attributs.get(self.params.att_entree.val, self.params.val_entree.val)
 
-    def getlist_entree1(self, obj):
-        '''acces standadise a la liste d'entree valeur avec defaut'''
-        return [obj.attributs.get(i, self.params.val_entree.val)
-                for i in self.params.att_entree.liste]
 
-    def getlist_entree2(self, obj):
+    def getval_ref(self, obj):
+        '''acces standadise a la valeur d'entree valeur avec defaut'''
+        return obj.attributs.get(self.params.att_ref.val, self.params.val_entree.val)
+
+
+    def getlist_entree(self, obj):
         '''acces standadise a la liste d'entree valeur avec defaut en liste'''
-        return [obj.attributs.get(i, self.params.val_entree.val)
-                for i,j in zip_longest(self.params.att_entree.liste,
-                               self.params.val_entree.liste)]
+        return [obj.attributs.get(i, j)
+                for i, j in zip_longest(self.params.att_entree.liste,
+                                        self.params.val_entree.liste)]
+
+    def getlist_ref(self, obj):
+        '''acces standadise a la liste d'entree valeur avec defaut en liste'''
+        return [obj.attributs.get(i, j) for i, j in zip_longest(self.params.att_ref.liste,
+                                        self.params.val_entree.liste)]
+
 
     def setval_sortie(self, obj, valeurs):
         '''stockage standardise'''
         self.fstore(self.params.att_sortie, obj, valeurs)
 
 
+    def process_liste(self, obj, fonction):
+        '''applique une fonction a une liste d'attributs'''
+        self.fstore(self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj)))
+
+
+    def process_val(self, obj, fonction):
+        '''applique une fonction a un attribut'''
+        self.fstore(self.params.att_sortie, obj, fonction(self.getval_entree(self, obj)))
+
+#    def process_list_inplace(self, obj, fonction):
+#        '''applique une fonction a une liste d'attributs'''
+##        print ('application fonction',fonction,self.getlist_ref(obj),self.fstore )
+#        obj.attributs.update(zip(self.params.att_ref.liste,
+#                                 map(fonction, self.getlist_ref(obj))))
+
+
     def affiche(self, origine=''):
         '''fonction d'affichage de debug'''
         msg = ' '.join((origine+"regle:----->", str(self.index),
                         "(", str(self.numero), ")", self.ligne[:-1],
-                        "bloc "+(str(self.bloc) if self.bloc else ''),
-                        "enchainement:", (str(self.enchainement) if self.enchainement else ''),
-                        " copy ", (str(self.copy) if self.copy else ''),
-                        " final ", (str(self.final) if self.final else '')))
+                        ("bloc "+str(self.bloc) if self.bloc else ''),
+                        ("enchainement:"+ str(self.enchainement) if self.enchainement else ''),
+                        " copy " if self.copy else '',
+                        " final " if self.final else '',
+                        " filter" if self.filter else ''))
         print(msg)
         LOGGER.debug(msg)
+
 
     def setstore(self):
         '''definit une regle comme stockante et ajuste les sorties'''
@@ -449,18 +477,18 @@ class RegleTraitement(object): # regle de mapping
             print('erreur changement classe', ident, obj.schema)
         obj.setschema(schema_classe)
 
-    def dupplique(self):
-        '''retourne une copie de la regle
-            sert pour le multiiprocessing'''
-        stock_param = self.stock_param
-        self.stock_param = None
-        reg2 = copy.deepcopy(self)
-        self.stock_param = stock_param
+#    def dupplique(self):
+#        '''retourne une copie de la regle
+#            sert pour le multiiprocessing'''
+#        stock_param = self.stock_param
+#        self.stock_param = None
+#        reg2 = copy.deepcopy(self)
+#        self.stock_param = stock_param
 
 #        ob2.schema = old_sc
 #        if old_sc is not None:
 #            old_sc.objcnt += 1 # on a un objet de plus dans le schema
-        return reg2
+#        return reg2
 
     def runscope(self):
         '''determine si une regle peut tourner'''

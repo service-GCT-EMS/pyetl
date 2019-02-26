@@ -65,11 +65,12 @@ def f_start(regle, obj):
     #pattern||;;;start;;
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
+#    print ('start',obj)
     if obj: # on a deja un objet pas la peine d'en refaire un
         return True
     obj2 = Objet('_declencheur', '_autostart', format_natif='interne',
                  conversion='virtuel')
-    print('commande start: declenchement ', obj2)
+#    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True
 
@@ -108,6 +109,7 @@ def f_reel(_, obj):
     """#aide||transforme un objet virtuel en objet reel
     #pattern||;;;reel;;
     #test||rien||^;;;start||^;;;reel||cnt;1
+    #test2||obj;;2||V0;1;;;;;;virtuel||^;;;reel;;;||cnt;2
     """
 #    print("dans reel",obj)
 
@@ -178,7 +180,7 @@ def printfunc(regle, obj):
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:
         return cmp1+','.join(liste)
-    return cmp1+obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    return cmp1+regle.getval_entree(obj)
 
 
 
@@ -316,9 +318,9 @@ def f_creobj(regle, obj):
     '''
 
     noms = regle.params.att_sortie.liste
-    vals = regle.params.val_entree.liste
+    vals = regle.getlist_entree(obj)
     tmp = regle.params.cmp1.liste
-#    print ('testobj: ',regle.params.cmp1)
+#    print ('testobj: ',regle.params.cmp1,noms,vals)
 
     ident = (tmp[0], tmp[1]) if len(tmp) == 2 else ('niv_test', tmp[0])
 
@@ -327,6 +329,8 @@ def f_creobj(regle, obj):
         schema = regle.stock_param.init_schema('schema_test', origine='B', stable=False)
     gen_schema = ident not in schema.classes
     schemaclasse = schema.setdefault_classe(ident)
+    if gen_schema:
+        schemaclasse.info['type_geom'] = '0'
     #TODO gérer les dates
     for nom, val in zip(noms, vals):
         try:
@@ -383,7 +387,7 @@ def f_ftpupload(regle, obj):
         else:
             regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
 
-    filename = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    filename = regle.getval_entree(obj)
     destname = os.path.basename(filename)
     try:
         localfile = open(filename, 'rb')
@@ -411,7 +415,7 @@ def f_ftpdownload(regle, obj):
         else:
             regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
 
-    filename = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    filename = regle.getval_entree(obj)
     distname = os.path.basename(filename)
     try:
         localfile = open(filename, 'wb')
@@ -439,7 +443,7 @@ def f_httpdownload(regle, obj):
    #pattern||;?C;?A;download;?C;C
       #test||notest
       '''
-    url = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    url = regle.getval_entree(obj)
     print('telechargement', url)
     retour = requests.get(url, stream=True)
     print('info', retour.headers)

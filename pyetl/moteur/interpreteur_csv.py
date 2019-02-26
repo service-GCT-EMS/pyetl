@@ -26,6 +26,7 @@ NOMS_CHAMPS_N = ['sel1', 'val_sel1', 'sel2', 'val_sel2',
 # quelques fonction générales
 def fdebug(regle, obj):
     '''gestion des affichages de debug'''
+    print ('dans debug', regle, obj)
     if regle.debug and obj:
         regle.debug = regle.debug-1
         regle.affiche('------debug------>')
@@ -46,6 +47,7 @@ def fdebug(regle, obj):
             print('copy :  ->', liens_num["copy"], regle.branchements.brch['copy'])
 
     else:
+        print ('debug: non affichage ', regle, obj)
         succes = regle.f_init(regle, obj)
     return succes
 # =======================================selecteurs============================
@@ -442,6 +444,9 @@ def prepare_regle(regle, valeurs):
     if len(valeurs) <= 11:
         valeurs.extend(['']*(12-len(valeurs)))
     v_nommees = dict(zip(NOMS_CHAMPS_N, valeurs))
+#    print ('prepare_regle', regle)
+#    print ('prepare_regle', valeurs)
+#    print ('prepare_regle', v_nommees)
     if not any(valeurs):
         regle.valide = "vide"
     regle.valeurs = valeurs
@@ -562,7 +567,8 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, vloc=None):
     '''decode une ligne du fichier cs v de regles
     et la stocke en structure interne'''
 
-    liste_val = [i[1:-1] if i.startswith("'") else i.strip()  for i in ligne.split(';')]
+#    liste_val = [i[1:-1] if i.startswith("'") else i.strip()  for i in ligne.split(';')]
+    liste_val = ligne.split(';')
 
 #    print('traitement_ligne', fichier, ligne, liste_val)
     regle = RegleTraitement(ligne, mapper, fichier, numero, vloc=vloc)

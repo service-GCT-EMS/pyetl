@@ -241,7 +241,7 @@ def f_stat(regle, obj):
     if regle.stock_param.stats[entree].ajout_valeur(\
             obj.attributs.get(regle.code_classe, ""),#ligne
             regle.params.att_sortie.val,             #colonne
-            obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val), #valeur
+            regle.getval_entree(obj), #valeur
             regle.params.cmp2.val+obj.attributs.get(regle.params.att_sortie.val[1:-1],
                                                     regle.params.att_sortie.val)):
         #print ('regles:fstat ',regle.params.att_sortie[1:-1],

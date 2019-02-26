@@ -109,7 +109,7 @@ def getfichs(regle, obj):
     racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
         racine = regle.getvar('_entree', '.')
-    vobj = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    vobj = regle.getval_entree(obj)
     if vobj:
         rep = os.path.join(racine, vobj)
     else:
@@ -151,7 +151,7 @@ def renseigne_attributs_batch(regle, obj, retour):
 def prepare_batch_from_object(regle, obj):
     '''extrait les parametres pertinents de l'objet decrivant le batch'''
 
-    comm = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    comm = regle.getval_entree(obj)
     commande = comm if comm else obj.attributs.get('commandes')
 #    print("commande batch", commande)
     if not commande:

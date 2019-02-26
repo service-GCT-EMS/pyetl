@@ -120,6 +120,7 @@ class Objet(object):
         self.geomnatif = True
         if dimension:
             self.geom_v.dimension = dimension
+        return True
 
     def infogeom(self):
         '''positionne les attributss dependant de la geometrie'''
@@ -455,6 +456,7 @@ class Objet(object):
         self.liste_attributs = None
         ob2 = copy.deepcopy(self)
         ob2.copie += 1
+        ob2.ido = next(self._ido)
         self.schema = old_sc
         ob2.setschema(old_sc)
 #        ob2.schema = old_sc

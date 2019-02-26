@@ -719,7 +719,7 @@ def f_run(regle, obj):
      #schema||ajout_attribut
     '''
     chaine = ' '.join((regle.params.cmp1.val, regle.params.cmp2.val,
-                       obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)))
+                       regle.getval_entree(obj)))
     fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(fini)

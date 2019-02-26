@@ -26,8 +26,7 @@ def f_info_schema_attribut(regle, obj):
     #print ("regles:dans info schema ")
     if obj.schema:
         obj.attributs[regle.params.att_sortie.val] = FSC.info_schema(obj.schema, "attribut",\
-                     nom=obj.attributs.get(regle.params.att_entree.val,
-                                           regle.params.val_entree.val))
+                     nom=regle.getval_entree(obj))
 #        print ("regles:info schema ", regle.params.att_sortie,
 #        obj.attributs[regle.params.att_sortie])
         return True
@@ -166,6 +165,7 @@ def f_valide_schema(regle, obj):
 #    print ('fonctions : valide_schema', obj.ident, obj.schema)
 #    raise
     if obj.virtuel:
+        print('valide_schema : obj virtuel')
         return True
     if regle.params.val_entree.val:
     # on copie le schema pour ne plus le modifier apres ecriture
@@ -173,7 +173,7 @@ def f_valide_schema(regle, obj):
     schem = obj.schema
     if schem:
         retour = FSC.valide_schema(schem, obj, regle.params.cmp1.val)
-#        print ('retour validation schema', retour)
+#        print ('retour validation schema', retour, obj)
         return retour
 #            if not v :
 #                print ("---------------------------------------------------------retour fail ")

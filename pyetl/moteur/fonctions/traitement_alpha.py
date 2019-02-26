@@ -48,10 +48,11 @@ def f_setliste(regle, obj):
        #test2||obj||^V4,V5;;C1,C2;set||atv;V5;B
     '''
 #    print ("dans setliste", regle.ligne,regle.params.att_sortie, regle.params.att_entree)
-    regle.fstore(regle.params.att_sortie, obj,
-                 [obj.attributs.get(i, j)
-                  for i, j in itertools.zip_longest(regle.params.att_entree.liste,
-                                                    regle.params.val_entree.liste)])
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 [obj.attributs.get(i, j)
+#                  for i, j in itertools.zip_longest(regle.params.att_entree.liste,
+#                                                    regle.params.val_entree.liste)])
+    regle.setval_sortie(obj, regle.getlist_entree(obj))
     return True
 
 
@@ -62,9 +63,6 @@ def f_setval(regle, obj):
        #test1||obj||^V4;;C1;set||atv;V4;A
        #test2||obj||^V4;1;X;set||atv;V4;1
     '''
-#    regle.fstore(regle.params.att_sortie, obj,
-#                 obj.attributs.get(regle.params.att_entree.val,
-#                                   regle.params.val_entree.val))
     regle.setval_sortie(obj, regle.getval_entree(obj))
     return True
 
@@ -82,8 +80,7 @@ def f_setschema(regle, obj):
     #pattern||=#schema;?;?A;set;?=maj;||sortie
    #pattern2||=#schema;?;?A;set;?=min;||sortie
     '''
-    obj.attributs["#schema"] = obj.attributs.get(regle.params.att_entree.val,
-                                                 regle.params.val_entree.val)
+    obj.attributs["#schema"] = regle.getval_entree(obj)
     return True
 
 
@@ -96,7 +93,7 @@ def f_setgeom(regle, obj):
        #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
              ||^;;;geom||atv;#type_geom;2
     '''
-    geom = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    geom = regle.getval_entree(obj)
     obj.geom = geom.split("|")
     obj.format_natif = regle.params.cmp1.val
     obj.geompending(dimension=regle.params.cmp2.num if regle.params.cmp2.num else 2)
@@ -109,6 +106,7 @@ def f_setgeom(regle, obj):
 
 def h_setnonvide(regle):
     ''' pour repl_c il faut mettre en forme la liste '''
+    regle.params.att_entree.liste.pop() # on vide la liste pour la recreer
     regle.params.att_entree.liste.extend(regle.params.att_entree.val.split("|"))
 
 
@@ -154,10 +152,7 @@ def f_sub(regle, obj):# fonction de substution
         #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;a
     '''
     # substitution
-    regle.fstore(regle.params.att_sortie, obj,
-                 regle.exp_entree.sub(regle.exp_sortie,
-                                      obj.attributs.get(regle.params.att_entree.val,
-                                                        regle.params.val_entree.val)))
+    regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie,regle.getval_entree(obj)))
     return True
 
 
@@ -167,7 +162,8 @@ def h_setcalc(regle):
     try:
         regle.calcul = compilefonc(regle.params.att_entree.val, 'obj')
     except SyntaxError:
-        print("erreur sur l'expression de calcul", regle.params.att_entree.val)
+        print("erreur sur l'expression de calcul->"+regle.params.att_entree.val+'<-')
+        compilefonc(regle.params.att_entree.val, 'obj', debug=True)
         regle.valide = False
 
 
@@ -177,7 +173,7 @@ def f_setcalc(regle, obj):
         #pattern||S;;NC:;set;;
         #test1||obj||^V4;;N:V1+1;set||atn;V4;2
     '''
-    regle.fstore(regle.params.att_sortie, obj, str(regle.calcul(obj)))
+    regle.setval_sortie(obj, str(regle.calcul(obj)))
     return True
 
 
@@ -186,15 +182,8 @@ def h_self(regle):
 #    print("helper self",regle)
     regle.params.att_ref = regle.params.att_entree if regle.params.att_entree.liste\
                                                       else regle.params.att_sortie
-    regle.selset = set(regle.params.att_sortie.liste or regle.params.att_entree.liste)
-    taille = len(regle.params.att_ref.liste)
-    liste = regle.params.val_entree.liste
-    if taille > len(liste):
-        if liste:
-            liste.extend([liste[-1]]*(taille-len(liste)))
-        else:
-            liste.extend([""]*taille)
-
+    regle.selset = set(regle.params.att_ref.liste)
+#    print ('selset',regle.selset)
 
 def f_upper(regle, obj):
     '''#aide||remplacement d une valeur
@@ -203,24 +192,26 @@ def f_upper(regle, obj):
         #test1||obj||^V4;a;;set||^V4;;V4;upper||atv;V4;A
 
     '''
-    regle.fstore(regle.params.att_sortie, obj,
-                 obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val).upper())
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 obj.attributs.get(regle.params.att_entree.val,
+#                                   regle.params.val_entree.val).upper())
+    regle.setval_sortie(obj, regle.getval_entree(obj).upper())
     return True
 
 
 def f_upper2(regle, obj):
     '''#aide||remplacement d une valeur
         #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en majuscule
-        #pattern||A;?;;upper;;
-        #pattern2||;?;A;upper;;
+        #pattern||A;?;;upper||sortie||50
+        #pattern2||;?;A;upper||sortie||50
         #schema||ajout_attribut
         #helper||self
         #test2||obj||^V4;a;;set||^V4;;;upper||atv;V4;A
         #test3||obj||^V4;a;;set||^;;V4;upper||atv;V4;A
     '''
-    obj.attributs[regle.params.att_ref.val] = obj.attributs.get(regle.params.att_ref.val,
-                                                                regle.params.val_entree.val).upper()
+    obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).upper()
+#    obj.attributs[regle.params.att_ref.val] = obj.attributs.get(regle.params.att_ref.val,
+#                                                                regle.params.val_entree.val).upper()
     return True
 
 
@@ -231,24 +222,29 @@ def f_upper_liste(regle, obj):
         #test1||obj||^V4,V5;a,b;;set||^V4,V5;;V4,V5;upper||atv;V5;B
         #test2||obj||^V4,V5;a,b;;set||^V4,V5;;V4,V5;upper||atv;V4;A
     '''
-    regle.fstore(regle.params.att_sortie, obj,
-                 [obj.attributs.get(i, regle.params.val_entree.val).upper()
-                  for i in regle.params.att_entree.liste])
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 [obj.attributs.get(i, regle.params.val_entree.val).upper()
+#                  for i in regle.params.att_entree.liste])
+#    regle.setval_sortie(obj, regle.getlist_entree(obj).upper())
+    regle.process_liste(obj, str.upper)
     return True
 
 
 def f_upper_liste2(regle, obj):
     '''#aide||passage en majuscule d'une lister de valeurs
         #aide_spec||passage en majuscule d une liste d'attribut avec defaut
-        #pattern1||L;?;;upper;;||sortie
-        #pattern2||;?;L;upper;;||sortie
+        #pattern1||L;?;;upper;;||sortie||99
+        #pattern2||;?;L;upper;;||sortie||99
         #helper||self
         #schema||ajout_attribut
         #test1||obj||^V4,V5;a,b;;set||^;;V4,V5;upper||atv;V5;B
         #test2||obj||^V4,V5;a,b;;set||^V4,V5;;;upper||atv;V4;A
     '''
-    for i, j in zip(regle.params.att_ref.liste, regle.params.val_entree.liste):
-        obj.attributs[i] = obj.attributs.get(i, j).upper()
+#    for i, j in zip(regle.params.att_ref.liste, regle.params.val_entree.liste):
+#        obj.attributs[i] = obj.attributs.get(i, j).upper()
+#    regle.process_list_inplace(obj, str.upper)
+    obj.attributs.update(zip(regle.params.att_ref.liste,
+                             map(str.upper, regle.getlist_ref(obj))))
     return True
 
 
@@ -259,9 +255,10 @@ def f_lower(regle, obj):
         #test1||obj||^V4;A;;set||^V4;;V4;lower||atv;V4;a
 
     '''
-    regle.fstore(regle.params.att_sortie, obj,
-                 obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val).lower())
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 obj.attributs.get(regle.params.att_entree.val,
+#                                   regle.params.val_entree.val).lower())
+    regle.setval_sortie(obj, regle.getval_entree(obj).lower())
     return True
 
 
@@ -275,8 +272,7 @@ def f_lower2(regle, obj):
         #test2||obj||^V4;A;;set||^V4;;;lower||atv;V4;a
         #test3||obj||^V4;A;;set||^;;V4;lower||atv;V4;a
     '''
-    obj.attributs[regle.params.att_sortie.val] =\
-        obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val).lower()
+    obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).lower()
     return True
 
 
@@ -289,9 +285,7 @@ def f_lower_liste(regle, obj):
         #testl2||obj||^V4,V5;A,B;;set||^V4,V5;;V4,V5;lower||atv;V4;a
 
     '''
-    regle.fstore(regle.params.att_sortie,
-                 obj, [obj.attributs.get(i, regle.params.val_entree.val).lower()
-                       for i in regle.params.att_entree.liste])
+    regle.process_liste(obj, str.lower)
     return True
 
 
@@ -306,8 +300,8 @@ def f_lower_liste2(regle, obj):
             #test1||obj||^V4,V5;A,B;;set||^;;V4,V5;lower||atv;V5;b
             #test2||obj||^V4,V5;A,B;;set||^V4,V5;;;lower||atv;V4;a
     '''
-    for i, j in zip(regle.params.att_ref.liste, regle.params.val_entree.liste):
-        obj.attributs[i] = obj.attributs.get(i, j).lower()
+    obj.attributs.update(zip(regle.params.att_ref.liste,
+                         map(str.lower, regle.getlist_ref(obj))))
     return True
 
 
@@ -343,8 +337,9 @@ def f_asplit(regle, obj):
        #test1||obj||^V4;a:b:c:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;c
        '''
     if regle.multi:
-        elems = obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val).split(regle.sep)[regle.defcible]
+#        elems = obj.attributs.get(regle.params.att_entree.val,
+#                                   regle.params.val_entree.val).split(regle.sep)[regle.defcible]
+        elems = regle.getval_entree(obj).split(regle.sep)[regle.defcible]
         obj.attributs[regle.params.att_entree.val] = elems[0]
         for i in elems[1:]:
             obj2 = obj.dupplique()
@@ -352,11 +347,32 @@ def f_asplit(regle, obj):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
 
     else:
-        regle.fstore(regle.params.att_sortie, obj,
-                     obj.attributs.get(regle.params.att_entree.val,
-                                       regle.params.val_entree.val).split
-                     (regle.sep, regle.nbdecoup)[regle.defcible])
+#        regle.fstore(regle.params.att_sortie, obj,
+#                     obj.attributs.get(regle.params.att_entree.val,
+#                                       regle.params.val_entree.val).split
+#                     (regle.sep, regle.nbdecoup)[regle.defcible])
+        regle.setval_sortie(obj, regle.getval_entree(obj).split(regle.sep,
+                                                                regle.nbdecoup)[regle.defcible])
     return True
+
+
+def f_strip(regle, obj):
+    '''#aide||supprime des caracteres aux estremites
+       #pattern||M;?;A;strip;?C;||sortie
+       '''
+    regle.setval_sortie(obj, regle.getval_entree(obj).strip())
+    return True
+
+def f_strip2(regle, obj):
+    '''#aide||supprime des caracteres aux estremites
+     #helper||self
+    #pattern||;?;A;strip;?C;||sortie
+    #pattern2||A;?;;strip;?C;||sortie
+       '''
+    obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip()
+    return True
+
+
 
 
 def f_len(regle, obj):
@@ -364,9 +380,10 @@ def f_len(regle, obj):
     #pattern||S;?;A;len;;
     #test||obj||^X;toto;;set;||^Y;;X;len;;||atv;Y;4
     '''
-    regle.fstore(regle.params.att_sortie, obj,
-                 str(len(obj.attributs.get(regle.params.att_entree.val,
-                                           regle.params.val_entree.val))))
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 str(len(obj.attributs.get(regle.params.att_entree.val,
+#                                           regle.params.val_entree.val))))
+    regle.setval_sortie(obj, str(len(regle.getval_entree(obj))))
     return True
 
 
@@ -378,7 +395,7 @@ def f_crypt(regle, obj):
     '''
     clef = obj.attributs.get(regle.params.cmp1.origine,'')\
         if regle.params.cmp1.dyn else regle.params.cmp1.val
-    val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    val = regle.getval_entree(obj)
     crypte = regle.stock_param.crypter(val, clef )
 #    print ('dans crypte',val,regle.params.cmp1.val,'--->',crypte)
     obj.attributs[regle.params.att_sortie.val] = crypte
@@ -394,7 +411,8 @@ def f_decrypt(regle, obj):
     '''
     clef = obj.attributs.get(regle.params.cmp1.origine,'')\
         if regle.params.cmp1.dyn else regle.params.cmp1.val
-    val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    val = regle.getval_entree(obj)
+
     decrypte = regle.stock_param.decrypt(val, clef)
     obj.attributs[regle.params.att_sortie.val] = decrypte
     return True
@@ -710,7 +728,7 @@ def f_cnt(regle, obj):
         #test1||obj||^V4;t1;;cnt;3;4||atv;V4;4
         #test2||obj;;2||^V4;t1;;cnt;3;4||V4;4;;;;;;supp||atv;V4;7
     '''
-    nom = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    nom = regle.getval_entree(obj)
     val = regle.stock_param.cntr.get(nom, regle.orig)
     obj.attributs[regle.params.att_sortie.val] = "%d" % (val)
     regle.stock_param.cntr[nom] = val+regle.pas
@@ -778,10 +796,11 @@ def f_round(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;1.534;;set||^X;;X;round;2||atn;X;1.53
     """
-    regle.fstore(regle.params.att_sortie, obj,
-                 str(round(float(obj.attributs.get(regle.params.att_entree.val,
-                                                   regle.params.val_entree.val)),
-                           regle.ndec)))
+#    regle.fstore(regle.params.att_sortie, obj,
+#                 str(round(float(obj.attributs.get(regle.params.att_entree.val,
+#                                                   regle.params.val_entree.val)),
+#                           regle.ndec)))
+    regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)),regle.ndec)))
 #    print ("round",round(float(obj.attributs.get(regle.params.att_entree.val,
 #                                                   regle.params.val_entree.num)),
 #                         int(regle.params.cmp1.num) if regle.params.cmp1.num  else 0))
@@ -927,7 +946,7 @@ def f_map_data(regle, obj):
     #pattern||A;?C;A;map_data;C
     #schema||ajout_attribut
     '''
-    val = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    val = regle.getval_entree(obj)
     obj.attributs[regle.params.att_sortie.val] = regle.elmap.get(val, val)
     return val in regle.elmap
 

@@ -69,12 +69,14 @@ class Moteur(object):
 #        if self.debug:
 #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
         self.regles[0].chargeur = True # on force la premiere
-        if self.regles[0].mode == "start": #on prends la main dans le script
-            self.regles[0].fonc(self.regles[0], None)
-            return
+#        if self.regles[0].mode == "start": #on prends la main dans le script
+#            self.regles[0].fonc(self.regles[0], None)
+#            return
         for i in self.regles:
 #            print ('-------------------------------traite_charge ', i.declenchee ,i.chargeur,i )
             if not i.declenchee and i.chargeur:
+                if i.mode == "start": #on prends la main dans le script
+                    i.fonc(i, None)
                 obj = Objet('_declencheur', '_chargement', format_natif='interne',
                             conversion='virtuel')
                 i.mode_chargeur = True

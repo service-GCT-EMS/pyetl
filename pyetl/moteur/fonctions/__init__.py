@@ -31,6 +31,7 @@ class DefinitionAttribut(object):
 # variable : #?[a-zA-Z_][a-zA-Z0-9_]*
     asdef = r'#?[a-zA-Z_][a-zA-Z0-9_]*' # description simple de nom de champs
 #    asdef = r'(#?[a-zA-Z_\-][a-zA-Z0-9_\-]*)' # description simple de nom de champs
+#    aldef = r'(?:'+asdef+')|&'
     adef = r'('+asdef+r')(?:\((.*)\))?' # description champs avec details
     vdef = r'\[('+asdef+r')\]' # contenu champs
     ndef = r'-?[0-9]*.?[0-9]*|[0-9]+'
@@ -42,6 +43,7 @@ class DefinitionAttribut(object):
 #                                / P variable moteur / H hstore
 #                   groupe : S simple / M multiple / H hstore / D dynamique / P variable moteur
     relist = {'A':(r'^'+adef+r'$', 'A', 'S'), #variable
+              'AV':(r'^$', 'A', 'S'), #vide pour des definitions ou sortie=entree
               '+A':(r'^\+'+adef+r'$', 'A', 'S'),
               'A+':(r'^'+adef+r'\+$', 'A', 'S'),
               'A*':(r'^'+adef+r'\*$', 'C', 'D'),
@@ -54,6 +56,7 @@ class DefinitionAttribut(object):
               '|L':(r'^('+asdef+r'(?:\|'+asdef+r')*)$',
                     'S', 'S'), #liste
               'L':(r'^('+asdef+r'(?:,'+asdef+r')*|\*)$', 'L', 'M'), #liste
+              'LV':(r'^$', 'L', 'M'), #liste avec defauts
               'L2':(r'^('+asdef+r'(?:\|'+asdef+r')*|\*)$', 'L', 'M'), #liste
               'LC':(r'^(.+(?:,.*)*)$', 'C', ''), #liste de valeurs
               'T:':(r'^T:([A-Z]+)$', 'L', ''), #definition d'attributs par leutr type
@@ -164,6 +167,7 @@ class FonctionTraitement(object):
             print("erreur definition fonction", nom)
             pat = ["", ""]
         self.pattern = pat[0]
+        self.patternnum = ''
         self.work = fonction
         self.store = None
         self.helper = None
@@ -184,11 +188,13 @@ class FonctionTraitement(object):
     def subfonc(self, nom, fonction, description, definition,
                 groupe_sortie, clef_sec, style):
         ''' sous fonction : fait partie du meme groupe mais accepte des attributs differents'''
-        if not '#aide_spec' in description:
+        pn = description['pn']
+        if not '#aide_spec'+pn in description:
             description['#aide_spec'] = description.get('#aide')
         tsubfonc = FonctionTraitement(nom, fonction, description, definition)
         tsubfonc.groupe_sortie = groupe_sortie
         tsubfonc.style = style
+        tsubfonc.patternnum = pn
         priorite = 99
         if clef_sec:
             priorite = tsubfonc.definition[clef_sec].priorite
@@ -242,6 +248,7 @@ def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
         if '#pattern' in i:
             style = "C" if "C" in i else "N"
             description["#pattern"] = description_fonction[i]
+            description["pn"] = i.replace('#pattern','')
 #                        print ('enregistrement',nom[2:],desc["#pattern"])
 
             descr = description.get('#pattern', [""])

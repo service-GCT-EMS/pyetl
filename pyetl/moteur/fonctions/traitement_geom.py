@@ -38,15 +38,11 @@ def h_initgeom(regle):
 
 def f_initgeom(regle, obj):
     '''#aide||force l'interpretation de la geometrie
-       #aide_spec||test
        #pattern||;;;geom;?N;
        #schema||set_geom
        #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
     '''
-    #print (ob)
-    if obj.virtuel:
-        return True
-    return obj.initgeom()
+    return True if obj.virtuel else obj.initgeom()
 
 
 # remise a zero de la geometrie (comme si l'objet venait d'etre lu)
@@ -58,19 +54,17 @@ def f_resetgeom(_, obj):
        #test||obj;ligne||^;;;resetgeom||;!has:geomV;;;C1;1;;set||atv;C1;1
     '''
     # on fait comme si on avait pas traite la geometrie
-    if obj.virtuel:
-        return True
-    obj.geompending()
-    return True
+    return True if obj.virtuel else obj.geompending()
 
 # creation de geometries
 
 def cregeompoint(obj, point, srid):
     """cree un point"""
-    if point is not None:
-        dim = len(point)
-        if dim == 2:
-            point.append(0.)
+    if point is None:
+        return False
+    dim = len(point)
+    if dim == 2:
+        point.append(0.)
     obj.geom_v.setpoint(point, 0, dim)
     if srid:
         obj.geom_v.setsrid(srid)
@@ -80,15 +74,17 @@ def cregeompoint(obj, point, srid):
 
 def f_setpoint(regle, obj):
     '''#aide||ajoute une geometrie point a partir des coordonnes en attribut
-    #aide_spec||defauts, attribut contenant les coordonnees separees par des , N numero de srid
-   #pattern||;LC;?A;setpoint;?N;
+    #aide_spec||N: numero de srid
+    #aide_spec1||defauts, attribut contenant les coordonnees separees par des ,
+   #pattern1||;LC;?A;setpoint;?N;
    #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     '''
     if obj.virtuel:
         return True
     try:
-        point = [float(i) for i in obj.attributs.get(regle.params.att_entree.val,\
-                 regle.params.val_entree.val).split(',')]
+#        point = [float(i) for i in obj.attributs.get(regle.params.att_entree.val,\
+#                 regle.params.val_entree.val).split(',')]
+        point = list(map(float, regle.getval_entree(obj).split(',')))
     except (ValueError, TypeError):
 #        coords = [i for i in obj.attributs.get(regle.params.att_entree.val,\
 #                 regle.params.val_entree.val).split(',')]
@@ -107,8 +103,9 @@ def f_setpoint(regle, obj):
 
 def f_setpoint_liste(regle, obj):
     '''#aide||ajoute une geometrie point a partir des coordonnes en liste
-    #aide_spec||defauts, liste d' attribut contenant les coordonnees N numero de srid
-       #pattern||;N?;L;setpoint;?N;
+        #aide_spec||N: numero de srid
+    #aide_spec2||defauts, liste d' attribut (x,y,z) contenant les coordonnees
+       #pattern2||;N?;L;setpoint;?N;
        #test||obj||^;;V1,V2;setpoint||atv;#type_geom;1
     '''
     if obj.virtuel:
@@ -136,11 +133,14 @@ def f_setpoint_liste(regle, obj):
 
 
 def f_addgeom(regle, obj):
-    '''#aide||cree une geometrie de test pour l'objet
-       #pattern1||;?C;?A;addgeom;N;||entree
-       #pattern2||;?C;?L;addgeom;N;||entree
-       #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
-       #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
+    '''#aide||cree une geometrie pour l'objet
+  #aide_spec||N:type geometrique
+ #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
+ #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
+   #pattern1||;?C;?A;addgeom;N;||entree
+   #pattern2||;?C;?L;addgeom;N;||entree
+      #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
+      #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
     '''
     if obj.virtuel:
         return True
@@ -148,12 +148,14 @@ def f_addgeom(regle, obj):
     if type_geom == '1':
         try:
             if len(regle.params.att_entree.liste) > 1:
-                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
-                         for i in regle.params.att_entree.liste]
+                point = list(map(float, regle.getliste_entree(obj).split(',')))
+#                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
+#                         for i in regle.params.att_entree.liste]
             else:
-                point = [float(i) for i in
-                         obj.attributs.get(regle.params.att_entree.val,
-                                           regle.params.val_entree.val).split(',')]
+                point = list(map(float, regle.getval_entree(obj).split(',')))
+#                point = [float(i) for i in
+#                         obj.attributs.get(regle.params.att_entree.val,
+#                                           regle.params.val_entree.val).split(',')]
         except (ValueError, TypeError):
             print('add geom : erreur valeurs entree ',
                   regle.ligne[:-1])
@@ -164,11 +166,11 @@ def f_addgeom(regle, obj):
         obj.geom_v.setpoint(point, 0, dim)
     else:
         if len(regle.params.att_entree.liste) > 1:
-            coordonnees = zip(*[obj.attributs.get(i, regle.params.val_entree.val).split(',')
-                                for i in regle.params.att_entree.liste])
+#            coordonnees = zip(*[obj.attributs.get(i, regle.params.val_entree.val).split(',')
+#                                for i in regle.params.att_entree.liste])
+            coordonnees = zip(*[i.split(',') for i in regle.getliste_entree(obj)])
         else:
-            coords = obj.attributs.get(regle.params.att_entree.val,
-                                       regle.params.val_entree.val).replace(' ', '').split('),(')
+            coords = regle.getval_entree(obj).replace(' ', '').split('),(')
             coords[0] = coords[0][1:]
             coords[-1] = coords[-1][:-1]
             coordonnees = [i.split(',') for i in coords]
@@ -210,8 +212,7 @@ def f_force_pt(regle, obj):
     if obj.attributs['#type_geom'] == '0':
         return False
     if obj.geom_v.type > '1':
-        position = obj.attributs.get(regle.params.att_entree.val,
-                                     regle.params.val_entree.val)
+        position = regle.getval_entree(obj)
         position = int(position) if position else 0
         try:
 #                print('changement en point ', obj.attributs['#type_geom'])
@@ -338,7 +339,7 @@ def f_coordp(regle, obj):
 #            print("coordp1",list(zip(('#x', '#y', '#z'),
 # [str(i) for i in obj.geom_v.point.coords[0]])))
             return True
-        position = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.num)
+        position = regle.getval_entree(obj)
         if not position:
             position = 0
         else:
@@ -485,16 +486,10 @@ def f_geom_3d(regle, obj):
     if obj.virtuel:
         return True
     if obj.initgeom():
-        valeur = obj.attributs.get(regle.params.att_entree.val,
-                                   regle.params.val_entree.val)
-        force = regle.params.cmp1.val
-        obj.geom_v.setz(float(valeur), force=force)
-
-
+        obj.geom_v.setz(float(regle.getval_entree(obj)), force=regle.params.cmp1.val)
         obj.infogeom()
         setschemadim(regle, obj)
         obj.geomnatif = False
-
         return True
     return False
 
@@ -638,12 +633,28 @@ def h_csplit(regle):
     '''preparation selection de coordonnees'''
     regle.selcoords = compilefonc(regle.params.cmp1.val, 'x,y,z')
 
+def crepoint_copie(obj, point, dimension, numero, att_sortie=None):
+    '''cree un point en duppliquant un objet de reference'''
+    obj2 = obj.dupplique()
+    obj2.setnogeom(tmp=True)
+    obj2.geom_v.setpoint(point, 0, dimension)
+    obj2.finalise_geom()
+    obj2.infogeom()
+    if att_sortie:
+        obj2.attributs[att_sortie] = str(numero)
+    return obj2
+
+
+
+
+
+
 
 def f_csplit(regle, obj):
     '''#aide||decoupage conditionnel de lignes en points
        #aide_spec||extrait les points satisfaisant une condition sur les coordonnees
        #aide_spec||expression sur les coordonnes : x y z
-       #pattern||;;;csplit;C;
+       #pattern||?A;;;csplit;C;
        #test||obj;poly||^;;;csplit>;y==1||cnt;2;
        #test1||obj;poly||^;;;csplit;y==1||cnt;3;
     '''
@@ -655,12 +666,18 @@ def f_csplit(regle, obj):
         valide = False
         geom = obj.geom_v
         obj.geom_v = None
+        np = 0
+        att_sortie = regle.params.att_sortie.val
         for point in geom.coords:
             if regle.selcoords(*point[:3]):
+                np+=1
                 obj2 = obj.dupplique()
                 obj2.setnogeom(tmp=True)
                 obj2.geom_v.setpoint(point, 0, geom.dimension)
                 obj2.finalise_geom()
+                obj2.infogeom()
+                if att_sortie:
+                    obj2.attributs[att_sortie] = str(np)
                 regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
                 valide = True
         obj.geom_v = geom
@@ -670,21 +687,25 @@ def f_csplit(regle, obj):
 
 def f_splitgeom(regle, obj):
     '''#aide||decoupage inconditionnel des lignes en points
-       #pattern||;;;splitgeom;;
+       #pattern||?A;;;splitgeom;;
        #test||obj;poly||^;;;splitgeom;;||cnt;6;
        #test1||obj;poly||^;;;splitgeom>;;||cnt;5;
-       #test2||obj;poly||^;;;splitgeom;;||#type_geom;1;;;;;;pass-;;;;||cnt;5;
+       #test2||obj;poly||^np;;;splitgeom;;||#type_geom;3;;;;;;pass>||^;;;pass||cnt;5;
     '''
     if obj.geom_v.type == '0':
         return True
     if obj.initgeom():
         geom = obj.geom_v
         obj.geom_v = None
-        for point in geom.coords:
+        att_sortie = regle.params.att_sortie.val
+        for np,point in enumerate(geom.coords):
             obj2 = obj.dupplique()
             obj2.setnogeom(tmp=True)
             obj2.geom_v.setpoint(point, 0, geom.dimension)
             obj2.finalise_geom()
+            obj2.infogeom()
+            if att_sortie:
+                obj2.attributs[att_sortie] = str(np)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
         obj.geom_v = geom
         return True

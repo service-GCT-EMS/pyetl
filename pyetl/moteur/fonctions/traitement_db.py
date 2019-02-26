@@ -330,7 +330,7 @@ def f_dbrunsql(regle, obj):
     #pattern||;?C;?A;runsql;?C;?C
     '''
     base, _, _, _ = regle.cible_base
-    script = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    script = regle.getval_entree(obj)
     print('traitement db: execution sql ', base, '->', script, regle.params.cmp1.val,
           regle.params.cmp2.val)
 
@@ -356,7 +356,7 @@ def f_dbextload(regle, obj):
     #pattern||;?C;?A;dbextload;C;;
     '''
     base, _, _, _ = regle.cible_base
-    datas = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+    datas = regle.getval_entree(obj)
 #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
     fichs = sorted(glob.glob(datas))
     DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
