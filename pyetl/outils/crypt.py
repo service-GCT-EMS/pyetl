@@ -195,10 +195,13 @@ def descramble(mapper, key):
     if not key:
         key = mapper.get_param("defaultkey")
     if key.endswith('='):
-        return base64.b32decode(key).decode('utf-8')
+        try:
+            return base64.b32decode(key).decode('utf-8')
+        except UnicodeError:
+            return key
     return key
 
-def scramble(mapper, key):
+def scramble(key):
     ''' planque la clef d'origine'''
 
     if key.endswith('='):
@@ -247,14 +250,14 @@ def decrypt(mapper, val, key=None, level=None):
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
             return decrypt
-    return val
+    return None
 
 def crypter(mapper, val, key=None, level=None):
     '''crypte les mots de passe ou tout ce qu'on veur crypter...'''
 #    print ('dans cryptage ',val,key,level)
     key = descramble(mapper, key)
     if not key:
-        return scramble(mapper, val)
+        return scramble(val)
     if key not in CRYPTOCLASS:
         cryptinit(mapper, key, level)
     return CRYPTOCLASS[key].crypt(val)

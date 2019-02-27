@@ -532,10 +532,12 @@ class Pyetl(object):
 
     def valide_ulist(self, val, master, grouplist):
         ''' valide les autorisations par utilisateur'''
-        if val.endswith(')#'): # il y a des utilisateurs
+        if val and val.endswith(')#'): # il y a des utilisateurs
             ddv = val.index('#(')
             if ddv:
                 ulist = val[ddv+2:-2].split(',')
+                if '*' in ulist:
+                    return val[:ddv]
                 if master or self.username in ulist or any([i in ulist for i in grouplist]):
                     return val[:ddv]
 #                    print ('decode', ulist,val)
@@ -583,22 +585,26 @@ class Pyetl(object):
         """decrypte d'eventuels parametres cryptes
            gere 2 clefs une clef maitre et une clef utilisateur"""
 #        print ('decryptage parametres',self.parms['cryptokey'])
-        keyname = self.get_param('cryptokeyname', 'defaultkey')
-        key = self.get_param(keyname)
-        masterkey = self.get_param('masterkey', key)
-        if masterkey:
-            masterkey = self.decrypt(masterkey)
+        localkey = 'key_'+self.username #clef par defaut
+        masterkey = self.get_param('masterkey')
+
         userkey = self.get_param('userkey')
+        userkeyref = self.get_param('userkey_ref')
         usergroup = self.get_param('usergroup')
         grouplist = []
-        master = False
+        master=False
         if masterkey:
-            master = True
-            userkey = self.decrypt(userkey, key=masterkey)
-        else:
-            userkey = self.decrypt(userkey, key='key_'+self.username)
-            grouplist = self.decrypt(usergroup, key='key_'+self.username)
-            if grouplist == usergroup:
+            masterkey = self.decrypt(masterkey, key=[localkey, ''])
+            userkey = self.decrypt(userkeyref, key=[masterkey])
+            if userkey:
+                master=True
+#            print ('decodege master', masterkey,userkey, userkeyref)
+        elif userkey:
+            userkey = self.decrypt(userkey, key=[masterkey, localkey])
+#            print ('decodege user', userkey)
+
+            grouplist = self.decrypt(usergroup, key=[localkey])
+            if not grouplist:
                 grouplist = []
             else:
                 grouplist = grouplist.split(',')

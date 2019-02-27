@@ -412,7 +412,7 @@ def f_decrypt(regle, obj):
     val = regle.getval_entree(obj)
 
     decrypte = regle.stock_param.decrypt(val, clef)
-    obj.attributs[regle.params.att_sortie.val] = decrypte
+    obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val
     return True
 
 
