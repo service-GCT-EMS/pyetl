@@ -907,7 +907,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
             if not macro: # cas particulier on est dans un schema de
 #                           scripts multiples enchaines: on transforme les autres en macros locales
                 autonum += 1
-                nom = '#autochain_'+autonum
+                nom = '#autochain_'+str(autonum)
                 texte = ';;;;;'+nom+';;;batch;;'
                 macro = mapper.regmacro(nom, file=fichier_regles)
             else:

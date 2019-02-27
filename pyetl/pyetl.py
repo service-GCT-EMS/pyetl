@@ -263,6 +263,7 @@ class Pyetl(object):
 
             # charge les parametres individuels (fichier ini)
             self._paramdecrypter() # decrypte les parametres cryptes
+
             self.charge_cmd_internes() # macros internes
             self.charge_cmd_internes(site="macros", opt=1) # macros de site
             self.charge_cmd_internes(direct=os.path.join(self.paramdir, "macros"),
@@ -601,7 +602,6 @@ class Pyetl(object):
                 grouplist = []
             else:
                 grouplist = grouplist.split(',')
-
 #        print ('clef', masterkey, 'master', master, 'user',userkey)
         supr = set()
         for nom in self.site_params:
@@ -609,16 +609,17 @@ class Pyetl(object):
                 nom_p, val = parametre
                 if nom_p.startswith('**'): # cryptage
                     nom_p = nom_p[2:]
-                    val2 = self.decrypt(val, key=masterkey)
-#                    print ('decryptage ', nom_p, val2)
-                    if val2 == val:
-                        val2 = self.decrypt(val, key=userkey)
+                    val2 = self.decrypt(val, key=[masterkey, userkey])
+#                    print ('decryptage ', nom, nom_p, val2)
                     val = self.valide_ulist(val2, master, grouplist)
-                    val = val2
+#                    print ("valide", val)
+#                    val = val2
                     if val is None:
                         supr.add(nom)
-                    self.site_params[nom][numero] = (nom_p, val)
-
+                    else:
+                        self.site_params[nom][numero] = (nom_p, val)
+        for nom in supr:
+            del self.site_params[nom]
 
 
     def load_paramgroup(self, clef, nom='', check='', fin=True):

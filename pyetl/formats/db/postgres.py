@@ -176,7 +176,8 @@ class PgConnect(database.DbConnect):
             connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
-            print('error: postgr: utilisateur ou mot de passe errone sur la base ')
+            print('error: postgres: connection impossible ')
+            print('info:  postgres: parametres ', self.serveur, self.base, self.user, self.passwd)
             print('error', err)
     #        raise
 # traitement des elements specifiques

@@ -155,14 +155,16 @@ class HcubeCrypter(Crypter):
         cryptstr = ''.join(chr(i) for i in crypted)
         if not cryptstr.endswith('='):
             cryptstr = cryptstr+ '='
+#        print('retour cryptage', val,'->', cryptstr)
         return cryptstr
 
-    def decrypt(self, val):
+    def decrypt(self, valentree):
         """decryptage"""
-        if not val or not self.key:
-            return val
-        if len(val)%8 == 1: # on a fait du padding maison
-            val = val[:-1]
+        if not valentree or not self.key:
+            return valentree
+        # on a fait du padding maison
+        val = valentree[:-1] if len(valentree)%8 == 1 else valentree
+
         crypted = base64.b32decode(val)
         retour = bytes()
         clef = 0
@@ -176,13 +178,13 @@ class HcubeCrypter(Crypter):
         taille = retour[0]*256+retour[1]
         if abs(len(retour)-taille) > 5:
 #            print ('clef invalide ', len(retour) - taille, self.key)
-            return val
+            return valentree
         textbuf = bytes(retour[2:taille+2])
         try:
             return textbuf.decode("utf-8")
         except UnicodeDecodeError:
 #            print('clef invalide ')
-            return val
+            return valentree
 
 CRYPTOLEVELS = {0:Crypter, 1:BasicCrypter, 2:HcubeCrypter, 3:ExtCrypter}
 CRYPTOCLASS = dict()
@@ -233,12 +235,19 @@ def decrypt(mapper, val, key=None, level=None):
     if  not val.endswith('='): # ce n'est pas crypte
 #        print('non crypté', val)
         return val
-    key = descramble(mapper, key)
-    if key not in CRYPTOCLASS:
-        cryptinit(mapper, key, level)
-#    print ('decryptage', key, CRYPTOCLASS[key], CRYPTOCLASS[key].decrypt(val))
-    return CRYPTOCLASS[key].decrypt(val)
-
+    if isinstance(key, str): # on en fait une liste
+        keylist = [key]
+    else:
+        keylist = key
+    for key in keylist:
+        key = descramble(mapper, key)
+        if key not in CRYPTOCLASS:
+            cryptinit(mapper, key, level)
+    #    print ('decryptage', key, CRYPTOCLASS[key], CRYPTOCLASS[key].decrypt(val))
+        decrypt = CRYPTOCLASS[key].decrypt(val)
+        if decrypt != val:
+            return decrypt
+    return val
 
 def crypter(mapper, val, key=None, level=None):
     '''crypte les mots de passe ou tout ce qu'on veur crypter...'''

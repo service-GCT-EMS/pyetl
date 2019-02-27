@@ -101,7 +101,7 @@ class Ressource(object):
         elif self.etat == 2:
             self.handler.reopen()
             self.handler.finalise()
-        self.etat = 3
+        self.etat = self.handler.etat
         return self.nbo
 
 class GestionSorties(object):

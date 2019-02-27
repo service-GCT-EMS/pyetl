@@ -704,7 +704,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
     ressource, nom = getfanout(regle, extention, ident, initial)
 #    ressource = sorties.get_res(regle.numero, nom)
-#    print ('recup_ressource ressource stream csv' , ressource, nom, ident)
+
 #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
         if separ is None:
@@ -717,6 +717,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
                        liste_fich=regle.stock_param.liste_fich, null=null,
                        f_sortie=regle.f_sortie)
         ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
+    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat)
     regle.stock_param.set_param('derniere_sortie', nom, parent=1)
     regle.ressource = ressource
     regle.dident = ident

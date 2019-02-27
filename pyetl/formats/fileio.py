@@ -63,26 +63,38 @@ class FileWriter(object):
 
     def open(self):
         """ouverture de fichier"""
+        if self.etat != self.INIT: # le fichier est deja la on essaye de reouvrir
+            self.reopen(self)
+            return
         try:
             self.fichier = sys.stdout if self.nom == "#print" else\
                            open(self.nom, 'w', encoding=self.encoding)#stdout
 
             self.fichier.write(self.header())
             self.stats[self.nom] = self.stats.get(self.nom, 0)
+            self.etat = self.OPEN
         except IOError:
             self.etat = self.FAIL
             print("erreur ouverture fichier")
 
     def reopen(self):
         """reouverture"""
-        self.fichier = sys.stdout if self.nom == "#print" else\
-                       open(self.nom, 'a', encoding=self.encoding)#stdout
+        if self.etat == self.CLOSE:
+            try:
+                self.fichier = sys.stdout if self.nom == "#print" else\
+                               open(self.nom, 'a', encoding=self.encoding)#stdout
+            except IOError:
+                self.etat = self.FAIL
+                print("erreur ouverture fichier", self.nom)
+
+
     def close(self):
         """fermeture"""
 #        print("fileeio fermeture", self.nom)
         if self.nom == "#print":
             return # stdout
         try:
+            self.etat = self.CLOSE
             self.fichier.close()
         except AttributeError:
             print('error: fw  : writer close: fichier non defini', self.nom)
@@ -103,6 +115,7 @@ class FileWriter(object):
             except AttributeError:
                 print('error: fw  : writer finalise: fichier non defini', self.nom)
             self.fichier.write(end)
+            self.etat = self.FINAL
         self.close()
 
     def set_liste_att(self, liste_att):
