@@ -427,11 +427,11 @@ def h_dbmaxval(regle):
     return True
 
 def f_dbmaxval(regle, obj):
-    '''#aide||valeur maxi d une claef en base de donnees
+    '''#aide||valeur maxi d une clef en base de donnees
      #groupe||database
     #pattern||?P;;;dbmaxval;?C;
        #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
-            ||ptv;toto;1
+            ||ptv;toto;71
     '''
     pass
 
@@ -450,7 +450,7 @@ def f_dbcount(regle, obj):
      #groupe||database
     #pattern||S;;;dbcount;?C;
        #test||obj||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;toto;;;dbcount;
-            ||atv;toto;1
+            ||atv;toto;64
     '''
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
 #    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)
