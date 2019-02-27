@@ -96,13 +96,9 @@ class Ressource(object):
 
     def finalise(self):
         ''' finalise une ressource : une resource finalisee ne peut pas etre reouverte'''
-        if self.etat == 1:
-            self.handler.finalise()
-        elif self.etat == 2:
-            self.handler.reopen()
-            self.handler.finalise()
-        self.etat = self.handler.etat
+        self.etat = self.handler.finalise()
         return self.nbo
+
 
 class GestionSorties(object):
     """ gestion des ressources ouvertes """

@@ -644,7 +644,7 @@ class SqlWriter(CsvWriter):
     def finalise(self):
         '''ligne de fin de fichier en sql'''
         self.fin_classe()
-        self.fichier.close()
+        super().finalise()
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' ecriture de sql multiclasse on cree des entetes intermediaires'''

@@ -206,6 +206,7 @@ class GdalWriter(FileWriter):
         self.fichier = fiona.open(self.nom, 'w', crs=crs, encoding=self.encoding,
                                   driver=self.driver, schema=schema, layer=self.layer)
         self.stats[self.nom] = self.stats.get(self.nom, 0)
+        self.etat = self.OPEN
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' change de classe '''
@@ -221,20 +222,12 @@ class GdalWriter(FileWriter):
                                   driver=self.driver, schema=schema, layer=self.layer)
 
 
-
     def reopen(self):
         '''reouvre le fichier s'il aete ferme entre temps'''
         crs = from_epsg(int(self.srid))
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
         self.fichier = fiona.open(self.nom, 'a', crs=crs, encoding=self.encoding,
                                   driver=self.driver, schema=schema, layer=self.layer)
-
-
-
-    def finalise(self):
-        ''' ecrit la fin de fichier'''
-        self.fichier.close()
-        return
 
 
     def set_liste_att(self, liste_att):

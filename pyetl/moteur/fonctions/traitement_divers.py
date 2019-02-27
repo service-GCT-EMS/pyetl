@@ -291,7 +291,6 @@ def f_uniqcnt(regle, obj):
 
 def sortir_traite_stock(regle):
     '''ecriture finale'''
-    print('traite stock sortir', regle.final)
     if regle.final:
         try:
             regle.f_sortie.ecrire_objets(regle, True)

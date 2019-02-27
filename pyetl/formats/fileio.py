@@ -38,7 +38,6 @@ class FileWriter(object):
             self.writerparms = f_sortie.writerparms
         self.liste_att = _set_liste_attributs(schema, liste_att)
         self.fichier = None
-        self.etat = self.INIT
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.converter = converter
@@ -56,36 +55,28 @@ class FileWriter(object):
             return self.hinit
         return self.htext
 
-
     def tail(self):
         """fin de fichier"""
         return self.ttext
 
     def open(self):
         """ouverture de fichier"""
-        if self.etat != self.INIT: # le fichier est deja la on essaye de reouvrir
-            self.reopen(self)
-            return
         try:
             self.fichier = sys.stdout if self.nom == "#print" else\
                            open(self.nom, 'w', encoding=self.encoding)#stdout
 
             self.fichier.write(self.header())
             self.stats[self.nom] = self.stats.get(self.nom, 0)
-            self.etat = self.OPEN
         except IOError:
-            self.etat = self.FAIL
             print("erreur ouverture fichier")
 
     def reopen(self):
         """reouverture"""
-        if self.etat == self.CLOSE:
-            try:
-                self.fichier = sys.stdout if self.nom == "#print" else\
-                               open(self.nom, 'a', encoding=self.encoding)#stdout
-            except IOError:
-                self.etat = self.FAIL
-                print("erreur ouverture fichier", self.nom)
+        try:
+            self.fichier = sys.stdout if self.nom == "#print" else\
+                           open(self.nom, 'a', encoding=self.encoding)#stdout
+        except IOError:
+            print("erreur ouverture fichier", self.nom)
 
 
     def close(self):
@@ -94,7 +85,6 @@ class FileWriter(object):
         if self.nom == "#print":
             return # stdout
         try:
-            self.etat = self.CLOSE
             self.fichier.close()
         except AttributeError:
             print('error: fw  : writer close: fichier non defini', self.nom)
@@ -115,8 +105,10 @@ class FileWriter(object):
             except AttributeError:
                 print('error: fw  : writer finalise: fichier non defini', self.nom)
             self.fichier.write(end)
-            self.etat = self.FINAL
+            self.close()
+            return self.FINAL
         self.close()
+        return self.CLOSE
 
     def set_liste_att(self, liste_att):
         """cache la liste d:attributs"""
