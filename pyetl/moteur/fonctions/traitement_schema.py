@@ -167,7 +167,7 @@ def f_valide_schema(regle, obj):
 #    print ('fonctions : valide_schema', obj.ident, obj.schema)
 #    raise
     if obj.virtuel:
-        print('valide_schema : obj virtuel')
+#        print('valide_schema : obj virtuel')
         return True
     if regle.params.val_entree.val:
     # on copie le schema pour ne plus le modifier apres ecriture

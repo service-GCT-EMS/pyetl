@@ -37,6 +37,7 @@ class ElyConnect(ora.OraConnect):
         self.adminschema = "ELYX_ADMIN_P"
         self.modelschema = "ELYX_MODELE"
         self.types_base['REEL'] = 'F'
+        self.debuglog = ''
 #        print ('code de la base', code, params)
         if params and code:
             self.adminschema = params.get_param("elyx_adminschema_",
@@ -268,28 +269,29 @@ class ElyConnect(ora.OraConnect):
 
 
 
-    def dumpiterator(self, helper, classes, dest, log, fanout, nbworkers):
-        ''' iterateur de blocks de traitement'''
-        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
-        subcode = 0
-#        print ('dumpiter',blocks)
-        for subcode, nom in enumerate(blocks):
-            destination = os.path.join(dest, *nom)
-            os.makedirs(os.path.dirname(destination), exist_ok=True)
-            logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
-            os.makedirs(logdir, exist_ok=True)
-            xml = self.genexportxml(destination, logdir, blocks[nom])
-            paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
-            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-                tmpf.write('\n'.join(xml))
-                tmpf.close()
-            outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
-            print('traitement', nom, (helper, paramfile, outfile), destination)
-            yield (nom, (helper, paramfile, outfile), (dest, nom, 'asc'), self.size[nom])
+#    def dumpiterator(self, helper, classes, dest, log, fanout, nbworkers, logmode=0):
+#        ''' iterateur de blocks de traitement'''
+#        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
+#        subcode = 0
+##        print ('dumpiter',blocks)
+#        for subcode, nom in enumerate(blocks):
+#            destination = os.path.join(dest, *nom)
+#            os.makedirs(os.path.dirname(destination), exist_ok=True)
+#            logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
+#            os.makedirs(logdir, exist_ok=True)
+#            xml = self.genexportxml(destination, logdir, blocks[nom])
+#            paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
+#
+#            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
+#                tmpf.write('\n'.join(xml))
+#                tmpf.close()
+#            outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
+#            print('traitement', nom, (helper, paramfile, outfile), destination)
+#            yield (nom, (helper, paramfile, outfile), (dest, nom, 'asc'), self.size[nom])
 
 
     def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
-        ''' decoupe les classes a sortier en blocs pour traitement en parallele'''
+        ''' decoupe les classes a sortir en blocs pour traitement en parallele'''
         self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
         subcode = 0
         retour = []
@@ -300,6 +302,10 @@ class ElyConnect(ora.OraConnect):
             os.makedirs(logdir, exist_ok=True)
             xml = self.genexportxml(destination, logdir, blocks[nom])
             paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
+            if self.debuglog:
+                xmllogfile = os.path.join(log,'_'.join(nom)+'_param_FEA.xml')
+                with open(xmllogfile, mode='w', encoding='cp1252') as logf:
+                    logf.write('\n'.join(xml))
             with open(paramfile, mode='w', encoding='cp1252') as tmpf:
                 tmpf.write('\n'.join(xml))
             outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
@@ -329,6 +335,9 @@ class ElyConnect(ora.OraConnect):
 #        tmpdirstore = tempfile.TemporaryDirectory()
 #        tmpdir = tmpdirstore.name
 #        print ('tmpdir',tmpdir)
+        self.debuglog = regle_courante.getvar('debuglog')
+        if self.debuglog:
+            print('------------------------------------- generation log debug-----------')
         with tempfile.TemporaryDirectory() as tmpdir:
 #        if True:
             self.tmpdir = tmpdir

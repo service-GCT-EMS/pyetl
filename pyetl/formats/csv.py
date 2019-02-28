@@ -631,6 +631,8 @@ class SqlWriter(CsvWriter):
             print('finclasse sql: erreur generateur sql non defini', self.schema.identclasse,
                   self.schema.schema.format_sortie)
             raise StopIteration(3)
+        if self.fichier.closed:
+            self.reopen()
         if self.writerparms.get('nodata'):
             self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
             return
@@ -645,6 +647,7 @@ class SqlWriter(CsvWriter):
         '''ligne de fin de fichier en sql'''
         self.fin_classe()
         super().finalise()
+        return 3 # on ne peut pas le reouvrir
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' ecriture de sql multiclasse on cree des entetes intermediaires'''

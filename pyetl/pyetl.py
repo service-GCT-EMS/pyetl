@@ -936,6 +936,7 @@ class Pyetl(object):
             stock = False
             for regle in self.regles:
                 if regle.store and regle.nbstock:
+                    print ('--------menage_final ', regle, regle.nbstock)
                     stock = True
                     regle.traite_stock(regle)
 
@@ -1157,7 +1158,7 @@ class Pyetl(object):
         return stat.to_obj(self)
 
 
-    def lecture(self, fich, regle=None, reglenum=0, parms=None):
+    def lecture(self, fich, regle=None, reglenum=None, parms=None):
         ''' lecture d'un fichier d'entree'''
         racine, chemin, fichier, ext = self.parametres_fichiers[fich] if parms is None else parms
         self.fichier_courant = fich
@@ -1168,11 +1169,13 @@ class Pyetl(object):
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         self.f_entree = Reader(ext)
-        regle = self.regles[reglenum] if regle is None and reglenum > 0 else regle
+#        print ('appel lecture ',fichier, regle, reglenum)
+        regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
 #        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
+#            raise
         nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)
         self.padd('_st_lu_objs', nb_obj)
         self.padd('_st_lu_fichs', 1)

@@ -38,9 +38,6 @@ class TextWriter(fileio.FileWriter):
         except AttributeError:
             print('error: fw  : writer close: fichier non defini', self.nom)
 
-    def finalise(self):
-        """fermeture definitive (ecrit la fin de fichier)"""
-        self.close()
 
     def write(self, obj):
         '''ecrit un objet complet'''

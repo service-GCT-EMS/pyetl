@@ -247,6 +247,9 @@ class GdalWriter(FileWriter):
         self.stats[self.nom] += 1
         return True
 
+    def finalise(self):
+        super().finalise()
+        return 3
 
 
 def gdalconverter(obj, liste_att, minmajfunc):
