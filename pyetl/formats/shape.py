@@ -202,7 +202,7 @@ def geom_from_shp(obj):
         geom_v.type = '1'
         if dim == 3:
             geom.points[0].append(geom.z[0])
-        geom_v.setpoint(geom.points[0], 0, int(dim))
+        geom_v.setpoint(geom.points[0], None, int(dim))
 #        print ("creation geometrie", geom.points[0])
     elif nature == 3 or nature == 5:
         type_geom = '2' if nature == 3 else '3'

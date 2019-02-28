@@ -407,7 +407,7 @@ def _ecrire_point_asc(point):
     '''retourne un point pour l'entete'''
 
     dim = point.dimension
-    angle = round((90-point.angle)*FA, 0)
+    angle = round((90-point.angle)*FA, 0) if point.angle is not None else 0
     try:
         if dim == 2:
             ccx, ccy = point.coords[0][:2]

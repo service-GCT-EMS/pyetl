@@ -65,7 +65,7 @@ def cregeompoint(obj, point, srid):
     dim = len(point)
     if dim == 2:
         point.append(0.)
-    obj.geom_v.setpoint(point, 0, dim)
+    obj.geom_v.setpoint(point, None, dim)
     if srid:
         obj.geom_v.setsrid(srid)
     return obj.finalise_geom()
@@ -89,7 +89,7 @@ def f_setpoint(regle, obj):
 #        coords = [i for i in obj.attributs.get(regle.params.att_entree.val,\
 #                 regle.params.val_entree.val).split(',')]
         point = None
-        obj.geom_v.setpoint(None, 0, 2)
+        obj.geom_v.setpoint(None, None, 2)
         obj.finalise_geom()
 #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
 #                 for i in regle.params.att_entree.liste]
@@ -120,7 +120,7 @@ def f_setpoint_liste(regle, obj):
 #              regle.ligne[:-1])
 #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
 #                 for i in regle.params.att_entree.liste]
-        obj.geom_v.setpoint(None, 0, len(regle.params.att_entree.liste))
+        obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
         obj.finalise_geom()
 #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
 #                 for i in regle.params.att_entree.liste]
@@ -163,7 +163,7 @@ def f_addgeom(regle, obj):
         dim = len(point)
         if dim == 2:
             point.append(0.)
-        obj.geom_v.setpoint(point, 0, dim)
+        obj.geom_v.setpoint(point, None, dim)
     else:
         if len(regle.params.att_entree.liste) > 1:
 #            coordonnees = zip(*[obj.attributs.get(i, regle.params.val_entree.val).split(',')
@@ -216,7 +216,7 @@ def f_force_pt(regle, obj):
         position = int(position) if position else 0
         try:
 #                print('changement en point ', obj.attributs['#type_geom'])
-            obj.geom_v.setpoint(obj.geom_v.getpoint(position), 0, obj.dimension)
+            obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, obj.dimension)
             obj.finalise_geom()
 #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
         except ValueError:
@@ -637,7 +637,7 @@ def crepoint_copie(obj, point, dimension, numero, att_sortie=None):
     '''cree un point en duppliquant un objet de reference'''
     obj2 = obj.dupplique()
     obj2.setnogeom(tmp=True)
-    obj2.geom_v.setpoint(point, 0, dimension)
+    obj2.geom_v.setpoint(point, None, dimension)
     obj2.finalise_geom()
     obj2.infogeom()
     if att_sortie:
@@ -673,7 +673,7 @@ def f_csplit(regle, obj):
                 npt += 1
                 obj2 = obj.dupplique()
                 obj2.setnogeom(tmp=True)
-                obj2.geom_v.setpoint(point, 0, geom.dimension)
+                obj2.geom_v.setpoint(point, None, geom.dimension)
                 obj2.finalise_geom()
                 obj2.infogeom()
                 if att_sortie:
@@ -701,7 +701,7 @@ def f_splitgeom(regle, obj):
         for npt, point in enumerate(geom.coords):
             obj2 = obj.dupplique()
             obj2.setnogeom(tmp=True)
-            obj2.geom_v.setpoint(point, 0, geom.dimension)
+            obj2.geom_v.setpoint(point, None, geom.dimension)
             obj2.finalise_geom()
             obj2.infogeom()
             if att_sortie:

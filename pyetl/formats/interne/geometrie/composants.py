@@ -40,7 +40,7 @@ def cercle_3pts(pt1, pt2, pt3):
 
 class Point(object):
     '''# definition d'un point (oriente)'''
-    def __init__(self, coords, angle, dim=2):
+    def __init__(self, coords, angle=None, dim=2):
         if dim > 3:
             dim = 3
         self.coords = [list(coords)[:dim]] if coords is not None else []

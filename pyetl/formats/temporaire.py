@@ -96,7 +96,7 @@ def geom_from_tmp(obj):
             poly = None
         elif code == "O":
             pnt = [float(j) for j in i[1:].split(' ')]
-            geom_v.setpoint(pnt, 0, len(pnt))
+            geom_v.setpoint(pnt, None, len(pnt))
     return geom_v
 
 

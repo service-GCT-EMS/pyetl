@@ -936,7 +936,7 @@ class Pyetl(object):
             stock = False
             for regle in self.regles:
                 if regle.store and regle.nbstock:
-                    print ('--------menage_final ', regle, regle.nbstock)
+#                    print ('--------menage_final ', regle, regle.nbstock)
                     stock = True
                     regle.traite_stock(regle)
 

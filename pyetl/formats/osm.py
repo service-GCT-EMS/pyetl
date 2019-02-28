@@ -271,7 +271,7 @@ def geom_from_osm(obj):
         obj.attributs['#type_geom'] = '0'
         return True
     if obj.attributs['#type_geom'] == '1':
-        geomv.setpoint(obj.geom[0], 0, 2)
+        geomv.setpoint(obj.geom[0], None, 2)
 
     else:
 #        ext = 999998

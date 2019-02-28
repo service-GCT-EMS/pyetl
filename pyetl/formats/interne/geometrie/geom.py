@@ -209,12 +209,12 @@ class Geometrie(object):
             self.finalise_geom(type_geom='0')
             return
         if geo_if["type"] == 'Point':
-            self.setpoint(geo_if['coordinates'],0,len(geo_if['coordinates']))
+            self.setpoint(geo_if['coordinates'], None, len(geo_if['coordinates']))
             self.finalise_geom(type_geom='1')
 
         elif geo_if["type"] == 'LineString':
             dim = len(geo_if["coordinates"][0])
-            self.cree_section(geo_if["coordinates"],dim,1,0)
+            self.cree_section(geo_if["coordinates"], dim, 1, 0)
 
 #            self.nouvelle_ligne_s(C.Section(list(geo_if["coordinates"]),dim))
 #            for pt in geo_if["coordinates"]:
@@ -236,7 +236,7 @@ class Geometrie(object):
 #            print ('gif:polygone',geo_if["coordinates"][0][0])
             interieur = False
             for ligne in geo_if["coordinates"]:
-                self.cree_section(ligne,dim,1,0, interieur=interieur)
+                self.cree_section(ligne,dim, 1, 0, interieur=interieur)
 #                print ('lin',ligne,interieur,len(self.lignes))
 
                 interieur = True
@@ -255,7 +255,7 @@ class Geometrie(object):
             interieur = False
             for poly in geo_if["coordinates"]:
                 for ligne in poly:
-                    self.cree_section(ligne,dim,1,0)
+                    self.cree_section(ligne, dim, 1, 0)
                     interieur = True
 #                    self.nouvelle_ligne_s(C.Section(list(ligne),dim))
 #                    for pt in ligne:
@@ -269,7 +269,7 @@ class Geometrie(object):
             for poly in geo_if["coordinates"]:
 
                 for ligne in poly:
-                    self.cree_section(ligne,dim,1,0)
+                    self.cree_section(ligne, dim, 1, 0)
 
 #                    self.nouvelle_ligne_s(C.Section(list(ligne),dim))
 #                    for pt in ligne:
@@ -302,7 +302,7 @@ class Geometrie(object):
 
 
 
-    def setpoint(self, coords, angle, dim, longueur=0, srid='3948'):
+    def setpoint(self, coords, angle=None, dim=2, longueur=0, srid='3948'):
         '''cree une geometrie de point'''
         self.type = '1'
         self.null = False

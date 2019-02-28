@@ -108,7 +108,7 @@ def _parse_start(nature, niveau, poly, ring, nbring):
 def _parse_end(nature, valeurs, dim, nbring, niveau, geometrie):
     '''finalise l'element'''
     if nature == 'POINT(':
-        geometrie.setpoint(valeurs[0], 0, dim)
+        geometrie.setpoint(valeurs[0], None, dim)
 #                    print ('detecte point ',valeurs[0], 0, dim)
     elif nature == '(':
         geometrie.cree_section(valeurs, dim, 1, 0, interieur=nbring > 1)

@@ -170,7 +170,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
         if tk1 == '1':
             #print ('mode noeud point')
             obj.attributs["#type_reseau"] = "noeud"
-            obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy)], 0, 2)
+            obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy)], None, 2)
             obj.infogeom()
             obj_ouvert = 0
             return obj_ouvert, attsup
@@ -180,7 +180,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
         attr.pop() # on enleve l'attribut sens de la liste des attributs
         del obj.attributs['_sens'] # on rattrape le premier objet
         obj.attributs["#type_reseau"] = "noeud"
-        obj.geom_v.setpoint([int(tk1)/unit, numconv(iter_gy)], 0, 2)
+        obj.geom_v.setpoint([int(tk1)/unit, numconv(iter_gy)], None, 2)
         obj.infogeom()
         obj_ouvert = 0
         attsup = ''
@@ -200,7 +200,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
             obj.attributs["#sens_reseau"] = "-1" # inverse
         else: # noeud de reseau
             obj.attributs["#type_reseau"] = "noeud"
-            obj.geom_v.setpoint([int(tk2)/unit, numconv(iter_gy)], 0, 2)
+            obj.geom_v.setpoint([int(tk2)/unit, numconv(iter_gy)], None, 2)
             obj.infogeom()
             obj_ouvert = 0
             return obj_ouvert, attsup
@@ -229,7 +229,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
 def setpoint2d(obj, iter_gy, regle):
     ''' enregistre un point 2d '''
     try:
-        obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy)], 0, 2)
+        obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy)], None, 2)
         obj.infogeom()
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = '1'
@@ -244,7 +244,7 @@ def setpoint2d(obj, iter_gy, regle):
 def setpoint3d(obj, iter_gy, regle):
     ''' enregistre un point 3d '''
     try:
-        obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy), numconv(iter_gy)], 0, 3)
+        obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy), numconv(iter_gy)], None, 3)
         obj.infogeom()
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = '1'
