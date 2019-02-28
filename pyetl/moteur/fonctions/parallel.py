@@ -246,13 +246,14 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
 #    work = [executor.submit(fonction, *arg) for arg in arglist]
     waitlist = []
     jobs = []
+    marge = executor._max_workers+2
     for arg in argiter:
 
         if arg is not None:
 #            print ('piter: recu ', arg, len(jobs))
             waitlist.append(arg)
 #            print ('liste:', waitlist)
-            if len(jobs) < 20:
+            if len(jobs) < marge:
                 try:
                     waitlist.sort()
                     taille, job = waitlist.pop()
@@ -262,7 +263,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
                     time.sleep(0.1)
         rfin.update(suivi_job(mapper, jobs))
         time.sleep(0.1)
-    for arg in waitlist:
+    for arg in sorted(waitlist, reverse=True):
         taille, job = arg
         submit_job(jobs, job, regle, executor, fonction)
 
