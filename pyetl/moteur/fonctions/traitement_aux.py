@@ -46,7 +46,7 @@ fonctions de sortie et de schema auxiliaires
 """
 #from pyetl.formats.formats import Stat
 
-from pyetl.formats.formats import Stat, Statdef
+from pyetl.formats.stats import Stat, Statdef
 from pyetl.schema.fonctions_schema import copyschema
 
 

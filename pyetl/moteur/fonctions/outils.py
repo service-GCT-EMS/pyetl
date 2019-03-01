@@ -12,7 +12,7 @@ import itertools
 import linecache
 import traceback
 import logging
-import pyetl.formats.formats as F
+from pyetl.formats import Reader
 from pyetl.formats.interne.objet import Objet
 
 DEFCODEC = "utf-8"
@@ -94,31 +94,32 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
 
 
 
-def getfichparms(mapper, rep=''):
-    '''recupere une liste de fichiers'''
-#    print( "charge fichiers", rep)
-    fichs, parametres_fichiers = scan_entree(rep=rep)
-    fparm = [(i, parametres_fichiers[i]) for i in fichs]
-    return fparm
+#def getfichparms(rep=''):
+#    '''recupere une liste de fichiers'''
+##    print( "charge fichiers", rep)
+#    fichs, parametres_fichiers = scan_entree(rep=rep)
+#    fparm = [(i, parametres_fichiers[i]) for i in fichs]
+#    return fparm
 
 
 def getfichs(regle, obj):
     '''recupere une liste de fichiers'''
 
-    mapper = regle.stock_param
+#    mapper = regle.stock_param
     racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
         racine = regle.getvar('_entree', '.')
     vobj = regle.getval_entree(obj)
-    if vobj:
-        rep = os.path.join(racine, vobj)
-    else:
-        rep = racine
+    rep = os.path.join(racine, vobj) if vobj else racine
+
+    fichs, parametres_fichiers = scan_entree(rep=rep)
+    fparm = [(i, parametres_fichiers[i]) for i in fichs]
+    return fparm
 
 #    print( "charge fichiers", rep)
-    fichs = mapper.scan_entree(rep=rep)
-    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
-    return fparm
+#    fichs, parametres = mapper.scan_entree(rep=rep)
+#    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
+#    return fparm
 
 
 
@@ -472,7 +473,7 @@ def charge_mapping(regle, mapping=None):
 
 def valide_auxiliaires(identifies, non_identifies):
     ''' valide que les fichiers trouves sont connus'''
-    auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
+    auxiliaires = {a:defin[3] for a, defin in Reader.lecteurs.items()}
     for chemin, nom, extinc in non_identifies:
         if (chemin, nom) in identifies:
             extref = identifies[(chemin, nom)]
@@ -483,36 +484,16 @@ def valide_auxiliaires(identifies, non_identifies):
                 print('extention inconnue ', extref, '->', chemin, nom, extinc)
 
 
-#    def _valide_auxiliaires(identifies, non_identifies):
-#        ''' valide que les fichiers trouves sont connus'''
-##        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
-#        auxiliaires = Reader.auxiliaires
-#        for chemin, nom, extinc in non_identifies:
-#            if (chemin, nom) in identifies:
-#                extref = identifies[(chemin, nom)]
-#                if auxiliaires.get(extref) and extinc in auxiliaires.get(extref):
-##                    print ('connu ',chemin,nom,extinc,'->',extref)
-#                    pass
-#                else:
-#                    print('extention inconnue ', extref, '->', chemin, nom, extinc)
-#
-#
-#
-#
-#
-#
-
-
-
 def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
     " etablit la liste des fichiers a lire"
     entree = rep
+    parametres_fichiers = {}
+    retour = []
     if not entree:
-        fichs = []
-        parametres_fichiers = {}
-        return fichs, parametres_fichiers
+        return retour, parametres_fichiers
     force_format = ''
-    liste_formats = F.LECTEURS.keys()
+#    liste_formats = F.LECTEURS.keys()
+    liste_formats = Reader.lecteurs.keys()
 #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
     if debug:
         print('format entree forcee ', force_format)
@@ -525,7 +506,6 @@ def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
         fichs = [i for i in scandirs(entree, '', True,
                                      pattern=fileselect)]
 
-#        print ('scan_entree:fichiers a traiter',fichs)
     identifies = dict()
     non_identifies = []
 
@@ -539,8 +519,8 @@ def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
             identifies[chemin, nom] = ext
             if debug:
                 print('fichier a traiter', f_courant, ext)
-            fichs.append(f_courant)
-            parametres_fichiers[f_courant] = (chemin, fichier, ext)
+            retour.append(f_courant)
+            parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
 #                print('fichier a traiter', f_courant, fichier, ext)
         else:
             non_identifies.append((chemin, nom, ext))
@@ -549,7 +529,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
 
     if debug:
         print("fichiers a traiter", fichs)
-    return fichs, parametres_fichiers
+    return retour, parametres_fichiers
 
 
 

@@ -12,18 +12,19 @@ import re
 import logging
 import itertools
 from collections import defaultdict
-from  .vglobales import VERSION, set_mainmapper
-from  .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
-from  .formats.formats import Reader, Stat, ExtStat
-from  .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
+from .vglobales import VERSION, set_mainmapper
+from .formats import Reader
+from .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
+from .formats.stats import Stat, ExtStat
+from .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
          interprete_ligne_csv, map_vars
-from  .moteur.compilateur import compile_regles
-from  .moteur.moteur import Moteur, Macro
-from  .moteur.fonctions import COMMANDES, SELECTEURS
-from  .moteur.fonctions.outils import scandirs, valide_auxiliaires
-from  .schema.schema_interne import init_schema # schemas
-from  .schema.schema_io import ecrire_schemas, retour_schemas # integre_schemas # schemas
-from  .moteur.fonctions.parallel import setparallel
+from .moteur.compilateur import compile_regles
+from .moteur.moteur import Moteur, Macro
+from .moteur.fonctions import COMMANDES, SELECTEURS
+from .moteur.fonctions.outils import scandirs, valide_auxiliaires
+from .schema.schema_interne import init_schema # schemas
+from .schema.schema_io import ecrire_schemas # integre_schemas # schemas
+from .moteur.fonctions.parallel import setparallel
 #from  .moteur.fonctions.parallel import initl
 #from  .outils.crypt import crypter, decrypt
 
@@ -129,7 +130,7 @@ class Pyetl(object):
 #    decrypt = decrypt
     init_schema = init_schema
 #    formats_connus = F.LECTEURS
-    reader = Reader
+#    reader = Reader
 
     def __init__(self, parent=None, nom=None):
 
@@ -179,8 +180,7 @@ class Pyetl(object):
         self.retour = []
         # description des fonctions statistiques (dictionnaire d'objets stats)
         # entree
-        self.fichs = [] # liste des fichiers a traiter
-        self.parametres_fichiers = dict() # paramteres d'acces
+#        self.parametres_fichiers = dict() # paramteres d'acces
         self.schemas = dict() # schemas des classes
         self.regles = list()# regles de mapping
         self.regle_sortir = None
@@ -839,8 +839,8 @@ class Pyetl(object):
 
     def get_converter(self, geomnatif):
         ''' retourne le bon convertisseur de format geometrique'''
-#        print('convertisseur', geomnatif, F.lecteurs)
-        _, converter, _ = Reader.lecteurs.get(geomnatif, Reader.lecteurs['interne'])
+
+        _, converter, _,_ = Reader.lecteurs.get(geomnatif, Reader.lecteurs['interne'])
         return converter
 
     def _finalise_sorties(self):
@@ -883,7 +883,7 @@ class Pyetl(object):
             print('mapper: debut traitement donnees:>'+entree+ '-->',
                   self.regle_sortir.params.cmp1.val)
             try:
-                fichs = self.scan_entree()
+                fichs, parametres = self.scan_entree()
             except NotADirectoryError as err:
                 print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
                 print('type entree ', type(entree))
@@ -895,7 +895,7 @@ class Pyetl(object):
                     #print ('mapper:traitement fichier',i)
                     #traitement.racine_fich = os.path.dirname(i)
                     try:
-                        nb_lu = self.lecture(i)
+                        nb_lu = self.lecture(i, parms=parametres[i])
                     except StopIteration as arret:
 #            print("intercepte abort",abort.args[0])
                         if arret.args[0] == '2':
@@ -1095,11 +1095,10 @@ class Pyetl(object):
         " etablit la liste des fichiers a lire"
         entree = self.get_param('_entree') if rep is None else rep
 #        print ('scan_entree', entree)
-
+        parametres_fichiers = dict()
+        retour = []
         if not entree or entree.startswith('!!vide'):
-            self.fichs = []
-            self.parametres_fichiers = {}
-            return self.fichs
+            return retour, parametres_fichiers
         force_format = ''
         liste_formats = Reader.lecteurs.keys()
 #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
@@ -1126,6 +1125,7 @@ class Pyetl(object):
         filtre_entree = self.get_param('filtre_entree', '')
         if filtre_entree:
             print('filtrage entrees ', filtre_entree)
+        retour = []
         for fichier, chemin in fichs:
             if filtre_entree:
                 if not re.search(filtre_entree, fichier):
@@ -1140,16 +1140,16 @@ class Pyetl(object):
                 identifies[chemin, nom] = ext
                 if self.debug:
                     print('fichier a traiter', f_courant, ext)
-                self.fichs.append(f_courant)
-                self.parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
+                retour.append(f_courant)
+                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
 #                print('fichier a traiter', f_courant, entree, chemin, fichier, ext)
             else:
                 non_identifies.append((chemin, nom, ext))
         valide_auxiliaires(identifies, non_identifies)
 
         if self.debug:
-            print("fichiers a traiter", self.fichs)
-        return self.fichs
+            print("fichiers a traiter", retour)
+        return retour, parametres_fichiers
 
 
     def _lecture_stats(self, stat):
@@ -1160,7 +1160,7 @@ class Pyetl(object):
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         ''' lecture d'un fichier d'entree'''
-        racine, chemin, fichier, ext = self.parametres_fichiers[fich] if parms is None else parms
+        racine, chemin, fichier, ext = parms
         self.fichier_courant = fich
         self.chemin_courant = chemin
         self.racine = racine
@@ -1168,15 +1168,16 @@ class Pyetl(object):
 
 #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
-        self.f_entree = Reader(ext)
 #        print ('appel lecture ',fichier, regle, reglenum)
         regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
+
+        self.f_entree = Reader(ext, regle, reglestart)
 #        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)
 #            raise
-        nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier, self, reglestart)
+        nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier)
         self.padd('_st_lu_objs', nb_obj)
         self.padd('_st_lu_fichs', 1)
         self.aff.send(('fich', 1, nb_obj))

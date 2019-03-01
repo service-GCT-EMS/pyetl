@@ -6,7 +6,7 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees postgis
 """
 #import re
-from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 from . import postgres
 from . import postgres_gensql
 

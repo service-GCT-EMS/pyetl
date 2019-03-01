@@ -10,329 +10,9 @@
 
 
 import os
-import re
 #from numba import jit
-from .interne.objet import Objet
-from .fileio import FileWriter
-
-
-TOKEN_SPECIFICATION = [('N', r'-?\d+(\.\d*)?'),  # Integer or decimal number
-                       ('E', r'\)|;'),            # Statement terminator
-                       ('C', r'[A-Z]* *\('),    # Identifiers
-                       ('S', r','),
-                       ('P', r'SRID='),
-                       ('K', r'[ \t]+|\n'),       # Skip over spaces and tabs
-                       ('M', r'.')]            # Any other character
-TOK_REGEX = re.compile('|'.join('(?P<%s>%s)' % pair for pair in TOKEN_SPECIFICATION))
-KEYWORDS = {"MULTISURFACE(":"3", "MULTIPOLYGON(":"3", "POLYGON(":"3", "CURVEPOLYGON(":"3",
-            "MULTILINESTRING(":"2", "MULTICURVE(":"2", "COMPOUNDCURVE(":"2",
-            "CIRCULARSTRING(":"2", "LINESTRING(":"2", "POINT(":'1', "(":'0',
-            "TIN(":"4", "POLYHEDRALSURFACE(":"5"}
-
-def decode_ewkt(code):
-    """ decodage du format ewkt avec expressions regulieres"""
-    value = []
-    liste = []
-    zdef = [0.0]
-    entite = ''
-    dim = 2
-    for token in TOK_REGEX.finditer(code):
-        kind = token.lastgroup
-        if kind == 'N':
-            value.append(float(token.group(kind)))
-#        elif kind == 'K':
-#            pass
-        elif kind == 'M':
-            raise RuntimeError('%r unexpected on line %s' % (token.group(kind), code))
-        elif kind == 'S':
-            if value:
-                liste.append(value if dim == 3 else value+zdef)
-                value = []
-        elif kind == 'E':
-            if value:
-                liste.append(value if dim == 3 else value+zdef)
-                value = []
-            yield ('end', entite, dim, liste)
-            entite = ''
-            liste = []
-        elif kind == 'C':
-            entite = token.group(kind).replace(' ', '')
-            if 'Z' in entite:
-                entite = entite.replace('Z', '')
-                dim = 3
-            liste = []
-            if entite not in KEYWORDS:
-                raise RuntimeError('%r inconnu' % (entite))
-            yield ('start', entite, dim, liste)
-        elif kind == 'P':
-            entite = 'SRID'
-
-
-
-
-
-def _parse_start(nature, niveau, poly, ring, nbring):
-    """demarre un nouvel element"""
-    type_geom = '0'
-    try:
-        tyg = KEYWORDS[nature]
-    except KeyError:
-        print('------------type geometrique inconnu', nature)
-        return '0', None, None, None
-    if tyg == '1':
-        return '1', None, None, None
-    if nature in {"POLYGON(", "CURVEPOLYGON("}:
-        type_geom = '3'
-        poly = niveau
-    elif nature == "COMPOUNDCURVE(":
-        if niveau == 1:
-            type_geom = '2'
-        elif poly:
-            ring = niveau
-            nbring += 1
-    elif nature == "CIRCULARSTRING(":
-        if niveau == 1:
-            type_geom = '2'
-        elif poly and not ring:
-            ring = niveau
-            nbring += 1
-    elif nature == "(":
-        if poly and not ring:
-            ring = niveau
-    else:
-        type_geom = tyg
-    return type_geom, poly, ring, nbring
-
-
-
-def _parse_end(nature, valeurs, dim, nbring, niveau, geometrie):
-    '''finalise l'element'''
-    if nature == 'POINT(':
-        geometrie.setpoint(valeurs[0], None, dim)
-#                    print ('detecte point ',valeurs[0], 0, dim)
-    elif nature == '(':
-        geometrie.cree_section(valeurs, dim, 1, 0, interieur=nbring > 1)
-    elif nature == 'LINESTRING(':
-        geometrie.cree_section(valeurs, dim, 1, 0, interieur=nbring > 1)
-    elif nature == 'CIRCULARSTRING(':
-        geometrie.cree_section(valeurs, dim, 1, 1, interieur=nbring > 1)
-    elif nature == 'SRID':
-        niveau += 1 # on compense
-        geometrie.setsrid(valeurs[0][0])
-
-
-
-def _parse_ewkt(geometrie, texte):
-    '''convertit une geometrie ewkt en geometrie interne'''
-    dim = 2
-    niveau = 0
-    poly = 0
-    ring = 0
-    nbring = 0
-    type_lu = None
-    if not isinstance(texte, str):
-        print('geometrie non decodable', texte)
-        geometrie.type = '0'
-        return
-    try:
-        for oper, nature, dim, valeurs in decode_ewkt(texte.upper()):
-            if oper == "end":
-                if poly == niveau:
-                    poly = 0
-                    nbring = 0
-                elif ring == niveau:
-                    ring = 0
-                niveau -= 1
-
-                _parse_end(nature, valeurs, dim, nbring, niveau, geometrie)
-
-            elif oper == 'start':
-                dim = valeurs
-                niveau += 1
-                type_lu, poly, ring, nbring = _parse_start(nature, niveau, poly, ring, nbring)
-                geometrie.type = type_lu
-#                if not type_geom:
-#                    print ('erreur decodage', texte, oper, nature, valeurs)
-    except RuntimeError:
-        print('erreur decodage geometrie', texte)
-
-
-
-def geom_from_ewkt(obj):
-    '''convertit une geometrie ewkt en geometrie interne'''
-    if obj.geom:
-        geom_demandee = obj.schema.info["type_geom"] if obj.schema else '0'
-#        print ('decodage geometrie ewkt ',obj.geom)
-        _parse_ewkt(obj.geom_v, obj.geom[0])
-        obj.finalise_geom(type_geom=geom_demandee)
-    return obj.geom_v.valide
-
-
-
-
-def _ecrire_coord_ewkt2d(pnt):
-    '''ecrit un point en 2D'''
-    return '%f %f'% (pnt[0], pnt[1])
-
-def _ecrire_coord_ewkt3d(pnt):
-    '''ecrit un point en 3D'''
-    return  '%f %f %f' % (pnt[0], pnt[1], pnt[2])
-
-def ecrire_coord_ewkt(dim):
-    ''' retourne la fonction d'ecriture adequate'''
-    return _ecrire_coord_ewkt2d if dim == 2 else _ecrire_coord_ewkt3d
-
-def _ecrire_point_ewkt(point):
-    '''ecrit un point'''
-    if point.coords:
-        return "POINT("+_ecrire_coord_ewkt2d(point.coords[0])+")" if point.dimension == 2\
-                else "POINT("+ _ecrire_coord_ewkt3d(point.coords[0])+")"
-    return ''
-
-def _ecrire_section_simple_ewkt(section):
-    '''ecrit une section '''
-    prefix = '('
-    ecrire = ecrire_coord_ewkt(section.dimension)
-    return prefix+",".join([ecrire(i) for i in section.coords])+")"
-
-
-
-def _ecrire_section_ewkt(section, poly):
-    '''ecrit une section '''
-    if section.courbe:
-        prefix = "CIRCULARSTRING("
-    elif poly:
-        prefix = '('
-    else:
-        prefix = "LINESTRING("
-    ecrire = ecrire_coord_ewkt(section.dimension)
-#    print('coords objet ')
-#    for i,j in enumerate(section.coords):
-#        print(i,j)
-#    print([i  for i in section.coords])
-    return prefix+",".join([ecrire(i) for i in section.coords])+")"
-
-
-def _ecrire_ligne_ewkt(ligne, poly, erreurs, multiline=False):
-    '''ecrit une ligne en ewkt'''
-    if poly and not ligne.ferme:
-        erreurs.ajout_erreur("ligne non fermee")
-        return ''
-    if not ligne.sections:
-        erreurs.ajout_erreur("ligne vide")
-        return ''
-    sec2 = [ligne.sections[0]]
-    if sec2[0].courbe == 3:
-        #print ("cercle")
-        sec2[0].conversion_diametre()   # c' est un cercle# on modifie la description
-    else:
-        #print ('fusion sections',len(ligne.sections))
-        for sect_courante in ligne.sections[1:]: # on fusionne ce qui doit l'etre
-            if sect_courante.courbe == sec2[-1].courbe:
-#                print ('fusion ',sect_courante.courbe,sec2[-1].courbe)
-                sec2[-1].fusion(sect_courante)
-            else:
-#                print ('ajout ',sect_courante.courbe,sec2[-1].courbe)
-                sec2.append(sect_courante)
-    if len(sec2) > 1:
-        return "COMPOUNDCURVE(" + ",".join((_ecrire_section_ewkt(i, False)
-                                            for i in sec2))+")"
-    return _ecrire_section_ewkt(sec2[0], poly or multiline)
-
-def _ecrire_multiligne_ewkt(lignes, courbe, erreurs, force_courbe=False):
-    '''ecrit une multiligne en ewkt'''
-    #courbe=True # test courbes
-    code = "MULTICURVE(" if courbe or force_courbe else "MULTILINESTRING("
-    return code +",".join((_ecrire_ligne_ewkt(i, False, erreurs, True)
-                           for i in lignes)) +')'
-
-def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=False):
-    '''ecrit un polygone en ewkt'''
-    if courbe or force_courbe:
-        code = "CURVEPOLYGON("
-    elif  multi:
-        code = "("
-    else:
-        code = "POLYGON("
-    return code + ",".join((_ecrire_ligne_ewkt(i, True, erreurs, False)
-                            for i in polygone.lignes))+')'
-
-def _ecrire_poly_tin(polygones, tin, _):
-    """ecrit un tin en ewkt ne gere pas les erreurs """
-    if tin:
-        code = "TIN("
-    else:
-        code = "POLYHEDRALSURFACE("
-
-    return code + ",".join((_ecrire_section_simple_ewkt(i.lignes[0].sections[0])
-                            for i in polygones))+')'
-
-
-def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
-    '''ecrit un multipolygone en ewkt'''
-    #print 'dans ecrire_polygone',len(polygones)
-    #courbe=True # test courbes
-    code = "MULTISURFACE(" if courbe or force_courbe else "MULTIPOLYGON("
-    return code + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True)
-                            for i in polygones))+')'
-
-def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
-    if geometrie_demandee != type_geom:
-        if type_geom == 1 or geometrie_demandee == 1:
-            erreurs.ajout_erreur("fmt:geometrie_incompatible: demande "+
-                                 str(type(geometrie_demandee))+str(geometrie_demandee)+
-                                 " existante: "+str(type_geom)+str(type(type_geom)))
-            return 1
-        if type_geom == 2:
-            erreurs.ajout_erreur("fmt:la geometrie n'est pas un polygone demande " +
-                                 str(geometrie_demandee) + " existante: " + str(type_geom))
-#            raise
-            return 1
-    else:
-        return 0
-
-def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=False):
-    '''ecrit une geometrie en ewkt'''
-
-    if geometrie_demandee == "0" or geom.type == '0' or geom.null:
-        return None
-
-    geomt = ''
-    type_geom = geom.type
-    geometrie_demandee = geometrie_demandee if geometrie_demandee != '-1' else geom.type
-
-    if _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
-        return None
-    courbe = geom.courbe
-    if geometrie_demandee == '1':
-        geomt = _ecrire_point_ewkt(geom.point)
-    elif geometrie_demandee == '2':
-        if geom.lignes:
-            geomt = _ecrire_multiligne_ewkt(geom.lignes, courbe, erreurs) if multiple\
-                    else _ecrire_ligne_ewkt(geom.lignes[0], False, erreurs)
-        else:
-            erreurs.ajout_erreur("pas de geometrie ligne")
-            return None
-    elif geometrie_demandee == '3':
-        if geom.polygones:
-            geomt = _ecrire_multipolygone_ewkt(geom.polygones, courbe, erreurs,
-                                               force_courbe) if multiple\
-                    else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs,
-                                               False, force_courbe)
-        else:
-            erreurs.ajout_erreur("polygone non ferme")
-            return None
-
-    elif geometrie_demandee > '3': # 4: tin  5: polyhedralsurface
-        geomt = _ecrire_poly_tin(geom.polygones, geometrie_demandee == '4', erreurs)
-
-    else:
-        print("ecrire ewkt geometrie inconnue", geometrie_demandee)
-    return geom.epsg+geomt if geomt else None
-
-#format sqlloader===========================================================
-
-
+from ..interne.objet import Objet
+from ..fileio import FileWriter
 
 #########################################################################
 # format csv et txt geo etc
@@ -361,7 +41,6 @@ def getnoms(rep, chemin, fichier):
 
 def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, separ):
     '''prepare l'entete et les noma d'un fichier csv'''
-
     geom = False
 
 
@@ -418,15 +97,18 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 
 
 
-def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
+def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
     '''lit des objets a partir d'un fichier csv'''
+    regle_ref = self.regle if self.regle else self.regle_start
     if separ is None:
-        separ = stock_param.get_param('separ_csv_in', stock_param.get_param('separ_csv', ';'))
+        separ = regle_ref.getvar('separ_csv_in', regle_ref.getvar('separ_csv', ';'))
 #    print('lecture_csv:', rep, chemin, fichier,separ)
-    maxobj = stock_param.get_param('lire_maxi', 0)
+
+    maxobj = regle_ref.getvar('lire_maxi', 0)
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
+#    print ('lecture', nom_schema, nom_groupe, nom_classe)
     with open(os.path.join(rep, chemin, fichier), "r",
-              encoding=stock_param.get_param('codec_entree', 'utf-8')) as fich:
+              encoding=self.regle_start.getvar('codec_entree', 'utf-8')) as fich:
 
         if not entete:
             entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
@@ -435,15 +117,15 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
             else: # il faut l'inventer...
                 entete = separ*len(fich.readline()[:-1].split(separ))
                 fich.seek(0) # on remet le fichier au debut
-
         nom_groupe, nom_classe, noms_attributs, geom, schemaclasse =\
-            decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, separ)
+            decode_entetes_csv(nom_schema, nom_groupe, nom_classe,
+                               regle_ref.stock_param, entete, separ)
         controle = len(noms_attributs)
         nbwarn = 0
         nlignes = 0
         for i in fich:
             nlignes = nlignes+1
-            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=geom_from_ewkt)
+            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=self.conv_geom)
             obj.setschema(schemaclasse)
             obj.setorig(nlignes)
             val_attributs = [j.strip() for j in i[:-1].split(separ)]
@@ -461,13 +143,13 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
             else:
                 obj.attributs['#type_geom'] = '0'
             obj.attributs['#chemin'] = chemin
-            stock_param.moteur.traite_objet(obj, regle)
+            self.traite_objets(obj, self.regle_start)
 
             if maxobj and nlignes >= maxobj: # nombre maxi d'objets a lire par fichier
                 break
 
             if nlignes % 100000 == 0:
-                stock_param.aff.send(('interm', 0, nlignes)) # gestion des affichages de patience
+                regle_ref.stock_param.aff.send(('interm', 0, nlignes)) # gestion des affichages de patience
 
         if nbwarn:
             print(nbwarn, "lignes avec un nombre d'attributs incorrect")
@@ -805,3 +487,23 @@ def sqlstreamer(obj, regle, final):
 
     return csvstreamer(obj, regle, final, 'sql', '\t',
                        '.sql', null=r'\N', writer=SqlWriter)
+
+            #nom:(multiwriter,           streamer,         tmpgeomwriter,
+#                 schema, casse, taille, driver, fanoutmax, format geom)
+WRITERS = {'csv':(ecrire_objets_csv, csvstreamer, '#ewkt',
+                  True, 'low', 0, 'csv', 'classe', '#ewkt'),
+           'txt':(ecrire_objets_txt, txtstreamer, '#ewkt',
+                  True, 'low', 0, 'txt', 'classe', '#ewkt'),
+           'sql':(ecrire_objets_sql, sqlstreamer, '#ewkt',
+                  True, 'low', 0, 'txt', 'all', '#ewkt'),
+           'geo':(ecrire_objets_geo, None, '#ewkt',
+                  True, 'low', 0, 'txt', 'classe', '#ewkt')}
+
+READERS = { 'csv':(lire_objets_csv, '#ewkt', True,()),
+            'txt':(lire_objets_csv, '#ewkt', True,())}
+
+
+
+
+
+

@@ -16,8 +16,9 @@ except ImportError:
     VALIDE = False
 
 
+from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
-from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+#from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from . import database
 
 TYPES_A = {'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",

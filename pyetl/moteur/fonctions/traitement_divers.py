@@ -12,8 +12,9 @@ import subprocess
 from collections import defaultdict
 import psutil
 
-import pyetl.formats.formats as F
-import pyetl.formats.mdbaccess as DB
+
+from pyetl.formats.mdbaccess import dbaccess
+from pyetl.formats import Writer
 from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch
 
 
@@ -325,7 +326,7 @@ def h_sortir(regle):
 
         regle.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    regle.f_sortie = F.Writer(regle.params.cmp1.val) # tout le reste
+    regle.f_sortie = Writer(regle.params.cmp1.val) # tout le reste
 #    print ('positionnement writer ',regle, regle.params.cmp1.val)
     if regle.f_sortie.nom_format == 'sql': # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get('base_dest')
@@ -333,7 +334,7 @@ def h_sortir(regle):
         regle.f_sortie.writerparms['reinit'] = regle.getvar('reinit')
         regle.f_sortie.writerparms['nodata'] = regle.getvar('nodata')
         if destination: # on va essayer de se connecter
-            connection = DB.dbaccess(regle.stock_param, destination)
+            connection = dbaccess(regle.stock_param, destination)
             if connection and connection.valide:
                 regle.f_sortie.gensql = connection.gensql # la on a une instance connectee
         elif dialecte:

@@ -8,8 +8,9 @@ acces a la base de donnees
 import os
 #import sys
 import pyodbc as odbc
+from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
-from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+#from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from . import database
 
 

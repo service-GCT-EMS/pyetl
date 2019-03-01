@@ -6,7 +6,7 @@ Created on Mon Dec 21 13:33:58 2015
 """
 #from . import csv as E
 from collections import namedtuple
-from . import asc as A
+from .fichiers.format_asc import ajout_attribut_asc
 from .interne.objet import Objet
 
 
@@ -166,7 +166,7 @@ def lire_objets(fichier, stock_param):
                 obj.attributs['#type_geom'] = type_geom
 #                if form: print ('format natif ',form,stock_param.get_converter(form))
             elif code == "2" or code == "4":
-                A.ajout_attribut_asc(obj, ligne)
+                ajout_attribut_asc(obj, ligne)
             elif code == "3":
                 obj.nogeom = False
                 obj.geom.append(ligne[1:-1])
