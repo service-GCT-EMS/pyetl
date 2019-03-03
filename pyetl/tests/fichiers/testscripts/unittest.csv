@@ -1,6 +1,6 @@
 !att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin;
 &&#define;#obj;tg;nb;;;;;;;;
-;;;;C1,C2,C3,V1,V2;A,B,AB,1,2;;testobj;test;%nb%;fin;# on cree des objets de test
+;;;;C1,C2,C3,V1,V2;AB,BCD,CDEF,12,234;;testobj;test;%nb%;fin;# on cree des objets de test
 ;;;;V0;C1;;cnt;;;fin;# on mets un compteur
 ;;;;#type_dem;%tg%;;set;;;fin
 K:%tg%;;;;;;;;fail;;;fin;# on positionne l'indicateur d'erreur

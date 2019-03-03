@@ -323,7 +323,18 @@ def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=F
 
           #nom:(multiwriter,           streamer,         tmpgeomwriter,
 #                 schema, casse, taille, driver, fanoutmax, format geom)
-GEOMDEF = {'#ewkt':(ecrire_geom_ewkt, geom_from_ewkt)}
+
+def noconversion(obj):
+    ''' conversion geometrique par defaut '''
+    return obj.geom_v.type == '0'
+
+def nowrite(obj):
+    ''' sans sortie'''
+    return ""
+
+
+GEOMDEF = {'#ewkt':(ecrire_geom_ewkt, geom_from_ewkt),
+           None:(nowrite, noconversion)}
 
 
 

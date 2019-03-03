@@ -313,17 +313,19 @@ def _cotation(iter_gy, obj):
 
 
 
-def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
+def lire_objets_geocity(self, rep, chemin, fichier):
     '''boucle de lecture principale'''
     n_obj = 0
     #ouv = None
+    regle = self.regle_start
+    stock_param = self.regle.stock_param
     couleur = '1'
     courbe = 0
     traite_objet = stock_param.moteur.traite_objet
 
-    maxobj = stock_param.get_param('lire_maxi', 0)
+    maxobj = self.regle.getvar('lire_maxi', 0)
 
-    codec = stock_param.get_param('codec_entree', 'utf8')
+    codec = self.regle.getvar('codec_entree', 'utf8')
     entree = os.path.join(rep, chemin, fichier)
 #    stock_param.racine = rep
     fichier_courant = os.path.splitext(fichier)[0]
@@ -548,3 +550,5 @@ def lire_objets_geocity(rep, chemin, fichier, stock_param, regle):
             raise
 
     return n_obj
+
+READERS = {'gy':(lire_objets_geocity, None, True,())}

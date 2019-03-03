@@ -136,7 +136,7 @@ def f_map(regle, obj):
   #aide_spec||parametres: map; nom du fichier de mapping
  #aide_spec2||si #schema est indique les objets changent de schema
     #pattern||?=#schema;?C;;map;C;;
-  #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||atv;toto;A
+  #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||atv;toto;AB
  #test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||cnt;2
     '''
 #    print ("dans map ===============",obj)

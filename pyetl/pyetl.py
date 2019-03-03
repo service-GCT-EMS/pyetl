@@ -839,9 +839,7 @@ class Pyetl(object):
 
     def get_converter(self, geomnatif):
         ''' retourne le bon convertisseur de format geometrique'''
-
-        _, converter, _,_ = Reader.lecteurs.get(geomnatif, Reader.lecteurs['interne'])
-        return converter
+        return Reader.get_converter(geomnatif)
 
     def _finalise_sorties(self):
         ''' vide les tuyeaux et renseigne les stats'''

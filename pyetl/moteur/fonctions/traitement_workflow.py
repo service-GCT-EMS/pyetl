@@ -275,7 +275,7 @@ def h_bloc(regle):
 def f_bloc(*_):
     '''#aide||definit un bloc d'instructions qui reagit comme une seule
        #pattern||;;;bloc;;
-       #test||obj||^X;1;;set;||C1;B;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
+       #test||obj||^X;1;;set;||C1;BCD;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
     '''
 
     return True
@@ -289,7 +289,7 @@ def h_finbloc(regle):
 def f_finbloc(*_):
     '''#aide||definit la fin d'un bloc d'instructions
        #pattern||;;;fin_bloc;;
-       #test||obj||^X;1;;set;||C1;B;;;;;;~bloc;||^X;A;;set;||C1;B;;;;;;fin_bloc;||atv;X;1;
+       #test||obj||^X;1;;set;||C1;BCD;;;;;;~bloc;||^X;A;;set;||C1;B;;;;;;fin_bloc;||atv;X;1;
        '''
     return True
 
@@ -532,9 +532,9 @@ def f_batch(regle, obj):
     #pattern2||A;?C;?A;batch;=init;||cmp1
     #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
      #schema||ajout_attribut
-       #test||obj||^parametres;"nom"=>"V1", "valeur"=>"1";;set||^X;#obj,#atv;;batch||atv;X;1
-      #test2||obj||^X;#obj,#atv:V1:1;;batch||atv;X;1
-      #test3||obj;;10||^X;#obj,#atv:V1:1;;batch;;3;||atv;X;1
+       #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
+      #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
+      #test3||obj;;10||^X;#obj,#atv:V1:12;;batch;;3;||atv;X;12
     '''
     if regle.store:
         regle.tmpstore.append(obj)
@@ -679,8 +679,8 @@ def f_filter(regle, obj):
     '''#aide||filtre en fonction d un attribut
   #aide_spec||sortie;defaut;attribut;filter;liste sorties;liste valeurs
     #pattern||?S;?C;A;filter;LC;?LC
-       #test||obj||^WW;;C1;filter;A,B,C||+A:;;;;X;1;;~set||+B:;;;;X;2;;~set||atv;X;1
-      #test2||obj||^WW;;C1;filter;A,B,C;1,2,3||+1:;;;;X;1;;~set||atv;X;1
+       #test||obj||^WW;;C1;filter;AB,BB,C||+AB:;;;;X;1;;~set||+BB:;;;;X;2;;~set||atv;X;1
+      #test2||obj||^WW;;C1;filter;AB,BB,CD;1,2,3||+1:;;;;X;1;;~set||atv;X;1
     '''
     if regle.params.att_entree.val in obj.attributs:
         valeur = obj.attributs[regle.params.att_entree.val]

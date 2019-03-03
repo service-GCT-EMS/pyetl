@@ -407,7 +407,7 @@ class AscWriter(FileWriter):
             else:
                 geometrie = ''
         else:
-            geometrie = ecrire_geom_asc(obj.geom_v)
+            geometrie = self.ecrire_geom_asc(obj.geom_v)
 
         attmap = obj.schema.attmap if obj.schema else dict()
     #    print "ecriture", liste
@@ -449,16 +449,7 @@ class AscWriter(FileWriter):
 
 
 
-
-
-
-
-
-
-
-
-
-def asc_streamer(obj, regle, _, attributs=None):
+def asc_streamer(self, obj, regle, _, attributs=None):
     '''ecrit des objets asc au fil de l'eau.
         dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
         a la sortie du pipeline (mode streaming)
@@ -501,7 +492,7 @@ def asc_streamer(obj, regle, _, attributs=None):
     ressource.write(obj, regle.numero)
 
 
-def ecrire_objets_asc(regle, _, attributs=None):
+def ecrire_objets_asc(self, regle, _, attributs=None):
     '''ecrit un ensemble de fichiers asc a partir d'un stockage memoire ou temporaire'''
     #ng, nf = 0, 0
     #memoire = defs.stockage

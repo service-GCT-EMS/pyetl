@@ -106,7 +106,7 @@ class ParametresFonction(object):
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
         self.fstore = None
-        self.att_ref = None
+        self.att_ref = self.att_entree if self.att_entree.val else self.att_sortie
 
     def _crent(self, nom, taille=0):
         '''extrait les infos de l'entite selectionnee'''
@@ -303,6 +303,8 @@ class RegleTraitement(object): # regle de mapping
 
     def getval_ref(self, obj):
         '''acces standadise a la valeur d'entree valeur avec defaut'''
+#        print("recup att_ref ",self.params.att_ref,"valeur",
+#              obj.attributs.get(self.params.att_ref.val))
         return obj.attributs.get(self.params.att_ref.val, self.params.val_entree.val)
 
 
@@ -321,17 +323,26 @@ class RegleTraitement(object): # regle de mapping
 
     def setval_sortie(self, obj, valeurs):
         '''stockage standardise'''
+#        print ("----------stockage ", valeurs, self.params.att_sortie.val, "----",
+#               self, self.fstore)
         self.fstore(self.params.att_sortie, obj, valeurs)
+#        print ("-----val stockee- ", obj.attributs[self.params.att_sortie.val])
 
 
     def process_liste(self, obj, fonction):
-        '''applique une fonction a une liste d'attributs'''
+        '''applique une fonction a une liste d'attributs et affecte une nouvelle liste'''
         self.fstore(self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj)))
+
+
+    def process_listeref(self, obj, fonction):
+        '''applique une fonction a une liste d'attributs'''
+        self.fstore(self.params.att_ref, obj, map(fonction, self.getlist_ref(obj)))
 
 
     def process_val(self, obj, fonction):
         '''applique une fonction a un attribut'''
         self.fstore(self.params.att_sortie, obj, fonction(self.getval_entree(obj)))
+
 
 #    def process_list_inplace(self, obj, fonction):
 #        '''applique une fonction a une liste d'attributs'''

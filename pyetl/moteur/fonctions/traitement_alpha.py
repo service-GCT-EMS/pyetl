@@ -44,8 +44,8 @@ def f_setliste(regle, obj):
     '''#aide||affectation d'un ensemble d'attributs
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
        #pattern||M;?LC;?L;set;;||sortie
-       #test1||obj||^V4,V5;;C1,C2;set||atv;V4;A
-       #test2||obj||^V4,V5;;C1,C2;set||atv;V5;B
+       #test1||obj||^V4,V5;;C1,C2;set||atv;V4;AB
+       #test2||obj||^V4,V5;;C1,C2;set||atv;V5;BCD
     '''
 #    print ("dans setliste", regle.ligne,regle.params.att_sortie, regle.params.att_entree)
 #    regle.fstore(regle.params.att_sortie, obj,
@@ -60,7 +60,7 @@ def f_setval(regle, obj):
     '''#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
        #pattern||S;?;?A;set;;||sortie
-       #test1||obj||^V4;;C1;set||atv;V4;A
+       #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
     '''
     regle.setval_sortie(obj, regle.getval_entree(obj))
@@ -114,7 +114,7 @@ def f_setnonvide(regle, obj):
     '''#aide||remplacement d une valeur
         #aide_spec||remplacement d'une valeur d'attribut par le premier non vide  avec defaut
         #pattern||S;?;|L;set;;||entree
-        #test3||obj||^V4;1;A|C1|C2;set||atv;V4;A
+        #test3||obj||^V4;1;A|C1|C2;set||atv;V4;AB
         #test4||obj||^V4;1;A|B;set||atv;V4;1
     '''
     regle.fstore(regle.params.att_sortie, obj,
@@ -148,8 +148,8 @@ def f_sub(regle, obj):# fonction de substution
     '''#aide||remplacement d une valeur
         #aide_spec||application d'une fonction de transformation par expression reguliere
         #pattern||S;?;A;sub;re;?re||sortie
-        #test1||obj||^V4;;C1;sub;A;B;||atv;V4;B
-        #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;a
+        #test1||obj||^V4;;C1;sub;A;B;||atv;V4;BB
+        #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;ab
     '''
     # substitution
     regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj)))
@@ -171,17 +171,17 @@ def f_setcalc(regle, obj):
     '''#aide||remplacement d une valeur
         #aide_spec||fonction de calcul libre (attention injection de code)
         #pattern||S;;NC:;set;;
-        #test1||obj||^V4;;N:V1+1;set||atn;V4;2
+        #test1||obj||^V4;;N:V1+1;set||atn;V4;13
     '''
     regle.setval_sortie(obj, str(regle.calcul(obj)))
     return True
 
 
-def h_self(regle):
+def h_setself(regle):
     '''helper generique permettant de gerer les cas ou entree = sortie'''
 #    print("helper self",regle)
-    regle.params.att_ref = regle.params.att_entree if regle.params.att_entree.liste\
-                                                      else regle.params.att_sortie
+#    regle.params.att_ref = regle.params.att_entree if regle.params.att_entree.val\
+#                                                      else regle.params.att_sortie
     regle.selset = set(regle.params.att_ref.liste)
 #    print ('selset',regle.selset)
 
@@ -205,7 +205,7 @@ def f_upper2(regle, obj):
         #pattern||A;?;;upper||sortie||50
         #pattern2||;?;A;upper||sortie||50
         #schema||ajout_attribut
-        #helper||self
+        #helper||setself
         #test2||obj||^V4;a;;set||^V4;;;upper||atv;V4;A
         #test3||obj||^V4;a;;set||^;;V4;upper||atv;V4;A
     '''
@@ -233,7 +233,7 @@ def f_upper_liste2(regle, obj):
         #aide_spec||passage en majuscule d une liste d'attribut avec defaut
         #pattern1||L;?;;upper;;||sortie||99
         #pattern2||;?;L;upper;;||sortie||99
-        #helper||self
+        #helper||setself
         #schema||ajout_attribut
         #test1||obj||^V4,V5;a,b;;set||^;;V4,V5;upper||atv;V5;B
         #test2||obj||^V4,V5;a,b;;set||^V4,V5;;;upper||atv;V4;A
@@ -266,7 +266,7 @@ def f_lower2(regle, obj):
         #patternC||A;?;;lower;;
         #pattern||A;?;;lower;;
         #pattern2||;?;A;lower;;
-        #helper||self
+        #helper||setself
         #test2||obj||^V4;A;;set||^V4;;;lower||atv;V4;a
         #test3||obj||^V4;A;;set||^;;V4;lower||atv;V4;a
     '''
@@ -293,7 +293,7 @@ def f_lower_liste2(regle, obj):
          #pattern1||L;?;;lower;;||sortie
         #patternC1||L;?;;lower;;||sortie
          #pattern2||;?;L;lower;;||sortie
-           #helper||self
+           #helper||setself
            #schema||ajout_attribut
             #test1||obj||^V4,V5;A,B;;set||^;;V4,V5;lower||atv;V5;b
             #test2||obj||^V4,V5;A,B;;set||^V4,V5;;;lower||atv;V4;a
@@ -332,7 +332,8 @@ def f_asplit(regle, obj):
     '''#aide||decoupage d'un attribut en fonction d'un separateur
        #pattern||M;?;A;split;.;?N:N||sortie
        #pattern2||;?;A;split;.;?N:N||sortie
-       #test1||obj||^V4;a:b:c:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;c
+       #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
+       #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
        '''
     if regle.multi:
 #        elems = obj.attributs.get(regle.params.att_entree.val,
@@ -355,19 +356,30 @@ def f_asplit(regle, obj):
 
 
 def f_strip(regle, obj):
-    '''#aide||supprime des caracteres aux estremites
-       #pattern||M;?;A;strip;?C;||sortie
-       '''
-    regle.setval_sortie(obj, regle.getval_entree(obj).strip())
+    '''#aide||supprime des caracteres aux extremites
+       #pattern||S;?;A;strip;?C;||sortie
+       #test||obj||^V4;abbcaa;;set||^r1;;V4;strip;a||atv;r1;bbc
+    '''
+#    print("strip",regle.getval_entree(obj),regle.getval_entree(obj).strip(regle.params.cmp1.val))
+    if regle.params.cmp1.val:
+        regle.setval_sortie(obj, regle.getval_entree(obj).strip(regle.params.cmp1.val))
+    else:
+        regle.setval_sortie(obj, regle.getval_entree(obj).strip())
     return True
 
 def f_strip2(regle, obj):
     '''#aide||supprime des caracteres aux estremites
-     #helper||self
+     #helper||setself
     #pattern||;?;A;strip;?C;||sortie
-    #pattern2||A;?;;strip;?C;||sortie
+    #pattern2||A;?;;strip;?C;||entree
+    #test||obj||^V4;abbaa;;set||^;;V4;strip;a;||atv;V4;bb
+    #test2||obj||^V4;abbaa;;set||^V4;;;strip;a;||atv;V4;bb
+
        '''
-    obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip()
+    if regle.params.cmp1.val:
+        obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip(regle.params.cmp1.val)
+    else:
+        obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip()
     return True
 
 
@@ -435,7 +447,7 @@ def f_rename(regle, obj):# fonction de substution
     '''#aide||renommage d'un attribut
        #pattern||A;;A;ren;;
        #schema||rename_attribut
-       #test1||obj||^V4;;C1;ren||atv;V4;A
+       #test1||obj||^V4;;C1;ren||atv;V4;AB
     '''
     if regle.params.att_sortie.val in obj.attributs:
         return False # on ecrase pas d'attribut
@@ -524,7 +536,7 @@ def f_keep2(regle, obj):
        #pattern||;;L;garder;;
        #pattern2||L;;;garder;;
        #schema||garder_attributs
-       #helper||self
+       #helper||setself
        #test||obj||^;;C1;garder||^X;2;C2;set||atv;X;2
        #test2||obj||^C1;;;garder||^X;2;C2;set||atv;X;2
     '''
@@ -541,7 +553,7 @@ def f_keep(regle, obj):
     '''#aide||suppression de tous les attributs sauf ceux de la liste
        #pattern||L;?C;?L;garder;;
        #schema||garder_attributs
-       #helper||self
+       #helper||setself
        #test||obj||^C1;;;garder||^X;2;C2;set||atv;X;2
     '''
     if regle.params.att_entree.liste: # on renomme les attributs
@@ -567,7 +579,7 @@ def f_hset1(regle, obj):
         #aide_spec||liste d attributs en entree
         #pattern||A;?;L;hset;;
         #schema||ajout_attribut
-        #test||obj||^X;;C1,C2;hset;||^Z;;X;hget;C1;||atv;Z;A
+        #test||obj||^X;;C1,C2;hset;||^Z;;X;hget;C1;||atv;Z;AB
     '''
 #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
@@ -589,7 +601,7 @@ def f_hset2(regle, obj):
         #aide_spec||expression reguliere
         #pattern||A;?;re;hset;;
         #schema||ajout_attribut
-        #test||obj||^X;;C*;hset;||^Z;;X;hget;C1;||atv;Z;A
+        #test||obj||^X;;C*;hset;||^Z;;X;hget;C1;||atv;Z;AB
     '''
 #    print("hcre2 ", obj.ido, "->", regle.params.att_entree.val)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
@@ -604,7 +616,7 @@ def f_hset3(regle, obj):
     #aide_spec||tous les attributs visibles
     #pattern||A;;;hset;;
     #schema||ajout_attribut
-    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
+    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;AB
     '''
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i+'" => "'+\
         obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
@@ -618,7 +630,7 @@ def f_hset4(regle, obj):
     #aide_spec||tous les attributs visibles passe les noma en minuscule
     #pattern||A;;;hset;=lower;
     #schema||ajout_attribut
-    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
+    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;AB
     '''
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.lower()+'" => "'+\
         obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
@@ -632,7 +644,7 @@ def f_hset5(regle, obj):
     #aide_spec||tous les attributs visibles passe les noma en majuscule
     #pattern||A;;;hset;=upper;
     #schema||ajout_attribut
-    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;A
+    #test||obj||^X;;;hset;||^Z;;X;hget;C1;||atv;Z;AB
     '''
     obj.attributs[regle.params.att_sortie.val] = ", ".join(['"'+i.upper()+'" => "'+\
         obj.attributs[i].replace('\\', '\\\\').replace('"', r'\"')+ '"'\
@@ -646,7 +658,7 @@ def f_hget1(regle, obj):
         #aide_spec||destination;defaut;hstore;hget;clef;
         #pattern||S;?;A;hget;A;
         #schema||ajout_attribut
-        #test||obj||^X;;;hset||^Z;;X;hget;C1;||atv;Z;A
+        #test||obj||^X;;;hset||^Z;;X;hget;C1;||atv;Z;AB
     '''
     if regle.params.att_entree.val not in obj.attributs:
         regle.fstore(regle.params.att_sortie, obj, regle.params.val_entree.val)
@@ -665,7 +677,7 @@ def f_hget2(regle, obj):
         #aide_spec||destination;defaut;hstore;hget;liste clefs;
         #pattern||M;?;A;hget;L;
         #schema||ajout_attribut
-        #test||obj||^X;;;hset||^Z1,Z2;;X;hget;C1,C2;||atv;Z2;B
+        #test||obj||^X;;;hset||^Z1,Z2;;X;hget;C1,C2;||atv;Z2;BCD
     '''
     if regle.params.att_entree.val not in obj.attributs:
         regle.fstore(regle.params.att_sortie, obj,
@@ -683,7 +695,7 @@ def f_hget3(regle, obj):
     ''' #aide||eclatement d un hstore
         #aide_spec||destination;defaut;clef;hget;hstore;
         #pattern||D;?;A;hget;?L;
-        #test||obj||^X;;;hset||^Z_*;;X;hget;;||atv;Z_C2;B
+        #test||obj||^X;;;hset||^Z_*;;X;hget;;||atv;Z_C2;BCD
         #schema||ajout_attribut
     '''
     if regle.params.att_entree.val not in obj.attributs:
