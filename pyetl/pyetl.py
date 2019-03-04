@@ -13,7 +13,7 @@ import logging
 import itertools
 from collections import defaultdict
 from .vglobales import VERSION, set_mainmapper
-from .formats import Reader
+from .formats import Reader, READERS
 from .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
 from .formats.stats import Stat, ExtStat
 from .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
@@ -21,7 +21,7 @@ from .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, Macro
 from .moteur.fonctions import COMMANDES, SELECTEURS
-from .moteur.fonctions.outils import scandirs, valide_auxiliaires
+from .moteur.fonctions.outils import scan_entree
 from .schema.schema_interne import init_schema # schemas
 from .schema.schema_io import ecrire_schemas # integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
@@ -129,7 +129,7 @@ class Pyetl(object):
 #    crypt = crypter
 #    decrypt = decrypt
     init_schema = init_schema
-#    formats_connus = F.LECTEURS
+    formats_connus = READERS
 #    reader = Reader
 
     def __init__(self, parent=None, nom=None):
@@ -589,13 +589,13 @@ class Pyetl(object):
         masterkey = self.get_param('masterkey')
 
         userkey = self.get_param('userkey')
-        userkeyref = self.get_param('userkey_ref')
+#        userkeyref = self.get_param('userkey_ref')
         usergroup = self.get_param('usergroup')
         grouplist = []
         master=False
         if masterkey:
             masterkey = self.decrypt(masterkey, key=[localkey, ''])
-            userkey = self.decrypt(userkeyref, key=[masterkey])
+            userkey = self.decrypt(userkey, key=[masterkey])
             if userkey:
                 master=True
 #            print ('decodege master', masterkey,userkey, userkeyref)
@@ -839,7 +839,7 @@ class Pyetl(object):
 
     def get_converter(self, geomnatif):
         ''' retourne le bon convertisseur de format geometrique'''
-        return Reader.get_converter(geomnatif)
+        return READERS.get(geomnatif,READERS['interne']).converter
 
     def _finalise_sorties(self):
         ''' vide les tuyeaux et renseigne les stats'''
@@ -881,7 +881,11 @@ class Pyetl(object):
             print('mapper: debut traitement donnees:>'+entree+ '-->',
                   self.regle_sortir.params.cmp1.val)
             try:
-                fichs, parametres = self.scan_entree()
+                fichs, parametres = scan_entree(rep=entree,
+                                                force_format=self.get_param('F_entree'),
+                                                fileselect=self.get_param('_fileselect'),
+                                                filtre_entree=self.get_param('filtre_entree'))
+
             except NotADirectoryError as err:
                 print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
                 print('type entree ', type(entree))
@@ -1089,66 +1093,66 @@ class Pyetl(object):
         return fschemas
 
 
-    def scan_entree(self, rep=None):
-        " etablit la liste des fichiers a lire"
-        entree = self.get_param('_entree') if rep is None else rep
-#        print ('scan_entree', entree)
-        parametres_fichiers = dict()
-        retour = []
-        if not entree or entree.startswith('!!vide'):
-            return retour, parametres_fichiers
-        force_format = ''
-        liste_formats = Reader.lecteurs.keys()
-#        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
-        force_format = self.get_param('F_entree', '')
-        if self.debug:
-            print('format entree forcee ', force_format)
-
-        if os.path.isfile(entree): # traitement un seul fichier
-            fichs = [(os.path.basename(entree), '')]
-            entree = os.path.dirname(entree) # on extrait le repertoire
-        else:
-            if entree.endswith(os.path.sep) or entree.endswith('/'):
-                entree = entree[:-1]
-            if not os.path.isdir(entree):
-                raise NotADirectoryError(entree)
-            fichs = [i for i in scandirs(entree, '', True,
-                                         pattern=self.get_param('_fileselect'))]
-        self.set_param('_entree', entree)
-
-#        print ('scan_entree:fichiers a traiter',fichs)
-
-        identifies = dict()
-        non_identifies = []
-        filtre_entree = self.get_param('filtre_entree', '')
-        if filtre_entree:
-            print('filtrage entrees ', filtre_entree)
-        retour = []
-        for fichier, chemin in fichs:
-            if filtre_entree:
-                if not re.search(filtre_entree, fichier):
-#                    print ('ignore ',filtre_entree,fichier)
-                    continue
-
-            nom = os.path.splitext(fichier)[0].lower()
-            ext = force_format if force_format else\
-                  os.path.splitext(fichier)[1].lower().replace('.', '')
-            if ext in liste_formats:
-                f_courant = os.path.join(entree, chemin, fichier)
-                identifies[chemin, nom] = ext
-                if self.debug:
-                    print('fichier a traiter', f_courant, ext)
-                retour.append(f_courant)
-                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
-#                print('fichier a traiter', f_courant, entree, chemin, fichier, ext)
-            else:
-                non_identifies.append((chemin, nom, ext))
-        valide_auxiliaires(identifies, non_identifies)
-
-        if self.debug:
-            print("fichiers a traiter", retour)
-        return retour, parametres_fichiers
-
+#    def scan_entree(self, rep=None):
+#        " etablit la liste des fichiers a lire"
+#        entree = self.get_param('_entree') if rep is None else rep
+##        print ('scan_entree', entree)
+#        parametres_fichiers = dict()
+#        retour = []
+#        if not entree or entree.startswith('!!vide'):
+#            return retour, parametres_fichiers
+#        force_format = ''
+#        liste_formats = Reader.lecteurs.keys()
+##        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
+#        force_format = self.get_param('F_entree', '')
+#        if self.debug:
+#            print('format entree forcee ', force_format)
+#
+#        if os.path.isfile(entree): # traitement un seul fichier
+#            fichs = [(os.path.basename(entree), '')]
+#            entree = os.path.dirname(entree) # on extrait le repertoire
+#        else:
+#            if entree.endswith(os.path.sep) or entree.endswith('/'):
+#                entree = entree[:-1]
+#            if not os.path.isdir(entree):
+#                raise NotADirectoryError(entree)
+#            fichs = [i for i in scandirs(entree, '', True,
+#                                         pattern=self.get_param('_fileselect'))]
+#        self.set_param('_entree', entree)
+#
+##        print ('scan_entree:fichiers a traiter',fichs)
+#
+#        identifies = dict()
+#        non_identifies = []
+#        filtre_entree = self.get_param('filtre_entree', '')
+#        if filtre_entree:
+#            print('filtrage entrees ', filtre_entree)
+#        retour = []
+#        for fichier, chemin in fichs:
+#            if filtre_entree:
+#                if not re.search(filtre_entree, fichier):
+##                    print ('ignore ',filtre_entree,fichier)
+#                    continue
+#
+#            nom = os.path.splitext(fichier)[0].lower()
+#            ext = force_format if force_format else\
+#                  os.path.splitext(fichier)[1].lower().replace('.', '')
+#            if ext in liste_formats:
+#                f_courant = os.path.join(entree, chemin, fichier)
+#                identifies[chemin, nom] = ext
+#                if self.debug:
+#                    print('fichier a traiter', f_courant, ext)
+#                retour.append(f_courant)
+#                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
+##                print('fichier a traiter', f_courant, entree, chemin, fichier, ext)
+#            else:
+#                non_identifies.append((chemin, nom, ext))
+#        valide_auxiliaires(identifies, non_identifies)
+#
+#        if self.debug:
+#            print("fichiers a traiter", retour)
+#        return retour, parametres_fichiers
+#
 
     def _lecture_stats(self, stat):
         """recupere une stat pour process

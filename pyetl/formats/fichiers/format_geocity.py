@@ -550,5 +550,6 @@ def lire_objets_geocity(self, rep, chemin, fichier):
             raise
 
     return n_obj
-
-READERS = {'gy':(lire_objets_geocity, None, True,())}
+#                  reader,geom,hasschema,auxfiles
+READERS = {'gy': (lire_objets_geocity, None, True, ())}
+WRITERS = {}

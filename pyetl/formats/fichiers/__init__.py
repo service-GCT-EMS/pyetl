@@ -13,9 +13,10 @@ def loadmodules():
     et enregistre les readers et writers'''
     writers = dict()
     readers = dict()
-    rdef = namedtuple("reader", ("reader", "geom", "hasschema", "auxfiles"))
-    wdef = namedtuple("writer", ("writer", "streamer", "tmp_geom", "force_schema", "casse",
-                                 "attlen", "driver", "fanout", "geom"))
+    rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "converter"))
+    wdef = namedtuple("writerdef", ("writer", "streamer",  "force_schema", "casse",
+                                    "attlen", "driver", "fanout", "geom", "tmp_geom",
+                                    "geomwriter", "tmpgeomwriter"))
 
     for fich_module in os.listdir(os.path.dirname(__file__)):
         if fich_module.startswith("format_"):
@@ -25,18 +26,16 @@ def loadmodules():
                 for nom, desc in getattr(format_def, 'WRITERS').items():
                     if nom in writers:
                         print('attention : redefinition du format de sortie', nom)
-                    writers[nom] =  wdef(desc)
+                    writers[nom] =  wdef(*desc, None, None) # a ce stade les fonctions ne sont pas connues
                 for nom, desc in getattr(format_def, 'READERS').items():
 #                    print ('lecture  READERS',nom,desc)
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
-                    readers[nom] =  rdef(desc)
+                    readers[nom] =  rdef(*desc, None)
             except ImportError:
-                print('module ',module ,'non disponible')
+                print('module ', module[1:], 'non disponible')
 
     return readers, writers
-
-
 
 READERS, WRITERS = loadmodules()
 #print ('chargement', READERS)

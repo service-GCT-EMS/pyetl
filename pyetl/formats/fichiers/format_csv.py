@@ -488,17 +488,17 @@ def sqlstreamer(obj, regle, final):
     return csvstreamer(obj, regle, final, 'sql', '\t',
                        '.sql', null=r'\N', writer=SqlWriter)
 
-            #nom:(multiwriter,           streamer,         tmpgeomwriter,
-#                 schema, casse, taille, driver, fanoutmax, format geom)
-WRITERS = {'csv':(ecrire_objets_csv, csvstreamer, '#ewkt',
-                  True, 'low', 0, 'csv', 'classe', '#ewkt'),
-           'txt':(ecrire_objets_txt, txtstreamer, '#ewkt',
-                  True, 'low', 0, 'txt', 'classe', '#ewkt'),
-           'sql':(ecrire_objets_sql, sqlstreamer, '#ewkt',
-                  True, 'low', 0, 'txt', 'all', '#ewkt'),
-           'geo':(ecrire_objets_geo, None, '#ewkt',
-                  True, 'low', 0, 'txt', 'classe', '#ewkt')}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'csv':(ecrire_objets_csv, csvstreamer,
+                  True, 'low', 0, 'csv', 'classe', '#ewkt', '#ewkt'),
+           'txt':(ecrire_objets_txt, txtstreamer,
+                  True, 'low', 0, 'txt', 'classe', '#ewkt', '#ewkt'),
+           'sql':(ecrire_objets_sql, sqlstreamer,
+                  True, 'low', 0, 'txt', 'all', '#ewkt', '#ewkt'),
+           'geo':(ecrire_objets_geo, None,
+                  True, 'low', 0, 'txt', 'classe', '#ewkt', '#ewkt')}
 
+#                  reader,geom,hasschema,auxfiles
 READERS = { 'csv':(lire_objets_csv, '#ewkt', True,()),
             'txt':(lire_objets_csv, '#ewkt', True,())}
 

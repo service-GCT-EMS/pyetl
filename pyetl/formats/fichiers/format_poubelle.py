@@ -40,11 +40,10 @@ def compte_obj(regle, *_, **__):
     return 0, 0
 
 
-
-
-WRITERS = {'#poubelle':(ecrire_objets_neant, stream_objets_neant, ecrire_objets_neant,
-                        False, 'no', 0, "", 'all', None),
-           '#comptage':(compte_obj, compte_obj_stream, compte_obj,
-                        False, 'no', 0, "", 'all', None)}
-
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'#poubelle':(ecrire_objets_neant, stream_objets_neant,
+                        False, 'no', 0, "", 'all', None, None),
+           '#comptage':(compte_obj, compte_obj_stream,
+                        False, 'no', 0, "", 'all', None, None)}
+#                  reader,geom,hasschema,auxfiles
 READERS = {'interne': (None, None, False,())}

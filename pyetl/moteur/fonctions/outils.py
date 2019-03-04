@@ -491,7 +491,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
     retour = []
     if not entree:
         return retour, parametres_fichiers
-    force_format = ''
+#    force_format = ''
 #    liste_formats = F.LECTEURS.keys()
     liste_formats = Reader.lecteurs.keys()
 #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}

@@ -526,10 +526,10 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
                 dident = (groupe, classe)
             ressource.write(obj, regle.numero)
 
-#def asc_streamer(obj, groupe, rep_sortie, regle, final, attributs=None,
-#                 racine=''):
 
+#                       reader,      geom,    hasschema,  auxfiles
 READERS = {'asc':(lire_objets_asc, 'geom_asc', False,('rlt', 'seq'))}
-WRITERS = {'asc':(ecrire_objets_asc, asc_streamer, 'geom_asc',
-                  False, 'up', 0, '', 'groupe', 'geom_asc')}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'asc':(ecrire_objets_asc, asc_streamer, False, 'up', 0, '', 'groupe',
+                  'geom_asc', 'geom_asc')}
 #########################################################################

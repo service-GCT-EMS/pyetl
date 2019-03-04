@@ -36,7 +36,7 @@ def _finalise(regle, debug):
     if regle.final:
         regle.branchements.brch["ok"] = None
     if regle.filter:
-#        regle.branchements.brch["sinon"] = None
+        regle.branchements.brch["sinon"] = None
         regle.branchements.brch["fail"] = None
         if debug:
             print('regle filtrante ', regle.ligne)
