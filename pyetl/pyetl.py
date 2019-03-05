@@ -1093,67 +1093,6 @@ class Pyetl(object):
         return fschemas
 
 
-#    def scan_entree(self, rep=None):
-#        " etablit la liste des fichiers a lire"
-#        entree = self.get_param('_entree') if rep is None else rep
-##        print ('scan_entree', entree)
-#        parametres_fichiers = dict()
-#        retour = []
-#        if not entree or entree.startswith('!!vide'):
-#            return retour, parametres_fichiers
-#        force_format = ''
-#        liste_formats = Reader.lecteurs.keys()
-##        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
-#        force_format = self.get_param('F_entree', '')
-#        if self.debug:
-#            print('format entree forcee ', force_format)
-#
-#        if os.path.isfile(entree): # traitement un seul fichier
-#            fichs = [(os.path.basename(entree), '')]
-#            entree = os.path.dirname(entree) # on extrait le repertoire
-#        else:
-#            if entree.endswith(os.path.sep) or entree.endswith('/'):
-#                entree = entree[:-1]
-#            if not os.path.isdir(entree):
-#                raise NotADirectoryError(entree)
-#            fichs = [i for i in scandirs(entree, '', True,
-#                                         pattern=self.get_param('_fileselect'))]
-#        self.set_param('_entree', entree)
-#
-##        print ('scan_entree:fichiers a traiter',fichs)
-#
-#        identifies = dict()
-#        non_identifies = []
-#        filtre_entree = self.get_param('filtre_entree', '')
-#        if filtre_entree:
-#            print('filtrage entrees ', filtre_entree)
-#        retour = []
-#        for fichier, chemin in fichs:
-#            if filtre_entree:
-#                if not re.search(filtre_entree, fichier):
-##                    print ('ignore ',filtre_entree,fichier)
-#                    continue
-#
-#            nom = os.path.splitext(fichier)[0].lower()
-#            ext = force_format if force_format else\
-#                  os.path.splitext(fichier)[1].lower().replace('.', '')
-#            if ext in liste_formats:
-#                f_courant = os.path.join(entree, chemin, fichier)
-#                identifies[chemin, nom] = ext
-#                if self.debug:
-#                    print('fichier a traiter', f_courant, ext)
-#                retour.append(f_courant)
-#                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
-##                print('fichier a traiter', f_courant, entree, chemin, fichier, ext)
-#            else:
-#                non_identifies.append((chemin, nom, ext))
-#        valide_auxiliaires(identifies, non_identifies)
-#
-#        if self.debug:
-#            print("fichiers a traiter", retour)
-#        return retour, parametres_fichiers
-#
-
     def _lecture_stats(self, stat):
         """recupere une stat pour process
         """

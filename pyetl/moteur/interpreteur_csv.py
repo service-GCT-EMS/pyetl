@@ -722,10 +722,13 @@ def affecte_variable(mapper, commande, vloc):
                     val_var = j
                     break
             if val_var:
-                if val_var == '#env' and commande.split(';')[2]:
+                if val_var.startswith('#env:') and val_var.split(':')[1]:
                 # on affecte une variable d'environnement
                     mapper.parms[affectation[:pos_egal-1]] =\
-                        mapper.env.get(commande.split(';')[2], '')
+                        mapper.env.get(val_var.split(':')[1], '')
+                elif val_var.startswith('#eval:') and val_var.split(':')[1]:
+                    mapper.parms[affectation[:pos_egal-1]] =\
+                        eval(val_var.split(':')[1], '')
                 else:
                     mapper.parms[affectation[:pos_egal-1]] = val_var
 #                print ('affectation defaut',affectation[:pos_egal-1],'->',val_var)

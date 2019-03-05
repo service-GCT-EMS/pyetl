@@ -11,7 +11,7 @@ from pyetl.formats.db import DATABASES
 from . import schema_interne as SCI
 from . import fonctions_schema as FSC
 
-from .formats_schema.schema_xml import ecrire_schema_xml
+from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
 
@@ -41,21 +41,37 @@ def fusion_schema(nom, schema, schema_tmp):
     del schema_tmp
 
 
-def lire_schemas_multiples(nom, rep, racine, mode_alias='num', cod='utf-8',
-                           specifique=None):
+
+def lire_schemas_multiples(nom, chemin, mode_alias='num', cod='utf-8',
+                           cod_csv= None, specifique=None, fusion=None):
     '''initialise le schema et rajoute tous les elements necessaires'''
     schema = SCI.Schema(nom)
+    if cod_csv is None:
+        cod_csv = cod
+    if os.path.isdir(chemin):
+        rep = chemin
+        racine = ''
+        fusion =True
+    else:
+        rep = os.path.dirname(chemin)
+        racine = os.path.basename(chemin).lower()
+        if fusion is None:
+            fusion = False
 
-    if os.path.isdir(rep):
-        for element in os.listdir(rep):
+    for element in os.listdir(rep):
 #            print ('examen ',element ,racine)
-            if racine.lower() in element.lower() and 'classes' in element\
-               and os.path.splitext(element)[1] == '.csv':
-                #print("schema:lecture ",element,racine,os.path.splitext(element))
+        if racine in element.lower():
+            if 'classes' in element and os.path.splitext(element)[1] == '.csv':
+            #print("schema:lecture ",element,racine,os.path.splitext(element))
                 element_modif = '_'.join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
+                ext = os.path.splitext(element)[1]
                 fusion_schema(nom, schema, lire_schema_csv('tmp', fichier, mode_alias,
-                                                           cod=cod, specifique=specifique))
+                                                           cod=cod_csv,
+                                                           specifique=specifique))
+        elif ext == '.xml':
+            fusion_schema(nom, schema, lire_schema_xml('tmp', fichier, cod=cod_csv,
+                                                               specifique=specifique))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -345,4 +361,3 @@ def integre_schemas(schemas, nouveaux):
 #    print ('fin_recup_schema')
 #    print ('recup_schema_csv',ecrire_schema_csv(None, schemas['elyx_prod'],'all', modeconf=-1))
 #    print ('fin integration')
-            

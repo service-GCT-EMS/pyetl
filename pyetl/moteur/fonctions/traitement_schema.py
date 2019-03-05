@@ -260,10 +260,8 @@ def h_def_schema(regle):
         mode_alias = regle.getvar("mode_alias", 'num')
         cod_csv = regle.stock_param.get_param('codec_csv', cod)
         if fusion:
-            rep = os.path.dirname(regle.fichier)
-            racine = os.path.basename(regle.fichier)
             regle.stock_param.schemas[nom] = \
-                lire_schemas_multiples(nom, rep, racine, mode_alias, cod=cod_csv)
+                lire_schemas_multiples(nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion)
         else:
             regle.stock_param.schemas[nom] = \
                 lire_schema_csv(nom, regle.fichier, mode_alias, cod=cod_csv)

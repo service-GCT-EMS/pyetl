@@ -484,7 +484,8 @@ def valide_auxiliaires(identifies, non_identifies):
                 print('extention inconnue ', extref, '->', chemin, nom, extinc)
 
 
-def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
+def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None,
+                debug=0):
     " etablit la liste des fichiers a lire"
     entree = rep
     parametres_fichiers = {}
@@ -509,7 +510,14 @@ def scan_entree(rep=None, force_format=None, fileselect=None, debug=0):
     identifies = dict()
     non_identifies = []
 
+    if filtre_entree:
+        print('filtrage entrees ', filtre_entree)
+
     for fichier, chemin in fichs:
+        if filtre_entree:
+            if not re.search(filtre_entree, fichier):
+#                    print ('ignore ',filtre_entree,fichier)
+                continue
 
         nom = os.path.splitext(fichier)[0].lower()
         ext = force_format if force_format else\
