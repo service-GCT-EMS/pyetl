@@ -7,7 +7,7 @@ import collections
 import itertools
 import fiona
 from fiona.crs import from_epsg
-from .interne.objet import Objet
+from ..interne.objet import Objet
 from .fileio import FileWriter
 
 
@@ -341,6 +341,23 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
 #def asc_streamer(obj, groupe, rep_sortie, regle, final, attributs=None,
 #                 racine=''):
 
+#                       reader,      geom,    hasschema,  auxfiles
+READERS = {'dxf':(lire_objets, None, True, ()),
+           'shp':(lire_objets, None, True, ('dbf', 'prj', 'shx', 'cpg')),
+           'mif':(lire_objets, None, True, (('mid', ))),
+           'gpkg':(lire_objets, None, True, ())}
 
-
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'shp':(ecrire_objets, gdalstreamer, True, 'up', 10,
+                  'ESRI Shapefile', 'classe', None, '#tmp'),
+           'mif':(ecrire_objets, gdalstreamer, True, '', 0,
+                  'MapInfo File', 'classe',  None, '#tmp'),
+           'dxf':(ecrire_objets, gdalstreamer, True, '', 0,
+                  'DXF', 'classe', None, '#tmp'),
+           'gpkg':(ecrire_objets, gdalstreamer, True, '', 0,
+                   'GPKG', 'all', None, '#tmp')}
+    
+    
+    
+    
 #########################################################################

@@ -12,7 +12,7 @@
 import os
 #from numba import jit
 from ..interne.objet import Objet
-from ..fileio import FileWriter
+from .fileio import FileWriter
 
 #########################################################################
 # format csv et txt geo etc
@@ -108,7 +108,7 @@ def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
 #    print ('lecture', nom_schema, nom_groupe, nom_classe)
     with open(os.path.join(rep, chemin, fichier), "r",
-              encoding=self.regle_start.getvar('codec_entree', 'utf-8')) as fich:
+              encoding=self.regle_ref.getvar('codec_entree', 'utf-8')) as fich:
 
         if not entete:
             entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
@@ -453,11 +453,11 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
     return
 
 
-def ecrire_objets_txt(regle, final):
+def ecrire_objets_txt(self, regle, final):
     '''format txt (csv sans entete) pour postgis'''
     return ecrire_objets_csv(regle, final, False, '\t', '.txt')
 
-def lire_objets_txt(rep, chemin, fichier, tdr, regle, schema=None):
+def lire_objets_txt(self, rep, chemin, fichier, tdr, regle, schema=None):
     '''format sans entete le schema doit etre fourni par ailleurs'''
     separ = tdr.get_param('separ_txt_in', tdr.get_param('separ_txt', '\t'))
     if schema:
@@ -468,11 +468,11 @@ def lire_objets_txt(rep, chemin, fichier, tdr, regle, schema=None):
     return lire_objets_csv(rep, chemin, fichier, tdr, regle, entete, separ=separ)
 
 
-def txtstreamer(obj, regle, final):
+def txtstreamer(self, obj, regle, final):
     '''format txt en straming'''
     return csvstreamer(obj, regle, final, False, '\t', '.txt')
 
-def ecrire_objets_geo(regle, final):
+def ecrire_objets_geo(self, regle, final):
     '''geodatabase pour les outils topo'''
     return ecrire_objets_csv(regle, final, False, '  ', '.geo')
 
@@ -482,7 +482,7 @@ def ecrire_objets_sql(regle, final):
     return ecrire_objets_csv(regle, final, 'sql', '\t', '.sql',
                              null=r'\N', writer=SqlWriter)
 
-def sqlstreamer(obj, regle, final):
+def sqlstreamer(self, obj, regle, final):
     '''format sql copy pour postgis en streaming '''
 
     return csvstreamer(obj, regle, final, 'sql', '\t',

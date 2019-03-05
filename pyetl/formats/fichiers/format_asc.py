@@ -6,7 +6,7 @@ import os
 #from numba import jit
 import logging
 from ..interne.objet import Objet
-from ..fileio import FileWriter
+from .fileio import FileWriter
 #import pyetl.schema as SC
 
 

@@ -17,7 +17,7 @@ import math as M
 import os
 import logging
 from pyetl.schema.fonctions_schema import valide_dates
-from .interne.objet import Objet
+from ..interne.objet import Objet
 LOGGER = logging.getLogger('pyetl')
 
 

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-''' format geojson en lecture et ecriture'''
+'''format geojson en lecture et ecriture'''
 
 import os
-#import time
 import json
 
 from .interne.objet import Objet
@@ -46,37 +45,33 @@ class JsonWriter(FileWriter):
         return True
 
 
-def _ouverture_fichier(rep, chemin, fichier, stock_param):
-    ''' gere l'ouvverture du fichier asc et positionne les paramatres'''
-    entree = os.path.join(rep, chemin, fichier).get_param
-    stock_param.fichier_courant = os.path.splitext(fichier)[0]
-    #ouvert = open(entree, "r", 65536, encoding="cp1252")
-    ouvert = open(entree, "r", 65536, encoding=stock_param.get_param('codec_entree', "utf-8"))
-    return ouvert
-
 #def lire_objets_asc(rep, chemin, fichier, td, ouv=None):
-def lire_objets(rep, chemin, fichier, stock_param, regle):
+def lire_objets(self, rep, chemin, fichier):
     ''' lecture d'un fichier asc et stockage des objets en memoire'''
+    regle_ref = self.regle if self.regle else self.regle_start
+    stock_param = regle_ref.stock_param
     n_lin, n_obj = 0, 0
     #ouv = None
     obj = None
-    ouvert = _ouverture_fichier(rep, chemin, fichier, stock_param)
-    traite_objet = stock_param.moteur.traite_objet
-    maxobj = stock_param.get_param('lire_maxi', 0)
-    for i in json.load(ouvert):
-        if maxobj and n_obj > maxobj:
-            break
-        if not i:
-            continue # ligne vide
-        n_obj += 1
-        obj = Objet(chemin, stock_param.fichier_courant, format_natif='geojson')
-        if n_obj % 100000 == 0:
-            print("formats :", fichier, "lecture_objets_json ", n_lin, n_obj)
-        obj.from_geo_interface(i)
-        obj.setorig(n_obj)
-        obj.attributs["#chemin"] = chemin
-        traite_objet(obj, regle)
-    ouvert.close()
+    maxobj = regle_ref.get_param('lire_maxi', 0)
+    codec = regle_ref.get_param('codec_entree', "utf-8")
+    entree = os.path.join(rep, chemin, fichier)
+    stock_param.fichier_courant = os.path.splitext(fichier)[0]
+
+    with open(entree, "r", 65536, encoding=codec) as ouvert:
+        for i in json.load(ouvert):
+            if maxobj and n_obj > maxobj:
+                break
+            if not i:
+                continue # ligne vide
+            n_obj += 1
+            obj = Objet(chemin, stock_param.fichier_courant, format_natif='geojson')
+            if n_obj % 100000 == 0:
+                print("formats :", fichier, "lecture_objets_json ", n_lin, n_obj)
+            obj.from_geo_interface(i)
+            obj.setorig(n_obj)
+            obj.attributs["#chemin"] = chemin
+            self.traite_objet(obj, self.regle_start)
     return n_obj
 
 
@@ -86,38 +81,15 @@ def _convertir_objet(obj, ensure_ascii=False):
     return ascii(obj.__json_if__) if ensure_ascii else obj.__json_if__
 
 
-#def ecrire_objet(fichier, obj,start):
-#    '''ecrit un objet json complet'''
-#    if obj.virtuel:
-#        return False
-#    chaine = _convertir_objet(obj)
-#    if not start :
-#        fichier.write(',')
-#    try:
-#        fichier.write(chaine)
-#    except UnicodeEncodeError:
-#        chaine = _convertir_objet(obj,ensure_ascii=True)
-#        fichier.write(chaine)
-#        print ('chaine illisible',chaine)
-#        if 'source' in obj.attributs:
-#            print ('js : ',obj.attributs['source'])
-#        print ('att:',obj.attributs)
-#    if chaine[-1] != "\n":
-#        fichier.write("\n")
-#    return True
-
 def _set_liste_attributs(obj, attributs):
     '''positionne la liste d'attributs a sortir'''
     if attributs:
         obj.liste_attributs = attributs
     else:
         obj.liste_attributs = obj.schema.get_liste_attributs()
-#    else:
-#        obj.liste_attributs = sorted([i for i in obj.attributs if i[0] != '#'])
 
 
-
-def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
+def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     '''ecrit un ensemble de fichiers json a partir d'un stockage memoire ou temporaire'''
 
     dident = None
@@ -170,9 +142,7 @@ def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
     return
 
 
-
-
-def jsonstreamer(obj, regle, _, rep_sortie=None): #ecritures non bufferisees
+def jsonstreamer(self, obj, regle, _, rep_sortie=None): #ecritures non bufferisees
     ''' ecrit des objets json en streaming'''
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
@@ -222,6 +192,9 @@ def jsonstreamer(obj, regle, _, rep_sortie=None): #ecritures non bufferisees
         if not schema_courant.info['courbe'] and obj.geom_v.courbe:
             schema_courant.info['courbe'] = '1'
 #        ressource.compte(1)
+            
+READERS = {'json':(lire_objets, None, True, ())}
+WRITERS = {'json':(ecrire_objets, jsonstreamer, False, '', 0,'', 'classe', None, '#tmp')}
 
 
 #########################################################################

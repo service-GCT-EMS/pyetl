@@ -363,9 +363,10 @@ def classif_elem(elem, points, lignes, objets):
 
 
 
-def lire_objets_osm(rep, chemin, fichier, stock_param, regle):
+def lire_objets_osm(self, rep, chemin, fichier):
     '''lit des objets a partir d'un fichier xml osm'''
-
+    regle_ref = self.regle if self.regle else self.regle_start
+    stock_param = regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0
     nobj = 0
@@ -394,7 +395,7 @@ def lire_objets_osm(rep, chemin, fichier, stock_param, regle):
                 nobj += 1
                 obj.setorig(nobj)
                 obj.attributs["#chemin"] = chemin
-                stock_param.moteur.traite_objet(obj, regle) # on traite le dernier objet
+                stock_param.moteur.traite_objet(obj, self.regle_start) # on traite le dernier objet
         elem.clear()
 
     return nobj
@@ -474,3 +475,6 @@ class OsmReader(object):
             elem.clear()
 
         return nobj
+
+READERS = {'osm':(lire_objets_osm, geom_from_osm, True, ())}
+WRITERS = {}
