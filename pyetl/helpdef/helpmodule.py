@@ -48,6 +48,8 @@ def print_help(mapper, nom):
             print_aide_macros(mapper)
         elif nom == 'commandes':
             print_aide_commandes(mapper)
+        elif nom == 'formats':
+            print_aide_formats(mapper)
         elif nom:
             print("aide: commande inconnue")
     else:
@@ -88,6 +90,21 @@ def print_aide_macros(mapper):
                            '\n'.join([i for i in
                                       mapper.macros[nom_macro].help[:-1].split(';')
                                       if i.strip()])))
+
+def print_aide_formats(mapper):
+    '''affiche l'aide des formats '''
+    print("-----------------------------------------------------------------")
+    print("---formats connus------------------------------------------------")
+    print("-----------------------------------------------------------------")
+    print("nom-------------------lecture----ecriture------------------------")
+    formats_connus = set(mapper.formats_connus_lecture.keys())|set(mapper.formats_connus_ecriture.keys())
+    for nom_format in sorted(formats_connus):
+        lect = 'oui' if nom_format in mapper.formats_connus_lecture else 'non'
+        ecrit = 'oui' if nom_format in mapper.formats_connus_ecriture else 'non'
+        print("%-20s:   %s    :   %s"%(nom_format,lect, ecrit))
+
+
+
 
 def autodoc(mapper):
     '''genere une documentation automatique du programme'''

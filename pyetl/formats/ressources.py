@@ -6,24 +6,8 @@ Created on Tue Sep 26 10:19:32 2017
 """
 import collections
 import os
-import platform
-
-DEFCODEC = "utf-8"
-if platform.system() == 'Windows' and platform.release() == 'XP':
-    DEFCODEC = "cp1252"
-#print('codec ES positionne par defaut a ', DEFCODEC)
-DEBUG = False
 
 
-
-def getdefcodec():
-    ''' recupere la variable globale defcodec'''
-    return DEFCODEC
-
-#def setdefcodec(codec):
-#    ''' positionne la variable globale defcodec  a utf8 ou cp1252 en fonction de l'os'''
-#    global DEFCODEC
-#    DEFCODEC = codec
 
 class RessourceDistante(object):
     '''une ressource distante est geree par un worker en traitement parallele

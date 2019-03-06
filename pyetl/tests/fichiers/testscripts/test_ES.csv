@@ -8,8 +8,8 @@ $#%acces%;;;;;;;;;;;
 ;;;;;;;;;;;
 <#obj;;2;
 -:<#obj;point;2;
--:<#obj;ligne;2;
--:<#obj;poly;2;
+!-:<#obj;ligne;2;
+!-:<#obj;poly;2;
 ;;;;;;;pass;;;debug
 ;;;;#classe+;;'_'+C:#type_geom;set;;;;
 ;;;;#groupe;test1;;set+;;;fin;

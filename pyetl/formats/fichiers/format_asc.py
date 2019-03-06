@@ -5,7 +5,7 @@ import os
 #import time
 #from numba import jit
 import logging
-from ..interne.objet import Objet
+#from ..interne.objet import Objet
 from .fileio import FileWriter
 #import pyetl.schema as SC
 
@@ -291,8 +291,9 @@ def lire_objets_asc(self, rep, chemin, fichier):
                         obj = None
                         break
                 if code_1 in "9356":
-                    obj = Objet(chemin, stock_param.fichier_courant, format_natif='asc',
-                                conversion=self.conv_geom)
+                    obj = self.getobj()
+#                    obj = Objet(chemin, stock_param.fichier_courant, format_natif='asc',
+#                                conversion=self.converter)
                     _decode_entete_asc(obj, i, log_erreurs)
             elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == '_'):
                 nom, suite = ajout_attribut_asc(obj, i)
@@ -370,14 +371,16 @@ def _ecrire_entete_asc(obj):
 
 class AscWriter(FileWriter):
     ''' gestionnaire d'ecriture pour fichiers asc'''
-    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None):
+    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None, geomwriter=None):
         super().__init__(nom, liste_att=liste_att, converter=self._convertir_objet_asc,
-                         encoding='cp1252', liste_fich=liste_fich, schema=schema)
+                         encoding=encoding, liste_fich=liste_fich, schema=schema,
+                         geomwriter=geomwriter)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         self.ttext = "FIN\n"
         self.transtable = str.maketrans({'\n':'\\'+'n', '\r':''})
         self.liste_graphique = None
         self.liste_ordinaire = None
+
 
 
     def changeclasse(self, schemaclasse, attributs=None):
@@ -407,7 +410,7 @@ class AscWriter(FileWriter):
             else:
                 geometrie = ''
         else:
-            geometrie = self.ecrire_geom_asc(obj.geom_v)
+            geometrie = self.geomwriter(obj.geom_v)
 
         attmap = obj.schema.attmap if obj.schema else dict()
     #    print "ecriture", liste
@@ -480,6 +483,7 @@ def asc_streamer(self, obj, regle, _, attributs=None):
             streamwriter = AscWriter(nom,
                                      encoding=regle.getvar('codec_sortie', 'utf-8'),
                                      liste_att=attributs,
+                                     geomwriter=self.geomwriter,
                                      liste_fich=regle.stock_param.liste_fich, schema=obj.schema)
             ressource = sorties.creres(regle.numero, nom, streamwriter)
         else:

@@ -10,23 +10,24 @@ commencent par format_
 
 """
 from types import MethodType
+#from functools import partial
 from .db import DATABASES
 from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
+from .interne.objet import Objet
 '''
 geomdef = namedtuple("geomdef", ("reader", "converter"))
 
 rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter"))
 wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
                                  "attlen", "driver", "fanout", "geom", "tmp_geom",
-                                 "geomwriter", "tmpgeomwriter"))
+                                 "geomwriter"))
 
 '''
 # assemblage avec les geometries
 for nom in WRITERS:
     tmp = WRITERS[nom]
-    WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer,
-                               tmpgeomwriter=GEOMDEF[tmp.tmp_geom].writer)
+    WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer)
 
 for nom in READERS:
     tmp = READERS[nom]
@@ -52,6 +53,7 @@ class Reader(object):
         self.debug = debug
         self.regle = regle # on separe la regle de lecture de la regle de demarrage
         self.regle_start = regle_start
+        self.regle_ref = self.regle if regle is not None else self.regle_start
         stock_param = regle_start.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
@@ -64,11 +66,12 @@ class Reader(object):
         if nom in self.lecteurs:
 #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
             descr = self.lecteurs[nom]
+            self.format_natif = descr.geom
             self.lire_objets = MethodType(descr.reader, self)
             self.nom_format = nom
             self.cree_schema = descr.has_schema
             self.auxiliaires = descr.auxfiles
-            self.conv_geom = self.get_converter(nom)
+            self.converter = self.descr.converter
             if self.debug:
                 print("debug:format: lecture format "+ nom, self.conv_geom)
         else:
@@ -86,8 +89,9 @@ class Reader(object):
         fgeom = Reader.lecteurs.get(format_natif, Reader.lecteurs['interne']).geom
         return Reader.geomdef[fgeom].converter
 
-
-
+    def getobj(self): # cree un objet
+        return Objet(self.groupe, self.classe, format_natif=self.format_natif,
+                     conversion=self.converter)
 
 
 class Writer(object):
@@ -141,11 +145,13 @@ class Writer(object):
             self.writerparms['destination'] = destination
         self.dialecte = dialecte
 #        self.conv_geom = self.geomdef[self.def_sortie.geom].converter
-
-        self.ecrire_objets = self.def_sortie.writer
-        self.ecrire_objets_stream = self.def_sortie.streamer
+        self.ecrire_objets = MethodType(self.def_sortie.writer, self)
+#        self.ecrire_objets = self.def_sortie.writer
+        self.ecrire_objets_stream = MethodType(self.def_sortie.streamer, self)
+#        self.ecrire_objets_stream = self.def_sortie.streamer
         self.tmp_geom = self.def_sortie.tmp_geom
         self.nom_fgeo = self.def_sortie.geom
+        self.geomwriter = self.def_sortie.geomwriter
         self.calcule_schema = self.def_sortie.force_schema
         self.minmaj = self.def_sortie.casse # determine si les attributs passent en min ou en maj
         self.driver = self.def_sortie.driver

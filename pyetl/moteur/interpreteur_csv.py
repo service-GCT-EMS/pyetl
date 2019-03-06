@@ -23,6 +23,8 @@ NOMS_CHAMPS_N = ['sel1', 'val_sel1', 'sel2', 'val_sel2',
                  'sortie', 'defaut', 'entree', 'commande', 'cmp1', 'cmp2',
                  'debug', 'vlocs']
 
+PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
+
 # quelques fonction générales
 def fdebug(regle, obj):
     '''gestion des affichages de debug'''
@@ -518,28 +520,21 @@ def map_vars(mapper, ligne, vloc=None):
 #    print('mv:ligne',ligne)
     if vloc is None:
         vloc = dict()
-    for j in mapper.param_exp.findall(ligne): # substitution des parametres positionnels
-        nom_param = j.replace('%', '')
+    # gestion des indirections %%var%%
 
-#        if '#' in nom_param: # cest une reference a un groupe de parametres (bases de donnees)
-#            tmp = nom_param.split('#')
-#            modif_nom = '_'+vloc.get(tmp[1], mapper.get_param(tmp[1], ''))
-#            nom = tmp[0]+modif_nom
-##            print (" modifieur",modif_nom,mapper.parms)
-#        else:
-#            nom = nom_param
+    for j in PARAM_EXP.findall(ligne): # substitution des parametres positionnels
+        nom_param = j.replace('%', '')
 
 
         ligne = ligne.replace(j, vloc.get(nom_param, mapper.get_param(nom_param, '')))
 #        print ('icsv:substitution >'+j+"<>"+nom_param+'<',vloc.get(nom_param,
 #               mapper.get_param(nom,'')),ligne)
         binding[nom_param] = vloc.get(nom_param, nom_param)
-        if mapper.param_exp.search(ligne): # double indirections
+        if PARAM_EXP.search(ligne): # double indirections
             ligne, binding2 = map_vars(mapper, ligne, vloc)
             binding.update(binding2)
 #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
 #    print('mv:ligne sortie',ligne,sorted(mapper.parms.items()))
-
     return ligne, binding
 
 
@@ -554,10 +549,6 @@ def reinterprete_regle(regle, mapper, vloc=None):
     texte_regle = regle.texte_brut
     texte_regle, binding = map_vars(mapper, texte_regle, vloc)
 
-#    for j in mapper.param_exp.findall(texte_regle): # substitution des parametres positionnels
-#        np=j.replace('%', '')
-##            print ('icsv:substitution >' , j,'<',vloc.get(np,mapper.get_param(np,'')))
-#        texte_regle=texte_regle.replace(j,mapper.get_param(np,''))
     champs_texte = [i[1:-1] if i.startswith("'") else i.strip() for i in texte_regle.split(';')]
     if regle.ligne:
         prepare_regle(regle, champs_texte)
@@ -810,6 +801,7 @@ def prepare_importe_macro(mapper, texte, vloc, fichier_regles):
 #    numero, texte_brut = defligne
 #    texte = texte_brut.strip()
 #    texte_brut = texte
+#    print ('recu macro',texte)
     match = re.match(r'(([\|\+-]+)([a-z]*):)?(<.*)', texte)
 #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else ""+("+" if match.group(3) else "")
@@ -821,8 +813,7 @@ def prepare_importe_macro(mapper, texte, vloc, fichier_regles):
     settings = {i.split["="][0]:i.split["="][1]
                 for i in range(1, len(champs)) if "=" in champs}
 
-#    print ('lecture macro',texte_brut,'->',texte,vloc, nom_inclus, vpos, settings)
-#            vloc = dict()
+#    print ('lecture macro',texte,'->',niveau)
 
     localmacro = dict() if vloc is None else vloc
     if nom_inclus[0] == "#":
@@ -868,8 +859,8 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
 
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, vloc, niveau)
-
-#        print ('regles lues \n',''.join(str(liste_regles)))
+#    if niveau:
+#        print ('regles lues \n','\n'.join((str(i) for i in liste_regles)))
 
     bloc = 0
     for defligne in liste_regles[:]:
@@ -882,10 +873,11 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
 # lignes conditionelles (lignes incluses dans le code seulement si la condition est vraie)
 # sous la forme K:variable:valeur ou K:variable
         liste_val = texte.split(';', 1)
-        if texte.startswith('K:') and not macro:
+        if re.match(r'(([\|\+-]+)([a-z]*):)?K:', texte) and not macro:
+#        if texte.startswith('K:') and not macro:
             liste_val = texte.split(';', 1)
             cond, binding = map_vars(mapper, liste_val[0], vloc)
-            condmatch = re.match("^K:(.*?):(.*)", cond) or re.match("^K:(.*)", cond)
+            condmatch = re.search("K:(.*?):(.*)", cond) or re.search("K:(.*)", cond)
 #            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch: # interpretation conditionelle
 #                print( "lire: trouve condmatch",condmatch.groups(), liste_val[0])

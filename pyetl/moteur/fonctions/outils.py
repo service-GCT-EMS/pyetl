@@ -14,8 +14,8 @@ import traceback
 import logging
 from pyetl.formats import Reader
 from pyetl.formats.interne.objet import Objet
+from pyetl.vglobales import DEFCODEC
 
-DEFCODEC = "utf-8"
 MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
 MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
 LOGGER = logging.getLogger('pyetl')

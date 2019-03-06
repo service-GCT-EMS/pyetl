@@ -7,7 +7,7 @@ sorties fictives
 """
 
 
-def ecrire_objets_neant(regle, *_, **__) -> (int, int):
+def ecrire_objets_neant(self, regle, *_, **__) -> (int, int):
     """ pseudowriter ne fait rien :  poubelle"""
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):# on parcourt les objets
@@ -15,12 +15,12 @@ def ecrire_objets_neant(regle, *_, **__) -> (int, int):
                 obj.setschema(None)
     return 0, 0
 
-def stream_objets_neant(obj, *_, **__):
+def stream_objets_neant(self, obj, *_, **__):
     """ pseudowriter ne fait rien :  poubelle"""
     obj.setschema(None)
     return 0, 0
 
-def compte_obj_stream(obj, regle, *_, **__):
+def compte_obj_stream(self, obj, regle, *_, **__):
     '''poubelle avec comptage '''
     groupe, classe = obj.ident
 #    obj.setschema(None)
@@ -30,7 +30,7 @@ def compte_obj_stream(obj, regle, *_, **__):
     return 0, 0
 
 
-def compte_obj(regle, *_, **__):
+def compte_obj(self, regle, *_, **__):
     '''poubelle avec comptage'''
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):# on parcourt les objets

@@ -10,7 +10,7 @@ VERSION = "0.8.2.3d"
 # version de developpement 21/2/2019
 #LOGGER = logging.getLogger('pyetl') # un logger
 MAINMAPPER = None
-
+import platform
 
 def set_mainmapper(val):
     '''positionnement du point d entree pou les traitements paralleles'''
@@ -20,5 +20,16 @@ def set_mainmapper(val):
 
 def getmainmapper():
     '''recup du point d entree pour les traitements paralleles'''
-
     return MAINMAPPER
+
+DEFCODEC = "utf-8"
+if platform.system() == 'Windows' and platform.release() == 'XP':
+    DEFCODEC = "cp1252"
+#print('codec ES positionne par defaut a ', DEFCODEC)
+DEBUG = False
+
+
+
+def getdefcodec():
+    ''' recupere la variable globale defcodec'''
+    return DEFCODEC

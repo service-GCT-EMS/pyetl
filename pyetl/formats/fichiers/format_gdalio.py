@@ -129,21 +129,22 @@ def map_schema_initial(stock_param, nomschema, groupe, classe):
 
 
 #def lire_objets_asc(rep, chemin, fichier, td, ouv=None):
-def lire_objets(rep, chemin, fichier, stock_param, regle):
+def lire_objets(self, rep, chemin, fichier):
     ''' lecture d'un fichier reconnu et stockage des objets en memoire'''
     n_lin, n_obj = 0, 0
 #    print ('lecture gdal',(rep, chemin, fichier))
 #    raise
     #ouv = None
+    stock_param = self.regle_ref.stock_param
     obj = None
     classe = os.path.splitext(os.path.basename(fichier))[0]
     groupe = chemin if chemin else os.path.basename(os.path.dirname(fichier))
     if not groupe:
         groupe = 'defaut'
+    groupe = groupe
 
 
-
-    traite_objet = stock_param.moteur.traite_objet
+#    traite_objet = stock_param.moteur.traite_objet
     maxobj = stock_param.get_param('lire_maxi', 0)
     entree = os.path.join(rep, chemin, fichier)
     layers = fiona.listlayers(entree)
@@ -153,6 +154,8 @@ def lire_objets(rep, chemin, fichier, stock_param, regle):
             schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
             schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe), source.schema)
+            self.classe = classe
+            self.groupe = groupe
 #            print('fiona:', classe, 'schema.type_geom',
 #                  schemaclasse.info["type_geom"], 'mg:', schemaclasse.multigeom)
             driver = source.driver
@@ -160,7 +163,8 @@ def lire_objets(rep, chemin, fichier, stock_param, regle):
             if maxobj:
                 gen = itertools.islice(gen, maxobj)
             for i in gen:
-                obj = Objet(groupe, classe, format_natif=driver)
+                obj = self.getobj()
+#                obj = Objet(groupe, classe, format_natif=driver)
                 obj.schema = schemaclasse
                 n_obj += 1
                 if n_obj % 100000 == 0:
@@ -169,7 +173,7 @@ def lire_objets(rep, chemin, fichier, stock_param, regle):
     #            print ('entree', i)
     #            print ('objet', obj.__geo_interface__)
                 obj.attributs["#chemin"] = chemin
-                traite_objet(obj, regle)
+                self.traite_objet(obj, self.regle_start)
     return n_obj
 
 
@@ -262,7 +266,7 @@ def gdalconverter(obj, liste_att, minmajfunc):
         a_sortir["properties"][obj.casefold("gid")] = a_sortir["id"]
     return a_sortir
 
-def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
+def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
     '''ecrit des objets json au fil de l'eau.
         dans ce cas les objets ne sont pas stockes,  l ecriture est effetuee
         a la sortie du pipeline (mode streaming)
@@ -322,7 +326,7 @@ def gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None):
         ressource.finalise()
 
 
-def ecrire_objets(regle, _, attributs=None, rep_sortie=None):
+def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     '''ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire'''
     #ng, nf = 0, 0
     #memoire = defs.stockage
@@ -356,8 +360,8 @@ WRITERS = {'shp':(ecrire_objets, gdalstreamer, True, 'up', 10,
                   'DXF', 'classe', None, '#tmp'),
            'gpkg':(ecrire_objets, gdalstreamer, True, '', 0,
                    'GPKG', 'all', None, '#tmp')}
-    
-    
-    
-    
+
+
+
+
 #########################################################################

@@ -14,7 +14,7 @@ import pyetl.schema.fonctions_schema as FSC
 #from pyetl.moteur.selecteurs import Selecteur
 #import pyetl.formats.formats as F
 #from pyetl.formats.interne.objet import Objet
-import pyetl.formats.temporaire as T
+import pyetl.formats.format_temporaire as T
 #import pyetl.formats.mdbaccess as DB
 #from pyetl.moteur.fonctions import gestion_schema as GS
 LOGGER = logging.getLogger('pyetl')

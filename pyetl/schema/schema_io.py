@@ -15,9 +15,6 @@ from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
 
-
-
-
 def fusion_schema(nom, schema, schema_tmp):
     '''fusionne 2 schemas en se basant sur les poids pour garder le bon'''
     if not schema or not schema_tmp:
@@ -316,7 +313,6 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
 # =================formatage interne des schemas pour les traitements en parallele================
 
 
-
 def retour_schemas(schemas, mode='util'):
     '''renvoie les schemas pour un retour'''
     retour = dict()
@@ -345,8 +341,6 @@ def integre_schemas(schemas, nouveaux):
         nomschemas.add(nom)
         tmp = SCI.Schema(nom)
         tmp.from_dic_if(description)
-
-
 
 #        print ('recup schema ', nom, tmp, schemas.get(nom))
         if nom in schemas:

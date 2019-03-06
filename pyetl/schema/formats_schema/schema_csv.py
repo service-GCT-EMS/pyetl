@@ -419,6 +419,19 @@ def lire_classes_csv(schema_courant, fichier, cod):
         decode_classes_csv(schema_courant, entree)
 
 
+def fichs_schema(racine):
+    '''determine les fichiers lies au schema'''
+    f_aux = {'_classes', '_mapping', '_enumerations',
+             "complements_enumerations.csv", "complements_classes.csv",
+             "complements_mapping.csv"}
+
+    fschemas = {racine + i for i in f_aux}
+    return fschemas
+
+
+
+
+
 def lire_schema_csv(nom, fichier, mode_alias='num', cod='cp1252', schema=None,
                     specifique=None):
     '''lit un schema conplet en csv'''
@@ -460,7 +473,6 @@ def lire_schema_csv(nom, fichier, mode_alias='num', cod='cp1252', schema=None,
 #          "<-----")
 #    print ('mapping enregistre','\n'.join(schema.mapping_schema(fusion=True)[:10]))
     return schema
-
 
 def ecrire_fich_csv(chemin, nom, contenu, cod):
     ''' ecriture physique du csv'''

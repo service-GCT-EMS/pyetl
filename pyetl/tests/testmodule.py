@@ -218,8 +218,14 @@ def set_test_path(mapper):
         print('config de test non definie certains tests ne seront pas effectues')
 
 
-
-
+def formattests(mapper, nom=None, debug=0):
+    ''' execute les tests d'entree sortie '''
+    if nom:
+        print('---------------------test format '+nom+' -----------------------')
+    else:
+        print('---------------------test formats-----------------------')
+    set_test_path(mapper)
+    return []
 
 
 def unittests(mapper, nom=None, debug=0):

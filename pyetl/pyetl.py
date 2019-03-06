@@ -12,10 +12,10 @@ import re
 import logging
 import itertools
 from collections import defaultdict
-from .vglobales import VERSION, set_mainmapper
-from .formats import Reader, READERS
-from .formats.ressources import GestionSorties, DEFCODEC # formats entree et sortie
-from .formats.stats import Stat, ExtStat
+from .vglobales import VERSION, set_mainmapper, DEFCODEC
+from .formats import Reader, READERS, WRITERS
+from .formats.ressources import GestionSorties  # formats entree et sortie
+from .formats.interne.stats import Stat, ExtStat
 from .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
          interprete_ligne_csv, map_vars
 from .moteur.compilateur import compile_regles
@@ -114,7 +114,6 @@ class Pyetl(object):
     cette structrure est passee a l'ensemble des modules '''
     # constantes de travail
     modiffonc = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
-    param_exp = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
     _ido = itertools.count(1) # compteur d'instance
     version = VERSION
     # ressources communes
@@ -129,7 +128,8 @@ class Pyetl(object):
 #    crypt = crypter
 #    decrypt = decrypt
     init_schema = init_schema
-    formats_connus = READERS
+    formats_connus_lecture = READERS
+    formats_connus_ecriture = WRITERS
 #    reader = Reader
 
     def __init__(self, parent=None, nom=None):
@@ -320,6 +320,14 @@ class Pyetl(object):
             self.set_param("_testmode", "unittest")
             unittests(self, nom=nom, debug=self.get_param("debug"))
             self.done = True
+
+        elif commande == '#formattest' or commande == "formattest":
+            from .tests.testmodule import formattests
+            self.set_param("_sortie", "")
+            self.set_param("_testmode", "formattest")
+            formattests(self, nom=nom, debug=self.get_param("debug"))
+            self.done = True
+
 
     def _traite_params(self, liste_params):
         """gere la liste de parametres"""
@@ -566,11 +574,12 @@ class Pyetl(object):
             if liste and liste[0].strip() == '&&#set': # on ecrase ou on cree
                 nom = liste[1]
                 self.site_params[nom] = list()
+#                print ('chargement parametres de site ',nom)
             elif liste and liste[0].strip() == '&&#add': # on ajoute des valeurs
                 nom = liste[1]
                 if nom not in self.site_params:
                     self.site_params[nom] = list()
-#                print ('chargement parametres de site ',nom)
+#                print ('chargement complement parametres de site ',nom)
             else:
                 if nom:
                     nom_p, val = liste[0], liste[1]
@@ -625,6 +634,7 @@ class Pyetl(object):
                     else:
                         self.site_params[nom][numero] = (nom_p, val)
         for nom in supr:
+            print('suppression paramgroup', nom)
             del self.site_params[nom]
 
 
@@ -1076,23 +1086,6 @@ class Pyetl(object):
 
 
 
-
-
-    def fichs_schema(self):
-        '''determine les fichiers lies au schema'''
-        fschemas = set()
-        f_aux = {'_classes', '_mapping', '_enumerations',
-                 "complements_enumerations.csv", "complements_classes.csv",
-                 "complements_mapping.csv"}
-        racine_entree = os.path.basename(self.get_param("schema_entree"))
-        if racine_entree:
-            fschemas.union({racine_entree + i for i in f_aux})
-        racine_sortie = os.path.basename(self.get_param("schema_sortie"))
-        if racine_sortie:
-            fschemas.union({racine_sortie + i for i in f_aux})
-        return fschemas
-
-
     def _lecture_stats(self, stat):
         """recupere une stat pour process
         """
@@ -1114,6 +1107,7 @@ class Pyetl(object):
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
 
         self.f_entree = Reader(ext, regle, reglestart)
+
 #        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)

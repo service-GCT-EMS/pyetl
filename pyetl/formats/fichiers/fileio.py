@@ -29,7 +29,8 @@ class FileWriter(object):
     FAIL = 4
 
 
-    def __init__(self, nom, liste_att=None, converter=_defaultconverter, separ=None,
+    def __init__(self, nom, liste_att=None, converter=_defaultconverter, geomwriter=None,
+                 separ=None,
                  encoding='utf-8', liste_fich=None, srid='3948', schema=None,
                  f_sortie=None):
         self.nom = nom
@@ -41,6 +42,7 @@ class FileWriter(object):
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.converter = converter
+        self.geomwriter = geomwriter
         self.srid = srid
         self.separ = separ
         self.schema = schema

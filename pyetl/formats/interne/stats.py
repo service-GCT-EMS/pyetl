@@ -5,7 +5,7 @@ Created on Mon Dec 21 12:03:23 2015
 @author: 89965
 """
 import os
-from .interne.objet import Objet
+from .objet import Objet
 
 # statistiques
 
@@ -462,3 +462,6 @@ def statprint(nom, entete, contenu):
 #                             for i in result if filtre in i)))
     print("\n".join((pformat % tuple(i) for i in contenu)))
     print('-'*longueur)
+
+
+

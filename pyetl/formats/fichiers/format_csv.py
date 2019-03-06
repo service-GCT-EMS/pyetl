@@ -97,9 +97,9 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 
 
 
-def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
+def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     '''lit des objets a partir d'un fichier csv'''
-    regle_ref = self.regle if self.regle else self.regle_start
+    regle_ref = reader.regle if reader.regle else reader.regle_start
     if separ is None:
         separ = regle_ref.getvar('separ_csv_in', regle_ref.getvar('separ_csv', ';'))
 #    print('lecture_csv:', rep, chemin, fichier,separ)
@@ -108,7 +108,7 @@ def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
 #    print ('lecture', nom_schema, nom_groupe, nom_classe)
     with open(os.path.join(rep, chemin, fichier), "r",
-              encoding=self.regle_ref.getvar('codec_entree', 'utf-8')) as fich:
+              encoding=reader.regle_ref.getvar('codec_entree', 'utf-8')) as fich:
 
         if not entete:
             entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
@@ -125,7 +125,7 @@ def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
         nlignes = 0
         for i in fich:
             nlignes = nlignes+1
-            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=self.conv_geom)
+            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=reader.conv_geom)
             obj.setschema(schemaclasse)
             obj.setorig(nlignes)
             val_attributs = [j.strip() for j in i[:-1].split(separ)]
@@ -143,7 +143,7 @@ def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
             else:
                 obj.attributs['#type_geom'] = '0'
             obj.attributs['#chemin'] = chemin
-            self.traite_objets(obj, self.regle_start)
+            reader.traite_objets(obj, reader.regle_start)
 
             if maxobj and nlignes >= maxobj: # nombre maxi d'objets a lire par fichier
                 break
@@ -158,10 +158,10 @@ def lire_objets_csv(self, rep, chemin, fichier, entete=None, separ=None):
 class CsvWriter(FileWriter):
     """ gestionnaire des fichiers csv en sortie """
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
-                 liste_fich=None, null='', f_sortie=None):
+                 liste_fich=None, null='', f_sortie=None, geomwriter=None):
 
         super().__init__(nom, encoding=encoding, liste_fich=liste_fich,
-                         schema=schema, f_sortie=f_sortie)
+                         schema=schema, f_sortie=f_sortie, geomwriter=geomwriter)
 
         self.extension = extension
         self.separ = separ
@@ -214,7 +214,7 @@ class CsvWriter(FileWriter):
 #                print("sortie ewkt geom0",len(geom))
             else:
                 if obj.initgeom():
-                    geom = ecrire_geom_ewkt(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
+                    geom = self.geomwriter(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
                 else:
                     if not obj.geom and self.type_geom == '-1':
                         geom = ''
@@ -229,11 +229,13 @@ class CsvWriter(FileWriter):
                 obj.geom = geom
                 obj.geomnatif = True
                 if obj.erreurs and obj.erreurs.actif == 2:
-                    print('error: writer csv :', obj.ident, obj.ido, 'erreur geometrique: type',
+                    print('error: writer csv :',self.extension, obj.ident, obj.ido,
+                          'erreur geometrique: type',
                           obj.attributs['#type_geom'], 'demandé:',
                           obj.schema.info["type_geom"], obj.erreurs.errs)
+                    print ('prep ligne ', attributs,'G:', geom)
+
                     return False
-#            print ('prep ligne ', attributs,'G:', geom)
             if not geom:
                 geom = self.null
             ligne = attributs+self.separ+geom
@@ -253,9 +255,9 @@ class CsvWriter(FileWriter):
 class SqlWriter(CsvWriter):
     """getionnaire decriture sql en fichier"""
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
-                 liste_fich=None, null='', f_sortie=None):
+                 liste_fich=None, null='', f_sortie=None, geomwriter=None):
         super().__init__(nom, schema, extension, separ, entete, encoding,
-                         liste_fich, null, f_sortie)
+                         liste_fich, null, f_sortie, geomwriter=geomwriter)
         if self.writerparms:
             self.schema.setsortie(self.f_sortie)
         self.transtable = str.maketrans({'\\':r'\\', '\n':'\\'+'n', '\r':'\\'+'n',
@@ -382,7 +384,7 @@ def getfanout(regle, extention, ident, initial):
 
 
 
-def change_ressource(regle, obj, writer, separ, extention, entete, null, initial=False):
+def change_ressource(regle, obj, writer, separ, extention, entete, null, initial=False, geomwriter=None):
     ''' change la definition de la ressource utilisee si necessaire'''
 
     ident = obj.ident
@@ -400,7 +402,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
         str_w = writer(nom, obj.schema, extention, separ, entete,
                        encoding=regle.stock_param.get_param('codec_sortie', 'utf-8'),
                        liste_fich=regle.stock_param.liste_fich, null=null,
-                       f_sortie=regle.f_sortie)
+                       f_sortie=regle.f_sortie, geomwriter=geomwriter)
         ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
 #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat)
     regle.stock_param.set_param('derniere_sortie', nom, parent=1)
@@ -410,25 +412,26 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
 
 
-def csvstreamer(obj, regle, _, entete='csv', separ=None,
+def _csvstreamer(writer, obj, regle, _, entete='csv', separ=None,
                 extention='.csv', null='',
-                writer=CsvWriter): #ecritures non bufferisees
+                writerclass=CsvWriter): #ecritures non bufferisees
     ''' ecrit des objets csv en streaming'''
 #    sorties = regle.stock_param.sorties
     if regle.dident == obj.ident:
         ressource = regle.ressource
     else:
-        ressource = change_ressource(regle, obj, writer, separ,
-                                     extention, entete, null, initial=True)
+        ressource = change_ressource(regle, obj, writerclass, separ,
+                                     extention, entete, null, initial=True,
+                                     geomwriter=writer.geomwriter)
 
     ressource.write(obj, regle.numero)
 #    if obj.geom_v.courbe:
 #        obj.schema.info['courbe'] = '1'
 
 
-def ecrire_objets_csv(regle, _, entete='csv', separ=None,
+def _ecrire_objets_csv(writer, regle, _, entete='csv', separ=None,
                       extention='.csv', null='',
-                      writer=CsvWriter):
+                      writerclass=CsvWriter):
     ''' ecrit des objets csv a partir du stockage interne'''
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
@@ -443,7 +446,7 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
 #            print( regle.stockage)
 #            groupe, classe = obj.ident
             if obj.ident != regle.dident:
-                ressource = change_ressource(regle, obj, writer,
+                ressource = change_ressource(regle, obj, writerclass,
                                              separ, extention, entete, null, initial=False)
 
             ressource.write(obj, regle.numero)
@@ -455,7 +458,7 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
 
 def ecrire_objets_txt(self, regle, final):
     '''format txt (csv sans entete) pour postgis'''
-    return ecrire_objets_csv(regle, final, False, '\t', '.txt')
+    return _ecrire_objets_csv(regle, final, False, '\t', '.txt')
 
 def lire_objets_txt(self, rep, chemin, fichier, tdr, regle, schema=None):
     '''format sans entete le schema doit etre fourni par ailleurs'''
@@ -467,25 +470,43 @@ def lire_objets_txt(self, rep, chemin, fichier, tdr, regle, schema=None):
         entete = []
     return lire_objets_csv(rep, chemin, fichier, tdr, regle, entete, separ=separ)
 
-
 def txtstreamer(self, obj, regle, final):
     '''format txt en straming'''
-    return csvstreamer(obj, regle, final, False, '\t', '.txt')
+    return _csvstreamer(self, obj, regle, final, False, '\t', '.txt')
+
+
+def csvstreamer(self, obj, regle, final):
+    '''format txt en straming'''
+    return _csvstreamer(self, obj, regle, final, False, ';', '.csv')
+
+def ecrire_objets_csv(self, regle, final):
+    '''format txt (csv sans entete) pour postgis'''
+    return _ecrire_objets_csv(self, regle, final, False, '\t', '.txt')
+
+def lire_objets_csv(self, rep, chemin, fichier):
+    '''format csv en lecture'''
+    return _lire_objets_csv(self, rep, chemin, fichier)
+
+
+
+
+
+
 
 def ecrire_objets_geo(self, regle, final):
     '''geodatabase pour les outils topo'''
-    return ecrire_objets_csv(regle, final, False, '  ', '.geo')
+    return _ecrire_objets_csv(self, regle, final, False, '  ', '.geo')
 
-def ecrire_objets_sql(regle, final):
+def ecrire_objets_sql(self, regle, final):
     '''format sql copy pour postgis'''
 
-    return ecrire_objets_csv(regle, final, 'sql', '\t', '.sql',
+    return self.ecrire_objets_csv(self, regle, final, 'sql', '\t', '.sql',
                              null=r'\N', writer=SqlWriter)
 
 def sqlstreamer(self, obj, regle, final):
     '''format sql copy pour postgis en streaming '''
 
-    return csvstreamer(obj, regle, final, 'sql', '\t',
+    return self.csvstreamer(self, obj, regle, final, 'sql', '\t',
                        '.sql', null=r'\N', writer=SqlWriter)
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)

@@ -11,11 +11,9 @@
 
 import os
 #from numba import jit
-from .interne.objet import Objet
-from .fileio import FileWriter
-try:
-    from openpyxl import load_workbook
-except:
+from ..interne.objet import Objet
+from ..fileio import FileWriter
+from openpyxl import load_workbook
 
 
 

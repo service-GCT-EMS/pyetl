@@ -14,7 +14,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pyetl.vglobales import getmainmapper
 
 from pyetl.schema.schema_io import integre_schemas, retour_schemas
-from pyetl.formats.stats import ExtStat
+from pyetl.formats.interne.stats import ExtStat
 from .outils import renseigne_attributs_batch, prepare_batch_from_object,\
                      execbatch, getfichs, printexception
 
