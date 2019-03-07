@@ -16,8 +16,10 @@ def _affiche_debug(regles, debug):
             regle.affiche()
             liens_num = regle.branchements.liens_num()
             liens_pos = regle.branchements.liens_pos()
-            print("   compile: liens", regle.numero, '(', str(regle.index), ')', '-->',
-                  [(i, liens_num[i], liens_pos[i]) for i in sorted(liens_num)])
+            print("   compile: liens", str(regle.index), '(', regle.numero, ')', '-->',
+                  [(i, liens_pos[i], liens_num[i]) for i in sorted(liens_num)])
+            print ("flags", 'final' if regle.final else '',
+                   'nonext' if regle.nonext else '')
             if '+' in regle.v_nommees['debug']:
                 print('\n'.join([str((i, regle.branchements.brch[i]))
                                  for i in sorted(regle.branchements.brch)]))

@@ -293,6 +293,12 @@ def f_finbloc(*_):
        '''
     return True
 
+def f_next(regle, obj):
+    ''''#aide||force la sortie next
+     #pattern||;;;next;;
+     '''
+    obj.redirect = 'next'
+    return True
 
 def h_testobj(regle):
     ''' definit la regle comme createur'''

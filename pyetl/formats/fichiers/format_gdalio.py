@@ -339,7 +339,8 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     #groupes = memoire.keys()
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
-            gdalstreamer(obj, regle, None, attributs=attributs, rep_sortie=rep_sortie)
+            self.ecrire_objets_stream(obj, regle, None, attributs=attributs,
+                                      rep_sortie=rep_sortie)
 
 
 #def asc_streamer(obj, groupe, rep_sortie, regle, final, attributs=None,

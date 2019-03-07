@@ -28,6 +28,7 @@ wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
 for nom in WRITERS:
     tmp = WRITERS[nom]
     WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer)
+#    print ('writer', nom , 'geom', WRITERS[nom].geom, WRITERS[nom].geomwriter)
 
 for nom in READERS:
     tmp = READERS[nom]
@@ -65,13 +66,14 @@ class Reader(object):
         nom = nom.replace('.', '').lower()
         if nom in self.lecteurs:
 #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
-            descr = self.lecteurs[nom]
-            self.format_natif = descr.geom
-            self.lire_objets = MethodType(descr.reader, self)
+            description = self.lecteurs[nom]
+            self.description = description
+            self.format_natif = description.geom
+            self.lire_objets = MethodType(description.reader, self)
             self.nom_format = nom
-            self.cree_schema = descr.has_schema
-            self.auxiliaires = descr.auxfiles
-            self.converter = self.descr.converter
+            self.cree_schema = description.has_schema
+            self.auxiliaires = description.auxfiles
+            self.converter = description.converter
             if self.debug:
                 print("debug:format: lecture format "+ nom, self.conv_geom)
         else:

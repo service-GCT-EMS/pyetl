@@ -31,6 +31,10 @@ def fdebug(regle, obj):
 #    print('dans debug', regle, obj)
     if regle.debug and obj:
         regle.debug = regle.debug-1
+        if regle.v_nommees['debug'] == 'print':
+            regle.affiche('------affiche------>')
+            obj.debug("", attlist=regle.champsdebug)
+            return regle.f_init(regle, obj)
         regle.affiche('------debug------>')
         obj.debug("avant", attlist=regle.champsdebug)
 
@@ -454,7 +458,7 @@ def prepare_regle(regle, valeurs):
     regle.valeurs = valeurs
     regle.v_nommees = v_nommees
     ndebug = 10
-    if "debug" in v_nommees['debug']:
+    if "debug" in v_nommees['debug'] or 'print' in v_nommees['debug']:
         vdebug = v_nommees['debug'].split(',')
         if vdebug[-1].isnumeric():
             ndebug = vdebug.pop()
@@ -683,9 +687,14 @@ def _lire_commandes(mapper, fichier_regles, vloc, niveau):
         regle2 = []
         for regle in liste_regles:
             num, texte = regle
+            cond = ''
+            if texte.startswith('K:'): #c'est une instruction conditionelle
+                tmp = texte.split(';')
+                cond = tmp[0]+';' # on isole la condition
+                texte = ';'.join(tmp[1:])
             if texte:
                 prefixe = avant if texte[0] in '|+-' else avant+':'
-                texte = prefixe+texte
+                texte = cond+prefixe+texte
             regle2.append((num, texte))
 
         liste_regles = regle2
@@ -872,24 +881,28 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
             continue
 # lignes conditionelles (lignes incluses dans le code seulement si la condition est vraie)
 # sous la forme K:variable:valeur ou K:variable
-        liste_val = texte.split(';', 1)
-        if re.match(r'(([\|\+-]+)([a-z]*):)?K:', texte) and not macro:
-#        if texte.startswith('K:') and not macro:
+        start = 0
+        while texte.startswith('K:') and not macro:
             liste_val = texte.split(';', 1)
             cond, binding = map_vars(mapper, liste_val[0], vloc)
-            condmatch = re.search("K:(.*?):(.*)", cond) or re.search("K:(.*)", cond)
+            condmatch = re.match("K:(.*?):(.*)", cond) or re.match("K:(.*)", cond)
 #            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch: # interpretation conditionelle
 #                print( "lire: trouve condmatch",condmatch.groups(), liste_val[0])
+                texte = liste_val[1]
                 if condmatch.group(1) == '':
-                    continue
+                    texte = ''
                 if condmatch.lastindex == 2 and condmatch.group(1) != condmatch.group(2):
-                    continue
-                defligne = (defligne[0], texte_brut.split(';', 1)[1])
-        #        liste_val[0] = ''
-        #        liste_val[1] = ''
-                numero, texte, texte_brut = prepare_texte(defligne)
-#                print('traitement_ligne', texte)
+                    texte = ''
+#                print( "lire: condmatch",condmatch, cond,liste_val[0], 'texte', texte)
+
+            start += 1
+        if texte and start:
+            defligne = (defligne[0], texte_brut.split(';', start)[1])
+    #        liste_val[0] = ''
+    #        liste_val[1] = ''
+            numero, texte, texte_brut = prepare_texte(defligne)
+#            print('traitement_ligne', texte)
 
 
 # enregistrement d'une macro

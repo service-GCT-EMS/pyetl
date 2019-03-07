@@ -523,6 +523,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
                     streamwriter = AscWriter(nom, encoding=regle.stock_param.get_param
                                              ('codec_sortie', 'utf-8'),
+                                             geomwriter=self.geomwriter,
                                              liste_fich=regle.stock_param.liste_fich)
                     streamwriter.set_liste_att(attributs)
                     ressource = sorties.creres(regle.numero, nom, streamwriter)

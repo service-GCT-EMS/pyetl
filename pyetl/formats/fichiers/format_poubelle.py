@@ -36,7 +36,8 @@ def compte_obj(self, regle, *_, **__):
         for obj in regle.recupobjets(groupe):# on parcourt les objets
             if obj.virtuel: # on ne traite pas les virtuels
                 continue
-            compte_obj_stream(obj, regle)
+#            print ('comptage', regle)
+            self.ecrire_objets_stream(obj, regle)
     return 0, 0
 
 

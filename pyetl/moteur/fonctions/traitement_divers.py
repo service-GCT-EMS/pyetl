@@ -294,6 +294,7 @@ def sortir_traite_stock(regle):
     '''ecriture finale'''
     if regle.final:
         try:
+            print ('ecriture finale',regle.f_sortie.ecrire_objets)
             regle.f_sortie.ecrire_objets(regle, True)
         except IOError as err:
             LOGGER.error("erreur d'ecriture: "+err.__repr__())

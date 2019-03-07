@@ -122,6 +122,8 @@ def f_setpoint_liste(regle, obj):
 #                 for i in regle.params.att_entree.liste]
         obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
         obj.finalise_geom()
+        setschemainfo(regle, obj)
+
 #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
 #                 for i in regle.params.att_entree.liste]
 #        print('set point : erreur valeurs entree ',coords)
