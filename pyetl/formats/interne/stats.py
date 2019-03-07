@@ -462,6 +462,3 @@ def statprint(nom, entete, contenu):
 #                             for i in result if filtre in i)))
     print("\n".join((pformat % tuple(i) for i in contenu)))
     print('-'*longueur)
-
-
-

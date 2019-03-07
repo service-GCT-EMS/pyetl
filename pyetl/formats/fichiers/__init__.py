@@ -5,8 +5,9 @@ Created on Fri Mar  1 13:22:59 2019
 @author: 89965
 """
 import os
-import importlib
 from collections import namedtuple
+import importlib
+
 
 def loadmodules():
     '''lit toutes les descriptions de format depuis le repertoire courant
@@ -14,7 +15,7 @@ def loadmodules():
     writers = dict()
     readers = dict()
     rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "converter"))
-    wdef = namedtuple("writerdef", ("writer", "streamer",  "force_schema", "casse",
+    wdef = namedtuple("writerdef", ("writer", "streamer", "force_schema", "casse",
                                     "attlen", "driver", "fanout", "geom", "tmp_geom",
                                     "geomwriter", "tmpgeomwriter"))
 
@@ -26,12 +27,13 @@ def loadmodules():
                 for nom, desc in getattr(format_def, 'WRITERS').items():
                     if nom in writers:
                         print('attention : redefinition du format de sortie', nom)
-                    writers[nom] =  wdef(*desc, None, None) # a ce stade les fonctions ne sont pas connues
+                    writers[nom] = wdef(*desc, None, None)
+                    # a ce stade les fonctions ne sont pas connues
                 for nom, desc in getattr(format_def, 'READERS').items():
 #                    print ('lecture  READERS',nom,desc)
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
-                    readers[nom] =  rdef(*desc, None)
+                    readers[nom] = rdef(*desc, None)
             except ImportError:
                 print('module ', module[1:], 'non disponible')
 

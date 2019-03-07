@@ -47,4 +47,4 @@ WRITERS = {'#poubelle':(ecrire_objets_neant, stream_objets_neant,
            '#comptage':(compte_obj, compte_obj_stream,
                         False, 'no', 0, "", 'all', None, None)}
 #                  reader,geom,hasschema,auxfiles
-READERS = {'interne': (None, None, False,())}
+READERS = {'interne': (None, None, False, ())}

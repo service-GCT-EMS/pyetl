@@ -209,7 +209,7 @@ class RegleTraitement(object): # regle de mapping
         self.blocksize = 0
         self.nonext = False
         self.fonc = None
-        self.fstore = None
+        self.fstore = self.ftrue
         self.shelper = None
         self.fonction_schema = None
 

@@ -11,9 +11,9 @@
 
 import os
 #from numba import jit
+from openpyxl import load_workbook
 from ..interne.objet import Objet
 from ..fileio import FileWriter
-from openpyxl import load_workbook
 
 
 
@@ -361,6 +361,3 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
 #            if obj.geom_v.courbe:
 #                obj.schema.info['courbe'] = '1'
     return
-
-
-

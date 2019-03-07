@@ -44,6 +44,7 @@ class Reader(object):
     geomdef = GEOMDEF
     @staticmethod
     def get_formats():
+        """retourne la liste des formata connus"""
         return Reader.lecteurs
 #    auxiliaires = AUXILIAIRES
 #    auxiliaires = {a:AUXILIAIRES.get(a) for a in LECTEURS}
@@ -58,6 +59,7 @@ class Reader(object):
         stock_param = regle_start.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
+        self.lire_objets = self.getobj
         if self.debug:
             print("debug:format: instance de reader ", nom)
 
@@ -75,7 +77,7 @@ class Reader(object):
             self.auxiliaires = description.auxfiles
             self.converter = description.converter
             if self.debug:
-                print("debug:format: lecture format "+ nom, self.conv_geom)
+                print("debug:format: lecture format "+ nom, self.converter)
         else:
             print("error:format: format entree inconnu", nom)
             raise KeyError
@@ -87,11 +89,18 @@ class Reader(object):
     def get_converter(self, format_natif=None):
         '''retourne la fonction de conversion geometrique'''
         if format_natif is None:
-            return self.conv_geom
+            return self.converter
         fgeom = Reader.lecteurs.get(format_natif, Reader.lecteurs['interne']).geom
         return Reader.geomdef[fgeom].converter
 
+    def setident(self, groupe, classe):
+        """positionne les identifiants"""
+        self.groupe = groupe
+        self.classe = classe
+
+
     def getobj(self): # cree un objet
+        """retourne un objet neuf a envoyer dans le circuit"""
         return Objet(self.groupe, self.classe, format_natif=self.format_natif,
                      conversion=self.converter)
 

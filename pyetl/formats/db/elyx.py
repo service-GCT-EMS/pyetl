@@ -303,7 +303,7 @@ class ElyConnect(ora.OraConnect):
             xml = self.genexportxml(destination, logdir, blocks[nom])
             paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
             if self.debuglog:
-                xmllogfile = os.path.join(log,'_'.join(nom)+'_param_FEA.xml')
+                xmllogfile = os.path.join(log, '_'.join(nom)+'_param_FEA.xml')
                 with open(xmllogfile, mode='w', encoding='cp1252') as logf:
                     logf.write('\n'.join(xml))
             with open(paramfile, mode='w', encoding='cp1252') as tmpf:

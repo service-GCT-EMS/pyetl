@@ -371,7 +371,8 @@ def _ecrire_entete_asc(obj):
 
 class AscWriter(FileWriter):
     ''' gestionnaire d'ecriture pour fichiers asc'''
-    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None, schema=None, geomwriter=None):
+    def __init__(self, nom, liste_att=None, encoding='cp1252', liste_fich=None,
+                 schema=None, geomwriter=None):
         super().__init__(nom, liste_att=liste_att, converter=self._convertir_objet_asc,
                          encoding=encoding, liste_fich=liste_fich, schema=schema,
                          geomwriter=geomwriter)
@@ -533,7 +534,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
 
 #                       reader,      geom,    hasschema,  auxfiles
-READERS = {'asc':(lire_objets_asc, 'geom_asc', False,('rlt', 'seq'))}
+READERS = {'asc':(lire_objets_asc, 'geom_asc', False, ('rlt', 'seq'))}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'asc':(ecrire_objets_asc, asc_streamer, False, 'up', 0, '', 'groupe',
                   'geom_asc', 'geom_asc')}

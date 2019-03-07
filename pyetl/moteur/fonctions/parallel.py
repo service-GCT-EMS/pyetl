@@ -311,8 +311,8 @@ def traite_parallel(regle):
     schemas, env, def_regles = prepare_env_parallel(regle)
     print('passage en mode parallel', regle)
     if mapper.worker:
-        print('un worker ne peurt pas passer en parallele',mapper.get_param('_wid'))
-        raise
+        print('un worker ne peurt pas passer en parallele', mapper.get_param('_wid'))
+        raise RuntimeError
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,

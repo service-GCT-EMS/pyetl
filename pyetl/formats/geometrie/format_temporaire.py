@@ -98,4 +98,3 @@ def geom_from_tmp(obj):
 
 
 GEOMDEF = {'#tmp':(ecrire_geometrie_tmp, geom_from_tmp)}
-

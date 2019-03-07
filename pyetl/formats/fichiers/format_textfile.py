@@ -50,8 +50,10 @@ class TextWriter(fileio.FileWriter):
 
 
 
-def lire_textfile(rep, chemin, fichier, stock_param, regle):
+def lire_textfile(self, rep, chemin, fichier):
     ''' lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire'''
+    regle = self.regle_ref
+    stock_param = regle.stock_param
     n_obj = 0
     #ouv = None
     if chemin:
@@ -70,14 +72,15 @@ def lire_textfile(rep, chemin, fichier, stock_param, regle):
             stock_param.moteur.traite_objet(obj, regle) # on traite l'objet precedent
             n_obj = 1
         return n_obj
-
+    self.setident(groupe, classe)
     with open(os.path.join(rep, chemin, fichier), "r", 65536,
               encoding=stock_param.get_param('codec_entree', 'utf-8'),
               errors="backslashreplace") as ouvert:
         for ligne in ouvert:
-            obj = Objet(groupe, classe, format_natif='file', conversion='noconversion')
+            obj = self.getobj()
+#            obj = Objet(groupe, classe, format_natif='file', conversion='noconversion')
             obj.attributs['contenu'] = ligne
-            stock_param.moteur.traite_objet(obj, regle) # on traite l'objet precedent
+            stock_param.moteur.traite_objet(obj, self.regle_start) # on traite l'objet precedent
             n_obj += 1
     return n_obj
 

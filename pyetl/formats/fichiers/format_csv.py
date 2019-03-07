@@ -149,7 +149,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 break
 
             if nlignes % 100000 == 0:
-                regle_ref.stock_param.aff.send(('interm', 0, nlignes)) # gestion des affichages de patience
+                regle_ref.stock_param.aff.send(('interm', 0, nlignes))
+                # gestion des affichages de patience
 
         if nbwarn:
             print(nbwarn, "lignes avec un nombre d'attributs incorrect")
@@ -229,11 +230,11 @@ class CsvWriter(FileWriter):
                 obj.geom = geom
                 obj.geomnatif = True
                 if obj.erreurs and obj.erreurs.actif == 2:
-                    print('error: writer csv :',self.extension, obj.ident, obj.ido,
+                    print('error: writer csv :', self.extension, obj.ident, obj.ido,
                           'erreur geometrique: type',
                           obj.attributs['#type_geom'], 'demandé:',
                           obj.schema.info["type_geom"], obj.erreurs.errs)
-                    print ('prep ligne ', attributs,'G:', geom)
+                    print('prep ligne ', attributs, 'G:', geom)
 
                     return False
             if not geom:
@@ -384,7 +385,8 @@ def getfanout(regle, extention, ident, initial):
 
 
 
-def change_ressource(regle, obj, writerclass, separ, extention, entete, null, initial=False, geomwriter=None):
+def change_ressource(regle, obj, writerclass, separ, extention, entete, null,
+                     initial=False, geomwriter=None):
     ''' change la definition de la ressource utilisee si necessaire'''
 
     ident = obj.ident
@@ -413,8 +415,7 @@ def change_ressource(regle, obj, writerclass, separ, extention, entete, null, in
 
 
 def _csvstreamer(writer, obj, regle, _, entete='csv', separ=None,
-                extention='.csv', null='',
-                writerclass=CsvWriter): #ecritures non bufferisees
+                 extention='.csv', null='', writerclass=CsvWriter):
     ''' ecrit des objets csv en streaming'''
 #    sorties = regle.stock_param.sorties
     if regle.dident == obj.ident:
@@ -430,8 +431,7 @@ def _csvstreamer(writer, obj, regle, _, entete='csv', separ=None,
 
 
 def _ecrire_objets_csv(writer, regle, _, entete='csv', separ=None,
-                      extention='.csv', null='',
-                      writerclass=CsvWriter):
+                       extention='.csv', null='', writerclass=CsvWriter):
     ''' ecrit des objets csv a partir du stockage interne'''
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
@@ -502,13 +502,13 @@ def ecrire_objets_sql(self, regle, final):
     '''format sql copy pour postgis'''
 
     return self._ecrire_objets_csv(self, regle, final, 'sql', '\t', '.sql',
-                             null=r'\N', writerclass=SqlWriter)
+                                   null=r'\N', writerclass=SqlWriter)
 
 def sqlstreamer(self, obj, regle, final):
     '''format sql copy pour postgis en streaming '''
 
     return self._csvstreamer(self, obj, regle, final, 'sql', '\t',
-                       '.sql', null=r'\N', writerclass=SqlWriter)
+                             '.sql', null=r'\N', writerclass=SqlWriter)
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'csv':(ecrire_objets_csv, csvstreamer,
@@ -521,11 +521,5 @@ WRITERS = {'csv':(ecrire_objets_csv, csvstreamer,
                   True, 'low', 0, 'txt', 'classe', '#ewkt', '#ewkt')}
 
 #                  reader,geom,hasschema,auxfiles
-READERS = { 'csv':(lire_objets_csv, '#ewkt', True,()),
-            'txt':(lire_objets_csv, '#ewkt', True,())}
-
-
-
-
-
-
+READERS = {'csv':(lire_objets_csv, '#ewkt', True, ()),
+           'txt':(lire_objets_csv, '#ewkt', True, ())}

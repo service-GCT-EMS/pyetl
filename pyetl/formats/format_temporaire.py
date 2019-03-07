@@ -284,5 +284,3 @@ def ecrire_objets_int(self, regle, _):
             if retour:
                 nb_obj += 1
     return nb_obj, nb_fich
-
-

@@ -601,12 +601,12 @@ class Pyetl(object):
 #        userkeyref = self.get_param('userkey_ref')
         usergroup = self.get_param('usergroup')
         grouplist = []
-        master=False
+        master = False
         if masterkey:
             masterkey = self.decrypt(masterkey, key=[localkey, ''])
             userkey = self.decrypt(userkey, key=[masterkey])
             if userkey:
-                master=True
+                master = True
 #            print ('decodege master', masterkey,userkey, userkeyref)
         elif userkey:
             userkey = self.decrypt(userkey, key=[masterkey, localkey])
@@ -847,9 +847,11 @@ class Pyetl(object):
             return ''
 #        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ+1)])[champ]
 
+
     def get_converter(self, geomnatif):
         ''' retourne le bon convertisseur de format geometrique'''
-        return READERS.get(geomnatif,READERS['interne']).converter
+        return READERS.get(geomnatif, READERS['interne']).converter
+
 
     def _finalise_sorties(self):
         ''' vide les tuyeaux et renseigne les stats'''

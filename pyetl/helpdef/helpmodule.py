@@ -97,11 +97,12 @@ def print_aide_formats(mapper):
     print("---formats connus------------------------------------------------")
     print("-----------------------------------------------------------------")
     print("nom-------------------lecture----ecriture------------------------")
-    formats_connus = set(mapper.formats_connus_lecture.keys())|set(mapper.formats_connus_ecriture.keys())
+    formats_connus = set(mapper.formats_connus_lecture.keys())|\
+                     set(mapper.formats_connus_ecriture.keys())
     for nom_format in sorted(formats_connus):
         lect = 'oui' if nom_format in mapper.formats_connus_lecture else 'non'
         ecrit = 'oui' if nom_format in mapper.formats_connus_ecriture else 'non'
-        print("%-20s:   %s    :   %s"%(nom_format,lect, ecrit))
+        print("%-20s:   %s    :   %s"%(nom_format, lect, ecrit))
 
 
 

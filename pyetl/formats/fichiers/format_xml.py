@@ -3,7 +3,7 @@
 ''' format xml en sortie '''
 import os
 from pyetl.vglobales import DEFCODEC, DEBUG
-from ..fileio import FileWriter
+from .fileio import FileWriter
 
 #print ('osm start')
 #import pyetl.schema as SC

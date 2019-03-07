@@ -192,9 +192,9 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None): #ecritures non bufferise
         if not schema_courant.info['courbe'] and obj.geom_v.courbe:
             schema_courant.info['courbe'] = '1'
 #        ressource.compte(1)
-            
+
 READERS = {'json':(lire_objets, None, True, ())}
-WRITERS = {'json':(ecrire_objets, jsonstreamer, False, '', 0,'', 'classe', None, '#tmp')}
+WRITERS = {'json':(ecrire_objets, jsonstreamer, False, '', 0, '', 'classe', None, '#tmp')}
 
 
 #########################################################################

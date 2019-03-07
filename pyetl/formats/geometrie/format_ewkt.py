@@ -335,10 +335,3 @@ def nowrite(obj):
 
 GEOMDEF = {'#ewkt':(ecrire_geom_ewkt, geom_from_ewkt),
            None:(nowrite, noconversion)}
-
-
-
-
-
-
-

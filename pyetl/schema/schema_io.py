@@ -40,7 +40,7 @@ def fusion_schema(nom, schema, schema_tmp):
 
 
 def lire_schemas_multiples(nom, chemin, mode_alias='num', cod='utf-8',
-                           cod_csv= None, specifique=None, fusion=None):
+                           cod_csv=None, specifique=None, fusion=None):
     '''initialise le schema et rajoute tous les elements necessaires'''
     schema = SCI.Schema(nom)
     if cod_csv is None:
@@ -48,7 +48,7 @@ def lire_schemas_multiples(nom, chemin, mode_alias='num', cod='utf-8',
     if os.path.isdir(chemin):
         rep = chemin
         racine = ''
-        fusion =True
+        fusion = True
     else:
         rep = os.path.dirname(chemin)
         racine = os.path.basename(chemin).lower()
@@ -67,8 +67,7 @@ def lire_schemas_multiples(nom, chemin, mode_alias='num', cod='utf-8',
                                                            cod=cod_csv,
                                                            specifique=specifique))
         elif ext == '.xml':
-            fusion_schema(nom, schema, lire_schema_xml('tmp', fichier, cod=cod_csv,
-                                                               specifique=specifique))
+            fusion_schema(nom, schema, lire_schema_xml('tmp', fichier, cod=cod_csv))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)

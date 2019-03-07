@@ -5,8 +5,8 @@ Created on Fri Mar  1 13:22:59 2019
 @author: 89965
 """
 import os
-from importlib import import_module
 from collections import namedtuple
+from importlib import import_module
 
 def loadmodules():
     '''lit toutes les descriptions de format depuis le repertoire courant
@@ -22,10 +22,10 @@ def loadmodules():
 #                    print('chargement geomdef', nom, description)
                     if nom in geomlist:
                         print('attention : redefinition du format de sortie', nom)
-                    geomlist[nom] =  geomdef(*description)
+                    geomlist[nom] = geomdef(*description)
 
             except ImportError:
-                print('module ',module ,'non disponible')
+                print('module', module, 'non disponible')
 
     return geomlist
 
