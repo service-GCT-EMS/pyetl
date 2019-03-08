@@ -4,7 +4,7 @@
 import os
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
-
+raise ImportError
 #print ('osm start')
 #import pyetl.schema as SC
 
@@ -185,9 +185,10 @@ def get_ressource(obj, regle, attributs=None):
 
     return ressource
 
+def lire_objets_xml(self, rep, chemin, fichier):
+    return
 
-
-def xml_streamer(obj, regle, _, attributs=None):
+def xml_streamer(self, obj, regle, _, attributs=None):
     '''ecrit des objets en xml au fil de l'eau.
         dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
         a la sortie du pipeline (mode streaming)
@@ -201,7 +202,7 @@ def xml_streamer(obj, regle, _, attributs=None):
         ressource = get_ressource(obj, regle, attributs=None)
     ressource.write(obj, regle.numero)
 
-def ecrire_objets_xml(regle, _, attributs=None):
+def ecrire_objets_xml(self, regle, _, attributs=None):
     '''ecrit un ensemble de fichiers xml a partir d'un stockage memoire ou temporaire'''
     #ng, nf = 0, 0
     #memoire = defs.stockage
@@ -218,3 +219,9 @@ def ecrire_objets_xml(regle, _, attributs=None):
                 ressource = get_ressource(obj, regle, attributs=None)
                 dident = ident
             ressource.write(obj, numero)
+
+
+READERS = {'xml':(lire_objets_xml, 'geom_xml', False, ())}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'xml':(ecrire_objets_xml, xml_streamer, False, '', 0, '', 'groupe',
+                  'geom_xml', 'geom_xml')}

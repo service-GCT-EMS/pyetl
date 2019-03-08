@@ -43,6 +43,14 @@ def f_fail(*_):
     return False
 
 
+def f_next(regle, obj):
+    '''#aide||force la sortie next
+     #pattern||;;;next;;
+     '''
+    obj.redirect = 'next'
+    return True
+
+
 def f_return(regle, _):
     """#aide||sort d une macro
     #pattern||;;;quitter;;
@@ -217,7 +225,7 @@ def f_sample(regle, obj):
 
 def printvariable(regle):
     ''' affichage de variables'''
-    return regle.stock_param.parms
+    return '\n'.join(i+' -> ' + str(j) for i, j in sorted(regle.stock_param.parms.items()))
 
 
 def f_printvar(regle, _):
@@ -293,12 +301,26 @@ def f_finbloc(*_):
        '''
     return True
 
-def f_next(regle, obj):
-    ''''#aide||force la sortie next
-     #pattern||;;;next;;
-     '''
-    obj.redirect = 'next'
+
+
+def h_callmacro(regle):
+    '''charge une macro et gere la tringlerie d'appel'''
+    regle.call=True
+    mapper = regle.stock_param
+    erreurs = mapper.lecteur_regles(mapper, regle.params.cmp1.val, regle_ref=regle)
+    return erreurs
+
+
+
+
+def f_callmacro(regle, obj):
+    '''#aide||appel de macro avec gestion de variables locales
+       #pattern||;;;call;C;LC
+
+    '''
     return True
+
+
 
 def h_testobj(regle):
     ''' definit la regle comme createur'''

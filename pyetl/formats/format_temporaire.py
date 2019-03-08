@@ -6,13 +6,15 @@ Created on Mon Dec 21 13:33:58 2015
 """
 #from . import csv as E
 from collections import namedtuple
+from itertools import chain
 from .fichiers.format_asc import ajout_attribut_asc
 from .interne.objet import Objet
 
 def _extendlist(liste):
     '''utilitaire d'applatissement d'une liste de liste
     c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde'''
-    return [x for slist in liste for x in slist]
+#    return [x for slist in liste for x in slist]
+    return chain.from_iterable(liste)
     #l=liste[0]
     #print 'liste a applatir',l
     #for j in liste[1:]: l.extend(j)

@@ -151,6 +151,7 @@ class Pyetl(object):
         self.store = dict()
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
+        self.contexte = []
         self.parent = parent # permet un appel en cascade
         setparallel(self) # initialise la gestion du parallelisme
 
@@ -251,7 +252,7 @@ class Pyetl(object):
                 pass
         self.site_params_def = env.get('PYETL_SITE_PARAMS', "")
         self.liste_params = None
-
+        self.contexte.append(self.parms)
         if self.parent is None:
             self._init_params() # positionne les parametres predefinis
             self.macros = dict()
@@ -276,6 +277,7 @@ class Pyetl(object):
             self.macros = dict(self.parent.macros)
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
+            self.contexte.extend(self.parent.contexte)
 
     def specialenv(self, params, macros):
         '''lit un bloc de parametres et de macros specifiques'''
@@ -487,9 +489,7 @@ class Pyetl(object):
                 nbtotal += nbval
                 interm = 0.001
 
-        yield duree, interv
-        yield
-#        yield duree, interv
+        return duree, interv
 
 
     def getpyetl(self, regles, entree=None, rep_sortie=None,
@@ -730,6 +730,14 @@ class Pyetl(object):
     def getstats(self):
         '''retourne un dictionnaire avec les valeurs des stats'''
         return {i:self.get_param(i, 0) for i in self.parms if i.startswith('_st')}
+
+    def getvar(self, nom, defaut=''):
+        '''fournit la valeur d'un parametre selon des contextes standardises'''
+        for c in self.contexte:
+            if nom in c:
+                return c[nom]
+        return defaut
+
 
     def get_param(self, nom, defaut='', local=False, groupe=None):
         ''' fournit la valeur d'un parametre '''
@@ -1080,18 +1088,12 @@ class Pyetl(object):
 
     def signale_fin(self):
         '''ecrit un fichier pour signaler la fin du traitement'''
-        if self.worker:
+        if self.worker or self.parent:
             return
         if self.get_param("job_control") and self.get_param("job_control") != 'no':
             print("info: pyetl:job_control", self.get_param("job_control"))
             open(self.get_param("job_control"), 'w').write("fin mapper\n")
 
-
-
-    def _lecture_stats(self, stat):
-        """recupere une stat pour process
-        """
-        return stat.to_obj(self)
 
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):

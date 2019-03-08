@@ -190,7 +190,7 @@ class Macro(object):
         self.commandes_macro = dict()
         self.help = ''
         self.help_detaillee = []
-        self.vloc = []
+        self.vpos = []
 
     def add_command(self, ligne, numero):
         ''' ajoute une commande a la liste'''
@@ -205,11 +205,11 @@ class Macro(object):
 
     def bind(self, liste):
         '''mappe les variables locales et retourne un dictionnaire'''
-        return {nom:bind for nom, bind in zip(self.vloc, liste) if bind}
+        return {nom:bind for nom, bind in zip(self.vpos, liste) if bind}
 
     def getenv(self, liste, parent, contexte):
         ''' recupere unenvironnement d execution '''
-        return Macroenv(self, liste, parent, contexte)
+        return Macroenv(self, liste, parent)
 
     def get_commands(self):
         """recupere les commandes de la macro"""
@@ -225,29 +225,33 @@ class Macro(object):
 
 class Macroenv(object):
     """environnement d execution d une macro"""
-    def __init__(self, macro, liste, caller, contexte=None):
+    def __init__(self, macro, liste, caller, vloc=None):
         self.macro = macro
-        self.vloc = macro.bind(liste)
+        self.vloc = macro.bind(liste) if macro else dict()
+        if vloc:
+            self.vloc.update(vloc)
         self.caller = caller
-        if self.caller.macroenv:
-            self.parent = self.caller.macroenv
-        self.contexte = contexte if contexte else caller.stock_param
+        self.contexte = [self.vloc]
+        if self.caller:
+            self.contexte.extend(self.caller.contexte)
 
-    def getvar(self, nom):
-        """recupere un parametres"""
-        if nom in self.vloc:
-            return self.vloc[nom]
-        if self.parent:
-            return self.parent.getvar(nom)
-        if self.contexte:
-            return self.contexte.get_param(nom)
-        return ""
+    def getvar(self, nom, defaut=''):
+        '''fournit la valeur d'un parametre selon des contextes standardises'''
+        for c in self.contexte:
+            if nom in c:
+                return c[nom]
+        return defaut
 
-    def setvar(self, nom, valeur, loc=0):
+    def setvar(self, nom, valeur):
         """positionne une variable locale ou globale"""
-        if loc == 0:
-            if nom in self.vloc:
-                self.vloc[nom] = valeur
+        self.vloc[nom] = valeur
+
+    def setcontexte(self, nom, valeur):
+        """positionne une variable du contexte"""
+        try:
+            self.contexte[1][nom]=valeur
+        except IndexError():
+            self.contexte[0][nom]=valeur
 
     def getnext(self):
         """retourne la prochaine regle en cas de sortie"""

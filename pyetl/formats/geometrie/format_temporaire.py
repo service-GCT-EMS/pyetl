@@ -5,11 +5,14 @@ Created on Mon Dec 21 13:33:58 2015
 @author: 89965
 format interne geometrique pour le stockage en fichier temporaire
 """
+from itertools import chain
+
 
 def _extendlist(liste):
     '''utilitaire d'applatissement d'une liste de liste
     c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde'''
-    return [x for slist in liste for x in slist]
+#    return [x for slist in liste for x in slist]
+    return chain.from_iterable(liste)
     #l=liste[0]
     #print 'liste a applatir',l
     #for j in liste[1:]: l.extend(j)

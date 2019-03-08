@@ -766,6 +766,7 @@ def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bl
 #    texte = texte_brut.strip()
     erreurs = 0
     texte, binding = map_vars(mapper, texte, vloc)
+    regles = mapper.regles
 #            print ('interpretation',i)
 #            if mapper.init: # on rentre dans les commandes : on initialise les es
 #                mapper.gestion_pospars()
@@ -787,12 +788,12 @@ def traite_regle_std(mapper, numero, texte, texte_brut, vloc, fichier_regles, bl
         if bloc < 0:
             print("erreur structure de blocs", bloc, numero, texte)
             erreurs = 1
-        position = len(mapper.regles)
-        mapper.regles.append(r_cour)
+        position = len(regles)
+        regles.append(r_cour)
         for i in binding: # enregistre les regles dynamiques
             mapper.bindings.setdefault(texte, []).append(r_cour)
         if position:
-            mapper.regles[position-1].branchements.suivante = r_cour
+            regles[position-1].branchements.suivante = r_cour
         r_cour.suivante = None
         r_cour.index = position
 #                print ('regle valide ', r_cour.ligne, r_cour.val_entree, r_cour.valide)
@@ -828,6 +829,7 @@ def prepare_importe_macro(mapper, texte, vloc, fichier_regles):
     if nom_inclus[0] == "#":
         inclus = nom_inclus #macro
         macro = mapper.macros.get(inclus)
+        macroenv = macro.getenv()
         if macro:
             localmacro.update(macro.bind(vpos)) # affectation des variables locales
     else:
@@ -851,12 +853,16 @@ def initmacro(mapper, texte, fichier_regles):
 
 
 
-def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regles=None, niveau=""):
+def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regles=None,
+                    niveau="", regle_ref=None):
     ''' lecture des fichiers de regles '''
     erreurs = 0
 #    mstore = False
     autonum = 0
     macro = None
+    if regle_ref: # appel de macro via une regle call
+        vloc = regle_ref.vloc
+        macroenv_ref = regle_ref.macroenv
     if vloc is None:
         vloc = dict()
     if liste_regles is None:

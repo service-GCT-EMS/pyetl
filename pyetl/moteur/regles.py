@@ -183,7 +183,7 @@ class ParametresSelecteur(ParametresFonction):
 
 class RegleTraitement(object): # regle de mapping
     ''' descripteur de traitement unitaire '''
-    def __init__(self, ligne, stock_param, fichier, numero, vloc=None):
+    def __init__(self, ligne, stock_param, fichier, numero, vloc=None, contexte=None):
 
         self.ligne = ligne
         self.stock_param = stock_param
@@ -212,16 +212,20 @@ class RegleTraitement(object): # regle de mapping
         self.fstore = self.ftrue
         self.shelper = None
         self.fonction_schema = None
-
+        self.contexte=[self.vloc]
+        self.contexte.extend(contexte if contexte else stock_param.contexte)
         self.val_tri = re.compile('')
         self.numero = numero
         self.index = 0
         self.bloc = 0
-
+        #-----------------flags de comportement-------------------
         self.action_schema = None
         self.final = False
         self.filter = False
         self.copy = False
+        self.call = False
+        self.retour = False
+        self.liste_regles = []
 
         self.nom_fich_schema = ''
 #        self.nom_base = 'defaut'
@@ -265,7 +269,36 @@ class RegleTraitement(object): # regle de mapping
         return RegleTraitement(ligne, self.stock_param, self.fichier, numero, vloc=vloc)
 
 # acces aux variables
-    def getvar(self, nom, defaut="", loc=1):
+    def getvar(self, nom, defaut=""):
+        '''acces chaine aux variables avec fallback sur le contexte'''
+        for c in self.contexte:
+            if nom in c:
+                return c[nom]
+        return defaut
+
+    def setvar(self, nom, valeur):
+        ''' acces chaine aux variables'''
+        self.contexte[0][nom] = valeur
+
+    def getcontexte(self, nom, defaut=''):
+        try:
+            for c in self.contexte[1:]:
+                if nom in c:
+                    return c[nom]
+        except IndexError:
+            pass
+        return defaut
+
+
+    def setcontexte(self, nom, valeur):
+        try:
+            self.contexte[1][nom] = valeur
+        except IndexError:
+            self.contexte[0][nom] = valeur
+
+
+
+    def getvar_old(self, nom, defaut="", loc=1):
         """ retourne la valeur d'une variable
         loc= 0 on ne regarde pas les variables locales
            -1 on ne regarde que les variables locales
@@ -282,7 +315,7 @@ class RegleTraitement(object): # regle de mapping
         return self.stock_param.get_param(nom, defaut)
 
 
-    def setvar(self, nom, valeur, loc=1):
+    def setvar_old(self, nom, valeur, loc=1):
         """affecte une variable et la cree eventuellement en local
             loc  0 : affecte la variable en global
                  1 : affecte la variable en local
@@ -295,6 +328,7 @@ class RegleTraitement(object): # regle de mapping
             return
         self.stock_param.set_param(nom, valeur)
 #        print(' setvar', nom, valeur,loc)
+
 # =========================acces standardises aux objets==================
     def getval_entree(self, obj):
         '''acces standadise a la valeur d'entree valeur avec defaut'''

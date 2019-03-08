@@ -28,7 +28,10 @@ def _affiche_debug(regles, debug):
                   "sel2'", regle.sel2.fonction.__name__ if regle.sel2 else '')
 
 
-
+def _branche(regle1, regle2):
+    '''branche une regle a la place de l'autre'''
+    for br in regle2.branchements.brch:
+        regle1.branchements.brch[br] = regle2.branchements.brch[br]
 
 
 def _finalise(regle, debug):
@@ -42,6 +45,13 @@ def _finalise(regle, debug):
         regle.branchements.brch["fail"] = None
         if debug:
             print('regle filtrante ', regle.ligne)
+    if regle.call: # c est un appel de procedure / macro
+        for br in regle.branchements.brch:
+            regle.liste_regles[-1].branchements.brch[br] = regle.branchements.brch[br]
+        for rmacro in regle.liste_regles:
+            if rmacro.retour:
+                _branche(rmacro, regle)
+        regle.branchement.brch["ok"] = regle.liste_regles[0]
 
 
 def _gestion_branchements(regles, position, debug):
@@ -129,6 +139,8 @@ def compile_regles(mapper, regles, debug=0):
     bloc = 0
     for i in range(len(regles)-1):
         regle = regles[i]
+        if regle.call:
+            compile_regles(mapper,regles.liste_regles, debug=0)
 
 
         if regles[i+1].niveau > regle.niveau: # ca se complique les regles sont liees
