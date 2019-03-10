@@ -325,7 +325,7 @@ def h_sortir(regle):
         tmplist = regle.params.cmp1.val.find('[')
         #print("valeur ii ", regle.params.cmp1,ii)
 
-        regle.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
+        regle.context.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = Writer(regle.params.cmp1.val) # tout le reste
 #    print ('positionnement writer ',regle, regle.params.cmp1.val)
@@ -346,17 +346,17 @@ def h_sortir(regle):
         regle.ext = dialecte
 
     if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
-        rep_base = regle.getvar('_sortie', loc=0)
+        rep_base = regle.context.getvar('_sortie')
 #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
 
-        regle.setvar('_sortie', os.path.join(rep_base, regle.params.cmp2.val), loc=1)
+        regle.context.setvar('_sortie', os.path.join(rep_base, regle.params.cmp2.val))
 
-    regle.fanout = regle.getvar("fanout", 'groupe')\
+    regle.fanout = regle.context.getvar("fanout", 'groupe')\
                    if regle.f_sortie.multiclasse else 'classe'
 #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
-    regle.memlimit = int(regle.getvar('memlimit', 0))
-    mode_sortie = regle.getvar("mode_sortie", "A")
+    regle.memlimit = int(regle.context.getvar('memlimit', 0))
+    mode_sortie = regle.context.getvar("mode_sortie", "A")
     regle.store = mode_sortie in {'A', 'B'}
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
@@ -452,7 +452,7 @@ def preload(regle, obj):
     '''prechargement'''
     vrep = lambda x: regle.resub.sub(regle.repl, x)
     chaine_comm = vrep(regle.params.cmp1.val)
-    regle.setvar('nocomp', False)
+    regle.context.setvar('nocomp', False)
     process = psutil.Process(os.getpid())
 
     mem1 = process.memory_info()[0]
@@ -472,7 +472,7 @@ def preload(regle, obj):
 
         print('------- preload ', processor.store)
         regle.stock_param.store.update(processor.store) # on rappatrie les dictionnaires de stockage
-        regle.setvar('storekey', processor.retour)  # on stocke la clef
+        regle.context.setvar('storekey', processor.retour)  # on stocke la clef
 
     else:
 #        racine = regle.stock_param.racine

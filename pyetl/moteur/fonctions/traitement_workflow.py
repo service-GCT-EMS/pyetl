@@ -56,9 +56,6 @@ def f_return(regle, _):
     #pattern||;;;quitter;;
 
     """
-    if regle.macroenv:
-        if regle.macroenv.next:
-            regle.branchement["ok"] = regle.macroenv.next
     return True
 
 
@@ -307,7 +304,8 @@ def h_callmacro(regle):
     '''charge une macro et gere la tringlerie d'appel'''
     regle.call=True
     mapper = regle.stock_param
-    erreurs = mapper.lecteur_regles(mapper, regle.params.cmp1.val, regle_ref=regle)
+    erreurs = mapper.lecteur_regles(mapper, regle.params.cmp1.val, regle_ref=regle,
+                                    vpos=regle.params.cmp2.liste)
     return erreurs
 
 
@@ -393,11 +391,11 @@ def h_ftpupload(regle):
     '''prepare les parametres ftp'''
     regle.chargeur = True
     codeftp = regle.params.cmp1.val
-    serveur = regle.getvar("server_"+codeftp, '')
-    servertyp = regle.getvar("ftptyp_"+codeftp, '')
-    user = regle.getvar("user_"+codeftp, '')
-    passwd = regle.getvar("passwd_"+codeftp, regle.params.cmp2.val)
-    regle.setvar('acces_ftp', (codeftp, serveur, servertyp, user, passwd))
+    serveur = regle.context.getvar("server_"+codeftp, '')
+    servertyp = regle.context.getvar("ftptyp_"+codeftp, '')
+    user = regle.context.getvar("user_"+codeftp, '')
+    passwd = regle.context.getvar("passwd_"+codeftp, regle.params.cmp2.val)
+    regle.context.setvar('acces_ftp', (codeftp, serveur, servertyp, user, passwd))
     regle.ftp = None
 
 

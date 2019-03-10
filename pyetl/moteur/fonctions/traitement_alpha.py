@@ -71,7 +71,7 @@ def h_setschema(regle):
     '''helper : positionne le nocase'''
     regle.changeschema = True
     if regle.params.cmp1.val:
-        regle.setvar('schema_nocase', regle.params.cmp1.val)
+        regle.context.setvar('schema_nocase', regle.params.cmp1.val)
 
 
 def f_setschema(regle, obj):
@@ -436,7 +436,7 @@ def f_vset(regle, obj):
     '''
     valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
     if valeur != regle.getvar(regle.params.att_sortie.val):
-        regle.setvar(regle.params.att_sortie.val, valeur, loc=0)
+        regle.context.setcontext(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)

@@ -245,20 +245,20 @@ def h_def_schema(regle):
         return
 
     if regle.params.att_sortie.val == "schema_entree":
-        regle.setvar("schema_entree", nom, loc=0)
+        regle.context.setcontext("schema_entree", nom)
         LOGGER.info('positionnement schema d entree '+nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
     if regle.params.att_sortie.val == "schema_sortie":
-        regle.setvar("schema_sortie", nom, loc=0)
+        regle.context.setcontext("schema_sortie", nom)
         LOGGER.info('positionnement schema_sortie '+nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
     LOGGER.debug('lecture schema '+' '.join((str(regle.numero), nom, cod, str(regle.vloc))))
 
     if ext == 'csv':
-        mode_alias = regle.getvar("mode_alias", 'num')
-        cod_csv = regle.stock_param.get_param('codec_csv', cod)
+        mode_alias = regle.context.getvar("mode_alias", 'num')
+        cod_csv = regle.context.getvar('codec_csv', cod)
         if fusion:
             regle.stock_param.schemas[nom] = \
                 lire_schemas_multiples(nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion)

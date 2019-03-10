@@ -162,8 +162,8 @@ def setdb(regle, obj, att=True):
         if not base:
             base = obj.attributs["#base"]
         type_base = obj.attributs["#type_base"]
-        regle.setvar("db", type_base, loc=1)
-        regle.setvar("server", chemin, loc=1)
+        regle.context.setvar("db", type_base)
+        regle.conetxt.setvar("server", chemin)
 #    print ('regles alpha: acces base ', base, niveau, classe, attribut)
 
     if niveau and niveau[0].startswith('['): # nom de classe contenu dans un attribut
@@ -209,12 +209,12 @@ def f_dbalpha(regle, obj):
         if connect is None:
             return False
         if connect.accept_sql == 'non': # pas de requetes directes on essaye le mode dump
-            dest = regle.getvar('dest')
+            dest = regle.context.getvar('dest')
             if not dest:
                 dest = os.path.join(regle.getvar('_sortie'), 'tmp')
             os.makedirs(dest, exist_ok=True)
-            regle.setvar('_entree', dest)
-            log = regle.getvar('log', os.path.join(dest, 'log'))
+            regle.context.setvar('_entree', dest)
+            log = regle.context.getvar('log', os.path.join(dest, 'log'))
             os.makedirs(log, exist_ok=True)
             print('traitement db: dump donnees de', base, 'vers', dest)
             retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
@@ -313,8 +313,8 @@ def f_dbclose(regle, obj):
     base, _, _, _ = regle.cible_base
     if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
         base = obj.attributs.get("#base", base)
-        regle.setvar("db", obj.attributs.get("#type_base",))
-        regle.setvar("server", obj.attributs.get("#chemin"))
+        regle.context.setvar("db", obj.attributs.get("#type_base",))
+        regle.context.setvar("server", obj.attributs.get("#chemin"))
     DB.dbclose(regle.stock_param, base)
     return True
 
@@ -489,9 +489,9 @@ def h_recup_schema(regle):
     if base:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
         if regle.params.att_sortie.val == "schema_entree":
-            regle.setvar("schema_entree", nomschema, loc=0)
+            regle.context.setcontext("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
-            regle.setvar("schema_sortie", nomschema, loc=0)
+            regle.context.setcontext("schema_sortie", nomschema)
         regle.valide = 'done'
         print('h_recup_schema', nomschema)
         DB.recup_schema(regle, base, niveau, classe, nomschema)

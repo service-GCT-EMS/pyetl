@@ -183,7 +183,7 @@ class ParametresSelecteur(ParametresFonction):
 
 class RegleTraitement(object): # regle de mapping
     ''' descripteur de traitement unitaire '''
-    def __init__(self, ligne, stock_param, fichier, numero, vloc=None, contexte=None):
+    def __init__(self, ligne, stock_param, fichier, numero, vloc=None, context=None):
 
         self.ligne = ligne
         self.stock_param = stock_param
@@ -212,8 +212,7 @@ class RegleTraitement(object): # regle de mapping
         self.fstore = self.ftrue
         self.shelper = None
         self.fonction_schema = None
-        self.contexte=[self.vloc]
-        self.contexte.extend(contexte if contexte else stock_param.contexte)
+        self.context=stock_param.getcontext(context, self.vloc)
         self.val_tri = re.compile('')
         self.numero = numero
         self.index = 0
@@ -268,35 +267,12 @@ class RegleTraitement(object): # regle de mapping
         '''retourne une regle pour des operations particulieres'''
         return RegleTraitement(ligne, self.stock_param, self.fichier, numero, vloc=vloc)
 
-# acces aux variables
-    def getvar(self, nom, defaut=""):
-        '''acces chaine aux variables avec fallback sur le contexte'''
-        for c in self.contexte:
-            if nom in c:
-                return c[nom]
-        return defaut
-
+    def getvar(self, nom, defaut=0):
+        return self.context.getvar(nom, defaut)
+    
     def setvar(self, nom, valeur):
-        ''' acces chaine aux variables'''
-        self.contexte[0][nom] = valeur
-
-    def getcontexte(self, nom, defaut=''):
-        try:
-            for c in self.contexte[1:]:
-                if nom in c:
-                    return c[nom]
-        except IndexError:
-            pass
-        return defaut
-
-
-    def setcontexte(self, nom, valeur):
-        try:
-            self.contexte[1][nom] = valeur
-        except IndexError:
-            self.contexte[0][nom] = valeur
-
-
+        self.context.setvar(nom, valeur)
+    
 
     def getvar_old(self, nom, defaut="", loc=1):
         """ retourne la valeur d'une variable

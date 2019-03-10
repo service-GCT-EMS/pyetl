@@ -43,7 +43,7 @@ def initparallel(parametres):
 #    print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker "+str(os.getpid()))
     mainmapper.worker = True
-    mainmapper.initcontext(env, log)
+    mainmapper.initenv(env, log)
     mainmapper.inited = True
     mainmapper.macros.update(macros)
     mainmapper.parms.update(params)

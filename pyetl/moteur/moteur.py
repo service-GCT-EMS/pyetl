@@ -207,9 +207,6 @@ class Macro(object):
         '''mappe les variables locales et retourne un dictionnaire'''
         return {nom:bind for nom, bind in zip(self.vpos, liste) if bind}
 
-    def getenv(self, liste, parent, contexte):
-        ''' recupere unenvironnement d execution '''
-        return Macroenv(self, liste, parent)
 
     def get_commands(self):
         """recupere les commandes de la macro"""
@@ -223,36 +220,45 @@ class Macro(object):
 
 
 
-class Macroenv(object):
-    """environnement d execution d une macro"""
-    def __init__(self, macro, liste, caller, vloc=None):
-        self.macro = macro
-        self.vloc = macro.bind(liste) if macro else dict()
-        if vloc:
-            self.vloc.update(vloc)
-        self.caller = caller
-        self.contexte = [self.vloc]
-        if self.caller:
-            self.contexte.extend(self.caller.contexte)
+class Context(object):
+    """contexte de stockage d es variables"""
+    def __init__(self, parent=None, vloc=None):
+        self.context = [vloc if vloc is not None else dict()]
+        if parent is not None:
+            self.context.extend(parent.context)
+        self.parent = parent
+        
 
     def getvar(self, nom, defaut=''):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
-        for c in self.contexte:
+        for c in self.context:
             if nom in c:
                 return c[nom]
         return defaut
 
+    def getlocal(self, nom, defaut=''):
+        '''fournit la valeur d'un parametre selon des contextes standardises'''
+        return self.context[0].get(nom, defaut)
+
+
+
     def setvar(self, nom, valeur):
         """positionne une variable locale ou globale"""
-        self.vloc[nom] = valeur
+        self.context[0][nom] = valeur
 
-    def setcontexte(self, nom, valeur):
+
+    def setcontext(self, nom, valeur):
         """positionne une variable du contexte"""
-        try:
-            self.contexte[1][nom]=valeur
-        except IndexError():
-            self.contexte[0][nom]=valeur
+        if self.parent is not None:
+            self.context[1][nom]=valeur
+        else:
+            self.context[0][nom]=valeur
 
-    def getnext(self):
-        """retourne la prochaine regle en cas de sortie"""
-        return self.caller.next
+
+    def get_from_context(self, nom, defaut=''):
+        """positionne une variable du contexte"""
+        if self.parent is not None:
+            for c in self.parent.context:
+                if nom in c:
+                    return c[nom]
+            return defaut

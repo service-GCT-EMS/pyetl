@@ -589,6 +589,17 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, vloc=None):
 
     return regle
 
+def charge_macro(mapper, cmd, vpos, context, liste_regles):
+    """ charge une macro et mappe les variables"""
+    macro = mapper.macros[cmd]
+    if vpos:
+        context.vloc.update(macro.bind(vpos))    
+    liste_regles.extend(macro.get_commands())
+#                print('recup lignes macro:',macro.get_commands())
+
+
+
+
 def decoupe_liste_commandes(mapper, fichier_regles, vloc):
     ''' gere les cas ou la liste de commandes est un assemblage complexe de macros'''
 
@@ -606,22 +617,12 @@ def decoupe_liste_commandes(mapper, fichier_regles, vloc):
 #        commande, *pars = liste_commandes[0].split(",")
     for i in liste_commandes:
         cmd, *pars = i.split("|" if '|' in i else ':')
-        macro = mapper.macros.get(cmd)
+        vpos = [i for i in pars if not "=" in i]
 
-        LOGGER.debug('lecture macro '+cmd+','+str(pars))
+        try:
+            charge_macro(mapper, cmd, vpos, mapper.context, liste_regles)
 
-#                liste_regles.append("<"+i.replace(",",";"))"
-#                print("regles transmises", liste_regles)
-        if macro:
-            vpos = [i for i in pars if not "=" in i]
-#            macroenv = mapper.macros.getenv(vpos)
-            if vpos:
-                vloc.update(macro.bind(vpos))
-            LOGGER.debug('macro:variables positionelles '+str(vpos)+str(vloc))
-
-            liste_regles.extend(macro.get_commands())
-#                print('recup lignes macro:',macro.get_commands())
-        else:
+        except KeyError:
             print(mapper.nompyetl, 'macro: commande inconnue >'+i+
                   '< entrez #help pour la liste des commandes')
             print('regles a interpreter', liste_commandes)
@@ -702,9 +703,9 @@ def _lire_commandes(mapper, fichier_regles, vloc, niveau):
     return liste_regles
 
 
-def affecte_variable(mapper, commande, vloc):
+def affecte_variable(mapper, commande, context):
     ''' affecte une variable avec gestion des valeurs par defaut'''
-    commande, binding = map_vars(mapper, commande, vloc)
+    commande, binding = map_vars(mapper, commande, context)
     modif = r'\;' in commande # gestion des ';' comme parametre
 #    print('affecte',commande,modif)
     affectation = commande.split(';')[0][1:]
@@ -713,24 +714,26 @@ def affecte_variable(mapper, commande, vloc):
     val_var = ''
     if pos_egal != -1: # c'est une affectation
 #        print ('affectation ', affectation[:pos_egal-1], '->'+affectation[pos_egal:]+'<-')
-        if not affectation[pos_egal:]: # parametre vide
+        nom = affectation[:pos_egal]
+        vtmp = affectation[pos_egal+1:]
+        valeur = vtmp[1:-1] if vtmp.startswith("'") else vtmp.strip()
+        valeur = affectation[pos_egal+1:]
+        if not valeur: # parametre vide
             tmp_s = commande.split(';')[1:-1] # on regarde s'il y a une valeur par defaut
 #            print ('defauts',tmp_s)
 #                    print ('init',i)
             for j in tmp_s:
                 if j:
-                    val_var = j
+                    valeur = j
                     break
-            if val_var:
-                if val_var.startswith('#env:') and val_var.split(':')[1]:
-                # on affecte une variable d'environnement
-                    mapper.parms[affectation[:pos_egal-1]] =\
-                        mapper.env.get(val_var.split(':')[1], '')
-                elif val_var.startswith('#eval:') and val_var.split(':')[1]:
-                    mapper.parms[affectation[:pos_egal-1]] =\
-                        eval(val_var.split(':')[1], '')
-                else:
-                    mapper.parms[affectation[:pos_egal-1]] = val_var
+        if valeur:
+            if valeur.startswith('#env:') and valeur.split(':')[1]:
+            # on affecte une variable d'environnement
+                context.setcontext(nom, mapper.env.get(val_var.split(':')[1], '')
+            elif val_var.startswith('#eval:') and val_var.split(':')[1]:
+                context.setcontext = eval(val_var.split(':')[1], '')
+            else:
+                context.setcontext = val_var
 #                print ('affectation defaut',affectation[:pos_egal-1],'->',val_var)
         else:
             vtmp = affectation[pos_egal:]
@@ -829,7 +832,6 @@ def prepare_importe_macro(mapper, texte, vloc, fichier_regles):
     if nom_inclus[0] == "#":
         inclus = nom_inclus #macro
         macro = mapper.macros.get(inclus)
-        macroenv = macro.getenv()
         if macro:
             localmacro.update(macro.bind(vpos)) # affectation des variables locales
     else:
@@ -862,7 +864,6 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
     macro = None
     if regle_ref: # appel de macro via une regle call
         vloc = regle_ref.vloc
-        macroenv_ref = regle_ref.macroenv
     if vloc is None:
         vloc = dict()
     if liste_regles is None:
@@ -953,7 +954,7 @@ def lire_regles_csv(mapper, fichier_regles, numero_ext=0, vloc=None, liste_regle
 #            print ("variables", mapper.parms)
 
         elif texte.startswith("$"):
-            affecte_variable(mapper, texte, vloc)
+            affecte_variable(mapper, texte, context)
 
         elif re.match(r'(([\|\+-]+)[a-z_]*:)?<', texte):
 #            print ('avant macro',vloc)

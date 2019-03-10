@@ -19,7 +19,7 @@ from .formats.interne.stats import Stat, ExtStat
 from .moteur.interpreteur_csv import lire_regles_csv, reinterprete_regle,\
          interprete_ligne_csv, map_vars
 from .moteur.compilateur import compile_regles
-from .moteur.moteur import Moteur, Macro
+from .moteur.moteur import Moteur, Macro, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS
 from .moteur.fonctions.outils import scan_entree
 from .schema.schema_interne import init_schema # schemas
@@ -151,7 +151,7 @@ class Pyetl(object):
         self.store = dict()
         self.dbconnect = dict() # connections de base de donnees
         self.parms = dict() #parametres ligne de commande et variables globales
-        self.contexte = []
+        self.context = Context(parent.context if parent else None, self.parms)
         self.parent = parent # permet un appel en cascade
         setparallel(self) # initialise la gestion du parallelisme
 
@@ -219,7 +219,7 @@ class Pyetl(object):
         self._set_streammode()
         self.done = False
 
-    def initcontext(self, env=None, log=None):
+    def initenv(self, env=None, log=None):
         """initialise le contexte (parametres de site environnement)"""
         if self.inited:
             return # on a deja fait le boulot
@@ -234,7 +234,7 @@ class Pyetl(object):
     def initpyetl(self, commandes, args, env=None, log=None):
         """ initialisation standardisee: cree l'objet pyetl de base"""
 
-        self.initcontext(env, log)
+        self.initenv(env, log)
         try:
             return self.prepare_module(commandes, args)
         except SyntaxError as err:
@@ -252,7 +252,6 @@ class Pyetl(object):
                 pass
         self.site_params_def = env.get('PYETL_SITE_PARAMS', "")
         self.liste_params = None
-        self.contexte.append(self.parms)
         if self.parent is None:
             self._init_params() # positionne les parametres predefinis
             self.macros = dict()
@@ -277,7 +276,7 @@ class Pyetl(object):
             self.macros = dict(self.parent.macros)
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
-            self.contexte.extend(self.parent.contexte)
+
 
     def specialenv(self, params, macros):
         '''lit un bloc de parametres et de macros specifiques'''
@@ -731,46 +730,50 @@ class Pyetl(object):
         '''retourne un dictionnaire avec les valeurs des stats'''
         return {i:self.get_param(i, 0) for i in self.parms if i.startswith('_st')}
 
-    def getvar(self, nom, defaut=''):
-        '''fournit la valeur d'un parametre selon des contextes standardises'''
-        for c in self.contexte:
-            if nom in c:
-                return c[nom]
-        return defaut
+
+    def getcontext(self, context, vloc):
+        if context is None:
+            return Context(self.context, vloc)
+        return Context(context, vloc)
+    
+    def get_param(self, nom, defaut=""):
+        return self.context.getvar(nom, defaut)
+    
+    def set_param(self, nom, valeur):
+        self.context.setvar(nom, valeur)
+
+#    def get_param(self, nom, defaut='', local=False, groupe=None):
+#        ''' fournit la valeur d'un parametre '''
+#        converter = type(defaut) if defaut is not None else None
+#        if groupe:
+#            valeur = self.get_param(nom+'_'+groupe, defaut=None)
+#            if valeur is not None:
+#                return converter(valeur) if converter else valeur
+#        if nom in self.parms:
+##            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
+#            return converter(self.parms[nom]) if converter else self.parms[nom]
+##        print ('non trouve',nom , self.idpyetl, self.parent)
+#        if local:
+#            return defaut
+#        return self.parent.get_param(nom, defaut) if self.parent else defaut
 
 
-    def get_param(self, nom, defaut='', local=False, groupe=None):
-        ''' fournit la valeur d'un parametre '''
-        converter = type(defaut) if defaut is not None else None
-        if groupe:
-            valeur = self.get_param(nom+'_'+groupe, defaut=None)
-            if valeur is not None:
-                return converter(valeur) if converter else valeur
-        if nom in self.parms:
-#            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
-            return converter(self.parms[nom]) if converter else self.parms[nom]
-#        print ('non trouve',nom , self.idpyetl, self.parent)
-        if local:
-            return defaut
-        return self.parent.get_param(nom, defaut) if self.parent else defaut
-
-
-    def set_param(self, nom, valeur, parent=0):
-        ''' positionne un parametre eventuellement sur le parent'''
-        if parent > 0 and self.parent:
-            self.parent.set_param(nom, valeur, parent-1)
-            return
-        self.parms[nom] = valeur
+#    def set_param(self, nom, valeur, parent=0):
+#        ''' positionne un parametre eventuellement sur le parent'''
+#        if parent > 0 and self.parent:
+#            self.parent.set_param(nom, valeur, parent-1)
+#            return
+#        self.parms[nom] = valeur
 #        print ('positionnement variable', nom,'-->', valeur, self.idpyetl)
 
-    def padd(self, nom, valeur, parent=0):
+    def padd(self, nom, valeur):
         '''incremente un parametre d'une valeur'''
-        vinit = self.get_param(nom, 0, local=parent)
-        self.set_param(nom, vinit+valeur, parent=parent)
+        vinit = self.context.getvar(nom, 0)
+        self.context.setvar(nom, vinit+valeur)
 #        print ('padd',nom,self.get_param(nom, 0, local=parent))
 
 
-    def pasum(self, nom1, nom2, parent=0):
+    def pasum(self, nom1, nom2):
         '''incremente un parametre d'un autre parametre'''
         vinit = self.get_param(nom1, defaut=0, local=parent)
         valeur = self.get_param(nom2, defaut=0, local=parent)
@@ -974,13 +977,13 @@ class Pyetl(object):
 
     def macro_final(self):
         """ execute une macro finale"""
-        macrofinale = self.get_param('_end', local=True) # on travaille par instance
+        macrofinale = self.context.getlocal('_end')
         if not macrofinale:
-            macrofinale = self.get_param('#end', local=True) # on travaille par instance
+            macrofinale = self.context.getlocal('#end')
 #        print ('finalisation commande ', macrofinale, self.idpyetl)
         if not macrofinale or (self.worker and self.parent is None):
             # le worker de base n'execute pas de macro finale
-            macrofinale = self.get_param('_w_end', local=True)
+            macrofinale = self.context.getlocal('_w_end')
             if not macrofinale:
                 return
         mdef = macrofinale.split(':')

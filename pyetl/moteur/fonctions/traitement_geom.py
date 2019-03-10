@@ -34,7 +34,7 @@ def setschema_typegeom(regle, obj):
 def h_initgeom(regle):
     '''prepositionne un type geom'''
     if regle.params.cmp1.num:
-        regle.setvar("type_geom", regle.params.cmp1.val)
+        regle.context.setvar("type_geom", regle.params.cmp1.val)
 
 def f_initgeom(regle, obj):
     '''#aide||force l'interpretation de la geometrie
