@@ -16,6 +16,10 @@ def sortir_conformite_csv(conf, mode=-1, init=False):
 #    print ([";".join((conf.nom, str(i[2]), i[4] if init else i[0], i[1],
 #                      str(i[3]) if mode == -1 else mode))
 #                      for i in sorted(conf.stock.values(), key=lambda v: v[2])])
+    if conf.nom.startswith('#'): # c'est une conformite externe
+        return [';'.join((conf.nombase,'#EXTERNE',''))]
+
+
     return [";".join((conf.nombase, str(i[2]), i[4] if conf.ajust and not init else i[0], i[1],
                       str(i[3]) if mode == -1 else str(mode)))
             for i in sorted(conf.stock.values(), key=lambda v: v[2])]
@@ -179,7 +183,8 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         if len(val_conf) < 2:
             print('enumeration incomplete ', val_conf)
             continue
-        conf = schema_courant.get_conf(nom)
+        externe = val_conf[1] == '#externe' #contrainte externe definie en base mais non connue
+        conf = schema_courant.get_conf(nom, type_c='#EXTERNE' if externe else '')
         ordre = int(val_conf[1]) if val_conf[1].isnumeric() else 0
         valeur = val_conf[2]
         alias = val_conf[3] if len(val_conf) > 3 else ''

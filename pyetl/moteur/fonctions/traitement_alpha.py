@@ -436,7 +436,7 @@ def f_vset(regle, obj):
     '''
     valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
     if valeur != regle.getvar(regle.params.att_sortie.val):
-        regle.context.setcontext(regle.params.att_sortie.val, valeur)
+        regle.context.set_in_context(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)

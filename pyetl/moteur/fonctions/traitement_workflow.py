@@ -222,7 +222,7 @@ def f_sample(regle, obj):
 
 def printvariable(regle):
     ''' affichage de variables'''
-    return '\n'.join(i+' -> ' + str(j) for i, j in sorted(regle.stock_param.parms.items()))
+    return regle.stock_param.context.__repr__()
 
 
 def f_printvar(regle, _):

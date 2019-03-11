@@ -150,8 +150,9 @@ class Pyetl(object):
         self.posparm = list()
         self.store = dict()
         self.dbconnect = dict() # connections de base de donnees
-        self.parms = dict() #parametres ligne de commande et variables globales
-        self.context = Context(parent.context if parent else None, self.parms)
+#        self.parms = dict() #parametres ligne de commande et variables globales
+        self.context = Context(parent = parent.context if parent else None, ref=None)
+#        print ('initialisation', self.context, self.context.parent)
         self.parent = parent # permet un appel en cascade
         setparallel(self) # initialise la gestion du parallelisme
 
@@ -637,21 +638,23 @@ class Pyetl(object):
             del self.site_params[nom]
 
 
-    def load_paramgroup(self, clef, nom='', check='', fin=True):
+    def load_paramgroup(self, clef, nom='', check='', fin=True, context=None):
         """ charge un groupe de parametres """
         if not clef:
             return
         if check: #on verifie que l'on a pas deja defini les choses avant
 #            print ('validation ',check,check+nom,check+nom in self.parms)
-            if check+nom in self.parms:
+            if self.context.exists(check+nom):
                 return
+        if context is None:
+            context = self.context
         if clef in self.site_params:
 #            print("chargement", valeur, self.site_params[valeur])
             for var, val in self.site_params[clef]:
-                val, _ = map_vars(self, val) # on fait du remplacement à la volee
-                self.parms[var] = val
+                val, _ = map_vars(self, val, context = context) # on fait du remplacement à la volee
+                context.setvar(var, val)
                 if nom:
-                    self.parms[var+'_'+nom] = val
+                    context.setvar(var+'_'+nom, val)
 
         elif fin:
             print('definition parametres de site >'+clef+'< introuvable')
@@ -705,66 +708,46 @@ class Pyetl(object):
         #help||parametres systeme:
         '''
 
-        self.parms.update([("mode_sortie", "B"), ("memlimit", 100000), ('sans_entree', ''),
-                           ("nbaffich", 100000), ('filtre_entree', ''), ('sans_sortie', ''),
-                           ("_st_lu_objs", 0), ("_st_lu_fichs", 0), ("_st_lu_tables", 0),
-                           ("_st_wr_objs", 0), ("_st_wr_fichs", 0), ("_st_wr_tables", 0),
-                           ("_st_obj_duppliques", 0), ("_st_obj_supprimes", 0),
-                           ("tmpdir", './tmp'), ("F_entree", ''), ('racine', '.'),
-                           ("job_control", ''), ('aujourdhui', time.strftime('%Y/%m/%d 00:00:00')),
-                           ("stat_defaut", "affiche"),
-                           ("debug", '0'), ("fstat", ''),
-                           ("force_schema", 'util'),
-                           ("epsg", "3948"), ("F_sortie", 'txt'),
-                           ('xmldefaultheader',
-                            '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
-                           ('codec_sortie', DEFCODEC),
-                           ('codec_entree', DEFCODEC),
-                           ('_paramdir', self.site_params_def),
-                           ('_paramperso', self.paramdir),
-                           ('_version', self.version),
-                           ('_progdir', os.path.dirname(__file__))
-                          ])
+        self.context.update([("mode_sortie", "B"), ("memlimit", 100000), ('sans_entree', ''),
+                             ("nbaffich", 100000), ('filtre_entree', ''), ('sans_sortie', ''),
+                             ("_st_lu_objs", 0), ("_st_lu_fichs", 0), ("_st_lu_tables", 0),
+                             ("_st_wr_objs", 0), ("_st_wr_fichs", 0), ("_st_wr_tables", 0),
+                             ("_st_obj_duppliques", 0), ("_st_obj_supprimes", 0),
+                             ("tmpdir", './tmp'), ("F_entree", ''), ('racine', '.'),
+                             ("job_control", ''), ('aujourdhui', time.strftime('%Y/%m/%d 00:00:00')),
+                             ("stat_defaut", "affiche"),
+                             ("debug", '0'), ("fstat", ''),
+                             ("force_schema", 'util'),
+                             ("epsg", "3948"), ("F_sortie", 'txt'),
+                             ('xmldefaultheader',
+                              '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
+                             ('codec_sortie', DEFCODEC),
+                             ('codec_entree', DEFCODEC),
+                             ('_paramdir', self.site_params_def),
+                             ('_paramperso', self.paramdir),
+                             ('_version', self.version),
+                             ('_progdir', os.path.dirname(__file__))
+                             ])
 
     def getstats(self):
         '''retourne un dictionnaire avec les valeurs des stats'''
-        return {i:self.get_param(i, 0) for i in self.parms if i.startswith('_st')}
+        return self.context.getgroup('_st')
 
 
     def getcontext(self, context, vloc):
         if context is None:
             return Context(self.context, vloc)
         return Context(context, vloc)
-    
+
     def get_param(self, nom, defaut=""):
+#        print ('lecture ', nom, self.context.getvar(nom, defaut))
+#        if nom=='nbaffich':
+#            print (self.context)
         return self.context.getvar(nom, defaut)
-    
+
     def set_param(self, nom, valeur):
         self.context.setvar(nom, valeur)
 
-#    def get_param(self, nom, defaut='', local=False, groupe=None):
-#        ''' fournit la valeur d'un parametre '''
-#        converter = type(defaut) if defaut is not None else None
-#        if groupe:
-#            valeur = self.get_param(nom+'_'+groupe, defaut=None)
-#            if valeur is not None:
-#                return converter(valeur) if converter else valeur
-#        if nom in self.parms:
-##            print ('lecture parametre',nom,self.parms[nom],self.idpyetl)
-#            return converter(self.parms[nom]) if converter else self.parms[nom]
-##        print ('non trouve',nom , self.idpyetl, self.parent)
-#        if local:
-#            return defaut
-#        return self.parent.get_param(nom, defaut) if self.parent else defaut
-
-
-#    def set_param(self, nom, valeur, parent=0):
-#        ''' positionne un parametre eventuellement sur le parent'''
-#        if parent > 0 and self.parent:
-#            self.parent.set_param(nom, valeur, parent-1)
-#            return
-#        self.parms[nom] = valeur
-#        print ('positionnement variable', nom,'-->', valeur, self.idpyetl)
 
     def padd(self, nom, valeur):
         '''incremente un parametre d'une valeur'''
@@ -775,9 +758,9 @@ class Pyetl(object):
 
     def pasum(self, nom1, nom2):
         '''incremente un parametre d'un autre parametre'''
-        vinit = self.get_param(nom1, defaut=0, local=parent)
-        valeur = self.get_param(nom2, defaut=0, local=parent)
-        self.set_param(nom1, str(vinit+valeur), parent=parent)
+        vinit = self.get_param(nom1, defaut=0)
+        valeur = self.get_param(nom2, defaut=0)
+        self.set_param(nom1, str(vinit+valeur))
 
 
     def _stocke_param(self, parametre):
@@ -788,12 +771,13 @@ class Pyetl(object):
                 valeur.append('')
             if valeur[1] == '""':
                 valeur[1] = ''
-            self.parms[valeur[0]] = valeur[1]
+#            self.parms[valeur[0]] = valeur[1]
+            self.context.setvar(*valeur)
 #            print("stockage",parametre,valeur[0],self.parms[valeur[0]] )
         else:
             self.posparm.append(parametre)
-            self.parms["#P_"+str(len(self.posparm))] = parametre
-
+#            self.parms["#P_"+str(len(self.posparm))] = parametre
+            self.context.setvar("#P_"+str(len(self.posparm)), parametre)
 
     def set_abrev(self, nom_schema, dic_abrev=None):
         '''cree les abreviations pour la definition automatique de snoms courts'''

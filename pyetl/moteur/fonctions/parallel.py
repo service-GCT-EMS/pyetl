@@ -46,7 +46,7 @@ def initparallel(parametres):
     mainmapper.initenv(env, log)
     mainmapper.inited = True
     mainmapper.macros.update(macros)
-    mainmapper.parms.update(params)
+    mainmapper.context.update(params)
     integre_schemas(mainmapper.schemas, schemas)
     mainmapper.parametres_lancement = parametres
     time.sleep(1)
@@ -316,7 +316,7 @@ def traite_parallel(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,
-                             (mapper.parms, mapper.macros, env, None, schemas))
+                             (mapper.context.vloc, mapper.macros, env, None, schemas))
         workids = {pid:n+1 for n, pid in enumerate(rinit)}
 #        print ('workids',workids)
         LOGGER.info(' '.join(('workids', str(workids))))
@@ -378,7 +378,7 @@ def traite_parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,
-                             (mapper.parms, mapper.macros, env, None, schemas))
+                             (mapper.context.vloc, mapper.macros, env, None, schemas))
         workids = {pid:n+1 for n, pid in enumerate(rinit)}
 #        print ('workids',workids)
         LOGGER.info(' '.join(('workids', str(workids))))
@@ -471,7 +471,7 @@ def traite_parallel_batch(regle):
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(executor, nprocs, initparallel,
-                                 (mapper.parms, mapper.macros, None, None, []))
+                                 (mapper.context.vloc, mapper.macros, None, None, []))
 
             workids = {pid:n+1 for n, pid in enumerate(rinit)}
             parallelexec(executor, nprocs, setparallelid, (workids, '#init_mp', ''))
@@ -646,7 +646,7 @@ def parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
 #TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(executor, nprocs, initparallel,
-                             (mapper.parms, mapper.macros, env, None, schemas))
+                             (mapper.context.vloc, mapper.macros, env, None, schemas))
         workids = {pid:n+1 for n, pid in enumerate(rinit)}
 #        print ('workids',workids)
         LOGGER.info(' '.join(('workids', str(workids))))

@@ -21,7 +21,8 @@ TYPES_A = {"T":"T", '':"T", "TEXTE":"T", "TEXT":"T", "ALPHA":"T", "NAME":"T",
            "CASE A COCHER":"B", "CASE_A_COCHER":"B",
            "S":"S", "SEQUENCE":"S", "SEQ":"S", "SERIAL":"S",
            "BS":"BS", "SEQUENCE LONGUE":"BS", "BIGSERIAL":"BS",
-           "I":"E", "SMALLINT":"E", "INTERVALLE":"I", "OID":"I"}
+           "I":"E", "SMALLINT":"E", "INTERVALLE":"I", "OID":"I",
+           "#EXTERNE":"#EXTERNE"}
 TYPES_S = {"T":"texte", "E":"entier", "EL":"entier_long", "D":"date", "H":"hstore", "B":"booleen",
            "F":"reel", 'Z':"date avec zone", "S":"sequence", 'BS':'sequence longue',
            "N":"numerique", 'A':'non defini'}
@@ -152,7 +153,7 @@ class Conformite(object):
 
     def valide_valeur(self, val):
         '''verifie si un attribut est conforme'''
-        return val in self.valide
+        return val in self.valide or self.nom.startswith('#')
 
     def calcule_longueur(self):
         '''taille maxi de chaine de la liste de conformites'''

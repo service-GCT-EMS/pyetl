@@ -269,41 +269,42 @@ class RegleTraitement(object): # regle de mapping
 
     def getvar(self, nom, defaut=0):
         return self.context.getvar(nom, defaut)
-    
+
     def setvar(self, nom, valeur):
         self.context.setvar(nom, valeur)
-    
-
-    def getvar_old(self, nom, defaut="", loc=1):
-        """ retourne la valeur d'une variable
-        loc= 0 on ne regarde pas les variables locales
-           -1 on ne regarde que les variables locales
-            1 = local avec fallback sur les globales
-        """
-#        self.affiche('')
-#        print(' recherche' ,nom,loc,self.vloc)
-        if loc == -1:
-#            print('variable locale',nom,self.vloc)
-            return self.vloc.get(nom, defaut)
-        if loc == 1:
-            if nom in self.vloc:
-                return self.vloc[nom]
-        return self.stock_param.get_param(nom, defaut)
 
 
-    def setvar_old(self, nom, valeur, loc=1):
-        """affecte une variable et la cree eventuellement en local
-            loc  0 : affecte la variable en global
-                 1 : affecte la variable en local
-                 -1: affecte la variable en local si elle existe en global sinon
 
-                 """
-#        print ('avant:',nom, self.stock_param.get_param(nom))
-        if loc == 1:
-            self.vloc[nom] = valeur
-            return
-        self.stock_param.set_param(nom, valeur)
-#        print(' setvar', nom, valeur,loc)
+#    def getvar_old(self, nom, defaut="", loc=1):
+#        """ retourne la valeur d'une variable
+#        loc= 0 on ne regarde pas les variables locales
+#           -1 on ne regarde que les variables locales
+#            1 = local avec fallback sur les globales
+#        """
+##        self.affiche('')
+##        print(' recherche' ,nom,loc,self.vloc)
+#        if loc == -1:
+##            print('variable locale',nom,self.vloc)
+#            return self.vloc.get(nom, defaut)
+#        if loc == 1:
+#            if nom in self.vloc:
+#                return self.vloc[nom]
+#        return self.stock_param.get_param(nom, defaut)
+#
+#
+#    def setvar_old(self, nom, valeur, loc=1):
+#        """affecte une variable et la cree eventuellement en local
+#            loc  0 : affecte la variable en global
+#                 1 : affecte la variable en local
+#                 -1: affecte la variable en local si elle existe en global sinon
+#
+#                 """
+##        print ('avant:',nom, self.stock_param.get_param(nom))
+#        if loc == 1:
+#            self.vloc[nom] = valeur
+#            return
+#        self.stock_param.set_param(nom, valeur)
+##        print(' setvar', nom, valeur,loc)
 
 # =========================acces standardises aux objets==================
     def getval_entree(self, obj):

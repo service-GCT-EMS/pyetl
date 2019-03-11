@@ -162,12 +162,10 @@ class Moteur(object):
                     print('====pyetl :', regle.stock_param.nompyetl, regle.stock_param.idpyetl)
                     print('====objet courant :', obj)
                     print("====parametres\n", regle.params)
-                    print('==============================variables locales========',
-                          '\n\t'+'\n\t'.join([i+':'+regle.vloc[i] for i in sorted(regle.vloc)]))
+                    print(regle.context)
                     if regle.getvar('debuglevel', '0') > '1':
                         print('========================= variables globales==========',
-                              '\n\t'+'\n\t'.join([i+':'+regle.stock_param.get_param(i)
-                                                  for i in sorted(regle.stock_param.parms)]))
+                              regle.stock_param.context)
                     print('========== fin erreur de traitement')
 
                 raise StopIteration(3)
@@ -222,43 +220,65 @@ class Macro(object):
 
 class Context(object):
     """contexte de stockage d es variables"""
-    def __init__(self, parent=None, vloc=None):
-        self.context = [vloc if vloc is not None else dict()]
-        if parent is not None:
-            self.context.extend(parent.context)
+    def __init__(self, ref=None, parent=None):
+        self.ref = self if ref is None else ref
         self.parent = parent
-        
+        self.vloc = dict()
+        self.search = [self.vloc]
+        if parent is not None:
+            self.search.extend(parent.search)
+
+
+    def getmacroenv(self):
+        '''fournit un contexte ephemere lia au contexte de reference'''
+        return Context(ref=self.ref, parent=self)
+
+    def getcontext(self):
+        '''fournit un nouveau contexte de reference empilé'''
+        return Context(ref=None, parent=self)
+
 
     def getvar(self, nom, defaut=''):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
-        for c in self.context:
+#        if nom == 'nbaffich':
+#            print ('chemin de recherche ',self.search)
+        for c in self.search:
+#            print ('getvar recherche', nom,' dans ', c)
             if nom in c:
                 return c[nom]
         return defaut
 
     def getlocal(self, nom, defaut=''):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
-        return self.context[0].get(nom, defaut)
+        return self.vloc.get(nom, defaut)
 
+
+    def getgroup(self, prefix):
+        '''fournit une liste de variables respectant un prefixe'''
+        return {i:j for i, j in self.ref.vloc.items() if i.startswith(prefix)}
 
 
     def setvar(self, nom, valeur):
-        """positionne une variable locale ou globale"""
-        self.context[0][nom] = valeur
+        """positionne une variable du contexte de reference"""
+        self.ref.vloc[nom] = valeur
 
 
-    def setcontext(self, nom, valeur):
-        """positionne une variable du contexte"""
-        if self.parent is not None:
-            self.context[1][nom]=valeur
-        else:
-            self.context[0][nom]=valeur
+    def exists(self, nom):
+        return nom in self.ref.vloc
 
 
-    def get_from_context(self, nom, defaut=''):
-        """positionne une variable du contexte"""
-        if self.parent is not None:
-            for c in self.parent.context:
-                if nom in c:
-                    return c[nom]
-            return defaut
+    def update(self, valeurs):
+        '''affectation en masse'''
+        self.vloc.update(valeurs)
+
+
+    def setlocal(self, nom, valeur):
+        """positionne une variable locale du contexte"""
+        self.ref.vloc[nom] = valeur
+
+    def __repr__(self):
+        return '==============================variables locales========\n' +\
+                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vloc.items())])+\
+                 '========================= variables globales==========\n'+\
+                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vloc.items())])
+

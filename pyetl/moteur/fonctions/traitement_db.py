@@ -483,15 +483,14 @@ def h_recup_schema(regle):
     nombase, niveau, classe, _ = regle.cible_base
 
     regle.type_base = regle.stock_param.get_param('db_'+nombase)
-#    print ('interp schema_base','db_'+nombase,regle.type_base,nombase,regle.stock_param.parms)
-#    base = regle.v_nommees["sel1"][3:]
+
     base = nombase
     if base:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
         if regle.params.att_sortie.val == "schema_entree":
-            regle.context.setcontext("schema_entree", nomschema)
+            regle.context.set_in_context("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
-            regle.context.setcontext("schema_sortie", nomschema)
+            regle.context.set_in_context("schema_sortie", nomschema)
         regle.valide = 'done'
         print('h_recup_schema', nomschema)
         DB.recup_schema(regle, base, niveau, classe, nomschema)
@@ -518,8 +517,8 @@ def f_recup_schema(regle, obj):
             regle.cible_base = (base, niveau, classe, att)
             DB.recup_schema(regle, base, niveau, classe, regle.params.val_entree.val,
                             type_base=type_base, chemin=chemin)
-            regle.stock_param.parms["db"] = type_base
-            regle.stock_param.parms["server"] = chemin
+            regle.setlocal("db", type_base)
+            regle.setlocal("server", chemin)
 #        print ("regles",regle.numero," :dans recupschema ",chemin,base,type_base)
 #        print ("regles",regle.numero," :dans recupschema ",obj.virtuel,obj.attributs)
     else:
@@ -548,8 +547,7 @@ def h_dbclean(regle):
     nombase, niveau, classe, _ = regle.cible_base
 
     regle.type_base = regle.stock_param.get_param('db_'+nombase)
-#    print ('interp schema_base','db_'+nombase,regle.type_base,nombase,regle.stock_param.parms)
-#    base = regle.v_nommees["sel1"][3:]
+
     base = nombase
     nom = regle.params.cmp2.val + '.sql'
     if base:
