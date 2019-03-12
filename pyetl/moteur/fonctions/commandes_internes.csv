@@ -80,6 +80,7 @@ $F_sortie=%format%;asc;;;;;;;;;;
 #!help;extraction de niveaux ou de classes;;;;;;;;;;
 <#stdvar;;;;;;;;;;;
 K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
+K:%multi%;;;;;;%multi%;;multigeom;;;fin;
 #groupe;%niveau%;#classe;%classe%;;;;pass-;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#extract+gid;niveau;classe;;;;;;;;;;

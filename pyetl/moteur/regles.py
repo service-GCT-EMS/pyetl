@@ -183,12 +183,11 @@ class ParametresSelecteur(ParametresFonction):
 
 class RegleTraitement(object): # regle de mapping
     ''' descripteur de traitement unitaire '''
-    def __init__(self, ligne, stock_param, fichier, numero, vloc=None, context=None):
+    def __init__(self, ligne, stock_param, fichier, numero, context=None):
 
         self.ligne = ligne
         self.stock_param = stock_param
         self.branchements = Branch()
-        self.vloc = vloc.copy() if vloc else dict() # variables locales a la regle
         self.params = None
         self.selstd = None
         self.valide = None
@@ -212,9 +211,11 @@ class RegleTraitement(object): # regle de mapping
         self.fstore = self.ftrue
         self.shelper = None
         self.fonction_schema = None
-        self.context=stock_param.getcontext(context, self.vloc)
-        self.val_tri = re.compile('')
         self.numero = numero
+
+        self.context=stock_param.getcontext(context, ident='R'+str(numero))
+#        print ('contexte regle',self.ligne, self.context)
+        self.val_tri = re.compile('')
         self.index = 0
         self.bloc = 0
         #-----------------flags de comportement-------------------
@@ -263,48 +264,16 @@ class RegleTraitement(object): # regle de mapping
         ''' toujours vrai  pour les expressions sans conditions'''
         return True
 
-    def getregle(self, ligne, fichier, numero, vloc=None):
+    def getregle(self, ligne, fichier, numero):
         '''retourne une regle pour des operations particulieres'''
-        return RegleTraitement(ligne, self.stock_param, self.fichier, numero, vloc=vloc)
+        return RegleTraitement(ligne, self.stock_param, self.fichier, numero, context=self.context)
 
-    def getvar(self, nom, defaut=0):
+    def getvar(self, nom, defaut=''):
         return self.context.getvar(nom, defaut)
 
     def setvar(self, nom, valeur):
         self.context.setvar(nom, valeur)
 
-
-
-#    def getvar_old(self, nom, defaut="", loc=1):
-#        """ retourne la valeur d'une variable
-#        loc= 0 on ne regarde pas les variables locales
-#           -1 on ne regarde que les variables locales
-#            1 = local avec fallback sur les globales
-#        """
-##        self.affiche('')
-##        print(' recherche' ,nom,loc,self.vloc)
-#        if loc == -1:
-##            print('variable locale',nom,self.vloc)
-#            return self.vloc.get(nom, defaut)
-#        if loc == 1:
-#            if nom in self.vloc:
-#                return self.vloc[nom]
-#        return self.stock_param.get_param(nom, defaut)
-#
-#
-#    def setvar_old(self, nom, valeur, loc=1):
-#        """affecte une variable et la cree eventuellement en local
-#            loc  0 : affecte la variable en global
-#                 1 : affecte la variable en local
-#                 -1: affecte la variable en local si elle existe en global sinon
-#
-#                 """
-##        print ('avant:',nom, self.stock_param.get_param(nom))
-#        if loc == 1:
-#            self.vloc[nom] = valeur
-#            return
-#        self.stock_param.set_param(nom, valeur)
-##        print(' setvar', nom, valeur,loc)
 
 # =========================acces standardises aux objets==================
     def getval_entree(self, obj):

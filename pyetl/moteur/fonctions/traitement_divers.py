@@ -136,8 +136,8 @@ def f_map(regle, obj):
   #aide_spec||parametres: map; nom du fichier de mapping
  #aide_spec2||si #schema est indique les objets changent de schema
     #pattern||?=#schema;?C;;map;C;;
-  #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||atv;toto;AB
- #test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||cnt;2
+  #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||^;;;pass;;;||atv;toto;AB
+ #!test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||^;;;pass;;;debug||cnt;2
     '''
 #    print ("dans map ===============",obj)
     if regle.dynlevel: # attention la regle est dynamique
@@ -149,6 +149,7 @@ def f_map(regle, obj):
         _map_schemas(regle, obj)
     clef = obj.ident
     schema2 = regle.schema
+#    print ('mapping', clef,regle.mapping)
     if clef in regle.mapping:
         nouv = regle.mapping.get(clef)
         obj.setident(nouv, schema2=schema2)
@@ -325,7 +326,7 @@ def h_sortir(regle):
         tmplist = regle.params.cmp1.val.find('[')
         #print("valeur ii ", regle.params.cmp1,ii)
 
-        regle.context.setvar("fanout", regle.params.cmp1.val[tmplist+1:-1])
+        regle.context.setlocal("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = Writer(regle.params.cmp1.val) # tout le reste
 #    print ('positionnement writer ',regle, regle.params.cmp1.val)
@@ -349,7 +350,7 @@ def h_sortir(regle):
         rep_base = regle.context.getvar('_sortie')
 #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
 
-        regle.context.setvar('_sortie', os.path.join(rep_base, regle.params.cmp2.val))
+        regle.context.setlocal('_sortie', os.path.join(rep_base, regle.params.cmp2.val))
 
     regle.fanout = regle.context.getvar("fanout", 'groupe')\
                    if regle.f_sortie.multiclasse else 'classe'

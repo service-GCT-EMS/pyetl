@@ -151,7 +151,8 @@ class Pyetl(object):
         self.store = dict()
         self.dbconnect = dict() # connections de base de donnees
 #        self.parms = dict() #parametres ligne de commande et variables globales
-        self.context = Context(parent = parent.context if parent else None, ref=None)
+        self.context = Context(parent = parent.context if parent else None,
+                               ident='P'+str(self.idpyetl))
 #        print ('initialisation', self.context, self.context.parent)
         self.parent = parent # permet un appel en cascade
         setparallel(self) # initialise la gestion du parallelisme
@@ -525,7 +526,7 @@ class Pyetl(object):
         if liste_commandes is not None:
             nouvelle.commandes_macro = liste_commandes
         if vloc is not None:
-            nouvelle.vloc = vloc
+            nouvelle.vpos = vloc
 #        print ('enrregistrement macro',nom)
         self.macros[nom] = nouvelle
         return nouvelle
@@ -734,10 +735,10 @@ class Pyetl(object):
         return self.context.getgroup('_st')
 
 
-    def getcontext(self, context, vloc):
+    def getcontext(self, context, ident=''):
         if context is None:
-            return Context(self.context, vloc)
-        return Context(context, vloc)
+            return Context(parent=self.context, ident=ident)
+        return context.getcontext(ident=ident)
 
     def get_param(self, nom, defaut=""):
 #        print ('lecture ', nom, self.context.getvar(nom, defaut))
@@ -1098,7 +1099,8 @@ class Pyetl(object):
         reglestart = regle.branchements.brch['next'] if regle else self.regles[0]
 
         self.f_entree = Reader(ext, regle, reglestart)
-
+#        print ('initialisation reader', ext)
+#        print ('lecteur',self.f_entree.lire_objets, self.f_entree)
 #        print ('lecture fichier ',fichier, regle, reglestart)
 #        if self.worker:
 #            print('lecture batch',os.getpid(), reglestart.ligne)

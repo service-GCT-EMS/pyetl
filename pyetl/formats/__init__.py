@@ -59,9 +59,11 @@ class Reader(object):
         stock_param = regle_start.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
-        self.lire_objets = self.getobj
+#        self.lire_objets = None
+        self.groupe = ''
+        self.classe = ''
         if self.debug:
-            print("debug:format: instance de reader ", nom)
+            print("debug:format: instance de reader ", nom, self)
 
     def set_format_entree(self, nom):
         '''#positionne un format d'entree'''
@@ -77,7 +79,7 @@ class Reader(object):
             self.auxiliaires = description.auxfiles
             self.converter = description.converter
             if self.debug:
-                print("debug:format: lecture format "+ nom, self.converter)
+                print("debug:format: lecture format "+ nom, self.converter, self.lire_objets)
         else:
             print("error:format: format entree inconnu", nom)
             raise KeyError

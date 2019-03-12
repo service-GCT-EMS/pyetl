@@ -435,11 +435,13 @@ def f_vset(regle, obj):
         #test1||obj||^P:AA;1;;set||ptv;AA;1
     '''
     valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
+#    print ('dans vset',regle.params.att_sortie.val,valeur)
     if valeur != regle.getvar(regle.params.att_sortie.val):
-        regle.context.set_in_context(regle.params.att_sortie.val, valeur)
+        regle.context.setvar(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
+#    print ('stocke ', regle.params.att_sortie.val, regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 

@@ -488,9 +488,9 @@ def h_recup_schema(regle):
     if base:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
         if regle.params.att_sortie.val == "schema_entree":
-            regle.context.set_in_context("schema_entree", nomschema)
+            regle.context.setvar("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
-            regle.context.set_in_context("schema_sortie", nomschema)
+            regle.context.setvar("schema_sortie", nomschema)
         regle.valide = 'done'
         print('h_recup_schema', nomschema)
         DB.recup_schema(regle, base, niveau, classe, nomschema)

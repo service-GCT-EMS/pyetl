@@ -403,6 +403,7 @@ def prepare_elmap(mapping):
     intmap1 = {j:"**<<"+str(i)+">>**" for i, j in enumerate(items)}
     intmap2 = {"**<<"+str(i)+">>**":mapping_special[j] for i, j in enumerate(items)}
     elmap = (items, intmap1, intmap2)
+#    print ('definition intmap2', intmap2)
     return elmap
 
 def charge_mapping(regle, mapping=None):
@@ -462,7 +463,6 @@ def charge_mapping(regle, mapping=None):
     regle.mapping_attributs = mapping_attributs
 
     regle.elmap = prepare_elmap(mapping)
-#    print ('definition intmap2', intmap2)
 #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i])
 #           for i in sorted(mapping)]))
 

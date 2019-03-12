@@ -219,23 +219,29 @@ class Macro(object):
 
 
 class Context(object):
-    """contexte de stockage d es variables"""
-    def __init__(self, ref=None, parent=None):
-        self.ref = self if ref is None else ref
+    """contexte de stockage des variables"""
+    def __init__(self, parent=None, ident='', type_c='C'):
+        self.ident = type_c+ident
+        self.type_c = type_c
+        self.vlocales = dict()
+        self.search = [self.vlocales]
         self.parent = parent
-        self.vloc = dict()
-        self.search = [self.vloc]
+        self.ref = self
+        # gestion des hierarchies
         if parent is not None:
+            self.ref = parent if parent.type_c == 'C' else parent.ref # pour les macroenv
+            self.ident = parent.ident+'<-'+self.ident
             self.search.extend(parent.search)
 
 
-    def getmacroenv(self):
-        '''fournit un contexte ephemere lia au contexte de reference'''
-        return Context(ref=self.ref, parent=self)
 
-    def getcontext(self):
+    def getmacroenv(self, ident=''):
+        '''fournit un contexte ephemere lia au contexte de reference'''
+        return Context(parent=self, ident=ident, type_c='M')
+
+    def getcontext(self, ident=''):
         '''fournit un nouveau contexte de reference empilé'''
-        return Context(ref=None, parent=self)
+        return Context(parent=self, ident=ident)
 
 
     def getvar(self, nom, defaut=''):
@@ -245,40 +251,55 @@ class Context(object):
         for c in self.search:
 #            print ('getvar recherche', nom,' dans ', c)
             if nom in c:
+#                print ('contexte getvar', nom, c[nom])
                 return c[nom]
         return defaut
 
     def getlocal(self, nom, defaut=''):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
-        return self.vloc.get(nom, defaut)
+        return self.vlocales.get(nom, defaut)
 
 
     def getgroup(self, prefix):
         '''fournit une liste de variables respectant un prefixe'''
-        return {i:j for i, j in self.ref.vloc.items() if i.startswith(prefix)}
+        return {i:j for i, j in self.ref.vlocales.items() if i.startswith(prefix)}
 
 
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
-        self.ref.vloc[nom] = valeur
+#        print ('contexte setvar', nom, valeur)
+        self.ref.vlocales[nom] = valeur
 
 
     def exists(self, nom):
-        return nom in self.ref.vloc
+        return nom in self.ref.vlocales
 
 
     def update(self, valeurs):
         '''affectation en masse'''
-        self.vloc.update(valeurs)
+        self.vlocales.update(valeurs)
 
 
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
-        self.ref.vloc[nom] = valeur
+        self.vlocales[nom] = valeur
+
+    def getvars(self):
+        '''recupere toutes les variables d'un contexte'''
+        vlist=set()
+        for c in self.search:
+            vlist = vlist|c.keys()
+        return {i:self.getvar(i) for i in vlist}
+
+#                print ('contexte getvar', nom, c[nom])
+
 
     def __repr__(self):
-        return '==============================variables locales========\n' +\
-                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vloc.items())])+\
-                 '========================= variables globales==========\n'+\
-                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vloc.items())])
+        return self.ident
+##        return self.ref.vlocales.__repr__(), self.search.__repr__()
+#        return self.search.__repr__()
+#        return '==============================variables locales========\n' +\
+#                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vlocales.items())])+\
+#                 '========================= variables globales==========\n'+\
+#                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vlocales.items())])
 

@@ -222,13 +222,19 @@ def f_sample(regle, obj):
 
 def printvariable(regle):
     ''' affichage de variables'''
-    return regle.stock_param.context.__repr__()
+    if not regle.params.cmp1.val:
+        return '\n'.join([i+'='+str(j) for i,j in sorted(regle.context.getvars().items())])
+
+    if regle.params.cmp2.val:
+        return regle.params.cmp1.val+"="+str(regle.context.getvar(regle.params.cmp1.val))
+    return regle.context.getvar(regle.params.cmp1.val)
 
 
 def f_printvar(regle, _):
     '''#aide||affichage des parametres nommes
        #pattern||;;;printv;C?;=noms?||entree
-       #test||redirect||obj||$toto=ok||^;;;printv||end
+       #test||redirect||obj||$toto=ok||^;;;printv;toto||end
+       #!test2||redirect||obj||$toto=ok||^;;;printv;||end
     '''
 #    print("variables:")
     print(printvariable(regle))
@@ -395,7 +401,7 @@ def h_ftpupload(regle):
     servertyp = regle.context.getvar("ftptyp_"+codeftp, '')
     user = regle.context.getvar("user_"+codeftp, '')
     passwd = regle.context.getvar("passwd_"+codeftp, regle.params.cmp2.val)
-    regle.context.setvar('acces_ftp', (codeftp, serveur, servertyp, user, passwd))
+    regle.context.setlocal('acces_ftp', (codeftp, serveur, servertyp, user, passwd))
     regle.ftp = None
 
 

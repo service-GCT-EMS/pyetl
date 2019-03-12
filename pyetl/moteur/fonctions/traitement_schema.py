@@ -245,16 +245,16 @@ def h_def_schema(regle):
         return
 
     if regle.params.att_sortie.val == "schema_entree":
-        regle.context.set_in_context("schema_entree", nom)
+        regle.context.setvar("schema_entree", nom)
         LOGGER.info('positionnement schema d entree '+nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
     if regle.params.att_sortie.val == "schema_sortie":
-        regle.context.set_in_context("schema_sortie", nom)
+        regle.context.setvar("schema_sortie", nom)
         LOGGER.info('positionnement schema_sortie '+nom)
         regle.valide = 'done' # on a fait le boulot on peut jeter la regle
 
-    LOGGER.debug('lecture schema '+' '.join((str(regle.numero), nom, cod, str(regle.vloc))))
+    LOGGER.debug('lecture schema '+' '.join((str(regle.numero), nom, cod)))
 
     if ext == 'csv':
         mode_alias = regle.context.getvar("mode_alias", 'num')
