@@ -230,8 +230,8 @@ class Pyetl(object):
             self.set_param('logfile', log)
             self.fichier_log = log
         self.init_environ(env)
-        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
-        next(self.aff)
+#        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
+#        next(self.aff)
 
     def initpyetl(self, commandes, args, env=None, log=None):
         """ initialisation standardisee: cree l'objet pyetl de base"""
@@ -480,7 +480,9 @@ class Pyetl(object):
                 nbtotal += nbval
 #                tabletotal += nbfic
                 affiche(message, nbtotal)
-                break
+                print(" fin d'affichage")
+#                raise GeneratorExit
+#                break
             elif nbtotal+nbval >= prochain:
                 prochain, interm = affiche(message, nbtotal+nbval)
 #                if not self.worker:
@@ -489,8 +491,13 @@ class Pyetl(object):
             if message != 'interm':
                 nbtotal += nbval
                 interm = 0.001
-
-        return duree, interv
+#        except GeneratorExit:
+#            nbtotal += nbval
+##                tabletotal += nbfic
+#            affiche('end', nbtotal)
+#            print(" fin d'affichage")
+##            raise IndexError
+#        return duree, interv
 
 
     def getpyetl(self, regles, entree=None, rep_sortie=None,
@@ -652,7 +659,7 @@ class Pyetl(object):
         if clef in self.site_params:
 #            print("chargement", valeur, self.site_params[valeur])
             for var, val in self.site_params[clef]:
-                val, _ = map_vars(self, val, context = context) # on fait du remplacement à la volee
+                val, _ = map_vars(val, context) # on fait du remplacement à la volee
                 context.setvar(var, val)
                 if nom:
                     context.setvar(var+'_'+nom, val)
@@ -915,7 +922,9 @@ class Pyetl(object):
                         break
 
 #                    self.aff.send(('fich', 1, nb_lu))
-                duree, _ = self.aff.send(('end', 0, 0))
+                self.aff.send(('end', 0, 0))
+#                self.aff.close()
+
             else:
                 print('pas de fichiers en entree')
             print('mapper: ---------> fin traitement donnees:', int(duree))

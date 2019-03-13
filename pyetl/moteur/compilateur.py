@@ -51,7 +51,7 @@ def _finalise(regle, debug):
         for rmacro in regle.liste_regles:
             if rmacro.retour:
                 _branche(rmacro, regle)
-        regle.branchement.brch["ok"] = regle.liste_regles[0]
+        regle.branchements.brch["ok"] = regle.liste_regles[0]
 
 
 def _gestion_branchements(regles, position, debug):
@@ -140,7 +140,7 @@ def compile_regles(mapper, regles, debug=0):
     for i in range(len(regles)-1):
         regle = regles[i]
         if regle.call:
-            compile_regles(mapper,regles.liste_regles, debug=0)
+            compile_regles(mapper,regle.liste_regles, debug=0)
 
 
         if regles[i+1].niveau > regle.niveau: # ca se complique les regles sont liees

@@ -190,7 +190,7 @@ class RegleTraitement(object): # regle de mapping
         self.branchements = Branch()
         self.params = None
         self.selstd = None
-        self.valide = None
+        self.valide = 'inconnu'
         self.enchainement = ''
         self.ebloc = 0
         self.mode = ''

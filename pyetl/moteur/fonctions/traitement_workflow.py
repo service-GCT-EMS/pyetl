@@ -30,6 +30,11 @@ def f_pass(*_):
     '''#aide||ne fait rien et passe
         #pattern||;;;pass;;
         #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
+        #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
+              ||X;1;;;X;%defaut%;;set||atv;X;3
+
+
+
     '''
     return True
 
@@ -309,9 +314,12 @@ def f_finbloc(*_):
 def h_callmacro(regle):
     '''charge une macro et gere la tringlerie d'appel'''
     regle.call=True
+    context = regle.context.getcontext()
     mapper = regle.stock_param
-    erreurs = mapper.lecteur_regles(mapper, regle.params.cmp1.val, regle_ref=regle,
-                                    vpos=regle.params.cmp2.liste)
+    vpos = '|'.join(regle.params.cmp2.liste)
+    commande = regle.params.cmp1.val + '|'+vpos if vpos else regle.params.cmp1.val
+    erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
+
     return erreurs
 
 
@@ -319,8 +327,13 @@ def h_callmacro(regle):
 
 def f_callmacro(regle, obj):
     '''#aide||appel de macro avec gestion de variables locales
-       #pattern||;;;call;C;LC
-
+       #pattern||;;;call;C;?LC
+       #test||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
+       #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
+       #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+             ||X;2;;;X;%defaut%;;set||atv;X;3
+       #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+             ||X;2;;;X;%defaut%;;set||atv;X;3
     '''
     return True
 
