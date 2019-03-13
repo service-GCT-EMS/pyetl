@@ -7,12 +7,12 @@ Created on Fri Feb 16 10:00:04 2018
 #import os
 import re
 #import subprocess
-from . import database
+from .database import DbGenSql
 #from .postgres import RESERVES, GTYPES_DISC, GTYPES_CURVE, TYPES_A
 RESERVES = {"analyse":"analyse_pb", 'type':'type_entite', 'as':'ass'}
 SCHEMA_CONF = "public"
 
-class GenSql(database.GenSql):
+class PgrGenSql(DbGenSql):
     """classe de generation des structures sql"""
     def __init__(self, connection=None, basic=False, maj=True):
         super().__init__(connection=connection, basic=basic)

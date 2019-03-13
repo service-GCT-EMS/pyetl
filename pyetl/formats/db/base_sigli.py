@@ -5,7 +5,7 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
-from . import postgis
+from .base_postgis import PgConnect,PgGenSql
 #from .init_sigli import requetes_sigli as REQS
 #from . import database
 
@@ -13,7 +13,7 @@ SCHEMA_ADM = "admin_sigli"
 
 
 
-class SgConnect(postgis.PgConnect):
+class SgConnect(PgConnect):
     '''connecteur de la base de donnees postgres'''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -73,7 +73,7 @@ class SgConnect(postgis.PgConnect):
 
 
 
-class GenSql(postgis.GenSql):
+class GenSql(PgGenSql):
     """classe de generation des structures sql"""
     def __init__(self, connection=None, basic=False):
         super().__init__(connection=connection, basic=basic)

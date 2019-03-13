@@ -616,7 +616,7 @@ class DbConnect(object):
 
 
 
-class GenSql(object):
+class DbGenSql(object):
     """classe de generation des structures sql"""
     def __init__(self, connection=None, basic=False):
         self.geom = True

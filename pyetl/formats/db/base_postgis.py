@@ -7,8 +7,8 @@ acces a la base de donnees postgis
 """
 #import re
 from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
-from . import postgres
-from . import postgres_gensql
+from . postgres import PgrConnect
+from .postgres_gensql import PgrGenSql
 
 RESERVES = {"analyse":"analyse_pb", 'type':'type_entite', 'as':'ass'}
 
@@ -61,7 +61,7 @@ GTYPES_CURVE = {"alpha":"",
 
 
 
-class PgConnect(postgres.PgConnect):
+class PgsConnect(PgrConnect):
     '''connecteur de la base de donnees postgres'''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -123,7 +123,7 @@ class PgConnect(postgres.PgConnect):
         return cond
 
 
-class GenSql(postgres_gensql.GenSql):
+class PgsGenSql(PgrGenSql):
     """classe de generation des structures sql"""
     def __init__(self, connection=None, basic=False):
         super().__init__(connection=connection, basic=basic)
@@ -363,3 +363,6 @@ class GenSql(postgres_gensql.GenSql):
     def init_pyetl_script(self, nom_schema):
         ''' cree les structures standard'''
         pass
+
+
+DBDEF = (PgsConnect, PgsGenSql, 'server', '', 'base postgres avec postgis générique')

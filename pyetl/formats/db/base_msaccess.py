@@ -11,7 +11,7 @@ import pyodbc as odbc
 from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from . import database
+from .database import DbConnect, DbGenSql
 
 
 TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",
@@ -32,7 +32,7 @@ TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",
            "INTEGER":"E"}
 
 
-class AccConnect(database.DbConnect):
+class AccConnect(DbConnect):
     '''connecteur de la base de donnees '''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -282,6 +282,6 @@ class AccConnect(database.DbConnect):
         return
 
 
-class GenSql(database.GenSql):
+class AccGenSql(DbGenSql):
     '''generateur sql de creation de base'''
     pass

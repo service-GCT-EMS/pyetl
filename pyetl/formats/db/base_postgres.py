@@ -10,8 +10,8 @@ import os
 import subprocess
 import re
 from collections import namedtuple
-from . import database
-from .postgres_gensql import GenSql
+from .database import DbConnect
+from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
 
 TYPES_A = {"T":"T", '':"T", "TEXTE":"T", "TEXT":"T", "ALPHA":"T", "NAME":"T",
@@ -86,7 +86,7 @@ GTYPES_CURVE = {"alpha":"",
 
 
 
-class PgConnect(database.DbConnect):
+class PgrConnect(DbConnect):
     '''connecteur de la base de donnees postgres'''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -426,3 +426,6 @@ class PgConnect(database.DbConnect):
     def init_pyetl_script(self, nom_schema):
         ''' cree les structures standard'''
         pass
+
+
+DBDEF = (PgrConnect, PgrGenSql, 'server', '', 'base postgres générique')
