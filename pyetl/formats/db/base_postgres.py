@@ -101,7 +101,7 @@ class PgrConnect(DbConnect):
         self.types_pg = TYPES_PG
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
-        self.gensql = GenSql(self)
+        self.gensql = PgrGenSql(self)
         self.rowcount = 0
         self.codecinfo = {'utf-8':'UTF8', 'cp1252':'WIN1252'}
         self.load_helper = 'prog_pgsql'
@@ -428,4 +428,4 @@ class PgrConnect(DbConnect):
         pass
 
 
-DBDEF = (PgrConnect, PgrGenSql, 'server', '', 'base postgres générique')
+DBDEF = {'postgres':(PgrConnect, PgrGenSql, 'server', '', '#ewkt', 'base postgres générique')}

@@ -7,7 +7,7 @@ acces a la base de donnees postgis
 """
 #import re
 from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
-from . postgres import PgrConnect
+from . base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
 
 RESERVES = {"analyse":"analyse_pb", 'type':'type_entite', 'as':'ass'}
@@ -75,7 +75,7 @@ class PgsConnect(PgrConnect):
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
         self.accept_sql = 'geo'
-        self.gensql = GenSql(self)
+        self.gensql = PgsGenSql(self)
         self.geographique = True
         self.rowcount = 0
         self.dialecte = 'postgis'
@@ -365,4 +365,4 @@ class PgsGenSql(PgrGenSql):
         pass
 
 
-DBDEF = (PgsConnect, PgsGenSql, 'server', '', 'base postgres avec postgis générique')
+DBDEF = {'postgis':(PgsConnect, PgsGenSql, 'server', '', '#ewkt', 'base postgres avec postgis générique')}

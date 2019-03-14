@@ -5,7 +5,7 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
-from .base_postgis import PgConnect,PgGenSql
+from .base_postgis import PgsConnect,PgsGenSql
 #from .init_sigli import requetes_sigli as REQS
 #from . import database
 
@@ -13,12 +13,12 @@ SCHEMA_ADM = "admin_sigli"
 
 
 
-class SgConnect(PgConnect):
+class SglConnect(PgsConnect):
     '''connecteur de la base de donnees postgres'''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.gensql = GenSql(self)
+        self.gensql = SglGenSql(self)
         self.idconnect = 'sigli:'+base
         self.type_base = 'sigli'
         self.sys_cre = 'date_creation'
@@ -73,7 +73,7 @@ class SgConnect(PgConnect):
 
 
 
-class GenSql(PgGenSql):
+class SglGenSql(PgsGenSql):
     """classe de generation des structures sql"""
     def __init__(self, connection=None, basic=False):
         super().__init__(connection=connection, basic=basic)
@@ -137,3 +137,5 @@ class GenSql(PgGenSql):
                               "','"+classe.lower()+"');\n"
         return  "SELECT admin_sigli.devalide_triggers('"+niveau.lower()+\
                   "','"+classe.lower()+"');\n"
+
+DBDEF = {'sigli':(SglConnect, SglGenSql, 'server', '', '#ewkt', 'base postgis avec admin_sigli')}

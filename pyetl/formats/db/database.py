@@ -121,7 +121,7 @@ class DbConnect(object):
         self.connection = None
         self.schemabase = None
 #        self.connect()
-        self.gensql = GenSql(self)
+        self.gensql = DbGenSql(self)
         self.rowcount = 0
         self.decile = 100000
         self.attlist = []

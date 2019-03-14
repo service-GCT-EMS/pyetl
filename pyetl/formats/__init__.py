@@ -16,13 +16,14 @@ from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
 from .interne.objet import Objet
 '''
-geomdef = namedtuple("geomdef", ("reader", "converter"))
+geomdef = namedtuple("geomdef", ("writer", "converter"))
 
 rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter"))
 wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
                                  "attlen", "driver", "fanout", "geom", "tmp_geom",
                                  "geomwriter"))
-
+"database", ("acces", "gensql", "svtyp", "fileext", 'description', "geom", 'converter',
+             "geomwriter"))
 '''
 # assemblage avec les geometries
 for nom in WRITERS:
@@ -34,7 +35,10 @@ for nom in READERS:
     tmp = READERS[nom]
     READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
 
-
+for nom in DATABASES:
+    tmp = DATABASES[nom]
+    DATABASES[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter,
+                                  geomwriter=GEOMDEF[tmp.geom].writer)
 
 
 class Reader(object):

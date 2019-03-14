@@ -7,7 +7,7 @@ import collections
 import itertools
 import fiona
 from fiona.crs import from_epsg
-from ..interne.objet import Objet
+#from ..interne.objet import Objet
 from .fileio import FileWriter
 
 

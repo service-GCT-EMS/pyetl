@@ -9,8 +9,8 @@ import os
 from collections import namedtuple
 import importlib
 
-DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'description',
-                                'geomconverter', "geomwriter"))
+DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'geom',
+                                'description', 'converter', "geomwriter"))
 #("acces", "gensql", "svtyp", "fileext", 'description')
 def loadmodules():
     '''lit toutes les descriptions de format depuis le repertoire courant
@@ -27,8 +27,8 @@ def loadmodules():
                         print('attention : redefinition du format de base', nom)
                     databases[nom] = DBDEF(*desc, None, None)
                     # a ce stade les fonctions ne sont pas connues
-            except (ImportError, AttributeError):
-                print('module ', module[1:], 'non disponible')
+            except (ImportError, AttributeError) as err:
+                print('module ', module[1:], 'non disponible', err)
 
     return databases
 
@@ -36,47 +36,27 @@ DATABASES = loadmodules()
 #print ('chargement', READERS)
 
 
-
-
-
-
-
-
-
-## declaration de bases de donnees'''
-#from collections import namedtuple
-#from . import database
-#from . import postgres
-#from . import postgres_gensql
-#from . import postgis
-#from . import oracle
-#from . import oraclespatial
-#from . import elyx
-#from . import sigli
-#from . import msaccess
-#from . import base_sqlite
-#
 #DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'description'))
 #
-#DATABASES = {'postgres':DBDEF(postgres.PgConnect, postgres_gensql.GenSql,
+#'postgres':DBDEF(postgres.PgConnect, postgres_gensql.GenSql,
 #                              'server', '', 'base postgres générique'),
-#             'postgis':DBDEF(postgis.PgConnect, postgis.GenSql,
+#'postgis':DBDEF(postgis.PgConnect, postgis.GenSql,
 #                             'server', '', 'base postgres avec postgis générique'),
-#             'sigli':DBDEF(sigli.SgConnect, sigli.GenSql,
+#'sigli':DBDEF(sigli.SgConnect, sigli.GenSql,
 #                           'server', '', 'base postgres avec schema sigli'),
-#             'oracle':DBDEF(oracle.OraConnect, oracle.GenSql,
+#'oracle':DBDEF(oracle.OraConnect, oracle.GenSql,
 #                            'server', '', 'base oracle générique'),
-#             'oracle_s':DBDEF(oraclespatial.OraConnect, oraclespatial.GenSql,
+#'oracle_s':DBDEF(oraclespatial.OraConnect, oraclespatial.GenSql,
 #                              'server', '', 'base oracle spatial générique'),
-#             'elyx':DBDEF(elyx.ElyConnect, elyx.GenSql,
+#'elyx':DBDEF(elyx.ElyConnect, elyx.GenSql,
 #                          'server', '', 'base postgres générique'),
-#             'access':DBDEF(msaccess.AccConnect, msaccess.GenSql,
+#'access':DBDEF(msaccess.AccConnect, msaccess.GenSql,
 #                            'file', '.mdb', 'base access générique'),
-#             'access2016':DBDEF(msaccess.AccConnect, msaccess.GenSql,
+#'access2016':DBDEF(msaccess.AccConnect, msaccess.GenSql,
 #                                'file', '.accdb', 'base access 2016'),
-#             'sqlite':DBDEF(base_sqlite.SqltConnect, base_sqlite.GenSql,
+#'sqlite':DBDEF(base_sqlite.SqltConnect, base_sqlite.GenSql,
 #                            'file', '.sqlite', 'base sqlite générique'),
-#             'sl3':DBDEF(base_sqlite.SqltConnect, base_sqlite.GenSql,
+#'sl3':DBDEF(base_sqlite.SqltConnect, base_sqlite.GenSql,
 #                         'file', '.sl3', 'base spatialite générique'),
-#             'sql':DBDEF(database.DbConnect, database.GenSql, 'None', '', 'generique')
+#'sql':DBDEF(database.DbConnect, database.GenSql, 'None', '', 'generique')
 #            }
