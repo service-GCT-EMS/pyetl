@@ -6,10 +6,8 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
-
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from . import database
+from .database import DbConnect, DbGenSql
 
 TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
            "F":"F", "NUMBER":'F',
@@ -29,19 +27,14 @@ TYPES_G = {'POINT':'1', 'MULTILINESTRING':'2', 'MULTIPOLYGON':'3'}
 
 
 
-class SqltConnect(database.DbConnect):
+class SqltConnect(DbConnect):
     '''connecteur de la base de donnees oracle'''
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.type_serveur = 'sqlite'
         self.types_base.update(TYPES_A)
-        self.format_natif = '#ewkt'
-        self.geom_from_natif = geom_from_ewkt
-        self.geom_to_natif = ecrire_geom_ewkt
         self.idconnect = 'sqlite2:'+base
-        self.gensql = GenSql(self)
         self.connect()
         self.geographique = True
         self.valide = self.connection is not None
@@ -271,6 +264,9 @@ class SqltConnect(database.DbConnect):
 
 
 
-class GenSql(database.GenSql):
+class SqltGenSql(DbGenSql):
     """generateur sql"""
     pass
+
+DBDEF = {'sqlite':(SqltConnect, SqltGenSql, 'file', '.sqlite', '#ewkt', 'base sqlite basique')}
+

@@ -4,7 +4,7 @@
 import os
 import json
 
-from .interne.objet import Objet
+#from .interne.objet import Objet
 from .fileio import FileWriter
 
 
@@ -57,7 +57,7 @@ def lire_objets(self, rep, chemin, fichier):
     codec = regle_ref.get_param('codec_entree', "utf-8")
     entree = os.path.join(rep, chemin, fichier)
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
-
+    self.setident(chemin, stock_param.fichier_courant)
     with open(entree, "r", 65536, encoding=codec) as ouvert:
         for i in json.load(ouvert):
             if maxobj and n_obj > maxobj:
@@ -65,7 +65,8 @@ def lire_objets(self, rep, chemin, fichier):
             if not i:
                 continue # ligne vide
             n_obj += 1
-            obj = Objet(chemin, stock_param.fichier_courant, format_natif='geojson')
+            obj = self.getobj
+#            obj = Objet(chemin, stock_param.fichier_courant, format_natif='geojson')
             if n_obj % 100000 == 0:
                 print("formats :", fichier, "lecture_objets_json ", n_lin, n_obj)
             obj.from_geo_interface(i)

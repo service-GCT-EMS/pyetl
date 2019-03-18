@@ -112,16 +112,17 @@ class DbConnect(object):
         self.conflen = 62
 #        self.typenum = {'1':"POINT", '2':"LIGNE", '3':"POLYGONE",
 #                        '-1':"GEOMETRIE", '0':"ALPHA", 'indef':'ALPHA'}
+        self.geom_from_natif = None
+        self.geom_to_natif = None
         self.nombase = base
         self.type_serveur = 'generique'
-        self.idconnect = 'generique'
         self.accept_sql = 'non' # determine si la base accepte des requetes
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
         self.schemabase = None
 #        self.connect()
-        self.gensql = DbGenSql(self)
+        self.gensql = None
         self.rowcount = 0
         self.decile = 100000
         self.attlist = []
@@ -149,6 +150,11 @@ class DbConnect(object):
     def connect(self):
         '''retourne la connection a la base'''
         pass
+
+    @property
+    def idconnect(self):
+        '''identifiant de base : type + nom'''
+        return self.type_serveur+':'+self.base
 
     @property
     def req_tables(self):

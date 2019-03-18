@@ -24,8 +24,8 @@ def loadmodules():
                         print('attention : redefinition du format de sortie', nom)
                     geomlist[nom] = geomdef(*description)
 
-            except ImportError:
-                print('module', module, 'non disponible')
+            except ImportError as err:
+                print('module', module, 'non disponible', err)
 
     return geomlist
 

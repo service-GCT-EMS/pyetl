@@ -461,15 +461,16 @@ def ecrire_objets_txt(self, regle, final):
     '''format txt (csv sans entete) pour postgis'''
     return _ecrire_objets_csv(self, regle, final, False, '\t', '.txt')
 
-def lire_objets_txt(self, rep, chemin, fichier, tdr, regle, schema=None):
+def lire_objets_txt(self, rep, chemin, fichier):
     '''format sans entete le schema doit etre fourni par ailleurs'''
-    separ = tdr.get_param('separ_txt_in', tdr.get_param('separ_txt', '\t'))
+    separ = self.regle_ref.get_param('separ_txt_in', self.regle_ref.get_param('separ_txt', '\t'))
+    schema = self.regle_ref.stock_param.schemas.get(self.regle_ref.get_param('schema_entree'))
     if schema:
         geom = separ+"geometrie"+"\n" if schema.info["type_geom"] else "\n"
         entete = separ.join(schema.get_liste_attributs())+geom
     else:
         entete = []
-    return _lire_objets_csv(self, rep, chemin, fichier, tdr, regle, entete, separ=separ)
+    return _lire_objets_csv(self, rep, chemin, fichier, entete, separ=separ)
 
 def txtstreamer(self, obj, regle, final):
     '''format txt en straming'''

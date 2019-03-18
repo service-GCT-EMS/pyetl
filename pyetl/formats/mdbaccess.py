@@ -13,7 +13,7 @@ from collections import defaultdict
 
 import pyetl.formats.db as db
 from pyetl.schema.fonctions_schema import copyschema
-from .interne.objet import Objet
+#from .interne.objet import Objet
 
 
 DEBUG = False
@@ -339,11 +339,22 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
 #    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
-    if type_base and type_base not in db.DATABASES:
+    defmodeconf = 1
+    systables = stock_param.get_param("tables_systeme")
+    if not type_base:# on pioche dans les variables
+        base = stock_param.get_param("base_"+codebase, '')
+        serveur = stock_param.get_param("server_"+codebase, '')
+        type_base = stock_param.get_param("db_"+codebase, '')
+        if not base:
+            print('dbaccess: base non definie', codebase)
+            return None
+
+    if type_base not in db.DATABASES:
         print('type_base inconnu', type_base)
         return None
-    systables = stock_param.get_param("tables_systeme")
-    if type_base and db.DATABASES[type_base].svtyp == 'file':
+
+    dbdef = db.DATABASES[type_base]
+    if dbdef.svtyp == 'file':
 # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
 #       if stock_param.get_param("racine",''):
 #       serveur = os.path.join(stock_param.get_param("racine"), chemin)
@@ -351,25 +362,24 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         servertyp = type_base
         base = nombase
         print('filedb', servertyp, '-->', nombase)
-    else: # on pioche dans les variables
-        base = stock_param.get_param("base_"+codebase, '')
-        serveur = stock_param.get_param("server_"+codebase, '')
-        servertyp = stock_param.get_param("db_"+codebase, '')
-        if not base:
-            print('dbaccess: base non definie', codebase)
-            return None
+
     defmodeconf = stock_param.get_param("mode_enums_"+codebase, 1)
     user = stock_param.get_param("user_"+codebase, '')
     passwd = stock_param.get_param("passwd_"+codebase, '')
-    if servertyp not in db.DATABASES:
-        print('acces inconnu', nombase, base, serveur, servertyp)
-        return None
-    connection = db.DATABASES[servertyp].acces(serveur, base, user, passwd,
+
+    dbdef = db.DATABASES[servertyp]
+    connection = dbdef.acces(serveur, base, user, passwd,
                                                system=systables,
                                                params=stock_param, code=codebase)
 
     if connection.valide:
 #        print('connection valide', serveur)
+        connection.gensql = dbdef.gensql
+        connection.type_serveur = dbdef.svtyp
+        connection.geom_from_natif = dbdef.converter
+        connection.geom_to_natif = dbdef.geomwriter
+        connection.format_natif = dbdef.geom
+
         schema_base = stock_param.init_schema('#'+codebase, 'B',
                                               defmodeconf=defmodeconf)
         connection.schemabase = schema_base

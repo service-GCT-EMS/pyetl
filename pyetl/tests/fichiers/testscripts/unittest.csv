@@ -22,7 +22,7 @@ K:%tg%:batch;;;;;#classe;batch;;set;;;fin;;# objet pour les tests de schema
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
 &&#define;#atv2;nom;valeur;;;;;;;;# teste la valeur d un attribut
-%nom%;%valeur%;;;;;;retour;test ok:;noms;debug
+%nom%;%valeur%;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;

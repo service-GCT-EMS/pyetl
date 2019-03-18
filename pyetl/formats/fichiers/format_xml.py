@@ -4,7 +4,7 @@
 import os
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
-raise ImportError
+#raise ImportError
 #print ('osm start')
 #import pyetl.schema as SC
 
@@ -221,7 +221,7 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
             ressource.write(obj, numero)
 
 
-READERS = {'xml':(lire_objets_xml, 'geom_xml', False, ())}
+READERS = {'xml':(lire_objets_xml, '#gml', False, ())}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'xml':(ecrire_objets_xml, xml_streamer, False, '', 0, '', 'groupe',
-                  'geom_xml', 'geom_xml')}
+                  '#gml', '#gml')}

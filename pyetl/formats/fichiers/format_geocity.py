@@ -17,7 +17,7 @@ import math as M
 import os
 import logging
 from pyetl.schema.fonctions_schema import valide_dates
-from ..interne.objet import Objet
+#from ..interne.objet import Objet
 LOGGER = logging.getLogger('pyetl')
 
 
@@ -67,11 +67,12 @@ def coorderror(obj):
 
 
 
-def lire_objets_reseau(stock_param, iter_gy, reseau, chemin, regle):
+def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
     """ lit les elements de topologie reseau """
     total = 0
     debut = next(iter_gy)
     liste_obj = []
+    stock_param=regle.stock_param
     traite_objet = stock_param.moteur.traite_objet
     for courant in iter_gy:
         if courant == 'F':
@@ -81,8 +82,7 @@ def lire_objets_reseau(stock_param, iter_gy, reseau, chemin, regle):
             clef1, noeud1 = sens_reseau(courant)
 
             for rel in liste_obj:
-                obj = Objet(reseau, stock_param.fichier_courant,
-                            format_natif='gy') # cree un objet
+                obj = getobj(niveau=reseau, classe=stock_param.fichier_courant) # cree un objet
                 obj.attributs['_porteur'] = noeud1
                 obj.attributs['_relation_porteur'] = clef1
                 clef2, noeud2 = sens_reseau(rel)
@@ -314,22 +314,21 @@ def _cotation(iter_gy, obj):
 
 
 def lire_objets_geocity(self, rep, chemin, fichier):
-    '''boucle de lecture principale'''
+    '''boucle de lecture principale -> attention methode de reader'''
     n_obj = 0
     #ouv = None
     regle = self.regle_start
-    stock_param = self.regle.stock_param
     couleur = '1'
     courbe = 0
-    traite_objet = stock_param.moteur.traite_objet
+    traite_objet = self.regle_ref.stock_param.moteur.traite_objet
 
-    maxobj = self.regle.getvar('lire_maxi', 0)
+    maxobj = self.regle_ref.getvar('lire_maxi', 0)
+    codec = self.regle_ref.getvar('codec_entree', 'utf8')
 
-    codec = self.regle.getvar('codec_entree', 'utf8')
     entree = os.path.join(rep, chemin, fichier)
 #    stock_param.racine = rep
     fichier_courant = os.path.splitext(fichier)[0]
-    stock_param.fichier_courant = fichier_courant
+    self.fichier_courant = fichier_courant
     obj = None
     with open(entree, "r", 65536, encoding=codec) as ouvert:
         try:
@@ -350,17 +349,18 @@ def lire_objets_geocity(self, rep, chemin, fichier):
         consomme(iter_gy, 1)
         reseau = next(iter_gy)
         if reseau != "IGN69": # on est en presence d'un fichier de description reseau
-            n_obj += lire_objets_reseau(stock_param, iter_gy, reseau, chemin, regle)
+            n_obj += lire_objets_reseau(iter_gy, reseau, chemin, regle, self.getobj)
             return n_obj
 
         consomme(iter_gy, 9)
 
         niveau = next(iter_gy)
         classe = next(iter_gy)
+        self.setident(niveau, classe)
         # on cree les schemas qui vont bien
-        if base not in stock_param.schemas:
-            stock_param.init_schema(base)
-        schema_courant = stock_param.schemas[base]
+        if base not in self.schemas:
+            self.init_schema(base)
+        schema_courant = self.schemas[base]
 
         classe_courante = schema_courant.def_classe((niveau, classe))
 #        print ('classe_courante', classe_courante)
@@ -377,7 +377,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     obj_ouvert = 1
                     mode = "N"
                     n_obj += 1
-                    obj = Objet(niveau, classe, format_natif='gy')
+                    obj = self.getobj()
                     obj.setschema(classe_courante)
                     obj.attributs.update((('#fichier', fichier_courant), ('#chemin', chemin)))
                     obj.setorig(n_obj)
@@ -496,7 +496,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                 elif val == 'S' or val == "PA" or val == "CO" or val == 'E':
                     # spline : on rale et on traite comme une polyligne
                     print("attention spline ou autre horreur detectee :"+val+" "+
-                          niveau, classe+":"+"|".join(obj.attributs.values()))
+                          self.niveau, self.classe+":"+"|".join(obj.attributs.values()))
                     couleur = '1'
                     courbe = 0
                 elif val == 'PL':
@@ -543,7 +543,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         # lecture de coordonnees
 
                 else:
-                    print("code inconnu " + val+ " " + niveau, classe)
+                    print("code inconnu " + val+ " " + self.niveau, self.classe)
                     obj.debug('valeurs')
         except AttributeError:
             print('ereur lecture fichier', fichier)

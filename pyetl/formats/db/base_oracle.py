@@ -7,19 +7,13 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees
 """
 import os
-try:
-    os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-    import cx_Oracle
-    VALIDE = True
+os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
+import cx_Oracle
 
-except ImportError:
-    VALIDE = False
-
-
-from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
+#from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from . import database
+from .database import DbConnect, DbGenSql
 
 TYPES_A = {'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",
            "NUMBER":'N', "DOUBLE PRECISION":"F", "NUMERIC":"N", "FLOAT":"F",
@@ -37,7 +31,7 @@ TYPES_A = {'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",
 
 
 
-class OraConnect(database.DbConnect):
+class OraConnect(DbConnect):
     '''connecteur de la base de donnees oracle'''
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
@@ -46,12 +40,7 @@ class OraConnect(database.DbConnect):
 #        self.connection, errdef = dbaccess(self.serveur, self.base, self.user, self.passwd)
         self.connect()
 #        self.errdef = errdef
-        self.type_serveur = 'oracle'
         self.types_base.update(TYPES_A)
-        self.format_natif = '#ewkt'
-        self.geom_from_natif = geom_from_ewkt
-        self.geom_to_natif = ecrire_geom_ewkt
-        self.idconnect = 'oracle'
         self.accept_sql = 'alpha'
         self.dateformat = 'YYYY/MM/DD HH24:MI:SS'
         self.valide = self.connection is not None
@@ -59,10 +48,6 @@ class OraConnect(database.DbConnect):
 
     def connect(self):
         '''ouvre l'acces a la base de donnees et lit le schema'''
-        if not VALIDE:
-            print("error: oracle: erreur import: module Cx_oracle non accessible")
-            return
-#        self.codes_erreur = cx_Oracle.Error
 
         print('info:oracle: connection ', self.serveur, self.base,
               self.user, '*'*len(self.passwd))
@@ -70,8 +55,8 @@ class OraConnect(database.DbConnect):
             connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
-        except cx_Oracle.Error:
-            print('error: oracle: utilisateur ou mot de passe errone sur la base ')
+        except cx_Oracle.Error as err:
+            print('error: oracle: utilisateur ou mot de passe errone sur la base ', err)
 
     @property
     def req_enums(self):
@@ -352,6 +337,9 @@ class OraConnect(database.DbConnect):
 
 
 
-class GenSql(database.GenSql):
+class OraGenSql(DbGenSql):
     '''creation des sql de modif de la base'''
     pass
+
+
+DBDEF = {'oracle':(OraConnect, OraGenSql, 'server', '', '', 'base oracle standard')}

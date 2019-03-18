@@ -18,9 +18,6 @@ class SglConnect(PgsConnect):
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.gensql = SglGenSql(self)
-        self.idconnect = 'sigli:'+base
-        self.type_base = 'sigli'
         self.sys_cre = 'date_creation'
         self.sys_mod = 'date_maj'
         self.dialecte = 'sigli'

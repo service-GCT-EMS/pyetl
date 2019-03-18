@@ -28,17 +28,20 @@ wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
 # assemblage avec les geometries
 for nom in WRITERS:
     tmp = WRITERS[nom]
-    WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer)
+    if tmp.geom:
+        WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer)
 #    print ('writer', nom , 'geom', WRITERS[nom].geom, WRITERS[nom].geomwriter)
 
 for nom in READERS:
     tmp = READERS[nom]
-    READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
+    if tmp.geom:
+        READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
 
 for nom in DATABASES:
     tmp = DATABASES[nom]
-    DATABASES[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter,
-                                  geomwriter=GEOMDEF[tmp.geom].writer)
+    if tmp.geom:
+        DATABASES[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter,
+                                      geomwriter=GEOMDEF[tmp.geom].writer)
 
 
 class Reader(object):
@@ -63,6 +66,7 @@ class Reader(object):
         stock_param = regle_start.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
+        self.nb_lus = 0
 #        self.lire_objets = None
         self.groupe = ''
         self.classe = ''
@@ -105,9 +109,10 @@ class Reader(object):
         self.classe = classe
 
 
-    def getobj(self): # cree un objet
+    def getobj(self, niveau=None, classe=None): # cree un objet
         """retourne un objet neuf a envoyer dans le circuit"""
-        return Objet(self.groupe, self.classe, format_natif=self.format_natif,
+        self.nb_lus += 1
+        return Objet(niveau or self.groupe, classe or self.classe, format_natif=self.format_natif,
                      conversion=self.converter)
 
 

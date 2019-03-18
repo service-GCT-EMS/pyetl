@@ -8,7 +8,6 @@ acces a la base de donnees
 import os
 #import sys
 import pyodbc as odbc
-from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -37,21 +36,16 @@ class AccConnect(DbConnect):
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.type_serveur = 'file_ms_access'
-
         self.types_base = TYPES_A
 #        print ('connection base access', serveur,base, user, passwd )
         self.dbaccess()
 #        if self.connection is None:
 #            self.connection = dbaccess2(chembase, user, passwd)
-        self.format_natif = ''
-        self.geom_from_natif = geom_from_ewkt
-        self.geom_to_natif = ecrire_geom_ewkt
+
         self.nombase = os.path.splitext(os.path.basename(base))[0]
         self.valide = self.connection is not None
         self.tables = set()
         self.set_tablelist()
-        self.gensql = GenSql(self)
 
 
 
@@ -285,3 +279,7 @@ class AccConnect(DbConnect):
 class AccGenSql(DbGenSql):
     '''generateur sql de creation de base'''
     pass
+
+
+DBDEF = {'ms_access':(AccConnect, AccGenSql, 'file', '.accdb', '', 'base access apres 2007'),
+         'ms_access_old':(AccConnect, AccGenSql, 'file', '.mdb', '', 'base access avant 2007')}

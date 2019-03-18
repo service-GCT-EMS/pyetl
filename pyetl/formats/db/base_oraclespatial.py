@@ -7,21 +7,19 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees
 """
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from . import oracle
+from .base_oracle import OraConnect, OraGenSql
 
 TYPES_A = {"SDO_GEOMETRY":'GEOMETRIE'
           }
 
 
-class OraConnect(oracle.OraConnect):
+class OrwConnect(OraConnect):
     '''connecteur de la base de donnees oracle'''
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.type_serveur = 'oracle_spatial'
         self.types_base.update(TYPES_A)
-        self.idconnect = 'oracle_spatial'
         self.accept_sql = 'geo'
 
     @property
@@ -208,6 +206,9 @@ class OraConnect(oracle.OraConnect):
         return cond
 
 
-class GenSql(oracle.GenSql):
+class OrwGenSql(OraGenSql):
     '''creation des sql de modif de la base'''
     pass
+
+
+DBDEF = {'oracle_spatial_ewkt':(OrwConnect, OrwGenSql, 'server', '', '#ewkt', 'base oracle spatial (format ewkt)')}

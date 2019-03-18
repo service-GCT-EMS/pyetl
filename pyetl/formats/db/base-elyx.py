@@ -20,7 +20,7 @@ class ElyConnect(ora.OraConnect):
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.idconnect = 'elyx'
+        self.idconnect = 'elyx:'+base
         self.confs = dict()
         self.compos_id = dict()
         self.tables = dict()

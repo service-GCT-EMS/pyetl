@@ -16,7 +16,7 @@ $#%acces%;;;;;;;;;;;
 ;;;;erreurs;;#erreurs;set;;;;
 ;;;;#groupe;test1;;set;;;fin;
 ;;;;#schema;asc;;sortir+;asc;;fin;
-;;;;#schema;json;;sortir+;geojson;;fin;
+;;;;#schema;json;;sortir+;json;;fin;
 ;;;;#schema;txt;;sortir+;txt;;fin;
 ;;;;#schema;cpt;;sortir+;#comptage;;fin;
 #type_geom;N: >0;;;#schema;shp;;sortir+;shp;;fin;

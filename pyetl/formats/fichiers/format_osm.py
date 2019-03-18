@@ -7,7 +7,7 @@ import time
 import xml.etree.cElementTree as ET
 
 from pyetl.schema.fonctions_schema import copyschema
-from .interne.objet import Objet
+#from .interne.objet import Objet
 #from .formats import Reader
 
 #print ('osm start')
@@ -25,6 +25,7 @@ class DecodeConfigOsm(object):
         self.static = []
         self.schema = None
         self.geom = vals[2]
+        self.reader = None
         if vals[0] == '*':
             self.getident = self.decode_defaut
             self.liste_classes = None
@@ -132,7 +133,9 @@ class DecodeConfigOsm(object):
         idref = ident
         if manquants: # on separe les objets incomplets
             ident = ("osm_incomplet", ident[1])
-        obj = Objet(*ident, format_natif='osm', conversion=geom_from_osm)
+        self.reader.setident(*ident)
+        obj = self.reader.getobj()
+#        obj = Objet(*ident, format_natif='osm', conversion=geom_from_osm)
         obj.geom = geom
         obj.attributs['#type_geom'] = type_geom
 
@@ -151,42 +154,47 @@ class DecodeConfigOsm(object):
         return obj
 
 
-def init_osm(mapper=None):
+def init_osm(reader, config_osm, schema):
     """initialisation de la config osm"""
-    config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm2.csv')
-    config_osm = mapper.get_var('config_osm',
-                                config_osm_def)if mapper is not None else config_osm_def
+#    config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm2.csv')
+#    config_osm = mapper.get_var('config_osm',
+#                                config_osm_def)if mapper is not None else config_osm_def
 #    print('fichier osm ', config_osm)
 
 #    CONFIGFILE = os.path.join(os.path.dirname(__file__), config_osm)
+    grouplist = dict()
+    decodage = {'1':[], '2':[], '3':[]}
+
     for conf in open(config_osm, 'r').readlines():
         chaine = conf.strip()
         if chaine and chaine[0] != '!':
             valeurs = [j.strip() for j in chaine.split(';')]
             if valeurs[0][0] == '{': # c'est une definton de groupe
                 nom_groupe = valeurs[0].replace('{', '').replace('}', '')
-                if nom_groupe not in GROUPLIST:
-                    GROUPLIST[nom_groupe] = dict()
-                groupe = GROUPLIST[nom_groupe]
+                if nom_groupe not in grouplist:
+                    grouplist[nom_groupe] = dict()
+                groupe = grouplist[nom_groupe]
                 groupe[valeurs[1]] = (valeurs[2], valeurs[3], valeurs[4])
             else: # c'est une definition standard
                 geoms = [j for j in valeurs[2].split(',')] if valeurs[2] else None
                 if geoms:
                     for i in geoms:
                         valeurs[2] = i
-                        DECODAGE[i].append(DecodeConfigOsm(valeurs))
+                        decodage[i].append(DecodeConfigOsm(valeurs))
                 else:
-                    for i in DECODAGE:
+                    for i in decodage:
                         valeurs[2] = str(i)
-                        DECODAGE[i].append(DecodeConfigOsm(valeurs))
-    for i in DECODAGE:
+                        decodage[i].append(DecodeConfigOsm(valeurs))
+    for i in decodage:
     #    DECODAGE[ii].append(Decodeconfig(['*', '', str(ii)]))
-        for conf in DECODAGE[i]:
-            conf.setliste(GROUPLIST)
+        for conf in decodage[i]:
+            conf.setliste(grouplist)
+            conf.initschema(schema)
+            conf.reader = reader
 
-GROUPLIST = dict()
-DECODAGE = {'1':[], '2':[], '3':[]}
-init_osm()
+    return decodage
+
+#init_osm()
 
 
 #########################################################################
@@ -301,10 +309,10 @@ def geom_from_osm(obj):
     return True
 
 
-def _classif_osm(tagdict, geom, type_geom, manquants, ido):
+def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
     ''' applique les regles de classification a l'objet '''
 #    print (' dans classif osm ')
-    for decodeur in DECODAGE[type_geom]:
+    for decodeur in reader.decodage[type_geom]:
         obj = decodeur.decode_objet(tagdict, geom, type_geom, manquants)
         if obj:
             tags = ", ".join(['"'+i+'" => "'+tagdict[i].replace('"', r'\"')+'"'
@@ -317,11 +325,7 @@ def _classif_osm(tagdict, geom, type_geom, manquants, ido):
     print('classif osm : pas de categorie', str(tagdict).encode('ascii', 'ignore'))
     return None
 
-def init_schema_osm(schema):
-    '''enregistre le nom du schema'''
-    for i in DECODAGE:
-        for decodeur in DECODAGE[i]:
-            decodeur.init_schema(schema)
+
 
 def classif_elem(elem, points, lignes, objets):
     ''' classifie un element '''
@@ -365,15 +369,19 @@ def classif_elem(elem, points, lignes, objets):
 
 def lire_objets_osm(self, rep, chemin, fichier):
     '''lit des objets a partir d'un fichier xml osm'''
-    regle_ref = self.regle if self.regle else self.regle_start
-    stock_param = regle_ref.stock_param
+    stock_param = self.regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0
     nobj = 0
+    config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm2.csv')
+    config_osm = stock_param.get_var('config_osm', config_osm_def)
+
 #    regle = stock_param.regles[0]
     nomschema = os.path.splitext(fichier)[0]
-    init_schema_osm(stock_param.init_schema(nomschema, 'F'))
+    schema = stock_param.init_schema(nomschema, 'F')
+    self.decodage = init_osm(self, config_osm, schema)
 #    ignore = {'tag':1, 'nd':1, 'member':1}
+
     points = dict()
     lignes = dict()
     objets = dict()
@@ -390,7 +398,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
         if ido == -1:
             continue
         if type_geom != '0': # analyse des objets et mise en categorie
-            obj = _classif_osm(attributs, geom, type_geom, manquants, ido)
+            obj = _classif_osm(self, attributs, geom, type_geom, manquants, ido)
             if obj:
                 nobj += 1
                 obj.setorig(nobj)
@@ -403,78 +411,78 @@ def lire_objets_osm(self, rep, chemin, fichier):
 
 
 
-class OsmReader(object):
-    '''classe de lecture du format osm'''
-    def __init__(self, stock_param):
-        config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm.csv')
-        config_osm = stock_param.get_var('config_osm', config_osm_def)
-        self.grouplist = dict()
-        self.decodage = {'1':[], '2':[], '3':[]}
-        self.stock_param = stock_param
-        self.chargeconfig(config_osm)
+#class OsmReader(object):
+#    '''classe de lecture du format osm'''
+#    def __init__(self, stock_param):
+#        config_osm_def = os.path.join(os.path.dirname(__file__), 'config_osm.csv')
+#        config_osm = stock_param.get_var('config_osm', config_osm_def)
+#        self.grouplist = dict()
+#        self.decodage = {'1':[], '2':[], '3':[]}
+#        self.stock_param = stock_param
+#        self.chargeconfig(config_osm)
+#
+#
+#    def chargeconfig(self, config_osm):
+#        '''charge un fichier de config osm'''
+#        for conf in open(config_osm, 'r').readlines():
+#            chaine = conf.strip()
+#            if chaine and chaine[0] != '!':
+#                valeurs = [j.strip() for j in chaine.split(';')]
+#                if valeurs[0][0] == '{': # c'est une definton de groupe
+#                    nom_groupe = valeurs[0].replace('{', '').replace('}', '')
+#                    if nom_groupe not in self.grouplist:
+#                        self.grouplist[nom_groupe] = dict()
+#                    groupe = self.grouplist[nom_groupe]
+#                    groupe[valeurs[1]] = (valeurs[2], valeurs[3], valeurs[4])
+#                else: # c'est une definition standard
+#                    geoms = [j for j in valeurs[2].split(',')] if valeurs[2] else None
+#                    if geoms:
+#                        for i in geoms:
+#                            valeurs[2] = i
+#                            self.decodage[i].append(DecodeConfigOsm(valeurs))
+#                    else:
+#                        for i in self.decodage:
+#                            valeurs[2] = str(i)
+#                            self.decodage[i].append(DecodeConfigOsm(valeurs))
+#        for i in self.decodage:
+#        #    DECODAGE[ii].append(Decodeconfig(['*', '', str(ii)]))
+#            for conf in self.decodage[i]:
+#                conf.setliste(self.grouplist)
+#
+#    def read(self, rep, chemin, fichier, regle):
+#        '''lit des objets a partir d'un fichier xml osm'''
+#        dd0 = time.time()
+#        nlignes = 0
+#        nobj = 0
+#    #    regle = stock_param.regles[0]
+#        nomschema = os.path.splitext(fichier)[0]
+##        init_schema_osm(self.stock_param.init_schema(nomschema, 'F'))
+#    #    ignore = {'tag':1, 'nd':1, 'member':1}
+#        points = dict()
+#        lignes = dict()
+#        objets = dict()
+#        prn = 1000000
+#        aff = prn
+#        for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
+#            nlignes += 1
+#            if nlignes == aff:
+#                print('osm: lignes lues', nlignes, 'objets:', nobj, 'en', int(time.time()-dd0),
+#                      's (', int(nobj/(time.time()-dd0)), ')o/s')
+#                aff += prn
+#
+#            ido, attributs, geom, type_geom, manquants = classif_elem(elem, points, lignes, objets)
+#            if ido == -1:
+#                continue
+#            if type_geom != '0': # analyse des objets et mise en categorie
+#                obj = _classif_osm(attributs, geom, type_geom, manquants, ido)
+#                if obj:
+#                    nobj += 1
+#                    obj.setorig(nobj)
+#                    obj.attributs["#chemin"] = chemin
+#                    self.stock_param.moteur.traite_objet(obj, regle) # on traite le dernier objet
+#            elem.clear()
+#
+#        return nobj
 
-
-    def chargeconfig(self, config_osm):
-        '''charge un fichier de config osm'''
-        for conf in open(config_osm, 'r').readlines():
-            chaine = conf.strip()
-            if chaine and chaine[0] != '!':
-                valeurs = [j.strip() for j in chaine.split(';')]
-                if valeurs[0][0] == '{': # c'est une definton de groupe
-                    nom_groupe = valeurs[0].replace('{', '').replace('}', '')
-                    if nom_groupe not in self.grouplist:
-                        self.grouplist[nom_groupe] = dict()
-                    groupe = self.grouplist[nom_groupe]
-                    groupe[valeurs[1]] = (valeurs[2], valeurs[3], valeurs[4])
-                else: # c'est une definition standard
-                    geoms = [j for j in valeurs[2].split(',')] if valeurs[2] else None
-                    if geoms:
-                        for i in geoms:
-                            valeurs[2] = i
-                            self.decodage[i].append(DecodeConfigOsm(valeurs))
-                    else:
-                        for i in self.decodage:
-                            valeurs[2] = str(i)
-                            self.decodage[i].append(DecodeConfigOsm(valeurs))
-        for i in self.decodage:
-        #    DECODAGE[ii].append(Decodeconfig(['*', '', str(ii)]))
-            for conf in self.decodage[i]:
-                conf.setliste(self.grouplist)
-
-    def read(self, rep, chemin, fichier, regle):
-        '''lit des objets a partir d'un fichier xml osm'''
-        dd0 = time.time()
-        nlignes = 0
-        nobj = 0
-    #    regle = stock_param.regles[0]
-        nomschema = os.path.splitext(fichier)[0]
-        init_schema_osm(self.stock_param.init_schema(nomschema, 'F'))
-    #    ignore = {'tag':1, 'nd':1, 'member':1}
-        points = dict()
-        lignes = dict()
-        objets = dict()
-        prn = 1000000
-        aff = prn
-        for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
-            nlignes += 1
-            if nlignes == aff:
-                print('osm: lignes lues', nlignes, 'objets:', nobj, 'en', int(time.time()-dd0),
-                      's (', int(nobj/(time.time()-dd0)), ')o/s')
-                aff += prn
-
-            ido, attributs, geom, type_geom, manquants = classif_elem(elem, points, lignes, objets)
-            if ido == -1:
-                continue
-            if type_geom != '0': # analyse des objets et mise en categorie
-                obj = _classif_osm(attributs, geom, type_geom, manquants, ido)
-                if obj:
-                    nobj += 1
-                    obj.setorig(nobj)
-                    obj.attributs["#chemin"] = chemin
-                    self.stock_param.moteur.traite_objet(obj, regle) # on traite le dernier objet
-            elem.clear()
-
-        return nobj
-
-READERS = {'osm':(lire_objets_osm, geom_from_osm, True, ())}
+READERS = {'osm':(lire_objets_osm, '', True, ())}
 WRITERS = {}

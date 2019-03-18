@@ -154,8 +154,8 @@ def lire_objets(self, rep, chemin, fichier):
             schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
             schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe), source.schema)
-            self.classe = classe
-            self.groupe = groupe
+
+            self.setident(groupe, classe)
 #            print('fiona:', classe, 'schema.type_geom',
 #                  schemaclasse.info["type_geom"], 'mg:', schemaclasse.multigeom)
             driver = source.driver

@@ -12,8 +12,7 @@
 import os
 #from numba import jit
 from openpyxl import load_workbook
-from ..interne.objet import Objet
-from ..fileio import FileWriter
+from .fileio import FileWriter
 
 
 
@@ -102,7 +101,7 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 
 
 
-def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
+def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
     '''lit des objets a partir d'un fichier csv'''
     if separ is None:
         separ = stock_param.get_param('separ_csv_in', stock_param.get_param('separ_csv', ';'))
@@ -125,9 +124,10 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
         controle = len(noms_attributs)
         nbwarn = 0
         nlignes = 0
+        self.setident(nom_groupe, nom_classe)
         for i in fich:
             nlignes = nlignes+1
-            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=geom_from_ewkt)
+            obj = self.getobj()
             obj.setschema(schemaclasse)
             obj.setorig(nlignes)
             val_attributs = [j.strip() for j in i[:-1].split(separ)]
@@ -157,7 +157,7 @@ def lire_objets_csv(rep, chemin, fichier, stock_param, regle, entete=None, separ
             print(nbwarn, "lignes avec un nombre d'attributs incorrect")
     return nlignes
 
-class CsvWriter(FileWriter):
+class XlsxWriter(FileWriter):
     """ gestionnaire des fichiers csv en sortie """
     def __init__(self, nom, schema, extension, separ, entete, encoding='utf-8',
                  liste_fich=None, null='', f_sortie=None):
@@ -210,37 +210,10 @@ class CsvWriter(FileWriter):
 #                obj.geomnatif, obj.type_geom)
 #        print ('orig',obj.attributs)
         attributs = self.separ.join((i if i else self.null for i in atlist))
-        if self.type_geom != '0':
-            if obj.format_natif == "#ewkt" and obj.geomnatif: # on a pas change la geometrie
-                geom = obj.geom[0] if obj.geom else self.null# on recupere la geometrie native
-#                print("sortie ewkt geom0",len(geom))
-            else:
-                if obj.initgeom():
-                    geom = ecrire_geom_ewkt(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
-                else:
-                    if not obj.geom and self.type_geom == '-1':
-                        geom = ''
-                    else:
-                        print('csv: geometrie invalide : erreur geometrique',
-                              obj.ident, obj.numobj, 'demandé:', self.type_geom,
-                              obj.geom_v.erreurs.errs, obj.attributs['#type_geom'],
-                              self.schema.info["type_geom"], obj.geom)
-                        geom = ""
 
-                obj.format_natif = "#ewkt"
-                obj.geom = geom
-                obj.geomnatif = True
-                if obj.erreurs and obj.erreurs.actif == 2:
-                    print('error: writer csv :', obj.ident, obj.ido, 'erreur geometrique: type',
-                          obj.attributs['#type_geom'], 'demandé:',
-                          obj.schema.info["type_geom"], obj.erreurs.errs)
-                    return False
-#            print ('prep ligne ', attributs,'G:', geom)
-            if not geom:
-                geom = self.null
-            ligne = attributs+self.separ+geom
-        else:
-            ligne = attributs
+
+        ligne = attributs
+
         if self.writerparms.get('nodata'):
             return False
 
@@ -320,9 +293,9 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
 
 
-def csvstreamer(obj, regle, _, entete='csv', separ=None,
+def excel_streamer(obj, regle, _, entete='csv', separ=None,
                 extention='.csv', null='',
-                writer=CsvWriter): #ecritures non bufferisees
+                writer=XlsxWriter): #ecritures non bufferisees
     ''' ecrit des objets csv en streaming'''
 #    sorties = regle.stock_param.sorties
     if regle.dident == obj.ident:
@@ -336,9 +309,9 @@ def csvstreamer(obj, regle, _, entete='csv', separ=None,
 #        obj.schema.info['courbe'] = '1'
 
 
-def ecrire_objets_csv(regle, _, entete='csv', separ=None,
+def ecrire_objets_excel(regle, _, entete='csv', separ=None,
                       extention='.csv', null='',
-                      writer=CsvWriter):
+                      writer=XlsxWriter):
     ''' ecrit des objets csv a partir du stockage interne'''
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
@@ -361,3 +334,9 @@ def ecrire_objets_csv(regle, _, entete='csv', separ=None,
 #            if obj.geom_v.courbe:
 #                obj.schema.info['courbe'] = '1'
     return
+
+
+READERS = {'xlsx':(lire_objets_excel, '', False, ())}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+WRITERS = {'xlsx':(ecrire_objets_excel, excel_streamer, False, '', 0, '', 'groupe',
+                  '', '')}

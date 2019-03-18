@@ -92,16 +92,10 @@ class PgrConnect(DbConnect):
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
-        self.type_serveur = 'postgres'
-        self.idconnect = 'postgres:'+base
         self.types_base.update(TYPES_A)
-        self.format_natif = ''
-        self.geom_from_natif = None
-        self.geom_to_natif = None
         self.types_pg = TYPES_PG
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
-        self.gensql = PgrGenSql(self)
         self.rowcount = 0
         self.codecinfo = {'utf-8':'UTF8', 'cp1252':'WIN1252'}
         self.load_helper = 'prog_pgsql'

@@ -6,9 +6,8 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 #from . import database
-from . import base_sqlite
+from .base_sqlite import SqltConnect, SqltGenSql
 
 TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
            "F":"F", "NUMBER":'F',
@@ -22,20 +21,13 @@ TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
 
 TYPES_G = {'POINT':'1', 'MULTILINESTRING':'2', 'MULTIPOLYGON':'3'}
 
-class SqltConnect(base_sqlite.SqltConnect):
+class SqlmConnect(SqltConnect):
     '''connecteur de la base de donnees oracle'''
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.type_serveur = 'sqlite_mem'
         self.types_base.update(TYPES_A)
-        self.format_natif = '#ewkt'
-        self.geom_from_natif = geom_from_ewkt
-        self.geom_to_natif = ecrire_geom_ewkt
-        self.idconnect = 'sqlite_mem:'+base
-        self.gensql = GenSql(self)
-        self.connection = None
         self.connect()
         self.valide = self.connection is not None
 #        self.encoding =
@@ -216,6 +208,9 @@ class SqltConnect(base_sqlite.SqltConnect):
         cur.cursor.close()
         return
 
-class GenSql(base_sqlite.GenSql):
+class SqlmGenSql(SqltGenSql):
     """generateur sql"""
     pass
+
+
+DBDEF = {'mem_sqlite':(SqlmConnect, SqlmGenSql, 'server', '', '#ewkt', 'base sqlite en memoire')}

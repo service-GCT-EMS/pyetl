@@ -67,15 +67,9 @@ class PgsConnect(PgrConnect):
                  params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
 
-        self.type_serveur = 'postgis'
-        self.idconnect = 'postgis'
-        self.format_natif = '#ewkt'
-        self.geom_from_natif = geom_from_ewkt
-        self.geom_to_natif = ecrire_geom_ewkt
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
         self.accept_sql = 'geo'
-        self.gensql = PgsGenSql(self)
         self.geographique = True
         self.rowcount = 0
         self.dialecte = 'postgis'

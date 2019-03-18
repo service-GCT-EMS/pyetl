@@ -34,8 +34,8 @@ def loadmodules():
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
                     readers[nom] = rdef(*desc, None)
-            except (ImportError, AttributeError):
-                print('module ', module[1:], 'non disponible')
+            except (ImportError, AttributeError) as err:
+                print('module ', module[1:], 'non disponible', err)
 
     return readers, writers
 
