@@ -13,7 +13,7 @@ from collections import defaultdict
 
 import pyetl.formats.db as db
 from pyetl.schema.fonctions_schema import copyschema
-#from .interne.objet import Objet
+from .interne.objet import Objet
 
 
 DEBUG = False
@@ -359,15 +359,15 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
 #       if stock_param.get_param("racine",''):
 #       serveur = os.path.join(stock_param.get_param("racine"), chemin)
         serveur = ''
-        servertyp = type_base
+#        servertyp = type_base
         base = nombase
-        print('filedb', servertyp, '-->', nombase)
+        print('filedb', type_base, '-->', nombase)
 
     defmodeconf = stock_param.get_param("mode_enums_"+codebase, 1)
     user = stock_param.get_param("user_"+codebase, '')
     passwd = stock_param.get_param("passwd_"+codebase, '')
 
-    dbdef = db.DATABASES[servertyp]
+    dbdef = db.DATABASES[type_base]
     connection = dbdef.acces(serveur, base, user, passwd,
                                                system=systables,
                                                params=stock_param, code=codebase)

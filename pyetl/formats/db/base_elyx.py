@@ -9,13 +9,13 @@ import os
 import subprocess
 import tempfile
 import time
-from  . import oraclespatial as ora
+from . import base_oraclespatial as ora
 #from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
 #from ..xml import XmlWriter
 
 
 
-class ElyConnect(ora.OraConnect):
+class ElyConnect(ora.OrwConnect):
     '''connecteur de la base de donnees oracle'''
     def __init__(self, serveur, base, user, passwd, debug=0, system=False,
                  params=None, code=None):
@@ -922,6 +922,9 @@ class ElyConnect(ora.OraConnect):
 
 
 
-class GenSql(ora.GenSql):
+class ElyGenSql(ora.OrwGenSql):
     '''generation d'ordres sql directs'''
     pass
+
+
+DBDEF = {'elyx':(ElyConnect, ElyGenSql, 'server', '', '', 'base elyx sur oracle')}

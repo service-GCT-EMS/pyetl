@@ -568,7 +568,10 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
         return regle
 
     if regle.debug:
-        print("---------debug ligne--->", regle.numero, regle.ligne)
+        if 'print' in regle.v_nommees['debug']:
+            print("---------affich ligne--->", regle.numero, regle.ligne)
+        else:
+            print("---------debug ligne--->", regle.numero, regle.ligne)
         regle.f_init = regle.fonc
         regle.fonc = fdebug
 

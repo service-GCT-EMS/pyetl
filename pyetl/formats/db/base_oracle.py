@@ -8,7 +8,7 @@ acces a la base de donnees
 """
 import os
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-import cx_Oracle
+from cx_Oracle import connect as oraconnect, Error as OraError
 
 #from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -52,10 +52,10 @@ class OraConnect(DbConnect):
         print('info:oracle: connection ', self.serveur, self.base,
               self.user, '*'*len(self.passwd))
         try:
-            connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
+            connection = oraconnect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
-        except cx_Oracle.Error as err:
+        except OraError as err:
             print('error: oracle: utilisateur ou mot de passe errone sur la base ', err)
 
     @property
@@ -275,7 +275,7 @@ class OraConnect(DbConnect):
         try:
             cur.execute(requete, data, attlist=attlist)
             return cur
-        except cx_Oracle.Error as errs:
+        except OraError as errs:
             cursor = cur.cursor
             error, = errs.args
             print('error: oracle: erreur acces base ', self.base, self.connection)
@@ -314,8 +314,8 @@ class OraConnect(DbConnect):
                 try:
                     elem = cur.fetchone()
     #                raise
-                except cx_Oracle.Error:
-                    print("erreur "+self.base)
+                except OraError as err:
+                    print("erreur "+self.base, err)
     #                raise
                     continue
                 if elem is None:

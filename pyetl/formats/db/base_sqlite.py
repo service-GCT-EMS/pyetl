@@ -8,6 +8,7 @@ acces a la base de donnees
 import sys
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
+import sqlite3
 
 TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
            "F":"F", "NUMBER":'F',
@@ -43,18 +44,12 @@ class SqltConnect(DbConnect):
     def connect(self):
         '''ouvre l'acces a la base de donnees et lit le schema'''
 
-        try:
-            import sqlite3
-            self.errs = sqlite3.DatabaseError
-    #        import pyodbc as odbc
-        except ImportError:
-            print("error: sqlite: erreur import: module sqlite non accessible")
-            return None
 
+    #        import pyodbc as odbc
         print('info : dbacces:connection sqlite', self.user, '****', self.base)
         try:
             self.connection = sqlite3.connect(self.base)
-        except self.errs as err:
+        except sqlite3.Error as err:
             print('error: sqlite: utilisateur ou mot de passe errone sur la base sqlite', self.base)
             print('error: sqlite: ', err)
             sys.exit(1)

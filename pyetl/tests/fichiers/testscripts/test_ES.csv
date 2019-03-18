@@ -7,10 +7,11 @@ $_sortie=test/test_es;;;;;;;;;
 $fanout=classe;;;;;;;;
 $#%acces%;;;;;;;;;;;
 ;;;;;;;pass;;;;
-;;;;;;;call;#obj;,2;
+<#obj;;1;
+;;;;;;;call;#obj;,2;debug
 -:;;;;;;;call;#obj;point,2;
--:;;;;;;;call;#obj;ligne,2;
--:;;;;;;;call;#obj;poly,2;
+!-:;;;;;;;call;#obj;ligne,2;
+!-:;;;;;;;call;#obj;poly,2;
 ;;;;;;;pass;;;print;
 ;;;;type_geom;;#type_geom;set;;;;
 ;;;;erreurs;;#erreurs;set;;;;
