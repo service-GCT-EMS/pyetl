@@ -137,6 +137,7 @@ def lire_objets(self, rep, chemin, fichier):
 #    raise
     #ouv = None
     stock_param = self.regle_ref.stock_param
+    traite_objet = stock_param.moteur.traite_objet
     obj = None
     classe = os.path.splitext(os.path.basename(fichier))[0]
     groupe = chemin if chemin else os.path.basename(os.path.dirname(fichier))
@@ -174,7 +175,7 @@ def lire_objets(self, rep, chemin, fichier):
     #            print ('entree', i)
     #            print ('objet', obj.__geo_interface__)
                 obj.attributs["#chemin"] = chemin
-                self.traite_objet(obj, self.regle_start)
+                traite_objet(obj, self.regle_start)
     return n_obj
 
 
@@ -232,7 +233,7 @@ class GdalWriter(object):
 
     def changeclasse(self, schemaclasse, attributs=None):
         ''' change de classe '''
-        super().changeclasse(schemaclasse, attributs=None)
+        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
         self.fichier.close()
         _, classe = schemaclasse.identclasse
         self.layer = classe
@@ -252,6 +253,17 @@ class GdalWriter(object):
                                   driver=self.driver, schema=schema, layer=self.layer)
 
 
+    def close(self):
+        """fermeture"""
+#        print("fileeio fermeture", self.nom)
+        if self.nom == "#print":
+            return # stdout
+        try:
+            self.fichier.close()
+        except AttributeError:
+            print('error: fw  : writer close: fichier non defini', self.nom)
+
+
     def set_liste_att(self, liste_att):
         '''stocke la liste des attributs a sortir'''
         self.liste_att = liste_att
@@ -260,7 +272,7 @@ class GdalWriter(object):
     def write(self, obj):
         '''ecrit un objet complet'''
         chaine = self.converter(obj, self.liste_att, self.minmajfunc)
-        print('gdal:write', chaine)
+#        print('gdal:write', chaine)
         try:
             self.fichier.write(chaine)
         except:
@@ -270,7 +282,7 @@ class GdalWriter(object):
         return True
 
     def finalise(self):
-        super().finalise()
+        self.close()
         return 3
 
 
@@ -291,7 +303,7 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
     '''
     extension = regle.f_sortie.ext
     sorties = regle.stock_param.sorties
-    print ('gdalio: ecriture stream', obj)
+#    print ('gdalio: ecriture stream', obj)
 
     if obj.ident == regle.dident:
         ressource = regle.ressource
@@ -327,13 +339,13 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
         regle.dident = obj.ident
 #    print ("fichier de sortie ",fich.nom)
     obj.initgeom()
-    print ('geom objet initialisee', obj.geom_v)
+#    print ('geom objet initialisee', obj.geom_v)
     if obj.geom_v.type != '0':
 #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
 #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
         obj.geom_v.force_multi = True
 #    print ('gdal: ecriture objet',obj)
-    print ('gdal: ecriture objet',obj.__geo_interface__)
+#    print ('gdal: ecriture objet',obj.__geo_interface__)
     try:
         ressource.write(obj, regle.numero)
     except Exception as err:
@@ -368,7 +380,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
 
 #                       reader,      geom,    hasschema,  auxfiles
 READERS = {'dxf':(lire_objets, None, True, ()),
-           'shp':(lire_objets, None, True, ('dbf', 'prj', 'shx', 'cpg')),
+           'shp':(lire_objets, None, True, ('dbf', 'prj', 'shx', 'cpg', 'qpj')),
            'mif':(lire_objets, None, True, (('mid', ))),
            'gpkg':(lire_objets, None, True, ())}
 

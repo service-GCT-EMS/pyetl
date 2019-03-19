@@ -19,7 +19,8 @@ $#%acces%;;;;;;;;;;;
 ;;;;#schema;json;;sortir+;json;;fin;
 ;;;;#schema;txt;;sortir+;txt;;fin;
 ;;;;#schema;sql;;sortir+;sql:sigli;;fin;
-;;;;#schema;gpkg;;sortir+;gpkg;;fin;
+
 ;;;;#schema;cpt;;sortir+;#comptage;;fin;
 #type_geom;N: >0;;;#schema;shp;;sortir+;shp;;fin;
+|:;;;;#schema;gpkg;;sortir+;gpkg;;fin;
 ;;;;;;;sortir;#poubelle;;fin;

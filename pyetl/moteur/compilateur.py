@@ -50,7 +50,7 @@ def _finalise(regle, debug):
             regle.liste_regles[-1].branchements.brch[br] = regle.branchements.brch[br]
         for rmacro in regle.liste_regles:
             if rmacro._return:
-                print ('gestionnaire de retour', rmacro, '->' , regle)
+#                print ('gestionnaire de retour', rmacro, '->' , regle)
                 _branche(rmacro, regle)
         regle.branchements.brch["ok"] = regle.liste_regles[0]
 
