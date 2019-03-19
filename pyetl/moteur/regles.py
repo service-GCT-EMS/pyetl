@@ -224,7 +224,7 @@ class RegleTraitement(object): # regle de mapping
         self.filter = False
         self.copy = False
         self.call = False
-        self.retour = False
+        self._return = False
         self.liste_regles = []
 
         self.nom_fich_schema = ''

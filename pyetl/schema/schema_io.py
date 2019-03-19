@@ -167,7 +167,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
         if crsc:
             ecrire_fichier_sql(rep, nomschema, '01', 'schemas', crsc, cod, transact)
             ecrire_fichier_sql(rep, nomschema, '13', 'dropschemas', dsc, cod)
-            ecrire_fichier_sql(rep, nomschema, '13c', 'dropschemas', dscc, cod)
+            ecrire_fichier_sql(rep, nomschema, '99c', 'dropschemas', dscc, cod)
 
 
 

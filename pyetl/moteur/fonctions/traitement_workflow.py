@@ -56,11 +56,19 @@ def f_next(regle, obj):
     return True
 
 
-def f_return(regle, _):
-    """#aide||sort d une macro
-    #pattern||;;;quitter;;
+def h_return(regle):
+    ''' gere le return d'une macro appelee par call'''
+    regle._return = True
+    if regle.params.cmp1.val:
+        regle.branchements.addsortie(regle.params.cmp1.val)
 
+
+
+def f_return(regle, obj):
+    """#aide||sort d une macro
+    #pattern||;;;quitter;?C;
     """
+    obj.redirect=regle.params.cmp1.val
     return True
 
 
@@ -319,7 +327,8 @@ def h_callmacro(regle):
     vpos = '|'.join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + '|'+vpos if vpos else regle.params.cmp1.val
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
-
+    if regle.liste_regles:
+        regle.liste_regles[-1]._return=True
     return erreurs
 
 

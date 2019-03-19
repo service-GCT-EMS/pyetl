@@ -21,6 +21,14 @@ class JsonWriter(FileWriter):
                '{ "name": "urn:ogc:def:crs:EPSG::'+self.srid+'" } },\n'+\
                 '"features": [\n'
 
+    def changeclasse(self, schemaclasse, attributs=None):
+        ''' ecriture multiclasse on change de schema'''
+#        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
+
+
+
+
     def write(self, obj):
         '''ecrit un objet'''
         if obj.virtuel:
@@ -82,12 +90,9 @@ def _convertir_objet(obj, ensure_ascii=False):
     return ascii(obj.__json_if__) if ensure_ascii else obj.__json_if__
 
 
-def _set_liste_attributs(obj, attributs):
-    '''positionne la liste d'attributs a sortir'''
-    if attributs:
-        obj.liste_attributs = attributs
-    else:
-        obj.liste_attributs = obj.schema.get_liste_attributs()
+#def _set_liste_attributs(obj, attributs):
+#    '''positionne la liste d'attributs a sortir'''
+#    obj.liste_attributs = obj.schema.get_liste_attributs(liste=attributs)
 
 
 def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
@@ -126,15 +131,15 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
 #                    print ('creation ressource csv' , nom)
                     encoding = regle.getvar('codec_sortie', 'utf-8')
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
-                    str_w = JsonWriter(nom, schema_courant, extention,
-                                       encoding=encoding,
+                    str_w = JsonWriter(nom, schema=schema_courant,
+                                       encoding=encoding, liste_att=attributs,
                                        liste_fich=regle.stock_param.liste_fich)
                     sorties.creres(regle.numero, nom, str_w)
                     ressource = sorties.get_res(regle.numero, nom)
                 dident = (groupe, classe)
 #                fich = ressource.handler
             obj.classe_is_att = setclasse
-            obj.liste_attributs = attributs
+            obj.liste_attributs = str_w.liste_att
 
             ressource.handler.write(obj)
 #            nb_cour += 1

@@ -49,7 +49,8 @@ def _finalise(regle, debug):
         for br in regle.branchements.brch:
             regle.liste_regles[-1].branchements.brch[br] = regle.branchements.brch[br]
         for rmacro in regle.liste_regles:
-            if rmacro.retour:
+            if rmacro._return:
+                print ('gestionnaire de retour', rmacro, '->' , regle)
                 _branche(rmacro, regle)
         regle.branchements.brch["ok"] = regle.liste_regles[0]
 
@@ -115,27 +116,35 @@ def propage_liens(regles, start):
             regles[start].branchements.setclink(regles[j])
             break
 
+def nextregle(regles):
+    '''applatissage recursif de la liste de regles'''
+    for regle in regles:
+        yield regle
+        if regle.call:
+            yield from nextregle(regle.liste_regles)
 
 
-
-def compile_regles(mapper, regles, debug=0):
+def compile_regles(mapper, liste_regles, debug=0):
     ''' prepare l'enchainement des regles sous forme de liens entre regles '''
-    if not regles:
-        print('pas de regles a compiler')
-        raise EOFError("pas de regles a compiler")
+    regles = liste_regles
+    if regles is None:
+        regles = mapper.regles
+        if not regles:
+            print('pas de regles a compiler')
+            raise EOFError("pas de regles a compiler")
 
-    if mapper.get_param("sans_sortie"):
-        regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
-    else:
-        regle_sortir = mapper.interpreteur(";;;;;;;sortir;"+mapper.get_param("F_sortie")+
-                                           ";"+mapper.get_param("nom_sortie")+
-                                           ";;;sortie_defaut", "", 99999)
-    regle_sortir.final = True
+        if mapper.get_param("sans_sortie"):
+            regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
+        else:
+            regle_sortir = mapper.interpreteur(";;;;;;;sortir;"+mapper.get_param("F_sortie")+
+                                               ";"+mapper.get_param("nom_sortie")+
+                                               ";;;sortie_defaut", "", 99999)
+        regle_sortir.final = True
 
-    regle_sortir.index = len(regles)
-    regles.append(regle_sortir) # on mets la regle de sortie pour finir
+        regle_sortir.index = len(regles)
+        regles.append(regle_sortir) # on mets la regle de sortie pour finir
 #    print ('liste_regles',regles)
-#    raise
+
     bloc = 0
     for i in range(len(regles)-1):
         regle = regles[i]
@@ -172,5 +181,13 @@ def compile_regles(mapper, regles, debug=0):
         if regle.mode == "fin_bloc": # gestion de la structure
             bloc -= 1
         _finalise(regle, debug)
+    if liste_regles is None: # applatissement des regles
+        nliste=[]
+        for i in nextregle(regles):
+            i.index = len(nliste)
+            nliste.append(i)
+        regles.clear()
+        regles.extend(list(nliste))
+#        print ('fin compil','\n'.join(map(repr, regles)))
     _affiche_debug(regles, debug)
     return True

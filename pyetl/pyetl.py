@@ -400,7 +400,7 @@ class Pyetl(object):
 #            self._gestion_posparm()
         self._set_streammode()
         try:
-            self.compilateur(self.regles, self.debug)
+            self.compilateur(None, self.debug)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
 #            self.stores = [[] for i in range(len(self.regles))]# stockage temporaire d'objets

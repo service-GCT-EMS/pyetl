@@ -993,11 +993,11 @@ class DbWriter(object):
         return True
 
 
-def _set_liste_attributs(obj, attributs):
-    '''positionne la liste d'attributs a sortir'''
-    if attributs:
-        return attributs
-    return obj.schema.get_liste_attributs()
+#def _set_liste_attributs(obj, attributs):
+#    '''positionne la liste d'attributs a sortir'''
+#    if attributs:
+#        return attributs
+#    return obj.schema.get_liste_attributs()
 
 
 def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
@@ -1031,14 +1031,16 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                 ressource = sorties.get_res(numero, nom)
                 if ressource is None:
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
-                    liste_att = _set_liste_attributs(obj, attributs)
+#                    liste_att = _set_liste_attributs(obj, attributs)
+                    liste_att = obj.schema.get_liste_attributs(liste=attributs)
                     swr = DbWriter(nom, liste_att,
                                    encoding=regle.getvar('codec_sortie', 'utf-8'),
                                    liste_fich=regle.stock_param.liste_fich)
                     sorties.creres(numero, nom, swr)
                     ressource = sorties.get_res(numero, nom)
                 else:
-                    liste_att = _set_liste_attributs(obj, attributs)
+#                    liste_att = _set_liste_attributs(obj, attributs)
+                    liste_att = obj.schema.get_liste_attributs(liste=attributs)
                     swr.set_liste_att(liste_att)
                 dident = (groupe, classe)
                 fich = ressource.handler
@@ -1074,7 +1076,8 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
         ressource = sorties.get_res(regle.numero, nom)
         if ressource is None:
             os.makedirs(os.path.dirname(nom), exist_ok=True)
-            liste_att = _set_liste_attributs(obj, attributs)
+            liste_att = obj.schema.get_liste_attributs(liste=attributs)
+#            liste_att = _set_liste_attributs(obj, attributs)
             swr = DbWriter(nom, liste_att,
                            encoding=regle.getvar('codec_sortie', 'utf-8'),
                            liste_fich=regle.stock_param.liste_fich,
@@ -1087,7 +1090,8 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
         else:
 #            print ('ressource', regle.numero,nom,ressource.handler.nom)
             if classe != regle.dclasse:
-                liste_att = _set_liste_attributs(obj, attributs)
+#                liste_att = _set_liste_attributs(obj, attributs)
+                liste_att = obj.schema.get_liste_attributs(liste=attributs)
                 ressource.handler.set_liste_att(liste_att)
                 regle.dclasse = classe
                 regle.ressource = ressource

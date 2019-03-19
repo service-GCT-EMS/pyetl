@@ -501,6 +501,15 @@ def sel_isvirtuel(_, obj):
     '''
     return obj.virtuel
 
+
+def sel_isreel(_, obj):
+    '''#aide||objet virtuel
+       #pattern||;=is:reel||1
+       #pattern2||=is:reel;||1
+       #test||obj||^?;;;virtuel||;is:reel;;;C1;1;;set||^;;;reel||atv;C1;1
+
+    '''
+    return not obj.virtuel
 #--------------------selecteurs geometriques-------------------------------
 
 def sel_hasgeomv(_, obj):

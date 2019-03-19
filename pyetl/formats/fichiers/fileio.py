@@ -7,14 +7,6 @@ import sys
 from collections import defaultdict
 
 
-def _set_liste_attributs(schemaclasse, attributs):
-    '''positionne la liste d'attributs a sortir'''
-    if attributs:
-        return attributs
-    if schemaclasse:
-        return schemaclasse.get_liste_attributs()
-    return None
-
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
     '''convertisseur d'objets de base'''
     obj.liste_attributs = liste_att
@@ -37,7 +29,7 @@ class FileWriter(object):
         self.f_sortie = f_sortie
         if f_sortie:
             self.writerparms = f_sortie.writerparms
-        self.liste_att = _set_liste_attributs(schema, liste_att)
+        self.liste_att = schema.get_liste_attributs(liste=liste_att) if schema else None
         self.fichier = None
         self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
@@ -94,7 +86,7 @@ class FileWriter(object):
     def changeclasse(self, schemaclasse, attributs=None):
         ''' ecriture multiclasse on change de schema'''
 #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
-        self.liste_att = _set_liste_attributs(schemaclasse, attributs)
+        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
 
 
     def finalise(self):

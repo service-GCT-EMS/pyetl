@@ -3,12 +3,13 @@
 
 import os
 #import time
-import collections
+from collections import defaultdict, OrderedDict
+
 import itertools
 import fiona
 from fiona.crs import from_epsg
 #from ..interne.objet import Objet
-from .fileio import FileWriter
+#from .fileio import FileWriter
 
 
 
@@ -80,7 +81,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     else:
         description['geometry'] = None
 
-    props = collections.OrderedDict()
+    props = OrderedDict()
     description["properties"] = props
     if l_nom:
         sc_classe.use_noms_courts = True
@@ -178,10 +179,27 @@ def lire_objets(self, rep, chemin, fichier):
 
 
 
-class GdalWriter(FileWriter):
+class GdalWriter(object):
     ''' gestionnaire d'ecriture pour fichiers gdal'''
+    INIT = 0
+    OPEN = 1
+    CLOSE = 2
+    FINAL = 3
+    FAIL = 4
     def __init__(self, nom, liste_att=None, encoding='utf-8', converter=str,
                  schema=None, f_sortie=None, liste_fich=None, srid='3948', layer=None):
+        self.nom = nom
+        self.f_sortie = f_sortie
+        if f_sortie:
+            self.writerparms = f_sortie.writerparms
+        self.liste_att = schema.get_liste_attributs(liste=liste_att)
+        self.fichier = None
+        self.stats = liste_fich if liste_fich is not None else defaultdict(int)
+        self.encoding = encoding
+        self.converter = converter
+        self.srid = srid
+        self.schema = schema
+        self.transtable = None
         if f_sortie is not None:
             self.driver = f_sortie.driver
             self.l_max = f_sortie.l_max
@@ -195,8 +213,8 @@ class GdalWriter(FileWriter):
 #            print('convertisseur de casse ', f_sortie.minmaj, self.minmajfunc)
             self.fanout = f_sortie.multiclasse
             self.fanoutmax = f_sortie.fanoutmax
-        super().__init__(nom, liste_att=liste_att, converter=converter,
-                         encoding=encoding, liste_fich=liste_fich, srid=srid, schema=schema)
+#        super().__init__(nom, liste_att=liste_att, converter=converter,
+#                         encoding=encoding, liste_fich=liste_fich, srid=srid, schema=schema)
 
 #        print ('ascwriter ',liste_att)
 
@@ -242,7 +260,7 @@ class GdalWriter(FileWriter):
     def write(self, obj):
         '''ecrit un objet complet'''
         chaine = self.converter(obj, self.liste_att, self.minmajfunc)
-#        print('gdal:write', chaine)
+        print('gdal:write', chaine)
         try:
             self.fichier.write(chaine)
         except:
@@ -273,6 +291,7 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
     '''
     extension = regle.f_sortie.ext
     sorties = regle.stock_param.sorties
+    print ('gdalio: ecriture stream', obj)
 
     if obj.ident == regle.dident:
         ressource = regle.ressource
@@ -308,13 +327,13 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
         regle.dident = obj.ident
 #    print ("fichier de sortie ",fich.nom)
     obj.initgeom()
-
+    print ('geom objet initialisee', obj.geom_v)
     if obj.geom_v.type != '0':
 #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
 #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
         obj.geom_v.force_multi = True
 #    print ('gdal: ecriture objet',obj)
-#    print ('gdal: ecriture objet',obj.__geo_interface__)
+    print ('gdal: ecriture objet',obj.__geo_interface__)
     try:
         ressource.write(obj, regle.numero)
     except Exception as err:
@@ -332,13 +351,14 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     #memoire = defs.stockage
 #    raise
     rep_sortie = regle.getvar('_sortie') if rep_sortie is None else rep_sortie
-    print("gdalio:ecriture_objets", rep_sortie)
+#    print("gdalio:ecriture_objets", rep_sortie)
 
 #    extension = regle.f_sortie.ext
     regle.fanout = regle.fanout if regle.f_sortie.multiclasse else 'classe'
     #groupes = memoire.keys()
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
+#            print ('gdalio: ecriture', obj)
             self.ecrire_objets_stream(obj, regle, None, attributs=attributs,
                                       rep_sortie=rep_sortie)
 

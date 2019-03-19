@@ -6,19 +6,20 @@ $fstat=log;;;;;;;;;;;
 $_sortie=test/test_es;;;;;;;;;
 $fanout=classe;;;;;;;;
 $#%acces%;;;;;;;;;;;
+;;;;;;;start;;;;
+;;;;;;;call;#obj;,2;print
+-:;;;;;;;call;#obj;point,2;print
+-:;;;;;;;call;#obj;ligne,2;
+-:;;;;;;;call;#obj;poly,2;
 ;;;;;;;pass;;;;
-<#obj;;1;
-;;;;;;;call;#obj;,2;debug
--:;;;;;;;call;#obj;point,2;
-!-:;;;;;;;call;#obj;ligne,2;
-!-:;;;;;;;call;#obj;poly,2;
-;;;;;;;pass;;;print;
 ;;;;type_geom;;#type_geom;set;;;;
 ;;;;erreurs;;#erreurs;set;;;;
 ;;;;#groupe;test1;;set;;;fin;
 ;;;;#schema;asc;;sortir+;asc;;fin;
 ;;;;#schema;json;;sortir+;json;;fin;
 ;;;;#schema;txt;;sortir+;txt;;fin;
+;;;;#schema;sql;;sortir+;sql:sigli;;fin;
+;;;;#schema;gpkg;;sortir+;gpkg;;fin;
 ;;;;#schema;cpt;;sortir+;#comptage;;fin;
 #type_geom;N: >0;;;#schema;shp;;sortir+;shp;;fin;
 ;;;;;;;sortir;#poubelle;;fin;

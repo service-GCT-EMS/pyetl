@@ -473,7 +473,7 @@ def prepare_regle(regle):
     setvloc(regle)
     v_nommees = regle.v_nommees
     ndebug = 10
-    if "debug" in v_nommees['debug'] or 'print' in v_nommees['debug']:
+    if any(i in v_nommees['debug'] for i in ('debug','print','step')):
         vdebug = v_nommees['debug'].split(',')
         if vdebug[-1].isnumeric():
             ndebug = vdebug.pop()
@@ -568,10 +568,9 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
         return regle
 
     if regle.debug:
+        msg = regle.v_nommees['debug']
         if 'print' in regle.v_nommees['debug']:
-            print("---------affich ligne--->", regle.numero, regle.ligne)
-        else:
-            print("---------debug ligne--->", regle.numero, regle.ligne)
+            print("---------"+msg+" ligne--->", regle.numero, regle.ligne)
         regle.f_init = regle.fonc
         regle.fonc = fdebug
 

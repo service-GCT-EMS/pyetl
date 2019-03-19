@@ -502,13 +502,13 @@ def ecrire_objets_geo(self, regle, final):
 def ecrire_objets_sql(self, regle, final):
     '''format sql copy pour postgis'''
 
-    return self._ecrire_objets_csv(self, regle, final, 'sql', '\t', '.sql',
+    return _ecrire_objets_csv(self, regle, final, 'sql', '\t', '.sql',
                                    null=r'\N', writerclass=SqlWriter)
 
 def sqlstreamer(self, obj, regle, final):
     '''format sql copy pour postgis en streaming '''
 
-    return self._csvstreamer(self, obj, regle, final, 'sql', '\t',
+    return _csvstreamer(self, obj, regle, final, 'sql', '\t',
                              '.sql', null=r'\N', writerclass=SqlWriter)
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)

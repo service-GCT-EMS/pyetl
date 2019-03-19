@@ -390,7 +390,7 @@ class AscWriter(FileWriter):
         if attributs:
             self.liste_att = set(attributs)
         elif schemaclasse:
-            self.liste_att = schemaclasse.get_liste_attributs()
+            self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
             self.liste_graphique = {i for i in self.liste_att
                                     if schemaclasse.attributs[i].graphique}
             if self.liste_graphique:

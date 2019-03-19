@@ -14,7 +14,7 @@ K:%tg%:asc_c;;;;;#geom;1SEC 1,2,|1000,0,|1000,1000,1,0|1SEC 2,2,|1000,1000,|1000
 K:%tg%:asc3D;;;;;#geom;1SEC3D 1,2,|1000,0,1000|1000,1000,2000,1,0;;set;asc;3;fin;;# on ajoute une geometrie de ligne
 K:%tg%:batch;;;;;#classe;batch;;set;;;fin;;# objet pour les tests de schema
 ;is:ko;;;;;;abort;3;%tg% erreur choix parametre;;; # on teste l'indicateur s'il s'est passe qque chose
-;;;;;;;next;;;debug;;# on positionne l'indicateur d'erreur
+is:reel;;;;;;;next;;;;;#on sort les objets sur la sortie next
 !===========================================================================================;;;;;;;;;;
 &&#define;#atv;nom;valeur;;;;;;;;# teste la valeur d un attribut
 %nom%;^%valeur%$;;;;;;retour;test ok:;noms;fin
