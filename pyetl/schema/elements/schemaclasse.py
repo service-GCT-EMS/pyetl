@@ -310,8 +310,8 @@ class SchemaClasse(object):
     def setsortie(self, f_sortie, rep_sortie=None):
         """positionne le format du schema pour l ecriture"""
         self.schema.format_sortie = f_sortie.nom_format
-        if rep_sortie is not None:
-            self.schema.rep_sortie = rep_sortie
+#        if rep_sortie is not None:
+#            self.schema.rep_sortie = rep_sortie
 #        print('setsortie:dialecte sql:',f_sortie.dialecte)
         if f_sortie.dialecte and f_sortie.dialecte != 'natif':
             self.schema.dbsql = f_sortie.writerparms['dialecte'].gensql()
@@ -395,7 +395,8 @@ class SchemaClasse(object):
         else:
             self.minmajfunc = str
 
-
+    def set_format_entree(self, nom, desc):
+        self.attributs[nom].set_format_entree(desc)
 
 
     @property

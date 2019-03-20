@@ -749,7 +749,7 @@ def recup_donnees_req_alpha(regle_courante, base, niveau, classe, attribut, vale
 
             niveau, classe = ident
             schema_classe_base = schema_base.get_classe(ident)
-            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
+#            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
     #        print ('dbaccess : ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info["type_geom"]

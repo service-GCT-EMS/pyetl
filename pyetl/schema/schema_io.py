@@ -124,14 +124,14 @@ def ecrire_schema_sql(rep, schema, type_base='std',
             gsql = schema.dbsql
         else:
             print('attention pas de dialecte natif', schema.nom)
-            dialecte = 'sql'
+            dialecte = 'postgis'
             gsql = DATABASES[dialecte].gensql()
     elif schema.dbsql and schema.dbsql.dialecte == dialecte:
         gsql = schema.dbsql
     elif dialecte in DATABASES:
         gsql = DATABASES[dialecte].gensql()
     else:
-        dialecte = 'sql'
+        dialecte = 'postgis'
         type_base = 'basic'
         gsql = DATABASES[dialecte].gensql()
 #    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
@@ -291,7 +291,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
 
         if stock_param.schemas[i].origine == 'G':
             FSC.analyse_conformites(schemas[i])
-#        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites))
+        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites),mode_sortie)
+        print ('choix', FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir))
         if FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
@@ -305,7 +306,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
                 else:
                     formats_a_sortir.add(schemas[i].format_sortie)
 #controle du sql et de ses dialectes
-#            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
+            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(schemas[i], rep_sortie, formats_a_sortir,
                              stock_param, mode_sortie, confs)
 

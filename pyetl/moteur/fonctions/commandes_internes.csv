@@ -99,6 +99,7 @@ K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 $format_schema=csv,xml,sql;;;;;;;;;;;
 $max_conf=%max_conf%;40;;;;;;;;;;
 $mode_sortie=D;;;;;;;;;;;
+!$F_sortie=#poubelle
 !;;;;;;#schema;supp;;;;
 ;;;;;;;schema>;%nom%;%max_conf%;;
 !=================================== acces bases de donnees ================================;;;;;;;;;;;

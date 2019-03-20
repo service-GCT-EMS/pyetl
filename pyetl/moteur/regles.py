@@ -271,6 +271,9 @@ class RegleTraitement(object): # regle de mapping
     def getvar(self, nom, defaut=''):
         return self.context.getvar(nom, defaut)
 
+    def getchain(self, noms, defaut=''):
+        return self.context.getchain(noms, defaut)
+
     def setvar(self, nom, valeur):
         self.context.setvar(nom, valeur)
 

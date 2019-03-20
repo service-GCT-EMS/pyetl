@@ -142,7 +142,7 @@ class Schema(object):
         self.init = False # le schema a ete analyse en mode initial
 #        self.dialecte = None # dialecte (sql)
         self.format_sortie = '' # format de sortie
-        self.rep_sortie = ''
+#        self.rep_sortie = ''
         self.dbsql = None # generateur sql
         self.alias_groupes = dict()
         self.compteurs = defaultdict(int)

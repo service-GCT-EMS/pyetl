@@ -104,56 +104,57 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
         separ = regle_ref.getvar('separ_csv_in', regle_ref.getvar('separ_csv', ';'))
 #    print('lecture_csv:', rep, chemin, fichier,separ)
 
-    maxobj = regle_ref.getvar('lire_maxi', 0)
+    maxobj = int(regle_ref.getvar('lire_maxi', 0))
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
 #    print ('lecture', nom_schema, nom_groupe, nom_classe)
-    with open(os.path.join(rep, chemin, fichier), "r",
-              encoding=reader.regle_ref.getvar('codec_entree', 'utf-8')) as fich:
-
-        if not entete:
-            entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
+    encoding = reader.regle_ref.getchain(['codec_csv_in', 'codec_csv', 'codec_entree',
+                                          'codec'], 'utf-8')
+    try:
+        with open(os.path.join(rep, chemin, fichier), "r", encoding=encoding) as fich:
+            if not entete:
+                entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
             if entete[0] == '!':
                 entete = entete[1:]
             else: # il faut l'inventer...
                 entete = separ*len(fich.readline()[:-1].split(separ))
                 fich.seek(0) # on remet le fichier au debut
-        nom_groupe, nom_classe, noms_attributs, geom, schemaclasse =\
-            decode_entetes_csv(nom_schema, nom_groupe, nom_classe,
-                               regle_ref.stock_param, entete, separ)
-        controle = len(noms_attributs)
-        nbwarn = 0
-        nlignes = 0
-        for i in fich:
-            nlignes = nlignes+1
-            obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=reader.converter)
-            obj.setschema(schemaclasse)
-            obj.setorig(nlignes)
-            val_attributs = [j.strip() for j in i[:-1].split(separ)]
-            #liste_attributs = zip(noms_attributs, val_attributs)
-            #print ('lecture_csv:',[i for i in liste_attributs])
-            if len(val_attributs) != controle:
-                nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
+            nom_groupe, nom_classe, noms_attributs, geom, schemaclasse =\
+                decode_entetes_csv(nom_schema, nom_groupe, nom_classe,
+                                   regle_ref.stock_param, entete, separ)
+            controle = len(noms_attributs)
+            nbwarn = 0
+            nlignes = 0
+            for i in fich:
+                nlignes = nlignes+1
+                obj = Objet(nom_groupe, nom_classe, format_natif='csv', conversion=reader.converter)
+                obj.setschema(schemaclasse)
+                obj.setorig(nlignes)
+                val_attributs = [j.strip() for j in i[:-1].split(separ)]
+                #liste_attributs = zip(noms_attributs, val_attributs)
+                #print ('lecture_csv:',[i for i in liste_attributs])
+                if len(val_attributs) != controle:
+                    nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
+                obj.attributs.update(zip(noms_attributs, val_attributs))
+                #print ('attributs:',obj.attributs['nombre_de_servitudes'])
+                if geom:
+                    obj.geom = [val_attributs[-1]]
+    #                print ('geometrie',obj.geom)
+                    obj.attributs['#type_geom'] = '-1'
+                else:
+                    obj.attributs['#type_geom'] = '0'
+                obj.attributs['#chemin'] = chemin
+                reader.traite_objets(obj, reader.regle_start)
 
-            obj.attributs.update(zip(noms_attributs, val_attributs))
-            #print ('attributs:',obj.attributs['nombre_de_servitudes'])
-            if geom:
-                obj.geom = [val_attributs[-1]]
-#                print ('geometrie',obj.geom)
-                obj.attributs['#type_geom'] = '-1'
-            else:
-                obj.attributs['#type_geom'] = '0'
-            obj.attributs['#chemin'] = chemin
-            reader.traite_objets(obj, reader.regle_start)
+                if maxobj and nlignes >= maxobj: # nombre maxi d'objets a lire par fichier
+                    break
 
-            if maxobj and nlignes >= maxobj: # nombre maxi d'objets a lire par fichier
-                break
-
-            if nlignes % 100000 == 0:
-                regle_ref.stock_param.aff.send(('interm', 0, nlignes))
-                # gestion des affichages de patience
-
-        if nbwarn:
-            print(nbwarn, "lignes avec un nombre d'attributs incorrect")
+                if nlignes % 100000 == 0:
+                    regle_ref.stock_param.aff.send(('interm', 0, nlignes))
+                    # gestion des affichages de patience
+    except UnicodeError:
+        print("erreur encodage le fichier",fichier ,"n'est pas en ",encoding)
+    if nbwarn:
+        print(nbwarn, "lignes avec un nombre d'attributs incorrect")
     return nlignes
 
 class CsvWriter(FileWriter):
@@ -193,7 +194,9 @@ class CsvWriter(FileWriter):
 
     def header(self, init=1):
         ''' preparation de l'entete du fichiersr csv'''
+        print ('csvheader ', self.entete)
         if not self.entete:
+#            raise
             return ''
         geom = self.separ+"geometrie"+"\n" if self.schema.info["type_geom"] != '0' else "\n"
         return '!'+self.separ.join(self.liste_att)+geom
@@ -406,7 +409,7 @@ def change_ressource(regle, obj, writerclass, separ, extention, entete, null,
                             liste_fich=regle.stock_param.liste_fich, null=null,
                             f_sortie=regle.f_sortie, geomwriter=geomwriter)
         ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
-#    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat)
+#    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
     regle.context.setvar('derniere_sortie', nom)
     regle.ressource = ressource
     regle.dident = ident
@@ -479,11 +482,11 @@ def txtstreamer(self, obj, regle, final):
 
 def csvstreamer(self, obj, regle, final):
     '''format txt en straming'''
-    return _csvstreamer(self, obj, regle, final, False, ';', '.csv')
+    return _csvstreamer(self, obj, regle, final, 'csv', ';', '.csv')
 
 def ecrire_objets_csv(self, regle, final):
     '''format txt (csv sans entete) pour postgis'''
-    return _ecrire_objets_csv(self, regle, final, False, '\t', '.txt')
+    return _ecrire_objets_csv(self, regle, final, 'csv', '\t', '.txt')
 
 def lire_objets_csv(self, rep, chemin, fichier):
     '''format csv en lecture'''

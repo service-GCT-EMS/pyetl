@@ -207,7 +207,7 @@ class Attribut(object):
         self.valeurs = dict()
         self.conf = True if vmax else False
         self.vmax = vmax
-
+        self.type_att_defaut = "A"
         self.type_att = "A"
         self.type_att_base = "A"
         self.multiple = False
@@ -227,6 +227,7 @@ class Attribut(object):
         self.def_index = ''
         self.clef_etr = ''
         self.parametres_clef = ''
+        self.format_entree = '{}'
         if d_if:
             self.from_dic_if(d_if)
 
@@ -242,6 +243,7 @@ class Attribut(object):
                     self.type_att = "EL"
                 else:
                     self.type_att = "E"
+                self.type_att_base = self.type_att
                 return # on reste en mode entier
             except ValueError:
                 self.type_att = "F"
@@ -249,6 +251,7 @@ class Attribut(object):
             v_test = float(val)
         except ValueError:
             self.type_att = "T"
+        self.type_att_base = self.type_att
         return
 
     def setbasic(self, mode):
@@ -261,6 +264,8 @@ class Attribut(object):
             self.conformite = None
             self.type_att = self.type_att_base
 
+    def set_format_entree(self, desc):
+        self.format_entree = desc
 
     def copie(self, nom=None):
         ''' retourne un clone de l'attribut '''
@@ -295,7 +300,7 @@ class Attribut(object):
             self.conf = len(self.valeurs) <= self.vmax
         if val:
             self.set_type(val)
-#            print('ajout_valeur', type(self.taille), self.taille)
+#            print('ajout_valeur', self.nom, self.taille, self.type_att, val)
             self.taille = max(self.taille, len(val))
             if self.type_att == 'F':
                 if "." in val:

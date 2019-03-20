@@ -13,11 +13,11 @@ from fiona.crs import from_epsg
 
 
 
-def recup_schema_fiona(schema_courant, ident, description):
+def recup_schema_fiona(schema_courant, ident, description, driver):
     '''cree un schema a partir d une description fiona'''
     code_g = {'Point':'1', 'LineString':'2', "MultiLineString":'2',
               "Polygon":'3', "MultiPolygon":'3', "None":'0'}
-    types_a = {"str":"T", "int":"E", "float":"F",
+    types_a = {"str":"T", "int":"E", "long":"EL", "float":"F",
                "datetime":"D", "date":"D", "time":"D"}
     sc_classe = schema_courant.get_classe(ident)
 #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
@@ -46,6 +46,7 @@ def recup_schema_fiona(schema_courant, ident, description):
         type_att = description['properties'][i]
         taille = '0'
         dec = '0'
+        format_entree =''
         if ':' in type_att:
             vv_tmp = type_att.split(':')
             type_att = vv_tmp[0]
@@ -54,9 +55,20 @@ def recup_schema_fiona(schema_courant, ident, description):
                 vv_tmp = taille.split(".")
                 taille = vv_tmp[0]
                 dec = vv_tmp[1]
+        if driver == 'ESRI Shapefile': # cas particulier des float shape
+#            typ_orig = type_att
+            if type_att == 'float':
+                if dec == '0':
+                    type_att='int' if int(taille) < 10 else 'long'
+                    format_entree = '{:.0f}'
+                else:
+                    format_entree = '{:.'+dec+'f}'
+#        print( 'traitement shapefile',i, typ_orig,'->',type_att, taille, dec)
 
         sc_classe.stocke_attribut(i, types_a[type_att], dimension=dimension,
                                   force=True, taille=int(taille), dec=int(dec), ordre=-1)
+        if format_entree:
+            sc_classe.set_format_entree(i, format_entree)
     return sc_classe
 
 def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
@@ -147,15 +159,16 @@ def lire_objets(self, rep, chemin, fichier):
 
 
 #    traite_objet = stock_param.moteur.traite_objet
-    maxobj = stock_param.get_param('lire_maxi', 0)
+    maxobj = int(stock_param.get_param('lire_maxi', 0))
     entree = os.path.join(rep, chemin, fichier)
     layers = fiona.listlayers(entree)
 #    print('fiona:lecture niveaux',  layers)
     for layer in layers:
         with fiona.open(entree, 'r', layer=layer) as source:
+#            print ('recup fiona',source.driver, source.schema)
             schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
-            schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe), source.schema)
+            schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe), source.schema, source.driver)
 
             self.setident(groupe, classe)
 #            print('fiona:', classe, 'schema.type_geom',
@@ -167,7 +180,7 @@ def lire_objets(self, rep, chemin, fichier):
             for i in gen:
                 obj = self.getobj()
 #                obj = Objet(groupe, classe, format_natif=driver)
-                obj.schema = schemaclasse
+                obj.setschema(schemaclasse)
                 n_obj += 1
                 if n_obj % 100000 == 0:
                     print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)

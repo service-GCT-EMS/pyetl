@@ -94,7 +94,7 @@ def f_stock_schema(regle, obj):
     '''#aide||cree un schema par analyse des objets et l'associe a un objet
        #aide_patt||schema,nom,nombre max de valeurs d enum
        #aide_patt||la variable taux_conformite permet de definir me taux minimum d'objets renseignes
-       #pattern||;;;schema;C?;?N
+       #pattern||=#schema?;;;schema;C?;?N
        #test||obj;point||^#schema;;;supp||^;;;schema;essai||^V4;type_geom;;info_schema;||atv;V4;1
     '''
     if obj.virtuel:
@@ -120,6 +120,8 @@ def f_stock_schema(regle, obj):
                       regle.params.cmp2.num if regle.params.cmp2.num else 30)
     if regle.final: # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
         obj.schema = None
+    if regle.params.att_sortie.val:
+        obj.schema = regle.schema_courant
     return True
 
 

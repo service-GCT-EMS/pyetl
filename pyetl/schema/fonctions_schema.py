@@ -527,14 +527,17 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
                 if att_orig:
                     alias = att_orig.alias
                     nom_court = att_orig.nom_court
+                    type_defaut = att_orig.type_att_base
                 else:
                     alias = ''
                     nom_court = ''
+                    type_defaut =  'A'
             else:
                 alias = ''
                 nom_court = ''
             attr = schemaclasse.stocke_attribut(nom, 'A', nb_conf=taux_conformite,
                                                 alias=alias, nom_court=nom_court)
+            attr.type_att_defaut = type_defaut
             if not attr:
                 print('ajuste_schema: erreur stockage attribut',
                       schemaclasse.identclasse, nom)
@@ -668,8 +671,8 @@ def analyse_interne(schema, mode='util', type_schema=None):
     if mode == 'no':
         return False
     if mode == 'non_vide': # on teste si au moins une classe du schema contient un objet
-        if not schema.rep_sortie:
-            return False
+#        if not schema.rep_sortie:
+#            return False
         if not schema.classes:
             return False
         if max([cl.objcnt for cl in schema.classes.values()]) >= 1:
@@ -679,8 +682,9 @@ def analyse_interne(schema, mode='util', type_schema=None):
         else:
             return False
     elif mode == 'util':
-        if not schema.rep_sortie:
-            return False
+        print('analyse util', schema.nom)
+#        if not schema.rep_sortie:
+#            return False
         for schema_classe in schema.classes.values():
             if schema_classe.objcnt > 0:
                 schema_classe.a_sortir = True

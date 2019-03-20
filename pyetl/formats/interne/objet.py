@@ -268,13 +268,18 @@ class Objet(object):
 
     def from_geo_interface(self, geoif):
         '''geo_interface en entree'''
-#        print ('geo_interface',geoif)
+#        print ('---------geo_interface',geoif)
         props = geoif.get("properties", {})
-        if self.schema and self.schema.attmap:
-            self.attributs.update({self.schema.attmap.get(i, i):str(props[i])
-                                   for i in props if props[i] is not None})
-#            print ('update', self.groupe, self.classe, self.attributs)
-#            print ('attmap', self.schema.schema.nom, self.schema.attmap)
+        if self.schema:
+            if self.schema.attmap:
+                for i in props:
+                    if props[i] is None:
+                        continue
+                    nom = self.schema.attmap.get(i, i)
+                    self.attributs[nom]=self.schema.attributs[nom].format_entree.format(props[i])
+            else:
+                self.attributs.update({i:self.schema.attributs[i].format_entree.format(props[i])
+                                      for i in props if props[i] is not None})
         else:
             self.attributs.update({i:str(props[i]) for i in props if props[i] is not None})
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))

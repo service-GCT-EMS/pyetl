@@ -255,6 +255,16 @@ class Context(object):
                 return c[nom]
         return defaut
 
+
+    def getchain(self, noms, defaut=''):
+        '''fournit un parametre a partier d'une chaine de fallbacks'''
+        for nom in noms:
+            res = self.getvar(nom, None)
+            if res is not None:
+                return res
+        return defaut
+
+
     def getlocal(self, nom, defaut=''):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
         return self.vlocales.get(nom, defaut)

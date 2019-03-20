@@ -71,8 +71,9 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
             att.taille = att.conformite.taille
         #graphique="oui" if att.graphique else 'non'
         if att.type_att == 'A':
-            att.type_att = 'T'
-            print("sio: type attribut non defini texte par defaut", groupe, nom_compo, nom)
+            att.type_att = 'T' if att.type_att_defaut =='A' else att.type_att_defaut
+            att.type_att_base = att.type_att
+            print("sio: type attribut non defini ",att.type_att," par defaut", groupe, nom_compo, nom)
         type_att = att.get_type()
 #        print ('type_att lu',i,att.type_att,att.conformite,att.multiple)
 
