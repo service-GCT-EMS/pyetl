@@ -531,7 +531,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
                 else:
                     alias = ''
                     nom_court = ''
-                    type_defaut =  'A'
+                    type_defaut = 'A'
             else:
                 alias = ''
                 nom_court = ''

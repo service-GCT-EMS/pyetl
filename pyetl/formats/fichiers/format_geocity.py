@@ -72,7 +72,7 @@ def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
     total = 0
     debut = next(iter_gy)
     liste_obj = []
-    stock_param=regle.stock_param
+    stock_param = regle.stock_param
     traite_objet = stock_param.moteur.traite_objet
     for courant in iter_gy:
         if courant == 'F':

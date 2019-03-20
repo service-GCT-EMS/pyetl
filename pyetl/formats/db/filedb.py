@@ -17,7 +17,8 @@ def lire_objets_fdb(self, rep, chemin, fichier):
 #    type_base = {".mdb":"access",
 #                 ".sqlite":"sqlite"}
     stock_param = self.regle_ref.stock_param
-    type_base = {self.databases[i].fileext:i for i in self.databases if self.databases[i].svtyp == 'file'}
+    type_base = {self.databases[i].fileext:i for i in self.databases
+                 if self.databases[i].svtyp == 'file'}
     traite_objet = stock_param.moteur.traite_objet
 #    regle = stock_param.regles[0]
     ext = os.path.splitext(fichier)[1]
@@ -48,6 +49,6 @@ READERS = {'mdb':(lire_objets_fdb, '', True, ()),
            'accdb':(lire_objets_fdb, '', True, ()),
            'sqlite':(lire_objets_fdb, '', True, ()),
            'spatialite':(lire_objets_fdb, '#ewkt', True, ()),
-           }
+          }
 
-writers = {}
+WRITERS = {}

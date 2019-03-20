@@ -294,8 +294,8 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
 
 def excel_streamer(obj, regle, _, entete='csv', separ=None,
-                extention='.csv', null='',
-                writer=XlsxWriter): #ecritures non bufferisees
+                   extention='.csv', null='',
+                   writer=XlsxWriter): #ecritures non bufferisees
     ''' ecrit des objets csv en streaming'''
 #    sorties = regle.stock_param.sorties
     if regle.dident == obj.ident:
@@ -310,8 +310,8 @@ def excel_streamer(obj, regle, _, entete='csv', separ=None,
 
 
 def ecrire_objets_excel(regle, _, entete='csv', separ=None,
-                      extention='.csv', null='',
-                      writer=XlsxWriter):
+                        extention='.csv', null='',
+                        writer=XlsxWriter):
     ''' ecrit des objets csv a partir du stockage interne'''
 #    sorties = regle.stock_param.sorties
 #    numero = regle.numero
@@ -339,4 +339,4 @@ def ecrire_objets_excel(regle, _, entete='csv', separ=None,
 READERS = {'xlsx':(lire_objets_excel, '', False, ())}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'xlsx':(ecrire_objets_excel, excel_streamer, False, '', 0, '', 'groupe',
-                  '', '')}
+                   '', '')}

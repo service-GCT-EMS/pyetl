@@ -156,7 +156,7 @@ class Pyetl(object):
         self.store = dict()
         self.dbconnect = dict() # connections de base de donnees
 #        self.parms = dict() #parametres ligne de commande et variables globales
-        self.context = Context(parent = parent.context if parent else None,
+        self.context = Context(parent=parent.context if parent else None,
                                ident='P'+str(self.idpyetl))
 #        print ('initialisation', self.context, self.context.parent)
         self.parent = parent # permet un appel en cascade
@@ -727,7 +727,8 @@ class Pyetl(object):
                              ("_st_wr_objs", 0), ("_st_wr_fichs", 0), ("_st_wr_tables", 0),
                              ("_st_obj_duppliques", 0), ("_st_obj_supprimes", 0),
                              ("tmpdir", './tmp'), ("F_entree", ''), ('racine', '.'),
-                             ("job_control", ''), ('aujourdhui', time.strftime('%Y/%m/%d 00:00:00')),
+                             ("job_control", ''),
+                             ('aujourdhui', time.strftime('%Y/%m/%d 00:00:00')),
                              ("stat_defaut", "affiche"),
                              ("debug", '0'), ("fstat", ''),
                              ("force_schema", 'util'),
@@ -740,7 +741,7 @@ class Pyetl(object):
                              ('_paramperso', self.paramdir),
                              ('_version', self.version),
                              ('_progdir', os.path.dirname(__file__))
-                             ])
+                            ])
 
     def getstats(self):
         '''retourne un dictionnaire avec les valeurs des stats'''
@@ -748,17 +749,20 @@ class Pyetl(object):
 
 
     def getcontext(self, context, ident=''):
+        """recupere un contexte en cascade"""
         if context is None:
             return Context(parent=self.context, ident=ident)
         return context.getcontext(ident=ident)
 
     def get_param(self, nom, defaut=""):
+        """recupere la valeur d une varible depuis le contexte"""
 #        print ('lecture ', nom, self.context.getvar(nom, defaut))
 #        if nom=='nbaffich':
 #            print (self.context)
         return self.context.getvar(nom, defaut)
 
     def set_param(self, nom, valeur):
+        """positionne une variable dans un contexte"""
         self.context.setvar(nom, valeur)
 
 

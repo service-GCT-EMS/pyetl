@@ -396,6 +396,7 @@ class SchemaClasse(object):
             self.minmajfunc = str
 
     def set_format_entree(self, nom, desc):
+        """positionne le formattage de lecture"""
         self.attributs[nom].set_format_entree(desc)
 
 

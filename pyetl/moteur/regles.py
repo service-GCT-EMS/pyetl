@@ -213,7 +213,7 @@ class RegleTraitement(object): # regle de mapping
         self.fonction_schema = None
         self.numero = numero
 
-        self.context=stock_param.getcontext(context, ident='R'+str(numero))
+        self.context = stock_param.getcontext(context, ident='R'+str(numero))
 #        print ('contexte regle',self.ligne, self.context)
         self.val_tri = re.compile('')
         self.index = 0
@@ -269,12 +269,15 @@ class RegleTraitement(object): # regle de mapping
         return RegleTraitement(ligne, self.stock_param, self.fichier, numero, context=self.context)
 
     def getvar(self, nom, defaut=''):
+        """recupere une variable dans le contexte"""
         return self.context.getvar(nom, defaut)
 
     def getchain(self, noms, defaut=''):
+        """recupere une variable avec une chaine de fallbacks"""
         return self.context.getchain(noms, defaut)
 
     def setvar(self, nom, valeur):
+        """positionne une variable dans le contexte"""
         self.context.setvar(nom, valeur)
 
 

@@ -46,7 +46,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         type_att = description['properties'][i]
         taille = '0'
         dec = '0'
-        format_entree =''
+        format_entree = ''
         if ':' in type_att:
             vv_tmp = type_att.split(':')
             type_att = vv_tmp[0]
@@ -59,7 +59,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
 #            typ_orig = type_att
             if type_att == 'float':
                 if dec == '0':
-                    type_att='int' if int(taille) < 10 else 'long'
+                    type_att = 'int' if int(taille) < 10 else 'long'
                     format_entree = '{:.0f}'
                 else:
                     format_entree = '{:.'+dec+'f}'
@@ -168,7 +168,8 @@ def lire_objets(self, rep, chemin, fichier):
 #            print ('recup fiona',source.driver, source.schema)
             schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
-            schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe), source.schema, source.driver)
+            schemaclasse = recup_schema_fiona(schema_courant, (groupe, classe),
+                                              source.schema, source.driver)
 
             self.setident(groupe, classe)
 #            print('fiona:', classe, 'schema.type_geom',
@@ -295,6 +296,7 @@ class GdalWriter(object):
         return True
 
     def finalise(self):
+        """ferme definitivement les fichiers"""
         self.close()
         return 3
 

@@ -291,8 +291,10 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
 
         if stock_param.schemas[i].origine == 'G':
             FSC.analyse_conformites(schemas[i])
-        print ('avant analyse ',i,len(schemas[i].classes),len(schemas[i].conformites),mode_sortie)
-        print ('choix', FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir))
+#        print('avant analyse ', i, len(schemas[i].classes),
+#              len(schemas[i].conformites),mode_sortie)
+#        print('choix', FSC.analyse_interne(schemas[i], mode_sortie,
+#                                           type_schema=type_schemas_a_sortir))
         if FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
@@ -306,7 +308,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode='util', formats='csv', confs=-1
                 else:
                     formats_a_sortir.add(schemas[i].format_sortie)
 #controle du sql et de ses dialectes
-            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
+#            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(schemas[i], rep_sortie, formats_a_sortir,
                              stock_param, mode_sortie, confs)
 

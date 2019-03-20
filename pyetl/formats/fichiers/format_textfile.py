@@ -145,5 +145,4 @@ READERS = {'ligne':(lire_textfile_ligne, '', False, ())}
 READERS = {'text':(lire_textfile_bloc, '', False, ())}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'text':(ecrire_objets_text, None, False, '', 0, '', 'classe',
-                  '', '')}
-
+                   '', '')}

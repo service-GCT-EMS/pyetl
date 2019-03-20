@@ -441,7 +441,8 @@ def f_vset(regle, obj):
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
-#    print ('stocke ', regle.params.att_sortie.val, regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
+#    print ('stocke ', regle.params.att_sortie.val,
+#           regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 

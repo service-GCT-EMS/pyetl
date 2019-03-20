@@ -248,11 +248,11 @@ class Context(object):
         '''fournit la valeur d'un parametre selon des contextes standardises'''
 #        if nom == 'nbaffich':
 #            print ('chemin de recherche ',self.search)
-        for c in self.search:
+        for ctx in self.search:
 #            print ('getvar recherche', nom,' dans ', c)
-            if nom in c:
+            if nom in ctx:
 #                print ('contexte getvar', nom, c[nom])
-                return c[nom]
+                return ctx[nom]
         return defaut
 
 
@@ -282,6 +282,7 @@ class Context(object):
 
 
     def exists(self, nom):
+        """la variable existe"""
         return nom in self.ref.vlocales
 
 
@@ -296,9 +297,9 @@ class Context(object):
 
     def getvars(self):
         '''recupere toutes les variables d'un contexte'''
-        vlist=set()
-        for c in self.search:
-            vlist = vlist|c.keys()
+        vlist = set()
+        for ctx in self.search:
+            vlist = vlist|ctx.keys()
         return {i:self.getvar(i) for i in vlist}
 
 #                print ('contexte getvar', nom, c[nom])
@@ -312,4 +313,3 @@ class Context(object):
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vlocales.items())])+\
 #                 '========================= variables globales==========\n'+\
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vlocales.items())])
-

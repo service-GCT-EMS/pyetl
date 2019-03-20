@@ -30,8 +30,8 @@ def _affiche_debug(regles, debug):
 
 def _branche(regle1, regle2):
     '''branche une regle a la place de l'autre'''
-    for br in regle2.branchements.brch:
-        regle1.branchements.brch[br] = regle2.branchements.brch[br]
+    for brc in regle2.branchements.brch:
+        regle1.branchements.brch[brc] = regle2.branchements.brch[brc]
 
 
 def _finalise(regle, debug):
@@ -46,8 +46,8 @@ def _finalise(regle, debug):
         if debug:
             print('regle filtrante ', regle.ligne)
     if regle.call: # c est un appel de procedure / macro
-        for br in regle.branchements.brch:
-            regle.liste_regles[-1].branchements.brch[br] = regle.branchements.brch[br]
+        for brc in regle.branchements.brch:
+            regle.liste_regles[-1].branchements.brch[brc] = regle.branchements.brch[brc]
         for rmacro in regle.liste_regles:
             if rmacro._return:
 #                print ('gestionnaire de retour', rmacro, '->' , regle)
@@ -149,7 +149,7 @@ def compile_regles(mapper, liste_regles, debug=0):
     for i in range(len(regles)-1):
         regle = regles[i]
         if regle.call:
-            compile_regles(mapper,regle.liste_regles, debug=0)
+            compile_regles(mapper, regle.liste_regles, debug=0)
 
 
         if regles[i+1].niveau > regle.niveau: # ca se complique les regles sont liees
@@ -182,7 +182,7 @@ def compile_regles(mapper, liste_regles, debug=0):
             bloc -= 1
         _finalise(regle, debug)
     if liste_regles is None: # applatissement des regles
-        nliste=[]
+        nliste = []
         for i in nextregle(regles):
             i.index = len(nliste)
             nliste.append(i)

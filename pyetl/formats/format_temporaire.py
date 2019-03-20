@@ -157,7 +157,7 @@ def tmp_geom(obj, convertisseur):
 
 
 # =================== format temporaire ==============================
-def lire_objets(self, fichier, stock_param):
+def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
     for ligne in open(fichier, 'r', encoding='utf-8'):
         if ligne:
@@ -182,7 +182,7 @@ def lire_objets(self, fichier, stock_param):
                 obj.geomnatif = True
                 yield obj
 
-def ecrire_objets(self, nom, mode, groupe, geomwriter, nom_format):
+def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
     """stocke les objets en format temporaire"""
     fichier = open(nom, mode, encoding='utf-8')
 
@@ -238,7 +238,7 @@ class ObjStore(object):
 
 
 
-def intstreamer(self, obj, regle): #ecritures non bufferisees
+def intstreamer(obj, regle): #ecritures non bufferisees
     ''' ecrit des objets tmp en streaming'''
     store = regle.stock_param.store
 
@@ -261,7 +261,7 @@ def intstreamer(self, obj, regle): #ecritures non bufferisees
     ressource.write(obj)
 
 
-def ecrire_objets_int(self, regle, _):
+def ecrire_objets_int(regle, _):
     ''' ecrit des objets dans le stockage interne'''
     nb_obj, nb_fich = 0, 0
     dident = None

@@ -112,7 +112,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     try:
         with open(os.path.join(rep, chemin, fichier), "r", encoding=encoding) as fich:
             if not entete:
-                entete = fich.readline()[:-1] # si l'entete n'est pas fourni on le lit dans le fichier
+                entete = fich.readline()[:-1]
+                # si l'entete n'est pas fourni on le lit dans le fichier
             if entete[0] == '!':
                 entete = entete[1:]
             else: # il faut l'inventer...
@@ -152,7 +153,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                     regle_ref.stock_param.aff.send(('interm', 0, nlignes))
                     # gestion des affichages de patience
     except UnicodeError:
-        print("erreur encodage le fichier",fichier ,"n'est pas en ",encoding)
+        print("erreur encodage le fichier", fichier, "n'est pas en ", encoding)
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")
     return nlignes
@@ -194,7 +195,7 @@ class CsvWriter(FileWriter):
 
     def header(self, init=1):
         ''' preparation de l'entete du fichiersr csv'''
-        print ('csvheader ', self.entete)
+        print('csvheader ', self.entete)
         if not self.entete:
 #            raise
             return ''
@@ -506,13 +507,13 @@ def ecrire_objets_sql(self, regle, final):
     '''format sql copy pour postgis'''
 
     return _ecrire_objets_csv(self, regle, final, 'sql', '\t', '.sql',
-                                   null=r'\N', writerclass=SqlWriter)
+                              null=r'\N', writerclass=SqlWriter)
 
 def sqlstreamer(self, obj, regle, final):
     '''format sql copy pour postgis en streaming '''
 
     return _csvstreamer(self, obj, regle, final, 'sql', '\t',
-                             '.sql', null=r'\N', writerclass=SqlWriter)
+                        '.sql', null=r'\N', writerclass=SqlWriter)
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {'csv':(ecrire_objets_csv, csvstreamer,

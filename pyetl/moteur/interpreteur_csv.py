@@ -445,7 +445,7 @@ def analyse_operation(regle):
 def setvloc(regle):
     '''positionne les variables locales declarees dans la regle'''
     valeurs = regle.ligne.split(';')
-    if len(valeurs)>11:
+    if len(valeurs) > 11:
         vldef = valeurs[11]
         vldef, binding = map_vars(vldef, regle.context)
         if '=>' in vldef:
@@ -473,7 +473,7 @@ def prepare_regle(regle):
     setvloc(regle)
     v_nommees = regle.v_nommees
     ndebug = 10
-    if any(i in v_nommees['debug'] for i in ('debug','print','step')):
+    if any(i in v_nommees['debug'] for i in ('debug', 'print', 'step')):
         vdebug = v_nommees['debug'].split(',')
         if vdebug[-1].isnumeric():
             ndebug = vdebug.pop()
@@ -526,7 +526,7 @@ def map_vars(ligne, context):
 #TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
     binding = dict()
 #    print('mv:ligne',ligne)
-    l0 = ligne
+#    l_orig = ligne
     for j in PARAM_EXP.findall(ligne): # substitution des parametres positionnels
         nom_param = j.replace('%', '')
 
@@ -586,7 +586,7 @@ def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
     """ charge une macro et mappe les variables"""
     macro = mapper.macros.get(cmd)
     if macro is None:
-        print('macro inconnue',cmd)
+        print('macro inconnue', cmd)
         raise SyntaxError
     if vpos:
         macroenv.update(macro.bind(vpos))
@@ -611,7 +611,7 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
     else:
         liste_commandes = fichier_regles.split(',')
 #        commande, *pars = liste_commandes[0].split(",")
-    liste_regles=[]
+    liste_regles = []
     for i in liste_commandes:
         cmd, *pars = i.split("|" if '|' in i else ':')
 #        vnom = [i for i in pars if "=" in i]

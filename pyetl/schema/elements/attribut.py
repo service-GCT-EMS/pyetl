@@ -265,6 +265,7 @@ class Attribut(object):
             self.type_att = self.type_att_base
 
     def set_format_entree(self, desc):
+        """positionne le formattage de lecture"""
         self.format_entree = desc
 
     def copie(self, nom=None):

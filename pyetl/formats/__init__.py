@@ -15,16 +15,16 @@ from .db import DATABASES
 from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
 from .interne.objet import Objet
-'''
-geomdef = namedtuple("geomdef", ("writer", "converter"))
-
-rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter"))
-wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
-                                 "attlen", "driver", "fanout", "geom", "tmp_geom",
-                                 "geomwriter"))
-"database", ("acces", "gensql", "svtyp", "fileext", 'description', "geom", 'converter',
-             "geomwriter"))
-'''
+#
+#geomdef = namedtuple("geomdef", ("writer", "converter"))
+#
+#rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter"))
+#wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
+#                                 "attlen", "driver", "fanout", "geom", "tmp_geom",
+#                                 "geomwriter"))
+#"database", ("acces", "gensql", "svtyp", "fileext", 'description', "geom", 'converter',
+#             "geomwriter"))
+#
 # assemblage avec les geometries
 for nom in WRITERS:
     tmp = WRITERS[nom]

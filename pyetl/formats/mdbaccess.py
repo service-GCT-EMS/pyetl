@@ -368,9 +368,8 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     passwd = stock_param.get_param("passwd_"+codebase, '')
 
     dbdef = db.DATABASES[type_base]
-    connection = dbdef.acces(serveur, base, user, passwd,
-                                               system=systables,
-                                               params=stock_param, code=codebase)
+    connection = dbdef.acces(serveur, base, user, passwd, system=systables,
+                             params=stock_param, code=codebase)
 
     if connection.valide:
 #        print('connection valide', serveur)
@@ -998,7 +997,11 @@ class DbWriter(object):
 #    if attributs:
 #        return attributs
 #    return obj.schema.get_liste_attributs()
+def dbload(regle, base, niveau, classe, obj):
+    pass
 
+def dbupdate(regle, base, niveau, classe, attribut, obj):
+    pass
 
 def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
     '''ecrit un ensemble d'objets en base'''

@@ -267,5 +267,5 @@ class SqltGenSql(DbGenSql):
     pass
 
 
-DBDEF = {'spatialite':(SqltConnect, SqltGenSql, 'file', '.sqlite', '#ewkt', 'base spatialite basique')}
-
+DBDEF = {'spatialite':(SqltConnect, SqltGenSql, 'file', '.sqlite', '#ewkt',
+                       'base spatialite basique')}

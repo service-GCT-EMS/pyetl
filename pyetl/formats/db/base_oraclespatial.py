@@ -211,4 +211,5 @@ class OrwGenSql(OraGenSql):
     pass
 
 
-DBDEF = {'oracle_spatial_ewkt':(OrwConnect, OrwGenSql, 'server', '', '#ewkt', 'base oracle spatial (format ewkt)')}
+DBDEF = {'oracle_spatial_ewkt':(OrwConnect, OrwGenSql, 'server', '', '#ewkt',
+                                'base oracle spatial (format ewkt)')}

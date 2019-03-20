@@ -276,10 +276,10 @@ class Objet(object):
                     if props[i] is None:
                         continue
                     nom = self.schema.attmap.get(i, i)
-                    self.attributs[nom]=self.schema.attributs[nom].format_entree.format(props[i])
+                    self.attributs[nom] = self.schema.attributs[nom].format_entree.format(props[i])
             else:
                 self.attributs.update({i:self.schema.attributs[i].format_entree.format(props[i])
-                                      for i in props if props[i] is not None})
+                                       for i in props if props[i] is not None})
         else:
             self.attributs.update({i:str(props[i]) for i in props if props[i] is not None})
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))

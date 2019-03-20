@@ -5,7 +5,7 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
-from .base_postgis import PgsConnect,PgsGenSql
+from .base_postgis import PgsConnect, PgsGenSql
 #from .init_sigli import requetes_sigli as REQS
 #from . import database
 

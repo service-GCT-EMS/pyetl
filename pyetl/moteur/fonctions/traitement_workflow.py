@@ -68,7 +68,7 @@ def f_return(regle, obj):
     """#aide||sort d une macro
     #pattern||;;;quitter;?C;
     """
-    obj.redirect=regle.params.cmp1.val
+    obj.redirect = regle.params.cmp1.val
     return True
 
 
@@ -236,7 +236,7 @@ def f_sample(regle, obj):
 def printvariable(regle):
     ''' affichage de variables'''
     if not regle.params.cmp1.val:
-        return '\n'.join([i+'='+str(j) for i,j in sorted(regle.context.getvars().items())])
+        return '\n'.join([i+'='+str(j) for i, j in sorted(regle.context.getvars().items())])
 
     if regle.params.cmp2.val:
         return regle.params.cmp1.val+"="+str(regle.context.getvar(regle.params.cmp1.val))
@@ -321,14 +321,14 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     '''charge une macro et gere la tringlerie d'appel'''
-    regle.call=True
+    regle.call = True
     context = regle.context.getcontext()
     mapper = regle.stock_param
     vpos = '|'.join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + '|'+vpos if vpos else regle.params.cmp1.val
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
     if regle.liste_regles:
-        regle.liste_regles[-1]._return=True
+        regle.liste_regles[-1]._return = True
     return erreurs
 
 

@@ -359,4 +359,5 @@ class PgsGenSql(PgrGenSql):
         pass
 
 
-DBDEF = {'postgis':(PgsConnect, PgsGenSql, 'server', '', '#ewkt', 'base postgres avec postgis générique')}
+DBDEF = {'postgis':(PgsConnect, PgsGenSql, 'server', '', '#ewkt',
+                    'base postgres avec postgis générique')}

@@ -186,6 +186,7 @@ def get_ressource(obj, regle, attributs=None):
     return ressource
 
 def lire_objets_xml(self, rep, chemin, fichier):
+    """lecture xml non implemente"""
     return
 
 def xml_streamer(self, obj, regle, _, attributs=None):

@@ -6,9 +6,9 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
+import sqlite3
 #from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
-import sqlite3
 
 TYPES_A = {"T":"T", 'VARCHAR':"T", "VARCHAR2":"T", "TEXT":"T", "CHAR":"T",
            "F":"F", "NUMBER":'F',
@@ -264,4 +264,3 @@ class SqltGenSql(DbGenSql):
     pass
 
 DBDEF = {'sqlite':(SqltConnect, SqltGenSql, 'file', '.sqlite', '#ewkt', 'base sqlite basique')}
-
