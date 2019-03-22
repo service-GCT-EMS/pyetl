@@ -26,11 +26,7 @@ def _affiche_debug(regles, debug):
                 "-->",
                 [(i, liens_pos[i], liens_num[i]) for i in sorted(liens_num)],
             )
-            print(
-                "flags",
-                "final" if regle.final else "",
-                "nonext" if regle.nonext else "",
-            )
+            print("flags", "final" if regle.final else "", "nonext" if regle.nonext else "")
             if "+" in regle.v_nommees["debug"]:
                 print(
                     "\n".join(
@@ -158,9 +154,7 @@ def compile_regles(mapper, liste_regles, debug=0):
             raise EOFError("pas de regles a compiler")
 
         if mapper.get_param("sans_sortie"):
-            regle_sortir = mapper.interpreteur(
-                ";;;;;;;pass;;;;;pas de sortie", "", 99999
-            )
+            regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
         else:
             regle_sortir = mapper.interpreteur(
                 ";;;;;;;sortir;"

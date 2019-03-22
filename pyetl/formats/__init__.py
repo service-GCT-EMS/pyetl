@@ -94,11 +94,7 @@ class Reader(object):
             self.converter = description.converter
             self.schema_entree = self.regle_ref.getvar("schema_entree")
             if self.debug:
-                print(
-                    "debug:format: lecture format " + nom,
-                    self.converter,
-                    self.lire_objets,
-                )
+                print("debug:format: lecture format " + nom, self.converter, self.lire_objets)
         else:
             print("error:format: format entree inconnu", nom)
             raise KeyError
@@ -188,9 +184,7 @@ class Writer(object):
         self.nom_fgeo = self.def_sortie.geom
         self.geomwriter = self.def_sortie.geomwriter
         self.calcule_schema = self.def_sortie.force_schema
-        self.minmaj = (
-            self.def_sortie.casse
-        )  # determine si les attributs passent en min ou en maj
+        self.minmaj = self.def_sortie.casse  # determine si les attributs passent en min ou en maj
         self.driver = self.def_sortie.driver
         self.nom = nom
         self.l_max = self.def_sortie.attlen

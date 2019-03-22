@@ -185,9 +185,7 @@ class FonctionTraitement(object):
     #            if self.clef_sec and self.clef_sec not in self.definition:
     #                print("erreur clef fonction ", self.nom, ">"+self.clef_sec+"<", pat)
 
-    def subfonc(
-        self, nom, fonction, description, definition, groupe_sortie, clef_sec, style
-    ):
+    def subfonc(self, nom, fonction, description, definition, groupe_sortie, clef_sec, style):
         """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
         pnum = description["pn"]
         if not "#aide_spec" + pnum in description:
@@ -285,22 +283,14 @@ def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
 
             else:
                 if clef not in stockage:  # la clef existe
-                    fct = FonctionTraitement(
-                        clef, fonction, description, definition_champs
-                    )
+                    fct = FonctionTraitement(clef, fonction, description, definition_champs)
                     fct.module = nom_module
                     fct.style = style
                     stockage[clef] = fct
                 #        print ('definitions',definition)
                 groupe_sortie = definition_champs["sortie"].groupe
                 stockage[clef].subfonc(
-                    nom,
-                    fonction,
-                    description,
-                    definition_champs,
-                    groupe_sortie,
-                    clef_sec,
-                    style,
+                    nom, fonction, description, definition_champs, groupe_sortie, clef_sec, style
                 )
 
 
@@ -394,34 +384,24 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             continue
         nom_fonction = nom.replace(pref + "_", "", 1)
         listedoc = fonction.__doc__.split("\n")
-        description_fonction = interprete_doc(
-            listedoc
-        )  # on decoupe la doc sous forme de listes
+        description_fonction = interprete_doc(listedoc)  # on decoupe la doc sous forme de listes
         stockage = store[pref]
         if pref in simple_prefix:
-            reghelpers(
-                nom_module, nom_fonction, fonction, stockage, simple_prefix[pref]
-            )
+            reghelpers(nom_module, nom_fonction, fonction, stockage, simple_prefix[pref])
 
         if pref == "f":  # c'est une fonction de traitement
             #            print ('fonction ',module.__name__, nom)
             #                regwarnings(nom_module, nom[2:], COMMANDES, 'fonctions de traitement')
             regwarnings(nom_module, nom_fonction, stockage, "traitement")
-            reg_fonction(
-                stockage, nom_module, nom_fonction, fonction, description_fonction
-            )
+            reg_fonction(stockage, nom_module, nom_fonction, fonction, description_fonction)
 
         elif pref == "s":  # c'est une fonction de stockage
             regwarnings(nom_module, nom_fonction, stockage, "stockage")
-            reg_stockage(
-                stockage, nom_module, nom_fonction, fonction, description_fonction
-            )
+            reg_stockage(stockage, nom_module, nom_fonction, fonction, description_fonction)
 
         elif pref == "sel":  # c'est une fonction de selection
             regwarnings(nom_module, nom_fonction, stockage, "selecteur")
-            reg_select(
-                stockage, nom_module, nom_fonction, fonction, description_fonction
-            )
+            reg_select(stockage, nom_module, nom_fonction, fonction, description_fonction)
 
 
 def get_fonction(nom, store, clef):
@@ -451,9 +431,7 @@ def complete_fonction(sbf, store):
         stockage = store["s"]
         grouperef = sbf.definition["sortie"].groupe
         sbf.fonctions_sortie = {
-            k: stockage[k]
-            for k in stockage
-            if stockage[k].definition["sortie"].groupe == grouperef
+            k: stockage[k] for k in stockage if stockage[k].definition["sortie"].groupe == grouperef
         }
 
         for i in sbf.fonctions_sortie.values():
@@ -466,17 +444,13 @@ def complete_fonction(sbf, store):
     set_helper(sbf, store, "h")
 
     if sbf.description.get("#shelper"):
-        sbf.shelper = get_fonction(
-            sbf.description.get("#shelper", [""])[0], store, "sh"
-        )
+        sbf.shelper = get_fonction(sbf.description.get("#shelper", [""])[0], store, "sh")
 
     sbf.changeclasse = get_fonction("change_classe", store, "fschema")
     sbf.changeschema = get_fonction("change_schema", store, "fschema")
 
     #    print ('fonction schema ',sbf.nom, sbf.description.get('#schema'))
-    sbf.fonction_schema = get_fonction(
-        sbf.description.get("#schema", [""])[0], store, "fschema"
-    )
+    sbf.fonction_schema = get_fonction(sbf.description.get("#schema", [""])[0], store, "fschema")
 
 
 def getmodules():

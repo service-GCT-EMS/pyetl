@@ -67,9 +67,7 @@ class FileWriter(object):
         """ouverture de fichier"""
         try:
             self.fichier = (
-                sys.stdout
-                if self.nom == "#print"
-                else open(self.nom, "w", encoding=self.encoding)
+                sys.stdout if self.nom == "#print" else open(self.nom, "w", encoding=self.encoding)
             )  # stdout
 
             self.fichier.write(self.header())
@@ -81,9 +79,7 @@ class FileWriter(object):
         """reouverture"""
         try:
             self.fichier = (
-                sys.stdout
-                if self.nom == "#print"
-                else open(self.nom, "a", encoding=self.encoding)
+                sys.stdout if self.nom == "#print" else open(self.nom, "a", encoding=self.encoding)
             )  # stdout
         except IOError:
             print("erreur ouverture fichier", self.nom)

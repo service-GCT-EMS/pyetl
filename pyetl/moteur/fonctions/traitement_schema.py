@@ -64,9 +64,7 @@ def f_set_schema(regle, obj):
     schem = obj.schema
     if schem:
         if schem.amodifier(regle):
-            FSC.set_val_schema(
-                schem, regle.params.att_sortie.val, regle.params.val_entree.val
-            )
+            FSC.set_val_schema(schem, regle.params.att_sortie.val, regle.params.val_entree.val)
         return True
     return False
 
@@ -120,13 +118,9 @@ def f_stock_schema(regle, obj):
             print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
     FSC.ajuste_schema(
-        regle.schema_courant,
-        obj,
-        regle.params.cmp2.num if regle.params.cmp2.num else 30,
+        regle.schema_courant, obj, regle.params.cmp2.num if regle.params.cmp2.num else 30
     )
-    if (
-        regle.final
-    ):  # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
+    if regle.final:  # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
         obj.schema = None
     if regle.params.att_sortie.val:
         obj.schema = regle.schema_courant
@@ -284,11 +278,7 @@ def h_def_schema(regle):
         regle.stock_param.schemas[nom] = lire_schema_xml(nom, regle.fichier, cod=cod)
     regle.nomschema = nom
     LOGGER.info(
-        "lecture schema "
-        + nom
-        + ":"
-        + str(len(regle.stock_param.schemas[nom].classes))
-        + "classes"
+        "lecture schema " + nom + ":" + str(len(regle.stock_param.schemas[nom].classes)) + "classes"
     )
 
     regle.remap = regle.params.att_entree.val == "map"
@@ -302,9 +292,7 @@ def fschema_change_classe(_, obj):
 
     schema2 = obj.schema.schema
     ident = obj.ident
-    schema_classe = schema2.get_classe(
-        ident, cree=True, modele=obj.schema, filiation=True
-    )
+    schema_classe = schema2.get_classe(ident, cree=True, modele=obj.schema, filiation=True)
     #    print ('regles : changement de classe',obj.schema.identclasse,'--->',
     #           ident,schema_classe.info['type_geom'] )
 
@@ -399,13 +387,7 @@ def f_def_schema(regle, obj):
             obj.schema = None
             return True
         print(
-            "regles:",
-            regle.numero,
-            "classe non trouvee",
-            nom_base,
-            ident,
-            "dans ",
-            regle.nomschema,
+            "regles:", regle.numero, "classe non trouvee", nom_base, ident, "dans ", regle.nomschema
         )
         print("regles: liste classes ", list(schema.classes.keys())[:10], "....")
         obj.schema = None
@@ -423,8 +405,7 @@ def f_match_schema(regle, obj):
             if not schema_destination:
                 return False
             schema_classe.init_mapping(
-                schema_destination,
-                regle.params.cmp2.num if regle.params.cmp2.val else 0.5,
+                schema_destination, regle.params.cmp2.num if regle.params.cmp2.val else 0.5
             )
             if schema_classe.attmap is None:
                 return False

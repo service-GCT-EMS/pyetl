@@ -61,9 +61,7 @@ def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, 
     else:
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        noms_attributs = [
-            i.lower().strip().replace(" ", "_") for i in entete.split(separ)
-        ]
+        noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
         # on verifie que les noms existent et sont uniques
         noms = set()
 
@@ -104,14 +102,10 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
     return nbwarn
 
 
-def lire_objets_excel(
-    self, rep, chemin, fichier, stock_param, regle, entete=None, separ=None
-):
+def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
     if separ is None:
-        separ = stock_param.get_param(
-            "separ_csv_in", stock_param.get_param("separ_csv", ";")
-        )
+        separ = stock_param.get_param("separ_csv_in", stock_param.get_param("separ_csv", ";"))
     #    print('lecture_csv:', rep, chemin, fichier,separ)
     maxobj = stock_param.get_param("lire_maxi", 0)
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
@@ -122,9 +116,7 @@ def lire_objets_excel(
     ) as fich:
 
         if not entete:
-            entete = fich.readline()[
-                :-1
-            ]  # si l'entete n'est pas fourni on le lit dans le fichier
+            entete = fich.readline()[:-1]  # si l'entete n'est pas fourni on le lit dans le fichier
             if entete[0] == "!":
                 entete = entete[1:]
             else:  # il faut l'inventer...
@@ -164,9 +156,7 @@ def lire_objets_excel(
                 break
 
             if nlignes % 100000 == 0:
-                stock_param.aff.send(
-                    ("interm", 0, nlignes)
-                )  # gestion des affichages de patience
+                stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
 
         if nbwarn:
             print(nbwarn, "lignes avec un nombre d'attributs incorrect")
@@ -190,11 +180,7 @@ class XlsxWriter(FileWriter):
     ):
 
         super().__init__(
-            nom,
-            encoding=encoding,
-            liste_fich=liste_fich,
-            schema=schema,
-            f_sortie=f_sortie,
+            nom, encoding=encoding, liste_fich=liste_fich, schema=schema, f_sortie=f_sortie
         )
 
         self.extension = extension
@@ -229,11 +215,7 @@ class XlsxWriter(FileWriter):
         """ preparation de l'entete du fichiersr csv"""
         if not self.entete:
             return ""
-        geom = (
-            self.separ + "geometrie" + "\n"
-            if self.schema.info["type_geom"] != "0"
-            else "\n"
-        )
+        geom = self.separ + "geometrie" + "\n" if self.schema.info["type_geom"] != "0" else "\n"
         return "!" + self.separ.join(self.liste_att) + geom
 
     def write(self, obj):
@@ -241,10 +223,7 @@ class XlsxWriter(FileWriter):
         if obj.virtuel:
             return False  #  les objets virtuels ne sont pas sortis
 
-        atlist = (
-            str(obj.attributs.get(i, "")).translate(self.transtable)
-            for i in self.liste_att
-        )
+        atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
         #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
         #                obj.geomnatif, obj.type_geom)
         #        print ('orig',obj.attributs)
@@ -289,14 +268,10 @@ def getfanout(regle, extention, ident, initial):
     ):
         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
         #            len(obj.schema.attributs))
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
-        )
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest)
 
     else:
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
-        )
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
 
     ressource = sorties.get_res(regle.numero, nom)
     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
@@ -338,14 +313,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
 
 def excel_streamer(
-    obj,
-    regle,
-    _,
-    entete="csv",
-    separ=None,
-    extention=".csv",
-    null="",
-    writer=XlsxWriter,
+    obj, regle, _, entete="csv", separ=None, extention=".csv", null="", writer=XlsxWriter
 ):  # ecritures non bufferisees
     """ ecrit des objets csv en streaming"""
     #    sorties = regle.stock_param.sorties
@@ -388,11 +356,8 @@ def ecrire_objets_excel(
 
     #            if obj.geom_v.courbe:
     #                obj.schema.info['courbe'] = '1'
-    return
 
 
 READERS = {"xlsx": (lire_objets_excel, "", False, ())}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {
-    "xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "")
-}
+WRITERS = {"xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "")}

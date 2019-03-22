@@ -40,13 +40,7 @@ def fusion_schema(nom, schema, schema_tmp):
 
 
 def lire_schemas_multiples(
-    nom,
-    chemin,
-    mode_alias="num",
-    cod="utf-8",
-    cod_csv=None,
-    specifique=None,
-    fusion=None,
+    nom, chemin, mode_alias="num", cod="utf-8", cod_csv=None, specifique=None, fusion=None
 ):
     """initialise le schema et rajoute tous les elements necessaires"""
     schema = SCI.Schema(nom)
@@ -73,9 +67,7 @@ def lire_schemas_multiples(
                 fusion_schema(
                     nom,
                     schema,
-                    lire_schema_csv(
-                        "tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique
-                    ),
+                    lire_schema_csv("tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
                 )
         elif ext == ".xml":
             fusion_schema(nom, schema, lire_schema_xml("tmp", fichier, cod=cod_csv))
@@ -93,9 +85,7 @@ def set_transaction(liste):
     liste.append("COMMIT;\n")
 
 
-def ecrire_fichier_sql(
-    rep, nomschema, numero, nomfich, valeurs, cod="utf-8", transact=False
-):
+def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod="utf-8", transact=False):
     """ ecrit la description du schema en sql """
     if valeurs is None:
         return
@@ -313,18 +303,14 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         if a_sortir and i not in a_sortir:
             print("schema non sorti", i, "(", a_sortir, ")")
             continue
-        mode_sortie = (
-            schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
-        )
+        mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
         #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
         #              FSC.analyse_interne(schemas[i], mode_sortie))
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
         if not rep_sortie:
 
-            print(
-                "sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params
-            )
+            print("sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params)
             raise NotADirectoryError("repertoire de sortie non défini")
 
         if stock_param.schemas[i].origine == "G":
@@ -333,9 +319,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         #              len(schemas[i].conformites),mode_sortie)
         #        print('choix', FSC.analyse_interne(schemas[i], mode_sortie,
         #                                           type_schema=type_schemas_a_sortir))
-        if FSC.analyse_interne(
-            schemas[i], mode_sortie, type_schema=type_schemas_a_sortir
-        ):
+        if FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == "sql":
@@ -350,12 +334,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             ecrire_au_format(
-                schemas[i],
-                rep_sortie,
-                formats_a_sortir,
-                stock_param,
-                mode_sortie,
-                confs,
+                schemas[i], rep_sortie, formats_a_sortir, stock_param, mode_sortie, confs
             )
 
 

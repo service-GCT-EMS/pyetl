@@ -45,17 +45,7 @@ def compte_obj(self, regle, *_, **__):
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "#poubelle": (
-        ecrire_objets_neant,
-        stream_objets_neant,
-        False,
-        "no",
-        0,
-        "",
-        "all",
-        None,
-        None,
-    ),
+    "#poubelle": (ecrire_objets_neant, stream_objets_neant, False, "no", 0, "", "all", None, None),
     "#comptage": (compte_obj, compte_obj_stream, False, "no", 0, "", "all", None, None),
 }
 #                  reader,geom,hasschema,auxfiles

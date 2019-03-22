@@ -108,6 +108,8 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     }
     description = dict()
     type_geom = sc_classe.info["type_geom"]
+    if type_geom == "indef":
+        type_geom = "0"
     if type_geom > "0":
         nom_geom = nom_g_m[type_geom]
         #        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.info['courbe']
@@ -194,9 +196,7 @@ def lire_objets(self, rep, chemin, fichier):
     for layer in layers:
         with fiona.open(entree, "r", layer=layer) as source:
             #            print ('recup fiona',source.driver, source.schema)
-            schema_courant, groupe, classe = map_schema_initial(
-                stock_param, groupe, groupe, layer
-            )
+            schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
             schemaclasse = recup_schema_fiona(
                 schema_courant, (groupe, classe), source.schema, source.driver
@@ -215,14 +215,7 @@ def lire_objets(self, rep, chemin, fichier):
                 obj.setschema(schemaclasse)
                 n_obj += 1
                 if n_obj % 100000 == 0:
-                    print(
-                        "formats :",
-                        fichier,
-                        "lecture_objets_gdal ",
-                        driver,
-                        n_lin,
-                        n_obj,
-                    )
+                    print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)
                 obj.from_geo_interface(i)
                 #            print ('entree', i)
                 #            print ('objet', obj.__geo_interface__)
@@ -289,9 +282,7 @@ class GdalWriter(object):
         if self.l_max:
             self.schema.cree_noms_courts(longueur=self.l_max)
         self.schema.minmajfunc = self.minmajfunc
-        schema = schema_fiona(
-            self.schema, liste_attributs=self.liste_att, l_nom=self.l_max
-        )
+        schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
         #        print('fiona: ouverture', self.nom, self.layer)
         self.fichier = fiona.open(
             self.nom,
@@ -313,9 +304,7 @@ class GdalWriter(object):
         self.layer = classe
         crs = from_epsg(int(self.srid))
         self.schema = schemaclasse
-        schema = schema_fiona(
-            self.schema, liste_attributs=self.liste_att, l_nom=self.l_max
-        )
+        schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
         #        print ('fiona: reouverture' ,self.nom, self.layer)
         self.fichier = fiona.open(
             self.nom,
@@ -330,9 +319,7 @@ class GdalWriter(object):
     def reopen(self):
         """reouvre le fichier s'il aete ferme entre temps"""
         crs = from_epsg(int(self.srid))
-        schema = schema_fiona(
-            self.schema, liste_attributs=self.liste_att, l_nom=self.l_max
-        )
+        schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
         self.fichier = fiona.open(
             self.nom,
             "a",
@@ -472,9 +459,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             #            print ('gdalio: ecriture', obj)
-            self.ecrire_objets_stream(
-                obj, regle, None, attributs=attributs, rep_sortie=rep_sortie
-            )
+            self.ecrire_objets_stream(obj, regle, None, attributs=attributs, rep_sortie=rep_sortie)
 
 
 # def asc_streamer(obj, groupe, rep_sortie, regle, final, attributs=None,
@@ -490,28 +475,8 @@ READERS = {
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "shp": (
-        ecrire_objets,
-        gdalstreamer,
-        True,
-        "up",
-        10,
-        "ESRI Shapefile",
-        "classe",
-        None,
-        "#tmp",
-    ),
-    "mif": (
-        ecrire_objets,
-        gdalstreamer,
-        True,
-        "",
-        0,
-        "MapInfo File",
-        "classe",
-        None,
-        "#tmp",
-    ),
+    "shp": (ecrire_objets, gdalstreamer, True, "up", 10, "ESRI Shapefile", "classe", None, "#tmp"),
+    "mif": (ecrire_objets, gdalstreamer, True, "", 0, "MapInfo File", "classe", None, "#tmp"),
     "dxf": (ecrire_objets, gdalstreamer, True, "", 0, "DXF", "classe", None, "#tmp"),
     "gpkg": (ecrire_objets, gdalstreamer, True, "", 0, "GPKG", "all", None, "#tmp"),
 }

@@ -43,10 +43,7 @@ class BasicCrypter(Crypter):
             bytes(
                 itertools.chain.from_iterable(
                     zip(
-                        (
-                            ord(x) ^ ord(y)
-                            for x, y in zip(val, itertools.cycle(self.key))
-                        ),
+                        (ord(x) ^ ord(y) for x, y in zip(val, itertools.cycle(self.key))),
                         (random.randint(0, 255) for i in range(len(val))),
                     )
                 )
@@ -57,10 +54,7 @@ class BasicCrypter(Crypter):
     def decrypt(self, val):
         """la decrypte de nouveau"""
         return "".join(
-            [
-                chr(x ^ ord(y))
-                for x, y in zip(base64.b32decode(val)[::2], itertools.cycle(self.key))
-            ]
+            [chr(x ^ ord(y)) for x, y in zip(base64.b32decode(val)[::2], itertools.cycle(self.key))]
         )
 
 
@@ -153,11 +147,7 @@ class HcubeCrypter(Crypter):
         taille = len(binlist)
         pl1 = taille // 256
         pl2 = taille % 256
-        flist = (
-            bytes([pl1, pl2])
-            + binlist
-            + bytes([random.randint(0, 255) for i in range(3)])
-        )
+        flist = bytes([pl1, pl2]) + binlist + bytes([random.randint(0, 255) for i in range(3)])
         #        print ("flist",flist,len(flist),"xxx",list(range(0,len(flist)-3,3)))
         retour = bytes()
         clef = 0
@@ -193,13 +183,13 @@ class HcubeCrypter(Crypter):
         #        print ("retour", code, retour)
         taille = retour[0] * 256 + retour[1]
         if abs(len(retour) - taille) > 5:
-            #            print ('clef invalide ', len(retour) - taille, self.key)
+#            print ('clef invalide ', len(retour) - taille, self.key)
             return valentree
         textbuf = bytes(retour[2 : taille + 2])
         try:
             return textbuf.decode("utf-8")
         except UnicodeDecodeError:
-            #            print('clef invalide ')
+#            print('clef invalide ')
             return valentree
 
 
@@ -266,7 +256,7 @@ def decrypt(mapper, val, key=None, level=None):
         key = descramble(mapper, key)
         if key not in CRYPTOCLASS:
             cryptinit(mapper, key, level)
-        #    print ('decryptage', key, CRYPTOCLASS[key], CRYPTOCLASS[key].decrypt(val))
+#        print ('decryptage', key, CRYPTOCLASS[key], CRYPTOCLASS[key].decrypt(val))
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
             return decrypt

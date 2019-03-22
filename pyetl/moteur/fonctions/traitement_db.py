@@ -71,14 +71,9 @@ def param_base(regle):
     attrs = []
     cmp = []
 
-    if niv.lower().startswith(
-        "s:"
-    ):  # selection directe du style niveau,classe.attribut
+    if niv.lower().startswith("s:"):  # selection directe du style niveau,classe.attribut
         if len(niv.split(".")) != 3:
-            print(
-                "dbselect: il faut une description complete s:niveau.classe.attribut",
-                niv,
-            )
+            print("dbselect: il faut une description complete s:niveau.classe.attribut", niv)
         else:
             att = niv.split(".")[2]
             niveau = [niv]
@@ -140,9 +135,7 @@ def h_dbalpha(regle):
         #        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
             return True
-        regle.erreurs.append(
-            "dbalpha: modificateurs non autorises seulement:", DB.DBMODS
-        )
+        regle.erreurs.append("dbalpha: modificateurs non autorises seulement:", DB.DBMODS)
         return False
     print("erreur regle", regle)
     regle.erreurs.append("dbalpha: erreur base non definie")
@@ -183,9 +176,7 @@ def setdb(regle, obj, att=True):
         #        print('on a mis un attribut', regle.params.att_entree.liste)
         valeur = [
             obj.attributs.get(a, d)
-            for a, d in zip_longest(
-                regle.params.att_entree.liste, regle.params.val_entree.liste
-            )
+            for a, d in zip_longest(regle.params.att_entree.liste, regle.params.val_entree.liste)
         ]
     elif regle.params.val_entree.liste:
         valeur = regle.params.val_entree.liste
@@ -216,14 +207,10 @@ def f_dbalpha(regle, obj):
 
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
     if base:
-        connect = DB.dbaccess(
-            regle.stock_param, base, type_base=type_base, chemin=chemin
-        )
+        connect = DB.dbaccess(regle.stock_param, base, type_base=type_base, chemin=chemin)
         if connect is None:
             return False
-        if (
-            connect.accept_sql == "non"
-        ):  # pas de requetes directes on essaye le mode dump
+        if connect.accept_sql == "non":  # pas de requetes directes on essaye le mode dump
             dest = regle.context.getvar("dest")
             if not dest:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
@@ -277,20 +264,11 @@ def h_dbgeo(regle):
     param_base(regle)
     regle.chargeur = True  # c est une regle qui cree des objets
 
-    fonctions = [
-        "intersect",
-        "dans",
-        "dans_emprise",
-        "!intersect",
-        "!dans",
-        "!dans_emprise",
-    ]
+    fonctions = ["intersect", "dans", "dans_emprise", "!intersect", "!dans", "!dans_emprise"]
     attribut = regle.v_nommees.get("val_sel2", "")
     valide = True
     if attribut not in fonctions:
-        regle.erreurs.append(
-            "dbgeo: fonction inconnue seulement:" + ",".join(fonctions)
-        )
+        regle.erreurs.append("dbgeo: fonction inconnue seulement:" + ",".join(fonctions))
         valide = False
     if not valide_dbmods(regle.params.cmp1.liste):
         valide = False
@@ -307,9 +285,7 @@ def f_dbgeo(regle, obj):
 
     """
     # regle.stock_param.regle_courante=regle
-    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
-        regle, obj, att=False
-    )
+    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(regle, obj, att=False)
     #    base, niveau, classe, fonction = regle.cible_base
     #    type_base = None
     #    chemin = ''
@@ -400,11 +376,7 @@ def f_dbrunsql(regle, obj):
             script = script + ".sql"
         print("traitement sql ", nom)
         DB.dbrunsql(
-            regle.stock_param,
-            base,
-            nom,
-            log=regle.params.cmp1.val,
-            out=regle.params.cmp2.val,
+            regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
         )
 
 

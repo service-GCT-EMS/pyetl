@@ -18,9 +18,7 @@ import os
 
 def lire(nom):
     """lit une grille en csv"""
-    reader = csv.reader(
-        open(nom + ".csv"), delimiter=";"
-    )  # lecture du fichier csv de forme id;x;y
+    reader = csv.reader(open(nom + ".csv"), delimiter=";")  # lecture du fichier csv de forme id;x;y
     grille = Grille()
     for row in reader:  # stockage des points en memoire
         if row[0] == "#pas_grille":
@@ -48,9 +46,7 @@ def ecrire(grille, nom):
         xc_noeud, yc_noeud = noeud
         xreel, yreel = xc_noeud * grille.pas, yc_noeud * grille.pas
         dec_x, dec_y, _ = grille.valeurs[noeud]
-        writer.writerow(
-            ["%6.6d%6.6d" % noeud, "%f" % (xreel + dec_x), "%f" % (yreel + dec_y)]
-        )
+        writer.writerow(["%6.6d%6.6d" % noeud, "%f" % (xreel + dec_x), "%f" % (yreel + dec_y)])
 
 
 class ListeGrilles:
@@ -60,9 +56,7 @@ class ListeGrilles:
         self.grilles = list()
         #        print ('grilles a lire ',repertoire,liste)
         lgrille = os.path.join(repertoire, liste)
-        for i in open(
-            lgrille, "r"
-        ):  # fichier contenant la liste des grilles à utiliser
+        for i in open(lgrille, "r"):  # fichier contenant la liste des grilles à utiliser
             nom = i.strip("\n")  # lecture des différents noms de fichiers de grille
             grille = lire(repertoire + "/" + nom)  # chargement de la grille
             # modification du nom pour tenir compte du sens d'utilisation de la grille
@@ -100,18 +94,11 @@ class ListeGrilles:
                 code_x, code_y = noeud
                 x_noeud, y_noeud = code_x * grille.pas, code_y * grille.pas
 
-                if (
-                    x_noeud == xmin
-                    or x_noeud == xmax
-                    or y_noeud == ymin
-                    or y_noeud == ymax
-                ):
+                if x_noeud == xmin or x_noeud == xmax or y_noeud == ymin or y_noeud == ymax:
                     # noeud du bord
                     dx1, dy1, nom = self.recup_corrections(x_noeud, y_noeud)
                     dx0, dy0, calcul = grille.valeurs[noeud]
-                    ecart = M.sqrt(
-                        (dx0 - dx1) * (dx0 - dx1) + (dy0 - dy1) * (dy0 - dy1)
-                    )
+                    ecart = M.sqrt((dx0 - dx1) * (dx0 - dx1) + (dy0 - dy1) * (dy0 - dy1))
                     if ecart > 0.000002:
                         ninc += 1
                         dmax = max(dmax, ecart)
@@ -200,11 +187,7 @@ class Grille:
         code_x = int(code[0:6])
         code_y = int(code[6:12])
         x_ref, y_ref = code_x * self.pas, code_y * self.pas
-        self.valeurs[(code_x, code_y)] = (
-            float(x_final) - x_ref,
-            float(y_final) - y_ref,
-            0,
-        )
+        self.valeurs[(code_x, code_y)] = (float(x_final) - x_ref, float(y_final) - y_ref, 0)
         # print xr,yr,row[0],row[1],row[2],row[0][0:4], row[0][4:8]
         self.set_emprise(x_ref, y_ref)
 
@@ -221,11 +204,7 @@ class Grille:
         for noeud in self.valeurs:
             noeud1, noeud2, noeud3, noeud4 = calcule_maille(noeud)
             # print coin, p1,p2,p3,p4
-            if (
-                noeud2 in self.valeurs
-                and noeud3 in self.valeurs
-                and noeud4 in self.valeurs
-            ):
+            if noeud2 in self.valeurs and noeud3 in self.valeurs and noeud4 in self.valeurs:
                 dx1, dy1, _ = self.valeurs[noeud1]
                 self.valeurs[noeud] = dx1, dy1, 1
                 dx2, dy2, _ = self.valeurs[noeud2]
@@ -252,9 +231,7 @@ class Grille:
             code_y = int(y_rel)
             # p1=self.calcule_coin(x,y)
             try:
-                ex1, ey1, ex2, ey2, ex3, ey3, ex4, ey4 = self.cache_corrections[
-                    (code_x, code_y)
-                ]
+                ex1, ey1, ex2, ey2, ex3, ey3, ex4, ey4 = self.cache_corrections[(code_x, code_y)]
             except KeyError:
                 return (0, 0, 0)
             pos_x = x_rel - code_x  # position dans la maille

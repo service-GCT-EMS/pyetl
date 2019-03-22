@@ -31,9 +31,7 @@ def cercle_3pts(pt1, pt2, pt3):
     if vma == vmb:
         print("error: compos: erreur cercle ", cx1, cy1, cx2, cy2, cx3, cy3)
         raise ValueError("cercle degenere")
-    xctr = (vma * vmb * (cy1 - cy3) + vmb * (cx1 + cx2) - vma * (cx2 + cx3)) / (
-        2 * (vmb - vma)
-    )
+    xctr = (vma * vmb * (cy1 - cy3) + vmb * (cx1 + cx2) - vma * (cx2 + cx3)) / (2 * (vmb - vma))
     yctr = (
         -(xctr - (cx1 + cx2) / 2) / vma + (cy1 + cy2) / 2
         if vma != 0
@@ -128,9 +126,7 @@ class Section(object):
 
     @property
     def __list_if__(self):
-        return ",".join(
-            [" ".join([str(j) for j in i[: self.dimension]]) for i in self.coords]
-        )
+        return ",".join([" ".join([str(j) for j in i[: self.dimension]]) for i in self.coords])
 
     #        return '('+','.join(map(lambda i: map(str,i[:self.dimension]) , self.coords) )+')'
 
@@ -237,9 +233,7 @@ class Section(object):
                 for pnt in coords[1:]:
                     xcour, ycour, zcour = pnt[:3]
                     long += Ma.sqrt(
-                        ((xpr - xcour)) ** 2
-                        + ((ypr - ycour)) ** 2
-                        + ((zpr - zcour)) ** 2
+                        ((xpr - xcour)) ** 2 + ((ypr - ycour)) ** 2 + ((zpr - zcour)) ** 2
                     )
                     #                print("calcul",pnt,long)
                     xpr, ypr, zpr = xcour, ycour, zcour
@@ -273,11 +267,7 @@ class Section(object):
         for i in range(ncoord):
             aire += (
                 (self.coords[(i + 1) % ncoord][0] - self.coords[i][0])
-                * (
-                    self.coords[(i + 1) % ncoord][1]
-                    + self.coords[i][1]
-                    - 2 * self.ppt[1]
-                )
+                * (self.coords[(i + 1) % ncoord][1] + self.coords[i][1] - 2 * self.ppt[1])
                 / 2
             )
         return aire
@@ -371,9 +361,7 @@ class Ligne(object):
             return False
         if desordre and self.dpt == ligne.dpt:  # on inverse si necessaire
             ligne.inverse()
-        if (
-            self.dpt == ligne.ppt
-        ):  # cas simple on ajoute les sections sans se poser de questions
+        if self.dpt == ligne.ppt:  # cas simple on ajoute les sections sans se poser de questions
             self.termine = False
             for sect in ligne.sections:
                 if self.ajout_section(sect):
@@ -387,9 +375,7 @@ class Ligne(object):
         sc.finalise(couleur, courbe)
         self.termine = True
         if courbe == 3:  # cas particulier du cercle
-            if (
-                len(self.sections) > 1
-            ):  # il y a deja des sections il faut une nouvelle ligne
+            if len(self.sections) > 1:  # il y a deja des sections il faut une nouvelle ligne
                 return self.sections.pop()
         self.courbe = sc.courbe or self.courbe
 

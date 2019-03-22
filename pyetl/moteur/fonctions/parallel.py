@@ -81,9 +81,7 @@ def setparallelid(parametres):
 def set_parallelretour(mapper, valide):
     """positionne les variables de retour pour l'execution en parallele"""
     #    print ('retour parallel',mapper.get_param('_wid'), mapper.stats.keys())
-    schema = retour_schemas(
-        mapper.schemas, mode=mapper.get_param("force_schema", "util")
-    )
+    schema = retour_schemas(mapper.schemas, mode=mapper.get_param("force_schema", "util"))
     stats_generales = mapper.getstats()
     retour_stats = {nom: stat.retour() for nom, stat in mapper.stats.items()}
     #    print ('retour parallel', mapper.get_param('_wid'), retour_stats)
@@ -107,9 +105,7 @@ def parallelbatch(parametres_batch):
     #    if not MAINMAPPER.inited:
     #        initparallel('#init_mp', '',params, macros)
     mainmapper = getmainmapper()
-    processor = mainmapper.getpyetl(
-        mapping, liste_params=args, entree=entree, rep_sortie=sortie
-    )
+    processor = mainmapper.getpyetl(mapping, liste_params=args, entree=entree, rep_sortie=sortie)
     if processor is None:
         print("pyetl echec batchworker", os.getpid(), mapping, args)
         return (numero, {})
@@ -131,11 +127,7 @@ def parallelprocess(numero, file, regle):
     except StopIteration as arret:
         return numero, -1
     except Exception as exc:
-        print(
-            "===="
-            + mainmapper.get_param("_wid")
-            + "=erreur de traitement parallele non gérée"
-        )
+        print("====" + mainmapper.get_param("_wid") + "=erreur de traitement parallele non gérée")
         print("====regle courante:", regle)
         printexception()
         raise
@@ -316,11 +308,7 @@ def prepare_env_parallel(regle):
     env = mapper.env if isinstance(mapper.env, dict) else None
     def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
     #        print("preparation exec parallele", def_regles, mapper.liste_params)
-    LOGGER.info(
-        " ".join(
-            ("preparation exec parallele", str(def_regles), str(mapper.liste_params))
-        )
-    )
+    LOGGER.info(" ".join(("preparation exec parallele", str(def_regles), str(mapper.liste_params))))
     schemas = retour_schemas(mapper.schemas, mode="int")
     return schemas, env, def_regles
 
@@ -341,17 +329,12 @@ def traite_parallel(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor,
-            nprocs,
-            initparallel,
-            (mapper.context.vloc, mapper.macros, env, None, schemas),
+            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
         LOGGER.info(" ".join(("workids", str(workids))))
-        parallelexec(
-            executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
-        )
+        parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
         if regle.debug:
             print("retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
@@ -413,17 +396,12 @@ def traite_parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor,
-            nprocs,
-            initparallel,
-            (mapper.context.vloc, mapper.macros, env, None, schemas),
+            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
         LOGGER.info(" ".join(("workids", str(workids))))
-        parallelexec(
-            executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
-        )
+        parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
         if regle.debug:
             print("retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
@@ -508,9 +486,7 @@ def traite_parallel_batch(regle):
         else:
             parametres[ordre] = [prepare_batch_from_object(regle, obj)]
     for bloc in sorted(parametres):
-        if (
-            len(parametres[bloc]) == 1
-        ):  # il est tout seul on a pas besoin de toute la tringlerie
+        if len(parametres[bloc]) == 1:  # il est tout seul on a pas besoin de toute la tringlerie
             numero = parametres[bloc][0][0]
             obj = regle.tmpstore[numero]
             execbatch(regle, obj)
@@ -518,10 +494,7 @@ def traite_parallel_batch(regle):
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
-                executor,
-                nprocs,
-                initparallel,
-                (mapper.context.vloc, mapper.macros, None, None, []),
+                executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, None, None, [])
             )
 
             workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -710,17 +683,12 @@ def parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor,
-            nprocs,
-            initparallel,
-            (mapper.context.vloc, mapper.macros, env, None, schemas),
+            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
         LOGGER.info(" ".join(("workids", str(workids))))
-        parallelexec(
-            executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
-        )
+        parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
         if regle.debug:
             print("retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)

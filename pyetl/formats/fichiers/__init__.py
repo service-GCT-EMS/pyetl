@@ -14,9 +14,7 @@ def loadmodules():
     et enregistre les readers et writers"""
     writers = dict()
     readers = dict()
-    rdef = namedtuple(
-        "readerdef", ("reader", "geom", "has_schema", "auxfiles", "converter")
-    )
+    rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "converter"))
     wdef = namedtuple(
         "writerdef",
         (

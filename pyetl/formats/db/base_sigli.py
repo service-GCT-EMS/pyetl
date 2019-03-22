@@ -16,13 +16,12 @@ SCHEMA_ADM = "admin_sigli"
 class SglConnect(PgsConnect):
     """connecteur de la base de donnees postgres"""
 
-    def __init__(
-        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
-    ):
+    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.sys_cre = "date_creation"
         self.sys_mod = "date_maj"
         self.dialecte = "sigli"
+        self.type_base = "sigli"
         self.schema_conf = SCHEMA_ADM
 
     @property
@@ -34,7 +33,7 @@ class SglConnect(PgsConnect):
     def req_tables(self):
         """produit la liste des tables de la base de donnees"""
         return (
-            "SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,\
+            "SILECT nomschema,nomtable,commentaire,type_geometrique,dimension,\
                 nb_enreg,type_table,index_geometrique,clef_primaire,index,\
                 clef_etrangere FROM admin_sigli.info_tables",
             None,
@@ -43,10 +42,7 @@ class SglConnect(PgsConnect):
     @property
     def req_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        return (
-            "SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums",
-            None,
-        )
+        return ("SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums", None)
 
     #    @property
     #    def req_attributs(self):
@@ -156,13 +152,4 @@ class SglGenSql(PgsGenSql):
         )
 
 
-DBDEF = {
-    "sigli": (
-        SglConnect,
-        SglGenSql,
-        "server",
-        "",
-        "#ewkt",
-        "base postgis avec admin_sigli",
-    )
-}
+DBDEF = {"sigli": (SglConnect, SglGenSql, "server", "", "#ewkt", "base postgis avec admin_sigli")}

@@ -47,9 +47,7 @@ class MatchClasses(object):
     def _match_fuzzy(self, qual=0.5):
         """mode rantanplan par defaut on limite les initiatives en gardant qual a 0.5"""
         upperdest = {i.upper(): i for i in self.att_dest if self.att_dest[i] is None}
-        a_traiter = {
-            i.upper(): i for i in self.att_source if self.att_source[i] is None
-        }
+        a_traiter = {i.upper(): i for i in self.att_source if self.att_source[i] is None}
         nb_a_traiter = len(a_traiter)
         matcher = difflib.SequenceMatcher(None)
         while a_traiter and upperdest:
@@ -74,21 +72,13 @@ class MatchClasses(object):
                     valeur = i
                     bestmatch = valmatch[i]
             if vmax == 0:
-                print(
-                    "impossible de matcher le reste",
-                    a_traiter.values(),
-                    upperdest.values(),
-                )
+                print("impossible de matcher le reste", a_traiter.values(), upperdest.values())
                 break
             self.att_source[a_traiter[valeur]] = upperdest[bestmatch]
             print("match", a_traiter[valeur], upperdest[bestmatch], vmax)
             self.att_dest[upperdest[bestmatch]] = self.att_source[a_traiter[valeur]]
-            upperdest = {
-                i.upper(): i for i in self.att_dest if self.att_dest[i] is None
-            }
-            a_traiter = {
-                i.upper(): i for i in self.att_source if self.att_source[i] is None
-            }
+            upperdest = {i.upper(): i for i in self.att_dest if self.att_dest[i] is None}
+            a_traiter = {i.upper(): i for i in self.att_source if self.att_source[i] is None}
         if upperdest:
             print("attributs destination non mappes ", upperdest.values())
         if a_traiter:
@@ -124,15 +114,12 @@ class MatchClasses(object):
             casematch, reste = self._match_upper()
         if auto > 2 and reste:  # match au mieux
             fuzzymatch, reste = self._match_fuzzy(qual)
-        print(
-            "generation de correspondance ", directmatch, casematch, fuzzymatch, reste
-        )
+        print("generation de correspondance ", directmatch, casematch, fuzzymatch, reste)
 
     def map_attributs(self, obj):
         """ remappe les attributs d'un objet"""
         obj.attributs = {
-            self.att_source.get(nom, nom): valeur
-            for nom, valeur in obj.attributs.items()
+            self.att_source.get(nom, nom): valeur for nom, valeur in obj.attributs.items()
         }
         obj.attributs["#classe"] = self.classe_destination.nom
         obj.setschema(self.classe_destination.schema)
@@ -293,10 +280,7 @@ class Mapping(object):
                 if i in self.mapping_origine:
                     classes[i].origine = self.mapping_origine[i]
                 else:
-                    if (
-                        nom in self.mapping_classe_schema
-                        and not nom in self.mappings_ambigus
-                    ):
+                    if nom in self.mapping_classe_schema and not nom in self.mappings_ambigus:
                         groupe = self.mapping_classe_schema[nom]
                         if (groupe, nom) in self.mapping_origine:
                             classes[i].origine = self.mapping_origine[(groupe, nom)]
@@ -364,9 +348,7 @@ class Mapping(object):
                     print(" mapping ambigu ", id_cl[1])
                     return ""
                 else:
-                    id_cl = self.mapping_classe_schema.get(
-                        id_cl[1], ("non trouve", id_cl[1])
-                    )
+                    id_cl = self.mapping_classe_schema.get(id_cl[1], ("non trouve", id_cl[1]))
                     # print ('recuperation',ci,cl[1])
             if id_cl in self.mapping_origine:
                 origine = self.mapping_origine[id_cl]

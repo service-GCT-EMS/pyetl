@@ -43,12 +43,7 @@ class Moteur(object):
             for sch in list(self.mapper.schemas.values()):
 
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
-                    print(
-                        "moteur: traitement schema",
-                        sch.nom,
-                        sch.origine,
-                        len(sch.classes),
-                    )
+                    print("moteur: traitement schema", sch.nom, sch.origine, len(sch.classes))
                     LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
@@ -58,9 +53,7 @@ class Moteur(object):
                             continue
                         #                        print('traitement objet virtuel ', schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
-                        obj = Objet(
-                            groupe, classe, conversion="virtuel", schema=schemaclasse
-                        )
+                        obj = Objet(groupe, classe, conversion="virtuel", schema=schemaclasse)
                         obj.attributs["#categorie"] = "traitement_virtuel"
                         #                        obj = Objet(groupe, classe)
                         #                        obj.virtuel = True
@@ -84,10 +77,7 @@ class Moteur(object):
                 if i.mode == "start":  # on prends la main dans le script
                     i.fonc(i, None)
                 obj = Objet(
-                    "_declencheur",
-                    "_chargement",
-                    format_natif="interne",
-                    conversion="virtuel",
+                    "_declencheur", "_chargement", format_natif="interne", conversion="virtuel"
                 )
                 i.mode_chargeur = True
                 self.traite_objet(obj, i)
@@ -106,9 +96,7 @@ class Moteur(object):
                         #                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
                         #                               regle.branchements.brch["fail"])
                         if not obj.virtuel:
-                            self.traite_objet(
-                                obj.dupplique(), regle.branchements.brch["copy"]
-                            )
+                            self.traite_objet(obj.dupplique(), regle.branchements.brch["copy"])
                             # on envoie une copie dans le circuit qui ne passe pas la regle
                             self.dupcnt += 1
                         # print "apres copie ", obj.schema
@@ -171,11 +159,7 @@ class Moteur(object):
                 printexception()
                 if regle.getvar("debuglevel", "0") != "0":
                     print("==========environnement d'execution")
-                    print(
-                        "====pyetl :",
-                        regle.stock_param.nompyetl,
-                        regle.stock_param.idpyetl,
-                    )
+                    print("====pyetl :", regle.stock_param.nompyetl, regle.stock_param.idpyetl)
                     print("====objet courant :", obj)
                     print("====parametres\n", regle.params)
                     print(regle.context)
@@ -251,9 +235,7 @@ class Context(object):
         self.ref = self
         # gestion des hierarchies
         if parent is not None:
-            self.ref = (
-                parent if parent.type_c == "C" else parent.ref
-            )  # pour les macroenv
+            self.ref = parent if parent.type_c == "C" else parent.ref  # pour les macroenv
             self.ident = parent.ident + "<-" + self.ident
             self.search.extend(parent.search)
 

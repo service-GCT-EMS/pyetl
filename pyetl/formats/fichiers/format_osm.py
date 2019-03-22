@@ -111,9 +111,7 @@ class DecodeConfigOsm(object):
             schemaclasse.stocke_attribut(nom, "T")
         schemaclasse.stocke_attribut("tags", "H")
         #        schemaclasse.stocke_attribut('#all_tags', 'H')
-        schemaclasse.info["type_geom"] = (
-            self.force_geom if self.force_geom else self.geom
-        )
+        schemaclasse.info["type_geom"] = self.force_geom if self.force_geom else self.geom
         incomplet = copyschema(schemaclasse, idref, None, filiation=False)
         incomplet.groupe = "osm_incomplet"
         self.schema.ajout_classe(incomplet)
@@ -257,9 +255,7 @@ def _getmembers(points, lignes, objets, elem):
                 perdus += 1
             return (geom, perdus, ferme)
         if type_membre == "way":  # c est une multiligne ou un polygone
-            ligne, manquants, lferm, ppl, dpl = lignes.get(
-                i.get("ref"), ("", 0, False, None, None)
-            )
+            ligne, manquants, lferm, ppl, dpl = lignes.get(i.get("ref"), ("", 0, False, None, None))
             ferme = lferm or ferme
             ppt = ppt or ppl
             if ligne:
@@ -322,10 +318,7 @@ def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
         obj = decodeur.decode_objet(tagdict, geom, type_geom, manquants)
         if obj:
             tags = ", ".join(
-                [
-                    '"' + i + '" => "' + tagdict[i].replace('"', r"\"") + '"'
-                    for i in sorted(tagdict)
-                ]
+                ['"' + i + '" => "' + tagdict[i].replace('"', r"\"") + '"' for i in sorted(tagdict)]
             )
             obj.hdict = {"tags": tagdict}
             obj.attributs["tags"] = tags
@@ -408,9 +401,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
             )
             aff += prn
 
-        ido, attributs, geom, type_geom, manquants = classif_elem(
-            elem, points, lignes, objets
-        )
+        ido, attributs, geom, type_geom, manquants = classif_elem(elem, points, lignes, objets)
         if ido == -1:
             continue
         if type_geom != "0":  # analyse des objets et mise en categorie
@@ -419,9 +410,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
                 nobj += 1
                 obj.setorig(nobj)
                 obj.attributs["#chemin"] = chemin
-                stock_param.moteur.traite_objet(
-                    obj, self.regle_start
-                )  # on traite le dernier objet
+                stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite le dernier objet
         elem.clear()
 
     return nobj

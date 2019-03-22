@@ -63,12 +63,7 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
         map2 = mapper.getpyetl(liste_regles, nom=nom_fonc)
         #        print ("creation",map2.nompyetl)
         if map2 is None:
-            print(
-                "unittest: erreur creation environnement ",
-                nom_fonc,
-                nom_subfonc,
-                nom_test,
-            )
+            print("unittest: erreur creation environnement ", nom_fonc, nom_subfonc, nom_test)
             return ""
         if debug and int(debug):
             map2.set_param("debug", 1)
@@ -105,11 +100,7 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
     retour = testrunner(mapper, idtest, liste_regles, debug, redirect)
     retour_controle = testrunner(mapper, idtest, liste_controle, debug, redirect)
     #    print("eval:retour tests",retour,retour_controle)
-    if (
-        "ok" in retour_controle
-        or "ok" not in retour
-        or mapper.get_param("testmode") == "all"
-    ):
+    if "ok" in retour_controle or "ok" not in retour or mapper.get_param("testmode") == "all":
         if "ok" in retour_controle or "ok" not in retour:
             print("! test invalide", nom_fonc)
             err = 1
@@ -120,8 +111,7 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
             retour_controle,
         )
         print(
-            "regle    %15s %6s %-80s"
-            % (nom_fonc + ":" + nom_subfonc, nom_test[1:], liste_regles),
+            "regle    %15s %6s %-80s" % (nom_fonc + ":" + nom_subfonc, nom_test[1:], liste_regles),
             "--->",
             retour,
         )
@@ -152,9 +142,7 @@ def controle(mapper, idtest, descript_test, debug=0):
     # ~ devant une instruction indique qu elle est liee a l'instruction a tester
     regles_c = [re.sub(r"^\?", "", i) for i in regles if ";~" not in i]
     f_controle = desctest[-1]
-    liste_regles = list(
-        enumerate(["<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"])
-    )
+    liste_regles = list(enumerate(["<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"]))
     #    if "debug" in nom_test:
     #        debug = 1
     #    if debug:
@@ -311,15 +299,7 @@ def full_autotest(mapper, nom):
                 print("autotest: erreur creation environnement", i)
                 continue
             nl2, nfl2, _, _ = map2.process()
-            print(
-                "-------------------fin test",
-                i,
-                ":",
-                nl2,
-                "objets dans",
-                nfl2,
-                "fichiers",
-            )
+            print("-------------------fin test", i, ":", nl2, "objets dans", nfl2, "fichiers")
             print("----------------------------------------------------------------")
         return []
     return autotest_partiel(mapper, nom)

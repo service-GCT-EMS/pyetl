@@ -86,9 +86,7 @@ def f_start(regle, obj):
     #    print ('start',obj)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
-    obj2 = Objet(
-        "_declencheur", "_autostart", format_natif="interne", conversion="virtuel"
-    )
+    obj2 = Objet("_declencheur", "_autostart", format_natif="interne", conversion="virtuel")
     #    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True
@@ -236,16 +234,10 @@ def f_sample(regle, obj):
 def printvariable(regle):
     """ affichage de variables"""
     if not regle.params.cmp1.val:
-        return "\n".join(
-            [i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())]
-        )
+        return "\n".join([i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())])
 
     if regle.params.cmp2.val:
-        return (
-            regle.params.cmp1.val
-            + "="
-            + str(regle.context.getvar(regle.params.cmp1.val))
-        )
+        return regle.params.cmp1.val + "=" + str(regle.context.getvar(regle.params.cmp1.val))
     return regle.context.getvar(regle.params.cmp1.val)
 
 
@@ -518,13 +510,7 @@ def f_httpdownload(regle, obj):
                     nb_pts += 1
                     print(".", end="", flush=True)
                 fich.write(chunk)
-        print(
-            "    ",
-            taille,
-            "octets télecharges en ",
-            int(time.time() - debut),
-            "secondes",
-        )
+        print("    ", taille, "octets télecharges en ", int(time.time() - debut), "secondes")
         return True
     return False
 
@@ -726,9 +712,7 @@ def h_filter(regle):
     """prepare les sorties pour le filtre """
 
     ls1 = regle.params.cmp1.liste
-    ls2 = (
-        regle.params.cmp2.liste if regle.params.cmp2.liste else regle.params.cmp1.liste
-    )
+    ls2 = regle.params.cmp2.liste if regle.params.cmp2.liste else regle.params.cmp1.liste
     regle.liste_sortie = dict(zip(ls1, ls2))
     for i in ls2:
         regle.branchements.addsortie(i)

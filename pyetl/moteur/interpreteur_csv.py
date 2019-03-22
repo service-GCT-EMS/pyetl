@@ -65,9 +65,7 @@ def fdebug(regle, obj):
             "->",
             redirect if succes else "fail",
             liens_num[redirect] if succes else liens_num["fail"],
-            regle.branchements.brch[redirect]
-            if succes
-            else regle.branchements.brch["fail"],
+            regle.branchements.brch[redirect] if succes else regle.branchements.brch["fail"],
         )
         if regle.copy:
             print("copy :  ->", liens_num["copy"], regle.branchements.brch["copy"])
@@ -281,12 +279,7 @@ def printpattern(commande):
     for variante in commande.subfonctions:
         print(
             "sf:   %-10s->%s<- %s,(%s)"
-            % (
-                variante.nom,
-                variante.pattern,
-                variante.description.get("#aide"),
-                variante.clef_sec,
-            )
+            % (variante.nom, variante.pattern, variante.description.get("#aide"), variante.clef_sec)
         )
 
 
@@ -442,9 +435,7 @@ def afficher_erreurs(regle, fonc, message):
     else:
         fonction = regle.stock_param.commandes.get(regle.mode)
         if fonction:
-            patternlist = [
-                i.pattern for i in fonction.subfonctions if i.style == regle.style
-            ]
+            patternlist = [i.pattern for i in fonction.subfonctions if i.style == regle.style]
             print(motif + " patterns autorises ", patternlist)
     raise SyntaxError("erreurs parametres de commande")
 
@@ -478,10 +469,7 @@ def traite_helpers(regle, fonc):
             ):
                 regle.changeclasse = fonc.changeclasse
 
-            if (
-                regle.params.att_sortie.dyn
-                or "#schema" in regle.params.att_sortie.liste
-            ):
+            if regle.params.att_sortie.dyn or "#schema" in regle.params.att_sortie.liste:
                 regle.changeschema = fonc.changeschema
     #    if regle.params.att_sortie.val:
     description_schema(regle)  # mets en place le schema pour l'attribut de sortie
@@ -693,8 +681,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
     defs = fichier_regles.split(":")
     if len(defs) != 2:
         print(
-            "erreur commande en base de donnees la commande doit"
-            "avoir le format suivant  #db:nom"
+            "erreur commande en base de donnees la commande doit" "avoir le format suivant  #db:nom"
         )
         raise SyntaxError("erreur script en base: " + fichier_regles)
     nom = defs[1]
@@ -725,8 +712,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
     )
 
     liste_regles = [
-        (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]]))
-        for v in recup
+        (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]])) for v in recup
     ]
 
     #    print('regles lues en base:', serv, nom, liste_regles)
@@ -789,9 +775,7 @@ def affecte_variable(mapper, commande, context):
 
         #        valeur = affectation[pos_egal+1:]
         if not valeur:  # parametre vide
-            tmp_s = commande.split(";")[
-                1:-1
-            ]  # on regarde s'il y a une valeur par defaut
+            tmp_s = commande.split(";")[1:-1]  # on regarde s'il y a une valeur par defaut
             #            print ('defauts',tmp_s)
             #                    print ('init',i)
             for j in tmp_s:
@@ -818,9 +802,7 @@ def prepare_texte(defligne):
         return None, None, texte_brut
     if re.match(r"^[\+\-\|]*:?!", texte):
         return None, None, texte_brut
-    if (
-        texte[0] == '"'
-    ):  # on a mis des cotes dans les champs : petite touille pour nettoyer
+    if texte[0] == '"':  # on a mis des cotes dans les champs : petite touille pour nettoyer
         tmp = texte.replace('""', "&&trucmuch&&")  # on sauve les doubles cotes
         tmp = tmp.replace('"', "")
         texte = tmp.replace("&&trucmuch&&", '"')
@@ -839,9 +821,7 @@ def traite_regle_std(
     #            if mapper.init: # on rentre dans les commandes : on initialise les es
     #                mapper.gestion_pospars()
     try:
-        r_cour = interprete_ligne_csv(
-            mapper, texte, fichier_regles, numero, context=context
-        )
+        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context)
     #                print ('interp regle',i,erreurs)
     except SyntaxError:
         #        print( 'syntaxerror ',r_cour)
@@ -871,10 +851,7 @@ def traite_regle_std(
         print("interp: regle invalide -------------->", r_cour)
         if r_cour.erreurs:
             print("\t", r_cour.erreurs)
-        print(
-            "decodage champs",
-            " ".join([i + "->" + j for i, j in r_cour.v_nommees.items()]),
-        )
+        print("decodage champs", " ".join([i + "->" + j for i, j in r_cour.v_nommees.items()]))
         erreurs = 1
     return bloc, erreurs
 
@@ -896,9 +873,7 @@ def importe_macro(mapper, texte, context, fichier_regles):
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
     vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
-    settings = {
-        i.split["="][0]: i.split["="][1] for i in range(1, len(champs)) if "=" in champs
-    }
+    settings = {i.split["="][0]: i.split["="][1] for i in range(1, len(champs)) if "=" in champs}
 
     #    print ('lecture macro',texte,'->',niveau)
 
@@ -930,13 +905,7 @@ def initmacro(mapper, texte, fichier_regles):
 
 
 def lire_regles_csv(
-    mapper,
-    fichier_regles,
-    numero_ext=0,
-    context=None,
-    liste_regles=None,
-    niveau="",
-    regle_ref=None,
+    mapper, fichier_regles, numero_ext=0, context=None, liste_regles=None, niveau="", regle_ref=None
 ):
     """ lecture des fichiers de regles """
     erreurs = 0
@@ -978,9 +947,7 @@ def lire_regles_csv(
                 texte = liste_val[1]
                 if condmatch.group(1) == "":
                     texte = ""
-                if condmatch.lastindex == 2 and condmatch.group(1) != condmatch.group(
-                    2
-                ):
+                if condmatch.lastindex == 2 and condmatch.group(1) != condmatch.group(2):
                     texte = ""
             #                print( "lire: condmatch",condmatch, cond,liste_val[0], 'texte', texte)
 
@@ -1021,9 +988,7 @@ def lire_regles_csv(
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()
             ngroup = champs_var[1].strip() if champs_var[1].strip() else vgroup
-            check = champs_var[
-                2
-            ].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
+            check = champs_var[2].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
             #            print ("avt chargement groupe", vgroup, champs_var)
             try:
                 mapper.load_paramgroup(vgroup, nom=ngroup, check=check, context=context)

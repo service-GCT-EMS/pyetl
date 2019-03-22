@@ -49,6 +49,4 @@ def projette_obj(proj, obj, sortie="None"):
             grilles[grille] = grilles.get(grille, 0) + 1
         if sortie:
             print("liste de grilles ", grilles)
-            obj.attributs[sortie] = ",".join(
-                [i + ":" + str(grilles[i]) for i in grilles]
-            )
+            obj.attributs[sortie] = ",".join([i + ":" + str(grilles[i]) for i in grilles])

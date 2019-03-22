@@ -84,9 +84,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
         for element in os.listdir(path):
             if os.path.isdir(os.path.join(path, element)):
                 if rec:
-                    for fich in scandirs(
-                        rep_depart, os.path.join(chemin, element), rec, pattern
-                    ):
+                    for fich in scandirs(rep_depart, os.path.join(chemin, element), rec, pattern):
                         yield fich
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
@@ -111,9 +109,7 @@ def getfichs(regle, obj):
     """recupere une liste de fichiers"""
 
     #    mapper = regle.stock_param
-    racine = (
-        obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
-    )
+    racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
         racine = regle.getvar("_entree", ".")
     vobj = regle.getval_entree(obj)
@@ -139,11 +135,7 @@ def printexception():
     linecache.checkcache(fname)
     line = linecache.getline(fname, lineno, frame.f_globals)
     nom = err.__name__
-    print(
-        """{}:{}\nIN      :{}\nLINE {} {}:""".format(
-            nom, exc_obj, fname, lineno, line.strip()
-        )
-    )
+    print("""{}:{}\nIN      :{}\nLINE {} {}:""".format(nom, exc_obj, fname, lineno, line.strip()))
     traceback.print_tb(infodebug)
 
 
@@ -174,9 +166,7 @@ def prepare_batch_from_object(regle, obj):
     parametres = obj.attributs.get("parametres")  # parametres en format hstore
     params = None
     if parametres:
-        params = [
-            "=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])
-        ]
+        params = ["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
     return (numero, commande, entree, sortie, params)
 
 
@@ -223,9 +213,7 @@ def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
 
 def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
     """chargement en memoire d'un fichier"""
-    f_interm = expandfilename(
-        fichier, rdef
-    )  # fichier de jointure dans le repertoire de regles
+    f_interm = expandfilename(fichier, rdef)  # fichier de jointure dans le repertoire de regles
     stock = []
     if not os.path.isfile(f_interm):
         if defext and not os.path.splitext(f_interm)[1]:
@@ -318,9 +306,7 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
 
     #    print ('-------------------------------------------------------chargement',fichier)
     for f_interm in fichier.split(","):
-        if os.path.isdir(
-            f_interm
-        ):  # on charge toutes les listes d'un repertoire (csv et qgs)
+        if os.path.isdir(f_interm):  # on charge toutes les listes d'un repertoire (csv et qgs)
             for i in os.listdir(f_interm):
                 if clef in i:
                     LOGGER.debug("chargement liste " + i + " repertoire " + f_interm)
@@ -335,10 +321,7 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
                     elif os.path.splitext(i)[-1] == ".csv":
                         stock.update(
                             _charge_liste_csv(
-                                os.path.join(f_interm, i),
-                                taille=taille,
-                                codec=codec,
-                                debug=debug,
+                                os.path.join(f_interm, i), taille=taille, codec=codec, debug=debug
                             )
                         )
                 else:
@@ -346,17 +329,11 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
                     pass
         else:
             if os.path.splitext(f_interm)[-1] == ".qgs":
-                stock.update(
-                    _charge_liste_projet_qgs(f_interm, codec=codec, debug=debug)
-                )
+                stock.update(_charge_liste_projet_qgs(f_interm, codec=codec, debug=debug))
             elif os.path.splitext(f_interm)[-1] == ".csv":
                 stock.update(
                     _charge_liste_csv(
-                        f_interm,
-                        taille=taille,
-                        codec=codec,
-                        debug=debug,
-                        positions=positions,
+                        f_interm, taille=taille, codec=codec, debug=debug, positions=positions
                     )
                 )
     #    print ('charge liste',sorted(stock))
@@ -420,9 +397,7 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
 
 def prepare_elmap(mapping):
     """precalcule les dictionaires pour le mapping"""
-    mapping_special = (
-        dict()
-    )  # mapping simplifie pour modifier les scripts de base de donnees
+    mapping_special = dict()  # mapping simplifie pour modifier les scripts de base de donnees
     for i in mapping:
         schema1, table1 = i
         schema2, table2 = mapping[i]
@@ -430,9 +405,7 @@ def prepare_elmap(mapping):
         mapping_special[table1] = table2
     items = sorted(mapping_special, key=lambda i: len(mapping_special[i]), reverse=1)
     intmap1 = {j: "**<<" + str(i) + ">>**" for i, j in enumerate(items)}
-    intmap2 = {
-        "**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)
-    }
+    intmap2 = {"**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)}
     elmap = (items, intmap1, intmap2)
     #    print ('definition intmap2', intmap2)
     return elmap
@@ -485,9 +458,7 @@ def charge_mapping(regle, mapping=None):
             if attmap:
                 attmap = attmap.replace('"', "")
                 attmap = attmap.replace("'", "")
-                map_attributs = dict(
-                    [re.split(" *=> *", i) for i in re.split(" *, *", attmap)]
-                )
+                map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attmap)])
                 mapping_attributs[id1] = map_attributs
                 mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items())
 
@@ -520,9 +491,7 @@ def valide_auxiliaires(identifies, non_identifies):
                 print("extention inconnue ", extref, "->", chemin, nom, extinc)
 
 
-def scan_entree(
-    rep=None, force_format=None, fileselect=None, filtre_entree=None, debug=0
-):
+def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, debug=0):
     " etablit la liste des fichiers a lire"
     entree = rep
     parametres_fichiers = {}
@@ -557,9 +526,7 @@ def scan_entree(
 
         nom = os.path.splitext(fichier)[0].lower()
         ext = (
-            force_format
-            if force_format
-            else os.path.splitext(fichier)[1].lower().replace(".", "")
+            force_format if force_format else os.path.splitext(fichier)[1].lower().replace(".", "")
         )
         if ext in liste_formats:
             f_courant = os.path.join(entree, chemin, fichier)
@@ -610,10 +577,7 @@ def remap(element, elmap):
     #    print ('valeur elmap',elmap)
     #    raise
     if isinstance(element, dict):
-        return {
-            remap_ident(elmap, ident): remap(val, elmap)
-            for ident, val in element.items()
-        }
+        return {remap_ident(elmap, ident): remap(val, elmap) for ident, val in element.items()}
     elif isinstance(element, (list, tuple)):
         return [remap(val, elmap) for val in element]
     elif isinstance(element, str):

@@ -107,12 +107,7 @@ def runpyetl(commandes, args, env=None, log=None):
         print(MAINMAPPER.get_param("_st_obj_duppliques", 0), "objets dupliques")
     n_ecrits = MAINMAPPER.get_param("_st_wr_objs", 0)
     if n_ecrits:
-        print(
-            n_ecrits,
-            "objets ecrits dans ",
-            MAINMAPPER.get_param("_st_wr_fichs", 0),
-            "fichiers ",
-        )
+        print(n_ecrits, "objets ecrits dans ", MAINMAPPER.get_param("_st_wr_fichs", 0), "fichiers ")
     MAINMAPPER.signale_fin()
     duree, _ = next(MAINMAPPER.maintimer)
     duree += 0.001
@@ -166,9 +161,7 @@ class Pyetl(object):
         self.maintimer = self._timer(init=True)
         self.statdefs = dict()  # description des statistiques
         self.stats = dict()  # stockage des statistiques
-        self.liste_fich = defaultdict(
-            int
-        )  # fichiers utilises pour les comptages d'objets
+        self.liste_fich = defaultdict(int)  # fichiers utilises pour les comptages d'objets
         self.cntr = dict()  # stockage des compteurs
         self.idpyetl = next(self._ido)
         # jointures
@@ -270,12 +263,7 @@ class Pyetl(object):
             return self.prepare_module(commandes, args)
         except SyntaxError as err:
             LOGGER.critical(
-                "erreur script "
-                + str(commandes)
-                + " "
-                + str(err)
-                + " worker:"
-                + str(self.worker)
+                "erreur script " + str(commandes) + " " + str(err) + " worker:" + str(self.worker)
             )
         return False
 
@@ -401,18 +389,16 @@ class Pyetl(object):
             + repr(liste_params)
             + self.get_param("_sortie", "pas_de_sortie")
         )
-
+        erreurs = None
         if self.fichier_regles or self.liste_regles:
-            erreurs = self.commandes_speciales()
+            self.commandes_speciales()
             if not self.done:
                 try:
                     erreurs = self.lecteur_regles(
                         self.fichier_regles, liste_regles=self.liste_regles
                     )
                 except KeyError as ker:
-                    LOGGER.critical(
-                        "erreur lecture " + ker.__repr__() + "(" + repr(regles) + ")"
-                    )
+                    LOGGER.critical("erreur lecture " + ker.__repr__() + "(" + repr(regles) + ")")
                     erreurs = erreurs + 1 if erreurs else 1
                     raise
 
@@ -438,9 +424,7 @@ class Pyetl(object):
             #            print('pas de regles', self.done)
             if self.done:
                 return True
-            LOGGER.critical(
-                "pas de regles arret du traitement " + str(self.fichier_regles)
-            )
+            LOGGER.critical("pas de regles arret du traitement " + str(self.fichier_regles))
             return False
         #        if self.parent is None:
         #            self._gestion_posparm()
@@ -496,10 +480,7 @@ class Pyetl(object):
                 cmp = "int"
             if message == "tab":
                 ftype = "tables"
-            msg = (
-                " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "
-                + "secondes %5d o/s"
-            )
+            msg = " --%s----> nombre d'objets lus %8d dans %4d %s en %5d " + "secondes %5d o/s"
             if self.worker:
                 msg = "worker%3s:" % self.get_param("_wid") + msg
             else:
@@ -525,14 +506,8 @@ class Pyetl(object):
                         tinterm = nbval / (nbobj / duree)
                     print(msg % (nbval, int(tinterm), int((nbval) / tinterm)))
             else:
-                print(
-                    msg
-                    % (cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj) / duree))
-                )
-            return (
-                (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
-                tinterm,
-            )
+                print(msg % (cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj) / duree)))
+            return ((max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich, tinterm)
 
         while True:
             message, nbfic, nbval = yield
@@ -567,14 +542,7 @@ class Pyetl(object):
     #        return duree, interv
 
     def getpyetl(
-        self,
-        regles,
-        entree=None,
-        rep_sortie=None,
-        liste_params=None,
-        env=None,
-        nom="",
-        mode=None,
+        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch"""
@@ -627,11 +595,7 @@ class Pyetl(object):
                 ulist = val[ddv + 2 : -2].split(",")
                 if "*" in ulist:
                     return val[:ddv]
-                if (
-                    master
-                    or self.username in ulist
-                    or any([i in ulist for i in grouplist])
-                ):
+                if master or self.username in ulist or any([i in ulist for i in grouplist]):
                     return val[:ddv]
                 #                    print ('decode', ulist,val)
                 else:
@@ -814,10 +778,7 @@ class Pyetl(object):
                 ("force_schema", "util"),
                 ("epsg", "3948"),
                 ("F_sortie", "txt"),
-                (
-                    "xmldefaultheader",
-                    '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>',
-                ),
+                ("xmldefaultheader", '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
                 ("codec_sortie", DEFCODEC),
                 ("codec_entree", DEFCODEC),
                 ("_paramdir", self.site_params_def),
@@ -897,9 +858,7 @@ class Pyetl(object):
             fichier = fichier.replace("D:", self.rdef + "/")
         if os.path.isfile(fichier):  # si le fichier n'existe pas on cree une table vide
             #            print("info :pyetl: chargement jointure", fichier)
-            for i in open(
-                fichier, "r", encoding=self.get_param("codec_entree", "utf-8")
-            ):
+            for i in open(fichier, "r", encoding=self.get_param("codec_entree", "utf-8")):
                 liste = i[:-1].split(";")
                 stock[liste[clef].strip()] = liste
         else:
@@ -925,9 +884,7 @@ class Pyetl(object):
         f_final = self._prep_chemins(chemin, fichier)
         if self.joint_fich[fichier] != f_final:
             self.charge(f_final, fichier)
-        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ + 1)])[
-            champ
-        ]
+        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ + 1)])[champ]
 
     def jointure_s(self, fichier, clef, champ):
         """jointure statique chemin absolu ou relatif au repertoire de regles"""
@@ -937,9 +894,7 @@ class Pyetl(object):
             return self.jointabs[fichier][cle][champ]
         except KeyError:
             if self.debug:
-                print(
-                    "pyetl: jointure statique clef non trouvee ", fichier, clef, champ
-                )
+                print("pyetl: jointure statique clef non trouvee ", fichier, clef, champ)
             return ""
 
     #        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ+1)])[champ]
@@ -998,10 +953,7 @@ class Pyetl(object):
                 )
 
             except NotADirectoryError as err:
-                print(
-                    "!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:",
-                    err,
-                )
+                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
                 print("type entree ", type(entree))
                 fichs = None
             if fichs:
@@ -1094,9 +1046,7 @@ class Pyetl(object):
             )
         else:
             if macro.vloc:
-                params = [
-                    nom + "=" + valeur for nom, valeur in zip(macro.vloc, variables)
-                ]
+                params = [nom + "=" + valeur for nom, valeur in zip(macro.vloc, variables)]
 
             else:
                 params = variables
@@ -1105,20 +1055,12 @@ class Pyetl(object):
         sortie = self.get_param("sortie_final", self.get_param("_sortie"))
         #        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vloc)
         #        return True
-        processor = self.getpyetl(
-            nom_macro, liste_params=params, entree=entree, rep_sortie=sortie
-        )
+        processor = self.getpyetl(nom_macro, liste_params=params, entree=entree, rep_sortie=sortie)
         #        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
         #                                                       for i in macro.vloc])
         if processor is not None:
             processor.process()
-            print(
-                "script final effectue",
-                nom_macro,
-                self.idpyetl,
-                "->",
-                processor.idpyetl,
-            )
+            print("script final effectue", nom_macro, self.idpyetl, "->", processor.idpyetl)
         return
 
     def _ecriture_schemas(self):
@@ -1144,10 +1086,7 @@ class Pyetl(object):
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
         #        print('pyetl: ecriture schemas ', mode_schema)
         ecrire_schemas(
-            self,
-            rep_sortie,
-            mode_schema,
-            formats=self.get_param("format_schema", "csv"),
+            self, rep_sortie, mode_schema, formats=self.get_param("format_schema", "csv")
         )
 
     def _ecriture_stats(self):
@@ -1186,26 +1125,17 @@ class Pyetl(object):
             if rep_sortie:
                 if self.worker:
                     fstat = os.path.join(
-                        rep_sortie,
-                        self.get_param("fstat") + "_" + self.get_param("_wid") + ".csv",
+                        rep_sortie, self.get_param("fstat") + "_" + self.get_param("_wid") + ".csv"
                     )
                 else:
                     fstat = os.path.join(rep_sortie, self.get_param("fstat") + ".csv")
                 print("moteur : info ecriture stat fichier ", fstat)
                 os.makedirs(os.path.dirname(fstat), exist_ok=True)
-                fichier = open(
-                    fstat, "w", encoding=self.get_param("codec_sortie", "utf-8")
-                )
+                fichier = open(fstat, "w", encoding=self.get_param("codec_sortie", "utf-8"))
                 fichier.write("repertoire;nom;nombre\n")
                 for i in sorted(self.liste_fich):
                     fichier.write(
-                        ";".join(
-                            (
-                                os.path.dirname(i),
-                                os.path.basename(i),
-                                str(self.liste_fich[i]),
-                            )
-                        )
+                        ";".join((os.path.dirname(i), os.path.basename(i), str(self.liste_fich[i])))
                         + "\n"
                     )
                 fichier.close()
@@ -1234,9 +1164,7 @@ class Pyetl(object):
         #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         #        print ('appel lecture ',fichier, regle, reglenum)
-        regle = (
-            self.regles[reglenum] if regle is None and reglenum is not None else regle
-        )
+        regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
         reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
 
         self.f_entree = Reader(ext, regle, reglestart)

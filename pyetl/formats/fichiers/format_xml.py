@@ -52,11 +52,7 @@ class XmlWriter(FileWriter):
         """ preparation de l'entete du fichiersr xml"""
         if not self.entete:
             return ""
-        geom = (
-            self.separ + "geometrie" + "\n"
-            if self.schema.info["type_geom"] != "0"
-            else "\n"
-        )
+        geom = self.separ + "geometrie" + "\n" if self.schema.info["type_geom"] != "0" else "\n"
         return self.separ.join(self.liste_att) + geom
 
     def readtemplate(self, templatefile, codec=DEFCODEC):
@@ -258,6 +254,4 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
 
 READERS = {"xml": (lire_objets_xml, "#gml", False, ())}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {
-    "xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml")
-}
+WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml")}

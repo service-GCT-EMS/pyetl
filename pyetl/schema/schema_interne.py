@@ -25,14 +25,7 @@ def get_attribut(nom, vmax):
 
 
 def init_schema(
-    mapper,
-    nom_schema,
-    origine="G",
-    fich="",
-    defmodeconf=0,
-    stable=True,
-    modele=None,
-    copie=False,
+    mapper, nom_schema, origine="G", fich="", defmodeconf=0, stable=True, modele=None, copie=False
 ):
     """ retourne le schemas qui va bien et les cree si necsssaire """
     if not nom_schema:
@@ -46,9 +39,7 @@ def init_schema(
             print("schema introuvable", modele, "dans", mapper.schemas.keys())
             modele = None
     if nom_schema not in mapper.schemas:
-        nouveau = Schema(
-            nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf
-        )
+        nouveau = Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
         #            self.schemas[nom_schema].modele = modele
@@ -75,7 +66,7 @@ class Schema(object):
                        G schema généré
                        """
 
-    # types_G={0:"NOGEOM",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
+    # types_G={0:"ALPHA",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
     dic_abrev = {
         "commune": "com",
         "date": "dt",
@@ -172,12 +163,8 @@ class Schema(object):
         self.direct = dict()
         #        self.dic_abrev = dict()
         self.stock_mapping = M.Mapping()
-        self.origine = (
-            origine
-        )  # G: schema genere L: schema lu S: schema de sortie B: schema base
-        self.systeme_orig = (
-            "def"
-        )  # systeme d'origine : permets de gerer les particularites
+        self.origine = origine  # G: schema genere L: schema lu S: schema de sortie B: schema base
+        self.systeme_orig = "def"  # systeme d'origine : permets de gerer les particularites
         self.metas = dict()  # metadonnees du schema
         self.modele = None
         self.nom = nom_schema
@@ -214,9 +201,7 @@ class Schema(object):
         d_if = {i: getattr(self, i) for i in infos}
         d_if["__infos__"] = infos
         d_if["classes"] = {nom: cl.__dic_if__ for nom, cl in self.classes.items()}
-        d_if["conformites"] = {
-            nom: conf.__dic_if__ for nom, conf in self.conformites.items()
-        }
+        d_if["conformites"] = {nom: conf.__dic_if__ for nom, conf in self.conformites.items()}
         d_if["stock_mapping"] = self.stock_mapping.__dic_if__
         return d_if
 
@@ -415,11 +400,7 @@ class Schema(object):
         for i in self.classes:
             groupes[i[0]] = 1
         print(
-            "schema : stat schema",
-            self.nom,
-            len(groupes),
-            len(self.classes),
-            len(self.conformites),
+            "schema : stat schema", self.nom, len(groupes), len(self.classes), len(self.conformites)
         )
 
     def get_conf(self, nom_conf, type_c="", mode=1):

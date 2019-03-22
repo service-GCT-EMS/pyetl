@@ -8,7 +8,7 @@
 &&#define;#stdvar;;;;;;;;;;
 #!help;variables de base appele par tous les autres elements p:format: format de sortie>acces: acces base de donnees si necessaire;;;;;;;;;;
 $F_sortie=%format%;csv;;;;;;;;;;
-$mode_sortie=D;;;;;;;;;;;
+$mode_sortie=%mode_sortie%;D;;;;;;;;;;
 K:%F_sortie%:sql;$format_schema=%F_sortie%;
 $#%acces%;%acces%;;;;;;;;;;
 $#%dest%;%acces%;;;;;;;;;;

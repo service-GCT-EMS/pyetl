@@ -66,8 +66,7 @@ def sh_liste(regle):
     """ helper pour les sorties listes"""
     regle.changeschema = "#schema" in regle.params.att_sortie.liste
     regle.changeclasse = (
-        "#classe" in regle.params.att_sortie.liste
-        or "#groupe" in regle.params.att_sortie.liste
+        "#classe" in regle.params.att_sortie.liste or "#groupe" in regle.params.att_sortie.liste
     )
     regle.action_schema = None
     for i in regle.params.att_sortie.liste:
@@ -219,9 +218,7 @@ def h_stat(regle):
     # TODO  attention risque de melange des statdefs si on utilise la meme colonne
     regle.id_stat = regle.code_classe
     if regle.id_stat not in regle.stock_param.statdefs:
-        regle.stock_param.statdefs[regle.id_stat] = Statdef(
-            regle.id_stat, regle.stock_param.debug
-        )
+        regle.stock_param.statdefs[regle.id_stat] = Statdef(regle.id_stat, regle.stock_param.debug)
     regle.stock_param.statdefs[regle.id_stat].ajout_colonne(
         regle.params.att_sortie.val, regle.modestat
     )
@@ -248,17 +245,13 @@ def f_stat(regle, obj):
         return True
     entree = (obj.attributs.setdefault("#statgroupe", "total"), regle.id_stat)
     if entree not in regle.stock_param.stats:
-        regle.stock_param.stats[entree] = Stat(
-            entree, regle.stock_param.statdefs[regle.id_stat]
-        )
+        regle.stock_param.stats[entree] = Stat(entree, regle.stock_param.statdefs[regle.id_stat])
     if regle.stock_param.stats[entree].ajout_valeur(
         obj.attributs.get(regle.code_classe, ""),  # ligne
         regle.params.att_sortie.val,  # colonne
         regle.getval_entree(obj),  # valeur
         regle.params.cmp2.val
-        + obj.attributs.get(
-            regle.params.att_sortie.val[1:-1], regle.params.att_sortie.val
-        ),
+        + obj.attributs.get(regle.params.att_sortie.val[1:-1], regle.params.att_sortie.val),
     ):
         # print ('regles:fstat ',regle.params.att_sortie[1:-1],
         #        obj.attributs.get(regle.params.att_sortie[1:-1],regle.params.att_sortie),
@@ -353,9 +346,7 @@ def fschema_rename_attribut(regle, obj):
         #        print ('dans rename_attribut',obj.attributs.get(regle.params.att_sortie.val))
 
         obj.schema.rename_attribut(
-            regle.params.att_entree.val,
-            regle.params.att_sortie.val,
-            modele=regle.params.def_sortie,
+            regle.params.att_entree.val, regle.params.att_sortie.val, modele=regle.params.def_sortie
         )
 
 

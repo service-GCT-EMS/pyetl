@@ -115,10 +115,7 @@ class GestionSorties(object):
 
     def lock(self, id_demand, id_ressource):
         """declare l utilisation de la ressource"""
-        if (
-            id_ressource in self.used
-            and id_demand in self.ressources[id_ressource].regles
-        ):
+        if id_ressource in self.used and id_demand in self.ressources[id_ressource].regles:
             self.used.move_to_end(id_ressource, last=True)
         elif id_ressource in self.used:
             self.used.move_to_end(id_ressource, last=True)
@@ -193,11 +190,6 @@ class GestionSorties(object):
             return os.path.join(rep_sortie, groupe + ext)
         if classe:
             return os.path.join(rep_sortie, classe + ext)
-        print(
-            "!!!!! clef non definie",
-            rep_sortie,
-            "<->",
-            os.path.join(rep_sortie, "defaut" + ext),
-        )
+        print("!!!!! clef non definie", rep_sortie, "<->", os.path.join(rep_sortie, "defaut" + ext))
         #        raise
         return os.path.join(rep_sortie, "defaut" + ext)

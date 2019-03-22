@@ -145,10 +145,9 @@ GTYPES_CURVE = {
 
 class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
+    reqs = REQS # requetes de fallback our les infos base
 
-    def __init__(
-        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
-    ):
+    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
         self.types_base.update(TYPES_A)
@@ -164,6 +163,7 @@ class PgrConnect(DbConnect):
         if self.connection:
             self.set_searchpath()
             self.valide = True
+        self.type_base = "postgres"
         self.dialecte = "postgres"
         self.attdef = namedtuple(
             "attdef",
@@ -222,9 +222,7 @@ class PgrConnect(DbConnect):
         else:
             print("Le fichier de log se trouve la:", logfile)
             with open(logfile, "a") as sortie:
-                fini = subprocess.run(
-                    chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT
-                )
+                fini = subprocess.run(chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT)
         if fini.returncode:
             print("sortie en erreur ", fini.returncode, fini.args)
 
@@ -250,13 +248,7 @@ class PgrConnect(DbConnect):
             self.connection = connection
         except psycopg2.Error as err:
             print("error: postgres: connection impossible ")
-            print(
-                "info:  postgres: parametres ",
-                self.serveur,
-                self.base,
-                self.user,
-                self.passwd,
-            )
+            print("info:  postgres: parametres ", self.serveur, self.base, self.user, self.passwd)
             print("error", err)
 
     #        raise
@@ -268,20 +260,18 @@ class PgrConnect(DbConnect):
         schema.elements_specifiques["def_vues"] = self._def_vues()
         schema.elements_specifiques["def_triggers"] = self._def_triggers()
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
-        schema.elements_specifiques[
-            "def_fonctions_trigger"
-        ] = self._def_fonctions_trigger()
+        schema.elements_specifiques["def_fonctions_trigger"] = self._def_fonctions_trigger()
 
     #        print (list(i for i in self._def_fonction_triggers() if "admin_sigli" in i))
 
     def _def_vues(self):
-        return {(i[0], i[1]): (i[2], i[3]) for i in self.request(REQS["info_vues"])}
+        return {(i[0], i[1]): (i[2], i[3]) for i in self.request(self.reqs["info_vues"])}
 
     def _def_fonctions_trigger(self):
-        return {(i[0], i[1]): i[2] for i in self.request(REQS["def_fonctions_trigger"])}
+        return {(i[0], i[1]): i[2] for i in self.request(self.reqs["def_fonctions_trigger"])}
 
     def _def_ftables(self):
-        return {i[0]: i[1:] for i in self.request(REQS["info_tables_distantes"])}
+        return {i[0]: i[1:] for i in self.request(self.reqs["info_tables_distantes"])}
 
     def _def_triggers(self):
         def_trigg = dict()
@@ -296,7 +286,7 @@ class PgrConnect(DbConnect):
             "timing",
             "event",
         ]
-        for i in self.request(REQS["info_triggers"]):
+        for i in self.request(self.reqs["info_triggers"]):
             #            print ('triggers',i)
             ident = (i[0], i[1])
             if ident not in def_trigg:
@@ -318,12 +308,8 @@ class PgrConnect(DbConnect):
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
         els["def_vues"] = {i: j for i, j in els["def_vues"].items() if i in a_garder}
-        els["def_triggers"] = {
-            i: j for i, j in els["def_triggers"].items() if i in a_garder
-        }
-        els["def_ftables"] = {
-            i: j for i, j in els["def_ftables"].items() if i in a_garder
-        }
+        els["def_triggers"] = {i: j for i, j in els["def_triggers"].items() if i in a_garder}
+        els["def_ftables"] = {i: j for i, j in els["def_ftables"].items() if i in a_garder}
         fonctions_a_garder = set()
         for i in els["def_triggers"].values():
             for j in i.values():
@@ -331,9 +317,7 @@ class PgrConnect(DbConnect):
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
         els["def_fonctions_trigger"] = {
-            i: j
-            for i, j in els["def_fonctions_trigger"].items()
-            if i in fonctions_a_garder
+            i: j for i, j in els["def_fonctions_trigger"].items() if i in fonctions_a_garder
         }
         if any(len(els[i]) for i in els):
             print("elements specifiques gardes", dict([(i, len(els[i])) for i in els]))
@@ -341,17 +325,17 @@ class PgrConnect(DbConnect):
     @property
     def req_tables(self):
         """recupere les tables de la base"""
-        return REQS["info_tables"], None
+        return self.reqs["info_tables"], None
 
     @property
     def req_enums(self):
         """recupere les enums de la base"""
-        return REQS["info_enums"], None
+        return self.reqs["info_enums"], None
 
     @property
     def req_attributs(self):
         """recupere les attributs de la base"""
-        return REQS["info_attributs"], None
+        return self.reqs["info_attributs"], None
 
     def get_type(self, nom_type):
         if "geometry" in nom_type:
@@ -496,13 +480,4 @@ class PgrConnect(DbConnect):
         pass
 
 
-DBDEF = {
-    "postgres": (
-        PgrConnect,
-        PgrGenSql,
-        "server",
-        "",
-        "#ewkt",
-        "base postgres générique",
-    )
-}
+DBDEF = {"postgres": (PgrConnect, PgrGenSql, "server", "", "#ewkt", "base postgres générique")}

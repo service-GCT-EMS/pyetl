@@ -20,9 +20,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     #                 ".sqlite":"sqlite"}
     stock_param = self.regle_ref.stock_param
     type_base = {
-        self.databases[i].fileext: i
-        for i in self.databases
-        if self.databases[i].svtyp == "file"
+        self.databases[i].fileext: i for i in self.databases if self.databases[i].svtyp == "file"
     }
     traite_objet = stock_param.moteur.traite_objet
     #    regle = stock_param.regles[0]

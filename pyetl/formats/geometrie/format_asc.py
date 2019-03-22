@@ -25,9 +25,7 @@ def _ecrire_section_asc(sect, numero_courant):
         )
     return (
         "1SEC3D %d, %d, \n" % (num_sect, len(sect.coords))
-        + "\n".join(
-            ("%d, %d, %d, " % (i[0] * FC, i[1] * FC, i[2] * FC) for i in sect.coords)
-        )
+        + "\n".join(("%d, %d, %d, " % (i[0] * FC, i[1] * FC, i[2] * FC) for i in sect.coords))
         + " %s, %d;\n" % (sect.couleur, sect.courbe)
     )
 
@@ -42,9 +40,7 @@ def ecrire_geom_asc(geom):
     """ecrit une geometrie en format asc.
         : suite de lignes """
     #    print ('asc: nblignes',len(geom.lignes))
-    return (
-        "".join((_ecrire_ligne_asc(p, [1]) for p in geom.lignes)) if geom.valide else ""
-    )
+    return "".join((_ecrire_ligne_asc(p, [1]) for p in geom.lignes)) if geom.valide else ""
 
 
 def _get_point(attrib, geometrie):
@@ -60,9 +56,7 @@ def _get_point(attrib, geometrie):
             dim = 3
     if dim:
         geometrie.setpoint(
-            [float(cd_x), float(cd_y), float(cd_z)],
-            float(attrib.get("#angle", 0)),
-            int(dim),
+            [float(cd_x), float(cd_y), float(cd_z)], float(attrib.get("#angle", 0)), int(dim)
         )
     return dim
 

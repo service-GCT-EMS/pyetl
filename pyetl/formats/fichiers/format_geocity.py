@@ -83,9 +83,7 @@ def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
             clef1, noeud1 = sens_reseau(courant)
 
             for rel in liste_obj:
-                obj = getobj(
-                    niveau=reseau, classe=stock_param.fichier_courant
-                )  # cree un objet
+                obj = getobj(niveau=reseau, classe=stock_param.fichier_courant)  # cree un objet
                 obj.attributs["_porteur"] = noeud1
                 obj.attributs["_relation_porteur"] = clef1
                 clef2, noeud2 = sens_reseau(rel)
@@ -146,9 +144,7 @@ def prepare_liste_attributs(classe_courante, attr, iter_gy):
         nom_attr = next(iter_gy)
         attr.append(nom_attr)
         type_attribut = gestion_types_geocity(next(iter_gy))
-        classe_courante.stocke_attribut(
-            nom_attr, type_attribut, defaut="", type_attr_base="T"
-        )
+        classe_courante.stocke_attribut(nom_attr, type_attribut, defaut="", type_attr_base="T")
     if atttop:
         attr.append(atttop)  # attribut l'identifiant topologique reseau
     if attsup:
@@ -158,9 +154,7 @@ def prepare_liste_attributs(classe_courante, attr, iter_gy):
     if nom_geom != "geometrie":
         attr.append(nom_geom)
         type_attribut = gestion_types_geocity(next(iter_gy))
-        classe_courante.stocke_attribut(
-            nom_geom, type_attribut, defaut="", type_attr_base="T"
-        )
+        classe_courante.stocke_attribut(nom_geom, type_attribut, defaut="", type_attr_base="T")
         alpha = 1
         classe_courante.info["type_geom"] = "0"
         consomme(iter_gy, 2)
@@ -220,9 +214,7 @@ def gestion_noeuds(obj, attr, attsup, iter_gy, unit):
         cx1, cy1 = numconv(iter_gy), numconv(iter_gy)
         cx2, cy2 = numconv(iter_gy), numconv(iter_gy)
         longueur = M.sqrt((cx2 - cx1) * (cx2 - cx1) + (cy2 - cy1) * (cy2 - cy1))
-        obj.geom_v.setpoint(
-            [cx1, cy1], calculeangle(cx1, cy1, cx2, cy2), 2, longueur=longueur
-        )
+        obj.geom_v.setpoint([cx1, cy1], calculeangle(cx1, cy1, cx2, cy2), 2, longueur=longueur)
         obj.infogeom()
 
         obj_ouvert = 0
@@ -251,9 +243,7 @@ def setpoint2d(obj, iter_gy, regle):
 def setpoint3d(obj, iter_gy, regle):
     """ enregistre un point 3d """
     try:
-        obj.geom_v.setpoint(
-            [numconv(iter_gy), numconv(iter_gy), numconv(iter_gy)], None, 3
-        )
+        obj.geom_v.setpoint([numconv(iter_gy), numconv(iter_gy), numconv(iter_gy)], None, 3)
         obj.infogeom()
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = "1"
@@ -388,9 +378,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     n_obj += 1
                     obj = self.getobj()
                     obj.setschema(classe_courante)
-                    obj.attributs.update(
-                        (("#fichier", fichier_courant), ("#chemin", chemin))
-                    )
+                    obj.attributs.update((("#fichier", fichier_courant), ("#chemin", chemin)))
                     obj.setorig(n_obj)
                     if maxobj and n_obj > maxobj:
                         break
@@ -400,9 +388,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         val_attr = next(iter_gy)
                         #####debug####self.logger.log("attrib " + i +":"+ at ,0)
 
-                        if (
-                            obj.schema.attributs[i].type_att == "D"
-                        ):  # traitement des dates
+                        if obj.schema.attributs[i].type_att == "D":  # traitement des dates
                             #                            print( 'detecte date', val_attr)
                             err, val_attr = valide_dates(val_attr, "in")
                         obj.attributs[i] = val_attr  # stockage des attributs
@@ -411,9 +397,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     #                if atttop or ast: # on est en présence d'attributs de topologie
                     if topo:  # gestion des classes en  topologie de réseau
                         try:
-                            obj_ouvert, attsup = gestion_noeuds(
-                                obj, attr, attsup, iter_gy, unit
-                            )
+                            obj_ouvert, attsup = gestion_noeuds(obj, attr, attsup, iter_gy, unit)
 
                             if obj_ouvert == 0:
                                 #                                if obj.schema.amodifier(regle):
@@ -447,13 +431,9 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     if mode == "P":
                         pass  # partition
                     else:  # point oriente : converti en ligne
-                        obj_ouvert = addpoints2d(
-                            obj, iter_gy, 2, type_geom="2", regle=regle
-                        )
+                        obj_ouvert = addpoints2d(obj, iter_gy, 2, type_geom="2", regle=regle)
                 elif val == "32":
-                    obj_ouvert = addpoints3d(
-                        obj, iter_gy, 2, type_geom="2", regle=regle
-                    )
+                    obj_ouvert = addpoints3d(obj, iter_gy, 2, type_geom="2", regle=regle)
                 elif val == "52":
                     valz = numconv(iter_gy)
                     obj_ouvert = addpoints25d(
@@ -515,10 +495,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                 elif val == "S" or val == "PA" or val == "CO" or val == "E":
                     # spline : on rale et on traite comme une polyligne
                     print(
-                        "attention spline ou autre horreur detectee :"
-                        + val
-                        + " "
-                        + self.niveau,
+                        "attention spline ou autre horreur detectee :" + val + " " + self.niveau,
                         self.classe + ":" + "|".join(obj.attributs.values()),
                     )
                     couleur = "1"
@@ -538,9 +515,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         addpoints3d(obj, iter_gy, 3)
                     courbe = 2
                     couleur = "1"
-                elif (
-                    val == "FL"
-                ):  # ce code n'apparait que pour les brins et les contours complexes
+                elif val == "FL":  # ce code n'apparait que pour les brins et les contours complexes
                     if mode == "P":
                         obj.geom_v.fin_section(couleur, 0)  # c'est de la partition
                     else:  # c'est un polygone complexe
@@ -550,10 +525,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     #                    print ('erreur geometrique', obj.__geo_interface__)
 
                     if not obj.geom_v.valide:
-                        print(
-                            "erreur geometrique",
-                            obj.attributs.get("#erreurs_geometriques"),
-                        )
+                        print("erreur geometrique", obj.attributs.get("#erreurs_geometriques"))
 
                     #                    print ('finalisation',classe, type_geom)
                     if obj.schema.amodifier(regle):
@@ -564,14 +536,11 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                 elif int(val) > 10000:
 
                     if dimcoord == 2:
-                        obj.geom_v.addpoint(
-                            [int(val) / unit, numconv(iter_gy), valz], dimension
-                        )
+                        obj.geom_v.addpoint([int(val) / unit, numconv(iter_gy), valz], dimension)
                         # lecture de coordonnees
                     else:
                         obj.geom_v.addpoint(
-                            [int(val) / unit, numconv(iter_gy), numconv(iter_gy)],
-                            dimension,
+                            [int(val) / unit, numconv(iter_gy), numconv(iter_gy)], dimension
                         )
                         # lecture de coordonnees
 

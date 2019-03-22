@@ -59,9 +59,7 @@ def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, 
     else:
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        noms_attributs = [
-            i.lower().strip().replace(" ", "_") for i in entete.split(separ)
-        ]
+        noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
         # on verifie que les noms existent et sont uniques
         noms = set()
 
@@ -133,12 +131,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             nlignes = 0
             for i in fich:
                 nlignes = nlignes + 1
-                obj = Objet(
-                    nom_groupe,
-                    nom_classe,
-                    format_natif="csv",
-                    conversion=reader.converter,
-                )
+                obj = Objet(nom_groupe, nom_classe, format_natif="csv", conversion=reader.converter)
                 obj.setschema(schemaclasse)
                 obj.setorig(nlignes)
                 val_attributs = [j.strip() for j in i[:-1].split(separ)]
@@ -157,9 +150,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 obj.attributs["#chemin"] = chemin
                 reader.traite_objets(obj, reader.regle_start)
 
-                if (
-                    maxobj and nlignes >= maxobj
-                ):  # nombre maxi d'objets a lire par fichier
+                if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
                     break
 
                 if nlignes % 100000 == 0:
@@ -232,11 +223,7 @@ class CsvWriter(FileWriter):
         if not self.entete:
             #            raise
             return ""
-        geom = (
-            self.separ + "geometrie" + "\n"
-            if self.schema.info["type_geom"] != "0"
-            else "\n"
-        )
+        geom = self.separ + "geometrie" + "\n" if self.schema.info["type_geom"] != "0" else "\n"
         return "!" + self.separ.join(self.liste_att) + geom
 
     def write(self, obj):
@@ -244,27 +231,18 @@ class CsvWriter(FileWriter):
         if obj.virtuel:
             return False  #  les objets virtuels ne sont pas sortis
 
-        atlist = (
-            str(obj.attributs.get(i, "")).translate(self.transtable)
-            for i in self.liste_att
-        )
+        atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
         #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
         #                obj.geomnatif, obj.type_geom)
         #        print ('orig',obj.attributs)
         attributs = self.separ.join((i if i else self.null for i in atlist))
         if self.type_geom != "0":
-            if (
-                obj.format_natif == "#ewkt" and obj.geomnatif
-            ):  # on a pas change la geometrie
-                geom = (
-                    obj.geom[0] if obj.geom else self.null
-                )  # on recupere la geometrie native
+            if obj.format_natif == "#ewkt" and obj.geomnatif:  # on a pas change la geometrie
+                geom = obj.geom[0] if obj.geom else self.null  # on recupere la geometrie native
             #                print("sortie ewkt geom0",len(geom))
             else:
                 if obj.initgeom():
-                    geom = self.geomwriter(
-                        obj.geom_v, self.type_geom, self.multi, obj.erreurs
-                    )
+                    geom = self.geomwriter(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
                 else:
                     if not obj.geom and self.type_geom == "-1":
                         geom = ""
@@ -379,9 +357,7 @@ class SqlWriter(CsvWriter):
             gensql.initschema(self.schema.schema)
             # on positionne les infos de schema pour le generateur sql
 
-            prefix = prefix + gensql.prefix_charge(
-                niveau, classe, reinit, gtyp=type_geom, dim=dim
-            )
+            prefix = prefix + gensql.prefix_charge(niveau, classe, reinit, gtyp=type_geom, dim=dim)
 
         if nodata:
             return prefix
@@ -389,15 +365,9 @@ class SqlWriter(CsvWriter):
         end = ") FROM stdin;"
 
         geom = (
-            separ + "geometrie" + end + "\n"
-            if self.schema.info["type_geom"] != "0"
-            else end + "\n"
+            separ + "geometrie" + end + "\n" if self.schema.info["type_geom"] != "0" else end + "\n"
         )
-        return (
-            prefix
-            + separ.join([gensql.ajuste_nom(i.lower()) for i in self.liste_att])
-            + geom
-        )
+        return prefix + separ.join([gensql.ajuste_nom(i.lower()) for i in self.liste_att]) + geom
 
     def fin_classe(self):
         """fin de classe pour remettre les sequences"""
@@ -423,9 +393,7 @@ class SqlWriter(CsvWriter):
         self.fichier.write(r"\." + "\n")
 
         self.fichier.write(
-            gensql.tail_charge(
-                niveau, classe, reinit, gtyp=type_geom, dim=dim, courbe=courbe
-            )
+            gensql.tail_charge(niveau, classe, reinit, gtyp=type_geom, dim=dim, courbe=courbe)
         )
 
     def finalise(self):
@@ -473,14 +441,10 @@ def getfanout(regle, extention, ident, initial):
     ):
         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
         #            len(obj.schema.attributs))
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
-        )
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest)
 
     else:
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
-        )
+        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
 
     ressource = sorties.get_res(regle.numero, nom)
     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
@@ -488,15 +452,7 @@ def getfanout(regle, extention, ident, initial):
 
 
 def change_ressource(
-    regle,
-    obj,
-    writerclass,
-    separ,
-    extention,
-    entete,
-    null,
-    initial=False,
-    geomwriter=None,
+    regle, obj, writerclass, separ, extention, entete, null, initial=False, geomwriter=None
 ):
     """ change la definition de la ressource utilisee si necessaire"""
 
@@ -508,7 +464,8 @@ def change_ressource(
     #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
         if separ is None:
-            separ = regle.getvar("separ_csv_out", regle.getvar("separ_csv", "|"))
+            separ = regle.getchain(("separ_csv_out","separ_csv"), "|")
+            print('separateur retenu',separ)
         if not nom.startswith("#"):
             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
             os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -568,14 +525,7 @@ def _csvstreamer(
 
 
 def _ecrire_objets_csv(
-    writer,
-    regle,
-    _,
-    entete="csv",
-    separ=None,
-    extention=".csv",
-    null="",
-    writerclass=CsvWriter,
+    writer, regle, _, entete="csv", separ=None, extention=".csv", null="", writerclass=CsvWriter
 ):
     """ ecrit des objets csv a partir du stockage interne"""
     #    sorties = regle.stock_param.sorties
@@ -617,12 +567,8 @@ def ecrire_objets_txt(self, regle, final):
 
 def lire_objets_txt(self, rep, chemin, fichier):
     """format sans entete le schema doit etre fourni par ailleurs"""
-    separ = self.regle_ref.get_param(
-        "separ_txt_in", self.regle_ref.get_param("separ_txt", "\t")
-    )
-    schema = self.regle_ref.stock_param.schemas.get(
-        self.regle_ref.get_param("schema_entree")
-    )
+    separ = self.regle_ref.get_param("separ_txt_in", self.regle_ref.get_param("separ_txt", "\t"))
+    schema = self.regle_ref.stock_param.schemas.get(self.regle_ref.get_param("schema_entree"))
     if schema:
         geom = separ + "geometrie" + "\n" if schema.info["type_geom"] else "\n"
         entete = separ.join(schema.get_liste_attributs()) + geom
@@ -638,12 +584,14 @@ def txtstreamer(self, obj, regle, final):
 
 def csvstreamer(self, obj, regle, final):
     """format txt en straming"""
-    return _csvstreamer(self, obj, regle, final, "csv", ";", ".csv")
+    separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
+    return _csvstreamer(self, obj, regle, final, "csv", separ, ".csv")
 
 
 def ecrire_objets_csv(self, regle, final):
     """format txt (csv sans entete) pour postgis"""
-    return _ecrire_objets_csv(self, regle, final, "csv", "\t", ".txt")
+    separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
+    return _ecrire_objets_csv(self, regle, final, "csv", separ, ".csv")
 
 
 def lire_objets_csv(self, rep, chemin, fichier):
@@ -674,44 +622,11 @@ def sqlstreamer(self, obj, regle, final):
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "csv": (
-        ecrire_objets_csv,
-        csvstreamer,
-        True,
-        "low",
-        0,
-        "csv",
-        "classe",
-        "#ewkt",
-        "#ewkt",
-    ),
-    "txt": (
-        ecrire_objets_txt,
-        txtstreamer,
-        True,
-        "low",
-        0,
-        "txt",
-        "classe",
-        "#ewkt",
-        "#ewkt",
-    ),
-    "sql": (
-        ecrire_objets_sql,
-        sqlstreamer,
-        True,
-        "low",
-        0,
-        "txt",
-        "all",
-        "#ewkt",
-        "#ewkt",
-    ),
+    "csv": (ecrire_objets_csv, csvstreamer, True, "low", 0, "csv", "classe", "#ewkt", "#ewkt"),
+    "txt": (ecrire_objets_txt, txtstreamer, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt"),
+    "sql": (ecrire_objets_sql, sqlstreamer, True, "low", 0, "txt", "all", "#ewkt", "#ewkt"),
     "geo": (ecrire_objets_geo, None, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt"),
 }
 
 #                  reader,geom,hasschema,auxfiles
-READERS = {
-    "csv": (lire_objets_csv, "#ewkt", True, ()),
-    "txt": (lire_objets_csv, "#ewkt", True, ()),
-}
+READERS = {"csv": (lire_objets_csv, "#ewkt", True, ()), "txt": (lire_objets_csv, "#ewkt", True, ())}

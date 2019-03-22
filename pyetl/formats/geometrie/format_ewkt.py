@@ -150,9 +150,7 @@ def _parse_ewkt(geometrie, texte):
             elif oper == "start":
                 dim = valeurs
                 niveau += 1
-                type_lu, poly, ring, nbring = _parse_start(
-                    nature, niveau, poly, ring, nbring
-                )
+                type_lu, poly, ring, nbring = _parse_start(nature, niveau, poly, ring, nbring)
                 geometrie.type = type_lu
     #                if not type_geom:
     #                    print ('erreur decodage', texte, oper, nature, valeurs)
@@ -241,11 +239,7 @@ def _ecrire_ligne_ewkt(ligne, poly, erreurs, multiline=False):
                 #                print ('ajout ',sect_courante.courbe,sec2[-1].courbe)
                 sec2.append(sect_courante)
     if len(sec2) > 1:
-        return (
-            "COMPOUNDCURVE("
-            + ",".join((_ecrire_section_ewkt(i, False) for i in sec2))
-            + ")"
-        )
+        return "COMPOUNDCURVE(" + ",".join((_ecrire_section_ewkt(i, False) for i in sec2)) + ")"
     return _ecrire_section_ewkt(sec2[0], poly or multiline)
 
 
@@ -253,11 +247,7 @@ def _ecrire_multiligne_ewkt(lignes, courbe, erreurs, force_courbe=False):
     """ecrit une multiligne en ewkt"""
     # courbe=True # test courbes
     code = "MULTICURVE(" if courbe or force_courbe else "MULTILINESTRING("
-    return (
-        code
-        + ",".join((_ecrire_ligne_ewkt(i, False, erreurs, True) for i in lignes))
-        + ")"
-    )
+    return code + ",".join((_ecrire_ligne_ewkt(i, False, erreurs, True) for i in lignes)) + ")"
 
 
 def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=False):
@@ -270,9 +260,7 @@ def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=F
         code = "POLYGON("
     return (
         code
-        + ",".join(
-            (_ecrire_ligne_ewkt(i, True, erreurs, False) for i in polygone.lignes)
-        )
+        + ",".join((_ecrire_ligne_ewkt(i, True, erreurs, False) for i in polygone.lignes))
         + ")"
     )
 
@@ -286,9 +274,7 @@ def _ecrire_poly_tin(polygones, tin, _):
 
     return (
         code
-        + ",".join(
-            (_ecrire_section_simple_ewkt(i.lignes[0].sections[0]) for i in polygones)
-        )
+        + ",".join((_ecrire_section_simple_ewkt(i.lignes[0].sections[0]) for i in polygones))
         + ")"
     )
 
@@ -299,9 +285,7 @@ def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
     # courbe=True # test courbes
     code = "MULTISURFACE(" if courbe or force_courbe else "MULTIPOLYGON("
     return (
-        code
-        + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True) for i in polygones))
-        + ")"
+        code + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True) for i in polygones)) + ")"
     )
 
 
@@ -358,13 +342,9 @@ def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=F
     elif geometrie_demandee == "3":
         if geom.polygones:
             geomt = (
-                _ecrire_multipolygone_ewkt(
-                    geom.polygones, courbe, erreurs, force_courbe
-                )
+                _ecrire_multipolygone_ewkt(geom.polygones, courbe, erreurs, force_courbe)
                 if multiple
-                else _ecrire_polygone_ewkt(
-                    geom.polygones[0], courbe, erreurs, False, force_courbe
-                )
+                else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs, False, force_courbe)
             )
         else:
             erreurs.ajout_erreur("polygone non ferme")

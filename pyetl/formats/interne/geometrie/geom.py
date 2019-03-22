@@ -8,6 +8,16 @@ from . import composants as C
 
 class Geometrie(object):
     """classe de base de stockage de la geometrie d'un objet"""
+    TYPES_G = {
+        "0": "ALPHA",
+        "1": "POINT",
+        "2": "LIGNE",
+        "3": "SURFACE",
+        "-1": "GEOMETRIE",
+        "4": "TIN",
+        "5": "POLYHEDRAL",
+        "indef": "ALPHA"
+    }
 
     def __init__(self):
         self.polygones = []
@@ -41,9 +51,7 @@ class Geometrie(object):
         if self.type < "2":
             return len(self.composants)
         cc = self.composants
-        return sum([i.npt for i in cc]) - sum(
-            [len(i.sections) - (0 if i.ferme else 1) for i in cc]
-        )
+        return sum([i.npt for i in cc]) - sum([len(i.sections) - (0 if i.ferme else 1) for i in cc])
 
     @property
     def ferme(self):
@@ -83,9 +91,7 @@ class Geometrie(object):
             if len(self.lignes) == 1:
                 return (
                     '"geometry": {\n"type": "LineString",\n"coordinates":[\n['
-                    + "],\n[".join(
-                        [",".join(map(str, i[:dim])) for i in self.lignes[0].coords]
-                    )
+                    + "],\n[".join([",".join(map(str, i[:dim])) for i in self.lignes[0].coords])
                     + "]\n]\n}"
                 )
             else:
@@ -93,9 +99,7 @@ class Geometrie(object):
                     '"geometry": {\n"type": "MultiLineString",\n"coordinates":[\n[\n['
                     + "]],\n[[".join(
                         [
-                            "],\n[".join(
-                                [",".join(map(str, i[:dim])) for i in j.coords]
-                            )
+                            "],\n[".join([",".join(map(str, i[:dim])) for i in j.coords])
                             for j in self.lignes
                         ]
                     )
@@ -106,9 +110,7 @@ class Geometrie(object):
                 if len(self.lignes) == 1:  # polygone sans trous
                     return (
                         '"geometry": {\n"type": "Polygon",\n"coordinates":[\n[\n['
-                        + "],\n[".join(
-                            [",".join(map(str, i[:dim])) for i in self.lignes[0].coords]
-                        )
+                        + "],\n[".join([",".join(map(str, i[:dim])) for i in self.lignes[0].coords])
                         + "]\n]\n]\n}"
                     )
                 else:
@@ -116,9 +118,7 @@ class Geometrie(object):
                         '"geometry": {\n"type": "Polygon",\n"coordinates":[\n[\n['
                         + "]],\n[[".join(
                             [
-                                "],\n[".join(
-                                    [",".join(map(str, i[:dim])) for i in j.coords]
-                                )
+                                "],\n[".join([",".join(map(str, i[:dim])) for i in j.coords])
                                 for j in self.lignes
                             ]
                         )
@@ -131,12 +131,7 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join(
-                                    [
-                                        ",".join(map(str, pnt[:dim]))
-                                        for pnt in lin.coords
-                                    ]
-                                )
+                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
                                 for lin in pol.lignes
                             ]
                         )
@@ -152,12 +147,7 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join(
-                                    [
-                                        ",".join(map(str, pnt[:dim]))
-                                        for pnt in lin.coords
-                                    ]
-                                )
+                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
                                 for lin in pol.lignes
                             ]
                         )
@@ -174,12 +164,7 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join(
-                                    [
-                                        ",".join(map(str, pnt[:dim]))
-                                        for pnt in lin.coords
-                                    ]
-                                )
+                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
                                 for lin in pol.lignes
                             ]
                         )
@@ -255,9 +240,7 @@ class Geometrie(object):
                 polys.append(tuple(rings))
             return {"type": "PolyhedralSurface", "coordinates": tuple(polys)}
 
-    def from_geo_interface(
-        self, geo_if
-    ):  # cree une geometrie a partir de la geo_interface
+    def from_geo_interface(self, geo_if):  # cree une geometrie a partir de la geo_interface
         #        print ('geom from geo_if',geo_if)
         if not geo_if:
             self.finalise_geom(type_geom="0")
@@ -550,8 +533,7 @@ class Geometrie(object):
     def has_couleur(self, couleur):
         """retourne True si la couleur existe dans l'objet"""
         liste_couleurs = {
-            j.couleur
-            for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
+            j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
         }
         #        print('has_couleur',couleur, liste_couleurs, couleur in liste_couleurs)
         return couleur in liste_couleurs

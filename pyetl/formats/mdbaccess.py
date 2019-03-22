@@ -113,10 +113,7 @@ def selection_directe(schema, niveau):
     tables_a_sortir = set()
     niv = niveau[0][2:]
     if len(niv.split(".")) != 3:
-        print(
-            "dbselect: il faut une description complete s:niveau.classe.attribut",
-            niveau,
-        )
+        print("dbselect: il faut une description complete s:niveau.classe.attribut", niveau)
     niv, clas = niv.split(".")[:2]
     #    print("mdba select: recherche ", niv, clas)
     for i in schema.classes:
@@ -163,9 +160,7 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
                     tables_a_sortir.add(i)
                 #                    print ('sortir multi')
                 continue
-            if choix_simple(
-                schema.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
-            ):
+            if choix_simple(schema.classes[i], exp_niv, exp_clas, negniv, negclass, nocase):
                 tables_a_sortir.add(i)
     #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
     if not tables_a_sortir:
@@ -187,10 +182,7 @@ def ihmtablelist(liste):
     liste = []
     for i in sorted(schemas):
         valeur = (
-            i
-            + ":<"
-            + ",".join([j + ":" + str(schemas[i][j]) for j in sorted(schemas[i])])
-            + ">"
+            i + ":<" + ",".join([j + ":" + str(schemas[i][j]) for j in sorted(schemas[i])]) + ">"
         )
         liste.append(valeur)
     return "<" + ",".join(liste) + ">"
@@ -239,11 +231,7 @@ def _get_tables(connect):
             if schemaclasse.info["type_geom"] != "0":
                 schemaclasse.info["nom_geometrie"] = "geometrie"
         if schemaclasse.info["type_geom"] == "indef":
-            print(
-                ident,
-                "apres _get_tables: type_geometrique",
-                schemaclasse.info["type_geom"],
-            )
+            print(ident, "apres _get_tables: type_geometrique", schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
 
@@ -269,13 +257,7 @@ def _get_attributs(connect):
         #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
         if not atd.type_attr:
             print(
-                "attribut sans type",
-                "g:",
-                atd.nom_groupe,
-                "c:",
-                atd.nom_classe,
-                "a:",
-                atd.nom_attr,
+                "attribut sans type", "g:", atd.nom_groupe, "c:", atd.nom_classe, "a:", atd.nom_attr
             )
         type_ref = atd.type_attr
         taille_att = atd.taille
@@ -439,9 +421,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         connection.geom_to_natif = dbdef.geomwriter
         connection.format_natif = dbdef.geom
 
-        schema_base = stock_param.init_schema(
-            "#" + codebase, "B", defmodeconf=defmodeconf
-        )
+        schema_base = stock_param.init_schema("#" + codebase, "B", defmodeconf=defmodeconf)
         connection.schemabase = schema_base
 
         schema_base.dbsql = connection.gensql
@@ -465,9 +445,7 @@ def get_helper(base, files, loadext, helpername, stock_param):
     """affiche les messages d erreur du loader"""
     for file in files:
         if not file.endswith(loadext):
-            print(
-                "seul des fichiers", loadext, "peuvent etre lances par cette commande"
-            )
+            print("seul des fichiers", loadext, "peuvent etre lances par cette commande")
             print("!!!!!!!!!!fichier incompatible", file, files)
             return False
     if helpername is None:
@@ -607,17 +585,13 @@ def get_connect(
     schema_travail.metas["tables"] = tables
     liste2 = []
     #    print ( 'schema base ',schema_base.classes.keys())
-    for ident in select_tables(
-        connect.schemabase, niveau, classe, tables, multi, nocase
-    ):
+    for ident in select_tables(connect.schemabase, niveau, classe, tables, multi, nocase):
         classe = connect.schemabase.get_classe(ident)
         #        print ('classe a copier ',classe.identclasse,classe.attributs)
         clas2 = copyschema(classe, ident, schema_travail)
         clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
         # on renseigne le nombre d'objets de la table
-        clas2.type_table = (
-            classe.type_table
-        )  # pour eviter qu elle soit marqueee interne
+        clas2.type_table = classe.type_table  # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
     niveau = tablesorter(liste2, connect.schemabase)
@@ -680,11 +654,7 @@ def sortie_resultats(
             niveau, classe = newid
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
 
-    print(
-        "...%-50s" % ("%s : %s.%s" % (connect.type_serveur, niveau, classe)),
-        end="",
-        flush=True,
-    )
+    print("...%-50s" % ("%s : %s.%s" % (connect.type_serveur, niveau, classe)), end="", flush=True)
 
     nbvals = 0
     attlist = curs.attlist
@@ -700,9 +670,7 @@ def sortie_resultats(
         sys_mod = connect.sys_mod
     tget = time.time()
     for valeurs in curs.cursor:
-        obj = Objet(
-            niveau, classe, format_natif=format_natif, conversion=geom_from_natif
-        )
+        obj = Objet(niveau, classe, format_natif=format_natif, conversion=geom_from_natif)
         #        print ("geometrie valide",obj.geom_v.valide)
         #        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
         obj.attributs["#type_geom"] = type_geom
@@ -715,9 +683,7 @@ def sortie_resultats(
             if type_geom == "1":  # on prepare les angles s'il y en a
                 obj.attributs["#angle"] = obj.attributs.get("angle", "0")
         else:
-            obj.attributs.update(
-                zip(attlist, [str(i) if i is not None else "" for i in valeurs])
-            )
+            obj.attributs.update(zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
 
         obj.setschema(schema_classe_travail)
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
@@ -753,22 +719,11 @@ def sortie_resultats(
 
 
 def recup_schema(
-    regle_courante,
-    base,
-    niveau,
-    classe,
-    nom_schema="",
-    type_base=None,
-    chemin="",
-    mods=None,
+    regle_courante, base, niveau, classe, nom_schema="", type_base=None, chemin="", mods=None
 ):
     """ recupere juste les schemas de la base sans donnees """
     stock_param = regle_courante.stock_param
-    cmp1 = (
-        mods
-        if mods is not None
-        else [i.upper() for i in regle_courante.params.cmp1.liste]
-    )
+    cmp1 = mods if mods is not None else [i.upper() for i in regle_courante.params.cmp1.liste]
     #    cmp2 = [i.upper for i in regle_courante.params.cmp2.liste]
 
     multi = not "=" in cmp1
@@ -806,12 +761,7 @@ def recup_schema(
                 "tables a sortir",
             )
         schema_base = connect.schemabase
-        print(
-            "recup_schema",
-            schema_base.nom,
-            schema_travail.nom,
-            stock_param.schemas.keys(),
-        )
+        print("recup_schema", schema_base.nom, schema_travail.nom, stock_param.schemas.keys())
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)
@@ -827,13 +777,7 @@ def lire_table(ident, regle_courante, parms=None):
         parms
     )
     connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
+        regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
 
     schema_classe_base = schema_base.get_classe(ident)
@@ -850,17 +794,11 @@ def lire_table(ident, regle_courante, parms=None):
     #        print("id attr,val", ident, attr, val)
     #        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
     #    classe)), end='', flush=True)
-    if (
-        attr
-        and attr not in schema_classe_travail.attributs
-        and attr not in connect.sys_fields
-    ):
+    if attr and attr not in schema_classe_travail.attributs and attr not in connect.sys_fields:
         return 0  # on a fait une requete sur un attribut inexistant: on passe
     treq = time.time()
 
-    curs = connect.req_alpha(
-        ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre
-    )
+    curs = connect.req_alpha(ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre)
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
     if curs:
@@ -905,13 +843,7 @@ def recup_donnees_req_alpha(
     #    debut = time.time()
     #    print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, v_sortie)
     connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
+        regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
     if connect is None:
         return 0
@@ -935,9 +867,7 @@ def recup_donnees_req_alpha(
             #            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
             #        print ('dbaccess : ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
-            schema_classe_travail.info["type_geom"] = schema_classe_base.info[
-                "type_geom"
-            ]
+            schema_classe_travail.info["type_geom"] = schema_classe_base.info["type_geom"]
             if isinstance(attribut, list):
                 if ident in reqdict:
                     attr, val = reqdict[ident]
@@ -956,9 +886,7 @@ def recup_donnees_req_alpha(
                 continue  # on a fait une requete sur un attribut inexistant: on passe
             treq = time.time()
 
-        curs = connect.req_alpha(
-            ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre
-        )
+        curs = connect.req_alpha(ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre)
         #        print ('-----------------------traitement curseur ', curs,type(curs) )
         treq = time.time() - treq
         if curs:
@@ -988,25 +916,15 @@ def recup_donnees_req_alpha(
     return res
 
 
-def reset_liste_tables(
-    regle_courante, base, niveau, classe, type_base=None, chemin="", mods=None
-):
+def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, chemin="", mods=None):
     """ genere un script de reset de tables"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
+        regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
     travail = reversed(liste_tables)  # on inverse l'ordre c est de la destruction
     gensql = connect.gensql
 
-    script2 = [
-        gensql.prefix_charge(niveau, classe, "TDS") for niveau, classe in travail
-    ]
+    script2 = [gensql.prefix_charge(niveau, classe, "TDS") for niveau, classe in travail]
 
     script1 = [gensql.prefix_charge(niveau, classe, "G") for niveau, classe in travail]
     script3 = [gensql.tail_charge(niveau, classe, "G") for niveau, classe in travail]
@@ -1015,25 +933,11 @@ def reset_liste_tables(
 
 
 def recup_count(
-    regle_courante,
-    base,
-    niveau,
-    classe,
-    attribut,
-    valeur,
-    mods=None,
-    type_base=None,
-    chemin="",
+    regle_courante, base, niveau, classe, attribut, valeur, mods=None, type_base=None, chemin=""
 ):
     """ recupere des comptages en base"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
+        regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
     if connect is None:
         return 0
@@ -1073,35 +977,15 @@ def recup_count(
 
 
 def recup_table_parametres(
-    stock_param,
-    nombase,
-    niveau,
-    classe,
-    clef=None,
-    valeur=None,
-    ordre=None,
-    type_base=None,
+    stock_param, nombase, niveau, classe, clef=None, valeur=None, ordre=None, type_base=None
 ):
     """lit une table en base de donnees et retourne le tableau de valeurs """
     #    print('recup_table', nombase, niveau, classe, "type_base", type_base)
     LOGGER.info(
-        "recup table en base "
-        + nombase
-        + ":"
-        + niveau
-        + "."
-        + classe
-        + " type_base"
-        + type_base
+        "recup table en base " + nombase + ":" + niveau + "." + classe + " type_base" + type_base
     )
     retour = get_connect(
-        stock_param,
-        nombase,
-        [niveau],
-        [classe],
-        tables="A",
-        multi=0,
-        type_base=type_base,
+        stock_param, nombase, [niveau], [classe], tables="A", multi=0, type_base=type_base
     )
     if retour:
         connect, schema_travail, _ = retour
@@ -1119,9 +1003,7 @@ def recup_table_parametres(
 def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
     """ recupere la valeur maxi d'un champ en base """
     #    print('recup_table', nombase, niveau, classe, type_base)
-    retour = get_connect(
-        stock_param, nombase, niveau, classe, "A", False, type_base=type_base
-    )
+    retour = get_connect(stock_param, nombase, niveau, classe, "A", False, type_base=type_base)
     if retour:
         connect, schema_travail, _ = retour
     else:
@@ -1162,13 +1044,7 @@ def recup_donnees_req_geo(
     maxobj = stock_param.get_param("lire_maxi", 0)
 
     connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
+        regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
     if connect is None:
         return 0
@@ -1211,9 +1087,7 @@ def recup_donnees_req_geo(
                 schema_classe_travail.ajout_attribut_modele(def_att_sortie, nom=nom_att)
             else:
                 schema_classe_travail.stocke_attribut(nom_att, "T")
-        schema_classe_travail.info["type_geom"] = schema_classe_postgis.info[
-            "type_geom"
-        ]
+        schema_classe_travail.info["type_geom"] = schema_classe_postgis.info["type_geom"]
         res += sortie_resultats(
             regle_courante,
             curs,
@@ -1235,9 +1109,7 @@ def recup_donnees_req_geo(
 class DbWriter(object):
     """ ressource d'ecriture en base de donnees"""
 
-    def __init__(
-        self, nom, liste_att=None, encoding="utf-8", liste_fich=None, stock_param=None
-    ):
+    def __init__(self, nom, liste_att=None, encoding="utf-8", liste_fich=None, stock_param=None):
 
         self.nom = nom
         self.liste_att = liste_att

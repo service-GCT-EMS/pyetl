@@ -26,9 +26,7 @@ def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
-    return (
-        "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
-    )
+    return "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
 
 
 # def ecrire_ligne_tmp(ligne):
@@ -119,17 +117,7 @@ def tmp_entetes(obj, form):
     niveau, classe = obj.ident
     if not form:
         form = ""
-    entete = (
-        "1"
-        + niveau
-        + ","
-        + classe
-        + ","
-        + form
-        + ","
-        + obj.attributs["#type_geom"]
-        + "\n"
-    )
+    entete = "1" + niveau + "," + classe + "," + form + "," + obj.attributs["#type_geom"] + "\n"
     return entete
 
 
@@ -142,13 +130,7 @@ def tmp_attributs(obj):
 
     attlist = "\n".join(
         (
-            "2"
-            + i
-            + ",NG"
-            + str(len(str(obj.attributs[i])))
-            + ","
-            + str(obj.attributs[i])
-            + ";"
+            "2" + i + ",NG" + str(len(str(obj.attributs[i]))) + "," + str(obj.attributs[i]) + ";"
             for i in obj.attributs
         )
     )
@@ -215,10 +197,7 @@ def lire_objets(fichier, stock_param):
             if code == "1":
                 niveau, classe, form, type_geom = ligne[1:-1].split(",")
                 obj = Objet(
-                    niveau,
-                    classe,
-                    format_natif=form,
-                    conversion=stock_param.get_converter(form),
+                    niveau, classe, format_natif=form, conversion=stock_param.get_converter(form)
                 )
                 obj.attributs["#type_geom"] = type_geom
             #                if form: print ('format natif ',form,stock_param.get_converter(form))

@@ -207,9 +207,7 @@ class Conformite(object):
         self.min = valeur
         self.min_strict = strict
         self.type_conf = (
-            3
-            if self.min and self.max and not (self.max_strict or self.min_strict)
-            else 2
+            3 if self.min and self.max and not (self.max_strict or self.min_strict) else 2
         )
 
     def stocke_max(self, valeur, strict):
@@ -217,9 +215,7 @@ class Conformite(object):
         self.max = valeur
         self.max_strict = strict
         self.type_conf = (
-            3
-            if self.min and self.max and not (self.max_strict or self.min_strict)
-            else 2
+            3 if self.min and self.max and not (self.max_strict or self.min_strict) else 2
         )
 
     def __repr__(self):
@@ -355,9 +351,7 @@ class Attribut(object):
     def get_type(self):
         """recupere le type d'un attribut"""
         #        print ('si:type_attribut',self.type_att,TYPES_S.get(self.type_att))
-        return TYPES_S.get(
-            self.type_att, TYPES_S.get(self.type_att_base, self.type_att)
-        )
+        return TYPES_S.get(self.type_att, TYPES_S.get(self.type_att_base, self.type_att))
 
     def __repr__(self):
         return str((self.nom, self.type_att, self.nom_conformite, self.taille))

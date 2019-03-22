@@ -26,9 +26,7 @@ class TextWriter(fileio.FileWriter):
     def reopen(self):
         """reouverture"""
         self.fichier = (
-            sys.stdout
-            if self.nom == "#print"
-            else open(self.nom, "a", encoding=self.encoding)
+            sys.stdout if self.nom == "#print" else open(self.nom, "a", encoding=self.encoding)
         )  # stdout
 
     def close(self):
@@ -76,9 +74,7 @@ def lire_textfile_ligne(self, rep, chemin, fichier):
             obj = self.getobj()
             #            obj = Objet(groupe, classe, format_natif='file', conversion='noconversion')
             obj.attributs["contenu"] = ligne
-            stock_param.moteur.traite_objet(
-                obj, self.regle_start
-            )  # on traite l'objet precedent
+            stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite l'objet precedent
             n_obj += 1
     return n_obj
 

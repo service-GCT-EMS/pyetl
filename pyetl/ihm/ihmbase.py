@@ -103,9 +103,7 @@ class Auto_ui(QtGui.QDialog):
         self.buttonBox.setGeometry(QtCore.QRect(320, 340, 171, 32))
         self.buttonBox.setMouseTracking(False)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ok
-        )
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setCenterButtons(False)
         self.buttonBox.setObjectName("buttonBox")
         # definition de la ligne de choix de l'entree
@@ -206,9 +204,7 @@ class Ui_Transfo(QtGui.QDialog):
         self.setMinimumSize(QtCore.QSize(500, 380))
         self.setMaximumSize(QtCore.QSize(500, 380))
         icon = QtGui.QIcon()
-        icon.addPixmap(
-            QtGui.QPixmap("images_terre.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
-        )
+        icon.addPixmap(QtGui.QPixmap("images_terre.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(icon)
         self.setModal(False)
 
@@ -217,9 +213,7 @@ class Ui_Transfo(QtGui.QDialog):
         self.buttonBox.setGeometry(QtCore.QRect(320, 340, 171, 32))
         self.buttonBox.setMouseTracking(False)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ok
-        )
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setCenterButtons(False)
         self.buttonBox.setObjectName("buttonBox")
 
@@ -393,9 +387,7 @@ class Ui_Transfo(QtGui.QDialog):
             '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:8pt;">Numéro  X  Y  Z (sep:tabulation)</span></p></body></html>'
         )
         self.label.setText(u"Choisir le fichier \u00E0 transformer :")
-        self.line_fichier_entree.setToolTip(
-            u"Emplacement et nom du fichier \u00E0 transformer"
-        )
+        self.line_fichier_entree.setToolTip(u"Emplacement et nom du fichier \u00E0 transformer")
         self.fichier_entree.setText("...")
         self.label_2.setText("Choisir l'emplacement du fichier en sortie :")
         self.line_fichier_sortie.setToolTip("Emplacement et nom du fichier en sortie")
@@ -425,9 +417,7 @@ class Ui_Transfo(QtGui.QDialog):
 
     def setSaveFileName(self):  # Boîte de dialogue "choisir fichier en sortie"
         if len(self.line_fichier_entree.text()) > 0:
-            self.line_fichier_sortie.setText(
-                os.path.dirname(self.line_fichier_entree.text())
-            )
+            self.line_fichier_sortie.setText(os.path.dirname(self.line_fichier_entree.text()))
         options = QtGui.QFileDialog.Options()
         fileName = QtGui.QFileDialog.getSaveFileName(
             self,
@@ -488,9 +478,7 @@ class Ui_Transfo(QtGui.QDialog):
             return ()
         if self.line_fichier_sortie.text() == "":
             QtGui.QMessageBox.critical(
-                self,
-                u"ERREUR",
-                u"Veuillez renseigner l\u0027emplacement du fichier de sortie",
+                self, u"ERREUR", u"Veuillez renseigner l\u0027emplacement du fichier de sortie"
             )
             return ()
 

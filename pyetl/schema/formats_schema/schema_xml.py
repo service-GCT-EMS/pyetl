@@ -87,12 +87,7 @@ def _sortir_attribut_xml(classe, attr, keys):
 
     if attr.nom in keys:
         #        print ("clefs primaires",keys)
-        texte = (
-            texte
-            + " clef_primaire = 'oui' ordre = '"
-            + str(keys.index(attr.nom) + 1)
-            + "'"
-        )
+        texte = texte + " clef_primaire = 'oui' ordre = '" + str(keys.index(attr.nom) + 1) + "'"
     if attr.nom in classe.fkey_attribs:
         cible, params = classe.getfkey(attr.nom)
         dec = cible.split(".")
@@ -142,11 +137,7 @@ def _sortir_attribut_xml(classe, attr, keys):
             vals = sorted(attr.valeurs)
 
         valeurs_conf = [
-            "\t\t<valeur_conformite v='"
-            + ESC_XML(str(j))
-            + "' n='"
-            + str(attr.valeurs[j])
-            + "'/>"
+            "\t\t<valeur_conformite v='" + ESC_XML(str(j)) + "' n='" + str(attr.valeurs[j]) + "'/>"
             for j in vals
         ]
         description.extend(valeurs_conf)
@@ -241,10 +232,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
         conf = (
             "<conformites>\n"
             + "\n".join(
-                [
-                    _sortir_conformite_xml(sch.conformites[i])
-                    for i in sorted(sch.conformites.keys())
-                ]
+                [_sortir_conformite_xml(sch.conformites[i]) for i in sorted(sch.conformites.keys())]
             )
             + "\n</conformites>\n"
         )
@@ -325,9 +313,7 @@ def lire_schema_xml(base, fichier, cod="utf-8"):
     return schema
 
 
-def ecrire_schema_xml(
-    rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""
-):
+def ecrire_schema_xml(rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""):
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)

@@ -78,9 +78,7 @@ def selh_infich(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(
-        selecteur.params.vals.val,
-        selecteur.regle.stock_param,
-        len(selecteur.params.attr.liste),
+        selecteur.params.vals.val, selecteur.regle.stock_param, len(selecteur.params.attr.liste)
     )
     if isinstance(valeurs, list):
         valeurs = set(valeurs)
@@ -107,9 +105,7 @@ def selh_infich_re(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(
-        selecteur.params.vals.val,
-        selecteur.regle.stock_param,
-        len(selecteur.params.attr.liste),
+        selecteur.params.vals.val, selecteur.regle.stock_param, len(selecteur.params.attr.liste)
     )
     # on recupere les complements s'il y en a
 
@@ -212,9 +208,7 @@ def sel_inmem(selecteur, obj):
         return False
 
     clef = str(tuple(tuple(i) for i in obj.geom_v.coords)) if selecteur.geom else ""
-    clef = clef + "|".join(
-        obj.attributs.get(i, "") for i in selecteur.params.attr.liste
-    )
+    clef = clef + "|".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
 
     return clef in selecteur.info
 
@@ -466,11 +460,7 @@ def sel_infoschema_has_type(selecteur, obj):
     if obj.schema.identclasse == selecteur.lastschema:
         return selecteur.lastvaleur
     atts = obj.schema.attributs
-    val = (
-        selecteur.params.attr.val
-        if selecteur.params.attr.val
-        else selecteur.params.vals.val
-    )
+    val = selecteur.params.attr.val if selecteur.params.attr.val else selecteur.params.vals.val
     selecteur.lastschema = obj.schema.identclasse  # on mets en cache
     selecteur.lastvaleur = any([atts[i].type_att == val for i in atts])
     #    print ('sel info type',selecteur.lastschema, selecteur.lastvaleur, val,

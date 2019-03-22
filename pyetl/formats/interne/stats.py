@@ -67,11 +67,7 @@ class Statdef(object):  # definition d'une statistique
         for i in self.colonnes:
             if i[0] == "[":
                 nouv_colonnes.extend(
-                    [
-                        j
-                        for j in sorted(colonnes_indirectes.keys())
-                        if colonnes_indirectes[j] == i
-                    ]
+                    [j for j in sorted(colonnes_indirectes.keys()) if colonnes_indirectes[j] == i]
                 )
                 for j in colonnes_indirectes.keys():
                     self.types[j] = self.types[i]
@@ -144,9 +140,7 @@ class ExtStat(object):
 
     #        print('contenu de la stat' ,self.nom, len(self.lignes))
 
-    def ecrire(
-        self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
-    ):
+    def ecrire(self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""):
         """ sortie stat en format csv"""
         nom = self.nom
         if wid:
@@ -156,9 +150,7 @@ class ExtStat(object):
         if rep_sortie:
             try:
                 os.makedirs(rep_sortie, exist_ok=True)
-                fichier = open(
-                    os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec
-                )
+                fichier = open(os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec)
                 fichier.write(";".join(self.entete) + "\n")
                 fichier.write("\n".join([";".join(i) for i in result]))
                 fichier.close()
@@ -392,9 +384,7 @@ class Stat(object):
 
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        colonnes = ["_clef"] + self.structure.get_names(
-            self.colonnes_indirect, process=True
-        )
+        colonnes = ["_clef"] + self.structure.get_names(self.colonnes_indirect, process=True)
         noms_attributs = [i.strip().replace(" ", "_") for i in colonnes]
         #        print( "conversion stats,",result, self.valeurs)
         #        print("stattoobj",noms_attributs)
@@ -422,14 +412,10 @@ class Stat(object):
         nom = "_".join(self.nom).replace("#", "")
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
-        corps = [
-            self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i
-        ]
+        corps = [self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i]
         return (nom, entete, corps)
 
-    def ecrire(
-        self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
-    ):
+    def ecrire(self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""):
         """ sortie stat en format csv"""
         nom = "_".join(self.nom).replace("#", "")
         if wid:
@@ -444,9 +430,7 @@ class Stat(object):
             if not wid:
                 try:
                     os.makedirs(rep_sortie, exist_ok=True)
-                    fichier = open(
-                        os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec
-                    )
+                    fichier = open(os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec)
                     fichier.write(self.structure.entete(self.colonnes_indirect) + "\n")
                     fichier.writelines(
                         (self.structure.ligne(i, self.valeurs) + "\n" for i in result)
@@ -480,11 +464,7 @@ def statprint(nom, entete, contenu):
     longueur = sum(tailles) + 3 * len(tailles) - 2
 
     pformat = (
-        "| %-"
-        + str(tailles[0])
-        + "s"
-        + " | ".join("%" + str(i) + "s" for i in tailles[1:])
-        + " |"
+        "| %-" + str(tailles[0]) + "s" + " | ".join("%" + str(i) + "s" for i in tailles[1:]) + " |"
     )
     print("-" * longueur)
 

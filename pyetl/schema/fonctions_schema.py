@@ -83,11 +83,7 @@ NOMS_MOIS = {
 }
 
 DDEF = D.datetime(9999, 2, 28)
-DFORM = {
-    "in": "%Y/%m/%d %H:%M:%S.%f",
-    "en": "%m-%d-%Y %H:%M:%S.%f",
-    "fr": "%d-%m-%Y %H:%M:%S.%f",
-}
+DFORM = {"in": "%Y/%m/%d %H:%M:%S.%f", "en": "%m-%d-%Y %H:%M:%S.%f", "fr": "%d-%m-%Y %H:%M:%S.%f"}
 
 # ----------------fonctions de validation de contenu-----------------------
 # --------------dates--------------------
@@ -382,14 +378,7 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
         atdef.conformite = False
         atdef.nom_conformite = ""
     elif mode == "change_conf":
-        print(
-            "schema:",
-            nom_schema,
-            ": modification conformité ",
-            atdef.nom,
-            atdef.type_att,
-            val,
-        )
+        print("schema:", nom_schema, ": modification conformité ", atdef.nom, atdef.type_att, val)
         warnings.append(
             nom_classe
             + "."
@@ -561,10 +550,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
                 )
             )
 
-    if (
-        obj.attributs["#type_geom"] != "0"
-        and str(obj.dimension) != schemaclasse.info["dimension"]
-    ):
+    if obj.attributs["#type_geom"] != "0" and str(obj.dimension) != schemaclasse.info["dimension"]:
         if schemaclasse.autodim:
             # choix automatique de la dimension c'est le premier objet qui gagne
             schemaclasse.info["dimension"] = str(obj.dimension)
@@ -609,33 +595,17 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             if atdef.oblig:
                 if mode == "strict":
                     erreurs.append(
-                        set_err(
-                            schemaclasse,
-                            obj,
-                            "%s.%s obligatoire: %s",
-                            i,
-                            "#NOMSCHEMA",
-                            1,
-                        )
+                        set_err(schemaclasse, obj, "%s.%s obligatoire: %s", i, "#NOMSCHEMA", 1)
                     )
                 else:
                     warnings.append(
-                        set_err(
-                            schemaclasse,
-                            obj,
-                            "%s.%s obligatoire: %s",
-                            i,
-                            "#NOMSCHEMA",
-                            0,
-                        )
+                        set_err(schemaclasse, obj, "%s.%s obligatoire: %s", i, "#NOMSCHEMA", 0)
                     )
         #                    erreurs.append(classe+'.'+i +' obligatoire('+nom_schema+')')
         elif atdef.conformite:
             if not atdef.conformite.valide_valeur(val):
                 # print ('conformite erronee',val,atdef.conformite.valide_valeur(val))
-                repl, errs, warns = _gere_conformite_invalide(
-                    schemaclasse, atdef, val, mode
-                )
+                repl, errs, warns = _gere_conformite_invalide(schemaclasse, atdef, val, mode)
                 if repl:
                     obj.attributs[i] = repl
                 warnings.extend(warns)
@@ -681,9 +651,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
 
     if warnings:
         if obj.attributs.get("#warnings", ""):
-            obj.attributs["#warnings"] = (
-                obj.attributs["#warnings"] + "+" + "+".join(warnings)
-            )
+            obj.attributs["#warnings"] = obj.attributs["#warnings"] + "+" + "+".join(warnings)
         else:
             obj.attributs["#warnings"] = "+".join(warnings)
         LOGGER.info(
@@ -695,9 +663,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
 
     if erreurs:
         if obj.attributs.get("#erreurs", ""):
-            obj.attributs["#erreurs"] = (
-                obj.attributs["#erreurs"] + "+" + "+".join(erreurs)
-            )
+            obj.attributs["#erreurs"] = obj.attributs["#erreurs"] + "+" + "+".join(erreurs)
         else:
             obj.attributs["#erreurs"] = "+".join(erreurs)
 
@@ -746,11 +712,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
             )
             attr.type_att_defaut = type_defaut
             if not attr:
-                print(
-                    "ajuste_schema: erreur stockage attribut",
-                    schemaclasse.identclasse,
-                    nom,
-                )
+                print("ajuste_schema: erreur stockage attribut", schemaclasse.identclasse, nom)
             if att_orig:
                 #                attr.clef = att_orig.clef
                 #                attr.defindex = {i:j for i,j in att_orig.defindex.items()}
@@ -767,7 +729,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     type_geom = obj.geom_v.type
     multigeom = obj.geom_v.multi
     if type_geom == "indef":
-        type_geom = "NOGEOM"
+        type_geom = "ALPHA"
     #    print("avant ajuste_schema:",schemaclasse.nom, "recup type_geom", type_geom,
     #          schemaclasse.info["type_geom"], schemaclasse.objcnt, schemaclasse)
 
@@ -855,9 +817,7 @@ def mapping(mapp, classes, id_cl):
             print(" mapping ambigu ", id_cl[1])
             return ""
         else:
-            id_cl = mapp.mapping_classe_schema.get(
-                id_cl[1], ("mapping non trouve", id_cl[1])
-            )
+            id_cl = mapp.mapping_classe_schema.get(id_cl[1], ("mapping non trouve", id_cl[1]))
             # print ('recuperation',ci,cl[1])
     if id_cl in mapp.mapping_origine:
         origine = mapp.mapping_origine[id_cl]
@@ -882,9 +842,7 @@ def analyse_interne(schema, mode="util", type_schema=None):
         return False
     if mode == "no":
         return False
-    if (
-        mode == "non_vide"
-    ):  # on teste si au moins une classe du schema contient un objet
+    if mode == "non_vide":  # on teste si au moins une classe du schema contient un objet
         #        if not schema.rep_sortie:
         #            return False
         if not schema.classes:
@@ -929,12 +887,8 @@ def analyse_interne(schema, mode="util", type_schema=None):
                         conf = schema.conformites[att.nom_conformite]
                         att.conformite = conf
                         conf.utilise = True
-                        conf.usages.append(
-                            (schema_classe.groupe, schema_classe.nom, att.nom)
-                        )
-                        conf.poids += (
-                            schema_classe.poids
-                        )  # sert pour la fusion de schemas
+                        conf.usages.append((schema_classe.groupe, schema_classe.nom, att.nom))
+                        conf.poids += schema_classe.poids  # sert pour la fusion de schemas
     if mode == "fusion":
         schema.stock_mapping.mode_fusion = True
     return retour
@@ -998,13 +952,7 @@ def analyse_conformites(schema):
                             ):
                                 if str(val1) != str(val2):
                                     astocker = True
-                                    print(
-                                        "schema: ecart schema",
-                                        val1,
-                                        val2,
-                                        nom_conf,
-                                        schem_c.nom,
-                                    )
+                                    print("schema: ecart schema", val1, val2, nom_conf, schem_c.nom)
                                     nom_conf = nom_conf + "_" + schem_c.nom
                                     break
                     else:
@@ -1027,11 +975,7 @@ def analyse_conformites(schema):
 
                     for k in sorted(att.valeurs, key=key):
                         conf.stocke_valeur(k, k, 1)
-                    print(
-                        "longueur stockee",
-                        nom_conf,
-                        len(schema.conformites[nom_conf].stock),
-                    )
+                    print("longueur stockee", nom_conf, len(schema.conformites[nom_conf].stock))
                 if confvalide:
                     att.nom_conformite = nom_conf
                     att.type_att_base = "T"

@@ -36,9 +36,7 @@ class Objet(object):
 
     _ido = itertools.count(1)  # compteur d'instance
 
-    def __init__(
-        self, groupe, classe, format_natif="asc", conversion=None, schema=None
-    ):
+    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None):
         self.geom = []
         self.geom_v = Geometrie()
         #        self.valide = False
@@ -162,9 +160,7 @@ class Objet(object):
 
     def finalise_geom(self, type_geom=None, orientation="L", desordre=False):
         """finalise la geometrie et renseigne les attributs"""
-        self.geom_v.finalise_geom(
-            type_geom=type_geom, orientation=orientation, desordre=desordre
-        )
+        self.geom_v.finalise_geom(type_geom=type_geom, orientation=orientation, desordre=desordre)
         if not self.geom_v.valide:
             self.setnogeom(tmp=True)
         self.infogeom()
@@ -212,9 +208,7 @@ class Objet(object):
         if self.schema:
             if schema2 is None:
                 schema2 = self.schema.schema
-            schema_classe = schema2.get_classe(
-                ident, cree=True, modele=self.schema, filiation=True
-            )
+            schema_classe = schema2.get_classe(ident, cree=True, modele=self.schema, filiation=True)
             self.setschema(schema_classe)
 
     @property
@@ -232,10 +226,7 @@ class Objet(object):
         geom = self.geom_v.__json_if__
         #        print ('jsonio recupere ',geom)
         atts = ",\n".join(
-            [
-                '"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"'
-                for i in liste
-            ]
+            ['"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"' for i in liste]
         )
         if geom:
             return (
@@ -273,9 +264,7 @@ class Objet(object):
             for i in liste:
                 if i in sch.attributs and sch.attributs[i].type_att == "D":
                     attributs[i] = (
-                        self.attributs[i].replace("/", "-")
-                        if self.attributs.get(i)
-                        else None
+                        self.attributs[i].replace("/", "-") if self.attributs.get(i) else None
                     )
                 #                    .replace(' ', 'T')'Z' if self.attributs.get(i) else None
                 else:
@@ -305,8 +294,7 @@ class Objet(object):
             goif = {
                 "id": attributs.get("#gid", str(self.ido)),
                 "properties": {
-                    self.casefold(i): attributs[i] if i in attributs else None
-                    for i in liste
+                    self.casefold(i): attributs[i] if i in attributs else None for i in liste
                 },
                 "geometry": geom,
             }
@@ -324,9 +312,7 @@ class Objet(object):
                     if props[i] is None:
                         continue
                     nom = self.schema.attmap.get(i, i)
-                    self.attributs[nom] = self.schema.attributs[
-                        nom
-                    ].format_entree.format(props[i])
+                    self.attributs[nom] = self.schema.attributs[nom].format_entree.format(props[i])
             else:
                 self.attributs.update(
                     {
@@ -336,9 +322,7 @@ class Objet(object):
                     }
                 )
         else:
-            self.attributs.update(
-                {i: str(props[i]) for i in props if props[i] is not None}
-            )
+            self.attributs.update({i: str(props[i]) for i in props if props[i] is not None})
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))
         self.infogeom()
 
@@ -429,10 +413,7 @@ class Objet(object):
             self.attributs["#schema"] = ""
         if remap:
             if self.schema.attmap is not None:
-                att2 = {
-                    self.schema.attmap.get(i, i): self.attributs[i]
-                    for i in self.attributs
-                }
+                att2 = {self.schema.attmap.get(i, i): self.attributs[i] for i in self.attributs}
                 self.attributs = att2
 
     def initattr(self):
@@ -441,9 +422,7 @@ class Objet(object):
             return False
         for i in self.schema.get_liste_attributs(sys=True):
             self.attributs[i] = (
-                self.schema.attributs[i].defaut
-                if self.schema.attributs[i].defaut
-                else ""
+                self.schema.attributs[i].defaut if self.schema.attributs[i].defaut else ""
             )
 
     def setschema_auto(self, schema):
@@ -499,10 +478,7 @@ class Objet(object):
         res = ""
         if dic:
             res = ", ".join(
-                [
-                    " => ".join((i, dic[i].replace('"', r"\"")))
-                    for i in sorted(dic.keys())
-                ]
+                [" => ".join((i, dic[i].replace('"', r"\""))) for i in sorted(dic.keys())]
             )
         self.attributs[nom] = res
         return res
@@ -516,10 +492,7 @@ class Objet(object):
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
             self.hdict[nom] = dict(
-                [
-                    i.replace(r"\"", '"').split('" => "')
-                    for i in hstore[1:-1].split('", "')
-                ]
+                [i.replace(r"\"", '"').split('" => "') for i in hstore[1:-1].split('", "')]
             )
         return self.hdict[nom]
 
@@ -556,8 +529,7 @@ class Objet(object):
     def fold(self, classe, alist, geom=True, gsep="|"):
         """ retourne un objet compact pour le stockage temporaire en general un namedtuple"""
         return classe(
-            [self.attributs.get(i) for i in alist]
-            + [gsep.join(self.geom) if geom else []]
+            [self.attributs.get(i) for i in alist] + [gsep.join(self.geom) if geom else []]
         )
 
 

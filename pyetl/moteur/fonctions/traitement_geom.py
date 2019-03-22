@@ -248,11 +248,7 @@ def f_forceligne(regle, obj):  # force la geometrie en ligne
     if obj.attributs["#type_geom"] == "2":
         setschemainfo(regle, obj)
         return True
-    print(
-        "force_ligne,erreur conversion type",
-        obj.attributs["#type_geom"],
-        obj.geom_v.type,
-    )
+    print("force_ligne,erreur conversion type", obj.attributs["#type_geom"], obj.geom_v.type)
     return False
 
 
@@ -281,12 +277,7 @@ def f_forcepoly(regle, obj):
             #            print ('fpoly: on invalide la geometrie',regle.params.cmp1.val)
             obj.setnogeom()  # on invalide la geometrie
             setschemainfo(regle, obj)
-        print(
-            "erreurs force poly",
-            obj.ido,
-            obj.geom_v.valide,
-            obj.attributs["#type_geom"],
-        )
+        print("erreurs force poly", obj.ido, obj.geom_v.valide, obj.attributs["#type_geom"])
 
     return False
 
@@ -365,10 +356,7 @@ def f_coordp(regle, obj):
             refpt = list(obj.geom_v.coords)[position]
             #            print("coordp: ",list(obj.geom_v.coords),position,refpt)
             obj.attributs.update(
-                zip(
-                    ("#x", "#y", "#z"),
-                    [str(i) for i in refpt[0 : obj.geom_v.dimension]],
-                )
+                zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
             )
             return True
         except IndexError:
@@ -422,10 +410,7 @@ def fgrid2(regle, obj, cases, double=True):
 
 def h_grid(regle):
     """initialise les parametres de grille"""
-    regle.orig_grille = (
-        float(regle.params.cmp1.liste[0]),
-        float(regle.params.cmp1.liste[1]),
-    )
+    regle.orig_grille = (float(regle.params.cmp1.liste[0]), float(regle.params.cmp1.liste[1]))
     regle.gx, regle.gy = regle.params.att_sortie.liste
 
 
@@ -571,9 +556,7 @@ def f_mod_3d(regle, obj):
             return False
 
         select = regle.sel3D
-        valeur = float(
-            obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
-        )
+        valeur = float(obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val))
         #        print("geomv",obj.geom_v.type, list(obj.geom_v.coords))
         for point in obj.geom_v.coords:
             #            print ("select 3D", pt[2], select(pt[2]))
@@ -639,9 +622,7 @@ def f_splitcouleur(regle, obj):
         obj2.finalise_geom(type_geom="2")
         obj2.attributs[regle.params.att_sortie.val] = i
         obj2.infogeom()
-        regle.stock_param.moteur.traite_objet(
-            obj2, regle.branchements.brch.get(i, defaut_dest)
-        )
+        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch.get(i, defaut_dest))
         # on l'envoie dans la tuyauterie'
     if geoms:
         obj.geom_v = geoms[liste_coul[0]]
@@ -739,9 +720,7 @@ def f_csplit(regle, obj):
                 obj2.infogeom()
                 if att_sortie:
                     obj2.attributs[att_sortie] = str(npt)
-                regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["next"]
-                )
+                regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
                 valide = True
         obj.geom_v = geom
         return valide
@@ -786,9 +765,7 @@ def f_prolonge(regle, obj):
     """
     if obj.virtuel:
         return False
-    longueur = obj.attributs.get(
-        regle.params.att_entree.num, regle.params.val_entree.num
-    )
+    longueur = obj.attributs.get(regle.params.att_entree.num, regle.params.val_entree.num)
     if obj.initgeom():
         retour = obj.geom_v.prolonge(longueur, regle.params.cmp1.num)
         obj.infogeom()
@@ -854,9 +831,9 @@ def f_translate(regle, obj):
     #test||obj;ligne;||^dec;1,1;;set||^;;dec;translate||^;1;;coordp||atn;#x;2
 
     """
-    liste_trans = obj.attributs.get(
-        regle.params.att_entree.val, regle.params.val_entree.val
-    ).split(",")
+    liste_trans = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val).split(
+        ","
+    )
     liste_trans = [float(i) for i in liste_trans]
     if len(liste_trans) < 3:
         liste_trans.extend([0, 0, 0])

@@ -34,6 +34,7 @@ requetes_sigli[
            FROM pg_proc p
              LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
           WHERE n.nspname <> 'pg_catalog'::name
+            AND has_schema_privilege(n.nspname,'usage')
             AND n.nspname <> 'information_schema'::name
             AND p.prorettype = 'trigger'::regtype::oid;
           """
@@ -137,6 +138,7 @@ requetes_sigli[
                  LEFT JOIN pg_index i ON c.oid = i.indrelid
                  LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
               WHERE n.nspname <> 'public'::name
+                  AND has_schema_privilege(n.nspname,'usage')
                   AND n.nspname <> 'information_schema'::name
                   AND n.nspname !~~ 'pg_%'::text
                   AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
@@ -373,7 +375,7 @@ requetes_sigli[
            FROM pg_constraint c
              LEFT JOIN pg_class t ON t.oid = c.confrelid
              LEFT JOIN pg_namespace n ON t.relnamespace = n.oid
-          WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
+          WHERE has_schema_privilege(n.nspname,'usage') AND c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
                   AND (t4.attnum = ANY (c.conkey))) AS clef_etrangere,
     ( SELECT a1.attname
            FROM pg_constraint c,

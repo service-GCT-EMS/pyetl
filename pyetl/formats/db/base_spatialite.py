@@ -41,9 +41,7 @@ TYPES_G = {"POINT": "1", "MULTILINESTRING": "2", "MULTIPOLYGON": "3"}
 class SqltConnect(DbConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(
-        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
-    ):
+    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
         self.connect()
@@ -68,10 +66,7 @@ class SqltConnect(DbConnect):
         try:
             self.connection = sqlite3.connect(self.base)
         except self.errs as err:
-            print(
-                "error: sqlite: utilisateur ou mot de passe errone sur la base sqlite",
-                self.base,
-            )
+            print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
             print("error: sqlite: ", err)
             sys.exit(1)
             return None
@@ -117,7 +112,7 @@ class SqltConnect(DbConnect):
                 nom = nomtable
                 schema = ""
             #            print('table', nom)
-            table_geom = "NOGEOM"
+            table_geom = "ALPHA"
             table_dim = 2
             requete = 'pragma table_info("' + nomtable + '")'
             attributs = self.request(requete, None)
@@ -150,19 +145,7 @@ class SqltConnect(DbConnect):
                     table_geom = type_att
                     table_dim = 2
 
-            nouv_table = [
-                schema,
-                nom,
-                "",
-                table_geom,
-                table_dim,
-                -1,
-                type_table,
-                "",
-                "",
-                "",
-                "",
-            ]
+            nouv_table = [schema, nom, "", table_geom, table_dim, -1, type_table, "", "", "", ""]
             self.tables.append(nouv_table)
         return attlist
 
@@ -314,12 +297,5 @@ class SqltGenSql(DbGenSql):
 
 
 DBDEF = {
-    "spatialite": (
-        SqltConnect,
-        SqltGenSql,
-        "file",
-        ".sqlite",
-        "#ewkt",
-        "base spatialite basique",
-    )
+    "spatialite": (SqltConnect, SqltGenSql, "file", ".sqlite", "#ewkt", "base spatialite basique")
 }

@@ -65,14 +65,7 @@ def main():
             for ligne in D.unified_diff(f_a, f_b, n=0):
                 erreurs.append(ligne)
             if erreurs:
-                print(
-                    "------------------comparaison ",
-                    i,
-                    fich1,
-                    fich2,
-                    "------>",
-                    len(erreurs),
-                )
+                print("------------------comparaison ", i, fich1, fich2, "------>", len(erreurs))
                 n_e = 0
                 for j in erreurs:
                     n_e = n_e + 1

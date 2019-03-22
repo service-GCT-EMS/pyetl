@@ -51,16 +51,12 @@ class Branch(object):
 
     def liens_num(self):
         """retourne les numeros de regles """
-        liens_num = {
-            i: self.brch[i].numero if self.brch[i] else 99999 for i in self.brch
-        }
+        liens_num = {i: self.brch[i].numero if self.brch[i] else 99999 for i in self.brch}
         return liens_num
 
     def liens_pos(self):
         """retourne les index dans la liste de regles finale avec les inclus"""
-        liens_num = {
-            i: self.brch[i].index if self.brch[i] else 99999 for i in self.brch
-        }
+        liens_num = {i: self.brch[i].index if self.brch[i] else 99999 for i in self.brch}
         return liens_num
 
     def changeliens(self, regles):
@@ -276,9 +272,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def getregle(self, ligne, fichier, numero):
         """retourne une regle pour des operations particulieres"""
-        return RegleTraitement(
-            ligne, self.stock_param, self.fichier, numero, context=self.context
-        )
+        return RegleTraitement(ligne, self.stock_param, self.fichier, numero, context=self.context)
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
@@ -307,18 +301,14 @@ class RegleTraitement(object):  # regle de mapping
         """acces standadise a la liste d'entree valeur avec defaut en liste"""
         return [
             obj.attributs.get(i, j)
-            for i, j in zip_longest(
-                self.params.att_entree.liste, self.params.val_entree.liste
-            )
+            for i, j in zip_longest(self.params.att_entree.liste, self.params.val_entree.liste)
         ]
 
     def getlist_ref(self, obj):
         """acces standadise a la liste d'entree valeur avec defaut en liste"""
         return [
             obj.attributs.get(i, j)
-            for i, j in zip_longest(
-                self.params.att_ref.liste, self.params.val_entree.liste
-            )
+            for i, j in zip_longest(self.params.att_ref.liste, self.params.val_entree.liste)
         ]
 
     def setval_sortie(self, obj, valeurs):
@@ -331,9 +321,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def process_liste(self, obj, fonction):
         """applique une fonction a une liste d'attributs et affecte une nouvelle liste"""
-        self.fstore(
-            self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj))
-        )
+        self.fstore(self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj)))
 
     def process_listeref(self, obj, fonction):
         """applique une fonction a une liste d'attributs"""
@@ -406,9 +394,7 @@ class RegleTraitement(object):  # regle de mapping
                 obj.schema.stocke_attribut(nom_att + "_Y", "float", "", "reel")
 
         if not final:
-            obj = (
-                obj.dupplique()
-            )  # on cree une copie si on veut reutiliser l'objet original
+            obj = obj.dupplique()  # on cree une copie si on veut reutiliser l'objet original
         #            print ("endstore:copie de l'objet ",obj.ident,self.stock_param.stream)
         groupe_courant = self.stockage.get(groupe)
         #        print ('stockage objet ',obj.ido, obj.copie, obj.ident, obj.schema, freeze)
@@ -482,9 +468,7 @@ class RegleTraitement(object):  # regle de mapping
             liste = self.stockage[groupe][classe]
             for obj in liste:
                 if obj.schema is None:
-                    print(
-                        "recupliste: objet sans schema", obj.ido, obj.ident, obj.virtuel
-                    )
+                    print("recupliste: objet sans schema", obj.ido, obj.ident, obj.virtuel)
                     continue
                 #                print ('recup obj',obj.ido,obj.copie,obj.ident,'->',obj.schema,obj.virtuel)
                 yield obj
@@ -507,9 +491,7 @@ class RegleTraitement(object):  # regle de mapping
             modele=obj.schema.schema if obj.schema else None,
         )
 
-        schema_classe = schema2.get_classe(
-            ident, cree=True, modele=obj.schema, filiation=True
-        )
+        schema_classe = schema2.get_classe(ident, cree=True, modele=obj.schema, filiation=True)
         if not schema_classe:
             print("erreur changement classe", ident, obj.schema)
         obj.setschema(schema_classe)

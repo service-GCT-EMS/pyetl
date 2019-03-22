@@ -52,9 +52,7 @@ TYPES_A = {
 class AccConnect(DbConnect):
     """connecteur de la base de donnees """
 
-    def __init__(
-        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
-    ):
+    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base = TYPES_A
         #        print ('connection base access', serveur,base, user, passwd )
@@ -71,21 +69,13 @@ class AccConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         base = os.path.join(self.serveur, self.base)
 
-        print(
-            "info : access: connection access",
-            self.user,
-            "*" * len(self.passwd),
-            self.base,
-        )
+        print("info : access: connection access", self.user, "*" * len(self.passwd), self.base)
         try:
             #        base = r"C:\outils\projet_mapper\test_mapper\entree\access\test.access"
             #        drv = 'DRIVER={Microsoft Access Driver (*.mdb,*.accdb)};'
             #        file = 'DBQ='+base+";"
             #        pwd = 'PWD='+passwd+";" if passwd else ""
-            conn_str = (
-                r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
-                r"DBQ=" + base + ";"
-            )
+            conn_str = r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};" r"DBQ=" + base + ";"
 
             connection = odbc.connect(conn_str)
             self.errs = odbc.DatabaseError
@@ -94,9 +84,7 @@ class AccConnect(DbConnect):
 
             return connection
         except odbc.DatabaseError as exp:
-            print(
-                "error: access pyodbc: utilisateur ou mot de passe errone sur la base access"
-            )
+            print("error: access pyodbc: utilisateur ou mot de passe errone sur la base access")
             print("error: access:", base, self.passwd)
             print(exp)
             #        sys.exit(1)
@@ -219,9 +207,7 @@ class AccConnect(DbConnect):
                 for pkey in cur2.statistics(tablename):
                     print("valeurs stat", pkey)
                     if pkey.index_name == "PrimaryKey":
-                        pkeys[(tablename, pkey.column_name)] = "P:" + str(
-                            pkey.ordinal_position
-                        )
+                        pkeys[(tablename, pkey.column_name)] = "P:" + str(pkey.ordinal_position)
         #                for fkey in cur2.foreignKeys(table=tablename):
         #                    print('info : access: detection fk:', fkey.pkcolumn_name+
         #                          ':'+fkey.fktable_schem+
@@ -276,9 +262,7 @@ class AccConnect(DbConnect):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         if attribut:
-            atttext, attlist = self.construction_champs(
-                schema, "S" in mods, "L" in mods
-            )
+            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
 
             if isinstance(valeur, list):
                 requete = (
@@ -307,9 +291,7 @@ class AccConnect(DbConnect):
                 )
                 data = (valeur,)
         else:
-            atttext, attlist = self.construction_champs(
-                schema, "S" in mods, "L" in mods
-            )
+            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
             requete = " SELECT " + atttext + " FROM " + niveau + "." + classe
             data = ()
 
@@ -342,20 +324,6 @@ class AccGenSql(DbGenSql):
 
 
 DBDEF = {
-    "ms_access": (
-        AccConnect,
-        AccGenSql,
-        "file",
-        ".accdb",
-        "",
-        "base access apres 2007",
-    ),
-    "ms_access_old": (
-        AccConnect,
-        AccGenSql,
-        "file",
-        ".mdb",
-        "",
-        "base access avant 2007",
-    ),
+    "ms_access": (AccConnect, AccGenSql, "file", ".accdb", "", "base access apres 2007"),
+    "ms_access_old": (AccConnect, AccGenSql, "file", ".mdb", "", "base access avant 2007"),
 }

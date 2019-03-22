@@ -214,9 +214,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
 #        ressource.compte(1)
 
 READERS = {"json": (lire_objets, None, True, ())}
-WRITERS = {
-    "json": (ecrire_objets, jsonstreamer, False, "", 0, "", "classe", None, "#tmp")
-}
+WRITERS = {"json": (ecrire_objets, jsonstreamer, False, "", 0, "", "classe", None, "#tmp")}
 
 
 #########################################################################

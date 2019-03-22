@@ -12,11 +12,7 @@ def xml_script_metadata(mapper):
     xml = ["<metadata>"]
     for i in colonnes:
         xml.append(
-            '<column editable="true" datatype="string" label="'
-            + i
-            + '" name="country'
-            + i
-            + '">'
+            '<column editable="true" datatype="string" label="' + i + '" name="country' + i + '">'
         )
         if i == "commande":
             xml.append(

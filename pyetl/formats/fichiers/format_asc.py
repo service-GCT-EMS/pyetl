@@ -125,10 +125,7 @@ def _erreurs_entete():
         classe = yield
         if classe_courante and classe_courante != classe:
             LOGGER.error(
-                "asc  : erreurs entetes : "
-                + str(nb_err)
-                + " sur la classe "
-                + classe_courante
+                "asc  : erreurs entetes : " + str(nb_err) + " sur la classe " + classe_courante
             )
             #            print('error: asc  : erreurs entetes :', nb_err, 'sur la classe ', classe_courante)
             nb_err = 0
@@ -236,9 +233,7 @@ def _finalise(obj, schema_init, schema, numero, chemin):
 
         if objid not in schema_init.classes:
             print(
-                "!!!!!!!attention objet non defini dans le schema d'entree",
-                schema_init.nom,
-                objid,
+                "!!!!!!!attention objet non defini dans le schema d'entree", schema_init.nom, objid
             )
         obj.setschema_auto(schema_init)
     #                    if objid in schema.classes:
@@ -259,9 +254,7 @@ def _get_schemas(regle, rep, fichier):
         schema_init = schema
     else:
         if regle.getvar("autoschema"):
-            schema = stock_param.init_schema(
-                rep, origine="B", fich=fichier, stable=False
-            )
+            schema = stock_param.init_schema(rep, origine="B", fich=fichier, stable=False)
     return schema, schema_init
 
 
@@ -303,9 +296,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 if obj:
                     n_obj += 1
                     _finalise(obj, schema_init, schema, n_obj, chemin)
-                    stock_param.moteur.traite_objet(
-                        obj, regle
-                    )  # on traite l'objet precedent
+                    stock_param.moteur.traite_objet(obj, regle)  # on traite l'objet precedent
                     if n_obj >= nextaff:
                         nextaff += affich
                         stock_param.aff.send(("interm", 0, n_obj))
@@ -319,9 +310,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                     #                    obj = Objet(chemin, stock_param.fichier_courant, format_natif='asc',
                     #                                conversion=self.converter)
                     _decode_entete_asc(obj, i, log_erreurs)
-            elif (code_0 == "2" or code_0 == "4") and (
-                code_1.isalpha() or code_1 == "_"
-            ):
+            elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == "_"):
                 nom, suite = ajout_attribut_asc(obj, i)
             elif i.startswith("FIN"):
                 continue
@@ -344,20 +333,12 @@ def _ecrire_point_asc(point):
         if dim == 2:
             ccx, ccy = point.coords[0][:2]
             code = ";3 "
-            chaine = ",".join(
-                ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle))
-            )
+            chaine = ",".join(("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle)))
         else:
             ccx, ccy, ccz = point.coords[0][:3]
             code = ";6 "
             chaine = ",".join(
-                (
-                    "",
-                    "%d" % (ccx * FC),
-                    "%d" % (ccy * FC),
-                    "%d" % (ccz * FC),
-                    "%d" % (angle),
-                )
+                ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (ccz * FC), "%d" % (angle))
             )
         return code, chaine
     except ValueError:
@@ -366,11 +347,7 @@ def _ecrire_point_asc(point):
 
 def format_date(date):
     """ genere une date ne format entete elyx"""
-    return (
-        date.replace("/", "-").replace(" ", ",").split(".")[0]
-        if date
-        else "01-01-1000,00:00:00"
-    )
+    return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else "01-01-1000,00:00:00"
 
 
 def _ecrire_entete_asc(obj):
@@ -416,13 +393,7 @@ class AscWriter(FileWriter):
     """ gestionnaire d'ecriture pour fichiers asc"""
 
     def __init__(
-        self,
-        nom,
-        liste_att=None,
-        encoding="cp1252",
-        liste_fich=None,
-        schema=None,
-        geomwriter=None,
+        self, nom, liste_att=None, encoding="cp1252", liste_fich=None, schema=None, geomwriter=None
     ):
         super().__init__(
             nom,
@@ -450,9 +421,7 @@ class AscWriter(FileWriter):
                 i for i in self.liste_att if schemaclasse.attributs[i].graphique
             }
             if self.liste_graphique:
-                self.liste_ordinaire = {
-                    i for i in self.liste_att if i not in self.liste_graphique
-                }
+                self.liste_ordinaire = {i for i in self.liste_att if i not in self.liste_graphique}
             else:
                 self.liste_ordinaire = set(self.liste_att)
 
@@ -461,9 +430,7 @@ class AscWriter(FileWriter):
 
         entete = _ecrire_entete_asc(obj)
         #    attributs = obj.attributs[:]
-        if (
-            obj.format_natif == "asc" and obj.geomnatif
-        ):  # on a pas touche a la geometrie
+        if obj.format_natif == "asc" and obj.geomnatif:  # on a pas touche a la geometrie
             #        print ('natif asc')
             if obj.geom:
                 geometrie = "".join(obj.geom)
@@ -500,9 +467,7 @@ class AscWriter(FileWriter):
         #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
         #                             ",NG"+str(len(str(obj.attributs[i])))+","+
         #                         str(obj.attributs[i])+";" for i in aliste))
-        attlist = "\n".join(
-            ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
-        )
+        attlist = "\n".join(("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste))
 
         if tliste:
             tglist = "\n".join(
@@ -629,16 +594,6 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"))}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "asc": (
-        ecrire_objets_asc,
-        asc_streamer,
-        False,
-        "up",
-        0,
-        "",
-        "groupe",
-        "geom_asc",
-        "geom_asc",
-    )
+    "asc": (ecrire_objets_asc, asc_streamer, False, "up", 0, "", "groupe", "geom_asc", "geom_asc")
 }
 #########################################################################

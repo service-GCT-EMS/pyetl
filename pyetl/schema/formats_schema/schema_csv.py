@@ -148,7 +148,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
                 ]
             ).replace("\n", " ")
         )
-    if type_geom != "NOGEOM":
+    if type_geom != "ALPHA":
         liste_att_csv.append(
             ";".join(
                 [
@@ -193,11 +193,7 @@ def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False)
             conf.extend(sortir_conformite_csv(sch.conformites[i], modeconf, init))
         if unused:
             print(
-                "schema : ::: warning",
-                len(unused),
-                "conformites inutilisees ",
-                unused[:10],
-                "...",
+                "schema : ::: warning", len(unused), "conformites inutilisees ", unused[:10], "..."
             )
 
     description = [
@@ -267,24 +263,18 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         if len(val_conf) < 2:
             print("enumeration incomplete ", val_conf)
             continue
-        externe = (
-            val_conf[1] == "#externe"
-        )  # contrainte externe definie en base mais non connue
+        externe = val_conf[1] == "#externe"  # contrainte externe definie en base mais non connue
         conf = schema_courant.get_conf(nom, type_c="#EXTERNE" if externe else "")
         ordre = int(val_conf[1]) if val_conf[1].isnumeric() else 0
         valeur = val_conf[2]
         alias = val_conf[3] if len(val_conf) > 3 else ""
-        mode_fichier = (
-            int(val_conf[4]) if len(val_conf) > 4 and val_conf[4].isdigit() else None
-        )
+        mode_fichier = int(val_conf[4]) if len(val_conf) > 4 and val_conf[4].isdigit() else None
         if force is not None:
             mode = force
         else:
             mode = mode_fichier if mode_fichier is not None else mode_demande
 
-        conf.stocke_valeur(
-            valeur, alias.replace("\n", ""), mode_force=mode, ordre=ordre
-        )
+        conf.stocke_valeur(valeur, alias.replace("\n", ""), mode_force=mode, ordre=ordre)
         # on ignore
 
 
@@ -422,8 +412,7 @@ def decode_classes_csv(schema_courant, entree):
         if i[0] == "!":
             if i.startswith("!meta;"):  # le fichier contient des metadonnees
                 v_tmp = [
-                    j.strip().split("=") if "=" in j else [j.strip(), ""]
-                    for j in i.split(";")
+                    j.strip().split("=") if "=" in j else [j.strip(), ""] for j in i.split(";")
                 ]
                 metas = {nom: val for nom, val in v_tmp}
                 schema_courant.metas = metas
@@ -568,9 +557,7 @@ def fichs_schema(racine):
     return fschemas
 
 
-def lire_schema_csv(
-    nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None
-):
+def lire_schema_csv(nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None):
     """lit un schema conplet en csv"""
     if schema is None:
         #        print ('lecture_csv')
