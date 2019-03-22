@@ -5,35 +5,39 @@ Created on Tue Apr 17 23:30:25 2018
 @author: claude
 """
 
+
 def xml_script_metadata(mapper):
     """ cree les entetes de colonnes """
     colonnes = mapper.noms_champs_n
-    xml=["<metadata>"]
+    xml = ["<metadata>"]
     for i in colonnes:
-        xml.append('<column editable="true" datatype="string" label="'+i+
-                   '" name="country'+i+'">')
+        xml.append(
+            '<column editable="true" datatype="string" label="'
+            + i
+            + '" name="country'
+            + i
+            + '">'
+        )
         if i == "commande":
-            xml.append('<column editable="true" datatype="string" label="'+i+
-                   '" name="country'+i+'"/>')
+            xml.append(
+                '<column editable="true" datatype="string" label="'
+                + i
+                + '" name="country'
+                + i
+                + '"/>'
+            )
             xml.append("<values>")
             for j in mapper.commandes:
-                xml.append('<value value="'+j+'">'+j+'</value>')
+                xml.append('<value value="' + j + '">' + j + "</value>")
             xml.append("</values>")
         xml.append("</column>")
     xml.append("</metadata>")
 
 
-
-
-
-
-
-
 def crexml_from_script(mapper, script):
     """convertit un script en xml editable """
-    xml='<?xml version="1.0" encoding="UTF-8"?>'
+    xml = '<?xml version="1.0" encoding="UTF-8"?>'
     metadata = xml_script_metadata(mapper)
-
 
 
 """

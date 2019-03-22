@@ -6,56 +6,62 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees
 """
 from .base_postgis import PgsConnect, PgsGenSql
-#from .init_sigli import requetes_sigli as REQS
-#from . import database
+
+# from .init_sigli import requetes_sigli as REQS
+# from . import database
 
 SCHEMA_ADM = "admin_sigli"
 
 
-
 class SglConnect(PgsConnect):
-    '''connecteur de la base de donnees postgres'''
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False,
-                 params=None, code=None):
-        super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.sys_cre = 'date_creation'
-        self.sys_mod = 'date_maj'
-        self.dialecte = 'sigli'
-        self.schema_conf = SCHEMA_ADM
+    """connecteur de la base de donnees postgres"""
 
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
+        super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        self.sys_cre = "date_creation"
+        self.sys_mod = "date_maj"
+        self.dialecte = "sigli"
+        self.schema_conf = SCHEMA_ADM
 
     @property
     def req_schemas(self):
         """sort la liste des schemas"""
-        return''' select nomschema,commentaire from admin_sigli.info_schemas'''
+        return """ select nomschema,commentaire from admin_sigli.info_schemas"""
 
     @property
     def req_tables(self):
-        '''produit la liste des tables de la base de donnees'''
-        return 'SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,\
+        """produit la liste des tables de la base de donnees"""
+        return (
+            "SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,\
                 nb_enreg,type_table,index_geometrique,clef_primaire,index,\
-                clef_etrangere FROM admin_sigli.info_tables', None
+                clef_etrangere FROM admin_sigli.info_tables",
+            None,
+        )
 
     @property
     def req_enums(self):
-        ''' recupere la description de toutes les enums depuis la base de donnees '''
-        return 'SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums', None
+        """ recupere la description de toutes les enums depuis la base de donnees """
+        return (
+            "SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums",
+            None,
+        )
 
-#    @property
-#    def req_attributs(self):
-#        '''recupere le schema complet'''
-#        return 'SELECT nomschema,nomtable,attribut,alias,type_attribut,graphique,\
-#                multiple,defaut,obligatoire,\
-#            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef,0,0 \
-#            FROM admin_sigli.info_attributs order by nomschema,nomtable,num_attribut', None
-
+    #    @property
+    #    def req_attributs(self):
+    #        '''recupere le schema complet'''
+    #        return 'SELECT nomschema,nomtable,attribut,alias,type_attribut,graphique,\
+    #                multiple,defaut,obligatoire,\
+    #            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef,0,0 \
+    #            FROM admin_sigli.info_attributs order by nomschema,nomtable,num_attribut', None
 
     def spec_def_vues(self):
-        '''recupere des informations sur la structure des vues
-           (pour la reproduction des schemas en sql'''
-        requete = '''SELECT nomschema,nomtable,definition,materialise
+        """recupere des informations sur la structure des vues
+           (pour la reproduction des schemas en sql"""
+        requete = """SELECT nomschema,nomtable,definition,materialise
                      from admin_sigli.info_vues_utilisateur
-                     '''
+                     """
         vues = dict()
         vues_mat = dict()
         for i in self.request(requete, ()):
@@ -65,74 +71,98 @@ class SglConnect(PgsConnect):
             else:
                 vues[ident] = i[2]
 
-#        print('sigli --------- selection info vues ', len(vues), len(vues_mat))
+        #        print('sigli --------- selection info vues ', len(vues), len(vues_mat))
         return vues, vues_mat
-
 
 
 class SglGenSql(PgsGenSql):
     """classe de generation des structures sql"""
+
     def __init__(self, connection=None, basic=False):
         super().__init__(connection=connection, basic=basic)
         self.geom = True
         self.courbes = False
         self.schemas = True
 
-        self.dialecte = 'sigli'
+        self.dialecte = "sigli"
         self.defaut_schema = SCHEMA_ADM
         self.schema_conf = SCHEMA_ADM
 
-
-# scripts de creation de tables
-
+    # scripts de creation de tables
 
     def db_cree_table(self, schema, ident):
-        '''creation d' une tables en direct '''
+        """creation d' une tables en direct """
         req = self.cree_tables(schema, ident)
         if self.connection:
             return self.connection.request(req, ())
 
     def db_cree_tables(self, schema, liste):
-        '''creation d'une liste de tables en direct'''
+        """creation d'une liste de tables en direct"""
         if not liste:
             liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
         for ident in liste:
             self.db_cree_table(schema, ident)
 
-
-# structures specifiques pour stocker les scrips en base
-# cree 4 tables: Macros scripts batchs logs
+    # structures specifiques pour stocker les scrips en base
+    # cree 4 tables: Macros scripts batchs logs
 
     def init_pyetl_script(self, nom_schema):
-        ''' cree les structures standard'''
+        """ cree les structures standard"""
         pass
 
     @staticmethod
     def _commande_reinit(niveau, classe, delete):
-        '''commande de reinitialisation de la table'''
-#        prefix = 'TRUNCATE TABLE "'+niveau.lower()+'"."'+classe.lower()+'";\n'
+        """commande de reinitialisation de la table"""
+        #        prefix = 'TRUNCATE TABLE "'+niveau.lower()+'"."'+classe.lower()+'";\n'
 
         if delete:
-            return 'DELETE FROM "'+niveau.lower()+'"."'+\
-                 classe.lower()+'";\n'
-        return "SELECT admin_sigli.truncate_table('"+niveau.lower()+"','"+\
-                 classe.lower()+"');\n"
-
+            return 'DELETE FROM "' + niveau.lower() + '"."' + classe.lower() + '";\n'
+        return (
+            "SELECT admin_sigli.truncate_table('"
+            + niveau.lower()
+            + "','"
+            + classe.lower()
+            + "');\n"
+        )
 
     @staticmethod
     def _commande_sequence(niveau, classe):
-        ''' cree une commande de reinitialisation des sequences'''
-        return  "SELECT admin_sigli.ajuste_sequence('"+niveau.lower()+\
-                              "','"+classe.lower()+"');\n"
-
+        """ cree une commande de reinitialisation des sequences"""
+        return (
+            "SELECT admin_sigli.ajuste_sequence('"
+            + niveau.lower()
+            + "','"
+            + classe.lower()
+            + "');\n"
+        )
 
     @staticmethod
     def _commande_trigger(niveau, classe, valide):
-        ''' cree une commande de reinitialisation des sequences'''
+        """ cree une commande de reinitialisation des sequences"""
         if valide:
-            return  "SELECT admin_sigli.valide_triggers('"+niveau.lower()+\
-                              "','"+classe.lower()+"');\n"
-        return  "SELECT admin_sigli.devalide_triggers('"+niveau.lower()+\
-                  "','"+classe.lower()+"');\n"
+            return (
+                "SELECT admin_sigli.valide_triggers('"
+                + niveau.lower()
+                + "','"
+                + classe.lower()
+                + "');\n"
+            )
+        return (
+            "SELECT admin_sigli.devalide_triggers('"
+            + niveau.lower()
+            + "','"
+            + classe.lower()
+            + "');\n"
+        )
 
-DBDEF = {'sigli':(SglConnect, SglGenSql, 'server', '', '#ewkt', 'base postgis avec admin_sigli')}
+
+DBDEF = {
+    "sigli": (
+        SglConnect,
+        SglGenSql,
+        "server",
+        "",
+        "#ewkt",
+        "base postgis avec admin_sigli",
+    )
+}

@@ -1,30 +1,40 @@
 # -*- coding: utf-8 -*-
-''' format texte en lecture et ecriture'''
+""" format texte en lecture et ecriture"""
 
-#import time
-#import pyetl.schema as SC
+# import time
+# import pyetl.schema as SC
 import sys
 from collections import defaultdict
 
 
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
-    '''convertisseur d'objets de base'''
+    """convertisseur d'objets de base"""
     obj.liste_attributs = liste_att
     return obj.__json_if__()
 
+
 class FileWriter(object):
     """superclasse des classes writer de fichiers"""
+
     INIT = 0
     OPEN = 1
     CLOSE = 2
     FINAL = 3
     FAIL = 4
 
-
-    def __init__(self, nom, liste_att=None, converter=_defaultconverter, geomwriter=None,
-                 separ=None,
-                 encoding='utf-8', liste_fich=None, srid='3948', schema=None,
-                 f_sortie=None):
+    def __init__(
+        self,
+        nom,
+        liste_att=None,
+        converter=_defaultconverter,
+        geomwriter=None,
+        separ=None,
+        encoding="utf-8",
+        liste_fich=None,
+        srid="3948",
+        schema=None,
+        f_sortie=None,
+    ):
         self.nom = nom
         self.f_sortie = f_sortie
         if f_sortie:
@@ -56,8 +66,11 @@ class FileWriter(object):
     def open(self):
         """ouverture de fichier"""
         try:
-            self.fichier = sys.stdout if self.nom == "#print" else\
-                           open(self.nom, 'w', encoding=self.encoding)#stdout
+            self.fichier = (
+                sys.stdout
+                if self.nom == "#print"
+                else open(self.nom, "w", encoding=self.encoding)
+            )  # stdout
 
             self.fichier.write(self.header())
             self.stats[self.nom] = self.stats.get(self.nom, 0)
@@ -67,27 +80,28 @@ class FileWriter(object):
     def reopen(self):
         """reouverture"""
         try:
-            self.fichier = sys.stdout if self.nom == "#print" else\
-                           open(self.nom, 'a', encoding=self.encoding)#stdout
+            self.fichier = (
+                sys.stdout
+                if self.nom == "#print"
+                else open(self.nom, "a", encoding=self.encoding)
+            )  # stdout
         except IOError:
             print("erreur ouverture fichier", self.nom)
 
-
     def close(self):
         """fermeture"""
-#        print("fileeio fermeture", self.nom)
+        #        print("fileeio fermeture", self.nom)
         if self.nom == "#print":
-            return # stdout
+            return  # stdout
         try:
             self.fichier.close()
         except AttributeError:
-            print('error: fw  : writer close: fichier non defini', self.nom)
+            print("error: fw  : writer close: fichier non defini", self.nom)
 
     def changeclasse(self, schemaclasse, attributs=None):
-        ''' ecriture multiclasse on change de schema'''
-#        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        """ ecriture multiclasse on change de schema"""
+        #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
-
 
     def finalise(self):
         """fermeture definitive (ecrit la fin de fichier)"""
@@ -97,7 +111,7 @@ class FileWriter(object):
                 if self.fichier.closed:
                     self.reopen()
             except AttributeError:
-                print('error: fw  : writer finalise: fichier non defini', self.nom)
+                print("error: fw  : writer finalise: fichier non defini", self.nom)
             self.fichier.write(end)
             self.close()
             return self.FINAL
@@ -109,7 +123,7 @@ class FileWriter(object):
         self.liste_att = liste_att
 
     def write(self, obj):
-        '''ecrit un objet complet'''
+        """ecrit un objet complet"""
         chaine = self.converter(obj, self.liste_att, transtable=self.transtable)
         self.fichier.write(chaine)
         if chaine[-1] != "\n":

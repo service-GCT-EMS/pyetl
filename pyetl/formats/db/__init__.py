@@ -9,34 +9,46 @@ import os
 from collections import namedtuple
 import importlib
 
-DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'geom',
-                                'description', 'converter', "geomwriter"))
-#("acces", "gensql", "svtyp", "fileext", 'description')
+DBDEF = namedtuple(
+    "database",
+    (
+        "acces",
+        "gensql",
+        "svtyp",
+        "fileext",
+        "geom",
+        "description",
+        "converter",
+        "geomwriter",
+    ),
+)
+# ("acces", "gensql", "svtyp", "fileext", 'description')
 def loadmodules():
-    '''lit toutes les descriptions de format depuis le repertoire courant
-    et enregistre les readers et writers'''
+    """lit toutes les descriptions de format depuis le repertoire courant
+    et enregistre les readers et writers"""
     databases = dict()
 
     for fich_module in os.listdir(os.path.dirname(__file__)):
         if fich_module.startswith("base_"):
-            module = "."+os.path.splitext(fich_module)[0]
+            module = "." + os.path.splitext(fich_module)[0]
             try:
                 format_def = importlib.import_module(module, package=__package__)
-                for nom, desc in getattr(format_def, 'DBDEF').items():
+                for nom, desc in getattr(format_def, "DBDEF").items():
                     if nom in databases:
-                        print('attention : redefinition du format de base', nom)
+                        print("attention : redefinition du format de base", nom)
                     databases[nom] = DBDEF(*desc, None, None)
                     # a ce stade les fonctions ne sont pas connues
             except (ImportError, AttributeError) as err:
-                print('module ', module[1:], 'non disponible', err)
+                print("module ", module[1:], "non disponible", err)
 
     return databases
 
+
 DATABASES = loadmodules()
-#print ('chargement', READERS)
+# print ('chargement', READERS)
 
 
-#DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'description'))
+# DBDEF = namedtuple("database", ("acces", "gensql", "svtyp", "fileext", 'description'))
 #
 #'postgres':DBDEF(postgres.PgConnect, postgres_gensql.GenSql,
 #                              'server', '', 'base postgres générique'),

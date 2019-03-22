@@ -9,7 +9,9 @@ requetes de creation de la base sigli essentiellement
 
 requetes_sigli = dict()
 
-requetes_sigli["info_vues"] = '''
+requetes_sigli[
+    "info_vues"
+] = """
 		SELECT pg_views.schemaname AS nomschema,
 			pg_views.viewname AS nomtable,
 			pg_views.definition,
@@ -22,8 +24,10 @@ requetes_sigli["info_vues"] = '''
 			pg_matviews.definition,
 			true AS materialise
 		   FROM pg_matviews;
-                     '''
-requetes_sigli["def_fonctions_trigger"] = '''
+                     """
+requetes_sigli[
+    "def_fonctions_trigger"
+] = """
          SELECT n.nspname AS schema,
             p.proname AS name,
             pg_get_functiondef(p.oid) AS definition
@@ -32,9 +36,11 @@ requetes_sigli["def_fonctions_trigger"] = '''
           WHERE n.nspname <> 'pg_catalog'::name
             AND n.nspname <> 'information_schema'::name
             AND p.prorettype = 'trigger'::regtype::oid;
-          '''
+          """
 
-requetes_sigli["info_triggers"] = '''
+requetes_sigli[
+    "info_triggers"
+] = """
        SELECT event_object_schema AS schema,
            event_object_table AS table,
            trigger_name AS nom_trigger,
@@ -47,17 +53,21 @@ requetes_sigli["info_triggers"] = '''
        WHERE action_statement !~~ '%auteur%'
        GROUP BY event_object_schema,event_object_table,trigger_name,
                 action_condition,action_statement,action_orientation,action_timing
-       '''
+       """
 #          retour : schema, table, nom_trigger,condition,action,'row/statement',
 #                  avant apres, operation(update...)
 
-requetes_sigli["info_tables_distantes"] = '''
+requetes_sigli[
+    "info_tables_distantes"
+] = """
     SELECT ftrelid::regclass, srvname ,ftoptions
     FROM pg_foreign_table, pg_foreign_server fs
-    WHERE ftserver =  fs.oid'''
+    WHERE ftserver =  fs.oid"""
 
 
-requetes_sigli["info_fk"] = '''
+requetes_sigli[
+    "info_fk"
+] = """
      SELECT c.confrelid::regclass AS cible,
         ( SELECT a.attname
                FROM pg_attribute a
@@ -90,16 +100,12 @@ requetes_sigli["info_fk"] = '''
          LEFT JOIN pg_constraint p ON c.conrelid = p.conrelid AND p.contype = 'p'::"char"
          LEFT JOIN pg_constraint p2 ON c.confrelid = p2.conrelid AND p2.contype = 'p'::"char"
       WHERE c.contype = 'f'::"char";
-   '''
+   """
 
 
-
-
-
-
-
-
-requetes_sigli["info_tables"] = '''
+requetes_sigli[
+    "info_tables"
+] = """
 
      WITH info_fk as (
          SELECT
@@ -228,9 +234,11 @@ requetes_sigli["info_tables"] = '''
                FROM pg_attribute a
               WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 0)), t4.index_geometrique, t4.clef_primaire, t4.index;
 
-'''
+"""
 
-requetes_sigli["info_attributs"] = '''
+requetes_sigli[
+    "info_attributs"
+] = """
          WITH t AS (
          SELECT c.oid AS identifiant,
             n.nspname AS nomschema,
@@ -378,9 +386,11 @@ requetes_sigli["info_attributs"] = '''
     0 as taille,
     0 as decimales
    FROM t4;
-        '''
+        """
 
-requetes_sigli["info_enums"] = '''
+requetes_sigli[
+    "info_enums"
+] = """
                 SELECT pg_type.typname AS nom_enum,
                     pg_enum.enumsortorder AS ordre,
                     pg_enum.enumlabel AS valeur,
@@ -389,16 +399,13 @@ requetes_sigli["info_enums"] = '''
                 FROM pg_type,pg_enum
                 WHERE pg_enum.enumtypid = pg_type.oid
                 ORDER BY pg_type.typname, pg_enum.enumsortorder
-                '''
-
-
+                """
 
 
 def cree_sigli(nomschema):
     """enregistre les requetes en base pour creer  la structure sigli"""
     sql = list()
     for i in requetes_sigli:
-        sql.append("CREATE VIEW "+nomschema+"."+i+" AS "+requetes_sigli[i])
-
+        sql.append("CREATE VIEW " + nomschema + "." + i + " AS " + requetes_sigli[i])
 
     return sql

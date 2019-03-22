@@ -7,65 +7,83 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees
 """
 import os
+
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from cx_Oracle import connect as oraconnect, Error as OraError
 
-#from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
+# from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
-#from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+# from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
 
-TYPES_A = {'VARCHAR':"T", "VARCHAR2":"T", "CLOB":"T", "CHAR":"T",
-           "NUMBER":'N', "DOUBLE PRECISION":"F", "NUMERIC":"N", "FLOAT":"F",
-           "HSTORE":"H",
-           "BLOB":"X",
-           "SDO_GEOMETRY":'GEOMETRIE',
-           "TIMESTAMP(6)":"D", "DATE":"D",
-           "ROWID":"E", "SMALLINT":"E", "OID":"E", "INTEGER":"E",
-           "BOOLEEN":"B", "BOOLEAN":"B",
-           "SEQUENCE":"S", "SEQ":"S", "SERIAL":"S",
-           "INTERVALLE":"I",
-           "LONG":"EL"}
-
-
-
+TYPES_A = {
+    "VARCHAR": "T",
+    "VARCHAR2": "T",
+    "CLOB": "T",
+    "CHAR": "T",
+    "NUMBER": "N",
+    "DOUBLE PRECISION": "F",
+    "NUMERIC": "N",
+    "FLOAT": "F",
+    "HSTORE": "H",
+    "BLOB": "X",
+    "SDO_GEOMETRY": "GEOMETRIE",
+    "TIMESTAMP(6)": "D",
+    "DATE": "D",
+    "ROWID": "E",
+    "SMALLINT": "E",
+    "OID": "E",
+    "INTEGER": "E",
+    "BOOLEEN": "B",
+    "BOOLEAN": "B",
+    "SEQUENCE": "S",
+    "SEQ": "S",
+    "SERIAL": "S",
+    "INTERVALLE": "I",
+    "LONG": "EL",
+}
 
 
 class OraConnect(DbConnect):
-    '''connecteur de la base de donnees oracle'''
+    """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False,
-                 params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-#        self.connection, errdef = dbaccess(self.serveur, self.base, self.user, self.passwd)
+        #        self.connection, errdef = dbaccess(self.serveur, self.base, self.user, self.passwd)
         self.connect()
-#        self.errdef = errdef
+        #        self.errdef = errdef
         self.types_base.update(TYPES_A)
-        self.accept_sql = 'alpha'
-        self.dateformat = 'YYYY/MM/DD HH24:MI:SS'
+        self.accept_sql = "alpha"
+        self.dateformat = "YYYY/MM/DD HH24:MI:SS"
         self.valide = self.connection is not None
 
-
     def connect(self):
-        '''ouvre l'acces a la base de donnees et lit le schema'''
+        """ouvre l'acces a la base de donnees et lit le schema"""
 
-        print('info:oracle: connection ', self.serveur, self.base,
-              self.user, '*'*len(self.passwd))
+        print(
+            "info:oracle: connection ",
+            self.serveur,
+            self.base,
+            self.user,
+            "*" * len(self.passwd),
+        )
         try:
             connection = oraconnect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
         except OraError as err:
-            print('error: oracle: utilisateur ou mot de passe errone sur la base ', err)
+            print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
 
     @property
     def req_enums(self):
         """recupere les enums (vide sous oracle)"""
-        return '', ()
+        return "", ()
 
     @property
     def req_tables(self):
-        '''produit les objets issus de la base de donnees'''
+        """produit les objets issus de la base de donnees"""
 
         # selection de la liste des niveaux et classes
         requete_tables = """      SELECT tab.owner as nomschema,
@@ -122,18 +140,24 @@ class OraConnect(DbConnect):
                       AND owner<> 'EXFSYS'
                       AND owner<> 'CUS_DBA'"""
 
-        requete = requete_tables + exclusions + ' UNION ALL' +\
-                requete_vues + exclusions + ' UNION ALL' +\
-                requete_mvues + exclusions
+        requete = (
+            requete_tables
+            + exclusions
+            + " UNION ALL"
+            + requete_vues
+            + exclusions
+            + " UNION ALL"
+            + requete_mvues
+            + exclusions
+        )
         return requete, ()
-
 
     @property
     def req_attributs(self):
-        '''recupere le schema complet avec tous ses champs
+        """recupere le schema complet avec tous ses champs
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
             defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,taille,decimales'''
+            clef_primaire,clef_etrangere,cible_clef,taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,
@@ -208,122 +232,116 @@ class OraConnect(DbConnect):
                 ORDER BY col.owner,col.table_name,col.column_id
                     """
 
-
         return requete, ()
 
     def get_dateformat(self, nom):
-        '''formattage dates'''
-        return 'TO_CHAR("'+nom+'"'+",'"+self.dateformat+"')"
-#        return 'TO_CHAR("'+nom+'")'
-#        return nom
+        """formattage dates"""
+        return 'TO_CHAR("' + nom + '"' + ",'" + self.dateformat + "')"
 
+    #        return 'TO_CHAR("'+nom+'")'
+    #        return nom
 
     def datecast(self, nom):
-        '''forcage date'''
-        return 'TO_DATE('+nom+",'"+self.dateformat+"')"
+        """forcage date"""
+        return "TO_DATE(" + nom + ",'" + self.dateformat + "')"
 
-
-    def monoval(self, operateur='=', cast=None):
-        '''acces valeur'''
+    def monoval(self, operateur="=", cast=None):
+        """acces valeur"""
         if cast is not None:
-            return " "+operateur+cast(":val")
-        return " "+ operateur+" :val"
-
+            return " " + operateur + cast(":val")
+        return " " + operateur + " :val"
 
     def get_surf(self, nom):
-        '''calcul de surface'''
+        """calcul de surface"""
         return "0"
 
     def get_perim(self, nom):
-        '''calcul de perimetre'''
+        """calcul de perimetre"""
         return "0"
 
     def get_long(self, nom):
-        '''calcul de longueur'''
+        """calcul de longueur"""
         return "0"
 
     def get_geom(self, nom):
-        '''recup de la geometrie en WKT'''
+        """recup de la geometrie en WKT"""
         return ""
 
     def set_geom(self, geom, srid):
-        '''cree une geometrie'''
+        """cree une geometrie"""
         return ""
 
     def set_geomb(self, geom, srid, buffer):
-        '''cree un buffer'''
+        """cree un buffer"""
         return ""
 
     def set_limit(self, maxi, whereclause):
-        '''limite le nombre de lignes'''
+        """limite le nombre de lignes"""
         if maxi:
             if whereclause:
-                return ' AND ROWNUM <= ' + str(maxi)
-            return ' WHERE ROWNUM <= ' + str(maxi)
+                return " AND ROWNUM <= " + str(maxi)
+            return " WHERE ROWNUM <= " + str(maxi)
 
-        return ''
+        return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        '''definition d'ne condition geometrique'''
-        return ''
-
+        """definition d'ne condition geometrique"""
+        return ""
 
     def execrequest(self, requete, data, attlist=None):
-        '''passage de la requete sur la base'''
+        """passage de la requete sur la base"""
         cur = self.get_cursinfo()
-#        print ('ora:execution_requet',requete)
+        #        print ('ora:execution_requet',requete)
         try:
             cur.execute(requete, data, attlist=attlist)
             return cur
         except OraError as errs:
             cursor = cur.cursor
             error, = errs.args
-            print('error: oracle: erreur acces base ', self.base, self.connection)
-            print('error: oracle: erreur acces base ', cursor.statement, '-->', data)
-            print('error: oracle: variables ', cursor.bindnames())
+            print("error: oracle: erreur acces base ", self.base, self.connection)
+            print("error: oracle: erreur acces base ", cursor.statement, "-->", data)
+            print("error: oracle: variables ", cursor.bindnames())
             print("Oracle-Error-Code:", error.code)
             print("Oracle-Error-Message:", error.message)
             print("Oracle-offset:", error.offset)
             print("Oracle-context:", error.context)
-#            print("Oracle-complet:", errs)
+            #            print("Oracle-complet:", errs)
             cur.close()
-#            raise
+            #            raise
             return None
 
-
     def iterreq(self, requete, data, attlist=None, has_geom=False):
-        '''recup d'un iterateur sur les resultats'''
+        """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         self.decile = 1
         if cur is None:
             return iter(())
 
-        self.decile = int(cur.rowcount/10)+1
-#        print('decile recup', self.decile)
+        self.decile = int(cur.rowcount / 10) + 1
+        #        print('decile recup', self.decile)
         if self.decile == 1:
             self.decile = 100000
 
-#        print('oracle:', requete, data)
+        #        print('oracle:', requete, data)
         if not has_geom:
             return cur
 
-
         def cursiter():
-            '''iterateur sur le curseur oracle avec decodage de la geometrie '''
+            """iterateur sur le curseur oracle avec decodage de la geometrie """
             while True:
                 try:
                     elem = cur.fetchone()
-    #                raise
+                #                raise
                 except OraError as err:
-                    print("erreur "+self.base, err)
-    #                raise
+                    print("erreur " + self.base, err)
+                    #                raise
                     continue
                 if elem is None:
                     break
-    #                yield i
+                #                yield i
                 tmp = list(elem)
                 if has_geom:
-                    try: # lecture de la geometrie en clob
+                    try:  # lecture de la geometrie en clob
                         var = tmp[-1].read()
                         tmp[-1] = var
                     except AttributeError:
@@ -336,10 +354,10 @@ class OraConnect(DbConnect):
         return cur
 
 
-
 class OraGenSql(DbGenSql):
-    '''creation des sql de modif de la base'''
+    """creation des sql de modif de la base"""
+
     pass
 
 
-DBDEF = {'oracle':(OraConnect, OraGenSql, 'server', '', '', 'base oracle standard')}
+DBDEF = {"oracle": (OraConnect, OraGenSql, "server", "", "", "base oracle standard")}

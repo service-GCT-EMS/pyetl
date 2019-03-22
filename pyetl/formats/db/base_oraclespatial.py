@@ -6,25 +6,25 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
-#from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+# from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .base_oracle import OraConnect, OraGenSql
 
-TYPES_A = {"SDO_GEOMETRY":'GEOMETRIE'
-          }
+TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}
 
 
 class OrwConnect(OraConnect):
-    '''connecteur de la base de donnees oracle'''
+    """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False,
-                 params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
-        self.accept_sql = 'geo'
+        self.accept_sql = "geo"
 
     @property
     def req_tables(self):
-        '''produit les objets issus de la base de donnees'''
+        """produit les objets issus de la base de donnees"""
 
         # selection de la liste des niveaux et classes
         requete_tables = """      SELECT tab.owner as nomschema,
@@ -81,18 +81,24 @@ class OrwConnect(OraConnect):
                       AND owner<> 'EXFSYS'
                       AND owner<> 'CUS_DBA'"""
 
-        requete = requete_tables + exclusions + ' UNION ALL' +\
-                requete_vues + exclusions + ' UNION ALL' +\
-                requete_mvues + exclusions
+        requete = (
+            requete_tables
+            + exclusions
+            + " UNION ALL"
+            + requete_vues
+            + exclusions
+            + " UNION ALL"
+            + requete_mvues
+            + exclusions
+        )
         return requete, ()
-
 
     @property
     def req_attributs(self):
-        '''recupere le schema complet avec tous ses champs
+        """recupere le schema complet avec tous ses champs
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
             defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,taille,decimales'''
+            clef_primaire,clef_etrangere,cible_clef,taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,
@@ -166,50 +172,72 @@ class OrwConnect(OraConnect):
                 ORDER BY col.owner,col.table_name,col.column_id
                     """
 
-
         return requete, ()
 
     def get_surf(self, nom):
-        '''calcul de surface'''
+        """calcul de surface"""
         return "SDO_GEOM.SDO_AREA(%s,0.001)" % nom
 
     def get_perim(self, nom):
-        '''calcul de perimetre'''
+        """calcul de perimetre"""
         return "SDO_GEOM.SDO_LENGTH(%s,0.001)" % nom
 
     def get_long(self, nom):
-        '''calcul de longueur'''
+        """calcul de longueur"""
         return "SDO_GEOM.SDO_LENGTH(%s,0.001)" % nom
 
     def get_geom(self, nom):
-        '''recup de la geometrie en WKT'''
+        """recup de la geometrie en WKT"""
         return "SDO_UTIL.TO_WKTGEOMETRY(%s)" % nom
 
     def set_geom(self, geom, srid):
-        '''cree une geometrie'''
+        """cree une geometrie"""
         return "SDO_GEOMETRY('%s',%s)" % (geom, srid)
 
     def set_geomb(self, geom, srid, buffer):
-        '''cree un buffer'''
+        """cree un buffer"""
         return "SDO_GEOMETRY('%s',%s,%f,0.001))" % (geom, srid, buffer)
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        '''definition d'ne condition geometrique'''
-        if nom_fonction == 'dans_emprise':
-            cond = 'SDO_FILTER('+nom_geometrie+","+geom2+ "','querytype=WINDOW') = 'TRUE'"
+        """definition d'ne condition geometrique"""
+        if nom_fonction == "dans_emprise":
+            cond = (
+                "SDO_FILTER("
+                + nom_geometrie
+                + ","
+                + geom2
+                + "','querytype=WINDOW') = 'TRUE'"
+            )
         else:
-            if nom_fonction == 'intersect':
-                masque = 'anyinteract'
-            elif nom_fonction == 'dans':
-                masque = 'coveredby+inside'
-            cond = 'SDO_RELATE('+nom_geometrie+","+geom2+",'mask="+masque+"') = 'TRUE'"
+            if nom_fonction == "intersect":
+                masque = "anyinteract"
+            elif nom_fonction == "dans":
+                masque = "coveredby+inside"
+            cond = (
+                "SDO_RELATE("
+                + nom_geometrie
+                + ","
+                + geom2
+                + ",'mask="
+                + masque
+                + "') = 'TRUE'"
+            )
         return cond
 
 
 class OrwGenSql(OraGenSql):
-    '''creation des sql de modif de la base'''
+    """creation des sql de modif de la base"""
+
     pass
 
 
-DBDEF = {'oracle_spatial_ewkt':(OrwConnect, OrwGenSql, 'server', '', '#ewkt',
-                                'base oracle spatial (format ewkt)')}
+DBDEF = {
+    "oracle_spatial_ewkt": (
+        OrwConnect,
+        OrwGenSql,
+        "server",
+        "",
+        "#ewkt",
+        "base oracle spatial (format ewkt)",
+    )
+}
