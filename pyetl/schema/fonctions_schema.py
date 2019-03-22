@@ -521,20 +521,16 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
         if not attr:
 #            print ("ajuste: creation attribut",nom,taux_conformite)
             att_orig = None
-
+            type_defaut = 'A'
+            alias = ''
+            nom_court = ''
             if schema_orig:
                 att_orig = schema_orig.attributs.get(nom)
                 if att_orig:
                     alias = att_orig.alias
                     nom_court = att_orig.nom_court
                     type_defaut = att_orig.type_att_base
-                else:
-                    alias = ''
-                    nom_court = ''
-                    type_defaut = 'A'
-            else:
-                alias = ''
-                nom_court = ''
+
             attr = schemaclasse.stocke_attribut(nom, 'A', nb_conf=taux_conformite,
                                                 alias=alias, nom_court=nom_court)
             attr.type_att_defaut = type_defaut
@@ -556,6 +552,8 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
         obj.attributs_geom(obj)
     type_geom = obj.geom_v.type
     multigeom = obj.geom_v.multi
+    if type_geom == 'indef':
+        type_geom = "NOGEOM"
 #    print("avant ajuste_schema:",schemaclasse.nom, "recup type_geom", type_geom,
 #          schemaclasse.info["type_geom"], schemaclasse.objcnt, schemaclasse)
 
@@ -564,7 +562,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     if schemaclasse.objcnt == 0: # on vient de le ceer
         if obj.geom_v.valide:
             schemaclasse.srid = obj.geom_v.srid
-            schemaclasse.info["type_geom"] = obj.attributs['#type_geom']
+            schemaclasse.info["type_geom"] = obj.geom_v.type
 
 
 

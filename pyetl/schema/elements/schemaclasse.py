@@ -994,3 +994,6 @@ class SchemaClasse(object):
 #                print("raccourcissement force", att.nom, "->", nom1, "->", nom)
 #            print ('raccourcissement',att.nom,nom)
             att.nom_court = nom
+
+
+

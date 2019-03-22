@@ -328,7 +328,7 @@ def h_sortir(regle):
 
         regle.context.setlocal("fanout", regle.params.cmp1.val[tmplist+1:-1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    regle.f_sortie = Writer(regle.params.cmp1.val) # tout le reste
+    regle.f_sortie = Writer(regle.params.cmp1.val, regle) # tout le reste
 #    print ('positionnement writer ',regle, regle.params.cmp1.val)
     if regle.f_sortie.nom_format == 'sql': # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get('base_dest')
@@ -358,7 +358,7 @@ def h_sortir(regle):
     regle.calcule_schema = regle.f_sortie.calcule_schema
     regle.memlimit = int(regle.context.getvar('memlimit', 0))
     mode_sortie = regle.context.getvar("mode_sortie", "A")
-    regle.store = mode_sortie in {'A', 'B'}
+    regle.store = True if mode_sortie in {'A', 'B'} else None
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
 #    regle.liste_attributs = regle.params.att_entree.liste
@@ -404,11 +404,13 @@ def f_sortir(regle, obj):
     schemaclasse_ref = obj.schema
 
     setschemasortie(regle, obj)
+#    print ('stockage ',regle.f_sortie.calcule_schema, regle.store)
     if regle.store is None: # on decide si la regle est stockante ou pas
         regle.store = regle.f_sortie.calcule_schema and\
             (not obj.schema or not obj.schema.stable)
         if regle.store: # on ajuste les branchements
             regle.setstore()
+            print ('f_sortir: passage en mode stockant')
 
 
     if regle.store:

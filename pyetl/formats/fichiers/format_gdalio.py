@@ -104,7 +104,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         else:
             nom = att.nom
         nom = sc_classe.minmajfunc(nom)
-#        print ("fiona: attribut",i,att.nom_court,nom, l_nom)
+#        print ("fiona:", sc_classe.nom, " attribut", i, att.nom_court, nom, l_nom)
         if att.conformite:
             att.type_att = 'T'
             att.taille = att.conformite.taille
@@ -113,21 +113,22 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         type_att = nom_a[att.get_type()]
 
         if att.taille:
-            taille = str(att.taille)
+            taille = str(att.taille+1)
             if att.dec:
                 taille = taille+'.'+str(att.dec)
         if taille:
             type_att = type_att+":"+taille
         props[nom] = type_att
     if not props:
-        props[sc_classe.minmajfunc("gid")] = "str"
+        props[sc_classe.minmajfunc("gid")] = "int"
+#    print ("fiona:", sc_classe.nom,description,sc_classe.minmajfunc)
     return description
 
 def map_schema_initial(stock_param, nomschema, groupe, classe):
     ''' gere les mapping initiaux a la lecture '''
     if stock_param.get_param("schema_entree"):
         nomschema = stock_param.get_param("schema_entree")
-#        print ('gdalio:schema initial',nomschema)
+        print ('gdalio:schema initial',nomschema)
     if not nomschema:
         nomschema = groupe if groupe else classe
     if not nomschema:
@@ -145,22 +146,20 @@ def map_schema_initial(stock_param, nomschema, groupe, classe):
 def lire_objets(self, rep, chemin, fichier):
     ''' lecture d'un fichier reconnu et stockage des objets en memoire'''
     n_lin, n_obj = 0, 0
-#    print ('lecture gdal',(rep, chemin, fichier))
+    print ('lecture gdal',(rep, chemin, fichier))
 #    raise
     #ouv = None
     stock_param = self.regle_ref.stock_param
     traite_objet = stock_param.moteur.traite_objet
     obj = None
     classe = os.path.splitext(os.path.basename(fichier))[0]
-    groupe = chemin if chemin else os.path.basename(os.path.dirname(fichier))
+    entree = os.path.join(rep, chemin, fichier)
+    groupe = chemin if chemin else os.path.basename(os.path.dirname(entree))
     if not groupe:
         groupe = 'defaut'
-    groupe = groupe
-
-
+    print ('gdal: groupe', groupe)
 #    traite_objet = stock_param.moteur.traite_objet
     maxobj = int(stock_param.get_param('lire_maxi', 0))
-    entree = os.path.join(rep, chemin, fichier)
     layers = fiona.listlayers(entree)
 #    print('fiona:lecture niveaux',  layers)
     for layer in layers:
@@ -238,6 +237,7 @@ class GdalWriter(object):
         crs = from_epsg(int(self.srid))
         if self.l_max:
             self.schema.cree_noms_courts(longueur=self.l_max)
+        self.schema.minmajfunc = self.minmajfunc
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
 #        print('fiona: ouverture', self.nom, self.layer)
         self.fichier = fiona.open(self.nom, 'w', crs=crs, encoding=self.encoding,
@@ -289,8 +289,9 @@ class GdalWriter(object):
 #        print('gdal:write', chaine)
         try:
             self.fichier.write(chaine)
-        except:
-            print('erreur ecriture', obj.ident, self.liste_att, chaine)
+        except Exception as err:
+            print('erreur ecriture', obj.ident, err, '\nliste_att:', self.liste_att,
+                  '\nchaine:', chaine)
             raise
         self.stats[self.nom] += 1
         return True

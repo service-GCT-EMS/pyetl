@@ -38,7 +38,7 @@ def sortir_schema_classe_csv(sc_classe, mode='util'):
     sc_classe.cree_noms_courts(longueur=10)
     complement = 'oui' if sc_classe.multigeom else 'non'
     type_geom = SCI.TYPES_G[sc_classe.info["type_geom"]]
-#    print('sio: sortir schema', sc_classe.info['type_geom'], type_geom)
+#    print('sio: sortir schema', sc_classe.info["type_geom"], type_geom)
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, '')
     arc = 'courbe' if sc_classe.info['courbe'] else ''
@@ -239,7 +239,7 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
                 contenu = param[-1]
                 classe.info[nom] = contenu
 
-    classe.multigeom = classe.info['type_geom'] > '1'
+    classe.multigeom = classe.info["type_geom"] > '1'
     classe.setdim(dimension[0])
 
     if len(dimension) > 1 and dimension[1] == "F":

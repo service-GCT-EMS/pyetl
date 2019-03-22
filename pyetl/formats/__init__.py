@@ -70,6 +70,7 @@ class Reader(object):
 #        self.lire_objets = None
         self.groupe = ''
         self.classe = ''
+        self.schema_entree = None
         if self.debug:
             print("debug:format: instance de reader ", nom, self)
 
@@ -86,6 +87,7 @@ class Reader(object):
             self.cree_schema = description.has_schema
             self.auxiliaires = description.auxfiles
             self.converter = description.converter
+            self.schema_entree = self.regle_ref.getvar('schema_entree')
             if self.debug:
                 print("debug:format: lecture format "+ nom, self.converter, self.lire_objets)
         else:
@@ -124,7 +126,7 @@ class Writer(object):
 
 
 
-    def __init__(self, nom, debug=0):
+    def __init__(self, nom, regle, debug=0):
 #        print ('dans writer', nom)
 
         self.dialecte = None
@@ -139,7 +141,7 @@ class Writer(object):
             fich = defs[3] if len(defs) > 3 else ''
         self.nom_format = nom
 #        self.destination = destination
-        self.regle = None
+        self.regle = regle
         self.debug = debug
         self.writerparms = dict() # parametres specifique au format
         '''#positionne un format de sortie'''
@@ -182,6 +184,7 @@ class Writer(object):
         self.ext = '.'+nom
         self.multiclasse = self.def_sortie.fanout != 'classe'
         self.fanoutmax = self.def_sortie.fanout
+        self.schema_sortie = self.regle.getvar('schema_entree')
 #        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
 
     def get_info(self):

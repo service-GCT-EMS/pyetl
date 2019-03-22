@@ -176,8 +176,8 @@ class CsvWriter(FileWriter):
         self.classes = set()
         if schema:
 #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
-            if schema.info['type_geom'] == 'indef':
-                schema.info['type_geom'] = '0'
+            if schema.info["type_geom"] == 'indef':
+                schema.info["type_geom"] = '0'
             self.type_geom = self.schema.info["type_geom"]
             self.multi = self.schema.multigeom
             self.liste_att = schema.get_liste_attributs()

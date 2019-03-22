@@ -299,7 +299,7 @@ class Schema(object):
         self.ajout_classe(nouvelle_classe)
 #        print ('copie schema',self.nom, modele.identclasse,modele,
 #                nouvelle_classe.identclasse,nouvelle_classe, modele.info['type_geom'],
-#                nouvelle_classe.info['type_geom'])
+#                nouvelle_classe.info["type_geom"])
 
         return nouvelle_classe
 

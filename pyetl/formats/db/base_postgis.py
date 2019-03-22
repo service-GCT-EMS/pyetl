@@ -137,7 +137,7 @@ class PgsGenSql(PgrGenSql):
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
         ctr, idx = super().cree_indexes(schemaclasse, groupe, nom)
-        if schemaclasse.info['type_geom'] != '0':
+        if schemaclasse.info["type_geom"] != '0':
             idx.append('CREATE INDEX '+nom+'_gist ON '+groupe+'.'+nom+
                        ' USING gist(geometrie);')
         return ctr, idx

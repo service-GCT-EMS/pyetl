@@ -272,6 +272,7 @@ class Objet(object):
         props = geoif.get("properties", {})
         if self.schema:
             if self.schema.attmap:
+                print ('traitement attmap', self.schema.attmap)
                 for i in props:
                     if props[i] is None:
                         continue
@@ -296,6 +297,14 @@ class Objet(object):
         print(invariant+'\n', schema+'\n\t', [(i, self.attributs.get(i, '<non defini>'))
                                               for i in attlist])
 
+
+
+    def initatt(self, nom, valeur):
+        '''initialise un attribut en tenant compte des mappings initiaux de schemas'''
+        if self.schema and nom in self.schema.attmap:
+            self.attributs[self.schema.attmap[nom]] = valeur
+        else:
+            self.attributs[nom] = valeur
 
 
     @property
@@ -387,6 +396,7 @@ class Objet(object):
         else:
             self.schema = None
             self.attributs['#schema'] = ''
+
 
     def get_valeur(self, nom, defaut):
         '''retourne un attribut par son nom'''

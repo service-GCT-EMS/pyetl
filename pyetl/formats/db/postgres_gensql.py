@@ -544,7 +544,7 @@ class PgrGenSql(DbGenSql):
             cretable.append('\t'+attname+' '+type_sortie+defaut+",")
             if sql_conf and self.basic != 'basic':
                 creconf[nomconf] = sql_conf
-        if classe.info['type_geom'] != '0':
+        if classe.info["type_geom"] != '0':
             cretable.append(self.getgeomsql(classe)) # la on est pas geometrique on gere en texte
 
 

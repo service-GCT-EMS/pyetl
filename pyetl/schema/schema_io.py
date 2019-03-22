@@ -138,6 +138,7 @@ def ecrire_schema_sql(rep, schema, type_base='std',
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace('#', '_')
+    nomschema = os.path.basename(nomschema)
 
 #    print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
     if type_base == 'basic' or type_base == 'consult':
