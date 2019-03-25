@@ -12,6 +12,7 @@ import itertools
 import linecache
 import traceback
 import logging
+import glob
 from pyetl.formats import Reader
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
@@ -82,6 +83,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
     path = os.path.join(rep_depart, chemin)
     if os.path.exists(path):
         for element in os.listdir(path):
+#        for element in glob.glob(path):
             if os.path.isdir(os.path.join(path, element)):
                 if rec:
                     for fich in scandirs(rep_depart, os.path.join(chemin, element), rec, pattern):
@@ -509,6 +511,15 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
 
         fichs = [(os.path.basename(entree), "")]
         entree = os.path.dirname(entree)  # on extrait le repertoire
+    elif '*' in entree:
+        rep = os.path.dirname(entree)
+        while '*' in rep:
+            rep=os.path.dirname(rep)
+        print ('repertoire de reference', rep)
+        fichs = [(os.path.basename(i),os.path.dirname(i).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
+        entree = rep
+
+        print ( 'fichiers lus', fichs)
     else:
         fichs = [i for i in scandirs(entree, "", True, pattern=fileselect)]
 

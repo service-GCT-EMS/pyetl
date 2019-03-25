@@ -307,11 +307,13 @@ class Objet(object):
         props = geoif.get("properties", {})
         if self.schema:
             if self.schema.attmap:
-                print("traitement attmap", self.schema.attmap)
+#                print("traitement attmap", self.schema.attmap)
                 for i in props:
                     if props[i] is None:
                         continue
                     nom = self.schema.attmap.get(i, i)
+#                    print ('recherche',i, 'trouve' , nom)
+
                     self.attributs[nom] = self.schema.attributs[nom].format_entree.format(props[i])
             else:
                 self.attributs.update(
@@ -444,7 +446,7 @@ class Objet(object):
             self.schema = None
             self.attributs["#schema"] = ""
 
-    def get_valeur(self, nom, defaut):
+    def get_valeur(self, nom, defaut=''):
         """retourne un attribut par son nom"""
         try:
             return self.attributs[nom]

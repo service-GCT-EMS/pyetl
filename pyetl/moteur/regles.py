@@ -12,10 +12,6 @@ from itertools import zip_longest
 # from collections import namedtuple
 import pyetl.schema.schema_interne as SC
 import pyetl.schema.fonctions_schema as FSC
-
-# from pyetl.moteur.selecteurs import Selecteur
-# import pyetl.formats.formats as F
-# from pyetl.formats.interne.objet import Objet
 import pyetl.formats.format_temporaire as T
 
 # import pyetl.formats.mdbaccess as DB

@@ -9,7 +9,6 @@ type access, sqlite... en envoyant un objet virtuel a un lecteur de base de donn
 """
 import os
 
-# from .interne.objet import Objet
 # from .db import DATABASES
 # types de bases fichier connues
 
@@ -29,7 +28,6 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     #    stock_param.parms["serveur_"+base]=chemin
     self.setident("__filedb", base)
     obj = self.getobj()
-    #    obj = Objet('__filedb', base, format_natif='interne')
     obj.attributs["#racine"] = rep
     obj.attributs["#chemin"] = chemin
     obj.attributs["#nombase"] = fichier

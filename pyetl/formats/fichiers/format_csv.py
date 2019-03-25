@@ -12,7 +12,6 @@
 import os
 
 # from numba import jit
-from ..interne.objet import Objet
 from .fileio import FileWriter
 
 #########################################################################
@@ -131,7 +130,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             nlignes = 0
             for i in fich:
                 nlignes = nlignes + 1
-                obj = Objet(nom_groupe, nom_classe, format_natif="csv", conversion=reader.converter)
+                obj = reader.getobj()
                 obj.setschema(schemaclasse)
                 obj.setorig(nlignes)
                 val_attributs = [j.strip() for j in i[:-1].split(separ)]

@@ -722,7 +722,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
 
 def _lire_commandes(mapper, fichier_regles, niveau, context):
     """lit les commandes quelle que soit l'origine base de donnees fichier ou macro"""
-    #    print(" lecture",fichier_regles)
+#    print(" lecture",fichier_regles)
     if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
         liste_regles = lire_commandes_en_base(mapper, fichier_regles)
 
@@ -751,7 +751,7 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
             regle2.append((num, texte))
 
         liste_regles = regle2
-
+#    print ('lu:',liste_regles)
     return liste_regles
 
 
@@ -940,8 +940,8 @@ def lire_regles_csv(
         while texte.startswith("K:") and not macro:
             liste_val = texte.split(";", 1)
             cond, binding = map_vars(liste_val[0], context)
-            condmatch = re.match("K:(.*?):(.*)", cond) or re.match("K:(.*)", cond)
-            #            print( "lire: condmatch",condmatch, cond,liste_val[0])
+            condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
+#            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch:  # interpretation conditionelle
                 #                print( "lire: trouve condmatch",condmatch.groups(), liste_val[0])
                 texte = liste_val[1]
@@ -949,7 +949,6 @@ def lire_regles_csv(
                     texte = ""
                 if condmatch.lastindex == 2 and condmatch.group(1) != condmatch.group(2):
                     texte = ""
-            #                print( "lire: condmatch",condmatch, cond,liste_val[0], 'texte', texte)
 
             start += 1
         if texte and start:

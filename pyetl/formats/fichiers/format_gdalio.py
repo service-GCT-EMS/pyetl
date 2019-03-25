@@ -10,7 +10,6 @@ import itertools
 import fiona
 from fiona.crs import from_epsg
 
-# from ..interne.objet import Objet
 # from .fileio import FileWriter
 
 
@@ -211,7 +210,6 @@ def lire_objets(self, rep, chemin, fichier):
                 gen = itertools.islice(gen, maxobj)
             for i in gen:
                 obj = self.getobj()
-                #                obj = Objet(groupe, classe, format_natif=driver)
                 obj.setschema(schemaclasse)
                 n_obj += 1
                 if n_obj % 100000 == 0:

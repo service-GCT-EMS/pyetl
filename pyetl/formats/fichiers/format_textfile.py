@@ -7,7 +7,6 @@ import sys
 import os
 from . import fileio
 
-# from .interne.objet import Objet
 
 
 class TextWriter(fileio.FileWriter):
@@ -72,7 +71,6 @@ def lire_textfile_ligne(self, rep, chemin, fichier):
     ) as ouvert:
         for ligne in ouvert:
             obj = self.getobj()
-            #            obj = Objet(groupe, classe, format_natif='file', conversion='noconversion')
             obj.attributs["contenu"] = ligne
             stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite l'objet precedent
             n_obj += 1
@@ -103,8 +101,6 @@ def lire_textfile_bloc(self, rep, chemin, fichier):
         ) as ouvert:
             contenu = "".join(ouvert.readlines())
             obj = self.getobj()
-
-            #            obj = Objet(groupe, classe, format_natif='file', conversion='noconversion')
             obj.attributs["contenu"] = contenu
             stock_param.moteur.traite_objet(obj, regle)  # on traite l'objet precedent
             n_obj = 1

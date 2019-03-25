@@ -7,7 +7,6 @@ import os
 # from numba import jit
 import logging
 
-# from ..interne.objet import Objet
 from .fileio import FileWriter
 
 # import pyetl.schema as SC
@@ -140,6 +139,7 @@ def _erreurs_entete():
 # @jit
 def ajout_attribut_asc(obj, attr):
     """decodage d'un attribut asc et stockage"""
+    bcode = {"-1":"t", "0":"f", "t":"t", "f":"f"}
     code = attr[0]
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
@@ -191,11 +191,9 @@ def ajout_attribut_asc(obj, attr):
     else:
         print("error: asc  : code inconnu", liste_elts)
     if type_att == "B":
-        if vatt == "-1":
-            vatt = "t"
-        elif vatt == "0":
-            vatt = "f"
-        else:
+        try:
+            vatt = bcode[vatt]
+        except IndexError:
             print("erreur booleen ", nom, vatt)
     obj.attributs[nom] = vatt
     return nom, suite
@@ -307,8 +305,6 @@ def lire_objets_asc(self, rep, chemin, fichier):
                         break
                 if code_1 in "9356":
                     obj = self.getobj()
-                    #                    obj = Objet(chemin, stock_param.fichier_courant, format_natif='asc',
-                    #                                conversion=self.converter)
                     _decode_entete_asc(obj, i, log_erreurs)
             elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == "_"):
                 nom, suite = ajout_attribut_asc(obj, i)

@@ -9,7 +9,7 @@
 #!help;variables de base appele par tous les autres elements p:format: format de sortie>acces: acces base de donnees si necessaire;;;;;;;;;;
 $F_sortie=%format%;csv;;;;;;;;;;
 $mode_sortie=%mode_sortie%;D;;;;;;;;;;
-K:%F_sortie%:sql;$format_schema=%F_sortie%;
+K:%F_sortie%=sql;$format_schema=%F_sortie%;
 $#%acces%;%acces%;;;;;;;;;;
 $#%dest%;%acces%;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
@@ -79,7 +79,7 @@ $F_sortie=%format%;asc;;;;;;;;;;
 &&#define;#extract;niveau;classe;;;;;;;;
 #!help;extraction de niveaux ou de classes;;;;;;;;;;
 <#stdvar;;;;;;;;;;;
-K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
+K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;debug;
 K:%multi%;;;;;;%multi%;;multigeom;;;fin;
 #groupe;%niveau%;#classe;%classe%;;;;pass-;;;fin;
 !===========================================================================================;;;;;;;;;;;

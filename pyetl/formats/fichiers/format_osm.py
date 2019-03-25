@@ -8,8 +8,6 @@ import xml.etree.cElementTree as ET
 
 from pyetl.schema.fonctions_schema import copyschema
 
-# from .interne.objet import Objet
-# from .formats import Reader
 
 # print ('osm start')
 # import pyetl.schema as SC
@@ -136,7 +134,6 @@ class DecodeConfigOsm(object):
             ident = ("osm_incomplet", ident[1])
         self.reader.setident(*ident)
         obj = self.reader.getobj()
-        #        obj = Objet(*ident, format_natif='osm', conversion=geom_from_osm)
         obj.geom = geom
         obj.attributs["#type_geom"] = type_geom
 

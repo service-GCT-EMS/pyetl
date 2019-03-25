@@ -236,7 +236,7 @@ class Pyetl(object):
         self.attlists = dict()
         # self.nb_obj = 0 # nombrte d'objets traites
         # self.parms["rep_regles"] = self.rdef
-        #        print ('_avant______________mode sortie' ,self.stream,self.get_param("mode_sortie"))
+        # print ('_avant______________mode sortie' ,self.stream,self.get_param("mode_sortie"))
 
         self.ident_courant = ("", "")
         self._set_streammode()
@@ -433,7 +433,7 @@ class Pyetl(object):
             self.compilateur(None, self.debug)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
-            #            self.stores = [[] for i in range(len(self.regles))]# stockage temporaire d'objets
+            #self.stores = [[] for i in range(len(self.regles))]# stockage temporaire d'objets
             self.moteur = Moteur(self, self.regles, self.debug)
             self.moteur.regle_debut = self.regles[0].numero
             #            print('preparation module',self.get_param('_entree'), '->', self.get_param('_sortie'))

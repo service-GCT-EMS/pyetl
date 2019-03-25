@@ -72,10 +72,8 @@ class Reader(object):
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
         self.nb_lus = 0
-        #        self.lire_objets = None
         self.groupe = ""
         self.classe = ""
-        self.schema_entree = None
         if self.debug:
             print("debug:format: instance de reader ", nom, self)
 
@@ -92,7 +90,13 @@ class Reader(object):
             self.cree_schema = description.has_schema
             self.auxiliaires = description.auxfiles
             self.converter = description.converter
-            self.schema_entree = self.regle_ref.getvar("schema_entree")
+            stock_param = self.regle_ref.stock_param
+            self.schema_entree = stock_param.schemas.get(self.regle_ref.getvar("schema_entree"))
+            if self.schema_entree:
+                print("reader:schema_entree", self.schema_entree.nom)
+            else:
+                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
+                      stock_param.schemas)
             if self.debug:
                 print("debug:format: lecture format " + nom, self.converter, self.lire_objets)
         else:
@@ -114,6 +118,10 @@ class Reader(object):
         """positionne les identifiants"""
         self.groupe = groupe
         self.classe = classe
+        if self.schema_entree:
+            self.schemaclasse_entree = self.schema_entree.get_classe((groupe, classe))
+        else:
+            self.schemaclasse_entree = None
 
     def getobj(self, niveau=None, classe=None):  # cree un objet
         """retourne un objet neuf a envoyer dans le circuit"""
@@ -123,6 +131,7 @@ class Reader(object):
             classe or self.classe,
             format_natif=self.format_natif,
             conversion=self.converter,
+            schema=self.schemaclasse_entree
         )
 
 
@@ -191,7 +200,7 @@ class Writer(object):
         self.ext = "." + nom
         self.multiclasse = self.def_sortie.fanout != "classe"
         self.fanoutmax = self.def_sortie.fanout
-        self.schema_sortie = self.regle.getvar("schema_sortie")
+        self.schema_sortie = self.regle.getvar("schema_sortie", None)
 
     #        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
 

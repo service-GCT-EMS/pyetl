@@ -135,12 +135,14 @@ class DbConnect(object):
         "0": "ALPHA",
         "indef": "ALPHA",
     }
-    
+
     requetes = {"schemas": "","tables":"","enums":"","attributs": "","vues":""}
-    
+
     @classmethod
     def getreq(cls, nom):
-        return cls.__mro__[1].requetes.get(nom,"")
+        parent = cls.__mro__[1]
+        if "requetes" in dir(parent):
+            return parent.requetes.get(nom,"")
 
 
 
