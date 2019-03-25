@@ -191,9 +191,10 @@ class Writer(object):
         self.ext = "." + nom
         self.multiclasse = self.def_sortie.fanout != "classe"
         self.fanoutmax = self.def_sortie.fanout
-        self.schema_sortie = self.regle.getvar("schema_entree")
+        self.schema_sortie = self.regle.getvar("schema_sortie")
 
     #        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
+
 
     def get_info(self):
         """ affichage du format courant : debug """

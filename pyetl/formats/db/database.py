@@ -135,6 +135,17 @@ class DbConnect(object):
         "0": "ALPHA",
         "indef": "ALPHA",
     }
+    
+    requetes = {"schemas": "","tables":"","enums":"","attributs": "","vues":""}
+    
+    @classmethod
+    def getreq(cls, nom):
+        return cls.__mro__[1].requetes.get(nom,"")
+
+
+
+
+
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         self.serveur = serveur
@@ -196,38 +207,21 @@ class DbConnect(object):
         """identifiant de base : type + nom"""
         return self.type_serveur + ":" + self.base
 
-    @property
-    def req_tables(self):
-        """retourne la requete fournissant la liste des tables"""
-        return "", None
 
-    @property
-    def req_tablelist(self):
-        """retourne la requete fournissant la liste des tables"""
-        return "", None
-
-    @property
-    def req_enums(self):
-        """retourne la requete fournissant la liste des enums"""
-        return "", None
-
-    @property
-    def req_attributs(self):
-        """retourne la requete fournissant la liste des attributs"""
-        return "", None
-
-    def withfallback(self, nom, getreq):
-        """ponds un petit message pour dire que on a pas pu utiliser la requete adapteee
-           et essaye celle de la classe parente"""
+    def shemarequest(self, nom):
+        """passe la requete d acces au schema"""
         try:
-            requete, data = getreq
-            return self.request(requete, data)
+            req = self.requetes.get(nom,"")
+#            print ("traitement",req)
+            if req:
+                return self.request(req, None)
         except self.errs as err:
             print('------------------', type(self))
-            print('erreur requete ',nom ,'utilisation fallback')
-            print('erreur :', err)
-            return super().get_tables()
-        return
+            print('erreur requete ',nom ,err)
+#            raise
+            return ()
+        print (" pas de requete ",nom)
+        return ()
 
 
     def get_type(self, nom_type):
@@ -244,19 +238,19 @@ class DbConnect(object):
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        return self.withfallback('enums', self.req_enums)
+        return self.shemarequest('enums')
 
     def get_tablelist(self):
         """retourne la liste des tables a prendre en compte"""
-        return self.withfallback('tablelist', self.req_tablelist)
+        return self.shemarequest('tablelist')
 
     def get_tables(self):
         """produit les objets issus de la base de donnees"""
-        return self.withfallback('tables', self.req_tables)
+        return self.shemarequest('tables')
 
     def get_attributs(self):
         """produit les objets issus de la base de donnees"""
-        return self.withfallback('attributs', self.req_attributs)
+        return self.shemarequest('attributs')
 
 
     def execrequest(self, requete, data=None, attlist=None):

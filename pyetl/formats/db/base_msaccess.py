@@ -8,7 +8,7 @@ acces a la base de donnees
 import os
 
 # import sys
-import pyodbc as odbc
+from pyodbc import connect, Error 
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -77,13 +77,12 @@ class AccConnect(DbConnect):
             #        pwd = 'PWD='+passwd+";" if passwd else ""
             conn_str = r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};" r"DBQ=" + base + ";"
 
-            connection = odbc.connect(conn_str)
-            self.errs = odbc.DatabaseError
+            connection = connect(conn_str)
 
             #        connection = odbc.win_connect_mdb(base)
 
             return connection
-        except odbc.DatabaseError as exp:
+        except Error as exp:
             print("error: access pyodbc: utilisateur ou mot de passe errone sur la base access")
             print("error: access:", base, self.passwd)
             print(exp)

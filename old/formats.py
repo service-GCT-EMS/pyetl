@@ -157,6 +157,7 @@ class Reader(object):
         self.debug = debug
         self.stock_param = stock_param
         self.set_format_entree(nom)
+        self.schema_entree = None
         if self.debug:
             print("debug:format: instance de reader ", nom)
 
@@ -173,6 +174,10 @@ class Reader(object):
                 print("debug:format: lecture format "+ nom)
         else:
             print("error:format: format entree inconnu", nom)
+
+    def set_schema_entree(self, schema):
+        """positionne le schema d entree"""
+        self.schema_entree = schema
 
     def get_info(self):
         ''' affichage du format courant : debug '''
@@ -237,13 +242,17 @@ class Writer(object):
         self.ext = '.'+nom
         self.multiclasse = fanoutmax != 'classe'
         self.fanoutmax = fanoutmax
+        self.schema_sortie = None
 #        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
 
     def get_info(self):
         ''' affichage du format courant : debug '''
         print('error:format: format courant :', self.nom_format)
 
-
+    def set_schema_sortie(self, schema):
+        """positionne le schema d entree"""
+        self.schema_sortie = schema
+        self.calcule_schema = False
 
 
 

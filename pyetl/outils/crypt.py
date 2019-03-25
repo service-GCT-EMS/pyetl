@@ -88,12 +88,12 @@ class ExtCrypter(Crypter):
 
 class HcubeCrypter(Crypter):
     """module de cryptage par transposition d'hypercube"""
+    transposer = list(itertools.permutations(range(4), 4))
 
     def __init__(self, key):
         super().__init__(key)
         self.hcube = dict()
         self.rcube = dict()
-        self.transposer = list(itertools.permutations(range(4), 4))
         if key:
             self.setkey(key)
 
@@ -128,8 +128,8 @@ class HcubeCrypter(Crypter):
 
     def backcrypt(self, bloc, clef=0):
         """transposeur inverse"""
-        hc1 = list(self.hcube[i] for i in bloc)
-        hyc = list([1] * 4)
+        hc1 = tuple(self.hcube[i] for i in bloc)
+        hyc = [1, 1, 1, 1]
         for i, j in enumerate(self.transposer[clef]):
             hyc[j] = hc1[i]
         thc = (tuple(hcr[i] for hcr in hyc) for i in range(4))

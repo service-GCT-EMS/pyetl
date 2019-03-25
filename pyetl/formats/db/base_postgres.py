@@ -146,7 +146,8 @@ GTYPES_CURVE = {
 class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
     reqs = REQS # requetes de fallback our les infos base
-
+    requetes=reqs
+    
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
