@@ -358,7 +358,7 @@ class RegleTraitement(object):  # regle de mapping
         self.branchements.brch["end"] = self.branchements.brch["ok"]
         self.branchements.brch["ok"] = None
 
-    def endstore(self, nom_base, groupe, obj, final, geomwriter=None, nomgeom=None):
+    def endstore(self, nom_base, groupe, obj):
         """ fonction de stockage avant ecriture finale necessiare si le schema
     doit etre determine a partir des donnees avant de les ecrire sur disque"""
         #        print ('regle:dans endstore',self.numero,nom_base,groupe, obj.schema)
@@ -389,7 +389,7 @@ class RegleTraitement(object):  # regle de mapping
                 obj.schema.stocke_attribut(nom_att + "_X", "float", "", "reel")
                 obj.schema.stocke_attribut(nom_att + "_Y", "float", "", "reel")
 
-        if not final:
+        if not self.final:
             obj = obj.dupplique()  # on cree une copie si on veut reutiliser l'objet original
         #            print ("endstore:copie de l'objet ",obj.ident,self.stock_param.stream)
         groupe_courant = self.stockage.get(groupe)
@@ -410,7 +410,8 @@ class RegleTraitement(object):  # regle de mapping
         if self.memlimit and self.compt_stock >= self.memlimit:
             print("stockage disque")
             #            raise
-            self.tmpwrite(groupe, geomwriter, nomgeom)
+            self.tmpwrite(groupe, self.f_sortie.def_sortie.tmpgeomwriter,
+                          self.f_sortie.def_sortie.tmp_geom)
         obj.stored = True
 
     def tmpwrite(self, groupe, geomwriter, nomgeom):
@@ -426,7 +427,7 @@ class RegleTraitement(object):  # regle de mapping
         )
         os.makedirs(self.getvar("tmpdir"), exist_ok=True)
         #        if self.stock_param.debug:
-        #        print("stockage intermediaire ", groupe, self.compt_stock, tmpfile)
+        print("stockage intermediaire ", tmpfile, groupe, self.compt_stock)
 
         mode = "w"
         if groupe in self.discstore:

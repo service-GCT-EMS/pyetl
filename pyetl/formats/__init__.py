@@ -23,7 +23,7 @@ from .interne.objet import Objet
 # rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter"))
 # wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
 #                                 "attlen", "driver", "fanout", "geom", "tmp_geom",
-#                                 "geomwriter"))
+#                                 "geomwriter", tmpgeowriter))
 # "database", ("acces", "gensql", "svtyp", "fileext", 'description', "geom", 'converter',
 #             "geomwriter"))
 #
@@ -31,7 +31,8 @@ from .interne.objet import Objet
 for nom in WRITERS:
     tmp = WRITERS[nom]
     if tmp.geom:
-        WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer)
+        WRITERS[nom] = tmp._replace(geomwriter=GEOMDEF[tmp.geom].writer,
+                                    tmpgeomwriter=GEOMDEF[tmp.tmp_geom].writer)
 #    print ('writer', nom , 'geom', WRITERS[nom].geom, WRITERS[nom].geomwriter)
 
 for nom in READERS:
@@ -189,9 +190,10 @@ class Writer(object):
         #        self.ecrire_objets = self.def_sortie.writer
         self.ecrire_objets_stream = MethodType(self.def_sortie.streamer, self)
         #        self.ecrire_objets_stream = self.def_sortie.streamer
-        self.tmp_geom = self.def_sortie.tmp_geom
-        self.nom_fgeo = self.def_sortie.geom
+#        self.tmp_geom = self.def_sortie.converter
+#        self.nom_fgeo = self.def_sortie.geom
         self.geomwriter = self.def_sortie.geomwriter
+        self.tmpgeomwriter = self.def_sortie.tmpgeomwriter
         self.calcule_schema = self.def_sortie.force_schema
         self.minmaj = self.def_sortie.casse  # determine si les attributs passent en min ou en maj
         self.driver = self.def_sortie.driver

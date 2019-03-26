@@ -434,9 +434,6 @@ def f_sortir(regle, obj):
                 nom_base,
                 groupe,
                 obj,
-                regle.final,
-                geomwriter=regle.f_sortie.tmp_geom,
-                nomgeom=regle.f_sortie.nom_fgeo,
             )
             return True
 

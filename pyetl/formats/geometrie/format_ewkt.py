@@ -220,10 +220,12 @@ def _ecrire_section_ewkt(section, poly):
 def _ecrire_ligne_ewkt(ligne, poly, erreurs, multiline=False):
     """ecrit une ligne en ewkt"""
     if poly and not ligne.ferme:
-        erreurs.ajout_erreur("ligne non fermee")
+        if erreurs is not None:
+            erreurs.ajout_erreur("ligne non fermee")
         return ""
     if not ligne.sections:
-        erreurs.ajout_erreur("ligne vide")
+        if erreurs is not None:
+            erreurs.ajout_erreur("ligne vide")
         return ""
     sec2 = [ligne.sections[0]]
     if sec2[0].courbe == 3:
@@ -291,30 +293,32 @@ def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
 
 def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     if geometrie_demandee != type_geom:
-        if type_geom == 1 or geometrie_demandee == 1:
-            erreurs.ajout_erreur(
-                "fmt:geometrie_incompatible: demande "
-                + str(type(geometrie_demandee))
-                + str(geometrie_demandee)
-                + " existante: "
-                + str(type_geom)
-                + str(type(type_geom))
-            )
+        if type_geom == "1" or geometrie_demandee == "1":
+            if erreurs is not None:
+                erreurs.ajout_erreur(
+                    "fmt:geometrie_incompatible: demande "
+                    + str(type(geometrie_demandee))
+                    + str(geometrie_demandee)
+                    + " existante: "
+                    + str(type_geom)
+                    + str(type(type_geom))
+                )
             return 1
-        if type_geom == 2:
-            erreurs.ajout_erreur(
-                "fmt:la geometrie n'est pas un polygone demande "
-                + str(geometrie_demandee)
-                + " existante: "
-                + str(type_geom)
-            )
-            #            raise
+        if type_geom == "2":
+            if erreurs is not None:
+                erreurs.ajout_erreur(
+                    "fmt:la geometrie n'est pas un polygone demande "
+                    + str(geometrie_demandee)
+                    + " existante: "
+                    + str(type_geom)
+                )
+                #            raise
             return 1
     else:
         return 0
 
 
-def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=False):
+def ecrire_geom_ewkt(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
     """ecrit une geometrie en ewkt"""
 
     if geometrie_demandee == "0" or geom.type == "0" or geom.null:
@@ -337,7 +341,8 @@ def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=F
                 else _ecrire_ligne_ewkt(geom.lignes[0], False, erreurs)
             )
         else:
-            erreurs.ajout_erreur("pas de geometrie ligne")
+            if erreurs is not None:
+                erreurs.ajout_erreur("pas de geometrie ligne")
             return None
     elif geometrie_demandee == "3":
         if geom.polygones:
@@ -347,7 +352,8 @@ def ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe=F
                 else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs, False, force_courbe)
             )
         else:
-            erreurs.ajout_erreur("polygone non ferme")
+            if erreurs is not None:
+                erreurs.ajout_erreur("polygone non ferme")
             return None
 
     elif geometrie_demandee > "3":  # 4: tin  5: polyhedralsurface
