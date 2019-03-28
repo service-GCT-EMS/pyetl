@@ -34,7 +34,7 @@ fonctions de manipulation d'attributs
 import io
 import re
 import time
-import itertools
+#import itertools
 import requests
 
 # import pycurl
@@ -57,6 +57,11 @@ def f_setliste(regle, obj):
     return True
 
 
+def h_setval(regle):
+    """helper de fonctiond'entree"""
+    if not regle.params.att_entree.val:
+        regle.get_entree = regle.get_defaut
+
 def f_setval(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
@@ -64,7 +69,7 @@ def f_setval(regle, obj):
        #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
     """
-    regle.setval_sortie(obj, regle.getval_entree(obj))
+    regle.setval_sortie(obj, regle.get_entree(obj))
     return True
 
 
@@ -78,23 +83,25 @@ def h_setschema(regle):
 def f_setschema(regle, obj):
     """#aide||affectation d un schema en adaptant la casse des attributs du schema a l'objet
   #aide_spec||remplacement d'une valeur d'attribut avec defaut
+     #helper||setval
     #pattern||=#schema;?;?A;set;?=maj;||sortie
    #pattern2||=#schema;?;?A;set;?=min;||sortie
     """
-    obj.attributs["#schema"] = regle.getval_entree(obj)
+    obj.attributs["#schema"] = regle.get_entree(obj)
     return True
 
 
 def f_setgeom(regle, obj):
     """#aide||affectation d un attribut
-       #aide_spec||cree une geometrie texte
-       #pattern||=#geom;?;?A;set;C;N||sortie
-       #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;\
-             ||^;;;geom||atv;#type_geom;2
-       #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
-             ||^;;;geom||atv;#type_geom;2
+  #aide_spec||cree une geometrie texte
+     #helper||setval
+    #pattern||=#geom;?;?A;set;C;N||sortie
+      #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;\
+            ||^;;;geom||atv;#type_geom;2
+      #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
+            ||^;;;geom||atv;#type_geom;2
     """
-    geom = regle.getval_entree(obj)
+    geom = regle.get_entree(obj)
     obj.geom = geom.split("|")
     obj.format_natif = regle.params.cmp1.val
     obj.geompending(dimension=regle.params.cmp2.num if regle.params.cmp2.num else 2)

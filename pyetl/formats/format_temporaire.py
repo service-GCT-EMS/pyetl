@@ -219,9 +219,10 @@ def lire_objets(fichier, stock_param):
 def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
     """stocke les objets en format temporaire"""
     fichier = open(nom, mode, encoding="utf-8")
-
+#    print('ecriture temporaire',groupe)
     for classe in groupe:
         liste_obj = groupe[classe]
+#        print( "ecriture" , classe, len(liste_obj))
         for i in liste_obj:
             if i.geom_v.valide:
                 fichier.write(tmp_entetes(i, nom_format))

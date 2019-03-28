@@ -301,7 +301,7 @@ def sortir_traite_stock(regle):
             #            print('ecriture finale', regle.f_sortie.ecrire_objets)
             regle.f_sortie.ecrire_objets(regle, True)
         except IOError as err:
-            LOGGER.error("erreur d'ecriture: " + err.__repr__())
+            LOGGER.error("erreur d'ecriture: " + repr(err))
         regle.nbstock = 0
         return
     for groupe in list(regle.stockage.keys()):
@@ -349,19 +349,25 @@ def h_sortir(regle):
         dialecte = regle.f_sortie.writerparms.get("dialecte")
         regle.ext = dialecte
 
-    if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
-        rep_base = regle.context.getvar("_sortie")
-        #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-
-        regle.context.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
-
     regle.fanout = (
         regle.context.getvar("fanout", "groupe") if regle.f_sortie.multiclasse else "classe"
     )
+
+    if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
+        rep_base = regle.context.getvar("_sortie")
+        #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
+        if os.path.isabs(regle.params.cmp2.val): # si absolu on ignore le rep de sortie
+            rep_base = ''
+        if regle.fanout == 'no': # sans fanout pas de sous repertoires
+            regle.context.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
+            regle.f_sortie.writerparms["destination"] = os.path.basename(regle.params.cmp2.val)
+        else:
+            regle.context.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
+
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
     regle.memlimit = int(regle.context.getvar("memlimit", 0))
-    mode_sortie = regle.context.getvar("mode_sortie", "A")
+    mode_sortie = regle.context.getvar("mode_sortie", "D")
     #    print("init stockage ", mode_sortie)
     regle.store = True if mode_sortie in {"A", "B"} else None
     regle.nbstock = 0

@@ -212,6 +212,7 @@ def f_addgeom(regle, obj):
 def f_force_pt(regle, obj):
     """#aide||transforme un objet en point en recuperant le n eme point
        #pattern||;?C;?A;force_pt;;
+       #helper||setval
        #test||obj;ligne||^;1;;force_pt||^;0;;coordp;||atn;#y;1
     """
     if obj.virtuel:
@@ -221,7 +222,7 @@ def f_force_pt(regle, obj):
     if obj.attributs["#type_geom"] == "0":
         return False
     if obj.geom_v.type > "1":
-        position = regle.getval_entree(obj)
+        position = regle.get_entree(obj)
         position = int(position) if position else 0
         try:
             #                print('changement en point ', obj.attributs['#type_geom'])
@@ -331,6 +332,7 @@ def f_longueur(regle, obj):
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
        #pattern||;?N;?A;coordp;;
+       #helper||setval
        #test||obj;ligne||^;1;;coordp||atn;#y;1
        #test1||obj;point||^;1;;coordp||atn;#y;2
     """
@@ -346,7 +348,7 @@ def f_coordp(regle, obj):
             #            print("coordp1",list(zip(('#x', '#y', '#z'),
             # [str(i) for i in obj.geom_v.point.coords[0]])))
             return True
-        position = regle.getval_entree(obj)
+        position = regle.get_entree(obj)
         if not position:
             position = 0
         else:
@@ -521,12 +523,13 @@ def f_geom_2d(regle, obj):
 def f_geom_3d(regle, obj):
     """#aide||passe la geometrie en 2D
        #pattern||;N;?A;geom3D;?C;
+       #helper||setval
        #test||obj;point||^;1;;geom3D;||atv;#dimension;3
     """
     if obj.virtuel:
         return True
     if obj.initgeom():
-        obj.geom_v.setz(float(regle.getval_entree(obj)), force=regle.params.cmp1.val)
+        obj.geom_v.setz(float(regle.get_entree(obj)), force=regle.params.cmp1.val)
         obj.infogeom()
         setschemadim(regle, obj)
         obj.geomnatif = False

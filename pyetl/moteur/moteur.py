@@ -232,12 +232,14 @@ class Context(object):
         self.vlocales = dict()
         self.search = [self.vlocales]
         self.parent = parent
+        self.root = self
         self.ref = self
         # gestion des hierarchies
         if parent is not None:
             self.ref = parent if parent.type_c == "C" else parent.ref  # pour les macroenv
             self.ident = parent.ident + "<-" + self.ident
             self.search.extend(parent.search)
+        self.root = self.ref.root
 
     def getmacroenv(self, ident=""):
         """fournit un contexte ephemere lia au contexte de reference"""
@@ -278,6 +280,12 @@ class Context(object):
         """positionne une variable du contexte de reference"""
         #        print ('contexte setvar', nom, valeur)
         self.ref.vlocales[nom] = valeur
+
+    def setroot(self, nom, valeur):
+        """positionne une variable du contexte racine"""
+        #        print ('contexte setvar', nom, valeur)
+        self.root.vlocales[nom] = valeur
+
 
     def exists(self, nom):
         """la variable existe"""

@@ -176,6 +176,7 @@ class Pyetl(object):
             parent=parent.context if parent else None, ident="P" + str(self.idpyetl)
         )
         #        print ('initialisation', self.context, self.context.parent)
+        self.context.root = self.context # on romp la chaine racine
         self.parent = parent  # permet un appel en cascade
         setparallel(self)  # initialise la gestion du parallelisme
 
@@ -398,7 +399,7 @@ class Pyetl(object):
                         self.fichier_regles, liste_regles=self.liste_regles
                     )
                 except KeyError as ker:
-                    LOGGER.critical("erreur lecture " + ker.__repr__() + "(" + repr(regles) + ")")
+                    LOGGER.critical("erreur lecture " + repr(ker) + "(" + repr(regles) + ")")
                     erreurs = erreurs + 1 if erreurs else 1
                     raise
 
@@ -568,13 +569,13 @@ class Pyetl(object):
         print("erreur getpyetl", regles)
         return None
 
-    def regmacro(self, nom, file="", liste_commandes=None, vloc=None):
+    def regmacro(self, nom, file="", liste_commandes=None, vpos=None):
         """enregistrement d'une macro"""
         nouvelle = Macro(nom, file=file)
         if liste_commandes is not None:
             nouvelle.commandes_macro = liste_commandes
-        if vloc is not None:
-            nouvelle.vpos = vloc
+        if vpos is not None:
+            nouvelle.vpos = vpos
         #        print ('enrregistrement macro',nom)
         self.macros[nom] = nouvelle
         return nouvelle
@@ -585,7 +586,7 @@ class Pyetl(object):
         if self.get_param("mode_sortie") == "D":
             self.stream = 2
 
-    #        print('---------pyetl : mode sortie', self.stream, self.get_param("mode_sortie"))
+#        print('---------pyetl : mode sortie', self.stream, self.get_param("mode_sortie"))
 
     def valide_ulist(self, val, master, grouplist):
         """ valide les autorisations par utilisateur"""
@@ -694,7 +695,7 @@ class Pyetl(object):
         if context is None:
             context = self.context
         if clef in self.site_params:
-            #            print("chargement", valeur, self.site_params[valeur])
+#            print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
                 val, _ = map_vars(val, context)  # on fait du remplacement à la volee
                 context.setvar(var, val)
@@ -735,8 +736,8 @@ class Pyetl(object):
                 pass
             if liste and liste[0] == "&&#define":
                 nom = liste[1]
-                vloc = [i for i in liste[2:] if i]
-                macro = self.regmacro(nom, file=configfile, vloc=vloc)
+                vpos = [i for i in liste[2:] if i]
+                macro = self.regmacro(nom, file=configfile, vpos=vpos)
             elif nom:
                 macro.add_command(conf, num)
 
@@ -753,7 +754,7 @@ class Pyetl(object):
 
         self.context.update(
             [
-                ("mode_sortie", "B"),
+                ("mode_sortie", "D"),
                 ("memlimit", 100000),
                 ("sans_entree", ""),
                 ("nbaffich", 100000),
@@ -1034,6 +1035,7 @@ class Pyetl(object):
         nom_macro = mdef[0]
         variables = mdef[1:]
         macro = self.macros.get(nom_macro)
+#        macroenv = self.context.getmacroenv(ident=nom_macro)
         if macro is None:
             print("macro finale inconnue", nom_macro)
             return
@@ -1045,19 +1047,19 @@ class Pyetl(object):
                 else None
             )
         else:
-            if macro.vloc:
-                params = [nom + "=" + valeur for nom, valeur in zip(macro.vloc, variables)]
+            if macro.vpos:
+                params = [nom + "=" + valeur for nom, valeur in zip(macro.vpos, variables)]
 
             else:
                 params = variables
 
         entree = self.get_param("entree_final", self.get_param("_sortie"))
         sortie = self.get_param("sortie_final", self.get_param("_sortie"))
-        #        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vloc)
+        #        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vpos)
         #        return True
         processor = self.getpyetl(nom_macro, liste_params=params, entree=entree, rep_sortie=sortie)
         #        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
-        #                                                       for i in macro.vloc])
+        #                                                       for i in macro.vpos])
         if processor is not None:
             processor.process()
             print("script final effectue", nom_macro, self.idpyetl, "->", processor.idpyetl)

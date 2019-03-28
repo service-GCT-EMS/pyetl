@@ -146,8 +146,8 @@ def choix_fonction_select(attribut, valeur, regle):
                     erreurs,
                 )
             select.setparams(elements, candidat.definition)
-            if candidat.helper:
-                candidat.helper(select)
+            for fhelp in candidat.helper:
+                fhelp(select)
             select.fonction = candidat.work
             return select
     #    print("erreur selecteur inconnu",regle.ligne.encode('utf8'),'<')
@@ -442,11 +442,11 @@ def afficher_erreurs(regle, fonc, message):
 
 def traite_helpers(regle, fonc):
     """execute les fonctions auxiliaires """
-    if fonc.helper:
+    for fhelp in fonc.helper:
         #         la fonction prevoit une sequence d'initialisation : on l'execute
         #        print ("execution helper",fonc.nom)
         mode_orig = regle.mode
-        fonc.helper(regle)  # on prepare les elements
+        fhelp(regle)  # on prepare les elements
         #                print ('retour', regle.valide)
         if regle.mode != mode_orig:  # la fonction helper a change la fonction a appeler
             fonc2 = regle.stock_param.commandes.get(regle.mode)
@@ -656,7 +656,6 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
 
     liste_regles = []
     pars = []
-    #    print ('decoupe_liste',fichier_regles, vloc)
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
     if fichier_regles.startswith("'") and fichier_regles.endswith("'"):
@@ -898,8 +897,8 @@ def initmacro(mapper, texte, fichier_regles):
     """ initialise le stockage """
     champs_macro = texte.split(";")
     nom = champs_macro[1]
-    vlocmacro = [i for i in champs_macro[2:] if i]
-    macro = mapper.regmacro(nom, file=fichier_regles, vloc=vlocmacro)
+    vposmacro = [i for i in champs_macro[2:] if i]
+    macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
     #            print('enregistrement macro',nom)
     return macro
 
@@ -990,7 +989,7 @@ def lire_regles_csv(
             check = champs_var[2].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
             #            print ("avt chargement groupe", vgroup, champs_var)
             try:
-                mapper.load_paramgroup(vgroup, nom=ngroup, check=check, context=context)
+                mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
             except KeyError:
                 print("groupe de parametres inconnu", vgroup)
                 erreurs += 1

@@ -327,6 +327,10 @@ class SqlWriter(CsvWriter):
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )
 
+
+    def __repr__(self):
+        return ('sqlwriter '+self.nom)
+
     def header(self, init=1):
         separ = ","
         gensql = self.schema.schema.dbsql
@@ -421,7 +425,7 @@ def getfanout(regle, extention, ident, initial):
     groupe, classe = ident
     dest = regle.f_sortie.writerparms.get("destination")
     #    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident,
-    #           initial,extention, dest, regle.vloc)
+    #           initial,extention, dest)
 
     bfich = ""
     if regle.params.cmp2.val:

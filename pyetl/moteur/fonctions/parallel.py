@@ -329,7 +329,7 @@ def traite_parallel(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
+            executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -396,7 +396,7 @@ def traite_parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
+            executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -494,7 +494,7 @@ def traite_parallel_batch(regle):
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
-                executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, None, None, [])
+                executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, None, None, [])
             )
 
             workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -683,7 +683,7 @@ def parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor, nprocs, initparallel, (mapper.context.vloc, mapper.macros, env, None, schemas)
+            executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)

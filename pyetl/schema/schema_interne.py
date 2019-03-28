@@ -181,6 +181,11 @@ class Schema(object):
         self.alias_groupes = dict()
         self.compteurs = defaultdict(int)
 
+    def __repr__(self):
+        return "schema:"+self.nom+" "+str(len(self.classes))+' classes'
+
+
+
     @property
     def __dic_if__(self):
         """retourne une interface de transfert"""

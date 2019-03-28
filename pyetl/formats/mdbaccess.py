@@ -375,8 +375,8 @@ def get_schemabase(connect, mode_force_enums=1):
 def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = nombase
-    #    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
-    #          codebase in stock_param.dbconnect)
+#    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
+#          codebase in stock_param.dbconnect)
     #    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
@@ -387,7 +387,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         serveur = stock_param.get_param("server_" + codebase, "")
         type_base = stock_param.get_param("db_" + codebase, "")
         if not base:
-            print("dbaccess: base non definie", codebase)
+            print("dbaccess: base non definie", codebase, sorted(stock_param.context.vlocales) )
             return None
 
     if type_base not in db.DATABASES:
@@ -654,7 +654,7 @@ def sortie_resultats(
             niveau, classe = newid
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
 
-    print("...%-50s" % ("%s : %s.%s" % (connect.type_serveur, niveau, classe)), end="", flush=True)
+    print("\n...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True)
 
     nbvals = 0
     attlist = curs.attlist
@@ -712,7 +712,7 @@ def sortie_resultats(
     if nb_pts < 10:
         print("." * (10 - nb_pts), end="")
     attrs, vals = cond
-    cdef = cond.__repr__() if attrs else ""
+    cdef = repr(cond) if attrs else ""
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, cdef))
     return nbvals
@@ -761,7 +761,7 @@ def recup_schema(
                 "tables a sortir",
             )
         schema_base = connect.schemabase
-        print("recup_schema", schema_base.nom, schema_travail.nom, stock_param.schemas.keys())
+#        print("recup_schema", schema_base, schema_travail, stock_param.schemas.keys())
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)
@@ -1049,7 +1049,7 @@ def recup_donnees_req_geo(
     if connect is None:
         return 0
     maxobj = stock_param.get_param("lire_maxi", 0)
-    buffer = regle_courante.params.cmp2.num
+    buffer = regle_courante.params.cmp1.num
 
     if obj.format_natif == connect.format_natif:
         geometrie = obj.geom[0]

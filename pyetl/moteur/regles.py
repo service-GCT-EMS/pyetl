@@ -29,7 +29,7 @@ class Branch(object):
         self.suivante = False
 
     def __repr__(self):
-        return self.liens_num().__repr__()
+        return repr(self.liens_num())
 
     def setlink(self, lien):
         """positionne les liens"""
@@ -234,7 +234,7 @@ class RegleTraitement(object):  # regle de mapping
         self.changeschema = None
         self.elements = None
         self.f_sortie = None
-
+        self.get_entree = self.getval_entree
         self.stockage = dict()
         self.discstore = dict()
         self.tmp_store = list()
@@ -283,6 +283,10 @@ class RegleTraitement(object):  # regle de mapping
         self.context.setvar(nom, valeur)
 
     # =========================acces standardises aux objets==================
+    def get_defaut(self, obj):
+        ''' retourne la valeur par defaut s'il n'y a pas de champ'''
+        return self.params.val_entree.val
+
     def getval_entree(self, obj):
         """acces standadise a la valeur d'entree valeur avec defaut"""
         return obj.attributs.get(self.params.att_entree.val, self.params.val_entree.val)

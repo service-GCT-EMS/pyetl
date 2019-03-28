@@ -376,7 +376,7 @@ def _decode_attribut_csv(liste):
         "fkdef",
     ]
     att_dict = dict(zip(noms, liste[2:17]))
-    ll_tmp = att_dict[type].split(":")
+    ll_tmp = att_dict["type"].split(":")
     if len(ll_tmp) > 1:
         att_dict["clef"] = ll_tmp[1]
     att_dict["type_attr"] = ll_tmp[0].lower()

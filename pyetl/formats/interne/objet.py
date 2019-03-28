@@ -345,7 +345,7 @@ class Objet(object):
             + "."
             + str(self.attributs.get("#classe"))
         )
-        schema = "\t" + self.schema.__repr__() if self.schema else "non defini"
+        schema = "\t" + repr(self.schema)
         attlist = sorted(self.attributs.keys()) if attlist is None else attlist
         print(
             invariant + "\n",

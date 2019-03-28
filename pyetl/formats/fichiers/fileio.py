@@ -73,7 +73,7 @@ class FileWriter(object):
             self.fichier.write(self.header())
             self.stats[self.nom] = self.stats.get(self.nom, 0)
         except IOError:
-            print("erreur ouverture fichier")
+            print("erreur ouverture fichier", self.nom)
 
     def reopen(self):
         """reouverture"""

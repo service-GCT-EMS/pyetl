@@ -333,7 +333,7 @@ class Geometrie(object):
     def __repr__(self):
         if self.valide:
             return "type:" + self.type + " ".join(str(i) for i in self.coords)
-        return "geometrie invalide " + self.erreurs.__repr__()
+        return "geometrie invalide " + repr(self.erreurs)
 
     def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
         """cree une geometrie de point"""

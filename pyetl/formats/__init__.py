@@ -93,11 +93,13 @@ class Reader(object):
             self.converter = description.converter
             stock_param = self.regle_ref.stock_param
             self.schema_entree = stock_param.schemas.get(self.regle_ref.getvar("schema_entree"))
-            if self.schema_entree:
-                print("reader:schema_entree", self.schema_entree.nom)
-            else:
-                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
-                      stock_param.schemas)
+            self.schemaclasse_entree = None
+
+#            if self.schema_entree:
+##                print("reader:schema_entree", self.schema_entree.nom)
+#            else:
+##                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
+##                      stock_param.schemas)
             if self.debug:
                 print("debug:format: lecture format " + nom, self.converter, self.lire_objets)
         else:

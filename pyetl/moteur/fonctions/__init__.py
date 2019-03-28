@@ -128,7 +128,7 @@ class DefinitionAttribut(object):
 
         if not self.obligatoire:
             self.priorite += 1
-        self.helper = None
+#        self.helper = None
 
     def match(self, texte):
         """ determine si un texte est compatible avec la definition"""
@@ -170,11 +170,11 @@ class FonctionTraitement(object):
         self.patternnum = ""
         self.work = fonction
         self.store = None
-        self.helper = None
+        self.helper = []
         self.shelper = None
         self.definition = definition  # definition_champs
         self.fonction_schema = None
-        self.prepare = description.get("#helper")
+        self.prepare = description.get("#helper","")
         self.priorite = 99
         self.style = "N"
         # gestion des clefs secondaires :
@@ -213,8 +213,8 @@ class FonctionTraitement(object):
             + ":"
             + self.nom
             + ":"
-            + self.definition.__repr__()
-            + self.work.__repr__()
+            + repr(self.definition)
+            + repr(self.work)
         )
 
 
@@ -418,11 +418,12 @@ def set_helper(sbf, store, clef):
     """complete la fonction acec les sorties et les assitants"""
     if sbf.nom in store[clef]:
         #        print ("trouve helper ",sbf.nom)
-        sbf.helper = get_fonction(sbf.nom, store, clef)
+        sbf.helper.append(get_fonction(sbf.nom, store, clef))
     #    else:
     #        print("non trouve ",sbf.nom)
-    if sbf.description.get("#helper"):
-        sbf.helper = get_fonction(sbf.description.get("#helper", [""])[0], store, clef)
+#    if sbf.description.get("#helper"):
+    if sbf.prepare:
+        sbf.helper.extend([get_fonction(i, store, clef) for i in sbf.prepare])
 
 
 def complete_fonction(sbf, store):

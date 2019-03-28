@@ -6,7 +6,7 @@ Created on Tue Sep 26 10:19:32 2017
 """
 import collections
 import os
-
+DEBUG = 0
 
 class RessourceDistante(object):
     """une ressource distante est geree par un worker en traitement parallele
@@ -17,8 +17,14 @@ class RessourceDistante(object):
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0
 
+    def __repr__(self):
+        return 'ressource distante:'+self.nom+' '+str(self.etat)
+
     def finalise(self):
-        """ retouren le nombre d'objet"""
+        """ retourne le nombre d'objet"""
+        if self.etat > 2:
+            print ('ressource deja finalisee',self)
+            return -1
         self.etat = 3
         return self.nbo
 
@@ -34,6 +40,9 @@ class Ressource(object):
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0
         self.regles = set()
+
+    def __repr__(self):
+        return 'ressource:'+self.nom+' '+str(self.etat)+' '+repr(self.handler)
 
     def ouvrir(self, id_regle):
         """ ouvre une ressource (en general un fichier)"""
@@ -77,6 +86,10 @@ class Ressource(object):
 
     def finalise(self):
         """ finalise une ressource : une resource finalisee ne peut pas etre reouverte"""
+        if self.etat > 2:
+            if DEBUG:
+                print ('ressource deja finalisee',self)
+            return -1
         self.etat = self.handler.finalise()
         return self.nbo
 
@@ -151,10 +164,14 @@ class GestionSorties(object):
     def final(self):
         """fin de ficher"""
         nb_obj = 0
-        # print ('dans final', liste_fich)
-        nb_fich = len(self.ressources)
+#        print ('dans final', self.ressources)
+        nb_fich = 0
         for res in self.ressources.values():
-            nb_obj += res.finalise()
+            nob = res.finalise()
+            if nob != -1:
+                nb_obj += nob
+                nb_fich += 1
+#        print('final', nb_fich, nb_obj)
         return nb_fich, nb_obj
 
     def close(self, id_demand, id_ressource):
@@ -180,7 +197,9 @@ class GestionSorties(object):
         if not rep_sortie:
             raise NotADirectoryError("repertoire de sortie non défini")
         if nom:
-            print("-------------------nom forcé", os.path.join(rep_sortie, nom))
+#            print("-------------------nom forcé", os.path.join(rep_sortie, nom))
+            if os.path.isabs(nom):
+                return nom
             return os.path.join(rep_sortie, nom)
         if groupe == "#nogroup":
             groupe = ""

@@ -186,7 +186,7 @@ class SchemaClasse(object):
 
     def __repr__(self):
         """affichage simplifie"""
-        return "schema " + self.dbident + " " + self.info.__repr__()
+        return "schema " + self.dbident + " " + repr(self.info)
 
     @property
     def __dic_if__(self):

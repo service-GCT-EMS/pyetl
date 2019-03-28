@@ -280,8 +280,9 @@ def h_dbgeo(regle):
 
 def f_dbgeo(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
+    #aide_spec||db:base;niveau;classe;fonction;att_sortie;valeur;champs a recuperer;dbgeo;buffer
      #groupe||database
-    #pattern||?A;?;?L;dbgeo;?C;
+    #pattern||?A;?;?L;dbgeo;?C;?N
 
     """
     # regle.stock_param.regle_courante=regle
@@ -538,7 +539,7 @@ def h_recup_schema(regle):
         if regle.params.att_sortie.val == "schema_sortie":
             regle.context.setvar("schema_sortie", nomschema)
         regle.valide = "done"
-        print("h_recup_schema", nomschema)
+        print("h_recup_schema", nomschema, '->', base)
         DB.recup_schema(regle, base, niveau, classe, nomschema)
     return True
 

@@ -194,7 +194,7 @@ def printfunc(regle, obj):
     elif regle.params.att_entree.val == "#geomV":
         if not regle.params.cmp1.val:
             cmp1 = "geomV:"
-        return cmp1 + obj.geom_v.__repr__()
+        return cmp1 + repr(obj.geom_v)
     else:
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:

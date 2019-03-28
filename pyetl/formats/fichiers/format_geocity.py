@@ -64,7 +64,7 @@ def sens_reseau(noeud):
 def coorderror(obj):
     """ affiche une erreur de coordonnees dans un fichier """
     LOGGER.error("gy: erreur coordonnees dans le fichier geocity")
-    LOGGER.error("gy: objet rejeté: " + obj.__repr__())
+    LOGGER.error("gy: objet rejeté: " + repr(obj))
 
 
 def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
