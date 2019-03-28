@@ -137,7 +137,6 @@ def ecrire_objets_text(regle, _, attributs=None):
                     streamwriter = TextWriter(
                         nom,
                         encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
-                        liste_fich=regle.stock_param.liste_fich,
                     )
                     streamwriter.set_liste_att(attributs)
                     ressource = sorties.creres(numero, nom, streamwriter)

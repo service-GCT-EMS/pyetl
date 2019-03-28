@@ -4,7 +4,6 @@
 # import time
 # import pyetl.schema as SC
 import sys
-from collections import defaultdict
 
 
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
@@ -30,7 +29,6 @@ class FileWriter(object):
         geomwriter=None,
         separ=None,
         encoding="utf-8",
-        liste_fich=None,
         srid="3948",
         schema=None,
         f_sortie=None,
@@ -41,7 +39,6 @@ class FileWriter(object):
             self.writerparms = f_sortie.writerparms
         self.liste_att = schema.get_liste_attributs(liste=liste_att) if schema else None
         self.fichier = None
-        self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.converter = converter
         self.geomwriter = geomwriter
@@ -69,9 +66,7 @@ class FileWriter(object):
             self.fichier = (
                 sys.stdout if self.nom == "#print" else open(self.nom, "w", encoding=self.encoding)
             )  # stdout
-
             self.fichier.write(self.header())
-            self.stats[self.nom] = self.stats.get(self.nom, 0)
         except IOError:
             print("erreur ouverture fichier", self.nom)
 
@@ -124,5 +119,4 @@ class FileWriter(object):
         self.fichier.write(chaine)
         if chaine[-1] != "\n":
             self.fichier.write("\n")
-        self.stats[self.nom] += 1
         return True
