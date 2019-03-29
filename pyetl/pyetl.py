@@ -55,9 +55,8 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
         # création d'un handler qui va rediriger chaque écriture de log sur la console
         LOGGER.setLevel(niveau_p)
         print_handler = logging.StreamHandler()
-        printformatter = logging.Formatter("%(levelname)s %(funcName)s: %(message)s")
+        printformatter = logging.Formatter("\n!!!%(levelname)8s %(funcName)10s: %(message)s")
         print_handler.setFormatter(printformatter)
-
         print_handler.setLevel(niveau_p)
         LOGGER.addHandler(print_handler)
     if fichier:
@@ -76,7 +75,7 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
         file_handler.setLevel(niveau_f)
         file_handler.setFormatter(fileformatter)
         LOGGER.addHandler(file_handler)
-        LOGGER.info("pyetl:" + VERSION)
+        LOGGER.info("----pyetl:" + VERSION)
 
 
 def getlog(args):
@@ -250,6 +249,8 @@ class Pyetl(object):
         if log and not self.worker:
             self.set_param("logfile", log)
             self.fichier_log = log
+
+        initlogger(fichier=self.get_param("logfile",None))
         self.init_environ(env)
 
     #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage

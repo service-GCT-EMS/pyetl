@@ -248,6 +248,7 @@ class PgsGenSql(PgrGenSql):
         style.append("</edittypes>")
         style.append("<editorlayout>generatedlayout</editorlayout>")
         for nom_att in atts:
+            attribut = classe.attributs[nom_att]
             if attribut.alias:
                 adef = (
                     '<alias field="'

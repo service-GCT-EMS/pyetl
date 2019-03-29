@@ -60,24 +60,23 @@ class FileWriter(object):
         """fin de fichier"""
         return self.ttext
 
+    def ouvrir(self, mode):
+        '''retourne une sortie ouverte '''
+        if self.nom == "#print":
+            self.fichier = sys.stdout
+        else:
+            self.fichier = open(self.nom, mode, encoding=self.encoding)
+
     def open(self):
         """ouverture de fichier"""
-        try:
-            self.fichier = (
-                sys.stdout if self.nom == "#print" else open(self.nom, "w", encoding=self.encoding)
-            )  # stdout
-            self.fichier.write(self.header())
-        except IOError:
-            print("erreur ouverture fichier", self.nom)
+        self.ouvrir('w')
+        self.fichier.write(self.header())
+
 
     def reopen(self):
         """reouverture"""
-        try:
-            self.fichier = (
-                sys.stdout if self.nom == "#print" else open(self.nom, "a", encoding=self.encoding)
-            )  # stdout
-        except IOError:
-            print("erreur ouverture fichier", self.nom)
+        self.ouvrir('a')
+
 
     def close(self):
         """fermeture"""

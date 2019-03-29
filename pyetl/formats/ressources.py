@@ -6,7 +6,9 @@ Created on Tue Sep 26 10:19:32 2017
 """
 import collections
 import os
+import logging
 DEBUG = 0
+LOGGER = logging.getLogger("pyetl")  # un logger
 
 class RessourceDistante(object):
     """une ressource distante est geree par un worker en traitement parallele
@@ -49,15 +51,20 @@ class Ressource(object):
 
     def ouvrir(self, id_regle):
         """ ouvre une ressource (en general un fichier)"""
-        if self.etat == 3:
-            return False
-        self.regles.add(id_regle)
-        if self.etat == 0:
-            self.etat = 1
-            return self.handler.open()
-        if self.etat == 2:
-            self.etat = 1
-            return self.handler.reopen()
+        try:
+            if self.etat == 3:
+                return False
+            self.regles.add(id_regle)
+            if self.etat == 0:
+                self.handler.open()
+                self.etat = 1
+            if self.etat == 2:
+                self.handler.reopen()
+                self.etat = 1
+        except IOError as err:
+            LOGGER.critical("erreur ouverture fichier " +self.nom+'->'+repr(err))
+            raise StopIteration(2)
+
 
     def fermer(self, id_regle):
         """ referme une ressource """
@@ -75,13 +82,17 @@ class Ressource(object):
     def write(self, obj, id_regle):
         """ecrit un objet en gerant les changements de classe et les comptages"""
         #        print('dans ressouce.write',self.lastid,self.etat)
-        if self.etat != 1:
-            self.ouvrir(id_regle)
-        if self.lastid and self.lastid != obj.ident:
-            self.handler.changeclasse(obj.schema)
-        self.lastid = obj.ident
-        if self.handler.write(obj):
-            self.nbo += 1
+        try:
+            if self.etat != 1:
+                self.ouvrir(id_regle)
+            if self.lastid and self.lastid != obj.ident:
+                self.handler.changeclasse(obj.schema)
+            self.lastid = obj.ident
+            if self.handler.write(obj):
+                self.nbo += 1
+        except IOError as err:
+            LOGGER.critical("erreur ecriture fichier " +self.nom+'->'+repr(err))
+            raise StopIteration(2)
 
     def compte(self, nbr):
         """ compte le nobre d'objets sortie vers une ressource"""
@@ -89,9 +100,11 @@ class Ressource(object):
 
     def finalise(self):
         """ finalise une ressource : une resource finalisee ne peut pas etre reouverte"""
+        if self.etat == 0:
+            LOGGER.error("ressource indisponible "+self.nom)
+            return -1
         if self.etat > 2:
-            if DEBUG:
-                print ('ressource deja finalisee',self)
+            LOGGER.warning("ressource deja finalisee "+self.nom)
             return -1
         self.etat = self.handler.finalise()
         return self.nbo

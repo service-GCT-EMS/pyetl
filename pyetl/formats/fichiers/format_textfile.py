@@ -3,7 +3,7 @@
 
 # import time
 # import pyetl.schema as SC
-import sys
+#import sys
 import os
 from . import fileio
 
@@ -11,32 +11,6 @@ from . import fileio
 
 class TextWriter(fileio.FileWriter):
     """writer de fichiers texte"""
-
-    #    def open(self):
-    #        """ouverture de fichier"""
-    #        try:
-    #            self.fichier = sys.stdout if self.nom == "#print" else\
-    #                           open(self.nom, 'w', encoding=self.encoding)#stdout
-    #            self.stats[self.nom] = self.stats.get(self.nom, 0)
-    #        except IOError:
-    #            self.etat = self.FAIL
-    #            print("erreur ouverture fichier")
-
-    def reopen(self):
-        """reouverture"""
-        self.fichier = (
-            sys.stdout if self.nom == "#print" else open(self.nom, "a", encoding=self.encoding)
-        )  # stdout
-
-    def close(self):
-        """fermeture"""
-        #        print("fileeio fermeture", self.nom)
-        if self.nom == "#print":
-            return  # stdout
-        try:
-            self.fichier.close()
-        except AttributeError:
-            print("error: fw  : writer close: fichier non defini", self.nom)
 
     def write(self, obj):
         """ecrit un objet complet"""
