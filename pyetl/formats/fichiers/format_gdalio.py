@@ -239,7 +239,6 @@ class GdalWriter(object):
         converter=str,
         schema=None,
         f_sortie=None,
-        liste_fich=None,
         srid="3948",
         layer=None,
     ):
@@ -249,7 +248,6 @@ class GdalWriter(object):
             self.writerparms = f_sortie.writerparms
         self.liste_att = schema.get_liste_attributs(liste=liste_att)
         self.fichier = None
-        self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.converter = converter
         self.srid = srid
@@ -269,10 +267,6 @@ class GdalWriter(object):
             self.fanout = f_sortie.multiclasse
             self.fanoutmax = f_sortie.fanoutmax
 
-    #        super().__init__(nom, liste_att=liste_att, converter=converter,
-    #                         encoding=encoding, liste_fich=liste_fich, srid=srid, schema=schema)
-
-    #        print ('ascwriter ',liste_att)
 
     def open(self):
         """ouvre  sur disque"""
@@ -291,7 +285,6 @@ class GdalWriter(object):
             schema=schema,
             layer=self.layer,
         )
-        self.stats[self.nom] = self.stats.get(self.nom, 0)
         self.etat = self.OPEN
 
     def changeclasse(self, schemaclasse, attributs=None):
@@ -358,8 +351,6 @@ class GdalWriter(object):
                 "\nchaine:",
                 chaine,
             )
-            raise
-        self.stats[self.nom] += 1
         return True
 
     def finalise(self):
@@ -414,7 +405,6 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
                 encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
                 f_sortie=regle.f_sortie,
                 schema=obj.schema,
-                liste_fich=regle.stock_param.liste_fich,
                 liste_att=attributs,
                 layer=classe,
                 srid=obj.geom_v.srid,
@@ -439,7 +429,7 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
         raise
 
     if final:
-        print("gdal:final", regle.stock_param.liste_fich)
+        print("gdal:final", ressource.nom)
         ressource.finalise()
 
 

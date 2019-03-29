@@ -174,13 +174,12 @@ class XlsxWriter(FileWriter):
         separ,
         entete,
         encoding="utf-8",
-        liste_fich=None,
         null="",
         f_sortie=None,
     ):
 
         super().__init__(
-            nom, encoding=encoding, liste_fich=liste_fich, schema=schema, f_sortie=f_sortie
+            nom, encoding=encoding, schema=schema, f_sortie=f_sortie
         )
 
         self.extension = extension
@@ -205,7 +204,6 @@ class XlsxWriter(FileWriter):
         self.escape = "\\" + separ
         self.repl = "\\" + self.escape
         self.fichier = None
-        self.stats = liste_fich if liste_fich is not None else dict()
         self.encoding = encoding
         self.transtable = str.maketrans(
             {"\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
@@ -238,7 +236,6 @@ class XlsxWriter(FileWriter):
 
         self.fichier.write(ligne)
         self.fichier.write("\n")
-        self.stats[self.nom] += 1
         return True
 
 
@@ -300,7 +297,6 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
             separ,
             entete,
             encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
-            liste_fich=regle.stock_param.liste_fich,
             null=null,
             f_sortie=regle.f_sortie,
         )

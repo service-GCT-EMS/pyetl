@@ -92,7 +92,6 @@ def set_parallelretour(mapper, valide):
         "stats_generales": stats_generales,
         "retour": mapper.retour,
         "schemas": schema,
-        "fichs": mapper.liste_fich,
         "stats": retour_stats,
     }
     return retour
@@ -166,7 +165,7 @@ def endparallel(test=None):
     #    retour_stats = {nom: stat.retour() for nom, stat in MAINMAPPER.stats.items()}
     #    retour = {'pid': os.getpid(), 'wid': MAINMAPPER.get_param('_wid'), 'valide': succes,
     #              'stats_generales': stats_generales,
-    #              'schemas': schema, 'fichs': MAINMAPPER.liste_fich, 'stats': retour_stats}
+    #              'schemas': schema, 'stats': retour_stats}
 
     return (os.getpid(), retour)
 
@@ -355,9 +354,6 @@ def traite_parallel(regle):
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
-        fichs = retour["fichs"]
-        for nom, nbr in fichs.items():
-            mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0) + nbr
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
 
@@ -424,9 +420,6 @@ def traite_parallel_load(regle):
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
-        fichs = retour["fichs"]
-        for nom, nbr in fichs.items():
-            mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0) + nbr
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
 
@@ -711,9 +704,6 @@ def parallel_load(regle):
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
-        fichs = retour["fichs"]
-        for nom, nbr in fichs.items():
-            mapper.liste_fich[nom] = mapper.liste_fich.get(nom, 0) + nbr
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
 

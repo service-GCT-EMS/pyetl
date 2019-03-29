@@ -161,7 +161,6 @@ class Pyetl(object):
         self.maintimer = self._timer(init=True)
         self.statdefs = dict()  # description des statistiques
         self.stats = dict()  # stockage des statistiques
-        self.liste_fich = defaultdict(int)  # fichiers utilises pour les comptages d'objets
         self.cntr = dict()  # stockage des compteurs
         self.idpyetl = next(self._ido)
         # jointures
@@ -1131,20 +1130,21 @@ class Pyetl(object):
                     )
                 else:
                     fstat = os.path.join(rep_sortie, self.get_param("fstat") + ".csv")
-                print("moteur : info ecriture stat fichier ", fstat)
+                liste_fich = self.sorties.getstats()
+                print("pyetl : info ecriture stat fichier ", fstat, liste_fich)
                 os.makedirs(os.path.dirname(fstat), exist_ok=True)
                 fichier = open(fstat, "w", encoding=self.get_param("codec_sortie", "utf-8"))
                 fichier.write("repertoire;nom;nombre\n")
-                for i in sorted(self.liste_fich):
+                for i in sorted(liste_fich):
                     fichier.write(
-                        ";".join((os.path.dirname(i), os.path.basename(i), str(self.liste_fich[i])))
+                        ";".join((os.path.dirname(i), os.path.basename(i), str(liste_fich[i])))
                         + "\n"
                     )
                 fichier.close()
             else:
                 print("%-60s | %10s |" % ("           nom", "nombre   "))
                 for i in sorted(self.liste_fich):
-                    print("%-60s | %10d |" % (i, self.liste_fich[i]))
+                    print("%-60s | %10d |" % (i, liste_fich[i]))
         # on ferme proprement ce qui est ouvert
 
     def signale_fin(self):
