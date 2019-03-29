@@ -176,7 +176,7 @@ class PgrGenSql(DbGenSql):
         table = groupe + "." + nom
         if schemaclasse.haspkey:
             ctr.append("\tCONSTRAINT " + nom + "_pkey PRIMARY KEY (" + schemaclasse.getpkey + "),")
-        print ('pkey', '\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+schemaclasse.getpkey+'),',schemaclasse.indexes)
+        #            print ('pkey', '\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+classe.getpkey+'),')
         dicindexes = schemaclasse.dicindexes()
         #        if len(dicindexes) > 1:
         #            print("indexes a generer",schemaclasse.nom, sorted(dicindexes.items()))
@@ -685,7 +685,6 @@ class PgrGenSql(DbGenSql):
             groupe, nom = self.get_nom_base(ident)
             table = groupe + "." + nom
             drop.append("DROP TABLE IF EXISTS " + table + ";")
-        drop.reverse() # on inverse l'ordre de destruction par rapport a la creation
         return drop
 
     def dropvues(self, liste):

@@ -249,18 +249,18 @@ class SchemaClasse(object):
         #            print ( 'indexes:',self.indexes)
         #            raise
         return ",".join(
-            [self.minmajfunc(str(self.indexes[i])) for i in sorted(self.indexes) if i.startswith("P")]
+            [self.minmajfunc(str(self.indexes[i])) for i in sorted(self.indexes) if i[0] == "P"]
         )
 
     @property
     def haspkey(self):
         """vrai si la classe a une clef primaire"""
-        return any([i.startswith('P') for i in self.indexes])
+        return "P:1" in self.indexes
 
     @property
     def pkey_simple(self):
         """ vrai si la clef principale comprend un seul champ"""
-        return len([i for i in sorted(self.indexes) if i.startswith("P")]) == 1
+        return len([i for i in sorted(self.indexes) if i[0] == "P"]) == 1
 
     @property
     def fkeys(self):
@@ -380,7 +380,7 @@ class SchemaClasse(object):
 
     def setpkey(self, liste):
         """cree stocke la definition des champs de la clef primaire"""
-        print ("------------------------------setpkey",self.indexes,liste)
+        #        print ("setpkey",self.indexes,liste)
         for i in list(self.indexes.keys()):
             if i.startswith("P:"):
                 del self.indexes[i]

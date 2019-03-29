@@ -618,7 +618,24 @@ def f_fileloader(regle, obj):
     return objloader(regle, obj)
 
 
-
+#    mapper = regle.stock_param
+#    fichs = getfichs(regle, obj)
+#
+##    print ("-------------liste_fichiers ", fichs)
+##    lu_total = 0
+##    lu_fichs = 0
+#    nb_lu = 0
+#    if fichs:
+#        for i, parms in fichs:
+#            try:
+#                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
+#            except StopIteration as abort:
+#                if abort.args[0] == '2':
+#                    continue
+#                raise
+#    if regle.params.att_sortie.val:
+#        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+#    return True
 
 
 def h_statprint(regle):

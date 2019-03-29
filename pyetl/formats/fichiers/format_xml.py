@@ -24,11 +24,12 @@ class XmlWriter(FileWriter):
         schema=None,
         entete="",
         encoding="utf-8",
+        liste_fich=None,
         null="",
         writerparms=None,
         liste_att=None,
     ):
-        super().__init__(nom, encoding=encoding, schema=schema)
+        super().__init__(nom, encoding=encoding, liste_fich=liste_fich, schema=schema)
 
         self.nom = nom
         self.schema = schema
@@ -42,6 +43,7 @@ class XmlWriter(FileWriter):
             self.readtemplate(template)
         self.classes = set()
 
+        self.stats = liste_fich if liste_fich is not None else dict()
         self.encoding = encoding
         self.curtemp = None
         self.curclasse = None
@@ -171,6 +173,7 @@ class XmlWriter(FileWriter):
                 obj.erreurs.errs,
             )
             return False
+        self.stats[self.nom] += 1
         return True
 
 
@@ -197,6 +200,7 @@ def get_ressource(obj, regle, attributs=None):
             nom,
             encoding=regle.getvar("codec_sortie", "utf-8"),
             liste_att=attributs,
+            liste_fich=regle.stock_param.liste_fich,
             schema=obj.schema,
         )
         ressource = sorties.creres(regle.numero, nom, streamwriter)

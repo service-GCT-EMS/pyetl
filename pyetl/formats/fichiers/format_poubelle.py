@@ -26,11 +26,9 @@ def compte_obj_stream(self, obj, regle, *_, **__):
     """poubelle avec comptage """
     groupe, classe = obj.ident
     #    obj.setschema(None)
-    sorties = regle.stock_param.sorties
+    liste_fich = regle.stock_param.liste_fich
     nom = "compt_" + groupe + "." + classe
-    if nom not in sorties:
-        sorties.setcnt(nom)
-    sorties[nom].cnt()
+    liste_fich[nom] += 1
     return 0, 0
 
 

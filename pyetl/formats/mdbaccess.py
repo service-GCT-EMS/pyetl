@@ -415,7 +415,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
 
     if connection.valide:
         #        print('connection valide', serveur)
-        connection.gensql = dbdef.gensql(connection=connection)
+        connection.gensql = dbdef.gensql
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
         connection.geom_to_natif = dbdef.geomwriter
@@ -1109,11 +1109,12 @@ def recup_donnees_req_geo(
 class DbWriter(object):
     """ ressource d'ecriture en base de donnees"""
 
-    def __init__(self, nom, liste_att=None, encoding="utf-8", stock_param=None):
+    def __init__(self, nom, liste_att=None, encoding="utf-8", liste_fich=None, stock_param=None):
 
         self.nom = nom
         self.liste_att = liste_att
         self.fichier = None
+        self.stats = liste_fich if liste_fich is not None else defaultdict(int)
         self.encoding = encoding
         self.schema_base = None
         retour = get_connect(
@@ -1140,6 +1141,7 @@ class DbWriter(object):
     def open(self, idtable):
         """ teste l existance de la table et la cree si necessaire"""
         self.dbtable(idtable)
+        self.stats[self.nom] = self.stats.get(self.nom, 0)
 
     def reopen(self, _):
         """ reouverture d'une table ferme (non utilise)"""
@@ -1212,6 +1214,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                         nom,
                         liste_att,
                         encoding=regle.getvar("codec_sortie", "utf-8"),
+                        liste_fich=regle.stock_param.liste_fich,
                     )
                     sorties.creres(numero, nom, swr)
                     ressource = sorties.get_res(numero, nom)
@@ -1259,6 +1262,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
                 nom,
                 liste_att,
                 encoding=regle.getvar("codec_sortie", "utf-8"),
+                liste_fich=regle.stock_param.liste_fich,
                 stock_param=regle.stock_param,
             )
             sorties.creres(regle.numero, nom, swr)

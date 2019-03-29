@@ -28,9 +28,6 @@ class RessourceDistante(object):
         self.etat = 3
         return self.nbo
 
-    def cnt(self):
-        """ incremente le compteur"""
-        self.nbo += 1
 
 class Ressource(object):
     """ stockage des infos d'une ressource
@@ -129,12 +126,6 @@ class GestionSorties(object):
         self.ressources[nom].nbo += nbo
         return self.ressources[nom]
 
-    def setcnt(self, nom):
-        """cree une ressource de comptage pour la sortie poubelle"""
-        if nom not in self.ressources:
-            self.ressources[nom] = RessourceDistante(nom)
-
-
     def lock(self, id_demand, id_ressource):
         """declare l utilisation de la ressource"""
         if id_ressource in self.used and id_demand in self.ressources[id_ressource].regles:
@@ -221,8 +212,3 @@ class GestionSorties(object):
         print("!!!!! clef non definie", rep_sortie, "<->", os.path.join(rep_sortie, "defaut" + ext))
         #        raise
         return os.path.join(rep_sortie, "defaut" + ext)
-
-    def getstats(self):
-        """recupere les stats d'ecriture"""
-        return {nom:self.ressources[nom].nbo for nom in self.ressources}
-

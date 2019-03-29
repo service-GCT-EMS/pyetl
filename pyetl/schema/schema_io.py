@@ -218,8 +218,6 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
             if type_base == "basic" or type_base == "consult":
                 schema.setbasic(type_base)
                 autopk = "" if autopk == "no" else True
-                rep_s = rep
-
 
             print("dialecte de sortie", dialecte)
 

@@ -173,6 +173,7 @@ class CsvWriter(FileWriter):
         separ,
         entete,
         encoding="utf-8",
+        liste_fich=None,
         null="",
         f_sortie=None,
         geomwriter=None,
@@ -181,6 +182,7 @@ class CsvWriter(FileWriter):
         super().__init__(
             nom,
             encoding=encoding,
+            liste_fich=liste_fich,
             schema=schema,
             f_sortie=f_sortie,
             geomwriter=geomwriter,
@@ -208,6 +210,7 @@ class CsvWriter(FileWriter):
         self.escape = "\\" + separ
         self.repl = "\\" + self.escape
         self.fichier = None
+        self.stats = liste_fich if liste_fich is not None else dict()
         self.encoding = encoding
         self.transtable = str.maketrans(
             {"\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
@@ -286,7 +289,7 @@ class CsvWriter(FileWriter):
 
         self.fichier.write(ligne)
         self.fichier.write("\n")
-#        self.stats[self.nom] += 1
+        self.stats[self.nom] += 1
         return True
 
 
@@ -301,6 +304,7 @@ class SqlWriter(CsvWriter):
         separ,
         entete,
         encoding="utf-8",
+        liste_fich=None,
         null="",
         f_sortie=None,
         geomwriter=None,
@@ -312,6 +316,7 @@ class SqlWriter(CsvWriter):
             separ,
             entete,
             encoding,
+            liste_fich,
             null,
             f_sortie,
             geomwriter=geomwriter,
@@ -474,6 +479,7 @@ def change_ressource(
             separ,
             entete,
             encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+            liste_fich=regle.stock_param.liste_fich,
             null=null,
             f_sortie=regle.f_sortie,
             geomwriter=geomwriter,

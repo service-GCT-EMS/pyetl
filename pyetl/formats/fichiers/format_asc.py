@@ -389,13 +389,14 @@ class AscWriter(FileWriter):
     """ gestionnaire d'ecriture pour fichiers asc"""
 
     def __init__(
-        self, nom, liste_att=None, encoding="cp1252", schema=None, geomwriter=None
+        self, nom, liste_att=None, encoding="cp1252", liste_fich=None, schema=None, geomwriter=None
     ):
         super().__init__(
             nom,
             liste_att=liste_att,
             converter=self._convertir_objet_asc,
             encoding=encoding,
+            liste_fich=liste_fich,
             schema=schema,
             geomwriter=geomwriter,
         )
@@ -533,6 +534,7 @@ def asc_streamer(self, obj, regle, _, attributs=None):
                 encoding=regle.getvar("codec_sortie", "utf-8"),
                 liste_att=attributs,
                 geomwriter=self.geomwriter,
+                liste_fich=regle.stock_param.liste_fich,
                 schema=obj.schema,
             )
             ressource = sorties.creres(regle.numero, nom, streamwriter)
@@ -575,6 +577,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
                         nom,
                         encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
                         geomwriter=self.geomwriter,
+                        liste_fich=regle.stock_param.liste_fich,
                     )
                     streamwriter.set_liste_att(attributs)
                     ressource = sorties.creres(regle.numero, nom, streamwriter)
