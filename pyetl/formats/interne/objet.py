@@ -409,6 +409,8 @@ class Objet(object):
         if schemaclasse is not None:
             if not self.virtuel:
                 schemaclasse.objcnt += 1
+                if schemaclasse.autopk:
+                    schemaclasse.setautopk
             schemaclasse.utilise = True
             self.attributs["#schema"] = schemaclasse.nomschema
         else:

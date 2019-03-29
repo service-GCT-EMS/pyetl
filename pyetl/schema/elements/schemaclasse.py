@@ -173,6 +173,9 @@ class SchemaClasse(object):
         self.noms_courts = set()
         self.cibles = set()
         self.basic = False
+        self.autopk = False
+        self.maxpk = 0
+        self.pkref = None
 
     def setbasic(self, mode):
         """simplifie la striucture pour les classes de consultation """
@@ -283,7 +286,7 @@ class SchemaClasse(object):
         return self.info.get(nom, defaut)
 
     def setinfo(self, nom, valeur):
-        """recupere une info du schema"""
+        """positionne une info du schema"""
         self.info[nom] = valeur
 
     def dicindexes(self):
@@ -1040,3 +1043,26 @@ class SchemaClasse(object):
             #                print("raccourcissement force", att.nom, "->", nom1, "->", nom)
             #            print ('raccourcissement',att.nom,nom)
             att.nom_court = nom
+
+    def setautopk(self, obj):
+        '''gere une clef principale croissante'''
+        if not self.autopk:
+            return
+        pkval = int(obj.attributs[self.pkref])
+        if pkval <= self.pkmax and self.autopk=='correct':
+            self.pkmax += 1
+            pkval = self.pkmax
+            obj.attributs[self.pkref] = str(pkval)
+        else:
+            self.pkmax = pkval
+
+    def initautopk(self, mode):
+        '''initialise la gestion des clefs principales'''
+        if mode == 'stop':
+            self.autopk = False
+        else:
+            if self.pkey_simple:
+                pk = (str(self.indexes[i]) for i in sorted(self.indexes) if i.startswith("P"))[0]
+            self.pkref = pk
+            self.autopk = mode
+        
