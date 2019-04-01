@@ -1124,6 +1124,7 @@ class Pyetl(object):
         if self.get_param("fstat"):  # ecriture de statistiques de fichier
             if self.worker and self.parent is None:
                 return  # on ecrit pas on remonte
+            liste_fich = self.sorties.getstats()
             if rep_sortie:
                 if self.worker:
                     fstat = os.path.join(
@@ -1131,7 +1132,6 @@ class Pyetl(object):
                     )
                 else:
                     fstat = os.path.join(rep_sortie, self.get_param("fstat") + ".csv")
-                liste_fich = self.sorties.getstats()
                 print("pyetl : info ecriture stat fichier ", fstat, liste_fich)
                 os.makedirs(os.path.dirname(fstat), exist_ok=True)
                 fichier = open(fstat, "w", encoding=self.get_param("codec_sortie", "utf-8"))
@@ -1144,7 +1144,7 @@ class Pyetl(object):
                 fichier.close()
             else:
                 print("%-60s | %10s |" % ("           nom", "nombre   "))
-                for i in sorted(self.liste_fich):
+                for i in sorted(liste_fich):
                     print("%-60s | %10d |" % (i, liste_fich[i]))
         # on ferme proprement ce qui est ouvert
 

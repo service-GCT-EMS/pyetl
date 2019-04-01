@@ -318,3 +318,7 @@ class Context(object):
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vlocales.items())])+\
 #                 '========================= variables globales==========\n'+\
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vlocales.items())])
+def list_input(mapper,liste,reader):
+    """gere les listes d entree avec acces seie ou parallele"""
+    for element in liste:
+        reader(mapper,element)

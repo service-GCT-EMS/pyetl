@@ -231,7 +231,7 @@ def _get_tables(connect):
             if schemaclasse.info["type_geom"] != "0":
                 schemaclasse.info["nom_geometrie"] = "geometrie"
         if schemaclasse.info["type_geom"] == "indef":
-            print(ident, "apres _get_tables: type_geometrique", schemaclasse.info["type_geom"])
+           print(ident, "apres _get_tables: type_geometrique", schemaclasse.info["type_geom"])
 
         schemaclasse.type_table = type_table
 
