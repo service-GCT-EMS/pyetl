@@ -44,7 +44,7 @@ HIERARCHIE = {"P": 1, "U": 2, "K": 3, "X": 4, "I": 4}
 def _gestion_types_simples(attr, type_attribut):
     """ decode les types classiques"""
     type_attr = type_attribut.upper()
-    #            print ('type_attribut',type_attr)
+    # print ('type_attribut',attr.nom, type_attr)
     taille = 0
     dec = 0
     if "[]" in type_attr:
@@ -189,7 +189,7 @@ class SchemaClasse(object):
 
     def __repr__(self):
         """affichage simplifie"""
-        return "schema " + self.dbident + " " + repr(self.info)
+        return "schema " + self.dbident + " " + repr(self.info) +'\n'+'\n'.join(sorted(self.attributs.keys()))
 
     @property
     def __dic_if__(self):
@@ -368,7 +368,8 @@ class SchemaClasse(object):
         """ determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
         idregle = regle.numero
-        #        print ('amodifier',idregle,self.regles_modif,idregle in self.regles_modif)
+        # if 'bati' in self.nom:
+        #     print ('amodifier', self.schema.nom, idregle, self)
         if dyn:
             return True
         if idregle in self.regles_modif:
@@ -614,6 +615,8 @@ class SchemaClasse(object):
 
     def _gestion_index(self, attr, index, parametres_clef):
         """gere les definitions d'index"""
+        index = index.upper()
+        # print ('ajout index: avant',self.nom,self.indexes, '->', index)
         if not index:
             return
         if index.startswith("FK:"):
@@ -624,7 +627,9 @@ class SchemaClasse(object):
             self.addindex({"P:1": attr.nom})
             attr.oblig = True
         else:
-            self.addindex({i: attr.nom for i in index.upper().split(" ")})
+            self.addindex({i: attr.nom for i in index.split(" ")})
+        # print ('ajout index: apres',self.nom,self.indexes)
+
 
     def _gestion_enums(self, attr, type_attribut):
         """gere un attribut de type enum"""
@@ -1065,4 +1070,3 @@ class SchemaClasse(object):
                 pk = (str(self.indexes[i]) for i in sorted(self.indexes) if i.startswith("P"))[0]
             self.pkref = pk
             self.autopk = mode
-        

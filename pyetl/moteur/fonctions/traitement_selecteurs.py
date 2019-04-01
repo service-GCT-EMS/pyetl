@@ -65,7 +65,7 @@ def selh_calc2(selecteur):
 
 
 def sel_calc2(selecteur, obj):
-    """#aide||evaluation d une experssion libre
+    """#aide||evaluation d une expression libre
        #pattern||;NC:||50
        #test||obj||^A,B;5,2;;set||^?A;0;;set||;N:A>N:B;;;res;1;;set||atv;res;1
 

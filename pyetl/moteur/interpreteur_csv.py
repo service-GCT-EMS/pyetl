@@ -245,7 +245,7 @@ def description_schema(regle):
     # on cree un attribut modele pour la sortie
     modele = get_attribut("modele", 30)
     modele.nom_court = ""
-    modele.type_att = type_att_sortie
+    modele.type_att = type_att_sortie.upper()
     modele.type_att_base = modele.type_att
     modele.defaut = valeur_defaut
     modele.ordre = position
@@ -254,7 +254,7 @@ def description_schema(regle):
 
 
 #    if def_index:
-#    print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
+    print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
 
 
 def extraction_operation(regle, fonction):

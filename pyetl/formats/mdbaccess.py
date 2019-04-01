@@ -653,9 +653,10 @@ def sortie_resultats(
             print("mdba: mapping:", (niveau, classe), "->", newid)
             niveau, classe = newid
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
-
-    print("\n...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True)
-
+    if stock_param.get_param("printpending"):
+        print()
+    print("...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True)
+    stock_param.set_param('printpending', 1)
     nbvals = 0
     attlist = curs.attlist
     geom_from_natif = connect.geom_from_natif
@@ -715,6 +716,7 @@ def sortie_resultats(
     cdef = repr(cond) if attrs else ""
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, cdef))
+    stock_param.set_param('printpending', 0)
     return nbvals
 
 
@@ -886,7 +888,7 @@ def recup_donnees_req_alpha(
                 continue  # on a fait une requete sur un attribut inexistant: on passe
             treq = time.time()
 
-        curs = connect.req_alpha(ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre)
+        curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxobj, ordre=ordre)
         #        print ('-----------------------traitement curseur ', curs,type(curs) )
         treq = time.time() - treq
         if curs:

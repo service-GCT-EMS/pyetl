@@ -796,17 +796,23 @@ def h_cnt(regle):
     """init compteur"""
     regle.orig = regle.params.cmp2.num if regle.params.cmp2.num else 0
     regle.pas = regle.params.cmp1.num if regle.params.cmp1.num else 1
+    regle.local = not (regle.params.att_entree.val or regle.params.val_entree.val)
     return True
 
 
 def f_cnt(regle, obj):
     """#aide||compteur
-    #aide_spec|attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;origine;pas
-        #pattern||S;?;?A;cnt;?N;?N
-        #schema||ajout_attribut
-        #test1||obj||^V4;t1;;cnt;3;4||atv;V4;4
-        #test2||obj;;2||^V4;t1;;cnt;3;4||V4;4;;;;;;supp||atv;V4;7
+  #aide_spec||attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;origine;pas
+ #aide_spec2||le comteur est global s'il a un nom, local s'il n'en a pas
+    #pattern||S;?;?A;cnt;?N;?N
+     #schema||ajout_attribut
+      #test1||obj||^V4;t1;;cnt;3;4||atv;V4;4
+      #test2||obj;;2||^V4;t1;;cnt;3;4||V4;4;;;;;;supp||atv;V4;7
     """
+    if regle.local:
+        obj.attributs[regle.params.att_sortie.val] = "%d" % (regle.orig)
+        regle.orig += regle.pas
+        return True
     nom = regle.getval_entree(obj)
     val = regle.stock_param.cntr.get(nom, regle.orig)
     obj.attributs[regle.params.att_sortie.val] = "%d" % (val)

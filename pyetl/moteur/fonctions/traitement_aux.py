@@ -357,7 +357,7 @@ def fschema_garder_attributs(regle, obj):
     """supprime tous les attributs du schema qui ne figurent pas dans l'objet"""
     #    for att in [i for i in obj.schema.attributs if i not in regle.liste_attributs]:
     #        obj.schema.supprime_attribut(att)
-
+    # print('garder attributs',obj.schema.identclasse)
     if obj.schema.amodifier(regle):
         agarder = (
             regle.params.att_sortie.liste
@@ -365,6 +365,7 @@ def fschema_garder_attributs(regle, obj):
             else [i for i in obj.attributs if i[0] != "#" and i in regle.selset]
         )
         obj.schema.garder_attributs(agarder, ordre=regle.params.att_sortie.liste)
+        # print('garder attributs ->',obj.schema)
 
 
 def fschema_change_schema(regle, obj):

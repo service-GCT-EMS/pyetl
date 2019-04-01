@@ -123,6 +123,7 @@ class DbConnect(object):
             "clef_primaire",
             "clef_etrangere",
             "cible_clef",
+            "parametres_clef",
             "taille",
             "decimales",
         ),

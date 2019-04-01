@@ -147,7 +147,7 @@ class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
     reqs = REQS # requetes de fallback our les infos base
     requetes=reqs
-    
+
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
@@ -166,31 +166,7 @@ class PgrConnect(DbConnect):
             self.valide = True
         self.type_base = "postgres"
         self.dialecte = "postgres"
-        self.attdef = namedtuple(
-            "attdef",
-            (
-                "nom_groupe",
-                "nom_classe",
-                "nom_attr",
-                "alias",
-                "type_attr",
-                "graphique",
-                "multiple",
-                "defaut",
-                "obligatoire",
-                "enum",
-                "dimension",
-                "num_attribut",
-                "index",
-                "unique",
-                "clef_primaire",
-                "clef_etrangere",
-                "cible_clef",
-                "parametres_clef",
-                "taille",
-                "decimales",
-            ),
-        )
+
 
     def set_searchpath(self):
         """positionne les path pour la session"""
@@ -199,16 +175,24 @@ class PgrConnect(DbConnect):
         cur.execute("select set_config('search_path' , 'public',False)", ())
         cur.close()
 
+    @staticmethod
+    def change_antislash(nom):
+        ''' remplace les \ par des /'''
+        return nom.replace('\\','/')
+
+
     def runsql(self, prog, file, logfile=None, outfile=None):
         """execute un fichier sql"""
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
+        file =self.change_antislash(file)
 
         if self.user:
             chaine_connect = chaine_connect + " --username=" + self.user
         if logfile:
             chaine_connect = chaine_connect + " -q -a"
         if outfile:
+            outfile =self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
 
         chaine = " --".join((prog, chaine_connect, "file=" + file))
