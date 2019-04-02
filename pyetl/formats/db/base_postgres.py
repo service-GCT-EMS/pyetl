@@ -147,6 +147,7 @@ class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
     reqs = REQS # requetes de fallback our les infos base
     requetes=reqs
+    codecinfo = {"utf-8": "UTF8", "cp1252": "WIN1252"}
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
@@ -156,7 +157,6 @@ class PgrConnect(DbConnect):
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
         self.rowcount = 0
-        self.codecinfo = {"utf-8": "UTF8", "cp1252": "WIN1252"}
         self.load_helper = "prog_pgsql"
         self.sql_helper = "prog_pgsql"
         self.accept_sql = "alpha"

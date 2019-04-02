@@ -670,6 +670,7 @@ def sortie_resultats(
     if connect.sys_mod in attlist:
         sys_mod = connect.sys_mod
     tget = time.time()
+    decile =curs.decile
     for valeurs in curs.cursor:
         obj = Objet(niveau, classe, format_natif=format_natif, conversion=geom_from_natif)
         #        print ("geometrie valide",obj.geom_v.valide)
@@ -706,7 +707,8 @@ def sortie_resultats(
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
-        if nbvals % curs.decile == 0:
+        if nbvals >decile:
+            decile +=curs.decile
             nb_pts += 1
             print(".", end="", flush=True)
     tget = time.time() - tget

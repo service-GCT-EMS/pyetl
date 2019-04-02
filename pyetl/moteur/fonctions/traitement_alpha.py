@@ -148,8 +148,10 @@ def h_sub(regle):
     regle.exp_sortie = regle.params.cmp2.val
 
     if regle.params.cmp2.val.startswith("f:"):
+        if '__' in regle.params.cmp2.val:
+            raise SyntaxError('fonction non autorisee:'+regle.params.cmp2.val)
         try:
-            regle.exp_sortie = eval("lambda " + regle.params.cmp2.val)
+            regle.exp_sortie = eval("lambda " + regle.params.cmp2.val,{})
             regle.valide = True
         except SyntaxError as err:
             regle.valide = False

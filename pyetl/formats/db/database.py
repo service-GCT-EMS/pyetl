@@ -45,13 +45,13 @@ class Cursinfo(object):
 
     def __iter__(self):
         if self.cursor is None:
-            return ().__iter__()
-        return self.cursor.__iter__()
+            return ()
+        return self.cursor
 
     def __next__(self):
         if self.cursor is None:
             raise StopIteration
-        return next(self.cursor.__iter__())
+        return next(self.cursor)
 
     def fetchall(self):
         """recupere tous les elements"""
@@ -74,6 +74,9 @@ class Cursinfo(object):
                 self.cursor.execute(requete, data)
             else:
                 self.cursor.execute(requete)
+            self.decile = int(self.cursor.rowcount/10+1)
+            if self.decile == 1:
+                self.decile = 100000
 
     @property
     def rowcount(self):
@@ -139,16 +142,6 @@ class DbConnect(object):
 
     requetes = {"schemas": "","tables":"","enums":"","attributs": "","vues":""}
 
-    @classmethod
-    def getreq(cls, nom):
-        parent = cls.__mro__[1]
-        if "requetes" in dir(parent):
-            return parent.requetes.get(nom,"")
-
-
-
-
-
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         self.serveur = serveur
@@ -191,6 +184,7 @@ class DbConnect(object):
         self.dump_helper = None
         self.valide = self.connection is not None
         self.dialecte = "sql"
+        self.fallback={}
         self.errs = Exception
 
     #        self.req_tables = ("", None)
@@ -211,7 +205,7 @@ class DbConnect(object):
         return self.type_serveur + ":" + self.base
 
 
-    def shemarequest(self, nom, fallback=False):
+    def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
         try:
             req = self.requetes.get(nom,"")
@@ -227,7 +221,7 @@ class DbConnect(object):
             print('erreur requete ',nom ,err)
 #            raise
             if not fallback:
-                return (self.schemarequest(self, nom, fallback=True))
+                return (self.schemarequest(nom, fallback=True))
             return ()
         print ("pas de requete ",nom, self.requetes.keys())
         return ()
@@ -247,19 +241,19 @@ class DbConnect(object):
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        return self.shemarequest('info_enums')
+        return self.schemarequest('info_enums')
 
     def get_tablelist(self):
         """retourne la liste des tables a prendre en compte"""
-        return self.shemarequest('tablelist')
+        return self.schemarequest('tablelist')
 
     def get_tables(self):
         """produit les objets issus de la base de donnees"""
-        return self.shemarequest('info_tables')
+        return self.schemarequest('info_tables')
 
     def get_attributs(self):
         """produit les objets issus de la base de donnees"""
-        return self.shemarequest('info_attributs')
+        return self.schemarequest('info_attributs')
 
 
     def execrequest(self, requete, data=None, attlist=None):
@@ -275,29 +269,25 @@ class DbConnect(object):
             print("dtb:error: ", self.type_base, ":erreur acces base ", requete, "-->", data, err)
             #            print('dtb',cur.mogrify(requete, data))
             cur.close()
-            raise
-            return None
+            raise StopIteration(2)
 
     #        print ('exec:recup cursinfo', type(cur))
 
     def request(self, requete, data=None, attlist=None):
         """ lancement requete et gestion retours"""
         cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
-        if cur is None:
-            self.rowcount = 0
-            return ()
+        self.rowcount = cur.rowcount
         liste = cur.fetchall()
         cur.close()
         return liste
 
     def iterreq(self, requete, data=None, attlist=None, has_geom=False):
         """ lancement requete et gestion retours en mode iterateur"""
-        if requete:
-            cur = self.execrequest(requete, data=data, attlist=attlist)
-            #            print ('recup cursinfo', type(cur))
-            if cur is not None:
-                cur.decile = int(cur.rowcount / 10) + 1
-        #                cur.attlist = attlist
+        cur = self.execrequest(requete, data=data, attlist=attlist)
+        #            print ('recup cursinfo', type(cur))
+        if cur is not None:
+            cur.decile = int(cur.rowcount / 10) + 1
+    #                cur.attlist = attlist
         return cur
 
     #        return iter(())

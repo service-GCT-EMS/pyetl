@@ -28,9 +28,11 @@ def compilefonc(descripteur, variable, debug=False):
     desc2 = desc1.replace("C:", "c:")
     desc3 = MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
     desc4 = MODIFFONC2.sub(r"regle.getvar('\1')", desc3)
+    if '__' in desc4:
+        raise SyntaxError('fonction non autorisee:'+desc4)
     if debug:
         print("fonction a evaluer", "lambda " + variable + ": " + desc4)
-    retour = eval("lambda " + variable + ": " + desc4)
+    retour = eval("lambda " + variable + ": " + desc4,{})
     return retour
 
 

@@ -216,13 +216,9 @@ class SqlmConnect(SqltConnect):
 
     def iterreq(self, requete, data, attlist=None, has_geom=False):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
-        cur.decile = 1
         if cur is None:
             return iter(())
 
-        cur.decile = int(cur.rowcount / 10) + 1
-        if cur.decile == 1:
-            cur.decile = 100000
         while True:
             try:
                 elem = cur.cursor.fetchone()

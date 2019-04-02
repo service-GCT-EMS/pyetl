@@ -8,7 +8,7 @@ acces a la base de donnees
 import os
 
 # import sys
-from pyodbc import connect, Error 
+from pyodbc import connect, Error
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -157,7 +157,6 @@ class AccConnect(DbConnect):
             return iter(())
         cur = self.execrequest(requete, data, attlist=attlist)
         if cur:
-            self.decile = int(cur.rowcount / 10) + 1
             try:
                 for i in cur:
                     yield i

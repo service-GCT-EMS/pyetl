@@ -14,6 +14,7 @@ import re
 import logging
 import itertools
 from collections import defaultdict
+from path import Path
 
 # print('base',time.time()-t1)
 

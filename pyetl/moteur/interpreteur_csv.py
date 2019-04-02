@@ -254,7 +254,7 @@ def description_schema(regle):
 
 
 #    if def_index:
-    print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
+    # print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
 
 
 def extraction_operation(regle, fonction):
@@ -787,7 +787,10 @@ def affecte_variable(mapper, commande, context):
             # on affecte une variable d'environnement
             context.setvar(nom, mapper.env.get(valeur.split(":")[1], ""))
         elif valeur.startswith("#eval:") and valeur.split(":")[1]:
-            context.setvar(nom, eval(valeur.split(":")[1], ""))
+            if '__' in valeur:
+                print('fonction non autorisee', valeur)
+                return
+            context.setvar(nom, eval(valeur.split(":")[1], {}))
         else:
             context.setvar(nom, valeur)
 
