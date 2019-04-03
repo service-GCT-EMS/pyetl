@@ -35,13 +35,24 @@ class SpecDefs(object):
 
 class Cursinfo(object):
     """contient un curseur de base de donnees et des infos complementaires (requete,liste...)"""
+    def __init__(self, connection, volume=0, nom=''):
+        self.cursor = None
+        if connection:
+            if volume > 100000 and nom:
+                # on cree un curseur nomme pour aller plus vite et economiser de la memoire
+                self.cursor = connection.cursor(nom)
+                self.cursor.itersize = 100000
+                # print ('creation curseur nommé', volume, nom)
+                self.ssc = True
+            else:
+                self.cursor = connection.cursor()
+                self.ssc = False
+                # print ('creation curseur standard', volume, nom)
 
-    def __init__(self, connection):
-        self.cursor = connection.cursor() if connection else None
         self.request = None
         self.data = None
         self.attlist = None
-        self.decile = 100000
+        self.decile = 100000 if volume == 0 else int(volume/10+1)
 
     def __iter__(self):
         if self.cursor is None:
@@ -74,9 +85,10 @@ class Cursinfo(object):
                 self.cursor.execute(requete, data)
             else:
                 self.cursor.execute(requete)
-            self.decile = int(self.cursor.rowcount/10+1)
-            if self.decile == 1:
-                self.decile = 100000
+            if not self.ssc: # si on utilise des curseurs serveur le decompte est faux
+                self.decile = int(self.cursor.rowcount/10+1)
+                if self.decile == 1:
+                    self.decile = 100000
 
     @property
     def rowcount(self):
@@ -167,10 +179,10 @@ class DbConnect(object):
         self.accept_sql = "non"  # determine si la base accepte des requetes
         self.codecinfo = dict()
         self.geographique = False
-        self.connection = None
+        self.connection = self.connect()
         self.schemabase = None
         #        self.connect()
-        self.gensql = None
+        self.gensql = DbGenSql()
         self.rowcount = 0
         self.decile = 100000
         self.attlist = []
@@ -182,7 +194,6 @@ class DbConnect(object):
         self.load_helper = None
         self.load_ext = ""
         self.dump_helper = None
-        self.valide = self.connection is not None
         self.dialecte = "sql"
         self.fallback={}
         self.errs = Exception
@@ -191,13 +202,18 @@ class DbConnect(object):
 
     #  methodes specifiques a ecraser dans les subclasses ####
 
-    def get_cursinfo(self):
+    def get_cursinfo(self, volume=0, nom=''):
         """recupere un curseur"""
-        return Cursinfo(self.connection) if self.connection else None
+        return Cursinfo(self.connection, volume=volume, nom=nom) if self.connection else None
 
     def connect(self):
         """retourne la connection a la base"""
         return None
+
+    @property
+    def valide(self):
+        """ vrai si la connection est valide """
+        return self.connection is not None
 
     @property
     def idconnect(self):
@@ -235,9 +251,8 @@ class DbConnect(object):
 
     def dbclose(self):
         """fermeture base de donnees"""
-        if self.connection:
+        if self.connection is not None:
             self.connection.close()
-            self.valide = False
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
@@ -256,9 +271,9 @@ class DbConnect(object):
         return self.schemarequest('info_attributs')
 
 
-    def execrequest(self, requete, data=None, attlist=None):
+    def execrequest(self, requete, data=None, attlist=None, volume=0, nom=''):
         """ lancement requete specifique base"""
-        cur = self.get_cursinfo()
+        cur = self.get_cursinfo(volume=volume, nom=nom)
         #        cur.execute(requete, data=data, attlist=attlist)
 
         try:
@@ -281,12 +296,14 @@ class DbConnect(object):
         cur.close()
         return liste
 
-    def iterreq(self, requete, data=None, attlist=None, has_geom=False):
+    def iterreq(self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=''):
         """ lancement requete et gestion retours en mode iterateur"""
-        cur = self.execrequest(requete, data=data, attlist=attlist)
+        # print( 'appel execrequest', volume,nom)
+
+        cur = self.execrequest(requete, data=data, attlist=attlist, volume=volume, nom=nom)
         #            print ('recup cursinfo', type(cur))
-        if cur is not None:
-            cur.decile = int(cur.rowcount / 10) + 1
+        # if cur is not None:
+        #     cur.decile = int(cur.rowcount / 10) + 1
     #                cur.attlist = attlist
         return cur
 
@@ -389,7 +406,7 @@ class DbConnect(object):
             if att.type_att == "D":
                 attlist2.append(self.get_dateformat(i))
             else:
-                attlist2.append('"' + i + '"')
+                attlist2.append('"' + i + '"::text')
 
         self.get_sys_fields(attlist, attlist2)
         if self.geographique:
@@ -497,8 +514,10 @@ class DbConnect(object):
         #        print('acces alpha', self.geographique, requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
+        volinfo = maxi if maxi else int(schema.info["objcnt_init"])
+        # print( 'appel iterreq', volinfo,classe)
         return self.iterreq(
-            requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0"
+            requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0", volume=volinfo, nom=classe
         )
 
     def req_geom(self, ident, schema, mods, nom_fonction, geometrie, maxi=0, buffer=0):
@@ -548,8 +567,10 @@ class DbConnect(object):
                 print("debug: database: requete de selection geo", requete, data)
             # curs.execute(requete,data)
             self.attlist = attlist
+            volinfo = maxi if maxi else int(schema.info["objcnt_init"])
+
             return self.iterreq(
-                requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0"
+                requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0", volume=volinfo, nom=classe
             )
         else:
             print("error: classe non geometrique utilisee dans une requete geometrique")
@@ -588,7 +609,7 @@ class DbConnect(object):
         if conf.valide_base:
             return existe, conforme
         nom = conf.nombase
-        if self.connection:
+        if self.valide:
             schemabase = self.connection.schemabase
             if schemabase and nom in schemabase.conformites:
                 # si elle existe on verifie qu'elle est bonne
@@ -604,13 +625,13 @@ class DbConnect(object):
     def db_cree_table(self, schema, ident):
         """creation d' une tables en direct
            possible qu avec une connection"""
-        if self.connection:
+        if self.valide:
             req = self.gensql.cree_tables(schema, ident)
             return self.connection.request(req, ())
 
     def db_cree_tables(self, schema, liste):
         """creation d'une liste de tables en direct"""
-        if self.connection:
+        if self.valide:
             if not liste:
                 liste = [i for i in schema.classes if schema.classes[i].a_sortir]
             for ident in liste:
@@ -619,7 +640,8 @@ class DbConnect(object):
 
     def dbloadfile(self, schema, ident, fichier):
         """# charge un fichier par copy"""
-        pass
+        if not self.valide:
+            return False
         cur = self.connection.cursor()
         colonnes = tuple(schema.classes[ident].get_liste_attributs())
         nom = ".".join(ident)
@@ -635,6 +657,8 @@ class DbConnect(object):
 
     def dbload(self, schema, ident, source):
         """ charge des objets en base de donnees par dbload"""
+        if not self.valide:
+            return False
         cur = self.connection.cursor()
         colonnes = tuple(schema.classes[ident].getcodes_erreur_liste_attributs())
         nom = ".".join(ident)
@@ -653,10 +677,12 @@ class DbConnect(object):
 
     def recup_maxval(self, niveau, classe, clef):
         """ recupere le max d 'un champs """
-        requete = "SELECT max(" + clef + ") FROM " + niveau + "." + classe
+        if not self.valide:
+            return False
+        requete = "SELECT max(" + clef + ") as maxval FROM " + niveau + "." + classe
         print("requete maxval ", requete)
         curs = self.request(requete, ())
-        valeur = curs[0][0]
+        valeur = curs[0].maxval
         return valeur
 
 

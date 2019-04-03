@@ -214,7 +214,7 @@ class SqlmConnect(SqltConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         if cur is None:
             return iter(())

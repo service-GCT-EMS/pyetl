@@ -384,7 +384,7 @@ class SchemaClasse(object):
 
     def setpkey(self, liste):
         """cree stocke la definition des champs de la clef primaire"""
-        print ("------------------------------setpkey",self.indexes,liste)
+        # print ("------------------------------setpkey",self.indexes,liste)
         for i in list(self.indexes.keys()):
             if i.startswith("P:"):
                 del self.indexes[i]

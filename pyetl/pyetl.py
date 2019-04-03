@@ -14,7 +14,7 @@ import re
 import logging
 import itertools
 from collections import defaultdict
-from path import Path
+from pathlib import Path
 
 # print('base',time.time()-t1)
 
@@ -271,7 +271,7 @@ class Pyetl(object):
 
     def init_environ(self, env=None):
         """initialise les variables d'environnement et les macros"""
-        self.env = os.environ() if env is None else env
+        self.env = os.environ if env is None else env
         if not os.path.isdir(self.paramdir):
             try:
                 os.makedirs(self.paramdir)
@@ -712,6 +712,7 @@ class Pyetl(object):
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
         """ charge un ensemble de macros utilisables directement """
+        macro =None
         configfile = os.path.join(
             os.path.dirname(__file__), "moteur/fonctions/commandes_internes.csv"
         )
@@ -740,7 +741,8 @@ class Pyetl(object):
                 vpos = [i for i in liste[2:] if i]
                 macro = self.regmacro(nom, file=configfile, vpos=vpos)
             elif nom:
-                macro.add_command(conf, num)
+                if macro is not None:
+                    macro.add_command(conf, num)
 
     def charge_macros_bd(self):
         """charge des macros depuis la base de donnees definie dans les paramettres de site"""

@@ -61,17 +61,17 @@ class ElyConnect(ora.OrwConnect):
 
         chaine = " --".join((prog, chaine_connect, "file=" + file))
         #        print ('loader ', chaine)
-        env = os.environ
+        env = dict(os.environ) if self.params is None else self.params.env
         if not logfile:
             fini = subprocess.run(chaine, env=env, stderr=subprocess.STDOUT)
-        #        else:
-        #            fini = subprocess.run(chaine, env=env, stdout=logfile, stderr=subprocess.STDOUT)
+        else:
+            fini = subprocess.run(chaine, env=env, stdout=logfile, stderr=subprocess.STDOUT)
         if fini.returncode:
             print("sortie en erreur ", fini.returncode, fini.args, fini.stderr)
 
     def setenv(self):
-        """positionne les variables d'nevironnement pour les programmes externes """
-        orahome = self.params.get_param("feaora_oracle_home", groupe=self.code)
+        """positionne les variables d'environnement pour les programmes externes """
+        orahome = self.params.get_param("feaora_oracle_home_"+self.code)
         env = dict(os.environ)
         #        print('modif_environnement ',env)
         if orahome:  # on manipule les variables d'environnement
@@ -588,8 +588,9 @@ class ElyConnect(ora.OrwConnect):
 
             # print "stockage_conformite",valeur,alias
         #        print ('confs',self.confs)
-        for i in self.attributs.values():
-            i[9] = self.confs.get(i[9])
+        for i in self.attributs:
+            enum = self.confs.get(self.attributs[i].enum)
+            self.attributs[i]=self.attributs[i]._replace(enum=enum)
         #                    if conf is None:
         #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))
         #            if i[4] == "BOOLEEN":
@@ -602,7 +603,7 @@ class ElyConnect(ora.OrwConnect):
     def get_attributs(self):
         """recupere le schema complet
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,defaut,obligatoire
-            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,cible_clef"""
+            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,parametres_clef,cible_clef"""
         schema = self.adminschema
         if self.attributs:
             return list(self.attributs.values())
@@ -773,7 +774,7 @@ class ElyConnect(ora.OrwConnect):
                     #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
                     #                                              True, ordre = ordre) # on force
                     #                    print ("nom_att ",nom_att)
-                    attdef = [
+                    attdef = self.attdef(
                         nomschema,
                         nomtable,
                         nom_att,
@@ -791,13 +792,14 @@ class ElyConnect(ora.OrwConnect):
                         "",
                         "",
                         "",
+                        "",
                         0,
                         0,
-                    ]
+                    )
                     #                    print ('attribut',nomschema, nomtable, nom_att,conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
-                        attdef = [
+                        attdef = self.attdef(
                             nomschema,
                             nomtable,
                             nom_att + "_X",
@@ -815,11 +817,12 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             "",
                             "",
+                            "",
                             0,
                             0,
-                        ]
+                        )
                         self.attributs[i[0] + 0.1] = attdef
-                        attdef = [
+                        attdef = self.attdef(
                             nomschema,
                             nomtable,
                             nom_att + "_Y",
@@ -837,9 +840,10 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             "",
                             "",
+                            "",
                             0,
                             0,
-                        ]
+                        )
                         self.attributs[i[0] + 0.2] = attdef
 
                 else:

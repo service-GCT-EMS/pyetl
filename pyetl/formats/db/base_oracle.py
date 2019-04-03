@@ -55,7 +55,6 @@ class OraConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.accept_sql = "alpha"
         self.dateformat = "YYYY/MM/DD HH24:MI:SS"
-        self.valide = self.connection is not None
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -304,7 +303,7 @@ class OraConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         self.decile = 1

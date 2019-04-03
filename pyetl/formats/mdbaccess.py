@@ -246,11 +246,11 @@ def _get_attributs(connect):
         fdebug = open("lecture_base_attr_" + connect.type_serveur + ".csv", "w")
         fdebug.write("\n".join(fields) + "\n")
 
-    for i in connect.get_attributs():
-        atd = connect.attdef(*i)
+    for atd in connect.get_attributs():
+        # atd = connect.attdef(*i)
 
         if DEBUG:
-            fdebug.write(";".join([str(v) if v is not None else "" for v in i]))
+            fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
             fdebug.write("\n")
         num_attribut = float(atd.num_attribut)
         classe = schema_base.setdefault_classe((atd.nom_groupe, atd.nom_classe))
@@ -511,7 +511,7 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=""):
     return False
 
 
-def dbextalpha(regle_courante, base, niveau, classe, dest="", log=""):
+def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
     """extrait un fichier a travers un loader et lance les traitements"""
 
     connect, schema_base, schema_travail, liste_tables = recup_schema(
@@ -526,7 +526,7 @@ def dbextalpha(regle_courante, base, niveau, classe, dest="", log=""):
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
         #        workers, extworkers = regle_courante.get_max_workers()
-        print("extalpha", regle_courante.vloc, regle_courante.get_max_workers())
+        print("extalpha", regle_courante.context, regle_courante.get_max_workers(), regle_courante.getvar('_wid'))
         resultats = connect.extalpha(
             regle_courante,
             helper,
@@ -672,21 +672,26 @@ def sortie_resultats(
     tget = time.time()
     decile =curs.decile
     for valeurs in curs.cursor:
-        obj = Objet(niveau, classe, format_natif=format_natif, conversion=geom_from_natif)
         #        print ("geometrie valide",obj.geom_v.valide)
         #        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
-        obj.attributs["#type_geom"] = type_geom
         if type_geom != "0":
-            obj.attributs.update(
-                zip(attlist, [str(i) if i is not None else "" for i in valeurs[:-1]])
-            )
+            obj = Objet(niveau, classe, format_natif=format_natif,
+                         conversion=geom_from_natif,
+                          attributs = zip(attlist, [str(i) if i is not None else "" for i in valeurs[:-1]]))
+
+            # obj.attributs.update(
+            #     # zip(attlist, [str(i) if i is not None else "" for i in valeurs[:-1]])
+            #     zip(attlist, valeurs[:-1])
+            # )
             obj.geom = [valeurs[-1] if valeurs[-1] is not None else ""]
 
             if type_geom == "1":  # on prepare les angles s'il y en a
                 obj.attributs["#angle"] = obj.attributs.get("angle", "0")
         else:
-            obj.attributs.update(zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
-
+            obj = Objet(niveau, classe, format_natif=format_natif,
+                         conversion=geom_from_natif,
+                         attributs = zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
+        obj.attributs["#type_geom"] = type_geom
         obj.setschema(schema_classe_travail)
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
         nbvals += 1
@@ -719,6 +724,7 @@ def sortie_resultats(
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, cdef))
     stock_param.set_param('printpending', 0)
+    curs.close()
     return nbvals
 
 

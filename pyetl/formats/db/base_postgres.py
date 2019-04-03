@@ -11,6 +11,7 @@ import os
 import subprocess
 import re
 from collections import namedtuple
+import psycopg2
 from .database import DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
@@ -160,10 +161,8 @@ class PgrConnect(DbConnect):
         self.load_helper = "prog_pgsql"
         self.sql_helper = "prog_pgsql"
         self.accept_sql = "alpha"
-        self.valide = False
         if self.connection:
             self.set_searchpath()
-            self.valide = True
         self.type_base = "postgres"
         self.dialecte = "postgres"
 
@@ -213,11 +212,11 @@ class PgrConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-        try:
-            import psycopg2
-        except ImportError:
-            print("error: postgr2: erreur import module postgres")
-            return None, None
+        # try:
+        #     import psycopg2
+        # except ImportError:
+        #     print("error: postgr2: erreur import module postgres")
+        #     return None, None
         if self.base:
             chaine_connect = self.serveur + " dbname=" + self.base
         else:
@@ -229,7 +228,7 @@ class PgrConnect(DbConnect):
         #    print ('info:postgres: connection ', serveur,base,user,'*'*len(passwd))
         try:
             connection = psycopg2.connect(chaine_connect)
-            connection.autocommit = True
+            connection.autocommit = False
             self.connection = connection
         except psycopg2.Error as err:
             print("error: postgres: connection impossible ")

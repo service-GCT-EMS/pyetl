@@ -46,7 +46,6 @@ class SqltConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.connect()
         self.geographique = True
-        self.valide = self.connection is not None
 
     #        self.encoding =
 
@@ -193,7 +192,7 @@ class SqltConnect(DbConnect):
             cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         cur.decile = 1
         if cur is None:

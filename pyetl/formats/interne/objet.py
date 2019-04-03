@@ -36,7 +36,7 @@ class Objet(object):
 
     _ido = itertools.count(1)  # compteur d'instance
 
-    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None):
+    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None):
         self.geom = []
         self.geom_v = Geometrie()
         #        self.valide = False
@@ -54,14 +54,15 @@ class Objet(object):
         # self.atg = False
         self.liste_attributs = None
         self.idorig = (groupe, classe)
-        self.attributs = {
-            "#statgroupe": "total",
-            "#type_geom": "0",
-            "#groupe": groupe,
-            "#classe": classe,
-            "#groupe_orig": groupe,
-            "#classe_orig": classe,
-        }
+        self.attributs = dict() if attributs is None else dict(attributs)
+        self.attributs.update((
+            ("#statgroupe", "total"),
+            ("#type_geom", "0"),
+            ("#groupe", groupe),
+            ("#classe", classe),
+            ("#groupe_orig", groupe),
+            ("#classe_orig", classe),
+        ))
         self.hdict = None
         self.multiples = None  # atributs multiples
         #        self.attributs_speciaux = AttributsSpeciaux()
