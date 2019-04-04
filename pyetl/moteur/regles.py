@@ -248,6 +248,7 @@ class RegleTraitement(object):  # regle de mapping
         self.erreurs = []
         self.v_nommees = dict()
 
+
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
@@ -279,9 +280,12 @@ class RegleTraitement(object):  # regle de mapping
         return self.context.getchain(noms, defaut)
 
     def setvar(self, nom, valeur):
-        """positionne une variable dans le contexte"""
+        """positionne une variable dans le contexte de reference"""
         self.context.setvar(nom, valeur)
 
+    def setlocal(self, nom, valeur):
+        """positionne une variable dans le contexte local"""
+        self.context.setlocal(nom, valeur)
     # =========================acces standardises aux objets==================
     def get_defaut(self, obj):
         ''' retourne la valeur par defaut s'il n'y a pas de champ'''

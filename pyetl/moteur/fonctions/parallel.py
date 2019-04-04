@@ -120,7 +120,7 @@ def parallelprocess(numero, file, regle):
     """traitement individuel d'un fichier"""
     mainmapper = getmainmapper()
     try:
-        #        print ('worker:lecture', file, regle)
+        # print ('worker:lecture', file, regle)
         nom, parms = file
         nb_lu = mainmapper.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
@@ -321,7 +321,7 @@ def traite_parallel(regle):
     num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-    print("passage en mode parallel", regle)
+    print("passage en mode parallel",num_regle, regle)
     if mapper.worker:
         print("un worker ne peurt pas passer en parallele", mapper.get_param("_wid"))
         raise RuntimeError
@@ -610,7 +610,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     pool = get_pool(maxworkers)
     a_traiter = []
     libres = []
-    print("dans iter parallelext", maxworkers, len(blocks))
+    # print("----------------------------dans iter parallelext", maxworkers, len(blocks))
     # optimiseur de position
 
     while blocks or libres < maxworkers:

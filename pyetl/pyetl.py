@@ -196,8 +196,6 @@ class Pyetl(object):
         self.moteur = None
         # parametres de lancement
 
-        self.aff = None
-
         # variables de stockage interne
         # commandes internes
         # strucutres de stockage partagees
@@ -384,6 +382,10 @@ class Pyetl(object):
             self.nompyetl = regles
             self.rdef = os.path.dirname(regles)  # nom de repertoire des regles
         self._traite_params(liste_params)
+        # on initialise le gestionnaire d'affichage
+        self.aff = self._patience(
+            self.get_param("_st_lu_objs", 0), self.get_param("_st_lu_fichs", 0))
+        next(self.aff)
 
         LOGGER.debug(
             "prepare_module"
@@ -937,12 +939,7 @@ class Pyetl(object):
 
         abort = False
         duree = 0
-        #        lu_total, lu_fichs = 0, 0
-        self.aff = self._patience(
-            self.get_param("_st_lu_objs", 0), self.get_param("_st_lu_fichs", 0)
-        )
-        # on initialise le gestionnaire d'affichage
-        next(self.aff)
+
         if entree and entree.strip() and entree != "!!vide":
             print(
                 "mapper: debut traitement donnees:>" + entree + "-->",
@@ -1169,9 +1166,9 @@ class Pyetl(object):
 
         #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
-        #        print ('appel lecture ',fichier, regle, reglenum)
         regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
         reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
+        # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
 
         self.f_entree = Reader(ext, regle, reglestart)
         #        print ('initialisation reader', ext)

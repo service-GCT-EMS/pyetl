@@ -57,7 +57,7 @@ class Reader(object):
 
     @staticmethod
     def get_formats():
-        """retourne la liste des formata connus"""
+        """retourne la liste des formats connus"""
         return Reader.lecteurs
 
     #    auxiliaires = AUXILIAIRES
@@ -69,7 +69,7 @@ class Reader(object):
         self.regle = regle  # on separe la regle de lecture de la regle de demarrage
         self.regle_start = regle_start
         self.regle_ref = self.regle if regle is not None else self.regle_start
-        stock_param = regle_start.stock_param
+        stock_param = self.regle_ref.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
         self.set_format_entree(nom)
         self.nb_lus = 0

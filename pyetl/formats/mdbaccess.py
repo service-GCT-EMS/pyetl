@@ -539,7 +539,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
         if resultats:
             for idclasse in resultats:
                 schema_travail.classes[idclasse].objcnt = resultats[idclasse]
-            regle_courante.setvar("schema_entree", schema_travail.nom, loc=0)
+            regle_courante.setvar("schema_entree", schema_travail.nom)
     return False
 
 

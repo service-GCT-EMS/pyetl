@@ -255,6 +255,7 @@ class ElyConnect(ora.OrwConnect):
         resultats = dict()
         size = dict()
         blocks = dict()
+        nom =''
         if fanout == "no":
             nom = (classes[0][1],) if len(classes) == 1 else ("export",)
             size[nom] = 0
@@ -347,7 +348,7 @@ class ElyConnect(ora.OrwConnect):
             self.tmpdir = tmpdir
             nbproc, nbdump = nbworkers
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            print("calcule blocs ", len(blocks))
+            print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
             #            self.params.execparallel_ext(blocks, workers, self.fearunner,
             #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, nbdump)
             fileiter = self.params.iterparallel_ext(
@@ -925,6 +926,7 @@ class ElyConnect(ora.OrwConnect):
         for i in liste_atts.values():
             num_role_sm = i[4]
             role_sm = liste_roles_sm.get(num_role_sm)
+            nom_role =''
             if role_sm:
                 num_role = role_sm[4]
                 role = liste_roles.get(num_role)
@@ -932,20 +934,19 @@ class ElyConnect(ora.OrwConnect):
                     nom_role = role[4]
                 else:
                     print("role inconnu", num_role)
+                    nom_role = 'indefini'
                     continue
             else:
                 print("role sm inconnu", num_role_sm)
                 continue  # le role a saute on ignore les droits
             num_compo = i[5]
             nom_compo = self.compos_id.get(num_compo)
+            droit = "consult" if i[6] == 2 else "admin"
             if nom_compo:
                 groupe, classe = nom_compo
-            else:
-                continue
-            droit = "consult" if i[6] == 2 else "admin"
+                liste.append(";".join((nom_role, str(droit), groupe, classe, str(i[6]))))
+                #            print (nom_compo,nom_role,droit)
 
-            #            print (nom_compo,nom_role,droit)
-            liste.append(";".join((nom_role, str(droit), groupe, classe, str(i[6]))))
         entete = "nom_role;type_droit;schema;table"
         print("droits trouves ", len(liste))
         return (entete, liste)

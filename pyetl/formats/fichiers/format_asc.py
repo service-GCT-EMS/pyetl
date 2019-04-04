@@ -262,11 +262,11 @@ def lire_objets_asc(self, rep, chemin, fichier):
     affich = 20000
     nextaff = 20000
     # ouv = None
-    regle = self.regle if self.regle else self.regle_start
-    stock_param = self.regle_start.stock_param
+    stock_param = self.regle_ref.stock_param
+    regle = self.regle_start
     obj = None
     nom = None
-    schema, schema_init = _get_schemas(regle, rep, fichier)
+    schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
     #    print ('lire_asc ', schema, schema_init)
     maxobj = stock_param.get_param("lire_maxi", 0)
     #    print('asc:entree', fichier)

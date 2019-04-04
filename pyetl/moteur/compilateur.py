@@ -38,10 +38,10 @@ def _affiche_debug(regles, debug):
                 )
             print(
                 "   compile: select",
-                regle.selstd.__name__ if regle.sel1 else "None",
+                regle.selstd.__name__ if regle.selstd else "None",
                 "sel1'",
-                regle.sel1.fonction.__name__ if regle.sel1 else "" "sel2'",
-                regle.sel2.fonction.__name__ if regle.sel2 else "",
+                regle.sel1.fonction.__name__ if hasattr(regle,"sel1") else "" "sel2'",
+                regle.sel2.fonction.__name__ if hasattr(regle,"sel2") else "",
             )
 
 
