@@ -18,12 +18,16 @@ from pathlib import Path
 
 # print('base',time.time()-t1)
 
-from .vglobales import VERSION, set_mainmapper, DEFCODEC
+from pyetl.vglobales import VERSION, set_mainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
+from pyetl.formats import Reader, READERS, WRITERS
 
 # print('formats',time.time()-t1)
 
+from pyetl.formats.ressources import GestionSorties  # formats entree et sortie
+from pyetl.formats.interne.stats import Stat, ExtStat
+from pyetl.moteur.interpreteur_csv import (
     lire_regles_csv,
     reinterprete_regle,
     interprete_ligne_csv,
