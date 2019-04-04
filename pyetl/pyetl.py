@@ -21,25 +21,21 @@ from pathlib import Path
 from .vglobales import VERSION, set_mainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
-from .formats import Reader, READERS, WRITERS
 
 # print('formats',time.time()-t1)
 
-from .formats.ressources import GestionSorties  # formats entree et sortie
-from .formats.interne.stats import Stat, ExtStat
-from .moteur.interpreteur_csv import (
     lire_regles_csv,
     reinterprete_regle,
     interprete_ligne_csv,
     map_vars,
 )
-from .moteur.compilateur import compile_regles
-from .moteur.moteur import Moteur, Macro, Context
-from .moteur.fonctions import COMMANDES, SELECTEURS
-from .moteur.fonctions.outils import scan_entree
-from .schema.schema_interne import init_schema  # schemas
-from .schema.schema_io import ecrire_schemas  # integre_schemas # schemas
-from .moteur.fonctions.parallel import setparallel
+from pyetl.moteur.compilateur import compile_regles
+from pyetl.moteur.moteur import Moteur, Macro, Context
+from pyetl.moteur.fonctions import COMMANDES, SELECTEURS
+from pyetl.moteur.fonctions.outils import scan_entree
+from pyetl.schema.schema_interne import init_schema  # schemas
+from pyetl.schema.schema_io import ecrire_schemas  # integre_schemas # schemas
+from pyetl.moteur.fonctions.parallel import setparallel
 
 # from  .moteur.fonctions.parallel import initl
 # from  .outils.crypt import crypter, decrypt
@@ -144,7 +140,7 @@ class Pyetl(object):
     selecteurs = SELECTEURS
     sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
     reconfig = reinterprete_regle
-    from .outils.crypt import crypter, decrypt
+    from pyetl.outils.crypt import crypter, decrypt
 
     #    crypt = crypter
     #    decrypt = decrypt
@@ -225,7 +221,7 @@ class Pyetl(object):
         # identification d'une reference a un champ  dans une expression
         #        self.liste_formats = [".ASC", ".SHP", ".CSV"]
         #        self.sortie_defaut = "asc"
-        self.f_entree = None
+        #self.f_entree = None
         self.liste_regles = None
 
         self.liens_variables = dict()
@@ -322,7 +318,7 @@ class Pyetl(object):
         nom = self.get_param("_sortie")
 
         if commande == "#help" or commande == "help":
-            from .helpdef.helpmodule import print_help
+            from pyetl.helpdef.helpmodule import print_help
 
             self.set_param("_sortie", "")
             print_help(self, nom)
@@ -331,7 +327,7 @@ class Pyetl(object):
         elif commande == "#autotest" or commande == "autotest":
             #            print("detecte autotest ", self.fichier_regles, self.posparm)
 
-            from .tests.testmodule import full_autotest
+            from pyetl.tests.testmodule import full_autotest
 
             liste_regles = full_autotest(self, pars[0] if pars else nom)
             self.set_param("_testmode", "unittest")
@@ -343,7 +339,7 @@ class Pyetl(object):
                 # on a charge les commandes on neutralise l autotest
 
         elif commande == "#unittest" or commande == "unittest":
-            from .tests.testmodule import unittests
+            from pyetl.tests.testmodule import unittests
 
             self.set_param("_sortie", "")
             self.set_param("_testmode", "unittest")
@@ -351,7 +347,7 @@ class Pyetl(object):
             self.done = True
 
         elif commande == "#formattest" or commande == "formattest":
-            from .tests.testmodule import formattests
+            from pyetl.tests.testmodule import formattests
 
             self.set_param("_sortie", "")
             self.set_param("_testmode", "formattest")
@@ -518,7 +514,7 @@ class Pyetl(object):
             #            nbtotal += nbval
             tabletotal += nbfic
             if message == "init":
-                duree, interv = next(temps)
+                duree, _ = next(temps)
                 interm = duree
             #                print("init  : --------->", int(duree*1000), 'ms')
             elif message == "end":
@@ -735,16 +731,16 @@ class Pyetl(object):
             return
         for conf in open(configfile, "r").readlines():
             num += 1
+            if not conf or conf.startswith("!"):
+                continue
             liste = conf.split(";")
-            if liste and liste[0] == "!":
-                pass
-            if liste and liste[0] == "&&#define":
+            if conf.startswith("&&#define"):
                 nom = liste[1]
                 vpos = [i for i in liste[2:] if i]
                 macro = self.regmacro(nom, file=configfile, vpos=vpos)
-            elif nom:
-                if macro is not None:
-                    macro.add_command(conf, num)
+                continue
+            if macro:
+                macro.add_command(conf, num)
 
     def charge_macros_bd(self):
         """charge des macros depuis la base de donnees definie dans les paramettres de site"""

@@ -13,7 +13,7 @@ from collections import defaultdict
 
 import pyetl.formats.db as db
 from pyetl.schema.fonctions_schema import copyschema
-from .interne.objet import Objet
+from pyetl.formats.interne.objet import Objet
 
 
 DEBUG = False

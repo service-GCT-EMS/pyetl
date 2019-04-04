@@ -136,7 +136,7 @@ class ElyConnect(ora.OrwConnect):
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(tmpdir, "param_FEA.xml")
             outfile = os.path.join(tmpdir, nom + "_out_FEA.txt")
-            resultats, size, blocks = self.stat_classes(classes, "no")
+            resultats, size, _ = self.stat_classes(classes, "no")
             dinit = time.time()
             if self.lanceur(helper, xml, paramfile, outfile):
                 self.export_statprint(None, ((nom,), outfile, size, resultats), time.time() - dinit)
@@ -346,7 +346,7 @@ class ElyConnect(ora.OrwConnect):
         with tempfile.TemporaryDirectory() as tmpdir:
             #        if True:
             self.tmpdir = tmpdir
-            nbproc, nbdump = nbworkers
+            _, nbdump = nbworkers
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
             print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
             #            self.params.execparallel_ext(blocks, workers, self.fearunner,
@@ -583,7 +583,7 @@ class ElyConnect(ora.OrwConnect):
                 ]
                 enum = {i[1]: i for i in table if i[0] == val_filtre}
                 for i in enum:
-                    filtre, clef, val, ordre = enum[i]
+                    _, clef, val, ordre = enum[i]
                     #                    print ('enum_en_table',nom, ordre, clef, val)
                     enums.append((nom, int(ordre) if ordre else 0, clef, val, 1))
 

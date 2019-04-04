@@ -1,8 +1,4 @@
 {
-    "include": [
-        "pyetl/",
-        "pyetl/outils/",
-        "pyetl/formats/",
-        "pyetl/moteur/"
-    ]
+  "include": [".", "./pyetl"],
+  "exclude": ["./outils"]
 }
