@@ -607,7 +607,7 @@ class ElyConnect(ora.OrwConnect):
             enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,parametres_clef,cible_clef"""
         schema = self.adminschema
         if self.attributs:
-            return list(self.attributs.values())
+            return self.attributs.values()
         requete = self.constructeur(
             schema,
             "APICD_COMPOSANT",

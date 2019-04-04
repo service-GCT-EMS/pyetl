@@ -248,7 +248,7 @@ def _get_attributs(connect):
 
     for atd in connect.get_attributs():
         # atd = connect.attdef(*i)
-
+        # print ('schema attributs', atd)
         if DEBUG:
             fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
             fdebug.write("\n")

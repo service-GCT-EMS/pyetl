@@ -125,7 +125,7 @@ class SqlmConnect(SqltConnect):
             attributs = self.request(requete, None)
             for att in attributs:
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
-                attlist.append(
+                attlist.append( self.attdef(
                     (
                         schema,
                         nom,
@@ -144,10 +144,11 @@ class SqlmConnect(SqltConnect):
                         ispk,
                         "",
                         "",
+                        "",
                         0,
                         0,
                     )
-                )
+                ))
                 if nom_att == "GEOMETRY":
                     table_geom = type_att
                     table_dim = 2

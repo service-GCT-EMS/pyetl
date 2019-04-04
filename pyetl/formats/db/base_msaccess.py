@@ -212,7 +212,7 @@ class AccConnect(DbConnect):
         #    #                fclefs=','.join(fkeys)
 
         #        print ('msaccess ',[i for i in cur.columns()])
-        return [
+        return [self.attdef(
             (
                 cd.table_schem if cd.table_schem else "",
                 cd.table_name,
@@ -231,9 +231,10 @@ class AccConnect(DbConnect):
                 pkeys.get((cd.table_name, cd.column_name), ""),
                 "",
                 "",
+                "",
                 cd.column_size,
                 cd.decimal_digits,
-            )
+            ))
             for cd in cur.columns()
             if (cd.table_schem if cd.table_schem else "", cd.table_name) in self.tables
         ]

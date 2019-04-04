@@ -1,0 +1,8 @@
+{
+    "include": [
+        "pyetl/",
+        "pyetl/outils/",
+        "pyetl/formats/",
+        "pyetl/moteur/"
+    ]
+}

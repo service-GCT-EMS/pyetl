@@ -682,7 +682,7 @@ class DbConnect(object):
         requete = "SELECT max(" + clef + ") as maxval FROM " + niveau + "." + classe
         print("requete maxval ", requete)
         curs = self.request(requete, ())
-        valeur = curs[0].maxval
+        valeur = curs[0][0]
         return valeur
 
 

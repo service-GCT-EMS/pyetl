@@ -363,10 +363,11 @@ class PgrConnect(DbConnect):
             #                    print ('detection taille ',i[4],taille,dec)
             tmp0[18] = taille
             tmp0[19] = dec
-            retour.append(tmp0)
+            atd = self.attdef(*tmp0)
+            yield(atd)
         #            if taille != 0:
         #                print ('attributs pg',i)
-        return retour
+        # return retour
 
     @property
     def get_join_char(self):
