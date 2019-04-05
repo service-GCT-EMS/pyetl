@@ -1,4 +1,11 @@
 {
-  "include": [".", "./pyetl"],
-  "exclude": ["./outils"]
+    "include": [
+        ".",
+        "./pyetl"
+    ],
+    "exclude": [
+        "./outils"
+    ],
+    "pythonPlatform": "Windows",
+    "reportMissingImports": "error"
 }

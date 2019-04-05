@@ -36,13 +36,14 @@ def _affiche_debug(regles, debug):
                         ]
                     )
                 )
-            print(
-                "   compile: select",
-                regle.selstd.__name__ if regle.selstd else "None",
-                "sel1'",
-                regle.sel1.fonction.__name__ if hasattr(regle,"sel1") else "" "sel2'",
-                regle.sel2.fonction.__name__ if hasattr(regle,"sel2") else "",
-            )
+            if regle.selstd is not None:
+                print(
+                    "   compile: select",
+                    regle.selstd.__name__ if regle.selstd else "None",
+                    "sel1'",
+                    regle.sel1.fonction.__name__ if hasattr(regle,"sel1") else "" "sel2'",
+                    regle.sel2.fonction.__name__ if hasattr(regle,"sel2") else "",
+                )
 
 
 def _branche(regle1, regle2):
@@ -152,7 +153,7 @@ def compile_regles(mapper, liste_regles, debug=0):
         if not regles:
             print("pas de regles a compiler")
             raise EOFError("pas de regles a compiler")
-
+        # print ('compilateur:gestion sortie',mapper.get_param("F_sortie"))
         if mapper.get_param("sans_sortie"):
             regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
         else:

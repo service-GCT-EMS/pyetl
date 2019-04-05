@@ -45,10 +45,37 @@ def compte_obj(self, regle, *_, **__):
     return 0, 0
 
 
+def affiche_header(obj):
+    """affichage entete"""
+    print(",".join(obj.schema.get_liste_attributs()))
+
+
+def affiche_stream(self, obj, regle, **__):
+    """affichage"""
+    if obj.ident != regle.dident:
+        affiche_header(obj)
+        regle.dident = obj.ident
+    print(
+        ",".join((obj.attributs.get(i, "") for i in obj.schema.get_liste_attributs()))
+    )
+    return 0, 0
+
+
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "#poubelle": (ecrire_objets_neant, stream_objets_neant, False, "no", 0, "", "all", None, None),
+    "#poubelle": (
+        ecrire_objets_neant,
+        stream_objets_neant,
+        False,
+        "no",
+        0,
+        "",
+        "all",
+        None,
+        None,
+    ),
     "#comptage": (compte_obj, compte_obj_stream, False, "no", 0, "", "all", None, None),
+    "print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None),
 }
 #                  reader,geom,hasschema,auxfiles
 READERS = {"interne": (None, None, False, ())}

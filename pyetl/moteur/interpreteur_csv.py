@@ -758,7 +758,7 @@ def affecte_variable(mapper, commande, context):
     """ affecte une variable avec gestion des valeurs par defaut"""
     commande, binding = map_vars(commande, context)
     modif = r"\;" in commande  # gestion des ';' comme parametre
-    #    print('affecte',commande,context)
+    # print('affecte',commande,context)
     affectation = commande.split(";")[0][1:]
     #            print ('affectation:',affectation)
     pos_egal = commande.index("=")

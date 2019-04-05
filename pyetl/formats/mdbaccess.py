@@ -11,9 +11,8 @@ import os
 import logging
 from collections import defaultdict
 
-import pyetl.formats.db as db
-from pyetl.schema.fonctions_schema import copyschema
-from pyetl.formats.interne.objet import Objet
+from .db import DATABASES
+from .interne.objet import Objet
 
 
 DEBUG = False
@@ -131,12 +130,13 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
         return selection_directe(schema, niveau)
     convert = {"a": "rtmfv", "v": "vm", "t": "r"}
     tables = convert.get(tables.lower(), tables.lower())
-    #    print('db:sortie liste', len(niveau), len(classe))
-    #    print('db:sortie liste', tables,niveau,classe)
+    print('db:sortie liste', len(niveau), len(classe))
+    print('db:sortie liste', tables,niveau,classe)
     for exp_niv, exp_clas in zip(niveau, classe):
         #            trouve = False
         exp_niv = exp_niv.strip()
         exp_clas = exp_clas.strip()
+
         if nocase:
             exp_niv = exp_niv.lower()
             exp_clas = exp_clas.lower()
@@ -148,9 +148,19 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
         if exp_clas and exp_clas[0] == "!":
             negclass = True
             exp_clas = exp_clas[1:]
-
+        if exp_clas == '*':
+            exp_clas = '.*'
         ren = re.compile(exp_niv)
-        rec = re.compile(exp_clas)
+        try:
+            rec = re.compile(exp_clas)
+        except: # on essaye de remplacesr les *
+            exp_clas.replace('*','.*')
+            try:
+                rec = re.compile(exp_clas)
+            except re.error as identifier:
+                print('erreur de description de classe ', exp_clas)
+                raise SyntaxError
+
         #        print ('selection boucle', ren,rec,len(schema.classes))
         for i in schema.classes:
             if schema.classes[i].type_table not in tables:
@@ -192,6 +202,7 @@ def _get_tables(connect):
     """recupere la structure des tables"""
     schema_base = connect.schemabase
     for i in connect.get_tables():
+        type_table = 'r'
         if len(i) == 12:
             _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
                 i
@@ -390,11 +401,11 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
             print("dbaccess: base non definie", codebase, sorted(stock_param.context.vlocales) )
             return None
 
-    if type_base not in db.DATABASES:
+    if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
 
-    dbdef = db.DATABASES[type_base]
+    dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
         #       if stock_param.get_param("racine",''):
@@ -408,7 +419,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     user = stock_param.get_param("user_" + codebase, "")
     passwd = stock_param.get_param("passwd_" + codebase, "")
 
-    dbdef = db.DATABASES[type_base]
+    dbdef = DATABASES[type_base]
     connection = dbdef.acces(
         serveur, base, user, passwd, system=systables, params=stock_param, code=codebase
     )
@@ -588,7 +599,7 @@ def get_connect(
     for ident in select_tables(connect.schemabase, niveau, classe, tables, multi, nocase):
         classe = connect.schemabase.get_classe(ident)
         #        print ('classe a copier ',classe.identclasse,classe.attributs)
-        clas2 = copyschema(classe, ident, schema_travail)
+        clas2 = classe.copy(ident, schema_travail)
         clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
         # on renseigne le nombre d'objets de la table
         clas2.type_table = classe.type_table  # pour eviter qu elle soit marqueee interne

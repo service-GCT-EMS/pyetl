@@ -47,7 +47,6 @@ fonctions de sortie et de schema auxiliaires
 # from pyetl.formats.formats import Stat
 
 from pyetl.formats.interne.stats import Stat, Statdef
-from pyetl.schema.fonctions_schema import copyschema
 
 
 # fonctions de remplacement
@@ -402,7 +401,7 @@ def fschema_change_schema(regle, obj):
     if not schema_classe:
         #        print ("moteur : copie schema ", nom_schema, ident,  schema2.nom)
         #        raise
-        schema_classe = copyschema(obj.schema, ident, schema2, filiation=True)
+        schema_classe = obj.schema.copy(ident, schema2, filiation=True)
     if schema_classe.amodifier(regle):
         mode = regle.getvar("schema_nocase", False)
         if mode:  # on adapte la casse

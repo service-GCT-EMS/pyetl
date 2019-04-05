@@ -413,6 +413,7 @@ class ElyConnect(ora.OrwConnect):
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """charge un fichier par FEA2ORA"""
+        retour = False
         if len(files) == 1:
             file = files[0]
             loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
@@ -426,6 +427,7 @@ class ElyConnect(ora.OrwConnect):
 
             retour = self.singlerunner(helper, loadxml, nom, [])
         return retour
+        #TODO gestion des retours
 
     def traite_defaut(self, nom_att, defaut):
         """analyse les defauts et les convertit en fonctions internes"""

@@ -6,9 +6,6 @@ import os
 import time
 import xml.etree.cElementTree as ET
 
-from pyetl.schema.fonctions_schema import copyschema
-
-
 # print ('osm start')
 # import pyetl.schema as SC
 
@@ -110,7 +107,7 @@ class DecodeConfigOsm(object):
         schemaclasse.stocke_attribut("tags", "H")
         #        schemaclasse.stocke_attribut('#all_tags', 'H')
         schemaclasse.info["type_geom"] = self.force_geom if self.force_geom else self.geom
-        incomplet = copyschema(schemaclasse, idref, None, filiation=False)
+        incomplet = schemaclasse.copy(idref, None, filiation=False)
         incomplet.groupe = "osm_incomplet"
         self.schema.ajout_classe(incomplet)
         if incomplet.info["type_geom"] == "3":

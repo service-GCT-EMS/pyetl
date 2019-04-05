@@ -288,50 +288,6 @@ def set_val_schema(schemaclasse, nom, valeur):
 
 #    print ('apres',classe.info['type_geom'], classe)
 
-
-def copyschema(classe, ident, schema2, filiation=True):
-    """copie du schema d'une classe vers un nouveau schema avec gestion des conformites"""
-    if not classe:
-        print("erreur schema inexistant", ident)
-        return None
-    old_schema = classe.schema  # on evite de recopier toute la structure
-    old_fils = classe.fils
-    old_regles_modif = classe.regles_modif
-    #    print ("copie schema ",ident,schema2.nom,classe.attributs)
-    classe.schema = None
-    classe.fils = []
-    classe.regles_modif = set()
-    groupe, nom = ident
-    nouvelle_classe = copy.deepcopy(classe)
-    nouvelle_classe.nom = nom
-    nouvelle_classe.type_table = "i"
-    nouvelle_classe.groupe = groupe
-    nouvelle_classe.schema = schema2
-    nouvelle_classe.objcnt = 0
-    classe.schema = old_schema
-    classe.fils = old_fils
-    classe.regles_modif = old_regles_modif
-    if filiation:
-        old_fils.append(nouvelle_classe)  # gestion des filiations de classes
-    # n = 0
-    #    print ('nouvelle_classe',nouvelle_classe.identclasse,nouvelle_classe.attributs)
-    for i in nouvelle_classe.attributs:
-        # il faut verifier les conformites
-        conf = nouvelle_classe.attributs[i].conformite
-        if conf:
-            # n = n+1
-            #            print ('copie conformite ',i,conf.nom if conf else "non reference")
-            if conf.nom in schema2.conformites:
-                # elle existe deja on se branche dessus
-                nouvelle_classe.attributs[i].conformite = schema2.conformites[conf.nom]
-                # n2 += 1
-            else:
-                schema2.conformites[conf.nom] = conf  # on la stocke
-    if schema2:
-        schema2.ajout_classe(nouvelle_classe)
-    return nouvelle_classe
-
-
 def _gere_conformite_invalide(classe, atdef, val, mode):
     """ gere le controle de type par rapport au schema"""
     repl = None

@@ -23,16 +23,16 @@ def _mode_niv_in(mapper, niv):
     classe = []
     attrs = []
     cmp = []
-    #    print("mode_niv in:lecture_fichier",valeurs)
+    print("mode_niv in:lecture_fichier",valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
-        #        print("mode_niv in:liste_defs",liste_defs)
+        print("mode_niv in:liste_defs",liste_defs)
 
         def1 = liste_defs.pop(0).split(".")
         if len(def1) == 1 and liste_defs and liste_defs[0]:
             defs2 = liste_defs.pop(0).split(".")
             def1.extend(defs2)
-        #            print("mode_niv in:def1",def1)
+        print("mode_niv in:def1",def1)
 
         niveau.append(def1[0])
         if len(def1) == 1:
@@ -171,7 +171,7 @@ def setdb(regle, obj, att=True):
     if niveau and niveau[0].startswith("["):  # nom de classe contenu dans un attribut
         niveau = [obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])]
     if classe and classe[0].startswith("["):  # nom de classe contenu dans un attribut
-        classe = [obj.attributs.get(classe[0][1:-1], "classe non definie " + classe[0])]
+        classe = [obj.attributs.get(classe[0][1:-1], "attribut non defini " +'.'.join(obj.ident)+ classe[0][1:-1])]
     if regle.params.att_entree.liste:
         #        print('on a mis un attribut', regle.params.att_entree.liste)
         valeur = [
@@ -191,14 +191,15 @@ def f_dbalpha(regle, obj):
     #pattern||?A;?;?;dbalpha;?;?
 
     """
-    if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel":
-        #        print ('detection traitement virtuel : on ignore', obj.ident)
-        return False
+    if not regle.getvar('traitement_virtuel'):
+        if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel" :
+            print ('detection traitement virtuel : on ignore', obj.ident, regle.getvar('traitement_virtuel'), regle.context.vlocales)
+            return False
 
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
-    #    print ('regles alpha: acces base apres ', base, niveau, classe, attribut)
+    # print ('regles alpha: acces base apres ', base, niveau, classe, attrs)
 
     LOGGER.debug("regles alpha:ligne  " + repr(regle) + repr(type_base) + repr(mods))
     #    print('regles alpha:ligne  ', regle, type_base, mods)
@@ -456,7 +457,7 @@ def h_dbmaxval(regle):
     param_base(regle)
     base, niveau, classe, attribut = regle.cible_base
     retour = DB.recup_maxval(regle.stock_param, base, niveau, classe, attribut)
-    if len(retour) == 1 and regle.params.att_sortie.val:
+    if retour and len(retour) == 1 and regle.params.att_sortie.val:
         # cas simple on stocke l' attribut dans le parametre
         valeur = list(retour.values())[0]
         regle.stock_param.set_param(regle.params.att_sortie.val, str(valeur))

@@ -35,7 +35,8 @@ class SpecDefs(object):
 
 class Cursinfo(object):
     """contient un curseur de base de donnees et des infos complementaires (requete,liste...)"""
-    def __init__(self, connection, volume=0, nom=''):
+
+    def __init__(self, connection, volume=0, nom=""):
         self.cursor = None
         if connection:
             if volume > 100000 and nom:
@@ -52,7 +53,7 @@ class Cursinfo(object):
         self.request = None
         self.data = None
         self.attlist = None
-        self.decile = 100000 if volume == 0 else int(volume/10+1)
+        self.decile = 100000 if volume == 0 else int(volume / 10 + 1)
 
     def __iter__(self):
         if self.cursor is None:
@@ -85,8 +86,8 @@ class Cursinfo(object):
                 self.cursor.execute(requete, data)
             else:
                 self.cursor.execute(requete)
-            if not self.ssc: # si on utilise des curseurs serveur le decompte est faux
-                self.decile = int(self.cursor.rowcount/10+1)
+            if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
+                self.decile = int(self.cursor.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
 
@@ -152,10 +153,11 @@ class DbConnect(object):
         "indef": "ALPHA",
     }
 
-    requetes = {"schemas": "","tables":"","enums":"","attributs": "","vues":""}
+    requetes = {"schemas": "", "tables": "", "enums": "", "attributs": "", "vues": ""}
 
-
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         self.serveur = serveur
         self.base = base
         self.user = user
@@ -179,7 +181,7 @@ class DbConnect(object):
         self.accept_sql = "non"  # determine si la base accepte des requetes
         self.codecinfo = dict()
         self.geographique = False
-        self.connection = self.connect()
+        self.connection = None
         self.schemabase = None
         #        self.connect()
         self.gensql = DbGenSql()
@@ -195,16 +197,20 @@ class DbConnect(object):
         self.load_ext = ""
         self.dump_helper = None
         self.dialecte = "sql"
-        self.fallback={}
+        self.fallback = {}
         self.errs = Exception
 
     #        self.req_tables = ("", None)
 
     #  methodes specifiques a ecraser dans les subclasses ####
 
-    def get_cursinfo(self, volume=0, nom=''):
+    def get_cursinfo(self, volume=0, nom=""):
         """recupere un curseur"""
-        return Cursinfo(self.connection, volume=volume, nom=nom) if self.connection else None
+        return (
+            Cursinfo(self.connection, volume=volume, nom=nom)
+            if self.connection
+            else None
+        )
 
     def connect(self):
         """retourne la connection a la base"""
@@ -220,28 +226,26 @@ class DbConnect(object):
         """identifiant de base : type + nom"""
         return self.type_serveur + ":" + self.base
 
-
     def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
         try:
-            req = self.requetes.get(nom,"")
-#            print ("traitement",req)
+            req = self.requetes.get(nom, "")
+            #            print ("traitement",req)
             if req:
                 return self.request(req, None)
             else:
-                req = self.fallback.get(nom,"")
-                fallback=True
+                req = self.fallback.get(nom, "")
+                fallback = True
                 return self.request(req, None)
         except self.errs as err:
-            print('------------------', type(self))
-            print('erreur requete ',nom ,err)
-#            raise
+            print("------------------", type(self))
+            print("erreur requete ", nom, err)
+            #            raise
             if not fallback:
-                return (self.schemarequest(nom, fallback=True))
+                return self.schemarequest(nom, fallback=True)
             return ()
-        print ("pas de requete ",nom, self.requetes.keys())
+        print("pas de requete ", nom, self.requetes.keys())
         return ()
-
 
     def get_type(self, nom_type):
         """ type en base d'un type interne """
@@ -256,22 +260,21 @@ class DbConnect(object):
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        return self.schemarequest('info_enums')
+        return self.schemarequest("info_enums")
 
     def get_tablelist(self):
         """retourne la liste des tables a prendre en compte"""
-        return self.schemarequest('tablelist')
+        return self.schemarequest("tablelist")
 
     def get_tables(self):
         """produit les objets issus de la base de donnees"""
-        return self.schemarequest('info_tables')
+        return self.schemarequest("info_tables")
 
     def get_attributs(self):
         """produit les objets issus de la base de donnees"""
-        return self.schemarequest('info_attributs')
+        return self.schemarequest("info_attributs")
 
-
-    def execrequest(self, requete, data=None, attlist=None, volume=0, nom=''):
+    def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):
         """ lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom)
         #        cur.execute(requete, data=data, attlist=attlist)
@@ -281,7 +284,15 @@ class DbConnect(object):
             return cur
 
         except self.errs as err:
-            print("dtb:error: ", self.type_base, ":erreur acces base ", requete, "-->", data, err)
+            print(
+                "dtb:error: ",
+                self.type_base,
+                ":erreur acces base ",
+                requete,
+                "-->",
+                data,
+                err,
+            )
             #            print('dtb',cur.mogrify(requete, data))
             cur.close()
             raise StopIteration(2)
@@ -296,15 +307,19 @@ class DbConnect(object):
         cur.close()
         return liste
 
-    def iterreq(self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=''):
+    def iterreq(
+        self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=""
+    ):
         """ lancement requete et gestion retours en mode iterateur"""
         # print( 'appel execrequest', volume,nom)
 
-        cur = self.execrequest(requete, data=data, attlist=attlist, volume=volume, nom=nom)
+        cur = self.execrequest(
+            requete, data=data, attlist=attlist, volume=volume, nom=nom
+        )
         #            print ('recup cursinfo', type(cur))
         # if cur is not None:
         #     cur.decile = int(cur.rowcount / 10) + 1
-    #                cur.attlist = attlist
+        #                cur.attlist = attlist
         return cur
 
     #        return iter(())
@@ -492,7 +507,9 @@ class DbConnect(object):
         if attribut:
             condition, data = self.prepare_attribut(schema, attribut, valeur)
 
-            requete = " SELECT " + atttext + " FROM " + niveau + "." + classe + condition
+            requete = (
+                " SELECT " + atttext + " FROM " + niveau + "." + classe + condition
+            )
         #                          " WHERE "+cast(attribut) + cond
         else:
             requete = " SELECT " + atttext + " FROM " + niveau + "." + classe
@@ -517,7 +534,12 @@ class DbConnect(object):
         volinfo = maxi if maxi else int(schema.info["objcnt_init"])
         # print( 'appel iterreq', volinfo,classe)
         return self.iterreq(
-            requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0", volume=volinfo, nom=classe
+            requete,
+            data,
+            attlist=attlist[:],
+            has_geom=schema.info["type_geom"] != "0",
+            volume=volinfo,
+            nom=classe,
         )
 
     def req_geom(self, ident, schema, mods, nom_fonction, geometrie, maxi=0, buffer=0):
@@ -526,7 +548,9 @@ class DbConnect(object):
             return iter(())
         if schema.info["type_geom"] != "0":
             niveau, classe = ident
-            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
+            atttext, attlist = self.construction_champs(
+                schema, "S" in mods, "L" in mods
+            )
             prefixe = ""
             #            geom2="SDO_UTIL.FROM_WKTGEOMETRY('"+geometrie+"')"
             geomdef = geometrie.split(";", 1)
@@ -570,7 +594,12 @@ class DbConnect(object):
             volinfo = maxi if maxi else int(schema.info["objcnt_init"])
 
             return self.iterreq(
-                requete, data, attlist=attlist[:], has_geom=schema.info["type_geom"] != "0", volume=volinfo, nom=classe
+                requete,
+                data,
+                attlist=attlist[:],
+                has_geom=schema.info["type_geom"] != "0",
+                volume=volinfo,
+                nom=classe,
             )
         else:
             print("error: classe non geometrique utilisee dans une requete geometrique")
@@ -823,7 +852,9 @@ class DbGenSql(object):
                 geomt = geomt + " 3D"
         cretable = []
 
-        cretable.append("\n-- ############## creation table " + table + "###############\n")
+        cretable.append(
+            "\n-- ############## creation table " + table + "###############\n"
+        )
 
         cretable.append("CREATE TABLE " + table + "\n(")
         for j in atts:
@@ -839,7 +870,9 @@ class DbGenSql(object):
                 if attribut.defaut and attribut.defaut[0] != "!"
                 else ""
             )
-            if attribut.defaut == "S" or attype == "S":  # on est en presence d'un serial'
+            if (
+                attribut.defaut == "S" or attype == "S"
+            ):  # on est en presence d'un serial'
                 attype = "integer"
             conf = attribut.conformite
             if conf:
@@ -922,7 +955,11 @@ class DbGenSql(object):
         if self.connection:
             dbcod = self.connection.codecinfo.get(cod, cod)
         codecinfo = (
-            "-- ########### encodage fichier " + cod + "->" + dbcod + " ###(controle éèàç)#####\n"
+            "-- ########### encodage fichier "
+            + cod
+            + "->"
+            + dbcod
+            + " ###(controle éèàç)#####\n"
         )
         if liste is None:
             liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
@@ -932,8 +969,13 @@ class DbGenSql(object):
         #       for i in liste_tables:
         #            print('type :',i,self.schema.classes[i].type_table)
         print("definition de tables a sortir:", len(liste_tables), self.dialecte)
-        cretables = [codecinfo, "\n-- ########### definition des tables ###############\n"]
-        cretables.extend(list([self.cree_tables(ident, creconf) for ident in liste_tables]))
+        cretables = [
+            codecinfo,
+            "\n-- ########### definition des tables ###############\n",
+        ]
+        cretables.extend(
+            list([self.cree_tables(ident, creconf) for ident in liste_tables])
+        )
 
         if self.basic != "basic":
             for ident in liste:

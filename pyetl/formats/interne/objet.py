@@ -347,11 +347,11 @@ class Objet(object):
             + str(self.attributs.get("#classe"))
         )
         schema = "\t" + repr(self.schema)
-        attlist = sorted(self.attributs.keys()) if attlist is None else attlist
+        aliste = sorted(self.attributs.keys()) if attlist is None else attlist
         print(
             invariant + "\n",
-            schema + "\n\t",
-            [(i, self.attributs.get(i, "<non defini>")) for i in attlist],
+            (schema + "\n\t") if not attlist else '',
+            [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
         )
 
     def initatt(self, nom, valeur):

@@ -66,7 +66,7 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
             print("unittest: erreur creation environnement ", nom_fonc, nom_subfonc, nom_test)
             return ""
         if debug and int(debug):
-            map2.set_param("debug", 1)
+            map2.set_param("debug", "1")
         if redirect:
             capture = io.StringIO()
             with redirect_stdout(capture):

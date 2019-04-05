@@ -146,11 +146,14 @@ GTYPES_CURVE = {
 
 class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
-    reqs = REQS # requetes de fallback our les infos base
-    requetes=reqs
+
+    reqs = REQS  # requetes de fallback our les infos base
+    requetes = reqs
     codecinfo = {"utf-8": "UTF8", "cp1252": "WIN1252"}
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
         self.types_base.update(TYPES_A)
@@ -166,7 +169,6 @@ class PgrConnect(DbConnect):
         self.type_base = "postgres"
         self.dialecte = "postgres"
 
-
     def set_searchpath(self):
         """positionne les path pour la session"""
         cur = self.connection.cursor()
@@ -176,22 +178,21 @@ class PgrConnect(DbConnect):
 
     @staticmethod
     def change_antislash(nom):
-        ''' remplace les \ par des /'''
-        return nom.replace('\\','/')
-
+        """ remplace les \ par des /"""
+        return nom.replace("\\", "/")
 
     def runsql(self, prog, file, logfile=None, outfile=None):
         """execute un fichier sql"""
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
-        file =self.change_antislash(file)
+        file = self.change_antislash(file)
 
         if self.user:
             chaine_connect = chaine_connect + " --username=" + self.user
         if logfile:
             chaine_connect = chaine_connect + " -q -a"
         if outfile:
-            outfile =self.change_antislash(outfile)
+            outfile = self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
 
         chaine = " --".join((prog, chaine_connect, "file=" + file))
@@ -206,7 +207,9 @@ class PgrConnect(DbConnect):
         else:
             print("Le fichier de log se trouve la:", logfile)
             with open(logfile, "a") as sortie:
-                fini = subprocess.run(chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT)
+                fini = subprocess.run(
+                    chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT
+                )
         if fini.returncode:
             print("sortie en erreur ", fini.returncode, fini.args)
 
@@ -232,7 +235,13 @@ class PgrConnect(DbConnect):
             self.connection = connection
         except psycopg2.Error as err:
             print("error: postgres: connection impossible ")
-            print("info:  postgres: parametres ", self.serveur, self.base, self.user, self.passwd)
+            print(
+                "info:  postgres: parametres ",
+                self.serveur,
+                self.base,
+                self.user,
+                self.passwd,
+            )
             print("error", err)
 
     #        raise
@@ -244,15 +253,21 @@ class PgrConnect(DbConnect):
         schema.elements_specifiques["def_vues"] = self._def_vues()
         schema.elements_specifiques["def_triggers"] = self._def_triggers()
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
-        schema.elements_specifiques["def_fonctions_trigger"] = self._def_fonctions_trigger()
+        schema.elements_specifiques[
+            "def_fonctions_trigger"
+        ] = self._def_fonctions_trigger()
 
     #        print (list(i for i in self._def_fonction_triggers() if "admin_sigli" in i))
 
     def _def_vues(self):
-        return {(i[0], i[1]): (i[2], i[3]) for i in self.request(self.reqs["info_vues"])}
+        return {
+            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.reqs["info_vues"])
+        }
 
     def _def_fonctions_trigger(self):
-        return {(i[0], i[1]): i[2] for i in self.request(self.reqs["def_fonctions_trigger"])}
+        return {
+            (i[0], i[1]): i[2] for i in self.request(self.reqs["def_fonctions_trigger"])
+        }
 
     def _def_ftables(self):
         return {i[0]: i[1:] for i in self.request(self.reqs["info_tables_distantes"])}
@@ -292,8 +307,12 @@ class PgrConnect(DbConnect):
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
         els["def_vues"] = {i: j for i, j in els["def_vues"].items() if i in a_garder}
-        els["def_triggers"] = {i: j for i, j in els["def_triggers"].items() if i in a_garder}
-        els["def_ftables"] = {i: j for i, j in els["def_ftables"].items() if i in a_garder}
+        els["def_triggers"] = {
+            i: j for i, j in els["def_triggers"].items() if i in a_garder
+        }
+        els["def_ftables"] = {
+            i: j for i, j in els["def_ftables"].items() if i in a_garder
+        }
         fonctions_a_garder = set()
         for i in els["def_triggers"].values():
             for j in i.values():
@@ -301,7 +320,9 @@ class PgrConnect(DbConnect):
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
         els["def_fonctions_trigger"] = {
-            i: j for i, j in els["def_fonctions_trigger"].items() if i in fonctions_a_garder
+            i: j
+            for i, j in els["def_fonctions_trigger"].items()
+            if i in fonctions_a_garder
         }
         if any(len(els[i]) for i in els):
             print("elements specifiques gardes", dict([(i, len(els[i])) for i in els]))
@@ -364,7 +385,7 @@ class PgrConnect(DbConnect):
             tmp0[18] = taille
             tmp0[19] = dec
             atd = self.attdef(*tmp0)
-            yield(atd)
+            yield (atd)
         #            if taille != 0:
         #                print ('attributs pg',i)
         # return retour
@@ -465,4 +486,14 @@ class PgrConnect(DbConnect):
         pass
 
 
-DBDEF = {"postgres": (PgrConnect, PgrGenSql, "server", "", "#ewkt", "base postgres générique")}
+DBDEF = {
+    "postgres": (
+        PgrConnect,
+        PgrGenSql,
+        "server",
+        "",
+        "#ewkt",
+        "base postgres générique",
+    )
+}
+

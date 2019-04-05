@@ -11,7 +11,16 @@ import importlib
 
 DBDEF = namedtuple(
     "database",
-    ("acces", "gensql", "svtyp", "fileext", "geom", "description", "converter", "geomwriter"),
+    (
+        "acces",
+        "gensql",
+        "svtyp",
+        "fileext",
+        "geom",
+        "description",
+        "converter",
+        "geomwriter",
+    ),
 )
 # ("acces", "gensql", "svtyp", "fileext", 'description')
 def loadmodules():
@@ -36,6 +45,8 @@ def loadmodules():
 
 
 DATABASES = loadmodules()
+DATABASES["sql"] = DATABASES["postgis"]  # generique
+
 # print ('chargement', READERS)
 
 

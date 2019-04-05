@@ -18,28 +18,28 @@ from pathlib import Path
 
 # print('base',time.time()-t1)
 
-from pyetl.vglobales import VERSION, set_mainmapper, DEFCODEC
+from .vglobales import VERSION, set_mainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
-from pyetl.formats import Reader, READERS, WRITERS
+from .formats import Reader, READERS, WRITERS
 
 # print('formats',time.time()-t1)
 
-from pyetl.formats.ressources import GestionSorties  # formats entree et sortie
-from pyetl.formats.interne.stats import Stat, ExtStat
-from pyetl.moteur.interpreteur_csv import (
+from .formats.ressources import GestionSorties  # formats entree et sortie
+from .formats.interne.stats import Stat, ExtStat
+from .moteur.interpreteur_csv import (
     lire_regles_csv,
     reinterprete_regle,
     interprete_ligne_csv,
     map_vars,
 )
-from pyetl.moteur.compilateur import compile_regles
-from pyetl.moteur.moteur import Moteur, Macro, Context
-from pyetl.moteur.fonctions import COMMANDES, SELECTEURS
-from pyetl.moteur.fonctions.outils import scan_entree
-from pyetl.schema.schema_interne import init_schema  # schemas
-from pyetl.schema.schema_io import ecrire_schemas  # integre_schemas # schemas
-from pyetl.moteur.fonctions.parallel import setparallel
+from .moteur.compilateur import compile_regles
+from .moteur.moteur import Moteur, Macro, Context
+from .moteur.fonctions import COMMANDES, SELECTEURS
+from .moteur.fonctions.outils import scan_entree
+from .schema.schema_interne import init_schema  # schemas
+from .schema.schema_io import ecrire_schemas  # integre_schemas # schemas
+from .moteur.fonctions.parallel import setparallel
 
 # from  .moteur.fonctions.parallel import initl
 # from  .outils.crypt import crypter, decrypt
@@ -783,7 +783,7 @@ class Pyetl(object):
                 ("fstat", ""),
                 ("force_schema", "util"),
                 ("epsg", "3948"),
-                ("F_sortie", "txt"),
+                ("F_sortie", ""),
                 ("xmldefaultheader", '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
                 ("codec_sortie", DEFCODEC),
                 ("codec_entree", DEFCODEC),

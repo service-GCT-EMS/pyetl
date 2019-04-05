@@ -14,8 +14,7 @@ from cx_Oracle import connect as oraconnect, Error as OraError
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from .database import DbConnect, DbGenSql
-
+from pyetl.formats.db.database import DbConnect, DbGenSql
 TYPES_A = {
     "VARCHAR": "T",
     "VARCHAR2": "T",
@@ -47,7 +46,9 @@ TYPES_A = {
 class OraConnect(DbConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         #        self.connection, errdef = dbaccess(self.serveur, self.base, self.user, self.passwd)
         self.connect()
@@ -58,9 +59,14 @@ class OraConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-
+        if self.connection:
+            return
         print(
-            "info:oracle: connection ", self.serveur, self.base, self.user, "*" * len(self.passwd)
+            "info:oracle: connection ",
+            self.serveur,
+            self.base,
+            self.user,
+            "*" * len(self.passwd),
         )
         try:
             connection = oraconnect(self.user, self.passwd, self.serveur)

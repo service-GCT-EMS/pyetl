@@ -255,12 +255,13 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
                     else:
                         continue
                 liste = ligne.split(";")
-                if taille == -1:
-                    stock[ligne] = liste
-                else:
-                    if len(liste) < taille:
-                        liste = list(itertools.islice(itertools.cycle(liste), taille))
-                    stock[";".join([liste[i] for i in positions])] = liste
+                if any([i.strip() for i in liste]):
+                    if taille == -1:
+                        stock[ligne] = liste
+                    else:
+                        if len(liste) < taille:
+                            liste = list(itertools.islice(itertools.cycle(liste), taille))
+                        stock[";".join([liste[i] for i in positions])] = liste
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:

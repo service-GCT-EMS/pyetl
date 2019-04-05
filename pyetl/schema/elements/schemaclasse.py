@@ -4,8 +4,8 @@ Created on Wed Dec 10 09:28:45 2014
 
 @author: 89965
 """
-# import copy
 import re
+from copy import deepcopy
 from . import attribut as A
 from . import mapping as MP
 
@@ -189,7 +189,7 @@ class SchemaClasse(object):
 
     def __repr__(self):
         """affichage simplifie"""
-        return "schema " + self.dbident + " " + repr(self.info) +'\n'+'\n'.join(sorted(self.attributs.keys()))
+        return "schema " + self.dbident + " " + repr(self.info) +'\n       '+','.join(sorted(self.attributs.keys()))
 
     @property
     def __dic_if__(self):
@@ -1070,3 +1070,42 @@ class SchemaClasse(object):
                 pk = (str(self.indexes[i]) for i in sorted(self.indexes) if i.startswith("P"))[0]
             self.pkref = pk
             self.autopk = mode
+
+    def copy(self, ident, schema2, filiation=True):
+        """copie du schema d'une classe vers un nouveau schema avec gestion des conformites"""
+        old_schema = self.schema  # on evite de recopier toute la structure
+        old_fils = self.fils
+        old_regles_modif = self.regles_modif
+        #    print ("copie schema ",ident,schema2.nom,classe.attributs)
+        self.schema = None
+        self.fils = []
+        self.regles_modif = set()
+        groupe, nom = ident
+        nouvelle_classe = deepcopy(self)
+        nouvelle_classe.nom = nom
+        nouvelle_classe.type_table = "i"
+        nouvelle_classe.groupe = groupe
+        nouvelle_classe.schema = schema2
+        nouvelle_classe.objcnt = 0
+        self.schema = old_schema
+        self.fils = old_fils
+        self.regles_modif = old_regles_modif
+        if filiation:
+            old_fils.append(nouvelle_classe)  # gestion des filiations de classes
+        # n = 0
+        #    print ('nouvelle_classe',nouvelle_classe.identclasse,nouvelle_classe.attributs)
+        for i in nouvelle_classe.attributs:
+            # il faut verifier les conformites
+            conf = nouvelle_classe.attributs[i].conformite
+            if conf:
+                # n = n+1
+                #            print ('copie conformite ',i,conf.nom if conf else "non reference")
+                if conf.nom in schema2.conformites:
+                    # elle existe deja on se branche dessus
+                    nouvelle_classe.attributs[i].conformite = schema2.conformites[conf.nom]
+                    # n2 += 1
+                else:
+                    schema2.conformites[conf.nom] = conf  # on la stocke
+        if schema2:
+            schema2.ajout_classe(nouvelle_classe)
+        return nouvelle_classe

@@ -11,7 +11,6 @@ from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
-from .fonctions_schema import copyschema
 
 # schemas : description de la structure des objets
 
@@ -52,7 +51,7 @@ def init_schema(
             if copie:  # la on fait une copie conforme
                 nouveau.origine = modele.origine
                 for ident in modele.classes:
-                    copyschema(modele.classes[ident], ident, nouveau)
+                    modele.classes[ident].copy(ident, nouveau)
 
     #                self.schemas[nom_schema].dic_abrev = modele.dic_abrev
     return mapper.schemas[nom_schema]

@@ -170,7 +170,8 @@ class Writer(object):
         #            ecrire, stream, tmpgeo, schema, casse, taille, driver, fanoutmax,\
         #            nom_format = self.sorties[nom]
         else:
-            print("format sortie inconnu '" + nom + "'", self.sorties.keys())
+            if nom:
+                print("format sortie inconnu '" + nom + "'", self.sorties.keys())
             self.def_sortie = self.sorties["#poubelle"]
 
         #            ecrire, stream, tmpgeo, schema, casse, taille, driver, fanoutmax, nom_format =\
