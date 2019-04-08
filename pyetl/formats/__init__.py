@@ -9,6 +9,8 @@ les formats sont enregistres en les mettant dans des fichiers python qui
 commencent par format_
 
 """
+import os
+import codecs
 from types import MethodType
 
 # from functools import partial
@@ -75,6 +77,10 @@ class Reader(object):
         self.nb_lus = 0
         self.groupe = ""
         self.classe = ""
+        self.affich = 20000
+        self.nextaff = 20000
+        self.maxobj = 0
+        self.aff = stock_param.aff
         if self.debug:
             print("debug:format: instance de reader ", nom, self)
 
@@ -106,6 +112,29 @@ class Reader(object):
             print("error:format: format entree inconnu", nom)
             raise KeyError
 
+    def prepare_lecture_fichier(self, rep, chemin, fichier, defchain=None):
+        '''prepare les parametres de lecture'''
+        regle = self.regle_ref
+        stock_param = regle.stock_param
+        if chemin:
+            groupe = chemin
+        else:
+            groupe = os.path.basename(rep)
+        classe = fichier
+        regle.ext = os.path.splitext(fichier)[-1]
+        if defchain is None:
+            defchain = ["encoding", "codec_entree", "codec"]
+        self.setident(groupe, classe)
+        self.fichier = os.path.join(rep, chemin, fichier)
+        self.encoding=regle.chain(defchain, "utf-8")
+        self.maxobj = int(stock_param.get_param("lire_maxi", 0))
+        if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
+            self.encoding = 'utf-8-sig'
+
+    def process(self, obj):
+        '''renvoie au moteur de traitement'''
+        self.traite_objets(obj, self.regle_start)
+
     def get_info(self):
         """ affichage du format courant : debug """
         print("info :format: format courant :", self.nom_format)
@@ -126,9 +155,15 @@ class Reader(object):
         else:
             self.schemaclasse_entree = None
 
-    def getobj(self, niveau=None, classe=None):  # cree un objet
-        """retourne un objet neuf a envoyer dans le circuit"""
+    def getobj(self, niveau=None, classe=None):
+        """retourne un objet neuf a envoyer dans le circuit
+           cree un objet si on a pas depasse la limite de lecture"""
         self.nb_lus += 1
+        if self.maxobj and self.nb_lus > self.maxobj:
+            return None
+        if self.nb_lus >= self.nextaff:
+            self.nextaff += self.affich
+            self.aff.send(("interm", 0, self.nb_lus))
         return Objet(
             niveau or self.groupe,
             classe or self.classe,

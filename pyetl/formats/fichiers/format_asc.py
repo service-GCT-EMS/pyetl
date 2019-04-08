@@ -258,27 +258,15 @@ def _get_schemas(regle, rep, fichier):
 
 def lire_objets_asc(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
-    n_obj = 0
-    affich = 20000
-    nextaff = 20000
-    # ouv = None
-    stock_param = self.regle_ref.stock_param
-    regle = self.regle_start
     obj = None
     nom = None
     schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
+    self.prepare_lecture_fichier(self, rep, chemin, fichier)
     #    print ('lire_asc ', schema, schema_init)
-    maxobj = stock_param.get_param("lire_maxi", 0)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
     next(log_erreurs)
-    with open(
-        os.path.join(rep, chemin, fichier),
-        "r",
-        65536,
-        encoding=stock_param.get_param("codec_entree", "utf-8"),
-        errors="backslashreplace",
-    ) as ouvert:
+    with open(self.fichier, "r", 65536, encoding=self.encoding,errors="backslashreplace") as ouvert:
         suite = False
         if not chemin:
             chemin = os.path.basename(rep)
@@ -288,23 +276,15 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 continue
             if len(i) <= 2 or i.startswith("*"):
                 continue
-
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
                 if obj:
-                    n_obj += 1
-                    _finalise(obj, schema_init, schema, n_obj, chemin)
-                    stock_param.moteur.traite_objet(obj, regle)  # on traite l'objet precedent
-                    if n_obj >= nextaff:
-                        nextaff += affich
-                        stock_param.aff.send(("interm", 0, n_obj))
-                    #                            print("info: asc  : lecture ", fichier, n_lin,
-                    #                                  "lignes ", n_obj, "objets ")
-                    if maxobj and n_obj >= maxobj:
-                        obj = None
-                        break
+                    _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+                    self.process(obj)
                 if code_1 in "9356":
                     obj = self.getobj()
+                    if obj is None:
+                        return self.nb_lus
                     _decode_entete_asc(obj, i, log_erreurs)
             elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == "_"):
                 nom, suite = ajout_attribut_asc(obj, i)
@@ -313,11 +293,10 @@ def lire_objets_asc(self, rep, chemin, fichier):
             elif obj:
                 obj.geom.append(i)
         if obj:
-            n_obj += 1
-            _finalise(obj, schema_init, schema, n_obj, chemin)
-            stock_param.moteur.traite_objet(obj, regle)  # on traite le dernier objet
+            _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+            self.process(obj)
         log_erreurs.send("")
-    return n_obj
+    return self.nb_lus
 
 
 def _ecrire_point_asc(point):

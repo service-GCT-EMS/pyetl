@@ -5,6 +5,7 @@
 # import pyetl.schema as SC
 #import sys
 import os
+import codecs
 from . import fileio
 
 
@@ -24,61 +25,27 @@ class TextWriter(fileio.FileWriter):
 
 def lire_textfile_ligne(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
-    regle = self.regle_ref
-    stock_param = regle.stock_param
-    n_obj = 0
-    # ouv = None
-    if chemin:
-        groupe = chemin
-    else:
-        groupe = os.path.basename(rep)
-    classe = fichier
-    regle.ext = os.path.splitext[fichier][-1]
-    self.setident(groupe, classe)
-
-    with open(
-        os.path.join(rep, chemin, fichier),
-        "r",
-        65536,
-        encoding=stock_param.get_param("codec_entree", "utf-8"),
-        errors="backslashreplace",
-    ) as ouvert:
+    self.prepare_lecture_fichier(rep, chemin, fichier)
+    with open(self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace",) as ouvert:
         for ligne in ouvert:
             obj = self.getobj()
+            if obj is None: # gere le maxval
+                return self.nb_lus
             obj.attributs["contenu"] = ligne
-            stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite l'objet precedent
-            n_obj += 1
-    return n_obj
+            self.process(obj)  # on traite l'objet precedent
+    return self.nb_lus
 
 
 def lire_textfile_bloc(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
-    regle = self.regle_ref
-    stock_param = regle.stock_param
-    n_obj = 0
-    # ouv = None
-    if chemin:
-        groupe = chemin
-    else:
-        groupe = os.path.basename(rep)
-    classe = fichier
-    regle.ext = os.path.splitext[fichier][-1]
-    self.setident(groupe, classe)
+    self.prepare_lecture_fichier(rep, chemin, fichier)
+    with open(self.fichier, "r", encoding=self.encoding, errors="backslashreplace",) as ouvert:
+        contenu = "".join(ouvert.readlines())
+        obj = self.getobj()
+        obj.attributs["contenu"] = contenu
+        self.process(obj)  # on traite l'objet precedent
+    return self.nb_lus
 
-    if stock_param.get_param("filemode", "ligne") == "ligne":
-        with open(
-            os.path.join(rep, chemin, fichier),
-            "r",
-            65536,
-            encoding=stock_param.get_param("codec_entree", "utf-8"),
-            errors="backslashreplace",
-        ) as ouvert:
-            contenu = "".join(ouvert.readlines())
-            obj = self.getobj()
-            obj.attributs["contenu"] = contenu
-            stock_param.moteur.traite_objet(obj, regle)  # on traite l'objet precedent
-            n_obj = 1
-        return n_obj
 
 
 def ecrire_objets_text(regle, _, attributs=None):

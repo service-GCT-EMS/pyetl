@@ -10,6 +10,7 @@
 
 
 import os
+import codecs
 
 # from numba import jit
 from .fileio import FileWriter
@@ -113,6 +114,11 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
         ["codec_csv_in", "codec_csv", "codec_entree", "codec"], "utf-8"
     )
     try:
+        # test BOM
+        hasbom = open(os.path.join(rep, chemin, fichier), "rb").read(10)
+        if hasbom.startswith(codecs.BOM_UTF8):
+            encoding = 'utf-8-sig'
+
         with open(os.path.join(rep, chemin, fichier), "r", encoding=encoding) as fich:
             if not entete:
                 entete = fich.readline()[:-1]

@@ -594,7 +594,7 @@ def f_recup_schema(regle, obj):
             chemin=chemin,
         )
         return True
-    print("recup_schema: base non definie ", type_base, base)
+    print("recup_schema: base non definie ", type_base, base, obj)
     return False
 
 

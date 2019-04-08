@@ -210,11 +210,13 @@ class ElyConnect(ora.OrwConnect):
         ]
 
     def log_decoder(self, idexport, params, runtime):
-        """decode un fichier log de ORA2FEA"""
-        #        print('analyse', params)
-        outfile = params[-1]
-        resultats = self.resultats
-        size = self.size
+        """decode un fichier log de ORA2FEA
+            self.export_statprint(None, ((nom,), outfile, size, resultats), time.time() - dinit)
+"""
+        print('analyse', params)
+        outfile = params[1]
+        resultats = params[3]
+        size = params[2]
         try:
             for i in open(outfile, "r", encoding="cp1252", errors="backslashreplace").readlines():
                 #            print('lu:', ascii(i[:-1]))
@@ -244,9 +246,11 @@ class ElyConnect(ora.OrwConnect):
             return 1
 
     def export_statprint(self, idexport, params, runtime):
-        """affiche une stat d'export"""
+        """affiche une stat d'export
+        appel :(None, ((nom,), outfile, size, resultats), time.time() - dinit)
+        """
         retour = self.log_decoder(idexport, params, runtime)
-        if retour:
+        if retour: # petit truc pour eviter les problemes de fichier non ferme
             self.log_decoder(idexport, params, runtime)
 
     def stat_classes(self, classes, fanout):
@@ -280,26 +284,6 @@ class ElyConnect(ora.OrwConnect):
             else:
                 print("mode de fanout non géré", fanout)
         return resultats, size, blocks
-
-    #    def dumpiterator(self, helper, classes, dest, log, fanout, nbworkers, logmode=0):
-    #        ''' iterateur de blocks de traitement'''
-    #        self.resultats, self.size, blocks = self.stat_classes(classes, fanout)
-    #        subcode = 0
-    ##        print ('dumpiter',blocks)
-    #        for subcode, nom in enumerate(blocks):
-    #            destination = os.path.join(dest, *nom)
-    #            os.makedirs(os.path.dirname(destination), exist_ok=True)
-    #            logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
-    #            os.makedirs(logdir, exist_ok=True)
-    #            xml = self.genexportxml(destination, logdir, blocks[nom])
-    #            paramfile = os.path.join(self.tmpdir, '_'.join(nom)+'_param_FEA.xml')
-    #
-    #            with open(paramfile, mode='w', encoding='cp1252') as tmpf:
-    #                tmpf.write('\n'.join(xml))
-    #                tmpf.close()
-    #            outfile = os.path.join(self.tmpdir, '_'.join(nom)+'_out_FEA.txt')
-    #            print('traitement', nom, (helper, paramfile, outfile), destination)
-    #            yield (nom, (helper, paramfile, outfile), (dest, nom, 'asc'), self.size[nom])
 
     def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
         """ decoupe les classes a sortir en blocs pour traitement en parallele"""

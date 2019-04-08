@@ -12,6 +12,7 @@ def _defaultconverter(obj, liste_att, transtable=None, separ=None):
     return obj.__json_if__()
 
 
+
 class FileWriter(object):
     """superclasse des classes writer de fichiers"""
 

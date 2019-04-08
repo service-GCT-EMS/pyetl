@@ -13,6 +13,7 @@ import linecache
 import traceback
 import logging
 import glob
+import codecs
 from pyetl.formats import Reader
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
@@ -214,6 +215,13 @@ def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
     rplaces = {"D": rdef, "R": racine, "C": chemin, "F": fichier}
     return re.sub(r"\[([DRCF])\]", lambda x: rplaces.get(x.group(1), ""), nom)
 
+def hasbom(fichier, encoding):
+    if open(os.path.join(fichier), "rb").read(10).startswith(codecs.BOM_UTF8):
+        return 'utf-8-sig'
+    return encoding
+
+
+
 
 def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
     """chargement en memoire d'un fichier"""
@@ -225,6 +233,7 @@ def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
     try:
         if codec is None:
             codec = DEFCODEC
+        codec = hasbom(f_interm, codec)
         with open(f_interm, "r", encoding=codec) as cmdfile:
             nlin = 0
             for ligne in cmdfile:
@@ -246,6 +255,7 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
         if len(positions) > taille:
             positions = positions[:taille]
     try:
+        codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
             for i in fich:
                 ligne = i.replace("\n", "")  # on degage le retour chariot
@@ -275,6 +285,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
 
     stock = dict()
     try:
+        codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
             for i in fich:
 
@@ -408,7 +419,7 @@ def prepare_elmap(mapping):
         schema2, table2 = mapping[i]
         mapping_special[schema1] = schema2
         mapping_special[table1] = table2
-    items = sorted(mapping_special, key=lambda i: len(mapping_special[i]), reverse=1)
+    items = sorted(mapping_special, key=lambda i: len(mapping_special[i]), reverse=True)
     intmap1 = {j: "**<<" + str(i) + ">>**" for i, j in enumerate(items)}
     intmap2 = {"**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)}
     elmap = (items, intmap1, intmap2)
