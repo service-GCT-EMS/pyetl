@@ -11,6 +11,7 @@ commencent par format_
 """
 import os
 import codecs
+import logging
 from types import MethodType
 
 # from functools import partial
@@ -19,6 +20,7 @@ from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
 from .interne.objet import Objet
 
+LOGGER = logging.getLogger("pyetl")
 #
 # geomdef = namedtuple("geomdef", ("writer", "converter"))
 #
@@ -99,7 +101,18 @@ class Reader(object):
             self.converter = description.converter
             stock_param = self.regle_ref.stock_param
             self.schema_entree = stock_param.schemas.get(self.regle_ref.getvar("schema_entree"))
-            self.schemaclasse_entree = None
+            self.nomschema = ''
+            if self.schema_entree: # on cree un schema stable
+                nomschema = self.schema_entree.nom
+                if nomschema.startswith('#'):
+                    nomschema = nomschema[1:]
+                else:
+                    stock_param.schemas['#'+nomschema] = self.schema_entree
+                    del stock_param.schemas[nomschema]
+                self.schema = stock_param.init_schema(nomschema, "L") # et un schema pour les objets
+                self.nomschema = nomschema
+
+
 
 #            if self.schema_entree:
 ##                print("reader:schema_entree", self.schema_entree.nom)
@@ -112,22 +125,29 @@ class Reader(object):
             print("error:format: format entree inconnu", nom)
             raise KeyError
 
-    def prepare_lecture_fichier(self, rep, chemin, fichier, defchain=None):
+    def prepare_lecture_fichier(self, rep, chemin, fichier):
         '''prepare les parametres de lecture'''
         regle = self.regle_ref
         stock_param = regle.stock_param
-        if chemin:
-            groupe = chemin
-        else:
-            groupe = os.path.basename(rep)
-        classe = fichier
+        chem = chemin
+        niveaux = []
+        while chem:
+            chem, nom = os.path.split(chem)
+            niveaux.append(nom)
+
+        groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
+        if not self.nomschema and self.cree_schema: # les objets ont un schema issu du fichier
+            self.nomschema = os.path.basename(rep) if rep and rep != "." else 'schema'
+            self.schema = stock_param.init_schema(self.nomschema, "L")
+        classe = os.path.splitext(fichier)[0]
         regle.ext = os.path.splitext(fichier)[-1]
-        if defchain is None:
-            defchain = ["encoding", "codec_entree", "codec"]
+        defchain = ["encoding","codec_"+self.nom_format+"_in","codec_"+self.nom_format, "codec_entree", "defcodec"]
+        self.encoding=regle.getchain(defchain, "utf-8-sig")
+        sep_chain=["sep","separ"+self.nom_format+"_in","separ"+self.nom_format]
+        self.separ= regle.getchain(sep_chain, ";")
+        self.maxobj = int(regle.getvar("lire_maxi", 0))
         self.setident(groupe, classe)
         self.fichier = os.path.join(rep, chemin, fichier)
-        self.encoding=regle.chain(defchain, "utf-8")
-        self.maxobj = int(stock_param.get_param("lire_maxi", 0))
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = 'utf-8-sig'
 
@@ -146,14 +166,18 @@ class Reader(object):
         fgeom = Reader.lecteurs.get(format_natif, Reader.lecteurs["interne"]).geom
         return Reader.geomdef[fgeom].converter
 
-    def setident(self, groupe, classe):
+    def setident(self, groupe, classe, schema=None):
         """positionne les identifiants"""
-        self.groupe = groupe
-        self.classe = classe
         if self.schema_entree:
+            groupe, classe = self.schema_entree.map_dest((groupe, classe))
+
             self.schemaclasse_entree = self.schema_entree.get_classe((groupe, classe))
         else:
             self.schemaclasse_entree = None
+        self.groupe = groupe
+        self.classe = classe
+
+
 
     def getobj(self, niveau=None, classe=None):
         """retourne un objet neuf a envoyer dans le circuit
@@ -223,13 +247,8 @@ class Writer(object):
         else:
             self.writerparms["destination"] = destination
         self.dialecte = dialecte
-        #        self.conv_geom = self.geomdef[self.def_sortie.geom].converter
         self.ecrire_objets = MethodType(self.def_sortie.writer, self)
-        #        self.ecrire_objets = self.def_sortie.writer
         self.ecrire_objets_stream = MethodType(self.def_sortie.streamer, self)
-        #        self.ecrire_objets_stream = self.def_sortie.streamer
-#        self.tmp_geom = self.def_sortie.converter
-#        self.nom_fgeo = self.def_sortie.geom
         self.geomwriter = self.def_sortie.geomwriter
         self.tmpgeomwriter = self.def_sortie.tmpgeomwriter
         self.calcule_schema = self.def_sortie.force_schema

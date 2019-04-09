@@ -19,45 +19,43 @@ from .fileio import FileWriter
 # format csv et txt geo etc
 # tous les fichiers tabules avec ou sans entete
 #########################################################################
-def getnoms(rep, chemin, fichier):
-    """ determine les noms de groupe et de schema"""
-    schema = ["schema"]
-    chem = chemin
-    niveaux = []
-    classe = os.path.splitext(fichier)[0]
-    if rep and rep != ".":
-        schema = os.path.basename(rep)
-    while chem:
-        chem, nom = os.path.split(chem)
-        niveaux.append(nom)
+# def getnoms(rep, chemin, fichier):
+#     """ determine les noms de groupe et de schema"""
+#     schema = ["schema"]
+#     chem = chemin
+#     niveaux = []
+#     classe = os.path.splitext(fichier)[0]
+#     if rep and rep != ".":
+#         schema = os.path.basename(rep)
+#     while chem:
+#         chem, nom = os.path.split(chem)
+#         niveaux.append(nom)
 
-    if not niveaux:
-        groupe = ""
-    else:
-        groupe = "_".join(niveaux)
-    #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
-    return schema, groupe, classe
+#     if not niveaux:
+#         groupe = ""
+#     else:
+#         groupe = "_".join(niveaux)
+#     #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
+#     return schema, groupe, classe
 
 
-def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, separ):
+def decode_entetes_csv(reader, entete, separ):
     """prepare l'entete et les noma d'un fichier csv"""
     geom = False
 
-    schema_courant = stock_param.schemas.get(stock_param.get_param("schema_entree"))
+    schema_entree = reader.schema_entree
 
     #    print('decodage entete csv',schema_courant.nom if schema_courant else '' ,entete)
 
     if schema_courant:
-        nom_groupe, nom_classe = schema_courant.map_dest((nom_groupe, nom_classe))
-    else:
         schema_courant = stock_param.init_schema(nom_schema, "F")
 
-    if (nom_groupe, nom_classe) in schema_courant.classes:
-        schemaclasse = schema_courant.classes[(nom_groupe, nom_classe)]
-        noms_attributs = schemaclasse.get_liste_attributs()
-        geom = schemaclasse.info["type_geom"] != "0"
-    else:
-        schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
+    # if (nom_groupe, nom_classe) in schema_courant.classes:
+    #     schemaclasse = schema_courant.classes[(nom_groupe, nom_classe)]
+    #     noms_attributs = schemaclasse.get_liste_attributs()
+    #     geom = schemaclasse.info["type_geom"] != "0"
+    # else:
+    #     schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
         noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
         # on verifie que les noms existent et sont uniques
@@ -75,7 +73,7 @@ def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, 
             noms_attributs.pop(-1)  # on supprime la geom en attribut classique
         for i in noms_attributs:
             if i[0] != "#":
-                schemaclasse.stocke_attribut(i, "T")
+                reader.schemaclasse_entree.stocke_attribut(i, "T")
     #    else: # on adapte le schema force pur eviter les incoherences
     #        schemaclasse.adapte_schema_classe(noms_attributs)
 
@@ -102,24 +100,12 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 
 def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
-    regle_ref = reader.regle if reader.regle else reader.regle_start
+    reader.prepare_lecture_fichier(rep,chemin,fichier)
     if separ is None:
-        separ = regle_ref.getvar("separ_csv_in", regle_ref.getvar("separ_csv", ";"))
-    #    print('lecture_csv:', rep, chemin, fichier,separ)
-
-    maxobj = int(regle_ref.getvar("lire_maxi", 0))
-    nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
-    #    print ('lecture', nom_schema, nom_groupe, nom_classe)
-    encoding = reader.regle_ref.getchain(
-        ["codec_csv_in", "codec_csv", "codec_entree", "codec"], "utf-8"
-    )
+        separ = reader.separ
+    # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     try:
-        # test BOM
-        hasbom = open(os.path.join(rep, chemin, fichier), "rb").read(10)
-        if hasbom.startswith(codecs.BOM_UTF8):
-            encoding = 'utf-8-sig'
-
-        with open(os.path.join(rep, chemin, fichier), "r", encoding=encoding) as fich:
+        with open(os.path.join(rep, chemin, fichier), "r", encoding=reader.encoding) as fich:
             if not entete:
                 entete = fich.readline()[:-1]
                 # si l'entete n'est pas fourni on le lit dans le fichier
@@ -128,14 +114,15 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             else:  # il faut l'inventer...
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
-            nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
-                nom_schema, nom_groupe, nom_classe, regle_ref.stock_param, entete, separ
+            nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(reader,
+                entete, separ
             )
+            reader.setident(nom_groupe, nom_classe)
             controle = len(noms_attributs)
             nbwarn = 0
             nlignes = 0
             for i in fich:
-                nlignes = nlignes + 1
+                # nlignes = nlignes + 1
                 obj = reader.getobj()
                 obj.setschema(schemaclasse)
                 obj.setorig(nlignes)
@@ -153,19 +140,20 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 else:
                     obj.attributs["#type_geom"] = "0"
                 obj.attributs["#chemin"] = chemin
-                reader.traite_objets(obj, reader.regle_start)
+                # reader.traite_objets(obj, reader.regle_start)
+                reader.process(obj)
 
-                if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
-                    break
+                # if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
+                #     break
 
-                if nlignes % 100000 == 0:
-                    regle_ref.stock_param.aff.send(("interm", 0, nlignes))
-                    # gestion des affichages de patience
+                # if nlignes % 100000 == 0:
+                #     regle_ref.stock_param.aff.send(("interm", 0, nlignes))
+                #     # gestion des affichages de patience
     except UnicodeError:
         print("erreur encodage le fichier", fichier, "n'est pas en ", encoding)
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")
-    return nlignes
+    return reader.nb_lus
 
 
 class CsvWriter(FileWriter):

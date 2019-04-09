@@ -369,13 +369,15 @@ def f_dbrunsql(regle, obj):
         regle.params.cmp1.val,
         regle.params.cmp2.val,
     )
-
-    scripts = sorted(glob.glob(script))
+    if '*' in script or '?' in script:
+        scripts = sorted(glob.glob(script))
+    else:
+        scripts = [script]
     if not scripts:
         print("pas de scripts a executer: ", script)
     for nom in scripts:
         if not nom.endswith(".sql"):
-            script = script + ".sql"
+            nom = nom + ".sql"
         print("traitement sql ", nom)
         DB.dbrunsql(
             regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val

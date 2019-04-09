@@ -308,7 +308,7 @@ actif;true;;;succes;;;batch;;;;
 #!help;lancement script_sql;;;;;;;;;;
 $sans_sortie=True;;;;;;;;;;;
 $sans_entree=True;;;;;;;;;;;
-$#%dest%;%dest%;;;;;;;;;;
+$#%dest%;;;;;;;;;;;
 db:%dest%;;;;;%nom%;;runsql;%log%;%sortie%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#autoload;dest;;;;;;;;;
