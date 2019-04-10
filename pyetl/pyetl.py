@@ -1132,7 +1132,7 @@ class Pyetl(object):
                     )
                 else:
                     fstat = os.path.join(rep_sortie, self.get_param("fstat") + ".csv")
-                print("pyetl : info ecriture stat fichier ", fstat, liste_fich)
+                print("pyetl : info ecriture stat fichier ", fstat, "\n".join(liste_fich))
                 os.makedirs(os.path.dirname(fstat), exist_ok=True)
                 fichier = open(fstat, "w", encoding=self.get_param("codec_sortie", "utf-8"))
                 fichier.write("repertoire;nom;nombre\n")

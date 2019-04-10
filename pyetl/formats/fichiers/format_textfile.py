@@ -19,7 +19,7 @@ class TextWriter(fileio.FileWriter):
         self.fichier.write(chaine)
         if chaine[-1] != "\n":
             self.fichier.write("\n")
-        self.stats[self.nom] += 1
+        # self.stats[self.nom] += 1
         return True
 
 

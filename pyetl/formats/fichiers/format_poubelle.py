@@ -28,9 +28,7 @@ def compte_obj_stream(self, obj, regle, *_, **__):
     #    obj.setschema(None)
     sorties = regle.stock_param.sorties
     nom = "compt_" + groupe + "." + classe
-    if nom not in sorties:
-        sorties.setcnt(nom)
-    sorties[nom].cnt()
+    sorties.setcnt(nom)
     return 0, 0
 
 

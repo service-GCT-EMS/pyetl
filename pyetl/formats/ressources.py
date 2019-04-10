@@ -146,6 +146,7 @@ class GestionSorties(object):
         """cree une ressource de comptage pour la sortie poubelle"""
         if nom not in self.ressources:
             self.ressources[nom] = RessourceDistante(nom)
+        self.ressources[nom].cnt()
 
 
     def lock(self, id_demand, id_ressource):

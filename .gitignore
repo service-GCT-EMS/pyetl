@@ -105,3 +105,4 @@ venv.bak/
 
 #vscode settings
 .vscode/
+.pyrightconfig.json
