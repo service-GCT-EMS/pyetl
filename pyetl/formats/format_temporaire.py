@@ -175,7 +175,7 @@ def tmp_geom(obj, convertisseur):
     """serialise les geometries"""
     if obj.attributs["#type_geom"] == "0":
         return ""
-    # print 'tmp-geom',self.nogeom,self.atg,ecrire_geom_ewkt(self.geom_v,False,False,err)
+    # print 'tmp-geom',self.atg,ecrire_geom_ewkt(self.geom_v,False,False,err)
     # if obj.atg : return '3'+ecrire_geom_ewkt(obj.geom_v,False,False,err)+'\n'
     if obj.geom_v.valide:
         if convertisseur is None:
@@ -204,7 +204,6 @@ def lire_objets(fichier, stock_param):
             elif code == "2" or code == "4":
                 ajout_attribut_asc(obj, ligne)
             elif code == "3":
-                obj.nogeom = False
                 obj.geom.append(ligne[1:-1])
                 if not ligne:
                     print("lecture objet sans geom")

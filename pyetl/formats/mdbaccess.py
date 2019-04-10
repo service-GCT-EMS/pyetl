@@ -130,8 +130,8 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
         return selection_directe(schema, niveau)
     convert = {"a": "rtmfv", "v": "vm", "t": "r"}
     tables = convert.get(tables.lower(), tables.lower())
-    print('db:sortie liste', len(niveau), len(classe))
-    print('db:sortie liste', tables,niveau,classe)
+    # print('db:sortie liste', len(niveau), len(classe))
+    # print('db:sortie liste', tables,niveau,classe)
     for exp_niv, exp_clas in zip(niveau, classe):
         #            trouve = False
         exp_niv = exp_niv.strip()
@@ -670,6 +670,11 @@ def sortie_resultats(
     stock_param.set_param('printpending', 1)
     nbvals = 0
     attlist = curs.attlist
+    # print (' attributs recuperes avant', attlist)
+
+    if type_geom != "0":
+        attlist.append("#geom")
+    # print (' attributs recuperes ', attlist)
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
     stock_param = regle_courante.stock_param
@@ -685,23 +690,18 @@ def sortie_resultats(
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
         #        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
-        if type_geom != "0":
-            obj = Objet(niveau, classe, format_natif=format_natif,
-                         conversion=geom_from_natif,
-                          attributs = zip(attlist, [str(i) if i is not None else "" for i in valeurs[:-1]]))
+        obj = Objet(niveau, classe, format_natif=format_natif,
+                        conversion=geom_from_natif,
+                        attributs = zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
+        # if '#geom' in attlist:
+        #     print ('attlist', attlist)
+        #     print (valeurs,valeurs)
+        #     print ('zip ',zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
+        #     print ('objet lu',obj)
+        #     raise
+        if type_geom == "1":  # on prepare les angles s'il y en a
+            obj.attributs["#angle"] = obj.attributs.get("angle", "0")
 
-            # obj.attributs.update(
-            #     # zip(attlist, [str(i) if i is not None else "" for i in valeurs[:-1]])
-            #     zip(attlist, valeurs[:-1])
-            # )
-            obj.geom = [valeurs[-1] if valeurs[-1] is not None else ""]
-
-            if type_geom == "1":  # on prepare les angles s'il y en a
-                obj.attributs["#angle"] = obj.attributs.get("angle", "0")
-        else:
-            obj = Objet(niveau, classe, format_natif=format_natif,
-                         conversion=geom_from_natif,
-                         attributs = zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
         obj.attributs["#type_geom"] = type_geom
         obj.setschema(schema_classe_travail)
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
@@ -875,7 +875,7 @@ def recup_donnees_req_alpha(
     #    print ("reqdict",reqdict)
 
     stock_param = regle_courante.stock_param
-    maxobj = stock_param.get_param("lire_maxi", 0)
+    maxobj = int(stock_param.get_param("lire_maxi", 0))
 
     res = 0
     #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
@@ -907,7 +907,7 @@ def recup_donnees_req_alpha(
                 continue  # on a fait une requete sur un attribut inexistant: on passe
             treq = time.time()
 
-        curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxobj, ordre=ordre)
+        curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre)
         #        print ('-----------------------traitement curseur ', curs,type(curs) )
         treq = time.time() - treq
         if curs:
@@ -1073,14 +1073,13 @@ def recup_donnees_req_geo(
     buffer = regle_courante.params.cmp1.num
 
     if obj.format_natif == connect.format_natif:
-        geometrie = obj.geom[0]
+        geometrie = obj.attributs["#geom"]
     else:
         if obj.initgeom():
             geometrie = connect.geom_to_natif(obj.geom_v, 0, 0, None)
         else:
             print("objet non geometrique comme filtre de requete geometrique")
             return False
-    # print ("dbaccess: objet geom ",obj.geom)
     res = 0
     #    interm = time.time()
     #    print('recup_req geom ', fonction, ': initialisation ', int(interm-debut), 's')

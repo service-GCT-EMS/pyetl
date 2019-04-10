@@ -14,7 +14,7 @@ import psutil
 
 
 from pyetl.formats.mdbaccess import dbaccess
-from pyetl.formats import Writer
+from pyetl.formats.generic_io import Writer
 from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch
 
 
@@ -651,13 +651,12 @@ def f_compare2(regle, obj):
     if regle.params.att_entree.liste:
         compare = all([obj.attributs[i] == ref.attributs[i] for i in regle.params.att_entree.liste])
     else:
-        atts = {i for i in obj.attributs if i[0] != "#"}
-        kref = {i for i in ref.attributs if i[0] != "#"}
+        atts = {i for i in obj.attributs if i[0] != "#" or i=='#geom'}
+        kref = {i for i in ref.attributs if i[0] != "#" or i=='#geom'}
         #    id_att = atts == kref
         compare = (
             atts == kref
             and all([obj.attributs[i] == ref.attributs[i] for i in atts])
-            and obj.geom == ref.geom
         )
     if compare:
         return True
@@ -702,13 +701,12 @@ def f_compare(regle, obj):
     if regle.params.att_entree.liste:
         compare = all([obj.attributs[i] == ref.attributs[i] for i in regle.params.att_entree.liste])
     else:
-        atts = {i for i in obj.attributs if i[0] != "#"}
-        kref = {i for i in ref.attributs if i[0] != "#"}
+        atts = {i for i in obj.attributs if i[0] != "#" or i=='#geom'}
+        kref = {i for i in ref.attributs if i[0] != "#" or i=='#geom'}
         #    id_att = atts == kref
         compare = (
             atts == kref
             and all([obj.attributs[i] == ref.attributs[i] for i in atts])
-            and obj.geom == ref.geom
         )
     if compare:
         return True

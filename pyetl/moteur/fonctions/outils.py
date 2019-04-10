@@ -14,7 +14,7 @@ import traceback
 import logging
 import glob
 import codecs
-from pyetl.formats import Reader
+from pyetl.formats.generic_io import Reader
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
 

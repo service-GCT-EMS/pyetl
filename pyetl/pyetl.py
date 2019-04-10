@@ -21,7 +21,7 @@ from pathlib import Path
 from .vglobales import VERSION, set_mainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
-from .formats import Reader, READERS, WRITERS
+from .formats.generic_io import Reader, READERS, WRITERS
 
 # print('formats',time.time()-t1)
 

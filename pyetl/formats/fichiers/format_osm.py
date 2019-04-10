@@ -131,7 +131,7 @@ class DecodeConfigOsm(object):
             ident = ("osm_incomplet", ident[1])
         self.reader.setident(*ident)
         obj = self.reader.getobj()
-        obj.geom = geom
+        obj.attributs["#geom"] = geom
         obj.attributs["#type_geom"] = type_geom
 
         if self.force_geom is not None:
@@ -272,32 +272,14 @@ def geom_from_osm(obj):
     geomv = obj.geom_v
     if geomv.valide:
         return True
-    if not obj.geom:
+    if not obj.attributs["#geom"]:
         obj.attributs["#type_geom"] = "0"
         return True
     if obj.attributs["#type_geom"] == "1":
-        geomv.setpoint(obj.geom[0], None, 2)
+        geomv.setpoint(obj.attributs["#geom"][0], None, 2)
 
     else:
-        #        ext = 999998
-        #        trou = 999999
-        #        geom = obj.geom
-        #        for i in range(len(geom)):
-        #            lg, role = geom[i]
-        #            if role == 'inner':
-        #                ext = min(i, ext)
-        #            if role == 'outer':
-        #                trou = min(i, trou)
-        #        if trou < ext:
-        #            if ext < 999998:
-        #                geom[ext], geom[trou] = geom[trou], geom[ext]
-        #            else:
-        #                lg, role = geom[trou]
-        #                geom[trou] = (lg,'outer')
-
-        #        print('geom_from osm', obj.geom)
-        for sect, role in obj.geom:
-
+        for sect, role in obj.attributs["#geom"]:
             geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
             # print ('osm:creation section ',lg)
 

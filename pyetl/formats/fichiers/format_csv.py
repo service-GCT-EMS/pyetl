@@ -42,42 +42,35 @@ from .fileio import FileWriter
 def decode_entetes_csv(reader, entete, separ):
     """prepare l'entete et les noma d'un fichier csv"""
     geom = False
-
-    schema_entree = reader.schema_entree
-
     #    print('decodage entete csv',schema_courant.nom if schema_courant else '' ,entete)
-
-    if schema_courant:
-        schema_courant = stock_param.init_schema(nom_schema, "F")
-
     # if (nom_groupe, nom_classe) in schema_courant.classes:
     #     schemaclasse = schema_courant.classes[(nom_groupe, nom_classe)]
     #     noms_attributs = schemaclasse.get_liste_attributs()
     #     geom = schemaclasse.info["type_geom"] != "0"
     # else:
     #     schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
+    noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
+    # on verifie que les noms existent et sont uniques
+    noms = set()
 
-        noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
-        # on verifie que les noms existent et sont uniques
-        noms = set()
+    for i, nom in enumerate(noms_attributs):
+        if not nom:
+            noms_attributs[i] = "#champs_" + str(i)
+        if nom in noms:
+            noms_attributs[i] = nom + "_" + str(i)
+        noms.add(noms_attributs[i])
 
-        for i, nom in enumerate(noms_attributs):
-            if not nom:
-                noms_attributs[i] = "#champs_" + str(i)
-            if nom in noms:
-                noms_attributs[i] = nom + "_" + str(i)
-            noms.add(noms_attributs[i])
-
-        if noms_attributs[-1] == "tgeom" or noms_attributs[-1] == "geometrie":
-            geom = True
-            noms_attributs.pop(-1)  # on supprime la geom en attribut classique
+    if noms_attributs[-1] == "tgeom" or noms_attributs[-1] == "geometrie":
+        geom = True
+        noms_attributs.pop(-1)  # on supprime la geom en attribut classique
+    if reader.newschema:
         for i in noms_attributs:
             if i[0] != "#":
-                reader.schemaclasse_entree.stocke_attribut(i, "T")
+                reader.schemaclasse.stocke_attribut(i, "T")
     #    else: # on adapte le schema force pur eviter les incoherences
     #        schemaclasse.adapte_schema_classe(noms_attributs)
 
-    return nom_groupe, nom_classe, noms_attributs, geom, schemaclasse
+    return noms_attributs, geom
 
 
 def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
@@ -114,24 +107,19 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             else:  # il faut l'inventer...
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
-            nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(reader,
-                entete, separ
-            )
-            reader.setident(nom_groupe, nom_classe)
+            noms_attributs, geom= decode_entetes_csv(reader,entete, separ)
             controle = len(noms_attributs)
             nbwarn = 0
             nlignes = 0
             for i in fich:
                 # nlignes = nlignes + 1
-                obj = reader.getobj()
-                obj.setschema(schemaclasse)
-                obj.setorig(nlignes)
+
                 val_attributs = [j.strip() for j in i[:-1].split(separ)]
                 # liste_attributs = zip(noms_attributs, val_attributs)
                 # print ('lecture_csv:',[i for i in liste_attributs])
                 if len(val_attributs) != controle:
                     nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
-                obj.attributs.update(zip(noms_attributs, val_attributs))
+                obj = reader.getobj(attributs=zip(noms_attributs, val_attributs))
                 # print ('attributs:',obj.attributs['nombre_de_servitudes'])
                 if geom:
                     obj.geom = [val_attributs[-1]]

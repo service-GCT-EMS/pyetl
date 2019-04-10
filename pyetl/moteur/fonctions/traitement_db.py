@@ -132,6 +132,8 @@ def h_dbalpha(regle):
                 defaut, None, list(valeurs.keys()), False, ""
             )
         regle.chargeur = True  # c est une regle qui cree des objets
+        if regle.getvar('noauto'): # mais on veut pas qu'elle se declenche seule
+            regle.chargeur = False
         #        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
             return True
@@ -171,7 +173,7 @@ def setdb(regle, obj, att=True):
     if niveau and niveau[0].startswith("["):  # nom de classe contenu dans un attribut
         niveau = [obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])]
     if classe and classe[0].startswith("["):  # nom de classe contenu dans un attribut
-        classe = [obj.attributs.get(classe[0][1:-1], "attribut non defini " +'.'.join(obj.ident)+ classe[0][1:-1])]
+        classe = [obj.attributs.get(classe[0][1:-1], "attribut non defini " +'.'.join(obj.ident)+' '+classe[0][1:-1])]
     if regle.params.att_entree.liste:
         #        print('on a mis un attribut', regle.params.att_entree.liste)
         valeur = [
@@ -596,7 +598,7 @@ def f_recup_schema(regle, obj):
             chemin=chemin,
         )
         return True
-    print("recup_schema: base non definie ", type_base, base, obj)
+    print("recup_schema: base non definie ",regle, type_base, base, obj)
     return False
 
 

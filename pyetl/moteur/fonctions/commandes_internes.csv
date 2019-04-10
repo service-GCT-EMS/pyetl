@@ -140,7 +140,7 @@ db:%acces%;%niveau%;%classe%;;;;;dbclean;T,=;%nom%;fin;
 <#initdb;%acces%;%nom%;;;;
 K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 K:%dest%;;;;;;;;pass;;;fin;
-K:%dest%;db:%base#dest%;;;;schema_sortie;;;dbschema;;;fin;
+!K:%dest%;db:%base#dest%;;;;schema_sortie;;;dbschema;;;fin;
 db:%acces%;%niveau%;%classe%;%attribut%;;%valeur%;;dbalpha;%mod%;%ordre%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbdump;acces;niveau;classe;rep_sortie;log;;;

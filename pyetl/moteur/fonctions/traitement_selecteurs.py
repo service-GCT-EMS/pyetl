@@ -560,7 +560,7 @@ def sel_hasgeom(_, obj):
        #pattern1||=has:geom||1
        #test||obj;asc;1||^;;;geom||^?#geom;;;supp||;has:geom;;;res;1;;set||atv;res;1
     """
-    return bool(obj.geom)
+    return bool(obj.attributs.get('#geom'))
 
 
 def sel_hascouleur(selecteur, obj):

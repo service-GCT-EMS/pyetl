@@ -102,13 +102,12 @@ def f_setgeom(regle, obj):
             ||^;;;geom||atv;#type_geom;2
     """
     geom = regle.get_entree(obj)
-    obj.geom = geom.split("|")
+    obj.attributs["#geom"] = geom.split("|")
     obj.format_natif = regle.params.cmp1.val
     obj.geompending(dimension=regle.params.cmp2.num if regle.params.cmp2.num else 2)
     converter = regle.stock_param.get_converter(obj.format_natif)
     if converter:
         obj.attributs_geom = converter
-    #    print (" valeur de geom",obj.geom)
     return True
 
 

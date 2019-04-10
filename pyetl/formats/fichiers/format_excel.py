@@ -144,7 +144,7 @@ def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=Non
             obj.attributs.update(zip(noms_attributs, val_attributs))
             # print ('attributs:',obj.attributs['nombre_de_servitudes'])
             if geom:
-                obj.geom = [val_attributs[-1]]
+                obj.attributs["#geom"] = [val_attributs[-1]]
                 #                print ('geometrie',obj.geom)
                 obj.attributs["#type_geom"] = "-1"
             else:

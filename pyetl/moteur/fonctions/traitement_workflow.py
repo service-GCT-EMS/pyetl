@@ -33,9 +33,6 @@ def f_pass(*_):
         #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
         #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
               ||X;1;;;X;%defaut%;;set||atv;X;3
-
-
-
     """
     return True
 
@@ -187,10 +184,6 @@ def printfunc(regle, obj):
     #    print ('affichage', obj)
     if regle.params.att_entree.dyn:
         liste = obj.get_dynlisteval(noms=noms)
-    elif regle.params.att_entree.val == "#geom":
-        if not regle.params.cmp1.val:
-            cmp1 = "geom:"
-        return cmp1 + str(obj.geom)
     elif regle.params.att_entree.val == "#geomV":
         if not regle.params.cmp1.val:
             cmp1 = "geomV:"

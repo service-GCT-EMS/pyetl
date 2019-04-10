@@ -160,10 +160,11 @@ def _parse_ewkt(geometrie, texte):
 
 def geom_from_ewkt(obj):
     """convertit une geometrie ewkt en geometrie interne"""
-    if obj.geom:
+    geom = obj.attributs["#geom"]
+    if geom:
         geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
         #        print ('decodage geometrie ewkt ',obj.geom)
-        _parse_ewkt(obj.geom_v, obj.geom[0])
+        _parse_ewkt(obj.geom_v, geom)
         obj.finalise_geom(type_geom=geom_demandee)
     return obj.geom_v.valide
 

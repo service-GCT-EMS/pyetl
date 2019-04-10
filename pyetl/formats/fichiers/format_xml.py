@@ -151,13 +151,13 @@ class XmlWriter(FileWriter):
                 obj.geom_v.erreurs.errs,
                 obj.attributs["#type_geom"],
                 self.schema.info["type_geom"],
-                obj.geom,
+                obj.attributs["#geom"],
             )
             geom = ""
         if not geom:
             geom = self.null
         obj.format_natif = "xml"
-        obj.geom = geom
+        obj.attributs["#geom"] = geom
         obj.geomnatif = True
         if obj.erreurs and obj.erreurs.actif == 2:
             print(

@@ -56,7 +56,7 @@ def _decode_dates_apic(chaine):
     return dat_cre, dat_mod
 
 
-def _point_apic(obj, liste_elt, log_erreurs):
+def _point_apic(liste_elt, log_erreurs):
     """positionne une geometrie de point et des parties d'entete """
     types_geom = {"3": "1", "5": "0", "6": "1", "9": "2"}
     type_geom = "0"
@@ -66,53 +66,83 @@ def _point_apic(obj, liste_elt, log_erreurs):
     type_geom_asc = liste_elt[0][0]
     classe = liste_elt[1].strip()
     index = liste_elt[2].strip()
-    _, oclasse = obj.ident
-    if classe != oclasse:  # on est en mode multiclasse
-        obj.setident((oclasse, classe))
-
+    # _, oclasse = obj.ident
+    # if classe != oclasse:  # on est en mode multiclasse
+    #     obj.setident((oclasse, classe))
+    coords=[]
     try:
         type_geom = types_geom[type_geom_asc]
-        obj.geomnatif = False
+        # obj.geomnatif = False
         if type_geom_asc == "3":
-            cd_x, cd_y = float(liste_elt[3]) / FC, float(liste_elt[4]) / FC
+            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC, 0]
             angle = 90 - round(float(liste_elt[5]) / FA, 1)
-            obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
+            # obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
 
         elif type_geom_asc == "6":
-            cd_x, cd_y = float(liste_elt[3]) / FC, float(liste_elt[4]) / FC
-            cd_z = float(liste_elt[5]) / FC
+            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC,
+            float(liste_elt[5]) / FC]
             angle = 90 - round(float(liste_elt[6]) / FA, 1)  # point 3D
-            obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
+            # obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
             dim = "3"
     except ValueError:
-        obj.attributs["#erreurs"] = "erreur lecture entete"
-        log_erreurs.send(obj.ident)
-    return index, type_geom, dim, angle
+        # obj.attributs["#erreurs"] = "erreur lecture entete"
+        # log_erreurs.send(obj.ident)
+        erreurs = "erreur lecture entete"
+    return index, type_geom, dim, angle, coords, erreurs
 
 
-def _decode_entete_asc(obj, entete, log_erreurs):
-    """decode un point dans l'entete apic"""
+def _decode_entete_asc(entete, log_erreurs):
+    """decode l'entete apic"""
+    types_geom = {"3": "1", "5": "0", "6": "1", "9": "2"}
+    type_geom = "0"
+    dim = 2
+    angle = "0"
+    erreurs =''
     liste1 = entete.split(";")
     liste_elt = liste1[1].split(",")
     gid = liste_elt[0][2:].strip()  # gid
     if len(liste_elt) < 3:
         print("asc:erreur point ", liste1[0])
+    type_geom_asc = liste_elt[0][0]
+    classe = liste_elt[1].strip()
+    index = liste_elt[2].strip()
+    coords=[]
+    try:
+        type_geom = types_geom[type_geom_asc]
+        # obj.geomnatif = False
+        if type_geom_asc == "3":
+            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC, 0]
+            angle = 90 - round(float(liste_elt[5]) / FA, 1)
+            # obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
 
-    index, type_geom, dim, angle = _point_apic(obj, liste_elt, log_erreurs)
+        elif type_geom_asc == "6":
+            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC,
+            float(liste_elt[5]) / FC]
+            angle = 90 - round(float(liste_elt[6]) / FA, 1)  # point 3D
+            # obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
+            dim = 3
+    except ValueError:
+        # obj.attributs["#erreurs"] = "erreur lecture entete"
+        log_erreurs.send(classe)
+        erreurs = "erreur lecture entete"
+
+
+
+    # index, type_geom, dim, angle = _point_apic(obj, liste_elt, log_erreurs)
     dat_cre, dat_mod = _decode_dates_apic(liste1[2])
 
-    obj.attributs.update(
-        [
+    attributs ={
             ("#gid", gid),
             ("#clef", index),
             ("#type_geom", type_geom),
-            ("#dimension", dim),
+            ("#dimension", str(dim)),
             ("#_sys_date_cre", dat_cre),
             ("#_sys_date_mod", dat_mod),
             ("#complement", ";".join(liste1[3:-1])),
             ("#angle", str(angle)),
-        ]
-    )
+            ("#erreurs", erreurs)
+    }
+    return attributs, coords, angle, dim
 
 
 def _erreurs_entete():
@@ -137,7 +167,7 @@ def _erreurs_entete():
 
 # entree sortie en asc
 # @jit
-def ajout_attribut_asc(obj, attr):
+def ajout_attribut_asc(attributs, attr):
     """decodage d'un attribut asc et stockage"""
     bcode = {"-1":"t", "0":"f", "t":"t", "f":"f"}
     code = attr[0]
@@ -145,15 +175,15 @@ def ajout_attribut_asc(obj, attr):
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
     nom = liste_elts[0][1:]
     type_att = "A"
-    if obj.schema:
-        if nom in obj.schema.attmap:
-            nom = obj.schema.attmap[nom].nom
-        elif nom not in obj.schema.attributs:
-            if obj.schema.schema.origine == "B":  # c'est un schema autogenere
-                obj.schema.stocke_attribut(nom, "A")
-            else:
-                nom = "#" + nom
-        type_att = obj.schema.attributs[nom].type_att
+    # if obj.schema:
+    #     if nom in obj.schema.attmap:
+    #         nom = obj.schema.attmap[nom].nom
+    #     elif nom not in obj.schema.attributs:
+    #         if obj.schema.schema.origine == "B":  # c'est un schema autogenere
+    #             obj.schema.stocke_attribut(nom, "A")
+    #         else:
+    #             nom = "#" + nom
+    #     type_att = obj.schema.attributs[nom].type_att
     if code == "2":
         code_att = liste_elts[1][0:2]
         long_attrib = int(liste_elts[1][2:])
@@ -163,15 +193,15 @@ def ajout_attribut_asc(obj, attr):
             suite = len(vatt) < long_attrib
 
         elif code_att == "TL":
-            obj.text_graph[liste_elts[0][1:]] = liste_elts[2:-1]  # texte_graphique
+            # obj.text_graph[liste_elts[0][1:]] = liste_elts[2:-1]  # texte_graphique
             nom_x = nom + "_X"
             nom_y = nom + "_Y"
-            obj.tg_coords[nom_x] = 1
-            obj.tg_coords[nom_y] = 1
+            # obj.tg_coords[nom_x] = 1
+            # obj.tg_coords[nom_y] = 1
             liste_elts = attr.split(",")  # d on decode plus loin
             #            try:
-            obj.attributs[nom_x] = str(float(liste_elts[2]) / FC)
-            obj.attributs[nom_y] = str(float(liste_elts[3]) / FC)
+            attributs[nom_x] = str(float(liste_elts[2]) / FC)
+            attributs[nom_y] = str(float(liste_elts[3]) / FC)
             #            except ValueError:
             #                print("error: asc  : texte graphique incorrect", liste_elts)
             texte_candidat = ",".join(liste_elts[7:])
@@ -183,9 +213,9 @@ def ajout_attribut_asc(obj, attr):
             print("error: asc  : lecture_asc code inconnu ", code_att, attr)
     elif code == "4":
         #        print('detection code etat ', obj.ident, liste_elts)
-        if obj.etats is None:
-            obj.etats = dict()
-        obj.etats[liste_elts[0][1:]] = liste_elts[1][:-1]  # code etat
+        # if obj.etats is None:
+        #     obj.etats = dict()
+        # obj.etats[liste_elts[0][1:]] = liste_elts[1][:-1]  # code etat
         vatt = liste_elts[1][:-1]
         nom = "#_sys_E_" + liste_elts[0][1:]
     else:
@@ -195,23 +225,22 @@ def ajout_attribut_asc(obj, attr):
             vatt = bcode[vatt]
         except IndexError:
             print("erreur booleen ", nom, vatt)
-    obj.attributs[nom] = vatt
+    attributs[nom] = vatt
     return nom, suite
     # print l, l[-1].strip()
     # print 1/0
 
 
-def complete_attribut(obj, nom, chaine):
-    """ajoute une ligne a un attribut"""
-    obj.attributs[nom] += chaine
-    return nom, False
+# def complete_attribut(attributs, nom, chaine):
+#     """ajoute une ligne a un attribut"""
+#     attributs[nom] += chaine
+#     return nom, False
 
 
 def _finalise(obj, schema_init, schema, numero, chemin):
     """ finalise un objet avant de l'envoyer """
     if obj.attributs["#type_geom"] != "1":  # pour les points c 'est deja fait
         if obj.geom:
-            obj.nogeom = False
             obj.attributs["#dimension"] = "3" if obj.geom[0].find("3D") else "2"
         obj.geompending()  # on signale qu on a pas traite la geom
     if schema_init:
@@ -256,12 +285,24 @@ def _get_schemas(regle, rep, fichier):
     return schema, schema_init
 
 
+
+
+
+
+
+
 def lire_objets_asc(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
     obj = None
     nom = None
-    schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
+    attributs = dict()
+    geom = []
+    coords = []
+    angle = 0
+    dim = 2
+    # schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
     self.prepare_lecture_fichier(self, rep, chemin, fichier)
+    classe = self.classe
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
@@ -272,28 +313,52 @@ def lire_objets_asc(self, rep, chemin, fichier):
             chemin = os.path.basename(rep)
         for i in ouvert:
             if suite:
-                suite, nom = complete_attribut(obj, nom, i)
+                # suite, nom = complete_attribut(attributs, nom, i)
+                attributs[nom] += i
+                suite = False
                 continue
             if len(i) <= 2 or i.startswith("*"):
                 continue
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
-                if obj:
-                    _finalise(obj, schema_init, schema, self.nb_lus, chemin)
-                    self.process(obj)
-                if code_1 in "9356":
-                    obj = self.getobj()
+                if attributs or geom:
+                    # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+                    obj = self.getobj(classe=classe, attributs=attributs)
                     if obj is None:
                         return self.nb_lus
-                    _decode_entete_asc(obj, i, log_erreurs)
+                    if coords:
+                        obj.geom_v.setpoint(coords, angle, dim)
+                    if geom:
+                        obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
+                        obj.geom = geom
+
+                        self.process(obj)
+                        geom = []
+                if code_1 in "9356":
+                    # obj = self.getobj()
+
+                    attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
+
             elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == "_"):
-                nom, suite = ajout_attribut_asc(obj, i)
+                nom, suite = ajout_attribut_asc(attributs, i)
             elif i.startswith("FIN"):
                 continue
             elif obj:
-                obj.geom.append(i)
-        if obj:
-            _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+                geom.append(i)
+        if attributs or geom:
+            obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
+            if obj is None:
+                return self.nb_lus
+            if coords:
+                obj.geom_v.setpoint(coords, angle, dim)
+            if geom:
+                obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
+                obj.geom = geom
+
+                self.process(obj)
+
+
+            # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
             self.process(obj)
         log_erreurs.send("")
     return self.nb_lus
@@ -346,7 +411,7 @@ def _ecrire_entete_asc(obj):
         if obj.initgeom():
             type_geom_sortie = types_geom_asc.get(type_geom, ";5 ")
         else:
-            print("geometrie invalide ", id_num, obj.geom)
+            print("geometrie invalide ", id_num, obj.attributs['#geom'])
             type_geom_sortie = ";5 "
 
     dcre = format_date(attr.get("#_sys_date_cre"))

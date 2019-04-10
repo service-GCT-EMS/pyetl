@@ -79,7 +79,7 @@ def geom_from_tmp(obj):
     geom_v.type = "2"
     poly = None
     nouvelle_ligne = False
-    for i in obj.geom:
+    for i in obj.attributs['#geom']:
         code = i[0]
         if code == "P":
             poly = geom_v.polygones

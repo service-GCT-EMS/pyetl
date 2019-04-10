@@ -75,14 +75,14 @@ def geom_from_asc(obj):
     #    print('gfa: geom_demandee',geom_demandee)
     geom_v = obj.geom_v
     dim = 2
-    if not obj.geom:
+    if '#geom' not in obj.attributs:
         if obj.attributs["#type_geom"] == "0":
             return True
         geom_v.erreurs.ajout_erreur("objet_sans_geometrie")
         obj.attributs.update([("#type_geom", "0"), ("#dimension", "2")])
         return False
 
-    for pnt in obj.geom:
+    for pnt in obj.attributs['#geom']:
         if pnt.startswith("1SEC"):
             dim = 3 if pnt.find("3D") > 0 else 2
             coords = []

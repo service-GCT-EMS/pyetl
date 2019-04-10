@@ -36,14 +36,13 @@ class Objet(object):
 
     _ido = itertools.count(1)  # compteur d'instance
 
-    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None):
+    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None):
         self.geom = []
         self.geom_v = Geometrie()
         #        self.valide = False
         self.forcegeom = False  # force une geometrie de ligne
-        # self.nogeom = True
         self.ido = next(self._ido)
-        self.numobj = self.ido
+        self.numobj = self.ido if numero is None else numero
         #        print ("nouveau",self.ido)
         # self.ccx, self.ccy, self.ccz, self.angle = 0, 0, 0, 0
         self.copie = 0
@@ -54,15 +53,18 @@ class Objet(object):
         # self.atg = False
         self.liste_attributs = None
         self.idorig = (groupe, classe)
-        self.attributs = dict() if attributs is None else dict(attributs)
-        self.attributs.update((
+
+        self.attributs = dict((
             ("#statgroupe", "total"),
             ("#type_geom", "0"),
             ("#groupe", groupe),
             ("#classe", classe),
             ("#groupe_orig", groupe),
             ("#classe_orig", classe),
+            ("#geom",'')
         ))
+        if attributs is not None:
+            self.attributs.update(attributs)
         self.hdict = None
         self.multiples = None  # atributs multiples
         #        self.attributs_speciaux = AttributsSpeciaux()
@@ -100,7 +102,7 @@ class Objet(object):
 
     def setnogeom(self, tmp=False):
         """annulle la geometrie"""
-        self.geom = []
+        self.attributs["#geom"] = ''
         #        erreurs_geom = self.geom_v.erreurs.getvals() if self.geom_v else ""
         self.geom_v = Geometrie()
         if tmp:  # operation temporaire on fait autre chose derriere
@@ -533,15 +535,11 @@ class Objet(object):
 
     def fold(self, classe, alist, geom=True, gsep="|"):
         """ retourne un objet compact pour le stockage temporaire en general un namedtuple"""
-        return classe(
-            [self.attributs.get(i) for i in alist] + [gsep.join(self.geom) if geom else []]
-        )
+        return classe([self.attributs.get(i) for i in alist])
 
 
 def unfold(groupe, classe, folded, alist, geom=False, gsep="|"):
     """decompacte un objet"""
     obj = Objet(groupe, classe)
     obj.attributs.update(zip(alist, folded))
-    if geom:
-        obj.geom = folded[-1].split(gsep)
     return obj
