@@ -6,6 +6,8 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
+import sqlite3
+import libspatialite
 from .database import DbConnect, DbGenSql
 
 TYPES_A = {
@@ -52,15 +54,7 @@ class SqltConnect(DbConnect):
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
 
-        try:
-            import sqlite3
-
-            self.errs = sqlite3.DatabaseError
-        #        import pyodbc as odbc
-        except ImportError:
-            print("error: sqlite: erreur import: module sqlite non accessible")
-            return None
-
+        errs = sqlite3.DatabaseError
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
             self.connection = sqlite3.connect(self.base)
