@@ -82,7 +82,8 @@ def geom_from_tmp(obj):
     geom_v.type = "2"
     poly = None
     nouvelle_ligne = False
-    for i in obj.geom:
+    geom = obj.attributs['#geom']
+    for i in geom:
         code = i[0]
         if code == "P":
             poly = geom_v.polygones
@@ -182,7 +183,7 @@ def tmp_geom(obj, convertisseur):
             convertisseur = ecrire_geometrie_tmp
         geom = convertisseur(obj.geom_v)
     else:
-        geom = obj.geom
+        geom = obj.attributs['#geom']
     if isinstance(geom, list):
         return "3" + "\n3".join(geom) + "\n"
     return "3" + geom + "\n"
@@ -204,11 +205,9 @@ def lire_objets(fichier, stock_param):
             elif code == "2" or code == "4":
                 ajout_attribut_asc(obj, ligne)
             elif code == "3":
-                obj.geom.append(ligne[1:-1])
-                if not ligne:
-                    print("lecture objet sans geom")
+                obj.attributs["#geom"].append(ligne[1:-1])
             elif code == "5":
-                if obj.geom and not obj.attributs_geom:
+                if obj.attributs["#geom"] and not obj.attributs_geom:
                     print("geom_lue sans convertisseur", form, ":", obj.attributs_geom)
                 #                print (obj.geom)
                 obj.geomnatif = True

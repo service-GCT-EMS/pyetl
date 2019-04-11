@@ -189,7 +189,7 @@ class Reader(object):
     def prepare_attlist(self, attlist):
         '''prepare une liste de mapping'''
         if self.schemaclasse.attmap:
-            self.attlist = [self.schemaclasse.attmap.get(i,i) for i in attlist]
+            self.attlist = [self.schemaclasse.attmap.get(i,i if i.startswith('#') else '#'+i) for i in attlist]
         else:
             self.attlist = attlist
 
@@ -209,8 +209,13 @@ class Reader(object):
             self.aff.send(("interm", 0, self.nb_lus))
         if attributs and self.schemaclasse.attmap:
             attributs = self.attremap(attributs)
-        elif valeurs is not None:
+        elif valeurs:
             attributs = zip(self.attlist, valeurs)
+        if geom:
+            if attributs:
+                attributs["#geom"]=geom
+            else:
+                attributs={"#geom":geom}
         return  Objet(
             niveau or self.groupe,
             classe or self.classe,

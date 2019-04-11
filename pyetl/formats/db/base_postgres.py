@@ -166,6 +166,8 @@ class PgrConnect(DbConnect):
         self.accept_sql = "alpha"
         if self.connection:
             self.set_searchpath()
+            self.connection.commit()
+
         self.type_base = "postgres"
         self.dialecte = "postgres"
 
@@ -175,6 +177,7 @@ class PgrConnect(DbConnect):
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
         cur.execute("select set_config('search_path' , 'public',False)", ())
         cur.close()
+
 
     @staticmethod
     def change_antislash(nom):
@@ -195,7 +198,7 @@ class PgrConnect(DbConnect):
             outfile = self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
 
-        chaine = " --".join((prog, chaine_connect, "file=" + file))
+        chaine = " --".join((prog, chaine_connect, 'file="' + file+'"'))
         print("loader ", chaine)
         env = dict(os.environ)
         env["PGCLIENTENCODING"] = "UTF8"
@@ -229,6 +232,7 @@ class PgrConnect(DbConnect):
         if self.passwd:
             chaine_connect = chaine_connect + " password=" + self.passwd
         #    print ('info:postgres: connection ', serveur,base,user,'*'*len(passwd))
+        print('connection',chaine_connect)
         try:
             connection = psycopg2.connect(chaine_connect)
             connection.autocommit = False
@@ -450,7 +454,7 @@ class PgrConnect(DbConnect):
                 print("sortie en erreur ", fini.returncode, fini.args, fini.stderr)
 
     def dbloadfile(self, schema, ident, fichier):
-        """# charge un fichier par copy"""
+        """charge un fichier par copy"""
         cur = self.connection.cursor()
         colonnes = tuple(schema.classes[ident].get_liste_attributs())
         nom = ".".join(ident)
@@ -465,7 +469,7 @@ class PgrConnect(DbConnect):
                 return False
 
     def dbload(self, schema, ident, source):
-        """ charge des objets en base de donnees par dbload"""
+        """charge des objets en base de donnees par dbload"""
         cur = self.connection.cursor()
         colonnes = tuple(schema.classes[ident].get_liste_attributs())
         nom = ".".join(ident)

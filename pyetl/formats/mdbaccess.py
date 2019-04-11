@@ -438,6 +438,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         schema_base.dbsql = connection.gensql
         get_schemabase(connection)
         stock_param.dbconnect[codebase] = connection
+        connection.connection.commit() # on referme toutes les ressources
         return connection
 
     print("connection invalide", base, type_base)
@@ -617,6 +618,7 @@ def get_connect(
         + str(len(schema_travail.classes))
         + str(len(schema_travail.conformites))
     )
+    connect.connection.commit()
     return connect, schema_travail, liste2
 
 
@@ -822,6 +824,8 @@ def lire_table(ident, regle_courante, parms=None):
     curs = connect.req_alpha(ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre)
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
+    connect.connection.commit()
+
     if curs:
         res = sortie_resultats(
             regle_courante,
@@ -908,6 +912,7 @@ def recup_donnees_req_alpha(
             treq = time.time()
 
         curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre)
+        connect.connection.commit()
         #        print ('-----------------------traitement curseur ', curs,type(curs) )
         treq = time.time() - treq
         if curs:
@@ -991,6 +996,8 @@ def recup_count(
             ):
                 continue  # on a fait une requete sur un attribut inexistant: on passe
         reponse = connect.req_count(ident, schema_classe_travail, attr, val, mods)
+        connect.connection.commit()
+
         #        print ('retour ',nb)
         if reponse and reponse[0]:
             total += reponse[0][0]
@@ -1017,6 +1024,7 @@ def recup_table_parametres(
     curs = connect.req_alpha(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )
+    connect.connection.commit()
     resultat = [valeurs for valeurs in curs.cursor]
     return resultat
 
@@ -1043,6 +1051,7 @@ def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
         if mval:
             retour[ident] = str(mval)
     #            print('maxval:', ident, retour[ident], champ)
+        connect.connection.commit()
     return retour
 
 
@@ -1093,6 +1102,7 @@ def recup_donnees_req_geo(
         curs = connect.req_geom(
             ident, schema_classe_travail, mods, fonction, geometrie, maxobj, buffer
         )
+        connect.connection.commit()
         treq = time.time() - treq
         if curs.cursor is None:
             continue

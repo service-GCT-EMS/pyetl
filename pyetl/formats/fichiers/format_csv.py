@@ -41,7 +41,7 @@ from .fileio import FileWriter
 
 def decode_entetes_csv(reader, entete, separ):
     """prepare l'entete et les noma d'un fichier csv"""
-    geom = False
+    # geom = False
     #    print('decodage entete csv',schema_courant.nom if schema_courant else '' ,entete)
     # if (nom_groupe, nom_classe) in schema_courant.classes:
     #     schemaclasse = schema_courant.classes[(nom_groupe, nom_classe)]
@@ -61,8 +61,9 @@ def decode_entetes_csv(reader, entete, separ):
         noms.add(noms_attributs[i])
 
     if noms_attributs[-1] == "tgeom" or noms_attributs[-1] == "geometrie":
-        geom = True
-        noms_attributs.pop(-1)  # on supprime la geom en attribut classique
+        noms_attributs[-1]='#geom'
+        # geom = True
+        # noms_attributs.pop(-1)  # on supprime la geom en attribut classique
     if reader.newschema:
         for i in noms_attributs:
             if i[0] != "#":
@@ -70,7 +71,7 @@ def decode_entetes_csv(reader, entete, separ):
     #    else: # on adapte le schema force pur eviter les incoherences
     #        schemaclasse.adapte_schema_classe(noms_attributs)
 
-    return noms_attributs, geom
+    return noms_attributs
 
 
 def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
@@ -107,7 +108,9 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             else:  # il faut l'inventer...
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
-            noms_attributs, geom= decode_entetes_csv(reader,entete, separ)
+            noms_attributs= decode_entetes_csv(reader,entete, separ)
+            reader.prepare_attlist(noms_attributs)
+            type_geom = '-1' if noms_attributs[-1]=='#geom' else '0'
             controle = len(noms_attributs)
             nbwarn = 0
             nlignes = 0
@@ -119,14 +122,15 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 # print ('lecture_csv:',[i for i in liste_attributs])
                 if len(val_attributs) != controle:
                     nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
-                obj = reader.getobj(attributs=zip(noms_attributs, val_attributs))
+                # obj = reader.getobj(attributs=zip(noms_attributs, val_attributs))
+                obj = reader.getobj(valeurs=val_attributs)
                 # print ('attributs:',obj.attributs['nombre_de_servitudes'])
-                if geom:
-                    obj.geom = [val_attributs[-1]]
-                    #                print ('geometrie',obj.geom)
-                    obj.attributs["#type_geom"] = "-1"
-                else:
-                    obj.attributs["#type_geom"] = "0"
+                # if geom:
+                #     obj.geom = [val_attributs[-1]]
+                #     #                print ('geometrie',obj.geom)
+                obj.attributs["#type_geom"] = type_geom
+                # else:
+                #     obj.attributs["#type_geom"] = "0"
                 obj.attributs["#chemin"] = chemin
                 # reader.traite_objets(obj, reader.regle_start)
                 reader.process(obj)
@@ -138,7 +142,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 #     regle_ref.stock_param.aff.send(("interm", 0, nlignes))
                 #     # gestion des affichages de patience
     except UnicodeError:
-        print("erreur encodage le fichier", fichier, "n'est pas en ", encoding)
+        print("erreur encodage le fichier", fichier, "n'est pas en ", reader.encoding)
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")
     return reader.nb_lus
@@ -239,7 +243,7 @@ class CsvWriter(FileWriter):
                         geom = ""
 
                 obj.format_natif = "#ewkt"
-                obj.geom = geom
+                obj.attributs['#geom'] = geom
                 obj.geomnatif = True
                 if obj.erreurs and obj.erreurs.actif == 2:
                     print(

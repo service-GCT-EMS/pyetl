@@ -8,15 +8,12 @@ Created on Thu Jan 12 16:45:47 2017
 
 def geom_from_sdo(obj):
     """convertit une geometrie sdo en geometrie interne"""
-    if obj.geom is None:
-        obj.geom = []
-    else:
-        geom = obj.geom
+    geom = obj.attributs['#geom']
+    if geom:
         gtype = geom.SDO_GTYPE
         obj.geom_v.type = gtype
         obj.geom_v.srid = geom.SDO_SRID
-
-    if not obj.geom:
+    else:
         obj.attributs["#type_geom"] = "0"
         #        obj.is_3d = False
         obj.dimension = 0

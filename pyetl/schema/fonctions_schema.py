@@ -485,7 +485,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             if srid != schemaclasse.srid:
                 schemaclasse.sridmix = True
     else:
-        if not obj.geom:
+        if not obj.attributs["#geom"]:
             obj.attributs["#type_geom"] = "0"
     if obj.attributs["#type_geom"] != schemaclasse.info["type_geom"]:
         if obj.attributs["#type_geom"] == "3" and schemaclasse.info["type_geom"] == "2":

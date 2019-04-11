@@ -323,17 +323,16 @@ def lire_objets_asc(self, rep, chemin, fichier):
             if code_0 == ";" and code_1.isnumeric():
                 if attributs or geom:
                     # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
-                    obj = self.getobj(classe=classe, attributs=attributs)
+                    obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
                     if obj is None:
                         return self.nb_lus
                     if coords:
                         obj.geom_v.setpoint(coords, angle, dim)
                     if geom:
                         obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-                        obj.geom = geom
-
-                        self.process(obj)
                         geom = []
+                    self.process(obj)
+
                 if code_1 in "9356":
                     # obj = self.getobj()
 
@@ -353,8 +352,6 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 obj.geom_v.setpoint(coords, angle, dim)
             if geom:
                 obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-                obj.geom = geom
-
                 self.process(obj)
 
 

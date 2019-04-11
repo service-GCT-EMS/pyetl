@@ -79,7 +79,8 @@ def geom_from_gml(obj):
     geom_v.type = "2"
     poly = None
     nouvelle_ligne = False
-    for i in obj.geom:
+    geom = obj.attributs['#geom']
+    for i in geom:
         code = i[0]
         if code == "P":
             poly = geom_v.polygones
