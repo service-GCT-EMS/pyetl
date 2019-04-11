@@ -82,6 +82,8 @@ class Reader(object):
         self.affich = 20000
         self.nextaff = 20000
         self.maxobj = 0
+        self.schema = None
+        self.schema_entree = None
         self.aff = stock_param.aff
         if self.debug:
             print("debug:format: instance de reader ", nom, self)
@@ -176,7 +178,7 @@ class Reader(object):
         self.groupe = groupe
         self.classe = classe
         self.newschema = False
-        if (groupe, classe) in self.schema.classes: # il existe deja
+        if self.schema and (groupe, classe) in self.schema.classes: # il existe deja
             self.schemaclasse = self.schema_entree.get_classe((groupe, classe))
             return
         if self.schema_entree and (groupe, classe) in self.schema_entree.classes:
@@ -184,7 +186,8 @@ class Reader(object):
             self.schemaclasse = modele.copy((groupe, classe), self.schema)
             return
         self.newschema = True
-        self.schemaclasse = self.schema.setdefault_classe((groupe, classe))
+        if self.schema:
+            self.schemaclasse = self.schema.setdefault_classe((groupe, classe))
 
     def prepare_attlist(self, attlist):
         '''prepare une liste de mapping'''

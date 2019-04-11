@@ -398,7 +398,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         serveur = stock_param.get_param("server_" + codebase, "")
         type_base = stock_param.get_param("db_" + codebase, "")
         if not base:
-            print("dbaccess: base non definie", codebase, sorted(stock_param.context.vlocales) )
+            print("dbaccess: base non definie", nombase, codebase, sorted(stock_param.context.vlocales) )
             return None
 
     if type_base not in DATABASES:

@@ -87,6 +87,7 @@ class Cursinfo(object):
             else:
                 self.cursor.execute(requete)
             if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
+                print('calcul decile',self.cursor)
                 self.decile = int(self.cursor.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
@@ -230,7 +231,7 @@ class DbConnect(object):
         """passe la requete d acces au schema"""
         try:
             req = self.requetes.get(nom, "")
-            #            print ("traitement",req)
+            print ("traitement",req)
             if req:
                 return self.request(req, None)
             else:
@@ -240,7 +241,7 @@ class DbConnect(object):
         except self.errs as err:
             print("------------------", type(self))
             print("erreur requete ", nom, err)
-            #            raise
+            raise
             if not fallback:
                 return self.schemarequest(nom, fallback=True)
             return ()

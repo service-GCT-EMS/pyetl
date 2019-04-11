@@ -17,11 +17,11 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     """ prepare l objet virtuel declencheur pour la lecture en base access ou sqlite"""
     #    type_base = {".mdb":"access",
     #                 ".sqlite":"sqlite"}
-    stock_param = self.regle_ref.stock_param
     type_base = {
-        self.databases[i].fileext: i for i in self.databases if self.databases[i].svtyp == "file"
+        self.databases[i].fileext: i
+        for i in self.databases
+        if self.databases[i].svtyp == "file"
     }
-    traite_objet = stock_param.moteur.traite_objet
     #    regle = stock_param.regles[0]
     ext = os.path.splitext(fichier)[1]
     base = os.path.splitext(fichier)[0]
@@ -32,7 +32,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     obj.attributs["#chemin"] = chemin
     obj.attributs["#nombase"] = fichier
     obj.attributs["#base"] = os.path.join(rep, chemin, fichier)
-    force = stock_param.get_param("F_entree")
+    force = self.regle_ref.getvar("F_entree")
     type_base_demande = "." + force if force else ext
     type_base_trouve = type_base.get(type_base_demande)
     if type_base_trouve:
@@ -40,7 +40,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
         #        obj.debug("filedb:virtuel")
         obj.virtuel = True
         #        print ('traitement filedb: ', obj.attributs["base"])
-        traite_objet(obj, self.regle_start)
+        self.process(obj)
         return 1
     print("error: fildb: type_base inconnu", type_base_demande)
     return 0

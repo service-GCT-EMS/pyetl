@@ -536,16 +536,15 @@ def h_recup_schema(regle):
 
     regle.type_base = regle.stock_param.get_param("db_" + nombase)
 
-    base = nombase
-    if base:
-        nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
+    if nombase:
+        nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
         if regle.params.att_sortie.val == "schema_entree":
             regle.context.setvar("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
             regle.context.setvar("schema_sortie", nomschema)
         regle.valide = "done"
-        print("h_recup_schema", nomschema, '->', base)
-        DB.recup_schema(regle, base, niveau, classe, nomschema)
+        print("h_recup_schema", nomschema, '->', nombase)
+        DB.recup_schema(regle, nombase, niveau, classe, nomschema)
     return True
 
 
@@ -559,7 +558,7 @@ def f_recup_schema(regle, obj):
    #pattern4||;C?;A?;dbschema;?;
     """
     chemin = ""
-
+    # print ('recup_schema---------------', obj)
     base, niveau, classe, att = regle.cible_base
 
     if obj.attributs["#groupe"] == "__filedb":

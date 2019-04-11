@@ -520,7 +520,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
     #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
     if debug:
         print("format entree forcee ", force_format)
-
+    # print ('scan_entree', rep, os.path.isfile(entree))
     if os.path.isfile(entree):  # traitement un seul fichier
 
         fichs = [(os.path.basename(entree), "")]
@@ -533,7 +533,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         fichs = [(os.path.basename(i),os.path.dirname(i).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
         entree = rep
 
-        print ( 'fichiers lus', fichs)
+        # print ( 'fichiers lus', fichs)
     else:
         fichs = [i for i in scandirs(entree, "", True, pattern=fileselect)]
 
@@ -542,7 +542,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
 
     if filtre_entree:
         print("filtrage entrees ", filtre_entree)
-
+    # print ('fichs',fichs, filtre_entree)
     for fichier, chemin in fichs:
         if filtre_entree:
             if not re.search(filtre_entree, fichier):
@@ -553,6 +553,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         ext = (
             force_format if force_format else os.path.splitext(fichier)[1].lower().replace(".", "")
         )
+        # print ('ici', nom,ext, ext in liste_formats, liste_formats)
         if ext in liste_formats:
             f_courant = os.path.join(entree, chemin, fichier)
             identifies[chemin, nom] = ext
@@ -566,7 +567,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
     valide_auxiliaires(identifies, non_identifies)
 
     if debug:
-        print("fichiers a traiter", fichs)
+        print("fichiers a traiter", fichs, retour, parametres_fichiers)
     return retour, parametres_fichiers
 
 

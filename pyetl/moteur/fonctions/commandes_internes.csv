@@ -113,7 +113,7 @@ $sitedef_%acces%='ok';;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#initdb;acces;nom;;;;;;;
 #!help;positionne des elements d'acces a une base de donnees;;;;;;;;;;
-$sans_entree=True;;;;;;;;;;;
+!$sans_entree=True;;;;;;;;;;;
 $F_sortie=%format%;%F_sortie%;csv;;;;;;;;;
 $format_schema=%format_schema%;csv,xml;;;;;;;;;;
 $nom=%nom%;%acces%;extraction;;;;;;;;;

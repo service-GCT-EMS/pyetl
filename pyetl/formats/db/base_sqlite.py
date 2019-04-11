@@ -38,7 +38,8 @@ TYPES_A = {
     "E": "E",
 }
 
-TYPES_G = {"POINT": "1", "MULTILINESTRING": "2", "MULTIPOLYGON": "3"}
+TYPES_G = {"POINT": "1","MULTIPOINT": "1",
+     "MULTILINESTRING": "2", "MULTIPOLYGON": "3", "BLOB":"-1"}
 
 
 class SqltConnect(DbConnect):
@@ -47,10 +48,9 @@ class SqltConnect(DbConnect):
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
-        self.idconnect = "sqlite2:" + base
+        self.type_serveur = "sqlite"
         self.connect()
         self.geographique = True
-        self.valide = self.connection is not None
 
     #        self.encoding =
 
@@ -78,6 +78,7 @@ class SqltConnect(DbConnect):
                         and name not like 'vector_layers_%'
                         and (type='table' or type='view')"""
         tables = self.request(requete, None)
+        # print ('recup tables ', tables)
         return tables
 
     def get_tables(self):
@@ -94,7 +95,7 @@ class SqltConnect(DbConnect):
         attlist = []
         self.tables = []
         tables = self._set_tablelist()
-        print("sqlite: lecture tables", tables)
+        # print("sqlite: lecture tables", tables)
         for table in tables:
             nomtable, type_table = table
             if type_table == "table":
@@ -113,9 +114,9 @@ class SqltConnect(DbConnect):
             requete = 'pragma table_info("' + nomtable + '")'
             attributs = self.request(requete, None)
             for att in attributs:
+                # print ('att', att)
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
                 attlist.append(self.attdef(
-                    (
                         schema,
                         nom,
                         nom_att,
@@ -136,19 +137,19 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                    )
-                ))
-                if nom_att == "GEOMETRY":
-                    table_geom = type_att
+                    ))
+                if nom_att == "GEOMETRY" or type_att in TYPES_G:
+                    table_geom = TYPES_G.get(type_att, '-1')
                     table_dim = 2
 
             nouv_table = [schema, nom, "", table_geom, table_dim, -1, type_table, "", "", "", ""]
+            print ('table', nouv_table)
             self.tables.append(nouv_table)
         return attlist
 
-    @property
-    def req_enums(self):
-        return "", ()
+
+    def get_enums(self):
+        return ()
 
     def get_type(self, nom_type):
         if nom_type in TYPES_G:
