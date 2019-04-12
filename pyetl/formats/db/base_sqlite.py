@@ -51,6 +51,7 @@ class SqltConnect(DbConnect):
         self.type_serveur = "sqlite"
         self.connect()
         self.geographique = True
+        self.accept_sql = "alpha"
 
     #        self.encoding =
 
@@ -72,12 +73,18 @@ class SqltConnect(DbConnect):
         requete = """select name, type from sqlite_master
                         where name not like 'spatial_ref_sys%'
                         and name not in ('spatialite_history',  'sqlite_sequence',
-                        'geom_cols_ref_sys', 'sql_statements_log', 'SpatialIndex', 'ElementaryGeometries')
+                        'sql_statements_log', 'SpatialIndex', 'ElementaryGeometries')
                         and name not like '%geometry_columns%'
                         and name not like 'idx_%'
-                        and name not like 'vector_layers_%'
+                        and name not like 'vector_layers%'
                         and (type='table' or type='view')"""
-        tables = self.request(requete, None)
+        tables_tmp = self.request(requete, None)
+        tables = []
+        for i in tables_tmp:
+            if i[0] == 'geom_cols_ref_sys':
+                self.accept_sql = "geo"
+            else:
+                tables.append(i)
         # print ('recup tables ', tables)
         return tables
 
@@ -111,6 +118,9 @@ class SqltConnect(DbConnect):
             #            print('table', nom)
             table_geom = "ALPHA"
             table_dim = 2
+            requete = 'select count(*) from "' + nomtable + '"'
+            nb = self.request(requete, None)[0][0]
+            # print ('retour',nb)
             requete = 'pragma table_info("' + nomtable + '")'
             attributs = self.request(requete, None)
             for att in attributs:
@@ -121,7 +131,7 @@ class SqltConnect(DbConnect):
                         nom,
                         nom_att,
                         "",
-                        type_att,
+                        TYPES_G.get(type_att, type_att),
                         "",
                         "",
                         defaut,
@@ -142,8 +152,8 @@ class SqltConnect(DbConnect):
                     table_geom = TYPES_G.get(type_att, '-1')
                     table_dim = 2
 
-            nouv_table = [schema, nom, "", table_geom, table_dim, -1, type_table, "", "", "", ""]
-            print ('table', nouv_table)
+            nouv_table = [schema, nom, "", table_geom, table_dim, nb, type_table, "", "", "", ""]
+            # print ('table', nouv_table)
             self.tables.append(nouv_table)
         return attlist
 
@@ -191,31 +201,35 @@ class SqltConnect(DbConnect):
             cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
-        cur = self.execrequest(requete, data, attlist=attlist) if requete else None
-        cur.decile = 1
-        if cur is None:
-            return iter(())
+    # def iterreq2(self, requete, data, attlist=None, has_geom=False, volume=0):
+    #     print ('dans irterreq--------------------', requete)
 
-        cur.decile = int(cur.rowcount / 10) + 1
-        if cur.decile == 1:
-            cur.decile = 100000
-        while True:
-            try:
-                elem = cur.cursor.fetchone()
-            except self.errs as err:
-                print("erreur " + self.type_base)
-                continue
-            if elem is None:
-                break
-            #                yield i
-            tmp = list(elem)
-            if has_geom:
-                var = tmp[-1].read()
-                tmp[-1] = var
-            yield tmp
-        cur.close()
-        return
+    #     cur = self.execrequest(requete, data, attlist=attlist) if requete else None
+    #     print ('dans irterreq--------------------', type(curs))
+    #     raise
+    #     cur.decile = 1
+    #     if cur is None:
+    #         return iter(())
+
+    #     cur.decile = int(cur.rowcount / 10) + 1
+    #     if cur.decile == 1:
+    #         cur.decile = 100000
+    #     while True:
+    #         try:
+    #             elem = cur.cursor.fetchone()
+    #         except self.errs as err:
+    #             print("erreur " + self.type_base)
+    #             continue
+    #         if elem is None:
+    #             break
+    #         #                yield i
+    #         tmp = list(elem)
+    #         if has_geom:
+    #             var = tmp[-1].read()
+    #             tmp[-1] = var
+    #         yield tmp
+    #     cur.close()
+    #     return
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
@@ -285,8 +299,12 @@ class SqltConnect(DbConnect):
         #        print('acces alpha', self.geographique, requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
-        return self.iterreq(requete, data, has_geom=schema.info["type_geom"] != "0")
-
+        print ('sqlite req alpha ', requete)
+        print ('sqlite appel iterreq', type(self.iterreq))
+        has_geom=schema.info["type_geom"] != "0"
+        aa=self.iterreq(requete, data, has_geom=has_geom)
+        print ('sqlite apres iterreq', type(aa))
+        return aa
 
 class SqltGenSql(DbGenSql):
     """generateur sql"""

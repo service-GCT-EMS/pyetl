@@ -7,7 +7,6 @@ acces a la base de donnees
 """
 import sys
 import sqlite3
-import libspatialite
 from .database import DbConnect, DbGenSql
 
 TYPES_A = {
@@ -151,6 +150,23 @@ class SqltConnect(DbConnect):
         if nom_type in TYPES_G:
             return nom_type
         return self.types_base.get(nom_type.upper(), "T")
+
+    def nocast(self, nom):
+        """ pas de formattage"""
+        return nom
+
+    def textcast(self, nom):
+        """forcage text"""
+        return 'cast('+nom+' as text)'
+
+    def datecast(self, nom):
+        """forcage date"""
+        return 'cast('+nom+' as timestamp)'
+
+    def numcast(self, nom):
+        """forcage numerique"""
+        return 'cast('+nom+' as number)'
+
 
     def get_surf(self, nom):
         return "ST_area(%s)" % nom

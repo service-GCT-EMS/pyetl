@@ -166,8 +166,8 @@ def setdb(regle, obj, att=True):
         if not base:
             base = obj.attributs["#base"]
         type_base = obj.attributs["#type_base"]
-        regle.context.setvar("db", type_base)
-        regle.conetxt.setvar("server", chemin)
+        regle.setvar("db", type_base)
+        regle.setvar("server", chemin)
     #    print ('regles alpha: acces base ', base, niveau, classe, attribut)
 
     if niveau and niveau[0].startswith("["):  # nom de classe contenu dans un attribut
@@ -533,7 +533,7 @@ def h_recup_schema(regle):
     regle.chargeur = True  # c est une regle a declencher
 
     nombase, niveau, classe, _ = regle.cible_base
-
+    regle.setlocal('mode_schema','dbschema')
     regle.type_base = regle.stock_param.get_param("db_" + nombase)
 
     if nombase:
@@ -560,7 +560,6 @@ def f_recup_schema(regle, obj):
     chemin = ""
     # print ('recup_schema---------------', obj)
     base, niveau, classe, att = regle.cible_base
-
     if obj.attributs["#groupe"] == "__filedb":
         chemin = obj.attributs["#chemin"]
         type_base = obj.attributs["#type_base"]
@@ -572,12 +571,13 @@ def f_recup_schema(regle, obj):
                 base,
                 niveau,
                 classe,
-                regle.params.val_entree.val,
+                regle.get_entree(obj),
                 type_base=type_base,
                 chemin=chemin,
             )
             regle.setlocal("db", type_base)
             regle.setlocal("server", chemin)
+            return True
     #        print ("regles",regle.numero," :dans recupschema ",chemin,base,type_base)
     #        print ("regles",regle.numero," :dans recupschema ",obj.virtuel,obj.attributs)
     else:
@@ -586,17 +586,17 @@ def f_recup_schema(regle, obj):
     #          regle.ligne,
     #          regle.params.val_entree.val,
     #          regle.params)
-    if type_base and base:
-        DB.recup_schema(
-            regle,
-            base,
-            niveau,
-            classe,
-            regle.params.val_entree.val,
-            type_base=type_base,
-            chemin=chemin,
-        )
-        return True
+        if type_base and base:
+            DB.recup_schema(
+                regle,
+                base,
+                niveau,
+                classe,
+                regle.params.val_entree.val,
+                type_base=type_base,
+                chemin=chemin,
+            )
+            return True
     print("recup_schema: base non definie ",regle, type_base, base, obj)
     return False
 

@@ -30,7 +30,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     obj = self.getobj()
     obj.attributs["#racine"] = rep
     obj.attributs["#chemin"] = chemin
-    obj.attributs["#nombase"] = fichier
+    obj.attributs["#nombase"] = base
     obj.attributs["#base"] = os.path.join(rep, chemin, fichier)
     force = self.regle_ref.getvar("F_entree")
     type_base_demande = "." + force if force else ext

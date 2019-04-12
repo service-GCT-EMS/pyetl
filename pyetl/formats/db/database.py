@@ -312,7 +312,7 @@ class DbConnect(object):
         self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=""
     ):
         """ lancement requete et gestion retours en mode iterateur"""
-        # print( 'appel execrequest', volume,nom)
+        print('appel iterreq database', volume,nom)
 
         cur = self.execrequest(
             requete, data=data, attlist=attlist, volume=volume, nom=nom

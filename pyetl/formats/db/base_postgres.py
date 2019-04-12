@@ -413,7 +413,7 @@ class PgrConnect(DbConnect):
 
     def intcast(self, nom):
         """forcage entier"""
-        return nom + "::float"
+        return nom + "::int"
 
     def multivaldata(self, valeurs):
         """formate les donnes pour les requetes sur les listes"""
