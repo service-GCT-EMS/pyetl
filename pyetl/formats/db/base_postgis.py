@@ -74,7 +74,6 @@ class PgsConnect(PgrConnect):
         self.gtypes_disc = GTYPES_DISC
         self.accept_sql = "geo"
         self.geographique = True
-        self.rowcount = 0
         self.dialecte = "postgis"
         self.type_base = "postgis"
 

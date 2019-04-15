@@ -6,7 +6,7 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-import sqlite3
+import apsw
 from .database import DbConnect, DbGenSql
 
 TYPES_A = {
@@ -47,16 +47,16 @@ class SqltConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.connect()
         self.geographique = True
-
+        self.curtable
     #        self.encoding =
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
 
-        errs = sqlite3.DatabaseError
+        errs = apsw.DatabaseError
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
-            self.connection = sqlite3.connect(self.base)
+            self.connection = apsw.Connection(self.base)
         except self.errs as err:
             print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
             print("error: sqlite: ", err)
@@ -79,6 +79,13 @@ class SqltConnect(DbConnect):
     def get_tables(self):
         """ retourne la liste des tables """
         return self.tables
+
+    @property
+    def rowcount(self):
+        """compte les resultats # on simule sqlite n'a pas de compteur"""
+        if self.curtable:
+            return self.curnb
+        return 0
 
     def get_attributs(self):
         """description des attributs de la base sqlite
@@ -209,7 +216,7 @@ class SqltConnect(DbConnect):
         if cur is None:
             return iter(())
 
-        cur.decile = int(cur.rowcount / 10) + 1
+        cur.decile = int(self.rowcount / 10) + 1
         if cur.decile == 1:
             cur.decile = 100000
         while True:

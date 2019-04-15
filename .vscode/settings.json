@@ -1,10 +1,12 @@
 {
-    "python.pythonPath": "C:\\Users\\89965\\AppData\\Local\\Continuum\\Anaconda3\\python.exe",
+    "python.pythonPath": "~\\AppData\\Local\\Continuum\\Anaconda3\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "editor.formatOnSave": true,
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "python.condaPath": "C:\\Users\\89965\\AppData\\Local\\Continuum\\anaconda3\\Scripts\\conda",
+    "python.venvPath": "~\\AppData\\Local\\Continuum\\anaconda3\\envs"
 }

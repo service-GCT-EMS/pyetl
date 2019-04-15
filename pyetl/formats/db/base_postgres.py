@@ -160,13 +160,12 @@ class PgrConnect(DbConnect):
         self.types_pg = TYPES_PG
         self.gtypes_curve = GTYPES_CURVE
         self.gtypes_disc = GTYPES_DISC
-        self.rowcount = 0
         self.load_helper = "prog_pgsql"
         self.sql_helper = "prog_pgsql"
         self.accept_sql = "alpha"
         if self.connection:
             self.set_searchpath()
-            self.connection.commit()
+            # self.connection.commit()
 
         self.type_base = "postgres"
         self.dialecte = "postgres"
@@ -235,7 +234,7 @@ class PgrConnect(DbConnect):
         print('connection',chaine_connect)
         try:
             connection = psycopg2.connect(chaine_connect)
-            connection.autocommit = False
+            connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
             print("error: postgres: connection impossible ")

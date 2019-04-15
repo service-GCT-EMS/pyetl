@@ -212,7 +212,7 @@ def _get_tables(connect):
                 i
             )
         else:
-            print("mdba:table mal formee ", connect.type_serveur, len(i), i)
+            print("mdba:table mal formee ", connect.type_base, len(i), i)
             continue
 
         #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
@@ -253,8 +253,8 @@ def _get_attributs(connect):
     schema_base = connect.schemabase
     fields = connect.attdef._fields
     if DEBUG:
-        print("ecriture debug:", "lecture_base_attr_" + connect.type_serveur + ".csv")
-        fdebug = open("lecture_base_attr_" + connect.type_serveur + ".csv", "w")
+        print("ecriture debug:", "lecture_base_attr_" + connect.type_base + ".csv")
+        fdebug = open("lecture_base_attr_" + connect.type_base + ".csv", "w")
         fdebug.write("\n".join(fields) + "\n")
 
     for atd in connect.get_attributs():
@@ -815,7 +815,7 @@ def lire_table(ident, regle_courante, parms=None):
     else:
         attr, val = attribut, valeur
     #        print("id attr,val", ident, attr, val)
-    #        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
+    #        print('%-60s'%('%s : %s.%s'% (connect.type_base, niveau,
     #    classe)), end='', flush=True)
     if attr and attr not in schema_classe_travail.attributs and attr not in connect.sys_fields:
         return 0  # on a fait une requete sur un attribut inexistant: on passe
@@ -901,7 +901,7 @@ def recup_donnees_req_alpha(
             else:
                 attr, val = attribut, valeur
             #        print("id attr,val", ident, attr, val)
-            #        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
+            #        print('%-60s'%('%s : %s.%s'% (connect.base, niveau,
             #    classe)), end='', flush=True)
             if (
                 attr
@@ -987,7 +987,7 @@ def recup_count(
             else:
                 attr, val = attribut, valeur
             #        print("id attr,val", ident, attr, val)
-            #        print('%-60s'%('%s : %s.%s'% (connect.type_serveur, niveau,
+            #        print('%-60s'%('%s : %s.%s'% (connect.base, niveau,
             #    classe)), end='', flush=True)
             if (
                 attr

@@ -6,7 +6,7 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-import sqlite3
+import apsw
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -48,10 +48,11 @@ class SqltConnect(DbConnect):
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
-        self.type_serveur = "sqlite"
+        self.type_base = "sqlite"
         self.connect()
         self.geographique = True
         self.accept_sql = "alpha"
+        self.curtable = ''
 
     #        self.encoding =
 
@@ -61,12 +62,13 @@ class SqltConnect(DbConnect):
         #        import pyodbc as odbc
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
-            self.connection = sqlite3.connect(self.base)
-        except sqlite3.Error as err:
+            self.connection = apsw.Connection(self.base)
+        except apsw.Error as err:
             print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
             print("error: sqlite: ", err)
             sys.exit(1)
             return None
+        print ('connection réussie',self.type_base)
 
     def _set_tablelist(self):
         """ produit la liste des tables pour definir les tables a recuperer (systeme ou pas) """
@@ -91,6 +93,13 @@ class SqltConnect(DbConnect):
     def get_tables(self):
         """ retourne la liste des tables """
         return self.tables
+
+    @property
+    def rowcount(self):
+        """compte les resultats # on simule sqlite n'a pas de compteur"""
+        if self.curtable:
+            return self.curnb
+        return 0
 
     def get_attributs(self):
         """description des attributs de la base sqlite
@@ -167,22 +176,22 @@ class SqltConnect(DbConnect):
         return self.types_base.get(nom_type.upper(), "T")
 
     def get_surf(self, nom):
-        return "ST_area(%s)" % nom
+        return "Area(%s)" % nom
 
     def get_perim(self, nom):
-        return "ST_perimeter(%s)" % nom
+        return "Perimeter(%s)" % nom
 
     def get_long(self, nom):
-        return "ST_length(%s)" % nom
+        return "Length(%s)" % nom
 
     def get_geom(self, nom):
-        return "ST_asEWKT(%s)" % nom
+        return "AsText(%s)" % nom
 
     def set_geom(self, geom, srid):
-        return "ST_GeomFromText('%s',%s)" % (geom, srid)
+        return "GeomFromText('%s',%s)" % (geom, srid)
 
     def set_geomb(self, geom, srid, buffer):
-        return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
+        return "Buffer(GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
 
     def set_limit(self, maxi, _):
         if maxi:
@@ -192,44 +201,17 @@ class SqltConnect(DbConnect):
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
 
         if nom_fonction == "dans_emprise":
+            cond = 'MbrWithin('+nom_geometrie+ ' , '+geom2+' )'
             cond = geom2 + " && " + nom_geometrie
         else:
             if nom_fonction == "intersect":
-                fonction = "ST_Intersects("
+                fonction = "Intersects("
             elif nom_fonction == "dans":
-                fonction = "ST_Contains("
+                fonction = "Contains("
             cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    # def iterreq2(self, requete, data, attlist=None, has_geom=False, volume=0):
-    #     print ('dans irterreq--------------------', requete)
 
-    #     cur = self.execrequest(requete, data, attlist=attlist) if requete else None
-    #     print ('dans irterreq--------------------', type(curs))
-    #     raise
-    #     cur.decile = 1
-    #     if cur is None:
-    #         return iter(())
-
-    #     cur.decile = int(cur.rowcount / 10) + 1
-    #     if cur.decile == 1:
-    #         cur.decile = 100000
-    #     while True:
-    #         try:
-    #             elem = cur.cursor.fetchone()
-    #         except self.errs as err:
-    #             print("erreur " + self.type_base)
-    #             continue
-    #         if elem is None:
-    #             break
-    #         #                yield i
-    #         tmp = list(elem)
-    #         if has_geom:
-    #             var = tmp[-1].read()
-    #             tmp[-1] = var
-    #         yield tmp
-    #     cur.close()
-    #     return
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
