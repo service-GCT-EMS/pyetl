@@ -210,7 +210,7 @@ class Reader(object):
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.nb_lus))
-        if attributs and self.schemaclasse.attmap:
+        if attributs and self.schemaclasse and self.schemaclasse.attmap:
             attributs = self.attremap(attributs)
         elif valeurs:
             attributs = zip(self.attlist, valeurs)

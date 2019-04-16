@@ -6,7 +6,7 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-import apsw
+import sqlite3
 from .database import DbConnect, DbGenSql
 
 TYPES_A = {
@@ -53,10 +53,10 @@ class SqltConnect(DbConnect):
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
 
-        errs = apsw.DatabaseError
+        errs = sqlite3.DatabaseError
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
-            self.connection = apsw.Connection(self.base)
+            self.connection = sqlite3.Connection(self.base)
         except self.errs as err:
             print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
             print("error: sqlite: ", err)

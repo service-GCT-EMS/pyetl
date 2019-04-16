@@ -6,7 +6,7 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-import apsw
+import sqlite3
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -62,8 +62,8 @@ class SqltConnect(DbConnect):
         #        import pyodbc as odbc
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
-            self.connection = apsw.Connection(self.base)
-        except apsw.Error as err:
+            self.connection = sqlite3.Connection(self.base)
+        except sqlite3.Error as err:
             print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
             print("error: sqlite: ", err)
             sys.exit(1)

@@ -24,7 +24,7 @@ from .outils import (
 )
 
 LOGGER = logging.getLogger("pyetl")  # un logger
-
+paralleldebug = 0
 
 def setparallel(mapper):
     """enregistre les fonctions de gestion du parallelisme"""
@@ -45,7 +45,8 @@ def initparallel(parametres):
         #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
-    #    print("pyetl initworker", os.getpid(), schemas.keys())
+    if paralleldebug:
+        print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
     mainmapper.initenv(env, log)
@@ -72,8 +73,9 @@ def setparallelid(parametres):
     if log:
         base, ext = os.path.splitext(mainmapper.get_param("logfile"))
         log = base + "_" + wid + "." + ext
-    #    print('avant init', commandes, args)
     init = mainmapper.initpyetl(commandes, args, log=log)
+    if paralleldebug:
+        print('setparallelid apres init', mainmapper.get_param("_wid"), commandes, args)
 
     return (os.getpid(), mainmapper.get_param("_wid"), init)
 
@@ -120,7 +122,7 @@ def parallelprocess(numero, file, regle):
     """traitement individuel d'un fichier"""
     mainmapper = getmainmapper()
     try:
-        # print ('worker:lecture', file, regle)
+        # print ('---------------------------------------' + mainmapper.get_param("_wid") + '-worker:lecture', file, regle)
         nom, parms = file
         nb_lu = mainmapper.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
@@ -175,7 +177,7 @@ def parallelexec(executor, nprocs, fonction, args):
        et s'assure que chaque process du pool est appelé"""
 
     rfin = dict()
-    #    print('start pexec')
+    # print('pexec', fonction)
     retours = [executor.submit(fonction, args) for i in range(nprocs)]
     while len(rfin) < nprocs:
         if len(retours) < nprocs:
@@ -239,7 +241,7 @@ def submit_job(jobs, job, regle, executor, fonction):
     nom = os.path.basename(file)
     clef = os.path.join(dest, chemin, nom)
     loadarg = (clef, (dest, chemin, nom, ext))
-    #            print ('appel parallele ',arg,'->',loadarg, regle, regle.index)
+    # print ('appel parallele ',clef,'->',loadarg, regle, regle.index)
     jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
 
 
@@ -252,26 +254,32 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
         entree soient généréés"""
     rfin = dict()
     mapper = regle.stock_param
-    #    print('start pexec')
+    if paralleldebug:
+        print('start paralleliter_suivi', fonction, argiter)
     #    work = [executor.submit(fonction, *arg) for arg in arglist]
     waitlist = []
     jobs = []
     marge = executor._max_workers + 2
     for arg in argiter:
-
+        if paralleldebug:
+            print('paralleliter_suivi : arg', arg)
         if arg is not None:
             #            print ('piter: recu ', arg, len(jobs))
             waitlist.append(arg)
-            #            print ('liste:', waitlist)
+            if paralleldebug:
+                print ('liste:', waitlist)
             if len(jobs) < marge:
                 try:
                     waitlist.sort()
                     taille, job = waitlist.pop()
-                    #                    print ('traitement job', job)
+                    if paralleldebug:
+                        print ('traitement job', job, fonction)
                     submit_job(jobs, job, regle, executor, fonction)
                 except IndexError:
                     time.sleep(0.1)
+        # print('paralleliter_suivi : fin traitement', arg, jobs)
         rfin.update(suivi_job(mapper, jobs))
+        # print('paralleliter_suivi : dodo', arg)
         time.sleep(0.1)
     for arg in sorted(waitlist, reverse=True):
         taille, job = arg
@@ -334,8 +342,8 @@ def traite_parallel(regle):
         #        print ('workids',workids)
         LOGGER.info(" ".join(("workids", str(workids))))
         parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
-        if regle.debug:
-            print("retour init", rinit, num_regle)
+        if regle.debug or paralleldebug:
+            print("traite_parallel: retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
         rdict = paralleliter_suivi(regle, executor, parallelprocess, regle.listgen)
         rfin = parallelexec(executor, nprocs, endparallel, "")
@@ -402,7 +410,6 @@ def traite_parallel_load(regle):
             print("retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
         rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
-        #        rdict = paralleliter_suivi(regle, nprocs, executor, parallelprocess, arglist)
 
         rfin = parallelexec(executor, nprocs, endparallel, "")
     #        if regle.debug:
@@ -583,6 +590,7 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
             if patience:
                 #                patience(nom_r, *blocks[nom_r])
                 patience(nom_r, retour["params"], retour["end"] - retour["start"])
+                print ('exec parallel_ext retour patience')
         if nom is None:  # on envoie un None pour reduire le pool
             del pool[slot]
             continue
@@ -603,22 +611,24 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
             if patience:
                 #                patience(nom, *blocks[nom])
                 patience(nom, retour["params"], retour["end"] - retour["start"])
-
+                print ('exec parallel_ext retour patience wait end')
 
 def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     """lance des process en parallele et retourne les resultats des que disponible"""
     pool = get_pool(maxworkers)
     a_traiter = []
-    libres = []
+    libres = len(pool)
     # print("----------------------------dans iter parallelext", maxworkers, len(blocks))
     # optimiseur de position
 
     while blocks or libres < maxworkers:
+        # print ('itp:',a_traiter, libres, len(pool))
         try:
             #            print ('itp:',a_traiter, len(libres), len(pool))
             #            a_traiter = sorted(a_traiter)
             taille, nom = a_traiter.pop()
-            #            print ('envoi pour traitement',nom, taille, len(a_traiter))
+            if paralleldebug:
+                print ('envoi pour traitement',nom, taille, len(a_traiter))
             yield (taille, nom)
         except IndexError:
             yield None
@@ -628,12 +638,17 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 #                print ('trouve element a traiter',pool[slot])
                 retour = pool[slot]
                 nom_r = retour["nom"]
+                if paralleldebug:
+                    print ('retour parallel ext', nom_r)
+                a_traiter.append((retour["taille"], retour["fich"]))
+
                 if patience:
                     patience(nom_r, retour["params"], retour["end"] - retour["start"])
-                a_traiter.append((retour["taille"], retour["fich"]))
+                    if paralleldebug:
+                        print('iterparallelext : retour patience')
             if blocks:
                 tache = blocks.pop()
-                #                print ('recu tache',tache, len(blocks))
+                # print ('recu tache',tache, len(blocks))
                 nom, params, dest, size = tache
                 pool[slot] = {
                     "process": lanceur(params),
@@ -684,8 +699,7 @@ def parallel_load(regle):
         parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
         if regle.debug:
             print("retour init", rinit, num_regle)
-        #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-        #        rdict = parallelmap_suivi(mapper, executor, parallelprocess, arglist)
+
         rdict = paralleliter_suivi(regle, executor, parallelprocess, arglist)
 
         rfin = parallelexec(executor, nprocs, endparallel, "")

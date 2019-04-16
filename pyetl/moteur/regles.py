@@ -252,7 +252,7 @@ class RegleTraitement(object):  # regle de mapping
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
-            return (self.source if self.source else ""
+            return ((self.source if self.source else "")
                 +':'
                 +str(self.numero)
                 + ":"

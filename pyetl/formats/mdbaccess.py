@@ -538,7 +538,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
         #        workers, extworkers = regle_courante.get_max_workers()
-        print("extalpha", regle_courante.context, regle_courante.get_max_workers(), regle_courante.getvar('_wid'))
+        print("extalpha",regle_courante, regle_courante.context, regle_courante.get_max_workers(), regle_courante.getvar('_wid'))
         resultats = connect.extalpha(
             regle_courante,
             helper,
