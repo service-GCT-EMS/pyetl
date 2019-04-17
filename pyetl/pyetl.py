@@ -1158,7 +1158,14 @@ class Pyetl(object):
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""
-        racine, chemin, fichier, ext = parms
+        if parms is not None:
+            racine, chemin, fichier, ext = parms
+        else: # on invente
+            ext = os.path.splitext(fich)[1]
+            fichier = os.path.basename(fich)
+            rep = os.path.dirname(fichier)
+            chemin = os.path.basename(rep)
+            racine = os.path.dirname(rep)
         self.fichier_courant = fich
         self.chemin_courant = chemin
         self.racine = racine

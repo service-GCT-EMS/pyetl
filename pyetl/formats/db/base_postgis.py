@@ -152,6 +152,7 @@ class PgsGenSql(PgrGenSql):
     def getgeomsql(self, classe):
         """retourne la definition sql de la geometrie"""
         geomt, arc = self.get_type_geom(classe)
+        # print ('getgeomsql: type_geom',classe.identclasse, classe.info["type_geom"], geomt)
         if geomt and geomt.upper() != "ALPHA":
             if self.type_courbes == "curve" and arc:
                 return "\tgeometrie public." + self.gtypes_curve[geomt] + ","

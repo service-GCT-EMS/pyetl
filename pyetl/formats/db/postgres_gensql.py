@@ -404,19 +404,17 @@ class PgrGenSql(DbGenSql):
     def get_type_geom(self, schemaclasse):
         """ retourne le type geometrique de la classe precis """
         type_geom = schemaclasse.info["type_geom"]
-
-        if type_geom != "0":
-            arc = schemaclasse.info["courbe"]
-
-            geomt = type_geom
-            if geomt in self.typenum:
-                geomt = self.typenum[geomt]  # traitement des types numeriques
-            if schemaclasse.multigeom:
-                geomt = geomt + " MULTIPLE"
-            if schemaclasse.info["dimension"] == "3":
-                geomt = geomt + " 3D"
-            return geomt, arc
-        return 0, False
+        if type_geom == "0" or type_geom ==  'indef':
+            return 0, False
+        arc = schemaclasse.info["courbe"]
+        geomt = type_geom
+        if geomt in self.typenum:
+            geomt = self.typenum[geomt]  # traitement des types numeriques
+        if schemaclasse.multigeom:
+            geomt = geomt + " MULTIPLE"
+        if schemaclasse.info["dimension"] == "3":
+            geomt = geomt + " 3D"
+        return geomt, arc
 
     def cretable_dist(self, ident, type_courbes="disc"):
         """ genere le sql de creation des tables distantes """

@@ -79,8 +79,8 @@ class Reader(object):
         self.nb_lus = 0
         self.groupe = ""
         self.classe = ""
-        self.affich = 20000
-        self.nextaff = 20000
+        self.affich = 100000
+        self.nextaff = self.affich
         self.maxobj = 0
         self.schema = None
         self.schema_entree = None
@@ -215,11 +215,12 @@ class Reader(object):
         elif valeurs:
             attributs = zip(self.attlist, valeurs)
         if geom:
+            # print ('getobj:affectation geometrie',geom)
             if attributs:
                 attributs["#geom"]=geom
             else:
                 attributs={"#geom":geom}
-        return  Objet(
+        return Objet(
             niveau or self.groupe,
             classe or self.classe,
             format_natif=self.format_natif,
@@ -228,6 +229,8 @@ class Reader(object):
             schema = self.schemaclasse,
             numero=self.nb_lus
         )
+        # print ('creation obj',obj)
+        # return obj
 
 
 class Writer(object):

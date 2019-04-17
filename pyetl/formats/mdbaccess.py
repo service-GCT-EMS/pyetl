@@ -534,6 +534,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
     if not liste_tables:
         print("pas de tables a sortir", base, niveau, classe)
         return False
+    print ('----------------------------------------extalpha schema:', schema_travail.nom, len(schema_travail.classes))
     helpername = connect.dump_helper
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:

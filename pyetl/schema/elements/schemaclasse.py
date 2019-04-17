@@ -130,11 +130,8 @@ class SchemaClasse(object):
         self.nbr = 0  # nbre d'objets analyses
         self.srid = 3948
         self.sridmixte = False
-        #        self.nom_geometrie = 'geometrie'
         self.multigeom = False
-        #        self.courbe = False
         self.changed = False
-        #        self.dimension = 2
         self.force_dim = False
         self.ajust_enums = dict()  # le schema comprend des conformites ajustables
         self.confs = dict()  # le schema comprend des conformites verifiables

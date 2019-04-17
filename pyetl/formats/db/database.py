@@ -846,6 +846,8 @@ class DbGenSql(object):
 
         if type_geom != "0":
             geomt = type_geom
+            if geomt.upper() == "ALPHA":
+                return 0, False
             if geomt in self.typenum:
                 geomt = self.typenum[geomt]  # traitement des types numeriques
             if schemaclasse.multigeom:

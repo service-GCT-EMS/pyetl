@@ -328,10 +328,12 @@ class ElyConnect(ora.OrwConnect):
         self.debuglog = regle_courante.getvar("debuglog")
         if self.debuglog:
             print("------------------------------------- generation log debug-----------")
+        nbtrait, nbdump = nbworkers
+
         with tempfile.TemporaryDirectory() as tmpdir:
             #        if True:
             self.tmpdir = tmpdir
-            _, nbdump = nbworkers
+
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
             print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
             #            self.params.execparallel_ext(blocks, workers, self.fearunner,
@@ -341,13 +343,27 @@ class ElyConnect(ora.OrwConnect):
             )
             regle_courante.listgen = fileiter
             # print ('elyx : extalpha ', regle_courante)
-            try:
-                self.params.traite_parallel(regle_courante)
-            except Exception as err:
-                print ('erreur traitement parallele', err)
+            if nbtrait > 1:
+                try:
+                    self.params.traite_parallel(regle_courante)
+                except Exception as err:
+                    print ('erreur traitement parallele', err)
+            else: # traitement standard
+                for retour in fileiter:
+                    if retour is not None:
+                        print('elyx extalpha,recu', retour)
+                        nb,pars = retour
+                        rep, idclasse, ext = pars
+                        chemin, classe = idclasse
+                        fichier = os.path.join(rep,chemin,classe)+'.'+ext
+                        print ("fichier a traiter :", fichier)
+                        try:
+                            self.params.lecture(classe+'.'+ext, regle=regle_courante, parms=(rep, chemin, classe+'.'+ext, ext))
+                        except Exception as err:
+                            print ('erreur traitement base', err)
 
             print("fin traitement extalpha", flush=True)
-        #            time.sleep(10)
+            # time.sleep(10)
         return self.resultats
 
     def extdump(self, helper, classes, dest, log, fanout="classe", workers=1, mode="dump"):
