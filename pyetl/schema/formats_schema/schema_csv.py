@@ -612,6 +612,8 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
 
 def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     """ ecrit un schema en csv """
+    os.makedirs(rep, exist_ok=True)
+
     init = False
     if schema.origine == "B" or schema.origine == "L":
         init = True

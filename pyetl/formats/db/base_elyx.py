@@ -81,7 +81,7 @@ class ElyConnect(ora.OrwConnect):
 
     def fearunner(self, parms):
         """ gere les programmes elyx externe """
-        helper, paramfile, outfile = parms
+        helper, paramfile, size, outfile = parms
         chaine = helper + " -c " + paramfile
         if self.params.get_param("noload") == "1":  # simulation de chargement pour debug
             print("extrunner elyx: mode simulation -------->", chaine)
@@ -210,10 +210,9 @@ class ElyConnect(ora.OrwConnect):
         ]
 
     def log_decoder(self, idexport, params, runtime):
-        """decode un fichier log de ORA2FEA
-            self.export_statprint(None, ((nom,), outfile, size, resultats), time.time() - dinit)
-"""
-        print('analyse', params)
+        """decode un fichier log de ORA2FEA"""
+
+        # print('analyse log', params)
         outfile = params[1]
         resultats = params[3]
         size = params[2]
@@ -239,9 +238,10 @@ class ElyConnect(ora.OrwConnect):
                         "%-45s objets exportes: %10d / %10d en %.2f s"
                         % (".".join(idexport), size[idexport], int(i.split(":")[-1][:-1]), runtime)
                     )
+            # print ('fin anlalyse log')
             return 0
-        except PermissionError:
-            print("fichier non pret")
+        except  Exception as err:
+            print("fichier non pret",err)
             time.sleep(0.1)  # on est alle trop vite le fichier n'est pas pret
             return 1
 
@@ -249,6 +249,7 @@ class ElyConnect(ora.OrwConnect):
         """affiche une stat d'export
         appel :(None, ((nom,), outfile, size, resultats), time.time() - dinit)
         """
+        # print( 'appel log_decoder ',idexport,params)
         retour = self.log_decoder(idexport, params, runtime)
         if retour: # petit truc pour eviter les problemes de fichier non ferme
             self.log_decoder(idexport, params, runtime)
@@ -304,7 +305,7 @@ class ElyConnect(ora.OrwConnect):
             with open(paramfile, mode="w", encoding="cp1252") as tmpf:
                 tmpf.write("\n".join(xml))
             outfile = os.path.join(self.tmpdir, "_".join(nom) + "_out_FEA.txt")
-            retour.append((nom, (helper, paramfile, outfile), (dest, nom, "asc"), self.size[nom]))
+            retour.append((nom, (helper, paramfile,self.size[nom], outfile), (dest, nom, "asc"), self.size[nom]))
 
         # optimiseur de blocks : on sait qu'il faut commencer par les plus longs
         tmp = sorted(retour, reverse=True, key=lambda x: x[3])
@@ -327,10 +328,12 @@ class ElyConnect(ora.OrwConnect):
         self.debuglog = regle_courante.getvar("debuglog")
         if self.debuglog:
             print("------------------------------------- generation log debug-----------")
+        nbtrait, nbdump = nbworkers
+
         with tempfile.TemporaryDirectory() as tmpdir:
             #        if True:
             self.tmpdir = tmpdir
-            _, nbdump = nbworkers
+
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
             print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
             #            self.params.execparallel_ext(blocks, workers, self.fearunner,
@@ -339,9 +342,28 @@ class ElyConnect(ora.OrwConnect):
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )
             regle_courante.listgen = fileiter
-            self.params.traite_parallel(regle_courante)
+            # print ('elyx : extalpha ', regle_courante)
+            if nbtrait > 1:
+                try:
+                    self.params.traite_parallel(regle_courante)
+                except Exception as err:
+                    print ('erreur traitement parallele', err)
+            else: # traitement standard
+                for retour in fileiter:
+                    if retour is not None:
+                        print('elyx extalpha,recu', retour)
+                        nb,pars = retour
+                        rep, idclasse, ext = pars
+                        chemin, classe = idclasse
+                        fichier = os.path.join(rep,chemin,classe)+'.'+ext
+                        print ("fichier a traiter :", fichier)
+                        try:
+                            self.params.lecture(classe+'.'+ext, regle=regle_courante, parms=(rep, chemin, classe+'.'+ext, ext))
+                        except Exception as err:
+                            print ('erreur traitement base', err)
+
             print("fin traitement extalpha", flush=True)
-        #            time.sleep(10)
+            # time.sleep(10)
         return self.resultats
 
     def extdump(self, helper, classes, dest, log, fanout="classe", workers=1, mode="dump"):

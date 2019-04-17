@@ -542,6 +542,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
                         1,
                     )
                 )
+                print ('erreur dimension ', obj)
 
     for i in schemaclasse.attributs:
         val = obj.attributs.get(i)

@@ -49,10 +49,10 @@ class Cursinfo(object):
                 self.cursor = connection.cursor()
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)
-
         self.request = None
         self.data = None
         self.attlist = None
+        self.volume = volume
         self.decile = 100000 if volume == 0 else int(volume / 10 + 1)
 
     def __iter__(self):
@@ -88,16 +88,20 @@ class Cursinfo(object):
                 self.cursor.execute(requete)
             if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
                 # print('calcul decile',self.cursor)
-                self.decile = int(self.cursor.rowcount / 10 + 1)
+                self.decile = int(self.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
 
     @property
     def rowcount(self):
         """compte les resultats"""
+
         if self.cursor:
-            return self.cursor.rowcount
-        return 0
+            try:
+                return self.cursor.rowcount
+            except:
+                pass
+        return self.volume
 
 
 class DbConnect(object):
@@ -178,7 +182,7 @@ class DbConnect(object):
         self.geom_from_natif = None
         self.geom_to_natif = None
         self.nombase = base
-        self.type_serveur = "generique"
+        self.type_serveur = "non defini"
         self.accept_sql = "non"  # determine si la base accepte des requetes
         self.codecinfo = dict()
         self.geographique = False
@@ -186,7 +190,6 @@ class DbConnect(object):
         self.schemabase = None
         #        self.connect()
         self.gensql = DbGenSql()
-        self.rowcount = 0
         self.decile = 100000
         self.attlist = []
         self.sys_cre = None  # champs contenant les dates de creation et modif auto
@@ -199,7 +202,7 @@ class DbConnect(object):
         self.dump_helper = None
         self.dialecte = "sql"
         self.fallback = {}
-        self.errs = Exception
+        self.errs = KeyError
 
     #        self.req_tables = ("", None)
 
@@ -225,7 +228,7 @@ class DbConnect(object):
     @property
     def idconnect(self):
         """identifiant de base : type + nom"""
-        return self.type_serveur + ":" + self.base
+        return self.type_base + ":" + self.base
 
     def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
@@ -302,8 +305,8 @@ class DbConnect(object):
 
     def request(self, requete, data=None, attlist=None):
         """ lancement requete et gestion retours"""
+        # print('dans request ',self.type_base, self)
         cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
-        self.rowcount = cur.rowcount
         liste = cur.fetchall()
         cur.close()
         return liste
@@ -317,10 +320,7 @@ class DbConnect(object):
         cur = self.execrequest(
             requete, data=data, attlist=attlist, volume=volume, nom=nom
         )
-        #            print ('recup cursinfo', type(cur))
-        # if cur is not None:
-        #     cur.decile = int(cur.rowcount / 10) + 1
-        #                cur.attlist = attlist
+
         return cur
 
     #        return iter(())
@@ -422,7 +422,8 @@ class DbConnect(object):
             if att.type_att == "D":
                 attlist2.append(self.get_dateformat(i))
             else:
-                attlist2.append('"' + i + '"::text')
+                # attlist2.append('"' + i + '"::text')
+                attlist2.append(self.textcast(i))
 
         self.get_sys_fields(attlist, attlist2)
         if self.geographique:
@@ -845,6 +846,8 @@ class DbGenSql(object):
 
         if type_geom != "0":
             geomt = type_geom
+            if geomt.upper() == "ALPHA":
+                return 0, False
             if geomt in self.typenum:
                 geomt = self.typenum[geomt]  # traitement des types numeriques
             if schemaclasse.multigeom:

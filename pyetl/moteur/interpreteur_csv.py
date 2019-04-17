@@ -43,12 +43,13 @@ def fdebug(regle, obj):
     """gestion des affichages de debug"""
     #    print('dans debug', regle, obj)
     if regle.debug and obj:
+        wid = regle.getvar('_wid')
         regle.debug = regle.debug - 1
         if regle.v_nommees["debug"] == "print":
-            regle.affiche("------affiche------>")
+            regle.affiche(wid+"------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
             return regle.f_init(regle, obj)
-        regle.affiche("------debug------>")
+        regle.affiche(wid+"------debug------>")
         obj.debug("avant", attlist=regle.champsdebug)
 
         succes = regle.f_init(regle, obj)

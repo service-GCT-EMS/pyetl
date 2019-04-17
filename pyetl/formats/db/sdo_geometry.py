@@ -16,7 +16,7 @@ def geom_from_sdo(obj):
     else:
         obj.attributs["#type_geom"] = "0"
         #        obj.is_3d = False
-        obj.dimension = 0
+        obj.attributs["#dimension"] = "0"
         obj.geom_v.type = "0"
         obj.geom_v.valide = True
         return True

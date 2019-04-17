@@ -195,7 +195,7 @@ def f_dbalpha(regle, obj):
     """
     if not regle.getvar('traitement_virtuel'):
         if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel" :
-            print ('detection traitement virtuel : on ignore', obj.ident, regle.getvar('traitement_virtuel'), regle.context.vlocales)
+            # print ('detection traitement virtuel : on ignore', obj, regle.getvar('traitement_virtuel'), regle.context.vlocales)
             return False
 
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)

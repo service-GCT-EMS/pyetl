@@ -25,7 +25,9 @@ def _ecrire_section_asc(sect, numero_courant):
         )
     return (
         "1SEC3D %d, %d, \n" % (num_sect, len(sect.coords))
-        + "\n".join(("%d, %d, %d, " % (i[0] * FC, i[1] * FC, i[2] * FC) for i in sect.coords))
+        + "\n".join(
+            ("%d, %d, %d, " % (i[0] * FC, i[1] * FC, i[2] * FC) for i in sect.coords)
+        )
         + " %s, %d;\n" % (sect.couleur, sect.courbe)
     )
 
@@ -40,7 +42,9 @@ def ecrire_geom_asc(geom):
     """ecrit une geometrie en format asc.
         : suite de lignes """
     #    print ('asc: nblignes',len(geom.lignes))
-    return "".join((_ecrire_ligne_asc(p, [1]) for p in geom.lignes)) if geom.valide else ""
+    return (
+        "".join((_ecrire_ligne_asc(p, [1]) for p in geom.lignes)) if geom.valide else ""
+    )
 
 
 def _get_point(attrib, geometrie):
@@ -48,7 +52,7 @@ def _get_point(attrib, geometrie):
     cd_x = attrib.get("#x", 0)
     cd_y = attrib.get("#y", 0)
     cd_z = attrib.get("#z", 0)
-    dim = int(attrib.get("#dimension", "0"))
+    dim = int(attrib.get("#dimension", "2"))
     if not dim:
         if cd_x and cd_y:
             dim = 2
@@ -56,7 +60,9 @@ def _get_point(attrib, geometrie):
             dim = 3
     if dim:
         geometrie.setpoint(
-            [float(cd_x), float(cd_y), float(cd_z)], float(attrib.get("#angle", 0)), int(dim)
+            [float(cd_x), float(cd_y), float(cd_z)],
+            float(attrib.get("#angle", 0)),
+            int(dim),
         )
     return dim
 
@@ -75,14 +81,14 @@ def geom_from_asc(obj):
     #    print('gfa: geom_demandee',geom_demandee)
     geom_v = obj.geom_v
     dim = 2
-    if '#geom' not in obj.attributs:
+    if "#geom" not in obj.attributs:
         if obj.attributs["#type_geom"] == "0":
             return True
         geom_v.erreurs.ajout_erreur("objet_sans_geometrie")
         obj.attributs.update([("#type_geom", "0"), ("#dimension", "2")])
         return False
 
-    for pnt in obj.attributs['#geom']:
+    for pnt in obj.attributs["#geom"]:
         if pnt.startswith("1SEC"):
             dim = 3 if pnt.find("3D") > 0 else 2
             coords = []
@@ -114,8 +120,10 @@ def geom_from_asc(obj):
                     geom_v.erreurs.ajout_erreur("valeurs incompatibles " + str(pnt))
                     print("error: asc  : valeurs incompatibles ", lcrd)
                     geom_v.annule_section()
-    #    print ("asc:finalisation geom", geom_demandee)
     obj.finalise_geom(orientation="L", type_geom=geom_demandee)
+    # print("asc:finalisation geom", obj.attributs["#classe"], obj.dimension)
+    # if obj.dimension == 0:
+    #     raise
 
     geom_v.valide = geom_v.erreurs.actif < 2
     return geom_v.valide

@@ -31,7 +31,7 @@ def _decode_dates_apic(chaine):
     if len(dates) == 4:
         dat_cre = " ".join(dates[:2]).strip()
         dat_mod = " ".join(dates[2:4]).strip()
-    elif len(dates) == 3:  # une seuele date
+    elif len(dates) == 3:  # une seule date
         if dates[0] == "":
             dat_cre = ""
             dat_mod = " ".join(dates[1:2]).strip()
@@ -69,7 +69,7 @@ def _point_apic(liste_elt, log_erreurs):
     # _, oclasse = obj.ident
     # if classe != oclasse:  # on est en mode multiclasse
     #     obj.setident((oclasse, classe))
-    coords=[]
+    coords = []
     try:
         type_geom = types_geom[type_geom_asc]
         # obj.geomnatif = False
@@ -79,8 +79,11 @@ def _point_apic(liste_elt, log_erreurs):
             # obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
 
         elif type_geom_asc == "6":
-            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC,
-            float(liste_elt[5]) / FC]
+            coords = [
+                float(liste_elt[3]) / FC,
+                float(liste_elt[4]) / FC,
+                float(liste_elt[5]) / FC,
+            ]
             angle = 90 - round(float(liste_elt[6]) / FA, 1)  # point 3D
             # obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
             dim = "3"
@@ -97,7 +100,7 @@ def _decode_entete_asc(entete, log_erreurs):
     type_geom = "0"
     dim = 2
     angle = "0"
-    erreurs =''
+    erreurs = ""
     liste1 = entete.split(";")
     liste_elt = liste1[1].split(",")
     gid = liste_elt[0][2:].strip()  # gid
@@ -106,7 +109,7 @@ def _decode_entete_asc(entete, log_erreurs):
     type_geom_asc = liste_elt[0][0]
     classe = liste_elt[1].strip()
     index = liste_elt[2].strip()
-    coords=[]
+    coords = []
     try:
         type_geom = types_geom[type_geom_asc]
         # obj.geomnatif = False
@@ -116,8 +119,11 @@ def _decode_entete_asc(entete, log_erreurs):
             # obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
 
         elif type_geom_asc == "6":
-            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC,
-            float(liste_elt[5]) / FC]
+            coords = [
+                float(liste_elt[3]) / FC,
+                float(liste_elt[4]) / FC,
+                float(liste_elt[5]) / FC,
+            ]
             angle = 90 - round(float(liste_elt[6]) / FA, 1)  # point 3D
             # obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
             dim = 3
@@ -126,21 +132,19 @@ def _decode_entete_asc(entete, log_erreurs):
         log_erreurs.send(classe)
         erreurs = "erreur lecture entete"
 
-
-
     # index, type_geom, dim, angle = _point_apic(obj, liste_elt, log_erreurs)
     dat_cre, dat_mod = _decode_dates_apic(liste1[2])
 
-    attributs ={
-            ("#gid", gid),
-            ("#clef", index),
-            ("#type_geom", type_geom),
-            ("#dimension", str(dim)),
-            ("#_sys_date_cre", dat_cre),
-            ("#_sys_date_mod", dat_mod),
-            ("#complement", ";".join(liste1[3:-1])),
-            ("#angle", str(angle)),
-            ("#erreurs", erreurs)
+    attributs = {
+        "#gid": gid,
+        "#clef": index,
+        "#type_geom": type_geom,
+        "#dimension": str(dim),
+        "#_sys_date_cre": dat_cre,
+        "#_sys_date_mod": dat_mod,
+        "#complement": ";".join(liste1[3:-1]),
+        "#angle": str(angle),
+        "#erreurs": erreurs,
     }
     return attributs, coords, angle, dim
 
@@ -154,7 +158,10 @@ def _erreurs_entete():
         classe = yield
         if classe_courante and classe_courante != classe:
             LOGGER.error(
-                "asc  : erreurs entetes : " + str(nb_err) + " sur la classe " + classe_courante
+                "asc  : erreurs entetes : "
+                + str(nb_err)
+                + " sur la classe "
+                + classe_courante
             )
             #            print('error: asc  : erreurs entetes :', nb_err, 'sur la classe ', classe_courante)
             nb_err = 0
@@ -169,7 +176,7 @@ def _erreurs_entete():
 # @jit
 def ajout_attribut_asc(attributs, attr):
     """decodage d'un attribut asc et stockage"""
-    bcode = {"-1":"t", "0":"f", "t":"t", "f":"f"}
+    bcode = {"-1": "t", "0": "f", "t": "t", "f": "f"}
     code = attr[0]
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
@@ -221,6 +228,7 @@ def ajout_attribut_asc(attributs, attr):
     else:
         print("error: asc  : code inconnu", liste_elts)
     if type_att == "B":
+        print("asc: traitement booleen")
         try:
             vatt = bcode[vatt]
         except IndexError:
@@ -237,37 +245,39 @@ def ajout_attribut_asc(attributs, attr):
 #     return nom, False
 
 
-def _finalise(obj, schema_init, schema, numero, chemin):
-    """ finalise un objet avant de l'envoyer """
-    if obj.attributs["#type_geom"] != "1":  # pour les points c 'est deja fait
-        if obj.geom:
-            obj.attributs["#dimension"] = "3" if obj.geom[0].find("3D") else "2"
-        obj.geompending()  # on signale qu on a pas traite la geom
-    if schema_init:
-        #        objid = obj.ident
-        objid = ("", obj.ident[1])  # on ignore les niveaux
-        newid = schema_init.map_dest(objid)
+# def _finalise(obj, schema_init, schema, numero, chemin):
+#     """ finalise un objet avant de l'envoyer """
+#     if obj.attributs["#type_geom"] != "1":  # pour les points c 'est deja fait
+#         if obj.geom:
+#             obj.attributs["#dimension"] = "3" if obj.geom[0].find("3D") else "2"
+#         obj.geompending()  # on signale qu on a pas traite la geom
+#     if schema_init:
+#         #        objid = obj.ident
+#         objid = ("", obj.ident[1])  # on ignore les niveaux
+#         newid = schema_init.map_dest(objid)
 
-        #        if not newid:
-        #            print ("!!!!!!!attention objet non defini dans le schema d'entree", objid)
-        if newid == objid:
-            classe = schema_init.get_classe(objid)
-            if classe:
-                newid = classe.identclasse
-        if newid != objid:
-            obj.setident(newid)
-            objid = newid
+#         #        if not newid:
+#         #            print ("!!!!!!!attention objet non defini dans le schema d'entree", objid)
+#         if newid == objid:
+#             classe = schema_init.get_classe(objid)
+#             if classe:
+#                 newid = classe.identclasse
+#         if newid != objid:
+#             obj.setident(newid)
+#             objid = newid
 
-        if objid not in schema_init.classes:
-            print(
-                "!!!!!!!attention objet non defini dans le schema d'entree", schema_init.nom, objid
-            )
-        obj.setschema_auto(schema_init)
-    #                    if objid in schema.classes:
-    elif schema:
-        obj.setschema_auto(schema)
-    obj.setorig(numero)  # on renseigne l'idenbtifiant d 'origine
-    obj.attributs["#chemin"] = chemin
+#         if objid not in schema_init.classes:
+#             print(
+#                 "!!!!!!!attention objet non defini dans le schema d'entree",
+#                 schema_init.nom,
+#                 objid,
+#             )
+#         obj.setschema_auto(schema_init)
+#     #                    if objid in schema.classes:
+#     elif schema:
+#         obj.setschema_auto(schema)
+#     obj.setorig(numero)  # on renseigne l'idenbtifiant d 'origine
+#     obj.attributs["#chemin"] = chemin
 
 
 def _get_schemas(regle, rep, fichier):
@@ -281,13 +291,21 @@ def _get_schemas(regle, rep, fichier):
         schema_init = schema
     else:
         if regle.getvar("autoschema"):
-            schema = stock_param.init_schema(rep, origine="B", fich=fichier, stable=False)
+            schema = stock_param.init_schema(
+                rep, origine="B", fich=fichier, stable=False
+            )
     return schema, schema_init
 
+def finalise(reader, obj, coords, geom, angle, dim):
+    '''finalise un objet et le traite'''
 
-
-
-
+    if coords:
+        obj.geom_v.setpoint(coords, angle, dim)
+    if geom:
+        obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
+    if obj.dimension == 0:
+        print ('asc: erreur finalisation ', obj, coords, geom, dim)
+    reader.process(obj)
 
 
 
@@ -301,13 +319,15 @@ def lire_objets_asc(self, rep, chemin, fichier):
     angle = 0
     dim = 2
     # schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
-    self.prepare_lecture_fichier(self, rep, chemin, fichier)
+    self.prepare_lecture_fichier(rep, chemin, fichier)
     classe = self.classe
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
     next(log_erreurs)
-    with open(self.fichier, "r", 65536, encoding=self.encoding,errors="backslashreplace") as ouvert:
+    with open(
+        self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
+    ) as ouvert:
         suite = False
         if not chemin:
             chemin = os.path.basename(rep)
@@ -317,46 +337,54 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 attributs[nom] += i
                 suite = False
                 continue
-            if len(i) <= 2 or i.startswith("*"):
+            if len(i) <= 2 or i.startswith("*") or i.startswith(';4'):
                 continue
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
+                # print ('asc lecture', i)
                 if attributs or geom:
                     # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+                    # if not geom and attributs['#type_geom']>'1':
+                    #     print ('asc: attention pas de geom', attributs)
                     obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
                     if obj is None:
                         return self.nb_lus
-                    if coords:
-                        obj.geom_v.setpoint(coords, angle, dim)
-                    if geom:
-                        obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-                        geom = []
-                    self.process(obj)
+                    finalise(self, obj, coords, geom, angle, dim)
+                    geom=[]
+                    # if coords:
+                    #     obj.geom_v.setpoint(coords, angle, dim)
+                    # if geom:
+                    #     obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
+                    #     geom = []
+                    # self.process(obj)
 
                 if code_1 in "9356":
                     # obj = self.getobj()
-
                     attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
 
-            elif (code_0 == "2" or code_0 == "4") and (code_1.isalpha() or code_1 == "_"):
+            elif (code_0 == "2" or code_0 == "4") and (
+                code_1.isalpha() or code_1 == "_"
+            ):
                 nom, suite = ajout_attribut_asc(attributs, i)
             elif i.startswith("FIN"):
                 continue
-            elif obj:
+            else:
                 geom.append(i)
         if attributs or geom:
             obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
-            if obj is None:
-                return self.nb_lus
-            if coords:
-                obj.geom_v.setpoint(coords, angle, dim)
-            if geom:
-                obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-                self.process(obj)
+            if obj:
+                finalise(self, obj, coords, geom, angle, dim)
 
+            # if obj is None:
+            #     return self.nb_lus
+            # if coords:
+            #     obj.geom_v.setpoint(coords, angle, dim)
+            # if geom:
+            #     obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
+            #     self.process(obj)
 
-            # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
-            self.process(obj)
+            # # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
+            # self.process(obj)
         log_erreurs.send("")
     return self.nb_lus
 
@@ -370,12 +398,20 @@ def _ecrire_point_asc(point):
         if dim == 2:
             ccx, ccy = point.coords[0][:2]
             code = ";3 "
-            chaine = ",".join(("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle)))
+            chaine = ",".join(
+                ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle))
+            )
         else:
             ccx, ccy, ccz = point.coords[0][:3]
             code = ";6 "
             chaine = ",".join(
-                ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (ccz * FC), "%d" % (angle))
+                (
+                    "",
+                    "%d" % (ccx * FC),
+                    "%d" % (ccy * FC),
+                    "%d" % (ccz * FC),
+                    "%d" % (angle),
+                )
             )
         return code, chaine
     except ValueError:
@@ -384,7 +420,11 @@ def _ecrire_point_asc(point):
 
 def format_date(date):
     """ genere une date ne format entete elyx"""
-    return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else "01-01-1000,00:00:00"
+    return (
+        date.replace("/", "-").replace(" ", ",").split(".")[0]
+        if date
+        else "01-01-1000,00:00:00"
+    )
 
 
 def _ecrire_entete_asc(obj):
@@ -408,7 +448,7 @@ def _ecrire_entete_asc(obj):
         if obj.initgeom():
             type_geom_sortie = types_geom_asc.get(type_geom, ";5 ")
         else:
-            print("geometrie invalide ", id_num, obj.attributs['#geom'])
+            print("geometrie invalide ", id_num, obj.attributs["#geom"])
             type_geom_sortie = ";5 "
 
     dcre = format_date(attr.get("#_sys_date_cre"))
@@ -457,7 +497,9 @@ class AscWriter(FileWriter):
                 i for i in self.liste_att if schemaclasse.attributs[i].graphique
             }
             if self.liste_graphique:
-                self.liste_ordinaire = {i for i in self.liste_att if i not in self.liste_graphique}
+                self.liste_ordinaire = {
+                    i for i in self.liste_att if i not in self.liste_graphique
+                }
             else:
                 self.liste_ordinaire = set(self.liste_att)
 
@@ -466,7 +508,9 @@ class AscWriter(FileWriter):
 
         entete = _ecrire_entete_asc(obj)
         #    attributs = obj.attributs[:]
-        if obj.format_natif == "asc" and obj.geomnatif:  # on a pas touche a la geometrie
+        if (
+            obj.format_natif == "asc" and obj.geomnatif
+        ):  # on a pas touche a la geometrie
             #        print ('natif asc')
             if obj.geom:
                 geometrie = "".join(obj.geom)
@@ -503,7 +547,9 @@ class AscWriter(FileWriter):
         #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
         #                             ",NG"+str(len(str(obj.attributs[i])))+","+
         #                         str(obj.attributs[i])+";" for i in aliste))
-        attlist = "\n".join(("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste))
+        attlist = "\n".join(
+            ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
+        )
 
         if tliste:
             tglist = "\n".join(
@@ -628,6 +674,16 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"))}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "asc": (ecrire_objets_asc, asc_streamer, False, "up", 0, "", "groupe", "geom_asc", "geom_asc")
+    "asc": (
+        ecrire_objets_asc,
+        asc_streamer,
+        False,
+        "up",
+        0,
+        "",
+        "groupe",
+        "geom_asc",
+        "geom_asc",
+    )
 }
 #########################################################################

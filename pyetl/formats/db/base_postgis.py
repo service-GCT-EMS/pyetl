@@ -74,7 +74,6 @@ class PgsConnect(PgrConnect):
         self.gtypes_disc = GTYPES_DISC
         self.accept_sql = "geo"
         self.geographique = True
-        self.rowcount = 0
         self.dialecte = "postgis"
         self.type_base = "postgis"
 
@@ -153,6 +152,7 @@ class PgsGenSql(PgrGenSql):
     def getgeomsql(self, classe):
         """retourne la definition sql de la geometrie"""
         geomt, arc = self.get_type_geom(classe)
+        # print ('getgeomsql: type_geom',classe.identclasse, classe.info["type_geom"], geomt)
         if geomt and geomt.upper() != "ALPHA":
             if self.type_courbes == "curve" and arc:
                 return "\tgeometrie public." + self.gtypes_curve[geomt] + ","

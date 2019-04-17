@@ -59,7 +59,8 @@ def lire_schemas_multiples(
     for element in os.listdir(rep):
         #            print ('examen ',element ,racine)
         if racine in element.lower():
-            if "classes" in element and os.path.splitext(element)[1] == ".csv":
+            ext = os.path.splitext(element)[1]
+            if "classes" in element and ext == ".csv":
                 # print("schema:lecture ",element,racine,os.path.splitext(element))
                 element_modif = "_".join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
@@ -69,8 +70,8 @@ def lire_schemas_multiples(
                     schema,
                     lire_schema_csv("tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
                 )
-        elif ext == ".xml":
-            fusion_schema(nom, schema, lire_schema_xml("tmp", fichier, cod=cod_csv))
+            elif ext == ".xml":
+                fusion_schema(nom, schema, lire_schema_xml("tmp", fichier, cod=cod_csv))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -132,6 +133,7 @@ def ecrire_schema_sql(
 ):
     """ ecrit un schema en script sql """
     # on determine le dialacte sql a choisir
+    os.makedirs(rep, exist_ok=True)
 
     if dialecte == "natif":
         if schema.dbsql:  # dialecte sql adapte a la base de sortie
@@ -190,7 +192,6 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
 
     nom = schema.nom.replace("#", "")
     rep_s = os.path.join(rep, nom)
-    os.makedirs(rep_s, exist_ok=True)
     cod = stock_param.get_param("codec_sortie", "utf-8")
 
     for form in formats_a_sortir:
@@ -215,7 +216,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
             if type_base and type_base not in {"basic", "consult"}:
                 print("type base inconnu ", type_base, "passage en standard")
                 type_base = None
-            if type_base == "basic" or type_base == "consult":
+            if type_base == "basic":
                 schema.setbasic(type_base)
                 autopk = "" if autopk == "no" else True
                 rep_s = rep
