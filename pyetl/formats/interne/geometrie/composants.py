@@ -87,6 +87,11 @@ class Point(object):
         self.coords = fonction(self.coords)
 
 
+    @property
+    def fold(self):
+        return(tuple(self.coords),self.angle,self.longueur)
+
+
 class Section(object):
     """# definition d'une section"""
 
@@ -488,6 +493,10 @@ class Ligne(object):
         """iterateur sur les coordonnees"""
         return itertools.chain(*[i.coords for i in self.sections])
 
+    def sdef(self):
+        '''retourne un descriptif des sections'''
+        return ((len(i),i.courbe) for i in self.sections)
+
     def convert(self, fonction):
         #        print("ligne avant conv",list(self.coords))
 
@@ -540,7 +549,6 @@ class Polygone(object):
         self.lignes.append(lig)
         if lig.courbe:
             self.courbe = True
-
 
 #
 #    @property

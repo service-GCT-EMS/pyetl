@@ -225,6 +225,7 @@ class Geometrie(object):
                 return {"type": "Polygon", "coordinates": tuple(rings)}
 
         elif self.type == "4":  # tin
+            polys = []
             for poly in self.polygones:
                 rings = []
                 for ligne in poly.lignes:
@@ -233,6 +234,7 @@ class Geometrie(object):
             return {"type": "Tin", "coordinates": tuple(polys)}
 
         elif self.type == "5":  # tin
+            polys = []
             for poly in self.polygones:
                 rings = []
                 for ligne in poly.lignes:
@@ -608,6 +610,7 @@ class Geometrie(object):
             return iter(())
         return itertools.chain(*[i.coords for i in self.composants])
 
+
     def convert(self, fonction, srid=None):
         """ applique une fonction aux points """
         for crd in self.coords:
@@ -681,6 +684,67 @@ class Geometrie(object):
         for i in self.lignes:
             i.print_debug()
 
+    @property
+    def fold(self):
+        """retourne une structure compacte pour les comparaisons"""
+        if self.type == 'indef':
+            return ()
+        if self.type == '0':
+            return None
+        if self.type == '1':
+            return (self.point.fold,(),())
+        crd = (tuple(i) for i in self.coords)
+        ldef = (i.sdef for i in self.lignes)
+        pdef = (len(i.lignes) for i in self.polygones)
+        return (crd,ldef,pdef)
+
+    def unfold(self, folded):
+        """recree une geometrie a partir de la forme compacte"""
+        if folded is None:
+            self.valide = True
+            self.type = '0'
+            self.null = True
+            return
+        if folded == ((),(),()):
+            self.__init__()
+            return
+        crd,ldef,pdef = folded
+        if len(crd) == 1: # c 'est un point
+            coords, angle, longueur = crd[0]
+            self.setpoint(coords, angle, len(coords), longueur)
+            self.finalise_geom(type_geom="1")
+            return
+        dim = len(crd[0])
+        if not pdef:
+            for ligne in ldef:
+                depart=0
+                for fin, couleur, courbe in ligne:
+                    fin = fin+depart
+                    self.cree_section(crd[depart:fin], dim, couleur, courbe)
+                    depart = fin
+            self.finalise_geom(type_geom="2")
+            return
+        for poly in pdef:
+            dep_p = 0
+            for fin_p in poly:
+                fin_p = dep_p+fin_p
+                interieur = False
+                for ligne in ldef[dep_p:fin_p]:
+                    depart=0
+                    for fin, couleur, courbe in ligne:
+                        fin = fin+depart
+                        self.cree_section(crd[depart:fin], dim, couleur, courbe)
+                        depart = fin
+                    interieur = True
+                dep_p=fin_p
+        self.finalise_geom(type_geom="2")
+
+
+
+
+
+
+
 
 class Erreurs(object):
     """gere le stockage de erreurs sur un objet."""
@@ -732,3 +796,5 @@ class AttributsSpeciaux(object):
 def noconversion(obj):
     """ conversion geometrique par defaut """
     return obj.attributs["#type_geom"] == "0"
+
+

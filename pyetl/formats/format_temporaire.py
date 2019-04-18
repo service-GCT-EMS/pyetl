@@ -11,15 +11,15 @@ from .fichiers.format_asc import ajout_attribut_asc
 from .interne.objet import Objet
 
 
-def _extendlist(liste):
-    """utilitaire d'applatissement d'une liste de liste
-    c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde"""
-    #    return [x for slist in liste for x in slist]
-    return chain.from_iterable(liste)
-    # l=liste[0]
-    # print 'liste a applatir',l
-    # for j in liste[1:]: l.extend(j)
-    # return l
+# def _extendlist(liste):
+#     """utilitaire d'applatissement d'une liste de liste
+#     c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde"""
+#     #    return [x for slist in liste for x in slist]
+#     return chain.from_iterable(liste)
+#     # l=liste[0]
+#     # print 'liste a applatir',l
+#     # for j in liste[1:]: l.extend(j)
+#     # return l
 
 
 def _ecrire_section_tmp(section):
@@ -41,7 +41,7 @@ def _ecrire_ligne_tmp(ligne):
 
 def _ecrire_lignes_tmp(lignes):
     """ecrit un ensemble de  lignes en format temporaire"""
-    return _extendlist([_ecrire_ligne_tmp(j) for j in lignes])
+    return chain.from_iterable([_ecrire_ligne_tmp(j) for j in lignes])
 
 
 def _ecrire_polygone_tmp(poly):
@@ -49,12 +49,12 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + (_extendlist([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
+    return ["P"] + (chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
 
 
 def _ecrire_polygones_tmp(polygones):
     """ecrit un ensemble de  polygones en format temporaire"""
-    return _extendlist([_ecrire_polygone_tmp(j) for j in polygones])
+    return chain.from_iterable([_ecrire_polygone_tmp(j) for j in polygones])
 
 
 def ecrire_geometrie_tmp(geom):
@@ -260,7 +260,7 @@ class ObjStore(object):
             print("interne:clef duppliqueee", self.nom, self.key, clef)
             return False
         liste = [obj.attributs[i] for i in self.strlist]
-        liste.append(obj.geom_v)
+        liste.append(obj.geom_v.fold)
         tmp = self.structure(liste)
         self.data[clef] = tmp
         self.nbval += 1

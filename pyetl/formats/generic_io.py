@@ -127,6 +127,26 @@ class Reader(object):
             print("error:format: format entree inconnu", nom)
             raise KeyError
 
+    def setvirtuel(self):
+        """positionne un format d'entree virtuel"""
+        self.format_natif = 'interne'
+
+    def getobjvirtuel(self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None):
+
+
+        obj = Objet(
+                niveau or self.groupe,
+                classe or self.classe,
+                format_natif=self.format_natif,
+                conversion=self.converter,
+                attributs = attributs,
+                schema = self.schemaclasse,
+                numero=self.nb_lus
+            )
+        obj.virtuel = True
+        return obj
+
+
     def prepare_lecture_fichier(self, rep, chemin, fichier):
         '''prepare les parametres de lecture'''
         regle = self.regle_ref

@@ -507,7 +507,9 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             )
 
     if obj.attributs["#type_geom"] != "0" and str(obj.dimension) != schemaclasse.info["dimension"]:
-        if schemaclasse.autodim:
+        if obj.attributs["#type_geom"] == 'indef':
+            pass
+        elif schemaclasse.autodim:
             # choix automatique de la dimension c'est le premier objet qui gagne
             schemaclasse.info["dimension"] = str(obj.dimension)
             schemaclasse.autodim = False
@@ -539,10 +541,10 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
                         "%s mode 3D non conforme: attendu  %s objet: %s",
                         schemaclasse.info["dimension"],
                         obj.dimension,
-                        1,
+                        0,
                     )
                 )
-                print ('erreur dimension ', obj)
+                # print ('erreur dimension ', obj)
 
     for i in schemaclasse.attributs:
         val = obj.attributs.get(i)
