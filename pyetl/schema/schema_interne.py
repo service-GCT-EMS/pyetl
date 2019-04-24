@@ -272,7 +272,7 @@ class Schema(object):
         """gere un renommage de classe en terant compte des clefs etrangeres"""
         #        print ('renommage classe ',self.nom,ancien_nom, nouveau_nom)
         self.classes[nouvel_ident] = self.classes[ancien_ident]
-        self.classes[nouvel_ident].setident(nouvel_ident)
+        self.classes[nouvel_ident].setidentclasse(nouvel_ident)
         del self.classes[ancien_ident]
         for scl in self.classes.values():
             scl.renomme_cible_classe(ancien_ident, nouvel_ident)

@@ -129,7 +129,7 @@ def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=Non
         controle = len(noms_attributs)
         nbwarn = 0
         nlignes = 0
-        self.setident(nom_groupe, nom_classe)
+        self.setidententree(nom_groupe, nom_classe)
         for i in fich:
             nlignes = nlignes + 1
             obj = self.getobj()

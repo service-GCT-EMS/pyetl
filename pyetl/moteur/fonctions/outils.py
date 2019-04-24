@@ -481,7 +481,7 @@ def charge_mapping(regle, mapping=None):
             mapping[id1] = id2
             mapping[id2] = id1
     if regle.params.att_sortie.val == "#schema":
-        regle.schema_dest = regle.stock_param.schemas.get(regle.params.val_entree.val)
+        regle.schema_dest = regle.getschema(regle.params.val_entree.val)
     #        mapping_attributs
     regle.mapping = mapping
     regle.mapping_attributs = mapping_attributs

@@ -306,7 +306,7 @@ class Attribut(object):
             self.conformite = None
             self.type_att = self.type_att_base
 
-    def set_format_entree(self, desc):
+    def set_format_lecture(self, desc):
         """positionne le formattage de lecture"""
         self.format_entree = desc
 

@@ -68,7 +68,7 @@ def lire_objets(self, rep, chemin, fichier):
     codec = regle_ref.get_param("codec_entree", "utf-8")
     entree = os.path.join(rep, chemin, fichier)
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
-    self.setident(chemin, stock_param.fichier_courant)
+    self.setidententree(chemin, stock_param.fichier_courant)
     with open(entree, "r", 65536, encoding=codec) as ouvert:
         for i in json.load(ouvert):
             if maxobj and n_obj > maxobj:

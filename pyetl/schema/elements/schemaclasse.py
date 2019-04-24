@@ -122,7 +122,9 @@ class SchemaClasse(object):
             "objcnt_init": "0",
             "courbe": "",
         }
-        self.ident_origine = ident
+        self.ident_origine = schema.map_orig(ident)
+        # print ('recup ident origine ',self.ident_origine)
+
         self.nom = nom
         self.autodim = False
         self.alias = ""
@@ -225,7 +227,7 @@ class SchemaClasse(object):
         """retourne l'identifiant de classe : groupe,nom"""
         return (self.groupe, self.nom)
 
-    def setident(self, ident):
+    def setidentclasse(self, ident):
         """repositionne l identifiant"""
         self.groupe, self.nom = ident
 
@@ -440,9 +442,9 @@ class SchemaClasse(object):
         else:
             self.minmajfunc = str
 
-    def set_format_entree(self, nom, desc):
+    def set_format_lecture(self, nom, desc):
         """positionne le formattage de lecture"""
-        self.attributs[nom].set_format_entree(desc)
+        self.attributs[nom].set_format_lecture(desc)
 
     @property
     def fkey_dep(self):

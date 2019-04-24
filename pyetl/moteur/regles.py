@@ -287,6 +287,12 @@ class RegleTraitement(object):  # regle de mapping
     def setlocal(self, nom, valeur):
         """positionne une variable dans le contexte local"""
         self.context.setlocal(nom, valeur)
+
+    # =========================acces aux schemas=============================
+    def getschema(self,nom):
+        '''recupere un schema'''
+        return self.stock_param.schemas.get(nom)
+
     # =========================acces standardises aux objets==================
     def get_defaut(self, obj):
         ''' retourne la valeur par defaut s'il n'y a pas de champ'''
@@ -346,12 +352,7 @@ class RegleTraitement(object):  # regle de mapping
         """fonction d'affichage de debug"""
         msg = " ".join(
             (
-                origine + "regle:----->",
-                str(self.index),
-                "(",
-                str(self.numero),
-                ")",
-                self.ligne[:-1],
+                repr(self),
                 ("bloc " + str(self.bloc) if self.bloc else ""),
                 ("enchainement:" + str(self.enchainement) if self.enchainement else ""),
                 " copy " if self.copy else "",
@@ -378,7 +379,7 @@ class RegleTraitement(object):  # regle de mapping
         if self.f_sortie.calcule_schema:
             if not obj.schema:
                 nomschem = nom_base if nom_base else "defaut_auto"
-                schem = self.stock_param.schemas.get(nomschem)
+                schem = self.getschema(nomschem)
                 if not schem:
                     schem = SC.Schema(nomschem)
                     self.stock_param.schemas[nomschem] = schem

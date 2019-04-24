@@ -62,13 +62,12 @@ def _point_apic(liste_elt, log_erreurs):
     type_geom = "0"
     dim = "2"
     angle = "0"
+    erreurs = ''
 
     type_geom_asc = liste_elt[0][0]
     classe = liste_elt[1].strip()
     index = liste_elt[2].strip()
-    # _, oclasse = obj.ident
-    # if classe != oclasse:  # on est en mode multiclasse
-    #     obj.setident((oclasse, classe))
+
     coords = []
     try:
         type_geom = types_geom[type_geom_asc]
@@ -181,6 +180,7 @@ def ajout_attribut_asc(attributs, attr):
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
     nom = liste_elts[0][1:]
+    vatt =''
     type_att = "A"
     # if obj.schema:
     #     if nom in obj.schema.attmap:
@@ -287,7 +287,7 @@ def _get_schemas(regle, rep, fichier):
     stock_param = regle.stock_param
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
     if regle.getvar("schema_entree"):
-        schema = stock_param.schemas.get(regle.getvar("schema_entree"), None)
+        schema = regle.getschema(regle.getvar("schema_entree"))
         schema_init = schema
     else:
         if regle.getvar("autoschema"):

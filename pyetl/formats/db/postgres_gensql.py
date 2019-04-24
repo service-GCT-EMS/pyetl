@@ -346,6 +346,7 @@ class PgrGenSql(DbGenSql):
         deffoncs = dict()
         trig = []
         schema = self.schema
+        schemabase =  None
         if self.connection and self.connection.schemabase:
             schemabase = self.connection.schemabase
         specs = schema.elements_specifiques
@@ -370,13 +371,15 @@ class PgrGenSql(DbGenSql):
                     try:
                         deffoncs[idfonc] = specs["def_fonctions_trigger"][idfonc]
                     except KeyError:
-                        print("gsql fonction trigger manquante", idfonc, "recup def en base")
-                        try:
-                            deffoncs[idfonc] = schemabase.elements_specifiques[
-                                "def_fonctions_trigger"
-                            ][idfonc]
-                        except KeyError:
-                            print("gsql fonction trigger manquante en base", idfonc)
+                        print("gsql fonction trigger manquante", idfonc)
+                        if schemabase:
+                            print ("recup def en base")
+                            try:
+                                deffoncs[idfonc] = schemabase.elements_specifiques[
+                                    "def_fonctions_trigger"
+                                ][idfonc]
+                            except KeyError:
+                                print("gsql fonction trigger manquante en base", idfonc)
                     #                        stdnom = "tr_"+nomf+"_"+nom
                     if nomf not in self.stdtriggers:
                         #                            print("detection fonction", nomf, stdnom)

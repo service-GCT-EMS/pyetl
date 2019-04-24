@@ -75,6 +75,8 @@ class Reader(object):
         self.regle_ref = self.regle if regle is not None else self.regle_start
         stock_param = self.regle_ref.stock_param
         self.traite_objets = stock_param.moteur.traite_objet
+        self.schema = None
+        self.schema_entree = None
         self.set_format_entree(nom)
         self.nb_lus = 0
         self.groupe = ""
@@ -82,11 +84,10 @@ class Reader(object):
         self.affich = 100000
         self.nextaff = self.affich
         self.maxobj = 0
-        self.schema = None
-        self.schema_entree = None
+
         self.aff = stock_param.aff
         if self.debug:
-            print("debug:format: instance de reader ", nom, self)
+            print("debug:format: instance de reader ", nom, self.schema)
 
     def set_format_entree(self, nom):
         """#positionne un format d'entree"""
@@ -104,25 +105,30 @@ class Reader(object):
             stock_param = self.regle_ref.stock_param
             self.schema_entree = stock_param.schemas.get(self.regle_ref.getvar("schema_entree"))
             self.nomschema = ''
+            nom_schema_entree = self.regle_ref.getvar("schema_entree")
+            if nom_schema_entree:
+                if nom_schema_entree not in stock_param.schemas:
+                    cod_csv = self.regle_ref.getvar("codec_csv")
+                    self.schema_entree = stock_param.lire_schemas_multiples(nom_schema_entree, nom_schema_entree, cod_csv=cod_csv)
+            # print ('set format entree: schema entree', self.schema_entree)
             if self.schema_entree: # on cree un schema stable
                 nomschema = self.schema_entree.nom
                 if nomschema.startswith('#'):
                     nomschema = nomschema[1:]
                 else:
                     stock_param.schemas['#'+nomschema] = self.schema_entree
-                    del stock_param.schemas[nomschema]
                 self.schema = stock_param.init_schema(nomschema, "L") # et un schema pour les objets
                 self.nomschema = nomschema
 
 
 
-#            if self.schema_entree:
-##                print("reader:schema_entree", self.schema_entree.nom)
-#            else:
-##                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
-##                      stock_param.schemas)
+            if self.schema_entree:
+                print("reader:schema_entree", self.schema_entree.nom, self.nomschema)
+            else:
+                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
+                     stock_param.schemas)
             if self.debug:
-                print("debug:format: lecture format " + nom, self.converter, self.lire_objets)
+                print("debug:format: lecture format " + nom, self.converter, self.schema)
         else:
             print("error:format: format entree inconnu", nom)
             raise KeyError
@@ -158,6 +164,7 @@ class Reader(object):
             niveaux.append(nom)
 
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
+        print ('prepare lecture',self.schema_entree.nom, self.schema, self.nomschema)
         if not self.nomschema and self.cree_schema: # les objets ont un schema issu du fichier
             self.nomschema = os.path.basename(rep) if rep and rep != "." else 'schema'
             self.schema = stock_param.init_schema(self.nomschema, "L")
@@ -169,7 +176,7 @@ class Reader(object):
         sep_chain=["sep","separ"+self.nom_format+"_in","separ"+self.nom_format]
         self.separ= regle.getchain(sep_chain, ";")
         self.maxobj = int(regle.getvar("lire_maxi", 0))
-        self.setident(groupe, classe)
+        self.setidententree(groupe, classe)
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = 'utf-8-sig'
@@ -189,25 +196,31 @@ class Reader(object):
         fgeom = Reader.lecteurs.get(format_natif, Reader.lecteurs["interne"]).geom
         return Reader.geomdef[fgeom].converter
 
-    def setident(self, groupe, classe, schema=None):
+    def setidententree(self, groupe, classe, schema=None):
         """positionne les identifiants"""
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
-            groupe, classe = self.schema_entree.map_dest((groupe, classe))
-        self.groupe = groupe
-        self.classe = classe
+            print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
+            groupe2, classe2 = self.schema_entree.map_dest((groupe, classe))
+        else:
+            groupe2, classe2 = groupe, classe
+        self.groupe = groupe2
+        self.classe = classe2
+        self.orig = (groupe, classe)
         self.newschema = False
-        if self.schema and (groupe, classe) in self.schema.classes: # il existe deja
-            self.schemaclasse = self.schema_entree.get_classe((groupe, classe))
+        self.ident = groupe2, classe2
+        if self.schema and self.ident in self.schema.classes: # il existe deja
+            self.schemaclasse = self.schema.get_classe(self.ident)
             return
-        if self.schema_entree and (groupe, classe) in self.schema_entree.classes:
-            modele = self.schema_entree.get_classe((groupe, classe))
-            self.schemaclasse = modele.copy((groupe, classe), self.schema)
+        if self.schema_entree and self.ident in self.schema_entree.classes:
+            modele = self.schema_entree.get_classe(self.ident)
+            self.schemaclasse = modele.copy(self.ident, self.schema)
+            print ('nouvelle classe ', self.schemaclasse.attmap)
             return
         self.newschema = True
         if self.schema:
-            self.schemaclasse = self.schema.setdefault_classe((groupe, classe))
+            self.schemaclasse = self.schema.setdefault_classe(self.ident)
 
     def prepare_attlist(self, attlist):
         '''prepare une liste de mapping'''
@@ -221,7 +234,7 @@ class Reader(object):
         return [(self.schemaclasse.attmap.get(i,i),v) for i, v in attributs]
 
 
-    def getobj(self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None):
+    def getobj(self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None, orig=None):
         """retourne un objet neuf a envoyer dans le circuit
            cree un objet si on a pas depasse la limite de lecture"""
         self.nb_lus += 1
@@ -230,27 +243,28 @@ class Reader(object):
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.nb_lus))
+        # print ('getobj', attributs, self.schemaclasse)
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
+            # print ('on remappe', self.schemaclasse.attmap)
             attributs = self.attremap(attributs)
         elif valeurs:
             attributs = zip(self.attlist, valeurs)
-        if geom:
-            # print ('getobj:affectation geometrie',geom)
-            if attributs:
-                attributs["#geom"]=geom
-            else:
-                attributs={"#geom":geom}
-        return Objet(
+
+        obj = Objet(
             niveau or self.groupe,
             classe or self.classe,
             format_natif=self.format_natif,
             conversion=self.converter,
             attributs = attributs,
             schema = self.schemaclasse,
-            numero=self.nb_lus
+            numero=self.nb_lus,
+            orig=self.orig if orig is None else orig
         )
+        if geom:
+            # print ('getobj:affectation geometrie',geom)
+            obj.attributs["#geom"]=geom
         # print ('creation obj',obj)
-        # return obj
+        return obj
 
 
 class Writer(object):

@@ -269,6 +269,9 @@ class Section(object):
         : attention faux pour les courbes"""
         aire = 0
         ncoord = len(self.coords)
+        ppt = self.ppt
+        # aire = sum([(self.coords[(i + 1)][0] - self.coords[i][0]) * (self.coords[(i + 1)][1] + self.coords[i][1] - 2 * ppt[1]) for i in range(ncoord-1)])+\
+        #             (ppt[0] - self.coords[ncoord][0]) * (self.coords[ncoord][1] - ppt[1])
         for i in range(ncoord):
             aire += (
                 (self.coords[(i + 1) % ncoord][0] - self.coords[i][0])

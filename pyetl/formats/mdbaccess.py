@@ -653,7 +653,7 @@ def sortie_resultats(
     regle_debut = regle_courante.branchements.brch["next"]
     traite_objet = regle_courante.stock_param.moteur.traite_objet
 
-    print ('dbaccess:sortie_resultat ',type_geom,type(curs))
+    # print ('dbaccess:sortie_resultat ',type_geom,type(curs))
     # valeurs = curs.fetchone()
     # print ('dbaccess:recuperation valeurs ',valeurs)
     schema_init = None

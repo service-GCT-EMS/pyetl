@@ -36,8 +36,7 @@ class Objet(object):
 
     _ido = itertools.count(1)  # compteur d'instance
 
-    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None):
-        self.geom = []
+    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None, orig=None):
         self.geom_v = Geometrie()
         #        self.valide = False
         self.forcegeom = False  # force une geometrie de ligne
@@ -52,15 +51,15 @@ class Objet(object):
         self.classe_is_att = False
         # self.atg = False
         self.liste_attributs = None
-        self.idorig = (groupe, classe)
-
+        self.idorig = orig if orig is not None else (groupe, classe)
+        groupe_orig, classe_orig = self.idorig
         self.attributs = dict((
             ("#statgroupe", "total"),
             ("#type_geom", "0"),
             ("#groupe", groupe),
             ("#classe", classe),
-            ("#groupe_orig", groupe),
-            ("#classe_orig", classe),
+            ("#groupe_orig", groupe_orig),
+            ("#classe_orig", classe_orig),
             ("#geom",'')
         ))
         if attributs is not None:
@@ -205,7 +204,7 @@ class Objet(object):
         """retourne l'identifiant de l'objet ( groupe, classe)."""
         return (self.attributs["#groupe"], self.attributs["#classe"])
 
-    def setident(self, ident, schema2=None):
+    def setidentobj(self, ident, schema2=None):
         """force l'identifiant d'un objet"""
         self.attributs["#groupe"], self.attributs["#classe"] = ident
         if self.schema:
@@ -310,21 +309,25 @@ class Objet(object):
         props = geoif.get("properties", {})
         if self.schema:
             if self.schema.attmap:
-#                print("traitement attmap", self.schema.attmap)
+
+                # self.attributs.update(((self.schema.attmap.get(i,i),v) for i, v in props.items()))
+
+
+                print("traitement attmap", self.schema.attmap)
                 for i in props:
                     if props[i] is None:
                         continue
                     nom = self.schema.attmap.get(i, i)
-#                    print ('recherche',i, 'trouve' , nom)
+                    print ('recherche',i, 'trouve' , nom,self.schema.attributs[nom].format_entree)
 
                     self.attributs[nom] = self.schema.attributs[nom].format_entree.format(props[i])
             else:
                 self.attributs.update(
-                    {
-                        i: self.schema.attributs[i].format_entree.format(props[i])
-                        for i in props
-                        if props[i] is not None
-                    }
+                    (
+                        (nom,self.schema.attributs[nom].format_entree.format(val)
+                         if nom in self.schema.attributs else ('#'+nom,val))
+                        for nom,val in props if val is not None
+                    )
                 )
         else:
             self.attributs.update({i: str(props[i]) for i in props if props[i] is not None})

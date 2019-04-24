@@ -26,7 +26,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     ext = os.path.splitext(fichier)[1]
     base = os.path.splitext(fichier)[0]
     #    stock_param.parms["serveur_"+base]=chemin
-    self.setident("__filedb", base)
+    self.setidententree("__filedb", base)
     obj = self.getobj()
     obj.attributs["#racine"] = rep
     obj.attributs["#chemin"] = chemin

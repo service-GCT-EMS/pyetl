@@ -226,7 +226,7 @@ def f_force_pt(regle, obj):
         position = int(position) if position else 0
         try:
             #                print('changement en point ', obj.attributs['#type_geom'])
-            obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, obj.attributs["#dimension"])
+            obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
             obj.finalise_geom()
         #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
         except ValueError:

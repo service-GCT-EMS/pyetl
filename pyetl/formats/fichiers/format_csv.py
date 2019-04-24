@@ -220,14 +220,16 @@ class CsvWriter(FileWriter):
         attributs = self.separ.join((i if i else self.null for i in atlist))
         if self.type_geom != "0":
             if obj.format_natif == "#ewkt" and obj.geomnatif:  # on a pas change la geometrie
-                geom = obj.geom[0] if obj.geom else self.null  # on recupere la geometrie native
+                geom = obj.attributs['#geom']
+                if not geom:
+                    geom = self.null  # on recupere la geometrie native
             #                print("sortie ewkt geom0",len(geom))
             else:
                 if obj.initgeom():
                     geom = self.geomwriter(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
                 else:
-                    if not obj.geom and self.type_geom == "-1":
-                        geom = ""
+                    if not obj.attributs['#geom'] and self.type_geom == "-1":
+                        geom = self.null
                     else:
                         print(
                             "csv: geometrie invalide : erreur geometrique",
@@ -238,7 +240,7 @@ class CsvWriter(FileWriter):
                             obj.geom_v.erreurs.errs,
                             obj.attributs["#type_geom"],
                             self.schema.info["type_geom"],
-                            obj.geom,
+                            obj.attributs['#geom'],
                         )
                         geom = ""
 

@@ -232,7 +232,7 @@ def lire_mapping(schema_courant, fichier, codec):
     schema_courant.init_mapping(liste_mapping)
 
 
-#    print ('lecture_mapping','\n'.join(liste_mapping[:10]))
+    # print ('lecture_mapping','\n'.join(liste_mapping[:10]), schema_courant.map_dest(('','')))
 
 
 def decode_conf_csv(schema_courant, entree, mode_alias=None):
@@ -441,9 +441,9 @@ def decode_classes_csv(schema_courant, entree):
         if groupe and nom:
             schema_courant.origine = "L"
             idorig = (groupe, nom)
-            ident = schema_courant.map_dest(idorig)
-            if not ident:
-                ident = idorig
+            # ident = schema_courant.map_dest(idorig)
+            # if not ident:
+            ident = idorig
             classe = schema_courant.setdefault_classe(ident)
             attr = v_tmp[2]
             #                print ("sio : lecture", classe.identclasse, attr)
@@ -601,7 +601,7 @@ def lire_schema_csv(nom, fichier, mode_alias="num", cod="cp1252", schema=None, s
 
 def ecrire_fich_csv(chemin, nom, contenu, cod):
     """ ecriture physique du csv"""
-    #    print ('ecriture_csv', nom, cod)
+    print ('ecriture_csv', chemin, nom, cod)
     try:
         with open(chemin + nom, "w", encoding=cod, errors="replace") as fich:
             fich.write("\n".join(contenu))
@@ -619,7 +619,7 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
         init = True
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
     mapping = schema.mapping_schema()
-    nomschema = schema.nom.replace("#", "_")
+    nomschema = os.path.basename(schema.nom.replace("#", "_"))
     deftrig = []
     if "def_triggers" in schema.elements_specifiques:
         for trig in schema.elements_specifiques["def_triggers"]:

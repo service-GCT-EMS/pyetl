@@ -365,7 +365,7 @@ def f_creobj(regle, obj):
 
     ident = (tmp[0], tmp[1]) if len(tmp) == 2 else ("niv_test", tmp[0])
 
-    schema = regle.stock_param.schemas.get(regle.getvar("schema_entree"))
+    schema = regle.getschema(regle.getvar("schema_entree"))
     if schema is None:
         schema = regle.stock_param.init_schema("schema_test", origine="B", stable=False)
     gen_schema = ident not in schema.classes
@@ -655,12 +655,10 @@ def f_schema_liste_classes(regle, _):
      #helper||chargeur
     #pattern||;;;liste_schema;C;?=reel
     """
-    schema = regle.stock_params.schemas.get(regle.params.cmp1.val)
+    schema = regle.getschema(regle.params.cmp1.val)
     if schema is None:
         return False
-    virtuel = True
-    if regle.params.cmp2.val:
-        virtuel = False
+    virtuel = not regle.params.cmp2.val
     for i in schema.classes:
         niveau, classe = i
         obj2 = Objet(

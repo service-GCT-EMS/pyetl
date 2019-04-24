@@ -39,13 +39,16 @@ class Cursinfo(object):
     def __init__(self, connection, volume=0, nom=""):
         self.cursor = None
         if connection:
-            if volume > 100000 and nom:
+            # if volume > 100000 and nom:
+            if False: # on invalide les curseurs nommes pour le moment
                 # on cree un curseur nomme pour aller plus vite et economiser de la memoire
+                connection.autocommit = False
                 self.cursor = connection.cursor(nom)
                 self.cursor.itersize = 100000
                 # print ('creation curseur nommé', volume, nom)
                 self.ssc = True
             else:
+                connection.autocommit = True
                 self.cursor = connection.cursor()
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)
@@ -315,7 +318,7 @@ class DbConnect(object):
         self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=""
     ):
         """ lancement requete et gestion retours en mode iterateur"""
-        print('appel iterreq database', volume,nom)
+        # print('appel iterreq database', volume,nom)
 
         cur = self.execrequest(
             requete, data=data, attlist=attlist, volume=volume, nom=nom
@@ -533,7 +536,7 @@ class DbConnect(object):
         #        print('acces alpha', self.geographique, requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
-        volinfo = maxi if maxi else int(schema.info["objcnt_init"])
+        volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
         # print( 'appel iterreq', volinfo,classe)
         return self.iterreq(
             requete,
@@ -593,7 +596,7 @@ class DbConnect(object):
                 print("debug: database: requete de selection geo", requete, data)
             # curs.execute(requete,data)
             self.attlist = attlist
-            volinfo = maxi if maxi else int(schema.info["objcnt_init"])
+            volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
 
             return self.iterreq(
                 requete,

@@ -148,7 +148,7 @@ def f_map(regle, obj):
     #    print ('mapping', clef,regle.mapping)
     if clef in regle.mapping:
         nouv = regle.mapping.get(clef)
-        obj.setident(nouv, schema2=schema2)
+        obj.setidentobj(nouv, schema2=schema2)
         if clef in regle.mapping_attributs:
             for orig, dest in regle.mapping_attributs[clef].items():
                 try:
@@ -579,7 +579,7 @@ def compare_traite_stock(regle):
     """ sort les objets detruits"""
     for obj in regle.comp.values():
         obj.attributs[regle.params.att_sortie.val] = "supp"
-        obj.setident(regle.precedent)
+        obj.setidentobj(regle.precedent)
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["supp:"])
     regle.comp = None
     regle.nbstock = 0
@@ -713,7 +713,7 @@ def f_compare(regle, obj):
     obj.redirect = "diff"
     obj.attributs[regle.params.att_sortie.val] = "diff"
     ref.attributs[regle.params.att_sortie.val] = "orig"
-    ref.setident(obj.ident)  # on force l'identite de l'original
+    ref.setidentobj(obj.ident)  # on force l'identite de l'original
     regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
     # on remet l'original dans le circuit
     return False

@@ -110,7 +110,7 @@ def f_stock_schema(regle, obj):
         else:
             nom_base = obj.attributs.get("#schema", "schema")
 
-        regle.schema_courant = regle.stock_param.schemas.get(nom_base)
+        regle.schema_courant = regle.getschema(nom_base)
         if not regle.schema_courant:
             regle.schema_courant = Schema(nom_base)
             regle.stock_param.schemas[nom_base] = regle.schema_courant
@@ -375,7 +375,7 @@ def f_def_schema(regle, obj):
 
         # raise
         if ident2:  # c 'est un mapping
-            obj.setident(ident2)
+            obj.setidentobj(ident2)
         #            schema2 = obj.schema.schema
         #            schema_classe = schema2.get_classe(ident2, cree=True,
         #                                               modele=obj.schema, filiation=True)
@@ -401,7 +401,7 @@ def f_match_schema(regle, obj):
     schema_classe = obj.schema
     if schema_classe:
         if schema_classe.attmap is None:
-            schema_destination = regle.stock_param.schemas.get(regle.params.cmp1.val)
+            schema_destination = regle.getschema(regle.params.cmp1.val)
             if not schema_destination:
                 return False
             schema_classe.init_mapping(
@@ -437,7 +437,7 @@ def liste_table_traite_stock(regle):
 def h_liste_tables(regle):
     """pepare la liste des tables"""
     schema = regle.params.cmp1.val
-    regle.schema_courant = regle.stock_param.schemas.get(schema)
+    regle.schema_courant = regle.getschema(schema)
     regle.store = True
     regle.nbstock = 1
     regle.traite_stock = liste_table_traite_stock
@@ -446,9 +446,9 @@ def h_liste_tables(regle):
 def f_liste_tables(regle, obj):
     """#aide||recupere la liste des tables d un schema a la fin du traitement
      #groupe||schema
-    #pattern||;;;liste_tables;C;||sortie
+    #pattern||;;;liste_tables;C;?=reel
     """
-    # TODO mettre en coherence avec la commande liste schema ( a fusionner)
+    # TODO mettre en coherence avec la commande liste_schema ( a fusionner)
     pass
 
 
@@ -470,8 +470,8 @@ def h_diff_schema(regle):
     """compare les schemas"""
     nomsource = regle.params.val_entree.val
     nomdest = regle.params.att_sortie.val
-    schemasource = regle.stock_param.schemas.get(nomsource)
-    schemadest = regle.stock_param.schemas.get(nomdest)
+    schemasource = regle.getschema(nomsource)
+    schemadest = regle.getschema(nomdest)
 
 
 def f_diff_schema(regle, obj):

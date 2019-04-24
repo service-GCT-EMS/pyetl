@@ -354,7 +354,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
 
         niveau = next(iter_gy)
         classe = next(iter_gy)
-        self.setident(niveau, classe)
+        self.setidententree(niveau, classe)
         # on cree les schemas qui vont bien
         if base not in self.schemas:
             self.init_schema(base)

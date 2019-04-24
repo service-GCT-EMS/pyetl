@@ -159,6 +159,7 @@ class Mapping(object):
         self.mapping_class_origine = dict()
         self.mode_fusion = False
         self.existe = False
+        self.multiple = True
         self.debug = 0
 
     @property
@@ -227,6 +228,8 @@ class Mapping(object):
                 print("ligne incomplete", i)
                 continue
             self.existe = True
+            if '*' in s_orig or '*' in c_orig:
+                self.multiple = True
             orig = (s_orig, c_orig)
             fin = (s_fin, c_fin)
             self.mapping_destination[orig] = fin
@@ -238,39 +241,6 @@ class Mapping(object):
             self._valide_mapping(c_orig, self.mapping_classe_schema, s_orig, "orig 2")
             self._valide_mapping(c_fin, self.mapping_classe_schema, s_fin, "fin 2")
 
-    #            if c_orig in self.mapping_class_destination and\
-    #                         self.mapping_class_destination[c_orig] != (s_fin, c_fin):
-    #                self.mappings_ambigus[c_orig] = 1
-    #                if debug:
-    #                    print('mapping ambigu orig 1', c_orig, (s_fin, c_fin),
-    #                          self.mapping_class_destination[c_orig])
-
-    #            else:
-    #                self.mapping_class_destination[c_orig] = (s_fin, c_fin)
-    #            if c_fin in self.mapping_class_origine and\
-    #                        self.mapping_class_origine[c_fin] != (s_orig, c_orig):
-    #                self.mappings_ambigus[c_fin] = 1
-    #                if debug:
-    #                    print('mapping ambigu fin 1', c_orig)
-    #            else:
-    #                self.mapping_class_origine[c_fin] = (s_orig, c_orig)
-    #            if c_fin in self.mapping_classe_schema and\
-    #                        self.mapping_classe_schema[c_fin] != s_fin:
-    #                self.mappings_ambigus[c_fin] = 1
-    #                if debug:
-    #                    print('mapping ambigu fin 2', c_orig)
-    #            else:
-    #                self.mapping_classe_schema[c_fin] = s_fin
-
-    #            if c_orig in self.mapping_classe_schema and\
-    #                         self.mapping_classe_schema[c_orig] != s_orig:
-    #                self.mappings_ambigus[c_orig] = 1
-    #                if debug:
-    #                    print('mapping ambigu orig 2', s_orig, c_orig, '->',
-    #                          self.mapping_classe_schema[c_orig])
-    #                raise ValueError
-    #            else:
-    #                self.mapping_classe_schema[c_orig] = s_orig
 
     def map_classes(self, classes):
         """ force les origines des classes"""
@@ -290,10 +260,19 @@ class Mapping(object):
 
     def map_dest(self, id_orig):
         """retourne la destination du mapping"""
-
-        #        print ('mapping',id_orig,'->',self.mapping_destination.get(id_orig))
+        print ('map _orig', self.mapping_origine)
         if self.existe:
-            id_dest = self.mapping_destination.get(id_orig)
+            id_dest = None
+            if self.multiple:
+                g_orig, c_orig = id_orig
+                for gref,cref in self.mapping_destination:
+                    # print ('test' , gref,cref, g_orig,c_orig)
+                    if gref.replace('*','') in g_orig and cref.replace('*','') in c_orig:
+                        id_dest = self.mapping_destination.get((gref, cref))
+                        break
+            else:
+                id_dest = self.mapping_destination.get(id_orig)
+            # print ('--------------------------mapping',id_orig,'->',id_dest,self.mapping_destination )
 
             if id_dest:
                 return id_dest

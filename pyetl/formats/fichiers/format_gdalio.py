@@ -12,6 +12,29 @@ from fiona.crs import from_epsg
 
 # from .fileio import FileWriter
 
+def formatte_entree(type_att, taille = "0" ,dec = "0", driver=None):
+    '''cree un formattage d'netree pour la gestion des decimales'''
+    format_entree = ""
+    if ":" in type_att:
+        vv_tmp = type_att.split(":")
+        type_att = vv_tmp[0]
+        taille = vv_tmp[1]
+        if "." in taille:
+            vv_tmp = taille.split(".")
+            taille = vv_tmp[0]
+            dec = vv_tmp[1]
+    if driver == "ESRI Shapefile":  # cas particulier des float shape
+        #            typ_orig = type_att
+        if type_att == "float" or type_att =='F':
+            if dec == "0":
+                type_att = "int" if int(taille) < 10 else "long"
+                format_entree = "{:.0f}"
+            else:
+                format_entree = "{:." + dec + "f}"
+    #        print( 'traitement shapefile',i, typ_orig,'->',type_att, taille, dec)
+    return type_att, taille ,dec, format_entree
+
+
 
 def recup_schema_fiona(schema_courant, ident, description, driver):
     """cree un schema a partir d une description fiona"""
@@ -32,12 +55,19 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         "date": "D",
         "time": "D",
     }
-    sc_classe = schema_courant.get_classe(ident)
-    #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
-    #           schema_courant.classes.keys())
-    #    print ('recup_schema fiona:', description)
-    if sc_classe:
-        return sc_classe
+    # sc_classe = schema_courant.get_classe(ident)
+    # #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
+    # #           schema_courant.classes.keys())
+    print ('recup_schema fiona:', description, schema_courant)
+    # if sc_classe:
+    #     for nom,desc  in sc_classe.attributs.items():
+    #         type_att = desc.type_attribut
+    #         taille =desc.taille
+    #         dec =desc.dec
+    #         type_att, taille ,dec, format_entree = formatte_entree(type_att, driver = driver)
+    #         if format_entree:
+    #             sc_classe.set_format_lecture(i, format_entree)
+    #     return sc_classe
     sc_classe = schema_courant.def_classe(ident)
     if "geometry" in description:
         nom_geom = description["geometry"]
@@ -57,27 +87,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     sc_classe.info["type_geom"] = type_geom
     for i in description["properties"]:
         type_att = description["properties"][i]
-        taille = "0"
-        dec = "0"
-        format_entree = ""
-        if ":" in type_att:
-            vv_tmp = type_att.split(":")
-            type_att = vv_tmp[0]
-            taille = vv_tmp[1]
-            if "." in taille:
-                vv_tmp = taille.split(".")
-                taille = vv_tmp[0]
-                dec = vv_tmp[1]
-        if driver == "ESRI Shapefile":  # cas particulier des float shape
-            #            typ_orig = type_att
-            if type_att == "float":
-                if dec == "0":
-                    type_att = "int" if int(taille) < 10 else "long"
-                    format_entree = "{:.0f}"
-                else:
-                    format_entree = "{:." + dec + "f}"
-        #        print( 'traitement shapefile',i, typ_orig,'->',type_att, taille, dec)
-
+        type_att, taille ,dec, format_entree = formatte_entree(type_att, driver = driver)
         sc_classe.stocke_attribut(
             i,
             types_a[type_att],
@@ -88,7 +98,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
             ordre=-1,
         )
         if format_entree:
-            sc_classe.set_format_entree(i, format_entree)
+            sc_classe.set_format_lecture(i, format_entree)
     return sc_classe
 
 
@@ -154,63 +164,66 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     return description
 
 
-def map_schema_initial(stock_param, nomschema, groupe, classe):
-    """ gere les mapping initiaux a la lecture """
-    if stock_param.get_param("schema_entree"):
-        nomschema = stock_param.get_param("schema_entree")
-        print("gdalio:schema initial", nomschema)
-    if not nomschema:
-        nomschema = groupe if groupe else classe
-    if not nomschema:
-        nomschema = "defaut"
-    if nomschema not in stock_param.schemas:
-        stock_param.init_schema(nomschema)
-    schema_courant = stock_param.schemas[nomschema]
-    groupe, classe = schema_courant.map_dest((groupe, classe))
-    #    print('fiona:schema courant', schema_courant.nom, groupe, classe)
+# def map_schema_initial(stock_param, nomschema, groupe, classe):
+#     """ gere les mapping initiaux a la lecture """
+#     if stock_param.get_param("schema_entree"):
+#         nomschema = stock_param.get_param("schema_entree")
+#         print("gdalio:schema initial", nomschema)
+#     if not nomschema:
+#         nomschema = groupe if groupe else classe
+#     if not nomschema:
+#         nomschema = "defaut"
+#     if nomschema not in stock_param.schemas:
+#         stock_param.init_schema(nomschema)
+#     schema_courant = stock_param.schemas[nomschema]
+#     groupe2, classe2 = schema_courant.map_dest((groupe, classe))
+#     # print('fiona:schema courant', schema_courant.nom, groupe, classe,'->',groupe2,classe2)
 
-    return schema_courant, groupe, classe
+#     return schema_courant, groupe2, classe2
 
 
 # def lire_objets_asc(rep, chemin, fichier, td, ouv=None):
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier reconnu et stockage des objets en memoire"""
     n_lin, n_obj = 0, 0
-    print("lecture gdal", (rep, chemin, fichier))
+    print("lecture gdal", (rep, chemin, fichier), self.schema)
     #    raise
     # ouv = None
-    stock_param = self.regle_ref.stock_param
-    traite_objet = stock_param.moteur.traite_objet
-    obj = None
-    classe = os.path.splitext(os.path.basename(fichier))[0]
-    entree = os.path.join(rep, chemin, fichier)
-    groupe = chemin if chemin else os.path.basename(os.path.dirname(entree))
-    if not groupe:
-        groupe = "defaut"
-    print("gdal: groupe", groupe)
+    self.prepare_lecture_fichier(rep, chemin, fichier)
+    print ('apres prepare lecture ', self.schema)
+    # stock_param = self.regle_ref.stock_param
+    # traite_objet = stock_param.moteur.traite_objet
+    # obj = None
+    # classe = os.path.splitext(os.path.basename(fichier))[0]
+    # entree = os.path.join(rep, chemin, fichier)
+    # groupe = chemin if chemin else os.path.basename(os.path.dirname(entree))
+    # if not groupe:
+    #     groupe = "defaut"
+    print("gdal: groupe", self.groupe,self.classe, self.schema_entree)
     #    traite_objet = stock_param.moteur.traite_objet
-    maxobj = int(stock_param.get_param("lire_maxi", 0))
-    layers = fiona.listlayers(entree)
+    # maxobj = int(stock_param.get_param("lire_maxi", 0))
+    layers = fiona.listlayers(self.fichier)
     #    print('fiona:lecture niveaux',  layers)
     for layer in layers:
-        with fiona.open(entree, "r", layer=layer) as source:
+        with fiona.open(self.fichier, "r", layer=layer) as source:
             #            print ('recup fiona',source.driver, source.schema)
-            schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
+            # schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
             schemaclasse = recup_schema_fiona(
-                schema_courant, (groupe, classe), source.schema, source.driver
+                self.schema, (self.groupe, self.classe), source.schema, source.driver
             )
 
-            self.setident(groupe, classe)
+            # self.setidententree(groupe, classe)
             #            print('fiona:', classe, 'schema.type_geom',
             #                  schemaclasse.info["type_geom"], 'mg:', schemaclasse.multigeom)
             driver = source.driver
-            gen = (i for i in source if i)
-            if maxobj:
-                gen = itertools.islice(gen, maxobj)
-            for i in gen:
+            # gen = (i for i in source if i)
+
+            for i in source:
                 obj = self.getobj()
-                obj.setschema(schemaclasse)
+                if obj is None:
+                    break
+                # obj.setschema(schemaclasse)
                 n_obj += 1
                 if n_obj % 100000 == 0:
                     print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)
@@ -218,7 +231,8 @@ def lire_objets(self, rep, chemin, fichier):
                 #            print ('entree', i)
                 #            print ('objet', obj.__geo_interface__)
                 obj.attributs["#chemin"] = chemin
-                traite_objet(obj, self.regle_start)
+                print ('------gdalio ',obj,'\n')
+                self.process(obj)
     return n_obj
 
 

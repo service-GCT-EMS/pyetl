@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import time
 from . import base_oraclespatial as ora
+# import base_oraclespatial as ora
 
 # from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
 # from ..xml import XmlWriter

@@ -33,7 +33,7 @@ def fusion_schema(nom, schema, schema_tmp):
         schema.ajout_classe(schema_tmp.classes[i])
     schema_tmp.map_classes()
     liste_mapping = schema_tmp.mapping_schema(fusion=True)
-    #    print ('mapping_fusion','\n'.join(liste_mapping[:10]))
+    print ('mapping_fusion','\n'.join(liste_mapping[:10]))
     schema.init_mapping(liste_mapping[1:])
 
     del schema_tmp
@@ -71,7 +71,7 @@ def lire_schemas_multiples(
                     lire_schema_csv("tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
                 )
             elif ext == ".xml":
-                fusion_schema(nom, schema, lire_schema_xml("tmp", fichier, cod=cod_csv))
+                fusion_schema(nom, schema, lire_schema_xml("tmp", element, cod=cod_csv))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -191,7 +191,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     """ sort un schema dans les differents formats disponibles """
 
     nom = schema.nom.replace("#", "")
-    rep_s = os.path.join(rep, nom)
+    rep_s = os.path.join(rep, 'schemas')
     cod = stock_param.get_param("codec_sortie", "utf-8")
 
     for form in formats_a_sortir:

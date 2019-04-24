@@ -23,16 +23,16 @@ def _mode_niv_in(mapper, niv):
     classe = []
     attrs = []
     cmp = []
-    print("mode_niv in:lecture_fichier",valeurs)
+    # print("mode_niv in:lecture_fichier",valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
-        print("mode_niv in:liste_defs",liste_defs)
+        # print("mode_niv in:liste_defs",liste_defs)
 
         def1 = liste_defs.pop(0).split(".")
         if len(def1) == 1 and liste_defs and liste_defs[0]:
             defs2 = liste_defs.pop(0).split(".")
             def1.extend(defs2)
-        print("mode_niv in:def1",def1)
+        # print("mode_niv in:def1",def1)
 
         niveau.append(def1[0])
         if len(def1) == 1:

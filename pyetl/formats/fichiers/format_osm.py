@@ -129,7 +129,7 @@ class DecodeConfigOsm(object):
         idref = ident
         if manquants:  # on separe les objets incomplets
             ident = ("osm_incomplet", ident[1])
-        self.reader.setident(*ident)
+        self.reader.setidententree(*ident)
         obj = self.reader.getobj()
         obj.attributs["#geom"] = geom
         obj.attributs["#type_geom"] = type_geom

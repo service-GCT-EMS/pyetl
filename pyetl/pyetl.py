@@ -38,7 +38,7 @@ from .moteur.moteur import Moteur, Macro, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS
 from .moteur.fonctions.outils import scan_entree
 from .schema.schema_interne import init_schema  # schemas
-from .schema.schema_io import ecrire_schemas  # integre_schemas # schemas
+from .schema.schema_io import ecrire_schemas, lire_schemas_multiples  # integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
 
 # from  .moteur.fonctions.parallel import initl
@@ -239,6 +239,7 @@ class Pyetl(object):
         self.ident_courant = ("", "")
         self._set_streammode()
         self.done = False
+        self.lire_schemas_multiples = lire_schemas_multiples
 
     def initenv(self, env=None, log=None):
         """initialise le contexte (parametres de site environnement)"""
@@ -1178,7 +1179,7 @@ class Pyetl(object):
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
 
         self.f_entree = Reader(ext, regle, reglestart)
-        #        print ('initialisation reader', ext)
+        print ('initialisation reader', ext, self.f_entree.schema)
         #        print ('lecteur',self.f_entree.lire_objets, self.f_entree)
         #        print ('lecture fichier ',fichier, regle, reglestart)
         #        if self.worker:
