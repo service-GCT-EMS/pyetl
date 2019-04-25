@@ -183,7 +183,11 @@ class Schema(object):
     def __repr__(self):
         return "schema:"+self.nom+" "+str(len(self.classes))+' classes'
 
-
+    def copy(self, nom=None):
+        "retourne une copie du schema "
+        nouveau = Schema(self.nom if nom is None else nom)
+        nouveau.from_dic_if(self.__dic_if__)
+        return nouveau
 
     @property
     def __dic_if__(self):

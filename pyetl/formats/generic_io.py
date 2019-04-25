@@ -107,20 +107,23 @@ class Reader(object):
             self.nomschema = ''
             nom_schema_entree = self.regle_ref.getvar("schema_entree")
             if nom_schema_entree:
-                if nom_schema_entree not in stock_param.schemas:
+                if nom_schema_entree.startswith('#'):
+                    self.schema_entree = stock_param.schemas.get(nom_schema_entree)
+                    nom_schema_entree = nom_schema_entree[1:]
+                elif '#'+nom_schema_entree in stock_param.schemas:
+                    self.schema_entree = stock_param.schemas['#'+nom_schema_entree]
+                else:
                     cod_csv = self.regle_ref.getvar("codec_csv")
                     self.schema_entree = stock_param.lire_schemas_multiples(nom_schema_entree, nom_schema_entree, cod_csv=cod_csv)
-            # print ('set format entree: schema entree', self.schema_entree)
-            if self.schema_entree: # on cree un schema stable
-                nomschema = self.schema_entree.nom
-                if nomschema.startswith('#'):
-                    nomschema = nomschema[1:]
-                else:
-                    stock_param.schemas['#'+nomschema] = self.schema_entree
-                self.schema = stock_param.init_schema(nomschema, "L") # et un schema pour les objets
-                self.nomschema = nomschema
+                    if self.schema_entree:
+                        self.schema_entree.nom = '#'+nom_schema_entree
+                        stock_param.schemas['#'+nom_schema_entree] = self.schema_entree
 
+                if self.schema_entree: # on cree un schema stable
+                    self.nomschema = nom_schema_entree
+                    self.schema = stock_param.init_schema(self.nomschema, "L") # et un schema pour les objets
 
+                print ('set format entree: schema entree', self.schema_entree, self.schema)
 
             if self.schema_entree:
                 print("reader:schema_entree", self.schema_entree.nom, self.nomschema)
@@ -243,7 +246,7 @@ class Reader(object):
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.nb_lus))
-        # print ('getobj', attributs, self.schemaclasse)
+        print ('getobj', attributs, self.schemaclasse)
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)
             attributs = self.attremap(attributs)

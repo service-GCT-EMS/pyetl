@@ -12,27 +12,27 @@ from fiona.crs import from_epsg
 
 # from .fileio import FileWriter
 
-def formatte_entree(type_att, taille = "0" ,dec = "0", driver=None):
+def formatte_entree(type_orig):
     '''cree un formattage d'netree pour la gestion des decimales'''
     format_entree = ""
-    if ":" in type_att:
-        vv_tmp = type_att.split(":")
+    dec = None
+    taille=None
+    type_att = type_orig
+    if ":" in type_orig:
+        vv_tmp = type_orig.split(":")
         type_att = vv_tmp[0]
         taille = vv_tmp[1]
         if "." in taille:
             vv_tmp = taille.split(".")
             taille = vv_tmp[0]
             dec = vv_tmp[1]
-    if driver == "ESRI Shapefile":  # cas particulier des float shape
-        #            typ_orig = type_att
-        if type_att == "float" or type_att =='F':
-            if dec == "0":
-                type_att = "int" if int(taille) < 10 else "long"
-                format_entree = "{:.0f}"
-            else:
-                format_entree = "{:." + dec + "f}"
-    #        print( 'traitement shapefile',i, typ_orig,'->',type_att, taille, dec)
-    return type_att, taille ,dec, format_entree
+
+    if type_att == "float" or type_att =='F':
+        if dec == "0":
+            type_att = "long" if taille is not None and int(taille) >= 10 else "int"
+    # print( 'traitement shapefile', type_orig,'->',type_att, taille, dec)
+
+    return type_att, taille ,dec
 
 
 
@@ -58,7 +58,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     # sc_classe = schema_courant.get_classe(ident)
     # #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
     # #           schema_courant.classes.keys())
-    print ('recup_schema fiona:', description, schema_courant)
+    # print ('recup_schema fiona:', description, schema_courant)
     # if sc_classe:
     #     for nom,desc  in sc_classe.attributs.items():
     #         type_att = desc.type_attribut
@@ -87,18 +87,16 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     sc_classe.info["type_geom"] = type_geom
     for i in description["properties"]:
         type_att = description["properties"][i]
-        type_att, taille ,dec, format_entree = formatte_entree(type_att, driver = driver)
+        type_att, taille ,dec  = formatte_entree(type_att)
         sc_classe.stocke_attribut(
             i,
             types_a[type_att],
             dimension=dimension,
             force=True,
-            taille=int(taille),
-            dec=int(dec),
+            taille=int(taille) if taille else None,
+            dec=int(dec) if dec else None,
             ordre=-1,
         )
-        if format_entree:
-            sc_classe.set_format_lecture(i, format_entree)
     return sc_classe
 
 
@@ -186,11 +184,11 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier reconnu et stockage des objets en memoire"""
     n_lin, n_obj = 0, 0
-    print("lecture gdal", (rep, chemin, fichier), self.schema)
+    # print("lecture gdal", (rep, chemin, fichier), self.schema)
     #    raise
     # ouv = None
     self.prepare_lecture_fichier(rep, chemin, fichier)
-    print ('apres prepare lecture ', self.schema)
+    # print ('apres prepare lecture ', self.schema)
     # stock_param = self.regle_ref.stock_param
     # traite_objet = stock_param.moteur.traite_objet
     # obj = None
@@ -199,7 +197,7 @@ def lire_objets(self, rep, chemin, fichier):
     # groupe = chemin if chemin else os.path.basename(os.path.dirname(entree))
     # if not groupe:
     #     groupe = "defaut"
-    print("gdal: groupe", self.groupe,self.classe, self.schema_entree)
+    # print("gdal: groupe", self.groupe,self.classe, self.schema_entree)
     #    traite_objet = stock_param.moteur.traite_objet
     # maxobj = int(stock_param.get_param("lire_maxi", 0))
     layers = fiona.listlayers(self.fichier)
@@ -225,13 +223,13 @@ def lire_objets(self, rep, chemin, fichier):
                     break
                 # obj.setschema(schemaclasse)
                 n_obj += 1
-                if n_obj % 100000 == 0:
-                    print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)
+                # if n_obj % 100000 == 0:
+                    # print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)
                 obj.from_geo_interface(i)
                 #            print ('entree', i)
                 #            print ('objet', obj.__geo_interface__)
                 obj.attributs["#chemin"] = chemin
-                print ('------gdalio ',obj,'\n')
+                # print ('------gdalio ',obj,'\n')
                 self.process(obj)
     return n_obj
 

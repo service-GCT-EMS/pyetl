@@ -75,12 +75,12 @@ TYPES_S = {
     "A": "non defini",
 }
 
+typeconv = {"E": int, "EL": int,"S": int, "BS": int, "F": float,"N": float, "T": str}
+
 
 class Conformite(object):
     """definition d'une conformite
     pour le moment seul les enums sont utilisees"""
-
-    typeconv = {"E": int, "EL": int, "F": float, "T": str}
 
     def __init__(self, nom, typeval="", vmax=0, mode=1, modele=None, d_if=None):
         self.nom = nom
@@ -261,8 +261,8 @@ class Attribut(object):
         self.version = 0
         self.alias = ""
         self.oblig = False
-        self.taille = 0
-        self.dec = 0
+        self.taille = None
+        self.dec = nom_conformite
         self.ordre = 0
         self.nom_court = ""
         self.nom_sortie = ""
@@ -270,9 +270,30 @@ class Attribut(object):
         self.def_index = ""
         self.clef_etr = ""
         self.parametres_clef = ""
-        self.format_entree = "{}"
+        self.format_entree = None
+        self.format_sortie = None
+        self.typeconv = str
         if d_if:
             self.from_dic_if(d_if)
+
+    def formatte_entree(self):
+        '''cree un formattage d'entree pour la gestion des decimales'''
+        if self.dec is None:
+            return
+        if self.type_att in {'E','EL','F','N','S','BS'}:
+            self.typeconv=typeconv.get(self.type_att,str)
+            if self.dec == 0 and self.type_att in {'F','N'} :
+                self.type_att = "EL"  if self.taille and self.taille >10 else "E"
+            self.format_entree = "{:." + str(self.dec) + "f}"
+
+    def formatte_sortie(self):
+        '''cree un formattage d'entree pour la gestion des decimales'''
+        if self.dec is None:
+            return
+        if self.type_att in {'F','N'}:
+            self.format_sortie = "{:." + str(self.dec) + "f}"
+        elif self.type_att in {'E','EL','S','BS'}:
+            self.format_sortie = "{:.0f}"
 
     def set_type(self, val):
         """positionne le type de l attribut"""
@@ -306,9 +327,11 @@ class Attribut(object):
             self.conformite = None
             self.type_att = self.type_att_base
 
-    def set_format_lecture(self, desc):
+    def set_formats(self):
         """positionne le formattage de lecture"""
-        self.format_entree = desc
+        self.formatte_entree()
+        self.formatte_sortie()
+        # print('positionnement formats', self.format_entree, self.format_sortie)
 
     def copie(self, nom=None):
         """ retourne un clone de l'attribut """
@@ -381,3 +404,4 @@ class Attribut(object):
         """ recupere les valeurs depuis l'interface"""
         for nom, valeur in dic_if.items():
             setattr(self, nom, valeur)
+        self.set_formats()

@@ -313,22 +313,33 @@ class Objet(object):
                 # self.attributs.update(((self.schema.attmap.get(i,i),v) for i, v in props.items()))
 
 
-                print("traitement attmap", self.schema.attmap)
-                for i in props:
-                    if props[i] is None:
+                # print("traitement attmap", self.schema.attmap)
+                for i, val in props.items():
+                    if val is None:
                         continue
                     nom = self.schema.attmap.get(i, i)
-                    print ('recherche',i, 'trouve' , nom,self.schema.attributs[nom].format_entree)
-
-                    self.attributs[nom] = self.schema.attributs[nom].format_entree.format(props[i])
+                    try:
+                        attdef = self.schema.attributs[nom]
+                        # print ('recherche',i, 'trouve' , nom,attdef.format_entree)
+                        if attdef.format_entree:
+                            self.attributs[nom] = attdef.format_entree.format(attdef.typeconv(val))
+                        else:
+                            self.attributs[nom] = str(val)
+                    except KeyError:
+                        self.attributs[nom] = str(val)
             else:
-                self.attributs.update(
-                    (
-                        (nom,self.schema.attributs[nom].format_entree.format(val)
-                         if nom in self.schema.attributs else ('#'+nom,val))
-                        for nom,val in props if val is not None
-                    )
-                )
+                for nom, val in props.items():
+                    if val is None:
+                        continue
+                    try:
+                        attdef = self.schema.attributs[nom]
+                        # print ('recherche',i, 'trouve' , nom,attdef.format_entree)
+                        if attdef.format_entree:
+                            self.attributs[nom] = attdef.format_entree.format(attdef.typeconv(val))
+                        else:
+                            self.attributs[nom] = str(val)
+                    except KeyError:
+                        self.attributs[nom] = str(val)
         else:
             self.attributs.update({i: str(props[i]) for i in props if props[i] is not None})
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))

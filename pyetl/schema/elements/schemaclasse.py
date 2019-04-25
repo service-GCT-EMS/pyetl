@@ -781,6 +781,7 @@ class SchemaClasse(object):
                 self.conversion_noms = True
         for i in self.fils:
             i.ajout_attribut_modele(modele, nom=nom)
+        self.attributs[nom].set_formats()
         return self.attributs[nom]
 
     def ajout_attribut_tuple(self, definition):
@@ -837,7 +838,7 @@ class SchemaClasse(object):
 
         for i in self.fils:
             i.ajout_attribut_modele(attr)
-
+        attr.set_formats()
         return attr
 
     def _liste_ordonnee(self, sys=False):
@@ -962,6 +963,7 @@ class SchemaClasse(object):
                 obligatoire=obligatoire,
                 multiple=multiple,
             )
+        attr.set_formats()
         return attr
         # on transmet l'info a la descendance
 
