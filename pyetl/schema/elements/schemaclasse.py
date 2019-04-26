@@ -45,7 +45,7 @@ def _gestion_types_simples(attr, type_attribut):
     """ decode les types classiques"""
     type_attr = type_attribut.upper()
     # print ('type_attribut',attr.nom, type_attr)
-    taille = 0
+    taille = attr.taille
     dec = 0
     if "[]" in type_attr:
         type_attr = type_attr.replace("[]", "")
@@ -63,21 +63,21 @@ def _gestion_types_simples(attr, type_attribut):
         attr.type_att = A.TYPES_A[type_attr]
     elif type_attr[0] == "T" and type_attr[1:].isdigit():
         attr.type_att = "T"
-        attr.taille = int(type_attr[1:])
+        taille = int(type_attr[1:])
     elif type_attr[0] == "E" and type_attr[1:].isdigit():
         attr.type_att = "E"
         attr.type_att_base = "E"
-        attr.taille = int(type_attr[1:])
+        taille = int(type_attr[1:])
         attr.dec = 0
     elif type_attr[0] == "E" and type_attr[1:-1].isdigit() and type_attr[-1] == "S":
         attr.type_att = "E"
         attr.type_att_base = "E"
-        attr.taille = int(type_attr[1:-1])
+        taille = int(type_attr[1:-1])
         attr.dec = 0
     elif type_attr[0] == "E" and re.match("E[0-9]+_[0-9]+", type_attr):
         attr.type_att = "E"
         attr.type_att_base = "E"
-        attr.taille = len(type_attr.split("_")[1])
+        taille = len(type_attr.split("_")[1])
     elif type_attr == "X":  # attribut non traite
         attr.type_att = "X"
         attr.type_att_base = "X"
@@ -93,10 +93,10 @@ def _gestion_types_simples(attr, type_attribut):
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
         print("schemaclasse--------attention type inconnu passage en texte--->", attr, type_attr)
         attr.type_att = "T"
-    if attr.type_att_base == "E" and attr.taille > 6:
+    if attr.type_att_base == "E" and taille and taille > 9:
         attr.type_att_base = "EL"
-        attr.taille = taille
         attr.dec = dec
+    attr.taille = taille
 
 
 class SchemaClasse(object):
@@ -230,6 +230,10 @@ class SchemaClasse(object):
     def setidentclasse(self, ident):
         """repositionne l identifiant"""
         self.groupe, self.nom = ident
+
+    @property
+    def _id(self):
+        return id(self)
 
     @property
     def dbident(self):
@@ -939,6 +943,7 @@ class SchemaClasse(object):
                 #                print ('attribut entree_type', type_attribut)
                 attr.type_att = type_attribut
                 self._gestion_type_attribut(attr, type_attribut, defaut)
+            attr.set_formats()
 
         #            if attr.type_att=='A':
         #                print ("type_attribut inconnu",self.nom,attr.nom,'-',type_attribut,
@@ -963,7 +968,6 @@ class SchemaClasse(object):
                 obligatoire=obligatoire,
                 multiple=multiple,
             )
-        attr.set_formats()
         return attr
         # on transmet l'info a la descendance
 

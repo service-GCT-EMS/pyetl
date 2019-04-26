@@ -124,14 +124,14 @@ class Reader(object):
                     self.schema = stock_param.init_schema(self.nomschema, "L") # et un schema pour les objets
 
                 print ('set format entree: schema entree', self.schema_entree, self.schema)
-
-            if self.schema_entree:
-                print("reader:schema_entree", self.schema_entree.nom, self.nomschema)
-            else:
-                print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
-                     stock_param.schemas)
             if self.debug:
-                print("debug:format: lecture format " + nom, self.converter, self.schema)
+                if self.schema_entree:
+                    print("reader:schema_entree", self.schema_entree.nom, self.nomschema)
+                else:
+                    print("reader:pas de schema d'entree",nom, self.regle_ref.getvar("schema_entree"),
+                        stock_param.schemas)
+
+                    print("debug:format: lecture format " + nom, self.converter, self.schema)
         else:
             print("error:format: format entree inconnu", nom)
             raise KeyError
@@ -167,7 +167,7 @@ class Reader(object):
             niveaux.append(nom)
 
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
-        print ('prepare lecture',self.schema_entree.nom, self.schema, self.nomschema)
+        # print ('prepare lecture',self.schema_entree, self.schema, self.nomschema)
         if not self.nomschema and self.cree_schema: # les objets ont un schema issu du fichier
             self.nomschema = os.path.basename(rep) if rep and rep != "." else 'schema'
             self.schema = stock_param.init_schema(self.nomschema, "L")
@@ -180,6 +180,7 @@ class Reader(object):
         self.separ= regle.getchain(sep_chain, ";")
         self.maxobj = int(regle.getvar("lire_maxi", 0))
         self.setidententree(groupe, classe)
+        # print('apres setidenttnetree', self.schemaclasse._id)
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = 'utf-8-sig'
@@ -204,7 +205,7 @@ class Reader(object):
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
-            print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
+            # print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
             groupe2, classe2 = self.schema_entree.map_dest((groupe, classe))
         else:
             groupe2, classe2 = groupe, classe
@@ -215,11 +216,13 @@ class Reader(object):
         self.ident = groupe2, classe2
         if self.schema and self.ident in self.schema.classes: # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
+            # print ('------classe_existe ',self.schemaclasse._id,self.schemaclasse.attmap)
             return
         if self.schema_entree and self.ident in self.schema_entree.classes:
             modele = self.schema_entree.get_classe(self.ident)
             self.schemaclasse = modele.copy(self.ident, self.schema)
-            print ('nouvelle classe ', self.schemaclasse.attmap)
+            # print ('------nouvelle classe ',self.schemaclasse._id, self.schemaclasse.attmap)
+            # print ('------controle', self.schema.get_classe(self.ident)._id)
             return
         self.newschema = True
         if self.schema:
@@ -246,7 +249,7 @@ class Reader(object):
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.nb_lus))
-        print ('getobj', attributs, self.schemaclasse)
+        # print ('getobj', attributs, self.schemaclasse)
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)
             attributs = self.attremap(attributs)

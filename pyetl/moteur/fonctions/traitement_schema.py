@@ -319,7 +319,7 @@ def f_def_schema(regle, obj):
             init_schema(
                 regle.stock_param,
                 nom_base,
-                origine=None,
+                origine='G',
                 fich="",
                 defmodeconf=0,
                 stable=True,

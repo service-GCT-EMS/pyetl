@@ -260,7 +260,7 @@ class Mapping(object):
 
     def map_dest(self, id_orig):
         """retourne la destination du mapping"""
-        print ('map _orig', self.mapping_origine)
+        # print ('map _orig', self.mapping_origine)
         if self.existe:
             id_dest = None
             if self.multiple:

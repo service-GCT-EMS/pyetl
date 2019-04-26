@@ -58,7 +58,6 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     # sc_classe = schema_courant.get_classe(ident)
     # #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
     # #           schema_courant.classes.keys())
-    # print ('recup_schema fiona:', description, schema_courant)
     # if sc_classe:
     #     for nom,desc  in sc_classe.attributs.items():
     #         type_att = desc.type_attribut
@@ -68,7 +67,12 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     #         if format_entree:
     #             sc_classe.set_format_lecture(i, format_entree)
     #     return sc_classe
+    if ident in schema_courant.classes:
+        return schema_courant.classes[ident]
+
     sc_classe = schema_courant.def_classe(ident)
+    # print ('recup_schema fiona:', description, schema_courant, sc_classe._id, sc_classe.attmap)
+
     if "geometry" in description:
         nom_geom = description["geometry"]
         type_geom = code_g.get(nom_geom, "-1")

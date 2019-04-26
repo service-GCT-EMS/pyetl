@@ -54,6 +54,9 @@ def init_schema(
                     modele.classes[ident].copy(ident, nouveau)
 
     #                self.schemas[nom_schema].dic_abrev = modele.dic_abrev
+    if mapper.schemas[nom_schema].origine is None:
+        print ('schema incorrect', origine, modele)
+        raise ValueError
     return mapper.schemas[nom_schema]
 
 
@@ -231,6 +234,8 @@ class Schema(object):
 
     def def_classe(self, ident):
         """ cree un schema pour une nouvelle classe"""
+        if ident in self.classes:
+            return self.classes[ident]
         return self.ajout_classe(C.SchemaClasse(ident, self))
 
     def ajout_classe(self, sc_classe):

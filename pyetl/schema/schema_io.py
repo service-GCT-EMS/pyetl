@@ -172,7 +172,8 @@ def ecrire_schema_sql(
         ecrire_fichier_sql(rep, nomschema, "01", "schema", tout, cod, False)
 
     else:
-
+        rep = os.path.join(rep,nomschema)
+        os.makedirs(rep, exist_ok=True)
         if tsql:
             ecrire_fichier_sql(rep, nomschema, "03", "tables", tsql, cod, transact)
             ecrire_fichier_sql(rep, nomschema, "11", "droptables", dtsql, cod)

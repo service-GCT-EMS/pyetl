@@ -606,9 +606,9 @@ class PgrGenSql(DbGenSql):
             if attype not in self.types_db and not nomconf:
                 print("type inconnu", attype, deftype, "defaut", attype in self.schema.conformites)
             type_sortie = self.types_db.get(attype, deftype)
-            if type_sortie == "numeric" and attribut.taille != 0:
-                type_sortie = "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec) + ")"
-            elif type_sortie == "text" and attribut.taille != 0:
+            if type_sortie == "numeric" and attribut.taille:
+                type_sortie = "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec) if attribut.dec is not None else '0' + ")"
+            elif type_sortie == "text" and attribut.taille:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
             if sql_conf and self.basic != "basic":

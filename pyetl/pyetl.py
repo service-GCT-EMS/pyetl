@@ -1179,7 +1179,7 @@ class Pyetl(object):
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
 
         self.f_entree = Reader(ext, regle, reglestart)
-        print ('initialisation reader', ext, self.f_entree.schema)
+        # print ('initialisation reader', ext, self.f_entree.schema)
         #        print ('lecteur',self.f_entree.lire_objets, self.f_entree)
         #        print ('lecture fichier ',fichier, regle, reglestart)
         #        if self.worker:
