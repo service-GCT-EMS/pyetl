@@ -106,15 +106,17 @@ class PgsConnect(PgrConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-
+        cond = ''
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
+            fonction =''
             if nom_fonction == "intersect":
                 fonction = "ST_Intersects("
             elif nom_fonction == "dans":
                 fonction = "ST_Contains("
-            cond = fonction + geom2 + "," + nom_geometrie + ")"
+            if fonction:
+                cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
 

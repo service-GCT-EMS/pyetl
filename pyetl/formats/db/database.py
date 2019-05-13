@@ -19,6 +19,18 @@ RESERVES = {"in": "ins", "as": "ass"}
 GTYPES_DISC = {"alpha": "", "ALPHA": ""}
 GTYPES_CURVE = {"alpha": "", "ALPHA": ""}
 
+class DummyConnect(object):
+    '''simule une connection base de donnees'''
+    def __init__(self):
+        self.schemabase = None
+        self.valide = False
+
+    def close(self):
+        pass
+
+    def request(*args):
+        pass
+
 
 class SpecDefs(object):
     """gere les elements speciaux d une base de donnees"""
@@ -190,7 +202,6 @@ class DbConnect(object):
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
-        self.schemabase = None
         #        self.connect()
         self.gensql = DbGenSql()
         self.decile = 100000
@@ -219,9 +230,6 @@ class DbConnect(object):
             else None
         )
 
-    def connect(self):
-        """retourne la connection a la base"""
-        return None
 
     @property
     def valide(self):
@@ -232,6 +240,11 @@ class DbConnect(object):
     def idconnect(self):
         """identifiant de base : type + nom"""
         return self.type_base + ":" + self.base
+
+    def connect(self):
+        self.connection = DummyConnect()
+
+
 
     def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
@@ -450,7 +463,7 @@ class DbConnect(object):
 
     def prepare_attribut(self, schema, attribut, valeur):
         """ prepare une requete faisant appel a des attributs"""
-
+        oper = '='
         if attribut in self.sys_fields:  # c est un champ systeme
             attribut, type_att = self.sys_fields[attribut]
         else:
@@ -645,7 +658,7 @@ class DbConnect(object):
         nom = conf.nombase
         if self.valide:
             schemabase = self.connection.schemabase
-            if schemabase and nom in schemabase.conformites:
+            if schemabase is not None and nom in schemabase.conformites:
                 # si elle existe on verifie qu'elle est bonne
                 self.prepare_conf(conf)
                 conf_base = schemabase.conformites[nom]

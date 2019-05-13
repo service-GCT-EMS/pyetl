@@ -35,7 +35,7 @@ def main():
     codec = sys.argv[3] if len(sys.argv) > 3 else getdefcodec()
 
     liste_ref = {i for i in scandirs(ref, "", True)}
-    liste_comp = {i for i in origine(ref, "", True)}
+    liste_comp = {i for i in scandirs(origine, "", True)}
 
     #    for i in scandirs(origine, '', True):
     #        liste_comp[i] = 1

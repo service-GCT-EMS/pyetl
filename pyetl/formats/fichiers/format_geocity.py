@@ -368,6 +368,8 @@ def lire_objets_geocity(self, rep, chemin, fichier):
         valz = 0
         dimension = 2  # dimension de l'objet resultant
         dimcoord = 2  # nombre de coordonnees par point dans la geometrie
+        mode =''
+        type_geom =''
         try:
             for val in iter_gy:
                 #                print ('gy:lu',val, obj_ouvert,obj)

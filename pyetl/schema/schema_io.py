@@ -36,7 +36,6 @@ def fusion_schema(nom, schema, schema_tmp):
     print ('mapping_fusion','\n'.join(liste_mapping[:10]))
     schema.init_mapping(liste_mapping[1:])
 
-    del schema_tmp
 
 
 def lire_schemas_multiples(

@@ -193,7 +193,6 @@ class CsvWriter(FileWriter):
             raise ValueError("csvwriter: schema manquant")
         self.escape = "\\" + separ
         self.repl = "\\" + self.escape
-        self.fichier = None
         self.encoding = encoding
         self.transtable = str.maketrans(
             {"\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}

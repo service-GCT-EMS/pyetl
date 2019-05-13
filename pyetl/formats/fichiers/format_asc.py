@@ -312,7 +312,7 @@ def finalise(reader, obj, coords, geom, angle, dim):
 def lire_objets_asc(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
     obj = None
-    nom = None
+    nom = ''
     attributs = dict()
     geom = []
     coords = []

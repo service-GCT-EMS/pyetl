@@ -47,7 +47,6 @@ class SqlmConnect(SqltConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
         self.connect()
-        self.valide = self.connection is not None
 
     #        self.encoding =
 
@@ -190,16 +189,19 @@ class SqlmConnect(SqltConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
+            fonction = None
             if nom_fonction == "intersect":
                 fonction = "ST_Intersects("
             elif nom_fonction == "dans":
                 fonction = "ST_Contains("
-            cond = fonction + geom2 + "," + nom_geometrie + ")"
-        return cond
+            if fonction:
+                cond = fonction + geom2 + "," + nom_geometrie + ")"
+                return cond
+        print ('fonction non definie', nom_fonction)
+        return ''
 
     def execrequest(self, requete, data, attlist=None):
         cur = self.get_cursinfo()

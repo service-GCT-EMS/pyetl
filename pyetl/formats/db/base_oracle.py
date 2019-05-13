@@ -329,7 +329,7 @@ class OraConnect(DbConnect):
             """iterateur sur le curseur oracle avec decodage de la geometrie """
             while True:
                 try:
-                    elem = cur.fetchone()
+                    elem = cur.cursor.fetchone()
                 #                raise
                 except OraError as err:
                     print("erreur " + self.base, err)

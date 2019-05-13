@@ -8,7 +8,7 @@ acces a la base de donnees
 import os
 
 # import sys
-from pyodbc import connect, Error
+from pyodbc import connect as OdbcConnect, Error as OdbcError
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, DbGenSql
@@ -56,7 +56,7 @@ class AccConnect(DbConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base = TYPES_A
         #        print ('connection base access', serveur,base, user, passwd )
-        self.dbaccess()
+        self.connect()
         #        if self.connection is None:
         #            self.connection = dbaccess2(chembase, user, passwd)
 
@@ -64,7 +64,7 @@ class AccConnect(DbConnect):
         self.tables = set()
         self.set_tablelist()
 
-    def dbaccess(self):
+    def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
         base = os.path.join(self.serveur, self.base)
 
@@ -76,12 +76,11 @@ class AccConnect(DbConnect):
             #        pwd = 'PWD='+passwd+";" if passwd else ""
             conn_str = r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};" r"DBQ=" + base + ";"
 
-            connection = connect(conn_str)
+            self.connection = OdbcConnect(conn_str)
 
             #        connection = odbc.win_connect_mdb(base)
-
-            return connection
-        except Error as exp:
+            return self.connection
+        except OdbcError as exp:
             print("error: access pyodbc: utilisateur ou mot de passe errone sur la base access")
             print("error: access:", base, self.passwd)
             print(exp)
@@ -110,9 +109,9 @@ class AccConnect(DbConnect):
                 nom = table.table_name
                 if table.table_type == "SYSTEM TABLE" and not self.system:
                     continue
-                self.tables.add(schema, nom)
+                self.tables.add((schema, nom))
         else:
-            self.tables = []
+            self.tables = set()
 
     def get_tables(self):
         """produit les objets issus de la base de donnees"""
@@ -159,7 +158,7 @@ class AccConnect(DbConnect):
             try:
                 for i in cur:
                     yield i
-            except odbc.DatabaseError as err:
+            except OdbcError as err:
                 print("error: access:erreur recuperation donnees", requete)
                 print("parametres", err.args)
 

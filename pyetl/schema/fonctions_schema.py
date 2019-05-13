@@ -92,6 +92,7 @@ def get_jma(date, sep):
     #    print ('extraction date ', date,'->'+sep+'<-')
     def_mois = DEF_MOIS
     el_date1, el_date2, el_date3 = date.split(sep)
+    annee, mois, jour = '','',''
     fdate = "inc"
     if len(el_date3) == 4 and el_date3.isnumeric():  # jj-mm-aaaa
         if el_date2.isnumeric() and el_date1.isnumeric():

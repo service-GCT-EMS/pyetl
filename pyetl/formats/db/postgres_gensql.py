@@ -77,7 +77,6 @@ class PgrGenSql(DbGenSql):
         self.connection = connection
         self.basic = basic
         self.maj = maj
-        self.schema = None
         self.dialecte = "postgres"
         self.defaut_schema = "public"
         self.role = None
@@ -92,7 +91,8 @@ class PgrGenSql(DbGenSql):
         self.basic = mode
         self.types_db["S"] = "integer"
         self.types_db["BS"] = "bigint"
-        self.schema.setbasic(mode)
+        if self.schema is not None:
+            self.schema.setbasic(mode)
 
     def conf_en_base(self, conf):
         """valide si une conformite existe en base"""
@@ -408,7 +408,7 @@ class PgrGenSql(DbGenSql):
         """ retourne le type geometrique de la classe precis """
         type_geom = schemaclasse.info["type_geom"]
         if type_geom == "0" or type_geom ==  'indef':
-            return 0, False
+            return "0", False
         arc = schemaclasse.info["courbe"]
         geomt = type_geom
         if geomt in self.typenum:

@@ -135,8 +135,8 @@ class ElyConnect(ora.OrwConnect):
     def singlerunner(self, helper, xml, nom, classes):
         """lance les exports ou les imports a partitr du fichier xml"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            paramfile = os.path.join(tmpdir, "param_FEA.xml")
-            outfile = os.path.join(tmpdir, nom + "_out_FEA.txt")
+            paramfile = os.path.join(str(tmpdir), "param_FEA.xml")
+            outfile = os.path.join(str(tmpdir), nom + "_out_FEA.txt")
             resultats, size, _ = self.stat_classes(classes, "no")
             dinit = time.time()
             if self.lanceur(helper, xml, paramfile, outfile):
@@ -146,7 +146,7 @@ class ElyConnect(ora.OrwConnect):
 
     def gen_importxml(self, helper, file, logfile, reinit, vgeom="1"):
         """prepare le fichier xml pour l'import elyx"""
-        csystem = os.path.join(os.path.dirname(helper), r"syscoord\sysgeo.dat")
+        csystem = os.path.join(str(os.path.dirname(helper)), r"syscoord\sysgeo.dat")
         logobject = os.path.join(logfile, "log_import.txt")
         rejectdir = os.path.join(logfile, "erreurs")
         os.makedirs(rejectdir, exist_ok=True)
@@ -257,7 +257,7 @@ class ElyConnect(ora.OrwConnect):
 
     def stat_classes(self, classes, fanout):
         """retourne les stats d export"""
-        schemabase = self.schemabase
+        schemabase = self.connection.schemabase
         resultats = dict()
         size = dict()
         blocks = dict()
@@ -333,7 +333,7 @@ class ElyConnect(ora.OrwConnect):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             #        if True:
-            self.tmpdir = tmpdir
+            self.tmpdir = str(tmpdir)
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
             print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
@@ -371,7 +371,7 @@ class ElyConnect(ora.OrwConnect):
         """extrait des donnees par ORA2FEA"""
         # mise en place de l'environnement:
         with tempfile.TemporaryDirectory() as tmpdir:
-            self.tmpdir = tmpdir
+            self.tmpdir = str(tmpdir)
             #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, workers)
             blocks = self.get_blocks(helper, classes, dest, log, fanout, workers)
 
@@ -784,7 +784,7 @@ class ElyConnect(ora.OrwConnect):
                     #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
                     #                                              True, ordre = ordre) # on force
                     #                    print ("nom_att ",nom_att)
-                    attdef = self.attdef(
+                    attdef = self.attdef((
                         nomschema,
                         nomtable,
                         nom_att,
@@ -805,11 +805,11 @@ class ElyConnect(ora.OrwConnect):
                         "",
                         0,
                         0,
-                    )
+                    ))
                     #                    print ('attribut',nomschema, nomtable, nom_att,conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
-                        attdef = self.attdef(
+                        attdef = self.attdef((
                             nomschema,
                             nomtable,
                             nom_att + "_X",
@@ -830,9 +830,9 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             0,
                             0,
-                        )
+                        ))
                         self.attributs[i[0] + 0.1] = attdef
-                        attdef = self.attdef(
+                        attdef = self.attdef((
                             nomschema,
                             nomtable,
                             nom_att + "_Y",
@@ -853,7 +853,7 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             0,
                             0,
-                        )
+                        ))
                         self.attributs[i[0] + 0.2] = attdef
 
                 else:

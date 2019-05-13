@@ -201,6 +201,7 @@ class OrwConnect(OraConnect):
         if nom_fonction == "dans_emprise":
             cond = "SDO_FILTER(" + nom_geometrie + "," + geom2 + "','querytype=WINDOW') = 'TRUE'"
         else:
+            masque=''
             if nom_fonction == "intersect":
                 masque = "anyinteract"
             elif nom_fonction == "dans":

@@ -159,10 +159,9 @@ def prepare_batch_from_object(regle, obj):
     """extrait les parametres pertinents de l'objet decrivant le batch"""
 
     comm = regle.getval_entree(obj)
-    commande = comm if comm else obj.attributs.get("commandes")
+    commande = comm if comm else obj.attributs.get("commandes",'')
     #    print("commande batch", commande)
-    if not commande:
-        return False
+
     mapper = regle.stock_param
     entree = obj.attributs.get("entree", mapper.get_param("_entree"))
     sortie = obj.attributs.get("sortie", mapper.get_param("_sortie"))
@@ -172,6 +171,7 @@ def prepare_batch_from_object(regle, obj):
     params = None
     if parametres:
         params = ["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
+
     return (numero, commande, entree, sortie, params)
 
 
@@ -373,6 +373,7 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
     if fichier.startswith("#schema"):  # liste de classes d'un schema
         mode = "in_s"
         decoupage = fichier.split(":")
+        nom = ''
         if len(decoupage) > 1:
             nom = decoupage[1]
         if nom:
@@ -387,8 +388,11 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
         mode = "in_s"
     elif fichier == "[attributs]":  # liste d'attributs
         mode = "in_a"
-    elif fichier and fichier[:3] == "st:":
+    elif fichier.startswith("st:"):
         mode = "in_store"
+        fichier = fichier[3:]
+    elif fichier.startswith("db:"):
+        mode = "in_db"
         fichier = fichier[3:]
     else:
         if re.search(r"\[[CF]\]", fichier):
@@ -452,6 +456,8 @@ def charge_mapping(regle, mapping=None):
         elements = charge_liste(fichier, taille=-1)
         # on precharge le fichier de mapping
         for i in elements:
+            id1 = ''
+            id2 = ''
             els = elements[i]
             if not els or els[0].startswith("!") or not els[0]:
                 continue

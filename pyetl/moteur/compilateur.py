@@ -89,7 +89,7 @@ def _gestion_branchements(regles, position, debug):
         regle.branchements.brch["ok"] = regles[position + 1]
     if debug:
         print("calcul enchainements ", regle)
-        j = 0
+    j = 0
     for j in range(position + 1, len(regles)):
         if regles[j].niveau > niveau_courant:
             continue  # niveaux superieurs on ne s'en occupe pas
@@ -104,7 +104,6 @@ def _gestion_branchements(regles, position, debug):
 
             if i != "ok" and regles[j].enchainement == i:
                 regle.branchements.brch[i] = regles[j]
-
     if debug:
         print("recherche", j, sorted(regle.branchements.liens_num()))
 

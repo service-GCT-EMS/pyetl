@@ -180,7 +180,7 @@ class PgrConnect(DbConnect):
 
     @staticmethod
     def change_antislash(nom):
-        """ remplace les \ par des /"""
+        """ remplace les \\ par des /"""
         return nom.replace("\\", "/")
 
     def runsql(self, prog, file, logfile=None, outfile=None):

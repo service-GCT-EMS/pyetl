@@ -77,12 +77,16 @@ def selh_infich(selecteur):
     """precharge le fichier
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
-    _, valeurs = prepare_mode_in(
+    mode, valeurs = prepare_mode_in(
         selecteur.params.vals.val, selecteur.regle.stock_param, len(selecteur.params.attr.liste)
     )
-    if isinstance(valeurs, list):
-        valeurs = set(valeurs)
-    selecteur.info = set(valeurs)
+    if mode == 'in_s':
+        if isinstance(valeurs, list):
+            valeurs = set(valeurs)
+        selecteur.info = set(valeurs)
+        selecteur.dyn = False
+    else:
+        selecteur.dyn=True
 
 
 #    print ('selecteur liste fich charge ',selecteur.info)
@@ -97,7 +101,10 @@ def sel_vinfich(selecteur, obj):
        #test||obj;||^A;B;;set||^?A;xxx;;set||
            +||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     """
-    return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
+    if selecteur.dyn: # mode dynamique
+        pass
+    else:
+        return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
 
 
 def selh_infich_re(selecteur):

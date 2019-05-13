@@ -135,7 +135,7 @@ class SqltConnect(DbConnect):
             for att in attributs:
                 # print ('att', att)
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
-                attlist.append(self.attdef(
+                attlist.append(self.attdef((
                         schema,
                         nom,
                         nom_att,
@@ -156,7 +156,7 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                    ))
+                    )))
                 if nom_att == "GEOMETRY" or type_att in TYPES_G:
                     table_geom = TYPES_G.get(type_att, '-1')
                     table_dim = 2
@@ -199,17 +199,18 @@ class SqltConnect(DbConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-
+        cond = ''
+        fonction =''
         if nom_fonction == "dans_emprise":
             cond = 'MbrWithin('+nom_geometrie+ ' , '+geom2+' )'
-            cond = geom2 + " && " + nom_geometrie
-        else:
-            if nom_fonction == "intersect":
-                fonction = "Intersects("
-            elif nom_fonction == "dans":
-                fonction = "Contains("
-            cond = fonction + geom2 + "," + nom_geometrie + ")"
-        return cond
+            return  geom2 + " && " + nom_geometrie
+        if nom_fonction == "intersect":
+            fonction = "Intersects("
+        elif nom_fonction == "dans":
+            fonction = "Contains("
+        if fonction:
+            return fonction + geom2 + "," + nom_geometrie + ")"
+        return ''
 
 
 
