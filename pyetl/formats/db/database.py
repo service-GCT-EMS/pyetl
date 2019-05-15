@@ -28,8 +28,11 @@ class DummyConnect(object):
     def close(self):
         pass
 
-    def request(*args):
+    def request(self,*args):
         pass
+
+    def cursor(self):
+        return Cursinfo(self, None)
 
 
 class SpecDefs(object):
@@ -687,36 +690,11 @@ class DbConnect(object):
 
     def dbloadfile(self, schema, ident, fichier):
         """# charge un fichier par copy"""
-        if not self.valide:
-            return False
-        cur = self.connection.cursor()
-        colonnes = tuple(schema.classes[ident].get_liste_attributs())
-        nom = ".".join(ident)
-        with open(fichier) as infile:
-            try:
-                cur.copy_from(infile, nom, columns=colonnes, sep="\t")
-                cur.close()
-                return True
-            except Exception as erreur:
-                print("error: sigli: chargement ", fichier, "-->", erreur)
-                cur.close()
-                return False
+        return False
 
     def dbload(self, schema, ident, source):
         """ charge des objets en base de donnees par dbload"""
-        if not self.valide:
-            return False
-        cur = self.connection.cursor()
-        colonnes = tuple(schema.classes[ident].getcodes_erreur_liste_attributs())
-        nom = ".".join(ident)
-        try:
-            cur.copy_from(source, nom, columns=colonnes, sep="\t")
-            cur.close()
-            return True
-        except Exception as erreur:
-            print("error: sigli: chargement ", ident, "-->", erreur)
-            cur.close()
-            return False
+        return False
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """ charge des objets en base de donnees par dbload"""

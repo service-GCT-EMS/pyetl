@@ -202,7 +202,7 @@ def _get_tables(connect):
     """recupere la structure des tables"""
     schema_base = connect.schemabase
     for i in connect.get_tables():
-        type_table = 'r'
+        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table = ('','','','0','2','0','r')
         if len(i) == 12:
             _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
                 i
@@ -252,6 +252,7 @@ def _get_attributs(connect):
     types_base = connect.types_base
     schema_base = connect.schemabase
     fields = connect.attdef._fields
+    fdebug = None
     if DEBUG:
         print("ecriture debug:", "lecture_base_attr_" + connect.type_base + ".csv")
         fdebug = open("lecture_base_attr_" + connect.type_base + ".csv", "w")
@@ -386,6 +387,8 @@ def get_schemabase(connect, mode_force_enums=1):
 def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = nombase
+    base = nombase
+    serveur = ''
 #    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
 #          codebase in stock_param.dbconnect)
     #    print('bases connues', stock_param.dbconnect.keys())
@@ -886,6 +889,8 @@ def recup_donnees_req_alpha(
     #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
     curs = None
     for ident in liste_tables:
+        attr, val = attribut, valeur
+        treq = time.time()
         if ident is not None:
 
             niveau, classe = ident
@@ -899,38 +904,32 @@ def recup_donnees_req_alpha(
                     attr, val = reqdict[ident]
                 else:
                     attr, val = "", ""
-            else:
-                attr, val = attribut, valeur
-            #        print("id attr,val", ident, attr, val)
-            #        print('%-60s'%('%s : %s.%s'% (connect.base, niveau,
-            #    classe)), end='', flush=True)
             if (
                 attr
                 and attr not in schema_classe_travail.attributs
                 and attr not in connect.sys_fields
             ):
                 continue  # on a fait une requete sur un attribut inexistant: on passe
-            treq = time.time()
 
-        curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre)
-        connect.connection.commit()
+            curs = connect.req_alpha(ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre)
+            connect.connection.commit()
         #        print ('-----------------------traitement curseur ', curs,type(curs) )
-        treq = time.time() - treq
-        if curs:
-            res += sortie_resultats(
-                regle_courante,
-                curs,
-                niveau,
-                classe,
-                connect,
-                sortie,
-                v_sortie,
-                schema_classe_base.info["type_geom"],
-                schema_classe_travail,
-                base=base,
-                treq=treq,
-                cond=(attr, val),
-            )
+            treq = time.time() - treq
+            if curs:
+                res += sortie_resultats(
+                    regle_courante,
+                    curs,
+                    niveau,
+                    classe,
+                    connect,
+                    sortie,
+                    v_sortie,
+                    schema_classe_base.info["type_geom"],
+                    schema_classe_travail,
+                    base=base,
+                    treq=treq,
+                    cond=(attr, val),
+                )
 
             if sortie:
                 for nom in sortie:
@@ -939,7 +938,7 @@ def recup_donnees_req_alpha(
 
     if stock_param is not None:
         stock_param.padd("_st_lu_objs", res)
-        stock_param.padd("_st_lu_tables", len(liste_tables))
+        stock_param.padd("_st_lu_tables", len(liste_tables) if liste_tables is not None else 0)
     return res
 
 
@@ -948,15 +947,17 @@ def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, che
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
-    travail = reversed(liste_tables)  # on inverse l'ordre c est de la destruction
-    gensql = connect.gensql
+    if liste_tables:
+        travail = reversed(liste_tables)  # on inverse l'ordre c est de la destruction
+        gensql = connect.gensql
 
-    script2 = [gensql.prefix_charge(niveau, classe, "TDS") for niveau, classe in travail]
+        script2 = [gensql.prefix_charge(niveau, classe, "TDS") for niveau, classe in travail]
 
-    script1 = [gensql.prefix_charge(niveau, classe, "G") for niveau, classe in travail]
-    script3 = [gensql.tail_charge(niveau, classe, "G") for niveau, classe in travail]
-    print("reset:script a sortir ", len(script1), len(script2), len(script3))
-    return script1 + script2 + script3
+        script1 = [gensql.prefix_charge(niveau, classe, "G") for niveau, classe in travail]
+        script3 = [gensql.tail_charge(niveau, classe, "G") for niveau, classe in travail]
+        print("reset:script a sortir ", len(script1), len(script2), len(script3))
+        return script1 + script2 + script3
+    return []
 
 
 def recup_count(
@@ -975,6 +976,7 @@ def recup_count(
 
     total = 0
     for ident in liste_tables:
+        attr, val = attribut, valeur
         if ident is not None:
 
             niveau, classe = ident
@@ -985,23 +987,18 @@ def recup_count(
                     attr, val = reqdict[ident]
                 else:
                     attr, val = "", ""
-            else:
-                attr, val = attribut, valeur
-            #        print("id attr,val", ident, attr, val)
-            #        print('%-60s'%('%s : %s.%s'% (connect.base, niveau,
-            #    classe)), end='', flush=True)
             if (
                 attr
                 and attr not in schema_classe_travail.attributs
                 and attr not in connect.sys_fields
             ):
                 continue  # on a fait une requete sur un attribut inexistant: on passe
-        reponse = connect.req_count(ident, schema_classe_travail, attr, val, mods)
-        connect.connection.commit()
+            reponse = connect.req_count(ident, schema_classe_travail, attr, val, mods)
+            connect.connection.commit()
 
         #        print ('retour ',nb)
-        if reponse and reponse[0]:
-            total += reponse[0][0]
+            if reponse and reponse[0]:
+                total += reponse[0][0]
     return total
 
 
@@ -1093,6 +1090,8 @@ def recup_donnees_req_geo(
     res = 0
     #    interm = time.time()
     #    print('recup_req geom ', fonction, ': initialisation ', int(interm-debut), 's')
+    if not liste_tables:
+        return None
     for ident in sorted(liste_tables):
 
         niveau, classe = ident
@@ -1265,47 +1264,31 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
         return
     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
     sorties = regle.stock_param.sorties
-    if obj.ident == regle.dident:
-        ressource = regle.ressource
-        dbtype = ressource.dbtype
-    else:
+    if obj.ident != regle.dident:
         if obj.virtuel:  # on ne traite pas les virtuels
             return
-        groupe, classe = obj.ident
-        print("stream : regle.fanout", regle.fanout)
-        if regle.fanout == "no":
-            nom = sorties.get_id(rep_sortie, "all", "", dbtype)
-
-        elif regle.fanout == "groupe":
-            nom = sorties.get_id(rep_sortie, groupe, "", dbtype)
-        else:
-            nom = sorties.get_id(rep_sortie, "", dbtype)
-
-        ressource = sorties.get_res(regle.numero, nom)
+        dest = obj.ident
+        ressource = sorties.get_res(regle.numero, dest)
         if ressource is None:
-            os.makedirs(os.path.dirname(nom), exist_ok=True)
             liste_att = obj.schema.get_liste_attributs(liste=attributs)
             #            liste_att = _set_liste_attributs(obj, attributs)
             swr = DbWriter(
-                nom,
+                dest,
                 liste_att,
                 encoding=regle.getvar("codec_sortie", "utf-8"),
                 stock_param=regle.stock_param,
             )
-            sorties.creres(regle.numero, nom, swr)
-            ressource = sorties.get_res(regle.numero, nom)
+            sorties.creres(regle.numero, dest, swr)
+            ressource = sorties.get_res(regle.numero, dest)
             #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
-            regle.dclasse = classe
+            regle.dident = dest
             regle.ressource = ressource
         else:
             #            print ('ressource', regle.numero,nom,ressource.handler.nom)
-            if classe != regle.dclasse:
+            if dest != regle.dident:
                 #                liste_att = _set_liste_attributs(obj, attributs)
                 liste_att = obj.schema.get_liste_attributs(liste=attributs)
                 ressource.handler.set_liste_att(liste_att)
-                regle.dclasse = classe
+                regle.dident =  dest
                 regle.ressource = ressource
-        regle.dident = obj.ident
-    fich = ressource.handler
-    #    print ("fichier de sortie ",fich.nom)
-    fich.write(obj)
+    regle.ressource.handler.write(obj)

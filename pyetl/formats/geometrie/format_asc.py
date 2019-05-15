@@ -42,8 +42,9 @@ def ecrire_geom_asc(geom):
     """ecrit une geometrie en format asc.
         : suite de lignes """
     #    print ('asc: nblignes',len(geom.lignes))
+    numeros = [1]
     return (
-        "".join((_ecrire_ligne_asc(p, [1]) for p in geom.lignes)) if geom.valide else ""
+        "".join((_ecrire_ligne_asc(p, numeros) for p in geom.lignes)) if geom.valide else ""
     )
 
 

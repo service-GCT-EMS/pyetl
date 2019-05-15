@@ -492,7 +492,7 @@ class Geometrie(object):
                     self.erreurs.ajout_erreur("ligne un point")
                     self.valide = False
         self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
-        self.courbe = True in [bool(i.courbe) for i in self.lignes]
+        self.courbe = any([i.courbe for i in self.lignes])
         if self.lignes:
             self.dimension = self.lignes[0].dimension
         if self.type == "3" and (type_geom == "4" or type_geom == "5"):
@@ -662,15 +662,12 @@ class Geometrie(object):
         #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
         return sum(i.longueur for i in comp) if comp else 0
 
-    def isin(self, point):
-        """verifie si un point est a l'interieur"""
-        if self.type < 3:
-            return False
 
     def getpoint(self, numero):
         """retourne le n ieme point"""
         n = 0
         #        print ('coordlist',self.type,list(self.coordlist()))
+        i=()
         for i in self.coords:
             if n == numero:
                 return i
@@ -775,6 +772,8 @@ class Erreurs(object):
 
     def __repr__(self):
         """erreurs et warnings pour affichage direct"""
+        if not self.actif:
+            return 'aucune erreur'
         return "\n".join(("actif:" + str(self.actif), "errs:" + self.getvals()))
 
 

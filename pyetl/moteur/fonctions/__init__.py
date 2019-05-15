@@ -454,14 +454,6 @@ def complete_fonction(sbf, store):
     sbf.fonction_schema = get_fonction(sbf.description.get("#schema", [""])[0], store, "fschema")
 
 
-def getmodules():
-    """explore le repertoire courant pour trouver les modules"""
-    modules = dict()
-    for nom in os.path.dirname(__file__).listdir():
-        if nom.startswith("traitement"):
-            modules[nom] = 1
-
-
 def loadmodules():
     """charge les modules et enregistre les fonctions"""
     modules = dict()

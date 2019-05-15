@@ -47,7 +47,8 @@ class SqltConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.connect()
         self.geographique = True
-        self.curtable
+        self.curtable = ''
+        self.curnb= 0
     #        self.encoding =
 
     def connect(self):
@@ -118,7 +119,6 @@ class SqltConnect(DbConnect):
             for att in attributs:
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
                 attlist.append(self.attdef(
-                    (
                         schema,
                         nom,
                         nom_att,
@@ -139,7 +139,6 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                    )
                 ))
                 if nom_att == "GEOMETRY":
                     table_geom = type_att

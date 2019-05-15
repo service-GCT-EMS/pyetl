@@ -448,7 +448,7 @@ def _ecrire_entete_asc(obj):
         if obj.initgeom():
             type_geom_sortie = types_geom_asc.get(type_geom, ";5 ")
         else:
-            print("geometrie invalide ", id_num, obj.attributs["#geom"])
+            print("geometrie asc invalide ", id_num, obj.attributs["#geom"], obj.geom_v.erreurs, obj)
             type_geom_sortie = ";5 "
 
     dcre = format_date(attr.get("#_sys_date_cre"))

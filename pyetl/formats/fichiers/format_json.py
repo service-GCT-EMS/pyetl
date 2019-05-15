@@ -144,7 +144,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
                 dident = (groupe, classe)
             #                fich = ressource.handler
             obj.classe_is_att = setclasse
-            obj.liste_attributs = str_w.liste_att
+            obj.liste_attributs = ressource.handler.liste_att
 
             ressource.handler.write(obj)
     #            nb_cour += 1

@@ -30,6 +30,7 @@ KEYWORDS = {
     "LINESTRING(": "2",
     "POINT(": "1",
     "(": "0",
+    "EMPTY":'0',
     "TIN(": "4",
     "POLYHEDRALSURFACE(": "5",
 }
@@ -135,6 +136,10 @@ def _parse_ewkt(geometrie, texte):
         print("geometrie non decodable", texte)
         geometrie.type = "0"
         return
+    if not texte:
+        print("geometrie vide", texte)
+        geometrie.type = "0"
+        return
     try:
         for oper, nature, dim, valeurs in decode_ewkt(texte.upper()):
             if oper == "end":
@@ -154,8 +159,13 @@ def _parse_ewkt(geometrie, texte):
                 geometrie.type = type_lu
     #                if not type_geom:
     #                    print ('erreur decodage', texte, oper, nature, valeurs)
-    except RuntimeError:
-        print("erreur decodage geometrie", texte)
+    except RuntimeError as err:
+        if 'EMPTY' in texte:
+            geometrie.type = "0"
+            print("geometrie nulle", texte)
+        else:
+            geometrie.erreurs.ajout_erreur(err.args)
+            print("erreur decodage geometrie", texte)
 
 
 def geom_from_ewkt(obj):

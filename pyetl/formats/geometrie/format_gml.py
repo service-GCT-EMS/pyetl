@@ -7,18 +7,6 @@ format interne geometrique pour le stockage en fichier temporaire
 """
 from itertools import chain
 
-
-def _extendlist(liste):
-    """utilitaire d'applatissement d'une liste de liste
-    c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde"""
-    #    return [x for slist in liste for x in slist]
-    return chain.from_iterable(liste)
-    # l=liste[0]
-    # print 'liste a applatir',l
-    # for j in liste[1:]: l.extend(j)
-    # return l
-
-
 def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
@@ -38,7 +26,7 @@ def _ecrire_ligne_tmp(ligne):
 
 def _ecrire_lignes_tmp(lignes):
     """ecrit un ensemble de  lignes en format temporaire"""
-    return _extendlist([_ecrire_ligne_tmp(j) for j in lignes])
+    return chain.from_iterable([_ecrire_ligne_tmp(j) for j in lignes])
 
 
 def _ecrire_polygone_tmp(poly):
@@ -46,12 +34,12 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + (_extendlist([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
+    return ["P"] + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
 
 
 def _ecrire_polygones_tmp(polygones):
     """ecrit un ensemble de  polygones en format temporaire"""
-    return _extendlist([_ecrire_polygone_tmp(j) for j in polygones])
+    return chain.from_iterable([_ecrire_polygone_tmp(j) for j in polygones])
 
 
 def ecrire_geometrie_gml(geom):

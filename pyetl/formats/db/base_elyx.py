@@ -257,7 +257,7 @@ class ElyConnect(ora.OrwConnect):
 
     def stat_classes(self, classes, fanout):
         """retourne les stats d export"""
-        schemabase = self.connection.schemabase
+        schemabase = self.schemabase
         resultats = dict()
         size = dict()
         blocks = dict()
@@ -784,7 +784,7 @@ class ElyConnect(ora.OrwConnect):
                     #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
                     #                                              True, ordre = ordre) # on force
                     #                    print ("nom_att ",nom_att)
-                    attdef = self.attdef((
+                    attdef = self.attdef(
                         nomschema,
                         nomtable,
                         nom_att,
@@ -805,11 +805,11 @@ class ElyConnect(ora.OrwConnect):
                         "",
                         0,
                         0,
-                    ))
+                    )
                     #                    print ('attribut',nomschema, nomtable, nom_att,conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
-                        attdef = self.attdef((
+                        attdef = self.attdef(
                             nomschema,
                             nomtable,
                             nom_att + "_X",
@@ -830,9 +830,9 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             0,
                             0,
-                        ))
+                        )
                         self.attributs[i[0] + 0.1] = attdef
-                        attdef = self.attdef((
+                        attdef = self.attdef(
                             nomschema,
                             nomtable,
                             nom_att + "_Y",
@@ -853,7 +853,7 @@ class ElyConnect(ora.OrwConnect):
                             "",
                             0,
                             0,
-                        ))
+                        )
                         self.attributs[i[0] + 0.2] = attdef
 
                 else:

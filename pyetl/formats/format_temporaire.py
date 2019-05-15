@@ -81,21 +81,19 @@ def geom_from_tmp(obj):
     geom_v = obj.geom_v
     geom_v.type = "2"
     poly = None
-    nouvelle_ligne = False
     geom = obj.attributs['#geom']
+    lig = None
     for i in geom:
         code = i[0]
         if code == "P":
             poly = geom_v.polygones
             geom_v.type = "3"
         elif code == "L":
-            nouvelle_ligne = True
+            lig = geom_v.nouvelle_ligne_s()
         elif code == "S":
             sect_parts = i.split(",")
             couleur, arc = sect_parts[1:2]
             coords = [list(map(float, j.split(" "))) for j in sect_parts[3:]]
-            if nouvelle_ligne:
-                lig = geom_v.nouvelle_ligne_s()
             lig.ajout_section(couleur, arc, len(coords[0]), coords)
         elif code == "M":  # fin ligne
             geom_v.ajout_ligne(lig)
@@ -186,12 +184,14 @@ def tmp_geom(obj, convertisseur):
         geom = obj.attributs['#geom']
     if isinstance(geom, list):
         return "3" + "\n3".join(geom) + "\n"
-    return "3" + geom + "\n"
+    if isinstance(geom, str):
+        return "3" + geom + "\n"
 
 
 # =================== format temporaire ==============================
 def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
+    obj =  None
     for ligne in open(fichier, "r", encoding="utf-8"):
         if ligne:
             code = ligne[0]
@@ -202,7 +202,11 @@ def lire_objets(fichier, stock_param):
                 )
                 obj.attributs["#type_geom"] = type_geom
             #                if form: print ('format natif ',form,stock_param.get_converter(form))
-            elif code == "2" or code == "4":
+                continue
+            if not obj:
+                print ('erreur fichier temporaire ', ligne)
+                continue
+            if code == "2" or code == "4":
                 ajout_attribut_asc(obj, ligne)
             elif code == "3":
                 obj.attributs["#geom"].append(ligne[1:-1])
@@ -212,6 +216,7 @@ def lire_objets(fichier, stock_param):
                 #                print (obj.geom)
                 obj.geomnatif = True
                 yield obj
+                obj = None
 
 
 def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):

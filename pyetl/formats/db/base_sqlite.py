@@ -53,6 +53,7 @@ class SqltConnect(DbConnect):
         self.geographique = True
         self.accept_sql = "alpha"
         self.curtable = ''
+        self.curnb = 0
 
     #        self.encoding =
 
@@ -135,7 +136,7 @@ class SqltConnect(DbConnect):
             for att in attributs:
                 # print ('att', att)
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
-                attlist.append(self.attdef((
+                attlist.append(self.attdef(
                         schema,
                         nom,
                         nom_att,
@@ -156,7 +157,7 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                    )))
+                    ))
                 if nom_att == "GEOMETRY" or type_att in TYPES_G:
                     table_geom = TYPES_G.get(type_att, '-1')
                     table_dim = 2
