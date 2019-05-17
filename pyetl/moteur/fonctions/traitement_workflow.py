@@ -102,6 +102,20 @@ def f_end(_, __):
     """
     return True
 
+def h_sync(regle):
+    """helper final"""
+    if regle.stock_param.worker:
+        regle.final = True
+    return True
+
+
+def f_sync(_, __):
+    """#aide||finit un traitement parallele sans stats ni ecritures
+    #aide_spec||permets de limiter la partie parallele du traitement a une partie du script
+    #pattern||;;;end;;
+    #test||obj||^;;;sync;;||^V;1;;testobj;test;1;||cnt;1
+    """
+    return True
 
 def h_sync(regle):
     """helper final"""

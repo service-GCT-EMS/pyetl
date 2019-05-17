@@ -123,8 +123,8 @@ class Reader(object):
                     self.nomschema = nom_schema_entree
                     self.schema = stock_param.init_schema(self.nomschema, "L") # et un schema pour les objets
 
-                print ('set format entree: schema entree', self.schema_entree, self.schema)
             if self.debug:
+                print ('set format entree: schema entree', self.schema_entree, self.schema)
                 if self.schema_entree:
                     print("reader:schema_entree", self.schema_entree.nom, self.nomschema)
                 else:

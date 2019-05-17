@@ -598,6 +598,7 @@ class Pyetl(object):
             ddv = val.index("#(")
             if ddv:
                 ulist = val[ddv + 2 : -2].split(",")
+                ulist = [i.strip() for i in ulist]
                 if "*" in ulist:
                     return val[:ddv]
                 if master or self.username in ulist or any([i in ulist for i in grouplist]):
