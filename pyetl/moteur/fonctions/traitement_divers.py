@@ -412,6 +412,8 @@ def f_sortir(regle, obj):
     #pattern||?=#schema;?C;?L;sortir;?C;?C||sortie
        #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||end
     """
+    if regle.f_sortie is None:
+        return False
     if obj.virtuel:  # on ne traite pas les virtuels
         return True
     listeref = obj.liste_attributs

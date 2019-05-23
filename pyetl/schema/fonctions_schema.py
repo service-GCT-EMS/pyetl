@@ -386,21 +386,14 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
     return repl, erreurs, warnings
 
 
-def _valide_bool(orig, val):
+def _valide_bool(val):
     """convertit un booleen en format interne"""
-    btypes = {
-        "elyx": {"t": "t", "f": "f", "-1": "t", "0": "f"},
-        "def": {"t": "t", "f": "f", "True": "t", "False": "f", "0": "t", "1": "f"},
-    }
-    try:
-        valides = btypes[orig]
-    except:
-        valides = btypes["def"]
+    btypes = {'t','f'}
+    if val and val in btypes:
+        return "", val, ""
+    print ('erreur booleen',val)
+    return "booleen: " + val,val, "T"
 
-    try:
-        return "", valides[val], ""
-    except KeyError:
-        return "booleen: " + val, val, "T"
 
 
 def _valide_type(classe, atdef, val):
@@ -434,9 +427,10 @@ def _valide_type(classe, atdef, val):
             float(val)
         except ValueError:
             err = "flottant"
-    elif atdef.type_att == "B":  # test numerique
-        err, val, changetype = _valide_bool(classe.schema.systeme_orig, val)
+    elif atdef.type_att == "B":  # test booleen
+        err, val, changetype = _valide_bool(val)
         if changetype:
+            print ('attention suppression type booleen', val, atdef)
             atdef.type_att = "T"
 
     else:
@@ -571,7 +565,9 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
                 warnings.extend(warns)
                 erreurs.extend(errs)
         elif atdef.type_att == "T":
-            continue
+            if not atdef.taille or atdef.taille >= len(val):
+                continue
+            err = "taille attribut trop grande"
         else:  # validation des types
             err, repl = _valide_type(schemaclasse, atdef, val)
             if repl is not None:
@@ -581,6 +577,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             nom_schema = schemaclasse.schema.nom
             if mode == "supp_conf":
                 atdef.type_att = "T"
+                atdef.taille = None
                 warnings.append(
                     nom_classe
                     + "."
@@ -842,6 +839,7 @@ def analyse_interne(schema, mode="util", type_schema=None):
             conf.poids = 0
         for schema_classe in schema.classes.values():
             if schema_classe.a_sortir:
+                schema_classe.poids = schema_classe.objcnt if schema_classe.objcnt>0 else int(schema_classe.info["objcnt_init"])
                 for att in schema_classe.attributs.values():
                     if att.nom_conformite:
                         conf = schema.conformites[att.nom_conformite]

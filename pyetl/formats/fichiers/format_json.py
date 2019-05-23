@@ -56,7 +56,7 @@ class JsonWriter(FileWriter):
         return True
 
 
-# def lire_objets_asc(rep, chemin, fichier, td, ouv=None):
+
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
     regle_ref = self.regle if self.regle else self.regle_start
@@ -209,7 +209,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
 
 #        ressource.compte(1)
 
-READERS = {"json": (lire_objets, None, True, ())}
+READERS = {"json": (lire_objets, None, True, (), None)}
 WRITERS = {"json": (ecrire_objets, jsonstreamer, False, "", 0, "", "classe", None, "#tmp")}
 
 

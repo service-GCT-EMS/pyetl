@@ -198,7 +198,7 @@ class SqltConnect(DbConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-
+        cond = ''
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
@@ -206,7 +206,10 @@ class SqltConnect(DbConnect):
                 fonction = "ST_Intersects("
             elif nom_fonction == "dans":
                 fonction = "ST_Contains("
-            cond = fonction + geom2 + "," + nom_geometrie + ")"
+            else:
+                fonction = ''
+            if fonction:
+                cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
     def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):

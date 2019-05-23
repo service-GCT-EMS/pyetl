@@ -465,5 +465,5 @@ def lire_objets_osm(self, rep, chemin, fichier):
 #
 #        return nobj
 
-READERS = {"osm": (lire_objets_osm, "", True, ())}
+READERS = {"osm": (lire_objets_osm, "", True, (), None)}
 WRITERS = {}

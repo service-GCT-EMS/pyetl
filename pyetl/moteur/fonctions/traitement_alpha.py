@@ -140,9 +140,9 @@ def h_sub(regle):
     try:
         regle.exp_entree = re.compile(regle.params.cmp1.val)  # expression sur l'attribut d'entree
     except re.error as err:
-        print("expression reguliere invalide", regle.params.cmp1.val, err.msg)
+        print("expression reguliere invalide", regle.params.cmp1.val, err)
         regle.valide = False
-        regle.erreurs.append("erreur compilation des expressions" + err.msg)
+        regle.erreurs.append("erreur compilation des expressions" + err)
         return
     regle.exp_sortie = regle.params.cmp2.val
 

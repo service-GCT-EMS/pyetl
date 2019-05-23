@@ -7,5 +7,6 @@
         "./outils"
     ],
     "pythonPlatform": "Windows",
-    "reportMissingImports": "error"
+    "reportMissingImports": "error",
+    "venvPath": "/home/foo/.venvs"
 }

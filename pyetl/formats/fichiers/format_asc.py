@@ -145,7 +145,7 @@ def _decode_entete_asc(entete, log_erreurs):
         "#angle": str(angle),
         "#erreurs": erreurs,
     }
-    return attributs, coords, angle, dim
+    return classe, attributs, coords, angle, dim
 
 
 def _erreurs_entete():
@@ -169,13 +169,21 @@ def _erreurs_entete():
     return
 
     # print obj.attributs
-
+def traite_booleen(vatt):
+    ''' traitement des booleens '''
+    bcode = {"-1": "t", "0": "f", "t": "t", "f": "f"}
+    # print("asc: traitement booleen")
+    try:
+        vatt = bcode[vatt]
+    except KeyError:
+        # print("erreur booleen ", vatt)
+        raise TypeError
+    return vatt
 
 # entree sortie en asc
 # @jit
 def ajout_attribut_asc(attributs, attr):
     """decodage d'un attribut asc et stockage"""
-    bcode = {"-1": "t", "0": "f", "t": "t", "f": "f"}
     code = attr[0]
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
@@ -227,58 +235,18 @@ def ajout_attribut_asc(attributs, attr):
         nom = "#_sys_E_" + liste_elts[0][1:]
     else:
         print("error: asc  : code inconnu", liste_elts)
-    if type_att == "B":
-        print("asc: traitement booleen")
-        try:
-            vatt = bcode[vatt]
-        except IndexError:
-            print("erreur booleen ", nom, vatt)
+
     attributs[nom] = vatt
     return nom, suite
     # print l, l[-1].strip()
     # print 1/0
 
 
-# def complete_attribut(attributs, nom, chaine):
-#     """ajoute une ligne a un attribut"""
-#     attributs[nom] += chaine
-#     return nom, False
-
-
-# def _finalise(obj, schema_init, schema, numero, chemin):
-#     """ finalise un objet avant de l'envoyer """
-#     if obj.attributs["#type_geom"] != "1":  # pour les points c 'est deja fait
-#         if obj.geom:
-#             obj.attributs["#dimension"] = "3" if obj.geom[0].find("3D") else "2"
-#         obj.geompending()  # on signale qu on a pas traite la geom
-#     if schema_init:
-#         #        objid = obj.ident
-#         objid = ("", obj.ident[1])  # on ignore les niveaux
-#         newid = schema_init.map_dest(objid)
-
-#         #        if not newid:
-#         #            print ("!!!!!!!attention objet non defini dans le schema d'entree", objid)
-#         if newid == objid:
-#             classe = schema_init.get_classe(objid)
-#             if classe:
-#                 newid = classe.identclasse
-#         if newid != objid:
-#             obj.setident(newid)
-#             objid = newid
-
-#         if objid not in schema_init.classes:
-#             print(
-#                 "!!!!!!!attention objet non defini dans le schema d'entree",
-#                 schema_init.nom,
-#                 objid,
-#             )
-#         obj.setschema_auto(schema_init)
-#     #                    if objid in schema.classes:
-#     elif schema:
-#         obj.setschema_auto(schema)
-#     obj.setorig(numero)  # on renseigne l'idenbtifiant d 'origine
-#     obj.attributs["#chemin"] = chemin
-
+def init_format_asc(reader):
+    '''positionnne des elements de lecture (traitement des booleens)'''
+    reader.formatters['B'] = traite_booleen
+    # print ('initialisation reader', reader.formatters)
+    # raise
 
 def _get_schemas(regle, rep, fichier):
     """definit le schemas de reference et les elementt immuables """
@@ -318,13 +286,14 @@ def lire_objets_asc(self, rep, chemin, fichier):
     coords = []
     angle = 0
     dim = 2
-    # schema, schema_init = _get_schemas(self.regle_ref, rep, fichier)
     self.prepare_lecture_fichier(rep, chemin, fichier)
     classe = self.classe
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
     next(log_erreurs)
+    dclasse = classe
+    groupe = self.groupe
     with open(
         self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:
@@ -360,7 +329,9 @@ def lire_objets_asc(self, rep, chemin, fichier):
 
                 if code_1 in "9356":
                     # obj = self.getobj()
-                    attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
+                    classe, attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
+                    if classe != dclasse:
+                        self.setidententree(groupe,classe)
 
             elif (code_0 == "2" or code_0 == "4") and (
                 code_1.isalpha() or code_1 == "_"
@@ -670,8 +641,8 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
             ressource.write(obj, regle.numero)
 
 
-#                       reader,      geom,    hasschema,  auxfiles
-READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"))}
+#                       reader,      geom,    hasschema,  auxfiles, converter, initer
+READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"),  init_format_asc)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "asc": (

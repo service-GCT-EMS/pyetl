@@ -145,7 +145,8 @@ class PgsGenSql(PgrGenSql):
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
         ctr, idx = super().cree_indexes(schemaclasse, groupe, nom)
-        if schemaclasse.info["type_geom"] != "0":
+        geomt, arc = self.get_type_geom(schemaclasse)
+        if geomt != "0":
             idx.append(
                 "CREATE INDEX " + nom + "_gist ON " + groupe + "." + nom + " USING gist(geometrie);"
             )
@@ -155,7 +156,7 @@ class PgsGenSql(PgrGenSql):
         """retourne la definition sql de la geometrie"""
         geomt, arc = self.get_type_geom(classe)
         # print ('getgeomsql: type_geom',classe.identclasse, classe.info["type_geom"], geomt)
-        if geomt and geomt.upper() != "ALPHA":
+        if geomt and geomt.upper() != "ALPHA" and geomt!='0':
             if self.type_courbes == "curve" and arc:
                 return "\tgeometrie public." + self.gtypes_curve[geomt] + ","
             else:
@@ -170,8 +171,8 @@ class PgsGenSql(PgrGenSql):
         _, nom = self.get_nom_base(ident)
         atts = classe.get_liste_attributs()
         nom_style = nom
-        #        if len(nom_style) >28:
-        #            nom_style=raccourcir_nom(nom_style,28,rdict)
+        if len(nom_style) >28:
+            nom_style=nom_style[:28]
         nom_style = nom_style + "_d"
         als = ["<aliases>"]
         index = 0

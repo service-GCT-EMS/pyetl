@@ -72,7 +72,7 @@ def setparallelid(parametres):
     log = mainmapper.get_param("logfile")
     if log:
         base, ext = os.path.splitext(mainmapper.get_param("logfile"))
-        log = base + "_" + wid + "." + ext
+        log = str(base) + "_" + wid + "." + str(ext)
     init = mainmapper.initpyetl(commandes, args, log=log)
     if paralleldebug:
         print('setparallelid apres init', mainmapper.get_param("_wid"), commandes, args)

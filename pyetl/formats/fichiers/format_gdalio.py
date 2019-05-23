@@ -166,76 +166,35 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     return description
 
 
-# def map_schema_initial(stock_param, nomschema, groupe, classe):
-#     """ gere les mapping initiaux a la lecture """
-#     if stock_param.get_param("schema_entree"):
-#         nomschema = stock_param.get_param("schema_entree")
-#         print("gdalio:schema initial", nomschema)
-#     if not nomschema:
-#         nomschema = groupe if groupe else classe
-#     if not nomschema:
-#         nomschema = "defaut"
-#     if nomschema not in stock_param.schemas:
-#         stock_param.init_schema(nomschema)
-#     schema_courant = stock_param.schemas[nomschema]
-#     groupe2, classe2 = schema_courant.map_dest((groupe, classe))
-#     # print('fiona:schema courant', schema_courant.nom, groupe, classe,'->',groupe2,classe2)
 
-#     return schema_courant, groupe2, classe2
-
-
-# def lire_objets_asc(rep, chemin, fichier, td, ouv=None):
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier reconnu et stockage des objets en memoire"""
-    n_lin, n_obj = 0, 0
     # print("lecture gdal", (rep, chemin, fichier), self.schema)
     #    raise
     # ouv = None
     self.prepare_lecture_fichier(rep, chemin, fichier)
-    # print ('apres prepare lecture ', self.schema)
-    # stock_param = self.regle_ref.stock_param
-    # traite_objet = stock_param.moteur.traite_objet
-    # obj = None
-    # classe = os.path.splitext(os.path.basename(fichier))[0]
-    # entree = os.path.join(rep, chemin, fichier)
-    # groupe = chemin if chemin else os.path.basename(os.path.dirname(entree))
-    # if not groupe:
-    #     groupe = "defaut"
-    # print("gdal: groupe", self.groupe,self.classe, self.schema_entree)
-    #    traite_objet = stock_param.moteur.traite_objet
-    # maxobj = int(stock_param.get_param("lire_maxi", 0))
+
     layers = fiona.listlayers(self.fichier)
     #    print('fiona:lecture niveaux',  layers)
     for layer in layers:
         with fiona.open(self.fichier, "r", layer=layer) as source:
             #            print ('recup fiona',source.driver, source.schema)
-            # schema_courant, groupe, classe = map_schema_initial(stock_param, groupe, groupe, layer)
 
             schemaclasse = recup_schema_fiona(
                 self.schema, (self.groupe, self.classe), source.schema, source.driver
             )
 
-            # self.setidententree(groupe, classe)
-            #            print('fiona:', classe, 'schema.type_geom',
-            #                  schemaclasse.info["type_geom"], 'mg:', schemaclasse.multigeom)
             driver = source.driver
-            # gen = (i for i in source if i)
 
             for i in source:
                 obj = self.getobj()
                 if obj is None:
                     break
-                # obj.setschema(schemaclasse)
-                n_obj += 1
-                # if n_obj % 100000 == 0:
-                    # print("formats :", fichier, "lecture_objets_gdal ", driver, n_lin, n_obj)
                 obj.from_geo_interface(i)
-                #            print ('entree', i)
-                #            print ('objet', obj.__geo_interface__)
                 obj.attributs["#chemin"] = chemin
                 # print ('------gdalio ',obj,'\n')
                 self.process(obj)
-    return n_obj
+    return self.lus_fich
 
 
 class GdalWriter(object):
@@ -471,10 +430,10 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
 
 #                       reader,      geom,    hasschema,  auxfiles
 READERS = {
-    "dxf": (lire_objets, None, True, ()),
-    "shp": (lire_objets, None, True, ("dbf", "prj", "shx", "cpg", "qpj")),
-    "mif": (lire_objets, None, True, (("mid",))),
-    "gpkg": (lire_objets, None, True, ()),
+    "dxf": (lire_objets, None, True, (), None),
+    "shp": (lire_objets, None, True, ("dbf", "prj", "shx", "cpg", "qpj"), None),
+    "mif": (lire_objets, None, True, (("mid",)), None),
+    "gpkg": (lire_objets, None, True, (), None),
 }
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)

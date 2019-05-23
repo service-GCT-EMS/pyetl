@@ -318,10 +318,10 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
         fichier = os.path.dirname(fichier)
     #        print(' clef ',clef,fichier)
     stock = dict()
-    LOGGER.info("charge_liste: chargement " + fichier)
+    LOGGER.info("charge_liste: chargement " + str(fichier))
 
     #    print ('-------------------------------------------------------chargement',fichier)
-    for f_interm in fichier.split(","):
+    for f_interm in str(fichier).split(","):
         if os.path.isdir(f_interm):  # on charge toutes les listes d'un repertoire (csv et qgs)
             for i in os.listdir(f_interm):
                 if clef in i:
@@ -532,11 +532,11 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         fichs = [(os.path.basename(entree), "")]
         entree = os.path.dirname(entree)  # on extrait le repertoire
     elif '*' in entree:
-        rep = os.path.dirname(entree)
+        rep = str(os.path.dirname(entree))
         while '*' in rep:
-            rep=os.path.dirname(rep)
+            rep=str(os.path.dirname(rep))
         print ('repertoire de reference', rep)
-        fichs = [(os.path.basename(i),os.path.dirname(i).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
+        fichs = [(os.path.basename(i),str(os.path.dirname(i)).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
         entree = rep
 
         # print ( 'fichiers lus', fichs)
@@ -557,11 +557,11 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
 
         nom = os.path.splitext(fichier)[0].lower()
         ext = (
-            force_format if force_format else os.path.splitext(fichier)[1].lower().replace(".", "")
+            force_format if force_format else str(os.path.splitext(fichier)[1]).lower().replace(".", "")
         )
         # print ('ici', nom,ext, ext in liste_formats, liste_formats)
         if ext in liste_formats:
-            f_courant = os.path.join(entree, chemin, fichier)
+            f_courant = os.path.join(str(entree), str(chemin), str(fichier))
             identifies[chemin, nom] = ext
             if debug:
                 print("fichier a traiter", f_courant, ext)

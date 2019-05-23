@@ -14,7 +14,7 @@ def loadmodules():
     et enregistre les readers et writers"""
     writers = dict()
     readers = dict()
-    rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "converter"))
+    rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "initer", "converter",))
     wdef = namedtuple(
         "writerdef",
         (
@@ -43,10 +43,10 @@ def loadmodules():
                     writers[nom] = wdef(*desc, None, None)
                     # a ce stade les fonctions ne sont pas connues
                 for nom, desc in getattr(format_def, "READERS").items():
-                    #                    print ('lecture  READERS',nom,desc)
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
                     readers[nom] = rdef(*desc, None)
+                    # print ('lecture  READERS',nom,desc,'->', readers[nom])
             except (ImportError, AttributeError) as err:
                 print("module ", module[1:], "non disponible", err)
 

@@ -373,6 +373,7 @@ class RegleTraitement(object):  # regle de mapping
     doit etre determine a partir des donnees avant de les ecrire sur disque"""
         #        print ('regle:dans endstore',self.numero,nom_base,groupe, obj.schema)
         #        raise
+
         classe_ob = obj.ident
         if obj.virtuel:
             return

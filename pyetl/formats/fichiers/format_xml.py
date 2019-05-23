@@ -248,6 +248,6 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
             ressource.write(obj, numero)
 
 
-READERS = {"xml": (lire_objets_xml, "#gml", False, ())}
+READERS = {"xml": (lire_objets_xml, "#gml", False, (), None)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml")}

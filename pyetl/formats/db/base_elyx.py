@@ -262,6 +262,8 @@ class ElyConnect(ora.OrwConnect):
         size = dict()
         blocks = dict()
         nom =''
+        if schemabase is None:
+            return
         if fanout == "no":
             nom = (classes[0][1],) if len(classes) == 1 else ("export",)
             size[nom] = 0
@@ -349,6 +351,7 @@ class ElyConnect(ora.OrwConnect):
                     self.params.traite_parallel(regle_courante)
                 except Exception as err:
                     print ('erreur traitement parallele', err)
+                    raise
             else: # traitement standard
                 for retour in fileiter:
                     if retour is not None:
@@ -381,42 +384,6 @@ class ElyConnect(ora.OrwConnect):
 
         return self.resultats
 
-    #    def multiload(self, helper, fichs, classes, dest, log, fanout, workers=''):
-    #        '''prepare une extraction multiple '''
-    #        runcode = dict()
-    #        if workers.isnumeric():
-    #            maxworkers = int(workers)
-    #        else:
-    #            maxworkers = int(self.params.get_param('max_load_workers', 1))
-    #        if maxworkers < 0:
-    #            nprocs = os.cpu_count()
-    #            if nprocs is None:
-    #                nprocs = 1
-    #            maxworkers = -nprocs*maxworkers
-    #        print( 'multiload',maxworkers)
-    #        pool = get_pool(maxworkers)
-    #        resultats, size, blocks = self.stat_classes(classes, fanout)
-    #        with tempfile.TemporaryDirectory() as tmpdir:
-    ##            total = len(blocks)
-    #            for nom in blocks:
-    ##                print('traitement', nom, size[nom], blocks[nom])
-    #                destination = os.path.join(dest, *nom)
-    #                os.makedirs(os.path.dirname(destination), exist_ok=True)
-    #                logdir = os.path.join(log, nom[0])
-    #                os.makedirs(logdir, exist_ok=True)
-    #                xml = self.genimportxml(destination, logdir, blocks[nom])
-    #                paramfile = os.path.join(tmpdir, '_'.join(nom)+'_param_FEA.xml')
-    #                outfile = os.path.join(tmpdir, '_'.join(nom)+'_out_FEA.txt')
-    #                slot = get_slot(pool) # on cherche une place
-    #                self.import_statprint(slot, pool, runcode, size, resultats)
-    #
-    #                runcode[slot] = (nom, outfile, time.time())
-    #                pool[slot] = self.lanceur(helper, xml, paramfile, outfile, wait=False)
-    #                --time.sleep(0.1)
-    #            wait_end(pool)
-    #            for slot in pool:
-    #                self.export_statprint(slot, pool, runcode, size, resultats)
-    #        return resultats
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """charge un fichier par FEA2ORA"""
@@ -778,12 +745,7 @@ class ElyConnect(ora.OrwConnect):
                     alias = i[6]
                     multiple = i[9]
                     dimension = table[4]
-                    #                    print (dimension,dimension==3)
-                    #                    if defaut and 'S.' in defaut :
-                    #                        print (nomtable,"attribut",nom,type_att, defaut)
-                    #                    composant.stocke_attribut(nom, type_att, defaut, type_base,
-                    #                                              True, ordre = ordre) # on force
-                    #                    print ("nom_att ",nom_att)
+
                     attdef = self.attdef(
                         nomschema,
                         nomtable,
@@ -806,7 +768,7 @@ class ElyConnect(ora.OrwConnect):
                         0,
                         0,
                     )
-                    #                    print ('attribut',nomschema, nomtable, nom_att,conf)
+                    # print ('attribut',nomschema, nomtable, nom_att,conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
                         attdef = self.attdef(
@@ -814,7 +776,7 @@ class ElyConnect(ora.OrwConnect):
                             nomtable,
                             nom_att + "_X",
                             "X " + str(alias),
-                            "REEL",
+                            "F",
                             "False",
                             multiple,
                             "",
@@ -831,13 +793,14 @@ class ElyConnect(ora.OrwConnect):
                             0,
                             0,
                         )
+                        # print ('attribut',attdef)
                         self.attributs[i[0] + 0.1] = attdef
                         attdef = self.attdef(
                             nomschema,
                             nomtable,
                             nom_att + "_Y",
                             "Y " + str(alias),
-                            "REEL",
+                            "F",
                             "False",
                             multiple,
                             "",

@@ -509,7 +509,7 @@ def setvloc(regle):
         for i in listevlocs:
             #        print('detecte', i)
             nom, val, *_ = i.split("=") + [""]
-            regle.context.setlocal(nom, val)
+            regle.context.setlocal(nom.strip(), val)
     regle.ligne, binding = map_vars(regle.ligne, regle.context)
     valeurs = [i.strip() for i in regle.ligne.split(";")]
     if len(valeurs) <= 11:
@@ -954,13 +954,15 @@ def lire_regles_csv(
                     texte = ""
 
             start += 1
+
         if texte and start:
             defligne = (defligne[0], texte_brut.split(";", start)[1])
             #        liste_val[0] = ''
             #        liste_val[1] = ''
             numero, texte, texte_brut = prepare_texte(defligne)
         #            print('traitement_ligne', texte)
-
+        if not texte:
+            continue
         # enregistrement d'une macro
 
         if texte.startswith("&&#define"):

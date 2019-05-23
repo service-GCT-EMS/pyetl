@@ -515,7 +515,7 @@ def _ecrire_objets_csv(
     #    sorties = regle.stock_param.sorties
     #    numero = regle.numero
     print("csv:ecrire csv", regle.stockage.keys())
-
+    ressource = None
     for groupe in list(regle.stockage.keys()):
         # on determine le schema
         print("csv:ecrire groupe", groupe)
@@ -613,4 +613,4 @@ WRITERS = {
 }
 
 #                  reader,geom,hasschema,auxfiles
-READERS = {"csv": (lire_objets_csv, "#ewkt", True, ()), "txt": (lire_objets_csv, "#ewkt", True, ())}
+READERS = {"csv": (lire_objets_csv, "#ewkt", True, (), None), "txt": (lire_objets_csv, "#ewkt", True, (), None)}

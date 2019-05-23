@@ -46,7 +46,7 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + (_extendlist([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
+    return ["P"] + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
 
 
 def _ecrire_polygones_tmp(polygones):

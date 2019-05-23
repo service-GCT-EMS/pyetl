@@ -205,6 +205,7 @@ class DbConnect(object):
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
+        self.schemabase = None
         #        self.connect()
         self.gensql = DbGenSql()
         self.decile = 100000

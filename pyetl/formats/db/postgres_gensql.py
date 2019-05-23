@@ -474,7 +474,6 @@ class PgrGenSql(DbGenSql):
         table = groupe + "." + nom
         atts = classe.get_liste_attributs()
         geomt, arc = self.get_type_geom(classe)
-
         cretable = []
 
         cretable.append(
@@ -613,7 +612,7 @@ class PgrGenSql(DbGenSql):
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
             if sql_conf and self.basic != "basic":
                 creconf[nomconf] = sql_conf
-        if classe.info["type_geom"] != "0":
+        if geomt != "0":
             cretable.append(self.getgeomsql(classe))  # la on est pas geometrique on gere en texte
 
         # contraintes et indexes
@@ -737,7 +736,7 @@ class PgrGenSql(DbGenSql):
         )
         self.role = role
         if liste is None:
-            liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
+            liste = sorted([i for i in self.schema.classes if self.schema.classes[i].a_sortir])
         vues_base = self.get_vues_base(liste)
         def_speciales = set(vues_base)
         liste_ftables = [

@@ -354,6 +354,6 @@ def ecrire_objets_excel(
     #                obj.schema.info['courbe'] = '1'
 
 
-READERS = {"xlsx": (lire_objets_excel, "", False, ())}
+READERS = {"xlsx": (lire_objets_excel, "", False, (), None)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "")}

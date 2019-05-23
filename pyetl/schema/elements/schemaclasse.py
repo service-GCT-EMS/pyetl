@@ -61,6 +61,7 @@ def _gestion_types_simples(attr, type_attribut):
             dec = int(cmp[1])
     if type_attr in A.TYPES_A:
         attr.type_att = A.TYPES_A[type_attr]
+
     elif type_attr[0] == "T" and type_attr[1:].isdigit():
         attr.type_att = "T"
         taille = int(type_attr[1:])
@@ -97,7 +98,6 @@ def _gestion_types_simples(attr, type_attribut):
         attr.type_att_base = "EL"
         attr.dec = dec
     attr.taille = taille
-
 
 class SchemaClasse(object):
     """ description de la structure d'un objet"""
@@ -944,30 +944,11 @@ class SchemaClasse(object):
                 attr.type_att = type_attribut
                 self._gestion_type_attribut(attr, type_attribut, defaut)
             attr.set_formats()
-
         #            if attr.type_att=='A':
         #                print ("type_attribut inconnu",self.nom,attr.nom,'-',type_attribut,
         #                       attr.nom_conformite)
-        for i in self.fils:
-            i.stocke_attribut(
-                nom,
-                type_attribut,
-                defaut=defaut,
-                type_attr_base=type_attr_base,
-                force=force,
-                taille=taille,
-                dec=dec,
-                alias=alias,
-                ordre=attr.ordre,
-                nom_court=nom_court,
-                mode_ordre="a",
-                dimension=dimension,
-                unique=unique,
-                clef_etr=clef_etr,
-                index=index,
-                obligatoire=obligatoire,
-                multiple=multiple,
-            )
+            for i in self.fils:
+                i.ajout_attribut_modele(attr)
         return attr
         # on transmet l'info a la descendance
 

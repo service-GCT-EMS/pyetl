@@ -7,7 +7,7 @@ sorties fictives
 """
 
 
-def ecrire_objets_neant(self, regle, *_, **__) -> (int, int):
+def ecrire_objets_neant(self, regle, *_, **__):
     """ pseudowriter ne fait rien :  poubelle"""
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):  # on parcourt les objets
@@ -76,4 +76,4 @@ WRITERS = {
     "print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None),
 }
 #                  reader,geom,hasschema,auxfiles
-READERS = {"interne": (None, None, False, ())}
+READERS = {"interne": (None, None, False, (), None)}

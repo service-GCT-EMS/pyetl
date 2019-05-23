@@ -538,6 +538,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
         print("pas de tables a sortir", base, niveau, classe)
         return False
     print ('----------------------------------------extalpha schema:', schema_travail.nom, len(schema_travail.classes))
+    regle_courante.setvar("schema_entree", schema_travail.nom)
     helpername = connect.dump_helper
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
@@ -555,7 +556,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
         if resultats:
             for idclasse in resultats:
                 schema_travail.classes[idclasse].objcnt = resultats[idclasse]
-            regle_courante.setvar("schema_entree", schema_travail.nom)
+
     return False
 
 

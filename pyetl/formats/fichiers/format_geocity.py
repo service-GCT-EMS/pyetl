@@ -556,5 +556,5 @@ def lire_objets_geocity(self, rep, chemin, fichier):
 
 
 #                  reader,geom,hasschema,auxfiles
-READERS = {"gy": (lire_objets_geocity, None, True, ())}
+READERS = {"gy": (lire_objets_geocity, None, True, (), None)}
 WRITERS = {}

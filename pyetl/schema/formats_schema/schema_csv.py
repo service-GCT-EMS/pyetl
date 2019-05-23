@@ -56,7 +56,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
     if not nbr:
         nbr = sc_classe.getinfo("objcnt_init")
     if mode == "fusion":
-        nbr = sc_classe.poids
+        nbr = sc_classe.poids if sc_classe.poids else sc_classe.getinfo("objcnt_init")
     liste_att_csv.append(
         ";".join(
             [

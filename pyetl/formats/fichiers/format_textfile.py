@@ -86,7 +86,9 @@ def ecrire_objets_text(regle, _, attributs=None):
             ressource.write(obj, regle.numero)
 
 
-READERS = {"ligne": (lire_textfile_ligne, "", False, ())}
-READERS = {"text": (lire_textfile_bloc, "", False, ())}
+READERS = {
+            "ligne": (lire_textfile_ligne, "", False, (), None),
+            "text": (lire_textfile_bloc, "", False, (), None),
+            }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "")}

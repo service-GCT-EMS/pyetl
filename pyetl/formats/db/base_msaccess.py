@@ -139,10 +139,10 @@ class AccConnect(DbConnect):
                     type_t = "x"
                 taille = 0
                 idt = ".".join((schema, nom)) if schema else nom
-                #                print ('calcul taille',self.request("select count(*) from "+idt,()))
+#                print ('calcul taille',self.request("select count(*) from "+idt,()))
                 taille = self.request('select count(*) from "' + idt + '"', ())
-                #                taille = cur2.execute('select count(*) from "'+idt+'"').fetchval()
-                #                print ("taille table ",idt,taille)
+#                taille = cur2.execute('select count(*) from "'+idt+'"').fetchval()
+#                print ("taille table ",idt,taille)
                 taille = taille[0][0] if taille else "0"
                 nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
                 tables.append(nouv_table)
@@ -164,7 +164,7 @@ class AccConnect(DbConnect):
 
             #                raise
             cur.close()
-            return
+            raise StopIteration
 
         self.decile = 1
         return iter(())

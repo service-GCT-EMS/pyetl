@@ -1096,7 +1096,7 @@ class Pyetl(object):
     def _ecriture_stats(self):
         """stockage des stats """
         #        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
-        rep_sortie = self.get_param("_sortie")
+        rep_sortie = os.path.join(self.get_param("_sortie"), self.get_param("sortie_stats"))
 
         for i in self.stats:
             if self.worker and self.parent is None:

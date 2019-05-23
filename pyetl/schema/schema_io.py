@@ -27,13 +27,15 @@ def fusion_schema(nom, schema, schema_tmp):
                 continue
         schema.conformites[i] = schema_tmp.conformites[i]
     for i in schema_tmp.classes:
+        # print ('fusion schema' , i)
         if i in schema.classes:
+            # print ('fusion schema',nom ,schema.nom, schema_tmp.nom, schema.classes[i].nom, schema.classes[i].poids, schema_tmp.classes[i].poids)
             if schema.classes[i].poids >= schema_tmp.classes[i].poids:
                 continue
         schema.ajout_classe(schema_tmp.classes[i])
     schema_tmp.map_classes()
     liste_mapping = schema_tmp.mapping_schema(fusion=True)
-    print ('mapping_fusion','\n'.join(liste_mapping[:10]))
+    # print ('mapping_fusion','\n'.join(liste_mapping[:10]))
     schema.init_mapping(liste_mapping[1:])
 
 
@@ -54,7 +56,7 @@ def lire_schemas_multiples(
         racine = os.path.basename(chemin).lower()
         if fusion is None:
             fusion = False
-
+    rep= str(rep)
     for element in os.listdir(rep):
         #            print ('examen ',element ,racine)
         if racine in element.lower():
@@ -373,7 +375,7 @@ def integre_schemas(schemas, nouveaux):
         tmp = SCI.Schema(nom)
         tmp.from_dic_if(description)
 
-        #        print ('recup schema ', nom, tmp, schemas.get(nom))
+        print ('recup schema ', nom, tmp, schemas.get(nom))
         if nom in schemas:
             fusion_schema(nom, schemas[nom], tmp)
         else:

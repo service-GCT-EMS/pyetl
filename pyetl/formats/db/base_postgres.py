@@ -188,11 +188,11 @@ class PgrConnect(DbConnect):
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
         file = self.change_antislash(file)
-
+        #psql -h bcsigli -p 34000 -d sigli -U sigli -f script.sql --single-transaction -L script.log 2>> script.log
         if self.user:
             chaine_connect = chaine_connect + " --username=" + self.user
         if logfile:
-            chaine_connect = chaine_connect + " -q -a"
+            chaine_connect = chaine_connect + " -L "+logfile
         if outfile:
             outfile = self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
