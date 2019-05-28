@@ -128,16 +128,16 @@ class Objet(object):
         """positionne les attributss dependant de la geometrie"""
         geom_v = self.geom_v
         if geom_v.valide:
-            xmin, ymin, xmax, ymax = geom_v.emprise()
+            # xmin, ymin, xmax, ymax = geom_v.emprise()
             #            print ('calcul emprise', xmin, ymin, xmax, ymax, geom_v)
             self.attributs.update(
                 [
-                    ("#longueur", str(geom_v.longueur)),
+                    # ("#longueur", str(geom_v.longueur)),
                     ("#points", str(geom_v.npt)),
-                    ("#xmin", str(xmin)),
-                    ("#xmax", str(xmax)),
-                    ("#ymin", str(ymin)),
-                    ("#ymax", str(ymax)),
+                    # ("#xmin", str(xmin)),
+                    # ("#xmax", str(xmax)),
+                    # ("#ymin", str(ymin)),
+                    # ("#ymax", str(ymax)),
                     ("#type_geom", geom_v.type),
                     ("#dimension", str(geom_v.dimension)),
                     ("#erreurs_geom", ""),
@@ -148,12 +148,12 @@ class Objet(object):
             erreurs_geom = geom_v.erreurs.getvals() if geom_v else ""
             self.attributs.update(
                 [
-                    ("#longueur", ""),
+                    # ("#longueur", ""),
                     ("#points", ""),
-                    ("#xmin", ""),
-                    ("#xmax", ""),
-                    ("#ymin", ""),
-                    ("#ymax", ""),
+                    # ("#xmin", ""),
+                    # ("#xmax", ""),
+                    # ("#ymin", ""),
+                    # ("#ymax", ""),
                     ("#type_geom", "0"),
                     ("#dimension", "0"),
                     ("#erreurs_geom", erreurs_geom),

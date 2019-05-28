@@ -138,6 +138,8 @@ def parallelprocess(numero, file, regle):
 def endparallel(test=None):
     """termine un traitement parallele"""
     mainmapper = getmainmapper()
+    nb_total = 0
+    nb_fichs = 0
     if mainmapper.ended:
         #        print("pyetl double end", os.getpid())
         time.sleep(1)
@@ -236,10 +238,10 @@ def submit_job(jobs, job, regle, executor, fonction):
     #    print ('transmission ',job)
     #    rfin = dict()
     dest, nom, ext = job
-    file = os.path.join(*nom) + "." + ext
-    chemin = os.path.dirname(file)
-    nom = os.path.basename(file)
-    clef = os.path.join(dest, chemin, nom)
+    file = str(os.path.join(*nom) + "." + ext)
+    chemin = str(os.path.dirname(file))
+    nom = str(os.path.basename(file))
+    clef = os.path.join(str(dest), chemin, nom)
     loadarg = (clef, (dest, chemin, nom, ext))
     # print ('appel parallele ',clef,'->',loadarg, regle, regle.index)
     jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
@@ -513,7 +515,7 @@ def traite_parallel_batch(regle):
 
     traite = mapper.moteur.traite_objet
     if regle.debug:
-        print("retour multiprocessing ", rdict.items()[:10])
+        print("retour multiprocessing ", list(rdict.items())[:10])
     #    print (finaux)
     for obj in regle.tmpstore:
         numero = obj.attributs["#_batchnum"]

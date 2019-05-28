@@ -48,27 +48,19 @@ class Geometrie(object):
     @property
     def npt(self):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
-        if self.type < "2":
-            return len(self.composants)
-        cc = self.composants
+        if self.null:
+            return 0
+        if self.point:
+            return 1
+        cc = self.lignes
         return sum([i.npt for i in cc]) - sum([len(i.sections) - (0 if i.ferme else 1) for i in cc])
 
     @property
     def ferme(self):
         """ retourne True si la geometrie est fermee"""
-        for i in self.lignes:
-            if not i.ferme:
-                return False
-        return True
-
-    @property
-    def composants(self):
-        """ retourne les elements de la geometrie"""
-        if self.type == "1":
-            return [self.point]
-        #        if self.type=='0':
-        #            return []
-        return self.lignes
+        if self.lignes:
+            return all(i.ferme for i in self.lignes)
+        return False
 
     @property
     def __json_if__(self):
@@ -488,9 +480,10 @@ class Geometrie(object):
         #            raise
         if self.type == "2":
             for i in self.lignes:
-                if i.npt < 2:
-                    self.erreurs.ajout_erreur("ligne un point")
-                    self.valide = False
+                for j in i.sections:
+                    if j.npt < 2:
+                        self.erreurs.ajout_erreur("section un point")
+                        self.valide = False
         self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
         self.courbe = any([i.courbe for i in self.lignes])
         if self.lignes:
@@ -606,9 +599,11 @@ class Geometrie(object):
     @property
     def coords(self):
         """ iterateur sur les coordonnees"""
-        if self.null:
-            return iter(())
-        return itertools.chain(*[i.coords for i in self.composants])
+        if self.point:
+            return self.point.coords
+        if self.lignes:
+            return itertools.chain(*[i.coords for i in self.lignes])
+        return iter(())
 
 
     def convert(self, fonction, srid=None):
@@ -658,21 +653,26 @@ class Geometrie(object):
     @property
     def longueur(self):
         """longueur de la geometrie"""
-        comp = self.composants
+        if self.null:
+            return 0
+        if self.point:
+            return self.point.longueur
+        comp = self.lignes
         #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
         return sum(i.longueur for i in comp) if comp else 0
 
 
     def getpoint(self, numero):
         """retourne le n ieme point"""
-        n = 0
         #        print ('coordlist',self.type,list(self.coordlist()))
-        i=()
-        for i in self.coords:
-            if n == numero:
-                return i
-            n += 1
-        return i
+        if numero < 0:
+            return list(self.coords)[numero]
+        return next(itertools.islice(self.coords, numero, None), ())
+        # for i in self.coords:
+        #     if n == numero:
+        #         return i
+        #     n += 1
+        # return i
 
     def print_debug(self):
         """affichage de debug"""
@@ -686,9 +686,9 @@ class Geometrie(object):
         """retourne une structure compacte pour les comparaisons"""
         if self.type == 'indef':
             return ()
-        if self.type == '0':
+        if self.null:
             return None
-        if self.type == '1':
+        if self.point:
             return (self.point.fold,(),())
         crd = (tuple(i) for i in self.coords)
         ldef = (i.sdef for i in self.lignes)

@@ -202,6 +202,8 @@ def lire_objets(fichier, stock_param):
                 )
                 obj.attributs["#type_geom"] = type_geom
             #                if form: print ('format natif ',form,stock_param.get_converter(form))
+                if type_geom != '0':
+                    obj.attributs["#geom"]=[]
                 continue
             if not obj:
                 print ('erreur fichier temporaire ', ligne)
@@ -222,7 +224,7 @@ def lire_objets(fichier, stock_param):
 def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
     """stocke les objets en format temporaire"""
     fichier = open(nom, mode, encoding="utf-8")
-#    print('ecriture temporaire',groupe)
+    print('ecriture temporaire',groupe, nom_format)
     for classe in groupe:
         liste_obj = groupe[classe]
 #        print( "ecriture" , classe, len(liste_obj))

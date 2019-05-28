@@ -228,6 +228,7 @@ class GdalWriter(object):
         self.srid = srid
         self.schema = schema
         self.transtable = None
+        self.buffer = []
         if f_sortie is not None:
             self.driver = f_sortie.driver
             self.l_max = f_sortie.l_max
@@ -250,7 +251,7 @@ class GdalWriter(object):
             self.schema.cree_noms_courts(longueur=self.l_max)
         self.schema.minmajfunc = self.minmajfunc
         schema = schema_fiona(self.schema, liste_attributs=self.liste_att, l_nom=self.l_max)
-        #        print('fiona: ouverture', self.nom, self.layer)
+        print('fiona: ouverture', self.nom, self.layer)
         self.fichier = fiona.open(
             self.nom,
             "w",
@@ -264,8 +265,10 @@ class GdalWriter(object):
 
     def changeclasse(self, schemaclasse, attributs=None):
         """ change de classe """
+        print('fiona: changeclasse', self.nom, self.layer)
+
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
-        self.fichier.close()
+        self.close()
         _, classe = schemaclasse.identclasse
         self.layer = classe
         crs = from_epsg(int(self.srid))
@@ -301,6 +304,11 @@ class GdalWriter(object):
         #        print("fileeio fermeture", self.nom)
         if self.nom == "#print":
             return  # stdout
+        if self.buffer:
+            self.fichier.writerecords(self.buffer)
+            # for i in self.buffer:
+            #     self.fichier.write(i)
+            self.buffer = []
         try:
             self.fichier.close()
         except AttributeError:
@@ -309,6 +317,12 @@ class GdalWriter(object):
     def set_liste_att(self, liste_att):
         """stocke la liste des attributs a sortir"""
         self.liste_att = liste_att
+
+    def bwrite(self, obj):
+        """ecriture bufferisee"""
+        chaine = self.converter(obj, self.liste_att, self.minmajfunc)
+        self.buffer.append(chaine)
+        return True
 
     def write(self, obj):
         """ecrit un objet complet"""
@@ -345,7 +359,7 @@ def gdalconverter(obj, liste_att, minmajfunc):
     return a_sortir
 
 
-def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
+def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None, buffer=False):
     """ecrit des objets json au fil de l'eau.
         dans ce cas les objets ne sont pas stockes,  l ecriture est effetuee
         a la sortie du pipeline (mode streaming)
@@ -398,7 +412,7 @@ def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
     #    print ('gdal: ecriture objet',obj)
     #    print ('gdal: ecriture objet',obj.__geo_interface__)
     try:
-        ressource.write(obj, regle.numero)
+        ressource.bwrite(obj, regle.numero) if buffer else ressource.write(obj, regle.numero)
     except Exception as err:
         print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__)
         raise
@@ -422,7 +436,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             #            print ('gdalio: ecriture', obj)
-            self.ecrire_objets_stream(obj, regle, None, attributs=attributs, rep_sortie=rep_sortie)
+            self.ecrire_objets_stream(obj, regle, None, attributs=attributs, rep_sortie=rep_sortie, buffer=True)
 
 
 # def asc_streamer(obj, groupe, rep_sortie, regle, final, attributs=None,

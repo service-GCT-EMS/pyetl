@@ -420,6 +420,7 @@ def h_ftpupload(regle):
     """prepare les parametres ftp"""
     regle.chargeur = True
     codeftp = regle.params.cmp1.val
+    regle.destdir = regle.params.cmp2.val
     serveur = regle.context.getvar("server_" + codeftp, "")
     servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
     user = regle.context.getvar("user_" + codeftp, "")
@@ -443,7 +444,7 @@ def f_ftpupload(regle, obj):
             regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
 
     filename = regle.getval_entree(obj)
-    destname = os.path.basename(filename)
+    destname = regle.destdir+ '/'+ str(os.path.basename(filename))
     try:
         localfile = open(filename, "rb")
         regle.ftp.storbinary("STOR " + destname, localfile)

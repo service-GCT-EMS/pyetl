@@ -67,9 +67,9 @@ class DecodeConfigOsm(object):
         """ range les objets residuela dans les classes par defaut """
         if len(tagdict) == 1:
             if "source" in tagdict or "created_by" in tagdict:
-                return (self.niveau, "a_jeter_" + str(self.geom))
+                return (self.niveau, "non_classe_" + str(self.geom))
             if "type" in tagdict and tagdict["type"] == "multipolygon":
-                return (self.niveau, "a_jeter" + str(self.geom))
+                return (self.niveau, "non_classe_" + str(self.geom))
         return (self.niveau, self.classe)
 
     def decode_classe(self, tagdict):
@@ -146,6 +146,7 @@ class DecodeConfigOsm(object):
             obj.attributs[att] = val
 
         obj.setschema(self.get_schema_classe(ident, idref))
+        # print ('objet osm', obj)
         return obj
 
 
@@ -184,7 +185,7 @@ def init_osm(reader, config_osm, schema):
         #    DECODAGE[ii].append(Decodeconfig(['*', '', str(ii)]))
         for conf in decodage[i]:
             conf.setliste(grouplist)
-            conf.initschema(schema)
+            conf.init_schema(schema)
             conf.reader = reader
 
     return decodage
@@ -266,27 +267,6 @@ def _getmembers(points, lignes, objets, elem):
                 perdus += 100000
         return (geom, perdus, ferme)
 
-
-def geom_from_osm(obj):
-    """ convertit une geometrie osm"""
-    geomv = obj.geom_v
-    if geomv.valide:
-        return True
-    if not obj.attributs["#geom"]:
-        obj.attributs["#type_geom"] = "0"
-        return True
-    if obj.attributs["#type_geom"] == "1":
-        geomv.setpoint(obj.attributs["#geom"][0], None, 2)
-
-    else:
-        for sect, role in obj.attributs["#geom"]:
-            geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
-            # print ('osm:creation section ',lg)
-
-    obj.finalise_geom(type_geom=obj.attributs["#type_geom"])
-    return True
-
-
 def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
     """ applique les regles de classification a l'objet """
     #    print (' dans classif osm ')
@@ -348,7 +328,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
     nlignes = 0
     nobj = 0
     config_osm_def = os.path.join(os.path.dirname(__file__), "config_osm2.csv")
-    config_osm = stock_param.get_var("config_osm", config_osm_def)
+    config_osm = self.regle_ref.getvar("config_osm", config_osm_def)
 
     #    regle = stock_param.regles[0]
     nomschema = os.path.splitext(fichier)[0]
@@ -465,5 +445,5 @@ def lire_objets_osm(self, rep, chemin, fichier):
 #
 #        return nobj
 
-READERS = {"osm": (lire_objets_osm, "", True, (), None)}
+READERS = {"osm": (lire_objets_osm, "#osm", True, (), None)}
 WRITERS = {}

@@ -16,9 +16,9 @@ def print_help(mapper, nom):
             print("aide commande ", nom)
             macro = mapper.macros[nom]
             print("%-15s: %s" % (nom, macro.help[:-1]))
-            if macro.vloc:
-                print("parametres:", macro.vloc[0])
-                for i in macro.vloc[1:]:
+            if macro.vpos:
+                print("parametres:", macro.vpos[0])
+                for i in macro.vpos[1:]:
                     print("            %s" % (i))
             for i in macro.help_detaillee:
                 print("%16s   %s" % ("", i[:-1]))

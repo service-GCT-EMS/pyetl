@@ -78,6 +78,18 @@ class Ressource(object):
             if self.etat == 1:
                 self.handler.close()
             self.etat = 2
+    def bwrite(self, obj, id_regle):
+        try:
+            if self.etat != 1:
+                self.ouvrir(id_regle)
+            if self.lastid and self.lastid != obj.ident:
+                self.handler.changeclasse(obj.schema)
+            self.lastid = obj.ident
+            if self.handler.bwrite(obj):
+                self.nbo += 1
+        except IOError as err:
+            LOGGER.critical("erreur ecriture fichier " +self.nom+'->'+repr(err))
+            raise StopIteration(2)
 
     def write(self, obj, id_regle):
         """ecrit un objet en gerant les changements de classe et les comptages"""

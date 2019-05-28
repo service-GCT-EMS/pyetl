@@ -516,7 +516,7 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=""):
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
         workers, extworkers = regle_courante.get_max_workers()
-        print("extdump", regle_courante.vloc, extworkers)
+        print("extdump", regle_courante.context.vlocales, extworkers)
         resultats = connect.extdump(helper, liste_tables, dest, log, workers=extworkers)
         #        print(' extdump' , resultats)
         if resultats:
@@ -1239,20 +1239,20 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
                     #                    liste_att = _set_liste_attributs(obj, attributs)
                     liste_att = obj.schema.get_liste_attributs(liste=attributs)
-                    swr = DbWriter(
+                    dbwr = DbWriter(
                         nom,
                         liste_att,
                         encoding=regle.getvar("codec_sortie", "utf-8"),
                     )
-                    sorties.creres(numero, nom, swr)
+                    sorties.creres(numero, nom, dbwr)
                     ressource = sorties.get_res(numero, nom)
                 else:
                     #                    liste_att = _set_liste_attributs(obj, attributs)
                     liste_att = obj.schema.get_liste_attributs(liste=attributs)
-                    swr.set_liste_att(liste_att)
+                    dbwr = ressource.handler
+                    dbwr.set_liste_att(liste_att)
                 dident = (groupe, classe)
-                fich = ressource.handler
-            fich.write(obj)
+            dbwr.write(obj)
             nb_obj += 1
 
 

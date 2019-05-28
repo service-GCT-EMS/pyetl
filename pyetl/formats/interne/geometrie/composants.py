@@ -55,6 +55,7 @@ class Point(object):
         self.type = "1"
         self.courbe = 0
         self.longueur = 0
+        self.npt = 1
 
     @property
     def __json_if__(self):

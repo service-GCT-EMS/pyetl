@@ -312,7 +312,6 @@ def f_multigeom(regle, obj):
 
 # calculs :
 
-
 def f_longueur(regle, obj):
     """#aide||calcule la longueur de l'objet
         #pattern||S;;;longueur;;
@@ -322,9 +321,8 @@ def f_longueur(regle, obj):
     if obj.virtuel:
         return False
     if obj.initgeom():
-        #        obj.infogeom()
-        #        print ("longueur",obj, obj.geom_v, obj.geom_v.longueur)
-        regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
+        regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.longueur))
+        # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
         return True
     return False
 
@@ -391,13 +389,10 @@ def fgrid2(regle, obj, cases, double=True):
     #    print ('grille', obj, obj.geom_v, obj.geom_v.emprise())
 
     if len(cases) > 5:
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
         print(
             "tres gros objet",
-            len(cases),
-            obj.attributs.get("#xmin", 0),
-            obj.attributs.get("#xmax", 0),
-            obj.attributs.get("#ymin", 0),
-            obj.attributs.get("#ymax", 0),
+            len(cases), xmin, ymin, xmax, ymax,
             obj.ident,
         )
     if double:
@@ -424,12 +419,15 @@ def f_grid(regle, obj):
     """
     if obj.virtuel:
         return False
-    pmin = (float(obj.attributs.get("#xmin", 0)), float(obj.attributs.get("#ymin", 0)))
-    pmax = (float(obj.attributs.get("#xmax", 0)), float(obj.attributs.get("#ymax", 0)))
-    cases = grille2(regle.orig_grille, regle.params.cmp2.num, pmin, pmax)
-    fgrid2(regle, obj, cases)
-    #    print ('valeur de X', obj.attributs.get('X'))
-    return True
+    if obj.initgeom():
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+        pmin = (xmin,ymin)
+        pmax = (xmax,ymax)
+        cases = grille2(regle.orig_grille, regle.params.cmp2.num, pmin, pmax)
+        fgrid2(regle, obj, cases)
+        #    print ('valeur de X', obj.attributs.get('X'))
+        return True
+    return False
 
 
 def fgrid(regle, obj, cases):
@@ -438,13 +436,10 @@ def fgrid(regle, obj, cases):
     #    print ('grille', obj, obj.geom_v, obj.geom_v.emprise())
 
     if len(cases) > 5:
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
         print(
             "tres gros objet",
-            len(cases),
-            obj.attributs.get("#xmin", 0),
-            obj.attributs.get("#xmax", 0),
-            obj.attributs.get("#ymin", 0),
-            obj.attributs.get("#ymax", 0),
+            len(cases), xmin, ymin, xmax, ymax,
             obj.ident,
         )
     for case in cases[1:]:
@@ -462,16 +457,18 @@ def f_gridx(regle, obj):
     """
     if obj.virtuel:
         return False
-    fgrid(
-        regle,
-        obj,
-        grille(
-            regle.params.cmp1.num,
-            regle.params.cmp2.num,
-            float(obj.attributs.get("#xmin", 0)),
-            float(obj.attributs.get("#xmax", 0)),
-        ),
-    )
+    if obj.initgeom():
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+        fgrid(
+            regle,
+            obj,
+            grille(
+                regle.params.cmp1.num,
+                regle.params.cmp2.num,
+                xmin,xmax,
+                float(obj.attributs.get("#xmax", 0)),
+            ),
+        )
     #    print ('valeur de X', obj.attributs.get('X'))
     return True
 
@@ -764,7 +761,7 @@ def f_prolonge(regle, obj):
     """#aide||prolongation de la ligne d'appui pour les textes
        #aide spec: code prolongation : 1 debut 2 fin 3 3cotes (11,12,13) chaque segment
        #pattern||;?N;?A;prolonge;?N;
-       #test||obj;ligne||^;1;;prolonge;3||atn;#longueur;3
+       #test||obj;ligne||^;1;;prolonge;3||^#l;;;longueur||atn;#l;3
     """
     if obj.virtuel:
         return False

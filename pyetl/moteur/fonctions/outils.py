@@ -365,10 +365,20 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
 
 
 def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
-    """precharge les fichiers utilises pour les jointures ou les listes d'appartenance"""
+    """precharge les fichiers utilises pour les jointures ou les listes d'appartenance
+    formats acceptes:
+        in:{a,b,c}                  -> liste de valeurs dans la commande
+        in:#schema:nom_du_schema    -> liste des tables d'un schema
+        in:nom_de_fichier           -> contenu d'un fichier
+        in:[att1,att2,att3...]      -> attributs de l'objet courant
+        in:(attributs)              -> noms des attributs de l'objet courant
+        in:st:nom_du_stockage       -> valeurs des objets en memoire (la clef donne l'attribut)
+        in:db:nom_de_la_table       -> valeur des attributs de l'objet en base (la clef donne le nom du champs)
+    """
     fichier = fichier.strip()
     #    valeurs = get_listeval(fichier)
-    valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
+    liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
+    valeurs = {i:i for i in liste_valeurs}
     #    print ('fichier a lire ',fichier,valeurs)
     if fichier.startswith("#schema"):  # liste de classes d'un schema
         mode = "in_s"
@@ -386,7 +396,7 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
             print("classes a lire", valeurs)
     if valeurs:
         mode = "in_s"
-    elif fichier == "[attributs]":  # liste d'attributs
+    elif fichier == "(attributs)":  # liste d'attributs
         mode = "in_a"
     elif fichier.startswith("st:"):
         mode = "in_store"

@@ -326,6 +326,7 @@ class Reader(object):
            cree un objet si on a pas depasse la limite de lecture"""
         self.nb_lus += 1
         self.lus_fich += 1
+        errs = []
         if self.maxobj and self.nb_lus > self.maxobj:
             return None
         if self.nb_lus >= self.nextaff:
@@ -344,7 +345,8 @@ class Reader(object):
                     try:
                         attributs[nom] = self.attformatters[nom](attributs[nom])
                     except TypeError:
-                        print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
+                        errs.append('formattage attribut'+ str(self.ident) +' '+nom+' '+attributs[nom])
+                        # print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
         obj = Objet(
             niveau or self.groupe,
             classe or self.classe,
@@ -359,6 +361,8 @@ class Reader(object):
             # print ('getobj:affectation geometrie',geom)
             obj.attributs["#geom"] = geom
         # print ('creation obj',obj)
+        if errs:
+            obj.attributs["#erreurs"]=','.join(errs)
         return obj
 
 

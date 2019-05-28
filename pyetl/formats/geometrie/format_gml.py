@@ -94,5 +94,34 @@ def geom_from_gml(obj):
             geom_v.setpoint(pnt, None, len(pnt))
     return geom_v
 
+def geom_from_osm(obj):
+    """ convertit une geometrie osm"""
+    geomv = obj.geom_v
+    if geomv.valide:
+        return True
+    if not obj.attributs["#geom"]:
+        obj.attributs["#type_geom"] = "0"
+        return True
+    if obj.attributs["#type_geom"] == "1":
+        geomv.setpoint(obj.attributs["#geom"][0], None, 2)
 
-GEOMDEF = {"#gml": (ecrire_geometrie_gml, geom_from_gml)}
+    else:
+        for sect, role in obj.attributs["#geom"]:
+            geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
+            # print ('osm:creation section ',lg)
+
+    obj.finalise_geom(type_geom=obj.attributs["#type_geom"])
+    return True
+
+
+
+
+
+
+
+
+
+GEOMDEF = {
+           "#gml": (ecrire_geometrie_gml, geom_from_gml),
+           "#osm": (None, geom_from_osm),
+           }
