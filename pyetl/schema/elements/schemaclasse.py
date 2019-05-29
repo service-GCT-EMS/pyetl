@@ -44,7 +44,7 @@ HIERARCHIE = {"P": 1, "U": 2, "K": 3, "X": 4, "I": 4}
 def _gestion_types_simples(attr, type_attribut):
     """ decode les types classiques"""
     type_attr = type_attribut.upper()
-    # print ('type_attribut',attr.nom, type_attr)
+    # print ('type_attribut entree ',attr.nom, type_attr)
     taille = attr.taille
     dec = 0
     if "[]" in type_attr:
@@ -98,6 +98,7 @@ def _gestion_types_simples(attr, type_attribut):
         attr.type_att_base = "EL"
         attr.dec = dec
     attr.taille = taille
+    # print ('type_attribut sortie ',attr.nom, attr.type_att)
 
 class SchemaClasse(object):
     """ description de la structure d'un objet"""
@@ -882,7 +883,7 @@ class SchemaClasse(object):
             print("attention nom d'attribut incorrect : transformation", nom, "->", "_" + nom)
             nom = "_" + nom
         #        print ('schema: stocke attribut',self.nom,nom,nom_court,type_attribut,ordre)
-        #        print ('schema: stocke attribut',self.nom,nom,type_attribut,ordre)
+        # print ('schema: stocke attribut',self.nom,nom,type_attribut,ordre)
         if nom in self.attributs:
             if force:
                 #                print ('schema: stocke attribut: modif attribut ',
@@ -940,7 +941,6 @@ class SchemaClasse(object):
                 self._gestion_clef_etr(attr, clef_etr, parametres_clef)
 
             if type_attribut:
-                #                print ('attribut entree_type', type_attribut)
                 attr.type_att = type_attribut
                 self._gestion_type_attribut(attr, type_attribut, defaut)
             attr.set_formats()

@@ -160,7 +160,7 @@ def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=Non
 
         if nbwarn:
             print(nbwarn, "lignes avec un nombre d'attributs incorrect")
-    return nlignes
+    return
 
 
 class XlsxWriter(FileWriter):

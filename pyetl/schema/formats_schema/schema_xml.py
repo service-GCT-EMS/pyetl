@@ -120,7 +120,7 @@ def _sortir_attribut_xml(classe, attr, keys):
 
     if attr.conf and attr.nom_conformite == "":
         description = [texte + ">"]
-        if attr.type_att in ["E", "EL", "F"] or attr.type_att_base in ["E", "EL", "F"]:
+        if attr.type_att in {"E", "EL", "F", "S", "BS", "N"} or attr.type_att_base in {"E", "EL", "F", "S", "BS", "N"}:
             # types numeriques
             # print "type attribut",self.type_att
             try:

@@ -122,7 +122,6 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 # print ('lecture_csv:',[i for i in liste_attributs])
                 if len(val_attributs) != controle:
                     nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
-                # obj = reader.getobj(attributs=zip(noms_attributs, val_attributs))
                 obj = reader.getobj(valeurs=val_attributs)
                 # print ('attributs:',obj.attributs['nombre_de_servitudes'])
                 # if geom:
@@ -145,7 +144,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
         print("erreur encodage le fichier", fichier, "n'est pas en ", reader.encoding)
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")
-    return reader.nb_lus
+    return
 
 
 class CsvWriter(FileWriter):

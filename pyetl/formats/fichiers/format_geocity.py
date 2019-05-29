@@ -381,8 +381,6 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     obj.setschema(classe_courante)
                     obj.attributs.update((("#fichier", fichier_courant), ("#chemin", chemin)))
                     obj.setorig(n_obj)
-                    if maxobj and n_obj > maxobj:
-                        break
                     val_attr = ""
                     #####debug####self.logger.log("debut_objet" ,0)
                     for i in attr:
@@ -551,8 +549,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
         except AttributeError:
             print("ereur lecture fichier", fichier)
             raise
-
-    return n_obj
+    return
 
 
 #                  reader,geom,hasschema,auxfiles

@@ -508,13 +508,15 @@ def preload(regle, obj):
         ext = os.path.splitext(fichier)[1]
         lecteur = regle.stock_param.reader(ext)
         regle.reglestore.tmpstore = dict()
-        nb_total = 0
         try:
-            nb_total = lecteur.lire_objets("", chemin, fichier, regle.stock_param, regle.reglestore)
             regle.stock_param.store[regle.params.cmp2.val] = regle.reglestore.tmpstore
+            lecteur.lire_objets("", chemin, fichier, regle.stock_param, regle.reglestore)
         except FileNotFoundError:
             regle.stock_param.store[regle.params.cmp2.val] = None
             print("fichier inconnu", os.path.join(chemin, fichier))
+        except StopIteration:
+            pass
+        nb_total = lecteur.lus_fich
 
     mem2 = process.memory_info()[0]
     mem = mem2 - mem1

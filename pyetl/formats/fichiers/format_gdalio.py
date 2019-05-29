@@ -188,13 +188,11 @@ def lire_objets(self, rep, chemin, fichier):
 
             for i in source:
                 obj = self.getobj()
-                if obj is None:
-                    break
                 obj.from_geo_interface(i)
                 obj.attributs["#chemin"] = chemin
                 # print ('------gdalio ',obj,'\n')
                 self.process(obj)
-    return self.lus_fich
+    return
 
 
 class GdalWriter(object):

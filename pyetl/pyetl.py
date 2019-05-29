@@ -225,7 +225,6 @@ class Pyetl(object):
         # identification d'une reference a un champ  dans une expression
         #        self.liste_formats = [".ASC", ".SHP", ".CSV"]
         #        self.sortie_defaut = "asc"
-        #self.f_entree = None
         self.liste_regles = None
 
         self.liens_variables = dict()
@@ -511,13 +510,13 @@ class Pyetl(object):
                         tinterm = nbval / (nbobj / duree)
                     print(msg % (nbval, int(tinterm), int((nbval) / tinterm)))
             else:
-                print(msg % (cmp, nbobj, tabletotal, ftype, int(duree), int((nbobj) / duree)))
+                print(msg % (cmp, nbobj, tabletotal+1, ftype, int(duree), int((nbobj) / duree)))
             return ((max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich, tinterm)
 
         while True:
             message, nbfic, nbval = yield
             #            nbtotal += nbval
-            tabletotal += nbfic
+
             if message == "init":
                 duree, _ = next(temps)
                 interm = duree
@@ -537,7 +536,7 @@ class Pyetl(object):
             if message != "interm":
                 nbtotal += nbval
                 interm = 0.001
-
+            tabletotal += nbfic
     #        except GeneratorExit:
     #            nbtotal += nbval
     ##                tabletotal += nbfic
@@ -1178,19 +1177,25 @@ class Pyetl(object):
         regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
         reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
-
-        self.f_entree = Reader(ext, regle, reglestart)
-        # print ('initialisation reader', ext, self.f_entree.schema)
-        #        print ('lecteur',self.f_entree.lire_objets, self.f_entree)
+        if regle is None:
+            regle=reglestart
+        if ext not in regle.lecteurs:
+            regle.lecteurs[ext] = Reader(ext, regle, reglestart)
+        lecteur = regle.lecteurs[ext]
+        # print ('initialisation reader', ext, lecteur.schema)
+        #        print ('lecteur',lecteur.lire_objets, lecteur)
         #        print ('lecture fichier ',fichier, regle, reglestart)
         #        if self.worker:
         #            print('lecture batch',os.getpid(), reglestart.ligne)
         #            raise
-        nb_obj = self.f_entree.lire_objets(self.racine, chemin, fichier)
-        self.padd("_st_lu_objs", nb_obj)
+        try:
+            lecteur.lire_objets(self.racine, chemin, fichier)
+        except GeneratorExit:
+            pass
+        self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
-        self.aff.send(("fich", 1, nb_obj))
-        return nb_obj
+        self.aff.send(("fich", 1, lecteur.lus_fich))
+        return lecteur.lus_fich
 
 
 # on cree l'objet parent et l'executeur principal

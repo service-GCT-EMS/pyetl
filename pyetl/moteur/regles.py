@@ -243,7 +243,7 @@ class RegleTraitement(object):  # regle de mapping
 
         self.schema_courant = None
         self.menage = False
-
+        self.lecteurs = dict()
         self.memlimit = self.getvar("memlimit", 0)
         self.erreurs = []
         self.v_nommees = dict()

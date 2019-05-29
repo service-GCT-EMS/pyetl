@@ -466,7 +466,6 @@ def f_gridx(regle, obj):
                 regle.params.cmp1.num,
                 regle.params.cmp2.num,
                 xmin,xmax,
-                float(obj.attributs.get("#xmax", 0)),
             ),
         )
     #    print ('valeur de X', obj.attributs.get('X'))
@@ -482,16 +481,17 @@ def f_gridy(regle, obj):
     """
     if obj.virtuel:
         return False
-    fgrid(
-        regle,
-        obj,
-        grille(
-            regle.params.cmp1.num,
-            regle.params.cmp2.num,
-            float(obj.attributs.get("#ymin", 0)),
-            float(obj.attributs.get("#ymax", 0)),
-        ),
-    )
+    if obj.initgeom():
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+        fgrid(
+            regle,
+            obj,
+            grille(
+                regle.params.cmp1.num,
+                regle.params.cmp2.num,
+                ymin,ymax,
+            ),
+        )
     return True
 
 

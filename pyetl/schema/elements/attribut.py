@@ -282,7 +282,7 @@ class Attribut(object):
             return
         if self.type_att in {'E','EL','F','N','S','BS'}:
             self.typeconv=typeconv.get(self.type_att,str)
-            if self.dec == 0 and self.type_att not in {'F','N'} :
+            if self.dec == 0 and self.type_att not in {'F','N','EL','BS'} :
                 self.type_att = "EL"  if self.taille and self.taille >10 else "E"
             self.format_entree = "{:." + str(self.dec) + "f}"
 

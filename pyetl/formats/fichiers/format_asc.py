@@ -316,8 +316,6 @@ def lire_objets_asc(self, rep, chemin, fichier):
                     # if not geom and attributs['#type_geom']>'1':
                     #     print ('asc: attention pas de geom', attributs)
                     obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
-                    if obj is None:
-                        return self.nb_lus
                     finalise(self, obj, coords, geom, angle, dim)
                     geom=[]
                     # if coords:
@@ -328,7 +326,6 @@ def lire_objets_asc(self, rep, chemin, fichier):
                     # self.process(obj)
 
                 if code_1 in "9356":
-                    # obj = self.getobj()
                     classe, attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
                     if classe != dclasse:
                         self.setidententree(groupe,classe)
@@ -343,8 +340,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 geom.append(i)
         if attributs or geom:
             obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
-            if obj:
-                finalise(self, obj, coords, geom, angle, dim)
+            finalise(self, obj, coords, geom, angle, dim)
 
             # if obj is None:
             #     return self.nb_lus
@@ -357,7 +353,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
             # # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
             # self.process(obj)
         log_erreurs.send("")
-    return self.nb_lus
+    return
 
 
 def _ecrire_point_asc(point):

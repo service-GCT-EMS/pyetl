@@ -76,6 +76,7 @@ class Reader(object):
         self.regle_start = regle_start
         self.regle_ref = self.regle if regle is not None else self.regle_start
         stock_param = self.regle_ref.stock_param
+        self.maxobj = int(self.regle_ref.getvar("lire_maxi", 0))
         self.traite_objets = stock_param.moteur.traite_objet
         self.schema = None
         self.schema_entree = None
@@ -86,7 +87,6 @@ class Reader(object):
         self.classe = ""
         self.affich = 100000
         self.nextaff = self.affich
-        self.maxobj = 0
 
         self.aff = stock_param.aff
         if self.debug:
@@ -227,7 +227,7 @@ class Reader(object):
             "separ" + self.nom_format,
         ]
         self.separ = regle.getchain(sep_chain, ";")
-        self.maxobj = int(regle.getvar("lire_maxi", 0))
+
         self.setidententree(groupe, classe)
         # print('apres setidenttnetree', self.schemaclasse._id)
         self.fichier = os.path.join(rep, chemin, fichier)
@@ -327,11 +327,13 @@ class Reader(object):
         self.nb_lus += 1
         self.lus_fich += 1
         errs = []
-        if self.maxobj and self.nb_lus > self.maxobj:
-            return None
-        if self.nb_lus >= self.nextaff:
+        if self.maxobj and self.lus_fich > self.maxobj:
+            self.nb_lus -= 1
+            self.lus_fich -= 1
+            raise GeneratorExit
+        if self.lus_fich >= self.nextaff:
             self.nextaff += self.affich
-            self.aff.send(("interm", 0, self.nb_lus))
+            self.aff.send(("interm", 0, self.lus_fich))
         # print ('getobj', attributs, self.schemaclasse)
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)

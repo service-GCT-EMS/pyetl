@@ -133,7 +133,7 @@ def parallelprocess(numero, file, regle):
         printexception()
         raise
     return numero, nb_lu
-
+    raise E
 
 def endparallel(test=None):
     """termine un traitement parallele"""
