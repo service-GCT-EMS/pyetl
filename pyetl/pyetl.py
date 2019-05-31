@@ -524,7 +524,7 @@ class Pyetl(object):
             elif message == "end":
                 nbtotal += nbval
                 #                tabletotal += nbfic
-                affiche(message, nbtotal)
+                # affiche(message, nbtotal)
                 print(" fin d'affichage")
             #                raise GeneratorExit
             #                break
@@ -535,7 +535,9 @@ class Pyetl(object):
                 nop = nbtotal + nbval
             if message != "interm":
                 nbtotal += nbval
+                nbval = 0
                 interm = 0.001
+            print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
             tabletotal += nbfic
     #        except GeneratorExit:
     #            nbtotal += nbval
@@ -973,8 +975,7 @@ class Pyetl(object):
                         abort = True
                         nb_lu = 0
                         break
-
-                #                    self.aff.send(('fich', 1, nb_lu))
+                    # self.aff.send(('fich', 1, nb_lu))
                 self.aff.send(("end", 0, 0))
             #                self.aff.close()
 
@@ -1192,6 +1193,7 @@ class Pyetl(object):
             lecteur.lire_objets(self.racine, chemin, fichier)
         except GeneratorExit:
             pass
+        print ('fin lecture fichier', fichier)
         self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
         self.aff.send(("fich", 1, lecteur.lus_fich))

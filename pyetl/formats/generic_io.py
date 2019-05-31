@@ -331,7 +331,7 @@ class Reader(object):
             self.nb_lus -= 1
             self.lus_fich -= 1
             raise GeneratorExit
-        if self.lus_fich >= self.nextaff:
+        if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.lus_fich))
         # print ('getobj', attributs, self.schemaclasse)

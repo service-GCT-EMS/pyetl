@@ -206,16 +206,26 @@ class CsvWriter(FileWriter):
         geom = self.separ + "geometrie" + "\n" if self.schema.info["type_geom"] != "0" else "\n"
         return "!" + self.separ.join(self.liste_att) + geom
 
-    def write(self, obj):
-        """ecrit un objet"""
-        if obj.virtuel:
-            return False  #  les objets virtuels ne sont pas sortis
-
+    def prepare_attributs(self, obj):
+        ''' prepare la es attributs en fonction du format'''
         atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
         #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
         #                obj.geomnatif, obj.type_geom)
         #        print ('orig',obj.attributs)
         attributs = self.separ.join((i if i else self.null for i in atlist))
+        return attributs
+
+
+    def write(self, obj):
+        """ecrit un objet"""
+        if obj.virtuel:
+            return False  #  les objets virtuels ne sont pas sortis
+        attributs = self.prepare_attributs(obj)
+        # atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
+        #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
+        #                obj.geomnatif, obj.type_geom)
+        #        print ('orig',obj.attributs)
+        # attributs = self.separ.join((i if i else self.null for i in atlist))
         if self.type_geom != "0":
             if obj.format_natif == "#ewkt" and obj.geomnatif:  # on a pas change la geometrie
                 geom = obj.attributs['#geom']
@@ -307,10 +317,43 @@ class SqlWriter(CsvWriter):
         self.transtable = str.maketrans(
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )
+        self.htranstable = str.maketrans(
+            {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", '"':r'\"', self.separ: self.escape}
+        )
+
 
 
     def __repr__(self):
         return ('sqlwriter '+self.nom)
+
+    def prepare_hstore(self, val):
+        ''' gere le cas particulier du hstore '''
+
+
+
+    def prepare_attributs(self, obj):
+        ''' prepare la es attributs en fonction du format'''
+        if obj.hdict:
+            # atlist = []
+            atlist = (", ".join(['"'+i+'" => "'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())]) if nom in obj.hdict else
+            str(obj.attributs.get(nom, "")).translate(self.transtable) for nom in self.liste_att)
+            # for nom in self.liste_att:
+            #     if nom in obj.hdict:
+            #         val = ", ".join(['"'+i+'" => "'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())])
+            #         atlist.append(val)
+            #         # print ('traitement hdict', nom, val)
+            #     else:
+            #         atlist.append(obj.attributs.get(nom, "").translate(self.transtable))
+        else:
+            atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
+        return self.separ.join((i if i else self.null for i in atlist))
+
+        # atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
+        # #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
+        # #                obj.geomnatif, obj.type_geom)
+        # #        print ('orig',obj.attributs)
+        # attributs = self.separ.join((i if i else self.null for i in atlist))
+        # return attributs
 
     def header(self, init=1):
         separ = ","
@@ -396,7 +439,7 @@ class SqlWriter(CsvWriter):
         self.type_geom = schemaclasse.info["type_geom"]
         self.multi = schemaclasse.multigeom
         self.liste_att = schemaclasse.get_liste_attributs(attributs)
-        self.fichier.write(self.header(0))
+        self.fichier.write(self.header(init=0))
 
 
 def getfanout(regle, extention, ident, initial):

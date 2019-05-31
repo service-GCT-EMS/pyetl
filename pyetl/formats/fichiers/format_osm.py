@@ -265,10 +265,11 @@ def _getmembers(points, lignes, objets, elem):
             return (geom, perdus, ferme)
         if type_membre == "relation":
             if identifiant in objets:
-                rellist.append(identifiant, role)
+                rellist.append((identifiant, role))
             else:
                 perdus += 100000
         return (geom, perdus, ferme)
+    return [],0,False
 
 def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
     """ applique les regles de classification a l'objet """
