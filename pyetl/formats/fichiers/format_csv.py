@@ -655,4 +655,5 @@ WRITERS = {
 }
 
 #                  reader,geom,hasschema,auxfiles
-READERS = {"csv": (lire_objets_csv, "#ewkt", True, (), None), "txt": (lire_objets_csv, "#ewkt", True, (), None)}
+READERS = {"csv": (lire_objets_csv, "#ewkt", True, (), None),
+           "txt": (lire_objets_csv, "#ewkt", True, (), None)}
