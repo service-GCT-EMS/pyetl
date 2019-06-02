@@ -489,17 +489,24 @@ def h_httpdownload(regle):
     regle.chargeur = True
     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
     os.makedirs(path, exist_ok=True)
-    name = os.path.join(path, regle.params.cmp2.val)
-    regle.fichier = name
-
+    regle.path=path
+    if regle.params.cmp2.val:
+        name = os.path.join(path, regle.params.cmp2.val)
+        regle.fichier = name
+    else:
+        regle.fichier = None
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
- #aide_spec||;nom fichier; (attribut contenant le nom);http_download;url;
-   #pattern||;?C;?A;download;?C;C
+ #aide_spec||; url; (attribut contenant le url);http_download;repertoire;nom
+   #pattern||;?C;?A;download;?C;?C
       #test||notest
       """
     url = regle.getval_entree(obj)
+    if regle.fichier is None:
+        fichier = os.path.join(regle.path, os.path.basename(url))
+    else:
+        fichier = regle.fichier
     print("telechargement", url)
     retour = requests.get(url, stream=True)
     print("info", retour.headers)
@@ -510,7 +517,7 @@ def f_httpdownload(regle, obj):
     nb_pts = 0
     debut = time.time()
     if retour.status_code == 200:
-        with open(regle.fichier, "wb") as fich:
+        with open(fichier, "wb") as fich:
             for chunk in retour.iter_content(bloc):
                 recup += bloc  # ca c'est la deco avec des petits points ....
                 if recup > decile:
