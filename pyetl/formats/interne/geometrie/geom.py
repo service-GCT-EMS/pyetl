@@ -22,11 +22,12 @@ class Geometrie(object):
     def __init__(self):
         self.polygones = []
         self.lignes = []
-        self.point = None
+        self.points = []
         self.type = "indef"  # type de geometrie
         self.null = True  # geometrie nulle
         self.valide = False
         self.courbe = False
+        self.longueur_point = 0
         self.dimension = 0
         self.multi = 0
         self.npnt = 0
@@ -50,8 +51,8 @@ class Geometrie(object):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
         if self.null:
             return 0
-        if self.point:
-            return 1
+        if self.points:
+            return len(self.points)
         cc = self.lignes
         return sum([i.npt for i in cc]) - sum([len(i.sections) - (0 if i.ferme else 1) for i in cc])
 
@@ -72,11 +73,19 @@ class Geometrie(object):
         if self.null:  # geometrie non definie
             return '"geometry": null\n'
         if self.type == "1":  # point
-            return (
-                '"geometry": {\n"type": "Point",\n"coordinates":['
-                + ",".join(map(str, self.point.coords[0][:dim]))
-                + "]\n}"
-            )
+            if self.multi:
+                return (
+                    '"geometry": {\n"type": "MultiPoint",\n"coordinates":[\n['
+                    + "],\n[".join([",".join(map(str, i[:dim])) for i in self.coords])
+                    + "]\n]\n}"
+                )
+            else:
+                return (
+                    '"geometry": {\n"type": "Point",\n"coordinates":['
+                    + ",".join(map(str, self.points[0][:dim]))
+                    + "]\n}"
+                )
+
 
         if self.type == "2":
             #            print ('type 2')
@@ -173,7 +182,16 @@ class Geometrie(object):
             return {}
         dim = self.dimension
         if self.type == "1":  # point
-            return {"type": "Point", "coordinates": tuple(self.point.coords[0][:dim])}
+            multi = self.force_multi or self.multi or len(self.points) > 1
+            if multi:
+                return {
+                    "type": "MultiPoint",
+                    "coordinates": tuple(
+                        [tuple(p[:dim]) for p in self.coords]
+                    ),
+                }
+            else:
+                return {"type": "Point", "coordinates": tuple(self.points[0][:dim])}
 
         elif self.type == "2":
             multi = self.force_multi or self.multi or len(self.lignes) > 1
@@ -241,6 +259,12 @@ class Geometrie(object):
             return
         if geo_if["type"] == "Point":
             self.setpoint(geo_if["coordinates"], None, len(geo_if["coordinates"]))
+            self.finalise_geom(type_geom="1")
+
+        elif geo_if["type"] == "MultiPoint":
+            dim = len(geo_if["coordinates"][0])
+            for point in geo_if["coordinates"]:
+                self.addpoint(point, dim)
             self.finalise_geom(type_geom="1")
 
         elif geo_if["type"] == "LineString":
@@ -336,16 +360,27 @@ class Geometrie(object):
         self.dimension = dim
         self.srid = str(int(srid))
         self.valide = True
-        self.point = C.Point(coords, angle, dim)
+        self.dimension = dim
+        self.angle = angle
+        self.points = [list(coords)[:dim]]
         if coords is None:
             self.null = True
-        if longueur:
-            self.point.longueur = longueur
+        self.longueur_point = longueur
 
     #        print ('creation point ',coords, self.point.coords)
 
     def addpoint(self, pnt, dim):
         """ajoute un point a une geometrie"""
+
+        if self.type == "1":
+            if pnt is None:
+                self.null=True
+                return
+            if self.points:
+                self.points.append([list(pnt)[:dim]])
+                self.multi = 1
+                return
+
         if self.lignes:
             ligne_active = self.lignes[-1]
             if ligne_active.addpoint(pnt, dim):
@@ -441,7 +476,7 @@ class Geometrie(object):
         if self.null:
             return False
         if self.type == "1":
-            # self.npt=1
+            self.multi = len(self.points) > 1
             self.lignes = []
             self.polygones = []
             return True
@@ -493,7 +528,7 @@ class Geometrie(object):
 
         elif type_geom != "-1" and type_geom != "indef" and type_geom != self.type:
             self.erreurs.ajout_warning(
-                "attention geometrie demandee: " + type_geom + " trouve " + self.type
+                "attention geometrie demandee: " + str(type_geom) + " trouve " + str(self.type)
             )
         #            self.valide = 0
         #        print ('fin_geom2:type_geom ', self.type, type_geom)
@@ -599,8 +634,8 @@ class Geometrie(object):
     @property
     def coords(self):
         """ iterateur sur les coordonnees"""
-        if self.point:
-            return self.point.coords
+        if self.points:
+            return self.points
         if self.lignes:
             return itertools.chain(*[i.coords for i in self.lignes])
         return iter(())
@@ -621,8 +656,21 @@ class Geometrie(object):
         self.dimension = 2
         for i in self.lignes:
             i.set_2d()
-        if self.point:
-            self.point.set_2d()
+        # if self.point:
+        #     self.point.set_2d()
+
+    def set_3d(self):
+        """transforme la geometrie en 2d"""
+        if self.dimension == 3:
+            return
+        self.dimension = 3
+        for i in self.coords:
+            if len(i)<3:
+                i.append(0)
+        for i in self.lignes:
+            i.set_3d()
+        # if self.point:
+        #     self.point.set_2d()
 
     def setz(self, val_z, force=False):
         """force le z """
@@ -630,10 +678,12 @@ class Geometrie(object):
             if not force:
                 return
         self.dimension = 3
+        for i in self.coords:
+            i[2]=val_z if len(i)==3 else i.append(val_z)
         for i in self.lignes:
-            i.setz(val_z)
-        if self.point:
-            self.point.setz(val_z)
+            i.set_3d()
+        # if self.point:
+        #     self.point.setz(val_z)
 
     def emprise(self):
         """calcule l'emprise"""
@@ -655,8 +705,8 @@ class Geometrie(object):
         """longueur de la geometrie"""
         if self.null:
             return 0
-        if self.point:
-            return self.point.longueur
+        if self.points:
+            return self.longueur_point
         comp = self.lignes
         #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
         return sum(i.longueur for i in comp) if comp else 0
@@ -688,11 +738,11 @@ class Geometrie(object):
             return ()
         if self.null:
             return None
-        if self.point:
-            return (self.point.fold,(),())
-        crd = (tuple(i) for i in self.coords)
-        ldef = (i.sdef for i in self.lignes)
-        pdef = (len(i.lignes) for i in self.polygones)
+        crd = tuple(tuple(i) for i in self.coords)
+        if len(crd) == 1:
+            crd = (crd, self.angle, self.longueur_point)
+        ldef = tuple(i.sdef for i in self.lignes)
+        pdef = tuple(len(i.lignes) for i in self.polygones)
         return (crd,ldef,pdef)
 
     def unfold(self, folded):
@@ -712,6 +762,11 @@ class Geometrie(object):
             self.finalise_geom(type_geom="1")
             return
         dim = len(crd[0])
+        if not ldef:
+            for pnt in crd:
+                self.addpoint(pnt, dim)
+            self.finalise_geom(type_geom="1")
+            return
         if not pdef:
             for ligne in ldef:
                 depart=0

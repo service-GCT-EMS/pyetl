@@ -332,20 +332,14 @@ def f_coordp(regle, obj):
        #pattern||;?N;?A;coordp;;
        #helper||setval
        #test||obj;ligne||^;1;;coordp||atn;#y;1
-       #test1||obj;point||^;1;;coordp||atn;#y;2
+       #test1||obj;point||^;0;;coordp||atn;#y;2
+       #test2||obj;point||^;;;coordp||atn;#y;2
     """
     if obj.virtuel:
         return False
     if obj.initgeom():
         if obj.attributs["#type_geom"] == "0" or obj.geom_v.null:
             return False
-        if obj.attributs["#type_geom"] == "1":
-            obj.attributs.update(
-                zip(("#x", "#y", "#z"), [str(i) for i in obj.geom_v.point.coords[0]])
-            )
-            #            print("coordp1",list(zip(('#x', '#y', '#z'),
-            # [str(i) for i in obj.geom_v.point.coords[0]])))
-            return True
         position = regle.get_entree(obj)
         if not position:
             position = 0
@@ -354,7 +348,7 @@ def f_coordp(regle, obj):
 
         try:
             refpt = list(obj.geom_v.coords)[position]
-            #            print("coordp: ",list(obj.geom_v.coords),position,refpt)
+            # print("coordp: ",list(obj.geom_v.coords),position,refpt)
             obj.attributs.update(
                 zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
             )
@@ -797,7 +791,7 @@ def f_reproj(regle, obj):
               ||[grilles personnalisées] NG: pas de grilles cus
        #pattern||?A;C;;reproj;C;?C
        #schema||ajout_attribut
-       #test||obj;point||^;LL;;reproj;CC48;NG||^;1;;coordp||^#x;;#x;round||atn;#x;1404842
+       #test||obj;point||^;LL;;reproj;CC48;NG||^;;;coordp||^#x;;#x;round||atn;#x;1404842
         """
     if obj.virtuel:
         return False
@@ -808,8 +802,8 @@ def f_reproj(regle, obj):
         for pnt in obj.geom_v.coords:
             try:
                 gril, pnt[0], pnt[1] = proj.calcule_point_proj(pnt[0], pnt[1])
-            #                print (" projection calculee",gril, pnt[0], pnt[1])
-            #                print (obj.geom_v)
+                # print (" projection calculee",gril, pnt[0], pnt[1])
+                # print ('apres',obj.geom_v)
             except ValueError:
                 print("erreur projection", pnt)
                 obj.setnogeom()

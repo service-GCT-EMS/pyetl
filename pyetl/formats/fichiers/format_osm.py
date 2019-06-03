@@ -230,46 +230,62 @@ def _getpoints(points, elem):
     contour = ppt == dpt
     return (geom, ninc, contour, ppt, dpt)
 
+def _getplist(elem):
+    liste = tuple(int(i.get("ref")) for i in elem.iter(tag="nd"))
+    return liste
 
+def _getgeom(points, liste):
+    geom = list([points[i] for i in liste if i in points])
+    return (geom, len(liste) - len(geom), liste[0] == liste[-1] if liste else False)
 #    return _creeliste(points, liste)
 
 
 def _getmembers(points, lignes, objets, elem):
     """ decodage des structures de type relation  """
     geom = []
-    nodelist = []
+    # nodelist = []
     rellist = []
     perdus = 0
     ppt = None
     ferme = False
+    membres = None
     for i in elem.iter(tag="member"):
         type_membre = i.get("type")
+        if membres and type_membre != membres:
+            print ('attention melange de types', membres , '->', type_membre)
+        membres = type_membre
         identifiant = i.get("ref")
+        if identifiant:
+            identifiant =  int(identifiant)
         role = i.get("role")
         if type_membre == "node":
             if identifiant in points:
-                nodelist.append((identifiant, role))
+                # nodelist.append((identifiant, role))
+                geom.append((points[identifiant], role))
             else:
                 perdus += 1
-            return (geom, perdus, ferme)
+
+            # return (geom, perdus, ferme)
         if type_membre == "way":  # c est une multiligne ou un polygone
-            ligne, manquants, lferm, ppl, dpl = lignes.get(i.get("ref"), ("", 0, False, None, None))
+            ligne, manquants, lferm = lignes.get(i.get("ref"), ("", 0, False))
             ferme = lferm or ferme
-            ppt = ppt or ppl
             if ligne:
+                ppt = ppt or ligne[0]
                 geom.append((ligne, role))
-                ferme = ferme or ppt == dpl
+                ferme = ferme or ppt == ligne[-1]
                 perdus += manquants
             else:
                 perdus += 10000
-            return (geom, perdus, ferme)
+            # return (geom, perdus, ferme)
         if type_membre == "relation":
             if identifiant in objets:
                 rellist.append((identifiant, role))
             else:
                 perdus += 100000
-        return (geom, perdus, ferme)
-    return [],0,False
+
+    return (geom, perdus, ferme)
+
+
 
 def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
     """ applique les regles de classification a l'objet """
@@ -309,15 +325,21 @@ def classif_elem(elem, points, lignes, objets):
     if ido is None:
         print ('element non identifié', elem)
         return -1, None, None, None, None
+    ido = int(ido)
     if elem.tag == "node":
-        points[ido] = [float(elem.get("lon")), float(elem.get("lat")), 0]
+        points[int(ido)] = (float(elem.get("lon")), float(elem.get("lat")), 0)
         if attributs:
             type_geom = "1"
-            geom = [points[ido]]
+            geom = [(points[ido],'node')]
     elif elem.tag == "way":  # lignes
-        lignes[ido] = _getpoints(points, elem)
+        # lignes[ido] = _getpoints(points, elem)
+        lignes[ido] = tuple(int(i.get("ref")) for i in elem.iter(tag="nd"))
+
         if attributs:
-            ligne, manquants, ferme, _, _ = lignes[ido]
+            # ligne, manquants, ferme, _, _ = lignes[ido]
+            ligne, manquants, ferme = _getgeom(points, lignes[ido])
+            if manquants:
+                ferme = False
             if ligne:
                 geom = [(ligne, "outer")] if ferme else [(ligne, "way")]
                 type_geom = "3" if ferme else "2"
@@ -326,6 +348,8 @@ def classif_elem(elem, points, lignes, objets):
             geom, manquants, ferme = _getmembers(points, lignes, objets, elem)
             if geom:
                 type_geom = "3" if ferme else "2"
+            else:
+                type_geom = "0"
         else:
             print("element perdu", ido)
     else:
@@ -349,6 +373,8 @@ def lire_objets_osm(self, rep, chemin, fichier):
         self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
         minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1'
         setups = {"minimal":minitaglist}
+        if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
+            self.regle_ref.stock_param.set_param("fanout","classe")
         self.decodage = init_osm(self, config_osm, schema, setups)
         self.id_osm=set() # on initialise une structure de stockage des identifiants
     points = dict()

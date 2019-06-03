@@ -537,7 +537,7 @@ class Pyetl(object):
                 nbtotal += nbval
                 nbval = 0
                 interm = 0.001
-            print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
+            # print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
             tabletotal += nbfic
     #        except GeneratorExit:
     #            nbtotal += nbval
@@ -781,6 +781,12 @@ class Pyetl(object):
                 ("racine", "."),
                 ("job_control", ""),
                 ("aujourdhui", time.strftime("%Y/%m/%d 00:00:00")),
+                ("annee", time.strftime("%Y")),
+                ("mois", time.strftime("%m")),
+                ("jour", time.strftime("%D")),
+                ("jour_a", time.strftime("%j")),
+                ("jour_m", time.strftime("%d")),
+                ("jour_s", time.strftime("%w")),
                 ("stat_defaut", "affiche"),
                 ("debug", "0"),
                 ("fstat", ""),

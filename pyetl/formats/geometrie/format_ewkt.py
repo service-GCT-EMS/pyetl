@@ -194,14 +194,22 @@ def ecrire_coord_ewkt(dim):
     return _ecrire_coord_ewkt2d if dim == 2 else _ecrire_coord_ewkt3d
 
 
-def _ecrire_point_ewkt(point):
+def _ecrire_point_ewkt(geom):
     """ecrit un point"""
-    if point.coords:
+    if geom.points:
         return (
-            "POINT(" + _ecrire_coord_ewkt2d(point.coords[0]) + ")"
-            if point.dimension == 2
-            else "POINT(" + _ecrire_coord_ewkt3d(point.coords[0]) + ")"
+            "POINT(" + _ecrire_coord_ewkt2d(geom.points[0]) + ")"
+            if geom.dimension == 2
+            else "POINT(" + _ecrire_coord_ewkt3d(geom.points[0]) + ")"
         )
+    return ""
+
+def ecrire_multipoint(geom):
+    ''' ecrit un multipoint'''
+    if geom.points:
+        return ("MULTIPOINT((" + '),('.join(_ecrire_coord_ewkt2d(point) for point in geom.points) +'))'
+        if geom.dimension == 2
+        else "MULTIPOINT((" + '),('.join(_ecrire_coord_ewkt3d(point) for point in geom.points) +'))')
     return ""
 
 
@@ -343,7 +351,10 @@ def ecrire_geom_ewkt(geom, geometrie_demandee="-1", multiple=0, erreurs=None, fo
         return None
     courbe = geom.courbe
     if geometrie_demandee == "1":
-        geomt = _ecrire_point_ewkt(geom.point)
+        if multiple:
+            geomt = _ecrire_multipoint_ewkt(geom)
+        else:
+            geomt = _ecrire_point_ewkt(geom)
     elif geometrie_demandee == "2":
         if geom.lignes:
             geomt = (

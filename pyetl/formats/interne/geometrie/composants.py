@@ -43,54 +43,54 @@ def cercle_3pts(pt1, pt2, pt3):
     return pcentre, rayon
 
 
-class Point(object):
-    """# definition d'un point (oriente)"""
+# class Point(object):
+#     """# definition d'un point (oriente)"""
 
-    def __init__(self, coords, angle=None, dim=2):
-        if dim > 3:
-            dim = 3
-        self.coords = [list(coords)[:dim]] if coords is not None else []
-        self.angle = angle
-        self.dimension = dim
-        self.type = "1"
-        self.courbe = 0
-        self.longueur = 0
-        self.npt = 1
+#     def __init__(self, coords, angle=None, dim=2):
+#         if dim > 3:
+#             dim = 3
+#         self.coords = [list(coords)[:dim]] if coords is not None else []
+#         self.angle = angle
+#         self.dimension = dim
+#         self.type = "1"
+#         self.courbe = 0
+#         self.longueur = 0
+#         self.npt = 1
 
-    @property
-    def __json_if__(self):
-        return ",".join(map(str, self.coords[: self.dimension]))
+#     @property
+#     def __json_if__(self):
+#         return ",".join(map(str, self.coords[: self.dimension]))
 
-    @property
-    def __list_if__(self):
-        return [" ".join(map(str, self.coords[: self.dimension]))]
+#     @property
+#     def __list_if__(self):
+#         return [" ".join(map(str, self.coords[: self.dimension]))]
 
-    @property
-    def __ewkt__(self):
-        return "(" + " ".join(map(str, self.coords[: self.dimension])) + ")"
+#     @property
+#     def __ewkt__(self):
+#         return "(" + " ".join(map(str, self.coords[: self.dimension])) + ")"
 
-    def setz(self, val_z):
-        """ force le Z """
-        try:
-            self.coords[0][2] = val_z
-        except IndexError:
-            self.coords[0].append(val_z)
-        self.dimension = 3
+#     def setz(self, val_z):
+#         """ force le Z """
+#         try:
+#             self.coords[0][2] = val_z
+#         except IndexError:
+#             self.coords[0].append(val_z)
+#         self.dimension = 3
 
-    def set_2d(self):
-        """cache le z"""
-        self.dimension = 2
+#     def set_2d(self):
+#         """cache le z"""
+#         self.dimension = 2
 
-    #    def coordlist(self):
-    #        return iter([self.coords])
+#     #    def coordlist(self):
+#     #        return iter([self.coords])
 
-    def convert(self, fonction):
-        self.coords = fonction(self.coords)
+#     def convert(self, fonction):
+#         self.coords = fonction(self.coords)
 
 
-    @property
-    def fold(self):
-        return(tuple(self.coords),self.angle,self.longueur)
+#     @property
+#     def fold(self):
+#         return(tuple(self.coords),self.angle,self.longueur)
 
 
 class Section(object):
@@ -214,10 +214,10 @@ class Section(object):
         #            self.ferme = True
         return self
 
-    def setz(self, val_z):
-        """ force le Z """
-        self.coords = [[i[0], i[1], val_z] for i in self.coords]
-        self.dimension = 3
+    # def setz(self, val_z):
+    #     """ force le Z """
+    #     # self.coords = [[i[0], i[1], val_z] for i in self.coords]
+    #     self.dimension = 3
 
     def set_2d(self):
         """ cache le Z """
@@ -400,11 +400,11 @@ class Ligne(object):
         for i in self.sections:
             i.inverse()
 
-    def setz(self, val_z):
-        """force le z pour la ligne"""
-        self.dimension = 3
-        for i in self.sections:
-            i.setz(val_z)
+    # def setz(self, val_z):
+    #     """force le z pour la ligne"""
+    #     self.dimension = 3
+    #     for i in self.sections:
+    #         i.set3d()
 
     def set_2d(self):
         """cache le z pour la ligne"""

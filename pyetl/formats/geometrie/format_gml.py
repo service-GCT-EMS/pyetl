@@ -7,11 +7,14 @@ format interne geometrique pour le stockage en fichier temporaire
 """
 from itertools import chain
 
+
 def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
-    return "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+    return (
+        "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+    )
 
 
 # def ecrire_ligne_tmp(ligne):
@@ -34,7 +37,11 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
+    return (
+        ["P"]
+        + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes]))
+        + ["Q"]
+    )
 
 
 def _ecrire_polygones_tmp(polygones):
@@ -67,7 +74,7 @@ def geom_from_gml(obj):
     geom_v.type = "2"
     poly = None
     nouvelle_ligne = False
-    geom = obj.attributs['#geom']
+    geom = obj.attributs["#geom"]
     for i in geom:
         code = i[0]
         if code == "P":
@@ -94,6 +101,7 @@ def geom_from_gml(obj):
             geom_v.setpoint(pnt, None, len(pnt))
     return geom_v
 
+
 def geom_from_osm(obj):
     """ convertit une geometrie osm"""
     geomv = obj.geom_v
@@ -102,26 +110,30 @@ def geom_from_osm(obj):
     if not obj.attributs["#geom"]:
         obj.attributs["#type_geom"] = "0"
         return True
-    if obj.attributs["#type_geom"] == "1":
-        geomv.setpoint(obj.attributs["#geom"][0], None, 2)
+    for desc in obj.attributs["#geom"]:
+        element, role = desc
+        if role == "node" or role == "label":
+            geomv.type = "1"
+            geomv.addpoint(element, 2)
+        elif role == "way" or role == "inner" or role == "outer":
+            geomv.cree_section(element, 2, 1, 0, interieur=role == "inner")
+        else:
+            print("role inconnu", role, element)
 
-    else:
-        for sect, role in obj.attributs["#geom"]:
-            geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
-            # print ('osm:creation section ',lg)
+    # if obj.attributs["#type_geom"] == "1":
+    #     geomv.type = "1"
+    #     for desc in obj.attributs["#geom"]:
+    #         # print ('decodage desc', desc)
+    #         pnt, role = desc
+    #         geomv.addpoint(pnt, 2)
+    # else:
+    #     for sect, role in obj.attributs["#geom"]:
+    #         print("osm:creation section ", sect, role)
 
-    obj.finalise_geom(type_geom=obj.attributs["#type_geom"])
+    #         geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
+
+    obj.finalise_geom()
     return True
 
 
-
-
-
-
-
-
-
-GEOMDEF = {
-           "#gml": (ecrire_geometrie_gml, geom_from_gml),
-           "#osm": (None, geom_from_osm),
-           }
+GEOMDEF = {"#gml": (ecrire_geometrie_gml, geom_from_gml), "#osm": (None, geom_from_osm)}

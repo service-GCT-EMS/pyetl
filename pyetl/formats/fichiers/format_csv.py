@@ -318,7 +318,7 @@ class SqlWriter(CsvWriter):
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )
         self.htranstable = str.maketrans(
-            {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", '"':r'\"', self.separ: self.escape}
+            {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", '"':r'""', self.separ: self.escape}
         )
 
 

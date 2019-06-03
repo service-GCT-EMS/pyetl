@@ -248,21 +248,21 @@ def init_format_asc(reader):
     # print ('initialisation reader', reader.formatters)
     # raise
 
-def _get_schemas(regle, rep, fichier):
-    """definit le schemas de reference et les elementt immuables """
-    schema = None
-    schema_init = None
-    stock_param = regle.stock_param
-    stock_param.fichier_courant = os.path.splitext(fichier)[0]
-    if regle.getvar("schema_entree"):
-        schema = regle.getschema(regle.getvar("schema_entree"))
-        schema_init = schema
-    else:
-        if regle.getvar("autoschema"):
-            schema = stock_param.init_schema(
-                rep, origine="B", fich=fichier, stable=False
-            )
-    return schema, schema_init
+# def _get_schemas(regle, rep, fichier):
+#     """definit le schemas de reference et les elementt immuables """
+#     schema = None
+#     schema_init = None
+#     stock_param = regle.stock_param
+#     stock_param.fichier_courant = os.path.splitext(fichier)[0]
+#     if regle.getvar("schema_entree"):
+#         schema = regle.getschema(regle.getvar("schema_entree"))
+#         schema_init = schema
+#     else:
+#         if regle.getvar("autoschema"):
+#             schema = stock_param.init_schema(
+#                 rep, origine="B", fich=fichier, stable=False
+#             )
+#     return schema, schema_init
 
 def finalise(reader, obj, coords, geom, angle, dim):
     '''finalise un objet et le traite'''
@@ -356,20 +356,20 @@ def lire_objets_asc(self, rep, chemin, fichier):
     return
 
 
-def _ecrire_point_asc(point):
+def _ecrire_point_asc(geom):
     """retourne un point pour l'entete"""
 
-    dim = point.dimension
-    angle = round((90 - point.angle) * FA, 0) if point.angle is not None else 0
+    dim = geom.dimension
+    angle = round((90 - geom.angle) * FA, 0) if geom.angle is not None else 0
     try:
         if dim == 2:
-            ccx, ccy = point.coords[0][:2]
+            ccx, ccy = geom.coords[0][:2]
             code = ";3 "
             chaine = ",".join(
                 ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle))
             )
         else:
-            ccx, ccy, ccz = point.coords[0][:3]
+            ccx, ccy, ccz = geom.coords[0][:3]
             code = ";6 "
             chaine = ",".join(
                 (
@@ -382,7 +382,7 @@ def _ecrire_point_asc(point):
             )
         return code, chaine
     except ValueError:
-        print("erreur ecriture point", point.coords, dim)
+        print("erreur ecriture point", geom.coords, dim)
 
 
 def format_date(date):
@@ -426,7 +426,7 @@ def _ecrire_entete_asc(obj):
         fin_ent = fin_ent[:-1]
 
     if type_geom_sortie == "3":
-        code, chaine = _ecrire_point_asc(obj.geom_v.point)
+        code, chaine = _ecrire_point_asc(obj.geom_v)
         entete = code + idobj + chaine + fin_ent + ";\n"
     else:
         entete = type_geom_sortie + idobj + fin_ent + ";\n"

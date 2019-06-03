@@ -57,7 +57,7 @@ def _ecrire_polygones_tmp(polygones):
 def ecrire_geometrie_tmp(geom):
     """ecrit une geometrie en format temporaire"""
     if geom.type == "1":
-        return ["O"] + geom.point.__list_if__
+        return ["O"] + geom.__list_if__
     elif geom.type == "2":
         #        print("geom_tmp",geom,geom.type,len(geom.lignes) )
         if len(geom.lignes) > 1:
