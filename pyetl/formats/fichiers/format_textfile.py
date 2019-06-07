@@ -26,6 +26,8 @@ class TextWriter(fileio.FileWriter):
 def lire_textfile_ligne(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
     self.prepare_lecture_fichier(rep, chemin, fichier)
+    self.setidententree(self.groupe, self.classe)
+
     with open(self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace",) as ouvert:
         for ligne in ouvert:
             obj = self.getobj()
@@ -39,6 +41,8 @@ def lire_textfile_ligne(self, rep, chemin, fichier):
 def lire_textfile_bloc(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
     self.prepare_lecture_fichier(rep, chemin, fichier)
+    self.setidententree(self.groupe, self.classe)
+
     with open(self.fichier, "r", encoding=self.encoding, errors="backslashreplace",) as ouvert:
         contenu = "".join(ouvert.readlines())
         obj = self.getobj()

@@ -192,7 +192,7 @@ class Reader(object):
         obj.virtuel = True
         return obj
 
-    def prepare_lecture_fichier(self, rep, chemin, fichier):
+    def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True):
         """prepare les parametres de lecture"""
         regle = self.regle_ref
         self.lus_fich = 0
@@ -203,7 +203,7 @@ class Reader(object):
             chem, nom = os.path.split(chem)
             niveaux.append(nom)
 
-        groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
+        self.groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
         # print ('prepare lecture',self.schema_entree, self.schema, self.nomschema)
         if (
             not self.nomschema and self.cree_schema
@@ -211,7 +211,7 @@ class Reader(object):
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
             self.schema = stock_param.init_schema(self.nomschema, "L")
 
-        classe = os.path.splitext(fichier)[0]
+        self.classe = os.path.splitext(fichier)[0]
         regle.ext = os.path.splitext(fichier)[-1]
         defchain = [
             "encoding",
@@ -228,7 +228,7 @@ class Reader(object):
         ]
         self.separ = regle.getchain(sep_chain, ";")
 
-        self.setidententree(groupe, classe)
+        # self.setidententree(groupe, classe)
         # print('apres setidenttnetree', self.schemaclasse._id)
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):

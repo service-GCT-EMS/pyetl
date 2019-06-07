@@ -95,6 +95,8 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
     reader.prepare_lecture_fichier(rep,chemin,fichier)
+    reader.setidententree(reader.groupe, reader.classe)
+
     if separ is None:
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
@@ -432,6 +434,7 @@ class SqlWriter(CsvWriter):
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture de sql multiclasse on cree des entetes intermediaires"""
         #        print( 'dans changeclasse')
+        # raise
         self.fin_classe()
         self.schema = schemaclasse
         if schemaclasse.info["type_geom"] == "indef":  # pas de geometrie
