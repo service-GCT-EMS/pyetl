@@ -615,8 +615,9 @@ def h_dbclean(regle):
     base = nombase
     nom = regle.params.cmp2.val + ".sql"
     if base:
-        nomschema = regle.params.val_entree.val if regle.params.val_entree.val else base
-        script = DB.reset_liste_tables(regle, base, niveau, classe, nomschema)
+        script = DB.reset_liste_tables(regle, base, niveau, classe)
+        if not os.path.isabs(nom):
+            nom = os.path.join(regle.getvar('_sortie'),nom)
         if os.path.dirname(nom):
             os.makedirs(os.path.dirname(nom), exist_ok=True)
         print("ecriture script ", nom)

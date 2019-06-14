@@ -263,8 +263,8 @@ class Objet(object):
             sch = self.schema
             self.geom_v.type = sch.info["type_geom"]
             self.geom_v.multi = sch.multigeom
-            print ('geo_interface',sch.identclasse,self.geom_v.type,self.geom_v.multi, len(self.geom_v.points))
-            print (self)
+            # print ('obj:geo_interface',sch.identclasse,self.geom_v.type,self.geom_v.multi, len(self.geom_v.points))
+            # print (self)
             for i in liste:
                 if i in sch.attributs and sch.attributs[i].type_att == "D":
                     attributs[i] = (
@@ -302,7 +302,6 @@ class Objet(object):
                 },
                 "geometry": geom,
             }
-        #        print ('geo_interface', liste, goif)
         return goif
 
     def from_geo_interface(self, geoif):
