@@ -312,24 +312,25 @@ def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
 
 def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     if geometrie_demandee != type_geom:
+        if not isinstance(geometrie_demandee, str) or not isinstance(type_geom, str):
+            print ('attention type incorrect', type_geom)
+            raise TypeError
         if type_geom == "1" or geometrie_demandee == "1":
             if erreurs is not None:
                 erreurs.ajout_erreur(
-                    "fmt:geometrie_incompatible: demande "
-                    + str(type(geometrie_demandee))
-                    + str(geometrie_demandee)
+                    "fmt:geometrie incompatible: demande "
+                    + geometrie_demandee
                     + " existante: "
-                    + str(type_geom)
-                    + str(type(type_geom))
+                    + type_geom
                 )
             return 1
         if type_geom == "2":
             if erreurs is not None:
                 erreurs.ajout_erreur(
                     "fmt:la geometrie n'est pas un polygone demande "
-                    + str(geometrie_demandee)
+                    + geometrie_demandee
                     + " existante: "
-                    + str(type_geom)
+                    + type_geom
                 )
                 #            raise
             return 1

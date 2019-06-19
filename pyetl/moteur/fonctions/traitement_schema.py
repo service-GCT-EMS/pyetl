@@ -481,13 +481,39 @@ def f_diff_schema(regle, obj):
     """
     pass
 
+def h_schema_add_attribut(regle):
+    """cas statique : on ajoute les attributs a une liste de classes"""
+    if regle.params.cmp2.val:
+        nom_schema = regle.params.cmp1.val
+        classes = [
+                regle.stock_param.schemas[nom_schema].classes.get(i)
+                for i in regle.params.cmp2.liste
+            ]
+        for i in classes:
+            for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
+                #            print('ajout 2', att)
+                i.ajout_attribut_modele(regle.params.def_sortie, nom=att)
+        regle.valide='done'
+
 
 def f_schema_add_attribut(regle, obj):
     """#aide||ajoute un attribut a un schema sans toucher aux objets
        #pattern||A;;;sc_add_attr;C?;L?
        #test||obj||^Z;;;sc_add_attr||^W;Z;;info_schema;attribut||atv;W;1
     """
-    #    print('ajout attribut')
+
+    schemaclasse = obj.schema
+    if not schemaclasse:
+        return False
+    if schemaclasse.amodifier(regle):
+        for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
+            #            print('ajout 2', att)
+            schemaclasse.ajout_attribut_modele(regle.params.def_sortie, nom=att)
+    return True
+
+
+def h_schema_supp_attribut(regle):
+    """cas statique : on supprime les attributs a une liste de classes"""
     if regle.params.cmp1.val:
         nom_schema = regle.params.cmp1.val
         if regle.params.cmp2.val:
@@ -497,13 +523,13 @@ def f_schema_add_attribut(regle, obj):
             ]
         else:
             classes = regle.stock_param.schemas[nom_schema].classes.keys()
-    else:
-        classes = [obj.schema]
+        for i in classes:
+            for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
+                #            print('ajout 2', att)
+                if att in i.attributs:
+                    del i.attributs[att]
+        regle.valide='done'
 
-    for i in classes:
-        for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
-            #            print('ajout 2', att)
-            i.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
 def f_schema_supp_attribut(regle, obj):
@@ -511,21 +537,12 @@ def f_schema_supp_attribut(regle, obj):
        #pattern||A;;;sc_supp_attr;C?;L?
        #test||obj||^C1;;;sc_supp_attr||^W;C1;;info_schema;attribut||atv;W;0;
     """
-    #    print('ajout attribut')
-    if regle.params.cmp1.val:
-        nom_schema = regle.params.cmp1.val
-        if regle.params.cmp2.val:
-            classes = [
-                regle.stock_param.schemas[nom_schema].classes.get(i)
-                for i in regle.params.cmp2.liste
-            ]
-        else:
-            classes = regle.stock_param.schemas[nom_schema].classes.keys()
-    else:
-        classes = [obj.schema]
 
-    for i in classes:
+    schemaclasse = obj.schema
+    if not schemaclasse:
+        return False
+    if schemaclasse.amodifier(regle):
         for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
             #            print('ajout 2', att)
-            if att in i.attributs:
-                del i.attributs[att]
+            if att in schemaclasse.attributs:
+                del schemaclasse.attributs[att]

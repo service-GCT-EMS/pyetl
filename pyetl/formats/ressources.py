@@ -78,13 +78,20 @@ class Ressource(object):
             if self.etat == 1:
                 self.handler.close()
             self.etat = 2
+
     def bwrite(self, obj, id_regle):
+        """ ecritures bufferisees"""
+        # ident = obj.ident
+        # buffer = self.handler.buffer
+        # chaine = self.handler.convert(obj)
+        # if ident in buffer:
+        #     buffer[ident].append(chaine)
+        #     if len(buffer[ident] > 5000):
+        #         self.handler.writebuffer(buffer[ident], obj.schema)
+        #         del buffer[ident]
+        # else:
+        #     buffer[ident] = [chaine]
         try:
-            if self.etat != 1:
-                self.ouvrir(id_regle)
-            if self.lastid and self.lastid != obj.ident:
-                self.handler.changeclasse(obj.schema)
-            self.lastid = obj.ident
             if self.handler.bwrite(obj):
                 self.nbo += 1
         except IOError as err:

@@ -593,7 +593,7 @@ def get_connect(
     connect = dbaccess(stock_param, base, type_base=type_base, chemin=chemin)
 
     if connect is None:
-        LOGGER.error("connection base invalide" + str(base))
+        LOGGER.error("connection base invalide " + str(base))
         return None
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
@@ -942,23 +942,20 @@ def recup_donnees_req_alpha(
         stock_param.padd("_st_lu_tables", len(liste_tables) if liste_tables is not None else 0)
     return res
 
+def cre_script_reset(liste_tables, gensql):
+    # print ('reinit tables a traiter', travail)
+    script_clean = [gensql.prefix_charge(niveau, classe, "TDGS")+gensql.tail_charge(niveau, classe, "G")
+                    for niveau, classe in reversed(liste_tables)]
+    return  script_clean
+
 
 def reset_liste_tables(regle_courante, base, niveau, classe, type_base=None, chemin="", mods=None):
     """ genere un script de reset de tables"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante, base, niveau, classe, type_base=type_base, chemin=chemin, mods=mods
     )
-    if liste_tables:
-        travail = reversed(liste_tables)  # on inverse l'ordre c est de la destruction
-        gensql = connect.gensql
-
-        script2 = [gensql.prefix_charge(niveau, classe, "TDS") for niveau, classe in travail]
-
-        script1 = [gensql.prefix_charge(niveau, classe, "G") for niveau, classe in travail]
-        script3 = [gensql.tail_charge(niveau, classe, "G") for niveau, classe in travail]
-        print("reset:script a sortir ", len(script1), len(script2), len(script3))
-        return script1 + script2 + script3
-    return []
+    script_clean = cre_script_reset(liste_tables, connect.gensql) if liste_tables else []
+    return script_clean
 
 
 def recup_count(

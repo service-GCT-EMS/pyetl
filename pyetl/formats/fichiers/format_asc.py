@@ -287,6 +287,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
     angle = 0
     dim = 2
     self.prepare_lecture_fichier(rep, chemin, fichier)
+    self.setidententree(self.groupe, self.classe)
     classe = self.classe
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)

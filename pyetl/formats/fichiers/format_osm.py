@@ -5,7 +5,7 @@
 import os
 import time
 import xml.etree.cElementTree as ET
-
+from collections import defaultdict
 # print ('osm start')
 # import pyetl.schema as SC
 
@@ -28,7 +28,9 @@ class DecodeConfigOsm(object):
         self.niveau = vals[4]
         self.classe = vals[5]
         self.def_classes = vals[3]
-
+        self.conds = dict()
+        self.force_geom = vals[6]
+        self.multigeom = (vals[7] == '1')
         if vals[0] == "*":
             self.getident = self.decode_defaut
             self.liste_classes = None
@@ -38,20 +40,28 @@ class DecodeConfigOsm(object):
             self.clef = vals[0]
             self.sous_clef = vals[1]
             self.geom={int(j) for j in vals[2].split(',')}
-
             self.liste_classes=None
-            self.force_geom = vals[6] if vals[6] else None
-
-            for j in range(7, len(vals)):
+            for j in range(8, len(vals)):
                 if vals[j]:
                     vl2 = vals[j].split(":")
                     if len(vl2) == 1:
-                        self.atts.append((vl2[0], self.clef))
+                        self.storeatt(vl2[0], self.clef)
                     elif len(vl2) == 2:
-                        if vl2[1][0] == "#":
-                            self.static.append((vl2[0], vl2[1][1:]))
-                        else:
-                            self.atts.append((vl2[0], vl2[1]))
+                        self.storeatt(vl2[0], vl2[1])
+                    elif len(vl2) == 3: # definition de conditions supplementaires
+                        conditions = vl2[2].strip()[1:-1].split(',')
+                        self.storeatt(vl2[0], vl2[1])
+                        for cond in conditions:
+                            tag,val = cond.split('=')
+                            self.conds[vl2[0]]=(tag,val)
+
+    def storeatt(self, att, val):
+        if val.startswith("#"):
+            self.static.append((att, val[1:]))
+        else:
+            self.atts.append((att, val))
+
+
 
     def setliste(self, groupes):
         """stocke les listes associees"""
@@ -118,6 +128,7 @@ class DecodeConfigOsm(object):
         schemaclasse.stocke_attribut("tags", "H")
         #        schemaclasse.stocke_attribut('#all_tags', 'H')
         schemaclasse.info["type_geom"] = self.force_geom if self.force_geom else self.geom
+        schemaclasse.multigeom = self.multigeom
         incomplet = schemaclasse.copy(idref, None, filiation=False)
         incomplet.groupe = "osm_incomplet"
         self.schema.ajout_classe(incomplet)
@@ -134,6 +145,7 @@ class DecodeConfigOsm(object):
         #        else:
         #        if self.geom and type_geom != self.geom:
         #            return None
+        # print ('recu geom',geom)
         ident = self.getident(tagdict)
         if ident is None:
             return None
@@ -171,7 +183,7 @@ def init_osm(reader, config_osm, schema, setups=None):
 
     #    CONFIGFILE = os.path.join(os.path.dirname(__file__), config_osm)
     grouplist = dict()
-    decodage = {"1": [], "2": [], "3": []}
+    decodage = {"1": [], "2": [], "3": [],'4': []}
     if setups is None:
         setups=dict()
     # print ('setups decodage',setups)
@@ -240,50 +252,66 @@ def _getgeom(points, liste):
 #    return _creeliste(points, liste)
 
 
-def _getmembers(points, lignes, objets, elem):
+def _getmembers(reader, attributs, points, lignes, objets, elem, used):
     """ decodage des structures de type relation  """
     geom = []
+    membres = defaultdict(list)
     # nodelist = []
     rellist = []
     perdus = 0
     ppt = None
     ferme = False
-    membres = None
+
+    decodeurs = reader.decodage['4']
+    # print ('getmembers: decodeurs',decodeurs)
     for i in elem.iter(tag="member"):
         type_membre = i.get("type")
-        if membres and type_membre != membres:
-            print ('attention melange de types', membres , '->', type_membre)
-        membres = type_membre
         identifiant = i.get("ref")
-        if identifiant:
-            identifiant =  int(identifiant)
         role = i.get("role")
-        if type_membre == "node":
-            if identifiant in points:
-                # nodelist.append((identifiant, role))
-                geom.append((points[identifiant], role))
-            else:
-                perdus += 1
-
-            # return (geom, perdus, ferme)
-        if type_membre == "way":  # c est une multiligne ou un polygone
-            ligne, manquants, lferm = lignes.get(i.get("ref"), ("", 0, False))
-            ferme = lferm or ferme
-            if ligne:
-                ppt = ppt or ligne[0]
-                geom.append((ligne, role))
-                ferme = ferme or ppt == ligne[-1]
-                perdus += manquants
-            else:
-                perdus += 10000
-            # return (geom, perdus, ferme)
         if type_membre == "relation":
             if identifiant in objets:
                 rellist.append((identifiant, role))
             else:
                 perdus += 100000
+        else:
+            membres[type_membre].append((identifiant,role))
 
-    return (geom, perdus, ferme)
+    if len(membres)==1: # objet monotype
+        for type_membre in membres:
+            geomlist = membres[type_membre]
+            if type_membre == 'node':
+                for identifiant, role in geomlist:
+                    if identifiant in points:
+                    # nodelist.append((identifiant, role))
+                        used.append(identifiant)
+                        geom.append((points[identifiant], role))
+                    else:
+                        perdus += 1
+            elif type_membre == 'way':
+                for identifiant, role in geomlist:
+                    ligne, manquants, lferm = lignes.get(identifiant, ("", 0, False))
+                    ferme = lferm or ferme
+                    used.add(identifiant)
+                    if ligne:
+                        ppt = ppt or ligne[0]
+                        used.update(ligne)
+                        geom.append((ligne, role))
+                        ferme = ferme or ppt == ligne[-1]
+                        perdus += manquants
+                    else:
+                        perdus += 10000
+            elif type_membre == "relation":
+                for identifiant, role in geomlist:
+                    if identifiant in objets:
+                        rellist.append((identifiant, role))
+                    else:
+                        perdus += 100000
+        return (geom, perdus, ferme, rellist)
+    else: # objet multi_type
+        pass
+        print ('objet non decode',membres.items(), attributs)
+        return ([],0,False,[])
+
 
 
 
@@ -310,7 +338,7 @@ def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
     return None
 
 
-def classif_elem(elem, points, lignes, objets):
+def classif_elem(reader, elem, points, lignes, objets, used):
     """ classifie un element """
     ignore = {"tag", "nd", "member", "bounds","osm"}
     type_geom = "0"
@@ -331,12 +359,15 @@ def classif_elem(elem, points, lignes, objets):
         if attributs:
             type_geom = "1"
             geom = [(points[ido],'node')]
+            used.add(ido)
     elif elem.tag == "way":  # lignes
         # lignes[ido] = _getpoints(points, elem)
         lignes[ido] = tuple(int(i.get("ref")) for i in elem.iter(tag="nd"))
 
         if attributs:
             # ligne, manquants, ferme, _, _ = lignes[ido]
+            used.add(ido)
+            used.update(lignes[ido])
             ligne, manquants, ferme = _getgeom(points, lignes[ido])
             if manquants:
                 ferme = False
@@ -344,14 +375,15 @@ def classif_elem(elem, points, lignes, objets):
                 geom = [(ligne, "outer")] if ferme else [(ligne, "way")]
                 type_geom = "3" if ferme else "2"
     elif elem.tag == "relation":
-        if attributs:
-            geom, manquants, ferme = _getmembers(points, lignes, objets, elem)
-            if geom:
-                type_geom = "3" if ferme else "2"
-            else:
-                type_geom = "0"
+        geom, manquants, ferme, rellist = _getmembers(reader, attributs, points, lignes, objets, elem,used )
+        if geom:
+            type_geom = "3" if ferme else "2"
         else:
-            print("element perdu", ido)
+            type_geom = "0"
+        if rellist:
+            print('detecte relation',rellist)
+
+
     else:
         print("tag inconnu", elem.tag)
     return ido, attributs, geom, type_geom, manquants
@@ -371,17 +403,18 @@ def lire_objets_osm(self, rep, chemin, fichier):
         config_osm_def = os.path.join(os.path.dirname(__file__), "config_osm.csv")
         config_osm = self.regle_ref.getvar("config_osm", config_osm_def)
         self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
-        minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1'
+        minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites
         setups = {"minimal":minitaglist}
         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
             self.regle_ref.stock_param.set_param("fanout","classe")
         self.decodage = init_osm(self, config_osm, schema, setups)
-        self.id_osm=set() # on initialise une structure de stockage des identifiants
+    self.id_osm=set() # on initialise une structure de stockage des identifiants
     points = dict()
     lignes = dict()
     objets = dict()
+    used = set()
     for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
-        ido, attributs, geom, type_geom, manquants = classif_elem(elem, points, lignes, objets)
+        ido, attributs, geom, type_geom, manquants = classif_elem(self, elem, points, lignes, objets, used)
         if ido == -1:
             continue
         if self.gestion_doublons:
@@ -400,6 +433,11 @@ def lire_objets_osm(self, rep, chemin, fichier):
                 obj.attributs["#chemin"] = chemin
                 stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite le dernier objet
         elem.clear()
+    lostpt = set(points.keys()).difference(used)
+    print ('points_perdus', len(lostpt))
+    lostl = set(lignes.keys()).difference(used)
+    print ('lignes_perdues', len(lostl))
+
     return
 
 READERS = {"osm": (lire_objets_osm, "#osm", True, (), None)}

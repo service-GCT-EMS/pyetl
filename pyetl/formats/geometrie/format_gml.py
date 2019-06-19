@@ -105,6 +105,7 @@ def geom_from_gml(obj):
 def geom_from_osm(obj):
     """ convertit une geometrie osm"""
     geomv = obj.geom_v
+    # print ('conversion osm', geomv.valide, obj.attributs["#geom"])
     if geomv.valide:
         return True
     if not obj.attributs["#geom"]:

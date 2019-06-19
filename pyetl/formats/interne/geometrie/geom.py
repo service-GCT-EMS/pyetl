@@ -29,7 +29,7 @@ class Geometrie(object):
         self.courbe = False
         self.longueur_point = 0
         self.dimension = 0
-        self.multi = 0
+        self.multi = False
         self.npnt = 0
         self.srid = "3948"
         self.force_multi = False
@@ -177,11 +177,13 @@ class Geometrie(object):
 
     @property
     def __geo_interface__(self):
-        #        print ('geo_interface',self.__repr__())
         if self.type == "0":
             return {}
         dim = self.dimension
         if self.type == "1":  # point
+            if not self.points:
+                print ('geo_interface : point inexistant')
+                return {"type": "Point", "coordinates":()}
             multi = self.force_multi or self.multi or len(self.points) > 1
             if multi:
                 return {
@@ -357,6 +359,7 @@ class Geometrie(object):
         """cree une geometrie de point"""
         self.type = "1"
         self.null = False
+        self.multi = False
         self.dimension = dim
         self.srid = str(int(srid))
         self.valide = True
@@ -369,17 +372,19 @@ class Geometrie(object):
 
     #        print ('creation point ',coords, self.point.coords)
 
-    def addpoint(self, pnt, dim):
+    def addpoint(self, coords, dim):
         """ajoute un point a une geometrie"""
 
         if self.type == "1":
-            if pnt is None:
+            if coords is None:
                 self.null=True
                 return
-            if self.points:
-                self.points.append([list(pnt)[:dim]])
-                self.multi = 1
-                return
+            self.points.append(list(coords)[:dim])
+            self.multi = len(self.points)>1
+            self.valide = True
+            self.dimension = dim
+            # raise
+            return
 
         if self.lignes:
             ligne_active = self.lignes[-1]
@@ -490,7 +495,7 @@ class Geometrie(object):
                 #                print( 'finalisation', len(self.lignes))
                 for i in self.lignes:
                     aire = i.aire_orientee()
-                    if aire == 0:
+                    if aire == 0 and self.dimension==2:
                         self.erreurs.ajout_erreur("contour degénéré " + type_geom)
                         self.valide = False
                         return False
