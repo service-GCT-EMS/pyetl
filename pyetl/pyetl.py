@@ -576,12 +576,12 @@ class Pyetl(object):
 
     def regmacro(self, nom, file="", liste_commandes=None, vpos=None):
         """enregistrement d'une macro"""
-        nouvelle = Macro(nom, file=file)
+        nouvelle = Macro(nom, file=file, vpos=vpos)
         if liste_commandes is not None:
             nouvelle.commandes_macro = liste_commandes
-        if vpos is not None:
-            nouvelle.vpos = vpos
-        #        print ('enrregistrement macro',nom)
+        # if vpos is not None:
+        #     nouvelle.vpos = vpos
+        #print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
         self.macros[nom] = nouvelle
         return nouvelle
 

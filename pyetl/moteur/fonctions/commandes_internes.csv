@@ -208,14 +208,17 @@ gid;;;;#gid;;gid;set;;;fin;
 !============================ manipulation schemas =========================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#fusion_schema;nom;;;;;;;;;
-#!help;fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a cr�er;;;;;;;;;;
+#!help;fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a creer;;;;;;;;;;
 $format_schema=csv,xml;;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
 $nom=%nom%;fusion;;;;;;;;;;
 ;;;;#schema;%nom%;;lire_schema;%schema%;csv;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cree_sql;nom;dialecte;;;;;;;
-#!help;conversion de schemas en sql p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a cr�er;;;;;;;;;;
+#!help;conversion de schemas en sql
+#!desc;schema: racine des schemas a lire (*) lecture multiple
+#!desc;nom: nom du schema a creer;;;;;;;;;;
+#!desc;dialecte: type de sql a creer;;;;;
 $sans_entree=True;;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
 $dialecte=%dialecte%;sigli;;;;;;;;;;

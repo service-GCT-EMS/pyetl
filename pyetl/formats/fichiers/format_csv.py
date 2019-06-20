@@ -49,7 +49,7 @@ def decode_entetes_csv(reader, entete, separ):
     #     geom = schemaclasse.info["type_geom"] != "0"
     # else:
     #     schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
-    noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
+    noms_attributs = [i.strip().replace(" ", "_") for i in entete.split(separ)]
     # on verifie que les noms existent et sont uniques
     noms = set()
 

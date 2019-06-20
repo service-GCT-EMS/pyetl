@@ -294,6 +294,8 @@ class Reader(object):
             # print ('------nouvelle classe ',self.schemaclasse._id, self.schemaclasse.attmap)
             # print ('------controle', self.schema.get_classe(self.ident)._id)
             return
+        if self.schema_entree:
+            print ('mapping schema_entree impossible',self.ident,'->',self.schema_entree.classes.keys())
         self.newschema = True
         if self.schema:
             self.schemaclasse = self.schema.setdefault_classe(self.ident)

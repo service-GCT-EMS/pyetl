@@ -775,15 +775,16 @@ def affecte_variable(mapper, commande, context):
 
         #        valeur = affectation[pos_egal+1:]
         if not valeur:  # parametre vide
-            tmp_s = commande.split(";")[1:-1]  # on regarde s'il y a une valeur par defaut
+            # tmp_s = commande.split(";")[1:-1]  # on regarde s'il y a une valeur par defaut
             #            print ('defauts',tmp_s)
             #                    print ('init',i)
-            for j in tmp_s:
-                if j:
-                    valeur = j
-                    break
-        if not valeur:
-            valeur = ""
+            valeur = next((j for j in commande.split(";")[1:-1] if j), '')
+        #     for j in tmp_s:
+        #         if j:
+        #             valeur = j
+        #             break
+        # if not valeur:
+        #     valeur = ""
         if valeur.startswith("#env:") and valeur.split(":")[1]:
             # on affecte une variable d'environnement
             context.setvar(nom, mapper.env.get(valeur.split(":")[1], ""))

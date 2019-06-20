@@ -186,13 +186,13 @@ class Moteur(object):
 class Macro(object):
     """ structure de gestion des macros"""
 
-    def __init__(self, nom, file=""):
+    def __init__(self, nom, file="", vpos=None):
         self.nom = nom
         self.file = file
         self.commandes_macro = dict()
         self.help = ""
         self.help_detaillee = []
-        self.vpos = []
+        self.vpos = [] if vpos is None else [i for i in vpos if i and i !='\n']
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
