@@ -15,6 +15,8 @@ import logging
 import itertools
 from collections import defaultdict
 from pathlib import Path
+from zipfile import ZipFile
+
 
 # print('base',time.time()-t1)
 
