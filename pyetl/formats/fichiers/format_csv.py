@@ -481,34 +481,29 @@ def getfanout(regle, extention, ident, initial):
     return ressource, nom
 
 
-def change_ressource(
-    regle, obj, writerclass, separ, extention, entete, null, initial=False, geomwriter=None
-):
+def change_ressource(regle, obj, writer, initial= False):
     """ change la definition de la ressource utilisee si necessaire"""
-
+#separ, extention, entete, null, initial=False, geomwriter=None
     ident = obj.ident
 
-    ressource, nom = getfanout(regle, extention, ident, initial)
+    ressource, nom = getfanout(regle, writer.extension, ident, initial)
     #    ressource = sorties.get_res(regle.numero, nom)
 
     #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
-        if separ is None:
-            separ = regle.getchain(("separ_csv_out","separ_csv"), "|")
-            print('separateur retenu',separ)
         if not nom.startswith("#"):
             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
             os.makedirs(os.path.dirname(nom), exist_ok=True)
-        str_w = writerclass(
+        str_w = writer.writerclass(
             nom,
             obj.schema,
-            extention,
-            separ,
-            entete,
+            writer.extension,
+            writer.separ,
+            writer.header,
             encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
-            null=null,
+            null=writer.null,
             f_sortie=regle.f_sortie,
-            geomwriter=geomwriter,
+            geomwriter=writer.geomwriter,
         )
         ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
@@ -518,17 +513,7 @@ def change_ressource(
     return ressource
 
 
-def _csvstreamer(
-    writer,
-    obj,
-    regle,
-    _,
-    entete="csv",
-    separ=None,
-    extention=".csv",
-    null="",
-    writerclass=CsvWriter,
-):
+def csvstreamer(writer, obj, regle, _):
     """ ecrit des objets csv en streaming"""
     #    sorties = regle.stock_param.sorties
     if regle.dident == obj.ident:
@@ -537,13 +522,8 @@ def _csvstreamer(
         ressource = change_ressource(
             regle,
             obj,
-            writerclass,
-            separ,
-            extention,
-            entete,
-            null,
-            initial=True,
-            geomwriter=writer.geomwriter,
+            writer,
+            initial=True
         )
 
     ressource.write(obj, regle.numero)
@@ -553,9 +533,7 @@ def _csvstreamer(
 #        obj.schema.info['courbe'] = '1'
 
 
-def _ecrire_objets_csv(
-    writer, regle, _, entete="csv", separ=None, extention=".csv", null="", writerclass=CsvWriter
-):
+def ecrire_objets_csv(writer, regle, _):
     """ ecrit des objets csv a partir du stockage interne"""
     #    sorties = regle.stock_param.sorties
     #    numero = regle.numero
@@ -573,13 +551,8 @@ def _ecrire_objets_csv(
                 ressource = change_ressource(
                     regle,
                     obj,
-                    writerclass,
-                    separ,
-                    extention,
-                    entete,
-                    null,
+                    writer,
                     initial=False,
-                    geomwriter=writer.geomwriter,
                 )
 
             ressource.write(obj, regle.numero)
@@ -588,10 +561,33 @@ def _ecrire_objets_csv(
     #                obj.schema.info['courbe'] = '1'
     return
 
+def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
+    print ('initialisation writer', extension, header)
+    writer.separ = separ
+    writer.extension = extension
+    writer.header = header
+    writer.null = null
+    writer.writerclass = writerclass
 
-def ecrire_objets_txt(self, regle, final):
-    """format txt (csv sans entete) pour postgis"""
-    return _ecrire_objets_csv(self, regle, final, False, "\t", ".txt")
+def init_csv(writer):
+    separ = writer.regle.getchain(("separ_csv_out","separ_csv"), "|")
+    initwriter(writer, '.csv', 'csv', ';' if separ == '#std' else separ,'')
+
+def init_txt(writer):
+    separ = writer.regle.getchain(("separ_txt_out","separ_txt"), "\t")
+    initwriter(writer, '.txt', False, ';' if separ == '#std' else separ,'')
+
+def init_geo(writer):
+    initwriter(writer, '.geo', False, '  ', '')
+
+def init_sql(writer):
+    initwriter(writer, '.sql', "sql", '\t', r"\N", writerclass=SqlWriter)
+
+
+# def ecrire_objets_txt(self, regle, final):
+#     """format txt (csv sans entete) pour postgis"""
+#     # return _ecrire_objets_csv(self, regle, final, False, "\t", ".txt")
+#     return _ecrire_objets_csv(self, regle, final)
 
 
 def lire_objets_txt(self, rep, chemin, fichier):
@@ -606,21 +602,23 @@ def lire_objets_txt(self, rep, chemin, fichier):
     return _lire_objets_csv(self, rep, chemin, fichier, entete, separ=separ)
 
 
-def txtstreamer(self, obj, regle, final):
-    """format txt en straming"""
-    return _csvstreamer(self, obj, regle, final, False, "\t", ".txt")
+# def txtstreamer(self, obj, regle, final):
+#     """format txt en straming"""
+#     # return _csvstreamer(self, obj, regle, final, False, "\t", ".txt")
+#     return _csvstreamer(self, obj, regle, final)
 
 
-def csvstreamer(self, obj, regle, final):
-    """format txt en straming"""
-    separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
-    return _csvstreamer(self, obj, regle, final, "csv", separ, ".csv")
+# def csvstreamer(self, obj, regle, final):
+#     """format txt en straming"""
+#     # separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
+#     # return _csvstreamer(self, obj, regle, final, "csv", separ, ".csv")
+#     return _csvstreamer(self, obj, regle, final)
 
-
-def ecrire_objets_csv(self, regle, final):
-    """format txt (csv sans entete) pour postgis"""
-    separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
-    return _ecrire_objets_csv(self, regle, final, "csv", separ, ".csv")
+# def ecrire_objets_csv(self, regle, final):
+#     """format txt (csv sans entete) pour postgis"""
+#     # separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
+#     # return _ecrire_objets_csv(self, regle, final, "csv", separ, ".csv")
+#     return _ecrire_objets_csv(self, regle, final)
 
 
 def lire_objets_csv(self, rep, chemin, fichier):
@@ -628,34 +626,35 @@ def lire_objets_csv(self, rep, chemin, fichier):
     return _lire_objets_csv(self, rep, chemin, fichier)
 
 
-def ecrire_objets_geo(self, regle, final):
-    """geodatabase pour les outils topo"""
-    return _ecrire_objets_csv(self, regle, final, False, "  ", ".geo")
+# def ecrire_objets_geo(self, regle, final):
+#     """geodatabase pour les outils topo"""
+#     return _ecrire_objets_csv(self, regle, final)
 
 
-def ecrire_objets_sql(self, regle, final):
-    """format sql copy pour postgis"""
+# def ecrire_objets_sql(self, regle, final):
+#     """format sql copy pour postgis"""
 
-    return _ecrire_objets_csv(
-        self, regle, final, "sql", "\t", ".sql", null=r"\N", writerclass=SqlWriter
-    )
-
-
-def sqlstreamer(self, obj, regle, final):
-    """format sql copy pour postgis en streaming """
-
-    return _csvstreamer(
-        self, obj, regle, final, "sql", "\t", ".sql", null=r"\N", writerclass=SqlWriter
-    )
+#     return _ecrire_objets_csv(
+#         self, regle, final,
+#     )
 
 
-# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
+# def sqlstreamer(self, obj, regle, final):
+#     """format sql copy pour postgis en streaming """
+
+#     return _csvstreamer(
+#         self, obj, regle, final,
+#     )
+
+
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,initer)
 WRITERS = {
-    "csv": (ecrire_objets_csv, csvstreamer, True, "low", 0, "csv", "classe", "#ewkt", "#ewkt"),
-    "txt": (ecrire_objets_txt, txtstreamer, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt"),
-    "sql": (ecrire_objets_sql, sqlstreamer, True, "low", 0, "txt", "all", "#ewkt", "#ewkt"),
-    "geo": (ecrire_objets_geo, None, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt"),
+    "csv": (ecrire_objets_csv, csvstreamer, True, "low", 0, "csv", "classe", "#ewkt", "#ewkt", init_csv),
+    "txt": (ecrire_objets_csv, csvstreamer, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt", init_txt),
+    "sql": (ecrire_objets_csv, csvstreamer, True, "low", 0, "txt", "all", "#ewkt", "#ewkt",init_sql),
+    "geo": (ecrire_objets_csv, csvstreamer, True, "low", 0, "txt", "classe", "#ewkt", "#ewkt",init_geo),
 }
 
-#                  reader,geom,hasschema,auxfiles
-READERS = {"csv": (lire_objets_csv, "#ewkt", True, (), None), "txt": (lire_objets_csv, "#ewkt", True, (), None)}
+#                  reader,geom,hasschema,auxfiles,initer
+READERS = {"csv": (lire_objets_csv, "#ewkt", True, (), None),
+           "txt": (lire_objets_csv, "#ewkt", True, (), None)}

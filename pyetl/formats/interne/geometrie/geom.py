@@ -388,12 +388,12 @@ class Geometrie(object):
 
         if self.lignes:
             ligne_active = self.lignes[-1]
-            if ligne_active.addpoint(pnt, dim):
+            if ligne_active.addpoint(coords, dim):
                 # la ligne est fermee
-                self.nouvelle_ligne_p(pnt, dim)
+                self.nouvelle_ligne_p(coords, dim)
                 # on ajoute un point a une nouvelle ligne
         else:
-            self.lignes = [C.Ligne(C.Section(pnt, dim))]
+            self.lignes = [C.Ligne(C.Section(coords, dim))]
 
     #
 

@@ -27,8 +27,10 @@ def loadmodules():
             "fanout",
             "geom",
             "tmp_geom",
+            "initer",
             "geomwriter",
             "tmpgeomwriter",
+
         ),
     )
 

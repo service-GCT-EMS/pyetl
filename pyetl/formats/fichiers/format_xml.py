@@ -250,4 +250,4 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
 
 READERS = {"xml": (lire_objets_xml, "#gml", False, (), None)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml")}
+WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml",None)}

@@ -71,9 +71,10 @@ WRITERS = {
         "all",
         None,
         None,
+        None,
     ),
-    "#comptage": (compte_obj, compte_obj_stream, False, "no", 0, "", "all", None, None),
-    "print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None),
+    "#comptage": (compte_obj, compte_obj_stream, False, "no", 0, "", "all", None, None,None),
+    "print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None,None),
 }
 #                  reader,geom,hasschema,auxfiles
 READERS = {"interne": (None, None, False, (), None)}

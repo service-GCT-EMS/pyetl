@@ -95,4 +95,4 @@ READERS = {
             "text": (lire_textfile_bloc, "", False, (), None),
             }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "")}
+WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "",None)}

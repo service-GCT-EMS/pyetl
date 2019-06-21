@@ -638,7 +638,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
             ressource.write(obj, regle.numero)
 
 
-#                       reader,      geom,    hasschema,  auxfiles, converter, initer
+#                       reader,      geom,    hasschema,  auxfiles, initer
 READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"),  init_format_asc)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
@@ -652,6 +652,7 @@ WRITERS = {
         "groupe",
         "geom_asc",
         "geom_asc",
+        None
     )
 }
 #########################################################################

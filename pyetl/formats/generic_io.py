@@ -11,6 +11,7 @@ commencent par format_
 """
 import os
 import codecs
+import re
 import logging
 from types import MethodType
 
@@ -69,8 +70,10 @@ class Reader(object):
     #    auxiliaires = AUXILIAIRES
     #    auxiliaires = {a:AUXILIAIRES.get(a) for a in LECTEURS}
 
-    def __init__(self, nom, regle, regle_start, debug=0):
+    def __init__(self, nom, regle, regle_start, debug=1):
         self.nom_format = nom
+        self.filters = {'in': self.listfilter, '=': self.valuefilter, 're': self.regexfilter}
+        self.filter=None
         self.debug = debug
         self.regle = regle  # on separe la regle de lecture de la regle de demarrage
         self.regle_start = regle_start
@@ -87,7 +90,6 @@ class Reader(object):
         self.classe = ""
         self.affich = 100000
         self.nextaff = self.affich
-
         self.aff = stock_param.aff
         if self.debug:
             print("debug:format: instance de reader ", nom, self.schema)
@@ -98,7 +100,7 @@ class Reader(object):
         if nom in self.lecteurs:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
             description = self.lecteurs[nom]
-            # print ('initialisation reader',description)
+            print ('initialisation reader',description)
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
@@ -110,6 +112,7 @@ class Reader(object):
             self.formatters = dict()
             if self.initer:
                 self.initer(self)
+            self.initfilter()
             stock_param = self.regle_ref.stock_param
             self.schema_entree = stock_param.schemas.get(
                 self.regle_ref.getvar("schema_entree")
@@ -196,6 +199,7 @@ class Reader(object):
         """prepare les parametres de lecture"""
         regle = self.regle_ref
         self.lus_fich = 0
+        self.chemin = chemin
         stock_param = regle.stock_param
         chem = chemin
         niveaux = []
@@ -237,6 +241,18 @@ class Reader(object):
     def process(self, obj):
         """renvoie au moteur de traitement"""
         self.traite_objets(obj, self.regle_start)
+
+    def alphaprocess(self,attributs):
+        # print ('alphaprocess', self, self.filter)
+        obj = self.getobj(attributs=attributs)
+        if obj:
+            obj.attributs["#type_geom"] = '0'
+            obj.attributs["#chemin"] = self.chemin
+            self.traite_objets(obj, self.regle_start)
+        # else:
+        #     print ('rejet')
+
+
 
     def get_info(self):
         """ affichage du format courant : debug """
@@ -315,6 +331,39 @@ class Reader(object):
         """mappe les attributs par un dictionnaire"""
         return [(self.schemaclasse.attmap.get(i, i), v) for i, v in attributs]
 
+    def initfilter(self):
+        readfilter = self.regle_ref.getvar('readfilter')
+        if readfilter:
+            filterdef = readfilter.split(':',3)
+            field,type,vals = filterdef
+            if type == 're':
+                vals=re.compile(vals)
+            elif type == 'in':
+                vals = set(i.strip() for i in vals[1:-1].split(','))
+            self.filter = self.filters.get(type)
+            self.filterfield = field
+            self.filtervalue = vals
+            print ('filtrage entree active', readfilter,self, self.filter)
+
+    def valuefilter(self, attributs):
+        try:
+            return attributs[self.filterfield]==self.filtervalue
+        except KeyError:
+            return False
+
+    def regexfilter(self, attributs):
+        try:
+            return self.filtervalue.match(attributs[self.filterfield])
+        except KeyError:
+            return False
+
+    def listfilter(self, attributs):
+        # print ('appel listfilter', attributs[self.filterfield] in self.filtervalue)
+        try:
+            return attributs[self.filterfield] in self.filtervalue
+        except KeyError:
+            return False
+
     def getobj(
         self,
         attributs=None,
@@ -336,7 +385,16 @@ class Reader(object):
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.lus_fich))
-        # print ('getobj', attributs, self.schemaclasse)
+        # print ('getobj', self.filter, attributs)
+        if self.filter and attributs:
+            # print ('filter ',self.filter(dict(attributs)))
+            if isinstance(attributs, dict):
+                if not self.filter(attributs):
+                    return None
+            else:
+                if not self.filter(dict(attributs)):
+                # if not self.filter(attributs):
+                    return None
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)
             attributs = self.attremap(attributs)
@@ -436,8 +494,10 @@ class Writer(object):
         self.multiclasse = self.def_sortie.fanout != "classe"
         self.fanoutmax = self.def_sortie.fanout
         self.schema_sortie = self.regle.getvar("schema_sortie", None)
-
-    #        print('writer : positionnement dialecte',nom, self.nom_format, self.writerparms)
+        self.initer = self.def_sortie.initer
+        if self.initer:
+            self.initer(self)
+            # print('writer : initialisation',nom, self.nom_format, self.def_sortie, self.__dict__)
 
     def get_info(self):
         """ affichage du format courant : debug """

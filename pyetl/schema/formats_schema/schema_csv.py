@@ -257,7 +257,7 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         val_conf = i.replace("\n", "").split(";")
         if not val_conf:
             continue
-        nom = val_conf[0].lower()
+        nom = val_conf[0].lower().strip()
         if not nom:
             continue
         if len(val_conf) < 2:
@@ -266,8 +266,8 @@ def decode_conf_csv(schema_courant, entree, mode_alias=None):
         externe = val_conf[1] == "#externe"  # contrainte externe definie en base mais non connue
         conf = schema_courant.get_conf(nom, type_c="#EXTERNE" if externe else "")
         ordre = int(val_conf[1]) if val_conf[1].isnumeric() else 0
-        valeur = val_conf[2]
-        alias = val_conf[3] if len(val_conf) > 3 else ""
+        valeur = val_conf[2].strip()
+        alias = val_conf[3].strip() if len(val_conf) > 3 else ""
         mode_fichier = int(val_conf[4]) if len(val_conf) > 4 and val_conf[4].isdigit() else None
         if force is not None:
             mode = force

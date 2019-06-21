@@ -501,10 +501,10 @@ READERS = {
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "shp": (ecrire_objets, gdalstreamer, True, "up", 10, "ESRI Shapefile", "classe", None, "#tmp"),
-    "mif": (ecrire_objets, gdalstreamer, True, "", 0, "MapInfo File", "classe", None, "#tmp"),
-    "dxf": (ecrire_objets, gdalstreamer, True, "", 0, "DXF", "classe", None, "#tmp"),
-    "gpkg": (ecrire_objets_b, gdalstreamer_b, True, "", 0, "GPKG", "all", None, "#tmp"),
+    "shp": (ecrire_objets, gdalstreamer, True, "up", 10, "ESRI Shapefile", "classe", None, "#tmp",None),
+    "mif": (ecrire_objets, gdalstreamer, True, "", 0, "MapInfo File", "classe", None, "#tmp",None),
+    "dxf": (ecrire_objets, gdalstreamer, True, "", 0, "DXF", "classe", None, "#tmp",None),
+    "gpkg": (ecrire_objets_b, gdalstreamer_b, True, "", 0, "GPKG", "all", None, "#tmp",None),
 }
 
 

@@ -355,5 +355,5 @@ def ecrire_objets_excel(
 
 
 READERS = {"xlsx": (lire_objets_excel, "", False, (), None)}
-# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {"xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "")}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom, initer)
+WRITERS = {"xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "",None)}

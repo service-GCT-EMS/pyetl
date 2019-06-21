@@ -1054,7 +1054,7 @@ class SchemaClasse(object):
         else:
             if self.pkey_simple:
                 pk = (str(self.indexes[i]) for i in sorted(self.indexes) if i.startswith("P"))[0]
-            self.pkref = pk
+                self.pkref = pk
             self.autopk = mode
 
     def copy(self, ident, schema2, filiation=True):

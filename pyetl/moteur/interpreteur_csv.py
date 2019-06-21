@@ -491,6 +491,16 @@ def analyse_operation(regle):
     if not regle.mode or (regle.valide and not regle.fonc):
         afficher_erreurs(regle, None, "regle sans fonction ")
 
+def stocke_vloc(context,vldef):
+    '''stocke une definition de variables locales'''
+    vldef, binding = map_vars(vldef, context)
+    listevlocs = ([i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')] if "=>" in vldef
+                 else vldef.split(","))
+    for i in listevlocs:
+        #        print('detecte', i)
+        nom, val, *_ = i.split("=") + [""]
+        context.setlocal(nom.strip(), val.strip())
+
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
