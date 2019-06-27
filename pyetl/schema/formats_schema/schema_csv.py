@@ -232,9 +232,6 @@ def lire_mapping(schema_courant, fichier, codec):
     schema_courant.init_mapping(liste_mapping)
 
 
-    # print ('lecture_mapping','\n'.join(liste_mapping[:10]), schema_courant.map_dest(('','')))
-
-
 def decode_conf_csv(schema_courant, entree, mode_alias=None):
     """decode un tableau de conformites
     se presente sous la forme:  nom;ordre,valeur;alias;mode
@@ -412,9 +409,10 @@ def decode_classes_csv(schema_courant, entree):
         if i[0] == "!":
             if i.startswith("!meta;"):  # le fichier contient des metadonnees
                 v_tmp = [
-                    j.strip().split("=") if "=" in j else [j.strip(), ""] for j in i.split(";")
+                    j.strip().split("=") if "=" in j else [j.strip(), ""] for j in i.split(";") if j.strip() and j!='!meta'
                 ]
-                metas = {nom: val for nom, val in v_tmp}
+                print ('decodage metas', v_tmp)
+                metas = {var[0]: var[1] for var in v_tmp}
                 schema_courant.metas = metas
             continue
         v_tmp = [j.strip() for j in i.split(";")]
@@ -441,8 +439,6 @@ def decode_classes_csv(schema_courant, entree):
         if groupe and nom:
             schema_courant.origine = "L"
             idorig = (groupe, nom)
-            # ident = schema_courant.map_dest(idorig)
-            # if not ident:
             ident = idorig
             classe = schema_courant.setdefault_classe(ident)
             attr = v_tmp[2]
@@ -493,8 +489,8 @@ def decode_classes_csv(schema_courant, entree):
                     obligatoire=obligatoire,
                     multiple=multiple,
                 )
-                #                    print ('sio:stocke_attribut',attr,type_attr,nom_court)
-                #                    print ('stocke',classe.attributs[attr].type_att)
+                # print ('sio:stocke_attribut',attr,type_attr,nom_court, v_tmp)
+                # print ('stocke',classe.attributs[attr].type_att)
                 if graphique:
                     classe.stocke_attribut(
                         attr + "_X",

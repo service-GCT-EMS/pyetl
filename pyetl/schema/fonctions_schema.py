@@ -751,18 +751,18 @@ def ajuste_schema(schema, obj, conf=0):
     ajuste_schema_classe(classe, obj, conf)
 
 
-def map_dest(mapp, id_orig):
-    """retourne la destination du mapping"""
-    id_dest = mapp.mapping_destination.get(id_orig)
-    if id_dest:
-        return id_dest
-    #    print ('mapping',mapp.mapping_destination)
-    if id_orig[1] in mapp.mappings_ambigus:
-        print(" mapping ambigu ", id_orig[1])
-        #        raise ValueError
-        return None
-    id_dest = mapp.mapping_class_destination.get(id_orig[1])
-    return id_dest
+# def map_dest(mapp, id_orig):
+#     """retourne la destination du mapping"""
+#     id_dest = mapp.mapping_destination.get(id_orig)
+#     if id_dest:
+#         return id_dest
+#     #    print ('mapping',mapp.mapping_destination)
+#     if id_orig[1] in mapp.mappings_ambigus:
+#         print(" mapping ambigu ", id_orig[1])
+#         #        raise ValueError
+#         return None
+#     id_dest = mapp.mapping_class_destination.get(id_orig[1])
+#     return id_dest
 
 
 def mapping(mapp, classes, id_cl):

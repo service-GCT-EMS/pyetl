@@ -146,7 +146,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         else:
             nom = att.nom
         nom = sc_classe.minmajfunc(nom)
-        #        print ("fiona:", sc_classe.nom, " attribut", i, att.nom_court, nom, l_nom)
+        # print ("fiona:", sc_classe.nom, " attribut", i, att.nom_court, nom, l_nom)
         if att.conformite:
             att.type_att = "T"
             att.taille = att.conformite.taille
@@ -182,10 +182,9 @@ def lire_objets(self, rep, chemin, fichier):
             # print ('recup fiona',source.driver, source.schema)
             self.setidententree(self.groupe,layer)
             if self.newschema:
-                self.schemaclasseclasse = recup_schema_fiona(
-                    self.schemaclasse, (self.groupe, self.classe), source.schema, source.driver
+                self.schemaclasse = recup_schema_fiona(
+                    self.schemaclasse.schema, (self.groupe, self.classe), source.schema, source.driver
                 )
-            # print ('schema recupere',self.schemaclasseclasse)
 
             driver = source.driver
 

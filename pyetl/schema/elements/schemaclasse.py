@@ -980,22 +980,22 @@ class SchemaClasse(object):
         """on essaye d'eviter les existants"""
         essai = 0
         repl = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        nom = nom_orig.upper()
-        while nom in self.noms_courts and essai < 35:
+        nom = nom_orig
+        while nom.upper() in self.noms_courts and essai < 35:
             if len(nom) < taille:
                 nom = nom + "1"
             else:
                 nom = nom[:-1] + repl[essai]
             essai += 1
-        if nom in self.noms_courts:
+        if nom.upper() in self.noms_courts:
             print("echec raccourcissement", nom)
-        self.noms_courts.add(nom)
+        self.noms_courts.add(nom.upper())
         return nom
 
     def cree_noms_courts(self, longueur=10, abrev=None):
         """genere des noms courts pour les sorties shape """
         self.noms_courts = set()
-        a_supp = "YUOIAEBCDFGHJKLMNPQRSTVWXYZ0123456789"
+        a_supp = "YyUuOoIiAaEeBbCcDdFfGgHhJjKkLlMmNnPpQqRrSsTtVvWwXxYyZz0123456789"
         if not abrev:
             abrev = self.schema.dic_abrev
         for i in self.attributs:
@@ -1025,7 +1025,7 @@ class SchemaClasse(object):
                 nom = re.sub("_([0-9])", r"\1", nom)
             #            if len(nom) > longueur:
             #                nom1 = nom
-            nom = nom.upper()
+            # nom = nom.upper()
             while len(nom) > longueur:
                 nom = nom.replace(a_supp[position], "")
                 position = position + 1

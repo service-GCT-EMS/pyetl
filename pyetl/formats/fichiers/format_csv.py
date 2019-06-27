@@ -584,12 +584,6 @@ def init_sql(writer):
     initwriter(writer, '.sql', "sql", '\t', r"\N", writerclass=SqlWriter)
 
 
-# def ecrire_objets_txt(self, regle, final):
-#     """format txt (csv sans entete) pour postgis"""
-#     # return _ecrire_objets_csv(self, regle, final, False, "\t", ".txt")
-#     return _ecrire_objets_csv(self, regle, final)
-
-
 def lire_objets_txt(self, rep, chemin, fichier):
     """format sans entete le schema doit etre fourni par ailleurs"""
     separ = self.regle_ref.get_param("separ_txt_in", self.regle_ref.get_param("separ_txt", "\t"))
@@ -602,49 +596,10 @@ def lire_objets_txt(self, rep, chemin, fichier):
     return _lire_objets_csv(self, rep, chemin, fichier, entete, separ=separ)
 
 
-# def txtstreamer(self, obj, regle, final):
-#     """format txt en straming"""
-#     # return _csvstreamer(self, obj, regle, final, False, "\t", ".txt")
-#     return _csvstreamer(self, obj, regle, final)
-
-
-# def csvstreamer(self, obj, regle, final):
-#     """format txt en straming"""
-#     # separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
-#     # return _csvstreamer(self, obj, regle, final, "csv", separ, ".csv")
-#     return _csvstreamer(self, obj, regle, final)
-
-# def ecrire_objets_csv(self, regle, final):
-#     """format txt (csv sans entete) pour postgis"""
-#     # separ = self.regle.getchain(("separ_csv_out","separ_csv"), "|")
-#     # return _ecrire_objets_csv(self, regle, final, "csv", separ, ".csv")
-#     return _ecrire_objets_csv(self, regle, final)
-
-
 def lire_objets_csv(self, rep, chemin, fichier):
     """format csv en lecture"""
     return _lire_objets_csv(self, rep, chemin, fichier)
 
-
-# def ecrire_objets_geo(self, regle, final):
-#     """geodatabase pour les outils topo"""
-#     return _ecrire_objets_csv(self, regle, final)
-
-
-# def ecrire_objets_sql(self, regle, final):
-#     """format sql copy pour postgis"""
-
-#     return _ecrire_objets_csv(
-#         self, regle, final,
-#     )
-
-
-# def sqlstreamer(self, obj, regle, final):
-#     """format sql copy pour postgis en streaming """
-
-#     return _csvstreamer(
-#         self, obj, regle, final,
-#     )
 
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,initer)

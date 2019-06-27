@@ -129,14 +129,14 @@ def match_classe(classe, schema_sortie, qual):
     """ cree le tableau de correspondance pour une classe """
     classe_sortie = schema_sortie.guess_classe(classe.nom)
     if classe_sortie:
-        attmap = MatchClasses(
+        attrenamer = MatchClasses(
             classe,
             classe_sortie,
             {i: None for i in classe.attributs},
             {i: None for i in classe_sortie.attributs},
         )
-        attmap.automatch(qual=qual if qual else 0.5)
-        classe.attmap = attmap
+        attrenamer.automatch(qual=qual if qual else 0.5)
+        classe.attrenamer = attrenamer
 
 
 def match_schema(entree, sortie, qual):
@@ -289,8 +289,8 @@ class Mapping(object):
                 id_dest = self.mapping_class_destination.get(id_orig[1].lower())
             if not id_dest:
                 id_dest = self.mapping_class_destination.get(id_orig[1].upper())
-            return id_dest if id_dest else id_orig
-        return id_orig
+            return id_dest if id_dest else None
+        return None
 
     def map_orig(self, id_dest):
         """retourne l origine du mapping"""

@@ -327,6 +327,7 @@ class Objet(object):
                         else:
                             self.attributs[nom] = str(val)
                     except KeyError:
+                        print ('recherche',i, ' non trouve' , nom)
                         self.attributs[nom] = str(val)
             else:
                 for nom, val in props.items():

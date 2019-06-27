@@ -471,26 +471,26 @@ def charge_mapping(regle, mapping=None):
             els = elements[i]
             if not els or els[0].startswith("!") or not els[0]:
                 continue
-            attmap = ""
+            attrmap = ""
             if len(els) == 2 or len(els) == 3:
                 id1 = tuple(els[0].split("."))
                 id2 = tuple(els[1].split("."))
                 if len(els) == 3:
-                    attmap = els[2]
+                    attrmap = els[2]
             #            print ('mapping',i,id1,id2)
             elif len(els) == 4 or len(els) == 5:
                 id1 = (els[0], els[1])
                 id2 = (els[2], els[3])
                 if len(els) == 5:
-                    attmap = els[4]
+                    attrmap = els[4]
             else:
                 print("charge_mapping :taille incorrecte", len(els), i, elements[i])
                 continue
 
-            if attmap:
-                attmap = attmap.replace('"', "")
-                attmap = attmap.replace("'", "")
-                map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attmap)])
+            if attrmap:
+                attrmap = attrmap.replace('"', "")
+                attrmap = attrmap.replace("'", "")
+                map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attrmap)])
                 mapping_attributs[id1] = map_attributs
                 mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items())
 

@@ -667,9 +667,7 @@ def sortie_resultats(
     if stock_param.get_param("schema_entree"):
         schema_init = stock_param.schemas[stock_param.get_param("schema_entree")]
         if schema_init:
-            newid = schema_init.map_dest((niveau, classe))
-            print("mdba: mapping:", (niveau, classe), "->", newid)
-            niveau, classe = newid
+            niveau, classe = schema_init.map_dest((niveau, classe))
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
     if stock_param.get_param("printpending"):
         print()

@@ -264,9 +264,11 @@ def init_format_asc(reader):
 #             )
 #     return schema, schema_init
 
-def finalise(reader, obj, coords, geom, angle, dim):
+def finalise(reader, attributs, coords, geom, angle, dim):
     '''finalise un objet et le traite'''
-
+    obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
+    if obj is None: # filtrage en entree
+        return
     if coords:
         obj.geom_v.setpoint(coords, angle, dim)
     if geom:
@@ -312,24 +314,14 @@ def lire_objets_asc(self, rep, chemin, fichier):
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
                 # print ('asc lecture', i)
-                if attributs or geom:
-                    # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
-                    # if not geom and attributs['#type_geom']>'1':
-                    #     print ('asc: attention pas de geom', attributs)
-                    obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
-                    finalise(self, obj, coords, geom, angle, dim)
-                    geom=[]
-                    # if coords:
-                    #     obj.geom_v.setpoint(coords, angle, dim)
-                    # if geom:
-                    #     obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-                    #     geom = []
-                    # self.process(obj)
+                finalise(self, attributs, coords, geom, angle, dim)
+                geom=[]
 
                 if code_1 in "9356":
                     classe, attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
                     if classe != dclasse:
                         self.setidententree(groupe,classe)
+                        dclasse = classe
 
             elif (code_0 == "2" or code_0 == "4") and (
                 code_1.isalpha() or code_1 == "_"
@@ -339,20 +331,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 continue
             else:
                 geom.append(i)
-        if attributs or geom:
-            obj = self.getobj(classe=classe, attributs=attributs, geom=geom)
-            finalise(self, obj, coords, geom, angle, dim)
-
-            # if obj is None:
-            #     return self.nb_lus
-            # if coords:
-            #     obj.geom_v.setpoint(coords, angle, dim)
-            # if geom:
-            #     obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
-            #     self.process(obj)
-
-            # # _finalise(obj, schema_init, schema, self.nb_lus, chemin)
-            # self.process(obj)
+        finalise(self, attributs, coords, geom, angle, dim)
         log_erreurs.send("")
     return
 

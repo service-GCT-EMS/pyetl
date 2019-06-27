@@ -439,7 +439,7 @@ class PgrGenSql(DbGenSql):
             attype = attribut.type_att
             #            print ('lecture type_attribut',an,at)
             cretable.append("\t" + attname + " " + self.types_db.get(attype, deftype) + ",")
-        if geomt and geomt != "ALPHA":
+        if geomt and geomt != "ALPHA" and geomt!='0':
             if type_courbes == "curve" and arc:
                 cretable.append("\tgeometrie public." + self.gtypes_curve[geomt])
             else:

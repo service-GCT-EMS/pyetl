@@ -336,11 +336,6 @@ def f_def_schema(regle, obj):
     schema = regle.stock_param.schemas[nom_base]
     ident2 = schema.map_dest(ident) if schema.stock_mapping.existe else ident
 
-    #        ident2 = schema.map_orig(ident)
-    #        ident2 = schema.mapping(ident)
-    #        print ("mapping entree",ident,'->',ident2)
-    #    print ('avant', obj.attributs)
-
     schema_classe = schema.get_classe(ident2)
     if not schema_classe:
         schema_classe = schema.get_classe(("", nom))

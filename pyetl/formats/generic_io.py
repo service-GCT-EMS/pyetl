@@ -70,7 +70,7 @@ class Reader(object):
     #    auxiliaires = AUXILIAIRES
     #    auxiliaires = {a:AUXILIAIRES.get(a) for a in LECTEURS}
 
-    def __init__(self, nom, regle, regle_start, debug=1):
+    def __init__(self, nom, regle, regle_start, debug=0):
         self.nom_format = nom
         self.filters = {'in': self.listfilter, '=': self.valuefilter, 're': self.regexfilter}
         self.filter=None
@@ -100,7 +100,7 @@ class Reader(object):
         if nom in self.lecteurs:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
             description = self.lecteurs[nom]
-            print ('initialisation reader',description)
+            # print ('initialisation reader',description)
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
@@ -281,12 +281,12 @@ class Reader(object):
             }
         # print ('attformatters -> ', self.attformatters)
 
-    def setidententree(self, groupe, classe, schema=None):
+    def setidententree(self, groupe, classe):
         """positionne les identifiants"""
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
-            # print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
+            print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
             groupe2, classe2 = self.schema_entree.map_dest((groupe, classe))
         else:
             groupe2, classe2 = groupe, classe
@@ -296,7 +296,7 @@ class Reader(object):
         self.newschema = False
         self.ident = groupe2, classe2
         self.attformatters = None
-        # print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
+        print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
 
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
@@ -343,7 +343,7 @@ class Reader(object):
             self.filter = self.filters.get(type)
             self.filterfield = field
             self.filtervalue = vals
-            print ('filtrage entree active', readfilter,self, self.filter)
+            # print ('filtrage entree active', readfilter,self, self.filter)
 
     def valuefilter(self, attributs):
         try:
@@ -409,6 +409,10 @@ class Reader(object):
                     except TypeError:
                         errs.append('formattage attribut'+ str(self.ident) +' '+nom+' '+attributs[nom])
                         # print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
+        # if self.filter:
+        #     if not self.filter(attributs):
+        #         return None
+
         obj = Objet(
             niveau or self.groupe,
             classe or self.classe,
