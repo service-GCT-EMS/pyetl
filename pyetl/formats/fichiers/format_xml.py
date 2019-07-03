@@ -2,6 +2,7 @@
 # formats d'entree sortie
 """ format xml en sortie """
 import os
+import xml.etree.cElementTree as ET
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
 
@@ -213,6 +214,120 @@ def lire_objets_xml(self, rep, chemin, fichier):
     """lecture xml non implemente"""
     return
 
+def decode_att(nom,type_att,valeur):
+    if nom == '[*]':
+        typeval = 'dyn'
+        type_att = 'T'
+        valeur = ''
+    elif nom.startswith('['):
+        typeval = 'var'
+        nom = nom[1:-1]
+        valeur = valeur[1:-1]
+    else:
+        if valeur=='#props':
+            typeval='hst'
+            type_att='H'
+        elif valeur.startswith('#'):
+            typeval = 'fixe'
+        elif valeur.startswith('['):
+            typeval = 'prop'
+            valeur = valeur[1:-1]
+        else:
+            typeval = 'const'
+    return nom,type_att,valeur,typeval
+
+
+
+
+
+def decode_config_xml(config_xml):
+    config = dict()
+    for conf in open(config_xml, "r").readlines():
+        chaine = conf.strip()
+        if chaine and chaine[0] != "!":
+            defs = [j.strip() for j in chaine.split(";")]
+            if len(defs)<7:
+                print ('erreur description', defs)
+                continue
+            parent, item, selecteur, vselect,groupe,classe,nom_att,type_att,valeur = defs[:9]
+            nom_att,type_att,valeur,typeval=decode_att(nom_att,type_att,valeur)
+            valeurs = (nom_att,type_att,valeur,typeval)
+            if parent in config:
+                if item in config[parent]:
+                    config[parent][item]['attributs'].append(valeurs)
+                else:
+                    config[parent][item]={'classe':classe,'groupe':groupe,'select':selecteur,'vselect':vselect,'attributs':[valeurs] }
+            else:
+                config[parent]={item:{'classe':classe,'groupe':groupe,'select':selecteur,'vselect':vselect,'attributs':[valeurs]}}
+    print ('lecture config',config)
+    return config
+
+def decode_elem(elem, attributs, hdict, config, fixe):
+    for attr,type_attribut, val,typeval in config:
+        if typeval == 'fixe':
+            if val == '#text':
+                attributs[attr]=elem.text
+            attributs[attr]=fixe[val]
+        elif typeval == 'prop':
+            attributs[attr]=elem.get(val)
+        elif typeval == 'var':
+            attributs[elem.get(attr)]=elem.get(val)
+        elif typeval == 'hst':
+            hdict[attr] = dict(elem.items())
+        elif typeval == 'dyn':
+            attributs.update(elem.items())
+        elif typeval == 'const':
+            attributs[attr]=val
+
+
+def lire_objets_xml_simple(self, rep, chemin, fichier):
+    """ lit les datasources des fichiers qgis"""
+    stock_param = self.regle_ref.stock_param
+    self.prepare_lecture_fichier(rep, chemin, fichier)
+    nomschema = os.path.splitext(fichier)[0]
+    schema = stock_param.init_schema(nomschema, "F")
+    fixe={'#chemin': os.path.join(rep,chemin), '#fichier':fichier}
+    if self.nb_lus == 0: # initialisation lecteur
+        self.config = decode_config_xml(self.configfile)
+        if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
+            self.regle_ref.stock_param.set_param("fanout","classe")
+    confdef = self.config.get("")
+    for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
+        if elem.tag in self.config: #parent
+            fixe['#parent'] = elem.tag
+            config = self.config[elem.tag]
+
+            attributs = dict()
+            hdict=dict()
+            for tag, conf in config.items():
+                groupe,classe,select,vselect,config = conf
+                self.setidententree(groupe, classe)
+                for el2 in elem.iter(tag=tag):
+                    if select and el2.get(select)!=vselect:
+                        continue
+                    decode_elem(el2, attributs, hdict, config, fixe)
+                    self.alphaprocess(attributs,hdict=hdict)
+        elif confdef and elem.tag in confdef:
+            attributs=dict()
+            hdict=dict()
+            # print('------------------------------------------confdef',elem.tag,'->',confdef[elem.tag])
+            cdef = confdef[elem.tag]
+            select = cdef['select']
+            if select and elem.get(select)!=cdef['vselect']:
+                continue
+            self.setidententree(cdef['groupe'], cdef['classe'])
+            decode_elem(elem, attributs, hdict, cdef['attributs'], fixe)
+            self.alphaprocess(attributs,hdict=hdict)
+        elem.clear()
+    return
+
+def init_qgs(reader):
+    config_qgs_def = os.path.join(os.path.dirname(__file__), "config_qgs.csv")
+    config_qgs = reader.regle_ref.getvar("config_qgs", config_qgs_def)
+    reader.configfile = config_qgs
+
+
+
 
 def xml_streamer(self, obj, regle, _, attributs=None):
     """ecrit des objets en xml au fil de l'eau.
@@ -247,7 +362,9 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
                 dident = ident
             ressource.write(obj, numero)
 
-
-READERS = {"xml": (lire_objets_xml, "#gml", False, (), None)}
+# extension : (fonction de lecture, format graphique, schema, fichiers aux, initialiseur)
+READERS = {"xml": (lire_objets_xml, "#gml", False, (), None),
+            "qgs": (lire_objets_xml_simple, None, False, (), init_qgs),
+            }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml",None)}

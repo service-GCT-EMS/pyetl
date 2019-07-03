@@ -242,10 +242,12 @@ class Reader(object):
         """renvoie au moteur de traitement"""
         self.traite_objets(obj, self.regle_start)
 
-    def alphaprocess(self,attributs):
+    def alphaprocess(self,attributs,hdict=None):
         # print ('alphaprocess', self, self.filter)
         obj = self.getobj(attributs=attributs)
         if obj:
+            if hdict:
+                obj.hdict=hdict
             obj.attributs["#type_geom"] = '0'
             obj.attributs["#chemin"] = self.chemin
             self.traite_objets(obj, self.regle_start)
@@ -286,8 +288,9 @@ class Reader(object):
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
-            print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
+            # print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
             groupe2, classe2 = self.schema_entree.map_dest((groupe, classe))
+            print ('mapping entree',(groupe, classe),'->', (groupe2, classe2))
         else:
             groupe2, classe2 = groupe, classe
         self.groupe = groupe2
@@ -296,7 +299,7 @@ class Reader(object):
         self.newschema = False
         self.ident = groupe2, classe2
         self.attformatters = None
-        print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
+        # print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
 
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)

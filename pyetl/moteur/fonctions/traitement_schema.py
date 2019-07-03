@@ -15,7 +15,6 @@ from pyetl.schema.formats_schema.schema_xml import lire_schema_xml
 from pyetl.schema.formats_schema.schema_csv import lire_schema_csv
 from pyetl.schema.schema_io import lire_schemas_multiples
 
-# from .outils import charge_mapping
 LOGGER = logging.getLogger("pyetl")
 # fonctions de manipulation de schemas
 

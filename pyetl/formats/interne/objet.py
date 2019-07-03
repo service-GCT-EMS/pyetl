@@ -347,7 +347,7 @@ class Objet(object):
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))
         self.infogeom()
 
-    def debug(self, code, attlist=None):
+    def debug(self, code, attlist=None, limit=True):
         """affichage de debug"""
         virtuel = "_v" if self.virtuel else ""
         invariant = (
@@ -360,7 +360,7 @@ class Objet(object):
             + ":clone"
             + str(self.copie)
             + " "
-            + str(self.attributs.get("#classe"))
+            + str(self.attributs.get("#groupe"))
             + "."
             + str(self.attributs.get("#classe"))
         )
@@ -369,6 +369,7 @@ class Objet(object):
         print(
             invariant + "\n",
             (schema + "\n\t") if not attlist else '',
+            [(i, (self.attributs[i][:50]+'...') if len(self.attributs.get(i,''))>50 else self.attributs.get(i, "<non defini>")) for i in aliste] if limit else
             [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
         )
 

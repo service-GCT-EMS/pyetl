@@ -231,7 +231,7 @@ class PgrConnect(DbConnect):
         if self.passwd:
             chaine_connect = chaine_connect + " password=" + self.passwd
         #    print ('info:postgres: connection ', serveur,base,user,'*'*len(passwd))
-        print('connection',chaine_connect)
+        # print('connection',chaine_connect)
         try:
             connection = psycopg2.connect(chaine_connect)
             connection.autocommit = True
@@ -243,7 +243,7 @@ class PgrConnect(DbConnect):
                 self.serveur,
                 self.base,
                 self.user,
-                self.passwd,
+            #    self.passwd,
             )
             print("error", err)
 

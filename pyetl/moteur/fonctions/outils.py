@@ -440,19 +440,55 @@ def prepare_elmap(mapping):
     #    print ('definition intmap2', intmap2)
     return elmap
 
+def traite_mapping(elements):
+    '''decode une definition de mapping
+        elements est une liste de definitions de mapping
+        a ce stade une definition  se presente sous la forme suivante:
+        (groupe.classe, groupe.classe,[(attribut => attribut,...)])
+        ou
+        (groupe,classe, groupe,classe,[(attribut => attribut,...)])
+        '''
+    mapping = dict()
+    mapping_attributs =  dict()
+    for els in elements:
+        # print ("traitement els", els)
+        if not els or els[0].startswith("!") or not els[0]:
+            continue
+        attrmap = ""
+        if len(els) == 2 or len(els) == 3:
+            id1 = tuple(els[0].split("."))
+            id2 = tuple(els[1].split("."))
+            if len(els) == 3:
+                attrmap = els[2]
+        #            print ('mapping',i,id1,id2)
+        elif len(els) == 4 or len(els) == 5:
+            id1 = (els[0], els[1])
+            id2 = (els[2], els[3])
+            if len(els) == 5:
+                attrmap = els[4]
+        else:
+            print("charge_mapping :description incorrecte", len(els), i, elements[i])
+            continue
+
+        if attrmap:
+            attrmap = attrmap.replace('"', "")
+            attrmap = attrmap.replace("'", "")
+            map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attrmap)])
+            mapping_attributs[id1] = map_attributs
+            mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items()) #mapping inverse
+
+        mapping[id1] = id2
+        mapping[id2] = id1
+    return mapping, mapping_attributs
+
 
 def charge_mapping(regle, mapping=None):
     """ precharge un mapping"""
-    mapping = dict()
-    mapping_attributs = dict()
 
-    if regle.params.cmp1.val.startswith("{"):  # c'est une definitio in line
-        valeurs = regle.params.cmp1.val[1:-1].split(",")
-        for i in valeurs:
-            tmp = i.split("->")
-            mapping[tmp[0]] = tmp[1]
-        regle.elmap = mapping
-        return
+    if regle.params.cmp1.val.startswith("{"):  # c'est une definition in line
+        # {groupe.classe,groupe.classe,att=>att,att=>att...:groupe.classe,groupe.classe,att=>att,...:...}
+        vtmp = regle.params.cmp1.val[1:-1].split(":")
+        elements = [i.split(',',2) for i in vtmp]
 
     elif regle.params.cmp1.val:
         regle.fichier = regle.params.cmp1.val  # nom du fichier
@@ -463,50 +499,23 @@ def charge_mapping(regle, mapping=None):
             regle.stock_param.chemin_courant,
             regle.stock_param.fichier_courant,
         )
-        elements = charge_liste(fichier, taille=-1)
+        elements = charge_liste(fichier, taille=-1).values()
         # on precharge le fichier de mapping
-        for i in elements:
-            id1 = ''
-            id2 = ''
-            els = elements[i]
-            if not els or els[0].startswith("!") or not els[0]:
-                continue
-            attrmap = ""
-            if len(els) == 2 or len(els) == 3:
-                id1 = tuple(els[0].split("."))
-                id2 = tuple(els[1].split("."))
-                if len(els) == 3:
-                    attrmap = els[2]
-            #            print ('mapping',i,id1,id2)
-            elif len(els) == 4 or len(els) == 5:
-                id1 = (els[0], els[1])
-                id2 = (els[2], els[3])
-                if len(els) == 5:
-                    attrmap = els[4]
-            else:
-                print("charge_mapping :taille incorrecte", len(els), i, elements[i])
-                continue
+    else:
+        elements =[]
 
-            if attrmap:
-                attrmap = attrmap.replace('"', "")
-                attrmap = attrmap.replace("'", "")
-                map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attrmap)])
-                mapping_attributs[id1] = map_attributs
-                mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items())
+    regle.mapping, regle.mapping_attributs = traite_mapping(elements)
 
-            mapping[id1] = id2
-            mapping[id2] = id1
     if regle.params.att_sortie.val == "#schema":
         regle.schema_dest = regle.getschema(regle.params.val_entree.val)
     #        mapping_attributs
-    regle.mapping = mapping
-    regle.mapping_attributs = mapping_attributs
+    regle.elmap = prepare_elmap(regle.mapping)
+    # print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
+    #     for i in sorted(regle.mapping)]))
+    # print (regle.mapping_attributs)
+    #
 
-    regle.elmap = prepare_elmap(mapping)
-    #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(mapping[i])
-    #           for i in sorted(mapping)]))
-
-    if not mapping:
+    if not regle.mapping:
         print("h_map:mapping introuvable", regle.fichier)
 
 

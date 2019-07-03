@@ -1201,7 +1201,7 @@ class Pyetl(object):
             lecteur.lire_objets(self.racine, chemin, fichier)
         except GeneratorExit:
             pass
-        print ('fin lecture fichier', fichier)
+        # print ('fin lecture fichier', fichier)
         self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
         self.aff.send(("fich", 1, lecteur.lus_fich))

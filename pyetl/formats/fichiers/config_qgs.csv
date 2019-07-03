@@ -1,0 +1,8 @@
+!parent;element;prop;valeur;groupe;classe;nom_attribut;type;valeur
+;datasource;;;qgis;datasource;gid;S;
+;datasource;;;qgis;datasource;fichier;T;#fichier
+;datasource;;;qgis;datasource;chemin;T;#chemin
+;datasource;;;qgis;datasource;tags;H;#props
+;property;key;embedded_project;qgis;inclus;fichier;T;#fichier
+;property;key;embedded_project;qgis;inclus;chemin;T;#chemin
+;property;key;embedded_project;qgis;inclus;nom;T;[value]

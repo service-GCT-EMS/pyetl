@@ -28,10 +28,12 @@ def map_struct(regle):
 
 def _map_schemas(regle, obj):
     """essaye de trouver un mapping pour une classe"""
+    # print ('appel map_schema', regle,obj)
     if obj is None:
         if regle.getvar("schema_entree"):
             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]
             print("-------------------------mapping", schema_origine)
+        regle.schema = None
         #        else:
         #            return
         #        if regle.params.val_entree.val:
@@ -58,7 +60,7 @@ def _map_schemas(regle, obj):
     else:
         LOGGER.info("pas d'elements specifiques")
 
-    #        print("-----------------------------pas d'elements specifiques")
+        # print("-----------------------------pas d'elements specifiques")
 
     for i in schema_origine.classes:
         schema2.get_classe(i, modele=schema_origine.classes[i], cree=True)
@@ -69,12 +71,13 @@ def _map_schemas(regle, obj):
 
         # mapping foreign keys :
 
-    #    print("mapping effectue", len(schema2.classes))
+    # print("-------------------------------------------------mapping effectue", schema2.nom, len(schema2.classes))
     for clef in schema2.classes:
         if clef in regle.mapping_attributs:
-            for orig, dest in regle.mapping_attributs[clef].items():
-                schema2.classes[clef].rename_attribut(orig, dest)
 
+            for dest, orig in regle.mapping_attributs[clef].items():
+                schema2.classes[clef].rename_attribut(orig, dest)
+                # print ('-----------------------------mappin attributs', clef, orig,dest)
 
 def applique_mapping(regle):
     """gere les clefs etrangeres et les elements speciaux dans les mappings"""
@@ -145,7 +148,6 @@ def f_map(regle, obj):
         _map_schemas(regle, obj)
     clef = obj.ident
     schema2 = regle.schema
-    #    print ('mapping', clef,regle.mapping)
     if clef in regle.mapping:
         nouv = regle.mapping.get(clef)
         obj.setidentobj(nouv, schema2=schema2)
@@ -156,7 +158,6 @@ def f_map(regle, obj):
                     del obj.attributs[orig]
                 except KeyError:
                     obj.attributs[dest] = ""
-
         return True
     #    print ('====================== mapping non trouve', clef)
     #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])

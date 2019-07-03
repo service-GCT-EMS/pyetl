@@ -615,7 +615,7 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
         init = True
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
     mapping = schema.mapping_schema()
-    nomschema = os.path.basename(schema.nom.replace("#", "_"))
+    nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
     deftrig = []
     if "def_triggers" in schema.elements_specifiques:
         for trig in schema.elements_specifiques["def_triggers"]:
@@ -624,7 +624,7 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     metas = dict()
     metas["origine"] = schema.origine
     if rep:
-        chemref = os.path.join(rep, nomschema)
+        chemref = os.path.join(str(rep), nomschema)
         if len(classes) > 1:
             # print (conf,'\n',schemas)
             #        print("schema: ecriture schema csv", chemref+" en csv ("+cod+")")

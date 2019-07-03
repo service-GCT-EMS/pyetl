@@ -562,7 +562,8 @@ def ecrire_objets_csv(writer, regle, _):
     return
 
 def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
-    print ('initialisation writer', extension, header)
+    '''positionne les parametres du writer csv (sql et txt)'''
+    # print ('initialisation writer', extension, header)
     writer.separ = separ
     writer.extension = extension
     writer.header = header
@@ -570,17 +571,21 @@ def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
     writer.writerclass = writerclass
 
 def init_csv(writer):
+    '''writer csv'''
     separ = writer.regle.getchain(("separ_csv_out","separ_csv"), "|")
     initwriter(writer, '.csv', 'csv', ';' if separ == '#std' else separ,'')
 
 def init_txt(writer):
+    '''writer txt separateur tab pour le mode copy de postgres'''
     separ = writer.regle.getchain(("separ_txt_out","separ_txt"), "\t")
     initwriter(writer, '.txt', False, ';' if separ == '#std' else separ,'')
 
 def init_geo(writer):
+    '''writer geo covadis'''
     initwriter(writer, '.geo', False, '  ', '')
 
 def init_sql(writer):
+    '''writer sql :  mode copy avec gestion des triggers et des sequences '''
     initwriter(writer, '.sql', "sql", '\t', r"\N", writerclass=SqlWriter)
 
 
