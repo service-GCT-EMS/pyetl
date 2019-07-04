@@ -266,14 +266,22 @@ def decode_elem(elem, attributs, hdict, config, fixe):
     for attr,type_attribut, val,typeval in config:
         if typeval == 'fixe':
             if val == '#text':
-                attributs[attr]=elem.text
-            attributs[attr]=fixe[val]
+                if type_attribut=="H":
+                    tmp=elem.text.split(" ")
+                    hdict[attr] = dict([tuple((i.split("=")+[""])[:2]) for i in tmp])
+                    attributs[attr]=""
+                    print ("creation hdict",hdict)
+                else:
+                    attributs[attr]=elem.text
+            else:
+                attributs[attr]=fixe[val]
         elif typeval == 'prop':
             attributs[attr]=elem.get(val)
         elif typeval == 'var':
             attributs[elem.get(attr)]=elem.get(val)
         elif typeval == 'hst':
             hdict[attr] = dict(elem.items())
+            # print ("creation hdict",hdict,elem.items(),elem.tag,elem.attrib,elem.text)
         elif typeval == 'dyn':
             attributs.update(elem.items())
         elif typeval == 'const':
