@@ -83,11 +83,13 @@ class Reader(object):
         self.traite_objets = stock_param.moteur.traite_objet
         self.schema = None
         self.schema_entree = None
+        self.newschema=True
         self.set_format_entree(nom)
         self.nb_lus = 0
         self.lus_fich = 0
         self.groupe = ""
         self.classe = ""
+        self.orig = None
         self.affich = 100000
         self.nextaff = self.affich
         self.aff = stock_param.aff
@@ -207,15 +209,16 @@ class Reader(object):
             chem, nom = os.path.split(chem)
             niveaux.append(nom)
 
-        self.groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
+        groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
         # print ('prepare lecture',self.schema_entree, self.schema, self.nomschema)
         if (
             not self.nomschema and self.cree_schema
         ):  # les objets ont un schema issu du fichier
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
-            self.schema = stock_param.init_schema(self.nomschema, "L")
+            # self.schema = stock_param.init_schema(self.nomschema, "L")
 
-        self.classe = os.path.splitext(fichier)[0]
+        classe = os.path.splitext(fichier)[0]
+        self.setidententree(groupe,classe)
         regle.ext = os.path.splitext(fichier)[-1]
         defchain = [
             "encoding",
@@ -247,7 +250,8 @@ class Reader(object):
         obj = self.getobj(attributs=attributs)
         if obj:
             if hdict:
-                obj.hdict=hdict
+                for nom,dico in hdict.items():
+                    obj.sethtext(nom,dico)
             obj.attributs["#type_geom"] = '0'
             obj.attributs["#chemin"] = self.chemin
             self.traite_objets(obj, self.regle_start)
@@ -285,6 +289,9 @@ class Reader(object):
 
     def setidententree(self, groupe, classe):
         """positionne les identifiants"""
+        if self.orig==(groupe,classe):
+            # print ('retour', (groupe,classe),self.orig,self.groupe,self.classe)
+            return # on a rien touche
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
@@ -293,6 +300,8 @@ class Reader(object):
             print ('mapping entree',(groupe, classe),'->', (groupe2, classe2))
         else:
             groupe2, classe2 = groupe, classe
+            if not self.schema and self.nomschema:
+                self.schema = self.regle_ref.stock_param.init_schema(self.nomschema, "L")
         self.groupe = groupe2
         self.classe = classe2
         self.orig = (groupe, classe)

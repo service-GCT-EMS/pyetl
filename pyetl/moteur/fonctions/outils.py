@@ -93,13 +93,13 @@ def scandirs(rep_depart, chemin, rec, pattern=None):
                         yield fich
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
-                    #                    print ('match',pattern, chemin, element)
+                    # print ('match',pattern, chemin, element)
                     yield (os.path.basename(element), chemin)
                 else:
                     pass
 
 
-#                    print ('not match',pattern, chemin, element)
+                    # print ('not match',pattern, chemin, element)
 
 
 # def getfichparms(rep=''):

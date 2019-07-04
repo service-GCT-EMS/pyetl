@@ -1,8 +1,9 @@
-!parent;element;prop;valeur;groupe;classe;nom_attribut;type;valeur
-;datasource;;;qgis;datasource;gid;S;
-;datasource;;;qgis;datasource;fichier;T;#fichier
-;datasource;;;qgis;datasource;chemin;T;#chemin
-;datasource;;;qgis;datasource;tags;H;#text
-;property;key;embedded_project;qgis;inclus;fichier;T;#fichier
-;property;key;embedded_project;qgis;inclus;chemin;T;#chemin
-;property;key;embedded_project;qgis;inclus;nom;T;[value]
+!parent;groupe;classe;element;prop;valeur;nom_attribut;type;valeur
+maplayer;qgis;datasource;datasource;;;gid;S;
+maplayer;qgis;datasource;datasource;;;chemin;T;#chemin
+maplayer;qgis;datasource;datasource;;;fichier;T;#fichier
+maplayer;qgis;datasource;datasource;;;tags;H;#text
+maplayer;qgis;datasource;provider;;;provider;T;#text
+customproperties;qgis;inclus;property;key;embedded_project;chemin;T;#chemin
+customproperties;qgis;inclus;property;key;embedded_project;fichier;T;#fichier
+customproperties;qgis;inclus;property;key;embedded_project;nom;T;[value]

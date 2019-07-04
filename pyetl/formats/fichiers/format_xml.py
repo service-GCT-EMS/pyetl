@@ -2,6 +2,7 @@
 # formats d'entree sortie
 """ format xml en sortie """
 import os
+import re
 import xml.etree.cElementTree as ET
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
@@ -237,21 +238,19 @@ def decode_att(nom,type_att,valeur):
     return nom,type_att,valeur,typeval
 
 
-
-
-
 def decode_config_xml(config_xml):
     config = dict()
     for conf in open(config_xml, "r").readlines():
         chaine = conf.strip()
         if chaine and chaine[0] != "!":
             defs = [j.strip() for j in chaine.split(";")]
-            if len(defs)<7:
+            if len(defs)<9:
                 print ('erreur description', defs)
                 continue
-            parent, item, selecteur, vselect,groupe,classe,nom_att,type_att,valeur = defs[:9]
+            parent,groupe,classe, item, selecteur, vselect,nom_att,type_att,valeur = defs[:9]
             nom_att,type_att,valeur,typeval=decode_att(nom_att,type_att,valeur)
             valeurs = (nom_att,type_att,valeur,typeval)
+            ident=(groupe,classe)
             if parent in config:
                 if item in config[parent]:
                     config[parent][item]['attributs'].append(valeurs)
@@ -259,20 +258,25 @@ def decode_config_xml(config_xml):
                     config[parent][item]={'classe':classe,'groupe':groupe,'select':selecteur,'vselect':vselect,'attributs':[valeurs] }
             else:
                 config[parent]={item:{'classe':classe,'groupe':groupe,'select':selecteur,'vselect':vselect,'attributs':[valeurs]}}
-    print ('lecture config',config)
+    # print ('lecture config',config)
     return config
+def qgs_datasourceparser(text):
+    vals=re.split(' *\+?[a-z]+=',text)
+    keys=re.findall('[a-z]+(?==)',text)
+    return zip(keys,vals[1:])
 
 def decode_elem(elem, attributs, hdict, config, fixe):
+    # print ('decodage element ', elem.tag, elem.text, elem.items())
     for attr,type_attribut, val,typeval in config:
         if typeval == 'fixe':
             if val == '#text':
+                txt = '' if elem.text is None else elem.text
                 if type_attribut=="H":
-                    tmp=elem.text.split(" ")
-                    hdict[attr] = dict([tuple((i.split("=")+[""])[:2]) for i in tmp])
-                    attributs[attr]=""
-                    print ("creation hdict",hdict)
+                    tmp=txt.split(" ")
+                    hdict[attr] = dict([tuple((i.split("=")+[""])[:2]) for i in tmp if i])
+                    # print ("creation hdict",hdict)
                 else:
-                    attributs[attr]=elem.text
+                    attributs[attr]=txt
             else:
                 attributs[attr]=fixe[val]
         elif typeval == 'prop':
@@ -287,46 +291,59 @@ def decode_elem(elem, attributs, hdict, config, fixe):
         elif typeval == 'const':
             attributs[attr]=val
 
+def initschema(schema,config):
+    '''cree le schema des donnees'''
+    for definition in config.values():
+        for subdef in definition.values():
+            ident = (subdef['groupe'],subdef['classe'])
+            schemaclasse = schema.get_classe(ident,cree=True)
+            for att in subdef['attributs']:
+                nom_att,type_att,valeur,typeval = att
+                if typeval == 'var' or typeval == 'dyn': #schema dynamique
+                    schemaclasse.stable=False
+                else:
+                    schemaclasse.stocke_attribut(nom_att,type_att)
+                    print ('stockage attribut',schemaclasse.identclasse, nom_att, type_att)
+
 
 def lire_objets_xml_simple(self, rep, chemin, fichier):
     """ lit les datasources des fichiers qgis"""
     stock_param = self.regle_ref.stock_param
     self.prepare_lecture_fichier(rep, chemin, fichier)
-    nomschema = os.path.splitext(fichier)[0]
-    schema = stock_param.init_schema(nomschema, "F")
+    # nomschema = os.path.splitext(fichier)[0]
+    # schema = stock_param.init_schema(nomschema, "F")
     fixe={'#chemin': os.path.join(rep,chemin), '#fichier':fichier}
     if self.nb_lus == 0: # initialisation lecteur
         self.config = decode_config_xml(self.configfile)
+        schema = stock_param.init_schema('initial', "F")
+        initschema(schema, self.config)
+        self.schema = schema
+        print ('decodage_config')
         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
             self.regle_ref.stock_param.set_param("fanout","classe")
-    confdef = self.config.get("")
-    for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
+    base = ET.parse(os.path.join(rep, chemin, fichier))
+    for elem in base.iter():
         if elem.tag in self.config: #parent
             fixe['#parent'] = elem.tag
+            # print ('parsing',elem.tag,elem.text)
             config = self.config[elem.tag]
-
+            # print ('detecte parent',elem.tag)
             attributs = dict()
             hdict=dict()
             for tag, conf in config.items():
-                groupe,classe,select,vselect,config = conf
-                self.setidententree(groupe, classe)
+                # groupe,classe,select,vselect,config_att = conf
+                # print ('recherche', tag)
+                select = conf['select']
+                vselect = conf['vselect']
+                config_att = conf['attributs']
                 for el2 in elem.iter(tag=tag):
+                    # print ('traitement',el2.tag,el2.text)
                     if select and el2.get(select)!=vselect:
                         continue
-                    decode_elem(el2, attributs, hdict, config, fixe)
-                    self.alphaprocess(attributs,hdict=hdict)
-        elif confdef and elem.tag in confdef:
-            attributs=dict()
-            hdict=dict()
-            # print('------------------------------------------confdef',elem.tag,'->',confdef[elem.tag])
-            cdef = confdef[elem.tag]
-            select = cdef['select']
-            if select and elem.get(select)!=cdef['vselect']:
-                continue
-            self.setidententree(cdef['groupe'], cdef['classe'])
-            decode_elem(elem, attributs, hdict, cdef['attributs'], fixe)
-            self.alphaprocess(attributs,hdict=hdict)
-        elem.clear()
+                    decode_elem(el2, attributs, hdict, config_att, fixe)
+            if attributs or hdict:
+                self.setidententree(conf['groupe'], conf['classe'])
+                self.alphaprocess(attributs,hdict=hdict)
     return
 
 def init_qgs(reader):

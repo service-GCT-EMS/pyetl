@@ -677,6 +677,18 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
         if nom in obj.text_graph:
             attr.graphique = True
         attr.ajout_valeur(obj.attributs.get(nom))
+    if obj.hdict:
+        for nom in obj.hdict: # traitement des attributs hstore
+            att_orig = None
+            alias = ""
+            nom_court = ""
+            if schema_orig:
+                att_orig = schema_orig.attributs.get(nom)
+                if att_orig:
+                    alias = att_orig.alias
+                    nom_court = att_orig.nom_court
+            attr = schemaclasse.stocke_attribut(nom, "H", alias=alias, nom_court=nom_court)
+            attr.type_att_defaut = 'H'
     type_geom = obj.attributs["#type_geom"]
     dimension = obj.dimension
     multigeom = False

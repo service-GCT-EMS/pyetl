@@ -960,7 +960,7 @@ class Pyetl(object):
                 fichs, parametres = scan_entree(
                     rep=entree,
                     force_format=self.get_param("F_entree"),
-                    fileselect=self.get_param("_fileselect"),
+                    fileselect=self.get_param("fileselect"),
                     filtre_entree=self.get_param("filtre_entree"),
                 )
 
