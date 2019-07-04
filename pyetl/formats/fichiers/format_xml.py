@@ -296,14 +296,15 @@ def initschema(schema,config):
     for definition in config.values():
         for subdef in definition.values():
             ident = (subdef['groupe'],subdef['classe'])
-            schemaclasse = schema.get_classe(ident,cree=True)
+            schemaclasse = schema.setdefault_classe(ident)
             for att in subdef['attributs']:
                 nom_att,type_att,valeur,typeval = att
                 if typeval == 'var' or typeval == 'dyn': #schema dynamique
                     schemaclasse.stable=False
                 else:
                     schemaclasse.stocke_attribut(nom_att,type_att)
-                    print ('stockage attribut',schemaclasse.identclasse, nom_att, type_att)
+                    # print ('stockage attribut',schemaclasse.identclasse, nom_att, type_att)
+                    # print (schema)
 
 
 def lire_objets_xml_simple(self, rep, chemin, fichier):
@@ -318,7 +319,7 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
         schema = stock_param.init_schema('initial', "F")
         initschema(schema, self.config)
         self.schema = schema
-        print ('decodage_config')
+        # print ('decodage_config',schema)
         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
             self.regle_ref.stock_param.set_param("fanout","classe")
     base = ET.parse(os.path.join(rep, chemin, fichier))

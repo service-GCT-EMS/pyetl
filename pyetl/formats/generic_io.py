@@ -218,7 +218,7 @@ class Reader(object):
             # self.schema = stock_param.init_schema(self.nomschema, "L")
 
         classe = os.path.splitext(fichier)[0]
-        self.setidententree(groupe,classe)
+        # self.setidententree(groupe,classe)
         regle.ext = os.path.splitext(fichier)[-1]
         defchain = [
             "encoding",
@@ -313,7 +313,7 @@ class Reader(object):
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
             self.setattformatter()
-            # print ('------classe_existe ',self.schemaclasse._id,self.schemaclasse.attmap)
+            # print ('------classe_existe ',self.schemaclasse._id,self.schemaclasse.identclasse)
             return
         if self.schema_entree and self.ident in self.schema_entree.classes:
             modele = self.schema_entree.get_classe(self.ident)
