@@ -422,7 +422,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
             streamwriter = GdalWriter(
                 nom,
                 converter=gdalconverter,
-                encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+                encoding=regle.getvar("codec_sortie", "utf-8"),
                 f_sortie=regle.f_sortie,
                 schemaclasse=obj.schema,
                 liste_att=attributs,

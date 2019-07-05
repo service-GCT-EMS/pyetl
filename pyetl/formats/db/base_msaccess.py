@@ -156,8 +156,7 @@ class AccConnect(DbConnect):
         cur = self.execrequest(requete, data, attlist=attlist)
         if cur:
             try:
-                for i in cur:
-                    yield i
+                yield from cur
             except OdbcError as err:
                 print("error: access:erreur recuperation donnees", requete)
                 print("parametres", err.args)

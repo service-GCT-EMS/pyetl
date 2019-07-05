@@ -356,9 +356,6 @@ def sel_pexiste(selecteur, _):
     #pattern||P;||50
       #test1||obj||^?P:AA;0;;set||P:AA;!;;;res;1;;set||atv;res;1
     """
-    ##    print("test pexiste", selecteur.params.attr.val,
-    #          selecteur.regle.getvar(selecteur.params.attr.val,"rien"),
-    #          selecteur.regle.stock_param.get_param(selecteur.params.attr.val,"rien2"))
     return selecteur.regle.getvar(selecteur.params.attr.val)
 
 

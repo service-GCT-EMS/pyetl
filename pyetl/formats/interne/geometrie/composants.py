@@ -253,11 +253,6 @@ class Section(object):
         #        raise
         return long
 
-    #    def coordlist(self):
-    #        '''retourne la liste des coordonnees'''
-    ##        for p in self.coords: yield p
-    #        return iter(self.coords)
-
     def convert(self, fonction):
         #        print ("section avant:", self.coords)
 

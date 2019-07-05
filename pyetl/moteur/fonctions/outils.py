@@ -81,33 +81,24 @@ def description_schema(regle, nom, schema):
         regle.params.def_sortie[nom] = modele
 
 
-def scandirs(rep_depart, chemin, rec, pattern=None):
+def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
     if os.path.exists(path):
         for element in os.listdir(path):
 #        for element in glob.glob(path):
-            if os.path.isdir(os.path.join(path, element)):
+            if os.path.isdir(os.path.join(path, element)) and (not dirpattern or re.search(dirpattern, os.path.join(chemin, element))):
                 if rec:
-                    for fich in scandirs(rep_depart, os.path.join(chemin, element), rec, pattern):
-                        yield fich
+                    yield from scandirs(rep_depart, os.path.join(chemin, element), rec, pattern, dirpattern)
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
                     # print ('match',pattern, chemin, element)
                     yield (os.path.basename(element), chemin)
-                else:
-                    pass
+                # else:
+                #     pass
 
 
                     # print ('not match',pattern, chemin, element)
-
-
-# def getfichparms(rep=''):
-#    '''recupere une liste de fichiers'''
-##    print( "charge fichiers", rep)
-#    fichs, parametres_fichiers = scan_entree(rep=rep)
-#    fparm = [(i, parametres_fichiers[i]) for i in fichs]
-#    return fparm
 
 
 def getfichs(regle, obj):
@@ -119,16 +110,16 @@ def getfichs(regle, obj):
         racine = regle.getvar("_entree", ".")
     vobj = regle.getval_entree(obj)
     rep = os.path.join(racine, vobj) if vobj else racine
-
-    fichs, parametres_fichiers = scan_entree(rep=rep)
+    fichs, parametres_fichiers = scan_entree(
+        rep=rep,
+        force_format=regle.getvar("F_entree"),
+        fileselect=regle.getvar("fileselect"),
+        dirselect=regle.getvar("dirselect"),
+        filtre_entree=regle.getvar("filtre_entree"),
+    )
+    # fichs, parametres_fichiers = scan_entree(rep=rep)
     fparm = [(i, parametres_fichiers[i]) for i in fichs]
     return fparm
-
-
-#    print( "charge fichiers", rep)
-#    fichs, parametres = mapper.scan_entree(rep=rep)
-#    fparm = [(i, mapper.parametres_fichiers[i]) for i in fichs]
-#    return fparm
 
 
 def printexception():
@@ -532,7 +523,7 @@ def valide_auxiliaires(identifies, non_identifies):
                 print("extention inconnue ", extref, "->", chemin, nom, extinc)
 
 
-def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, debug=0):
+def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):
     " etablit la liste des fichiers a lire"
     entree = rep
     parametres_fichiers = {}
@@ -560,7 +551,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
 
         # print ( 'fichiers lus', fichs)
     else:
-        fichs = [i for i in scandirs(entree, "", True, pattern=fileselect)]
+        fichs = [i for i in scandirs(entree, "", True, pattern=fileselect, dirpattern=dirselect)]
 
     identifies = dict()
     non_identifies = []

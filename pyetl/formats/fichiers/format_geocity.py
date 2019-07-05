@@ -31,7 +31,7 @@ def gyr(fich):
     """iterateur sur le fichier avec suppression des newlines non significatifs"""
     iter_fich = (v for line in fich for v in line.split("|") if v != "\n")
     for i in iter_fich:
-        if i and i[-1] == "\n":
+        if i.endswith("\n"):
             i = i[:-1] + next(iter_fich)
         #        print ('iter',i)
         yield i

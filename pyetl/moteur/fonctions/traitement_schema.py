@@ -113,7 +113,7 @@ def f_stock_schema(regle, obj):
         if not regle.schema_courant:
             regle.schema_courant = Schema(nom_base)
             regle.stock_param.schemas[nom_base] = regle.schema_courant
-        if regle.stock_param.get_param("taux_conformite"):
+        if regle.getvar("taux_conformite"):
             print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
     FSC.ajuste_schema(

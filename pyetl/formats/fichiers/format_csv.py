@@ -500,7 +500,7 @@ def change_ressource(regle, obj, writer, initial= False):
             writer.extension,
             writer.separ,
             writer.header,
-            encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+            encoding=regle.getvar("codec_sortie", "utf-8"),
             null=writer.null,
             f_sortie=regle.f_sortie,
             geomwriter=writer.geomwriter,
@@ -591,8 +591,8 @@ def init_sql(writer):
 
 def lire_objets_txt(self, rep, chemin, fichier):
     """format sans entete le schema doit etre fourni par ailleurs"""
-    separ = self.regle_ref.get_param("separ_txt_in", self.regle_ref.get_param("separ_txt", "\t"))
-    schema = self.regle_ref.stock_param.schemas.get(self.regle_ref.get_param("schema_entree"))
+    separ = self.regle_ref.getchain(("separ_txt_in","separ_txt"), "\t")
+    schema = self.regle_ref.stock_param.schemas.get(self.regle_ref.getvar("schema_entree"))
     if schema:
         geom = separ + "geometrie" + "\n" if schema.info["type_geom"] else "\n"
         entete = separ.join(schema.get_liste_attributs()) + geom

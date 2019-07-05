@@ -607,7 +607,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
                     streamwriter = AscWriter(
                         nom,
-                        encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+                        encoding=regle.getvar("codec_sortie", "utf-8"),
                         geomwriter=self.geomwriter,
                     )
                     streamwriter.set_liste_att(attributs)

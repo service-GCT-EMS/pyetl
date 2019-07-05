@@ -668,9 +668,10 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
 
     a_traiter = sorted(a_traiter)
     print("on finit les restes", len(a_traiter))
-    for i in a_traiter:
-        taille, nom = i
-        yield taille, nom
+    # for i in a_traiter:
+    #     taille, nom = i
+    #     yield taille, nom
+    yield from a_traiter
 
 
 def parallel_load(regle):

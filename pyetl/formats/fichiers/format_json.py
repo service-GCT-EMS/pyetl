@@ -64,8 +64,8 @@ def lire_objets(self, rep, chemin, fichier):
     n_lin, n_obj = 0, 0
     # ouv = None
     obj = None
-    maxobj = regle_ref.get_param("lire_maxi", 0)
-    codec = regle_ref.get_param("codec_entree", "utf-8")
+    maxobj = regle_ref.getvar("lire_maxi", 0)
+    codec = regle_ref.getvar("codec_entree", "utf-8")
     entree = os.path.join(rep, chemin, fichier)
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
     self.setidententree(chemin, stock_param.fichier_courant)
@@ -185,7 +185,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
                 nom,
                 schema_courant,
                 extention,
-                encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+                encoding=regle.getvar("codec_sortie", "utf-8"),
             )
             sorties.creres(regle.numero, nom, str_w)
             ressource = sorties.get_res(regle.numero, nom)

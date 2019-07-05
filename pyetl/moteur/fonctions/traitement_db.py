@@ -534,7 +534,7 @@ def h_recup_schema(regle):
 
     nombase, niveau, classe, _ = regle.cible_base
     regle.setlocal('mode_schema','dbschema')
-    regle.type_base = regle.stock_param.get_param("db_" + nombase)
+    regle.type_base = regle.getvar("db_" + nombase)
 
     if nombase:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
@@ -610,7 +610,7 @@ def h_dbclean(regle):
         return False
     nombase, niveau, classe, _ = regle.cible_base
 
-    regle.type_base = regle.stock_param.get_param("db_" + nombase)
+    regle.type_base = regle.getvar("db_" + nombase)
 
     base = nombase
     nom = regle.params.cmp2.val + ".sql"

@@ -432,14 +432,12 @@ class Pyetl(object):
                 return True
             LOGGER.critical("pas de regles arret du traitement " + str(self.fichier_regles))
             return False
-        #        if self.parent is None:
-        #            self._gestion_posparm()
+
         self._set_streammode()
         try:
             self.compilateur(None, self.debug)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
-            #self.stores = [[] for i in range(len(self.regles))]# stockage temporaire d'objets
             self.moteur = Moteur(self, self.regles, self.debug)
             self.moteur.regle_debut = self.regles[0].numero
             #            print('preparation module',self.get_param('_entree'), '->', self.get_param('_sortie'))
@@ -452,10 +450,7 @@ class Pyetl(object):
 
     def _timer(self, init=True):
         """acces au temps pour les calculs de duree."""
-        if init:
-            heure_debut = self.starttime
-        else:
-            heure_debut = time.time()
+        heure_debut = self.starttime if init else time.time()
         intermediaire = 0
         prec = heure_debut
         while True:
@@ -541,13 +536,7 @@ class Pyetl(object):
                 interm = 0.001
             # print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
             tabletotal += nbfic
-    #        except GeneratorExit:
-    #            nbtotal += nbval
-    ##                tabletotal += nbfic
-    #            affiche('end', nbtotal)
-    #            print(" fin d'affichage")
-    ##            raise IndexError
-    #        return duree, interv
+
 
     def getpyetl(
         self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None
@@ -811,15 +800,10 @@ class Pyetl(object):
 
     def getcontext(self, context, ident=""):
         """recupere un contexte en cascade"""
-        if context is None:
-            return Context(parent=self.context, ident=ident)
-        return context.getcontext(ident=ident)
+        return context.getcontext(ident=ident) if context else Context(parent=self.context, ident=ident)
 
     def get_param(self, nom, defaut=""):
         """recupere la valeur d une varible depuis le contexte"""
-        #        print ('lecture ', nom, self.context.getvar(nom, defaut))
-        #        if nom=='nbaffich':
-        #            print (self.context)
         return self.context.getvar(nom, defaut)
 
     def set_param(self, nom, valeur):
@@ -828,16 +812,16 @@ class Pyetl(object):
 
     def padd(self, nom, valeur):
         """incremente un parametre d'une valeur"""
-        vinit = self.context.getvar(nom, 0)
-        self.context.setvar(nom, vinit + valeur)
+        # vinit = self.context.getvar(nom, 0)
+        self.context.setvar(nom, self.context.getvar(nom, 0) + valeur)
 
     #        print ('padd',nom,self.get_param(nom, 0, local=parent))
 
     def pasum(self, nom1, nom2):
         """incremente un parametre d'un autre parametre"""
-        vinit = self.get_param(nom1, defaut=0)
-        valeur = self.get_param(nom2, defaut=0)
-        self.set_param(nom1, str(vinit + valeur))
+        vinit = self.context.getvar(nom1, 0)
+        valeur = self.context.getvar(nom2, 0)
+        self.context.setvar(nom1, str(vinit + valeur))
 
     def _stocke_param(self, parametre):
         """stockage d'un parametre"""
@@ -961,6 +945,7 @@ class Pyetl(object):
                     rep=entree,
                     force_format=self.get_param("F_entree"),
                     fileselect=self.get_param("fileselect"),
+                    dirselect=self.get_param("dirselect"),
                     filtre_entree=self.get_param("filtre_entree"),
                 )
 

@@ -105,14 +105,14 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
     if separ is None:
-        separ = stock_param.get_param("separ_csv_in", stock_param.get_param("separ_csv", ";"))
+        separ = self.regle_ref.getchain(("separ_csv_in","separ_csv"), ";")
     #    print('lecture_csv:', rep, chemin, fichier,separ)
-    maxobj = stock_param.get_param("lire_maxi", 0)
+    maxobj = self.regle_ref.getvar("lire_maxi", 0)
     nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     with open(
         os.path.join(rep, chemin, fichier),
         "r",
-        encoding=stock_param.get_param("codec_entree", "utf-8"),
+        encoding=self.regle_ref.getvar("codec_entree", "utf-8"),
     ) as fich:
 
         if not entete:
@@ -296,7 +296,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
             extention,
             separ,
             entete,
-            encoding=regle.stock_param.get_param("codec_sortie", "utf-8"),
+            encoding=regle.getvar("codec_sortie", "utf-8"),
             null=null,
             f_sortie=regle.f_sortie,
         )
