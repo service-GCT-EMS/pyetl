@@ -695,7 +695,6 @@ def sortie_resultats(
     v_sortie,
     type_geom,
     schema_classe_travail,
-    base="",
     treq=0,
     cond="",
 ):
@@ -914,7 +913,6 @@ def lire_table(ident, regle_courante, parms=None):
             v_sortie,
             schema_classe_base.info["type_geom"],
             schema_classe_travail,
-            base=base,
             treq=treq,
             cond=(attr, val),
         )
@@ -1007,7 +1005,6 @@ def recup_donnees_req_alpha(
                     v_sortie,
                     schema_classe_base.info["type_geom"],
                     schema_classe_travail,
-                    base=base,
                     treq=treq,
                     cond=(attr, val),
                 )

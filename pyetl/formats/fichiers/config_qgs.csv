@@ -2,8 +2,10 @@
 maplayer;qgis;datasource;datasource;;;gid;S;
 maplayer;qgis;datasource;datasource;;;chemin;T;#chemin
 maplayer;qgis;datasource;datasource;;;fichier;T;#fichier
-maplayer;qgis;datasource;datasource;;;tags;H;#text
+maplayer;qgis;datasource;datasource;;;tags;H;#qgis_datasource
+!maplayer;qgis;datasource;datasource;;;datasource;T;#text
 maplayer;qgis;datasource;provider;;;provider;T;#text
+maplayer;qgis;datasource;layername;;;layer;T;#text
 customproperties;qgis;inclus;property;key;embedded_project;chemin;T;#chemin
 customproperties;qgis;inclus;property;key;embedded_project;fichier;T;#fichier
 customproperties;qgis;inclus;property;key;embedded_project;nom;T;[value]

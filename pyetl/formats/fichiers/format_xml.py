@@ -260,10 +260,21 @@ def decode_config_xml(config_xml):
                 config[parent]={item:{'classe':classe,'groupe':groupe,'select':selecteur,'vselect':vselect,'attributs':[valeurs]}}
     # print ('lecture config',config)
     return config
+
+
 def qgs_datasourceparser(text):
-    vals=re.split(' *\+?[a-z]+=',text)
+    '''decode les datasource des fichiers qgis'''
+    vals=re.split(' *\+?\|?[a-z]+=',text)
     keys=re.findall('[a-z]+(?==)',text)
+    if vals and vals[0]:
+        return zip(['ref']+keys,vals)
     return zip(keys,vals[1:])
+
+def basickvlistparser(text):
+    '''decode les testes formae d'une suite clef=valeur'''
+    tmp=txt.split(" ")
+    return [tuple(([i.split("=")+[""]])[:2]) for i in tmp if i]
+
 
 def decode_elem(elem, attributs, hdict, config, fixe):
     # print ('decodage element ', elem.tag, elem.text, elem.items())
@@ -272,11 +283,13 @@ def decode_elem(elem, attributs, hdict, config, fixe):
             if val == '#text':
                 txt = '' if elem.text is None else elem.text
                 if type_attribut=="H":
-                    tmp=txt.split(" ")
-                    hdict[attr] = dict([tuple((i.split("=")+[""])[:2]) for i in tmp if i])
+                    hdict[attr] = dict(basickvlistparser(txt))
                     # print ("creation hdict",hdict)
                 else:
                     attributs[attr]=txt
+            elif val == '#qgis_datasource':
+                txt = '' if elem.text is None else elem.text
+                hdict[attr] = dict(qgs_datasourceparser(txt))
             else:
                 attributs[attr]=fixe[val]
         elif typeval == 'prop':
@@ -343,8 +356,9 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
                         continue
                     decode_elem(el2, attributs, hdict, config_att, fixe)
             if attributs or hdict:
-                self.setidententree(conf['groupe'], conf['classe'])
-                self.alphaprocess(attributs,hdict=hdict)
+                if conf:
+                    self.setidententree(conf['groupe'], conf['classe'])
+                    self.alphaprocess(attributs,hdict=hdict)
     return
 
 def init_qgs(reader):

@@ -572,7 +572,7 @@ def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
 
 def init_csv(writer):
     '''writer csv'''
-    separ = writer.regle.getchain(("separ_csv_out","separ_csv"), "|")
+    separ = writer.regle.getchain(("separ_csv_out","separ_csv"), ";")
     initwriter(writer, '.csv', 'csv', ';' if separ == '#std' else separ,'')
 
 def init_txt(writer):

@@ -286,7 +286,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
     #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
         if separ is None:
-            separ = regle.getvar("separ_csv_out", regle.getvar("separ_csv", "|"))
+            separ = regle.getvar("separ_csv_out", regle.getvar("separ_csv", ";"))
         if not nom.startswith("#"):
             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
             os.makedirs(os.path.dirname(nom), exist_ok=True)
