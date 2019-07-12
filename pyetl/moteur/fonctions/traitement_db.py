@@ -55,7 +55,7 @@ def _mode_niv_in(mapper, niv):
                 else:
                     vals = liste_defs[0]
             cmp.append(vals)
-    #    print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
+    # print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
     return niveau, classe, attrs, cmp
 
 
@@ -151,13 +151,13 @@ def setdb(regle, obj, att=True):
     cmp = []
     type_base = None
     chemin = ""
-    if att:
-        if attribut:  # attention on traite des attributs
+    if att: #(tri sur attribut si necessaire)
+        if attribut:  # attention il y a des definitions d'attributs
             if isinstance(attribut, tuple):
                 attrs, cmp = attribut
             else:
                 attrs = attribut
-    else:
+    else: # traitement sans gestion des attributs (geometrique ou dump)
         attrs = attribut
     #    print ('f_alpha :',attrs, cmp)
     if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier

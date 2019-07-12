@@ -135,7 +135,7 @@ db:%acces%;%niveau%;%classe%;;;%nom%;#nombase;dbschema;%mod%;;;
 db:%acces%;%niveau%;%classe%;;;;;dbclean;T,=;%nom%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract;acces;niveau;classe;attribut;valeur;ordre;;;;
-#!help;extraction d'un jeu de donnees d'une base de donn�es;;;;;;;;;;
+#!help;extraction d'un jeu de donnees d'une base de données;;;;;;;;;;
 <#initdb;%acces%;%nom%;;;;
 K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 K:%dest%;;;;;;;;pass;;;fin;
@@ -398,11 +398,23 @@ $test_v1=%n1%;;;;;
 $test_v2=%n2%;;;;;
 ;;;;;;;printv>;;;;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#analyse_projets;n1;n2;;;;;
+&&#define;#analyse_projets;;;;;;
 #!help;analyse de projets qgis;;;
 $fileselect=.qgs$
 <#extract;;;;;
-#classe;datasource;;;#fichier,#table,#base,serveur,port,type_geom,#couche;;tags;hget;ref,table,dbname,host,port,type,layername;;;
-|:;;;;base;;#base|#fichier;set
-|:;;;;table;;#table|#couche;set
+#classe;qgis_datasource;;;#fichier_donnees,#table,#base,serveur,port,type_geom,#couche;;tags;hget;ref,table,dbname,host,port,type,layername;;;
+|:;;;;#base;;#base;sub;';
+|:;;;;base;;#base|#fichier_donnees;set
+|:;;;;#table;;#table;sub;";;
+|:;;;;table_base;;#table|#couche;set
+|:;;;;niveau,classe;;#table;split;.;
+|:;;;;classe;;classe;sub;\ \(geometrie\);;
+|:;;;;transversal(B);f;;set;;;;
+|:chemin;re:DEVL|TEST|PROD;;;stade;;;set;match;;;
+||sinon:;;;;stade;-;;set;;;;
+|:chemin;_Transversal;;;transversal(B);t;;set;;;;
+||sinon:;;;;transversal(B);f;;set;;;;
+|:;;;;;;;infofich;;;
+|:;;;;proprietaire;;#proprietaire_fich;set;;;
+;;;;gid(0:S,,PK);;#classe;cnt;;;;
 ;;;;tags;;;supp;;;;

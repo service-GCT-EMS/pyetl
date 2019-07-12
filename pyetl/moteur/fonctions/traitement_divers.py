@@ -11,7 +11,10 @@ import logging
 import subprocess
 from collections import defaultdict
 import psutil
-
+import time
+import win32api
+# import win32con
+import win32security
 
 from pyetl.formats.mdbaccess import dbaccess
 from pyetl.formats.generic_io import Writer
@@ -762,3 +765,41 @@ def f_loadconfig(regle, obj):
     #pattern||;;;loadconfig;C;C
     """
     return True
+
+def fileinfo(fichier):
+    '''recupere les infos detaillees d'un fichier'''
+    # print ('infos', fichier)
+    try:
+        sd = win32security.GetFileSecurity (fichier, win32security.OWNER_SECURITY_INFORMATION)
+        owner_sid = sd.GetSecurityDescriptorOwner ()
+        name, domain, typef = win32security.LookupAccountSid (None, owner_sid)
+    except NameError:
+        name,domain = '',''
+
+    statinfo = os.stat(fichier)
+    taille = statinfo.st_size
+    creation = statinfo.st_ctime
+    modif = statinfo.st_mtime
+    acces = statinfo.st_atime
+    # print ('fichier', fichier, 'taille',taille,'prop', (domain, name), time.ctime(creation),time.ctime(modif),time.ctime(acces))
+    return (('#taille_fich',taille),('#domaine_fich',domain),('#proprietaire_fich',name),('#creation_fich',creation),('#modif_fich',modif),('#acces_fich',acces))
+
+def h_infofich(regle):
+    """prepare la structure d'info de fichier"""
+    regle.infofich = dict()
+    return True
+
+def f_infofich(regle,obj):
+    """#aide||ajoute les informations du fichier sur les objets
+  #aide_spec||definit les champs #taille_fich, #domaine_fich, #proprietaire_fich
+  #aide_spec2||definit les champs #creation_fich, #modif_fich, #acces_fich
+    #pattern||;;;infofich;;
+    """
+    # print ('infofich',obj)
+    fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
+    if fichier:
+        if fichier not in regle.infofich:
+            regle.infofich[fichier] = fileinfo(fichier)
+        obj.attributs.update(fileinfo(fichier))
+        return True
+    return False

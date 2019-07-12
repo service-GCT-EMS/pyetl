@@ -941,7 +941,7 @@ def recup_donnees_req_alpha(
 ):
     """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
-    #    print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, v_sortie)
+    # print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, classe)
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
         base,
@@ -951,6 +951,7 @@ def recup_donnees_req_alpha(
         chemin=chemin,
         mods=mods,
     )
+    # print ('recup liste tables', liste_tables)
     if connect is None:
         return 0
     reqdict = dict()
@@ -967,32 +968,34 @@ def recup_donnees_req_alpha(
     #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
     curs = None
     for ident in liste_tables:
-        attr, val = attribut, valeur
         treq = time.time()
         if ident is not None:
 
             niveau, classe = ident
             schema_classe_base = schema_base.get_classe(ident)
             #            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
-            #        print ('dbaccess : ',ident)
+            # print ('dbaccess : ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info[
                 "type_geom"
             ]
             if isinstance(attribut, list):
-                attr, val = reqdict[ident] if ident in reqdict else "", ""
+                attr, val = reqdict.get(ident, ("", ""))
+            else:
+                attr, val = attribut, valeur
             if (
                 attr
                 and attr not in schema_classe_travail.attributs
                 and attr not in connect.sys_fields
             ):
+                # print ('la on fait rien',type(attribut), attr)
                 continue  # on a fait une requete sur un attribut inexistant: on passe
 
             curs = connect.req_alpha(
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )
             connect.connection.commit()
-            #        print ('-----------------------traitement curseur ', curs,type(curs) )
+            # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
             treq = time.time() - treq
             if curs:
                 res += sortie_resultats(

@@ -14,6 +14,7 @@ import traceback
 import logging
 import glob
 import codecs
+
 from pyetl.formats.generic_io import Reader
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
@@ -79,6 +80,7 @@ def description_schema(regle, nom, schema):
         modele.ordre = position
         modele.def_index = def_index
         regle.params.def_sortie[nom] = modele
+
 
 
 def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
@@ -295,7 +297,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
             print("chargement liste", fichier)
     except FileNotFoundError:
         print("fichier liste introuvable ", fichier)
-    #    print ('lus fichier qgis ',fichier,list(stock))
+    # print ('lus fichier qgis ',fichier,list(stock))
     return stock
 
 
@@ -411,8 +413,8 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
                 positions = [int(i) for i in fi2[1:]]
             valeurs = charge_liste(fichier, taille=taille, positions=positions)
             # on precharge le fichier de jointure
-    #            print ('outils: chargement liste ',fichier,'------>',
-    #                   '\n'.join((str(i)+':'+str(valeurs[i]) for i in valeurs)))
+            # print ('outils: chargement liste ',fichier,'------>',
+            #         '\n'.join((str(i)+':'+str(valeurs[i]) for i in valeurs)))
     return mode, valeurs
 
 

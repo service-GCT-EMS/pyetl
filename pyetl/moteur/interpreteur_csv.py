@@ -887,7 +887,7 @@ def importe_macro(mapper, texte, context, fichier_regles):
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
     vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
-    settings = {i.split["="][0]: i.split["="][1] for i in range(1, len(champs)) if "=" in champs}
+    settings = dict([i.split('=',1) for i in champs if "=" in i])
 
     #    print ('lecture macro',texte,'->',niveau)
 

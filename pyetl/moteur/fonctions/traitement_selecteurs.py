@@ -6,6 +6,7 @@ Created on Fri Dec 11 14:34:04 2015
 fonctions s de selections : determine si une regle est eligible ou pas
 """
 import re
+import itertools
 from .outils import compilefonc, prepare_mode_in
 
 # ------------selecteurs sur valeurs d'attributs---------------------
@@ -33,7 +34,9 @@ def sel_regex(selecteur, obj):
        #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
     """
     #    print (" attributs",selecteur,obj)
-    return selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
+    result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
+    selecteur.regle.match=result.group(0) if result else ''
+    return result
 
 
 def selh_calc(selecteur):
@@ -55,6 +58,8 @@ def sel_calc(selecteur, obj):
        #test||obj||^A;5;;set||^?A;0;;set||A;N: >2;;;res;1;;set||atv;res;1
        #test2||obj||^A;5;;set||^?A;0;;set||A;C: in "3456";;;res;1;;set||atv;res;1
     """
+    result = selecteur.fselect(obj)
+    selecteur.regle.match=result if result else ''
     return selecteur.fselect(obj)
 
 
@@ -70,6 +75,8 @@ def sel_calc2(selecteur, obj):
        #test||obj||^A,B;5,2;;set||^?A;0;;set||;N:A>N:B;;;res;1;;set||atv;res;1
 
     """
+    result = selecteur.fselect(obj)
+    selecteur.regle.match=result if result else ''
     return selecteur.fselect(obj)
 
 
@@ -104,7 +111,11 @@ def sel_vinfich(selecteur, obj):
     if selecteur.dyn: # mode dynamique
         pass
     else:
-        return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
+        selecteur.regle.match = obj.attributs.get(selecteur.params.attr.val, "")
+        if selecteur.regle.match in selecteur.info:
+            return True
+        selecteur.regle.match = ''
+        return False
 
 
 def selh_infich_re(selecteur):
@@ -141,8 +152,13 @@ def sel_infich_re(selecteur, obj):
     if len(selecteur.params.attr.liste) > 1:
         vals = ";".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
     else:
-        vals = vals = obj.attributs.get(selecteur.params.attr.val, "")
-    return any((i.search(vals) for i in selecteur.info))
+        vals = obj.attributs.get(selecteur.params.attr.val, "")
+    for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
+        selecteur.regle.match = i.search(vals).group(0)
+        return True
+    selecteur.regle.match = ''
+    return False
+    # return any((i.search(vals) for i in selecteur.info))
 
 
 def selh_inlist(selecteur):
@@ -158,7 +174,12 @@ def sel_inlist(selecteur, obj):
        #pattern||A;in:list||10
        #test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
     """
-    return obj.attributs.get(selecteur.params.attr.val, "") in selecteur.info
+    val = obj.attributs.get(selecteur.params.attr.val, "")
+    if val in selecteur.info:
+        selecteur.regle.match=val
+        return True
+    selecteur.regle.match=''
+    return False
 
 
 def selh_inlist_re(selecteur):
@@ -187,8 +208,12 @@ def sel_inlist_re(selecteur, obj):
     else:
         vals = obj.attributs.get(selecteur.params.attr.val, "")
     #    print ('sel _inlist_re ', vals, selecteur.info)
-    return any((i.search(vals) for i in selecteur.info))
-
+    # return any((i.search(vals) for i in selecteur.info))
+    for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
+        selecteur.regle.match = i.search(vals).group(0)
+        return True
+    selecteur.regle.match = ''
+    return False
 
 def selh_inmem(selecteur):
     """stocke la liste"""
@@ -212,12 +237,17 @@ def sel_inmem(selecteur, obj):
         selecteur.precedent = obj.ident
     #    print ('comparaison ', len(regle.comp), regle.comp)
     if selecteur.info is None:
+        selecteur.regle.match = ''
         return False
 
     clef = str(tuple(tuple(i) for i in obj.geom_v.coords)) if selecteur.geom else ""
     clef = clef + "|".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
 
-    return clef in selecteur.info
+    if clef in selecteur.info:
+        selecteur.regle.match = clef
+        return True
+    selecteur.regle.match = ''
+    return False
 
 
 def sel_changed(selecteur, obj):
@@ -227,6 +257,7 @@ def sel_changed(selecteur, obj):
     """
     if selecteur.info != obj.attributs.get(selecteur.params.attr.val, ""):
         selecteur.info = obj.attributs.get(selecteur.params.attr.val, "")
+        selecteur.regle.match = selecteur.info
         return True
     return False
 

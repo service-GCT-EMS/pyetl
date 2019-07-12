@@ -89,6 +89,7 @@ class Reader(object):
         self.lus_fich = 0
         self.groupe = ""
         self.classe = ""
+        self.fixe=()
         self.orig = None
         self.affich = 100000
         self.nextaff = self.affich
@@ -208,9 +209,9 @@ class Reader(object):
         while chem:
             chem, nom = os.path.split(chem)
             niveaux.append(nom)
-
+        self.fixe={'#chemin': os.path.join(rep,chemin), '#fichier':fichier}
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
-        # print ('prepare lecture',self.schema_entree, self.schema, self.nomschema)
+        # print ('prepare lecture',self.fixe)
         if (
             not self.nomschema and self.cree_schema
         ):  # les objets ont un schema issu du fichier
@@ -253,7 +254,6 @@ class Reader(object):
                 for nom,dico in hdict.items():
                     obj.sethtext(nom,dico)
             obj.attributs["#type_geom"] = '0'
-            obj.attributs["#chemin"] = self.chemin
             self.traite_objets(obj, self.regle_start)
         # else:
         #     print ('rejet')
@@ -441,6 +441,9 @@ class Reader(object):
         # print ('creation obj',obj)
         if errs:
             obj.attributs["#erreurs"]=','.join(errs)
+        if self.fixe:
+            # print ('fixe', self.fixe)
+            obj.attributs.update(self.fixe)
         return obj
 
 
