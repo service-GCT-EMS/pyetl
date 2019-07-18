@@ -272,7 +272,7 @@ class Mapping(object):
                         break
             else:
                 id_dest = self.mapping_destination.get(id_orig)
-            # print ('--------------------------mapping',id_orig,'->',id_dest,self.mapping_destination )
+            print ('--------------------------mapping',id_orig,'->',id_dest,self.mapping_destination )
 
             if id_dest:
                 return id_dest
@@ -290,7 +290,8 @@ class Mapping(object):
             if not id_dest:
                 id_dest = self.mapping_class_destination.get(id_orig[1].upper())
             return id_dest if id_dest else None
-        return None
+        # print ('map_dest: mapping inexistant')
+        return id_orig
 
     def map_orig(self, id_dest):
         """retourne l origine du mapping"""

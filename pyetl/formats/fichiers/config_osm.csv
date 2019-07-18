@@ -26,7 +26,8 @@ barrier;;1;;osm;om_amgt_obstacle;1;0;nature;;;
 barrier;;2,3;;osm;om_amgt_cloture;2;1;nature;;;
 power;;1;;osm;om_amgt_pylone;1;0;nature;;;
 power;;2;;osm;om_amgt_ligne_ht;2;1;nature;;;
-restriction;;4;;osm;om_comm_restriction;1;0;from:ref:{role=from,type=way};to:ref{role=to,type=way};G:ref{role=via,type=node};restriction
+restriction;;4;;osm;om_comm_restriction;1;0;from:ref:{role=from,type=way};to:ref:role=to,type=way;G:ref:role=via,type=node;restriction
+admin_centre;;4;;osm;om_adm_contour;3;1;G:ref:type=way;;niveau:level;TG:ref:type=node:nom:name
 *;;1;;osm;om_non_classe_divers_pt;1;0;;;;
 *;;2,3;;osm;om_non_classe_divers_l;2;1;;;;
 *;;4;;osm;om_non_classe_poly;3;1;;;;

@@ -320,7 +320,7 @@ class SqlWriter(CsvWriter):
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )
         self.htranstable = str.maketrans(
-            {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", '"':r'""', self.separ: self.escape}
+            {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", '"':r'\\"', self.separ: self.escape}
         )
 
 
@@ -337,7 +337,7 @@ class SqlWriter(CsvWriter):
         ''' prepare la es attributs en fonction du format'''
         if obj.hdict:
             # atlist = []
-            atlist = (", ".join(['"'+i+'" => "'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())]) if nom in obj.hdict else
+            atlist = (",".join(['"'+i+'"=>"'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())]) if nom in obj.hdict else
             str(obj.attributs.get(nom, "")).translate(self.transtable) for nom in self.liste_att)
             # for nom in self.liste_att:
             #     if nom in obj.hdict:

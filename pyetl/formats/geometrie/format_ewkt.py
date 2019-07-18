@@ -204,7 +204,7 @@ def _ecrire_point_ewkt(geom):
         )
     return ""
 
-def ecrire_multipoint(geom):
+def _ecrire_multipoint_ewkt(geom):
     ''' ecrit un multipoint'''
     if geom.points:
         return ("MULTIPOINT((" + '),('.join(_ecrire_coord_ewkt2d(point) for point in geom.points) +'))'
@@ -215,9 +215,8 @@ def ecrire_multipoint(geom):
 
 def _ecrire_section_simple_ewkt(section):
     """ecrit une section """
-    prefix = "("
     ecrire = ecrire_coord_ewkt(section.dimension)
-    return prefix + ",".join([ecrire(i) for i in section.coords]) + ")"
+    return "(" + ",".join([ecrire(i) for i in section.coords]) + ")"
 
 
 def _ecrire_section_ewkt(section, poly):

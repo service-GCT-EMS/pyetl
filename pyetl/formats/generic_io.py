@@ -91,7 +91,7 @@ class Reader(object):
         self.classe = ""
         self.fixe=()
         self.orig = None
-        self.affich = 100000
+        self.affich = 1000
         self.nextaff = self.affich
         self.aff = stock_param.aff
         if self.debug:
@@ -241,6 +241,7 @@ class Reader(object):
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = "utf-8-sig"
+        return groupe,classe
 
     def process(self, obj):
         """renvoie au moteur de traitement"""
@@ -297,7 +298,7 @@ class Reader(object):
         if self.schema_entree:
             # print ('mapping entree', self.schema_entree, self.schema_entree.classes.keys())
             groupe2, classe2 = self.schema_entree.map_dest((groupe, classe))
-            print ('mapping entree',(groupe, classe),'->', (groupe2, classe2))
+            # print ('mapping entree',(groupe, classe),'->', (groupe2, classe2))
         else:
             groupe2, classe2 = groupe, classe
             if not self.schema and self.nomschema:
@@ -323,7 +324,7 @@ class Reader(object):
             # print ('------controle', self.schema.get_classe(self.ident)._id)
             return
         if self.schema_entree:
-            print ('mapping schema_entree impossible',self.ident,'->',self.schema_entree.classes.keys())
+            print ('mapping schema_entree impossible',self.ident,'->',self.schema_entree.nom)
         self.newschema = True
         if self.schema:
             self.schemaclasse = self.schema.setdefault_classe(self.ident)

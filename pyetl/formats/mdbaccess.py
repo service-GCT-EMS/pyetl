@@ -604,7 +604,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 
 def dbrunsql(stock_param, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
-    print("mdba execution sql via un programme externe", base, file)
+    # print("mdba execution sql via un programme externe", base, file)
     connect = dbaccess(stock_param, base)
     if connect is None:
         return False
@@ -614,7 +614,7 @@ def dbrunsql(stock_param, base, file, log=None, out=None):
     if helper:
         logfile = setpath(stock_param, log)
         outfile = setpath(stock_param, out)
-        print("runsql: demarrage", helpername, helper, "user:", connect.user)
+        # print("runsql: demarrage", helpername, helper, "user:", connect.user)
         return connect.runsql(helper, file, logfile, outfile)
     return False
 

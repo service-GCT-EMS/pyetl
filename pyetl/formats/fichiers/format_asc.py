@@ -288,15 +288,13 @@ def lire_objets_asc(self, rep, chemin, fichier):
     coords = []
     angle = 0
     dim = 2
-    self.prepare_lecture_fichier(rep, chemin, fichier)
-    self.setidententree(self.groupe, self.classe)
-    classe = self.classe
+    groupe,classe = self.prepare_lecture_fichier(rep, chemin, fichier)
+    self.setidententree(groupe, classe)
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
     next(log_erreurs)
     dclasse = classe
-    groupe = self.groupe
     with open(
         self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:

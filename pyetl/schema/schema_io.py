@@ -306,7 +306,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         if not i:
             continue
         if a_sortir and i not in a_sortir:
-            print("schema non sorti", i, "(", a_sortir, ")")
+            if not stock_param.worker:
+                print("schema non sorti", i, "(", a_sortir, ")")
             continue
         mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
         #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
@@ -375,7 +376,7 @@ def integre_schemas(schemas, nouveaux):
         tmp = SCI.Schema(nom)
         tmp.from_dic_if(description)
 
-        print ('recup schema ', nom, tmp, schemas.get(nom))
+        # print ('recup schema ', nom, tmp, schemas.get(nom))
         if nom in schemas:
             fusion_schema(nom, schemas[nom], tmp)
         else:

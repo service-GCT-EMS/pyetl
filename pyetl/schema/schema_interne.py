@@ -386,7 +386,7 @@ class Schema(object):
         """ force les origines des classes"""
         id2 = self.stock_mapping.map_dest(id_orig)
         if id2 is None:
-            print ('attention mapping destination impossible', self.nom, id_orig, self.classes.keys())
+            print ('attention mapping destination impossible', self.nom,id_orig, id_orig in self.classes)
             return id_orig
         return id2
 

@@ -116,10 +116,16 @@ def geom_from_osm(obj):
         if role == "node" or role == "label":
             geomv.type = "1"
             geomv.addpoint(element, 2)
-        elif role == "way" or role == "inner" or role == "outer":
+        elif role in {"way","inner","outer",'forward'}:
             geomv.cree_section(element, 2, 1, 0, interieur=role == "inner")
+        # elif role == "":
+        #     if len(element) == 1:
+        #         geomv.type = "1"
+        #         geomv.addpoint(element, 2)
+        #     else:
+        #         geomv.cree_section(element, 2, 1, 0)
         else:
-            print("role inconnu", role, element)
+            print("role inconnu", role, obj)
 
     # if obj.attributs["#type_geom"] == "1":
     #     geomv.type = "1"

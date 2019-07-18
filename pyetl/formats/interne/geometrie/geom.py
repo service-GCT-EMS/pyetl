@@ -365,7 +365,7 @@ class Geometrie(object):
         self.valide = True
         self.dimension = dim
         self.angle = angle
-        self.points = [list(coords)[:dim]]
+        self.points = [list(coords[:dim])]
         if coords is None:
             self.null = True
         self.longueur_point = longueur
@@ -379,7 +379,7 @@ class Geometrie(object):
             if coords is None:
                 self.null=True
                 return
-            self.points.append(list(coords)[:dim])
+            self.points.append(list(coords[:dim]))
             self.multi = len(self.points)>1
             self.valide = True
             self.dimension = dim

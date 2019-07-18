@@ -661,6 +661,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                     "fich": dest,
                     "taille": size,
                 }
+                time.sleep(1) # on dort un peu pour pas surcharger
             else:
                 #                print ('fin de tache')
                 pool[slot] = None

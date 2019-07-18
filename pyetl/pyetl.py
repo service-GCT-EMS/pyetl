@@ -468,6 +468,7 @@ class Pyetl(object):
         nop = 0
         nbtotal = 0
         tabletotal = 0
+        duree = 0
 
         def affiche(message, nbobj):
             """gere l'affichage des messages de patience"""
@@ -515,14 +516,16 @@ class Pyetl(object):
             #            nbtotal += nbval
 
             if message == "init":
-                duree, _ = next(temps)
-                interm = duree
+                next(temps)
+                interm = 0.001
+                nb_total = 0
+                prochain = nbaffich
             #                print("init  : --------->", int(duree*1000), 'ms')
-            elif message == "end":
-                nbtotal += nbval
-                #                tabletotal += nbfic
-                # affiche(message, nbtotal)
-                print(" fin d'affichage")
+            # elif message == "end":
+            #     nbtotal += nbval
+            #     #                tabletotal += nbfic
+            #     # affiche(message, nbtotal)
+            #     print(" fin d'affichage")
             #                raise GeneratorExit
             #                break
             elif nbtotal + nbval >= prochain:
@@ -959,6 +962,8 @@ class Pyetl(object):
                 for i in fichs:
                     # print ('mapper:traitement fichier',i)
                     # traitement.racine_fich = os.path.dirname(i)
+                    if self.worker:
+                        self.aff.send(("init", 0, 0))
                     try:
                         nb_lu = self.lecture(i, parms=parametres[i])
                     except StopIteration as arret:
@@ -969,7 +974,7 @@ class Pyetl(object):
                         nb_lu = 0
                         break
                     # self.aff.send(('fich', 1, nb_lu))
-                self.aff.send(("end", 0, 0))
+                # self.aff.send(("end", 0, 0))
             #                self.aff.close()
 
             else:
@@ -1189,7 +1194,10 @@ class Pyetl(object):
         # print ('fin lecture fichier', fichier)
         self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
-        self.aff.send(("fich", 1, lecteur.lus_fich))
+        if self.worker: # en mode worker on ne compte que les intermediaires
+            self.aff.send(("init",0,0)) # on reinitialise le compteur
+        else:
+            self.aff.send(("fich", 1, lecteur.lus_fich))
         return lecteur.lus_fich
 
 

@@ -800,6 +800,8 @@ def f_reproj(regle, obj):
     if obj.initgeom():
         obj.geom_v.srid = regle.srid
         for pnt in obj.geom_v.coords:
+            if isinstance(pnt, tuple):
+                print ('proj', obj)
             try:
                 gril, pnt[0], pnt[1] = proj.calcule_point_proj(pnt[0], pnt[1])
                 # print (" projection calculee",gril, pnt[0], pnt[1])
