@@ -331,6 +331,7 @@ class PgrConnect(DbConnect):
         }
         if any(len(els[i]) for i in els):
             print("elements specifiques gardes", dict([(i, len(els[i])) for i in els]))
+            # print ("def trigger", els["def_triggers"])
 
     @property
     def req_tables(self):

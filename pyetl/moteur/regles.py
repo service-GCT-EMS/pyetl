@@ -81,6 +81,7 @@ class Valdef(object):
         self.definition = definition
         #        self.besoin = None
         self.origine = origine
+        self.defaut = ""
         self.texte = texte
 
     def update(self, obj):
@@ -89,6 +90,9 @@ class Valdef(object):
 
     def __repr__(self):
         return self.texte + "->" + str(self.val)
+
+    def getval(self,obj):
+        return obj.attributs.get(self.origine) if self.dyn else self.val
 
 
 class ParametresFonction(object):
@@ -232,6 +236,7 @@ class RegleTraitement(object):  # regle de mapping
         #        self.nom_base = 'defaut'
         self.changeclasse = None
         self.changeschema = None
+        self.ajout_attributs = []
         self.elements = None
         self.f_sortie = None
         self.get_entree = self.getval_entree

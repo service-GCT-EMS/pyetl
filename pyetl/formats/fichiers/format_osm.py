@@ -35,6 +35,7 @@ class DecodeConfigOsm(object):
         self.force_geom = vals[6]
         self.multigeom = (vals[7] == '1')
         self.geomrest = None
+        self.geomrole = None
         if vals[0] == "*":
             self.getident = self.decode_defaut
             self.liste_classes = None
@@ -48,10 +49,10 @@ class DecodeConfigOsm(object):
             for j in range(8, len(vals)):
                 if vals[j].startswith('G:ref:'):
                     vl2 = vals[j].split(":")
-                    self.geomdef(vl2[2],vl2[3])
+                    self.geomrest, self.geomrole = getrefcond(vl2[2])
                 elif vals[j].startswith('TG:ref:'):
                     vl2 = vals[j].split(":")
-                    self.tgdef(vl2[1],vl2[2],vl2[3])
+                    self.tgdef(vl2[2],vl2[3],vl2[4])
                 elif vals[j]:
                     vl2 = vals[j].split(":")
                     if len(vl2) == 1:
@@ -65,18 +66,28 @@ class DecodeConfigOsm(object):
                             tag,val = cond.split('=')
                             self.conds[vl2[0]]=(tag,val)
 
+    def getrefcond(self,geomcond):
+        role = None
+        geomtype = None
+        for i in geomcond.split(','):
+            if 'role=' in i:
+                role = i.split('=')[1]
+            if 'type=' in i:
+                geomtype = i.split('=')[1]
+        return geomtype,role
+
+
     def storeatt(self, att, val):
         if val.startswith("#"):
             self.static.append((att, val[1:]))
         else:
             self.atts.append((att, val))
 
-    def tgdef(self,att,val,geom):
+    def tgdef(self,geomcond,att,val):
         self.storeatt(att,val)
-        self.tgs[att]=geom
+        geomtype, self.tgs[att] = getrefcond(geomcond)
 
-    def geomdef(self,geom):
-        self.geomrest=geom
+
 
     def setliste(self, groupes):
         """stocke les listes associees"""

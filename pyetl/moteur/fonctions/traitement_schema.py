@@ -540,3 +540,23 @@ def f_schema_supp_attribut(regle, obj):
             #            print('ajout 2', att)
             if att in schemaclasse.attributs:
                 del schemaclasse.attributs[att]
+
+def f_schema_order(regle, obj):
+    """#aide||ordonne les champs dans un schema
+       #pattern||L;;;ordre;;
+    """
+
+    schemaclasse = obj.schema
+    if not schemaclasse:
+        return False
+    if schemaclasse.amodifier(regle):
+        nummax = len(schemaclasse.attributs)
+        for att in schemaclasse.attributs:
+            if att.nom in regle.paramas.att_sortie.liste:
+                att.ordre = regle.paramas.att_sortie.liste.index(att.nom)
+            else:
+                nummax +=1
+                att.ordre = nummax
+    return True
+
+

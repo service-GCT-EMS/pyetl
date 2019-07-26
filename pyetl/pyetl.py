@@ -171,6 +171,7 @@ class Pyetl(object):
         self.jointdef = dict()  # definition des champs
         self.posparm = list()
         self.store = dict()
+        self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         #        self.parms = dict() #parametres ligne de commande et variables globales
         self.context = Context(

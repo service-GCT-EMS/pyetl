@@ -477,9 +477,25 @@ def f_vset(regle, obj):
     return True
 
 
+def f_renamelist(regle, obj):  # fonction de substution
+    """#aide||renommage d'un attribut
+       #pattern||L;;L;ren;;||sortie
+       #schema||rename_attribut
+       #test1||obj||^V4,V5;;C1,C2;ren||atv;V4;AB
+    """
+    ok=True
+    for dest, orig in zip(regle.params.att_sortie.liste, regle.params.att_entree.liste):
+        if dest in obj.attributs:
+            ok=False
+        elif orig in obj.attributs:
+            obj.attributs[dest] = obj.attributs[orig]
+            del obj.attributs[orig]
+    return ok
+
+
 def f_rename(regle, obj):  # fonction de substution
     """#aide||renommage d'un attribut
-       #pattern||A;;A;ren;;
+       #pattern||A;;A;ren;;||sortie
        #schema||rename_attribut
        #test1||obj||^V4;;C1;ren||atv;V4;AB
     """

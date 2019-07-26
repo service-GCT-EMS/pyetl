@@ -14,6 +14,9 @@ from .database import DbGenSql
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}
 SCHEMA_CONF = "public"
 
+def _nomsql(niveau,classe):
+    '''retourne un identifiant standard sql'''
+    return niveau.lower()+"."+ classe.lower()
 
 class PgrGenSql(DbGenSql):
     """classe de generation des structures sql"""
@@ -257,8 +260,22 @@ class PgrGenSql(DbGenSql):
                 + ") "
                 + ("MATCH FULL" if "mf" in props else "MATCH SIMPLE")
             )
-            fks.append("\t\tON UPDATE CASCADE" if "uc" in props else "\t\tON UPDATE NO ACTION")
-            fks.append("\t\tON DELETE CASCADE" if "dc" in props else "\t\tON DELETE NO ACTION")
+            if 'uc' in props:
+                fks.append("\t\tON DELETE CASCADE")
+            elif 'un' in props:
+                fks.append("\t\tON DELETE SET NULL")
+            elif 'ud' in props:
+                fks.append("\t\tON DELETE SET DEFAULT")
+            elif 'ur' in props:
+                fks.append("\t\tON DELETE RESTRICT")
+            if 'dc' in props:
+                fks.append("\t\tON DELETE CASCADE")
+            elif 'dn' in props:
+                fks.append("\t\tON DELETE SET NULL")
+            elif 'dd' in props:
+                fks.append("\t\tON DELETE SET DEFAULT")
+            elif 'dr' in props:
+                fks.append("\t\tON DELETE RESTRICT")
             fks.append(
                 "\t\tDEFERRABLE INITIALLY DEFERRED; " if "defer" in props else "\t\tNOT DEFERRABLE;"
             )
@@ -920,9 +937,7 @@ class PgrGenSql(DbGenSql):
         #        prefix = 'TRUNCATE TABLE "'+niveau.lower()+'"."'+classe.lower()+'";\n'
         return (
             ("DELETE FROM " if delete else "TRUNCATE TABLE ")
-            + niveau.lower()
-            + "."
-            + classe.lower()
+            + _nomsql(niveau, classe)
             + ";\n"
         )
 
@@ -944,9 +959,7 @@ class PgrGenSql(DbGenSql):
         """ cree une commande de reinitialisation des sequences"""
         return (
             "ALTER TABLE "
-            + niveau.lower()
-            + "."
-            + classe.lower()
+            + _nomsql(niveau, classe)
             + (" ENABLE " if valide else " DISABLE ")
             + "TRIGGER USER;\n"
         )

@@ -189,7 +189,7 @@ class SchemaClasse(object):
 
     def __repr__(self):
         """affichage simplifie"""
-        return "schema "+self.schema.nom+':' + self.dbident + " " + repr(self.info) +'\n       '+','.join(sorted(self.attributs.keys()))
+        return "schema->"+self.schema.nom+':' + self.dbident + " " + repr(self.info) +'\n\t\t'+','.join(sorted(self.attributs.keys()))
 
     @property
     def __dic_if__(self):
@@ -373,7 +373,7 @@ class SchemaClasse(object):
         ( on garde en memoire le numero de regle)"""
         idregle = regle.numero
         # if 'bati' in self.nom:
-        #     print ('amodifier', self.schema.nom, idregle, self)
+        # print ('amodifier', self.schema.nom, idregle, idregle in self.regles_modif)
         if dyn:
             return True
         if idregle in self.regles_modif:

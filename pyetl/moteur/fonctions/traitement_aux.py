@@ -281,7 +281,9 @@ def fschema_ajout_attribut_d(regle, obj):
     for att in [a for a in regle.params.att_sortie.liste if a and a[0] != "#"]:
         #        print ('ajout 2',att)
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
-
+    for att in [a for a in regle.ajout_attributs if a and a[0] != "#"]:
+        #        print ('ajout 2',att)
+        obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 #    print ('schema', obj.schema.attributs)
 
@@ -335,8 +337,6 @@ def fschema_set_geom(regle, obj):
             obj.schema.info["type_geom"] = obj.geom_v.type
         else:
             obj.schema.info["type_geom"] = obj.attributs["#type_geom"]
-
-
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])
 
 
@@ -345,12 +345,8 @@ def fschema_rename_attribut(regle, obj):
     if obj.schema.amodifier(regle):
         #        print ('dans rename_attribut',regle.params.att_entree.val,'->',regle.params.att_sortie.val)
         #        print ('dans rename_attribut',obj.attributs.get(regle.params.att_sortie.val))
-
-        obj.schema.rename_attribut(
-            regle.params.att_entree.val, regle.params.att_sortie.val, modele=regle.params.def_sortie
-        )
-
-
+        for source,dest in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
+            obj.schema.rename_attribut(source, dest, modele=regle.params.def_sortie)
 #        print ( 'renommage' , obj.schema.attributs[regle.params.att_sortie.val].nom )
 
 

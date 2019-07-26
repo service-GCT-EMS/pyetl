@@ -727,6 +727,26 @@ def f_compare(regle, obj):
     return False
 
 
+
+def h_getkey(regle):
+    '''prepare les stockages'''
+    if regle.params.cmp1.val not in regle.stock_param.keystore:
+        regle.stock_param.keystore[regle.params.cmp1.val]=dict()
+    regle.keystore = regle.stock_param.keystore[regle.params.cmp1.val]
+
+
+def f_getkey(regle,obj):
+    '''#aide||retourne une clef numerique incrementale correspondant a une valeur
+  #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
+  #pattern||S;?C;?A;getkey;?A;;;
+    '''
+    ref = regle.get_entree(obj)
+    if ref not in regle.keystore:
+        regle.keystore[ref] = len(regle.keystore)+1
+    regle.setval_sortie(obj, regle.keystore[ref])
+    return True
+
+
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     if regle.params.att_entree.val or regle.params.val_entree.val:
@@ -766,7 +786,7 @@ def f_loadconfig(regle, obj):
     """
     return True
 
-def fileinfo(fichier):
+def fileinfo(fichier, ajout_attributs):
     '''recupere les infos detaillees d'un fichier'''
     # print ('infos', fichier)
     try:
@@ -775,6 +795,9 @@ def fileinfo(fichier):
         name, domain, typef = win32security.LookupAccountSid (None, owner_sid)
     except NameError:
         name,domain = '',''
+    except Exception as err:
+        print ('fichier introuvable', fichier, err)
+
 
     statinfo = os.stat(fichier)
     taille = statinfo.st_size
@@ -782,24 +805,95 @@ def fileinfo(fichier):
     modif = statinfo.st_mtime
     acces = statinfo.st_atime
     # print ('fichier', fichier, 'taille',taille,'prop', (domain, name), time.ctime(creation),time.ctime(modif),time.ctime(acces))
-    return (('#taille_fich',taille),('#domaine_fich',domain),('#proprietaire_fich',name),('#creation_fich',creation),('#modif_fich',modif),('#acces_fich',acces))
+    return zip(ajout_attributs,(taille,domain,name,time.ctime(creation),time.ctime(modif),time.ctime(acces)))
 
 def h_infofich(regle):
     """prepare la structure d'info de fichier"""
     regle.infofich = dict()
+    prefix = regle.params.cmp1.val if regle.params.cmp1.val else "#"
+    regle.ajout_attributs = [prefix+i for i in ("taille_fich",'domaine_fich','proprietaire_fich','creation_fich','modif_fich','acces_fich')]
     return True
 
 def f_infofich(regle,obj):
     """#aide||ajoute les informations du fichier sur les objets
   #aide_spec||definit les champs #taille_fich, #domaine_fich, #proprietaire_fich
-  #aide_spec2||definit les champs #creation_fich, #modif_fich, #acces_fich
-    #pattern||;;;infofich;;
+ #aide_spec2||definit les champs #creation_fich, #modif_fich, #acces_fich
+     #schema||ajout_attribut
+    #pattern||;;;infofich;?A;
     """
     # print ('infofich',obj)
     fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
     if fichier:
         if fichier not in regle.infofich:
-            regle.infofich[fichier] = fileinfo(fichier)
-        obj.attributs.update(fileinfo(fichier))
+            regle.infofich[fichier] = list(fileinfo(fichier, regle.ajout_attributs))
+        obj.attributs.update(regle.infofich[fichier])
+        return True
+    return False
+
+def h_abspath(regle):
+    """ prepare le chemin absolu"""
+    regle.dynref = regle.params.cmp1.val.startswith('[')
+    regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
+    if not regle.ref:
+        regle.ref = os.path.abspath(regle.racine)
+
+
+def f_abspath(regle,obj):
+    """#aide||change un chemin relatif en chemin absolu
+    #aide_spec||le point de depart est le chemin ou cmp1
+    #pattern||S;C?;A?;abspath;C?;
+    """
+    candidat = regle.get_entree(obj)
+    if os.path.isabs(candidat):
+        final = candidat
+    else:
+        ref = os.path.abspath(obj.attributs.get(regle.ref)) if regle.dynref else regle.ref
+        regle.setval_sortie(obj, os.path.normpath(os.path.join(ref, regle.get_entree(obj))))
+    return True
+
+def h_namesplit(regle):
+    """prepare la structure d'info de fichier"""
+    prefix = regle.params.cmp1.val if regle.params.cmp1.val else "#"
+    regle.ajout_attributs = [prefix+"chemin",prefix+"fichier",prefix+"ext"]
+    return True
+
+
+
+def f_namesplit(regle,obj):
+    """#aide||decoupe un nom de fichier en chemin,nom,extention
+  #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
+ #aide_spec2||syntaxe:;defaut;attr contenant le nom;namesplit;prefixe
+     #schema||ajout_attribut
+    #pattern||;C?;A?;namesplit;C?;
+    """
+    nom = os.path.basename(regle.get_entree(obj))
+    chemin = os.path.dirname(nom)
+    fich,ext = os.path.splitext(nom)
+    obj.attributs.update(zip(regle.ajout_attributs,(chemin,fich,ext)))
+    return True
+
+def f_namejoin(regle,obj):
+    """#aide||combine des element en nom de fichier en chemin,nom,extention
+    #pattern||S;C?;L?;namejoin;;
+    """
+    regle.setval_sortie(obj, os.path.join(*regle.getlist_entree(obj)))
+    return True
+
+def h_adquery(regle):
+    """initialise l'acces active_directory"""
+    from . import active_directory as ACD
+    print("acces LDAP", ACD.root())
+    regle.AD = ACD
+    regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else 'CN'
+
+
+def f_adquery(regle,obj):
+    """#aide extait des information de active_directory
+    #pattern||S;?C;?A;adquery;=user;?C;
+    # """
+    user = regle.AD.find_user(regle.get_entree(obj))
+    if user:
+        val = getattr(user,regle.a_recuperer)
+        regle.setval_sortie(obj,val)
         return True
     return False

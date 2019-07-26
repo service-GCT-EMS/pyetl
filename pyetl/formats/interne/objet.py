@@ -369,7 +369,7 @@ class Objet(object):
         print(
             invariant + "\n",
             (schema + "\n\t") if not attlist else '',
-            [(i, (self.attributs[i][:50]+'...') if len(self.attributs.get(i,''))>50 else self.attributs.get(i, "<non defini>")) for i in aliste] if limit else
+            [(i, (str(self.attributs[i])[:50]+'...') if len(str(self.attributs.get(i,'')))>50 else self.attributs.get(i, "<non defini>")) for i in aliste] if limit else
             [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
         )
 

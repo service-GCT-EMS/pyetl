@@ -616,11 +616,12 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
     mapping = schema.mapping_schema()
     nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
-    deftrig = []
+    deftrig = ['schema;table;trigger;condition;fonction;etendue;timing;declencheur']
     if "def_triggers" in schema.elements_specifiques:
-        for trig in schema.elements_specifiques["def_triggers"]:
-            ligne = ";".join(str(i) for i in trig)
-            deftrig.append(ligne)
+        for table, triggers in sorted(schema.elements_specifiques["def_triggers"].items()):
+            # lignes = [';'.join(table+(trig,)+definition) for trig, definition in sorted(triggers.items())]
+            lignes = [';'.join(table+(trig,)+tuple(str(i) for i in definition)) for trig, definition in sorted(triggers.items())]
+            deftrig.extend(lignes)
     metas = dict()
     metas["origine"] = schema.origine
     if rep:
