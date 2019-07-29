@@ -10,6 +10,7 @@ import re
 import logging
 import subprocess
 from collections import defaultdict
+from pathlib import Path
 import psutil
 import time
 import win32api
@@ -804,7 +805,7 @@ def fileinfo(fichier, ajout_attributs):
     creation = statinfo.st_ctime
     modif = statinfo.st_mtime
     acces = statinfo.st_atime
-    # print ('fichier', fichier, 'taille',taille,'prop', (domain, name), time.ctime(creation),time.ctime(modif),time.ctime(acces))
+    # print ('fichier', fichier, statinfo)
     return zip(ajout_attributs,(taille,domain,name,time.ctime(creation),time.ctime(modif),time.ctime(acces)))
 
 def h_infofich(regle):
@@ -812,6 +813,7 @@ def h_infofich(regle):
     regle.infofich = dict()
     prefix = regle.params.cmp1.val if regle.params.cmp1.val else "#"
     regle.ajout_attributs = [prefix+i for i in ("taille_fich",'domaine_fich','proprietaire_fich','creation_fich','modif_fich','acces_fich')]
+    # print ('infofich: champs generes',regle.ajout_attributs)
     return True
 
 def f_infofich(regle,obj):
@@ -819,10 +821,13 @@ def f_infofich(regle,obj):
   #aide_spec||definit les champs #taille_fich, #domaine_fich, #proprietaire_fich
  #aide_spec2||definit les champs #creation_fich, #modif_fich, #acces_fich
      #schema||ajout_attribut
-    #pattern||;;;infofich;?A;
+    #pattern||;;A?;infofich;?A;
     """
     # print ('infofich',obj)
-    fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
+    if regle.params.att_entree:
+        fichier = regle.get_entree(obj)
+    else:
+        fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
     if fichier:
         if fichier not in regle.infofich:
             regle.infofich[fichier] = list(fileinfo(fichier, regle.ajout_attributs))
@@ -848,7 +853,10 @@ def f_abspath(regle,obj):
         final = candidat
     else:
         ref = os.path.abspath(obj.attributs.get(regle.ref)) if regle.dynref else regle.ref
-        regle.setval_sortie(obj, os.path.normpath(os.path.join(ref, regle.get_entree(obj))))
+        final = os.path.normpath(os.path.join(ref, regle.get_entree(obj)))
+    final = os.path.realpath(final)
+    # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
+    regle.setval_sortie(obj, final)
     return True
 
 def h_namesplit(regle):
@@ -866,10 +874,8 @@ def f_namesplit(regle,obj):
      #schema||ajout_attribut
     #pattern||;C?;A?;namesplit;C?;
     """
-    nom = os.path.basename(regle.get_entree(obj))
-    chemin = os.path.dirname(nom)
-    fich,ext = os.path.splitext(nom)
-    obj.attributs.update(zip(regle.ajout_attributs,(chemin,fich,ext)))
+    fichier = Path(regle.get_entree(obj))
+    obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))
     return True
 
 def f_namejoin(regle,obj):
@@ -891,9 +897,11 @@ def f_adquery(regle,obj):
     """#aide extait des information de active_directory
     #pattern||S;?C;?A;adquery;=user;?C;
     # """
-    user = regle.AD.find_user(regle.get_entree(obj))
-    if user:
-        val = getattr(user,regle.a_recuperer)
-        regle.setval_sortie(obj,val)
-        return True
+    if regle.get_entree(obj):
+        user = regle.AD.find_user(regle.get_entree(obj))
+        if user:
+            val = getattr(user,regle.a_recuperer)
+            regle.setval_sortie(obj,val)
+            return True
+    # print("pas d'entree adquery",regle.get_entree(obj) )
     return False

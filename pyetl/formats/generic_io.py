@@ -211,7 +211,7 @@ class Reader(object):
             niveaux.append(nom)
         self.fixe={'#chemin': os.path.abspath(os.path.join(rep,chemin)), '#fichier':fichier}
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
-        print ('prepare lecture',self.fixe)
+        # print ('prepare lecture',self.fixe)
         if (
             not self.nomschema and self.cree_schema
         ):  # les objets ont un schema issu du fichier

@@ -550,10 +550,10 @@ def f_schema_order(regle, obj):
     if not schemaclasse:
         return False
     if schemaclasse.amodifier(regle):
-        nummax = len(schemaclasse.attributs)
-        for att in schemaclasse.attributs:
-            if att.nom in regle.paramas.att_sortie.liste:
-                att.ordre = regle.paramas.att_sortie.liste.index(att.nom)
+        nummax = len(schemaclasse.attributs)+1
+        for att in schemaclasse.attributs.values():
+            if att.nom in regle.params.att_sortie.liste:
+                att.ordre = regle.params.att_sortie.liste.index(att.nom)+1
             else:
                 nummax +=1
                 att.ordre = nummax
