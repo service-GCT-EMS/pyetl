@@ -111,21 +111,31 @@ def geom_from_osm(obj):
     if not obj.attributs["#geom"]:
         obj.attributs["#type_geom"] = "0"
         return True
+    exterieur = False
+    interieur = []
     for desc in obj.attributs["#geom"]:
         element, role = desc
         if role == "node" or role == "label":
             geomv.type = "1"
             geomv.addpoint(element, 2)
-        elif role in {"way","inner","outer",'forward'}:
-            geomv.cree_section(element, 2, 1, 0, interieur=role == "inner")
-        # elif role == "":
-        #     if len(element) == 1:
-        #         geomv.type = "1"
-        #         geomv.addpoint(element, 2)
-        #     else:
-        #         geomv.cree_section(element, 2, 1, 0)
+        elif role == "outer":
+            exterieur = True
+            # print ('exterieur')
+            geomv.cree_section(element, 2, 1, 0)
+            for i in interieur:
+                geomv.cree_section(i, 2, 1, 0, interieur=True)
+            interieur = []
+        elif role == "inner":
+            if exterieur:
+                geomv.cree_section(element, 2, 1, 0, interieur=True)
+            else:
+                interieur.append(element)
+        elif role in {"way", 'forward', 'part', 'main_stream'}:
+            geomv.cree_section(element, 2, 1, 0)
         else:
-            print("role inconnu", role, obj)
+            # print("role inconnu", role, obj)
+            # print("role inconnu", role, obj.ident, obj.attributs['tags'])
+            pass
 
     # if obj.attributs["#type_geom"] == "1":
     #     geomv.type = "1"

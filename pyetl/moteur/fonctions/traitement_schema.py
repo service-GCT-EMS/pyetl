@@ -541,11 +541,12 @@ def f_schema_supp_attribut(regle, obj):
             if att in schemaclasse.attributs:
                 del schemaclasse.attributs[att]
 
+
+
 def f_schema_order(regle, obj):
     """#aide||ordonne les champs dans un schema
        #pattern||L;;;ordre;;
     """
-
     schemaclasse = obj.schema
     if not schemaclasse:
         return False

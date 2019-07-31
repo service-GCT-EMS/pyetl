@@ -358,7 +358,7 @@ class SqlWriter(CsvWriter):
         # return attributs
 
     def header(self, init=1):
-        separ = ","
+        separ = ", "
         gensql = self.schema.schema.dbsql
         if not gensql:
             print(

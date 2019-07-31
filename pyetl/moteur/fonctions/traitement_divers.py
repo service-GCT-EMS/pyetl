@@ -790,47 +790,59 @@ def f_loadconfig(regle, obj):
 def fileinfo(fichier, ajout_attributs):
     '''recupere les infos detaillees d'un fichier'''
     # print ('infos', fichier)
+    tmp = Path(fichier)
+    definition = [str(tmp),str(tmp.parent),tmp.stem,tmp.suffix]
+    infos = [0,'inexistant','inexistant']
     try:
         sd = win32security.GetFileSecurity (fichier, win32security.OWNER_SECURITY_INFORMATION)
         owner_sid = sd.GetSecurityDescriptorOwner ()
-        name, domain, typef = win32security.LookupAccountSid (None, owner_sid)
+        uname, domain, typef = win32security.LookupAccountSid (None, owner_sid)
+        statinfo = os.stat(fichier)
+        taille = statinfo.st_size
+        creation = statinfo.st_ctime
+        modif = statinfo.st_mtime
+        acces = statinfo.st_atime
+        infos = [taille,domain,uname,time.ctime(creation),time.ctime(modif),time.ctime(acces)]
     except NameError:
-        name,domain = '',''
+        uname,domain = '',''
     except Exception as err:
         print ('fichier introuvable', fichier, err)
 
 
-    statinfo = os.stat(fichier)
-    taille = statinfo.st_size
-    creation = statinfo.st_ctime
-    modif = statinfo.st_mtime
-    acces = statinfo.st_atime
     # print ('fichier', fichier, statinfo)
-    return zip(ajout_attributs,(taille,domain,name,time.ctime(creation),time.ctime(modif),time.ctime(acces)))
+    return list(zip(ajout_attributs,definition+infos))
 
 def h_infofich(regle):
     """prepare la structure d'info de fichier"""
+    infos= ("nom_complet","chemin","nom","ext","taille",'domaine','proprietaire','creation','modif','acces')
     regle.infofich = dict()
-    prefix = regle.params.cmp1.val if regle.params.cmp1.val else "#"
-    regle.ajout_attributs = [prefix+i for i in ("taille_fich",'domaine_fich','proprietaire_fich','creation_fich','modif_fich','acces_fich')]
+    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#"
+    regle.ajout_attributs = [prefix+i for i in infos]
+    regle.nomexiste = regle.params.att_entree.val or regle.params.val_entree.val
+
     # print ('infofich: champs generes',regle.ajout_attributs)
     return True
 
 def f_infofich(regle,obj):
     """#aide||ajoute les informations du fichier sur les objets
-  #aide_spec||definit les champs #taille_fich, #domaine_fich, #proprietaire_fich
- #aide_spec2||definit les champs #creation_fich, #modif_fich, #acces_fich
+  #aide_spec||usage prefix;defaut;attribut;infofich;;;
+            ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
+            ||cree les attributs: #chemin_fich, #nom_fich, #ext_fich,
+            ||     #domaine_fich, #proprietaire_fich, #creation_fich, #modif_fich, #acces_fich
      #schema||ajout_attribut
-    #pattern||;;A?;infofich;?A;
+    #pattern||?A;?C;?A;infofich;;
     """
     # print ('infofich',obj)
-    if regle.params.att_entree:
+    if regle.nomexiste:
         fichier = regle.get_entree(obj)
+        # print ('infofich avec entree', fichier)
+
     else:
         fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
+        # print ('infofich sans entree', fichier)
     if fichier:
         if fichier not in regle.infofich:
-            regle.infofich[fichier] = list(fileinfo(fichier, regle.ajout_attributs))
+            regle.infofich[fichier] = fileinfo(fichier, regle.ajout_attributs)
         obj.attributs.update(regle.infofich[fichier])
         return True
     return False
@@ -853,7 +865,7 @@ def f_abspath(regle,obj):
         final = candidat
     else:
         ref = os.path.abspath(obj.attributs.get(regle.ref)) if regle.dynref else regle.ref
-        final = os.path.normpath(os.path.join(ref, regle.get_entree(obj)))
+        final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
     # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
     regle.setval_sortie(obj, final)
@@ -861,7 +873,7 @@ def f_abspath(regle,obj):
 
 def h_namesplit(regle):
     """prepare la structure d'info de fichier"""
-    prefix = regle.params.cmp1.val if regle.params.cmp1.val else "#"
+    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#"
     regle.ajout_attributs = [prefix+"chemin",prefix+"fichier",prefix+"ext"]
     return True
 
@@ -870,9 +882,9 @@ def h_namesplit(regle):
 def f_namesplit(regle,obj):
     """#aide||decoupe un nom de fichier en chemin,nom,extention
   #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
- #aide_spec2||syntaxe:;defaut;attr contenant le nom;namesplit;prefixe
+ #aide_spec2||syntaxe:;defaut;attr contenant le nom;namesplit
      #schema||ajout_attribut
-    #pattern||;C?;A?;namesplit;C?;
+    #pattern||A;C?;A?;namesplit;;
     """
     fichier = Path(regle.get_entree(obj))
     obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))

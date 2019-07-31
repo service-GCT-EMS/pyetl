@@ -49,7 +49,7 @@ class DecodeConfigOsm(object):
             for j in range(8, len(vals)):
                 if vals[j].startswith('G:ref:'):
                     vl2 = vals[j].split(":")
-                    self.geomrest, self.geomrole = getrefcond(vl2[2])
+                    self.geomrest, self.geomrole = self.getrefcond(vl2[2])
                 elif vals[j].startswith('TG:ref:'):
                     vl2 = vals[j].split(":")
                     self.tgdef(vl2[2],vl2[3],vl2[4])
@@ -85,7 +85,7 @@ class DecodeConfigOsm(object):
 
     def tgdef(self,geomcond,att,val):
         self.storeatt(att,val)
-        geomtype, self.tgs[att] = getrefcond(geomcond)
+        geomtype, self.tgs[att] = self.getrefcond(geomcond)
 
 
 
@@ -109,9 +109,9 @@ class DecodeConfigOsm(object):
         """ range les objets residuels dans les classes par defaut """
         if len(tagdict) == 1:
             if "source" in tagdict or "created_by" in tagdict:
-                return (self.niveau, "non_classe_" + str(self.geom))
+                return ('tmp')
             if "type" in tagdict and tagdict["type"] == "multipolygon":
-                return (self.niveau, "non_classe_" + str(self.geom))
+                return ('tmp')
         return (self.niveau, self.classe)
 
     def decode_classe(self, tagdict):
@@ -164,7 +164,7 @@ class DecodeConfigOsm(object):
         #            incomplet.attributs['#type_geom'] = '2'
         return self.schema.get_classe(ident)
 
-    def decode_objet(self, tagdict, geom, type_geom, manquants):
+    def decode_objet(self, tagdict, geom, type_geom, manquants, ido, parties):
         """range l objet dans la bonne classe"""
         #        if len(tagdict)==0:
         #            ident=('non_classe','a_jeter')
@@ -175,7 +175,11 @@ class DecodeConfigOsm(object):
         ident = self.getident(tagdict)
         if ident is None:
             return None
+        if ident == 'tmp':
+            parties[ido] = tagdict.copy()
+            return 0
         idref = ident
+
         if manquants:  # on separe les objets incomplets
             ident = ("osm_incomplet", ident[1])
         self.reader.setidententree(*ident)
@@ -213,6 +217,7 @@ def init_osm(reader, config_osm, schema, setups=None):
     if setups is None:
         setups=dict()
     # print ('setups decodage',setups)
+    reader.parties = dict()
     for conf in open(config_osm, "r").readlines():
         chaine = conf.strip()
         if chaine and chaine[0] != "!":
@@ -345,12 +350,14 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
 
 
 
-def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido):
+def _classif_osm(reader, tagdict, geom, type_geom, manquants, ido, parties):
     """ applique les regles de classification a l'objet """
     #    print (' dans classif osm ')
     # print ('avant decodage', tagdict)
     for decodeur in reader.decodage[type_geom]:
-        obj = decodeur.decode_objet(tagdict, geom, type_geom, manquants)
+        obj = decodeur.decode_objet(tagdict, geom, type_geom, manquants, ido, parties)
+        if obj == 0:
+            return None
         if obj:
             tags = ", ".join(
                 ['"' + i + '" => "' + tagdict[i].replace('"', r'\"') + '"' for i in sorted(tagdict)]
@@ -443,6 +450,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
     points = dict()
     lignes = dict()
     objets = dict()
+    parties = dict()
     used = set()
     for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
         ido, attributs, geom, type_geom, manquants = classif_elem(self, elem, points, lignes, objets, used)
@@ -454,7 +462,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
             self.id_osm.add(ido)
         if type_geom != "0":  # analyse des objets et mise en categorie
             try:
-                obj = _classif_osm(self, attributs, geom, type_geom, manquants, ido)
+                obj = _classif_osm(self, attributs, geom, type_geom, manquants, ido, parties)
             except StopIteration:
                 # print ('osm :stopIteration')
                 return
@@ -464,6 +472,11 @@ def lire_objets_osm(self, rep, chemin, fichier):
                 obj.attributs["#chemin"] = chemin
                 stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite le dernier objet
         elem.clear()
+    print ('parties', len(parties))
+    for ideelem in parties:
+        if ideelem not in used:
+            print ('element non  utilise', idelem, parties(idelem))
+
     lostpt = set(points.keys()).difference(used)
     print ('points_perdus', len(lostpt))
     lostl = set(lignes.keys()).difference(used)

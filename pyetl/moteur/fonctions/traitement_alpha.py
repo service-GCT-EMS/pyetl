@@ -596,6 +596,8 @@ def f_keep2(regle, obj):
     regle.asupprimer = asupprimer
     for nom in asupprimer:
         _suppatt(obj, nom)
+
+
     return True
 
 

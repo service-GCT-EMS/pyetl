@@ -5,7 +5,7 @@ highway;;2;;osm;om_comm_troncon;2;1;nature;nom:name;;
 highway;;1;;osm;om_comm_poi_routes;1;0;nature;nom:name;;
 building;amenity;3;;osm;om_bati_batiment;3;1;nature:amenity;nom:name;famille:#equipement;
 building;leisure;3;;osm;om_bati_batiment;3;1;nature:leisure;nom:name;famille:#loisir;
-building;;3;;osm;om_bati_batiment;3;1;nature:building;nom:name;;
+building;;3,4;;osm;om_bati_batiment;3;1;nature:building;nom:name;;
 building;;2;;osm;om_bati_batiment_l;2;1;;nom:name;;
 amenity;;2,3;groupes_equip;osm;om_eqpt_autre;2;1;;nom:name;;
 amenity;;1;groupes_poi;osm;om_eqpt_autre_pt;1;0;nature:amenity;nom:name;;
@@ -28,6 +28,8 @@ power;;1;;osm;om_amgt_pylone;1;0;nature;;;
 power;;2;;osm;om_amgt_ligne_ht;2;1;nature;;;
 restriction;;4;;osm;om_comm_restriction;1;0;from:ref:{role=from,type=way};to:ref:role=to,type=way;G:ref:role=via,type=node;restriction
 admin_centre;;4;;osm;om_adm_contour;3;1;G:ref:type=way;;niveau:level;TG:ref:type=node:nom:name
+route;;4;;osm;om_lignes_transport;2;1;G:ref:type=way;type_reseau;
+route;;4;;osm;om_arrets_transport;1;0;G:ref:type=stop;type_reseau;
 *;;1;;osm;om_non_classe_divers_pt;1;0;;;;
 *;;2,3;;osm;om_non_classe_divers_l;2;1;;;;
 *;;4;;osm;om_non_classe_poly;3;1;;;;

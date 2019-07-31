@@ -371,15 +371,16 @@ class SchemaClasse(object):
     def amodifier(self, regle, dyn=False):
         """ determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
-        idregle = regle.numero
-        # if 'bati' in self.nom:
-        # print ('amodifier', self.schema.nom, idregle, idregle in self.regles_modif)
+        idregle = regle.index
+        # if idregle not in self.regles_modif:
+        #     print ('amodifier', self.schema.nom, idregle,  regle)
         if dyn:
             return True
         if idregle in self.regles_modif:
             return False
         self.regles_modif.add(idregle)
         return True
+#TODO gerer le pb du call
 
     def setorig(self, idorig):
         """positionne l'origine de la classe
@@ -510,7 +511,7 @@ class SchemaClasse(object):
             else:
                 att[i] = A.Attribut(i, 0)
             if ordre:
-                att[i].ordre = num
+                att[i].ordre = num+1
         self.attributs = att
         self.liste_attributs_cache = []
 
