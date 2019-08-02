@@ -372,7 +372,7 @@ class GdalWriter(object):
         if self.buffer:
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                print ('ecriture buffer',ident,len(self.buffer[ident]))
+                # print ('ecriture buffer',ident,len(self.buffer[ident]),self.buffer[ident])
                 self.fichier.writerecords(self.buffer[ident])
         self.buffer = dict()
         self.close()

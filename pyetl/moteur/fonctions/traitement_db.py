@@ -624,6 +624,8 @@ def h_dbclean(regle):
         with open(nom, "w") as sortie:
             sortie.write("".join(script))
         regle.valide = "done"
+    else:
+        print ('cible inconnue',regle.cible_base)
 
 
 def f_dbclean(regle, obj):

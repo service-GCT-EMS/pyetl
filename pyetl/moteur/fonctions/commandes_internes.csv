@@ -131,7 +131,7 @@ db:%acces%;%niveau%;%classe%;;;%nom%;#nombase;dbschema;%mod%;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbclean;acces;niveau;classe;nom;;;;;;
 #!help;cree un script de reset de la base de donnees;;;;;;;;;;
-<#initdb;%acces%;%non%;;;;
+<#initdb;%acces%;%nom%;;;;
 db:%acces%;%niveau%;%classe%;;;;;dbclean;T,=;%nom%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract;acces;niveau;classe;attribut;valeur;ordre;;;;
