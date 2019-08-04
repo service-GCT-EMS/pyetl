@@ -10,7 +10,7 @@ from .geometrie.geom import Geometrie, Erreurs
 
 class AttributsSpeciaux(object):
     """gere les attibuts speciaux a certains formats """
-
+    __slots__=['typespecial','valeurs','special']
     def __init__(self):
         self.typespecial = dict()
         self.valeurs = dict()
@@ -35,7 +35,15 @@ class Objet(object):
     """structure de stockage d'un objet.   """
 
     _ido = itertools.count(1)  # compteur d'instance
+    __slots__=['geom_v','forcegeom','ido','numobj','copie',
+                'stored','is_ok','redirect','classe_is_att',
+                'liste_attributs','idorig','attributs',
+                'hdict','multiples','attributs_speciaux',
+                'text_graph','tg_coords','etats','geomnatif',
+                'erreurs','format_natif',
+                'virtuel','schema','attributs_geom','casefold'
 
+    ]
     def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None, orig=None):
         self.geom_v = Geometrie()
         #        self.valide = False

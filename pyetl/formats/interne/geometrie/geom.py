@@ -18,7 +18,8 @@ class Geometrie(object):
         "5": "POLYHEDRAL",
         "indef": "ALPHA"
     }
-
+    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
+               'longueur_point','dimension','multi','srid','force_multi','erreurs']
     def __init__(self):
         self.polygones = []
         self.lignes = []
@@ -30,9 +31,9 @@ class Geometrie(object):
         self.longueur_point = 0
         self.dimension = 0
         self.multi = False
-        self.npnt = 0
         self.srid = "3948"
         self.force_multi = False
+        self.angle = 0
         # self.epsg = 'SRID=3948;'
         self.erreurs = Erreurs()
 
@@ -855,5 +856,3 @@ class AttributsSpeciaux(object):
 def noconversion(obj):
     """ conversion geometrique par defaut """
     return obj.attributs["#type_geom"] == "0"
-
-

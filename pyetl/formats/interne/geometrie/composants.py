@@ -95,7 +95,7 @@ def cercle_3pts(pt1, pt2, pt3):
 
 class Section(object):
     """# definition d'une section"""
-
+    __slots__=['coords','couleur','courbe','aire','dimension','encours']
     def __init__(self, pnt, dim):
         if pnt:
             self.coords = [pnt[:]]
@@ -283,7 +283,8 @@ class Section(object):
 
 class Ligne(object):
     """definition d'une ligne"""
-
+    __slots__=['sections','termine','interieur','err','point_double',
+                'aire','dimension','courbe','type']
     def __init__(self, sect, interieur=None):
         self.sections = [sect.dupplique()]
         self.termine = False
@@ -537,7 +538,7 @@ class Ligne(object):
 
 class Polygone(object):
     """definition d'un polygone eventuellement a trous"""
-
+    __slots__=['lignes','dimension','courbe']
     def __init__(self, lig):
         self.lignes = [lig]
         self.dimension = lig.dimension
