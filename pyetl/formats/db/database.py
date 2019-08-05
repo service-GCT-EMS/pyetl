@@ -99,6 +99,8 @@ class Cursinfo(object):
         self.request = requete
         self.data = data
         self.attlist = attlist
+        # print('dans execute ', requete)
+
         if self.cursor:
             if data is not None:
                 self.cursor.execute(requete, data)
@@ -109,6 +111,7 @@ class Cursinfo(object):
                 self.decile = int(self.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
+        # print ('fin')
 
     @property
     def rowcount(self):
@@ -317,7 +320,7 @@ class DbConnect(object):
                 data,
                 err,
             )
-            #            print('dtb',cur.mogrify(requete, data))
+            # print('dtb',cur.cursor.mogrify(requete, data))
             cur.close()
             raise StopIteration(2)
 
@@ -325,7 +328,6 @@ class DbConnect(object):
 
     def request(self, requete, data=None, attlist=None):
         """ lancement requete et gestion retours"""
-        # print('dans request ',self.type_base, self)
         cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
         liste = cur.fetchall()
         cur.close()

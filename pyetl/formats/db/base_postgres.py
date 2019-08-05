@@ -368,7 +368,10 @@ class PgrConnect(DbConnect):
                          'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
     """
         requete, data = self.req_attributs
+        print('pgattributs', requete)
         attributs = self.request(requete, data)
+        print('pgattributs fait')
+
         # on corrige les types et les tailles
         retour = []
         for i in attributs:

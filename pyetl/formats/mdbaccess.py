@@ -35,9 +35,10 @@ def coroutine(func):
     return wrapper
 
 
-def fkref(liste, niveau, niv_ref, schema):
+def fkref(liste, niveau, niv_ref, schema, add=False):
     """identifie les tables referenceees par des fk"""
     trouve = 0
+    adds = set()
     for ident in liste:
         if niveau[ident] == niv_ref:
             cibles = schema.is_cible(ident)
@@ -45,6 +46,8 @@ def fkref(liste, niveau, niv_ref, schema):
             for j in cibles:
                 if j not in niveau:
                     print("fkref: erreur cible", j)
+                    if add:
+                        adds.add(j)
                     continue
                 if niveau[j] >= niv_ref and j != ident:
                     if ident in schema.is_cible(j):
@@ -54,20 +57,26 @@ def fkref(liste, niveau, niv_ref, schema):
                         #                        print(" trouve",ident,niveau[ident],j)
                         trouve = 1
                     break
-    return trouve
+    return trouve, adds
 
 
-def tablesorter(liste, schema):
+def tablesorter(liste, schema, complete=False):
     """ trie les tables en fonction des cibles de clef etrangeres """
-    schema.calcule_cibles()
-    niveau = dict()
-    niveau = {i: 0 for i in liste}
-    trouve = 1
-    niv_ref = 0
-    while trouve:
-        trouve = fkref(liste, niveau, niv_ref, schema)
-        niv_ref += 1
-    #    print("niveau maxi", niv_ref)
+    ajouts = True
+    while ajouts:
+        ajouts=set()
+        schema.calcule_cibles()
+        niveau = dict()
+        niveau = {i: 0 for i in liste}
+        trouve = 1
+        niv_ref = 0
+        while trouve:
+            trouve, adds = fkref(liste, niveau, niv_ref, schema)
+            ajouts.update(adds)
+            niv_ref += 1
+        #    print("niveau maxi", niv_ref)
+        if complete and ajouts:
+            liste.extend(ajouts)
     niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
     liste.sort(key=niv2.get)
     return niveau
@@ -657,7 +666,8 @@ def get_connect(
         )  # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
-    niveau = tablesorter(liste2, connect.schemabase)
+    complete = stock_param.get_param('gestion_coherence')
+    niveau = tablesorter(liste2, connect.schemabase, complete)
     #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:
         connect.select_elements_specifiques(schema_travail, liste2)
