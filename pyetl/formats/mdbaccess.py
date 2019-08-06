@@ -421,8 +421,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     codebase = nombase
     base = nombase
     serveur = ""
-    #    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
-    #          codebase in stock_param.dbconnect)
+
     #    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
@@ -444,7 +443,8 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-
+    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
+        codebase in stock_param.dbconnect)
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin

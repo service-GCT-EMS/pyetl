@@ -105,7 +105,11 @@ class Cursinfo(object):
             if data is not None:
                 self.cursor.execute(requete, data)
             else:
-                self.cursor.execute(requete)
+                try:
+                    self.cursor.execute(requete)
+                except:
+                    print ('erreur requete', requete)
+                    raise
             if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
                 # print('calcul decile',self.cursor)
                 self.decile = int(self.rowcount / 10 + 1)

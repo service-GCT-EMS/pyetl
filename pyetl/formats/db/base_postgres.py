@@ -233,7 +233,7 @@ class PgrConnect(DbConnect):
         if self.passwd:
             chaine_connect = chaine_connect + " password=" + self.passwd
         #    print ('info:postgres: connection ', serveur,base,user,'*'*len(passwd))
-        # print('connection',chaine_connect)
+        # print('connection',chaine_connect, self.requetes)
         try:
             connection = psycopg2.connect(chaine_connect)
             connection.autocommit = True
@@ -266,16 +266,16 @@ class PgrConnect(DbConnect):
 
     def _def_vues(self):
         return {
-            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.reqs["info_vues"])
+            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.requetes["info_vues"])
         }
 
     def _def_fonctions_trigger(self):
         return {
-            (i[0], i[1]): i[2] for i in self.request(self.reqs["def_fonctions_trigger"])
+            (i[0], i[1]): i[2] for i in self.request(self.requetes["def_fonctions_trigger"])
         }
 
     def _def_ftables(self):
-        return {i[0]: i[1:] for i in self.request(self.reqs["info_tables_distantes"])}
+        return {i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])}
 
     def _def_triggers(self):
         def_trigg = dict()
@@ -336,17 +336,17 @@ class PgrConnect(DbConnect):
     @property
     def req_tables(self):
         """recupere les tables de la base"""
-        return self.reqs["info_tables"], None
+        return self.requetes["info_tables"], None
 
     @property
     def req_enums(self):
         """recupere les enums de la base"""
-        return self.reqs["info_enums"], None
+        return self.requetes["info_enums"], None
 
     @property
     def req_attributs(self):
         """recupere les attributs de la base"""
-        return self.reqs["info_attributs"], None
+        return self.requetes["info_attributs"], None
 
     def get_type(self, nom_type):
         if "geometry" in nom_type:
@@ -368,9 +368,9 @@ class PgrConnect(DbConnect):
                          'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
     """
         requete, data = self.req_attributs
-        print('pgattributs', requete)
+        # print('pgattributs', requete)
         attributs = self.request(requete, data)
-        print('pgattributs fait')
+        # print('pgattributs fait')
 
         # on corrige les types et les tailles
         retour = []
