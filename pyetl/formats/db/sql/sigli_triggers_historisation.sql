@@ -63,7 +63,7 @@ COMMENT ON COLUMN admin_sigli.historisation_non_geom.histo_auteur IS 'auteur de 
 
 
 -- creation d'une table dans le schema histor
--- DROP FUNCTION admin_sigli.cretable_histo(text,text);
+-- DROP FUNCTION admin_sigli.creTG_ARGV[1](text,text);
 
 CREATE OR REPLACE FUNCTION admin_sigli.histo_cretable(nom text, type_geom text)
     RETURNS void AS
@@ -71,18 +71,16 @@ $BODY$
 DECLARE requete text;
 BEGIN
 
-    if type_geom = 'ALPHA' OR type_geom='' THEN
+    if type_geom = 'alpha' OR type_geom='' THEN
         requete = 'CREATE TABLE IF NOT EXISTS histo.'||quote_ident(nom)||' (LIKE admin_sigli.historisation_non_geom INCLUDING ALL)';
         EXECUTE requete;
     ELSE
         requete = 'CREATE TABLE IF NOT EXISTS histo.'||quote_ident(nom)||' (LIKE admin_sigli.historisation INCLUDING ALL)';
         EXECUTE requete;
-        requete = 'ALTER TABLE histo.'||quote_ident(nom)||' ALTER COLUMN geometrie TYPE Geometry('||type_geom||',3948)';
+        requete = 'ALTER TABLE histo.hi_'||quote_ident(nom)||' ALTER COLUMN geometrie TYPE '||type_geom||;
         -- raise notice '%s', requete;
         EXECUTE requete;
     END IF;
-    requete = 'CREATE TRIGGER hi_stocke_histo BEFORE INSERT ON histo.'||quote_ident(nom)||' FOR EACH ROW EXECUTE PROCEDURE admin_sigli.stocke_histo_tr()';
-      EXECUTE requete;
 
 END;
 $BODY$
@@ -91,16 +89,26 @@ $BODY$
 
 -- historisation d'une table
 -- DROP FUNCTION admin_sigli.historise(text,text,text)
-CREATE OR REPLACE FUNCTION admin_sigli.historise(nom text, complement text default Null, histo text default Null, ident text default Null, exc text default Null)
+CREATE OR REPLACE FUNCTION admin_sigli.historise(nom text, complement text default Null, histo text default Null,  exc text default Array[''])
   RETURNS void AS
 $BODY$
-DECLARE requete text;
+DECLARE nom_table text; nom_schema text;
+        type_histo text; suffix text; ident text;
+        nom_histo text; tmp oid;
 BEGIN
-
-  EXECUTE format('CREATE TRIGGER histo_cre BEFORE UPDATE OR INSERT ON %I.%I FOR EACH ROW EXECUTE PROCEDURE admin_sigli.histor(%L,%L,%L)',
-            split_part(nom,'.',1),split_part(nom,'.',2),complement,histo,ident);
-  EXECUTE format('CREATE TRIGGER histo_del BEFORE DELETE ON %I.%I FOR EACH ROW EXECUTE PROCEDURE admin_sigli.histor_del(%L,%L)',
-            split_part(nom,'.',1),split_part(nom,'.',2),histo,ident);
+  nom_table = split_part(nom,'.',1);
+  nom_schema = split_part(nom,'.',2);
+  SELECT code, type_histo,clef_primaire
+        FROM admin_sigli.info_tables t,admin_sigli.codes_geom c
+        WHERE nomschema=nom_schema AND nomtable=nom_table and c.type_geom = t.type_geom
+        INTO suffix, type_histo, ident;
+  nom_histo = 'hi_'||COALESCE(histo, nom_schema)||'_'||suffix;
+  SELECT oid FROM admin_sigli.admin_sigli.info_tables WHERE nomschema=nom_schema='histo' AND nomtable=nom_histo into tmp;
+  IF tmp is NULL THEN-- il faut creer la table
+    select admin_sigli.histo_cretable(nom_histo, type_histo);
+  END IF;
+  EXECUTE format('CREATE TRIGGER z_histo BEFORE UPDATE OR INSERT OR DELETE ON %I.%I FOR EACH ROW EXECUTE PROCEDURE admin_sigli.histor(%L,%L,%L,%L)',
+            nom_table,nom_schema,complement,nom_histo,ident,exc);
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -113,8 +121,7 @@ CREATE OR REPLACE FUNCTION admin_sigli.stop_histo(nom text)
 $BODY$
 DECLARE requete text;
 BEGIN
-  EXECUTE format('DROP TRIGGER histo_cre ON %I.%I',split_part(nom,'.',1),split_part(nom,'.',2));
-  EXECUTE format('DROP TRIGGER histo_del ON %I.%I',split_part(nom,'.',1),split_part(nom,'.',2));
+  EXECUTE format('DROP TRIGGER z_histo ON %I.%I',split_part(nom,'.',1),split_part(nom,'.',2));
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -127,14 +134,42 @@ $BODY$
 CREATE OR REPLACE FUNCTION admin_sigli.histor()
   RETURNS trigger AS
 $BODY$
-	declare donnees hstore;
+	declare nouveau hstore; ancien hstore;
+          clef_histo bigint;
 BEGIN
-  donnees := hstore(NEW)-'geometrie'::text;
-  -- on renseigle les infos complementaires pour la deco s'il y a lieu
-	EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie)
-                        VALUES(%L, %L, %L, %L,%L, %L)', COALESCE(TG_ARGV[1], TG_TABLE_SCHEMA),
-                            TG_TABLE_NAME,TG_TABLE_SCHEMA,donnees->COALESCE(TG_ARGV[2],'gid'),
-                            donnees->TG_ARGV[0],donnees,NEW.geometrie);
+  IF TG_OP = 'INSERT' THEN
+    nouveau := hstore(NEW)-TG_ARGV[3]::text[];
+    nouveau := nouveau-'geometrie'::text;
+    EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie)
+                    VALUES(%L, %L, %L, %L,%L, %L)',
+                    TG_ARGV[1],TG_TABLE_NAME,TG_TABLE_SCHEMA,nouveau->TG_ARGV[2],nouveau->TG_ARGV[0],nouveau,NEW.geometrie);
+    RETURN NEW;
+  END IF;
+  ancien :=hstore(OLD)-TG_ARGV[3]::text[];
+  EXECUTE format('SELECT clef FROM  histo.%I WHERE nom_table=%L AND identifiant=%L and courant =''t'' ',
+                  TG_ARGV[1],TG_TABLE_NAME,ancien->TG_ARGV[2]) INTO clef_histo;
+  IF clef_histo IS Null THEN -- l'historique n'existe pas on enregistre
+    IF TG_OP = 'DELETE' THEN
+      ancien = ancien-'geometrie'::text;
+      EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie, courant, date_debut_validite, date_fin_validite)
+                      VALUES(%L, %L, %L, %L,%L, %L,%L,%L,%L)',
+                      TG_ARGV[1], TG_TABLE_NAME,TG_TABLE_SCHEMA,ancien->TG_ARGV[2], ancien->TG_ARGV[0],ancien,OLD.geometrie,'f',Null,now());
+      RETURN OLD;
+    END IF;
+    nouveau := hstore(NEW)-TG_ARGV[3]::text[];
+    IF ancien = nouveau THEN
+      return NEW; -- rien a faire
+    END IF;
+    nouveau = nouveau-'geometrie'::text;
+    EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie, courant, date_debut_validite,date_fin_validite)
+                    VALUES(%L, %L, %L, %L,%L, %L,%L,%L,%L)',
+                    TG_ARGV[1], TG_TABLE_NAME,TG_TABLE_SCHEMA,ancien->TG_ARGV[2],ancien->TG_ARGV[0],ancien,OLD.geometrie,'f',Null, now());
+  ELSE
+    EXECUTE format('UPDATE histo.%I SET date_fin_validite = now(), courant = ''f'' WHERE clef = %L', TG_ARGV[1],clef_histo);
+  END IF;
+  EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie)
+                  VALUES(%L, %L, %L, %L,%L, %L)',
+                  TG_ARGV[1], TG_TABLE_NAME, TG_TABLE_SCHEMA, nouveau->TG_ARGV[2], nouveau->TG_ARGV[0], nouveau, NEW.geometrie);
 	RETURN NEW;
 END;
 $BODY$
@@ -144,49 +179,40 @@ $BODY$
 CREATE OR REPLACE FUNCTION admin_sigli.histor_ng()
   RETURNS trigger AS
 $BODY$
-	declare donnees hstore;
+	declare nouveau hstore; ancien hstore;
+          clef_histo bigint;
+
 BEGIN
-  donnees := hstore(NEW);
-  -- on renseigle les infos complementaires pour la deco s'il y a lieu
-	EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees )
-                      VALUES( %L, %L, %L,%L, %L)', COALESCE(TG_ARGV[2], TG_TABLE_SCHEMA),
-                          TG_TABLE_NAME,TG_TABLE_SCHEMA,donnees->COALESCE(TG_ARGV[2],'gid'),
-                          donnees->TG_ARGV[0],donnees);
-	RETURN NEW;
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE SECURITY DEFINER
-  COST 100;
-
--- Function: admin_sigli.histor()
--- arguments : id, complement, schema
--- DROP FUNCTION admin_sigli.histor();
-
-CREATE OR REPLACE FUNCTION admin_sigli.histor_del()
-  RETURNS trigger AS
-$BODY$
-  declare clef_histo bigint;
-BEGIN
-  -- on renseigle les infos complementaires pour la deco s'il y a lieu
-  EXECUTE format('SELECT clef FROM  histo.%I WHERE nom_table=%L AND identifiant=OLD.%I and courant =''t'' ',
-	               COALESCE(TG_ARGV[0], TG_TABLE_SCHEMA),TG_TABLE_NAME,COALESCE(TG_ARGV[1],'gid') ) INTO clef_histo;
-	EXECUTE format('UPDATE histo.%I SET date_fin_validite = now(), courant = ''f'' WHERE clef = %L', COALESCE(TG_ARGV[0], TG_TABLE_SCHEMA),clef_histo);
-	RETURN OLD;
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE SECURITY DEFINER
-  COST 100;
-
-
--- Function: admin_sigli.stocke_histo_tr()
--- trigger sur classe historique declenche par trigger
-
-CREATE OR REPLACE FUNCTION admin_sigli.stocke_histo_tr()
-  RETURNS trigger AS
-$BODY$
-  BEGIN
-    EXECUTE format('UPDATE %s SET date_fin_validite = %L, courant = ''f''
-                         WHERE nom_table=%L AND identifiant=%L and courant =''t'' ', TG_RELID::regclass,NEW.date_debut_validite,NEW.nom_table,NEW.identifiant );
+  IF TG_OP = 'INSERT' THEN
+    nouveau := hstore(NEW)-TG_ARGV[3]::text[];
+    EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees)
+                    VALUES(%L, %L, %L, %L,%L, %L)',
+                    TG_ARGV[1],TG_TABLE_NAME,TG_TABLE_SCHEMA,nouveau->TG_ARGV[2],nouveau->TG_ARGV[0],nouveau);
+    RETURN NEW;
+  END IF;
+  ancien := hstore(OLD)-TG_ARGV[3]::text[];
+  EXECUTE format('SELECT clef FROM  histo.%I WHERE nom_table=%L AND identifiant=%L and courant =''t'' ',
+                  TG_ARGV[1],TG_TABLE_NAME,ancien->TG_ARGV[2]) INTO clef_histo;
+  IF clef_histo IS Null THEN -- l'historique n'existe pas on enregistre
+    IF TG_OP = 'DELETE' THEN
+      EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , courant, date_debut_validite, date_fin_validite)
+                      VALUES(%L, %L, %L, %L,%L, %L,%L,%L,%L)',
+                      TG_ARGV[1], TG_TABLE_NAME,TG_TABLE_SCHEMA,ancien->TG_ARGV[2], ancien->TG_ARGV[0],donnees,'f',Null,now());
+      RETURN OLD;
+    END IF;
+    nouveau := hstore(NEW)-TG_ARGV[3]::text[];
+    IF ancien = nouveau THEN
+      return NEW;-- rien a faire
+    END IF;
+    EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , courant, date_debut_validite, date_fin_validite)
+                    VALUES(%L, %L, %L, %L,%L, %L,%L,%L,%L)',
+                    TG_ARGV[1], TG_TABLE_NAME,TG_TABLE_SCHEMA, ancien->TG_ARGV[2],ancien->TG_ARGV[0],ancien,'f',Null,now());
+  ELSE
+    EXECUTE format('UPDATE histo.%I SET date_fin_validite = now(), courant = ''f'' WHERE clef = %L', TG_ARGV[1],clef_histo);
+  END IF;
+  EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees )
+                  VALUES(%L, %L, %L, %L,%L, %L)',
+                  TG_ARGV[1], TG_TABLE_NAME, TG_TABLE_SCHEMA, nouveau->TG_ARGV[2], nouveau->TG_ARGV[0], donnees);
 	RETURN NEW;
 END;
 $BODY$
