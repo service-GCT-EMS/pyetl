@@ -203,7 +203,7 @@ $BODY$
 BEGIN
 
   IF TG_OP = 'INSERT' THEN
-    nouveau := nouveau-'geometrie'::text;
+    nouveau := hstore(NEW)-'geometrie'::text;
     EXECUTE format('INSERT INTO histo.%I(nom_table, nom_schema, identifiant, complement, donnees , geometrie)
                     VALUES(%L, %L, %L, %L,%L, %L)',
                     TG_ARGV[1],TG_TABLE_NAME,TG_TABLE_SCHEMA,nouveau->TG_ARGV[2],nouveau->TG_ARGV[0],nouveau,NEW.geometrie);

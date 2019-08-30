@@ -481,7 +481,7 @@ class Objet(object):
         try:
             return self.attributs[nom]
         except KeyError:
-            if nom in self.attributs_speciaux.valeurs:
+            if self.attributs_speciaux and nom in self.attributs_speciaux.valeurs:
                 return self.attributs_speciaux.valeurs[nom]
             else:
                 return defaut

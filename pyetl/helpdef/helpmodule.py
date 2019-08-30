@@ -13,7 +13,7 @@ def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
         if nom in mapper.macros:
-            print("aide commande ", nom)
+            print("aide macro ", nom)
             macro = mapper.macros[nom]
             print("%-15s: %s" % (nom, macro.help[:-1]))
             if macro.vpos:

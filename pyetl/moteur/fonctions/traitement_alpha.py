@@ -832,7 +832,7 @@ def h_cnt(regle):
 
 def f_cnt(regle, obj):
     """#aide||compteur
-  #aide_spec||attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;origine;pas
+  #aide_spec||attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;pas;origine
  #aide_spec2||le comteur est global s'il a un nom, local s'il n'en a pas
     #pattern||S;?;?A;cnt;?N;?N
      #schema||ajout_attribut
@@ -924,11 +924,11 @@ def geocode_traite_stock(regle, final=True):
     """libere les objets geocodes """
     if regle.nbstock == 0:
         return
-    attlist = regle.params.att_entree.liste
+    flist = list(regle.filtres.keys())
+    adlist = regle.params.att_entree.liste
     prefix = regle.params.cmp1.val
-    #    nomfiltres = regle.params.cmp2.liste
     #    filtres = ','.join(regle.filtres) if regle.filtres else ''
-    #    for i in nomfiltres:
+    #    for i in regle.filtres:
     #        nom = i[5:] if i.startswith('fgc_') else i
     #        if regle.getvar(i):
     #            filtres[nom] = regle.getvar(i)
@@ -936,31 +936,42 @@ def geocode_traite_stock(regle, final=True):
     #    for n,obj in enumerate(regle.tmpstore):
     #        print ([obj.attributs.get(i, "") for i in attlist])
     #        print (str(n)+';'+" ".join([obj.attributs.get(i, "") for i in attlist]))
-
-    buffer = (
-        "ident;_adresse\n"
+    data = {"columns": "_adresse"}
+    if flist:
+        data.update(regle.filtres)
+        buffer = (
+        "ident;_adresse;"+";".join(flist)+'\n'
         + "\n".join(
             [
-                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in attlist])
+                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
+                + ";".join([obj.attributs.get(i, "") for i in flist ])
                 for n, obj in enumerate(regle.tmpstore)
             ]
         )
     ).encode("utf-8")
+    else:
+        buffer = (
+            "ident;_adresse\n"
+            + "\n".join(
+                [
+                    str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
+                    for n, obj in enumerate(regle.tmpstore)
+                ]
+            )
+        ).encode("utf-8")
     #    print('geocodage', attlist, buffer)
     geocodeur = regle.getvar("url_geocodeur")
 
     files = {"data": io.BytesIO(buffer)}
-    data = {"columns": "_adresse"}
     res = requests.post(geocodeur, files=files, data=data)
 
     header = []
     suite = regle.branchements.brch["end"]
     fail = regle.branchements.brch["fail"]
-
     traite = regle.stock_param.moteur.traite_objet
     #        print ('retour ',buf)
     for ligne in res.text.split("\n"):
-        #        print ('traitement sortie',ligne)
+        print ('traitement sortie',ligne)
         if not ligne:
             continue
         attributs = ligne[:-1].split(";")
@@ -1000,15 +1011,8 @@ def geocode_traite_stock(regle, final=True):
 
 def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
-    #    try:
-    #        import pycurl
-    #    except ImportError:
-    #        print('pycurl non disponible géocodage impossible ')
-    #        return False
-    #    curl = pycurl.Curl()
+
     print("geocodeur utilise ", regle.getvar("url_geocodeur"))
-    #    curl.setopt(curl.URL, geocodeur)
-    #    regle.curl = curl
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
     regle.nbstock = 0

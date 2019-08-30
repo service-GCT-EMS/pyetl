@@ -205,7 +205,8 @@ requetes_sigli[
                  LEFT JOIN info_fk fk ON t3.identifiant = fk.fk::oid
               GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible
             )
-     SELECT t4.identifiant AS oid,
+     SELECT
+        --t4.identifiant AS oid,
         t4.nomschema,
         t4.nomtable,
         obj_description(t4.identifiant, 'pg_class'::name) AS commentaire,

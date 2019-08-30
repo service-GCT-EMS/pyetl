@@ -96,7 +96,7 @@ class OrwConnect(OraConnect):
         """recupere le schema complet avec tous ses champs
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
             defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,taille,decimales"""
+            clef_primaire,clef_etrangere,cible_clef,parametres,taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,
@@ -126,6 +126,7 @@ class OrwConnect(OraConnect):
                     WHEN fkey_col.position IS NOT NULL THEN
                         (select column_name from all_cons_columns cc where cc.owner=col.owner and cc.constraint_name = fkey_col.r_constraint_name and cc.position=fkey_col.position)
                     ELSE '' END AS cible,
+                '' AS parametres,
                 col.data_length as taille,
                 col.data_scale as decimales
 

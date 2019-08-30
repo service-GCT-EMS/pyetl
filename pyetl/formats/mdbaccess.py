@@ -63,6 +63,8 @@ def fkref(liste, niveau, niv_ref, schema, add=False):
 def tablesorter(liste, schema, complete=False):
     """ trie les tables en fonction des cibles de clef etrangeres """
     ajouts = True
+    niveau = dict()
+
     while ajouts:
         ajouts=set()
         schema.calcule_cibles()
@@ -443,7 +445,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
+    print('--------acces base de donnees', codebase, "->", type_base, 'en memoire:',
         codebase in stock_param.dbconnect)
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
@@ -465,7 +467,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     )
 
     if connection.valide:
-        #        print('connection valide', serveur)
+        print('connection valide', serveur)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
@@ -652,7 +654,7 @@ def get_connect(
     schema_travail.metas = dict(connect.schemabase.metas)
     schema_travail.metas["tables"] = tables
     liste2 = []
-    #    print ( 'schema base ',schema_base.classes.keys())
+    # print ( 'schema base ',connect.schemabase.classes.keys())
     for ident in select_tables(
         connect.schemabase, niveau, classe, tables, multi, nocase
     ):
@@ -1161,7 +1163,7 @@ def recup_table_parametres(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )
     connect.connection.commit()
-    resultat = [valeurs for valeurs in curs.cursor]
+    resultat = [valeurs for valeurs in curs.cursor] if curs else []
     return resultat
 
 

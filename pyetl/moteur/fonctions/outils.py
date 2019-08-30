@@ -460,7 +460,7 @@ def traite_mapping(elements):
             if len(els) == 5:
                 attrmap = els[4]
         else:
-            print("charge_mapping :description incorrecte", len(els), i, elements[i])
+            print("charge_mapping :description incorrecte", len(els), els, elements[els])
             continue
 
         if attrmap:
