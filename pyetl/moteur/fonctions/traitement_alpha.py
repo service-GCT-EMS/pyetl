@@ -924,81 +924,70 @@ def geocode_traite_stock(regle, final=True):
     """libere les objets geocodes """
     if regle.nbstock == 0:
         return
-    flist = list(regle.filtres.keys())
+    flist = list(regle.filtres.values())
     adlist = regle.params.att_entree.liste
     prefix = regle.params.cmp1.val
-    #    filtres = ','.join(regle.filtres) if regle.filtres else ''
-    #    for i in regle.filtres:
-    #        nom = i[5:] if i.startswith('fgc_') else i
-    #        if regle.getvar(i):
-    #            filtres[nom] = regle.getvar(i)
-    #    print ('geocodage',attlist)
-    #    for n,obj in enumerate(regle.tmpstore):
-    #        print ([obj.attributs.get(i, "") for i in attlist])
-    #        print (str(n)+';'+" ".join([obj.attributs.get(i, "") for i in attlist]))
-    data = {"columns": "_adresse"}
-    if flist:
-        data.update(regle.filtres)
-        buffer = (
-        "ident;_adresse;"+";".join(flist)+'\n'
-        + "\n".join(
-            [
-                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
-                + ";".join([obj.attributs.get(i, "") for i in flist ])
-                for n, obj in enumerate(regle.tmpstore)
-            ]
-        )
-    ).encode("utf-8")
-    else:
-        buffer = (
-            "ident;_adresse\n"
-            + "\n".join(
-                [
-                    str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
-                    for n, obj in enumerate(regle.tmpstore)
-                ]
-            )
-        ).encode("utf-8")
-    #    print('geocodage', attlist, buffer)
-    geocodeur = regle.getvar("url_geocodeur")
-
-    files = {"data": io.BytesIO(buffer)}
-    res = requests.post(geocodeur, files=files, data=data)
-
+    outcols = 2 + len(flist)
     header = []
     suite = regle.branchements.brch["end"]
     fail = regle.branchements.brch["fail"]
     traite = regle.stock_param.moteur.traite_objet
+    geocodeur = regle.getvar("url_geocodeur")
+    data = {"columns": "_adresse"}.update(regle.filtres)
+    buffer = (
+        ";".join(["ident","_adresse"]+flist)+'\n'
+        + "\n".join(
+            [
+                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
+                +((';'+ ";".join([obj.attributs.get(i, "") for i in flist ])) if flist else '')
+                for n, obj in enumerate(regle.tmpstore)
+            ]
+        )
+    ).encode("utf-8")
+
+    # print('geocodage', regle.nbstock, adlist,flist, data)
+
+
+    files = {"data": io.BytesIO(buffer)}
+    res = requests.post(geocodeur, files=files, data=data)
+    # print ('retour', res.text)
+
     #        print ('retour ',buf)
     for ligne in res.text.split("\n"):
-        print ('traitement sortie',ligne)
+        # print ('traitement sortie',ligne)
         if not ligne:
             continue
         attributs = ligne[:-1].split(";")
-        #            attributs = ligne.split(";")
-        if header:
-            if attributs[0].isnumeric():
-                numero = int(attributs[0])
-                obj = regle.tmpstore[numero]
-                obj.attributs.update(
-                    [(nom, contenu) for nom, contenu in zip(header[1:], attributs[1:])]
-                )
-                score = obj.attributs.get("result_score", "")
-                traite(obj, suite if score else fail)
-
-            else:
-                if not final:
-                    print("geocodeur: recu truc etrange ", ligne)
-                    print("retry")
-                    geocode_traite_stock(regle, final=True)
-                    return
-        else:
-            header = [prefix + i for i in attributs]
-            obj = regle.tmpstore[0]  # on prends un objet au hasard
+        # attributs = ligne.split(";")
+        if attributs[0].isnumeric():
+            numero = int(attributs[0])
+            obj = regle.tmpstore[numero]
+            obj.attributs.update(
+                [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])]
+            )
+            # print ('retour',obj)
+            score = obj.attributs.get("result_score", "")
+            if not score:
+                print ('erreur geocodage', attributs)
+            traite(obj, suite if score else fail)
+        elif not header:
+            header = [prefix + i for i in attributs[outcols:]]
+            # print ('calcul header', header)
+            obj = regle.tmpstore[0]
             if obj.schema:
-                if regle.numero in obj.schema.regles_modif:  # on force l'adaptation du schema
-                    obj.schema.regles_modif.remove(regle.numero)
-                regle.action_schema(regle, obj, liste=header[1:])
+                print ('geocodage action schema',regle.action_schema, header)
+                # if regle.numero in obj.schema.regles_modif:  # on force l'adaptation du schema
+                #     obj.schema.regles_modif.remove(regle.numero)
+                obj.schema.force_modif(regle)
+                regle.action_schema(regle, obj, liste=header)
+                print ('schema :', obj.schema)
+        else:
+            if not final:
+                print("geocodeur: recu truc etrange ", ligne)
+                # print("retry")
+                # geocode_traite_stock(regle, final=True)
+                return
+
     # and regle in obj.schema.regles_modif
     regle.traite += regle.nbstock
     regle.nbstock = 0

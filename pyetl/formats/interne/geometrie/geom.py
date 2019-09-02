@@ -366,9 +366,11 @@ class Geometrie(object):
         self.valide = True
         self.dimension = dim
         self.angle = angle
-        self.points = [list(coords[:dim])]
         if coords is None:
             self.null = True
+            self.points = []
+        else:
+            self.points = [list(coords[:dim])]
         self.longueur_point = longueur
 
     #        print ('creation point ',coords, self.point.coords)

@@ -15,28 +15,7 @@ import codecs
 # from numba import jit
 from .fileio import FileWriter
 
-#########################################################################
-# format csv et txt geo etc
-# tous les fichiers tabules avec ou sans entete
-#########################################################################
-# def getnoms(rep, chemin, fichier):
-#     """ determine les noms de groupe et de schema"""
-#     schema = ["schema"]
-#     chem = chemin
-#     niveaux = []
-#     classe = os.path.splitext(fichier)[0]
-#     if rep and rep != ".":
-#         schema = os.path.basename(rep)
-#     while chem:
-#         chem, nom = os.path.split(chem)
-#         niveaux.append(nom)
 
-#     if not niveaux:
-#         groupe = ""
-#     else:
-#         groupe = "_".join(niveaux)
-#     #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
-#     return schema, groupe, classe
 
 
 def decode_entetes_csv(reader, entete, separ):
@@ -95,7 +74,6 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
 def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
     reader.prepare_lecture_fichier(rep,chemin,fichier)
-    reader.setidententree(reader.groupe, reader.classe)
 
     if separ is None:
         separ = reader.separ

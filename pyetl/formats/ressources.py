@@ -251,8 +251,8 @@ class GestionSorties(object):
             return os.path.join(rep_sortie, groupe + ext)
         if classe:
             return os.path.join(rep_sortie, classe + ext)
-        print("!!!!! clef non definie", rep_sortie, "<->", os.path.join(rep_sortie, "defaut" + ext))
-        #        raise
+        print("!!!!! clef non definie", rep_sortie, groupe, classe, ext, nom, "<->", os.path.join(rep_sortie, "defaut" + ext))
+        raise
         return os.path.join(rep_sortie, "defaut" + ext)
 
     def getstats(self):

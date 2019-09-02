@@ -203,7 +203,6 @@ class Reader(object):
         regle = self.regle_ref
         self.lus_fich = 0
         self.chemin = chemin
-        stock_param = regle.stock_param
         chem = chemin
         niveaux = []
         while chem:
@@ -218,9 +217,8 @@ class Reader(object):
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
             # self.schema = stock_param.init_schema(self.nomschema, "L")
 
-        classe = os.path.splitext(fichier)[0]
+        classe, regle.ext = os.path.splitext(fichier)
         # self.setidententree(groupe,classe)
-        regle.ext = os.path.splitext(fichier)[-1]
         defchain = [
             "encoding",
             "codec_" + self.nom_format + "_in",
@@ -241,6 +239,8 @@ class Reader(object):
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = "utf-8-sig"
+
+        self.setidententree(groupe, classe)
         return groupe,classe
 
     def process(self, obj):

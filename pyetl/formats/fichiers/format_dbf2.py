@@ -51,7 +51,6 @@ def lire_objets_dbf(self, rep, chemin, fichier):
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     try:
         with dbf.Table(os.path.join(rep, chemin, fichier)) as table:
-            self.setidententree(self.groupe, self.classe)
             noms_attributs = decode_entetes_dbf(self, table)
             self.prepare_attlist(noms_attributs)
             print("structure", table.structure())

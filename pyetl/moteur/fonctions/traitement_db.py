@@ -378,6 +378,8 @@ def f_dbrunsql(regle, obj):
     if not scripts:
         print("pas de scripts a executer: ", script)
     for nom in scripts:
+        if nom.startswith('#'): # c'est une commande sql interne
+            nom = os.path.join(regle.getvar("_progdir"),'formats/db/sql',nom[1:])
         if not nom.endswith(".sql"):
             nom = nom + ".sql"
         # print("traitement sql ", nom)
