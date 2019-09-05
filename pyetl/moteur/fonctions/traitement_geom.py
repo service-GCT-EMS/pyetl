@@ -7,8 +7,10 @@ fonctions de manipulation d'attributs
 """
 # import re
 import itertools
+import math as M
 from pyetl.projection import conversion as P
 from .outils import compilefonc
+from shapely import geometry as SG
 
 
 def setschemainfo(regle, obj):
@@ -40,15 +42,22 @@ def h_initgeom(regle):
     """prepositionne un type geom"""
     if regle.params.cmp1.num:
         regle.context.setvar("type_geom", regle.params.cmp1.val)
+    regle.use_shapely = regle.params.cmp2.val
 
 
 def f_initgeom(regle, obj):
     """#aide||force l'interpretation de la geometrie
-       #pattern||;;;geom;?N;
+       #pattern||;;;geom;?N;?=S
        #schema||set_geom
        #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
+       #test2||obj;asc||^;;;geom;;S||;has:geomV;;;X;1;;set||atv;X;1
     """
-    return True if obj.virtuel else obj.initgeom()
+    if obj.virtuel:
+        return True
+    geom_ok = obj.initgeom()
+    if regle.use_shapely and geom_ok:
+        obj.geom_v.__shapelygeom__
+
 
 
 # remise a zero de la geometrie (comme si l'objet venait d'etre lu)
@@ -211,6 +220,8 @@ def f_addgeom(regle, obj):
 # forcage de types geometriques
 def f_force_pt(regle, obj):
     """#aide||transforme un objet en point en recuperant le n eme point
+    #aide_spec||les points sont comptes a partir de 0 negatif pour compter depuis la fin
+    #aide_spec1||si il n'y a pas de position donnee on prends le centre de l'emprise
        #pattern||;?C;?A;force_pt;;
        #helper||setval
        #test||obj;ligne||^;1;;force_pt||^;0;;coordp;||atn;#y;1
@@ -223,14 +234,19 @@ def f_force_pt(regle, obj):
         return False
     if obj.geom_v.type > "1":
         position = regle.get_entree(obj)
-        position = int(position) if position else 0
-        try:
-            #                print('changement en point ', obj.attributs['#type_geom'])
-            obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
-            obj.finalise_geom()
-        #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
-        except ValueError:
-            return False
+        if position:
+            position = int(position)
+            try:
+                #                print('changement en point ', obj.attributs['#type_geom'])
+                obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
+                obj.finalise_geom()
+            #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
+            except ValueError:
+                return False
+        else: # pas de position on prends le centroide
+            xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+            obj.geom_v.setpoint((xmin+xmax)/2,(ymin+ymax)/2, None, 2)
+
     setschemainfo(regle, obj)
     return True
 
@@ -753,7 +769,8 @@ def f_splitgeom(regle, obj):
 
 def f_prolonge(regle, obj):
     """#aide||prolongation de la ligne d'appui pour les textes
-       #aide spec: code prolongation : 1 debut 2 fin 3 3cotes (11,12,13) chaque segment
+    #aide_spec||longueur;[attibut contenant la  longueur];prolonge;code_prolongation
+    #aide spec2||code prolongation : 1: debut, 2: fin, 3:  les 2 cotes (11,12,13) chaque segment
        #pattern||;?N;?A;prolonge;?N;
        #test||obj;ligne||^;1;;prolonge;3||^#l;;;longueur||atn;#l;3
     """
@@ -868,3 +885,72 @@ def f_translatel(regle, obj):
         obj.infogeom()
         return True
     return False
+
+#===============================================fonctions du module shapely============================================
+def r_orient(geom):
+    sgeom = geom.__shapelygeom__ if not geom.sgeom else geom.sgeom
+    return sgeom.minimum_rotated_rectangle
+
+
+
+def f_rectangle_oriente(regle,obj):
+    """#aide||calcul du rectangle oriente minimal
+    #pattern||;;;r_min;;
+      #test2||obj;poly||^;;;r_min;;||;has:geomV;;;X;1;;set||atv;X;1
+    """
+    if obj.initgeom():
+        sgeom = obj.geom_v.__shapelygeom__ if not obj.geom_v.sgeom else obj.geom_v.sgeom
+        ror=sgeom.minimum_rotated_rectangle
+        obj.geom_v = obj.geom_v.from_geo_interface(SG.mapping(ror))
+        obj.geom_v.sgeom = ror
+        print ('rectangle',ror )
+
+
+def calculeangle(p1, p2):
+    """ valeur d'angle en degres"""
+    angle = -M.atan2(p2[0] - p1[0], p2[1] - p1[1]) * 180 / M.pi
+    return angle
+
+def h_angle(regle):
+    '''preparation angle'''
+    if regle.elements["cmp1"].group(0):
+        tmp = regle.elements["cmp1"].group(0).split(":")
+        regle.ip1=int(tmp[0])
+        regle.ip2=int(tmp[1]) if len(tmp) > 1 else -1
+
+
+
+def f_angle(regle,obj):
+    """#aide||calcule un angle de reference de l'objet
+    #pattern||S;;;angle;?N:N;?=P
+    #test1||obj;poly||^Z;;;angle;;||atv;Z;0.0
+    #test2||obj;poly||^Z;;;angle;;P||atv;Z;0.0
+    """
+    if obj.initgeom():
+        geom = obj.geom_v
+        npt = geom.npt
+        if npt == 1:
+            angle = geom.points[0].angle
+            pt1 = geom.coords[0]
+        elif npt == 2:
+            pt1, pt2 = geom.coords[:2]
+            angle = calculeangle(pt1, pt2)
+            if regle.params.cmp2.val:
+                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt2)], dim=len(pt1), angle=angle, longueur=geom.longueur)
+        elif regle.param.cmp2.val:
+            tmp = list(geom.coords)
+            pt1 = tmp[regle.ip1]
+            pt2 = tmp[regle.ip2]
+            angle = calculeangle(pt1, pt2)
+            if regle.params.cmp2.val:
+                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt2)], dim=len(pt1), angle=angle, longueur=geom.longueur)
+        else:
+            ror = r_orient(geom)
+            pt1,pt2,pt3,pt4 = ror.exterior.coords[:4]
+            angle = (calculeangle(pt1,pt3) + calculeangle(pt4,pt2))/2
+            if regle.params.cmp2:
+                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt3)], dim=len(pt1), angle=angle)
+        regle.fstore(regle.params.att_sortie, obj, str(angle))
+
+
+

@@ -4,7 +4,7 @@ attributs et geometrie """
 
 import itertools
 from . import composants as C
-
+from shapely import geometry as SG
 
 class Geometrie(object):
     """classe de base de stockage de la geometrie d'un objet"""
@@ -18,7 +18,7 @@ class Geometrie(object):
         "5": "POLYHEDRAL",
         "indef": "ALPHA"
     }
-    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
+    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle','sgeom',
                'longueur_point','dimension','multi','srid','force_multi','erreurs']
     def __init__(self):
         self.polygones = []
@@ -34,6 +34,7 @@ class Geometrie(object):
         self.srid = "3948"
         self.force_multi = False
         self.angle = 0
+        self.sgeom = None
         # self.epsg = 'SRID=3948;'
         self.erreurs = Erreurs()
 
@@ -50,6 +51,8 @@ class Geometrie(object):
     @property
     def npt(self):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
+        if self.sgeom:
+            return sum((len(i.coords) for i in self.sgeom.geoms)) if self.sgeom.type == 'GeometryCollection' else len(self.sgeom.coords)
         if self.null:
             return 0
         if self.points:
@@ -60,6 +63,8 @@ class Geometrie(object):
     @property
     def ferme(self):
         """ retourne True si la geometrie est fermee"""
+        if self.sgeom:
+            return self.sgeom.is_ring
         if self.lignes:
             return all(i.ferme for i in self.lignes)
         return False
@@ -351,6 +356,14 @@ class Geometrie(object):
 
     #        print ('geometrie',self.type,list(self.coords))
 
+    @property
+    def __shapelygeom__(self):
+        ''' retourne un format shapely de la geometrie'''
+        self.sgeom=SG.shape(self)
+        return self.sgeom
+
+
+
     def __repr__(self):
         if self.valide:
             return "type:" + self.type + " ".join(str(i) for i in self.coords)
@@ -372,6 +385,7 @@ class Geometrie(object):
         else:
             self.points = [list(coords[:dim])]
         self.longueur_point = longueur
+        self.sgeom = None
 
     #        print ('creation point ',coords, self.point.coords)
 
@@ -693,9 +707,9 @@ class Geometrie(object):
         # if self.point:
         #     self.point.setz(val_z)
 
-    def emprise(self):
+    def emprise(self, coords=None):
         """calcule l'emprise"""
-        liste_coords = list(self.coords)
+        liste_coords = list(self.coords) if coords is None else coords
         xmin, xmax, ymin, ymax = 0, 0, 0, 0
         try:
             if liste_coords:
@@ -705,8 +719,23 @@ class Geometrie(object):
                 ymax = max([i[1] for i in liste_coords])
         except:
             print(liste_coords)
-            print("erreur 3D")
+            print("erreur emprise")
         return (xmin, ymin, xmax, ymax)
+
+    def emprise_3d(self):
+        """calcule l'emprise"""
+        liste_coords = list(self.coords)
+        zmin = 0
+        zmax = 0
+        xmin, xmax, ymin, ymax = self.emprise(liste_coords)
+        try:
+            if liste_coords:
+                zmin = min([i[2] for i in liste_coords])
+                zmax = max([i[2] for i in liste_coords])
+        except:
+            print(liste_coords)
+            print("erreur emprise 3D")
+        return (xmin,ymin,zmin, xmax,ymax,zmax)
 
     @property
     def longueur(self):

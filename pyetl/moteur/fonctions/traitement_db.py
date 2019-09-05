@@ -383,7 +383,7 @@ def f_dbrunsql(regle, obj):
         if not nom.endswith(".sql"):
             nom = nom + ".sql"
         # print("traitement sql ", nom)
-        DB.dbrunsql(
+        DB.dbextsql(
             regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
         )
 

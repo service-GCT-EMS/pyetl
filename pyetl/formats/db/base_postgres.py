@@ -183,7 +183,7 @@ class PgrConnect(DbConnect):
         """ remplace les \\ par des /"""
         return nom.replace("\\", "/")
 
-    def runsql(self, prog, file, logfile=None, outfile=None):
+    def extsql(self, prog, file, logfile=None, outfile=None):
         """execute un fichier sql"""
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base

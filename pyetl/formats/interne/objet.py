@@ -35,7 +35,7 @@ class Objet(object):
     """structure de stockage d'un objet.   """
 
     _ido = itertools.count(1)  # compteur d'instance
-    __slots__=['geom_v','forcegeom','ido','numobj','copie',
+    __slots__=['geom_v','geom_shape','forcegeom','ido','numobj','copie',
                 'stored','is_ok','redirect','classe_is_att',
                 'liste_attributs','idorig','attributs',
                 'hdict','multiples','attributs_speciaux',
@@ -47,6 +47,7 @@ class Objet(object):
     def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None, orig=None):
         self.geom_v = Geometrie()
         #        self.valide = False
+        self.geom_shape = None
         self.forcegeom = False  # force une geometrie de ligne
         self.ido = next(self._ido)
         self.numobj = self.ido if numero is None else numero
@@ -537,7 +538,7 @@ class Objet(object):
             del self.attributs["#schema"]
         self.schema = None
 
-    def dupplique(self):
+    def dupplique(self, schema=True):
         """retourne une copie de l'objet
             sert dans toutes les fonctions avec dupplication d'objets"""
         #        print ('dupplication objets',self.ident)
@@ -548,7 +549,8 @@ class Objet(object):
         ob2.copie += 1
         ob2.ido = next(self._ido)
         self.schema = old_sc
-        ob2.setschema(old_sc)
+        if schema:
+            ob2.setschema(old_sc)
         #        ob2.schema = old_sc
         #        if old_sc is not None:
         #            old_sc.objcnt += 1 # on a un objet de plus dans le schema

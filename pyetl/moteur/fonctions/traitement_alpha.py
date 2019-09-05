@@ -975,12 +975,12 @@ def geocode_traite_stock(regle, final=True):
             # print ('calcul header', header)
             obj = regle.tmpstore[0]
             if obj.schema:
-                print ('geocodage action schema',regle.action_schema, header)
+                # print ('geocodage action schema',regle.action_schema, header)
                 # if regle.numero in obj.schema.regles_modif:  # on force l'adaptation du schema
                 #     obj.schema.regles_modif.remove(regle.numero)
                 obj.schema.force_modif(regle)
                 regle.action_schema(regle, obj, liste=header)
-                print ('schema :', obj.schema)
+                # print ('schema :', obj.schema)
         else:
             if not final:
                 print("geocodeur: recu truc etrange ", ligne)

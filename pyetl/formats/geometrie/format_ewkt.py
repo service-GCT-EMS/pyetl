@@ -5,6 +5,7 @@
 
 
 import re
+from shapely import wkb,wkt
 
 # from numba import jit
 
@@ -336,6 +337,14 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     else:
         return 0
 
+def ecrire_geom_ewkb(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
+    return hex(wkb.dumps(geom))
+
+def geom_from_ewkb(obj):
+    pass
+
+
+
 
 def ecrire_geom_ewkt(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
     """ecrit une geometrie en ewkt"""
@@ -401,4 +410,6 @@ def nowrite(obj):
     return ""
 
 
-GEOMDEF = {"#ewkt": (ecrire_geom_ewkt, geom_from_ewkt), None: (nowrite, noconversion)}
+GEOMDEF = {"#ewkt": (ecrire_geom_ewkt, geom_from_ewkt),
+           "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb),
+           None: (nowrite, noconversion)}

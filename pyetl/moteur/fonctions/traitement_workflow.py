@@ -12,6 +12,7 @@ import sys
 import zipfile
 import time
 import logging
+import copy
 from collections import defaultdict
 
 # from concurrent.futures import ProcessPoolExecutor
@@ -324,14 +325,18 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = True
+    regle.call = regle.params.cmd='call'
     context = regle.context.getcontext()
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
     if regle.liste_regles:
-        regle.liste_regles[-1]._return = True
+        if regle.call: # la on applatit
+            regle.liste_regles[-1]._return = True
+        else:
+            mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
+
     return erreurs
 
 
@@ -345,7 +350,21 @@ def f_callmacro(regle, obj):
        #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
     """
+    # la on ne fait rien parce que le compilateur a applati la macro
     return True
+
+def f_geomprocess(regle,obj):
+    """#aide||applique une macro sur la geometrie et recupere des attributs et/ou la geometrie
+    #pattern||;;;geomprocess;C;?LC
+    #helper||callmacro
+    #
+    # """
+    geom = obj.geom_v
+    obj.geom_v = copy.deepcopy(geom)
+    retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+    obj.geom_v = geom
+    return retour
+
 
 
 def h_testobj(regle):
@@ -761,3 +780,5 @@ def f_idle(_, __):
     #pattern||;;;idle;;
     """
     return True
+
+

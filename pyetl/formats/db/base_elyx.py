@@ -49,7 +49,7 @@ class ElyConnect(ora.OrwConnect):
                 "elyx_modelschema_"+code, defaut=self.modelschema
             )
 
-    def runsql(self, prog, file, logfile=None, outfile=None):
+    def extsql(self, prog, file, logfile=None, outfile=None):
         """execute un programme chargement de donnees """
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
