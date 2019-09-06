@@ -456,7 +456,10 @@ def traite_helpers(regle, fonc):
             else:
                 afficher_erreurs(regle, fonc, "fonction non implementee:")
     if regle.shelper:
-        regle.shelper(regle)
+        erreur = regle.shelper(regle)
+        if erreur:
+            print ('erreur initialisation regle', regle)
+            return False
     if regle.changeclasse:
         regle.changeclasse = fonc.changeclasse
     if regle.changeschema:
@@ -474,6 +477,7 @@ def traite_helpers(regle, fonc):
                 regle.changeschema = fonc.changeschema
     #    if regle.params.att_sortie.val:
     description_schema(regle)  # mets en place le schema pour l'attribut de sortie
+    return True
 
 
 def analyse_operation(regle):
@@ -481,9 +485,8 @@ def analyse_operation(regle):
     #    print ('analyse',regle.mode,regle)
     if regle.mode and regle.mode in regle.stock_param.commandes:
         valide, fonc = identifie_operation(regle)
-        if valide:
-            regle.valide = valide
-            traite_helpers(regle, fonc)
+        regle.valide = valide and traite_helpers(regle, fonc)
+
     else:
         afficher_erreurs(regle, None, "commande inconnue ->" + regle.mode)
     if regle.valide is None:

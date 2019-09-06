@@ -216,7 +216,7 @@ class Reader(object):
         ):  # les objets ont un schema issu du fichier
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
             # self.schema = stock_param.init_schema(self.nomschema, "L")
-
+        self.aff.send(("initfich", 0, 0))
         classe, regle.ext = os.path.splitext(fichier)
         # self.setidententree(groupe,classe)
         defchain = [

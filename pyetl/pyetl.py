@@ -516,7 +516,7 @@ class Pyetl(object):
             message, nbfic, nbval = yield
             #            nbtotal += nbval
 
-            if message == "init":
+            if message == "init" or (message=="initfich" and self.worker):
                 next(temps)
                 interm = 0.001
                 nb_total = 0
@@ -1170,11 +1170,10 @@ class Pyetl(object):
         self.fichier_courant = fich
         self.chemin_courant = chemin
         self.racine = racine
-        #        print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext)
-
         #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
+        # print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext,'->', regle)
         reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
         if regle is None:

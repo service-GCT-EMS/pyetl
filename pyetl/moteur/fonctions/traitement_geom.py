@@ -343,10 +343,13 @@ def f_longueur(regle, obj):
     return False
 
 
+
+
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
-       #pattern||;?N;?A;coordp;;
-       #helper||setval
+  #aide_spec||les coordonnees sont sous #x,#y,#z
+    #pattern||?M;?N;?A;coordp;;
+     #helper||setval
        #test||obj;ligne||^;1;;coordp||atn;#y;1
        #test1||obj;point||^;0;;coordp||atn;#y;2
        #test2||obj;point||^;;;coordp||atn;#y;2
@@ -363,10 +366,14 @@ def f_coordp(regle, obj):
             position = int(position)
 
         try:
-            refpt = list(obj.geom_v.coords)[position]
+            # refpt = list(obj.geom_v.coords)[position]
+            refpt = obj.geom_v.coords[position]
             # print("coordp: ",list(obj.geom_v.coords),position,refpt)
-            obj.attributs.update(
-                zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
+            if regle.params.att_sortie.val:
+                regle.fstore(regle.params.att_sortie, obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]])
+            else:
+                obj.attributs.update(
+                    zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
             )
             return True
         except IndexError:
@@ -901,7 +908,7 @@ def f_rectangle_oriente(regle,obj):
     if obj.initgeom():
         sgeom = obj.geom_v.__shapelygeom__ if not obj.geom_v.sgeom else obj.geom_v.sgeom
         ror=sgeom.minimum_rotated_rectangle
-        obj.geom_v = obj.geom_v.from_geo_interface(SG.mapping(ror))
+        obj.geom_v.from_geo_interface(SG.mapping(ror))
         obj.geom_v.sgeom = ror
         print ('rectangle',ror )
 
@@ -933,7 +940,7 @@ def f_angle(regle,obj):
             angle = geom.points[0].angle
             pt1 = geom.coords[0]
         elif npt == 2:
-            pt1, pt2 = geom.coords[:2]
+            pt1, pt2 = list(geom.coords)[:2]
             angle = calculeangle(pt1, pt2)
             if regle.params.cmp2.val:
                 geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt2)], dim=len(pt1), angle=angle, longueur=geom.longueur)

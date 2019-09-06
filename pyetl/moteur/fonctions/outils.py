@@ -191,16 +191,18 @@ def objloader(regle, obj):
     fichs = getfichs(regle, obj)
     if fichs:
         for i, parms in fichs:
+            # print ('lecture', i)
             try:
                 nb_lu += mapper.lecture(i, regle=regle, parms=parms)
             except StopIteration as abort:
                 if abort.args[0] == "2":
                     continue
-                raise
     #    print("lecture",nb_lu)
+    else:
+        print ("chargeur: pas de fichiers d'entree" )
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return True
+    return fichs
 
 
 def expandfilename(nom, rdef, racine="", chemin="", fichier=""):

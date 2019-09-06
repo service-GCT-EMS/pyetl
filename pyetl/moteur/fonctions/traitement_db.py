@@ -561,6 +561,8 @@ def f_recup_schema(regle, obj):
     """
     chemin = ""
     # print ('recup_schema---------------', obj)
+    if obj.attributs.get("#categorie") == "traitement_virtuel":
+        return True
     base, niveau, classe, att = regle.cible_base
     if obj.attributs["#groupe"] == "__filedb":
         chemin = obj.attributs["#chemin"]

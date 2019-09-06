@@ -363,6 +363,7 @@ def f_geomprocess(regle,obj):
     obj.geom_v = copy.deepcopy(geom)
     retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
     obj.geom_v = geom
+    print ('retour geomprocess')
     return retour
 
 
