@@ -550,6 +550,15 @@ class Polygone(object):
         if lig.courbe:
             self.courbe = True
 
+    def aire(self):
+        if not self.lignes:
+            return 0
+        base = abs(self.lignes[0].aire_orientee())
+        if len(self.lignes) > 1:
+            base -= sum((abs(i.aire_orientee()) for i in self.lignes[1:]))
+        return base
+
+
 #
 #    @property
 #    def longueur(self):

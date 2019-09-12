@@ -18,7 +18,8 @@ class Geometrie(object):
         "5": "POLYHEDRAL",
         "indef": "ALPHA"
     }
-    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle','sgeom',
+    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
+                'sgeom',
                'longueur_point','dimension','multi','srid','force_multi','erreurs']
     def __init__(self):
         self.polygones = []
@@ -48,11 +49,24 @@ class Geometrie(object):
         if srid:
             self.srid = str(int(srid))
 
+
+
+#------------------------------------informations----------------------------------------------
+
+    def shapely_npt(self, geom):
+        if geom.type == 'Polygon':
+            npt = len(geom.exterior.coords)+ sum((len(i.coords) for i in geom.interiors))
+            return npt
+        return len(geom.coords)
+
+
     @property
     def npt(self):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
         if self.sgeom:
-            return sum((len(i.coords) for i in self.sgeom.geoms)) if self.sgeom.type == 'GeometryCollection' else len(self.sgeom.coords)
+            if self.sgeom.type == 'GeometryCollection':
+                return sum(self.shapely_npt(i) for i in self.sgeom.geoms)
+            return self.shapely_npt(self.sgeom)
         if self.null:
             return 0
         if self.points:
@@ -68,6 +82,464 @@ class Geometrie(object):
         if self.lignes:
             return all(i.ferme for i in self.lignes)
         return False
+
+    @property
+    def area(self):
+        if self.sgeom:
+            return self.sgeom.area
+        if self.type < '3':
+            return 0
+        return sum(p.aire() for p in self.polygones) if self.polygones else 0
+
+
+    def setsgeom(self, shape=None):
+        '''positionne l'element shapely'''
+        if shape:
+            self.sgeom = shape
+            self.valide = False
+        else:
+            self.sgeom=SG.shape(self)
+
+
+
+    def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
+        """cree une geometrie de point"""
+        self.type = "1"
+        self.null = False
+        self.multi = False
+        self.dimension = dim
+        self.srid = str(int(srid))
+        self.valide = True
+        self.sgeom = None
+        self.dimension = dim
+        self.angle = angle
+        if coords is None:
+            self.null = True
+            self.points = []
+        else:
+            self.points = [list(coords[:dim])]
+        self.longueur_point = longueur
+        self.sgeom = None
+
+    #        print ('creation point ',coords, self.point.coords)
+
+    def addpoint(self, coords, dim):
+        """ajoute un point a une geometrie"""
+        self.shapesync()
+        if self.type == "1":
+            if coords is None:
+                self.null=True
+                return
+            self.points.append(list(coords[:dim]))
+            self.multi = len(self.points)>1
+            self.dimension = dim
+            # raise
+            return
+
+        if self.lignes:
+            ligne_active = self.lignes[-1]
+            if ligne_active.addpoint(coords, dim):
+                # la ligne est fermee
+                self.nouvelle_ligne_p(coords, dim)
+                # on ajoute un point a une nouvelle ligne
+        else:
+            self.lignes = [C.Ligne(C.Section(coords, dim))]
+        self.sgeom = None
+
+
+    #
+
+    def nouvelle_ligne_s(self, sect, interieur=None):
+        """finit la ligne courante et en demarre une nouvelle avec une section"""
+        self.lignes.append(C.Ligne(sect, interieur=interieur))
+
+    def nouvelle_ligne_p(self, pnt, dim=2):
+        """finit la ligne courante et en demarre une nouvelle avec un point"""
+        self.lignes.append(C.Ligne(C.Section(pnt, dim)))
+
+    def cree_section(self, liste_pts, dim, couleur, courbe, interieur=None):
+        """cree une section et l'ajoute a la geometrie courante"""
+        sect = C.Section(None, dim)
+        sect.setsect(liste_pts, couleur, courbe)
+        self.ajout_section(sect, interieur)
+        # self.print_debug()
+
+    def ajout_section(self, sect, interieur):
+        """ajoute une section a la geometrie"""
+        if self.lignes:
+            if self.lignes[-1].ajout_section(sect):
+                #                print ('objet:creation nouvelle ligne')
+                self.nouvelle_ligne_s(sect, interieur)
+        else:
+            self.lignes = [C.Ligne(sect, interieur=False)]
+
+    def fin_section(self, couleur, courbe):
+        """ termine la section courante """
+        sect = self.lignes[-1].fin_section(couleur, courbe)
+        if sect:  # on a tente d'ajouter un cercle
+            self.nouvelle_ligne_s(sect)
+
+    def annule_section(self):
+        """annule la derniere section en cours"""
+        if self.lignes[-1].annule_section():
+            self.lignes.pop()
+
+    def traite_desordre(self):
+        """on a des lignes dans le desordre"""
+        a_traiter = self.lignes
+        final = []
+        reste = []
+        suite = True
+        while suite:
+            #            print ('traitement', len(a_traiter))
+            #            for i in final:
+            #                print ('final: debut, fin',i.ppt,i.dpt, i.ferme)
+            #            for i in a_traiter:
+            #                print ('a_traiter: debut, fin',i.ppt,i.dpt, i.ferme)
+            suite = False
+            reste = []
+            ligne = a_traiter.pop(0)
+            if ligne.ferme:
+                final.append(ligne)
+            else:
+                reste.append(ligne)
+                for ligne2 in a_traiter:
+                    if ligne.ajout_ligne(ligne2, desordre=True):
+                        suite = True
+                    else:
+                        reste.append(ligne2)
+            a_traiter = reste
+        final.extend(reste)
+        self.lignes = final
+        #        for i in self.lignes:
+        #            print ('sortie: debut, fin',i.ppt,i.dpt, i.ferme)
+        #        print ('geometrie',self.ferme)
+        if reste:
+            print("ligne orpheline", reste)
+
+    def finalise_geom(self, type_geom="0", orientation="L", desordre=False):
+        """termine une geometrie et finalise la structure"""
+        self.valide = True
+        self.sgeom=None
+        self.multi = False
+        self.courbe = False
+
+        self.null = not self.coords
+        if type_geom == "0":
+            self.type = "0"
+            self.lignes = []
+            self.polygones = []
+            return True
+
+        if self.null:
+            return False
+        if self.type == "1":
+            self.multi = len(self.points) > 1
+            self.lignes = []
+            self.polygones = []
+            return True
+
+        if type_geom != "2":
+            if desordre:
+                self.traite_desordre()
+                # les lignes peuvent etre en desordre (gestion de la partition)
+            if self.ferme:
+                # toutes les lignes sont fermees et on autorise des polygones
+                #                print( 'finalisation', len(self.lignes))
+                for i in self.lignes:
+                    aire = i.aire_orientee()
+                    if aire == 0 and self.dimension==2:
+                        self.erreurs.ajout_erreur("contour degénéré " + type_geom)
+                        self.valide = False
+                        return False
+                    if orientation == "R":
+                        aire = -aire
+                    if i.interieur is None:
+                        i.interieur = aire < 0
+                    if i.interieur:
+                        if self.polygones:
+                            self.polygones[-1].ajout_contour(i)
+                        else:
+                            i.interieur = False
+                            self.polygones.append(C.Polygone(i))
+                            self.erreurs.ajout_warning("interieur")
+                    else:
+                        self.polygones.append(C.Polygone(i))
+
+        if self.lignes:
+            self.type = "3" if self.polygones else "2"
+        #        print ('fin_geom:type_geom ', self.type, type_geom)
+        #        if typegeom==2:
+        #            raise
+        if self.type == "2":
+            for i in self.lignes:
+                for j in i.sections:
+                    if j.npt < 2:
+                        self.erreurs.ajout_erreur("section un point")
+                        self.valide = False
+        self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
+        self.courbe = any([i.courbe for i in self.lignes])
+        if self.lignes:
+            self.dimension = self.lignes[0].dimension
+        if self.type == "3" and (type_geom == "4" or type_geom == "5"):
+            self.type = type_geom
+
+        elif type_geom != "-1" and type_geom != "indef" and type_geom != self.type:
+            self.erreurs.ajout_warning(
+                "attention geometrie demandee: " + str(type_geom) + " trouve " + str(self.type)
+            )
+        #            self.valide = 0
+        #        print ('fin_geom2:type_geom ', self.type, type_geom)
+        return self.valide
+
+    def split_couleur(self, couleurs):
+        """decoupe une ligne selon la couleur des sections"""
+        geoms = dict()
+        self.shapesync()
+        for i in self.lignes:
+            for j in i.sections:
+                coul_sect = j.couleur
+                if couleurs and coul_sect not in couleurs:
+                    coul_sect = "#autre"
+                if coul_sect not in geoms:
+                    geoms[coul_sect] = Geometrie()
+                geoms[coul_sect].ajout_section(j.dupplique(), False)
+        for i in geoms:
+            geoms[i].finalise_geom("2")  # on force en ligne
+        #        liste_couleurs = {j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])}
+        #        print ("decoupage en couleurs ", couleurs, len(geoms), liste_couleurs, len(self.lignes))
+        return geoms
+
+    def extract_couleur(self, couleurs):
+        """ recupere les sections d'une couleur"""
+        self.shapesync()
+        geom = Geometrie()
+        for i in self.lignes:
+            for j in i.sections:
+                if j.couleur in couleurs:
+                    geom.ajout_section(j.dupplique(), False)
+        return geom
+
+    def has_couleur(self, couleur):
+        """retourne True si la couleur existe dans l'objet"""
+        self.shapesync()
+        liste_couleurs = {
+            j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
+        }
+        #        print('has_couleur',couleur, liste_couleurs, couleur in liste_couleurs)
+        return couleur in liste_couleurs
+
+    def forcecouleur(self, couleur1, couleur2):
+        """remplace une couleur par une autre"""
+        self.shapesync()
+        for i in self.lignes:
+            for j in i.sections:
+                if j.couleur == couleur1:
+                    j.couleur = couleur2
+        self.sgeom = None
+
+    def forceligne(self):
+        """force la geometrie en ligne pour des polygones"""
+        self.shapesync()
+
+        if self.type == "3":
+            self.type = "2"
+        self.multi = len(self.lignes) - 1
+        self.sgeom = None
+
+
+    def translate(self, dx, dy, dz):
+        """decale une geometrie"""
+        self.shapesync()
+        #        print ("translate geom avant :", list(self.coords))
+        fonction = lambda coords: list(i + j for i, j in zip(coords, (dx, dy, dz)))
+        self.convert(fonction)
+        self.sgeom = None
+        return True
+
+    #        print ("translate geom aprest :", list(self.coords))
+
+    def prolonge(self, longueur, mode):
+        self.shapesync()
+
+        """prolonge une multiligne"""
+        #        print("dans prolonge", longueur, mode)
+        if self.type != "2":
+            return False
+        if mode > 10:
+            for i in self.lignes:
+                i.prolonge(longueur, mode - 10)
+        else:
+            if mode % 2:  # prolongation du debut
+                #                print("dans prolonge debut", longueur, mode)
+                self.lignes[0].prolonge_debut(longueur)
+            if mode >= 2:
+                self.lignes[-1].prolonge_fin(longueur)
+        self.sgeom = None
+        return True
+    #        print("geom apres prolonge", list(self.coords))
+    #        print("longueur ",self.longueur)
+
+    def forcepoly(self, force=False):
+        """convertit la geometrie des lignes en polygones en fermant de force"""
+        self.shapesync()
+        if self.type == "2":
+            valide = True
+            for i in self.lignes:
+                if not i.ferme:
+                    valide = force and i.force_fermeture()
+
+                if valide:
+                    if i.aire < 0:
+                        if self.polygones:
+                            self.polygones[-1].ajout_contour(i)
+                        else:
+                            i.inverse()
+                        self.polygones.append(C.Polygone(i))
+                    else:
+                        self.polygones.append(C.Polygone(i))
+            if valide:
+                self.type = "3"
+                self.multi = len(self.polygones) - 1
+            else:
+                self.polygones = []
+        self.sgeom = None
+
+    @property
+    def coords(self):
+        """ iterateur sur les coordonnees"""
+        self.shapesync()
+        if self.points:
+            return self.points
+        if self.lignes:
+            return itertools.chain(*[i.coords for i in self.lignes])
+        return iter(())
+
+
+    def convert(self, fonction, srid=None):
+        """ applique une fonction aux points """
+        self.shapesync()
+        for crd in self.coords:
+            for i, val in enumerate(fonction(crd)):
+                crd[i] = val
+        if srid:
+            self.srid = str(int(srid))
+        self.sgeom = None
+
+
+    def set_2d(self):
+        """transforme la geometrie en 2d"""
+        self.shapesync()
+        if self.dimension == 2:
+            return
+        self.dimension = 2
+        for i in self.lignes:
+            i.set_2d()
+        self.sgeom = None
+
+        # if self.point:
+        #     self.point.set_2d()
+
+    def set_3d(self):
+        """transforme la geometrie en 2d"""
+        self.shapesync()
+        if self.dimension == 3:
+            return
+        self.dimension = 3
+        for i in self.coords:
+            if len(i)<3:
+                i.append(0)
+        for i in self.lignes:
+            i.set_3d()
+        self.sgeom = None
+        # if self.point:
+        #     self.point.set_2d()
+
+    def setz(self, val_z, force=False):
+        """force le z """
+        self.shapesync()
+        if self.dimension == 3:
+            if not force:
+                return
+        self.dimension = 3
+        for i in self.coords:
+            i[2]=val_z if len(i)==3 else i.append(val_z)
+        for i in self.lignes:
+            i.set_3d()
+        self.sgeom = None
+        # if self.point:
+        #     self.point.setz(val_z)
+
+    def emprise(self, coords=None):
+        """calcule l'emprise"""
+        if self.sgeom:
+            return self.sgeom.bounds
+        else:
+            self.shapesync()
+
+        liste_coords = list(self.coords) if coords is None else coords
+        xmin, xmax, ymin, ymax = 0, 0, 0, 0
+        try:
+            if liste_coords:
+                xmin = min([i[0] for i in liste_coords])
+                xmax = max([i[0] for i in liste_coords])
+                ymin = min([i[1] for i in liste_coords])
+                ymax = max([i[1] for i in liste_coords])
+        except:
+            print(liste_coords)
+            print("erreur emprise")
+        return (xmin, ymin, xmax, ymax)
+
+    def emprise_3d(self):
+        """calcule l'emprise"""
+        liste_coords = list(self.coords)
+        zmin = 0
+        zmax = 0
+        xmin, xmax, ymin, ymax = self.emprise(liste_coords)
+        try:
+            if liste_coords:
+                zmin = min([i[2] for i in liste_coords])
+                zmax = max([i[2] for i in liste_coords])
+        except:
+            print(liste_coords)
+            print("erreur emprise 3D")
+        return (xmin,ymin,zmin, xmax,ymax,zmax)
+
+    @property
+    def longueur(self):
+        """longueur de la geometrie"""
+        if self.null:
+            return 0
+        if self.points:
+            return self.longueur_point
+        comp = self.lignes
+        #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
+        return sum(i.longueur for i in comp) if comp else 0
+
+
+    def getpoint(self, numero):
+        """retourne le n ieme point"""
+        #        print ('coordlist',self.type,list(self.coordlist()))
+        if numero < 0:
+            return list(self.coords)[numero]
+        return next(itertools.islice(self.coords, numero, None), ())
+        # for i in self.coords:
+        #     if n == numero:
+        #         return i
+        #     n += 1
+        # return i
+
+    def print_debug(self):
+        """affichage de debug"""
+        print("debug: geom : geometrie", Geometrie)
+        print("debug: geom : type: ", self.type, "lignes", len(self.lignes))
+        for i in self.lignes:
+            i.print_debug()
+
+    #-------------------------------------------------------------------
+    #---------------------- interfaces ---------------------------------
+    #-------------------------------------------------------------------
+
 
     @property
     def __json_if__(self):
@@ -359,414 +831,19 @@ class Geometrie(object):
     @property
     def __shapelygeom__(self):
         ''' retourne un format shapely de la geometrie'''
-        self.sgeom=SG.shape(self)
+        if not self.sgeom:
+            self.sgeom=SG.shape(self)
         return self.sgeom
 
 
-
-    def __repr__(self):
-        if self.valide:
-            return "type:" + self.type + " ".join(str(i) for i in self.coords)
-        return "geometrie invalide " + repr(self.erreurs)
-
-    def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
-        """cree une geometrie de point"""
-        self.type = "1"
-        self.null = False
-        self.multi = False
-        self.dimension = dim
-        self.srid = str(int(srid))
-        self.valide = True
-        self.dimension = dim
-        self.angle = angle
-        if coords is None:
-            self.null = True
-            self.points = []
-        else:
-            self.points = [list(coords[:dim])]
-        self.longueur_point = longueur
-        self.sgeom = None
-
-    #        print ('creation point ',coords, self.point.coords)
-
-    def addpoint(self, coords, dim):
-        """ajoute un point a une geometrie"""
-
-        if self.type == "1":
-            if coords is None:
-                self.null=True
-                return
-            self.points.append(list(coords[:dim]))
-            self.multi = len(self.points)>1
-            self.valide = True
-            self.dimension = dim
-            # raise
-            return
-
-        if self.lignes:
-            ligne_active = self.lignes[-1]
-            if ligne_active.addpoint(coords, dim):
-                # la ligne est fermee
-                self.nouvelle_ligne_p(coords, dim)
-                # on ajoute un point a une nouvelle ligne
-        else:
-            self.lignes = [C.Ligne(C.Section(coords, dim))]
-
-    #
-
-    def nouvelle_ligne_s(self, sect, interieur=None):
-        """finit la ligne courante et en demarre une nouvelle avec une section"""
-        self.lignes.append(C.Ligne(sect, interieur=interieur))
-
-    def nouvelle_ligne_p(self, pnt, dim=2):
-        """finit la ligne courante et en demarre une nouvelle avec un point"""
-        self.lignes.append(C.Ligne(C.Section(pnt, dim)))
-
-    def cree_section(self, liste_pts, dim, couleur, courbe, interieur=None):
-        """cree une section et l'ajoute a la geometrie courante"""
-        sect = C.Section(None, dim)
-        sect.setsect(liste_pts, couleur, courbe)
-        self.ajout_section(sect, interieur)
-        # self.print_debug()
-
-    def ajout_section(self, sect, interieur):
-        """ajoute une section a la geometrie"""
-        if self.lignes:
-            if self.lignes[-1].ajout_section(sect):
-                #                print ('objet:creation nouvelle ligne')
-                self.nouvelle_ligne_s(sect, interieur)
-        else:
-            self.lignes = [C.Ligne(sect, interieur=False)]
-
-    def fin_section(self, couleur, courbe):
-        """ termine la section courante """
-        sect = self.lignes[-1].fin_section(couleur, courbe)
-        if sect:  # on a tente d'ajouter un cercle
-            self.nouvelle_ligne_s(sect)
-
-    def annule_section(self):
-        """annule la derniere section en cours"""
-        if self.lignes[-1].annule_section():
-            self.lignes.pop()
-
-    def traite_desordre(self):
-        """on a des lignes dans le desordre"""
-        a_traiter = self.lignes
-        final = []
-        reste = []
-        suite = True
-        while suite:
-            #            print ('traitement', len(a_traiter))
-            #            for i in final:
-            #                print ('final: debut, fin',i.ppt,i.dpt, i.ferme)
-            #            for i in a_traiter:
-            #                print ('a_traiter: debut, fin',i.ppt,i.dpt, i.ferme)
-            suite = False
-            reste = []
-            ligne = a_traiter.pop(0)
-            if ligne.ferme:
-                final.append(ligne)
-            else:
-                reste.append(ligne)
-                for ligne2 in a_traiter:
-                    if ligne.ajout_ligne(ligne2, desordre=True):
-                        suite = True
-                    else:
-                        reste.append(ligne2)
-            a_traiter = reste
-        final.extend(reste)
-        self.lignes = final
-        #        for i in self.lignes:
-        #            print ('sortie: debut, fin',i.ppt,i.dpt, i.ferme)
-        #        print ('geometrie',self.ferme)
-        if reste:
-            print("ligne orpheline", reste)
-
-    def finalise_geom(self, type_geom="0", orientation="L", desordre=False):
-        """termine une geometrie et finalise la structure"""
-        self.valide = 1
-        self.multi = False
-        self.courbe = False
-
-        self.null = not self.coords
-        if type_geom == "0":
-            self.type = "0"
-            self.lignes = []
-            self.polygones = []
-            return True
-
-        if self.null:
-            return False
-        if self.type == "1":
-            self.multi = len(self.points) > 1
-            self.lignes = []
-            self.polygones = []
-            return True
-
-        if type_geom != "2":
-            if desordre:
-                self.traite_desordre()
-                # les lignes peuvent etre en desordre (gestion de la partition)
-            if self.ferme:
-                # toutes les lignes sont fermees et on autorise des polygones
-                #                print( 'finalisation', len(self.lignes))
-                for i in self.lignes:
-                    aire = i.aire_orientee()
-                    if aire == 0 and self.dimension==2:
-                        self.erreurs.ajout_erreur("contour degénéré " + type_geom)
-                        self.valide = False
-                        return False
-                    if orientation == "R":
-                        aire = -aire
-                    if i.interieur is None:
-                        i.interieur = aire < 0
-                    if i.interieur:
-                        if self.polygones:
-                            self.polygones[-1].ajout_contour(i)
-                        else:
-                            i.interieur = False
-                            self.polygones.append(C.Polygone(i))
-                            self.erreurs.ajout_warning("interieur")
-                    else:
-                        self.polygones.append(C.Polygone(i))
-
-        if self.lignes:
-            self.type = "3" if self.polygones else "2"
-        #        print ('fin_geom:type_geom ', self.type, type_geom)
-        #        if typegeom==2:
-        #            raise
-        if self.type == "2":
-            for i in self.lignes:
-                for j in i.sections:
-                    if j.npt < 2:
-                        self.erreurs.ajout_erreur("section un point")
-                        self.valide = False
-        self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
-        self.courbe = any([i.courbe for i in self.lignes])
-        if self.lignes:
-            self.dimension = self.lignes[0].dimension
-        if self.type == "3" and (type_geom == "4" or type_geom == "5"):
-            self.type = type_geom
-
-        elif type_geom != "-1" and type_geom != "indef" and type_geom != self.type:
-            self.erreurs.ajout_warning(
-                "attention geometrie demandee: " + str(type_geom) + " trouve " + str(self.type)
-            )
-        #            self.valide = 0
-        #        print ('fin_geom2:type_geom ', self.type, type_geom)
-        return self.valide
-
-    def split_couleur(self, couleurs):
-        """decoupe une ligne selon la couleur des sections"""
-        geoms = dict()
-        for i in self.lignes:
-            for j in i.sections:
-                coul_sect = j.couleur
-                if couleurs and coul_sect not in couleurs:
-                    coul_sect = "#autre"
-                if coul_sect not in geoms:
-                    geoms[coul_sect] = Geometrie()
-                geoms[coul_sect].ajout_section(j.dupplique(), False)
-        for i in geoms:
-            geoms[i].finalise_geom("2")  # on force en ligne
-        #        liste_couleurs = {j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])}
-        #        print ("decoupage en couleurs ", couleurs, len(geoms), liste_couleurs, len(self.lignes))
-        return geoms
-
-    def extract_couleur(self, couleurs):
-        """ recupere les sections d'une couleur"""
-        geom = Geometrie()
-        for i in self.lignes:
-            for j in i.sections:
-                if j.couleur in couleurs:
-                    geom.ajout_section(j.dupplique(), False)
-        return geom
-
-    def has_couleur(self, couleur):
-        """retourne True si la couleur existe dans l'objet"""
-        liste_couleurs = {
-            j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
-        }
-        #        print('has_couleur',couleur, liste_couleurs, couleur in liste_couleurs)
-        return couleur in liste_couleurs
-
-    def forcecouleur(self, couleur1, couleur2):
-        """remplace une couleur par une autre"""
-        for i in self.lignes:
-            for j in i.sections:
-                if j.couleur == couleur1:
-                    j.couleur = couleur2
-
-    def forceligne(self):
-        """force la geometrie en ligne pour des polygones"""
-        if self.type == "3":
-            self.type = "2"
-        self.multi = len(self.lignes) - 1
-
-    def translate(self, dx, dy, dz):
-        """decale une geometrie"""
-        #        print ("translate geom avant :", list(self.coords))
-        fonction = lambda coords: list(i + j for i, j in zip(coords, (dx, dy, dz)))
-        self.convert(fonction)
-        return True
-
-    #        print ("translate geom aprest :", list(self.coords))
-
-    def prolonge(self, longueur, mode):
-        """prolonge une multiligne"""
-        #        print("dans prolonge", longueur, mode)
-        if self.type != "2":
-            return False
-        if mode > 10:
-            for i in self.lignes:
-                i.prolonge(longueur, mode - 10)
-        else:
-            if mode % 2:  # prolongation du debut
-                #                print("dans prolonge debut", longueur, mode)
-                self.lignes[0].prolonge_debut(longueur)
-            if mode >= 2:
-                self.lignes[-1].prolonge_fin(longueur)
-
-    #        print("geom apres prolonge", list(self.coords))
-    #        print("longueur ",self.longueur)
-
-    def forcepoly(self, force=False):
-        """convertit la geometrie des lignes en polygones en fermant de force"""
-        if self.type == "2":
-            valide = True
-            for i in self.lignes:
-                if not i.ferme:
-                    valide = force and i.force_fermeture()
-
-                if valide:
-                    if i.aire < 0:
-                        if self.polygones:
-                            self.polygones[-1].ajout_contour(i)
-                        else:
-                            i.inverse()
-                        self.polygones.append(C.Polygone(i))
-                    else:
-                        self.polygones.append(C.Polygone(i))
-            if valide:
-                self.type = "3"
-                self.multi = len(self.polygones) - 1
-            else:
-                self.polygones = []
-
-    @property
-    def coords(self):
-        """ iterateur sur les coordonnees"""
-        if self.points:
-            return self.points
-        if self.lignes:
-            return itertools.chain(*[i.coords for i in self.lignes])
-        return iter(())
+    def shapesync(self):
+        '''recree la geometrie a partir d'un element shapely'''
+        if not self.valide and self.sgeom:
+            self.from_geo_interface(SG.mapping(self.sgeom))
 
 
-    def convert(self, fonction, srid=None):
-        """ applique une fonction aux points """
-        for crd in self.coords:
-            for i, val in enumerate(fonction(crd)):
-                crd[i] = val
-        if srid:
-            self.srid = str(int(srid))
-
-    def set_2d(self):
-        """transforme la geometrie en 2d"""
-        if self.dimension == 2:
-            return
-        self.dimension = 2
-        for i in self.lignes:
-            i.set_2d()
-        # if self.point:
-        #     self.point.set_2d()
-
-    def set_3d(self):
-        """transforme la geometrie en 2d"""
-        if self.dimension == 3:
-            return
-        self.dimension = 3
-        for i in self.coords:
-            if len(i)<3:
-                i.append(0)
-        for i in self.lignes:
-            i.set_3d()
-        # if self.point:
-        #     self.point.set_2d()
-
-    def setz(self, val_z, force=False):
-        """force le z """
-        if self.dimension == 3:
-            if not force:
-                return
-        self.dimension = 3
-        for i in self.coords:
-            i[2]=val_z if len(i)==3 else i.append(val_z)
-        for i in self.lignes:
-            i.set_3d()
-        # if self.point:
-        #     self.point.setz(val_z)
-
-    def emprise(self, coords=None):
-        """calcule l'emprise"""
-        liste_coords = list(self.coords) if coords is None else coords
-        xmin, xmax, ymin, ymax = 0, 0, 0, 0
-        try:
-            if liste_coords:
-                xmin = min([i[0] for i in liste_coords])
-                xmax = max([i[0] for i in liste_coords])
-                ymin = min([i[1] for i in liste_coords])
-                ymax = max([i[1] for i in liste_coords])
-        except:
-            print(liste_coords)
-            print("erreur emprise")
-        return (xmin, ymin, xmax, ymax)
-
-    def emprise_3d(self):
-        """calcule l'emprise"""
-        liste_coords = list(self.coords)
-        zmin = 0
-        zmax = 0
-        xmin, xmax, ymin, ymax = self.emprise(liste_coords)
-        try:
-            if liste_coords:
-                zmin = min([i[2] for i in liste_coords])
-                zmax = max([i[2] for i in liste_coords])
-        except:
-            print(liste_coords)
-            print("erreur emprise 3D")
-        return (xmin,ymin,zmin, xmax,ymax,zmax)
-
-    @property
-    def longueur(self):
-        """longueur de la geometrie"""
-        if self.null:
-            return 0
-        if self.points:
-            return self.longueur_point
-        comp = self.lignes
-        #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
-        return sum(i.longueur for i in comp) if comp else 0
 
 
-    def getpoint(self, numero):
-        """retourne le n ieme point"""
-        #        print ('coordlist',self.type,list(self.coordlist()))
-        if numero < 0:
-            return list(self.coords)[numero]
-        return next(itertools.islice(self.coords, numero, None), ())
-        # for i in self.coords:
-        #     if n == numero:
-        #         return i
-        #     n += 1
-        # return i
-
-    def print_debug(self):
-        """affichage de debug"""
-        print("debug: geom : geometrie", Geometrie)
-        print("debug: geom : type: ", self.type, "lignes", len(self.lignes))
-        for i in self.lignes:
-            i.print_debug()
 
     @property
     def fold(self):
@@ -786,6 +863,7 @@ class Geometrie(object):
         """recree une geometrie a partir de la forme compacte"""
         if folded is None:
             self.valide = True
+            self.sgeom_valide = False
             self.type = '0'
             self.null = True
             return
@@ -827,6 +905,14 @@ class Geometrie(object):
                     interieur = True
                 dep_p=fin_p
         self.finalise_geom(type_geom="2")
+
+
+    def __repr__(self):
+        if self.valide:
+            return "type:" + self.type + " ".join(str(i) for i in self.coords)
+        elif self.sgeom:
+            return repr(self.sgeom)
+        return "geometrie invalide " + repr(self.erreurs)
 
 
 

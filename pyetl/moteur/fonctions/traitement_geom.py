@@ -342,6 +342,19 @@ def f_longueur(regle, obj):
         return True
     return False
 
+def f_aire(regle, obj):
+    """#aide||calcule l'aire de l'objet
+        #pattern||S;;;aire;;
+        #test||obj;poly||^#aire;;;aire||atn;#aire;1
+    """
+    #    if True:
+    if obj.virtuel:
+        return False
+    if obj.initgeom():
+        regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.area))
+        # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
+        return True
+    return False
 
 
 
@@ -367,7 +380,7 @@ def f_coordp(regle, obj):
 
         try:
             # refpt = list(obj.geom_v.coords)[position]
-            refpt = obj.geom_v.coords[position]
+            refpt = list(obj.geom_v.coords)[position]
             # print("coordp: ",list(obj.geom_v.coords),position,refpt)
             if regle.params.att_sortie.val:
                 regle.fstore(regle.params.att_sortie, obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]])
@@ -892,72 +905,4 @@ def f_translatel(regle, obj):
         obj.infogeom()
         return True
     return False
-
-#===============================================fonctions du module shapely============================================
-def r_orient(geom):
-    sgeom = geom.__shapelygeom__ if not geom.sgeom else geom.sgeom
-    return sgeom.minimum_rotated_rectangle
-
-
-
-def f_rectangle_oriente(regle,obj):
-    """#aide||calcul du rectangle oriente minimal
-    #pattern||;;;r_min;;
-      #test2||obj;poly||^;;;r_min;;||;has:geomV;;;X;1;;set||atv;X;1
-    """
-    if obj.initgeom():
-        sgeom = obj.geom_v.__shapelygeom__ if not obj.geom_v.sgeom else obj.geom_v.sgeom
-        ror=sgeom.minimum_rotated_rectangle
-        obj.geom_v.from_geo_interface(SG.mapping(ror))
-        obj.geom_v.sgeom = ror
-        print ('rectangle',ror )
-
-
-def calculeangle(p1, p2):
-    """ valeur d'angle en degres"""
-    angle = -M.atan2(p2[0] - p1[0], p2[1] - p1[1]) * 180 / M.pi
-    return angle
-
-def h_angle(regle):
-    '''preparation angle'''
-    if regle.elements["cmp1"].group(0):
-        tmp = regle.elements["cmp1"].group(0).split(":")
-        regle.ip1=int(tmp[0])
-        regle.ip2=int(tmp[1]) if len(tmp) > 1 else -1
-
-
-
-def f_angle(regle,obj):
-    """#aide||calcule un angle de reference de l'objet
-    #pattern||S;;;angle;?N:N;?=P
-    #test1||obj;poly||^Z;;;angle;;||atv;Z;0.0
-    #test2||obj;poly||^Z;;;angle;;P||atv;Z;0.0
-    """
-    if obj.initgeom():
-        geom = obj.geom_v
-        npt = geom.npt
-        if npt == 1:
-            angle = geom.points[0].angle
-            pt1 = geom.coords[0]
-        elif npt == 2:
-            pt1, pt2 = list(geom.coords)[:2]
-            angle = calculeangle(pt1, pt2)
-            if regle.params.cmp2.val:
-                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt2)], dim=len(pt1), angle=angle, longueur=geom.longueur)
-        elif regle.param.cmp2.val:
-            tmp = list(geom.coords)
-            pt1 = tmp[regle.ip1]
-            pt2 = tmp[regle.ip2]
-            angle = calculeangle(pt1, pt2)
-            if regle.params.cmp2.val:
-                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt2)], dim=len(pt1), angle=angle, longueur=geom.longueur)
-        else:
-            ror = r_orient(geom)
-            pt1,pt2,pt3,pt4 = ror.exterior.coords[:4]
-            angle = (calculeangle(pt1,pt3) + calculeangle(pt4,pt2))/2
-            if regle.params.cmp2:
-                geom.setpoint([(i+j)/2 for i,j in zip(pt1,pt3)], dim=len(pt1), angle=angle)
-        regle.fstore(regle.params.att_sortie, obj, str(angle))
-
-
 

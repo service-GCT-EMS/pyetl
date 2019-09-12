@@ -387,6 +387,22 @@ def f_dbrunsql(regle, obj):
             regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
         )
 
+def h_dbrunproc(regle):
+    """execution de commandes"""
+    regle.chargeur = True  # c est une regle qui cree des objets
+    param_base(regle)
+    regle.procedure = 'select '+regle.params.cmp1.val+'()'
+
+def f_dbrunproc(regle,obj):
+    """#aide||lancement d'un procedure stockeee
+  #aide_spec||parametres:base;;;;?arguments;?variable contenant les arguments;runsql;?log;?sortie
+     #groupe||database
+    #pattern||;?LC;?L;runproc;C;
+    """
+    base, _, _, _ = regle.cible_base
+    params = regle.getval_entree(obj)
+    print ('runproc',regle.procedure, params)
+    DB.dbrunproc(regle.stock_param, base, regle.procedure, params)
 
 def h_dbextload(regle):
     """execution de commandes de chargement externe"""

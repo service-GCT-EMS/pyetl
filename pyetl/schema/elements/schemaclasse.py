@@ -711,13 +711,14 @@ class SchemaClasse(object):
             position = ordreins
         attr.ordre = ordreins
 
-    def stocke_geometrie(self, type_geom, dimension=0, srid="3948", courbe=False, multiple=True):
+    def stocke_geometrie(self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
         #               dimension,self.info["type_geom"])
 
         if isinstance(type_geom, (int, float)):
             type_geom = str(type_geom)
+
         if type_geom in TYPES_G:
             self.info["type_geom"] = type_geom
         elif type_geom in CODES_G:
@@ -762,7 +763,7 @@ class SchemaClasse(object):
                 #                raise TypeError
                 self.info["type_geom"] = "0"
         self.srid = srid
-        self.multigeom = multiple
+        self.multigeom = multiple if multiple is not None else (self.info["type_geom"] != "1")
         #        self.courbe = courbe
         if courbe:
             self.info["courbe"] = "1"

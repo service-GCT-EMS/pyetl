@@ -13,8 +13,8 @@ def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
         if nom in mapper.macros:
-            print("aide macro ", nom)
             macro = mapper.macros[nom]
+            print("aide macro ", nom, "(", macro.file, ")")
             print("%-15s: %s" % (nom, macro.help[:-1]))
             if macro.vpos:
                 print("parametres:", macro.vpos[0])
@@ -32,7 +32,10 @@ def print_help(mapper, nom):
                 if variante.description:
                     print(
                         "%-20s: %s"
-                        % (variante.pattern, variante.description.get("#aide_spec", [""])[0])
+                        % (
+                            variante.pattern,
+                            variante.description.get("#aide_spec", [""])[0],
+                        )
                     )
                     for i in variante.description.get("#aide_spec", [""])[1:]:
                         print("%-20s: %s" % ("", i))
@@ -52,7 +55,11 @@ def print_help(mapper, nom):
         elif nom:
             print("aide: commande inconnue")
     else:
-        print("-------------------mapper version", mapper.version, "----------------------------")
+        print(
+            "-------------------mapper version",
+            mapper.version,
+            "----------------------------",
+        )
         print("                    aide générique")
         print("taper help commande pour l'aide détaillée sur une commande")
         print_aide_commandes(mapper)
@@ -68,7 +75,10 @@ def print_aide_commandes(mapper):
     print("-----------------------------------------------------------------")
     for i in sorted(mapper.commandes):
         commande = mapper.commandes[i]
-        print("%-20s: %s" % (commande.nom, "\n".join(commande.description.get("#aide", []))))
+        print(
+            "%-20s: %s"
+            % (commande.nom, "\n".join(commande.description.get("#aide", [])))
+        )
 
 
 def print_aide_selecteurs(mapper):
@@ -91,7 +101,13 @@ def print_aide_macros(mapper):
             "%-20s: %s"
             % (
                 nom_macro,
-                "\n".join([i for i in mapper.macros[nom_macro].help[:-1].split(";") if i.strip()]),
+                "\n".join(
+                    [
+                        i
+                        for i in mapper.macros[nom_macro].help[:-1].split(";")
+                        if i.strip()
+                    ]
+                ),
             )
         )
 

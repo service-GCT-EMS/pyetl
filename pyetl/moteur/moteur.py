@@ -152,6 +152,7 @@ class Moteur(object):
             except NotImplementedError as exc:
                 print("==========erreur de traitement fonction inexistante", exc)
                 print("====regle courante:", regle)
+                printexception()
                 raise StopIteration(3)
 
             except Exception as exc:

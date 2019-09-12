@@ -121,13 +121,17 @@ class Objet(object):
         """convertit la geometrie du format natif en interne"""
         #        print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
         if force or not self.geom_v.valide:
-            self.attributs_geom(self)
+            if self.geom_v.sgeom:
+                self.geom_v.shapesync()
+            else:
+                self.attributs_geom(self)
         self.infogeom()
         return self.geom_v.valide
 
     def geompending(self, dimension=None):
         """invalide la geometrie pour signaler qu elle nest pas calculee"""
         self.geom_v.valide = False
+        self.geom_v.sgeom = None
         self.geomnatif = True
         if dimension:
             self.geom_v.dimension = dimension
@@ -137,16 +141,9 @@ class Objet(object):
         """positionne les attributss dependant de la geometrie"""
         geom_v = self.geom_v
         if geom_v.valide:
-            # xmin, ymin, xmax, ymax = geom_v.emprise()
-            #            print ('calcul emprise', xmin, ymin, xmax, ymax, geom_v)
             self.attributs.update(
                 [
-                    # ("#longueur", str(geom_v.longueur)),
                     ("#points", str(geom_v.npt)),
-                    # ("#xmin", str(xmin)),
-                    # ("#xmax", str(xmax)),
-                    # ("#ymin", str(ymin)),
-                    # ("#ymax", str(ymax)),
                     ("#type_geom", geom_v.type),
                     ("#dimension", str(geom_v.dimension)),
                     ("#erreurs_geom", ""),

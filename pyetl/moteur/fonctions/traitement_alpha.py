@@ -56,6 +56,16 @@ def f_setliste(regle, obj):
     regle.setval_sortie(obj, regle.getlist_entree(obj))
     return True
 
+def f_setmatch_liste(regle, obj):
+    """#aide||affectation d un attribut
+       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #pattern||M;;;set;=match;||sortie
+       #test1||obj||^V4;;C1;set||atv;V4;AB
+       #test2||obj||^V4;1;X;set||atv;V4;1
+    """
+    # print ('regle.match',regle.match )
+    regle.setval_sortie(obj, regle.matchlist)
+    return True
 
 def h_setval(regle):
     """helper de fonctiond'entree"""

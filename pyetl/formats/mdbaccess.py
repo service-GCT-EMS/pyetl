@@ -612,14 +612,16 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 
     return False
 
-def dbcommand(stock_param, base, commande, log=None, out=None):
-    '''execute une commande sql'''
+def dbrunproc(stock_param, base, commande,data):
+    '''execute une procedure stockeee en base '''
     # print("mdba execution directe commande", base, file)
     connect = dbaccess(stock_param, base)
     if connect is None:
         return False
     connect = stock_param.dbconnect[base]
-    return connect.request(helper, file, logfile, outfile)
+    return connect.request(commande,data)
+
+
 
 def dbextsql(stock_param, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""

@@ -7,6 +7,7 @@ K:%tg%;;;;;;;;fail;;;fin;;# on positionne l'indicateur d'erreur
 K:%tg%=point;;;;;;1,2;;setpoint;;;;;# on ajoute une geometrie de point
 K:%tg%=point3D;;;;;;1,2,3;;setpoint;;;fin;;# on ajoute une geometrie de point
 K:%tg%=ligne;;;;;;(1,0),(1,1);;addgeom;2;;fin;;# on ajoute une geometrie de ligne
+K:%tg%=ligne45;;;;;;(0,0),(1,1);;addgeom;2;;fin;;# on ajoute une geometrie de ligne
 K:%tg%=ligne_fermee;;;;;;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;2;;fin;;# on ajoute une geometrie de fermee
 K:%tg%=poly;;;;;;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;;fin;;# on ajoute une geometrie de polygone
 K:%tg%=asc;;;;;#geom;1SEC 1,2,|1000,0,|1000,1000,1,0;;set;asc;2;fin;;# on ajoute une geometrie de ligne

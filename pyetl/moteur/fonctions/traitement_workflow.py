@@ -363,7 +363,7 @@ def f_geomprocess(regle,obj):
     obj.geom_v = copy.deepcopy(geom)
     retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
     obj.geom_v = geom
-    print ('retour geomprocess')
+    # print ('retour geomprocess')
     return retour
 
 
@@ -694,14 +694,18 @@ def f_statprocess(*_):
 
 def f_schema_liste_classes(regle, _):
     """#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
-     #helper||chargeur
-    #pattern||;;;liste_schema;C;?=reel
+    #aide_spec||liste_schema;nom;?reel
+    #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
+    #helper||chargeur
+    #schema||change_schema
+    #pattern||?=#schema;?C;?A;liste_schema;C;?=reel
     """
     schema = regle.getschema(regle.params.cmp1.val)
     if schema is None:
         return False
     virtuel = not regle.params.cmp2.val
-    for i in schema.classes:
+    classes = list(schema.classes)
+    for i in classes:
         niveau, classe = i
         obj2 = Objet(
             niveau,

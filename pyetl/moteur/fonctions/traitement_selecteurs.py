@@ -19,6 +19,22 @@ def sel_attexiste(selecteur, obj):
     """
     return selecteur.params.attr.val in obj.attributs
 
+def selh_attexiste_re(selecteur):
+    """ compile lesexpressions regulieres"""
+    #    print (" dans helper regex",selecteur.params.vals.val)
+    selecteur.fselect = re.compile(selecteur.params.attr.val).search
+
+
+def sel_attexiste_re(selecteur, obj):
+    """#aide||teste si un attribut existe
+    #pattern||re:re;||50
+       #test||obj||^?Z;0;;set||Z;!;;;res;1;;set||atv;res;1
+    """
+    result = sorted([i for i in obj.attributs if selecteur.fselect(i)])
+    selecteur.regle.match=result[0] if result else ''
+    selecteur.regle.matchlist=result if result else []
+    return selecteur.regle.match
+
 
 def selh_regex(selecteur):
     """ compile lesexpressions regulieres"""
@@ -36,6 +52,7 @@ def sel_regex(selecteur, obj):
     #    print (" attributs",selecteur,obj)
     result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
     selecteur.regle.match=result.group(0) if result else ''
+    selecteur.regle.matchlist=result.groups() if result else []
     return result
 
 
@@ -139,7 +156,7 @@ def selh_infich_re(selecteur):
 
 
 def sel_infich_re(selecteur, obj):
-    """#aide||valeur dans un fichier sus forem d'expressions regulieres
+    """#aide||valeur dans un fichier sous forme d'expressions regulieres
   #aide_spec||il est possible de preciser des positions a lire dans le ficher
            +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
            +||il est possible d'ajouter des prefixes et des suffies aux expressions du fichier
@@ -155,6 +172,8 @@ def sel_infich_re(selecteur, obj):
         vals = obj.attributs.get(selecteur.params.attr.val, "")
     for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
         selecteur.regle.match = i.search(vals).group(0)
+        selecteur.regle.matchlist=i.search(vals).groups()
+
         return True
     selecteur.regle.match = ''
     return False
@@ -211,6 +230,8 @@ def sel_inlist_re(selecteur, obj):
     # return any((i.search(vals) for i in selecteur.info))
     for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
         selecteur.regle.match = i.search(vals).group(0)
+        selecteur.regle.matchlist=i.search(vals).groups()
+
         return True
     selecteur.regle.match = ''
     return False
@@ -586,7 +607,7 @@ def sel_hasgeomv(_, obj):
        #test||obj;point;1||^;;;geom||^?;;;resetgeom||;has:geomV;;;res;1;;set||atv;res;1
     """
     #    print ("hasgeomv",selecteur,obj.geom_v)
-    return obj.geom_v.valide
+    return obj.geom_v.valide or obj.geom_v.sgeom
 
 
 def sel_hasgeom(_, obj):

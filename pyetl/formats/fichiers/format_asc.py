@@ -340,13 +340,13 @@ def _ecrire_point_asc(geom):
     angle = round((90 - geom.angle) * FA, 0) if geom.angle is not None else 0
     try:
         if dim == 2:
-            ccx, ccy = geom.coords[0][:2]
+            ccx, ccy = list(geom.coords)[0][:2]
             code = ";3 "
             chaine = ",".join(
                 ("", "%d" % (ccx * FC), "%d" % (ccy * FC), "%d" % (angle))
             )
         else:
-            ccx, ccy, ccz = geom.coords[0][:3]
+            ccx, ccy, ccz = list(geom.coords)[0][:3]
             code = ";6 "
             chaine = ",".join(
                 (
