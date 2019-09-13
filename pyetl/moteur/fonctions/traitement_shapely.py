@@ -8,7 +8,7 @@ fonctions de manipulation de geometries shapely
 # import re
 import math as M
 from shapely import geometry as SG
-
+from .traitement_geom import setschemainfo
 # ===============================================fonctions du module shapely============================================
 
 
@@ -30,7 +30,8 @@ def f_rectangle_oriente(regle, obj):
     """
     if obj.initgeom():
         sgeom = r_orient(obj.geom_v)
-        obj.geom_v.setsgeom(sgeom.minimum_rotated_rectangle)
+        obj.geom_v.setsgeom(sgeom)
+        setschemainfo(regle, obj, multi = False, type = '3')
         # print ('rectangle',ror )
 
 
@@ -59,39 +60,40 @@ def f_angle(regle, obj):
         if npt == 1:
             angle = geom.angle
             pt1 = list(geom.coords)[0]
+            pt2=None
         elif npt == 2:
             pt1, pt2 = list(geom.coords)[:2]
             angle = calculeangle(pt1, pt2)
-            if regle.params.cmp2.val:
-                geom.setpoint(
-                    [(i + j) / 2 for i, j in zip(pt1, pt2)],
-                    dim=len(pt1),
-                    angle=angle,
-                    longueur=geom.longueur,
-                )
+            longueur=geom.longueur
         elif regle.ip1 is not None:
             tmp = list(geom.coords)
             pt1 = tmp[regle.ip1]
             pt2 = tmp[regle.ip2]
             angle = calculeangle(pt1, pt2)
-            if regle.params.cmp2.val:
-                geom.setpoint(
-                    [(i + j) / 2 for i, j in zip(pt1, pt2)],
-                    dim=len(pt1),
-                    angle=angle,
-                    longueur=geom.longueur,
-                )
+            longueur = geom.longueur
         else:
             # print('calcul angle rectangle')
             ror = r_orient(geom)
-            pt1, pt2, pt3, pt4 = list(ror.exterior.coords)[:4]
-            # print('coordonnées',ror.exterior.coords)
-            angle = (calculeangle(pt1, pt3) + calculeangle(pt4, pt2)) / 2
-            if regle.params.cmp2:
-                geom.setpoint(
-                    [(i + j) / 2 for i, j in zip(pt1, pt3)], dim=len(pt1), angle=angle
-                )
+            longueur = geom.longueur
+            if isinstance(ror, SG.Polygon):
+                pt1, pt2, pt3, pt4 = list(ror.exterior.coords)[:4]
+                # print('coordonnées',ror.exterior.coords)
+                angle = (calculeangle(pt1, pt3) + calculeangle(pt4, pt2)) / 2
+                pt2 = pt3
+            elif isinstance(ror, SG.LineString): # cas du rectangle degénéré
+                pt1, pt2 = list(ror.coords)[:2]
+                angle = calculeangle(pt1, pt2)
+            else: # cas de 3 points identiques: ne devrait pas exister
+                 angle = 0
+                 return False
+        if regle.params.cmp2 and pt2 is not None:
+            geom.setpoint(
+                [(i + j) / 2 for i, j in zip(pt1, pt2)], dim=len(pt1), angle=angle, longueur=longueur
+            )
+            setschemainfo(regle, obj, multi = False, type = '1')
+
         regle.fstore(regle.params.att_sortie, obj, str(angle))
+        return True
 
 
 def h_buffer(regle):
@@ -141,4 +143,5 @@ def f_buffer(regle, obj):
                 buffer, largeur = optimise_buffer_aire(sgeom, regle)
         print (buffer)
         obj.geom_v.setsgeom(buffer)
+        setschemainfo(regle, obj, multi=True, type='3')
         # print ('rectangle',ror )

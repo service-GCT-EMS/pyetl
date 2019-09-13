@@ -18,9 +18,10 @@ class Geometrie(object):
         "5": "POLYHEDRAL",
         "indef": "ALPHA"
     }
+    STYPES = {'Point':'1','MultiPoint':'1','LineString':'2','LinearRing':'2','MultiLineString':'2','Polygon':'3','MultiPolygon':'3"'}
     __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
                 'sgeom',
-               'longueur_point','dimension','multi','srid','force_multi','erreurs']
+               'longueur_point','dim','multi','srid','force_multi','erreurs']
     def __init__(self):
         self.polygones = []
         self.lignes = []
@@ -30,7 +31,7 @@ class Geometrie(object):
         self.valide = False
         self.courbe = False
         self.longueur_point = 0
-        self.dimension = 0
+        self.dim = 0
         self.multi = False
         self.srid = "3948"
         self.force_multi = False
@@ -59,6 +60,19 @@ class Geometrie(object):
             return npt
         return len(geom.coords)
 
+    @property
+    def dimension(self):
+        if self.sgeom:
+            return 3 if self.sgeom.has_z else 2
+        return self.dim
+
+    @property
+    def type_geom(self):
+        if self.sgeom:
+            type_geom = self.sgeom.geom_type
+            return self.STYPES[type_geom]
+        return self.type
+
 
     @property
     def npt(self):
@@ -84,6 +98,22 @@ class Geometrie(object):
         return False
 
     @property
+    def longueur(self):
+        """longueur de la geometrie"""
+        if self.null:
+            return 0
+        if self.points:
+            return self.longueur_point
+        if self.sgeom:
+            return self.sgeom.length
+        comp = self.lignes
+        #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
+        return sum(i.longueur for i in comp) if comp else 0
+
+
+
+
+    @property
     def area(self):
         if self.sgeom:
             return self.sgeom.area
@@ -107,11 +137,10 @@ class Geometrie(object):
         self.type = "1"
         self.null = False
         self.multi = False
-        self.dimension = dim
         self.srid = str(int(srid))
         self.valide = True
         self.sgeom = None
-        self.dimension = dim
+        self.dim = dim
         self.angle = angle
         if coords is None:
             self.null = True
@@ -132,7 +161,7 @@ class Geometrie(object):
                 return
             self.points.append(list(coords[:dim]))
             self.multi = len(self.points)>1
-            self.dimension = dim
+            self.dim = dim
             # raise
             return
 
@@ -280,7 +309,7 @@ class Geometrie(object):
         self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
         self.courbe = any([i.courbe for i in self.lignes])
         if self.lignes:
-            self.dimension = self.lignes[0].dimension
+            self.dim = self.lignes[0].dimension
         if self.type == "3" and (type_geom == "4" or type_geom == "5"):
             self.type = type_geom
 
@@ -432,7 +461,7 @@ class Geometrie(object):
         self.shapesync()
         if self.dimension == 2:
             return
-        self.dimension = 2
+        self.dim = 2
         for i in self.lignes:
             i.set_2d()
         self.sgeom = None
@@ -445,7 +474,7 @@ class Geometrie(object):
         self.shapesync()
         if self.dimension == 3:
             return
-        self.dimension = 3
+        self.dim = 3
         for i in self.coords:
             if len(i)<3:
                 i.append(0)
@@ -461,7 +490,7 @@ class Geometrie(object):
         if self.dimension == 3:
             if not force:
                 return
-        self.dimension = 3
+        self.dim = 3
         for i in self.coords:
             i[2]=val_z if len(i)==3 else i.append(val_z)
         for i in self.lignes:
@@ -505,16 +534,7 @@ class Geometrie(object):
             print("erreur emprise 3D")
         return (xmin,ymin,zmin, xmax,ymax,zmax)
 
-    @property
-    def longueur(self):
-        """longueur de la geometrie"""
-        if self.null:
-            return 0
-        if self.points:
-            return self.longueur_point
-        comp = self.lignes
-        #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
-        return sum(i.longueur for i in comp) if comp else 0
+
 
 
     def getpoint(self, numero):

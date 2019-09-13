@@ -134,7 +134,7 @@ class Objet(object):
         self.geom_v.sgeom = None
         self.geomnatif = True
         if dimension:
-            self.geom_v.dimension = dimension
+            self.geom_v.dim = dimension
         return True
 
     def infogeom(self):

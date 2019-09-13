@@ -24,6 +24,8 @@ MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
 LOGGER = logging.getLogger("pyetl")
 
 
+
+
 def compilefonc(descripteur, variable, debug=False):
     """compile une expression de champs"""
     desc1 = descripteur.replace("N:", "n:")

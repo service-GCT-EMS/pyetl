@@ -13,13 +13,16 @@ from .outils import compilefonc
 from shapely import geometry as SG
 
 
-def setschemainfo(regle, obj):
+def setschemainfo(regle, obj, multi=None, type=None):
     """ reporte les infos sur le schema en cas de modification de la geometrie """
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
-    obj.attributs["#type_geom"] = obj.geom_v.type
+    tgeom = obj.geom_v.type_geom
+    obj.attributs["#type_geom"] = tgeom
     if obj.schema and obj.schema.amodifier(regle):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
-        obj.schema.info["type_geom"] = obj.geom_v.type
+        if multi is not None:
+            obj.schema.multigeom = multi
+        obj.schema.info["type_geom"] = tgeom if type is None else type
 
 
 def setschemadim(regle, obj):
@@ -117,7 +120,7 @@ def f_setpoint(regle, obj):
         return False
     #    print ('set point',point)
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj)
+    setschemainfo(regle, obj, multi = False, type = '1')
     return True
 
 
@@ -144,14 +147,14 @@ def f_setpoint_liste(regle, obj):
         #                 for i in regle.params.att_entree.liste]
         obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
         obj.finalise_geom()
-        setschemainfo(regle, obj)
+        setschemainfo(regle, obj, multi = False, type = '1')
 
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
         #        print('set point : erreur valeurs entree ',coords)
         return False
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj)
+    setschemainfo(regle, obj,  multi = False, type = '1')
     #    print ('creation point',list(obj.geom_v.coords),list(point))
     return True
 
@@ -247,7 +250,7 @@ def f_force_pt(regle, obj):
             xmin, ymin, xmax, ymax = obj.geom_v.emprise()
             obj.geom_v.setpoint((xmin+xmax)/2,(ymin+ymax)/2, None, 2)
 
-    setschemainfo(regle, obj)
+    setschemainfo(regle, obj, multi = False, type = '1')
     return True
 
 
@@ -263,7 +266,7 @@ def f_forceligne(regle, obj):  # force la geometrie en ligne
     obj.infogeom()
     obj.geomnatif = False
     if obj.attributs["#type_geom"] == "2":
-        setschemainfo(regle, obj)
+        setschemainfo(regle, obj, type = '2')
         return True
     print("force_ligne,erreur conversion type", obj.attributs["#type_geom"], obj.geom_v.type)
     return False
@@ -288,7 +291,7 @@ def f_forcepoly(regle, obj):
         obj.infogeom()
         obj.geomnatif = False
         if obj.attributs["#type_geom"] == "3":
-            setschemainfo(regle, obj)
+            setschemainfo(regle, obj, type = '3')
             return True
         if regle.params.cmp1.val:  # on force donc si ca passe pas on annulle la geom
             #            print ('fpoly: on invalide la geometrie',regle.params.cmp1.val)

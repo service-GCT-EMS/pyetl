@@ -14,6 +14,8 @@ import time
 import logging
 import copy
 from collections import defaultdict
+from .traitement_geom import setschemainfo
+
 
 # from concurrent.futures import ProcessPoolExecutor
 # from multiprocessing.pool import Pool
@@ -325,8 +327,10 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = regle.params.cmd='call'
+    regle.call = regle.mode in {'call'}
     context = regle.context.getcontext()
+    if regle.mode == 'geomprocess':
+        context.setvar('macromode', 'geomprocess')
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
@@ -353,16 +357,27 @@ def f_callmacro(regle, obj):
     # la on ne fait rien parce que le compilateur a applati la macro
     return True
 
+
+
+
+
+
+
 def f_geomprocess(regle,obj):
     """#aide||applique une macro sur la geometrie et recupere des attributs et/ou la geometrie
+    #aide_spec||
     #pattern||;;;geomprocess;C;?LC
     #helper||callmacro
     #
     # """
     geom = obj.geom_v
     obj.geom_v = copy.deepcopy(geom)
+    multi = obj.schema.multigeom if obj.schema else None
     retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+    # print ('retour geomprocess', retour)
     obj.geom_v = geom
+    setschemainfo(regle, obj, multi=multi)
+
     # print ('retour geomprocess')
     return retour
 
