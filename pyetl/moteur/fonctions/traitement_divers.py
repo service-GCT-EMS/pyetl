@@ -202,6 +202,7 @@ def h_stocke(regle):
     # mode comparaison : le stock est reutilise ailleurs (direct_reuse)=False
     regle.direct_reuse = not "cmp" in regle.params.cmp1.val
     regle.fold = regle.params.cmp1.val == "cmpf"
+    regle.cnt = regle.params.cmp1.val == "cnt"
     if regle.params.cmp2.val == "clef":
         regle.stocke_obj = False
         regle.tmpstore = set()
@@ -215,6 +216,7 @@ def f_stocke(regle, obj):
    #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||
    #pattern3||;;?L;tmpstore;=cmp;A;?=clef||
    #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||
+   #pattern5||S;;?L;tmpstore;=cnt;||
        #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
@@ -230,9 +232,15 @@ def f_stocke(regle, obj):
         else:
             clef = obj.attributs.get(regle.params.att_entree.val, "")
         if regle.stocke_obj:
+            if regle.cnt:
+                cnt = 1
+                if clef in regle.tmpstore:
+                    obj =  regle.tmpstore[clef]
+                    cnt += int(obj.attributs[regle.params.att_sortie.val])
+                obj.attributs[regle.params.att_sortie.val] = str(cnt)
             regle.tmpstore[clef] = obj
         else:
-            regle.tmpstore.add(obj)
+            regle.tmpstore.add(clef)
         return True
     #    print ('store: stockage objet ', obj, obj.schema.identclasse,obj.schema.info)
     regle.tmpstore.append(obj)
@@ -271,7 +279,7 @@ def f_uniq(regle, obj):
 def h_uniqcnt(regle):
     """ stocke les clefs pour l'unicite """
     regle.maxobj = regle.params.cmp1.num if regle.params.cmp1.num else 1
-    regle.cnt = regle.maxobj > 1
+    regle.cnt = regle.maxobj != 1
     regle.tmpstore = defaultdict(int)
 
 
@@ -751,13 +759,16 @@ def f_getkey(regle,obj):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     if regle.params.att_entree.val or regle.params.val_entree.val:
+        print ('retour run ', regle)
         return
     if regle.runscope():  # on voit si on doit l'executer
         chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val))
         print("lancement ", chaine)
-        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        fini = ''
+        # fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
         if regle.params.att_sortie.val:
             regle.stock_param.set_param(regle.params.att_sortie.val, fini)
+    print ('retour run : done')
     regle.valide = "done"
 
 
@@ -768,10 +779,14 @@ def f_run(regle, obj):
    #pattern2||P;;;run;C;?C
      #schema||ajout_attribut
     """
-    chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val, regle.getval_entree(obj)))
-    fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
-    if regle.params.att_sortie.val:
-        obj.attributs[regle.params.att_sortie.val] = str(fini)
+    if regle.runscope():  # on voit si on doit l'executer
+        chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val, regle.getval_entree(obj)))
+        raise
+        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        if regle.params.att_sortie.val:
+            obj.attributs[regle.params.att_sortie.val] = str(fini)
+        return True
+    return False
 
 
 def h_loadconfig(regle):

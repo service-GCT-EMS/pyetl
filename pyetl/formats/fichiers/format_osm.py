@@ -169,7 +169,7 @@ class DecodeConfigOsm(object):
         #            incomplet.attributs['#type_geom'] = '2'
         return self.schema.get_classe(ident)
 
-    def decode_objet(self, tagdict, geoms, type_geom, manquants, ido, parties):
+    def decode_objet(self, tagdict, geoms, type_geom, manquants, ido, parties, multi):
         """range l objet dans la bonne classe"""
         #        if len(tagdict)==0:
         #            ident=('non_classe','a_jeter')
@@ -179,6 +179,8 @@ class DecodeConfigOsm(object):
         # print ('recu geom',geoms)
         ident = self.getident(tagdict)
         if ident is None:
+            return None
+        if multi and not self.multigeom:
             return None
         if ident == 'tmp':
             parties[ido] = tagdict.copy()
@@ -376,8 +378,9 @@ def _classif_osm(reader, tagdict, geoms, type_geom, manquants, ido, parties):
     # print ('avant decodage', tagdict, reader.decodage.keys())
     objs = []
     valide = False
+    multi = len(geoms)>1
     for decodeur in reader.decodage[type_geom]:
-        obj = decodeur.decode_objet(tagdict, geoms, type_geom, manquants, ido, parties)
+        obj = decodeur.decode_objet(tagdict, geoms, type_geom, manquants, ido, parties, multi)
         valide = valide or obj is not None
         if obj:
             tags = ", ".join(
@@ -460,7 +463,10 @@ def lire_objets_osm(self, rep, chemin, fichier):
     schema = stock_param.init_schema(nomschema, "F")
     if self.nb_lus == 0: # initialisation lecteur
         config_osm_def = os.path.join(os.path.dirname(__file__), "config_osm.csv")
-        config_osm = self.regle_ref.getvar("config_osm", config_osm_def)
+        config_osm = self.regle_ref.getvar("config_osm")
+        if config_osm:
+            if os.path.isfile(os.path.join(os.path.dirname(__file__),config_osm+'.csv')):
+                config_osm = os.path.join(os.path.dirname(__file__),config_osm+'.csv')
         self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
         print ('gestion des doublons osm','activee' if self.gestion_doublons else 'desactivee')
         minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites

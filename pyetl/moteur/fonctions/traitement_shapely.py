@@ -19,7 +19,7 @@ def r_orient(geom):
 
 def calculeangle(p1, p2):
     """ valeur d'angle en degres"""
-    angle = -M.atan2(p2[0] - p1[0], p2[1] - p1[1]) * 180 / M.pi
+    angle = M.atan2(p2[0] - p1[0], p2[1] - p1[1]) * 180 / M.pi
     return angle
 
 

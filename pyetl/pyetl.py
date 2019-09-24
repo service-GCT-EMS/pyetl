@@ -469,6 +469,7 @@ class Pyetl(object):
         nop = 0
         nbtotal = 0
         tabletotal = 0
+        interm = 0.001
         duree = 0
 
         def affiche(message, nbobj):
@@ -515,13 +516,13 @@ class Pyetl(object):
         while True:
             message, nbfic, nbval = yield
             #            nbtotal += nbval
-
-            if message == "init" or (message=="initfich" and self.worker):
-                next(temps)
+            if message == "init" :
+                temps = self._timer(init=not self.worker)
+                duree, interv = next(temps)
                 interm = 0.001
                 nb_total = 0
                 prochain = nbaffich
-            #                print("init  : --------->", int(duree*1000), 'ms')
+                # print("init  : --------->",message, int(duree*1000), 'ms', interv)
             # elif message == "end":
             #     nbtotal += nbval
             #     #                tabletotal += nbfic

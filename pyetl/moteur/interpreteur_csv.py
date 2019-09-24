@@ -360,10 +360,12 @@ def set_resultat_regle(regle, fonc):
 
 def identifie_operation(regle):
     """ identifie la fonction a appliquer et recupere les parametres """
-    fonction = regle.stock_param.commandes[regle.mode]
+    fonction = regle.stock_param.commandes.get(regle.mode)
     #    print ('detecte commande',regle.valide, regle.mode, regle.ligne, fonction.nom)
     #        printpattern (fonction)
     #        definitions=[i.definition for i in fonction.subfonctions.values()]
+    if not fonction:
+        return False, None
     elements = None
     definition = None
     valide = False
@@ -371,9 +373,6 @@ def identifie_operation(regle):
     regle.elements = None
     erreurs = []
     #    print( 'traitement fonction',fonction.nom,erreurs)
-    if regle.mode == "":
-        print("mode non defini", regle.ligne)
-        return valide, fonc
     for fonc in fonction.subfonctions:
         if fonc.style != regle.style:
             continue
@@ -383,9 +382,8 @@ def identifie_operation(regle):
             definition = fonc.definition
             if valide:
                 break
-    else:
+    if not valide:
         afficher_erreurs(regle, fonction, "fonction non valide")
-        return valide, fonc
 
     if callable(fonc.work):
         regle.fonc = fonc.work
@@ -398,9 +396,7 @@ def identifie_operation(regle):
         #        print ("regle.setparams", regle.elements, definition)
         regle.setparams(regle.elements, definition)
         return valide, fonc
-
     afficher_erreurs(regle, fonc, "fonction non implementee:")
-    return False, fonc
 
 
 #            print ("fonction sortie a traiter",len(fonc.fonctions_sortie),
@@ -438,11 +434,14 @@ def afficher_erreurs(regle, fonc, message):
         if fonction:
             patternlist = [i.pattern for i in fonction.subfonctions if i.style == regle.style]
             print(motif + " patterns autorises ", patternlist)
+        else:
+            print ('---------commande inconnue', regle.mode)
     raise SyntaxError("erreurs parametres de commande")
 
 
 def traite_helpers(regle, fonc):
     """execute les fonctions auxiliaires """
+    regle.valide = True
     for fhelp in fonc.helper:
         #         la fonction prevoit une sequence d'initialisation : on l'execute
         #        print ("execution helper",fonc.nom)
@@ -459,6 +458,7 @@ def traite_helpers(regle, fonc):
         erreur = regle.shelper(regle)
         if erreur:
             print ('erreur initialisation regle', regle)
+            regle.valide = False
             return False
     if regle.changeclasse:
         regle.changeclasse = fonc.changeclasse
@@ -483,16 +483,12 @@ def traite_helpers(regle, fonc):
 def analyse_operation(regle):
     """ identifie la fontion de traitement"""
     #    print ('analyse',regle.mode,regle)
-    if regle.mode and regle.mode in regle.stock_param.commandes:
-        valide, fonc = identifie_operation(regle)
-        regle.valide = valide and traite_helpers(regle, fonc)
-
+    valide, fonc = identifie_operation(regle)
+    if valide:
+        traite_helpers(regle, fonc)
     else:
-        afficher_erreurs(regle, None, "commande inconnue ->" + regle.mode)
-    if regle.valide is None:
-        afficher_erreurs(regle, None, "regle non traitee")
-    if not regle.mode or (regle.valide and not regle.fonc):
-        afficher_erreurs(regle, None, "regle sans fonction ")
+        regle.valide = False
+
 
 def stocke_vloc(context,vldef):
     '''stocke une definition de variables locales'''
@@ -627,7 +623,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
     #    print('traitement_ligne', ligne, mapper.context)
     regle = RegleTraitement(ligne, mapper, fichier, numero, context=context)
     prepare_regle(regle)
-
+    # print ('retour prepare', regle.valide, regle)
     if regle.valide == "vide":
         #        print('regle vide ',regle)
         return None
@@ -644,6 +640,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
 
     mapper.done = False
     if regle.valide == "done":
+        print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
         return None

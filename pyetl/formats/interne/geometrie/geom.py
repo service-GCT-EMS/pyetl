@@ -681,7 +681,10 @@ class Geometrie(object):
         if self.type == "1":  # point
             if not self.points:
                 print ('geo_interface : point inexistant')
-                return {"type": "Point", "coordinates":()}
+                if self.force_multi or self.multi:
+                    return {"type": "MultiPoint","coordinates": ()}
+                else:
+                    return {"type": "Point", "coordinates":()}
             multi = self.force_multi or self.multi or len(self.points) > 1
             if multi:
                 return {

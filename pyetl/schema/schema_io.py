@@ -339,9 +339,10 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
                     formats_a_sortir.add(schemas[i].format_sortie)
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
-            ecrire_au_format(
-                schemas[i], rep_sortie, formats_a_sortir, stock_param, mode_sortie, confs
-            )
+            if not stock_param.worker: # on ne sort jamais un schema en mode worker
+                ecrire_au_format(
+                    schemas[i], rep_sortie, formats_a_sortir, stock_param, mode_sortie, confs
+                )
 
 
 # =================formatage interne des schemas pour les traitements en parallele================

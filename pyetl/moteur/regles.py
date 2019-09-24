@@ -524,12 +524,16 @@ class RegleTraitement(object):  # regle de mapping
 
     def runscope(self):
         """determine si une regle peut tourner"""
-        pdef = self.getvar("process", "all")
+        pdef = self.getvar("process")
         #        print('runscope', pdef, self.stock_param.parent is None)
-        if pdef == "all":
+        if not pdef:
+            return True
+        if pdef == 'all':
             return True
         if pdef == "worker":
             return self.stock_param.worker
+        if pdef == "master":
+            return not self.stock_param.worker
         if pdef == "main":
             return self.stock_param.parent is None and not self.stock_param.worker
         if pdef == "child":

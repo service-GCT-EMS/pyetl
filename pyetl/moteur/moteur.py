@@ -146,18 +146,24 @@ class Moteur(object):
             except NotADirectoryError as exc:
                 print("==========erreur de traitement repertoire inconnu", exc)
                 print("====regle courante:", regle)
+                if regle.stock_param.worker:
+                    print("====mode parallele: process :", regle.getvar('_wid'))
                 #                printexception()
                 raise StopIteration(3)
 
             except NotImplementedError as exc:
                 print("==========erreur de traitement fonction inexistante", exc)
                 print("====regle courante:", regle)
+                if regle.stock_param.worker:
+                    print("====mode parallele: process :", regle.getvar('_wid'))
                 printexception()
                 raise StopIteration(3)
 
             except Exception as exc:
                 print("==========erreur de traitement non gérée")
                 print("====regle courante:", regle)
+                if regle.stock_param.worker:
+                    print("====mode parallele: process :", regle.getvar('_wid'))
                 printexception()
                 if regle.getvar("debuglevel", "0") != "0":
                     print("==========environnement d'execution")

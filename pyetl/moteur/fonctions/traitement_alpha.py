@@ -365,6 +365,7 @@ def h_asplit(regle):
 
 def f_asplit(regle, obj):
     """#aide||decoupage d'un attribut en fonction d'un separateur
+    #aide_spec||s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
        #pattern||M;?;A;split;.;?N:N||sortie
        #pattern2||;?;A;split;.;?N:N||sortie
        #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
@@ -815,6 +816,32 @@ def f_hget3(regle, obj):
         return False
     regle.fstore(regle.params.att_sortie, obj, hdic)
     return True
+
+def f_hsplit(regle, obj):
+    """#aide||decoupage d'un attribut hstore
+    #pattern||M;?;A;hsplit;?L
+     #schema||ajout_attribut
+       #test1||obj||^X;;;hset||^k,v;;X;hsplit;k:;||cnt;4
+       """
+    try:
+        hdic = obj.gethdict(regle.params.att_entree.val)
+    except ValueError:
+        return False
+    klist = regle.params.cmp1.liste or hdic.keys()
+    nom_clef, nom_val = regle.params.att_sortie.liste
+    for k in klist:
+        if k in hdic:
+            val = hdic[k]
+        else:
+            continue
+        obj2 = obj.dupplique()
+        obj2.attributs[nom_clef] = k
+        obj2.attributs[nom_val] = val
+        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+    return True
+
+
+
 
 
 def f_hdel(regle, obj):

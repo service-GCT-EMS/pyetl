@@ -609,7 +609,8 @@ class PgrGenSql(DbGenSql):
                         predef = attribut.defaut[1:].replace('"', "'")
                         defaut = " DEFAULT " + predef
             if defaut is None:
-                defaut = ""
+                defaut = (" DEFAULT " + attribut.defaut) if attribut.defaut else ''
+
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
                 if seq or pkey == attribut.nom and not self.basic:
