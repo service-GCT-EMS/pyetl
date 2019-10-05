@@ -155,7 +155,7 @@ class Pyetl(object):
     formats_connus_ecriture = WRITERS
     #    reader = Reader
 
-    def __init__(self, parent=None, nom=None):
+    def __init__(self, parent=None, nom=None, context=None):
 
         self.nompyetl = nom if nom else "pyetl"
         self.starttime = time.time()  # timer interne
@@ -174,8 +174,9 @@ class Pyetl(object):
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         #        self.parms = dict() #parametres ligne de commande et variables globales
-        self.context = Context(
-            parent=parent.context if parent else None, ident="P" + str(self.idpyetl)
+        if context is None:
+            context = parent.context if parent else None
+        self.context = Context(parent=context,ident="P" + str(self.idpyetl)
         )
         #        print ('initialisation', self.context, self.context.parent)
         self.context.root = self.context # on romp la chaine racine
@@ -544,7 +545,7 @@ class Pyetl(object):
 
 
     def getpyetl(
-        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None
+        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None, context=None,
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch"""
@@ -559,10 +560,14 @@ class Pyetl(object):
         if rep_sortie is not None:
             if rep_sortie.startswith("#"):
                 petl.set_param("F_sortie", "#store")
+                petl.set_param("force_schema", "0")
+                rep_sortie = rep_sortie[1:]
+                print('getpyetl: format store',rep_sortie, regles)
             petl.set_param("_sortie", rep_sortie)
         if entree is not None:
             #            print ("entree getpyetl",type(entree))
             petl.set_param("_entree", entree)
+        print ('getpyetl entree', petl.get_param('_entree'), self.get_param('_entree'))
         if nom:
             petl.nompyetl = nom
         if petl.initpyetl(regles, liste_params, env=env):
@@ -931,7 +936,8 @@ class Pyetl(object):
         entree = self.get_param("_entree", None)
         if self.get_param("sans_entree"):
             entree = None
-        #        print("process",entree, self.regles)
+        print("process E:",entree,'S:',self.get_param("sortie"),'regles', self.regles)
+
         if isinstance(entree, (Stat, ExtStat)):
             nb_total = entree.to_obj(self)
             #            nb_total = self._lecture_stats(entree)

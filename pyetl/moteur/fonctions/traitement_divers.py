@@ -504,11 +504,13 @@ def preload(regle, obj):
             if regle.params.cmp2.val.startswith("#")
             else "#" + regle.params.cmp2.val
         )
-        processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest)
+        processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context)
         processor.process()
-        renseigne_attributs_batch(regle, obj, processor.retour)
+        if obj:
+            renseigne_attributs_batch(regle, obj, processor.retour)
 
-        print("------- preload ", processor.store)
+        print("------- preload objets", processor.store)
+        nb_total = processor.get_param("_st_lu_objs", "0")
         regle.stock_param.store.update(
             processor.store
         )  # on rappatrie les dictionnaires de stockage
@@ -533,7 +535,7 @@ def preload(regle, obj):
 
     mem2 = process.memory_info()[0]
     mem = mem2 - mem1
-    print("------- preload ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
+    print("------- preload info memeoire ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
 
 
 def h_preload(regle):

@@ -8,6 +8,7 @@ fonctions de manipulation de geometries shapely
 # import re
 import math as M
 from shapely import geometry as SG
+
 from .traitement_geom import setschemainfo
 # ===============================================fonctions du module shapely============================================
 
@@ -145,3 +146,47 @@ def f_buffer(regle, obj):
         obj.geom_v.setsgeom(buffer)
         setschemainfo(regle, obj, multi=True, type='3')
         # print ('rectangle',ror )
+
+
+
+def h_ingeom(regle):
+    '''prepare les objets pour l'intersection'''
+    regle.objets = regle.stock_param.store.get(regle.params.cmp2.val)
+    if not regle.objets:
+        regle.erreurs.append('il faut precharger des objets pour une selection geometrique')
+        regle.valide = False
+        return
+    regle.multiple = len(regle.objets) > 1
+    if not regle.multiple:
+        obj = list(regle.objets.values())[0]
+        regle.objref = obj
+        if not obj.geom_v.valide:
+            regle.erreurs.append("l'objet de reference doit avoir une geometrie valide")
+            regle.valide = False
+            regle.geomref=obj.geom_v.__shapelyprepared__
+
+
+def f_ingeom(regle, obj):
+    """#aide||recupere des attributs par selection geometrique
+    #aide_spec||liste des attributs a recuperer
+        #pattern||L;?C;L;geoselect;=in;C
+        #pattern2||;;;geoselect;=in;C
+        #test||obj;poly||^;1;;buffer;;||;has:geomV;;;X;1;;set||atv;X;1
+        """
+    if obj.initgeom():
+        sgeom = obj.geom_v.__shapelygeom__
+        if regle.multiple:
+            intersected=False
+            for i in regle.objets.values:
+                sgp = i.geom_v.__shapelyprepared__
+                if sgp.intersects(sgeom):
+                    if intersected:
+                        o2 = obj.dupplique()
+                        regle.setval_sortie(o2, regle.getlist_entree(i))
+                        regle.stock_param.traite_objet(o2)
+                    regle.setval_sortie(obj, regle.getlist_entree(i))
+                    intersected = True
+            return intersected
+        else:
+            return regle.geomref.intersects(sgeom)
+    return False

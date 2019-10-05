@@ -5,6 +5,7 @@ attributs et geometrie """
 import itertools
 from . import composants as C
 from shapely import geometry as SG
+from shapely import prepared as P
 
 class Geometrie(object):
     """classe de base de stockage de la geometrie d'un objet"""
@@ -20,7 +21,7 @@ class Geometrie(object):
     }
     STYPES = {'Point':'1','MultiPoint':'1','LineString':'2','LinearRing':'2','MultiLineString':'2','Polygon':'3','MultiPolygon':'3"'}
     __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
-                'sgeom',
+                'sgeom','sgp',
                'longueur_point','dim','multi','srid','force_multi','erreurs']
     def __init__(self):
         self.polygones = []
@@ -37,6 +38,7 @@ class Geometrie(object):
         self.force_multi = False
         self.angle = 0
         self.sgeom = None
+        self.sgp = None
         # self.epsg = 'SRID=3948;'
         self.erreurs = Erreurs()
 
@@ -858,14 +860,17 @@ class Geometrie(object):
             self.sgeom=SG.shape(self)
         return self.sgeom
 
+    @property
+    def __shapelyprepared__(self):
+        '''stocke une geometrie pereparee de l'objet'''
+        if not self.sgp:
+            self.sgp = P.prep(self.__shapelygeom__)
+        return self.sgp
 
     def shapesync(self):
         '''recree la geometrie a partir d'un element shapely'''
         if not self.valide and self.sgeom:
             self.from_geo_interface(SG.mapping(self.sgeom))
-
-
-
 
 
     @property
@@ -936,11 +941,6 @@ class Geometrie(object):
         elif self.sgeom:
             return repr(self.sgeom)
         return "geometrie invalide " + repr(self.erreurs)
-
-
-
-
-
 
 
 
