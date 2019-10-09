@@ -173,14 +173,15 @@ def lire_objets(self, rep, chemin, fichier):
     # print("lecture gdal", (rep, chemin, fichier), self.schemaclasse)
     #    raise
     # ouv = None
-    self.prepare_lecture_fichier(rep, chemin, fichier)
+    groupe, classe = self.prepare_lecture_fichier(rep, chemin, fichier)
 
     layers = fiona.listlayers(self.fichier)
     # print('fiona:lecture niveaux',  layers)
     for layer in layers:
         with fiona.open(self.fichier, "r", layer=layer) as source:
-            # print ('recup fiona',source.driver, source.schema)
-            self.setidententree(self.groupe,layer)
+            # print ('recup fiona',self.newschema,source.driver, source.schema)
+            if layer != classe:
+                self.setidententree(self.groupe,layer)
             if self.newschema:
                 self.schemaclasse = recup_schema_fiona(
                     self.schemaclasse.schema, (self.groupe, self.classe), source.schema, source.driver

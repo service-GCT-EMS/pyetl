@@ -60,7 +60,11 @@ class Geometrie(object):
         if geom.type == 'Polygon':
             npt = len(geom.exterior.coords)+ sum((len(i.coords) for i in geom.interiors))
             return npt
-        return len(geom.coords)
+        try:
+            return len(geom.coords)
+        except:
+            print('erreur longueur',geom.type, geom)
+            raise
 
     @property
     def dimension(self):
@@ -80,7 +84,7 @@ class Geometrie(object):
     def npt(self):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
         if self.sgeom:
-            if self.sgeom.type == 'GeometryCollection':
+            if self.sgeom.type in {'GeometryCollection','MultiPolygon','MultiLine','MultiPoint'}:
                 return sum(self.shapely_npt(i) for i in self.sgeom.geoms)
             return self.shapely_npt(self.sgeom)
         if self.null:

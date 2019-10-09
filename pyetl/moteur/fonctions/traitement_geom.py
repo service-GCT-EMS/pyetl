@@ -44,7 +44,7 @@ def setschema_typegeom(regle, obj):
 def h_initgeom(regle):
     """prepositionne un type geom"""
     if regle.params.cmp1.num:
-        regle.context.setvar("type_geom", regle.params.cmp1.val)
+        regle.setvar("type_geom", regle.params.cmp1.val)
     regle.use_shapely = regle.params.cmp2.val
 
 
@@ -811,8 +811,9 @@ def f_prolonge(regle, obj):
 
 def h_reproj(regle):
     """ initialise la reprojection """
-    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949"}
+    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93":"2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
+    print('reproj srid sortie', regle.srid)
     regle.projection = P.init_proj(
         regle.params.val_entree.val, regle.params.cmp1.val, regle.params.cmp2.val
     )

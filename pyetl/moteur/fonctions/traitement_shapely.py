@@ -160,10 +160,13 @@ def h_ingeom(regle):
     if not regle.multiple:
         obj = list(regle.objets.values())[0]
         regle.objref = obj
-        if not obj.geom_v.valide:
+        if obj.geom_v.valide:
+            regle.geomref=obj.geom_v.__shapelyprepared__
+        else:
             regle.erreurs.append("l'objet de reference doit avoir une geometrie valide")
             regle.valide = False
-            regle.geomref=obj.geom_v.__shapelyprepared__
+
+
 
 
 def f_ingeom(regle, obj):

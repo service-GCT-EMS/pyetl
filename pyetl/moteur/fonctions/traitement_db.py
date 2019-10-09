@@ -218,7 +218,7 @@ def f_dbalpha(regle, obj):
             if not dest:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
             os.makedirs(dest, exist_ok=True)
-            regle.context.setvar("_entree", dest)
+            regle.setvar("_entree", dest)
             log = regle.context.getvar("log", os.path.join(dest, "log"))
             os.makedirs(log, exist_ok=True)
             print("traitement db: dump donnees de", base, "vers", dest)
@@ -343,8 +343,8 @@ def f_dbclose(regle, obj):
     base, _, _, _ = regle.cible_base
     if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
         base = obj.attributs.get("#base", base)
-        regle.context.setvar("db", obj.attributs.get("#type_base"))
-        regle.context.setvar("server", obj.attributs.get("#chemin"))
+        regle.setvar("db", obj.attributs.get("#type_base"))
+        regle.setvar("server", obj.attributs.get("#chemin"))
     DB.dbclose(regle.stock_param, base)
     return True
 
@@ -557,9 +557,9 @@ def h_recup_schema(regle):
     if nombase:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
         if regle.params.att_sortie.val == "schema_entree":
-            regle.context.setvar("schema_entree", nomschema)
+            regle.setvar("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
-            regle.context.setvar("schema_sortie", nomschema)
+            regle.setvar("schema_sortie", nomschema)
         regle.valide = "done"
         print("h_recup_schema", nomschema, '->', nombase)
         DB.recup_schema(regle, nombase, niveau, classe, nomschema)

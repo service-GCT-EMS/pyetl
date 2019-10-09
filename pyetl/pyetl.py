@@ -51,9 +51,17 @@ LOGGER = logging.getLogger("pyetl")  # un logger
 # MODULEDEBUG = False
 
 
-def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
+
+
+
+
+def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
+    loglevels={'DEBUG':logging.DEBUG,'WARNING':logging.WARNING,'ERROR':logging.ERROR,'CRITICAL':logging.CRITICAL,'INFO':logging.INFO}
+    niveau_f=loglevels.get(log,logging.INFO)
+    niveau_p=loglevels.get(affich,logging.ERROR)
+    print ('niveaux de logging',niveau_f,niveau_p)
     if not LOGGER.handlers:
         # création d'un handler qui va rediriger chaque écriture de log sur la console
         LOGGER.setLevel(niveau_p)
@@ -84,18 +92,23 @@ def initlogger(fichier=None, niveau_f=logging.DEBUG, niveau_p=logging.WARNING):
 def getlog(args):
     """recherche s il y a une demande de fichier log dans les arguments"""
     log = None
+    log_level=None
+    log_print=None
     for i in args:
         if "log=" in i:
             log = i.split("=")[1]
-    return log
+        if "log_level=" in i:
+            log_level = i.split("=")[1]
+        if "log_print=" in i:
+            log_print = i.split("=")[1]
+    return log,log_level,log_print
 
 
-def runpyetl(commandes, args, env=None, log=None):
+def runpyetl(commandes, args):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
-    log = getlog(args)
-    print("pyetl", VERSION, commandes, args, log)
-
-    if MAINMAPPER.initpyetl(commandes, args, env=env, log=log):
+    loginfo = getlog(args)
+    print('::'.join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args))))
+    if MAINMAPPER.initpyetl(commandes, args, loginfo=loginfo):
         MAINMAPPER.process()
     else:
         print("arret du traitement ")
@@ -183,7 +196,7 @@ class Pyetl(object):
         self.parent = parent  # permet un appel en cascade
         setparallel(self)  # initialise la gestion du parallelisme
 
-        self.inited = False
+        self.loginited = self.parent.loginited if self.parent else False
         self.ended = False
         self.worker = False  # process esclave
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
@@ -244,25 +257,32 @@ class Pyetl(object):
         self.done = False
         self.lire_schemas_multiples = lire_schemas_multiples
 
-    def initenv(self, env=None, log=None):
+    def initenv(self, env=None, loginfo=None):
         """initialise le contexte (parametres de site environnement)"""
-        if self.inited:
+        if self.loginited:
             return  # on a deja fait le boulot
         env = env if env is not None else os.environ
-        if log and not self.worker:
+        log_level="INFO"
+        log_print="WARNING"
+        if loginfo and not self.worker:
+            log,log_level,log_print = loginfo
             self.set_param("logfile", log)
-            self.fichier_log = log
+            self.set_param("log_level", log_level)
+            self.set_param("log_print", log_print)
 
-        initlogger(fichier=self.get_param("logfile",None))
+        initlogger(fichier=self.get_param("logfile",None),log=log_level,affich=log_print)
         self.init_environ(env)
+        self.loginited=True
 
     #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
     #        next(self.aff)
 
-    def initpyetl(self, commandes, args, env=None, log=None):
+    def initpyetl(self, commandes, args, env=None, loginfo=None):
         """ initialisation standardisee: cree l'objet pyetl de base"""
 
-        self.initenv(env, log)
+        self.initenv(env, loginfo)
+        LOGGER.info('::'.join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args))))
+
         try:
             return self.prepare_module(commandes, args)
         except SyntaxError as err:
@@ -393,8 +413,8 @@ class Pyetl(object):
 
         LOGGER.debug(
             "prepare_module"
-            + repr(regles)
-            + repr(liste_params)
+            + repr(regles)+"::"
+            + repr(liste_params)+"::"
             + self.get_param("_sortie", "pas_de_sortie")
         )
         erreurs = None
@@ -490,15 +510,15 @@ class Pyetl(object):
                 msg = "worker%3s:" % self.get_param("_wid") + msg
             else:
                 msg = "mapper   :" + msg
-            LOGGER.info(
-                msg,
-                cmp,
-                nbobj,
-                tabletotal,
-                ftype,
-                int(duree),
-                int((nbobj) / duree),
-                int((nbobj - nop) / (interv + 0.001)),
+            LOGGER.info(' '.join(
+                (msg,
+                str(cmp),
+                str(nbobj),
+                str(tabletotal),
+                str(ftype),
+                str(int(duree)),
+                str(int(nbobj / duree)),
+                str(int((nbobj - nop) / (interv + 0.001))))),
             )
             if self.worker:
                 if message == "interm":
@@ -567,7 +587,7 @@ class Pyetl(object):
         if entree is not None:
             #            print ("entree getpyetl",type(entree))
             petl.set_param("_entree", entree)
-        print ('getpyetl entree', petl.get_param('_entree'), self.get_param('_entree'))
+        print ('getpyetl entree:', petl.get_param('_entree'),'parent:', self.get_param('_entree'))
         if nom:
             petl.nompyetl = nom
         if petl.initpyetl(regles, liste_params, env=env):
@@ -699,15 +719,14 @@ class Pyetl(object):
             #            print ('validation ',check,check+nom,check+nom in self.parms)
             if self.context.exists(check + nom):
                 return
-        if context is None:
-            context = self.context
+        setter = self.set_param if context is None else context.setvar
         if clef in self.site_params:
 #            print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
                 val, _ = map_vars(val, context)  # on fait du remplacement à la volee
-                context.setvar(var, val)
+                setter(var, val)
                 if nom:
-                    context.setvar(var + "_" + nom, val)
+                    setter(var + "_" + nom, val)
 
         elif fin:
             print("definition parametres de site >" + clef + "< introuvable")
@@ -817,21 +836,30 @@ class Pyetl(object):
         return self.context.getvar(nom, defaut)
 
     def set_param(self, nom, valeur):
-        """positionne une variable dans un contexte"""
-        self.context.setvar(nom, valeur)
+        """positionne une variable dans un contexte de base
+           dans ce cas on positionne en local"""
+        self.context.setlocal(nom, valeur)
+
+    def set_param_parent(self, nom, valeur):
+        """positionne une variable dans un contexte de base
+           dans ce cas on positionne dans le contexte parent"""
+        if self.parent:
+            self.parent.set_param(nom, valeur)
+        else:
+            self.set_param(nom, valeur)
 
     def padd(self, nom, valeur):
         """incremente un parametre d'une valeur"""
         # vinit = self.context.getvar(nom, 0)
-        self.context.setvar(nom, self.context.getvar(nom, 0) + valeur)
+        self.set_param(nom, self.context.getvar(nom, 0) + valeur)
 
     #        print ('padd',nom,self.get_param(nom, 0, local=parent))
 
     def pasum(self, nom1, nom2):
         """incremente un parametre d'un autre parametre"""
-        vinit = self.context.getvar(nom1, 0)
-        valeur = self.context.getvar(nom2, 0)
-        self.context.setvar(nom1, str(vinit + valeur))
+        vinit = self.get_param(nom1, 0)
+        valeur = self.get_param(nom2, 0)
+        self.set_param(nom1, str(vinit + valeur))
 
     def _stocke_param(self, parametre):
         """stockage d'un parametre"""
@@ -842,12 +870,12 @@ class Pyetl(object):
             if valeur[1] == '""':
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
-            self.context.setvar(*valeur)
+            self.set_param(*valeur)
         #            print("stockage",parametre,valeur[0],self.parms[valeur[0]] )
         else:
             self.posparm.append(parametre)
             #            self.parms["#P_"+str(len(self.posparm))] = parametre
-            self.context.setvar("#P_" + str(len(self.posparm)), parametre)
+            self.set_param("#P_" + str(len(self.posparm)), parametre)
 
     def set_abrev(self, nom_schema, dic_abrev=None):
         """cree les abreviations pour la definition automatique de snoms courts"""

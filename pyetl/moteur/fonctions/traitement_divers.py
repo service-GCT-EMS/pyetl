@@ -342,7 +342,7 @@ def h_sortir(regle):
         tmplist = regle.params.cmp1.val.find("[")
         # print("valeur ii ", regle.params.cmp1,ii)
 
-        regle.context.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
+        regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = Writer(regle.params.cmp1.val, regle)  # tout le reste
     #    print ('positionnement writer ',regle, regle.params.cmp1.val)
@@ -372,10 +372,10 @@ def h_sortir(regle):
         if os.path.isabs(regle.params.cmp2.val): # si absolu on ignore le rep de sortie
             rep_base = ''
         if regle.fanout == 'no': # sans fanout pas de sous repertoires
-            regle.context.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
+            regle.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
             regle.f_sortie.writerparms["destination"] = os.path.basename(regle.params.cmp2.val)
         else:
-            regle.context.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
+            regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
@@ -471,7 +471,8 @@ def f_sortir(regle, obj):
 
 
 def valreplace(chaine, obj):
-    """remplace les elements provenant de l objet """
+    """remplace les elements provenant de l objet,
+     cas particulier du parametre en [nom]"""
     vdef = r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]"
     repl = lambda x: obj.attributs.get(x.group(1), "")
     return re.sub(vdef, repl, chaine)
@@ -481,15 +482,15 @@ def preload(regle, obj):
     """prechargement"""
     vrep = lambda x: regle.resub.sub(regle.repl, x)
     chaine_comm = vrep(regle.params.cmp1.val)
-    regle.context.setvar("nocomp", False)
+    regle.setvar("nocomp", False)
+    #=================surveillance de la consommation mémoire================
     process = psutil.Process(os.getpid())
-
     mem1 = process.memory_info()[0]
+    #=========================================
     if obj and regle.params.att_entree.val:
         entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
     else:
-        entree = regle.entree if regle.entree else valreplace(regle.fich, obj)
-
+        entree = regle.entree if regle.entree else regle.fich
     print(
         "------- preload commandes:(",
         chaine_comm,
@@ -505,6 +506,8 @@ def preload(regle, obj):
             else "#" + regle.params.cmp2.val
         )
         processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context)
+        if not processor:
+            return False
         processor.process()
         if obj:
             renseigne_attributs_batch(regle, obj, processor.retour)
@@ -514,7 +517,7 @@ def preload(regle, obj):
         regle.stock_param.store.update(
             processor.store
         )  # on rappatrie les dictionnaires de stockage
-        regle.context.setvar("storekey", processor.retour)  # on stocke la clef
+        regle.setvar("storekey", processor.retour)  # on stocke la clef
 
     else:
         #        racine = regle.stock_param.racine
@@ -532,10 +535,12 @@ def preload(regle, obj):
         except StopIteration:
             pass
         nb_total = lecteur.lus_fich
-
+    #=================surveillance de la consommation mémoire================
     mem2 = process.memory_info()[0]
     mem = mem2 - mem1
-    print("------- preload info memeoire ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
+    print("------- preload info memoire ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
+    #=============================
+    return True
 
 
 def h_preload(regle):
@@ -560,12 +565,12 @@ def h_preload(regle):
     elif "[" in fich:
         regle.dynlevel = 3
     regle.entree = None
-
+    regle.loaded = False
     if regle.dynlevel == 0:  # pas de selecteur on precharge avant de lire
         regle.entree = regle.params.val_entree.val
         regle.fich = regle.entree
-        preload(regle, None)
-        regle.valide = "done"
+        regle.valide = "done" if preload(regle, None) else False
+
 
     print("==================h_preload===", regle.dynlevel, regle.valide)
 
@@ -588,10 +593,10 @@ def f_preload(regle, obj):
             regle.entree = fich
             print("==================f_preload===", regle.stock_param.racine, regle.entree)
 
-            preload(regle, obj)
+            regle.loaded = preload(regle, obj)
     #            print ('chargement ',regle.params.cmp2.val,
     #                   regle.stock_param.store[regle.params.cmp2.val])
-    return True
+    return regle.loaded
 
 
 def compare_traite_stock(regle):

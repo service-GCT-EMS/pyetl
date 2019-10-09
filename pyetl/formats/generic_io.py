@@ -310,8 +310,7 @@ class Reader(object):
         self.newschema = False
         self.ident = groupe2, classe2
         self.attformatters = None
-        # print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
-
+        print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
             self.setattformatter()

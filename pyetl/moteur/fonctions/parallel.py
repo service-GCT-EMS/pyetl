@@ -38,10 +38,10 @@ def setparallel(mapper):
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
     #    commandes, args, params, macros, env, log = parametres
-    params, macros, env, log, schemas = parametres
+    params, macros, env, loginfo, schemas = parametres
     mainmapper = getmainmapper()
 
-    if mainmapper.inited:
+    if mainmapper.loginited:
         #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
@@ -49,8 +49,8 @@ def initparallel(parametres):
         print("pyetl initworker", os.getpid(), schemas.keys())
     LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
-    mainmapper.initenv(env, log)
-    mainmapper.inited = True
+    mainmapper.initenv(env, loginfo)
+    mainmapper.loginited = True
     mainmapper.macros.update(macros)
     mainmapper.context.update(params)
     integre_schemas(mainmapper.schemas, schemas)
@@ -69,11 +69,12 @@ def setparallelid(parametres):
         return None
     wid = str(pidset[os.getpid()])
     mainmapper.set_param("_wid", wid)
-    log = mainmapper.get_param("logfile")
+    log,log_level,log_print = (mainmapper.get_param("logfile"), mainmapper.get_param("log_level"), mainmapper.get_param("log_print"))
     if log:
         base, ext = os.path.splitext(mainmapper.get_param("logfile"))
         log = str(base) + "_" + wid + "." + str(ext)
-    init = mainmapper.initpyetl(commandes, args, log=log)
+    loginfo = log,log_level,log_print
+    init = mainmapper.initpyetl(commandes, args, loginfo=loginfo)
     if paralleldebug:
         print('setparallelid apres init', mainmapper.get_param("_wid"), commandes, args)
 

@@ -460,7 +460,7 @@ def h_ftpupload(regle):
     servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
     user = regle.context.getvar("user_" + codeftp, "")
     passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
-    regle.context.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
+    regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
     regle.ftp = None
 
 

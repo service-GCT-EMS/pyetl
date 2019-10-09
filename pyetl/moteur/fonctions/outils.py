@@ -577,6 +577,17 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         )
         # print ('ici', nom,ext, ext in liste_formats, liste_formats)
         if ext in liste_formats:
+            aux = Reader.lecteurs[ext][3]
+            if '!' in aux: # attention il y a des incompatibilites
+                racine = os.path.splitext(fichier)[0]
+                valide = True
+                for ex2 in aux:
+                    if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
+                        non_identifies.append((chemin, nom, ext))
+                        valide = False
+                        continue
+                if not valide:
+                    continue
             f_courant = os.path.join(str(entree), str(chemin), str(fichier))
             identifies[chemin, nom] = ext
             if debug:

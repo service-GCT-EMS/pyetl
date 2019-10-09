@@ -98,7 +98,7 @@ class Section(object):
     __slots__=['coords','couleur','courbe','aire','dimension','encours']
     def __init__(self, pnt, dim):
         if pnt:
-            self.coords = [pnt[:]]
+            self.coords = [list(pnt)]
         else:
             self.coords = list()
         self.couleur = "1"
@@ -143,7 +143,7 @@ class Section(object):
         double.courbe = self.courbe
         double.aire = self.aire
         double.encours = self.encours
-        double.coords = [i[:] for i in self.coords]
+        double.coords = [list(i) for i in self.coords]
         return double
 
     def addpoint(self, pnt):
@@ -151,20 +151,17 @@ class Section(object):
         if self.coords and self.coords[-1] == pnt:  # on evite les points doubles
             print("detecte point_double", pnt)
             return
-        self.coords.append(pnt[:])
+        self.coords.append(list(pnt))
 
     #        print ('coords',pnt,self.coords)
 
     def addpoints(self, liste):
         """ajoute une liste de points"""
-        self.coords.extend([i[:] for i in liste])
+        self.coords.extend([list(i) for i in liste])
 
     def setsect(self, liste, couleur, courbe):
         """ajoute une liste de points"""
-        tmp = [liste[0][:]]
-        [tmp.append(i[:]) for i in liste if i != tmp[-1]]
-        self.coords = tmp
-        #        self.coords = [i[:] for i in liste]
+        self.coords = [list(i) for i in liste]
         self.encours = False
         self.courbe = courbe
         # if courbe==3: raise

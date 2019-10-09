@@ -518,7 +518,7 @@ def setvloc(regle):
         for i in listevlocs:
             #        print('detecte', i)
             nom, val, *_ = i.split("=") + [""]
-            regle.context.setlocal(nom.strip(), val)
+            regle.setlocal(nom.strip(), val)
     regle.ligne, binding = map_vars(regle.ligne, regle.context)
     valeurs = [i.strip() for i in regle.ligne.split(";")]
     if len(valeurs) <= 11:
@@ -654,6 +654,7 @@ def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
     if macro is None:
         print("macro inconnue", cmd)
         raise SyntaxError
+    macroenv.update(macro.vdef)
     if vpos:
         macroenv.update(macro.bind(vpos))
     liste_regles.extend(macro.get_commands())
@@ -896,6 +897,7 @@ def importe_macro(mapper, texte, context, fichier_regles):
         macro = mapper.macros.get(inclus)
         if macro:
             #            print ('affectation variables macro', vpos, macro.bind(vpos))
+            macroenv.update(macro.vdef)
             macroenv.update(macro.bind(vpos))  # affectation des variables locales
     else:
         inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])

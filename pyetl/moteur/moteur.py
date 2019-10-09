@@ -200,7 +200,16 @@ class Macro(object):
         self.commandes_macro = dict()
         self.help = ""
         self.help_detaillee = []
-        self.vpos = [] if vpos is None else [i for i in vpos if i and i !='\n']
+        self.vpos = []
+        self.vdef = {}
+        if vpos is not None:
+            self.vpos = [i for i in vpos if i and i !='\n']
+            for i in vpos:
+                if '=' in i:
+                    nom,defaut = i.split('=')
+                    self.vdef[nom] = defaut
+
+
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
