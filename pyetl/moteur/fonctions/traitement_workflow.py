@@ -21,7 +21,11 @@ from .traitement_geom import setschemainfo
 # from multiprocessing.pool import Pool
 # import multiprocessing
 import ftplib
-
+try:
+    import pysftp
+    SFTP=True
+except ImportError:
+    SFTP=False
 import requests
 from pyetl.formats.interne.objet import Objet
 from .outils import execbatch, objloader
@@ -462,6 +466,37 @@ def h_ftpupload(regle):
     passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
     regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
     regle.ftp = None
+    regle.servertyp = servertyp
+
+def ftpconnect(regle):
+    '''connection ftp'''
+
+    _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
+    # print ('ouverture acces ',regle.getvar('acces_ftp'))
+    try:
+        if servertyp == "tls":
+            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+            return True
+        elif servertyp == "ftp":
+            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
+            return True
+    except ftplib.error_perm as err:
+        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
+        print("retour_erreur",err)
+        return False
+    if servertyp == "sftp" and SFTP:
+        try:
+            cno = pysftp.CnOpts()
+            cno.hostkeys = None
+            regle.ftp = pysftp.Connection(serveur, username=user, password=passwd, cnopts=cno)
+            return True
+        except pysftp.ConnectionException as err:
+            print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
+            print("retour_erreur",err)
+            return False
+    else:
+        print ("mode ftp non disponible", servertyp)
+        return False
 
 
 def f_ftpupload(regle, obj):
@@ -470,24 +505,31 @@ def f_ftpupload(regle, obj):
     #pattern||;?C;?A;ftp_upload;C;?C
        #test||notest
     """
-    if not regle.ftp:
-        _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-        #        print ('ouverture acces ',regle.getvar('acces_ftp'))
-        if servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
-        else:
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
-
     filename = regle.getval_entree(obj)
     destname = regle.destdir+ '/'+ str(os.path.basename(filename))
+    # destname = regle.destdir
+    if not regle.ftp:
+        retour = ftpconnect(regle)
+        if not retour:
+            return False
+        print ('connection ftp etablie')
+
     try:
-        localfile = open(filename, "rb")
-        regle.ftp.storbinary("STOR " + destname, localfile)
-        localfile.close()
+        # print ('envoi fichier',filename,'->',destname)
+        if regle.servertyp == 'sftp':
+            regle.ftp.cwd(regle.destdir)
+            regle.ftp.put(filename)
+            print ("transfert effectue",filename,'->',destname)
+        else:
+            localfile = open(filename, "rb")
+            regle.ftp.storbinary("STOR " + destname, localfile)
+            localfile.close()
+            print ("transfert effectue",filename,'->',destname)
         return True
 
-    except ftplib.error_perm:
-        print("!!!!! erreur ftp: acces non autorisé")
+    except ftplib.error_perm as err:
+        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user)
+        print("retour_erreur",err)
         return False
 
 

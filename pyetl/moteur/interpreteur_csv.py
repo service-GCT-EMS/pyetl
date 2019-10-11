@@ -505,20 +505,21 @@ def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
     valeurs = regle.ligne.split(";")
     if len(valeurs) > 11:
-        vldef = valeurs[11]
-        vldef, binding = map_vars(vldef, regle.context)
-        if "=>" in vldef:
-            listevlocs = (
-                [i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')]
-                if vldef
-                else []
-            )
-        else:
-            listevlocs = vldef.split(",")
-        for i in listevlocs:
-            #        print('detecte', i)
-            nom, val, *_ = i.split("=") + [""]
-            regle.setlocal(nom.strip(), val)
+        stocke_vloc(regle.context,valeurs[11])
+        #vldef = valeurs[11]
+        # vldef, binding = map_vars(vldef, regle.context)
+        # if "=>" in vldef:
+        #     listevlocs = (
+        #         [i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')]
+        #         if vldef
+        #         else []
+        #     )
+        # else:
+        #     listevlocs = vldef.split(",")
+        # for i in listevlocs:
+        #     #        print('detecte', i)
+        #     nom, val, *_ = i.split("=") + [""]
+        #     regle.setlocal(nom.strip(), val)
     regle.ligne, binding = map_vars(regle.ligne, regle.context)
     valeurs = [i.strip() for i in regle.ligne.split(";")]
     if len(valeurs) <= 11:
@@ -528,7 +529,7 @@ def setvloc(regle):
     regle.v_nommees = dict(zip(NOMS_CHAMPS_N, valeurs))
 
 
-def prepare_regle(regle):
+def prepare_regle(regle, prec=None):
     """ positionne les elements standard de la regle"""
 
     setvloc(regle)
@@ -549,6 +550,13 @@ def prepare_regle(regle):
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     regles_liees(regle, v_nommees["sel1"])
+    if regle.niveau and prec:
+        if regle.niveau>prec.niveau:
+            regle.context.setref(prec.context)
+        elif regle.niveau==prec.niveau:
+            regle.context.setref(prec.context.ref)
+        elif regle.niveau < prec.niveau:
+            regle.context.setref(prec.context.ref.ref)
     #    print ('2regle:',regle,regle.valide)
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = Selecteur.true
@@ -616,13 +624,14 @@ def reinterprete_regle(regle, mapper, context=None):
     prepare_regle(regle)
 
 
-def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
+def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None):
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
 
     #    print('traitement_ligne', ligne, mapper.context)
     regle = RegleTraitement(ligne, mapper, fichier, numero, context=context)
-    prepare_regle(regle)
+    prepare_regle(regle, prec=prec)
+
     # print ('retour prepare', regle.valide, regle)
     if regle.valide == "vide":
         #        print('regle vide ',regle)
@@ -640,7 +649,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
 
     mapper.done = False
     if regle.valide == "done":
-        print ('done', regle)
+        # print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
         return None
@@ -654,8 +663,12 @@ def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
     if macro is None:
         print("macro inconnue", cmd)
         raise SyntaxError
-    macroenv.update(macro.vdef)
+    # macroenv.update(macro.vdef)
+    # print ('lecture_macro',macro.vdef)
+    # print ('variables',vpos)
     if vpos:
+        position = macro.bind(vpos)
+        # print ('affectation variables positionelles',position)
         macroenv.update(macro.bind(vpos))
     liste_regles.extend(macro.get_commands())
 
@@ -683,6 +696,7 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
         #        vnom = [i for i in pars if "=" in i]
         vpos = [i for i in pars if not "=" in i]
         charge_macro(mapper, cmd, vpos, context, liste_regles)
+
     #            liste_regles.append('$'+j)
     return liste_regles
 
@@ -737,13 +751,14 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
         liste_regles = lire_commandes_en_base(mapper, fichier_regles)
 
-    elif fichier_regles.startswith("#") or fichier_regles.startswith("['#"):
+    elif fichier_regles.startswith("#") or fichier_regles.startswith("['"):
         #       assemblage complexe de macros
         #        print ('a lire', fichier_regles)
+
         liste_regles = decoupe_liste_commandes(mapper, fichier_regles, context)
     #        print ('lu', '\n   '.join([str(i) for i in liste_regles]))
     else:
-        liste_regles = charge_fichier(fichier_regles, "", defext=".csv")
+        liste_regles = charge_fichier(fichier_regles, "", defext=".csv",codec=mapper.get_param('codec_csv'))
 
     if niveau:  # on force un niveau d'indentation
         avant = niveau
@@ -770,7 +785,7 @@ def affecte_variable(mapper, commande, context):
     """ affecte une variable avec gestion des valeurs par defaut"""
     commande, binding = map_vars(commande, context)
     modif = r"\;" in commande  # gestion des ';' comme parametre
-    # print('affecte',commande,context)
+    # print('affecte',mapper.idpyetl,commande,context)
     affectation = commande.split(";")[0][1:]
     #            print ('affectation:',affectation)
     pos_egal = commande.index("=")
@@ -796,16 +811,20 @@ def affecte_variable(mapper, commande, context):
         #             break
         # if not valeur:
         #     valeur = ""
+        set = context.setvar
+        if nom.startswith('$'):
+            nom=nom[1:]
+            set = context.setroot
         if valeur.startswith("#env:") and valeur.split(":")[1]:
             # on affecte une variable d'environnement
-            context.setvar(nom, mapper.env.get(valeur.split(":")[1], ""))
+            set(nom, mapper.env.get(valeur.split(":")[1], ""))
         elif valeur.startswith("#eval:") and valeur.split(":")[1]:
             if '__' in valeur:
                 print('fonction non autorisee', valeur)
                 return
-            context.setvar(nom, eval(valeur.split(":")[1], {}))
+            set(nom, eval(valeur.split(":")[1], {}))
         else:
-            context.setvar(nom, valeur)
+            set(nom, valeur)
 
 
 def prepare_texte(defligne):
@@ -835,8 +854,9 @@ def traite_regle_std(
     #    print ('interpretation', texte)
     #            if mapper.init: # on rentre dans les commandes : on initialise les es
     #                mapper.gestion_pospars()
+    precedent=regles[-1] if regles else None
     try:
-        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context)
+        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context, prec=precedent)
     #                print ('interp regle',i,erreurs)
     except SyntaxError:
         #        print( 'syntaxerror ',r_cour)
@@ -904,6 +924,8 @@ def importe_macro(mapper, texte, context, fichier_regles):
     #            print("lecture de regles incluses", inclus,pps)
     macroenv.update(settings)
     #            print ("demarrage macro",vloc)
+    # print('creation contexte macro', macroenv, macroenv.vlocales)
+
     erreurs = lire_regles_csv(mapper, inclus, niveau=niveau, context=macroenv)
     return erreurs
 
@@ -916,7 +938,7 @@ def initmacro(mapper, texte, fichier_regles):
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
-    #            print('enregistrement macro',nom)
+    print('enregistrement macro',mapper.idpyetl,nom)
     return macro
 
 

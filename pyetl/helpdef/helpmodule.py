@@ -37,6 +37,7 @@ def print_help(mapper, nom):
                             variante.description.get("#aide_spec", [""])[0],
                         )
                     )
+                    print("%s" % (variante.description.get("#parametres",[""])))
                     for i in variante.description.get("#aide_spec", [""])[1:]:
                         print("%-20s: %s" % ("", i))
                 for i in sorted(variante.description):

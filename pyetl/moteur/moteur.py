@@ -203,11 +203,13 @@ class Macro(object):
         self.vpos = []
         self.vdef = {}
         if vpos is not None:
-            self.vpos = [i for i in vpos if i and i !='\n']
+            self.vpos = [i.split('=')[0] for i in vpos if i and i !='\n']
             for i in vpos:
                 if '=' in i:
                     nom,defaut = i.split('=')
                     self.vdef[nom] = defaut
+                else:
+                    self.vdef[i] = ''
 
 
 
@@ -223,7 +225,7 @@ class Macro(object):
 
     def bind(self, liste):
         """mappe les variables locales et retourne un dictionnaire"""
-        return {nom: bind for nom, bind in zip(self.vpos, liste) if bind}
+        return {nom: bind for nom, bind in zip(self.vpos, liste)}
 
     def get_commands(self):
         """recupere les commandes de la macro"""
@@ -258,6 +260,13 @@ class Context(object):
             self.search.extend(parent.search)
         self.root = self.ref.root
 
+    def setref(self, context):
+        """modifie l'enchainement des contextes"""
+        if context is not None:
+            self.ref=context
+            self.parent=context
+            self.search = [self.vlocales]+context.search
+
     def getmacroenv(self, ident=""):
         """fournit un contexte ephemere lia au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="M")
@@ -278,7 +287,7 @@ class Context(object):
         return defaut
 
     def getchain(self, noms, defaut=""):
-        """fournit un parametre a partier d'une chaine de fallbacks"""
+        """fournit un parametre a partir d'une chaine de fallbacks"""
         for nom in noms:
             res = self.getvar(nom, None)
             if res is not None:
@@ -296,7 +305,14 @@ class Context(object):
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
         #        print ('contexte setvar', nom, valeur)
-        self.ref.vlocales[nom] = valeur
+        if nom in self.vlocales or self.ref==self.root:
+            self.vlocales[nom] = valeur
+        else:
+            self.ref.setvar(nom, valeur)
+
+    def setlocal(self, nom, valeur):
+        """positionne une variable locale du contexte"""
+        self.vlocales[nom] = valeur
 
     def setroot(self, nom, valeur):
         """positionne une variable du contexte racine"""
@@ -312,9 +328,7 @@ class Context(object):
         """affectation en masse"""
         self.vlocales.update(valeurs)
 
-    def setlocal(self, nom, valeur):
-        """positionne une variable locale du contexte"""
-        self.vlocales[nom] = valeur
+
 
     def getvars(self):
         """recupere toutes les variables d'un contexte"""

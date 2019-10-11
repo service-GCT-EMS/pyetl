@@ -53,7 +53,7 @@ def f_angle(regle, obj):
     #test1||obj;poly||^Z;;;angle;;||atv;Z;0.0
     #test2||obj;poly||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;X;0.5
     #test3||obj;ligne||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Y;0.5
-    #test4||obj;ligne45||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Z;-45.0
+    #test4||obj;ligne45||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Z;45.0
     """
     if obj.initgeom():
         geom = obj.geom_v

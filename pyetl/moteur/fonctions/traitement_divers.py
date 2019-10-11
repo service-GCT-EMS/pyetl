@@ -772,7 +772,7 @@ def h_run(regle):
         chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val))
         print("lancement ", chaine)
         fini = ''
-        # fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
         if regle.params.att_sortie.val:
             regle.stock_param.set_param(regle.params.att_sortie.val, fini)
     print ('retour run : done')
@@ -874,19 +874,21 @@ def h_abspath(regle):
     regle.dynref = regle.params.cmp1.val.startswith('[')
     regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
     if not regle.ref:
-        regle.ref = os.path.abspath(regle.racine)
+        regle.ref = os.path.curdir
 
 
 def f_abspath(regle,obj):
     """#aide||change un chemin relatif en chemin absolu
-    #aide_spec||le point de depart est le chemin ou cmp1
+  #aide_spec||le point de depart est le chemin ou cmp1
     #pattern||S;C?;A?;abspath;C?;
+       #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||atv:absp:%_progdir%
+       #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv:absp:A:\toto
     """
     candidat = regle.get_entree(obj)
     if os.path.isabs(candidat):
         final = candidat
     else:
-        ref = os.path.abspath(obj.attributs.get(regle.ref)) if regle.dynref else regle.ref
+        ref = os.path.abspath(obj.attributs.get(regle.ref,"")) if regle.dynref else regle.ref
         final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
     # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
@@ -895,26 +897,28 @@ def f_abspath(regle,obj):
 
 def h_namesplit(regle):
     """prepare la structure d'info de fichier"""
-    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#"
-    regle.ajout_attributs = [prefix+"chemin",prefix+"fichier",prefix+"ext"]
+    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#s_"
+    regle.ajout_attributs = [prefix+"chemin",prefix+"nom",prefix+"ext"]
     return True
-
-
 
 def f_namesplit(regle,obj):
     """#aide||decoupe un nom de fichier en chemin,nom,extention
   #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
- #aide_spec2||syntaxe:;defaut;attr contenant le nom;namesplit
+ #parametres||prefixe;defaut;attr contenant le nom;namesplit
      #schema||ajout_attribut
-    #pattern||A;C?;A?;namesplit;;
+    #pattern||?A;C?;A?;namesplit;;
+       #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
     """
     fichier = Path(regle.get_entree(obj))
+    print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
     obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))
     return True
 
 def f_namejoin(regle,obj):
     """#aide||combine des element en nom de fichier en chemin,nom,extention
     #pattern||S;C?;L?;namejoin;;
+ #parametres||sortie;defaut;liste d'attributs;namesjoin
+    #test||obj||^n1,n2;toto,titi;;set||^X;;n1,n2;namejoin||^;;X;namesplit||atv:#s_nom:titi
     """
     regle.setval_sortie(obj, os.path.join(*regle.getlist_entree(obj)))
     return True

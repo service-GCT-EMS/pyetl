@@ -61,7 +61,7 @@ def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
     loglevels={'DEBUG':logging.DEBUG,'WARNING':logging.WARNING,'ERROR':logging.ERROR,'CRITICAL':logging.CRITICAL,'INFO':logging.INFO}
     niveau_f=loglevels.get(log,logging.INFO)
     niveau_p=loglevels.get(affich,logging.ERROR)
-    print ('niveaux de logging',niveau_f,niveau_p)
+    # print ('niveaux de logging',niveau_f,niveau_p)
     if not LOGGER.handlers:
         # création d'un handler qui va rediriger chaque écriture de log sur la console
         LOGGER.setLevel(niveau_p)
@@ -444,7 +444,7 @@ class Pyetl(object):
                 )
                 for i in self.regles:
                     if i.erreurs:
-                        print(i.numero, i, i.erreur)
+                        print('erreur interpretation',i.numero, i, i.erreur)
                 #                print("sortie en erreur", self.idpyetl)
                 return False
         self.sorties.set_sortie(self.get_param("_sortie"))
@@ -582,12 +582,12 @@ class Pyetl(object):
                 petl.set_param("F_sortie", "#store")
                 petl.set_param("force_schema", "0")
                 rep_sortie = rep_sortie[1:]
-                print('getpyetl: format store',rep_sortie, regles)
+                # print('getpyetl: format store',rep_sortie, regles)
             petl.set_param("_sortie", rep_sortie)
         if entree is not None:
             #            print ("entree getpyetl",type(entree))
             petl.set_param("_entree", entree)
-        print ('getpyetl entree:', petl.get_param('_entree'),'parent:', self.get_param('_entree'))
+        # print ('getpyetl entree:', petl.get_param('_entree'),'parent:', self.get_param('_entree'))
         if nom:
             petl.nompyetl = nom
         if petl.initpyetl(regles, liste_params, env=env):
@@ -708,7 +708,7 @@ class Pyetl(object):
                     else:
                         self.site_params[nom][numero] = (nom_p, val)
         for nom in supr:
-            print("suppression paramgroup", nom)
+            # print("suppression paramgroup", nom)
             del self.site_params[nom]
 
     def load_paramgroup(self, clef, nom="", check="", fin=True, context=None):
@@ -964,7 +964,7 @@ class Pyetl(object):
         entree = self.get_param("_entree", None)
         if self.get_param("sans_entree"):
             entree = None
-        print("process E:",entree,'S:',self.get_param("sortie"),'regles', self.regles)
+        # print("process E:",entree,'S:',self.get_param("sortie"),'regles', self.regles)
 
         if isinstance(entree, (Stat, ExtStat)):
             nb_total = entree.to_obj(self)
@@ -1061,7 +1061,7 @@ class Pyetl(object):
         macrofinale = self.context.getlocal("_end")
         if not macrofinale:
             macrofinale = self.context.getlocal("#end")
-        #        print ('finalisation commande ', macrofinale, self.idpyetl)
+        # print ('finalisation commande ', self.idpyetl, macrofinale,self.context)
         if not macrofinale or (self.worker and self.parent is None):
             # le worker de base n'execute pas de macro finale
             macrofinale = self.context.getlocal("_w_end")
@@ -1074,6 +1074,7 @@ class Pyetl(object):
 #        macroenv = self.context.getmacroenv(ident=nom_macro)
         if macro is None:
             print("macro finale inconnue", nom_macro)
+            print("macros:",self.idpyetl,sorted(self.macros.keys()))
             return
         if not variables:
             parametres = self.get_param("parametres_final")
