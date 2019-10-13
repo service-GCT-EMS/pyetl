@@ -377,7 +377,7 @@ class Attribut(object):
         return TYPES_S.get(self.type_att, TYPES_S.get(self.type_att_base, self.type_att))
 
     def __repr__(self):
-        return str((self.nom, self.type_att, self.nom_conformite, self.taille))
+        return str((self.nom, self.type_att, self.nom_conformite, self.taille,self.def_index))
 
     @property
     def __dic_if__(self):

@@ -305,8 +305,9 @@ class Context(object):
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
         #        print ('contexte setvar', nom, valeur)
-        if nom in self.vlocales or self.ref==self.root:
+        if nom in self.vlocales or self.root==self:
             self.vlocales[nom] = valeur
+            # print ("stockage",self)
         else:
             self.ref.setvar(nom, valeur)
 

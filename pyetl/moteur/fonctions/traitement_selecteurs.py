@@ -20,7 +20,7 @@ def sel_attexiste(selecteur, obj):
     return selecteur.params.attr.val in obj.attributs
 
 def selh_attexiste_re(selecteur):
-    """ compile lesexpressions regulieres"""
+    """ compile les expressions regulieres"""
     #    print (" dans helper regex",selecteur.params.vals.val)
     selecteur.fselect = re.compile(selecteur.params.attr.val).search
 
@@ -38,9 +38,16 @@ def sel_attexiste_re(selecteur, obj):
 
 def selh_regex(selecteur):
     """ compile lesexpressions regulieres"""
-    #    print (" dans helper regex",selecteur.params.vals.val)
+    # print (" dans helper regex",selecteur.params.vals.val,re.compile(selecteur.params.vals.val))
     selecteur.fselect = re.compile(selecteur.params.vals.val).search
 
+def sel_egal(selecteur,obj):
+    """#aide||selection sur la valeur d un attribut egalite stricte
+       #pattern||A;=:||1
+       #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
+    """
+    # print ("selecteur egal",selecteur.params.vals.val)
+    return selecteur.params.vals.val == obj.attributs.get(selecteur.params.attr.val)
 
 def sel_regex(selecteur, obj):
     """#aide||selection sur la valeur d un attribut
@@ -49,8 +56,8 @@ def sel_regex(selecteur, obj):
        #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
        #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
     """
-    #    print (" attributs",selecteur,obj)
     result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
+    # print (" test variable",obj.attributs.get(selecteur.params.attr.val, ""),result)
     selecteur.regle.match=result.group(0) if result else ''
     selecteur.regle.matchlist=result.groups() if result else []
     return result
@@ -287,18 +294,17 @@ def sel_ispk(selecteur, obj):
     """#aide||vrai si l'attribut est une clef primaire
     #pattern||A;=is:pk||1
    #pattern2||A;=is:PK||1
-       #test||obj||^A(E,PK);1;;set||^?pk;;;set_schema||A;is:pk;;;res;1;;set||atv;res;1
+       #test||obj||^Z(E,PK);1;;set||^?pk;;;set_schema||Z;is:pk;;;res;1;;set||atv;res;1
     """
 
     #        le test est fait sur le premier objet de  la classe qui arrive
-    #        et on stocke le resultat : pur eviter que des modifas ulterieures de
+    #        et on stocke le resultat : pur eviter que des modifs ulterieures de
     #        schema ne faussent les tests'''
-
+    if not obj.schema:
+        return False
     clef = obj.ident + (selecteur.params.attr.val,)
-    if clef in selecteur.info:
-        return selecteur.info[clef]
-    #        if obj.schema:
-    selecteur.info[clef] = obj.schema.indexes.get("P:1") == selecteur.params.attr.val
+    if clef not in selecteur.info:
+        selecteur.info[clef] = obj.schema.getpkey == selecteur.params.attr.val
     return selecteur.info[clef]
 
 

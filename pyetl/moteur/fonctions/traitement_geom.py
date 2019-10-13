@@ -353,7 +353,7 @@ def f_aire(regle, obj):
     #    if True:
     if obj.virtuel:
         return False
-    if obj.initgeom():
+    if obj.geom_v.sgeom or obj.initgeom():
         regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.area))
         # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
         return True
@@ -909,4 +909,3 @@ def f_translatel(regle, obj):
         obj.infogeom()
         return True
     return False
-

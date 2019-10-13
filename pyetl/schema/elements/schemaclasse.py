@@ -249,12 +249,6 @@ class SchemaClasse(object):
     @property
     def getpkey(self):
         """ retourne la liste de champs comportant la clef principale"""
-
-        #        pk = ','.join([self.minmajfunc(str(self.indexes[i]))
-        #                         for i in sorted(self.indexes) if i[0] == 'P'])
-        #        if pk=='i':
-        #            print ( 'indexes:',self.indexes)
-        #            raise
         return ",".join(
             [self.minmajfunc(str(self.indexes[i])) for i in sorted(self.indexes) if i.startswith("P")]
         )
@@ -395,7 +389,6 @@ class SchemaClasse(object):
 
     def setpkey(self, liste):
         """cree stocke la definition des champs de la clef primaire"""
-        # print ("------------------------------setpkey",self.indexes,liste)
         for i in list(self.indexes.keys()):
             if i.startswith("P:"):
                 del self.indexes[i]

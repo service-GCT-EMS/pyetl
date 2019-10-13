@@ -581,7 +581,8 @@ def f_preload(regle, obj):
  #aide_spec1||les elements entre [] sont pris dans l objet courant
  #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
     #pattern||A;?C;?A;preload;?C;C
-      #!test||
+      #!test||rien||^clef;%testrep%/refdata/lecture/t1.csv;;preload;;test||
+            ||^;%testrep%/refdata/lecture/t1.csv;;charge;;;||
     """
     fich = regle.fich
 
@@ -881,8 +882,9 @@ def f_abspath(regle,obj):
     """#aide||change un chemin relatif en chemin absolu
   #aide_spec||le point de depart est le chemin ou cmp1
     #pattern||S;C?;A?;abspath;C?;
-       #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||atv:absp:%_progdir%
-       #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv:absp:A:\toto
+       #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||
+            ||^absp2;toto;;set;||^absp2;%_progdir%;;abspath||ata:absp:absp2
+       #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv2|absp|A:\\titi\\toto|
     """
     candidat = regle.get_entree(obj)
     if os.path.isabs(candidat):
@@ -910,7 +912,7 @@ def f_namesplit(regle,obj):
        #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
     """
     fichier = Path(regle.get_entree(obj))
-    print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
+    # print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
     obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))
     return True
 

@@ -260,7 +260,7 @@ def set_val_schema(schemaclasse, nom, valeur):
 
     #    print('dans set_schema :', classe.nom, nom, valeur)
     schemaclasse.type_table = "i"
-
+    nom=nom.lower()
     if nom in schemaclasse.info:
         schemaclasse.info[nom] = str(valeur)
         return True

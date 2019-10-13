@@ -122,6 +122,7 @@ class Geometrie(object):
     @property
     def area(self):
         if self.sgeom:
+            # print ("calcul aire",self.sgeom)
             return self.sgeom.area
         if self.type < '3':
             return 0

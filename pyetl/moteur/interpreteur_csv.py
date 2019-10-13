@@ -253,6 +253,9 @@ def description_schema(regle):
     modele.def_index = def_index
     regle.params.def_sortie = modele
 
+    # print("description de schema",regle.params.att_sortie.val,
+    #     desc_schema,modele)
+
 
 #    if def_index:
     # print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
@@ -467,13 +470,13 @@ def traite_helpers(regle, fonc):
     else:
         if regle.action_schema:
             if (
-                regle.params.att_sortie.dyn
+                regle.params.att_sortie.origine
                 or "#classe" in regle.params.att_sortie.liste
                 or "#groupe" in regle.params.att_sortie.liste
             ):
                 regle.changeclasse = fonc.changeclasse
 
-            if regle.params.att_sortie.dyn or "#schema" in regle.params.att_sortie.liste:
+            if regle.params.att_sortie.origine or "#schema" in regle.params.att_sortie.liste:
                 regle.changeschema = fonc.changeschema
     #    if regle.params.att_sortie.val:
     description_schema(regle)  # mets en place le schema pour l'attribut de sortie
@@ -506,20 +509,6 @@ def setvloc(regle):
     valeurs = regle.ligne.split(";")
     if len(valeurs) > 11:
         stocke_vloc(regle.context,valeurs[11])
-        #vldef = valeurs[11]
-        # vldef, binding = map_vars(vldef, regle.context)
-        # if "=>" in vldef:
-        #     listevlocs = (
-        #         [i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')]
-        #         if vldef
-        #         else []
-        #     )
-        # else:
-        #     listevlocs = vldef.split(",")
-        # for i in listevlocs:
-        #     #        print('detecte', i)
-        #     nom, val, *_ = i.split("=") + [""]
-        #     regle.setlocal(nom.strip(), val)
     regle.ligne, binding = map_vars(regle.ligne, regle.context)
     valeurs = [i.strip() for i in regle.ligne.split(";")]
     if len(valeurs) <= 11:

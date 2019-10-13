@@ -14,7 +14,7 @@ from .traitement_geom import setschemainfo
 
 
 def r_orient(geom):
-    sgeom = geom.__shapelygeom__
+    sgeom = geom.sgeom or geom.__shapelygeom__
     return sgeom.minimum_rotated_rectangle
 
 
@@ -27,13 +27,13 @@ def calculeangle(p1, p2):
 def f_rectangle_oriente(regle, obj):
     """#aide||calcul du rectangle oriente minimal
     #pattern||;;;r_min;;
-      #test2||obj;poly||^;;;r_min;;||;has:geomV;;;X;1;;set||atv;X;1
+      #test1||obj;ligne3p||^;;;r_min;;||atv;#type_geom;3
+      #test2||obj;ligne3p||^;;;r_min;;||^Z;;;aire||^Z;;Z;round;5;||atn;Z;2
     """
-    if obj.initgeom():
+    if obj.geom_v.sgeom or obj.initgeom():
         sgeom = r_orient(obj.geom_v)
         obj.geom_v.setsgeom(sgeom)
         setschemainfo(regle, obj, multi = False, type = '3')
-        # print ('rectangle',ror )
 
 
 def h_angle(regle):
@@ -104,46 +104,69 @@ def h_buffer(regle):
     regle.join_style = int(regle.getvar("join_style", 1))
     regle.mitre_limit = float(regle.getvar("mitre_limit", 5.0))
     regle.limite = regle.params.cmp1.num
+    regle.largeur = regle.params.val_entree.num if regle.params.att_entree.val=="" else 0
 
 
-def optimise_buffer_aire(geom, regle):
-    """ calcule un buffer selon l'aire"""
-    aire_ref = geom.aire
-    aire_demandée = aire_ref * regle.limite
-    aire_courante = aire_ref
-    vb = 0.1
+def calcul_db(geom, regle, largeur):
     buffer = geom.buffer(
-        vb, regle.resolution, regle.cap_style, regle.join_style) #, regle.mitre_limit)
+        largeur, resolution=regle.resolution, cap_style=regle.cap_style, join_style=regle.join_style,
+            mitre_limit=regle.mitre_limit,)
 
-    aire_courante = buffer.aire
-    dvb = vb * (aire_courante / aire_ref - regle.limite)
-    while dvb > 0.01:
-        vb = vb + dvb
+    aire_courante = buffer.area
+    db = geom.buffer(
+        largeur+0.01,
+        resolution=regle.resolution,
+            cap_style=regle.cap_style,
+            join_style=regle.join_style,
+            mitre_limit=regle.mitre_limit,).area
+    return aire_courante,db-aire_courante
+
+def optimise_buffer_aire(geom, regle, largeur):
+    """ calcule un buffer selon l'aire"""
+    aire_demandee=geom.area*regle.limite
+    ecart_largeur = 1
+
+    while abs(ecart_largeur) > 0.001:
+        aire_courante,da = calcul_db(geom, regle, largeur)
+        ecart_aire=aire_demandee-aire_courante
+        ecart_largeur=ecart_aire/(da*100)
+        largeur=largeur+ecart_largeur
+        # print ("ecart vb",largeur,ecart_largeur)
         buffer = geom.buffer(
-            vb, regle.resolution, regle.cap_style, regle.join_style, regle.mitre_limit
-        )
-        dvb = vb * (aire_courante / aire_ref - regle.limite)
-    return buffer, vb
+            largeur, resolution=regle.resolution,
+            cap_style=regle.cap_style,
+            join_style=regle.join_style,
+            mitre_limit=regle.mitre_limit,)
+    return buffer, largeur
 
 
 def f_buffer(regle, obj):
     """#aide||calcul d'un buffer
-    #pattern||;C;?A;buffer;?C;
-      #test||obj;poly||^;1;;buffer;;||;has:geomV;;;X;1;;set||atv;X;1
+#parametres1||largeur buffer;attribut contenant la largeur;buffer
+#parametres2||buffer;rapport de surface
+  #variables||resolution:16,cap_style:1,join_style:1,mitre_limit:5
+   #pattern1||?A;?N;?A;buffer;?C;
+      #test1||obj;point||^;1;;buffer;;||^X;;;aire||^X;;X;round;||atn;X;3
+      #test2||obj;poly||^;1;;buffer;2;||^X;;;aire;||^X;;X;round;||atn;X;2
     """
-    if obj.initgeom():
-        sgeom = obj.geom_v.__shapelygeom__
+    if obj.geom_v.sgeom or obj.initgeom():
+        sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
+        largeur = regle.largeur or float(regle.get_entree(obj))
         buffer = sgeom.buffer(
-            float(regle.get_entree(obj)),
-            regle.resolution,
-            regle.cap_style,
-            regle.join_style) #,regle.mitre_limit,)
+            largeur,
+            resolution=regle.resolution,
+            cap_style=regle.cap_style,
+            join_style=regle.join_style,
+            mitre_limit=regle.mitre_limit,)
         if regle.limite:
             aire_init = sgeom.area
-            if buffer.area / aire_init < regle.limite:
-                buffer, largeur = optimise_buffer_aire(sgeom, regle)
-        print (buffer)
+            if aire_init and buffer.area / aire_init > regle.limite:
+                # print("optimisation surface")
+                buffer, largeur = optimise_buffer_aire(sgeom, regle, largeur)
+        # print ("buffer calcule",buffer)
         obj.geom_v.setsgeom(buffer)
+        if regle.params.att_sortie.val:
+            obj.attributs[regle.params.att_sortie.val]=str(largeur)
         setschemainfo(regle, obj, multi=True, type='3')
         # print ('rectangle',ror )
 
@@ -176,8 +199,8 @@ def f_ingeom(regle, obj):
         #pattern2||;;;geoselect;=in;C
         #test||obj;poly||^;1;;buffer;;||;has:geomV;;;X;1;;set||atv;X;1
         """
-    if obj.initgeom():
-        sgeom = obj.geom_v.__shapelygeom__
+    if obj.geom_v.sgeom or obj.initgeom():
+        sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
         if regle.multiple:
             intersected=False
             for i in regle.objets.values:

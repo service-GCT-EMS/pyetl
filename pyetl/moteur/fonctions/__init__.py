@@ -68,6 +68,7 @@ class DefinitionAttribut(object):
         "NC:": (r"^(.*(:?(:?N:|C:) ?(" + asdef + r").*)$)", "S", ""),
         "NC2:": (r"^(.*(:?(:?N:|C:) .*).*$)", "S", ""),
         "re": (r"(.+)", "C", ""),
+        "=:": (r"^=:(.+)", "C", ""),
         "re:re": (r"^re:(.+)$", "C", ""),
         "C": (r"(.+)", "C", ""),
         "C[]": (r"^(.*\[[CDF]\].*)$", "C", ""),
@@ -105,7 +106,7 @@ class DefinitionAttribut(object):
         if pattern == "":
             self.priorite = 9
             self.nature = "vide"
-        elif "=" in pattern:
+        elif "=" in pattern and not "=:" in pattern:
             self.nature = "fixe"
             self.priorite = 1
             self.expression = "^(" + pattern.replace("=", "") + ")$"

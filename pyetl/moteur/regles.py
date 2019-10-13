@@ -92,7 +92,7 @@ class Valdef(object):
         return self.texte + "->" + str(self.val)
 
     def getval(self,obj):
-        return obj.attributs.get(self.origine) if self.dyn else self.val
+        return obj.attributs.get(self.origine,"") if self.origine else self.val
 
 
 class ParametresFonction(object):
@@ -149,7 +149,7 @@ class ParametresFonction(object):
         dyn = "*" in val
         origine = None
         if val.startswith("["):
-            dyn = True
+            # dyn = True
             origine = val[1:-1]
 
         #        var = "P:" in val

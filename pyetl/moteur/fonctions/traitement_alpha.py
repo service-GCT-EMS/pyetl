@@ -412,8 +412,7 @@ def f_strip2(regle, obj):
     #pattern2||A;?;;strip;?C;||entree
     #test||obj||^V4;abbaa;;set||^;;V4;strip;a;||atv;V4;bb
     #test2||obj||^V4;abbaa;;set||^V4;;;strip;a;||atv;V4;bb
-
-       """
+    """
     if regle.params.cmp1.val:
         obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip(regle.params.cmp1.val)
     else:
@@ -426,9 +425,6 @@ def f_len(regle, obj):
     #pattern||S;?;A;len;;
     #test||obj||^X;toto;;set;||^Y;;X;len;;||atv;Y;4
     """
-    #    regle.fstore(regle.params.att_sortie, obj,
-    #                 str(len(obj.attributs.get(regle.params.att_entree.val,
-    #                                           regle.params.val_entree.val))))
     regle.setval_sortie(obj, str(len(regle.getval_entree(obj))))
     return True
 
@@ -439,14 +435,7 @@ def f_crypt(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
-    clef = (
-        obj.attributs.get(regle.params.cmp1.origine, "")
-        if regle.params.cmp1.dyn
-        else regle.params.cmp1.val
-    )
-    val = regle.getval_entree(obj)
-    crypte = regle.stock_param.crypter(val, clef)
-    #    print ('dans crypte',val,regle.params.cmp1.val,'--->',crypte)
+    crypte = regle.stock_param.crypter(regle.getval_entree(obj), regle.params.cmp1.getval(obj))
     obj.attributs[regle.params.att_sortie.val] = crypte
     return True
 
@@ -458,11 +447,7 @@ def f_decrypt(regle, obj):
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
 
     """
-    clef = (
-        obj.attributs.get(regle.params.cmp1.origine, "")
-        if regle.params.cmp1.dyn
-        else regle.params.cmp1.val
-    )
+    clef = regle.params.cmp1.getval(obj)
     val = regle.getval_entree(obj)
 
     decrypte = regle.stock_param.decrypt(val, clef)
@@ -479,12 +464,12 @@ def f_vset(regle, obj):
     valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
     #    print ('dans vset',regle.params.att_sortie.val,valeur)
     if valeur != regle.getvar(regle.params.att_sortie.val):
-        regle.context.setvar(regle.params.att_sortie.val, valeur)
+        regle.setvar(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
-    #    print ('stocke ', regle.params.att_sortie.val,
-    #           regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
+        # print ('stocke ', regle.params.att_sortie.val,
+            #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 
@@ -819,9 +804,10 @@ def f_hget3(regle, obj):
 
 def f_hsplit(regle, obj):
     """#aide||decoupage d'un attribut hstore
+    #parametres||
     #pattern||M;?;A;hsplit;?L
      #schema||ajout_attribut
-       #test1||obj||^X;;;hset||^k,v;;X;hsplit;k:;||cnt;4
+       #test1||obj||^X;;;hset||^k,v;;X;hsplit>;C1,C2,C3;||cnt;3
        """
     try:
         hdic = obj.gethdict(regle.params.att_entree.val)
@@ -954,6 +940,17 @@ def f_round(regle, obj):
     #test||obj||^X;1.534;;set||^X;;X;round;2||atn;X;1.53
     """
     regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)), regle.ndec)))
+    return True
+
+def f_vround(regle, obj):
+    """#aide|| arrondit une variable a n decimales
+    #pattern||P;?N;A;round;?N;||sortie
+    #schema||ajout_attribut
+    #helper||round
+    #test||obj||^X;1.534;;set||^P:W;;X;round;2||ptv;W;1.53
+    """
+    valeur= str(round(float(regle.getval_entree(obj)), regle.ndec))
+    regle.setvar(regle.params.att_sortie.val, valeur)
     return True
 
 

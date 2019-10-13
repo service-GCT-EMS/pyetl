@@ -366,7 +366,7 @@ db:%acces%;[#niveau];[#classe];;;;;dbalpha;=;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#bdiff;acces;;;;;;;;;
 #!help;sort un objet s il n existe pas en base;;;;;;;;;;
-[#niveau];;[#classe];;cmp;P:#pk;;preload;#indb;;fin;
+[#niveau];;[#classe];;cmp;P:#pk;;preload;#indb:acces;;fin;
 P:#pk;!in:#cmp;;;;;;pass>;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#grid;x_orig;y_orig;pas;cases;;;;;;
