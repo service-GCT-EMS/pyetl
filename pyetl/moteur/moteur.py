@@ -246,7 +246,8 @@ class Context(object):
     """contexte de stockage des variables"""
 
     def __init__(self, parent=None, ident="", type_c="C"):
-        self.ident = type_c + ident
+        self.nom = type_c + ident
+        self.ident = self.nom
         self.type_c = type_c
         self.vlocales = dict()
         self.search = [self.vlocales]
@@ -256,7 +257,7 @@ class Context(object):
         # gestion des hierarchies
         if parent is not None:
             self.ref = parent if parent.type_c == "C" else parent.ref  # pour les macroenv
-            self.ident = parent.ident + "<-" + self.ident
+            self.ident = parent.ident + "<-" + self.nom
             self.search.extend(parent.search)
         self.root = self.ref.root
 
@@ -265,10 +266,11 @@ class Context(object):
         if context is not None:
             self.ref=context
             self.parent=context
+            self.ident = self.parent.ident + "<-" + self.nom
             self.search = [self.vlocales]+context.search
 
     def getmacroenv(self, ident=""):
-        """fournit un contexte ephemere lia au contexte de reference"""
+        """fournit un contexte ephemere lie au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="M")
 
     def getcontext(self, ident=""):
@@ -307,7 +309,7 @@ class Context(object):
         #        print ('contexte setvar', nom, valeur)
         if nom in self.vlocales or self.root==self:
             self.vlocales[nom] = valeur
-            # print ("stockage",self)
+            # print ("stockage",nom,"->",valeur, self)
         else:
             self.ref.setvar(nom, valeur)
 

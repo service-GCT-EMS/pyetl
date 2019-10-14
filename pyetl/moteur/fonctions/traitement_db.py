@@ -248,7 +248,7 @@ def f_dbalpha(regle, obj):
             )
         #    print ('regles alpha: valeur retour',retour,obj)
         return retour
-    print("fdbalpha: base non definie ", base)
+    print("fdbalpha: base non definie ", base, regle.context, regle)
     return False
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -536,7 +536,7 @@ def f_dbcount(regle, obj):
         #        print ('regles cnt: valeur retour',retour,obj)
         obj.attributs[regle.params.att_sortie.val] = str(retour)
         return True
-    print("fdbalpha: base non definie ", base)
+    print("dbcount: base non definie ", base)
     return False
 
 

@@ -695,16 +695,21 @@ def get_connect(
     return connect, schema_travail, liste2
 
 
-def get_typecode(curs, typecode):
+def get_dbtype(connect, typecode):
     """recupere le type du retour par defaut texte"""
     return "text"
-    connection = curs.connect
     connection.request()
 
 
-def schema_from_curs(curs):
+def schema_from_curs(curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
-    nom, typecode, _, _, taille, dec, _ = curs.description
+    connect = curs.connect
+    schemaclasse = connect.schemabase.get_classe(nomclasse, cree=True)
+    for colonne in curs.description:
+        nom, typecode, _, _, taille, dec, _ = colonne
+        type_attribut = get_dbtype(connect,typecode)
+        schemaclasse.stocke_attribut(nom,type_attribut,taille=taille,dec=dec)
+    return schemaclasse
 
 
 def sortie_resultats(
@@ -945,6 +950,46 @@ def lire_table(ident, regle_courante, parms=None):
                     schema_classe_travail.stocke_attribut(nom, "T")
         return res
     return 0
+
+def lire_requete(ident, regle_courante, parms=None, requete=''):
+    """lecture directe"""
+    if ident is None:
+        return 0
+    niveau, classe = ident
+    base, type_base, chemin, maxobj,sortie,v_sortie = (
+        parms
+    )
+    connect = get_connect(regle_courante.stock_param, base,'','',type_base=type_base,chemin=chemin)
+    curs = connect.request(requete, maxobj)
+
+    #            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+    #        print ('dbaccess : ',ident)
+    treq = time.time()
+    #        print ('-----------------------traitement curseur ', curs,type(curs) )
+    treq = time.time() - treq
+    connect.connection.commit()
+    if curs:
+        schema_classe_travail = schema_from_curs(curs, ident)
+        res = sortie_resultats(
+            regle_courante,
+            curs,
+            niveau,
+            classe,
+            connect,
+            sortie,
+            v_sortie,
+            schema_classe_travail.info["type_geom"],
+            schema_classe_travail,
+            treq=treq,
+        )
+
+        if sortie:
+            for nom in sortie:
+                if nom and nom[0] != "#":
+                    schema_classe_travail.stocke_attribut(nom, "T")
+        return res
+    return 0
+
 
 
 def recup_donnees_req_alpha(

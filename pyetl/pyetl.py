@@ -721,10 +721,11 @@ class Pyetl(object):
                 return
         setter = self.set_param if context is None else context.setvar
         if clef in self.site_params:
-#            print("chargement", clef, self.site_params[clef], context)
+            # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
                 val, _ = map_vars(val, context)  # on fait du remplacement à la volee
                 setter(var, val)
+                # print('loadparamgroup',setter,var,val)
                 if nom:
                     setter(var + "_" + nom, val)
 

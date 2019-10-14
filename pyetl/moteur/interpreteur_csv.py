@@ -595,7 +595,7 @@ def map_vars(ligne, context):
     #    l_orig = ligne
     for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
         nom_param = j.replace("%", "")
-
+        # print ('variable', context, nom_param,'->', context.getvar(nom_param))
         ligne = ligne.replace(j, context.getvar(nom_param))
 
         binding[nom_param] = context.getvar(nom_param, nom_param)
@@ -885,7 +885,7 @@ def importe_macro(mapper, texte, context, fichier_regles):
     #    numero, texte_brut = defligne
     #    texte = texte_brut.strip()
     #    texte_brut = texte
-    #    print ('recu macro',texte)
+    # print ('recu macro',texte)
     match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
@@ -894,6 +894,7 @@ def importe_macro(mapper, texte, context, fichier_regles):
     idenv = texte.split(";")[0]
     macroenv = context.getmacroenv(ident=idenv)
     texte, binding = map_vars(texte, macroenv)
+    # print ('mapping parametres macro', texte)
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
     vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
@@ -927,7 +928,7 @@ def initmacro(mapper, texte, fichier_regles):
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
-    print('enregistrement macro',mapper.idpyetl,nom)
+    # print('enregistrement macro',mapper.idpyetl,nom)
     return macro
 
 
