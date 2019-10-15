@@ -507,12 +507,14 @@ def f_ftpupload(regle, obj):
     """
     filename = regle.getval_entree(obj)
     destname = regle.destdir+ '/'+ str(os.path.basename(filename))
+
     # destname = regle.destdir
     if not regle.ftp:
         retour = ftpconnect(regle)
         if not retour:
             return False
         print ('connection ftp etablie')
+
 
     try:
         # print ('envoi fichier',filename,'->',destname)
@@ -535,25 +537,40 @@ def f_ftpupload(regle, obj):
 
 def f_ftpdownload(regle, obj):
     """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;
+  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
     #pattern||;?C;?A;ftp_download;C;?C
      #helper||ftpupload
        #test||notest
     """
     if not regle.ftp:
-        _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-        #        print ('ouverture acces ',regle.getvar('acces_ftp'))
-        if servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
-        else:
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+        if not regle.ftp:
+            retour = ftpconnect(regle)
+            if not retour:
+                return False
+        print ('connection ftp etablie')
+
 
     filename = regle.getval_entree(obj)
-    distname = os.path.basename(filename)
+    localdir = regle.getvar('localdir',os.path.join(regle.getvar('_sortie','.')))
+    localname = os.path.join(localdir,filename)
+    os.makedirs(localdir,exist_ok=True)
+    print('creation repertoire',localdir)
+
     try:
-        localfile = open(filename, "wb")
-        regle.ftp.retrbinary("RETR " + distname, localfile.write)
-        localfile.close()
+        if regle.servertyp == 'sftp':
+            print ('choix repertoire',regle.destdir)
+            regle.ftp.cwd(regle.destdir)
+            if filename == '*':
+                regle.ftp.get_d('.',localdir, preserve_mtime=True)
+            elif filename == '*/*':
+                regle.ftp.get_r('.',localdir, preserve_mtime=True)
+            else:
+                regle.ftp.get(filename,localpath=localname, preserve_mtime=True)
+        else:
+            localfile = open(localname, "wb")
+            regle.ftp.retrbinary("RETR " + filename, localfile.write)
+            localfile.close()
+        print ("transfert effectue",filename,'->',localname)
         return True
 
     except ftplib.error_perm:

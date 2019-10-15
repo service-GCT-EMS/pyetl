@@ -371,7 +371,7 @@ def format_date(date):
     )
 
 
-def _ecrire_entete_asc(obj):
+def _ecrire_entete_asc(obj) ->str:
     """ genere le texte d'entete asc a partir d'un objet en memoire"""
     types_geom_asc = {"0": ";5 ", "1": "3", "2": ";9 ", "3": ";9 "}
     type_geom_sortie = ";5 "

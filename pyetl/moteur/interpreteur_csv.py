@@ -879,18 +879,8 @@ def traite_regle_std(
         erreurs = 1
     return bloc, erreurs
 
-
-def importe_macro(mapper, texte, context, fichier_regles):
-    """ importe une macro et l 'interprete"""
-    #    numero, texte_brut = defligne
-    #    texte = texte_brut.strip()
-    #    texte_brut = texte
-    # print ('recu macro',texte)
-    match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
-    #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
-    niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
-    texte = match.group(4)
-    # on cree un contexte avec ses propres valeurs locales
+def prepare_env(mapper, texte, context, fichier_regles):
+    '''lance une macro en one shot'''
     idenv = texte.split(";")[0]
     macroenv = context.getmacroenv(ident=idenv)
     texte, binding = map_vars(texte, macroenv)
@@ -913,8 +903,49 @@ def importe_macro(mapper, texte, context, fichier_regles):
         inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])
     #            print("lecture de regles incluses", inclus,pps)
     macroenv.update(settings)
-    #            print ("demarrage macro",vloc)
-    # print('creation contexte macro', macroenv, macroenv.vlocales)
+    return inclus, macroenv
+
+def execute_macro(mapper, texte, context, fichier_regles):
+    '''lance une macro en one shot'''
+    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    mapper.macrorunner(inclus, entree=macroenv.getvar('entree'), sortie=macroenv.getvar('sortie'), context=macroenv)
+
+def importe_macro(mapper, texte, context, fichier_regles):
+    """ importe une macro et l 'interprete"""
+    #    numero, texte_brut = defligne
+    #    texte = texte_brut.strip()
+    #    texte_brut = texte
+    # print ('recu macro',texte)
+    match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
+    #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
+    niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
+    texte = match.group(4)
+    # on cree un contexte avec ses propres valeurs locales
+    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    # idenv = texte.split(";")[0]
+    # macroenv = context.getmacroenv(ident=idenv)
+    # texte, binding = map_vars(texte, macroenv)
+    # # print ('mapping parametres macro', texte)
+    # champs = texte.split(";")
+    # nom_inclus = champs[0][1:].strip()
+    # vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
+    # settings = dict([i.split('=',1) for i in champs if "=" in i])
+
+    # #    print ('lecture macro',texte,'->',niveau)
+
+    # if nom_inclus[0] == "#":
+    #     inclus = nom_inclus  # macro
+    #     macro = mapper.macros.get(inclus)
+    #     if macro:
+    #         #            print ('affectation variables macro', vpos, macro.bind(vpos))
+    #         macroenv.update(macro.vdef)
+    #         macroenv.update(macro.bind(vpos))  # affectation des variables locales
+    # else:
+    #     inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])
+    # #            print("lecture de regles incluses", inclus,pps)
+    # macroenv.update(settings)
+    # #            print ("demarrage macro",vloc)
+    # # print('creation contexte macro', macroenv, macroenv.vlocales)
 
     erreurs = lire_regles_csv(mapper, inclus, niveau=niveau, context=macroenv)
     return erreurs
@@ -1031,7 +1062,8 @@ def lire_regles_csv(
 
         elif texte.startswith("$"):
             affecte_variable(mapper, texte, context)
-
+        elif texte.startswith("<<"): # execution immediate d'une macro
+            execute_macro(mapper,texte[1:],context,fichier_regles)
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             #            print ('avant macro',vloc)
             erreurs += importe_macro(mapper, texte, context, fichier_regles)

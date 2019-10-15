@@ -192,6 +192,7 @@ def tmp_geom(obj, convertisseur):
 def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
     obj =  None
+    form = None
     for ligne in open(fichier, "r", encoding="utf-8"):
         if ligne:
             code = ligne[0]

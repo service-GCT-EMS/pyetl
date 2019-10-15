@@ -114,7 +114,7 @@ def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod="utf-8", tr
     with open(nomfich, "w", encoding=cod, errors="replace") as fich:
         codecinfo = (
             "-- ########### encodage fichier "
-            + str(fich.encoding)
+            + cod
             + " ###(controle: n°1: éàçêè )####\n"
         )
         fich.write(codecinfo)
@@ -122,8 +122,8 @@ def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod="utf-8", tr
 
 
 def ecrire_schema_sql(
-    rep,
-    schema,
+    rep: str,
+    schema: SCI.Schema,
     type_base="std",
     cod="utf-8",
     modeconf=-1,

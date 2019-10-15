@@ -534,6 +534,8 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
     entree = rep
     parametres_fichiers = {}
     retour = []
+    if debug:
+        print ('scan_entree repertoire a scanner',rep)
     if not entree:
         return retour, parametres_fichiers
     #    force_format = ''

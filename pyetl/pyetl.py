@@ -908,7 +908,7 @@ class Pyetl(object):
 
     #        print("charge: prechargement",fichier, ident_fich, stock)
 
-    def _prep_chemins(self, chemin, nom):
+    def _prep_chemins(self, chemin: str, nom:str)-> str:
         """effectue la resolution des chemins """
         # chemin du fichier de donnees
         f_intrm = nom.replace("C:", os.path.join(self.racine, chemin))
@@ -954,6 +954,8 @@ class Pyetl(object):
 
     def process(self, debug=0):
         """traite les entrees """
+        print ('debut_process avant macro',self.idpyetl)
+        self.macro_entree()
         if self.done:
             try:
                 self.menage_final()
@@ -1020,6 +1022,7 @@ class Pyetl(object):
             print("mapper: ---------> finalisation:")
         else:
             try:
+                print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
                 abort = True
@@ -1057,50 +1060,66 @@ class Pyetl(object):
         self.macro_final()
         return
 
-    def macro_final(self):
-        """ execute une macro finale"""
-        macrofinale = self.context.getlocal("_end")
-        if not macrofinale:
-            macrofinale = self.context.getlocal("#end")
-        # print ('finalisation commande ', self.idpyetl, macrofinale,self.context)
-        if not macrofinale or (self.worker and self.parent is None):
-            # le worker de base n'execute pas de macro finale
-            macrofinale = self.context.getlocal("_w_end")
-            if not macrofinale:
-                return
-        mdef = macrofinale.split(":")
+    def macrorunner(self, texte, parametres=None, entree=None, sortie=None, retour=None, context=None):
+        '''execute une macro (initiale ou finale)'''
+        decodage = texte.split(';')
+        macrodef = decodage[0]
+        mdef = macrodef.split("|" if "|" in macrodef else ":")
         nom_macro = mdef[0]
-        variables = mdef[1:]
+        vpos = mdef[1:]
         macro = self.macros.get(nom_macro)
-#        macroenv = self.context.getmacroenv(ident=nom_macro)
         if macro is None:
-            print("macro finale inconnue", nom_macro)
+            print("macro inconnue", nom_macro)
             print("macros:",self.idpyetl,sorted(self.macros.keys()))
             return
-        if not variables:
-            parametres = self.get_param("parametres_final")
-            params = (
-                [i.strip('"').replace('"=>"', "=") for i in parametres.split('", "')]
-                if parametres
-                else None
-            )
-        else:
-            if macro.vpos:
-                params = [nom + "=" + valeur for nom, valeur in zip(macro.vpos, variables)]
-
-            else:
-                params = variables
-
-        entree = self.get_param("entree_final", self.get_param("_sortie"))
-        sortie = self.get_param("sortie_final", self.get_param("_sortie"))
-        #        print('script final parametres', nom_macro, entree, sortie, params, variables, macro.vpos)
-        #        return True
-        processor = self.getpyetl(nom_macro, liste_params=params, entree=entree, rep_sortie=sortie)
+        params = (
+            [i.strip('"').replace('"=>"', "=") for i in parametres.split('", "')]
+            if parametres
+            else []
+        )
+        if macro.vpos:
+            params.extend([nom + "=" + valeur for nom, valeur in zip(macro.vpos, vpos)])
+        processor = self.getpyetl(nom_macro, liste_params=params, entree=entree, rep_sortie=sortie, context=context)
         #        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
         #                                                       for i in macro.vpos])
         if processor is not None:
             processor.process()
-            print("script final effectue", nom_macro, self.idpyetl, "->", processor.idpyetl)
+            print("macro effectuee", nom_macro, self.idpyetl, "->", processor.idpyetl)
+            if retour:
+                for nom in retour:
+                    self.set_param(nom, processor.get_param(retour[nom]))
+        return
+
+
+    def macro_final(self):
+        """ execute une macro finale"""
+        if (self.worker and self.parent is None):
+            macrofinale = self.context.getlocal("_w_end")
+        else:
+            macrofinale = self.context.getlocal("_end") or self.context.getlocal("#end")
+        if not macrofinale:
+            return
+        parametres = self.get_param("parametres_final")
+        entree = self.get_param("entree_final", self.get_param("_sortie"))
+        sortie = self.get_param("sortie_final", self.get_param("_sortie"))
+        self.macrorunner(macrofinale, parametres, entree, sortie)
+        return
+
+    def macro_entree(self):
+        """ execute une macro de demarrage"""
+
+        if (self.worker and self.parent is None):
+            macroinit = self.context.getlocal("_w_start")
+        else:
+            macroinit = self.context.getlocal("_start") or self.context.getlocal("#start")
+        if not macroinit:
+            print ('pas de macro initiale')
+            return
+        print ('macro initiale', macroinit)
+        parametres = self.get_param("parametres_initial")
+        entree = self.get_param("entree_initial", self.get_param("_entree"))
+        sortie = self.get_param("sortie_initial", self.get_param("_entree"))
+        self.macrorunner(macroinit, parametres, entree, sortie)
         return
 
     def _ecriture_schemas(self):
@@ -1163,6 +1182,8 @@ class Pyetl(object):
             if self.worker and self.parent is None:
                 return  # on ecrit pas on remonte
             liste_fich = self.sorties.getstats()
+            if not liste_fich:
+                return
             if rep_sortie:
                 if self.worker:
                     fstat = os.path.join(
@@ -1194,7 +1215,7 @@ class Pyetl(object):
             print("info: pyetl:job_control", self.get_param("job_control"))
             open(self.get_param("job_control"), "w").write("fin mapper\n")
 
-    def lecture(self, fich, regle=None, reglenum=None, parms=None):
+    def lecture(self, fich, regle=None, reglenum=None, parms: [str]=None):
         """ lecture d'un fichier d'entree"""
         if parms is not None:
             racine, chemin, fichier, ext = parms
