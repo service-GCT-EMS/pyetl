@@ -376,6 +376,10 @@ class DbConnect(object):
         """forcage date"""
         return nom
 
+    def dscast(self, nom):
+        """forcage date simple"""
+        return nom
+
     def numcast(self, nom):
         """forcage numerique"""
         return nom
@@ -488,6 +492,8 @@ class DbConnect(object):
         cast = self.nocast
         if type_att == "D":
             cast = self.datecast
+        if type_att == "DS":
+            cast = self.dscast
         elif type_att in "EFS":
             cast = self.numcast
         elif schema.attributs[attribut].conformite:

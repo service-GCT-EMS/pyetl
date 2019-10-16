@@ -34,7 +34,8 @@ TYPES_A = {
     "LONG": "EL",
     "ENTIER_LONG": "EL",
     "D": "D",
-    "DATE": "D",
+    "DS": "DS",
+    "DATE": "DS",
     "TIMESTAMP": "D",
     "TIMESTAMP WITHOUT TIME ZONE": "D",
     "TIME WITHOUT TIME ZONE": "D",
@@ -77,6 +78,8 @@ TYPES_PG = {
     "entier_long": "bigint",
     "D": "timestamp",
     "d": "timestamp",
+    "DS": "date",
+    "ds": "date",
     "H": "hstore",
     "h": "hstore",
     "hstore": "hstore",
@@ -174,7 +177,7 @@ class PgrConnect(DbConnect):
         """positionne les path pour la session"""
         cur = self.connection.cursor()
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
-        cur.execute("select set_config('search_path' , 'public',False)", ())
+        cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
 
 
@@ -262,7 +265,7 @@ class PgrConnect(DbConnect):
             "def_fonctions_trigger"
         ] = self._def_fonctions_trigger()
 
-    #        print (list(i for i in self._def_fonction_triggers() if "admin_sigli" in i))
+        # print (list(i for i in self._def_fonctions_trigger()))
 
     def _def_vues(self):
         return {
@@ -282,13 +285,17 @@ class PgrConnect(DbConnect):
         #        print ('triggers')
         #        print (self.request(REQS["info_triggers"]))
         def_trigg["_header"] = [
+            "schema"
             "table",
             "nom",
-            "condition",
+            "type_trigger",
             "action",
             "declencheur",
             "timing",
             "event",
+            "colonnes",
+            "condition"
+            "sql"
         ]
         for i in self.request(self.reqs["info_triggers"]):
             #            print ('triggers',i)
@@ -321,7 +328,7 @@ class PgrConnect(DbConnect):
         fonctions_a_garder = set()
         for i in els["def_triggers"].values():
             for j in i.values():
-                fonction = re.sub(r"EXECUTE PROCEDURE (.*)\(.*\)", r"\1", j[1])
+                fonction = re.sub(r"(.*)\(.*\)", r"\1", j[1])
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
         els["def_fonctions_trigger"] = {

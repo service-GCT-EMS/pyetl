@@ -19,7 +19,7 @@ TYPES_A = {
     "F": "F",
     "NUMBER": "F",
     "TIMESTAMP": "D",
-    "DATE": "D",
+    "DATE": "DS",
     "ROWID": "E",
     "FLOAT": "F",
     "NUMERIC": "N",

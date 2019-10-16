@@ -28,7 +28,7 @@ TYPES_A = {
     "BLOB": "X",
     "SDO_GEOMETRY": "GEOMETRIE",
     "TIMESTAMP(6)": "D",
-    "DATE": "D",
+    "DATE": "DS",
     "ROWID": "E",
     "SMALLINT": "E",
     "OID": "E",
@@ -311,7 +311,7 @@ class OraConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         self.decile = 1

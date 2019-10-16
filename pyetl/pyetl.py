@@ -954,7 +954,7 @@ class Pyetl(object):
 
     def process(self, debug=0):
         """traite les entrees """
-        print ('debut_process avant macro',self.idpyetl)
+        # print ('debut_process avant macro',self.idpyetl)
         self.macro_entree()
         if self.done:
             try:
@@ -1022,7 +1022,7 @@ class Pyetl(object):
             print("mapper: ---------> finalisation:")
         else:
             try:
-                print ('debut_process sans entree apres macro',self.idpyetl)
+                # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
                 abort = True
@@ -1113,7 +1113,7 @@ class Pyetl(object):
         else:
             macroinit = self.context.getlocal("_start") or self.context.getlocal("#start")
         if not macroinit:
-            print ('pas de macro initiale')
+            # print ('pas de macro initiale')
             return
         print ('macro initiale', macroinit)
         parametres = self.get_param("parametres_initial")

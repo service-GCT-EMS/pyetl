@@ -52,7 +52,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         "long": "EL",
         "float": "F",
         "datetime": "D",
-        "date": "D",
+        "date": "DS",
         "time": "D",
     }
     # print ('recup_schema fiona:', ident, description, schema_courant)

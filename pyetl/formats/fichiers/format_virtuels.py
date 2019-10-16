@@ -49,7 +49,7 @@ def affiche_header(obj):
     print(",".join(obj.schema.get_liste_attributs()))
 
 
-def affiche_stream(self, obj, regle, **__):
+def affiche_stream(self, obj, regle, *_, **__):
     """affichage"""
     if obj.ident != regle.dident:
         affiche_header(obj)

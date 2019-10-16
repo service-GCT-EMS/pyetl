@@ -39,6 +39,8 @@ class PgrGenSql(DbGenSql):
             "entier_long": "bigint",
             "D": "timestamp",
             "d": "timestamp",
+            "DS": "date",
+            "ds": "date",
             "N": "numeric",
             "n": "numeric",
             "H": "hstore",
@@ -314,10 +316,43 @@ class PgrGenSql(DbGenSql):
                 )
         return comments
 
+    def cree_sql_trigger(self, nom, table, trigdef):
+        '''genere le sql d'un trigger'''
+        type_trigger, action, declencheur, timing, event,colonnes,condition,sql = trigdef
+        fonction = action
+        trig =[]
+        if "." in action:
+            scf, nomf = fonction.split(".")
+        else:
+            nomf = fonction
+            scf = self.defaut_schema
+            # schema d'admin comprenant routes les fonctions standard
+            fonction_2 = scf + "." + nomf
+            action_2 = action.replace(fonction, fonction_2, 1)
+            sql = sql.replace(action,action_2)
+            action = action_2
+        if nomf not in self.stdtriggers:
+            trig=["\nDROP TRIGGER IF EXISTS " + nom + " ON " + table + ";"]
+            if sql:
+                trig.append(sql)
+            else:
+                trig.append("\nCREATE "+type_trigger+" " + i)
+                trig.append(timing + " " + event + (" OF "+ colonnes) if colonnes else '')
+                trig.append("ON " + table)
+                trig.append("FOR EACH " + declencheur)
+                if condition:
+                    trig.append("WHEN " + condition)
+                trig.append('EXECUTE PROCEDURE' + action + ";")
+        idfonc = (scf, nomf.split('(')[0])
+        return idfonc, trig
+
+
     def cree_triggers(self, classe, groupe, nom):
         """ cree les triggers """
-        evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD "}
+        evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD OF"}
         evs2 = {"I": "INSERT ", "D": "DELETE ", "U": "UPDATE ", "T": "TRUNCATE"}
+        ttype = {"T": "TRIGGER","C": "CONSTRAINT"}
+        decl = {'R': "ROW", 'S':"STATEMENT"}
         table = groupe + "." + nom
         if self.basic:
             return []
@@ -336,25 +371,10 @@ class PgrGenSql(DbGenSql):
                 trig.append("\tEXECUTE PROCEDURE admin_sigli.auteur();")
         liste_triggers = classe.triggers
         for i in liste_triggers:
-            props = liste_triggers[i].split(",")
-            quand = props[0]
-            event = props[1]
-            if "," in event:
-                event = " OR ".join((evs2[e] for e in event.split(",")))
-            r_s = props[2]
-            pars = props[3:]
-
-            trig.append("CREATE TRIGGER " + i)
-            trig.append("\t" + evs[quand] + evs2[event])
-            trig.append("\tON " + table)
-            trig.append("\tFOR EACH " + "ROW" if r_s == "R" else "STATEMENT")
-            trig.append(
-                "\tEXECUTE PROCEDURE admin_sigli."
-                + i
-                + "("
-                + ",".join(["'" + j + "'" for j in pars])
-                + ");"
-            )
+            type_trigger, action, declencheur, timing, event,colonnes,condition,sql = liste_triggers[i].split(',')
+            trigdef=(ttype[type_trigger],action,decl[declencheur],evs[timing], evs2[event], colonnes,condition,sql)
+            idfonc,trigsql = self.cree_sql_trigger(i, table, trigdef)
+            trig.extend(trigsql)
         return trig
 
     def basetriggers(self, ident):
@@ -373,22 +393,13 @@ class PgrGenSql(DbGenSql):
             #            print ('definition triggers',schema.elements_specifiques['def_triggers'])
             if ident in specs["def_triggers"]:
                 table_trigs = specs["def_triggers"][ident]
+                print ('traitement trigger',table_trigs)
                 for i in table_trigs:
-                    condition, action, declencheur, timing, event = table_trigs[i]
-                    fonction = action.replace("EXECUTE PROCEDURE ", "").split("(")[0]
-                    if "." in fonction:
-                        scf, nomf = fonction.split(".")
-                    else:
-                        nomf = fonction
-                        scf = self.defaut_schema
-                        # schema d'admin comprenant routes les fonctions standard
-                        fonction_2 = scf + "." + nomf
-                        action = action.replace(fonction, fonction_2, 1)
-                    idfonc = (scf, nomf)
+                    idfonc, trigsql = self.cree_sql_trigger(i, table, table_trigs[i])
                     try:
                         deffoncs[idfonc] = specs["def_fonctions_trigger"][idfonc]
                     except KeyError:
-                        print("gsql fonction trigger manquante", idfonc)
+                        print("gsql fonction trigger manquante en base", idfonc,sorted(deffoncs.keys()))
                         if schemabase:
                             print ("recup def en base")
                             try:
@@ -396,22 +407,9 @@ class PgrGenSql(DbGenSql):
                                     "def_fonctions_trigger"
                                 ][idfonc]
                             except KeyError:
-                                print("gsql fonction trigger manquante en base", idfonc)
+                                print("gsql fonction trigger manquante en base", idfonc,sorted(deffoncs.keys()))
                     #                        stdnom = "tr_"+nomf+"_"+nom
-                    if nomf not in self.stdtriggers:
-                        #                            print("detection fonction", nomf, stdnom)
-                        if not trig:
-                            trig.append(
-                                "\n-- ###### definition des triggers" + " en base pour " + table
-                            )
-                        trig.append("\nDROP TRIGGER IF EXISTS " + i + " ON " + table + ";")
-                        trig.append("\nCREATE TRIGGER " + i)
-                        trig.append(timing + " " + event)
-                        trig.append("ON " + table)
-                        trig.append("FOR EACH " + declencheur)
-                        if condition:
-                            trig.append("WHEN " + condition)
-                        trig.append(action + ";")
+                    trig.extend(trigsql)
         return trig, deffoncs
 
     def get_nom_base(self, ident):

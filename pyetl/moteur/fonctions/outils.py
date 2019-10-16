@@ -14,6 +14,7 @@ import traceback
 import logging
 import glob
 import codecs
+import typing as T
 
 from pyetl.formats.generic_io import Reader
 from pyetl.formats.interne.objet import Objet
@@ -85,7 +86,7 @@ def description_schema(regle, nom, schema):
 
 
 
-def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
+def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> (str,str):
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
     if os.path.exists(path):
@@ -97,7 +98,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
                     # print ('match',pattern, chemin, element)
-                    yield (os.path.basename(element), chemin)
+                    yield (os.path.basename(element), str(chemin))
                 # else:
                 #     pass
 

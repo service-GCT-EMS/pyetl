@@ -210,7 +210,7 @@ class PgsGenSql(PgrGenSql):
             elif attribut.type_att in self.types_base:
                 typb = self.types_base[attribut.type_att]
                 #                print ('typage attributs', nom_att, attribut.type_att, typb)
-                if typb == "timestamp" or typb == "D":
+                if typb in {"timestamp","D","DS","TIMESTAMP",'d','ds'}:
                     editype = "DateTime"
                     complements = (
                         'calendar_popup="1" allow_null="1" '
