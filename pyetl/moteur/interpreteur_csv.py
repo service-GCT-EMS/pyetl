@@ -398,6 +398,9 @@ def identifie_operation(regle):
                 afficher_erreurs(regle, fonc, "fonction de sortie non valide")
         #        print ("regle.setparams", regle.elements, definition)
         regle.setparams(regle.elements, definition)
+        regle.valide = valide
+        if valide:
+            traite_helpers(regle, fonc)
         return valide, fonc
     afficher_erreurs(regle, fonc, "fonction non implementee:")
 
@@ -483,22 +486,12 @@ def traite_helpers(regle, fonc):
     return True
 
 
-def analyse_operation(regle):
-    """ identifie la fontion de traitement"""
-    #    print ('analyse',regle.mode,regle)
-    valide, fonc = identifie_operation(regle)
-    if valide:
-        traite_helpers(regle, fonc)
-    else:
-        regle.valide = False
-
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
     valeurs = regle.ligne.split(";")
     if len(valeurs) > 11:
         listevlocs = valeurs[11].split(',')
         regle.context.affecte(listevlocs,regle.context.ref)
-    #regle.ligne = map_vars(regle.ligne, regle.context)
     for n,v in enumerate(valeurs):
         valeurs[n]=(regle.context.resolve(v.strip()))
     if len(valeurs) <= 11:
@@ -548,7 +541,7 @@ def prepare_regle(regle, prec=None):
     #    regle.valide = "vide"
     if fonction:
         extraction_operation(regle, fonction)
-        analyse_operation(regle)
+        identifie_operation(regle)
     else:
         #            if re.match('^( *;*)*$',regle.ligne):
         if regle.valide != "vide":
@@ -566,10 +559,6 @@ def prepare_regle(regle, prec=None):
             print("                ------>", ";".join(morceaux))
             #            print('decodage champs', ' '.join([i+'->'+j for i, j in regle.v_nommees.items()]))
             raise SyntaxError("regle sans fonction")
-    #        else:
-    #            print ('regle vide',regle,regle.valide)
-    #    if regle.valide:
-    #        analyse_operation(regle)
     return regle.valide
 
 
@@ -632,28 +621,8 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None
     return regle
 
 
-def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
-    """ charge une macro et mappe les variables"""
-    macro = mapper.macros.get(cmd)
-    if macro is None:
-        print("macro inconnue", cmd)
-        raise SyntaxError
-    # macroenv.update(macro.vdef)
-    # print ('lecture_macro',macro.vdef)
-    # print ('variables',vpos)
-    macro.bind(vpos, macroenv)
-        # print ('affectation variables positionelles',position)
-    liste_regles.extend(macro.get_commands())
-
-
-#                print('recup lignes macro:',macro.get_commands())
-
-
 def decoupe_liste_commandes(mapper, fichier_regles, context):
     """ gere les cas ou la liste de commandes est un assemblage complexe de macros"""
-
-    liste_regles = []
-    pars = []
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
     if fichier_regles.startswith("'") and fichier_regles.endswith("'"):
@@ -662,16 +631,7 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
         liste_commandes = re.split("' *, *'", fichier_regles)
     else:
         liste_commandes = fichier_regles.split(",")
-    #        commande, *pars = liste_commandes[0].split(",")
-    liste_regles = []
-    for i in liste_commandes:
-        cmd, *pars = i.split("|" if "|" in i else ":")
-        #        vnom = [i for i in pars if "=" in i]
-        vpos = [i for i in pars if not "=" in i]
-        charge_macro(mapper, cmd, vpos, context, liste_regles)
-
-    #            liste_regles.append('$'+j)
-    return liste_regles
+    return ["<"+i  for i in liste_commandes]
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
@@ -727,7 +687,6 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     elif fichier_regles.startswith("#") or fichier_regles.startswith("['"):
         #       assemblage complexe de macros
         #        print ('a lire', fichier_regles)
-
         liste_regles = decoupe_liste_commandes(mapper, fichier_regles, context)
     #        print ('lu', '\n   '.join([str(i) for i in liste_regles]))
     else:
@@ -828,11 +787,7 @@ def traite_regle_std(
     """ traite une regle classique """
     #    texte = texte_brut.strip()
     erreurs = 0
-    texte = map_vars(texte, context)
     regles = mapper.regles if regle_ref is None else regle_ref.liste_regles
-    #    print ('interpretation', texte)
-    #            if mapper.init: # on rentre dans les commandes : on initialise les es
-    #                mapper.gestion_pospars()
     precedent=regles[-1] if regles else None
     try:
         r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context, prec=precedent)
@@ -959,7 +914,7 @@ def lire_regles_csv(
         start = 0
         while texte.startswith("K:") and not macro:
             liste_val = texte.split(";", 1)
-            cond = map_vars(liste_val[0], context)
+            cond,_ = context.resolve(liste_val[0])
             condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
 #            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch:  # interpretation conditionelle
@@ -1004,7 +959,7 @@ def lire_regles_csv(
         #        print ('icsv: regle ',i)
 
         elif texte.startswith("$#"):
-            ligne = map_vars(texte, context)
+            ligne,_ = context.resolve(texte)
             #            print('map _vars ' ,i, ligne)
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()

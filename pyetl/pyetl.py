@@ -33,7 +33,6 @@ from .moteur.interpreteur_csv import (
     lire_regles_csv,
     reinterprete_regle,
     interprete_ligne_csv,
-    map_vars,
 )
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, Macro, Context
@@ -723,7 +722,7 @@ class Pyetl(object):
         if clef in self.site_params:
             # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
-                val = map_vars(val, context)  # on fait du remplacement à la volee
+                val,_ = context.resolve(val)  # on fait du remplacement à la volee
                 setter(var, val)
                 # print('loadparamgroup',setter,var,val)
                 if nom:
