@@ -28,7 +28,7 @@ TYPES_A = {
     "BLOB": "X",
     "SDO_GEOMETRY": "GEOMETRIE",
     "TIMESTAMP(6)": "D",
-    "DATE": "D",
+    "DATE": "DS",
     "ROWID": "E",
     "SMALLINT": "E",
     "OID": "E",
@@ -56,6 +56,7 @@ class OraConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.accept_sql = "alpha"
         self.dateformat = "YYYY/MM/DD HH24:MI:SS"
+        self.requetes = {"info_enums":self.req_enums,"info_tables":self.req_tables,"info_attributs":self.req_attributs}
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -78,7 +79,7 @@ class OraConnect(DbConnect):
     @property
     def req_enums(self):
         """recupere les enums (vide sous oracle)"""
-        return "", ()
+        return ""
 
     @property
     def req_tables(self):
@@ -149,14 +150,14 @@ class OraConnect(DbConnect):
             + requete_mvues
             + exclusions
         )
-        return requete, ()
+        return requete
 
     @property
     def req_attributs(self):
         """recupere le schema complet avec tous ses champs
             nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
             defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,taille,decimales"""
+            clef_primaire,clef_etrangere,cible_clef,parametres, taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,
@@ -187,6 +188,7 @@ class OraConnect(DbConnect):
                     WHEN fkey_col.position IS NOT NULL THEN
                         (select column_name from all_cons_columns cc where cc.owner=col.owner and cc.constraint_name = fkey_col.r_constraint_name and cc.position=fkey_col.position)
                     ELSE '' END AS cible,
+                '' AS parametres,
                 col.data_length as taille,
                 col.data_scale as decimales
 
@@ -231,7 +233,7 @@ class OraConnect(DbConnect):
                 ORDER BY col.owner,col.table_name,col.column_id
                     """
 
-        return requete, ()
+        return requete
 
     def get_dateformat(self, nom):
         """formattage dates"""
@@ -309,7 +311,7 @@ class OraConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         self.decile = 1

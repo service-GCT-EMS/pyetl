@@ -18,7 +18,7 @@ TYPES_A = {
     "F": "F",
     "NUMBER": "F",
     "TIMESTAMP": "D",
-    "DATE": "D",
+    "DATE": "DS",
     "ROWID": "E",
     "FLOAT": "F",
     "NUMERIC": "N",
@@ -169,6 +169,10 @@ class SqltConnect(DbConnect):
         """forcage date"""
         return 'cast('+nom+' as timestamp)'
 
+    def dscast(self, nom):
+        """forcage date"""
+        return 'cast('+nom+' as date)'
+
     def numcast(self, nom):
         """forcage numerique"""
         return 'cast('+nom+' as number)'
@@ -212,7 +216,7 @@ class SqltConnect(DbConnect):
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         cur.decile = 1
         if cur is None:
@@ -253,6 +257,8 @@ class SqltConnect(DbConnect):
             cast = self.nocast
             if type_att == "D":
                 cast = self.datecast
+            elif type_att =='DS':
+                cast = self.dscast
             elif type_att in "EFS":
                 cast = self.numcast
             elif schema.attributs[attribut].conformite:

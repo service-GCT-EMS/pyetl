@@ -285,6 +285,7 @@ def fschema_ajout_attribut_d(regle, obj):
         #        print ('ajout 2',att)
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
+
 #    print ('schema', obj.schema.attributs)
 
 
@@ -296,9 +297,13 @@ def fschema_ajout_att_from_obj_dyn(regle, obj):
 
 def fschema_ajout_att_from_liste_d(regle, obj, liste):
     """ajoute des attributs a partir de la definition de l'objet"""
+    # print ('ajout attribut',liste)
     if liste is None:
         return
     for att in [a for a in liste if a and a[0] != "#"]:
+        if att in obj.schema.attributs:
+            continue
+        # print ('ajout attribut',att)
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
@@ -318,11 +323,10 @@ def fschema_ajout_att_from_obj(regle, obj):
 
 def fschema_ajout_attribut(regle, obj):
     """ajoute un attribut au schema"""
-    if regle.numero in obj.schema.regles_modif:
-        return
-    obj.schema.amodifier(regle)
+    # print ("ajout attribut", regle,regle.params.def_sortie,obj.schema.regles_modif)
+    if obj.schema.amodifier(regle):
     #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
-    fschema_ajout_attribut_d(regle, obj)
+        fschema_ajout_attribut_d(regle, obj)
 
 
 def fschema_set_geom(regle, obj):
@@ -355,8 +359,7 @@ def fschema_garder_attributs(regle, obj):
     #    for att in [i for i in obj.schema.attributs if i not in regle.liste_attributs]:
     #        obj.schema.supprime_attribut(att)
     # print('garder attributs',obj.schema.identclasse)
-    if regle.numero not in obj.schema.regles_modif:
-        obj.schema.amodifier(regle)
+    if obj.schema.amodifier(regle):
         agarder = (
             regle.params.att_sortie.liste
             if regle.params.att_sortie.liste

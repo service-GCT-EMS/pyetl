@@ -253,6 +253,9 @@ def description_schema(regle):
     modele.def_index = def_index
     regle.params.def_sortie = modele
 
+    # print("description de schema",regle.params.att_sortie.val,
+    #     desc_schema,modele)
+
 
 #    if def_index:
     # print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
@@ -360,10 +363,12 @@ def set_resultat_regle(regle, fonc):
 
 def identifie_operation(regle):
     """ identifie la fonction a appliquer et recupere les parametres """
-    fonction = regle.stock_param.commandes[regle.mode]
+    fonction = regle.stock_param.commandes.get(regle.mode)
     #    print ('detecte commande',regle.valide, regle.mode, regle.ligne, fonction.nom)
     #        printpattern (fonction)
     #        definitions=[i.definition for i in fonction.subfonctions.values()]
+    if not fonction:
+        return False, None
     elements = None
     definition = None
     valide = False
@@ -371,9 +376,6 @@ def identifie_operation(regle):
     regle.elements = None
     erreurs = []
     #    print( 'traitement fonction',fonction.nom,erreurs)
-    if regle.mode == "":
-        print("mode non defini", regle.ligne)
-        return valide, fonc
     for fonc in fonction.subfonctions:
         if fonc.style != regle.style:
             continue
@@ -383,9 +385,8 @@ def identifie_operation(regle):
             definition = fonc.definition
             if valide:
                 break
-    else:
+    if not valide:
         afficher_erreurs(regle, fonction, "fonction non valide")
-        return valide, fonc
 
     if callable(fonc.work):
         regle.fonc = fonc.work
@@ -397,10 +398,11 @@ def identifie_operation(regle):
                 afficher_erreurs(regle, fonc, "fonction de sortie non valide")
         #        print ("regle.setparams", regle.elements, definition)
         regle.setparams(regle.elements, definition)
+        regle.valide = valide
+        if valide:
+            traite_helpers(regle, fonc)
         return valide, fonc
-
     afficher_erreurs(regle, fonc, "fonction non implementee:")
-    return False, fonc
 
 
 #            print ("fonction sortie a traiter",len(fonc.fonctions_sortie),
@@ -438,11 +440,14 @@ def afficher_erreurs(regle, fonc, message):
         if fonction:
             patternlist = [i.pattern for i in fonction.subfonctions if i.style == regle.style]
             print(motif + " patterns autorises ", patternlist)
+        else:
+            print ('---------commande inconnue', regle.mode)
     raise SyntaxError("erreurs parametres de commande")
 
 
 def traite_helpers(regle, fonc):
     """execute les fonctions auxiliaires """
+    regle.valide = True
     for fhelp in fonc.helper:
         #         la fonction prevoit une sequence d'initialisation : on l'execute
         #        print ("execution helper",fonc.nom)
@@ -456,7 +461,11 @@ def traite_helpers(regle, fonc):
             else:
                 afficher_erreurs(regle, fonc, "fonction non implementee:")
     if regle.shelper:
-        regle.shelper(regle)
+        erreur = regle.shelper(regle)
+        if erreur:
+            print ('erreur initialisation regle', regle)
+            regle.valide = False
+            return False
     if regle.changeclasse:
         regle.changeclasse = fonc.changeclasse
     if regle.changeschema:
@@ -464,64 +473,27 @@ def traite_helpers(regle, fonc):
     else:
         if regle.action_schema:
             if (
-                regle.params.att_sortie.dyn
+                regle.params.att_sortie.origine
                 or "#classe" in regle.params.att_sortie.liste
                 or "#groupe" in regle.params.att_sortie.liste
             ):
                 regle.changeclasse = fonc.changeclasse
 
-            if regle.params.att_sortie.dyn or "#schema" in regle.params.att_sortie.liste:
+            if regle.params.att_sortie.origine or "#schema" in regle.params.att_sortie.liste:
                 regle.changeschema = fonc.changeschema
     #    if regle.params.att_sortie.val:
     description_schema(regle)  # mets en place le schema pour l'attribut de sortie
-
-
-def analyse_operation(regle):
-    """ identifie la fontion de traitement"""
-    #    print ('analyse',regle.mode,regle)
-    if regle.mode and regle.mode in regle.stock_param.commandes:
-        valide, fonc = identifie_operation(regle)
-        if valide:
-            regle.valide = valide
-            traite_helpers(regle, fonc)
-    else:
-        afficher_erreurs(regle, None, "commande inconnue ->" + regle.mode)
-    if regle.valide is None:
-        afficher_erreurs(regle, None, "regle non traitee")
-    if not regle.mode or (regle.valide and not regle.fonc):
-        afficher_erreurs(regle, None, "regle sans fonction ")
-
-def stocke_vloc(context,vldef):
-    '''stocke une definition de variables locales'''
-    vldef, binding = map_vars(vldef, context)
-    listevlocs = ([i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')] if "=>" in vldef
-                 else vldef.split(","))
-    for i in listevlocs:
-        #        print('detecte', i)
-        nom, val, *_ = i.split("=") + [""]
-        context.setlocal(nom.strip(), val.strip())
+    return True
 
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
     valeurs = regle.ligne.split(";")
     if len(valeurs) > 11:
-        vldef = valeurs[11]
-        vldef, binding = map_vars(vldef, regle.context)
-        if "=>" in vldef:
-            listevlocs = (
-                [i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')]
-                if vldef
-                else []
-            )
-        else:
-            listevlocs = vldef.split(",")
-        for i in listevlocs:
-            #        print('detecte', i)
-            nom, val, *_ = i.split("=") + [""]
-            regle.context.setlocal(nom.strip(), val)
-    regle.ligne, binding = map_vars(regle.ligne, regle.context)
-    valeurs = [i.strip() for i in regle.ligne.split(";")]
+        listevlocs = valeurs[11].split(',')
+        regle.context.affecte(listevlocs,regle.context.ref)
+    for n,v in enumerate(valeurs):
+        valeurs[n]=(regle.context.resolve(v.strip()))
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
@@ -529,7 +501,7 @@ def setvloc(regle):
     regle.v_nommees = dict(zip(NOMS_CHAMPS_N, valeurs))
 
 
-def prepare_regle(regle):
+def prepare_regle(regle, prec=None):
     """ positionne les elements standard de la regle"""
 
     setvloc(regle)
@@ -550,6 +522,13 @@ def prepare_regle(regle):
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     regles_liees(regle, v_nommees["sel1"])
+    if regle.niveau and prec:
+        if regle.niveau>prec.niveau:
+            regle.context.setref(prec.context)
+        elif regle.niveau==prec.niveau:
+            regle.context.setref(prec.context.ref)
+        elif regle.niveau < prec.niveau:
+            regle.context.setref(prec.context.ref.ref)
     #    print ('2regle:',regle,regle.valide)
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = Selecteur.true
@@ -562,7 +541,7 @@ def prepare_regle(regle):
     #    regle.valide = "vide"
     if fonction:
         extraction_operation(regle, fonction)
-        analyse_operation(regle)
+        identifie_operation(regle)
     else:
         #            if re.match('^( *;*)*$',regle.ligne):
         if regle.valide != "vide":
@@ -580,10 +559,6 @@ def prepare_regle(regle):
             print("                ------>", ";".join(morceaux))
             #            print('decodage champs', ' '.join([i+'->'+j for i, j in regle.v_nommees.items()]))
             raise SyntaxError("regle sans fonction")
-    #        else:
-    #            print ('regle vide',regle,regle.valide)
-    #    if regle.valide:
-    #        analyse_operation(regle)
     return regle.valide
 
 
@@ -591,24 +566,20 @@ def prepare_regle(regle):
 #                regle.traitement_schema = True # on active le traitement des schemas
 
 
-def map_vars(ligne, context):
+def map_vars(ligne: str, context) ->str:
     """gere le mapping des variables positionelles avec fallback sur les globales"""
     # TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
-    binding = dict()
-    #    print('mv:ligne',ligne)
-    #    l_orig = ligne
+
     for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
         nom_param = j.replace("%", "")
-
+        # print ('variable', context, nom_param,'->', context.getvar(nom_param))
         ligne = ligne.replace(j, context.getvar(nom_param))
 
-        binding[nom_param] = context.getvar(nom_param, nom_param)
         if PARAM_EXP.search(ligne):  # double indirections
-            ligne, binding2 = map_vars(ligne, context)
-            binding.update(binding2)
+            ligne= map_vars(ligne, context)
     #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
     #    print('mv:',context, l0,'->',ligne)
-    return ligne, binding
+    return ligne
 
 
 def reinterprete_regle(regle, mapper, context=None):
@@ -617,14 +588,15 @@ def reinterprete_regle(regle, mapper, context=None):
     prepare_regle(regle)
 
 
-def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
+def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None):
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
 
     #    print('traitement_ligne', ligne, mapper.context)
     regle = RegleTraitement(ligne, mapper, fichier, numero, context=context)
-    prepare_regle(regle)
+    prepare_regle(regle, prec=prec)
 
+    # print ('retour prepare', regle.valide, regle)
     if regle.valide == "vide":
         #        print('regle vide ',regle)
         return None
@@ -641,6 +613,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
 
     mapper.done = False
     if regle.valide == "done":
+        # print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
         return None
@@ -648,25 +621,8 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None):
     return regle
 
 
-def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
-    """ charge une macro et mappe les variables"""
-    macro = mapper.macros.get(cmd)
-    if macro is None:
-        print("macro inconnue", cmd)
-        raise SyntaxError
-    if vpos:
-        macroenv.update(macro.bind(vpos))
-    liste_regles.extend(macro.get_commands())
-
-
-#                print('recup lignes macro:',macro.get_commands())
-
-
 def decoupe_liste_commandes(mapper, fichier_regles, context):
     """ gere les cas ou la liste de commandes est un assemblage complexe de macros"""
-
-    liste_regles = []
-    pars = []
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
     if fichier_regles.startswith("'") and fichier_regles.endswith("'"):
@@ -675,15 +631,7 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
         liste_commandes = re.split("' *, *'", fichier_regles)
     else:
         liste_commandes = fichier_regles.split(",")
-    #        commande, *pars = liste_commandes[0].split(",")
-    liste_regles = []
-    for i in liste_commandes:
-        cmd, *pars = i.split("|" if "|" in i else ":")
-        #        vnom = [i for i in pars if "=" in i]
-        vpos = [i for i in pars if not "=" in i]
-        charge_macro(mapper, cmd, vpos, context, liste_regles)
-    #            liste_regles.append('$'+j)
-    return liste_regles
+    return ["<"+i  for i in liste_commandes]
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
@@ -736,13 +684,13 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
         liste_regles = lire_commandes_en_base(mapper, fichier_regles)
 
-    elif fichier_regles.startswith("#") or fichier_regles.startswith("['#"):
+    elif fichier_regles.startswith("#") or fichier_regles.startswith("['"):
         #       assemblage complexe de macros
         #        print ('a lire', fichier_regles)
         liste_regles = decoupe_liste_commandes(mapper, fichier_regles, context)
     #        print ('lu', '\n   '.join([str(i) for i in liste_regles]))
     else:
-        liste_regles = charge_fichier(fichier_regles, "", defext=".csv")
+        liste_regles = charge_fichier(fichier_regles, "", defext=".csv",codec=mapper.get_param('codec_csv'))
 
     if niveau:  # on force un niveau d'indentation
         avant = niveau
@@ -767,9 +715,9 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
 
 def affecte_variable(mapper, commande, context):
     """ affecte une variable avec gestion des valeurs par defaut"""
-    commande, binding = map_vars(commande, context)
+    commande = map_vars(commande, context)
     modif = r"\;" in commande  # gestion des ';' comme parametre
-    # print('affecte',commande,context)
+    # print('affecte',mapper.idpyetl,commande,context)
     affectation = commande.split(";")[0][1:]
     #            print ('affectation:',affectation)
     pos_egal = commande.index("=")
@@ -795,16 +743,26 @@ def affecte_variable(mapper, commande, context):
         #             break
         # if not valeur:
         #     valeur = ""
+        set = context.setvar
+        if nom.startswith("$"): # $$X variable globale
+            nom=nom[1:]
+            set = context.setroot
+        elif nom.startswith("-"): # $-X variable locale
+            nom=nom[1:]
+            set = context.setlocal
+        elif nom.startswith("*"): # $-X variable retour
+            nom=nom[1:]
+            set = context.setretour
         if valeur.startswith("#env:") and valeur.split(":")[1]:
             # on affecte une variable d'environnement
-            context.setvar(nom, mapper.env.get(valeur.split(":")[1], ""))
+            set(nom, mapper.env.get(valeur.split(":")[1], ""))
         elif valeur.startswith("#eval:") and valeur.split(":")[1]:
             if '__' in valeur:
                 print('fonction non autorisee', valeur)
                 return
-            context.setvar(nom, eval(valeur.split(":")[1], {}))
+            set(nom, eval(valeur.split(":")[1], {}))
         else:
-            context.setvar(nom, valeur)
+            set(nom, valeur)
 
 
 def prepare_texte(defligne):
@@ -829,13 +787,10 @@ def traite_regle_std(
     """ traite une regle classique """
     #    texte = texte_brut.strip()
     erreurs = 0
-    texte, binding = map_vars(texte, context)
     regles = mapper.regles if regle_ref is None else regle_ref.liste_regles
-    #    print ('interpretation', texte)
-    #            if mapper.init: # on rentre dans les commandes : on initialise les es
-    #                mapper.gestion_pospars()
+    precedent=regles[-1] if regles else None
     try:
-        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context)
+        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context, prec=precedent)
     #                print ('interp regle',i,erreurs)
     except SyntaxError:
         #        print( 'syntaxerror ',r_cour)
@@ -869,39 +824,45 @@ def traite_regle_std(
         erreurs = 1
     return bloc, erreurs
 
+def prepare_env(mapper, texte, context, fichier_regles):
+    '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
+    # print ('mapping parametres macro', texte)
+    champs = texte.split(";")
+    nom_inclus = champs[0][1:].strip()
+    parametres = champs[1:]
+    cmd, *pars = nom_inclus.split("|" if "|" in nom_inclus else ":")
+    nom_inclus = cmd
+    if pars:
+        parametres = pars+parametres
+    nom_inclus,_ = context.resolve(nom_inclus)
+    macroenv = context
+    if nom_inclus.startswith("#"):
+        inclus = nom_inclus  # macro
+        macro = mapper.macros.get(inclus)
+        if macro:
+            macroenv = macro.bind(parametres,context)
+    elif nom_inclus.startswith('.') or os.path.abspath(nom_inclus):
+        inclus = nom_inclus
+        context.affecte(parametres,context)
+    else:
+        inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
+        context.affecte(parametres,context)
+    #            print("lecture de regles incluses", inclus,pps)
+    return inclus, macroenv
+
+def execute_macro(mapper, texte, context, fichier_regles):
+    '''lance une macro en one shot'''
+    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    mapper.macrorunner(inclus, entree=macroenv.getvar('entree'), sortie=macroenv.getvar('sortie'), context=macroenv)
 
 def importe_macro(mapper, texte, context, fichier_regles):
     """ importe une macro et l 'interprete"""
-    #    numero, texte_brut = defligne
-    #    texte = texte_brut.strip()
-    #    texte_brut = texte
-    #    print ('recu macro',texte)
     match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
     # on cree un contexte avec ses propres valeurs locales
-    idenv = texte.split(";")[0]
-    macroenv = context.getmacroenv(ident=idenv)
-    texte, binding = map_vars(texte, macroenv)
-    champs = texte.split(";")
-    nom_inclus = champs[0][1:].strip()
-    vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
-    settings = dict([i.split('=',1) for i in champs if "=" in i])
-
-    #    print ('lecture macro',texte,'->',niveau)
-
-    if nom_inclus[0] == "#":
-        inclus = nom_inclus  # macro
-        macro = mapper.macros.get(inclus)
-        if macro:
-            #            print ('affectation variables macro', vpos, macro.bind(vpos))
-            macroenv.update(macro.bind(vpos))  # affectation des variables locales
-    else:
-        inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])
-    #            print("lecture de regles incluses", inclus,pps)
-    macroenv.update(settings)
-    #            print ("demarrage macro",vloc)
+    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
     erreurs = lire_regles_csv(mapper, inclus, niveau=niveau, context=macroenv)
     return erreurs
 
@@ -914,7 +875,7 @@ def initmacro(mapper, texte, fichier_regles):
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
-    #            print('enregistrement macro',nom)
+    # print('enregistrement macro',mapper.idpyetl,nom)
     return macro
 
 
@@ -953,7 +914,7 @@ def lire_regles_csv(
         start = 0
         while texte.startswith("K:") and not macro:
             liste_val = texte.split(";", 1)
-            cond, binding = map_vars(liste_val[0], context)
+            cond,_ = context.resolve(liste_val[0])
             condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
 #            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch:  # interpretation conditionelle
@@ -998,7 +959,7 @@ def lire_regles_csv(
         #        print ('icsv: regle ',i)
 
         elif texte.startswith("$#"):
-            ligne, binding = map_vars(texte, context)
+            ligne,_ = context.resolve(texte)
             #            print('map _vars ' ,i, ligne)
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()
@@ -1017,7 +978,8 @@ def lire_regles_csv(
 
         elif texte.startswith("$"):
             affecte_variable(mapper, texte, context)
-
+        elif texte.startswith("<<"): # execution immediate d'une macro
+            execute_macro(mapper,texte[1:],context,fichier_regles)
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             #            print ('avant macro',vloc)
             erreurs += importe_macro(mapper, texte, context, fichier_regles)

@@ -7,17 +7,22 @@ fonctions de manipulation d'attributs
 """
 # import re
 import itertools
+import math as M
 from pyetl.projection import conversion as P
 from .outils import compilefonc
+from shapely import geometry as SG
 
 
-def setschemainfo(regle, obj):
+def setschemainfo(regle, obj, multi=None, type=None):
     """ reporte les infos sur le schema en cas de modification de la geometrie """
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
-    obj.attributs["#type_geom"] = obj.geom_v.type
+    tgeom = obj.geom_v.type_geom
+    obj.attributs["#type_geom"] = tgeom
     if obj.schema and obj.schema.amodifier(regle):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
-        obj.schema.info["type_geom"] = obj.geom_v.type
+        if multi is not None:
+            obj.schema.multigeom = multi
+        obj.schema.info["type_geom"] = tgeom if type is None else type
 
 
 def setschemadim(regle, obj):
@@ -39,16 +44,23 @@ def setschema_typegeom(regle, obj):
 def h_initgeom(regle):
     """prepositionne un type geom"""
     if regle.params.cmp1.num:
-        regle.context.setvar("type_geom", regle.params.cmp1.val)
+        regle.setvar("type_geom", regle.params.cmp1.val)
+    regle.use_shapely = regle.params.cmp2.val
 
 
 def f_initgeom(regle, obj):
     """#aide||force l'interpretation de la geometrie
-       #pattern||;;;geom;?N;
+       #pattern||;;;geom;?N;?=S
        #schema||set_geom
        #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
+       #test2||obj;asc||^;;;geom;;S||;has:geomV;;;X;1;;set||atv;X;1
     """
-    return True if obj.virtuel else obj.initgeom()
+    if obj.virtuel:
+        return True
+    geom_ok = obj.initgeom()
+    if regle.use_shapely and geom_ok:
+        obj.geom_v.__shapelygeom__
+
 
 
 # remise a zero de la geometrie (comme si l'objet venait d'etre lu)
@@ -108,7 +120,7 @@ def f_setpoint(regle, obj):
         return False
     #    print ('set point',point)
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj)
+    setschemainfo(regle, obj, multi = False, type = '1')
     return True
 
 
@@ -135,14 +147,14 @@ def f_setpoint_liste(regle, obj):
         #                 for i in regle.params.att_entree.liste]
         obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
         obj.finalise_geom()
-        setschemainfo(regle, obj)
+        setschemainfo(regle, obj, multi = False, type = '1')
 
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
         #        print('set point : erreur valeurs entree ',coords)
         return False
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj)
+    setschemainfo(regle, obj,  multi = False, type = '1')
     #    print ('creation point',list(obj.geom_v.coords),list(point))
     return True
 
@@ -211,6 +223,8 @@ def f_addgeom(regle, obj):
 # forcage de types geometriques
 def f_force_pt(regle, obj):
     """#aide||transforme un objet en point en recuperant le n eme point
+    #aide_spec||les points sont comptes a partir de 0 negatif pour compter depuis la fin
+    #aide_spec1||si il n'y a pas de position donnee on prends le centre de l'emprise
        #pattern||;?C;?A;force_pt;;
        #helper||setval
        #test||obj;ligne||^;1;;force_pt||^;0;;coordp;||atn;#y;1
@@ -223,15 +237,20 @@ def f_force_pt(regle, obj):
         return False
     if obj.geom_v.type > "1":
         position = regle.get_entree(obj)
-        position = int(position) if position else 0
-        try:
-            #                print('changement en point ', obj.attributs['#type_geom'])
-            obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
-            obj.finalise_geom()
-        #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
-        except ValueError:
-            return False
-    setschemainfo(regle, obj)
+        if position:
+            position = int(position)
+            try:
+                #                print('changement en point ', obj.attributs['#type_geom'])
+                obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
+                obj.finalise_geom()
+            #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
+            except ValueError:
+                return False
+        else: # pas de position on prends le centroide
+            xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+            obj.geom_v.setpoint((xmin+xmax)/2,(ymin+ymax)/2, None, 2)
+
+    setschemainfo(regle, obj, multi = False, type = '1')
     return True
 
 
@@ -247,7 +266,7 @@ def f_forceligne(regle, obj):  # force la geometrie en ligne
     obj.infogeom()
     obj.geomnatif = False
     if obj.attributs["#type_geom"] == "2":
-        setschemainfo(regle, obj)
+        setschemainfo(regle, obj, type = '2')
         return True
     print("force_ligne,erreur conversion type", obj.attributs["#type_geom"], obj.geom_v.type)
     return False
@@ -272,7 +291,7 @@ def f_forcepoly(regle, obj):
         obj.infogeom()
         obj.geomnatif = False
         if obj.attributs["#type_geom"] == "3":
-            setschemainfo(regle, obj)
+            setschemainfo(regle, obj, type = '3')
             return True
         if regle.params.cmp1.val:  # on force donc si ca passe pas on annulle la geom
             #            print ('fpoly: on invalide la geometrie',regle.params.cmp1.val)
@@ -326,11 +345,27 @@ def f_longueur(regle, obj):
         return True
     return False
 
+def f_aire(regle, obj):
+    """#aide||calcule l'aire de l'objet
+        #pattern||S;;;aire;;
+        #test||obj;poly||^#aire;;;aire||atn;#aire;1
+    """
+    #    if True:
+    if obj.virtuel:
+        return False
+    if obj.geom_v.sgeom or obj.initgeom():
+        regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.area))
+        # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
+        return True
+    return False
+
+
 
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
-       #pattern||;?N;?A;coordp;;
-       #helper||setval
+  #aide_spec||les coordonnees sont sous #x,#y,#z
+    #pattern||?M;?N;?A;coordp;;
+     #helper||setval
        #test||obj;ligne||^;1;;coordp||atn;#y;1
        #test1||obj;point||^;0;;coordp||atn;#y;2
        #test2||obj;point||^;;;coordp||atn;#y;2
@@ -347,10 +382,14 @@ def f_coordp(regle, obj):
             position = int(position)
 
         try:
+            # refpt = list(obj.geom_v.coords)[position]
             refpt = list(obj.geom_v.coords)[position]
             # print("coordp: ",list(obj.geom_v.coords),position,refpt)
-            obj.attributs.update(
-                zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
+            if regle.params.att_sortie.val:
+                regle.fstore(regle.params.att_sortie, obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]])
+            else:
+                obj.attributs.update(
+                    zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
             )
             return True
         except IndexError:
@@ -753,7 +792,8 @@ def f_splitgeom(regle, obj):
 
 def f_prolonge(regle, obj):
     """#aide||prolongation de la ligne d'appui pour les textes
-       #aide spec: code prolongation : 1 debut 2 fin 3 3cotes (11,12,13) chaque segment
+    #aide_spec||longueur;[attibut contenant la  longueur];prolonge;code_prolongation
+    #aide spec2||code prolongation : 1: debut, 2: fin, 3:  les 2 cotes (11,12,13) chaque segment
        #pattern||;?N;?A;prolonge;?N;
        #test||obj;ligne||^;1;;prolonge;3||^#l;;;longueur||atn;#l;3
     """
@@ -771,8 +811,9 @@ def f_prolonge(regle, obj):
 
 def h_reproj(regle):
     """ initialise la reprojection """
-    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949"}
+    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93":"2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
+    print('reproj srid sortie', regle.srid)
     regle.projection = P.init_proj(
         regle.params.val_entree.val, regle.params.cmp1.val, regle.params.cmp2.val
     )

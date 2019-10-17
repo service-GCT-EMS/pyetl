@@ -35,9 +35,10 @@ def coroutine(func):
     return wrapper
 
 
-def fkref(liste, niveau, niv_ref, schema):
+def fkref(liste, niveau, niv_ref, schema, add=False):
     """identifie les tables referenceees par des fk"""
     trouve = 0
+    adds = set()
     for ident in liste:
         if niveau[ident] == niv_ref:
             cibles = schema.is_cible(ident)
@@ -45,6 +46,8 @@ def fkref(liste, niveau, niv_ref, schema):
             for j in cibles:
                 if j not in niveau:
                     print("fkref: erreur cible", j)
+                    if add:
+                        adds.add(j)
                     continue
                 if niveau[j] >= niv_ref and j != ident:
                     if ident in schema.is_cible(j):
@@ -54,20 +57,28 @@ def fkref(liste, niveau, niv_ref, schema):
                         #                        print(" trouve",ident,niveau[ident],j)
                         trouve = 1
                     break
-    return trouve
+    return trouve, adds
 
 
-def tablesorter(liste, schema):
+def tablesorter(liste, schema, complete=False):
     """ trie les tables en fonction des cibles de clef etrangeres """
-    schema.calcule_cibles()
+    ajouts = True
     niveau = dict()
-    niveau = {i: 0 for i in liste}
-    trouve = 1
-    niv_ref = 0
-    while trouve:
-        trouve = fkref(liste, niveau, niv_ref, schema)
-        niv_ref += 1
-    #    print("niveau maxi", niv_ref)
+
+    while ajouts:
+        ajouts=set()
+        schema.calcule_cibles()
+        niveau = dict()
+        niveau = {i: 0 for i in liste}
+        trouve = 1
+        niv_ref = 0
+        while trouve:
+            trouve, adds = fkref(liste, niveau, niv_ref, schema)
+            ajouts.update(adds)
+            niv_ref += 1
+        #    print("niveau maxi", niv_ref)
+        if complete and ajouts:
+            liste.extend(ajouts)
     niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
     liste.sort(key=niv2.get)
     return niveau
@@ -412,8 +423,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     codebase = nombase
     base = nombase
     serveur = ""
-    #    print('--------acces base de donnees', codebase, "->", type_base, 'exist:',
-    #          codebase in stock_param.dbconnect)
+
     #    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
@@ -435,7 +445,8 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-
+    print('--------acces base de donnees', codebase, "->", type_base, 'en memoire:',
+        codebase in stock_param.dbconnect)
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
@@ -456,7 +467,7 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
     )
 
     if connection.valide:
-        #        print('connection valide', serveur)
+        print('connection valide', serveur)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
@@ -601,8 +612,18 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 
     return False
 
+def dbrunproc(stock_param, base, commande,data):
+    '''execute une procedure stockeee en base '''
+    # print("mdba execution directe commande", base, file)
+    connect = dbaccess(stock_param, base)
+    if connect is None:
+        return False
+    connect = stock_param.dbconnect[base]
+    return connect.request(commande,data)
 
-def dbrunsql(stock_param, base, file, log=None, out=None):
+
+
+def dbextsql(stock_param, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
     # print("mdba execution sql via un programme externe", base, file)
     connect = dbaccess(stock_param, base)
@@ -614,8 +635,8 @@ def dbrunsql(stock_param, base, file, log=None, out=None):
     if helper:
         logfile = setpath(stock_param, log)
         outfile = setpath(stock_param, out)
-        # print("runsql: demarrage", helpername, helper, "user:", connect.user)
-        return connect.runsql(helper, file, logfile, outfile)
+        # print("extsql: demarrage", helpername, helper, "user:", connect.user)
+        return connect.extsql(helper, file, logfile, outfile)
     return False
 
 
@@ -643,7 +664,7 @@ def get_connect(
     schema_travail.metas = dict(connect.schemabase.metas)
     schema_travail.metas["tables"] = tables
     liste2 = []
-    #    print ( 'schema base ',schema_base.classes.keys())
+    # print ( 'schema base ',connect.schemabase.classes.keys())
     for ident in select_tables(
         connect.schemabase, niveau, classe, tables, multi, nocase
     ):
@@ -657,7 +678,8 @@ def get_connect(
         )  # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
-    niveau = tablesorter(liste2, connect.schemabase)
+    complete = stock_param.get_param('gestion_coherence')
+    niveau = tablesorter(liste2, connect.schemabase, complete)
     #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:
         connect.select_elements_specifiques(schema_travail, liste2)
@@ -673,16 +695,21 @@ def get_connect(
     return connect, schema_travail, liste2
 
 
-def get_typecode(curs, typecode):
+def get_dbtype(connect, typecode):
     """recupere le type du retour par defaut texte"""
     return "text"
-    connection = curs.connect
     connection.request()
 
 
-def schema_from_curs(curs):
+def schema_from_curs(curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
-    nom, typecode, _, _, taille, dec, _ = curs.description
+    connect = curs.connect
+    schemaclasse = connect.schemabase.get_classe(nomclasse, cree=True)
+    for colonne in curs.description:
+        nom, typecode, _, _, taille, dec, _ = colonne
+        type_attribut = get_dbtype(connect,typecode)
+        schemaclasse.stocke_attribut(nom,type_attribut,taille=taille,dec=dec)
+    return schemaclasse
 
 
 def sortie_resultats(
@@ -924,6 +951,46 @@ def lire_table(ident, regle_courante, parms=None):
         return res
     return 0
 
+def lire_requete(ident, regle_courante, parms=None, requete=''):
+    """lecture directe"""
+    if ident is None:
+        return 0
+    niveau, classe = ident
+    base, type_base, chemin, maxobj,sortie,v_sortie = (
+        parms
+    )
+    connect = get_connect(regle_courante.stock_param, base,'','',type_base=type_base,chemin=chemin)
+    curs = connect.request(requete, maxobj)
+
+    #            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+    #        print ('dbaccess : ',ident)
+    treq = time.time()
+    #        print ('-----------------------traitement curseur ', curs,type(curs) )
+    treq = time.time() - treq
+    connect.connection.commit()
+    if curs:
+        schema_classe_travail = schema_from_curs(curs, ident)
+        res = sortie_resultats(
+            regle_courante,
+            curs,
+            niveau,
+            classe,
+            connect,
+            sortie,
+            v_sortie,
+            schema_classe_travail.info["type_geom"],
+            schema_classe_travail,
+            treq=treq,
+        )
+
+        if sortie:
+            for nom in sortie:
+                if nom and nom[0] != "#":
+                    schema_classe_travail.stocke_attribut(nom, "T")
+        return res
+    return 0
+
+
 
 def recup_donnees_req_alpha(
     regle_courante,
@@ -1151,7 +1218,7 @@ def recup_table_parametres(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )
     connect.connection.commit()
-    resultat = [valeurs for valeurs in curs.cursor]
+    resultat = [valeurs for valeurs in curs.cursor] if curs else []
     return resultat
 
 

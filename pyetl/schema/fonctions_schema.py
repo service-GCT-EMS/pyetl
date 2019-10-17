@@ -174,6 +174,7 @@ def _valide_heure(heure):
     return ":".join((hrs, mins, secs))
 
 
+
 def valide_dates(val, format_dates=""):
     """controle la validite de la definition d'une date et eventuellement la corrige"""
 
@@ -199,10 +200,13 @@ def valide_dates(val, format_dates=""):
         date = "-".join((dat1, dat2, dat3))
     if date:
         date = _valide_jour(date, format_dates)
+        if date is None:
+            err = 'erreur date'
     #        print ('date validee', date)
     if heure:
         heure = _valide_heure(heure)
-
+        if heure is None:
+            err = 'erreur heure'
     if date and heure:
         return err, date + " " + heure
     if date:
@@ -260,7 +264,7 @@ def set_val_schema(schemaclasse, nom, valeur):
 
     #    print('dans set_schema :', classe.nom, nom, valeur)
     schemaclasse.type_table = "i"
-
+    nom=nom.lower()
     if nom in schemaclasse.info:
         schemaclasse.info[nom] = str(valeur)
         return True
@@ -402,6 +406,8 @@ def _valide_type(classe, atdef, val):
     err = ""
     if atdef.type_att == "D":  # test dates
         err, repl = valide_dates(val, "")
+    if atdef.type_att == "DS":  # test dates
+        err, repl = _valide_jour(val, "")
     elif atdef.type_att == "E" or atdef.type_att_base == "E":  # test numerique
         err, repl, changetype = _valide_entiers(val)
         if changetype:

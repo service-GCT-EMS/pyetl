@@ -251,12 +251,12 @@ def h_def_schema(regle):
         return
 
     if regle.params.att_sortie.val == "schema_entree":
-        regle.context.setvar("schema_entree", nom)
+        regle.setvar("schema_entree", nom)
         LOGGER.info("positionnement schema d entree " + nom)
         regle.valide = "done"  # on a fait le boulot on peut jeter la regle
 
     if regle.params.att_sortie.val == "schema_sortie":
-        regle.context.setvar("schema_sortie", nom)
+        regle.setvar("schema_sortie", nom)
         LOGGER.info("positionnement schema_sortie " + nom)
         regle.valide = "done"  # on a fait le boulot on peut jeter la regle
 

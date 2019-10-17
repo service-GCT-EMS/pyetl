@@ -192,6 +192,7 @@ def tmp_geom(obj, convertisseur):
 def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
     obj =  None
+    form = None
     for ligne in open(fichier, "r", encoding="utf-8"):
         if ligne:
             code = ligne[0]
@@ -243,86 +244,3 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
     fichier.close()
 
 
-# ============================= interne pour comparaison ====================
-
-
-class ObjStore(object):
-    """structure de stockage d'objets en memoire"""
-
-    def __init__(self, nom, schemaclasse, clef):
-        self.nom = nom
-        self.schemaclasse = schemaclasse
-        self.data = dict()
-        self.strlist = schemaclasse.liste_attributs()
-        struct = self.strlist[:]
-        struct.append("geometrie")
-        self.structure = namedtuple(nom, struct)
-        self.key = clef
-        self.nbval = 0
-
-    def write(self, obj):
-        """ stocke un objet """
-        clef = obj.attributs.get(self.key)
-        if clef in self.data:
-            print("interne:clef duppliqueee", self.nom, self.key, clef)
-            return False
-        liste = [obj.attributs[i] for i in self.strlist]
-        liste.append(obj.geom_v.fold)
-        tmp = self.structure(liste)
-        self.data[clef] = tmp
-        self.nbval += 1
-        return True
-
-    def get(self, clef):
-        """recuper un objet"""
-        return self.data.get(clef)
-
-
-def intstreamer(obj, regle):  # ecritures non bufferisees
-    """ ecrit des objets tmp en streaming"""
-    store = regle.stock_param.store
-
-    if obj.ident != regle.dident:
-        groupe, classe = obj.ident
-        #        if obj.schema:
-        schema_courant = obj.schema
-        nom = ".".join(obj.ident)
-
-        ressource = store.get(nom)
-        if ressource is None:
-            ressource = ObjStore(nom, schema_courant, regle.params.cmp2.val)
-            store[nom] = ressource
-
-        regle.ressource = ressource
-        regle.dident = (groupe, classe)
-    else:
-        schema_courant = obj.schema
-    ressource = regle.ressource
-    ressource.write(obj)
-
-
-def ecrire_objets_int(regle, _):
-    """ ecrit des objets dans le stockage interne"""
-    nb_obj, nb_fich = 0, 0
-    dident = None
-    store = regle.stock_param.store
-    #    print("csv:ecrire csv", regle.stockage.keys())
-    ressource = None
-    for groupe in list(regle.stockage.keys()):
-        # on determine le schema
-        nom = ""
-        for obj in regle.recupobjets(groupe):
-            groupe, classe = obj.ident
-            if obj.ident != dident:
-                schema_courant = obj.schema
-                nom = ".".join(obj.ident)
-                ressource = store.get(nom)
-                if ressource is None:
-                    nb_fich += 1
-                    ressource = ObjStore(nom, schema_courant, regle.params.cmp2.val)
-                    store[nom] = ressource
-                dident = (groupe, classe)
-            retour = ressource.write(obj)
-            if retour:
-                nb_obj += 1
-    return nb_obj, nb_fich

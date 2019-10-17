@@ -56,6 +56,16 @@ def f_setliste(regle, obj):
     regle.setval_sortie(obj, regle.getlist_entree(obj))
     return True
 
+def f_setmatch_liste(regle, obj):
+    """#aide||affectation d un attribut
+       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #pattern||M;;;set;=match;||sortie
+       #test1||obj||^V4;;C1;set||atv;V4;AB
+       #test2||obj||^V4;1;X;set||atv;V4;1
+    """
+    # print ('regle.match',regle.match )
+    regle.setval_sortie(obj, regle.matchlist)
+    return True
 
 def h_setval(regle):
     """helper de fonctiond'entree"""
@@ -355,6 +365,7 @@ def h_asplit(regle):
 
 def f_asplit(regle, obj):
     """#aide||decoupage d'un attribut en fonction d'un separateur
+    #aide_spec||s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
        #pattern||M;?;A;split;.;?N:N||sortie
        #pattern2||;?;A;split;.;?N:N||sortie
        #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
@@ -401,8 +412,7 @@ def f_strip2(regle, obj):
     #pattern2||A;?;;strip;?C;||entree
     #test||obj||^V4;abbaa;;set||^;;V4;strip;a;||atv;V4;bb
     #test2||obj||^V4;abbaa;;set||^V4;;;strip;a;||atv;V4;bb
-
-       """
+    """
     if regle.params.cmp1.val:
         obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip(regle.params.cmp1.val)
     else:
@@ -415,9 +425,6 @@ def f_len(regle, obj):
     #pattern||S;?;A;len;;
     #test||obj||^X;toto;;set;||^Y;;X;len;;||atv;Y;4
     """
-    #    regle.fstore(regle.params.att_sortie, obj,
-    #                 str(len(obj.attributs.get(regle.params.att_entree.val,
-    #                                           regle.params.val_entree.val))))
     regle.setval_sortie(obj, str(len(regle.getval_entree(obj))))
     return True
 
@@ -428,14 +435,7 @@ def f_crypt(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
-    clef = (
-        obj.attributs.get(regle.params.cmp1.origine, "")
-        if regle.params.cmp1.dyn
-        else regle.params.cmp1.val
-    )
-    val = regle.getval_entree(obj)
-    crypte = regle.stock_param.crypter(val, clef)
-    #    print ('dans crypte',val,regle.params.cmp1.val,'--->',crypte)
+    crypte = regle.stock_param.crypter(regle.getval_entree(obj), regle.params.cmp1.getval(obj))
     obj.attributs[regle.params.att_sortie.val] = crypte
     return True
 
@@ -447,11 +447,7 @@ def f_decrypt(regle, obj):
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
 
     """
-    clef = (
-        obj.attributs.get(regle.params.cmp1.origine, "")
-        if regle.params.cmp1.dyn
-        else regle.params.cmp1.val
-    )
+    clef = regle.params.cmp1.getval(obj)
     val = regle.getval_entree(obj)
 
     decrypte = regle.stock_param.decrypt(val, clef)
@@ -468,12 +464,12 @@ def f_vset(regle, obj):
     valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
     #    print ('dans vset',regle.params.att_sortie.val,valeur)
     if valeur != regle.getvar(regle.params.att_sortie.val):
-        regle.context.setvar(regle.params.att_sortie.val, valeur)
+        regle.setvar(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
-    #    print ('stocke ', regle.params.att_sortie.val,
-    #           regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
+        # print ('stocke ', regle.params.att_sortie.val,
+            #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 
@@ -806,6 +802,33 @@ def f_hget3(regle, obj):
     regle.fstore(regle.params.att_sortie, obj, hdic)
     return True
 
+def f_hsplit(regle, obj):
+    """#aide||decoupage d'un attribut hstore
+    #parametres||
+    #pattern||M;?;A;hsplit;?L
+     #schema||ajout_attribut
+       #test1||obj||^X;;;hset||^k,v;;X;hsplit>;C1,C2,C3;||cnt;3
+       """
+    try:
+        hdic = obj.gethdict(regle.params.att_entree.val)
+    except ValueError:
+        return False
+    klist = regle.params.cmp1.liste or hdic.keys()
+    nom_clef, nom_val = regle.params.att_sortie.liste
+    for k in klist:
+        if k in hdic:
+            val = hdic[k]
+        else:
+            continue
+        obj2 = obj.dupplique()
+        obj2.attributs[nom_clef] = k
+        obj2.attributs[nom_val] = val
+        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+    return True
+
+
+
+
 
 def f_hdel(regle, obj):
     """#aide||supprime une valeur d un hstore
@@ -832,7 +855,7 @@ def h_cnt(regle):
 
 def f_cnt(regle, obj):
     """#aide||compteur
-  #aide_spec||attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;origine;pas
+  #aide_spec||attribut de sortie;nom fixe ou;nom du compteur en attibut;cnt;pas;origine
  #aide_spec2||le comteur est global s'il a un nom, local s'il n'en a pas
     #pattern||S;?;?A;cnt;?N;?N
      #schema||ajout_attribut
@@ -919,75 +942,86 @@ def f_round(regle, obj):
     regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)), regle.ndec)))
     return True
 
+def f_vround(regle, obj):
+    """#aide|| arrondit une variable a n decimales
+    #pattern||P;?N;A;round;?N;||sortie
+    #schema||ajout_attribut
+    #helper||round
+    #test||obj||^X;1.534;;set||^P:W;;X;round;2||ptv;W;1.53
+    """
+    valeur= str(round(float(regle.getval_entree(obj)), regle.ndec))
+    regle.setvar(regle.params.att_sortie.val, valeur)
+    return True
+
 
 def geocode_traite_stock(regle, final=True):
     """libere les objets geocodes """
     if regle.nbstock == 0:
         return
-    attlist = regle.params.att_entree.liste
+    flist = list(regle.filtres.values())
+    adlist = regle.params.att_entree.liste
     prefix = regle.params.cmp1.val
-    #    nomfiltres = regle.params.cmp2.liste
-    #    filtres = ','.join(regle.filtres) if regle.filtres else ''
-    #    for i in nomfiltres:
-    #        nom = i[5:] if i.startswith('fgc_') else i
-    #        if regle.getvar(i):
-    #            filtres[nom] = regle.getvar(i)
-    #    print ('geocodage',attlist)
-    #    for n,obj in enumerate(regle.tmpstore):
-    #        print ([obj.attributs.get(i, "") for i in attlist])
-    #        print (str(n)+';'+" ".join([obj.attributs.get(i, "") for i in attlist]))
-
+    outcols = 2 + len(flist)
+    header = []
+    suite = regle.branchements.brch["end"]
+    fail = regle.branchements.brch["fail"]
+    traite = regle.stock_param.moteur.traite_objet
+    geocodeur = regle.getvar("url_geocodeur")
+    data = {"columns": "_adresse"}.update(regle.filtres)
     buffer = (
-        "ident;_adresse\n"
+        ";".join(["ident","_adresse"]+flist)+'\n'
         + "\n".join(
             [
-                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in attlist])
+                str(n) + ";" + " ".join([obj.attributs.get(i, "") for i in adlist])
+                +((';'+ ";".join([obj.attributs.get(i, "") for i in flist ])) if flist else '')
                 for n, obj in enumerate(regle.tmpstore)
             ]
         )
     ).encode("utf-8")
-    #    print('geocodage', attlist, buffer)
-    geocodeur = regle.getvar("url_geocodeur")
+
+    # print('geocodage', regle.nbstock, adlist,flist, data)
+
 
     files = {"data": io.BytesIO(buffer)}
-    data = {"columns": "_adresse"}
     res = requests.post(geocodeur, files=files, data=data)
+    # print ('retour', res.text)
 
-    header = []
-    suite = regle.branchements.brch["end"]
-    fail = regle.branchements.brch["fail"]
-
-    traite = regle.stock_param.moteur.traite_objet
     #        print ('retour ',buf)
     for ligne in res.text.split("\n"):
-        #        print ('traitement sortie',ligne)
+        # print ('traitement sortie',ligne)
         if not ligne:
             continue
         attributs = ligne[:-1].split(";")
-        #            attributs = ligne.split(";")
-        if header:
-            if attributs[0].isnumeric():
-                numero = int(attributs[0])
-                obj = regle.tmpstore[numero]
-                obj.attributs.update(
-                    [(nom, contenu) for nom, contenu in zip(header[1:], attributs[1:])]
-                )
-                score = obj.attributs.get("result_score", "")
-                traite(obj, suite if score else fail)
-
-            else:
-                if not final:
-                    print("geocodeur: recu truc etrange ", ligne)
-                    print("retry")
-                    geocode_traite_stock(regle, final=True)
-                    return
-        else:
-            header = [prefix + i for i in attributs]
-            obj = regle.tmpstore[0]  # on prends un objet au hasard
+        # attributs = ligne.split(";")
+        if attributs[0].isnumeric():
+            numero = int(attributs[0])
+            obj = regle.tmpstore[numero]
+            obj.attributs.update(
+                [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])]
+            )
+            # print ('retour',obj)
+            score = obj.attributs.get("result_score", "")
+            if not score:
+                print ('erreur geocodage', attributs)
+            traite(obj, suite if score else fail)
+        elif not header:
+            header = [prefix + i for i in attributs[outcols:]]
+            # print ('calcul header', header)
+            obj = regle.tmpstore[0]
             if obj.schema:
-                if regle.numero in obj.schema.regles_modif:  # on force l'adaptation du schema
-                    obj.schema.regles_modif.remove(regle.numero)
-                regle.action_schema(regle, obj, liste=header[1:])
+                # print ('geocodage action schema',regle.action_schema, header)
+                # if regle.numero in obj.schema.regles_modif:  # on force l'adaptation du schema
+                #     obj.schema.regles_modif.remove(regle.numero)
+                obj.schema.force_modif(regle)
+                regle.action_schema(regle, obj, liste=header)
+                # print ('schema :', obj.schema)
+        else:
+            if not final:
+                print("geocodeur: recu truc etrange ", ligne)
+                # print("retry")
+                # geocode_traite_stock(regle, final=True)
+                return
+
     # and regle in obj.schema.regles_modif
     regle.traite += regle.nbstock
     regle.nbstock = 0
@@ -1000,15 +1034,8 @@ def geocode_traite_stock(regle, final=True):
 
 def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
-    #    try:
-    #        import pycurl
-    #    except ImportError:
-    #        print('pycurl non disponible géocodage impossible ')
-    #        return False
-    #    curl = pycurl.Curl()
+
     print("geocodeur utilise ", regle.getvar("url_geocodeur"))
-    #    curl.setopt(curl.URL, geocodeur)
-    #    regle.curl = curl
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
     regle.nbstock = 0

@@ -40,7 +40,7 @@ requetes_sigli[
           """
 
 requetes_sigli[
-    "info_triggers"
+    "info_triggers_old"
 ] = """
        SELECT event_object_schema AS schema,
            event_object_table AS table,
@@ -57,6 +57,32 @@ requetes_sigli[
        """
 #          retour : schema, table, nom_trigger,condition,action,'row/statement',
 #                  avant apres, operation(update...)
+requetes_sigli[
+    "info_triggers"
+] = r"""
+    with tmp1 as
+     (SELECT n.nspname as nom_schema,
+     c.relname as nom_table,
+      t.tgname as nom_trigger,
+       pg_catalog.pg_get_triggerdef(t.oid) as sql,
+        t.tgenabled,
+         t.tgisinternal
+    FROM pg_catalog.pg_trigger t, pg_class c, pg_namespace n
+    WHERE (NOT t.tgisinternal OR (t.tgisinternal AND t.tgenabled = 'D')) and t.tgrelid=c.oid and n.oid = c.relnamespace)
+
+    SELECT nom_schema, nom_table, nom_trigger,
+        substring(sql from 'TRIGGER|CONSTRAINT') as type_trigger,
+        substring(sql from 'EXECUTE PROCEDURE (.*)') as action,
+        substring(sql from 'FOR EACH (\w*)') as declencheur,
+        substring(sql from ' (AFTER|BEFORE|INSTEAD OF) ') as timing,
+        substring(sql from ' (UPDATE|DELETE|INSERT|TRUNCATE) ') as event,
+        substring(sql from ' UPDATE OF (\S*) *(,\S*)* ') as colonnes,
+        substring(sql from ' WHEN (.*) EXECUTE PROCEDURE') as condition,
+        sql
+        from tmp1
+"""
+
+
 
 requetes_sigli[
     "info_tables_distantes"
@@ -205,7 +231,8 @@ requetes_sigli[
                  LEFT JOIN info_fk fk ON t3.identifiant = fk.fk::oid
               GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible
             )
-     SELECT t4.identifiant AS oid,
+     SELECT
+        --t4.identifiant AS oid,
         t4.nomschema,
         t4.nomtable,
         obj_description(t4.identifiant, 'pg_class'::name) AS commentaire,

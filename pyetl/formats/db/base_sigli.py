@@ -16,20 +16,20 @@ SCHEMA_ADM = "admin_sigli"
 class SglConnect(PgsConnect):
     """connecteur de la base de donnees postgres"""
     fallback = PgsConnect.requetes
-    requetes = {
-    "info_schemas":"SELECT nomschema,commentaire FROM admin_sigli.info_schemas",
-    "info_tables":"""SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,
-                       nb_enreg,type_table,index_geometrique,clef_primaire,index,
-                       clef_etrangere
-                FROM admin_sigli.info_tables""",
-    "info_enums": "SELECT nom_enum,ordre,valeur,alias,mode FROM admin_sigli.info_enums",
-    "info_attributs": """SELECT nomschema, nomtable, attribut, alias, type_attribut, graphique,
-                           multiple, defaut, obligatoire, enum, dimension, num_attribut,
-                           index, uniq, clef_primaire, clef_etrangere, cible_clef, 0, 0
-                    FROM admin_sigli.info_attributs order by nomschema, nomtable, num_attribut""",
-    "info_vues": """SELECT nomschema,nomtable,definition,materialise
-               FROM admin_sigli.info_vues_utilisateur"""
-                  }
+    # requetes = {
+    # "info_schemas":"SELECT nomschema,commentaire FROM admin_sigli.info_schemas",
+    # "info_tables":"""SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,
+    #                    nb_enreg,type_table,index_geometrique,clef_primaire,index,
+    #                    clef_etrangere
+    #             FROM admin_sigli.info_tables""",
+    # "info_enums": "SELECT nom_enum,ordre,valeur,alias,mode FROM admin_sigli.info_enums",
+    # "info_attributs": """SELECT nomschema, nomtable, attribut, alias, type_attribut, graphique,
+    #                        multiple, defaut, obligatoire, enum, dimension, num_attribut,
+    #                        index, uniq, clef_primaire, clef_etrangere, cible_clef, 0, 0
+    #                 FROM admin_sigli.info_attributs order by nomschema, nomtable, num_attribut""",
+    # "info_vues": """SELECT nomschema,nomtable,definition,materialise
+    #            FROM admin_sigli.info_vues_utilisateur"""
+    #               }
 
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
@@ -39,6 +39,7 @@ class SglConnect(PgsConnect):
         self.dialecte = "sigli"
         self.type_base = "sigli"
         self.schema_conf = SCHEMA_ADM
+        # print ('init sigli', self.requetes)
 
 
     def spec_def_vues(self):

@@ -14,6 +14,7 @@ import traceback
 import logging
 import glob
 import codecs
+import typing as T
 
 from pyetl.formats.generic_io import Reader
 from pyetl.formats.interne.objet import Objet
@@ -22,6 +23,8 @@ from pyetl.vglobales import DEFCODEC
 MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
 MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
 LOGGER = logging.getLogger("pyetl")
+
+
 
 
 def compilefonc(descripteur, variable, debug=False):
@@ -83,7 +86,7 @@ def description_schema(regle, nom, schema):
 
 
 
-def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
+def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> (str,str):
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
     if os.path.exists(path):
@@ -95,7 +98,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None):
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
                     # print ('match',pattern, chemin, element)
-                    yield (os.path.basename(element), chemin)
+                    yield (os.path.basename(element), str(chemin))
                 # else:
                 #     pass
 
@@ -191,16 +194,18 @@ def objloader(regle, obj):
     fichs = getfichs(regle, obj)
     if fichs:
         for i, parms in fichs:
+            # print ('lecture', i)
             try:
                 nb_lu += mapper.lecture(i, regle=regle, parms=parms)
             except StopIteration as abort:
                 if abort.args[0] == "2":
                     continue
-                raise
     #    print("lecture",nb_lu)
+    else:
+        print ("chargeur: pas de fichiers d'entree" )
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return True
+    return fichs
 
 
 def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
@@ -460,7 +465,7 @@ def traite_mapping(elements):
             if len(els) == 5:
                 attrmap = els[4]
         else:
-            print("charge_mapping :description incorrecte", len(els), i, elements[i])
+            print("charge_mapping :description incorrecte", len(els), els, elements[els])
             continue
 
         if attrmap:
@@ -530,6 +535,8 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
     entree = rep
     parametres_fichiers = {}
     retour = []
+    if debug:
+        print ('scan_entree repertoire a scanner',rep)
     if not entree:
         return retour, parametres_fichiers
     #    force_format = ''
@@ -573,6 +580,17 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         )
         # print ('ici', nom,ext, ext in liste_formats, liste_formats)
         if ext in liste_formats:
+            aux = Reader.lecteurs[ext][3]
+            if '!' in aux: # attention il y a des incompatibilites
+                racine = os.path.splitext(fichier)[0]
+                valide = True
+                for ex2 in aux:
+                    if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
+                        non_identifies.append((chemin, nom, ext))
+                        valide = False
+                        continue
+                if not valide:
+                    continue
             f_courant = os.path.join(str(entree), str(chemin), str(fichier))
             identifies[chemin, nom] = ext
             if debug:

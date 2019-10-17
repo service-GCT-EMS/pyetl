@@ -99,16 +99,23 @@ class Cursinfo(object):
         self.request = requete
         self.data = data
         self.attlist = attlist
+        # print('dans execute ', requete)
+
         if self.cursor:
             if data is not None:
                 self.cursor.execute(requete, data)
             else:
-                self.cursor.execute(requete)
+                try:
+                    self.cursor.execute(requete)
+                except:
+                    print ('erreur requete', requete)
+                    raise
             if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
                 # print('calcul decile',self.cursor)
                 self.decile = int(self.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
+        # print ('fin')
 
     @property
     def rowcount(self):
@@ -254,7 +261,9 @@ class DbConnect(object):
         """passe la requete d acces au schema"""
         try:
             req = self.requetes.get(nom, "")
-            # print ("traitement",req)
+            if callable(req):
+                return req()
+            # print ("traitement",req, self.requetes)
             if req:
                 return self.request(req, None)
             else:
@@ -284,19 +293,22 @@ class DbConnect(object):
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        return self.schemarequest("info_enums")
+        yield from  self.schemarequest("info_enums")
 
     def get_tablelist(self):
         """retourne la liste des tables a prendre en compte"""
-        return self.schemarequest("tablelist")
+        yield from  self.schemarequest("tablelist")
 
     def get_tables(self):
         """produit les objets issus de la base de donnees"""
-        return self.schemarequest("info_tables")
+        # print ('infotable',self.requetes.get('info_tables', "") )
+        yield from [self.tabledef(*i) for i in self.schemarequest("info_tables")]
+
 
     def get_attributs(self):
         """produit les objets issus de la base de donnees"""
-        return self.schemarequest("info_attributs")
+
+        yield from [self.attdef(*i) for i in self.schemarequest("info_attributs")]
 
     def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):
         """ lancement requete specifique base"""
@@ -317,7 +329,7 @@ class DbConnect(object):
                 data,
                 err,
             )
-            #            print('dtb',cur.mogrify(requete, data))
+            # print('dtb',cur.cursor.mogrify(requete, data))
             cur.close()
             raise StopIteration(2)
 
@@ -325,11 +337,12 @@ class DbConnect(object):
 
     def request(self, requete, data=None, attlist=None):
         """ lancement requete et gestion retours"""
-        # print('dans request ',self.type_base, self)
         cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
-        liste = cur.fetchall()
-        cur.close()
-        return liste
+        if cur:
+            liste = cur.fetchall()
+            cur.close()
+            return liste
+        return []
 
     def iterreq(
         self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=""
@@ -361,6 +374,10 @@ class DbConnect(object):
 
     def datecast(self, nom):
         """forcage date"""
+        return nom
+
+    def dscast(self, nom):
+        """forcage date simple"""
         return nom
 
     def numcast(self, nom):
@@ -475,6 +492,8 @@ class DbConnect(object):
         cast = self.nocast
         if type_att == "D":
             cast = self.datecast
+        if type_att == "DS":
+            cast = self.dscast
         elif type_att in "EFS":
             cast = self.numcast
         elif schema.attributs[attribut].conformite:

@@ -12,13 +12,20 @@ import sys
 import zipfile
 import time
 import logging
+import copy
 from collections import defaultdict
+from .traitement_geom import setschemainfo
+
 
 # from concurrent.futures import ProcessPoolExecutor
 # from multiprocessing.pool import Pool
 # import multiprocessing
 import ftplib
-
+try:
+    import pysftp
+    SFTP=True
+except ImportError:
+    SFTP=False
 import requests
 from pyetl.formats.interne.objet import Objet
 from .outils import execbatch, objloader
@@ -324,14 +331,20 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = True
+    regle.call = regle.mode in {'call'}
     context = regle.context.getcontext()
+    if regle.mode == 'geomprocess':
+        context.setvar('macromode', 'geomprocess')
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
     if regle.liste_regles:
-        regle.liste_regles[-1]._return = True
+        if regle.call: # la on applatit
+            regle.liste_regles[-1]._return = True
+        else:
+            mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
+
     return erreurs
 
 
@@ -345,7 +358,33 @@ def f_callmacro(regle, obj):
        #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
     """
+    # la on ne fait rien parce que le compilateur a applati la macro
     return True
+
+
+
+
+
+
+
+def f_geomprocess(regle,obj):
+    """#aide||applique une macro sur la geometrie et recupere des attributs et/ou la geometrie
+    #aide_spec||
+    #pattern||;;;geomprocess;C;?LC
+    #helper||callmacro
+    #
+    # """
+    geom = obj.geom_v
+    obj.geom_v = copy.deepcopy(geom)
+    multi = obj.schema.multigeom if obj.schema else None
+    retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+    # print ('retour geomprocess', retour)
+    obj.geom_v = geom
+    setschemainfo(regle, obj, multi=multi)
+
+    # print ('retour geomprocess')
+    return retour
+
 
 
 def h_testobj(regle):
@@ -425,8 +464,39 @@ def h_ftpupload(regle):
     servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
     user = regle.context.getvar("user_" + codeftp, "")
     passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
-    regle.context.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
+    regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
     regle.ftp = None
+    regle.servertyp = servertyp
+
+def ftpconnect(regle):
+    '''connection ftp'''
+
+    _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
+    # print ('ouverture acces ',regle.getvar('acces_ftp'))
+    try:
+        if servertyp == "tls":
+            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+            return True
+        elif servertyp == "ftp":
+            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
+            return True
+    except ftplib.error_perm as err:
+        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
+        print("retour_erreur",err)
+        return False
+    if servertyp == "sftp" and SFTP:
+        try:
+            cno = pysftp.CnOpts()
+            cno.hostkeys = None
+            regle.ftp = pysftp.Connection(serveur, username=user, password=passwd, cnopts=cno)
+            return True
+        except pysftp.ConnectionException as err:
+            print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
+            print("retour_erreur",err)
+            return False
+    else:
+        print ("mode ftp non disponible", servertyp)
+        return False
 
 
 def f_ftpupload(regle, obj):
@@ -435,48 +505,72 @@ def f_ftpupload(regle, obj):
     #pattern||;?C;?A;ftp_upload;C;?C
        #test||notest
     """
-    if not regle.ftp:
-        _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-        #        print ('ouverture acces ',regle.getvar('acces_ftp'))
-        if servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
-        else:
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
-
     filename = regle.getval_entree(obj)
     destname = regle.destdir+ '/'+ str(os.path.basename(filename))
+
+    # destname = regle.destdir
+    if not regle.ftp:
+        retour = ftpconnect(regle)
+        if not retour:
+            return False
+        print ('connection ftp etablie')
+
+
     try:
-        localfile = open(filename, "rb")
-        regle.ftp.storbinary("STOR " + destname, localfile)
-        localfile.close()
+        # print ('envoi fichier',filename,'->',destname)
+        if regle.servertyp == 'sftp':
+            regle.ftp.cwd(regle.destdir)
+            regle.ftp.put(filename)
+            print ("transfert effectue",filename,'->',destname)
+        else:
+            localfile = open(filename, "rb")
+            regle.ftp.storbinary("STOR " + destname, localfile)
+            localfile.close()
+            print ("transfert effectue",filename,'->',destname)
         return True
 
-    except ftplib.error_perm:
-        print("!!!!! erreur ftp: acces non autorisé")
+    except ftplib.error_perm as err:
+        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user)
+        print("retour_erreur",err)
         return False
 
 
 def f_ftpdownload(regle, obj):
     """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;
+  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
     #pattern||;?C;?A;ftp_download;C;?C
      #helper||ftpupload
        #test||notest
     """
     if not regle.ftp:
-        _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-        #        print ('ouverture acces ',regle.getvar('acces_ftp'))
-        if servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
-        else:
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+        if not regle.ftp:
+            retour = ftpconnect(regle)
+            if not retour:
+                return False
+        print ('connection ftp etablie')
+
 
     filename = regle.getval_entree(obj)
-    distname = os.path.basename(filename)
+    localdir = regle.getvar('localdir',os.path.join(regle.getvar('_sortie','.')))
+    localname = os.path.join(localdir,filename)
+    os.makedirs(localdir,exist_ok=True)
+    print('creation repertoire',localdir)
+
     try:
-        localfile = open(filename, "wb")
-        regle.ftp.retrbinary("RETR " + distname, localfile.write)
-        localfile.close()
+        if regle.servertyp == 'sftp':
+            print ('choix repertoire',regle.destdir)
+            regle.ftp.cwd(regle.destdir)
+            if filename == '*':
+                regle.ftp.get_d('.',localdir, preserve_mtime=True)
+            elif filename == '*/*':
+                regle.ftp.get_r('.',localdir, preserve_mtime=True)
+            else:
+                regle.ftp.get(filename,localpath=localname, preserve_mtime=True)
+        else:
+            localfile = open(localname, "wb")
+            regle.ftp.retrbinary("RETR " + filename, localfile.write)
+            localfile.close()
+        print ("transfert effectue",filename,'->',localname)
         return True
 
     except ftplib.error_perm:
@@ -674,14 +768,18 @@ def f_statprocess(*_):
 
 def f_schema_liste_classes(regle, _):
     """#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
-     #helper||chargeur
-    #pattern||;;;liste_schema;C;?=reel
+    #aide_spec||liste_schema;nom;?reel
+    #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
+    #helper||chargeur
+    #schema||change_schema
+    #pattern||?=#schema;?C;?A;liste_schema;C;?=reel
     """
     schema = regle.getschema(regle.params.cmp1.val)
     if schema is None:
         return False
     virtuel = not regle.params.cmp2.val
-    for i in schema.classes:
+    classes = list(schema.classes)
+    for i in classes:
         niveau, classe = i
         obj2 = Objet(
             niveau,
@@ -761,3 +859,5 @@ def f_idle(_, __):
     #pattern||;;;idle;;
     """
     return True
+
+

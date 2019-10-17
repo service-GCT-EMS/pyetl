@@ -23,8 +23,7 @@ def lire_objets_fdb(self, rep, chemin, fichier):
         if self.databases[i].svtyp == "file"
     }
     #    regle = stock_param.regles[0]
-    ext = os.path.splitext(fichier)[1]
-    base = os.path.splitext(fichier)[0]
+    base, ext = os.path.splitext(fichier)
     #    stock_param.parms["serveur_"+base]=chemin
     self.setidententree("__filedb", base)
     obj = self.getobj()

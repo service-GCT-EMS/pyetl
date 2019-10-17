@@ -95,10 +95,10 @@ def cercle_3pts(pt1, pt2, pt3):
 
 class Section(object):
     """# definition d'une section"""
-
+    __slots__=['coords','couleur','courbe','aire','dimension','encours']
     def __init__(self, pnt, dim):
         if pnt:
-            self.coords = [pnt[:]]
+            self.coords = [list(pnt)]
         else:
             self.coords = list()
         self.couleur = "1"
@@ -143,7 +143,7 @@ class Section(object):
         double.courbe = self.courbe
         double.aire = self.aire
         double.encours = self.encours
-        double.coords = [i[:] for i in self.coords]
+        double.coords = [list(i) for i in self.coords]
         return double
 
     def addpoint(self, pnt):
@@ -151,20 +151,17 @@ class Section(object):
         if self.coords and self.coords[-1] == pnt:  # on evite les points doubles
             print("detecte point_double", pnt)
             return
-        self.coords.append(pnt[:])
+        self.coords.append(list(pnt))
 
     #        print ('coords',pnt,self.coords)
 
     def addpoints(self, liste):
         """ajoute une liste de points"""
-        self.coords.extend([i[:] for i in liste])
+        self.coords.extend([list(i) for i in liste])
 
     def setsect(self, liste, couleur, courbe):
         """ajoute une liste de points"""
-        tmp = [liste[0][:]]
-        [tmp.append(i[:]) for i in liste if i != tmp[-1]]
-        self.coords = tmp
-        #        self.coords = [i[:] for i in liste]
+        self.coords = [list(i) for i in liste]
         self.encours = False
         self.courbe = courbe
         # if courbe==3: raise
@@ -283,7 +280,8 @@ class Section(object):
 
 class Ligne(object):
     """definition d'une ligne"""
-
+    __slots__=['sections','termine','interieur','err','point_double',
+                'aire','dimension','courbe','type']
     def __init__(self, sect, interieur=None):
         self.sections = [sect.dupplique()]
         self.termine = False
@@ -537,7 +535,7 @@ class Ligne(object):
 
 class Polygone(object):
     """definition d'un polygone eventuellement a trous"""
-
+    __slots__=['lignes','dimension','courbe']
     def __init__(self, lig):
         self.lignes = [lig]
         self.dimension = lig.dimension
@@ -548,6 +546,15 @@ class Polygone(object):
         self.lignes.append(lig)
         if lig.courbe:
             self.courbe = True
+
+    def aire(self):
+        if not self.lignes:
+            return 0
+        base = abs(self.lignes[0].aire_orientee())
+        if len(self.lignes) > 1:
+            base -= sum((abs(i.aire_orientee()) for i in self.lignes[1:]))
+        return base
+
 
 #
 #    @property

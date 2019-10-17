@@ -34,7 +34,8 @@ TYPES_A = {
     "LONG": "EL",
     "ENTIER_LONG": "EL",
     "D": "D",
-    "DATE": "D",
+    "DS": "DS",
+    "DATE": "DS",
     "TIMESTAMP": "D",
     "TIMESTAMP WITHOUT TIME ZONE": "D",
     "TIME WITHOUT TIME ZONE": "D",
@@ -77,6 +78,8 @@ TYPES_PG = {
     "entier_long": "bigint",
     "D": "timestamp",
     "d": "timestamp",
+    "DS": "date",
+    "ds": "date",
     "H": "hstore",
     "h": "hstore",
     "hstore": "hstore",
@@ -174,7 +177,7 @@ class PgrConnect(DbConnect):
         """positionne les path pour la session"""
         cur = self.connection.cursor()
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
-        cur.execute("select set_config('search_path' , 'public',False)", ())
+        cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
 
 
@@ -183,7 +186,7 @@ class PgrConnect(DbConnect):
         """ remplace les \\ par des /"""
         return nom.replace("\\", "/")
 
-    def runsql(self, prog, file, logfile=None, outfile=None):
+    def extsql(self, prog, file, logfile=None, outfile=None):
         """execute un fichier sql"""
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
@@ -233,7 +236,7 @@ class PgrConnect(DbConnect):
         if self.passwd:
             chaine_connect = chaine_connect + " password=" + self.passwd
         #    print ('info:postgres: connection ', serveur,base,user,'*'*len(passwd))
-        # print('connection',chaine_connect)
+        # print('connection',chaine_connect, self.requetes)
         try:
             connection = psycopg2.connect(chaine_connect)
             connection.autocommit = True
@@ -262,33 +265,37 @@ class PgrConnect(DbConnect):
             "def_fonctions_trigger"
         ] = self._def_fonctions_trigger()
 
-    #        print (list(i for i in self._def_fonction_triggers() if "admin_sigli" in i))
+        # print (list(i for i in self._def_fonctions_trigger()))
 
     def _def_vues(self):
         return {
-            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.reqs["info_vues"])
+            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.requetes["info_vues"])
         }
 
     def _def_fonctions_trigger(self):
         return {
-            (i[0], i[1]): i[2] for i in self.request(self.reqs["def_fonctions_trigger"])
+            (i[0], i[1]): i[2] for i in self.request(self.requetes["def_fonctions_trigger"])
         }
 
     def _def_ftables(self):
-        return {i[0]: i[1:] for i in self.request(self.reqs["info_tables_distantes"])}
+        return {i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])}
 
     def _def_triggers(self):
         def_trigg = dict()
         #        print ('triggers')
         #        print (self.request(REQS["info_triggers"]))
         def_trigg["_header"] = [
+            "schema"
             "table",
             "nom",
-            "condition",
+            "type_trigger",
             "action",
             "declencheur",
             "timing",
             "event",
+            "colonnes",
+            "condition"
+            "sql"
         ]
         for i in self.request(self.reqs["info_triggers"]):
             #            print ('triggers',i)
@@ -321,7 +328,7 @@ class PgrConnect(DbConnect):
         fonctions_a_garder = set()
         for i in els["def_triggers"].values():
             for j in i.values():
-                fonction = re.sub(r"EXECUTE PROCEDURE (.*)\(.*\)", r"\1", j[1])
+                fonction = re.sub(r"(.*)\(.*\)", r"\1", j[1])
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
         els["def_fonctions_trigger"] = {
@@ -336,17 +343,17 @@ class PgrConnect(DbConnect):
     @property
     def req_tables(self):
         """recupere les tables de la base"""
-        return self.reqs["info_tables"], None
+        return self.requetes["info_tables"], None
 
     @property
     def req_enums(self):
         """recupere les enums de la base"""
-        return self.reqs["info_enums"], None
+        return self.requetes["info_enums"], None
 
     @property
     def req_attributs(self):
         """recupere les attributs de la base"""
-        return self.reqs["info_attributs"], None
+        return self.requetes["info_attributs"], None
 
     def get_type(self, nom_type):
         if "geometry" in nom_type:
@@ -368,7 +375,10 @@ class PgrConnect(DbConnect):
                          'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
     """
         requete, data = self.req_attributs
+        # print('pgattributs', requete)
         attributs = self.request(requete, data)
+        # print('pgattributs fait')
+
         # on corrige les types et les tailles
         retour = []
         for i in attributs:

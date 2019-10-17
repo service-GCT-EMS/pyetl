@@ -25,7 +25,6 @@ def lire_objets_dbf(self, rep, chemin, fichier):
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     try:
         with DBF(os.path.join(rep, chemin, fichier)) as fich:
-            self.setidententree(self.groupe, self.classe)
             noms_attributs = decode_entetes_dbf(self, fich.field_names)
             self.prepare_attlist(noms_attributs)
 
@@ -39,6 +38,6 @@ def lire_objets_dbf(self, rep, chemin, fichier):
 
 
 #                  reader,geom,hasschema,auxfiles,initer
-READERS = {"dbf": (lire_objets_dbf, None, True, (), None)}
+READERS = {"dbf": (lire_objets_dbf, None, True, ('!','shp'), None)}
 # READERS={}
 WRITERS = {}

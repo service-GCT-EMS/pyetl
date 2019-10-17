@@ -203,7 +203,6 @@ class Reader(object):
         regle = self.regle_ref
         self.lus_fich = 0
         self.chemin = chemin
-        stock_param = regle.stock_param
         chem = chemin
         niveaux = []
         while chem:
@@ -217,10 +216,10 @@ class Reader(object):
         ):  # les objets ont un schema issu du fichier
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
             # self.schema = stock_param.init_schema(self.nomschema, "L")
-
-        classe = os.path.splitext(fichier)[0]
+        # self.aff.send(("initfich", 0, 0))
+        classe, regle.ext = os.path.splitext(fichier)
+        # print ('prepare_lecture: initfich', groupe,classe)
         # self.setidententree(groupe,classe)
-        regle.ext = os.path.splitext(fichier)[-1]
         defchain = [
             "encoding",
             "codec_" + self.nom_format + "_in",
@@ -241,6 +240,8 @@ class Reader(object):
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = "utf-8-sig"
+
+        self.setidententree(groupe, classe)
         return groupe,classe
 
     def process(self, obj):
@@ -310,7 +311,6 @@ class Reader(object):
         self.ident = groupe2, classe2
         self.attformatters = None
         # print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
-
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
             self.setattformatter()

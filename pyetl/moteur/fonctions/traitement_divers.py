@@ -202,6 +202,7 @@ def h_stocke(regle):
     # mode comparaison : le stock est reutilise ailleurs (direct_reuse)=False
     regle.direct_reuse = not "cmp" in regle.params.cmp1.val
     regle.fold = regle.params.cmp1.val == "cmpf"
+    regle.cnt = regle.params.cmp1.val == "cnt"
     if regle.params.cmp2.val == "clef":
         regle.stocke_obj = False
         regle.tmpstore = set()
@@ -215,6 +216,7 @@ def f_stocke(regle, obj):
    #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||
    #pattern3||;;?L;tmpstore;=cmp;A;?=clef||
    #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||
+   #pattern5||S;;?L;tmpstore;=cnt;||
        #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
@@ -230,9 +232,15 @@ def f_stocke(regle, obj):
         else:
             clef = obj.attributs.get(regle.params.att_entree.val, "")
         if regle.stocke_obj:
+            if regle.cnt:
+                cnt = 1
+                if clef in regle.tmpstore:
+                    obj =  regle.tmpstore[clef]
+                    cnt += int(obj.attributs[regle.params.att_sortie.val])
+                obj.attributs[regle.params.att_sortie.val] = str(cnt)
             regle.tmpstore[clef] = obj
         else:
-            regle.tmpstore.add(obj)
+            regle.tmpstore.add(clef)
         return True
     #    print ('store: stockage objet ', obj, obj.schema.identclasse,obj.schema.info)
     regle.tmpstore.append(obj)
@@ -271,7 +279,7 @@ def f_uniq(regle, obj):
 def h_uniqcnt(regle):
     """ stocke les clefs pour l'unicite """
     regle.maxobj = regle.params.cmp1.num if regle.params.cmp1.num else 1
-    regle.cnt = regle.maxobj > 1
+    regle.cnt = regle.maxobj != 1
     regle.tmpstore = defaultdict(int)
 
 
@@ -334,7 +342,7 @@ def h_sortir(regle):
         tmplist = regle.params.cmp1.val.find("[")
         # print("valeur ii ", regle.params.cmp1,ii)
 
-        regle.context.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
+        regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = Writer(regle.params.cmp1.val, regle)  # tout le reste
     #    print ('positionnement writer ',regle, regle.params.cmp1.val)
@@ -364,10 +372,10 @@ def h_sortir(regle):
         if os.path.isabs(regle.params.cmp2.val): # si absolu on ignore le rep de sortie
             rep_base = ''
         if regle.fanout == 'no': # sans fanout pas de sous repertoires
-            regle.context.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
+            regle.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
             regle.f_sortie.writerparms["destination"] = os.path.basename(regle.params.cmp2.val)
         else:
-            regle.context.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
+            regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
@@ -463,7 +471,8 @@ def f_sortir(regle, obj):
 
 
 def valreplace(chaine, obj):
-    """remplace les elements provenant de l objet """
+    """remplace les elements provenant de l objet,
+     cas particulier du parametre en [nom]"""
     vdef = r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]"
     repl = lambda x: obj.attributs.get(x.group(1), "")
     return re.sub(vdef, repl, chaine)
@@ -473,15 +482,15 @@ def preload(regle, obj):
     """prechargement"""
     vrep = lambda x: regle.resub.sub(regle.repl, x)
     chaine_comm = vrep(regle.params.cmp1.val)
-    regle.context.setvar("nocomp", False)
+    regle.setvar("nocomp", False)
+    #=================surveillance de la consommation mémoire================
     process = psutil.Process(os.getpid())
-
     mem1 = process.memory_info()[0]
+    #=========================================
     if obj and regle.params.att_entree.val:
         entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
     else:
-        entree = regle.entree if regle.entree else valreplace(regle.fich, obj)
-
+        entree = regle.entree if regle.entree else regle.fich
     print(
         "------- preload commandes:(",
         chaine_comm,
@@ -496,15 +505,19 @@ def preload(regle, obj):
             if regle.params.cmp2.val.startswith("#")
             else "#" + regle.params.cmp2.val
         )
-        processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest)
+        processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context)
+        if not processor:
+            return False
         processor.process()
-        renseigne_attributs_batch(regle, obj, processor.retour)
+        if obj:
+            renseigne_attributs_batch(regle, obj, processor.retour)
 
-        print("------- preload ", processor.store)
+        print("------- preload objets", processor.store)
+        nb_total = processor.get_param("_st_lu_objs", "0")
         regle.stock_param.store.update(
             processor.store
         )  # on rappatrie les dictionnaires de stockage
-        regle.context.setvar("storekey", processor.retour)  # on stocke la clef
+        regle.setvar("storekey", processor.retour)  # on stocke la clef
 
     else:
         #        racine = regle.stock_param.racine
@@ -522,10 +535,12 @@ def preload(regle, obj):
         except StopIteration:
             pass
         nb_total = lecteur.lus_fich
-
+    #=================surveillance de la consommation mémoire================
     mem2 = process.memory_info()[0]
     mem = mem2 - mem1
-    print("------- preload ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
+    print("------- preload info memoire ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
+    #=============================
+    return True
 
 
 def h_preload(regle):
@@ -550,12 +565,12 @@ def h_preload(regle):
     elif "[" in fich:
         regle.dynlevel = 3
     regle.entree = None
-
+    regle.loaded = False
     if regle.dynlevel == 0:  # pas de selecteur on precharge avant de lire
         regle.entree = regle.params.val_entree.val
         regle.fich = regle.entree
-        preload(regle, None)
-        regle.valide = "done"
+        regle.valide = "done" if preload(regle, None) else False
+
 
     print("==================h_preload===", regle.dynlevel, regle.valide)
 
@@ -566,7 +581,8 @@ def f_preload(regle, obj):
  #aide_spec1||les elements entre [] sont pris dans l objet courant
  #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
     #pattern||A;?C;?A;preload;?C;C
-      #!test||
+      #!test||rien||^clef;%testrep%/refdata/lecture/t1.csv;;preload;;test||
+            ||^;%testrep%/refdata/lecture/t1.csv;;charge;;;||
     """
     fich = regle.fich
 
@@ -578,10 +594,10 @@ def f_preload(regle, obj):
             regle.entree = fich
             print("==================f_preload===", regle.stock_param.racine, regle.entree)
 
-            preload(regle, obj)
+            regle.loaded = preload(regle, obj)
     #            print ('chargement ',regle.params.cmp2.val,
     #                   regle.stock_param.store[regle.params.cmp2.val])
-    return True
+    return regle.loaded
 
 
 def compare_traite_stock(regle):
@@ -751,13 +767,16 @@ def f_getkey(regle,obj):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     if regle.params.att_entree.val or regle.params.val_entree.val:
+        print ('retour run ', regle)
         return
     if regle.runscope():  # on voit si on doit l'executer
         chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val))
         print("lancement ", chaine)
+        fini = ''
         fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
         if regle.params.att_sortie.val:
             regle.stock_param.set_param(regle.params.att_sortie.val, fini)
+    print ('retour run : done')
     regle.valide = "done"
 
 
@@ -768,10 +787,14 @@ def f_run(regle, obj):
    #pattern2||P;;;run;C;?C
      #schema||ajout_attribut
     """
-    chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val, regle.getval_entree(obj)))
-    fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
-    if regle.params.att_sortie.val:
-        obj.attributs[regle.params.att_sortie.val] = str(fini)
+    if regle.runscope():  # on voit si on doit l'executer
+        chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val, regle.getval_entree(obj)))
+        raise
+        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True)
+        if regle.params.att_sortie.val:
+            obj.attributs[regle.params.att_sortie.val] = str(fini)
+        return True
+    return False
 
 
 def h_loadconfig(regle):
@@ -852,19 +875,22 @@ def h_abspath(regle):
     regle.dynref = regle.params.cmp1.val.startswith('[')
     regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
     if not regle.ref:
-        regle.ref = os.path.abspath(regle.racine)
+        regle.ref = os.path.curdir
 
 
 def f_abspath(regle,obj):
     """#aide||change un chemin relatif en chemin absolu
-    #aide_spec||le point de depart est le chemin ou cmp1
+  #aide_spec||le point de depart est le chemin ou cmp1
     #pattern||S;C?;A?;abspath;C?;
+       #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||
+            ||^absp2;toto;;set;||^absp2;%_progdir%;;abspath||ata:absp:absp2
+       #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv2|absp|A:\\titi\\toto|
     """
     candidat = regle.get_entree(obj)
     if os.path.isabs(candidat):
         final = candidat
     else:
-        ref = os.path.abspath(obj.attributs.get(regle.ref)) if regle.dynref else regle.ref
+        ref = os.path.abspath(obj.attributs.get(regle.ref,"")) if regle.dynref else regle.ref
         final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
     # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
@@ -873,26 +899,28 @@ def f_abspath(regle,obj):
 
 def h_namesplit(regle):
     """prepare la structure d'info de fichier"""
-    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#"
-    regle.ajout_attributs = [prefix+"chemin",prefix+"fichier",prefix+"ext"]
+    prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#s_"
+    regle.ajout_attributs = [prefix+"chemin",prefix+"nom",prefix+"ext"]
     return True
-
-
 
 def f_namesplit(regle,obj):
     """#aide||decoupe un nom de fichier en chemin,nom,extention
   #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
- #aide_spec2||syntaxe:;defaut;attr contenant le nom;namesplit
+ #parametres||prefixe;defaut;attr contenant le nom;namesplit
      #schema||ajout_attribut
-    #pattern||A;C?;A?;namesplit;;
+    #pattern||?A;C?;A?;namesplit;;
+       #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
     """
     fichier = Path(regle.get_entree(obj))
+    # print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
     obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))
     return True
 
 def f_namejoin(regle,obj):
     """#aide||combine des element en nom de fichier en chemin,nom,extention
     #pattern||S;C?;L?;namejoin;;
+ #parametres||sortie;defaut;liste d'attributs;namesjoin
+    #test||obj||^n1,n2;toto,titi;;set||^X;;n1,n2;namejoin||^;;X;namesplit||atv:#s_nom:titi
     """
     regle.setval_sortie(obj, os.path.join(*regle.getlist_entree(obj)))
     return True

@@ -218,7 +218,7 @@ def f_dbalpha(regle, obj):
             if not dest:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
             os.makedirs(dest, exist_ok=True)
-            regle.context.setvar("_entree", dest)
+            regle.setvar("_entree", dest)
             log = regle.context.getvar("log", os.path.join(dest, "log"))
             os.makedirs(log, exist_ok=True)
             print("traitement db: dump donnees de", base, "vers", dest)
@@ -248,7 +248,7 @@ def f_dbalpha(regle, obj):
             )
         #    print ('regles alpha: valeur retour',retour,obj)
         return retour
-    print("fdbalpha: base non definie ", base)
+    print("fdbalpha: base non definie ", base, regle.context, regle)
     return False
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -343,8 +343,8 @@ def f_dbclose(regle, obj):
     base, _, _, _ = regle.cible_base
     if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
         base = obj.attributs.get("#base", base)
-        regle.context.setvar("db", obj.attributs.get("#type_base"))
-        regle.context.setvar("server", obj.attributs.get("#chemin"))
+        regle.setvar("db", obj.attributs.get("#type_base"))
+        regle.setvar("server", obj.attributs.get("#chemin"))
     DB.dbclose(regle.stock_param, base)
     return True
 
@@ -378,13 +378,31 @@ def f_dbrunsql(regle, obj):
     if not scripts:
         print("pas de scripts a executer: ", script)
     for nom in scripts:
+        if nom.startswith('#'): # c'est une commande sql interne
+            nom = os.path.join(regle.getvar("_progdir"),'formats/db/sql',nom[1:])
         if not nom.endswith(".sql"):
             nom = nom + ".sql"
         # print("traitement sql ", nom)
-        DB.dbrunsql(
+        DB.dbextsql(
             regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
         )
 
+def h_dbrunproc(regle):
+    """execution de commandes"""
+    regle.chargeur = True  # c est une regle qui cree des objets
+    param_base(regle)
+    regle.procedure = 'select '+regle.params.cmp1.val+'()'
+
+def f_dbrunproc(regle,obj):
+    """#aide||lancement d'un procedure stockeee
+  #aide_spec||parametres:base;;;;?arguments;?variable contenant les arguments;runsql;?log;?sortie
+     #groupe||database
+    #pattern||;?LC;?L;runproc;C;
+    """
+    base, _, _, _ = regle.cible_base
+    params = regle.getval_entree(obj)
+    print ('runproc',regle.procedure, params)
+    DB.dbrunproc(regle.stock_param, base, regle.procedure, params)
 
 def h_dbextload(regle):
     """execution de commandes de chargement externe"""
@@ -518,7 +536,7 @@ def f_dbcount(regle, obj):
         #        print ('regles cnt: valeur retour',retour,obj)
         obj.attributs[regle.params.att_sortie.val] = str(retour)
         return True
-    print("fdbalpha: base non definie ", base)
+    print("dbcount: base non definie ", base)
     return False
 
 
@@ -539,9 +557,9 @@ def h_recup_schema(regle):
     if nombase:
         nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
         if regle.params.att_sortie.val == "schema_entree":
-            regle.context.setvar("schema_entree", nomschema)
+            regle.setvar("schema_entree", nomschema)
         if regle.params.att_sortie.val == "schema_sortie":
-            regle.context.setvar("schema_sortie", nomschema)
+            regle.setvar("schema_sortie", nomschema)
         regle.valide = "done"
         print("h_recup_schema", nomschema, '->', nombase)
         DB.recup_schema(regle, nombase, niveau, classe, nomschema)
@@ -559,6 +577,8 @@ def f_recup_schema(regle, obj):
     """
     chemin = ""
     # print ('recup_schema---------------', obj)
+    if obj.attributs.get("#categorie") == "traitement_virtuel":
+        return True
     base, niveau, classe, att = regle.cible_base
     if obj.attributs["#groupe"] == "__filedb":
         chemin = obj.attributs["#chemin"]

@@ -120,8 +120,8 @@ class Ressource(object):
     def finalise(self):
         """ finalise une ressource : une resource finalisee ne peut pas etre reouverte"""
         if self.etat == 0:
-            LOGGER.error("ressource indisponible "+self.nom)
-            return -1
+            self.handler.open()
+            self.etat = 1
         if self.etat > 2:
             LOGGER.warning("ressource deja finalisee "+self.nom)
             return -1
@@ -139,18 +139,20 @@ class GestionSorties(object):
         self.ressources = dict()
         self.rep_sortie = rep_sortie
 
-    def get_res(self, id_demand, id_ressource):
+    def get_res(self, id_demand, id_ressource, usebuffer=False):
         """ verouille une ressource existante"""
         if id_ressource in self.ressources:
-            self.lock(id_demand, id_ressource)
+            if not usebuffer:
+                self.lock(id_demand, id_ressource)
             return self.ressources[id_ressource]
         return None
 
-    def creres(self, id_demand, id_ressource, handler):
+    def creres(self, id_demand, id_ressource, handler, usebuffer=False):
         """ verouille une recssource et la cree si necessaire"""
         if id_ressource not in self.ressources:
             self.ressources[id_ressource] = Ressource(id_ressource, handler)
-            self.lock(id_demand, id_ressource)
+            if not usebuffer:
+                self.lock(id_demand, id_ressource)
             return self.ressources[id_ressource]
         return self.get_res(id_demand, id_ressource)
 
@@ -251,8 +253,8 @@ class GestionSorties(object):
             return os.path.join(rep_sortie, groupe + ext)
         if classe:
             return os.path.join(rep_sortie, classe + ext)
-        print("!!!!! clef non definie", rep_sortie, "<->", os.path.join(rep_sortie, "defaut" + ext))
-        #        raise
+        print("!!!!! clef non definie", rep_sortie, groupe, classe, ext, nom, "<->", os.path.join(rep_sortie, "defaut" + ext))
+        raise
         return os.path.join(rep_sortie, "defaut" + ext)
 
     def getstats(self):

@@ -249,12 +249,6 @@ class SchemaClasse(object):
     @property
     def getpkey(self):
         """ retourne la liste de champs comportant la clef principale"""
-
-        #        pk = ','.join([self.minmajfunc(str(self.indexes[i]))
-        #                         for i in sorted(self.indexes) if i[0] == 'P'])
-        #        if pk=='i':
-        #            print ( 'indexes:',self.indexes)
-        #            raise
         return ",".join(
             [self.minmajfunc(str(self.indexes[i])) for i in sorted(self.indexes) if i.startswith("P")]
         )
@@ -368,6 +362,12 @@ class SchemaClasse(object):
         elif self.schema.dbsql:
             f_sortie.writerparms["dialecte"] = f_sortie.databases[self.schema.dbsql.dialecte]
 
+    def force_modif(self, regle):
+        '''force une modif de schema'''
+        idregle = regle.index
+        if idregle in self.regles_modif:
+            self.regles_modif.remove(idregle)
+
     def amodifier(self, regle, dyn=False):
         """ determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
@@ -389,7 +389,6 @@ class SchemaClasse(object):
 
     def setpkey(self, liste):
         """cree stocke la definition des champs de la clef primaire"""
-        # print ("------------------------------setpkey",self.indexes,liste)
         for i in list(self.indexes.keys()):
             if i.startswith("P:"):
                 del self.indexes[i]
@@ -705,13 +704,14 @@ class SchemaClasse(object):
             position = ordreins
         attr.ordre = ordreins
 
-    def stocke_geometrie(self, type_geom, dimension=0, srid="3948", courbe=False, multiple=True):
+    def stocke_geometrie(self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
         #               dimension,self.info["type_geom"])
 
         if isinstance(type_geom, (int, float)):
             type_geom = str(type_geom)
+
         if type_geom in TYPES_G:
             self.info["type_geom"] = type_geom
         elif type_geom in CODES_G:
@@ -756,7 +756,7 @@ class SchemaClasse(object):
                 #                raise TypeError
                 self.info["type_geom"] = "0"
         self.srid = srid
-        self.multigeom = multiple
+        self.multigeom = multiple if multiple is not None else (self.info["type_geom"] != "1")
         #        self.courbe = courbe
         if courbe:
             self.info["courbe"] = "1"

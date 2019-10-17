@@ -10,7 +10,7 @@ from .geometrie.geom import Geometrie, Erreurs
 
 class AttributsSpeciaux(object):
     """gere les attibuts speciaux a certains formats """
-
+    __slots__=['typespecial','valeurs','special']
     def __init__(self):
         self.typespecial = dict()
         self.valeurs = dict()
@@ -35,10 +35,19 @@ class Objet(object):
     """structure de stockage d'un objet.   """
 
     _ido = itertools.count(1)  # compteur d'instance
+    __slots__=['geom_v','geom_shape','forcegeom','ido','numobj','copie',
+                'stored','is_ok','redirect','classe_is_att',
+                'liste_attributs','idorig','attributs',
+                'hdict','multiples','attributs_speciaux',
+                'text_graph','tg_coords','etats','geomnatif',
+                'erreurs','format_natif',
+                'virtuel','schema','attributs_geom','casefold'
 
+    ]
     def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None, orig=None):
         self.geom_v = Geometrie()
         #        self.valide = False
+        self.geom_shape = None
         self.forcegeom = False  # force une geometrie de ligne
         self.ido = next(self._ido)
         self.numobj = self.ido if numero is None else numero
@@ -112,32 +121,29 @@ class Objet(object):
         """convertit la geometrie du format natif en interne"""
         #        print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
         if force or not self.geom_v.valide:
-            self.attributs_geom(self)
+            if self.geom_v.sgeom:
+                self.geom_v.shapesync()
+            else:
+                self.attributs_geom(self)
         self.infogeom()
         return self.geom_v.valide
 
     def geompending(self, dimension=None):
         """invalide la geometrie pour signaler qu elle nest pas calculee"""
         self.geom_v.valide = False
+        self.geom_v.sgeom = None
         self.geomnatif = True
         if dimension:
-            self.geom_v.dimension = dimension
+            self.geom_v.dim = dimension
         return True
 
     def infogeom(self):
         """positionne les attributss dependant de la geometrie"""
         geom_v = self.geom_v
         if geom_v.valide:
-            # xmin, ymin, xmax, ymax = geom_v.emprise()
-            #            print ('calcul emprise', xmin, ymin, xmax, ymax, geom_v)
             self.attributs.update(
                 [
-                    # ("#longueur", str(geom_v.longueur)),
                     ("#points", str(geom_v.npt)),
-                    # ("#xmin", str(xmin)),
-                    # ("#xmax", str(xmax)),
-                    # ("#ymin", str(ymin)),
-                    # ("#ymax", str(ymax)),
                     ("#type_geom", geom_v.type),
                     ("#dimension", str(geom_v.dimension)),
                     ("#erreurs_geom", ""),
@@ -266,7 +272,7 @@ class Objet(object):
             # print ('obj:geo_interface',sch.identclasse,self.geom_v.type,self.geom_v.multi, len(self.geom_v.points))
             # print (self)
             for i in liste:
-                if i in sch.attributs and sch.attributs[i].type_att == "D":
+                if i in sch.attributs and sch.attributs[i].type_att.startswith("D"):
                     attributs[i] = (
                         self.attributs[i].replace("/", "-") if self.attributs.get(i) else None
                     )
@@ -473,7 +479,7 @@ class Objet(object):
         try:
             return self.attributs[nom]
         except KeyError:
-            if nom in self.attributs_speciaux.valeurs:
+            if self.attributs_speciaux and nom in self.attributs_speciaux.valeurs:
                 return self.attributs_speciaux.valeurs[nom]
             else:
                 return defaut
@@ -529,7 +535,7 @@ class Objet(object):
             del self.attributs["#schema"]
         self.schema = None
 
-    def dupplique(self):
+    def dupplique(self, schema=True):
         """retourne une copie de l'objet
             sert dans toutes les fonctions avec dupplication d'objets"""
         #        print ('dupplication objets',self.ident)
@@ -540,7 +546,8 @@ class Objet(object):
         ob2.copie += 1
         ob2.ido = next(self._ido)
         self.schema = old_sc
-        ob2.setschema(old_sc)
+        if schema:
+            ob2.setschema(old_sc)
         #        ob2.schema = old_sc
         #        if old_sc is not None:
         #            old_sc.objcnt += 1 # on a un objet de plus dans le schema

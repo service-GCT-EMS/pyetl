@@ -52,7 +52,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         "long": "EL",
         "float": "F",
         "datetime": "D",
-        "date": "D",
+        "date": "DS",
         "time": "D",
     }
     # print ('recup_schema fiona:', ident, description, schema_courant)
@@ -173,14 +173,15 @@ def lire_objets(self, rep, chemin, fichier):
     # print("lecture gdal", (rep, chemin, fichier), self.schemaclasse)
     #    raise
     # ouv = None
-    self.prepare_lecture_fichier(rep, chemin, fichier)
+    groupe, classe = self.prepare_lecture_fichier(rep, chemin, fichier)
 
     layers = fiona.listlayers(self.fichier)
     # print('fiona:lecture niveaux',  layers)
     for layer in layers:
         with fiona.open(self.fichier, "r", layer=layer) as source:
-            # print ('recup fiona',source.driver, source.schema)
-            self.setidententree(self.groupe,layer)
+            # print ('recup fiona',self.newschema,source.driver, source.schema)
+            if layer != classe:
+                self.setidententree(self.groupe,layer)
             if self.newschema:
                 self.schemaclasse = recup_schema_fiona(
                     self.schemaclasse.schema, (self.groupe, self.classe), source.schema, source.driver
@@ -334,17 +335,6 @@ class GdalWriter(object):
         ident = obj.ident
         if ident in self.buffer:
             self.buffer[ident].append(chaine)
-            if len(self.buffer[ident]) < 0:
-                print ('ecriture bufferisee',ident,len(self.buffer[ident]))
-                self.changeclasse(obj.schema, multilayer=True)
-                # self.schemaclasse = obj.schema
-                # self.liste_att = self.schemaclasse.get_liste_attributs()
-                # if self.fichier:
-                #     self.fichier.close()
-                # self.reopen()
-                print ('ecriture buffer',ident,len(self.buffer[ident]))
-                self.fichier.writerecords(self.buffer[ident])
-                del self.buffer[ident]
         else:
             self.buffer[ident] = [chaine]
         return True
@@ -372,7 +362,7 @@ class GdalWriter(object):
         if self.buffer:
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                # print ('ecriture buffer',ident,len(self.buffer[ident]),self.buffer[ident])
+                print ('ecriture buffer',ident,len(self.buffer[ident]))
                 self.fichier.writerecords(self.buffer[ident])
         self.buffer = dict()
         self.close()
@@ -412,7 +402,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
             nom = sorties.get_id(rep_sortie, groupe, "", extension)
         else:
             nom = sorties.get_id(rep_sortie, groupe, classe, extension)
-        ressource = sorties.get_res(regle.numero, nom)
+        ressource = sorties.get_res(regle.numero, nom, usebuffer)
         #        print ('gdal: recup ressource',ressource, nom, regle.fanout, groupe)
 
         if ressource is None:
@@ -429,7 +419,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
                 layer=classe,
                 srid=obj.geom_v.srid,
             )
-            ressource = sorties.creres(regle.numero, nom, streamwriter)
+            ressource = sorties.creres(regle.numero, nom, streamwriter, usebuffer)
         #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
         regle.ressource = ressource
         regle.dident = obj.ident

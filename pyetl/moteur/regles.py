@@ -92,7 +92,7 @@ class Valdef(object):
         return self.texte + "->" + str(self.val)
 
     def getval(self,obj):
-        return obj.attributs.get(self.origine) if self.dyn else self.val
+        return obj.attributs.get(self.origine,"") if self.origine else self.val
 
 
 class ParametresFonction(object):
@@ -149,7 +149,7 @@ class ParametresFonction(object):
         dyn = "*" in val
         origine = None
         if val.startswith("["):
-            dyn = True
+            # dyn = True
             origine = val[1:-1]
 
         #        var = "P:" in val
@@ -524,12 +524,16 @@ class RegleTraitement(object):  # regle de mapping
 
     def runscope(self):
         """determine si une regle peut tourner"""
-        pdef = self.getvar("process", "all")
+        pdef = self.getvar("process")
         #        print('runscope', pdef, self.stock_param.parent is None)
-        if pdef == "all":
+        if not pdef:
+            return True
+        if pdef == 'all':
             return True
         if pdef == "worker":
             return self.stock_param.worker
+        if pdef == "master":
+            return not self.stock_param.worker
         if pdef == "main":
             return self.stock_param.parent is None and not self.stock_param.worker
         if pdef == "child":

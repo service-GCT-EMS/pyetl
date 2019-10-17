@@ -26,7 +26,8 @@ TYPES_A = {
     "LONG": "EL",
     "ENTIER_LONG": "EL",
     "D": "D",
-    "DATE": "D",
+    "DS": "DS",
+    "DATE": "DS",
     "TIMESTAMP": "D",
     "TIMESTAMP WITHOUT TIME ZONE": "D",
     "TIME WITHOUT TIME ZONE": "D",
@@ -64,11 +65,12 @@ TYPES_S = {
     "T": "texte",
     "E": "entier",
     "EL": "entier_long",
-    "D": "date",
+    "D": "horodatage sans zone",
+    "DS": "date",
     "H": "hstore",
     "B": "booleen",
     "F": "reel",
-    "Z": "date avec zone",
+    "Z": "horodatage avec zone",
     "S": "sequence",
     "BS": "sequence longue",
     "N": "numerique",
@@ -377,7 +379,7 @@ class Attribut(object):
         return TYPES_S.get(self.type_att, TYPES_S.get(self.type_att_base, self.type_att))
 
     def __repr__(self):
-        return str((self.nom, self.type_att, self.nom_conformite, self.taille))
+        return str((self.nom, self.type_att, self.nom_conformite, self.taille,self.def_index))
 
     @property
     def __dic_if__(self):
