@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """moteur de traitement principal : gere l'enchainement des regles """
 import logging
+import re
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion
 from .fonctions.outils import printexception
 
@@ -191,6 +192,9 @@ class Moteur(object):
 #                   obj.schema.identclasse, obj.schema.objcnt)
 
 
+
+
+
 class Macro(object):
     """ structure de gestion des macros"""
 
@@ -203,15 +207,13 @@ class Macro(object):
         self.vpos = []
         self.vdef = {}
         if vpos is not None:
-            self.vpos = [i.split('=')[0] for i in vpos if i and i !='\n']
+            self.vpos = [i.split('=')[0].strip() for i in vpos if i and i !='\n']
             for i in vpos:
                 if '=' in i:
-                    nom,defaut = i.split('=')
-                    self.vdef[nom] = defaut
+                    nom,defaut = i.split('=',1)
+                    self.vdef[nom.strip()] = defaut
                 else:
                     self.vdef[i] = ''
-
-
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
@@ -223,9 +225,15 @@ class Macro(object):
             return
         self.commandes_macro[numero] = ligne
 
-    def bind(self, liste):
-        """mappe les variables locales et retourne un dictionnaire"""
-        return {nom: bind for nom, bind in zip(self.vpos, liste)}
+
+    def bind(self, liste, context):
+        """mappe les variables locales et retourne un environnement"""
+        macroenv = context.getmacroenv(self.nom)
+        for i in self.vpos: # on initialise le contexte local
+            macroenv.setlocal(i,self.vdef[i] if i in self.vdef else '')
+        context.affecte(liste, macroenv, self.vpos)
+        return macroenv
+
 
     def get_commands(self):
         """recupere les commandes de la macro"""
@@ -244,12 +252,15 @@ class Macro(object):
 
 class Context(object):
     """contexte de stockage des variables"""
+    PARAM_EXP = re.compile(r"%((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%")
+    PARAM_BIND = re.compile(r"^%(\*#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%$")
 
     def __init__(self, parent=None, ident="", type_c="C"):
         self.nom = type_c + ident
         self.ident = self.nom
         self.type_c = type_c
         self.vlocales = dict()
+        self.binding = dict()
         self.search = [self.vlocales]
         self.parent = parent
         self.root = self
@@ -273,9 +284,16 @@ class Context(object):
         """fournit un contexte ephemere lie au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="M")
 
-    def getcontext(self, ident=""):
+    def setbindings(self,binding):
+        """ gere les retours de parametres"""
+        self.binding.update(binding)
+
+    def getcontext(self, ident="", liste=None):
         """fournit un nouveau contexte de reference empilé"""
-        return Context(parent=self, ident=ident)
+        context = Context(parent=self, ident=ident)
+        if liste:
+            self.affecte(liste, context)
+        return context
 
     def getvar(self, nom, defaut=""):
         """fournit la valeur d'un parametre selon des contextes standardises"""
@@ -287,6 +305,38 @@ class Context(object):
                 #                print ('contexte getvar', nom, c[nom])
                 return ctx[nom]
         return defaut
+
+    def resolve(self,element):
+        '''effectue le remplacement de variables'''
+        if self.PARAM_BIND.match(element):
+            return self.getvar(element[2:-1]),element[2:-1]
+        while self.PARAM_EXP.search(element):
+            for i,j in self.PARAM_EXP.findall(element):
+                cible = '%'+j+i+'%'
+                element=element.replace(cible, self.getvar(i[1:-1]))
+        return element, None
+
+    def affecte(self, liste, context, vpos=[]):
+        '''gestion directe d'une affectation'''
+        for num, element in enumerate(liste):
+            if '=' in element: # c'est une affectation
+                nom,val = element.split('=',1)
+                nom,_= self.resolve(nom)
+                val,binding=self.resolve(val)
+            elif element.startswith('*%'):
+                val, binding = self.resolve(element[1:]) # c'est un eclatement de hstore
+                liste2 = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
+                self.affecte(liste2,context)
+                nom=''
+            else:
+                val, binding = self.resolve(element)
+                if num < len(vpos):
+                    nom = vpos[num]
+                else:
+                    nom = val
+                    val = ''
+            if nom:
+                context.setlocal(nom,val, binding=binding)
 
     def getchain(self, noms, defaut=""):
         """fournit un parametre a partir d'une chaine de fallbacks"""
@@ -309,18 +359,31 @@ class Context(object):
         #        print ('contexte setvar', nom, valeur)
         if nom in self.vlocales or self.root==self:
             self.vlocales[nom] = valeur
-            # print ("stockage",nom,"->",valeur, self)
+            if nom in self.binding:
+                self.ref.setvar(self.binding[nom], valeur)
+                print ("binding",nom,"->",self.binding[nom],':',valeur, self.ref)
         else:
             self.ref.setvar(nom, valeur)
+
 
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
         self.vlocales[nom] = valeur
 
+
     def setroot(self, nom, valeur):
         """positionne une variable du contexte racine"""
         #        print ('contexte setvar', nom, valeur)
         self.root.vlocales[nom] = valeur
+
+
+    def setretour(self, nom, valeur):
+        """positionne une variable et la mappe sur le contexte parent"""
+        self.vlocales[nom] = valeur
+        if nom in self.binding:
+            self.ref.setvar(self.binding[nom], valeur)
+
+
 
 
     def exists(self, nom):

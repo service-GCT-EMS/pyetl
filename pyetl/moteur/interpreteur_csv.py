@@ -492,25 +492,15 @@ def analyse_operation(regle):
     else:
         regle.valide = False
 
-
-def stocke_vloc(context,vldef):
-    '''stocke une definition de variables locales'''
-    vldef, binding = map_vars(vldef, context)
-    listevlocs = ([i.strip().strip('"').replace('"=>"', "=") for i in vldef.split('","')] if "=>" in vldef
-                 else vldef.split(","))
-    for i in listevlocs:
-        #        print('detecte', i)
-        nom, val, *_ = i.split("=") + [""]
-        context.setlocal(nom.strip(), val.strip())
-
-
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
     valeurs = regle.ligne.split(";")
     if len(valeurs) > 11:
-        stocke_vloc(regle.context,valeurs[11])
-    regle.ligne, binding = map_vars(regle.ligne, regle.context)
-    valeurs = [i.strip() for i in regle.ligne.split(";")]
+        listevlocs = valeurs[11].split(',')
+        regle.context.affecte(listevlocs,regle.context.ref)
+    #regle.ligne = map_vars(regle.ligne, regle.context)
+    for n,v in enumerate(valeurs):
+        valeurs[n]=(regle.context.resolve(v.strip()))
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
@@ -587,24 +577,20 @@ def prepare_regle(regle, prec=None):
 #                regle.traitement_schema = True # on active le traitement des schemas
 
 
-def map_vars(ligne, context):
+def map_vars(ligne: str, context) ->str:
     """gere le mapping des variables positionelles avec fallback sur les globales"""
     # TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
-    binding = dict()
-    #    print('mv:ligne',ligne)
-    #    l_orig = ligne
+
     for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
         nom_param = j.replace("%", "")
         # print ('variable', context, nom_param,'->', context.getvar(nom_param))
         ligne = ligne.replace(j, context.getvar(nom_param))
 
-        binding[nom_param] = context.getvar(nom_param, nom_param)
         if PARAM_EXP.search(ligne):  # double indirections
-            ligne, binding2 = map_vars(ligne, context)
-            binding.update(binding2)
+            ligne= map_vars(ligne, context)
     #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
     #    print('mv:',context, l0,'->',ligne)
-    return ligne, binding
+    return ligne
 
 
 def reinterprete_regle(regle, mapper, context=None):
@@ -655,10 +641,8 @@ def charge_macro(mapper, cmd, vpos, macroenv, liste_regles):
     # macroenv.update(macro.vdef)
     # print ('lecture_macro',macro.vdef)
     # print ('variables',vpos)
-    if vpos:
-        position = macro.bind(vpos)
+    macro.bind(vpos, macroenv)
         # print ('affectation variables positionelles',position)
-        macroenv.update(macro.bind(vpos))
     liste_regles.extend(macro.get_commands())
 
 
@@ -772,7 +756,7 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
 
 def affecte_variable(mapper, commande, context):
     """ affecte une variable avec gestion des valeurs par defaut"""
-    commande, binding = map_vars(commande, context)
+    commande = map_vars(commande, context)
     modif = r"\;" in commande  # gestion des ';' comme parametre
     # print('affecte',mapper.idpyetl,commande,context)
     affectation = commande.split(";")[0][1:]
@@ -801,9 +785,15 @@ def affecte_variable(mapper, commande, context):
         # if not valeur:
         #     valeur = ""
         set = context.setvar
-        if nom.startswith('$'):
+        if nom.startswith("$"): # $$X variable globale
             nom=nom[1:]
             set = context.setroot
+        elif nom.startswith("-"): # $-X variable locale
+            nom=nom[1:]
+            set = context.setlocal
+        elif nom.startswith("*"): # $-X variable retour
+            nom=nom[1:]
+            set = context.setretour
         if valeur.startswith("#env:") and valeur.split(":")[1]:
             # on affecte une variable d'environnement
             set(nom, mapper.env.get(valeur.split(":")[1], ""))
@@ -838,7 +828,7 @@ def traite_regle_std(
     """ traite une regle classique """
     #    texte = texte_brut.strip()
     erreurs = 0
-    texte, binding = map_vars(texte, context)
+    texte = map_vars(texte, context)
     regles = mapper.regles if regle_ref is None else regle_ref.liste_regles
     #    print ('interpretation', texte)
     #            if mapper.init: # on rentre dans les commandes : on initialise les es
@@ -880,29 +870,29 @@ def traite_regle_std(
     return bloc, erreurs
 
 def prepare_env(mapper, texte, context, fichier_regles):
-    '''lance une macro en one shot'''
-    idenv = texte.split(";")[0]
-    macroenv = context.getmacroenv(ident=idenv)
-    texte, binding = map_vars(texte, macroenv)
+    '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
     # print ('mapping parametres macro', texte)
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
-    vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
-    settings = dict([i.split('=',1) for i in champs if "=" in i])
-
-    #    print ('lecture macro',texte,'->',niveau)
-
-    if nom_inclus[0] == "#":
+    parametres = champs[1:]
+    cmd, *pars = nom_inclus.split("|" if "|" in nom_inclus else ":")
+    nom_inclus = cmd
+    if pars:
+        parametres = pars+parametres
+    nom_inclus,_ = context.resolve(nom_inclus)
+    macroenv = context
+    if nom_inclus.startswith("#"):
         inclus = nom_inclus  # macro
         macro = mapper.macros.get(inclus)
         if macro:
-            #            print ('affectation variables macro', vpos, macro.bind(vpos))
-            macroenv.update(macro.vdef)
-            macroenv.update(macro.bind(vpos))  # affectation des variables locales
+            macroenv = macro.bind(parametres,context)
+    elif nom_inclus.startswith('.') or os.path.abspath(nom_inclus):
+        inclus = nom_inclus
+        context.affecte(parametres,context)
     else:
-        inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])
+        inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
+        context.affecte(parametres,context)
     #            print("lecture de regles incluses", inclus,pps)
-    macroenv.update(settings)
     return inclus, macroenv
 
 def execute_macro(mapper, texte, context, fichier_regles):
@@ -912,41 +902,12 @@ def execute_macro(mapper, texte, context, fichier_regles):
 
 def importe_macro(mapper, texte, context, fichier_regles):
     """ importe une macro et l 'interprete"""
-    #    numero, texte_brut = defligne
-    #    texte = texte_brut.strip()
-    #    texte_brut = texte
-    # print ('recu macro',texte)
     match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
-    # idenv = texte.split(";")[0]
-    # macroenv = context.getmacroenv(ident=idenv)
-    # texte, binding = map_vars(texte, macroenv)
-    # # print ('mapping parametres macro', texte)
-    # champs = texte.split(";")
-    # nom_inclus = champs[0][1:].strip()
-    # vpos = [champs[i] for i in range(1, len(champs)) if not "=" in champs[i]]
-    # settings = dict([i.split('=',1) for i in champs if "=" in i])
-
-    # #    print ('lecture macro',texte,'->',niveau)
-
-    # if nom_inclus[0] == "#":
-    #     inclus = nom_inclus  # macro
-    #     macro = mapper.macros.get(inclus)
-    #     if macro:
-    #         #            print ('affectation variables macro', vpos, macro.bind(vpos))
-    #         macroenv.update(macro.vdef)
-    #         macroenv.update(macro.bind(vpos))  # affectation des variables locales
-    # else:
-    #     inclus = os.path.join(os.path.dirname(fichier_regles), champs[0][1:])
-    # #            print("lecture de regles incluses", inclus,pps)
-    # macroenv.update(settings)
-    # #            print ("demarrage macro",vloc)
-    # # print('creation contexte macro', macroenv, macroenv.vlocales)
-
     erreurs = lire_regles_csv(mapper, inclus, niveau=niveau, context=macroenv)
     return erreurs
 
@@ -998,7 +959,7 @@ def lire_regles_csv(
         start = 0
         while texte.startswith("K:") and not macro:
             liste_val = texte.split(";", 1)
-            cond, binding = map_vars(liste_val[0], context)
+            cond = map_vars(liste_val[0], context)
             condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
 #            print( "lire: condmatch",condmatch, cond,liste_val[0])
             if condmatch:  # interpretation conditionelle
@@ -1043,7 +1004,7 @@ def lire_regles_csv(
         #        print ('icsv: regle ',i)
 
         elif texte.startswith("$#"):
-            ligne, binding = map_vars(texte, context)
+            ligne = map_vars(texte, context)
             #            print('map _vars ' ,i, ligne)
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()

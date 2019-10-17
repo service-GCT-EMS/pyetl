@@ -148,7 +148,7 @@ class AccConnect(DbConnect):
                 tables.append(nouv_table)
         return tables
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
         """iteration sur le retour"""
         if has_geom:
             print("erreur requete geometrique impossible", requete)

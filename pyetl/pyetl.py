@@ -723,7 +723,7 @@ class Pyetl(object):
         if clef in self.site_params:
             # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
-                val, _ = map_vars(val, context)  # on fait du remplacement à la volee
+                val = map_vars(val, context)  # on fait du remplacement à la volee
                 setter(var, val)
                 # print('loadparamgroup',setter,var,val)
                 if nom:
