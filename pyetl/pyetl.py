@@ -188,7 +188,7 @@ class Pyetl(object):
         #        self.parms = dict() #parametres ligne de commande et variables globales
         if context is None:
             context = parent.context if parent else None
-        self.context = Context(parent=context,ident="P" + str(self.idpyetl)
+        self.context = Context(parent=context,ident="P" + str(self.idpyetl),
         )
         #        print ('initialisation', self.context, self.context.parent)
         self.context.root = self.context # on romp la chaine racine
@@ -293,6 +293,7 @@ class Pyetl(object):
     def init_environ(self, env=None):
         """initialise les variables d'environnement et les macros"""
         self.env = os.environ if env is None else env
+        self.context.env = self.env
         if not os.path.isdir(self.paramdir):
             try:
                 os.makedirs(self.paramdir)
@@ -714,19 +715,19 @@ class Pyetl(object):
         """ charge un groupe de parametres """
         if not clef:
             return
+        context = context if context is not None else self.context
         if check:  # on verifie que l'on a pas deja defini les choses avant
             #            print ('validation ',check,check+nom,check+nom in self.parms)
-            if self.context.exists(check + nom):
+            if context.exists(check + nom):
                 return
-        setter = self.set_param if context is None else context.setvar
         if clef in self.site_params:
             # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
                 val,_ = context.resolve(val)  # on fait du remplacement à la volee
-                setter(var, val)
+                context.setlocal(var, val)
                 # print('loadparamgroup',setter,var,val)
                 if nom:
-                    setter(var + "_" + nom, val)
+                    context.setvar(var + "_" + nom, val)
 
         elif fin:
             print("definition parametres de site >" + clef + "< introuvable")
@@ -829,7 +830,7 @@ class Pyetl(object):
 
     def getcontext(self, context, ident=""):
         """recupere un contexte en cascade"""
-        return context.getcontext(ident=ident) if context else Context(parent=self.context, ident=ident)
+        return context.getcontext(ident=ident) if context else self.context.getcontext(ident=ident)
 
     def get_param(self, nom, defaut=""):
         """recupere la valeur d une varible depuis le contexte"""
@@ -838,6 +839,7 @@ class Pyetl(object):
     def set_param(self, nom, valeur):
         """positionne une variable dans un contexte de base
            dans ce cas on positionne en local"""
+        # print ('set_param:',self.context, nom,valeur)
         self.context.setlocal(nom, valeur)
 
     def set_param_parent(self, nom, valeur):
@@ -871,7 +873,7 @@ class Pyetl(object):
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
             self.set_param(*valeur)
-        #            print("stockage",parametre,valeur[0],self.parms[valeur[0]] )
+            print("stockage",parametre,valeur[0])
         else:
             self.posparm.append(parametre)
             #            self.parms["#P_"+str(len(self.posparm))] = parametre

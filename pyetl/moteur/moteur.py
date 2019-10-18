@@ -231,7 +231,7 @@ class Macro(object):
         macroenv = context.getmacroenv(self.nom)
         for i in self.vpos: # on initialise le contexte local
             macroenv.setlocal(i,self.vdef[i] if i in self.vdef else '')
-        context.affecte(liste, macroenv, self.vpos)
+        context.affecte(liste, context=macroenv, vpos=self.vpos)
         return macroenv
 
 
@@ -254,8 +254,11 @@ class Context(object):
     """contexte de stockage des variables"""
     PARAM_EXP = re.compile(r"%((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%")
     PARAM_BIND = re.compile(r"^%(\*#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%$")
+    SPLITTER_B = re.compile(r'(?<!\\)\|')
+    SPLITTER_PV = re.compile(r'(?<!\\);')
+    SPLITTER_V = re.compile(r'(?<!\\),')
 
-    def __init__(self, parent=None, ident="", type_c="C"):
+    def __init__(self, parent=None, ident="", type_c="C", env=None):
         self.nom = type_c + ident
         self.ident = self.nom
         self.type_c = type_c
@@ -264,18 +267,19 @@ class Context(object):
         self.search = [self.vlocales]
         self.parent = parent
         self.root = self
-        self.ref = self
+        self.env = env
         # gestion des hierarchies
         if parent is not None:
-            self.ref = parent if parent.type_c == "C" else parent.ref  # pour les macroenv
             self.ident = parent.ident + "<-" + self.nom
             self.search.extend(parent.search)
-        self.root = self.ref.root
+            self.root = self.parent.root
+            if env is None:
+                self.env = parent.env
+
 
     def setref(self, context):
         """modifie l'enchainement des contextes"""
         if context is not None:
-            self.ref=context
             self.parent=context
             self.ident = self.parent.ident + "<-" + self.nom
             self.search = [self.vlocales]+context.search
@@ -284,15 +288,15 @@ class Context(object):
         """fournit un contexte ephemere lie au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="M")
 
-    def setbindings(self,binding):
+    def setbinding(self,nom,binding):
         """ gere les retours de parametres"""
-        self.binding.update(binding)
+        self.binding[nom]=binding
 
     def getcontext(self, ident="", liste=None):
         """fournit un nouveau contexte de reference empilé"""
         context = Context(parent=self, ident=ident)
         if liste:
-            self.affecte(liste, context)
+            self.affecte(liste, context=context)
         return context
 
     def getvar(self, nom, defaut=""):
@@ -313,21 +317,51 @@ class Context(object):
         while self.PARAM_EXP.search(element):
             for i,j in self.PARAM_EXP.findall(element):
                 cible = '%'+j+i+'%'
-                element=element.replace(cible, self.getvar(i[1:-1]))
+                # print ('recup getvar',cible,i)
+                element=element.replace(cible, self.getvar(i))
+        # print('resolve ', element)
+        element = self.getfirst(element)
         return element, None
 
-    def affecte(self, liste, context, vpos=[]):
+    def getfirst(self,element):
+        '''retourne le premier non vide d'une liste d'elements'''
+        liste = self.SPLITTER_B.split(element)
+        for valeur in liste:
+            if valeur:
+                if valeur.startswith("#env:") and valeur.split(":")[1]:
+                # on affecte une variable d'environnement
+                    valeur = self.env.get(valeur.split(":")[1], "")
+                elif valeur.startswith("#eval:") and valeur.split(":")[1]:
+                    if '__' in valeur:
+                        raise SyntaxError('fonction non autorisee '+ valeur)
+                    valeur = eval(valeur.split(":")[1], {})
+                if valeur:
+                    return valeur
+        return element
+
+    def traite_egalite(self,element):
+        ''' gere une affectation par egal'''
+        defnom,defval = element.split('=',1)
+        nom,_= self.resolve(defnom)
+        val,binding=self.resolve(defval)
+        # print ('traite_egalite', defnom, nom,'=',defval,val)
+        return nom, val, binding
+
+    def traite_hstore(self,element, context):
+        ''' mappe un hstore sur l'environnement'''
+        val, binding = self.resolve(element[1:]) # c'est un eclatement de hstore
+        liste = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
+        self.affecte(liste,context=context)
+
+
+    def affecte(self, liste, context=None, vpos=[]):
         '''gestion directe d'une affectation'''
         for num, element in enumerate(liste):
             if '=' in element: # c'est une affectation
-                nom,val = element.split('=',1)
-                nom,_= self.resolve(nom)
-                val,binding=self.resolve(val)
+                nom, val, binding = self.traite_egalite(element)
             elif element.startswith('*%'):
-                val, binding = self.resolve(element[1:]) # c'est un eclatement de hstore
-                liste2 = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
-                self.affecte(liste2,context)
-                nom=''
+                self.traite_hstore(element, context)
+                continue
             else:
                 val, binding = self.resolve(element)
                 if num < len(vpos):
@@ -336,7 +370,9 @@ class Context(object):
                     nom = val
                     val = ''
             if nom:
-                context.setlocal(nom,val, binding=binding)
+                context.setlocal(nom,val) if context else self.setlocal(nom,val)
+                if binding:
+                    context.setbinding(nom,binding)
 
     def getchain(self, noms, defaut=""):
         """fournit un parametre a partir d'une chaine de fallbacks"""
@@ -352,22 +388,26 @@ class Context(object):
 
     def getgroup(self, prefix):
         """fournit une liste de variables respectant un prefixe"""
-        return {i: j for i, j in self.ref.vlocales.items() if i.startswith(prefix)}
+
+        retour = self.parent.getgroup(prefix) if self.parent else dict()
+        return retour.update(((i, j) for i, j in self.vlocales.items() if i.startswith(prefix)))
 
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
-        #        print ('contexte setvar', nom, valeur)
+        # print ('contexte setvar', self, nom, valeur)
         if nom in self.vlocales or self.root==self:
             self.vlocales[nom] = valeur
-            if nom in self.binding:
-                self.ref.setvar(self.binding[nom], valeur)
-                print ("binding",nom,"->",self.binding[nom],':',valeur, self.ref)
+            if nom in self.binding and self.parent:
+                self.parent.setvar(self.binding[nom], valeur)
+                # print ("binding",nom,"->",self.binding[nom],':',valeur, self.parent)
         else:
-            self.ref.setvar(nom, valeur)
+            self.parent.setvar(nom, valeur) if self.parent else self.setlocal(nom, valeur)
 
 
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
+        # print ('contexte setlocal', self, nom, valeur)
+
         self.vlocales[nom] = valeur
 
 
@@ -380,8 +420,8 @@ class Context(object):
     def setretour(self, nom, valeur):
         """positionne une variable et la mappe sur le contexte parent"""
         self.vlocales[nom] = valeur
-        if nom in self.binding:
-            self.ref.setvar(self.binding[nom], valeur)
+        if nom in self.binding and self.parent:
+            self.parent.setlocal(self.binding[nom], valeur)
 
 
 

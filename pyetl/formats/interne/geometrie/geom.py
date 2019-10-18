@@ -862,7 +862,7 @@ class Geometrie(object):
     def __shapelygeom__(self):
         ''' retourne un format shapely de la geometrie'''
         if not self.sgeom:
-            self.sgeom=SG.shape(self)
+            self.sgeom=SG.shape(self.__geo_interface__)
         return self.sgeom
 
     @property

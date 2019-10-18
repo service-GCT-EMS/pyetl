@@ -37,7 +37,9 @@ NOMS_CHAMPS_N = [
 ]
 
 PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
-
+SPLITTER_PV = re.compile(r'(?<!\\);')
+SPLITTER_V = re.compile(r'(?<!\\),')
+SPLITTER_B = re.compile(r'(?<!\\)\|')
 # quelques fonction générales
 def fdebug(regle, obj):
     """gestion des affichages de debug"""
@@ -488,12 +490,12 @@ def traite_helpers(regle, fonc):
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
-    valeurs = regle.ligne.split(";")
+    valeurs = regle.context.SPLITTER_PV.split(regle.ligne)
     if len(valeurs) > 11:
         listevlocs = valeurs[11].split(',')
-        regle.context.affecte(listevlocs,regle.context.ref)
+        regle.context.affecte(listevlocs)
     for n,v in enumerate(valeurs):
-        valeurs[n]=(regle.context.resolve(v.strip()))
+        valeurs[n], _= regle.context.resolve(v.strip())
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
@@ -506,6 +508,7 @@ def prepare_regle(regle, prec=None):
 
     setvloc(regle)
     v_nommees = regle.v_nommees
+    # print('vnommees',regle.v_nommees)
     ndebug = 10
     if any(i in v_nommees["debug"] for i in ("debug", "print", "step")):
         vdebug = v_nommees["debug"].split(",")
@@ -516,7 +519,7 @@ def prepare_regle(regle, prec=None):
             regle.champsdebug = vdebug[1:]
         print("debug regle ::::", regle.ligne)
     regle.code_classe = v_nommees["sel1"]
-    #    print ('interpreteur:  ',regle.v_nommees)
+    # print ('interpreteur: ',regle,'->',regle.v_nommees)
     # decodage des liens entre regles (structure de blocs)
     #    param = valeurs[0]
     # premier parametre : nom de la classe avec elements de structure
@@ -526,9 +529,9 @@ def prepare_regle(regle, prec=None):
         if regle.niveau>prec.niveau:
             regle.context.setref(prec.context)
         elif regle.niveau==prec.niveau:
-            regle.context.setref(prec.context.ref)
+            regle.context.setref(prec.context.parent)
         elif regle.niveau < prec.niveau:
-            regle.context.setref(prec.context.ref.ref)
+            regle.context.setref(prec.context.parent.parent)
     #    print ('2regle:',regle,regle.valide)
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = Selecteur.true
@@ -566,20 +569,20 @@ def prepare_regle(regle, prec=None):
 #                regle.traitement_schema = True # on active le traitement des schemas
 
 
-def map_vars(ligne: str, context) ->str:
-    """gere le mapping des variables positionelles avec fallback sur les globales"""
-    # TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
+# def map_vars(ligne: str, context) ->str:
+#     """gere le mapping des variables positionelles avec fallback sur les globales"""
+#     # TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
 
-    for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
-        nom_param = j.replace("%", "")
-        # print ('variable', context, nom_param,'->', context.getvar(nom_param))
-        ligne = ligne.replace(j, context.getvar(nom_param))
+#     for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
+#         nom_param = j.replace("%", "")
+#         # print ('variable', context, nom_param,'->', context.getvar(nom_param))
+#         ligne = ligne.replace(j, context.getvar(nom_param))
 
-        if PARAM_EXP.search(ligne):  # double indirections
-            ligne= map_vars(ligne, context)
-    #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
-    #    print('mv:',context, l0,'->',ligne)
-    return ligne
+#         if PARAM_EXP.search(ligne):  # double indirections
+#             ligne= map_vars(ligne, context)
+#     #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
+#     #    print('mv:',context, l0,'->',ligne)
+#     return ligne
 
 
 def reinterprete_regle(regle, mapper, context=None):
@@ -592,7 +595,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
 
-    #    print('traitement_ligne', ligne, mapper.context)
+    # print('traitement_ligne', ligne, mapper.context)
     regle = RegleTraitement(ligne, mapper, fichier, numero, context=context)
     prepare_regle(regle, prec=prec)
 
@@ -621,7 +624,7 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None
     return regle
 
 
-def decoupe_liste_commandes(mapper, fichier_regles, context):
+def decoupe_liste_commandes(fichier_regles):
     """ gere les cas ou la liste de commandes est un assemblage complexe de macros"""
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
@@ -631,7 +634,8 @@ def decoupe_liste_commandes(mapper, fichier_regles, context):
         liste_commandes = re.split("' *, *'", fichier_regles)
     else:
         liste_commandes = fichier_regles.split(",")
-    return ["<"+i  for i in liste_commandes]
+    # print ('decoupage_macros',fichier_regles,'->',[(n,"<"+i) for n,i in enumerate(liste_commandes)])
+    return [(n,"<"+i) for n,i in enumerate(liste_commandes)]
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
@@ -687,7 +691,7 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     elif fichier_regles.startswith("#") or fichier_regles.startswith("['"):
         #       assemblage complexe de macros
         #        print ('a lire', fichier_regles)
-        liste_regles = decoupe_liste_commandes(mapper, fichier_regles, context)
+        liste_regles = decoupe_liste_commandes(fichier_regles)
     #        print ('lu', '\n   '.join([str(i) for i in liste_regles]))
     else:
         liste_regles = charge_fichier(fichier_regles, "", defext=".csv",codec=mapper.get_param('codec_csv'))
@@ -713,56 +717,33 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     return liste_regles
 
 
-def affecte_variable(mapper, commande, context):
+def affecte_variable(commande, context):
     """ affecte une variable avec gestion des valeurs par defaut"""
-    commande = map_vars(commande, context)
-    modif = r"\;" in commande  # gestion des ';' comme parametre
-    # print('affecte',mapper.idpyetl,commande,context)
-    affectation = commande.split(";")[0][1:]
-    #            print ('affectation:',affectation)
-    pos_egal = commande.index("=")
-    valeur = ""
-    if pos_egal != -1:  # c'est une affectation
-        #        print ('affectation ', affectation[:pos_egal-1], '->'+affectation[pos_egal:]+'<-')
-        nom = affectation[: pos_egal - 1]
-        vtmp = affectation[pos_egal:]
-        if modif:
-            valeur = ";"
-        else:
-            valeur = vtmp[1:-1] if vtmp.startswith("'") else vtmp.strip()
-
-        #        valeur = affectation[pos_egal+1:]
-        if not valeur:  # parametre vide
-            # tmp_s = commande.split(";")[1:-1]  # on regarde s'il y a une valeur par defaut
-            #            print ('defauts',tmp_s)
-            #                    print ('init',i)
-            valeur = next((j for j in commande.split(";")[1:-1] if j), '')
-        #     for j in tmp_s:
-        #         if j:
-        #             valeur = j
-        #             break
-        # if not valeur:
-        #     valeur = ""
-        set = context.setvar
-        if nom.startswith("$"): # $$X variable globale
-            nom=nom[1:]
-            set = context.setroot
-        elif nom.startswith("-"): # $-X variable locale
-            nom=nom[1:]
-            set = context.setlocal
-        elif nom.startswith("*"): # $-X variable retour
-            nom=nom[1:]
-            set = context.setretour
-        if valeur.startswith("#env:") and valeur.split(":")[1]:
-            # on affecte une variable d'environnement
-            set(nom, mapper.env.get(valeur.split(":")[1], ""))
-        elif valeur.startswith("#eval:") and valeur.split(":")[1]:
-            if '__' in valeur:
-                print('fonction non autorisee', valeur)
-                return
-            set(nom, eval(valeur.split(":")[1], {}))
-        else:
-            set(nom, valeur)
+    commande_orig=commande
+    liste_vals = context.SPLITTER_PV.split(commande)
+    commande = liste_vals[0][1:]
+    if not '=' in commande:
+        commande=commande+'='
+    for i in liste_vals[1:]:
+        if not i:
+            break
+        commande = commande+'|'+i
+    nom, valeur, binding = context.traite_egalite(commande)
+    if not nom:
+        raise SyntaxError('affectation impossible '+ commande_orig+'->'+repr(commande))
+    set = context.setvar
+    if nom.startswith("$"): # $$X variable globale
+        nom=nom[1:]
+        set = context.setroot
+    elif nom.startswith("-"): # $-X variable locale
+        nom=nom[1:]
+        set = context.setlocal
+    elif nom.startswith("*"): # $*X variable retour
+        nom=nom[1:]
+        set = context.setretour
+    else:
+        set(nom, valeur)
+    # print ('affectation variable',commande, set, nom,"=", valeur)
 
 
 def prepare_texte(defligne):
@@ -809,8 +790,8 @@ def traite_regle_std(
             erreurs = 1
         position = len(regles)
         regles.append(r_cour)
-        for i in binding:  # enregistre les regles dynamiques
-            mapper.bindings.setdefault(texte, []).append(r_cour)
+        # for i in binding:  # enregistre les regles dynamiques
+        #     mapper.bindings.setdefault(texte, []).append(r_cour)
         if position:
             regles[position - 1].branchements.suivante = r_cour
         r_cour.suivante = None
@@ -835,20 +816,20 @@ def prepare_env(mapper, texte, context, fichier_regles):
     if pars:
         parametres = pars+parametres
     nom_inclus,_ = context.resolve(nom_inclus)
-    macroenv = context
     if nom_inclus.startswith("#"):
         inclus = nom_inclus  # macro
         macro = mapper.macros.get(inclus)
         if macro:
             macroenv = macro.bind(parametres,context)
+            context=macroenv
     elif nom_inclus.startswith('.') or os.path.abspath(nom_inclus):
         inclus = nom_inclus
-        context.affecte(parametres,context)
+        context.affecte(parametres)
     else:
         inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
-        context.affecte(parametres,context)
+        context.affecte(parametres)
     #            print("lecture de regles incluses", inclus,pps)
-    return inclus, macroenv
+    return inclus, context
 
 def execute_macro(mapper, texte, context, fichier_regles):
     '''lance une macro en one shot'''
@@ -863,7 +844,9 @@ def importe_macro(mapper, texte, context, fichier_regles):
     texte = match.group(4)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
-    erreurs = lire_regles_csv(mapper, inclus, niveau=niveau, context=macroenv)
+    macro = mapper.macros.get(inclus)
+    liste_regles = macro.get_commands()
+    erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv)
     return erreurs
 
     # fichier inclus
@@ -894,12 +877,12 @@ def lire_regles_csv(
     else:
         liste_regles = liste_regles
     numero = numero_ext
-    #    print ('dans lire_regles', context, fichier_regles, liste_regles)
+    # print ('dans lire_regles', context, fichier_regles, liste_regles)
 
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau, context)
     #    if niveau:
-    #        print('regles lues\n','\n'.join((str(i) for i in liste_regles)))
+    # print('regles lues\n','\n'.join((str(i) for i in liste_regles)))
 
     bloc = 0
     for defligne in liste_regles[:]:
@@ -960,7 +943,7 @@ def lire_regles_csv(
 
         elif texte.startswith("$#"):
             ligne,_ = context.resolve(texte)
-            #            print('map _vars ' ,i, ligne)
+            # print('$# resolve ',context ,texte,'->', ligne, context.getvar('acces'))
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()
             ngroup = champs_var[1].strip() if champs_var[1].strip() else vgroup
@@ -977,7 +960,7 @@ def lire_regles_csv(
         #            print ("variables", mapper.parms)
 
         elif texte.startswith("$"):
-            affecte_variable(mapper, texte, context)
+            affecte_variable(texte, context)
         elif texte.startswith("<<"): # execution immediate d'une macro
             execute_macro(mapper,texte[1:],context,fichier_regles)
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
