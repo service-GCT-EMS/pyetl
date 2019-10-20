@@ -70,7 +70,7 @@ def _get_point(attrib, geometrie):
 
 def geom_from_asc(obj):
     """convertit une geometrie asc en format interne."""
-    #    print ('conversion geometrie asc',obj.ido,obj.geom)
+    # print ('conversion geometrie asc:',obj.ido,obj.attributs["#geom"])
     if obj.geom_v.type == "1":  # c'est un point on a deja ce qu il faut
         obj.infogeom()
         return True
@@ -79,7 +79,7 @@ def geom_from_asc(obj):
     # s'il y a un schema : on force le type de geometrie demandees
     if obj.schema and obj.schema.schema.origine != "B":
         geom_demandee = obj.schema.info["type_geom"]
-    #    print('gfa: geom_demandee',geom_demandee)
+        print('gfa: geom_demandee',geom_demandee,obj.schema.info)
     geom_v = obj.geom_v
     dim = 2
     if "#geom" not in obj.attributs:

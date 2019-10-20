@@ -416,6 +416,7 @@ def afficher_erreurs(regle, fonc, message):
     motif = "------->"
     print(motif + " erreur interpretation regle", regle.fichier, regle.numero)
     print(motif, regle.ligne.replace("\n", ""))
+    print(motif, ";".join([regle.v_nommees[i] for i in NOMS_CHAMPS_N]))
     print(motif, message)
     if regle.erreurs:
         print(motif, "\n".join(regle.erreurs))
@@ -494,8 +495,12 @@ def setvloc(regle):
     if len(valeurs) > 11:
         listevlocs = valeurs[11].split(',')
         regle.context.affecte(listevlocs)
+
+    # print("decodage v nommees",valeurs)
     for n,v in enumerate(valeurs):
         valeurs[n], _= regle.context.resolve(v.strip())
+    # print("apres decodage v nommees",valeurs)
+
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
@@ -529,9 +534,9 @@ def prepare_regle(regle, prec=None):
         if regle.niveau>prec.niveau:
             regle.context.setref(prec.context)
         elif regle.niveau==prec.niveau:
-            regle.context.setref(prec.context.parent)
+            regle.context.setref(prec.context.ref)
         elif regle.niveau < prec.niveau:
-            regle.context.setref(prec.context.parent.parent)
+            regle.context.setref(prec.context.ref.ref)
     #    print ('2regle:',regle,regle.valide)
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = Selecteur.true
@@ -724,11 +729,13 @@ def affecte_variable(commande, context):
     commande = liste_vals[0][1:]
     if not '=' in commande:
         commande=commande+'='
-    for i in liste_vals[1:]:
-        if not i:
-            break
-        commande = commande+'|'+i
-    nom, valeur, binding = context.traite_egalite(commande)
+    nom, valeur, binding, nolocal = context.traite_egalite(commande)
+    if not valeur:
+        for i in liste_vals[1:]:
+            if not i:
+                break
+            valeur,binding = context.resolve(i)
+
     if not nom:
         raise SyntaxError('affectation impossible '+ commande_orig+'->'+repr(commande))
     set = context.setvar
@@ -741,6 +748,9 @@ def affecte_variable(commande, context):
     elif nom.startswith("*"): # $*X variable retour
         nom=nom[1:]
         set = context.setretour
+    elif nom.startswith("!"): # $*X variable retour
+        nom=nom[1:]
+        set = context.setretour_env
     else:
         set(nom, valeur)
     # print ('affectation variable',commande, set, nom,"=", valeur)

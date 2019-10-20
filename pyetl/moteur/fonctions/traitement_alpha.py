@@ -117,12 +117,13 @@ def f_setgeom(regle, obj):
   #aide_spec||cree une geometrie texte
      #helper||setval
     #pattern||=#geom;?;?A;set;C;N||sortie
-      #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;\
+      #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;
             ||^;;;geom||atv;#type_geom;2
       #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
             ||^;;;geom||atv;#type_geom;2
     """
     geom = regle.get_entree(obj)
+    # print ("recup geom:",geom)
     obj.attributs["#geom"] = geom.split("|")
     obj.format_natif = regle.params.cmp1.val
     obj.geompending(dimension=regle.params.cmp2.num if regle.params.cmp2.num else 2)

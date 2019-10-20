@@ -188,7 +188,7 @@ class Pyetl(object):
         #        self.parms = dict() #parametres ligne de commande et variables globales
         if context is None:
             context = parent.context if parent else None
-        self.context = Context(parent=context,ident="P" + str(self.idpyetl),
+        self.context = Context(parent=context,ident="P" + str(self.idpyetl), root=True
         )
         #        print ('initialisation', self.context, self.context.parent)
         self.context.root = self.context # on romp la chaine racine
@@ -828,9 +828,10 @@ class Pyetl(object):
         """retourne un dictionnaire avec les valeurs des stats"""
         return self.context.getgroup("_st")
 
-    def getcontext(self, context, ident=""):
+    def getcontext(self, context, ident="",ref=False):
         """recupere un contexte en cascade"""
-        return context.getcontext(ident=ident) if context else self.context.getcontext(ident=ident)
+        return (context.getcontext(ident=ident,ref=ref)
+                if context else self.context.getcontext(ident=ident,ref=ref))
 
     def get_param(self, nom, defaut=""):
         """recupere la valeur d une varible depuis le contexte"""
@@ -873,7 +874,7 @@ class Pyetl(object):
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
             self.set_param(*valeur)
-            print("stockage",parametre,valeur[0])
+            # print("stockage parametre:",parametre,valeur[0])
         else:
             self.posparm.append(parametre)
             #            self.parms["#P_"+str(len(self.posparm))] = parametre

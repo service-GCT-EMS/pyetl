@@ -218,7 +218,7 @@ class RegleTraitement(object):  # regle de mapping
         self.fonction_schema = None
         self.numero = numero
 
-        self.context = stock_param.getcontext(context, ident="R" + str(numero))
+        self.context = stock_param.getcontext(context, ident="R" + str(numero),ref=True)
         #        print ('contexte regle',self.ligne, self.context)
         self.val_tri = re.compile("")
         self.index = 0
@@ -301,6 +301,7 @@ class RegleTraitement(object):  # regle de mapping
     # =========================acces standardises aux objets==================
     def get_defaut(self, obj):
         ''' retourne la valeur par defaut s'il n'y a pas de champ'''
+        # print("get_defaut",self.params.val_entree.val)
         return self.params.val_entree.val
 
     def getval_entree(self, obj):

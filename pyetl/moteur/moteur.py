@@ -258,7 +258,7 @@ class Context(object):
     SPLITTER_PV = re.compile(r'(?<!\\);')
     SPLITTER_V = re.compile(r'(?<!\\),')
 
-    def __init__(self, parent=None, ident="", type_c="C", env=None):
+    def __init__(self, parent=None, ident="", type_c="C", env=None, root=False):
         self.nom = type_c + ident
         self.ident = self.nom
         self.type_c = type_c
@@ -266,6 +266,7 @@ class Context(object):
         self.binding = dict()
         self.search = [self.vlocales]
         self.parent = parent
+        self.ref = None
         self.root = self
         self.env = env
         # gestion des hierarchies
@@ -273,16 +274,17 @@ class Context(object):
             self.ident = parent.ident + "<-" + self.nom
             self.search.extend(parent.search)
             self.root = self.parent.root
+            self.ref = parent
             if env is None:
                 self.env = parent.env
+        if root:
+            self.root = self
+            self.ref = None
 
 
     def setref(self, context):
         """modifie l'enchainement des contextes"""
-        if context is not None:
-            self.parent=context
-            self.ident = self.parent.ident + "<-" + self.nom
-            self.search = [self.vlocales]+context.search
+        self.ref = context
 
     def getmacroenv(self, ident=""):
         """fournit un contexte ephemere lie au contexte de reference"""
@@ -292,9 +294,11 @@ class Context(object):
         """ gere les retours de parametres"""
         self.binding[nom]=binding
 
-    def getcontext(self, ident="", liste=None):
+    def getcontext(self, ident="", liste=None, ref=False):
         """fournit un nouveau contexte de reference empilé"""
         context = Context(parent=self, ident=ident)
+        if ref:
+            context.ref=self.ref if self.ref else self
         if liste:
             self.affecte(liste, context=context)
         return context
@@ -310,6 +314,11 @@ class Context(object):
                 return ctx[nom]
         return defaut
 
+
+
+
+
+
     def resolve(self,element):
         '''effectue le remplacement de variables'''
         if self.PARAM_BIND.match(element):
@@ -319,8 +328,15 @@ class Context(object):
                 cible = '%'+j+i+'%'
                 # print ('recup getvar',cible,i)
                 element=element.replace(cible, self.getvar(i))
+        if element.startswith("#env:") and element.split(":")[1]:
+        # on affecte une variable d'environnement
+            element = self.env.get(element.split(":")[1], "")
+        elif element.startswith("#eval:") and element.split(":")[1]:
+            if '__' in element:
+                raise SyntaxError('fonction non autorisee '+ element)
+            element = eval(element.split(":")[1], {})
         # print('resolve ', element)
-        element = self.getfirst(element)
+        # element = self.getfirst(element)
         return element, None
 
     def getfirst(self,element):
@@ -343,9 +359,10 @@ class Context(object):
         ''' gere une affectation par egal'''
         defnom,defval = element.split('=',1)
         nom,_= self.resolve(defnom)
+        nolocal=nom.startswith("*")
         val,binding=self.resolve(defval)
         # print ('traite_egalite', defnom, nom,'=',defval,val)
-        return nom, val, binding
+        return nom, val, binding, nolocal
 
     def traite_hstore(self,element, context):
         ''' mappe un hstore sur l'environnement'''
@@ -356,9 +373,10 @@ class Context(object):
 
     def affecte(self, liste, context=None, vpos=[]):
         '''gestion directe d'une affectation'''
+        nolocal = False
         for num, element in enumerate(liste):
             if '=' in element: # c'est une affectation
-                nom, val, binding = self.traite_egalite(element)
+                nom, val, binding, nolocal = self.traite_egalite(element)
             elif element.startswith('*%'):
                 self.traite_hstore(element, context)
                 continue
@@ -366,11 +384,15 @@ class Context(object):
                 val, binding = self.resolve(element)
                 if num < len(vpos):
                     nom = vpos[num]
+                    if nom.startswith("*"):
+                        nolocal=True
+                        nom=nom[1:]
                 else:
                     nom = val
                     val = ''
             if nom:
-                context.setlocal(nom,val) if context else self.setlocal(nom,val)
+                if not nolocal:
+                    context.setlocal(nom,val) if context else self.setlocal(nom,val)
                 if binding:
                     context.setbinding(nom,binding)
 
@@ -397,11 +419,11 @@ class Context(object):
         # print ('contexte setvar', self, nom, valeur)
         if nom in self.vlocales or self.root==self:
             self.vlocales[nom] = valeur
-            if nom in self.binding and self.parent:
-                self.parent.setvar(self.binding[nom], valeur)
+            if nom in self.binding and self.ref:
+                self.ref.setvar(self.binding[nom], valeur)
                 # print ("binding",nom,"->",self.binding[nom],':',valeur, self.parent)
         else:
-            self.parent.setvar(nom, valeur) if self.parent else self.setlocal(nom, valeur)
+            self.ref.setvar(nom, valeur) if self.ref else self.setlocal(nom, valeur)
 
 
     def setlocal(self, nom, valeur):
@@ -420,10 +442,14 @@ class Context(object):
     def setretour(self, nom, valeur):
         """positionne une variable et la mappe sur le contexte parent"""
         self.vlocales[nom] = valeur
-        if nom in self.binding and self.parent:
-            self.parent.setlocal(self.binding[nom], valeur)
+        if nom in self.binding and self.ref:
+            self.ref.setlocal(self.binding[nom], valeur)
 
-
+    def setretour_env(self, nom, valeur):
+        """positionne une variable et la mappe sur le contexte parent"""
+        self.vlocales[nom] = valeur
+        if nom in self.binding and self.root.parent:
+            self.root.parent.setvar(self.binding[nom], valeur)
 
 
     def exists(self, nom):
@@ -446,7 +472,7 @@ class Context(object):
     #                print ('contexte getvar', nom, c[nom])
 
     def __repr__(self):
-        return self.ident
+        return self.ident +"("+repr(self.ref)+")"
 
 
 ##        return self.ref.vlocales.__repr__(), self.search.__repr__()

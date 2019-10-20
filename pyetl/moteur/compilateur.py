@@ -65,6 +65,8 @@ def _finalise(regle, debug):
         if debug:
             print("regle filtrante ", regle.ligne)
     if regle.call:  # c est un appel de procedure / macro
+        if not regle.liste_regles:
+            raise SyntaxError("macro non definie")
         for brc in regle.branchements.brch:
             regle.liste_regles[-1].branchements.brch[brc] = regle.branchements.brch[brc]
         for rmacro in regle.liste_regles:

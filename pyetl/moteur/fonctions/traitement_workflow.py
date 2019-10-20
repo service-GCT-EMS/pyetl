@@ -332,7 +332,8 @@ def f_finbloc(*_):
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
     regle.call = regle.mode in {'call'}
-    context = regle.context.getcontext()
+    context = regle.context.getcontext(regle.mode+":"+regle.params.cmp1.val)
+    print ("callmacro contexte", context)
     if regle.mode == 'geomprocess':
         context.setvar('macromode', 'geomprocess')
     mapper = regle.stock_param
@@ -859,5 +860,3 @@ def f_idle(_, __):
     #pattern||;;;idle;;
     """
     return True
-
-

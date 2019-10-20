@@ -259,7 +259,7 @@ class Geometrie(object):
         self.sgeom=None
         self.multi = False
         self.courbe = False
-
+        # print ("finalise:",self,type_geom)
         self.null = not self.coords
         if type_geom == "0":
             self.type = "0"
@@ -268,6 +268,7 @@ class Geometrie(object):
             return True
 
         if self.null:
+            self.valide=False
             return False
         if self.type == "1":
             self.multi = len(self.points) > 1
@@ -861,8 +862,9 @@ class Geometrie(object):
     @property
     def __shapelygeom__(self):
         ''' retourne un format shapely de la geometrie'''
+        # print("geom:",self)
         if not self.sgeom:
-            self.sgeom=SG.shape(self.__geo_interface__)
+            self.sgeom=SG.shape(self)
         return self.sgeom
 
     @property
