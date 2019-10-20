@@ -472,7 +472,7 @@ class Context(object):
     #                print ('contexte getvar', nom, c[nom])
 
     def __repr__(self):
-        return self.ident +"("+repr(self.ref)+")"
+        return self.ident +("("+self.ref.nom+")") if self.ref else ""
 
 
 ##        return self.ref.vlocales.__repr__(), self.search.__repr__()

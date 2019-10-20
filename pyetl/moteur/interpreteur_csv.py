@@ -570,24 +570,6 @@ def prepare_regle(regle, prec=None):
     return regle.valide
 
 
-#            if regle.mode in regle.init_schema:
-#                regle.traitement_schema = True # on active le traitement des schemas
-
-
-# def map_vars(ligne: str, context) ->str:
-#     """gere le mapping des variables positionelles avec fallback sur les globales"""
-#     # TODO non géré pour le moment : l'affectation dynamique de variables ne marche pas
-
-#     for j in PARAM_EXP.findall(ligne):  # substitution des parametres positionnels
-#         nom_param = j.replace("%", "")
-#         # print ('variable', context, nom_param,'->', context.getvar(nom_param))
-#         ligne = ligne.replace(j, context.getvar(nom_param))
-
-#         if PARAM_EXP.search(ligne):  # double indirections
-#             ligne= map_vars(ligne, context)
-#     #        mapper.liens_variables.setdefault(vloc.get(nom, nom), []).append(len(mapper.regles))
-#     #    print('mv:',context, l0,'->',ligne)
-#     return ligne
 
 
 def reinterprete_regle(regle, mapper, context=None):
@@ -892,7 +874,7 @@ def lire_regles_csv(
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau, context)
     #    if niveau:
-    # print('regles lues\n','\n'.join((str(i) for i in liste_regles)))
+    print('regles lues\n'+'\n'.join((str(i) for i in liste_regles)))
 
     bloc = 0
     for defligne in liste_regles[:]:

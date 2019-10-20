@@ -334,11 +334,13 @@ def h_callmacro(regle):
     regle.call = regle.mode in {'call'}
     context = regle.context.getcontext(regle.mode+":"+regle.params.cmp1.val)
     print ("callmacro contexte", context)
+    # print ("callmacro variables", (context.getvars()))
     if regle.mode == 'geomprocess':
         context.setvar('macromode', 'geomprocess')
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
+    print("callmacro commande:", commande,regle.params.cmp2.val)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
     if regle.liste_regles:
         if regle.call: # la on applatit
@@ -352,11 +354,11 @@ def h_callmacro(regle):
 def f_callmacro(regle, obj):
     """#aide||appel de macro avec gestion de variables locales
        #pattern||;;;call;C;?LC
-       #test||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
-       #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
-       #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+       #test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
+       #!test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
+       #!test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
-       #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+       #!test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
     """
     # la on ne fait rien parce que le compilateur a applati la macro
