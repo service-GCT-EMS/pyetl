@@ -134,6 +134,7 @@ class ElyConnect(ora.OrwConnect):
 
     def singlerunner(self, helper, xml, nom, classes):
         """lance les exports ou les imports a partitr du fichier xml"""
+        # print ('xml import', '\n'.join(xml))
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(str(tmpdir), "param_FEA.xml")
             outfile = os.path.join(str(tmpdir), nom + "_out_FEA.txt")
@@ -398,8 +399,8 @@ class ElyConnect(ora.OrwConnect):
         for file in files:
             loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
             nom = os.path.splitext(os.path.basename(file))[0]
-
             retour = self.singlerunner(helper, loadxml, nom, [])
+            print ('retour chargement asc', retour)
         return retour
         #TODO gestion des retours
 

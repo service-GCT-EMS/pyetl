@@ -40,6 +40,7 @@ PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
 SPLITTER_PV = re.compile(r'(?<!\\);')
 SPLITTER_V = re.compile(r'(?<!\\),')
 SPLITTER_B = re.compile(r'(?<!\\)\|')
+SPLITTER_2P = re.compile(r'(?<!\\):')
 # quelques fonction générales
 def fdebug(regle, obj):
     """gestion des affichages de debug"""
@@ -416,6 +417,7 @@ def afficher_erreurs(regle, fonc, message):
     motif = "------->"
     print(motif + " erreur interpretation regle", regle.fichier, regle.numero)
     print(motif, regle.ligne.replace("\n", ""))
+    print(motif+ " contexte d'execution:", regle.context)
     print(motif, ";".join([regle.v_nommees[i] for i in NOMS_CHAMPS_N]))
     print(motif, message)
     if regle.erreurs:
@@ -499,7 +501,7 @@ def setvloc(regle):
     # print("decodage v nommees",valeurs)
     for n,v in enumerate(valeurs):
         valeurs[n], _= regle.context.resolve(v.strip())
-    # print("apres decodage v nommees",valeurs)
+    #("apres decodage v nommees",valeurs)
 
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
@@ -669,7 +671,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
     return liste_regles
 
 
-def _lire_commandes(mapper, fichier_regles, niveau, context):
+def _lire_commandes(mapper, fichier_regles, niveau):
     """lit les commandes quelle que soit l'origine base de donnees fichier ou macro"""
 #    print(" lecture",fichier_regles)
     if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
@@ -686,7 +688,7 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
     if niveau:  # on force un niveau d'indentation
         avant = niveau
         #        avant = '+'*niveau
-        regle2 = []
+        regles2 = []
         for regle in liste_regles:
             num, texte = regle
             cond = ""
@@ -697,9 +699,9 @@ def _lire_commandes(mapper, fichier_regles, niveau, context):
             if texte:
                 prefixe = avant if texte[0] in "|+-" else avant + ":"
                 texte = cond + prefixe + texte
-            regle2.append((num, texte))
+            regles2.append((num, texte))
 
-        liste_regles = regle2
+        liste_regles = regles2
 #    print ('lu:',liste_regles)
     return liste_regles
 
@@ -828,17 +830,18 @@ def execute_macro(mapper, texte, context, fichier_regles):
     inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
     mapper.macrorunner(inclus, entree=macroenv.getvar('entree'), sortie=macroenv.getvar('sortie'), context=macroenv)
 
-def importe_macro(mapper, texte, context, fichier_regles):
+def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
     match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
     # on cree un contexte avec ses propres valeurs locales
+    # print ('importe macro:',context, context.getvar('atts'))
     inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
     macro = mapper.macros.get(inclus)
     liste_regles = macro.get_commands()
-    erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv)
+    erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv, regle_ref=regle_ref)
     return erreurs
 
     # fichier inclus
@@ -869,13 +872,14 @@ def lire_regles_csv(
     else:
         liste_regles = liste_regles
     numero = numero_ext
-    # print ('dans lire_regles', context, fichier_regles, liste_regles)
+    # if regle_ref:
+    #     print('regle_ref:',regle_ref)
+    #     print('dans lire_regles', context, fichier_regles, liste_regles)
 
     if fichier_regles:
-        liste_regles = _lire_commandes(mapper, fichier_regles, niveau, context)
+        liste_regles = _lire_commandes(mapper, fichier_regles, niveau)
     #    if niveau:
-    print('regles lues\n'+'\n'.join((str(i) for i in liste_regles)))
-
+    # print('regles lues:\n'+'\n'.join((str(i) for i in liste_regles)))
     bloc = 0
     for defligne in liste_regles[:]:
         #        print ('traitement regle', defligne)
@@ -956,8 +960,8 @@ def lire_regles_csv(
         elif texte.startswith("<<"): # execution immediate d'une macro
             execute_macro(mapper,texte[1:],context,fichier_regles)
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
-            #            print ('avant macro',vloc)
-            erreurs += importe_macro(mapper, texte, context, fichier_regles)
+            # print ('avant macro',texte, context, context.getvar('atts'))
+            erreurs += importe_macro(mapper, texte, context, fichier_regles, regle_ref=regle_ref)
             if erreurs:
                 print("erreur chargement macro", texte)
                 return erreurs

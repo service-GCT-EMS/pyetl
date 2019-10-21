@@ -9,6 +9,7 @@ import os
 
 # import sys
 import re
+import psutil
 
 # import platform
 import logging
@@ -948,6 +949,7 @@ class Pyetl(object):
     def _finalise_sorties(self):
         """ vide les tuyeaux et renseigne les stats"""
         if self.sorties:
+            print ('=============================pyetl:finalisation sorties', self.idpyetl)
             nb_fichs, nb_total = self.sorties.final()
             self.padd("_st_wr_fichs", nb_fichs)
             self.padd("_st_wr_objs", nb_total)
@@ -1056,9 +1058,22 @@ class Pyetl(object):
         self.debug = 0
 
         self._finalise_sorties()
-
+        print ('=================================apres finalise sorties')
         self._ecriture_schemas()
+        print ('=================================apres ecriture_schema sorties')
+
         self._ecriture_stats()
+        self._finalise_sorties()
+
+        # proc = psutil.Process()
+        # print ('fichiers ouverts\n'+'\n'.join([repr(i) for i in proc.open_files()]))
+        # for proc in psutil.process_iter():
+        #     try:
+        #         print ('fichiers ouverts',proc, proc.open_files())
+        #     except:
+        #         print ('inaccessible', proc)
+        # time.sleep(10)
+        print ('============================avant macro final')
         self.macro_final()
         return
 
@@ -1104,6 +1119,7 @@ class Pyetl(object):
         parametres = self.get_param("parametres_final")
         entree = self.get_param("entree_final", self.get_param("_sortie"))
         sortie = self.get_param("sortie_final", self.get_param("_sortie"))
+        print ('========================lancement macro finale')
         self.macrorunner(macrofinale, parametres, entree, sortie)
         return
 

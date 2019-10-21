@@ -12,6 +12,7 @@ def _defaultconverter(obj, liste_att, transtable=None, separ=None):
     obj.liste_attributs = liste_att
     return obj.__json_if__()
 
+
 #########################################################################
 # format csv et txt geo etc
 # tous les fichiers tabules avec ou sans entete
@@ -35,6 +36,7 @@ def _defaultconverter(obj, liste_att, transtable=None, separ=None):
 #         groupe = "_".join(niveaux)
 #     #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
 #     return schema, groupe, classe
+
 
 class FileWriter(object):
     """superclasse des classes writer de fichiers"""
@@ -85,22 +87,29 @@ class FileWriter(object):
         return self.ttext
 
     def ouvrir(self, mode):
-        '''retourne une sortie ouverte '''
+        """retourne une sortie ouverte """
+
         if self.nom == "#print":
             self.fichier = sys.stdout
         else:
             self.fichier = open(self.nom, mode, encoding=self.encoding)
+        print(
+            "==================ouverture fichier:",
+            self.nom,
+            self.fichier,
+        )
 
     def open(self):
         """ouverture de fichier"""
-        self.ouvrir('w')
+        self.ouvrir("w")
         self.fichier.write(self.header())
-
 
     def reopen(self):
         """reouverture"""
-        self.ouvrir('a')
+        self.ouvrir("a")
 
+    def closed(self):
+        return self.fichier.closed if self.fichier else True
 
     def close(self):
         """fermeture"""

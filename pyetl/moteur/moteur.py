@@ -230,7 +230,8 @@ class Macro(object):
         """mappe les variables locales et retourne un environnement"""
         macroenv = context.getmacroenv(self.nom)
         for i in self.vpos: # on initialise le contexte local
-            macroenv.setlocal(i,self.vdef[i] if i in self.vdef else '')
+            macroenv.setlocal(i,self.vdef[i] if self.vdef.get(i) else context.getvar(i))
+        # print ('macro bind', self.nom, self.vpos,macroenv, macroenv.vlocales)
         context.affecte(liste, context=macroenv, vpos=self.vpos)
         return macroenv
 

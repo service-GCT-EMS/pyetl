@@ -332,16 +332,17 @@ def f_finbloc(*_):
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
     regle.call = regle.mode in {'call'}
-    context = regle.context.getcontext(regle.mode+":"+regle.params.cmp1.val)
-    print ("callmacro contexte", context)
+    # context = regle.context.getcontext(regle.mode+":"+regle.params.cmp1.val)
+    # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
     if regle.mode == 'geomprocess':
-        context.setvar('macromode', 'geomprocess')
+        regle.context.setvar('macromode', 'geomprocess')
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
-    print("callmacro commande:", commande,regle.params.cmp2.val)
-    erreurs = mapper.lecteur_regles(commande, regle_ref=regle, context=context)
+    # print("callmacro commande:", commande,regle.params.cmp2.val)
+    # print("regle.context.atts:",regle.context.getvar('atts'))
+    erreurs = mapper.lecteur_regles(commande, regle_ref=regle)
     if regle.liste_regles:
         if regle.call: # la on applatit
             regle.liste_regles[-1]._return = True
@@ -354,11 +355,11 @@ def h_callmacro(regle):
 def f_callmacro(regle, obj):
     """#aide||appel de macro avec gestion de variables locales
        #pattern||;;;call;C;?LC
-       #test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
-       #!test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
-       #!test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+       #!test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
+       #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
+       #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
-       #!test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+       #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
              ||X;2;;;X;%defaut%;;set||atv;X;3
     """
     # la on ne fait rien parce que le compilateur a applati la macro

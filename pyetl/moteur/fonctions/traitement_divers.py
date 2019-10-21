@@ -796,6 +796,22 @@ def f_run(regle, obj):
         return True
     return False
 
+def h_rename(regle):
+    """renomme un fichier execution unique si pas d'objet dans la definition"""
+    if regle.runscope():  # on voit si on doit l'executer
+        os.rename(regle.params.cmp1.val, regle.params.cmp2.val)
+    print ('retour run : done')
+    regle.valide = "done"
+
+
+def f_rename(regle, obj):
+    """#aide||renomme un fichier
+  #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
+    #pattern||;;;rename;C;C
+    """
+    pass
+    return True
+
 
 def h_loadconfig(regle):
     """charge des definitions et/ou des macros"""

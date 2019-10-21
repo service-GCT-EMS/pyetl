@@ -264,7 +264,7 @@ def init_format_asc(reader):
 #             )
 #     return schema, schema_init
 
-def finalise(reader, attributs, coords, geom, angle, dim):
+def finalise_obj(reader, attributs, coords, geom, angle, dim):
     '''finalise un objet et le traite'''
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
     if obj is None: # filtrage en entree
@@ -311,7 +311,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
                 # print ('asc lecture', i)
-                finalise(self, attributs, coords, geom, angle, dim)
+                finalise_obj(self, attributs, coords, geom, angle, dim)
                 geom=[]
 
                 if code_1 in "9356":
@@ -328,7 +328,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 continue
             else:
                 geom.append(i)
-        finalise(self, attributs, coords, geom, angle, dim)
+        finalise_obj(self, attributs, coords, geom, angle, dim)
         log_erreurs.send("")
     return
 

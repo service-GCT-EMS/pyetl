@@ -47,7 +47,7 @@ class Ressource(object):
         self.regles = set()
 
     def __repr__(self):
-        return 'ressource:'+self.nom+' '+str(self.etat)+' '+repr(self.handler)
+        return 'ressource:'+self.nom+' '+str(self.etat)+' '+(str(self.handler.closed()) if self.handler else 'True')+' '+repr(self.handler)
 
     def ouvrir(self, id_regle):
         """ ouvre une ressource (en general un fichier)"""
@@ -208,7 +208,7 @@ class GestionSorties(object):
     def final(self):
         """fin de ficher"""
         nb_obj = 0
-#        print ('dans final', self.ressources)
+        print ('dans final', self.ressources)
         nb_fich = 0
         for res in self.ressources.values():
             nob = res.finalise()
@@ -216,6 +216,7 @@ class GestionSorties(object):
                 nb_obj += nob
                 nb_fich += 1
 #        print('final', nb_fich, nb_obj)
+        print ('apres final', self.ressources)
         return nb_fich, nb_obj
 
     def close(self, id_demand, id_ressource):

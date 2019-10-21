@@ -420,7 +420,8 @@ def f_dbextload(regle, obj):
     datas = regle.getval_entree(obj)
     #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
     fichs = sorted(glob.glob(datas))
-    DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
+    retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
+    print ('retour chargement:', retour)
 
 
 #    for nom in fichs:
