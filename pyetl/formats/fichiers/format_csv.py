@@ -483,7 +483,7 @@ def change_ressource(regle, obj, writer, initial= False):
             f_sortie=regle.f_sortie,
             geomwriter=writer.geomwriter,
         )
-        ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
+        ressource = regle.stock_param.sorties.creres(regle, nom, str_w)
     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
     regle.context.setroot("derniere_sortie", nom)
     regle.ressource = ressource

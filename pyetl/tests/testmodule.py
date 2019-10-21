@@ -175,6 +175,7 @@ def fonctest(mapper, nom=None, debug=0):
     """ execute les tests unitaires des fonctions """
     nbtests = 0
     nberrs = 0
+    invalides = set()
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.commandes[fonc_a_tester]
         if nom and fonc.nom != nom:
@@ -186,20 +187,24 @@ def fonctest(mapper, nom=None, debug=0):
                     desctest = subfonc.description[j]
                     testee = True
                     idtest = (fonc.nom, subfonc.nom, j)
-                    nberrs += controle(mapper, idtest, desctest, debug=debug)
+                    errs = controle(mapper, idtest, desctest, debug=debug)
+                    if errs:
+                        nberrs += errs
+                        invalides.add(idtest)
                     nbtests += 2
             if not testee:
                 if subfonc.nom != fonc.nom:
                     print("fonction non testee", fonc.nom, subfonc.nom)
                 else:
                     print("fonction non testee", fonc.nom)
-    return nbtests, nberrs
+    return nbtests, nberrs, invalides
 
 
 def seltest(mapper, nom=None, debug=0):
     """ execute les tests unitaires des selecteurs"""
     nbtests = 0
     nberrs = 0
+    invalides = set()
     for sel_a_tester in sorted(mapper.selecteurs):
         fonc = mapper.selecteurs[sel_a_tester]
         testee = False
@@ -211,11 +216,14 @@ def seltest(mapper, nom=None, debug=0):
                 desctest = fonc.description[j]
                 testee = True
                 idtest = (fonc.nom, "", j)
-                nberrs += controle(mapper, idtest, desctest, debug=debug)
+                errs = controle(mapper, idtest, desctest, debug=debug)
+                if errs:
+                    nberrs += errs
+                    invalides.add(idtest)
                 nbtests += 2
         if not testee:
             print("selecteur non testee", fonc.nom)
-    return nbtests, nberrs
+    return nbtests, nberrs, invalides
 
 
 def set_test_path(mapper):
@@ -250,14 +258,18 @@ def unittests(mapper, nom=None, debug=0):
     nbtests, erreurs = retest(mapper)
     print("------", nbtests, "tests regex effectues", erreurs, "erreurs -----")
 
-    nb1, err1 = fonctest(mapper, nom, debug)
-    nb2, err2 = seltest(mapper, nom, debug)
+    nb1, err1, finvalides = fonctest(mapper, nom, debug)
+    nb2, err2, sinvalides = seltest(mapper, nom, debug)
     if nb1 + nb2 == 0:
         print("!!!!!!!!!!!!!!!!!!!!! erreur fonction inconnue")
         return []
     nbtests = nb1 + nb2
     erreurs = err1 + err2
     print("------", nbtests, "tests unitaires effectues", erreurs, "erreurs -----")
+    if sinvalides:
+        print("selecteurs en erreur:",sinvalides)
+    if finvalides:
+        print("fonctions en erreur:",finvalides)
     return []
 
 

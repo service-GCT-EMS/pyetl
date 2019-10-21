@@ -201,7 +201,7 @@ def get_ressource(obj, regle, attributs=None):
             liste_att=attributs,
             schema=obj.schema,
         )
-        ressource = sorties.creres(regle.numero, nom, streamwriter)
+        ressource = sorties.creres(regle, nom, streamwriter)
         ressource.handler.changeclasse(obj.schema, attributs)
     else:
         ressource.handler.changeclasse(obj.schema, attributs)

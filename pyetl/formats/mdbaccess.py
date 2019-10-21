@@ -1438,7 +1438,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                     dbwr = DbWriter(
                         nom, liste_att, encoding=regle.getvar("codec_sortie", "utf-8")
                     )
-                    sorties.creres(numero, nom, dbwr)
+                    sorties.creres(regle, nom, dbwr)
                     ressource = sorties.get_res(numero, nom)
                 else:
                     #                    liste_att = _set_liste_attributs(obj, attributs)
@@ -1473,7 +1473,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
                 encoding=regle.getvar("codec_sortie", "utf-8"),
                 stock_param=regle.stock_param,
             )
-            sorties.creres(regle.numero, dest, swr)
+            sorties.creres(regle, dest, swr)
             ressource = sorties.get_res(regle.numero, dest)
             #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
             regle.dident = dest

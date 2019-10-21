@@ -38,9 +38,10 @@ class Ressource(object):
     """ stockage des infos d'une ressource
     une ressource peut etre un fichier ou une table"""
 
-    def __init__(self, nom, handler):
+    def __init__(self, nom, handler,idmapper):
         self.nom = nom
         self.handler = handler
+        self.idmapper = idmapper
         self.lastid = None
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0
@@ -139,22 +140,23 @@ class GestionSorties(object):
         self.ressources = dict()
         self.rep_sortie = rep_sortie
 
-    def get_res(self, id_demand, id_ressource, usebuffer=False):
+    def get_res(self, regle, id_ressource, usebuffer=False):
         """ verouille une ressource existante"""
         if id_ressource in self.ressources:
             if not usebuffer:
-                self.lock(id_demand, id_ressource)
+                self.lock(regle, id_ressource)
             return self.ressources[id_ressource]
         return None
 
-    def creres(self, id_demand, id_ressource, handler, usebuffer=False):
+    def creres(self, regle, id_ressource, handler, usebuffer=False):
         """ verouille une recssource et la cree si necessaire"""
+        id_mapper = regle.stock_param.idpyetl
         if id_ressource not in self.ressources:
-            self.ressources[id_ressource] = Ressource(id_ressource, handler)
+            self.ressources[id_ressource] = Ressource(id_ressource, handler,id_mapper)
             if not usebuffer:
-                self.lock(id_demand, id_ressource)
+                self.lock(regle, id_ressource)
             return self.ressources[id_ressource]
-        return self.get_res(id_demand, id_ressource)
+        return self.get_res(regle, id_ressource)
 
     def creres_distante(self, nom, nbo):
         """cree une ressource virtuelle pour les traitements parraleles"""
@@ -170,31 +172,31 @@ class GestionSorties(object):
         self.ressources[nom].cnt()
 
 
-    def lock(self, id_demand, id_ressource):
+    def lock(self, regle, id_ressource):
         """declare l utilisation de la ressource"""
-        if id_ressource in self.used and id_demand in self.ressources[id_ressource].regles:
+        if id_ressource in self.used and regle.idregle in self.ressources[id_ressource].regles:
             self.used.move_to_end(id_ressource, last=True)
         elif id_ressource in self.used:
             self.used.move_to_end(id_ressource, last=True)
-            self.ressources[id_ressource].regles.add(id_demand)
+            self.ressources[id_ressource].regles.add(regle.idregle)
             self.used[id_ressource] += 1
-            self.unlock(id_demand)
+            self.unlock(regle.idregle)
         else:
-            self.unlock(id_demand)
+            self.unlock(regle.idregle)
             self.used[id_ressource] = 1
-            self.ressources[id_ressource].regles.add(id_demand)
+            self.ressources[id_ressource].regles.add(regle.idregle)
             if self.maxcles and len(self.used) > self.maxcles:
                 #            il y a trop de ressources ouvertes on en ferme une
                 #                print ('fermeture ressource')
                 for i in self.used:
                     if self.used[i] == 0:
                         ressource = self.ressources[i]
-                        ressource.fermer(id_demand)
+                        ressource.fermer(regle.idregle)
                         del self.used[i]
                         break
 
-        self.ressources[id_ressource].ouvrir(id_demand)
-        self.locks[id_demand] = id_ressource
+        self.ressources[id_ressource].ouvrir(regle.idregle)
+        self.locks[regle.idregle] = id_ressource
 
     def unlock(self, id_demand):
         """libere une ressource"""
@@ -205,16 +207,17 @@ class GestionSorties(object):
             self.ressources[id_ressource].regles.discard(id_demand)
             del self.locks[id_demand]
 
-    def final(self):
+    def final(self,idmapper):
         """fin de ficher"""
         nb_obj = 0
         print ('dans final', self.ressources)
         nb_fich = 0
         for res in self.ressources.values():
-            nob = res.finalise()
-            if nob != -1:
-                nb_obj += nob
-                nb_fich += 1
+            if res.idmapper==idmapper:
+                nob = res.finalise()
+                if nob != -1:
+                    nb_obj += nob
+                    nb_fich += 1
 #        print('final', nb_fich, nb_obj)
         print ('apres final', self.ressources)
         return nb_fich, nb_obj
@@ -255,10 +258,9 @@ class GestionSorties(object):
         if classe:
             return os.path.join(rep_sortie, classe + ext)
         print("!!!!! clef non definie", rep_sortie, groupe, classe, ext, nom, "<->", os.path.join(rep_sortie, "defaut" + ext))
-        raise
+        raise KeyError ("clef non definie")
         return os.path.join(rep_sortie, "defaut" + ext)
 
     def getstats(self):
         """recupere les stats d'ecriture"""
         return {nom:self.ressources[nom].nbo for nom in self.ressources}
-

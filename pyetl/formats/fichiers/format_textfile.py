@@ -82,7 +82,7 @@ def ecrire_objets_text(regle, _, attributs=None):
                         encoding=regle.getvar("codec_sortie", "utf-8"),
                     )
                     streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(numero, nom, streamwriter)
+                    ressource = sorties.creres(regle, nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
             ressource.write(obj, regle.numero)

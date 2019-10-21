@@ -16,7 +16,7 @@ import glob
 import codecs
 import typing as T
 
-from pyetl.formats.generic_io import Reader
+from pyetl.formats.generic_io import READERS
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
 
@@ -519,7 +519,7 @@ def charge_mapping(regle, mapping=None):
 
 def valide_auxiliaires(identifies, non_identifies):
     """ valide que les fichiers trouves sont connus"""
-    auxiliaires = {a: defin[3] for a, defin in Reader.lecteurs.items()}
+    auxiliaires = {a: defin[3] for a, defin in READERS.items()}
     for chemin, nom, extinc in non_identifies:
         if (chemin, nom) in identifies:
             extref = identifies[(chemin, nom)]
@@ -541,7 +541,8 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         return retour, parametres_fichiers
     #    force_format = ''
     #    liste_formats = F.LECTEURS.keys()
-    liste_formats = Reader.lecteurs.keys()
+    # print("formats",Reader.get_formats())
+    liste_formats = READERS.keys()
     #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
     if debug:
         print("format entree forcee ", force_format)
@@ -580,7 +581,7 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
         )
         # print ('ici', nom,ext, ext in liste_formats, liste_formats)
         if ext in liste_formats:
-            aux = Reader.lecteurs[ext][3]
+            aux = READERS[ext][3]
             if '!' in aux: # attention il y a des incompatibilites
                 racine = os.path.splitext(fichier)[0]
                 valide = True

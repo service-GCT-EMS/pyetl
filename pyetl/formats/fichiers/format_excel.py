@@ -300,7 +300,7 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
             null=null,
             f_sortie=regle.f_sortie,
         )
-        ressource = regle.stock_param.sorties.creres(regle.numero, nom, str_w)
+        ressource = regle.stock_param.sorties.creres(regle, nom, str_w)
     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat)
     regle.ressource = ressource
     regle.dident = ident

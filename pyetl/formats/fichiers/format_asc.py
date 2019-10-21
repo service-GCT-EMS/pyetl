@@ -554,7 +554,7 @@ def asc_streamer(self, obj, regle, _, attributs=None):
         else:
             nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
 
-        ressource = sorties.get_res(regle.numero, nom)
+        ressource = sorties.get_res(regle, nom)
         if ressource is None:
             if os.path.dirname(nom):
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -566,7 +566,7 @@ def asc_streamer(self, obj, regle, _, attributs=None):
                 geomwriter=self.geomwriter,
                 schema=obj.schema,
             )
-            ressource = sorties.creres(regle.numero, nom, streamwriter)
+            ressource = sorties.creres(regle, nom, streamwriter)
         else:
             ressource.handler.changeclasse(obj.schema, attributs)
         #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
@@ -608,7 +608,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
                         geomwriter=self.geomwriter,
                     )
                     streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(regle.numero, nom, streamwriter)
+                    ressource = sorties.creres(regle, nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
             ressource.write(obj, regle.numero)

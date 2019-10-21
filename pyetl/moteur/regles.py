@@ -7,7 +7,7 @@ Created on Fri Dec 11 14:34:04 2015
 import re
 import os
 import logging
-from itertools import zip_longest
+from itertools import zip_longest,count
 
 # from collections import namedtuple
 import pyetl.schema.schema_interne as SC
@@ -187,8 +187,11 @@ class ParametresSelecteur(ParametresFonction):
 
 class RegleTraitement(object):  # regle de mapping
     """ descripteur de traitement unitaire """
+    _ido = count(1)  # compteur d'instance
 
     def __init__(self, ligne, stock_param, fichier, numero, context=None):
+
+        self.idregle = next(self._ido)
 
         self.ligne = ligne
         self.stock_param = stock_param

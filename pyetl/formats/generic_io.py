@@ -57,15 +57,10 @@ for nom in DATABASES:
 
 class Reader(object):
     """wrappers d'entree génériques"""
-
-    databases = DATABASES
-    lecteurs = READERS
-    geomdef = GEOMDEF
-
-    @staticmethod
-    def get_formats():
+    @classmethod
+    def get_formats(cls):
         """retourne la liste des formats connus"""
-        return Reader.lecteurs
+        return READERS
 
     #    auxiliaires = AUXILIAIRES
     #    auxiliaires = {a:AUXILIAIRES.get(a) for a in LECTEURS}
@@ -100,9 +95,9 @@ class Reader(object):
     def set_format_entree(self, nom):
         """#positionne un format d'entree"""
         nom = nom.replace(".", "").lower()
-        if nom in self.lecteurs:
+        if nom in READERS:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
-            description = self.lecteurs[nom]
+            description = READERS[nom]
             # print ('initialisation reader',description)
             self.description = description
             self.format_natif = description.geom
@@ -270,8 +265,8 @@ class Reader(object):
         """retourne la fonction de conversion geometrique"""
         if format_natif is None:
             return self.converter
-        fgeom = Reader.lecteurs.get(format_natif, Reader.lecteurs["interne"]).geom
-        return Reader.geomdef[fgeom].converter
+        fgeom = READERS.get(format_natif, READERS["interne"]).geom
+        return GEOMDEF[fgeom].converter
 
     def setattformatter(self):
         """ gere les formatterurs de type"""
@@ -451,9 +446,6 @@ class Reader(object):
 class Writer(object):
     """wrappers de sortie génériques"""
 
-    databases = DATABASES
-    sorties = WRITERS
-    geomdef = GEOMDEF
 
     def __init__(self, nom, regle, debug=0):
         #        print ('dans writer', nom)
@@ -476,24 +468,20 @@ class Writer(object):
         self.writerparms = dict()  # parametres specifique au format
         # positionne un format de sortie
         nom = nom.replace(".", "").lower()
-        if nom in self.sorties:
-            self.def_sortie = self.sorties[nom]
-        #            ecrire, stream, tmpgeo, schema, casse, taille, driver, fanoutmax,\
-        #            nom_format = self.sorties[nom]
+        if nom in WRITERS:
+            self.def_sortie = WRITERS[nom]
         else:
             if nom:
-                print("format sortie inconnu '" + nom + "'", self.sorties.keys())
-            self.def_sortie = self.sorties["#poubelle"]
+                print("format sortie inconnu '" + nom + "'", WRITERS.keys())
+            self.def_sortie = WRITERS["#poubelle"]
 
-        #            ecrire, stream, tmpgeo, schema, casse, taille, driver, fanoutmax, nom_format =\
-        #                    self.sorties['#poubelle']
         if nom == "sql":
 
             if dialecte == "":
                 dialecte = "natif"
             else:
-                dialecte = dialecte if dialecte in self.databases else "sql"
-                self.writerparms["dialecte"] = self.databases[dialecte]
+                dialecte = dialecte if dialecte in DATABASES else "sql"
+                self.writerparms["dialecte"] = DATABASES[dialecte]
                 self.writerparms["base_dest"] = destination
                 self.writerparms["destination"] = fich
         else:
@@ -526,6 +514,6 @@ class Writer(object):
     def get_geomwriter(self, format_natif=None):
         """retourne la fonction de conversion geometrique"""
         if format_natif is None:
-            return self.geomdef[self.nom].writer
-        fgeom = self.sorties.get(format_natif, Writer.sorties["interne"]).geom
-        return self.geomdef[fgeom].writer
+            return GEOMDEF[self.nom].writer
+        fgeom = WRITERS.get(format_natif, WRITERS["interne"]).geom
+        return GEOMDEF[fgeom].writer

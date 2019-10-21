@@ -950,7 +950,7 @@ class Pyetl(object):
         """ vide les tuyeaux et renseigne les stats"""
         if self.sorties:
             print ('=============================pyetl:finalisation sorties', self.idpyetl)
-            nb_fichs, nb_total = self.sorties.final()
+            nb_fichs, nb_total = self.sorties.final(self.idpyetl)
             self.padd("_st_wr_fichs", nb_fichs)
             self.padd("_st_wr_objs", nb_total)
         if self.moteur:

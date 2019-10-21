@@ -419,7 +419,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
                 layer=classe,
                 srid=obj.geom_v.srid,
             )
-            ressource = sorties.creres(regle.numero, nom, streamwriter, usebuffer)
+            ressource = sorties.creres(regle, nom, streamwriter, usebuffer)
         #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
         regle.ressource = ressource
         regle.dident = obj.ident
