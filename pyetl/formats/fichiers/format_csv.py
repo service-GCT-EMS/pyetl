@@ -437,7 +437,7 @@ def getfanout(regle, extention, ident, initial):
         nfich = regle.params.cmp2.val
         if nfich == "#print":
             nom = "#print"
-            ressource = sorties.get_res(regle.numero, nom)
+            ressource = sorties.get_res(regle, nom)
             return ressource, nom
 
     if regle.fanout == "no" and regle.f_sortie.fanoutmax == "all":
@@ -454,7 +454,7 @@ def getfanout(regle, extention, ident, initial):
     else:
         nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
 
-    ressource = sorties.get_res(regle.numero, nom)
+    ressource = sorties.get_res(regle, nom)
     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
     return ressource, nom
 
@@ -465,7 +465,7 @@ def change_ressource(regle, obj, writer, initial= False):
     ident = obj.ident
 
     ressource, nom = getfanout(regle, writer.extension, ident, initial)
-    #    ressource = sorties.get_res(regle.numero, nom)
+    #    ressource = sorties.get_res(regle, nom)
 
     #    print ('change_ressoures ', regle.f_sortie.writerparms)
     if ressource is None:
@@ -504,7 +504,7 @@ def csvstreamer(writer, obj, regle, _):
             initial=True
         )
 
-    ressource.write(obj, regle.numero)
+    ressource.write(obj, regle.idregle)
 
 
 #    if obj.geom_v.courbe:
@@ -513,8 +513,6 @@ def csvstreamer(writer, obj, regle, _):
 
 def ecrire_objets_csv(writer, regle, _):
     """ ecrit des objets csv a partir du stockage interne"""
-    #    sorties = regle.stock_param.sorties
-    #    numero = regle.numero
     print("csv:ecrire csv", regle.stockage.keys())
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -533,7 +531,7 @@ def ecrire_objets_csv(writer, regle, _):
                     initial=False,
                 )
 
-            ressource.write(obj, regle.numero)
+            ressource.write(obj, regle.idregle)
 
     #            if obj.geom_v.courbe:
     #                obj.schema.info['courbe'] = '1'

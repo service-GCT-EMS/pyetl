@@ -195,7 +195,6 @@ def h_def_schema(regle):
     if regle.params.cmp1.dyn:
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace("*", "")  # nom du fichier
-#    print('interpreteur: lire schema_entree', regle.numero, regle.params, regle.fichier)
     nom = regle.params.val_entree.val
     regle.differe = False
     if not regle.fichier:

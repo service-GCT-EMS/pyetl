@@ -17,11 +17,8 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     """ prepare l objet virtuel declencheur pour la lecture en base access ou sqlite"""
     #    type_base = {".mdb":"access",
     #                 ".sqlite":"sqlite"}
-    type_base = {
-        self.databases[i].fileext: i
-        for i in self.databases
-        if self.databases[i].svtyp == "file"
-    }
+    databases = self.get_formats('d')
+    type_base = {databases[i].fileext: i for i in databases if databases[i].svtyp == "file"}
     #    regle = stock_param.regles[0]
     base, ext = os.path.splitext(fichier)
     #    stock_param.parms["serveur_"+base]=chemin

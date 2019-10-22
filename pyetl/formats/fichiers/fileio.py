@@ -93,11 +93,6 @@ class FileWriter(object):
             self.fichier = sys.stdout
         else:
             self.fichier = open(self.nom, mode, encoding=self.encoding)
-        print(
-            "==================ouverture fichier:",
-            self.nom,
-            self.fichier,
-        )
 
     def open(self):
         """ouverture de fichier"""

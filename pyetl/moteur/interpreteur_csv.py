@@ -837,11 +837,15 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
     # on cree un contexte avec ses propres valeurs locales
-    # print ('importe macro:',context, context.getvar('atts'))
     inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    if macroenv.getlocal('debug'):
+        print ('debug macro:',context, texte, '->',inclus,macroenv.vlocales)
     macro = mapper.macros.get(inclus)
-    liste_regles = macro.get_commands()
-    erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv, regle_ref=regle_ref)
+    if macro:
+        liste_regles = macro.get_commands()
+        erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv, regle_ref=regle_ref)
+    else:
+        erreurs = 1
     return erreurs
 
     # fichier inclus

@@ -360,7 +360,7 @@ class SchemaClasse(object):
         if f_sortie.dialecte and f_sortie.dialecte != "natif":
             self.schema.dbsql = f_sortie.writerparms["dialecte"].gensql()
         elif self.schema.dbsql:
-            f_sortie.writerparms["dialecte"] = f_sortie.databases[self.schema.dbsql.dialecte]
+            f_sortie.writerparms["dialecte"] = f_sortie.get_formats('d').get(self.schema.dbsql.dialecte,'sql')
 
     def force_modif(self, regle):
         '''force une modif de schema'''

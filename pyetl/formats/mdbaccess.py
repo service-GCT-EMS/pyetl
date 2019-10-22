@@ -1408,7 +1408,6 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
     # memoire = defs.stockage
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    numero = regle.numero
     dident = None
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -1430,7 +1429,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                 else:
                     nom = sorties.get_id(rep_sortie, classe, "", ".sql")
 
-                ressource = sorties.get_res(numero, nom)
+                ressource = sorties.get_res(regle, nom)
                 if ressource is None:
                     os.makedirs(os.path.dirname(nom), exist_ok=True)
                     #                    liste_att = _set_liste_attributs(obj, attributs)
@@ -1439,7 +1438,7 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                         nom, liste_att, encoding=regle.getvar("codec_sortie", "utf-8")
                     )
                     sorties.creres(regle, nom, dbwr)
-                    ressource = sorties.get_res(numero, nom)
+                    ressource = sorties.get_res(regle, nom)
                 else:
                     #                    liste_att = _set_liste_attributs(obj, attributs)
                     liste_att = obj.schema.get_liste_attributs(liste=attributs)
@@ -1463,7 +1462,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
         if obj.virtuel:  # on ne traite pas les virtuels
             return
         dest = obj.ident
-        ressource = sorties.get_res(regle.numero, dest)
+        ressource = sorties.get_res(regle, dest)
         if ressource is None:
             liste_att = obj.schema.get_liste_attributs(liste=attributs)
             #            liste_att = _set_liste_attributs(obj, attributs)
@@ -1474,12 +1473,10 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
                 stock_param=regle.stock_param,
             )
             sorties.creres(regle, dest, swr)
-            ressource = sorties.get_res(regle.numero, dest)
-            #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
+            ressource = sorties.get_res(regle, dest)
             regle.dident = dest
             regle.ressource = ressource
         else:
-            #            print ('ressource', regle.numero,nom,ressource.handler.nom)
             if dest != regle.dident:
                 #                liste_att = _set_liste_attributs(obj, attributs)
                 liste_att = obj.schema.get_liste_attributs(liste=attributs)

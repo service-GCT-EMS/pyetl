@@ -402,7 +402,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
             nom = sorties.get_id(rep_sortie, groupe, "", extension)
         else:
             nom = sorties.get_id(rep_sortie, groupe, classe, extension)
-        ressource = sorties.get_res(regle.numero, nom, usebuffer)
+        ressource = sorties.get_res(regle, nom, usebuffer)
         #        print ('gdal: recup ressource',ressource, nom, regle.fanout, groupe)
 
         if ressource is None:
@@ -420,7 +420,6 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
                 srid=obj.geom_v.srid,
             )
             ressource = sorties.creres(regle, nom, streamwriter, usebuffer)
-        #            print ('nouv ressource', regle.numero,nom,ressource.handler.nom)
         regle.ressource = ressource
         regle.dident = obj.ident
     #    print ("fichier de sortie ",fich.nom)
@@ -433,7 +432,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
     #    print ('gdal: ecriture objet',obj)
     #    print ('gdal: ecriture objet',obj.__geo_interface__)
     try:
-        ressource.bwrite(obj, regle.numero) if usebuffer else ressource.write(obj, regle.numero)
+        ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(obj, regle.idregle)
     except Exception as err:
         print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__)
         raise

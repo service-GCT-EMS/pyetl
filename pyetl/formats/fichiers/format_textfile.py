@@ -58,7 +58,6 @@ def ecrire_objets_text(regle, _, attributs=None):
     #    print( "ecrire_objets asc")
     rep_sortie = regle.getvar("_sortie")
     sorties = regle.stock_param.sorties
-    numero = regle.numero
     dident = None
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -72,7 +71,7 @@ def ecrire_objets_text(regle, _, attributs=None):
                 else:
                     nom = sorties.get_id(rep_sortie, groupe, classe, regle.ext)
 
-                ressource = sorties.get_res(numero, nom)
+                ressource = sorties.get_res(regle, nom)
                 if ressource is None:
                     if os.path.dirname(nom):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -85,7 +84,7 @@ def ecrire_objets_text(regle, _, attributs=None):
                     ressource = sorties.creres(regle, nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
-            ressource.write(obj, regle.numero)
+            ressource.write(obj, regle.idregle)
 
 
 READERS = {

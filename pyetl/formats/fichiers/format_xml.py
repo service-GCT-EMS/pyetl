@@ -190,7 +190,7 @@ def get_ressource(obj, regle, attributs=None):
     else:
         nom = sorties.get_id(rep_sortie, groupe, classe, ".xml")
 
-    ressource = sorties.get_res(regle.numero, nom)
+    ressource = sorties.get_res(regle, nom)
     if ressource is None:
         if os.path.dirname(nom):
             os.makedirs(os.path.dirname(nom), exist_ok=True)
@@ -381,7 +381,7 @@ def xml_streamer(self, obj, regle, _, attributs=None):
         ressource = regle.ressource
     else:
         ressource = get_ressource(obj, regle, attributs=None)
-    ressource.write(obj, regle.numero)
+    ressource.write(obj, regle.idregle)
 
 
 def ecrire_objets_xml(self, regle, _, attributs=None):
@@ -389,7 +389,6 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
     # ng, nf = 0, 0
     # memoire = defs.stockage
     #    print( "ecrire_objets asc")
-    numero = regle.numero
     dident = None
     ressource = None
     for groupe in list(regle.stockage.keys()):
@@ -400,7 +399,7 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
             if ident != dident:
                 ressource = get_ressource(obj, regle, attributs=None)
                 dident = ident
-            ressource.write(obj, numero)
+            ressource.write(obj, regle.idregle)
 
 # extension : (fonction de lecture, format graphique, schema, fichiers aux, initialiseur)
 READERS = {"xml": (lire_objets_xml, "#gml", False, (), None),

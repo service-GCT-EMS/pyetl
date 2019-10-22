@@ -58,9 +58,14 @@ for nom in DATABASES:
 class Reader(object):
     """wrappers d'entree génériques"""
     @classmethod
-    def get_formats(cls):
+    def get_formats(cls,nature):
         """retourne la liste des formats connus"""
-        return READERS
+        if nature == 'r':
+            return READERS
+        elif nature == 'w':
+            return WRITERS
+        elif nature == 'd':
+            return DATABASES
 
     #    auxiliaires = AUXILIAIRES
     #    auxiliaires = {a:AUXILIAIRES.get(a) for a in LECTEURS}
@@ -445,7 +450,15 @@ class Reader(object):
 
 class Writer(object):
     """wrappers de sortie génériques"""
-
+    @classmethod
+    def get_formats(cls,nature):
+        """retourne la liste des formats connus"""
+        if nature == 'r':
+            return READERS
+        elif nature == 'w':
+            return WRITERS
+        elif nature == 'd':
+            return DATABASES
 
     def __init__(self, nom, regle, debug=0):
         #        print ('dans writer', nom)

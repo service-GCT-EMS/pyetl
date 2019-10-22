@@ -210,7 +210,7 @@ class GestionSorties(object):
     def final(self,idmapper):
         """fin de ficher"""
         nb_obj = 0
-        print ('dans final', self.ressources)
+        # print ('dans final', self.ressources)
         nb_fich = 0
         for res in self.ressources.values():
             if res.idmapper==idmapper:
@@ -219,7 +219,7 @@ class GestionSorties(object):
                     nb_obj += nob
                     nb_fich += 1
 #        print('final', nb_fich, nb_obj)
-        print ('apres final', self.ressources)
+        # print ('apres final', self.ressources)
         return nb_fich, nb_obj
 
     def close(self, id_demand, id_ressource):

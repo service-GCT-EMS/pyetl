@@ -102,7 +102,6 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
 
     dident = None
     sorties = regle.stock_param.sorties
-    #    numero = regle.numero
     extention = ".json"
     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
     #    print("csv:ecrire csv", regle.stockage.keys())
@@ -128,7 +127,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
                     nom = sorties.get_id(rep_sortie, groupe, classe, extention)
 
                 #                nom = sorties.get_id(rep_sortie, groupe, classe, extention)
-                ressource = sorties.get_res(regle.numero, nom)
+                ressource = sorties.get_res(regle, nom)
                 if ressource is None:
                     #                    print ('creation ressource csv' , nom)
                     encoding = regle.getvar("codec_sortie", "utf-8")
@@ -140,7 +139,7 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
                         liste_att=attributs,
                     )
                     sorties.creres(regle, nom, str_w)
-                    ressource = sorties.get_res(regle.numero, nom)
+                    ressource = sorties.get_res(regle, nom)
                 dident = (groupe, classe)
             #                fich = ressource.handler
             obj.classe_is_att = setclasse
@@ -172,7 +171,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
         if not nom:
             print("jsonio erreur sortie", groupe, classe)
             return
-        ressource = sorties.get_res(regle.numero, nom)
+        ressource = sorties.get_res(regle, nom)
         if ressource is None:
             #            print ('creation ressource stream csv' , nom,groupe,classe)
             try:
@@ -188,7 +187,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
                 encoding=regle.getvar("codec_sortie", "utf-8"),
             )
             sorties.creres(regle, nom, str_w)
-            ressource = sorties.get_res(regle.numero, nom)
+            ressource = sorties.get_res(regle, nom)
         else:
             #            print ('json:changeschema', obj, obj.schema)
 

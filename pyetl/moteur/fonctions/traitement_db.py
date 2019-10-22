@@ -599,8 +599,6 @@ def f_recup_schema(regle, obj):
             regle.setlocal("db", type_base)
             regle.setlocal("server", chemin)
             return True
-    #        print ("regles",regle.numero," :dans recupschema ",chemin,base,type_base)
-    #        print ("regles",regle.numero," :dans recupschema ",obj.virtuel,obj.attributs)
     else:
         type_base = regle.type_base
     #        print('tdb: acces schema base', type_base, base, niveau, classe)
