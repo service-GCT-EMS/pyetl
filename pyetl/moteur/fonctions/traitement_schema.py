@@ -265,15 +265,12 @@ def h_def_schema(regle):
         mode_alias = regle.context.getvar("mode_alias", "num")
         cod_csv = regle.context.getvar("codec_csv", cod)
         if fusion:
-            regle.stock_param.schemas[nom] = lire_schemas_multiples(
-                nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
+            lire_schemas_multiples(regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
             )
         else:
-            regle.stock_param.schemas[nom] = lire_schema_csv(
-                nom, regle.fichier, mode_alias, cod=cod_csv
-            )
+            lire_schema_csv(regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv)
     else:
-        regle.stock_param.schemas[nom] = lire_schema_xml(nom, regle.fichier, cod=cod)
+        lire_schema_xml(regle.stock_param, nom, regle.fichier, cod=cod)
     regle.nomschema = nom
     LOGGER.info(
         "lecture schema " + nom + ":" + str(len(regle.stock_param.schemas[nom].classes)) + "classes"

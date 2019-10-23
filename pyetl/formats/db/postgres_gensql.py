@@ -357,18 +357,7 @@ class PgrGenSql(DbGenSql):
         if self.basic:
             return []
         trig = ["-- ###### definition des triggers ####"]
-        if self.maj:
-            atts = {i.lower() for i in classe.get_liste_attributs()}
-            trig_std = "auteur" in atts and "date_maj" in atts
-            #       for i in atts:
-            #           if i.defaut[0:1]=='A:': # definition d'un trigger
-            #               liste_triggers[i.nom]=i.defaut[2:]
-            if trig_std:
-                trig.append("CREATE TRIGGER tr_auteur")
-                trig.append("\tBEFORE UPDATE")
-                trig.append("\tON " + table)
-                trig.append("\tFOR EACH ROW")
-                trig.append("\tEXECUTE PROCEDURE admin_sigli.auteur();")
+
         liste_triggers = classe.triggers
         for i in liste_triggers:
             type_trigger, action, declencheur, timing, event,colonnes,condition,sql = liste_triggers[i].split(',')
@@ -963,6 +952,11 @@ class PgrGenSql(DbGenSql):
             + "TRIGGER USER;\n"
         )
 
+    @staticmethod
+    def _commande_monitoring(*args):
+        """ cree une commande de reinitialisation des sequences"""
+        return ("")
+
     def prefix_charge(self, niveau, classe, reinit, gtyp="0", dim="2"):
         """ grere toutes les reinitialisations eventuelles
         G: devalide les triggers T: Truncate D: delete S: ajuste les sequences
@@ -984,7 +978,7 @@ class PgrGenSql(DbGenSql):
             prefix = prefix + self._commande_geom_strict(niveau, classe, False, dim=dim)
         return prefix
 
-    def tail_charge(self, niveau, classe, reinit, gtyp="0", dim="2", courbe=False):
+    def tail_charge(self, niveau, classe, reinit, gtyp="0", dim="2", courbe=False, schema=None):
         """ menage de fin de chargement """
         prefix = ""
         if "L" in reinit and gtyp in "23":  # discretisation'
@@ -999,5 +993,6 @@ class PgrGenSql(DbGenSql):
             prefix = prefix + self._commande_index_gist(niveau, classe, False)
         if "G" in reinit:
             prefix = prefix + self._commande_trigger(niveau, classe, True)
-
+        if "M" in reinit:
+            prefix = prefix +self._commande_monitoring(niveau, classe, schema, reinit)
         return prefix

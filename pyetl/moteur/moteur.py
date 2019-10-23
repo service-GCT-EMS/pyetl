@@ -162,7 +162,7 @@ class Moteur(object):
 
             except Exception as exc:
                 print("==========erreur de traitement non gérée")
-                print("====regle courante:", regle)
+                print("====regle courante:", regle,'->',regle.params._compact() )
                 if regle.stock_param.worker:
                     print("====mode parallele: process :", regle.getvar('_wid'))
                 printexception()
@@ -258,6 +258,7 @@ class Context(object):
     SPLITTER_B = re.compile(r'(?<!\\)\|')
     SPLITTER_PV = re.compile(r'(?<!\\);')
     SPLITTER_V = re.compile(r'(?<!\\),')
+    SPLITTER_2P = re.compile(r'(?<!\\):')
 
     def __init__(self, parent=None, ident="", type_c="C", env=None, root=False):
         self.nom = type_c + ident
@@ -281,6 +282,7 @@ class Context(object):
         if root:
             self.root = self
             self.ref = None
+        # print('creation contexte', self, self.nom)
 
 
     def setref(self, context):
@@ -320,7 +322,7 @@ class Context(object):
 
 
 
-    def resolve(self,element):
+    def resolve(self, element:str)->str:
         '''effectue le remplacement de variables'''
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]),element[2:-1]
@@ -473,7 +475,7 @@ class Context(object):
     #                print ('contexte getvar', nom, c[nom])
 
     def __repr__(self):
-        return self.ident +("("+self.ref.nom+")") if self.ref else ""
+        return self.ident +("("+self.ref.nom+")" if self.ref else "")
 
 
 ##        return self.ref.vlocales.__repr__(), self.search.__repr__()

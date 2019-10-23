@@ -395,12 +395,12 @@ class SqlWriter(CsvWriter):
         if self.fichier.closed:
             self.reopen()
         if self.writerparms.get("nodata"):
-            self.fichier.write(gensql.tail_charge(niveau, classe, reinit))
+            self.fichier.write(gensql.tail_charge(niveau, classe, reinit, schema=self.schema))
             return
         self.fichier.write(r"\." + "\n")
 
         self.fichier.write(
-            gensql.tail_charge(niveau, classe, reinit, gtyp=type_geom, dim=dim, courbe=courbe)
+            gensql.tail_charge(niveau, classe, reinit, gtyp=type_geom, dim=dim, courbe=courbe, schema=self.schema)
         )
 
     def finalise(self):

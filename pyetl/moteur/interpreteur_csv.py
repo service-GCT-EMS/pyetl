@@ -799,13 +799,13 @@ def traite_regle_std(
         erreurs = 1
     return bloc, erreurs
 
-def prepare_env(mapper, texte, context, fichier_regles):
+def prepare_env(mapper, texte:str, context, fichier_regles):
     '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
     # print ('mapping parametres macro', texte)
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
     parametres = champs[1:]
-    cmd, *pars = nom_inclus.split("|" if "|" in nom_inclus else ":")
+    cmd, *pars = context.SPLITTER_B.split(nom_inclus) if context.SPLITTER_B.search(nom_inclus) else context.SPLITTER_2P.split(nom_inclus)
     nom_inclus = cmd
     if pars:
         parametres = pars+parametres
@@ -827,8 +827,9 @@ def prepare_env(mapper, texte, context, fichier_regles):
 
 def execute_macro(mapper, texte, context, fichier_regles):
     '''lance une macro en one shot'''
-    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
-    mapper.macrorunner(inclus, entree=macroenv.getvar('entree'), sortie=macroenv.getvar('sortie'), context=macroenv)
+    print ('preparation macro', texte,context)
+    # inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    mapper.macrorunner(texte,  context=macroenv)
 
 def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
@@ -871,6 +872,8 @@ def lire_regles_csv(
     macro = None
     if context is None:
         context = regle_ref.context if regle_ref else mapper.context
+    # print ('appel lire_regles', context)
+
     if liste_regles is None:
         liste_regles = []
     else:
@@ -962,7 +965,9 @@ def lire_regles_csv(
         elif texte.startswith("$"):
             affecte_variable(texte, context)
         elif texte.startswith("<<"): # execution immediate d'une macro
-            execute_macro(mapper,texte[1:],context,fichier_regles)
+            # print('avant execution, contexte:',context)
+            # execute_macro(mapper,texte[1:],context,fichier_regles)
+            mapper.macrorunner(texte[2:],  context=context)
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             # print ('avant macro',texte, context, context.getvar('atts'))
             erreurs += importe_macro(mapper, texte, context, fichier_regles, regle_ref=regle_ref)

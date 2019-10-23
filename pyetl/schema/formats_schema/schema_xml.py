@@ -304,11 +304,10 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
             classe.setdim(dimension)
 
 
-def lire_schema_xml(base, fichier, cod="utf-8"):
+def lire_schema_xml(mapper, base, fichier, cod="utf-8"):
     """lit un ensemble de fichiers schema en xml"""
     print("lecture xml")
-    schema = SCI.Schema(base)
-    schema.origine = "L"
+    schema = mapper.init_schema(base, origine='L')
     fusion_schema_xml(schema, fichier, cod=cod)
     return schema
 

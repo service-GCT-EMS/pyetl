@@ -10,7 +10,6 @@ import logging
 from itertools import zip_longest,count
 
 # from collections import namedtuple
-import pyetl.schema.schema_interne as SC
 import pyetl.schema.fonctions_schema as FSC
 import pyetl.formats.format_temporaire as T
 
@@ -167,6 +166,12 @@ class ParametresFonction(object):
             "cmp2:%s" % (str(self.cmp2)),
         ]
         return "\t" + "\n\t".join(listev)
+
+    def _compact(self):
+        return ';%s;%s;%s;...;%s;%s;'%(self.att_sortie.val,
+            self.att_entree.val,
+            self.val_entree.val,
+            self.cmp1.val,self.cmp2.val)
 
 
 class ParametresSelecteur(ParametresFonction):
@@ -389,10 +394,11 @@ class RegleTraitement(object):  # regle de mapping
         if self.f_sortie.calcule_schema:
             if not obj.schema:
                 nomschem = nom_base if nom_base else "defaut_auto"
-                schem = self.getschema(nomschem)
-                if not schem:
-                    schem = SC.Schema(nomschem)
-                    self.stock_param.schemas[nomschem] = schem
+                schem = self.stock_param.init_schema(nomschem)
+                # schem = self.getschema(nomschem)
+                # if not schem:
+                #     schem = SC.Schema(nomschem)
+                #     self.stock_param.schemas[nomschem] = schem
                 if classe_ob not in schem.classes:
                     LOGGER.warning(
                         "schema de sortie non trouve "

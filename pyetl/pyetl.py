@@ -15,6 +15,7 @@ import psutil
 import logging
 import itertools
 from collections import defaultdict
+from types import MethodType
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -163,7 +164,7 @@ class Pyetl(object):
 
     #    crypt = crypter
     #    decrypt = decrypt
-    init_schema = init_schema
+
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS
     #    reader = Reader
@@ -189,9 +190,9 @@ class Pyetl(object):
         #        self.parms = dict() #parametres ligne de commande et variables globales
         if context is None:
             context = parent.context if parent else None
-        self.context = Context(parent=context,ident="P" + str(self.idpyetl), root=True
+        self.context = Context(parent=context,ident=str(self.idpyetl),type_c='P', root=True
         )
-        #        print ('initialisation', self.context, self.context.parent)
+        # print ('initialisation', self.context, self.context.parent, "P" + str(self.idpyetl))
         self.context.root = self.context # on romp la chaine racine
         self.parent = parent  # permet un appel en cascade
         setparallel(self)  # initialise la gestion du parallelisme
@@ -256,6 +257,7 @@ class Pyetl(object):
         self._set_streammode()
         self.done = False
         self.lire_schemas_multiples = lire_schemas_multiples
+        self.init_schema = MethodType(init_schema, self)
 
     def initenv(self, env=None, loginfo=None):
         """initialise le contexte (parametres de site environnement)"""
@@ -1065,29 +1067,13 @@ class Pyetl(object):
 
     def macrorunner(self, texte, parametres=None, entree=None, sortie=None, retour=None, context=None):
         '''execute une macro (initiale ou finale)'''
-        decodage = texte.split(';')
-        macrodef = decodage[0]
-        mdef = macrodef.split("|" if "|" in macrodef else ":")
-        nom_macro = mdef[0]
-        vpos = mdef[1:]
-        macro = self.macros.get(nom_macro)
-        if macro is None:
-            print("macro inconnue", nom_macro)
-            print("macros:",self.idpyetl,sorted(self.macros.keys()))
-            return
-        params = (
-            [i.strip('"').replace('"=>"', "=") for i in parametres.split('", "')]
-            if parametres
-            else []
-        )
-        if macro.vpos:
-            params.extend([nom + "=" + valeur for nom, valeur in zip(macro.vpos, vpos)])
-        processor = self.getpyetl(nom_macro, liste_params=params, entree=entree, rep_sortie=sortie, context=context)
+        regles = [(1,texte if texte.startswith('<') else '<'+texte)]
+        processor = self.getpyetl(regles, liste_params=parametres, entree=entree, rep_sortie=sortie, context=context)
         #        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
         #                                                       for i in macro.vpos])
         if processor is not None:
             processor.process()
-            print("macro effectuee", nom_macro, self.idpyetl, "->", processor.idpyetl)
+            print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
             if retour:
                 for nom in retour:
                     self.set_param(nom, processor.get_param(retour[nom]))

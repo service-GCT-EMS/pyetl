@@ -40,11 +40,11 @@ def fusion_schema(nom, schema, schema_tmp):
 
 
 
-def lire_schemas_multiples(
+def lire_schemas_multiples(mapper,
     nom, chemin, mode_alias="num", cod="utf-8", cod_csv=None, specifique=None, fusion=None
 ):
     """initialise le schema et rajoute tous les elements necessaires"""
-    schema = SCI.Schema(nom)
+    schema = mapper.init_schema(nom)
     if cod_csv is None:
         cod_csv = cod
     if os.path.isdir(chemin):
@@ -69,10 +69,10 @@ def lire_schemas_multiples(
                 fusion_schema(
                     nom,
                     schema,
-                    lire_schema_csv("tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
+                    lire_schema_csv(None, "tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
                 )
             elif ext == ".xml":
-                fusion_schema(nom, schema, lire_schema_xml("tmp", element, cod=cod_csv))
+                fusion_schema(nom, schema, lire_schema_xml(None, "tmp", element, cod=cod_csv))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -374,7 +374,7 @@ def integre_schemas(schemas, nouveaux):
     nomschemas = set()
     for nom, description in nouveaux.items():
         nomschemas.add(nom)
-        tmp = SCI.Schema(nom)
+        tmp = SCI.init_schema(None, nom)
         tmp.from_dic_if(description)
 
         # print ('recup schema ', nom, tmp, schemas.get(nom))

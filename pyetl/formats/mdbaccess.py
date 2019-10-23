@@ -1096,7 +1096,7 @@ def cre_script_reset(liste_tables, gensql):
     # print ('reinit tables a traiter', travail)
     script_clean = [
         gensql.prefix_charge(niveau, classe, "TDGS")
-        + gensql.tail_charge(niveau, classe, "G")
+        + gensql.tail_charge(niveau, classe, "TDGS")
         for niveau, classe in reversed(liste_tables)
     ]
     return script_clean

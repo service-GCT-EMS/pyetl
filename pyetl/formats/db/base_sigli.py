@@ -11,25 +11,11 @@ from .base_postgis import PgsConnect, PgsGenSql
 # from . import database
 
 SCHEMA_ADM = "admin_sigli"
-
+TABLE_MONITORING = SCHEMA_ADM+'.stat_upload'
 
 class SglConnect(PgsConnect):
     """connecteur de la base de donnees postgres"""
     fallback = PgsConnect.requetes
-    # requetes = {
-    # "info_schemas":"SELECT nomschema,commentaire FROM admin_sigli.info_schemas",
-    # "info_tables":"""SELECT nomschema,nomtable,commentaire,type_geometrique,dimension,
-    #                    nb_enreg,type_table,index_geometrique,clef_primaire,index,
-    #                    clef_etrangere
-    #             FROM admin_sigli.info_tables""",
-    # "info_enums": "SELECT nom_enum,ordre,valeur,alias,mode FROM admin_sigli.info_enums",
-    # "info_attributs": """SELECT nomschema, nomtable, attribut, alias, type_attribut, graphique,
-    #                        multiple, defaut, obligatoire, enum, dimension, num_attribut,
-    #                        index, uniq, clef_primaire, clef_etrangere, cible_clef, 0, 0
-    #                 FROM admin_sigli.info_attributs order by nomschema, nomtable, num_attribut""",
-    # "info_vues": """SELECT nomschema,nomtable,definition,materialise
-    #            FROM admin_sigli.info_vues_utilisateur"""
-    #               }
 
 
     def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
@@ -46,7 +32,7 @@ class SglConnect(PgsConnect):
         """recupere des informations sur la structure des vues
            (pour la reproduction des schemas en sql"""
         requete = """SELECT nomschema,nomtable,definition,materialise
-                     from admin_sigli.info_vues_utilisateur
+                     from """+SCHEMA_ADM+""".info_vues_utilisateur
                      """
         vues = dict()
         vues_mat = dict()
@@ -104,7 +90,7 @@ class SglGenSql(PgsGenSql):
         if delete:
             return 'DELETE FROM "' + niveau.lower() + '"."' + classe.lower() + '";\n'
         return (
-            "SELECT admin_sigli.truncate_table('"
+            "SELECT "+SCHEMA_ADM+".truncate_table('"
             + niveau.lower()
             + "','"
             + classe.lower()
@@ -115,7 +101,7 @@ class SglGenSql(PgsGenSql):
     def _commande_sequence(niveau, classe):
         """ cree une commande de reinitialisation des sequences"""
         return (
-            "SELECT admin_sigli.ajuste_sequence('"
+            "SELECT "+SCHEMA_ADM+".ajuste_sequence('"
             + niveau.lower()
             + "','"
             + classe.lower()
@@ -127,19 +113,62 @@ class SglGenSql(PgsGenSql):
         """ cree une commande de reinitialisation des sequences"""
         if valide:
             return (
-                "SELECT admin_sigli.valide_triggers('"
+                "SELECT "+SCHEMA_ADM+".valide_triggers('"
                 + niveau.lower()
                 + "','"
                 + classe.lower()
                 + "');\n"
             )
         return (
-            "SELECT admin_sigli.devalide_triggers('"
+            "SELECT "+SCHEMA_ADM+".devalide_triggers('"
             + niveau.lower()
             + "','"
             + classe.lower()
             + "');\n"
         )
 
+    @staticmethod
+    def _commande_monitoring(niveau, classe, schema, mode):
+        """ insere une ligne dans une table de stats"""
+        return ('INSERT INTO '+TABLE_MONITORING+ " (nomschema, nomtable, nbvals, mode, nom_script)  VALUES('%s','%s','%s','%s','%s')"%
+            ( niveau.lower(),
+            classe.lower(),
+            str(schema.getinfo('objcnt')) if schema else '0',
+            mode,
+            schema.getinfo('nom_script') if schema else '',
+            ))
 
-DBDEF = {"sigli": (SglConnect, SglGenSql, "server", "", "#ewkt", "base postgis avec admin_sigli")}
+
+    def cree_triggers(self, classe, groupe, nom):
+        """ cree les triggers """
+        evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD OF"}
+        evs2 = {"I": "INSERT ", "D": "DELETE ", "U": "UPDATE ", "T": "TRUNCATE"}
+        ttype = {"T": "TRIGGER","C": "CONSTRAINT"}
+        decl = {'R': "ROW", 'S':"STATEMENT"}
+        table = groupe + "." + nom
+        if self.basic:
+            return []
+        trig = ["-- ###### definition des triggers ####"]
+        if self.maj:
+            atts = {i.lower() for i in classe.get_liste_attributs()}
+            trig_std = "auteur" in atts and "date_maj" in atts
+            #       for i in atts:
+            #           if i.defaut[0:1]=='A:': # definition d'un trigger
+            #               liste_triggers[i.nom]=i.defaut[2:]
+            if trig_std:
+                trig.append("CREATE TRIGGER tr_auteur")
+                trig.append("\tBEFORE UPDATE")
+                trig.append("\tON " + table)
+                trig.append("\tFOR EACH ROW")
+                trig.append("\tEXECUTE PROCEDURE "+SCHEMA_ADM+".auteur();")
+        liste_triggers = classe.triggers
+        for i in liste_triggers:
+            type_trigger, action, declencheur, timing, event,colonnes,condition,sql = liste_triggers[i].split(',')
+            trigdef=(ttype[type_trigger],action,decl[declencheur],evs[timing], evs2[event], colonnes,condition,sql)
+            idfonc,trigsql = self.cree_sql_trigger(i, table, trigdef)
+            trig.extend(trigsql)
+        return trig
+
+
+
+DBDEF = {"sigli": (SglConnect, SglGenSql, "server", "", "#ewkt", "base postgis avec "+SCHEMA_ADM)}

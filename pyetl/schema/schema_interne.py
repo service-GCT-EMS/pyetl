@@ -30,6 +30,8 @@ def init_schema(
     if not nom_schema:
         print("pyetl: schema sans nom")
         raise ValueError
+    if mapper is None: # on demande un schema temporaire
+        return Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
     #    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
     if isinstance(modele, str):
         if modele in mapper.schemas:
@@ -41,6 +43,7 @@ def init_schema(
         nouveau = Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
+        nouveau.metas['script_ref'] = mapper.get_param('pyetl_script_ref')
         #            self.schemas[nom_schema].modele = modele
         #        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 

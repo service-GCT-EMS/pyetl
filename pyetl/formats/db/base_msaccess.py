@@ -170,8 +170,7 @@ class AccConnect(DbConnect):
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
-        #        requete = 'SELECT nom_enum,ordre,valeur,alias,mode from admin_sigli.info_enums'
-        #        data = ()
+
         return iter(())  # pour le moment on ne sait pas gerer des enums dans access
 
     #        return self.iterreq(requete, data)
