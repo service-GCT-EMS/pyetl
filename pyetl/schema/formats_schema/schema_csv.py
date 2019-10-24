@@ -557,7 +557,7 @@ def lire_schema_csv(mapper, nom, fichier, mode_alias="num", cod="cp1252", schema
     """lit un schema conplet en csv"""
     if schema is None:
         #        print ('lecture_csv')
-        schema = mapper..init_schema(nom, origine="L")
+        schema = mapper.init_schema(nom, origine="L")
 
     fichier_conf = "_".join((fichier, "enumerations.csv"))
     fichier_classes = "_".join((fichier, "classes.csv"))

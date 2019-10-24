@@ -7,6 +7,7 @@ fonctions s de selections : determine si une regle est eligible ou pas
 """
 import re
 import itertools
+import time
 from .outils import compilefonc, prepare_mode_in
 
 # ------------selecteurs sur valeurs d'attributs---------------------
@@ -664,3 +665,95 @@ def sel_is_type_geom(selecteur, obj):
     """
     #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.geom_v.type == selecteur.params.vals.val
+
+def sel_day_scheduler(selecteur, obj):
+    """#aide||vrai si la date est compatible avec la description ( sert dans les declecnheurs de batch)
+  #aide_spec||format de date: (liste de jours)/intervalle
+            ||ex:  rien : tous les jour
+            ||      /2J :  tous les 2 jours
+            ||   1,3/S  :  lundi et mercredi toutes les semaines
+            ||     7/2S :  dimanche toutes les 2 semaines
+            ||     7/M  :  premier dimanche du mois
+            ||    07/M  :  jour 7 du mois
+    #pattern||=is:valid_day;A||1
+    #!test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
+    """
+    dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    if dateref == 'X':
+        return False
+    if dateref == '':
+        return True
+    tmp =  dateref.split('/')
+    if len(tmp)!=2:
+        return False
+    jours,intervalle=tmp
+    date = time.localtime()
+    lj = jours.split(',')
+    wn = int(time.strftime('%W',date))
+    if 'J' in intervalle:
+        intdef = int(intervalle.replace('J',''))
+        vdef = int(jours) if jours else 0
+        return date.tm_yday%intdef==vdef
+    if intervalle == 'S': # toutes les semaines
+        return str(date.tm_wday+1) in lj
+    if 'S' in intervalle:
+        intdef = int(intervalle.replace('S',''))
+        if wn%intdef:
+            return False
+        return str(date.tm_wday+1) in lj
+    if intervalle=='M': # tous les mois
+        if '%2.2d' % (date.tm_mday) in lj:
+            return True
+        if date.tm_mday < 8 and str(date.tm_wday) in lj:
+            return True
+        return False
+    if 'M' in intervalle:
+        intdef = int(intervalle.replace('M'))
+        if date.tm_mon%intdef != 1:
+            return False
+        if '%2.2d' % (date.tm_mday) in lj:
+            return True
+        if date.tm_mday < 8 and str(date.tm_wday) in lj:
+            return True
+        return False
+
+def sel_hour_scheduler(selecteur, obj):
+    """#aide||vrai si l'heure est compatible avec la description ( sert dans les declecnheurs de batch)
+  #aide_spec||format de temps: (liste de jours)/intervalle
+            ||ex:  rien : tout le temps
+            ||      /2m :  tous les 2 minutes
+            ||   1,15/1H  :  minutes 1 et 15 toutes les heures
+            ||     7/2H :  minute 7 toutes les 2 heures
+            ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
+    #pattern||=is:valid_time;A||1
+    #!test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
+    """
+    timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    if timeref == 'X':
+        return False
+    if timeref == '':
+        return True
+    tmp =  timeref.split('/')
+    if len(tmp)!=2:
+        return False
+    decalage,intervalle=tmp
+    if '[]' in intervalle:
+        debut, fin = intervalle.split('[')[1][:-1].split('-')
+    else:
+         debut,fin =(-1,25)
+    temps = time.localtime()
+    heures= temps.tm_hour
+    minutes= temps.tm_min
+    if debut > heure or fin < heure:
+        return False
+    if 'm' in intervalle:
+        intdef = int(intervalle.replace('m',''))
+        vdef = int(decalage) if decalage else 0
+        return  minutes%intdef == vdef
+    if 'H' in intervalle:
+        intdef = int(intervalle.replace('H',''))
+        if heures%intervalle:
+            return False
+        if str(minutes) in decalage.split(','):
+            return True
+    return False

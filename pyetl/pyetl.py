@@ -156,6 +156,8 @@ class Pyetl(object):
     compilateur = compile_regles  # interpreteur par defaut
     lecteur_regles = lire_regles_csv
     interpreteur = interprete_ligne_csv
+    lire_schemas_multiples = lire_schemas_multiples
+    init_schema = init_schema
     commandes = COMMANDES
     selecteurs = SELECTEURS
     sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
@@ -256,8 +258,7 @@ class Pyetl(object):
         self.ident_courant = ("", "")
         self._set_streammode()
         self.done = False
-        self.lire_schemas_multiples = lire_schemas_multiples
-        self.init_schema = MethodType(init_schema, self)
+
 
     def initenv(self, env=None, loginfo=None):
         """initialise le contexte (parametres de site environnement)"""
@@ -829,7 +830,8 @@ class Pyetl(object):
 
     def getstats(self):
         """retourne un dictionnaire avec les valeurs des stats"""
-        return self.context.getgroup("_st")
+        print ('--------getstats', self.context,self.context.getgroup("_st_"))
+        return self.context.getgroup("_st_")
 
     def getcontext(self, context, ident="",ref=False):
         """recupere un contexte en cascade"""

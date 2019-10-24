@@ -134,7 +134,7 @@ def parallelprocess(numero, file, regle):
         printexception()
         raise
     return numero, nb_lu
-    raise E
+
 
 def endparallel(test=None):
     """termine un traitement parallele"""
@@ -354,24 +354,27 @@ def traite_parallel(regle):
     #        print ('retour')
     for i in rfin:
         retour = rfin[i][0]
-        print(
-            i,
-            "worker",
-            retour["wid"],
-            "traites",
-            retour["stats_generales"]["_st_lu_objs"],
-            list(sorted(retour["schemas"].keys())),
-        )
-        for param in retour["stats_generales"]:
-            mapper.padd(param, retour["stats_generales"][param])
-        LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
-        #            print ('traitement schemas ', retour["schemas"])
-        integre_schemas(mapper.schemas, retour["schemas"])
+        if retour:
+            print(
+                i,
+                "worker",
+                retour["wid"],
+                "traites",
+                retour["stats_generales"].get("_st_lu_objs",'0'),
+                list(sorted(retour["schemas"].keys())),
+            )
+            for param in retour["stats_generales"]:
+                mapper.padd(param, retour["stats_generales"][param])
+            LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
+            #            print ('traitement schemas ', retour["schemas"])
+            integre_schemas(mapper.schemas, retour["schemas"])
 
-        for nom, entete, contenu in retour["stats"].values():
-            if nom not in mapper.stats:
-                mapper.stats[nom] = ExtStat(nom, entete)
-            mapper.stats[nom].add(entete, contenu)
+            for nom, entete, contenu in retour["stats"].values():
+                if nom not in mapper.stats:
+                    mapper.stats[nom] = ExtStat(nom, entete)
+                mapper.stats[nom].add(entete, contenu)
+        else:
+            print ('erreur retour', rfin)
     #            print ('traitement retour stats', mapper.idpyetl, nom,
     #                   mapper.stats[nom], len(mapper.stats[nom].lignes))
 

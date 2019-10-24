@@ -9,11 +9,9 @@ import re
 import os
 import logging
 import pyetl.schema.fonctions_schema as FSC
-from pyetl.schema.schema_interne import Schema, init_schema
 from pyetl.formats.interne.objet import Objet
 from pyetl.schema.formats_schema.schema_xml import lire_schema_xml
 from pyetl.schema.formats_schema.schema_csv import lire_schema_csv
-from pyetl.schema.schema_io import lire_schemas_multiples
 
 LOGGER = logging.getLogger("pyetl")
 # fonctions de manipulation de schemas
@@ -111,8 +109,7 @@ def f_stock_schema(regle, obj):
 
         regle.schema_courant = regle.getschema(nom_base)
         if not regle.schema_courant:
-            regle.schema_courant = Schema(nom_base)
-            regle.stock_param.schemas[nom_base] = regle.schema_courant
+            regle.schema_courant = regle.stock_param.init_schema(nom_base)
         if regle.getvar("taux_conformite"):
             print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
@@ -211,8 +208,8 @@ def h_def_schema(regle):
 
         if nom != nomschema:
             if nomschema in regle.stock_param.schemas:  # le schema existe deja
-                init_schema(
-                    regle.stock_param,
+                regle.stock_param.init_schema(
+
                     nom,
                     origine=None,
                     fich="",
@@ -265,7 +262,7 @@ def h_def_schema(regle):
         mode_alias = regle.context.getvar("mode_alias", "num")
         cod_csv = regle.context.getvar("codec_csv", cod)
         if fusion:
-            lire_schemas_multiples(regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
+            regle.stock_param.lire_schemas_multiples(nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
             )
         else:
             lire_schema_csv(regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv)
@@ -311,8 +308,7 @@ def f_def_schema(regle, obj):
     # print ('def_schema:',ident,nom_base,regle.stock_param.schemas)
     if nom_base not in regle.stock_param.schemas:
         if regle.differe:  # c'etait un schema interne on le cree
-            init_schema(
-                regle.stock_param,
+            regle.stock_param.init_schema(
                 nom_base,
                 origine='G',
                 fich="",

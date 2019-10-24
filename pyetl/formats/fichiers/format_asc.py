@@ -245,6 +245,7 @@ def ajout_attribut_asc(attributs, attr):
 def init_format_asc(reader):
     '''positionnne des elements de lecture (traitement des booleens)'''
     reader.formatters['B'] = traite_booleen
+    reader.setvar('codec_asc','cp1252')
     # print ('initialisation reader', reader.formatters)
     # raise
 
@@ -363,11 +364,11 @@ def _ecrire_point_asc(geom):
 
 
 def format_date(date):
-    """ genere une date ne format entete elyx"""
+    """ genere une date en format entete elyx"""
     return (
         date.replace("/", "-").replace(" ", ",").split(".")[0]
         if date
-        else "01-01-1000,00:00:00"
+        else ""
     )
 
 
@@ -558,10 +559,9 @@ def asc_streamer(self, obj, regle, _, attributs=None):
         if ressource is None:
             if os.path.dirname(nom):
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
-            print ('ouverture fichier asc',regle.getvar("codec_sortie", "cp1252"))
             streamwriter = AscWriter(
                 nom,
-                encoding=regle.getvar("codec_sortie", "cp1252"),
+                encoding="cp1252",
                 liste_att=attributs,
                 geomwriter=self.geomwriter,
                 schema=obj.schema,
@@ -603,7 +603,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
                     streamwriter = AscWriter(
                         nom,
-                        encoding=regle.getvar("codec_sortie", "cp1252"),
+                        encoding="cp1252",
                         geomwriter=self.geomwriter,
                     )
                     streamwriter.set_liste_att(attributs)

@@ -78,9 +78,9 @@ class Reader(object):
         self.regle = regle  # on separe la regle de lecture de la regle de demarrage
         self.regle_start = regle_start
         self.regle_ref = self.regle if regle is not None else self.regle_start
-        stock_param = self.regle_ref.stock_param
+        self.stock_param = self.regle_ref.stock_param
         self.maxobj = int(self.regle_ref.getvar("lire_maxi", 0))
-        self.traite_objets = stock_param.moteur.traite_objet
+        self.traite_objets = self.stock_param.moteur.traite_objet
         self.schema = None
         self.schema_entree = None
         self.newschema=True
@@ -93,7 +93,7 @@ class Reader(object):
         self.orig = None
         self.affich = 1000
         self.nextaff = self.affich
-        self.aff = stock_param.aff
+        self.aff = self.stock_param.aff
         if self.debug:
             print("debug:format: instance de reader ", nom, self.schema)
 
@@ -260,7 +260,9 @@ class Reader(object):
         # else:
         #     print ('rejet')
 
-
+    def setvar(self,nom,val):
+        '''positionne une variable ( en general variables de format par defaut)'''
+        self.stock_param.set_param(nom,val)
 
     def get_info(self):
         """ affichage du format courant : debug """
@@ -530,3 +532,7 @@ class Writer(object):
             return GEOMDEF[self.nom].writer
         fgeom = WRITERS.get(format_natif, WRITERS["interne"]).geom
         return GEOMDEF[fgeom].writer
+
+    def setvar(self,nom,val):
+        '''positionne une variable ( en general variables de format par defaut)'''
+        self.regle.stock_param.set_param(nom,val)

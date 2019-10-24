@@ -406,7 +406,7 @@ def _valide_type(classe, atdef, val):
     err = ""
     if atdef.type_att == "D":  # test dates
         err, repl = valide_dates(val, "")
-    if atdef.type_att == "DS":  # test dates
+    elif atdef.type_att == "DS":  # test dates
         err, repl = _valide_jour(val, "")
     elif atdef.type_att == "E" or atdef.type_att_base == "E":  # test numerique
         err, repl, changetype = _valide_entiers(val)
