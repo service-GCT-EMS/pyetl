@@ -672,6 +672,7 @@ def sel_day_scheduler(selecteur, obj):
             ||ex:  rien : tous les jour
             ||      /2J :  tous les 2 jours
             ||   1,3/S  :  lundi et mercredi toutes les semaines
+            ||   1-5/S  :  lundi au vendredi toutes les semaines
             ||     7/2S :  dimanche toutes les 2 semaines
             ||     7/M  :  premier dimanche du mois
             ||    07/M  :  jour 7 du mois
@@ -688,7 +689,13 @@ def sel_day_scheduler(selecteur, obj):
         return False
     jours,intervalle=tmp
     date = time.localtime()
-    lj = jours.split(',')
+    if ',' in jours:
+        lj = jours.split(',')
+    elif '-' in jours:
+        debut, fin = jours.split('-')
+        lj = list(range(int(debut), int(fin)+1))
+    else:
+        lj = [jours]
     wn = int(time.strftime('%W',date))
     if 'J' in intervalle:
         intdef = int(intervalle.replace('J',''))
