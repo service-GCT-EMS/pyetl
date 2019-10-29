@@ -732,8 +732,11 @@ def sel_hour_scheduler(selecteur, obj):
             ||   1,15/1H  :  minutes 1 et 15 toutes les heures
             ||     7/2H :  minute 7 toutes les 2 heures
             ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
-    #pattern||=is:valid_time;A||1
-    #!test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
+    #pattern||=is:valid_time;C||1
+    #pattern1||=is:valid_time;[A]||1
+    #pattern2||(is:valid_time:)A;A||1
+    #test||obj;point;1||^X;12:32:10;;set||^Y;2;;set;||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
+    #test2||obj;point;1||^X;12:31:10;;set||^Y;2;;set;||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;2
     """
     timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
     if timeref == 'X':
@@ -751,7 +754,7 @@ def sel_hour_scheduler(selecteur, obj):
     temps = time.localtime()
     heures= temps.tm_hour
     minutes= temps.tm_min
-    if debut > heure or fin < heure:
+    if debut > heures or fin < heures:
         return False
     if 'm' in intervalle:
         intdef = int(intervalle.replace('m',''))

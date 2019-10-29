@@ -106,7 +106,7 @@ def _sortir_attribut_xml(classe, attr, keys):
                 + c_attr
                 + "'"
                 + " contrainte = '"
-                + params
+                + str(params)
                 + "'"
             )
     for i in classe.indexes:

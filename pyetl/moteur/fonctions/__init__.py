@@ -110,6 +110,11 @@ class DefinitionAttribut(object):
             self.nature = "fixe"
             self.priorite = 1
             self.expression = "^(" + pattern.replace("=", "") + ")$"
+        elif pattern.startswith('('):
+            self.nature = 'A'
+            self.expression = "^" + pattern.replace('(','').replace(')','(')+self.asdef+')'
+            self.groupe = ""
+            self.priorite = 2
         elif pattern in self.relist:
             self.priorite = 4
             self.expression, self.nature, self.groupe, = self.relist[pattern]
@@ -125,7 +130,7 @@ class DefinitionAttribut(object):
             self.regex = re.compile(self.expression)
         except re.error as err:
             print("erreur expression reguliere ", ident, pattern, self.expression)
-            print("nature ", err.msg)
+            print("nature ", err)
 
         if not self.obligatoire:
             self.priorite += 1

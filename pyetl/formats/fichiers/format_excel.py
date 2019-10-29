@@ -17,27 +17,16 @@ from .fileio import FileWriter
 
 
 #########################################################################
-# format csv et txt geo etc
-# tous les fichiers tabules avec ou sans entete
+# format xlsx
+# tous fichiers excel multi tabs
 #########################################################################
 def getnoms(rep, chemin, fichier):
     """ determine les noms de groupe et de schema"""
     schema = ["schema"]
-    chem = chemin
-    niveaux = []
-    classe = os.path.splitext(fichier)[0]
+    niveaux = os.path.splitext(fichier)[0]
     if rep and rep != ".":
         schema = os.path.basename(rep)
-    while chem:
-        chem, nom = os.path.split(chem)
-        niveaux.append(nom)
-
-    if not niveaux:
-        groupe = ""
-    else:
-        groupe = "_".join(niveaux)
-    #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
-    return schema, groupe, classe
+    return schema, niveaux
 
 
 def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, separ):
@@ -102,64 +91,71 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
     return nbwarn
 
 
-def lire_objets_excel(self, rep, chemin, fichier, stock_param, regle, entete=None, separ=None):
+def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
-    if separ is None:
-        separ = self.regle_ref.getchain(("separ_csv_in","separ_csv"), ";")
-    #    print('lecture_csv:', rep, chemin, fichier,separ)
+
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
-    nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
-    with open(
-        os.path.join(rep, chemin, fichier),
-        "r",
-        encoding=self.regle_ref.getvar("codec_entree", "utf-8"),
-    ) as fich:
+    nom_schema, nom_groupe = getnoms(rep, chemin, fichier)
+    alire=os.path.join(rep,chemin,fichier)
+    print ('ouverture fichier', alire)
 
-        if not entete:
-            entete = fich.readline()[:-1]  # si l'entete n'est pas fourni on le lit dans le fichier
-            if entete[0] == "!":
-                entete = entete[1:]
-            else:  # il faut l'inventer...
-                entete = separ * len(fich.readline()[:-1].split(separ))
-                fich.seek(0)  # on remet le fichier au debut
+    wb = load_workbook(filename = alire)
+    print ('ouverture excel', wb, dir(wb))
+    for i in wb.worksheets:
+        print('lecture table', i)
+        for j in i.iter_rows():
+            ligne = list(c.value for c in j)
+            if any(ligne):
+                print ('ligne',ligne)
 
-        nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
-            nom_schema, nom_groupe, nom_classe, stock_param, entete, separ
-        )
-        controle = len(noms_attributs)
-        nbwarn = 0
-        nlignes = 0
-        self.setidententree(nom_groupe, nom_classe)
-        for i in fich:
-            nlignes = nlignes + 1
-            obj = self.getobj()
-            obj.setschema(schemaclasse)
-            obj.setorig(nlignes)
-            val_attributs = [j.strip() for j in i[:-1].split(separ)]
-            # liste_attributs = zip(noms_attributs, val_attributs)
-            # print ('lecture_csv:',[i for i in liste_attributs])
-            if len(val_attributs) != controle:
-                nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
 
-            obj.attributs.update(zip(noms_attributs, val_attributs))
-            # print ('attributs:',obj.attributs['nombre_de_servitudes'])
-            if geom:
-                obj.attributs["#geom"] = [val_attributs[-1]]
-                #                print ('geometrie',obj.geom)
-                obj.attributs["#type_geom"] = "-1"
-            else:
-                obj.attributs["#type_geom"] = "0"
-            obj.attributs["#chemin"] = chemin
-            stock_param.moteur.traite_objet(obj, regle)
 
-            if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
-                break
 
-            if nlignes % 100000 == 0:
-                stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
+    if not entete:
+        entete = fich.readline()[:-1]  # si l'entete n'est pas fourni on le lit dans le fichier
+        if entete[0] == "!":
+            entete = entete[1:]
+        else:  # il faut l'inventer...
+            entete = separ * len(fich.readline()[:-1].split(separ))
+            fich.seek(0)  # on remet le fichier au debut
 
-        if nbwarn:
-            print(nbwarn, "lignes avec un nombre d'attributs incorrect")
+    nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
+        nom_schema, nom_groupe, nom_classe, stock_param, entete, separ
+    )
+    controle = len(noms_attributs)
+    nbwarn = 0
+    nlignes = 0
+    self.setidententree(nom_groupe, nom_classe)
+    for i in fich:
+        nlignes = nlignes + 1
+        obj = self.getobj()
+        obj.setschema(schemaclasse)
+        obj.setorig(nlignes)
+        val_attributs = [j.strip() for j in i[:-1].split(separ)]
+        # liste_attributs = zip(noms_attributs, val_attributs)
+        # print ('lecture_csv:',[i for i in liste_attributs])
+        if len(val_attributs) != controle:
+            nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
+
+        obj.attributs.update(zip(noms_attributs, val_attributs))
+        # print ('attributs:',obj.attributs['nombre_de_servitudes'])
+        if geom:
+            obj.attributs["#geom"] = [val_attributs[-1]]
+            #                print ('geometrie',obj.geom)
+            obj.attributs["#type_geom"] = "-1"
+        else:
+            obj.attributs["#type_geom"] = "0"
+        obj.attributs["#chemin"] = chemin
+        stock_param.moteur.traite_objet(obj, regle)
+
+        if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
+            break
+
+        if nlignes % 100000 == 0:
+            stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
+
+    if nbwarn:
+        print(nbwarn, "lignes avec un nombre d'attributs incorrect")
     return
 
 

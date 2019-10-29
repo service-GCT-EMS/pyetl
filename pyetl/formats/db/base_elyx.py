@@ -954,8 +954,8 @@ class ElyConnect(ora.OrwConnect):
         requete = (
             '''     SELECT r."NAME" as "ROLE",
                                 ar."RIGHTS" AS "DROITS",
-                                os.SCHEMA as "SCHEMA",
-                                o."NAME"  as "CLASSE",
+                                os."SCHEMA" as "SCHEMA",
+                                o."NAME" as "CLASSE",
                                 a."NAME" as "ATTRIBUT",
                                 ro."RIGHTS" AS "DROITS_CLASSE"
 
@@ -964,7 +964,7 @@ class ElyConnect(ora.OrwConnect):
             + '''"."LXMD_ATTRIBUTE_ROLE" ar
         LEFT JOIN "'''
             + self.modelschema
-            + '''."LXMD_ROLE" r
+            + '''"."LXMD_ROLE" r
             ON r."GID"=ar."ROLE"
         LEFT JOIN "'''
             + self.modelschema
@@ -986,7 +986,6 @@ class ElyConnect(ora.OrwConnect):
             + self.modelschema
             + """"."LXMD_OBJCLASS_ROLE" ro
             on  ro."KEY_OBJCLASS_STORAGE"=os."GID" AND ro."ROLE"=ar."ROLE"
-                --WHERE ar."RIGHTS" != ro."RIGHTS" or ro.RIGHTS is NULL
                 """
         )
         if liste_tables:
@@ -1033,7 +1032,7 @@ class ElyConnect(ora.OrwConnect):
             liste = []
             ref = set(liste_tables)
             liste = [
-                ";".join([j if j is not None else "" for j in i])
+                ";".join([str(j) if j is not None else "" for j in i])
                 for i in self.request(requete, ())
                 if (i[0], i[1]) in ref
             ]
@@ -1046,6 +1045,11 @@ class ElyConnect(ora.OrwConnect):
         print("db_elyx---------selection complements table elyx ", len(liste))
         entete = "niveau;classe;theme;alias_theme;ech_min;ech_max"
         return (entete, liste)
+
+    def get_elements_specifiques(self, schema):
+        """ recuperation initialse des elements specifiques"""
+        self.select_elements_specifiques(schema)
+
 
     def select_elements_specifiques(self, schema, liste_tables=None):
         """ recupere des elements specifiques a un format et les stocke
