@@ -5,6 +5,8 @@ Created on Mon Feb 22 11:49:29 2016
 @author: 89965
 acces a la base de donnees
 """
+
+from time import strftime
 from .base_postgis import PgsConnect, PgsGenSql
 
 # from .init_sigli import requetes_sigli as REQS
@@ -130,13 +132,16 @@ class SglGenSql(PgsGenSql):
     @staticmethod
     def _commande_monitoring(niveau, classe, schema, mode):
         """ insere une ligne dans une table de stats"""
-        return ('INSERT INTO '+TABLE_MONITORING+ " (nomschema, nomtable, nbvals, mode, nom_script)  VALUES('%s','%s','%s','%s','%s')"%
+        return ('INSERT INTO '+TABLE_MONITORING+ " (nomschema, nomtable, nbvals, mode, nom_script, date_export)"+
+                "VALUES('%s','%s','%s','%s','%s',%s)"%
             ( niveau.lower(),
             classe.lower(),
             str(schema.getinfo('objcnt')) if schema else '0',
             mode,
-            schema.getinfo('nom_script') if schema else '',
+            schema.getinfo('script_ref') if schema else '',
+            strftime('%Y-%m-%d %H:%M:%S'),
             ))
+
 
 
     def cree_triggers(self, classe, groupe, nom):

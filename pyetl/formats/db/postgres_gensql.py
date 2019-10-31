@@ -6,6 +6,7 @@ Created on Fri Feb 16 10:00:04 2018
 """
 # import os
 import re
+from  time import strftime, time
 
 # import subprocess
 from .database import DbGenSql
@@ -334,7 +335,7 @@ class PgrGenSql(DbGenSql):
         if nomf not in self.stdtriggers:
             trig=["\nDROP TRIGGER IF EXISTS " + nom + " ON " + table + ";"]
             if sql:
-                trig.append(sql)
+                trig.append(sql + ';')
             else:
                 trig.append("\nCREATE "+type_trigger+" " + i)
                 trig.append(timing + " " + event + (" OF "+ colonnes) if colonnes else '')

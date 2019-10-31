@@ -86,7 +86,7 @@ def description_schema(regle, nom, schema):
 
 
 
-def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> (str,str):
+def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> T.Iterator[T.Tuple[str,str]]:
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
     if os.path.exists(path):
@@ -98,7 +98,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> (str,str
             else:
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
                     # print ('match',pattern, chemin, element)
-                    yield (os.path.basename(element), str(chemin))
+                    yield (str(os.path.basename(element)), str(chemin))
                 # else:
                 #     pass
 
@@ -122,7 +122,6 @@ def getfichs(regle, obj):
         dirselect=regle.getvar("dirselect"),
         filtre_entree=regle.getvar("filtre_entree"),
     )
-    # fichs, parametres_fichiers = scan_entree(rep=rep)
     fparm = [(i, parametres_fichiers[i]) for i in fichs]
     return fparm
 
@@ -528,6 +527,67 @@ def valide_auxiliaires(identifies, non_identifies):
                 pass
             else:
                 print("extention inconnue ", extref, "->", chemin, nom, extinc)
+
+
+def getfilelist(rep=None, fileselect=None, dirselect = None) -> T.Iterator[T.Tuple[str,str,str]]:
+    " etablit la liste de fichiers sous forme d'iterateur"
+    entree = rep
+    if entree:
+        if os.path.isfile(entree):  # traitement un seul fichier
+            yield (str(os.path.basename(entree)), str(""),str(os.path.dirname(entree)),)
+        elif '*' in entree:
+            racine = str(os.path.dirname(entree))
+            while '*' in racine:
+                racine=str(os.path.dirname(rep))
+            yield from ((str(os.path.basename(i)),str(os.path.dirname(i)).replace(rep,''),racine, ) for i in  glob.glob(entree, recursive=True))
+        else:
+            yield from ( i+(entree,) for i in scandirs(entree, "", True, pattern=fileselect, dirpattern=dirselect))
+
+
+def scan_entree_2(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):
+
+    for fichier,chemin,racine in getfilelist(rep=rep, fileselect=fileselect,dirselect=dirselect):
+        if filtre_entree and not re.search(filtre_entree, fichier):
+            continue
+        if force_format == '*':
+            yield fichier,chemin,racine
+        else:
+            nom = os.path.splitext(fichier)[0].lower()
+            ext = (
+                force_format if force_format else str(os.path.splitext(fichier)[1]).lower().replace(".", "")
+            )
+        # print ('ici', nom,ext, ext in liste_formats, liste_formats)
+            if ext in liste_formats:
+                aux = READERS[ext][3]
+                if '!' in aux: # attention il y a des incompatibilites
+                    racine = os.path.splitext(fichier)[0]
+                    valide = True
+                    for ex2 in aux:
+                        if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
+                            non_identifies.append((chemin, nom, ext))
+                            valide = False
+                            continue
+                    if not valide:
+                        continue
+                f_courant = os.path.join(str(entree), str(chemin), str(fichier))
+                identifies[chemin, nom] = ext
+                if debug:
+                    print("fichier a traiter", f_courant, ext)
+                retour.append(f_courant)
+                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
+            #                print('fichier a traiter', f_courant, fichier, ext)
+            else:
+                non_identifies.append((chemin, nom, ext))
+        valide_auxiliaires(identifies, non_identifies)
+
+    if debug:
+        print("fichiers a traiter", fichs, retour, parametres_fichiers)
+    return retour, parametres_fichiers
+
+
+
+
+
 
 
 def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):

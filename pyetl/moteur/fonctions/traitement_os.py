@@ -264,3 +264,10 @@ def f_adquery(regle,obj):
             return True
     # print("pas d'entree adquery",regle.get_entree(obj) )
     return False
+
+def f_listefich(regle,obj):
+    """#aide genere un objet par fichier repondant aux criteres d'entree
+    #pattern||;?C;?A;listefich;;
+    """
+    if regle.get_entree(obj):
+        fichs = getfichs(regle,obj)

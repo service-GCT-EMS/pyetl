@@ -27,11 +27,8 @@ def init_schema(
     mapper, nom_schema, origine="G", fich="", defmodeconf=0, stable=True, modele=None, copie=False
 ):
     """ retourne le schemas qui va bien et les cree si necsssaire """
-    if not nom_schema:
-        print("pyetl: schema sans nom")
-        raise ValueError
-    if mapper is None: # on demande un schema temporaire
-        return Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
+    if not nom_schema: # on demande un schema temporaire
+        return Schema('##tmp', origine=origine, fich=fich, defmodeconf=defmodeconf)
     #    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
     if isinstance(modele, str):
         if modele in mapper.schemas:

@@ -635,12 +635,15 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
             if deftrig:
                 ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
             for i in schema.elements_specifiques:
-                if i != 'def_triggers':
-                    entete,liste=schema.elements_specifiques[i]
-                    print ('element specifique', i, entete,len(liste))
-                    contenu = [entete,]+liste
-                    print ('element specifique', i, len(contenu))
-                    ecrire_fich_csv(chemref, "_"+i+".csv", contenu, cod)
+                if schema.elements_specifiques[i]:
+                    if i != 'def_triggers':
+                        infos=schema.elements_specifiques[i]
+                        contenu = [i if isinstance(i,str) else ';'.join(i)+';'+
+                            j if isinstance(j,str) else ';'.join(j) for i,j in sorted(infos.items())]
+                        print ('element specifique', i, len(contenu))
+                        ecrire_fich_csv(chemref, "_"+i+".csv", contenu, cod)
+                else:
+                    print ('element specifique non defini',schema.nom, i )
 
     else:
         return classes, conf, mapping, deftrig, metas

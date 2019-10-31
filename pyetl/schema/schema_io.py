@@ -62,17 +62,16 @@ def lire_schemas_multiples(mapper,
         if racine in element.lower():
             ext = os.path.splitext(element)[1]
             if "classes" in element and ext == ".csv":
-                # print("schema:lecture ",element,racine,os.path.splitext(element))
+                print("schema:lecture ",element,racine,os.path.splitext(element))
                 element_modif = "_".join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
-                ext = os.path.splitext(element)[1]
                 fusion_schema(
                     nom,
                     schema,
-                    lire_schema_csv(None, "tmp", fichier, mode_alias, cod=cod_csv, specifique=specifique),
+                    lire_schema_csv(mapper, "", fichier, mode_alias, cod=cod_csv, specifique=specifique),
                 )
             elif ext == ".xml":
-                fusion_schema(nom, schema, lire_schema_xml(None, "tmp", element, cod=cod_csv))
+                fusion_schema(nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv))
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)

@@ -41,7 +41,7 @@ class Ressource(object):
     def __init__(self, nom, handler,idmapper):
         self.nom = nom
         self.handler = handler
-        self.idmapper = idmapper
+        self.idmapper = idmapper # identifiant d'instance qui a cree la ressource
         self.lastid = None
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0

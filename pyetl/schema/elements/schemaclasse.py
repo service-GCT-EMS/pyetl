@@ -281,7 +281,9 @@ class SchemaClasse(object):
 
     def getinfo(self, nom, defaut=""):
         """recupere une info du schema"""
-        return self.info.get(nom, defaut)
+        if nom not in self.info:
+            return self.schema.metas.get(nom, defaut)
+        return self.info[nom]
 
     def setinfo(self, nom, valeur):
         """positionne une info du schema"""
