@@ -101,10 +101,7 @@ def scandirs(rep_depart, chemin, rec, pattern=None, dirpattern=None) -> T.Iterat
                     yield (str(os.path.basename(element)), str(chemin))
                 # else:
                 #     pass
-
-
                     # print ('not match',pattern, chemin, element)
-
 
 def getfichs(regle, obj):
     """recupere une liste de fichiers"""
@@ -113,17 +110,15 @@ def getfichs(regle, obj):
     racine = obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
     if not racine:
         racine = regle.getvar("_entree", ".")
-    vobj = regle.getval_entree(obj)
-    rep = os.path.join(racine, vobj) if vobj else racine
-    fichs, parametres_fichiers = scan_entree(
-        rep=rep,
+    nom = regle.getval_entree(obj)
+    # print("getfichs:", os.path.join(racine, nom) if nom else racine)
+    yield from scan_entree_2(
+        rep=os.path.join(racine, nom) if nom else racine,
         force_format=regle.getvar("F_entree"),
         fileselect=regle.getvar("fileselect"),
         dirselect=regle.getvar("dirselect"),
         filtre_entree=regle.getvar("filtre_entree"),
     )
-    fparm = [(i, parametres_fichiers[i]) for i in fichs]
-    return fparm
 
 
 def printexception():
@@ -189,22 +184,22 @@ def execbatch(regle, obj):
 def objloader(regle, obj):
     """charge des objets depuis des fichiers"""
     nb_lu = 0
-    mapper = regle.stock_param
-    fichs = getfichs(regle, obj)
-    if fichs:
-        for i, parms in fichs:
-            # print ('lecture', i)
-            try:
-                nb_lu += mapper.lecture(i, regle=regle, parms=parms)
-            except StopIteration as abort:
-                if abort.args[0] == "2":
-                    continue
+    lecture = regle.stock_param.lecture
+    retour = False
+    for i, parms in getfichs(regle, obj):
+        # print ('lecture', i, parms)
+        try:
+            nb_lu += lecture(i, regle=regle, parms=parms)
+            retour = True
+        except StopIteration as abort:
+            if abort.args[0] == "2":
+                continue
     #    print("lecture",nb_lu)
-    else:
+    if not retour:
         print ("chargeur: pas de fichiers d'entree" )
     if regle.params.att_sortie.val:
         obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return fichs
+    return retour
 
 
 def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
@@ -533,6 +528,7 @@ def getfilelist(rep=None, fileselect=None, dirselect = None) -> T.Iterator[T.Tup
     " etablit la liste de fichiers sous forme d'iterateur"
     entree = rep
     if entree:
+        # print ("filelist", entree)
         if os.path.isfile(entree):  # traitement un seul fichier
             yield (str(os.path.basename(entree)), str(""),str(os.path.dirname(entree)),)
         elif '*' in entree:
@@ -546,44 +542,34 @@ def getfilelist(rep=None, fileselect=None, dirselect = None) -> T.Iterator[T.Tup
 
 def scan_entree_2(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):
 
+    identifies = dict()
+    non_identifies = set()
+    select = re.compile(filtre_entree if filtre_entree else ".*")
     for fichier,chemin,racine in getfilelist(rep=rep, fileselect=fileselect,dirselect=dirselect):
-        if filtre_entree and not re.search(filtre_entree, fichier):
+        # print("scan2",fichier,chemin,racine)
+        if not select.search(fichier):
             continue
+        f_courant = str(os.path.join(racine, chemin, fichier))
+        nom, ext = os.path.splitext(fichier.lower())
+        ext = ext.replace(".", "")
         if force_format == '*':
-            yield fichier,chemin,racine
+            yield f_courant, (racine,chemin, nom,ext)
         else:
             nom = os.path.splitext(fichier)[0].lower()
-            ext = (
-                force_format if force_format else str(os.path.splitext(fichier)[1]).lower().replace(".", "")
-            )
-        # print ('ici', nom,ext, ext in liste_formats, liste_formats)
-            if ext in liste_formats:
+            if force_format:
+                ext = force_format
+            try:
                 aux = READERS[ext][3]
                 if '!' in aux: # attention il y a des incompatibilites
-                    racine = os.path.splitext(fichier)[0]
-                    valide = True
+                    nom = os.path.splitext(fichier)[0]
                     for ex2 in aux:
-                        if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
-                            non_identifies.append((chemin, nom, ext))
-                            valide = False
-                            continue
-                    if not valide:
-                        continue
-                f_courant = os.path.join(str(entree), str(chemin), str(fichier))
-                identifies[chemin, nom] = ext
-                if debug:
-                    print("fichier a traiter", f_courant, ext)
-                retour.append(f_courant)
-                parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
-            #                print('fichier a traiter', f_courant, fichier, ext)
-            else:
-                non_identifies.append((chemin, nom, ext))
+                        if os.path.isfile(os.path.join(str(racine), str(chemin), str(nom+'.'+ex2))):
+                            raise KeyError
+                identifies[racine, chemin, nom] = ext
+                yield f_courant, (racine, chemin, fichier, ext)
+            except KeyError:
+                non_identifies.add((racine, chemin, nom, ext))
         valide_auxiliaires(identifies, non_identifies)
-
-    if debug:
-        print("fichiers a traiter", fichs, retour, parametres_fichiers)
-    return retour, parametres_fichiers
-
 
 
 

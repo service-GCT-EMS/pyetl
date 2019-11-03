@@ -94,6 +94,7 @@ class Selecteur(object):
         self.select = self.selneg if negatif else self.selpos
         self.info = dict()
         self.params = None
+        self.pattern = ""
 
     @staticmethod
     def true(*_):
@@ -135,7 +136,7 @@ def choix_fonction_select(attribut, valeur, regle):
     select = Selecteur(regle, attribut, valeur, isnot)
     #    debug=1
     for candidat in mapper.sortedsels:
-        #        print ("test sel ", candidat.nom, candidat.priorite)
+        # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
         valide, elements, erreurs = validepattern(select, candidat.definition)
         #        if elements["attr"] is not None:
         #            print ("elements",elements,candidat.definition)
@@ -150,6 +151,7 @@ def choix_fonction_select(attribut, valeur, regle):
                     erreurs,
                 )
             select.setparams(elements, candidat.definition)
+            select.pattern = candidat.patternnum
             for fhelp in candidat.helper:
                 fhelp(select)
             select.fonction = candidat.work
@@ -301,10 +303,10 @@ def printelements(elements):
 
 def validepattern(regle, definition):
     """validation de la signature d'une fonction"""
-    #    print (definition)
+    # print (definition)
     try:
         elements = {i: definition[i].match(regle.v_nommees[i]) for i in definition}
-    #        print ('elements',elements)
+        # print ('elements',elements)
     except KeyError:
         print("definition erronnee", regle.ligne, definition)
     valide = None not in elements.values()
@@ -313,6 +315,8 @@ def validepattern(regle, definition):
         for i in elements
         if elements[i] is None
     ]
+    # if valide:
+    #     print("valide pattern",definition,elements)
     return valide, elements, explication
 
 

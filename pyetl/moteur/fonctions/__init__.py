@@ -112,9 +112,13 @@ class DefinitionAttribut(object):
             self.expression = "^(" + pattern.replace("=", "") + ")$"
         elif pattern.startswith('('):
             self.nature = 'A'
-            self.expression = "^" + pattern.replace('(','').replace(')','(')+self.asdef+')'
-            self.groupe = ""
-            self.priorite = 2
+            tmp=re.match(r"^\(([a-z_:]+)\)(.*)",pattern)
+            if tmp:
+                compl=(self.relist[tmp.group(2)][0][1:]) if tmp.group(2) in self.relist else ""
+                self.expression = "^" + tmp.group(1)+compl
+                self.groupe = ""
+                # print (" detecte expression",compl, tmp.groups(),self.expression)
+                self.priorite = 2
         elif pattern in self.relist:
             self.priorite = 4
             self.expression, self.nature, self.groupe, = self.relist[pattern]
@@ -173,7 +177,7 @@ class FonctionTraitement(object):
             print("erreur definition fonction", nom)
             pat = ["", ""]
         self.pattern = pat[0]
-        self.patternnum = ""
+        self.patternnum = description["pn"]
         self.work = fonction
         self.store = None
         self.helper = []
@@ -303,6 +307,8 @@ def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
 def reg_stockage(store, nom_module, nom, fonction, description):
     """ enregistre les fonctions de stockage """
     pattern = description.get("#pattern")
+    description["pn"] = "0"
+
     cref = "sortie"
     if not pattern:
         print("fonction stockage incompatible", nom)
@@ -330,6 +336,7 @@ def reg_select(fonctions, nom_module, nom, fonction, description_fonction):
         description = dict(description_fonction)
         if "#pattern" in i:
             description["#pattern"] = description_fonction[i]
+            description["pn"] = i.replace("#pattern", "")
             #                        print ('enregistrement',nom[2:],desc["#pattern"])
             descr = description.get("#pattern", [""])
             pattern = descr[0]

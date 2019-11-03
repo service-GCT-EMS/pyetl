@@ -54,6 +54,24 @@ for nom in DATABASES:
             converter=GEOMDEF[tmp.geom].converter, geomwriter=GEOMDEF[tmp.geom].writer
         )
 
+def get_read_encoding(regle,nom_format):
+    defchain = [
+        "encoding",
+        "codec_" + nom_format + "_in",
+        "codec_" + nom_format,
+        "codec_entree",
+        "defcodec",
+    ]
+    return regle.getchain(defchain, "utf-8-sig")
+
+def get_read_separ(regle,nom_format):
+
+    sep_chain = [
+            "sep",
+            "separ_" + nom_format + "_in",
+            "separ_" + nom_format,
+        ]
+    return regle.getchain(sep_chain, ";")
 
 class Reader(object):
     """wrappers d'entree génériques"""
@@ -103,7 +121,7 @@ class Reader(object):
         if nom in READERS:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
             description = READERS[nom]
-            # print ('initialisation reader',description)
+            # print ('initialisation reader',nom ,description)
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
@@ -116,41 +134,39 @@ class Reader(object):
             if self.initer:
                 self.initer(self)
             self.initfilter()
-            stock_param = self.regle_ref.stock_param
-            self.schema_entree = stock_param.schemas.get(
+            self.schema_entree = self.stock_param.schemas.get(
                 self.regle_ref.getvar("schema_entree")
             )
             self.nomschema = ""
+            schemas=self.stock_param.schemas
             nom_schema_entree = self.regle_ref.getvar("schema_entree")
             if nom_schema_entree:
                 if nom_schema_entree.startswith("#"):
-                    self.schema_entree = stock_param.schemas.get(nom_schema_entree)
+                    self.schema_entree = schemas.get(nom_schema_entree)
                     nom_schema_entree = nom_schema_entree[1:]
-                elif "#" + nom_schema_entree in stock_param.schemas:
-                    self.schema_entree = stock_param.schemas["#" + nom_schema_entree]
+                elif "#" + nom_schema_entree in schemas:
+                    self.schema_entree = schemas["#" + nom_schema_entree]
                 else:
-                    cod_csv = self.regle_ref.getvar("codec_csv")
-                    self.schema_entree = stock_param.lire_schemas_multiples(
+                    cod_csv = get_read_encoding(self.regle_ref,"csv")
+                    self.schema_entree = self.stock_param.lire_schemas_multiples(
                         nom_schema_entree, nom_schema_entree, cod_csv=cod_csv
                     )
                     if self.schema_entree:
                         self.schema_entree.nom = "#" + nom_schema_entree
-                        stock_param.schemas[
+                        self.stock_param.schemas[
                             "#" + nom_schema_entree
                         ] = self.schema_entree
 
                 if self.schema_entree:  # on cree un schema stable
                     self.nomschema = nom_schema_entree
-                    self.schema = stock_param.init_schema(
+                    self.schema = self.stock_param.init_schema(
                         self.nomschema, "L"
                     )  # et un schema pour les objets
-            else:
-                nomschema = self.regle_ref.getvar("autoschema")
-                if nomschema:
-                    self.nomschema = nomschema
-                    self.schema = stock_param.init_schema(
-                        nomschema, origine="B", stable=False
-                    )
+            elif self.regle_ref.getvar("autoschema"):
+                self.nomschema = self.regle_ref.getvar("autoschema")
+                self.schema = self.stock_param.init_schema(
+                    self.nomschema, origine="B", stable=False
+                )
 
             if self.debug:
                 print(
@@ -165,7 +181,7 @@ class Reader(object):
                         "reader:pas de schema d'entree",
                         nom,
                         self.regle_ref.getvar("schema_entree"),
-                        stock_param.schemas,
+                        self.stock_param.schemas,
                     )
 
                     print(
@@ -177,9 +193,9 @@ class Reader(object):
             print("error:format: format entree inconnu", nom)
             raise KeyError
 
-    def setvirtuel(self):
-        """positionne un format d'entree virtuel"""
-        self.format_natif = "interne"
+    def __repr__(self):
+        return "Reader "+ self.nom_format + " conv: "+repr(self.converter)+ " sc: "+ repr(self.schema)
+
 
     def getobjvirtuel(
         self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None
@@ -210,30 +226,16 @@ class Reader(object):
             niveaux.append(nom)
         self.fixe={'#chemin': os.path.abspath(os.path.join(rep,chemin)), '#fichier':fichier}
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
-        # print ('prepare lecture',self.fixe)
-        if (
-            not self.nomschema and self.cree_schema
-        ):  # les objets ont un schema issu du fichier
+        # print ('prepare lecture',self.nomschema,self.cree_schema)
+        if not self.nomschema and self.cree_schema:
+            # les objets ont un schema issu du fichier (le format a un schema)
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
-            # self.schema = stock_param.init_schema(self.nomschema, "L")
         # self.aff.send(("initfich", 0, 0))
         classe, regle.ext = os.path.splitext(fichier)
-        # print ('prepare_lecture: initfich', groupe,classe)
+        # print ('prepare lecture: initfich', groupe,classe,self.nomschema,rep,os.path.basename(rep))
         # self.setidententree(groupe,classe)
-        defchain = [
-            "encoding",
-            "codec_" + self.nom_format + "_in",
-            "codec_" + self.nom_format,
-            "codec_entree",
-            "defcodec",
-        ]
-        self.encoding = regle.getchain(defchain, "utf-8-sig")
-        sep_chain = [
-            "sep",
-            "separ" + self.nom_format + "_in",
-            "separ" + self.nom_format,
-        ]
-        self.separ = regle.getchain(sep_chain, ";")
+        self.encoding = get_read_encoding(regle,self.nom_format)
+        self.separ = get_read_separ(regle,self.nom_format)
 
         # self.setidententree(groupe, classe)
         # print('apres setidenttnetree', self.schemaclasse._id)
@@ -312,7 +314,7 @@ class Reader(object):
         self.newschema = False
         self.ident = groupe2, classe2
         self.attformatters = None
-        # print ('setidententree ', groupe,classe, '->', self.ident, self.schema)
+        # print ('setidententree ', groupe,classe, '->', self.ident, self.nomschema, self.schema)
         if self.schema and self.ident in self.schema.classes:  # il existe deja
             self.schemaclasse = self.schema.get_classe(self.ident)
             self.setattformatter()
@@ -347,15 +349,20 @@ class Reader(object):
         return [(self.schemaclasse.attmap.get(i, i), v) for i, v in attributs]
 
     def initfilter(self):
+        """definit un filtre de lecture sur un champs"""
         readfilter = self.regle_ref.getvar('readfilter')
         if readfilter:
             filterdef = readfilter.split(':',3)
-            field,type,vals = filterdef
-            if type == 're':
+            field,filtertype,vals = filterdef
+            if filtertype == 're':
                 vals=re.compile(vals)
-            elif type == 'in':
+            elif filtertype == 'in':
                 vals = set(i.strip() for i in vals[1:-1].split(','))
-            self.filter = self.filters.get(type)
+            elif filtertype == '=':
+                pass
+            else:
+                raise SyntaxError("definition de filtre inconnue: "+filtertype)
+            self.filter = self.filters.get(filtertype)
             self.filterfield = field
             self.filtervalue = vals
             # print ('filtrage entree active', readfilter,self, self.filter)

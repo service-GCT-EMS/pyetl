@@ -191,6 +191,7 @@ def f_dbalpha(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
      #groupe||database
     #pattern||?A;?;?;dbalpha;?;?
+    #req_test||testdb
 
     """
     if not regle.getvar('traitement_virtuel'):
@@ -258,6 +259,8 @@ def f_dblast(regle, obj):
     #groupe||database
     #pattern||;;;dblast;C
     #pattern2||A;;;dblast
+    #req_test||testdb
+
     """
     pass
 
@@ -286,34 +289,10 @@ def f_dbgeo(regle, obj):
     #aide_spec||db:base;niveau;classe;fonction;att_sortie;valeur;champs a recuperer;dbgeo;buffer
      #groupe||database
     #pattern||?A;?;?L;dbgeo;?C;?N
-
+    #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
     base, niveau, classe, fonction, valeur, chemin, type_base = setdb(regle, obj, att=False)
-    #    base, niveau, classe, fonction = regle.cible_base
-    #    type_base = None
-    #    chemin = ''
-    #    if obj.attributs["#groupe"] == '__filedb': # acces a une base fichier
-    #        chemin = obj.attributs["#chemin"]
-    #        if not base:
-    #            base = obj.attributs["#base"]
-    #        type_base = obj.attributs["#type_base"]
-    #        regle.setvar("db", type_base, loc=1)
-    #        regle.setvar("server", chemin, loc=1)
-    #    if niveau and niveau[0] == '[': # nom de classe contenu dans un attribut
-    #        niveau = obj.attributs.get(niveau[1:-1], 'xx')
-    #    if classe and classe[0] == '[': # nom de classe contenu dans un attribut
-    #        classe = obj.attributs.get(classe[1:-1], 'xx')
-    #    if regle.params.att_entree.liste:
-    #        if regle.params.val_entree.liste and regle.params.att_entree.liste:
-    #            valeur = [obj.attributs.get(a, d) for a, d
-    #                      in zip(regle.params.att_entree.liste,
-    #                             regle.params.val_entree.liste)]
-    #        else:
-    #            valeur = [obj.attributs.get(a, '') for a in regle.params.att_entree.liste]
-    #    else:
-    #        valeur = regle.params.val_entree.liste
-    #    print('preparation attribut', valeur, regle.params.att_entree)
     if not fonction:
         print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
         return False
@@ -339,6 +318,7 @@ def f_dbclose(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
      #groupe||database
     #pattern||;;;dbclose;;
+    #req_test||testfiledb
     """
     base, _, _, _ = regle.cible_base
     if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
@@ -360,6 +340,8 @@ def f_dbrunsql(regle, obj):
   #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
      #groupe||database
     #pattern||;?C;?A;runsql;?C;?C
+    #req_test||testdb
+
     """
     base, _, _, _ = regle.cible_base
     script = regle.getval_entree(obj)
@@ -398,6 +380,7 @@ def f_dbrunproc(regle,obj):
   #aide_spec||parametres:base;;;;?arguments;?variable contenant les arguments;runsql;?log;?sortie
      #groupe||database
     #pattern||;?LC;?L;runproc;C;
+    #req_test||testdb
     """
     base, _, _, _ = regle.cible_base
     params = regle.getval_entree(obj)
@@ -415,6 +398,7 @@ def f_dbextload(regle, obj):
   #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;dbextload;log;
      #groupe||database
     #pattern||;?C;?A;dbextload;C;;
+    #req_test||testdb
     """
     base, _, _, _ = regle.cible_base
     datas = regle.getval_entree(obj)
@@ -441,6 +425,7 @@ def f_dbextdump(regle, obj):
   #aide_spec||parametres:base;;;;;;dbextdump;dest;?log
      #groupe||database
     #pattern||;;;dbextdump;?C;?C
+    #req_test||testdb
     """
     base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
     dest = regle.params.cmp1.val
@@ -461,6 +446,8 @@ def f_dbwrite(regle, obj):
     """#aide||chargement en base de donnees
      #groupe||database
     #pattern||;;;dbwrite;;
+   #req_test||testdb
+
     """
     base, niveau, classe, _ = regle.cible_base
     DB.dbload(regle, base, niveau, classe, obj)
@@ -470,6 +457,7 @@ def f_dbupdate(regle, obj):
     """#aide||chargement en base de donnees
      #groupe||database
     #pattern||;;;dbupdate;;
+   #req_test||testdb
     """
     base, niveau, classe, attribut = regle.cible_base
     DB.dbupdate(regle, base, niveau, classe, attribut, obj)
@@ -495,7 +483,8 @@ def f_dbmaxval(regle, obj):
     """#aide||valeur maxi d une clef en base de donnees
      #groupe||database
     #pattern||?P;;;dbmaxval;?C;
-       #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
+    #req_test||testdb
+    #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
             ||ptv;toto;71
     """
     pass
@@ -512,6 +501,7 @@ def f_dbcount(regle, obj):
     """#aide||nombre d'objets dans un groupe de tables
      #groupe||database
     #pattern||S;;;dbcount;?C;
+   #req_test||testdb
        #test||obj||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;toto;;;dbcount;
             ||atv;toto;64
     """
@@ -575,6 +565,7 @@ def f_recup_schema(regle, obj):
    #pattern2||=schema_sortie;C?;;dbschema;?;||sortie
    #pattern3||=#schema;C?;A?;dbschema;?;||sortie
    #pattern4||;C?;A?;dbschema;?;
+   #req_test||testdb
     """
     chemin = ""
     # print ('recup_schema---------------', obj)
@@ -650,5 +641,9 @@ def h_dbclean(regle):
 def f_dbclean(regle, obj):
     """#aide||vide un ensemble de tables
      #groupe||database
-   #pattern1||;;;dbclean;?C;?C"""
+   #pattern1||;;;dbclean;?C;?C
+      #req_test||testdb
+
+   """
+
     pass

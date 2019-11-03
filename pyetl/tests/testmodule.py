@@ -169,6 +169,14 @@ def controle(mapper, idtest, descript_test, debug=0):
 
 
 #    print ("controle ",liste_regles)
+def untestable(mapper,fonc):
+    if "#req_test" in fonc.description:
+        conditions = fonc.description["#req_test"][0].split(",")
+        for i in conditions:
+            if not mapper.get_param(i):
+                # print ("non defini",i, conditions)
+                return i
+    return ""
 
 
 def fonctest(mapper, nom=None, debug=0):
@@ -182,21 +190,25 @@ def fonctest(mapper, nom=None, debug=0):
             continue
         for subfonc in fonc.subfonctions:
             testee = False
-            for j in subfonc.description:
-                if "#test" in j:
-                    desctest = subfonc.description[j]
-                    testee = True
-                    idtest = (fonc.nom, subfonc.nom, j)
-                    errs = controle(mapper, idtest, desctest, debug=debug)
-                    if errs:
-                        nberrs += errs
-                        invalides.add(idtest)
-                    nbtests += 2
+            raison = untestable(mapper,subfonc)
+            if not raison:
+                for j in subfonc.description:
+                    if "#test" in j:
+                        desctest = subfonc.description[j]
+                        testee = True
+                        idtest = (fonc.nom, subfonc.nom, j)
+                        errs = controle(mapper, idtest, desctest, debug=debug)
+                        if errs:
+                            nberrs += errs
+                            invalides.add(idtest)
+                        nbtests += 2
             if not testee:
                 if subfonc.nom != fonc.nom:
                     print("fonction non testee", fonc.nom, subfonc.nom)
                 else:
                     print("fonction non testee", fonc.nom)
+                if raison:
+                    print(raison + " non definie")
     return nbtests, nberrs, invalides
 
 
@@ -226,7 +238,7 @@ def seltest(mapper, nom=None, debug=0):
     return nbtests, nberrs, invalides
 
 
-def set_test_path(mapper):
+def set_test_config(mapper):
     """enregistre la localisation des fichier de test"""
     rep = os.path.join(os.path.dirname(__file__), "fichiers/testscripts")
     print("------------------------------------repertoire de tests", rep)
@@ -234,8 +246,17 @@ def set_test_path(mapper):
     mapper.charge_cmd_internes(test="unittest")  # on charge les ressources
     try:
         mapper.load_paramgroup("testconfig")  # on charge les configs de test
+        print("-----------------------------------chargement params de test")
+        testdb = mapper.get_param("testbd")
+        testrep = mapper.get_param("testrep")
+        testconfig = True
     except KeyError:
         print("config de test non definie certains tests ne seront pas effectues")
+        testconfig = False
+        testdb = False
+        testrep = False
+    return testconfig,testdb,testrep
+
 
 
 def formattests(mapper, nom=None, debug=0):
@@ -244,7 +265,7 @@ def formattests(mapper, nom=None, debug=0):
         print("---------------------test format " + nom + " -----------------------")
     else:
         print("---------------------test formats-----------------------")
-    set_test_path(mapper)
+    set_test_config(mapper)
     return []
 
 
@@ -254,7 +275,7 @@ def unittests(mapper, nom=None, debug=0):
         print("---------------------test unitaire " + nom + " -----------------------")
     else:
         print("---------------------test unitaires commandes-----------------------")
-    set_test_path(mapper)
+    set_test_config(mapper)
     nbtests, erreurs = retest(mapper)
     print("------", nbtests, "tests regex effectues", erreurs, "erreurs -----")
 
@@ -282,7 +303,7 @@ def autotest_partiel(mapper, nom):
     print("part:-------------------test ", nom, "-------------------")
     #       charge_cmd_internes(mapper,test=liste_commandes[1])
     liste_regles = []
-    set_test_path(mapper)
+    testconfig,testdb=set_test_config(mapper)
     mapper.charge_cmd_internes(test="test_" + nom)
     test = mapper.macros.get("#start_test")
     if test:

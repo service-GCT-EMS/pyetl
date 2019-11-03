@@ -666,7 +666,13 @@ def sel_is_type_geom(selecteur, obj):
     #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.geom_v.type == selecteur.params.vals.val
 
-def sel_day_scheduler(selecteur, obj):
+
+def selh_is_date(selecteur):
+    """prepare les selecteurs"""
+    selecteur.vref = "O" if selecteur.pattern in "23" else "T"
+
+
+def sel_is_date(selecteur, obj):
     """#aide||vrai si la date est compatible avec la description ( sert dans les declecnheurs de batch)
   #aide_spec||format de date: (liste de jours)/intervalle
             ||ex:  rien : tous les jour
@@ -676,10 +682,25 @@ def sel_day_scheduler(selecteur, obj):
             ||     7/2S :  dimanche toutes les 2 semaines
             ||     7/M  :  premier dimanche du mois
             ||    07/M  :  jour 7 du mois
-    #pattern||=is:valid_day;A||1
-    #!test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
+    #pattern||=is:valid_date;A||1
+    #pattern||=is:valid_date;C||1
+    #pattern1||=is:valid_date;[A]||1
+    #pattern2||(is:valid_date:)A;C||1
+    #pattern3||(is:valid_date:)A;[A]||1
+    #test||obj;point;1||^X;2005-11-10;;set||^?X;2005-11-11;;set||^Y;2;;set;
+         ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
     """
-    dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    if selecteur.pattern=="1" or selecteur.pattern=="3":
+        dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    else:
+        dateref = selecteur.params.vals.val
+    if selecteur.vref=="O": # temps pris dans l objet
+        datedesc = obj.attributs.get(selecteur.params.attr.val)
+        date = time.strptime(datedesc,"%Y-%m-%d")
+    else:
+        date = time.localtime()
+    # print ("comparaison temps", date, dateref,selecteur.pattern)
+
     if dateref == 'X':
         return False
     if dateref == '':
@@ -688,7 +709,6 @@ def sel_day_scheduler(selecteur, obj):
     if len(tmp)!=2:
         return False
     jours,intervalle=tmp
-    date = time.localtime()
     if ',' in jours:
         lj = jours.split(',')
     elif '-' in jours:
@@ -700,6 +720,7 @@ def sel_day_scheduler(selecteur, obj):
     if 'J' in intervalle:
         intdef = int(intervalle.replace('J',''))
         vdef = int(jours) if jours else 0
+
         return date.tm_yday%intdef==vdef
     if intervalle == 'S': # toutes les semaines
         return str(date.tm_wday+1) in lj
@@ -724,7 +745,18 @@ def sel_day_scheduler(selecteur, obj):
             return True
         return False
 
-def sel_hour_scheduler(selecteur, obj):
+
+
+
+def selh_is_time(selecteur):
+    """prepare les selecteurs"""
+    selecteur.vref = "O" if selecteur.pattern in "23" else "T"
+    if not selecteur.pattern or selecteur.pattern=="2":
+        pass
+
+
+
+def sel_is_time(selecteur, obj):
     """#aide||vrai si l'heure est compatible avec la description ( sert dans les declecnheurs de batch)
   #aide_spec||format de temps: (liste de jours)/intervalle
             ||ex:  rien : tout le temps
@@ -734,11 +766,28 @@ def sel_hour_scheduler(selecteur, obj):
             ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
     #pattern||=is:valid_time;C||1
     #pattern1||=is:valid_time;[A]||1
-    #pattern2||(is:valid_time:)A;A||1
-    #test||obj;point;1||^X;12:32:10;;set||^Y;2;;set;||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
-    #test2||obj;point;1||^X;12:31:10;;set||^Y;2;;set;||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;2
+    #pattern2||(is:valid_time:)A;C||1
+    #pattern3||(is:valid_time:)A;[A]||1
+    #test||obj;point;1||^X;12:32:10;;set||^?X;12:31:10;;set||^Y;2;;set;
+         ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
     """
-    timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    # print ("================================patern ref",selecteur.pattern)
+    if selecteur.pattern=="1" or selecteur.pattern=="3":
+        timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    else:
+        timeref = selecteur.params.vals.val
+    if selecteur.vref=="O": # temps pris dans l objet
+        temps = obj.attributs.get(selecteur.params.attr.val)
+        heures,minutes,*_ = temps.split(":")
+        heures = int(heures)
+        minutes = int(minutes)
+    else:
+        temps = time.localtime()
+        heures= temps.tm_hour
+        minutes= temps.tm_min
+
+    # print ("comparaison temps", heures,minutes,timeref,selecteur.params.vals.val,selecteur.pattern)
+
     if timeref == 'X':
         return False
     if timeref == '':
@@ -751,9 +800,7 @@ def sel_hour_scheduler(selecteur, obj):
         debut, fin = intervalle.split('[')[1][:-1].split('-')
     else:
          debut,fin =(-1,25)
-    temps = time.localtime()
-    heures= temps.tm_hour
-    minutes= temps.tm_min
+
     if debut > heures or fin < heures:
         return False
     if 'm' in intervalle:

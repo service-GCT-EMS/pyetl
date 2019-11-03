@@ -804,7 +804,7 @@ class Pyetl(object):
                 ("tmpdir", "./tmp"),
                 ("F_entree", ""),
                 ("racine", "."),
-                ("job_control", ""),
+                ("job_control", "no"),
                 ("aujourdhui", time.strftime("%Y/%m/%d 00:00:00")),
                 ("annee", time.strftime("%Y")),
                 ("mois", time.strftime("%m")),
@@ -1200,11 +1200,11 @@ class Pyetl(object):
 
     def signale_fin(self):
         """ecrit un fichier pour signaler la fin du traitement"""
-        if self.worker or self.parent:
+        if self.worker or self.parent or self.get_param("job_control","no") == "no":
             return
-        if self.get_param("job_control") and self.get_param("job_control") != "no":
-            print("info: pyetl:job_control", self.get_param("job_control"))
-            open(self.get_param("job_control"), "w").write("fin mapper\n")
+        print("info: pyetl:job_control", self.get_param("job_control"))
+        open(self.get_param("job_control"), "w").write("fin mapper\n")
+
 
     def lecture(self, fich, regle=None, reglenum=None, parms: [str]=None):
         """ lecture d'un fichier d'entree"""
@@ -1230,7 +1230,7 @@ class Pyetl(object):
         if ext not in regle.lecteurs:
             regle.lecteurs[ext] = Reader(ext, regle, reglestart)
         lecteur = regle.lecteurs[ext]
-        # print ('initialisation reader', ext, lecteur.schema)
+        # print ('initialisation reader', ext, lecteur, lecteur.schema)
         #        print ('lecteur',lecteur.lire_objets, lecteur)
         #        print ('lecture fichier ',fichier, regle, reglestart)
         #        if self.worker:
