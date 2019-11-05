@@ -815,7 +815,7 @@ def analyse_interne(schema, mode="util", type_schema=None):
         else:
             return False
     elif mode == "util":
-        print("analyse util", schema.nom)
+        # print("analyse util", schema.nom)
         #        if not schema.rep_sortie:
         #            return False
         for schema_classe in schema.classes.values():

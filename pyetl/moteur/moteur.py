@@ -415,7 +415,9 @@ class Context(object):
         """fournit une liste de variables respectant un prefixe"""
 
         retour = self.parent.getgroup(prefix) if self.parent else dict()
-        return retour.update(((i, j) for i, j in self.vlocales.items() if i.startswith(prefix)))
+        # print ('getgroup',self, retour)
+        retour.update(((i, j) for i, j in self.vlocales.items() if i.startswith(prefix)))
+        return retour
 
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""

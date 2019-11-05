@@ -193,7 +193,8 @@ class DbConnect(object):
         self.user = user
         self.passwd = passwd
         self.code = code
-        self.params = params
+        self.regle = params
+        self.params = params.stock_param if params else None
         self.type_base = "generique"
         self.debug = debug
         self.system = system

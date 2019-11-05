@@ -39,7 +39,7 @@ from .moteur.interpreteur_csv import (
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, Macro, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS
-from .moteur.fonctions.outils import scan_entree
+from .moteur.fonctions.outils import scan_entree_2
 from .schema.schema_interne import init_schema  # schemas
 from .schema.schema_io import ecrire_schemas, lire_schemas_multiples  # integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
@@ -201,7 +201,7 @@ class Pyetl(object):
 
         self.loginited = self.parent.loginited if self.parent else False
         self.ended = False
-        self.worker = False  # process esclave
+        self.worker = parent.worker if parent else False  # process esclave
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser("~")
@@ -226,7 +226,7 @@ class Pyetl(object):
         self.schemas = dict()  # schemas des classes
         self.regles = list()  # regles de mapping
         self.regle_sortir = None
-        self.racine = None
+        self.racine = ''
         self.fichier_regles = None
 
         # etats
@@ -362,7 +362,8 @@ class Pyetl(object):
             from pyetl.tests.testmodule import full_autotest
 
             liste_regles = full_autotest(self, pars[0] if pars else nom)
-            self.set_param("_testmode", "unittest")
+            self.set_param("_sortie", "")
+            self.set_param("_testmode", "autotest")
             if not liste_regles:
                 self.done = True
             else:
@@ -375,6 +376,7 @@ class Pyetl(object):
 
             self.set_param("_sortie", "")
             self.set_param("_testmode", "unittest")
+            print ('positionnement testmode',self.context)
             unittests(self, nom=nom, debug=self.get_param("debug"))
             self.done = True
 
@@ -830,7 +832,7 @@ class Pyetl(object):
 
     def getstats(self):
         """retourne un dictionnaire avec les valeurs des stats"""
-        print ('--------getstats', self.context,self.context.getgroup("_st_"))
+        # print ('--------getstats', self.context,self.context.getgroup("_st_"))
         return self.context.getgroup("_st_")
 
     def getcontext(self, context, ident="",ref=False):
@@ -989,29 +991,37 @@ class Pyetl(object):
                 "mapper: debut traitement donnees:>" + entree + "-->",
                 self.regle_sortir.params.cmp1.val,
             )
+            # try:
+            #     fichs, parametres = scan_entree(
+            #         rep=entree,
+            #         force_format=self.get_param("F_entree"),
+            #         fileselect=self.get_param("fileselect"),
+            #         dirselect=self.get_param("dirselect"),
+            #         filtre_entree=self.get_param("filtre_entree"),
+            #     )
+
+            # except NotADirectoryError as err:
+            #     print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+            #     print("type entree ", type(entree))
+            #     fichs = None
+            # if fichs:
             try:
-                fichs, parametres = scan_entree(
+                self.aff.send(("init", 0, 0))
+                # for i in fichs:
+                for fich , parms in scan_entree_2(
                     rep=entree,
                     force_format=self.get_param("F_entree"),
                     fileselect=self.get_param("fileselect"),
                     dirselect=self.get_param("dirselect"),
                     filtre_entree=self.get_param("filtre_entree"),
-                )
-
-            except NotADirectoryError as err:
-                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
-                print("type entree ", type(entree))
-                fichs = None
-            if fichs:
-
-                self.aff.send(("init", 0, 0))
-                for i in fichs:
+                ):
                     # print ('mapper:traitement fichier',i)
                     # traitement.racine_fich = os.path.dirname(i)
                     if self.worker:
                         self.aff.send(("init", 0, 0))
                     try:
-                        nb_lu = self.lecture(i, parms=parametres[i])
+                        # nb_lu = self.lecture(i, parms=parametres[i])
+                        nb_lu = self.lecture(fich, parms=parms)
                     except StopIteration as arret:
                         #            print("intercepte abort",abort.args[0])
                         if arret.args[0] == "2":
@@ -1022,9 +1032,11 @@ class Pyetl(object):
                     # self.aff.send(('fich', 1, nb_lu))
                 # self.aff.send(("end", 0, 0))
             #                self.aff.close()
-
-            else:
-                print("pas de fichiers en entree")
+            except NotADirectoryError as err:
+                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+                print("type entree ", type(entree))
+            # else:
+            #     print("pas de fichiers en entree")
             print("mapper: ---------> fin traitement donnees:", int(duree))
             print("mapper: ---------> finalisation:")
         else:
@@ -1124,6 +1136,7 @@ class Pyetl(object):
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
         rep_sortie = self.get_param("sortie_schema", self.get_param("_sortie"))
+        # print("sortie schema:contexte",self.context, self.worker,self.get_param("_testmode"), self.get_param('test_courant'))
         if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
             if not self.get_param("_testmode"):  # en mode test on rale pas
                 print("schema:pas de repertoire de sortie")
@@ -1218,7 +1231,7 @@ class Pyetl(object):
             racine = os.path.dirname(rep)
         self.fichier_courant = fich
         self.chemin_courant = chemin
-        self.racine = racine
+        self.racine = str(racine)
         #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
         regle = self.regles[reglenum] if regle is None and reglenum is not None else regle

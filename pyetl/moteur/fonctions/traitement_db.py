@@ -211,7 +211,7 @@ def f_dbalpha(regle, obj):
 
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
     if base:
-        connect = DB.dbaccess(regle.stock_param, base, type_base=type_base, chemin=chemin)
+        connect = DB.dbaccess(regle, base, type_base=type_base, chemin=chemin)
         if connect is None:
             return False
         if connect.accept_sql == "non":  # pas de requetes directes on essaye le mode dump
@@ -366,7 +366,7 @@ def f_dbrunsql(regle, obj):
             nom = nom + ".sql"
         # print("traitement sql ", nom)
         DB.dbextsql(
-            regle.stock_param, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
+            regle, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
         )
 
 def h_dbrunproc(regle):
@@ -385,7 +385,7 @@ def f_dbrunproc(regle,obj):
     base, _, _, _ = regle.cible_base
     params = regle.getval_entree(obj)
     print ('runproc',regle.procedure, params)
-    DB.dbrunproc(regle.stock_param, base, regle.procedure, params)
+    DB.dbrunproc(regle, base, regle.procedure, params)
 
 def h_dbextload(regle):
     """execution de commandes de chargement externe"""
@@ -467,7 +467,7 @@ def h_dbmaxval(regle):
     """ stocke la valeur maxi """
     param_base(regle)
     base, niveau, classe, attribut = regle.cible_base
-    retour = DB.recup_maxval(regle.stock_param, base, niveau, classe, attribut)
+    retour = DB.recup_maxval(regle, base, niveau, classe, attribut)
     if retour and len(retour) == 1 and regle.params.att_sortie.val:
         # cas simple on stocke l' attribut dans le parametre
         valeur = list(retour.values())[0]

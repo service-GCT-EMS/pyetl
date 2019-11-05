@@ -57,6 +57,7 @@ CONSTANTES = {
         6378137,
         700000,
     ),
+    "LL":(0,0,0,0,0,0,0)
 }
 
 GRILLE_IGN = "gr3df97a.csv"
@@ -69,16 +70,16 @@ class Projection(object):
 
         self.sens = sens
         # self.grilles.ecrire_liste(repertoire+"_C",liste) # on ecrit les grilles coherentes
-        self.proj1 = CONSTANTES.get(proj1)  # constantes de projection
-        self.proj2 = CONSTANTES.get(proj2)
+        try:
+            self.proj1 = CONSTANTES[proj1]  # constantes de projection
+            self.proj2 = CONSTANTES[proj2]
+        except KeyError:
+            print ('projection non géreé')
+            self.valide = 0
+            raise
+        _, _, _, _, self.ex1, self.ga1, _ = self.proj1
+        _, _, _, _, self.ex2, self.ga2, _ = self.proj2
 
-        if self.proj1:
-            _, _, _, _, self.ex1, self.ga1, _ = self.proj1
-        if self.proj2:
-            _, _, _, _, self.ex2, self.ga2, _ = self.proj2
-
-        #        self.cl = -99
-        #        self.cf = -99
         self.recalcul = 0
         self.oxign = 55  # decalage d'origine pour commencer en 0,0
         self.oyign = -410
@@ -86,7 +87,6 @@ class Projection(object):
         self.x_cour = 0
         self.y_cour = 0
         self.grille_courante = "Nogrille"
-        self.to_proj = None
         if sens:
             self.grilles = G.ListeGrilles(repertoire, liste, sens)
             inc = self.grilles.controle_coherence(1)
@@ -104,13 +104,9 @@ class Projection(object):
                 ] = (float(vals[2]), float(vals[3]), float(vals[4]))
             self.optimise_grilleign()
 
-        self.from_proj = None
-        self.to_proj = None
-
-        if self.proj1:
-            self.from_proj = self.en_geo
-        if proj1 == "L1" and sens == 1:
-            self.from_proj = self.from_lamb_cus
+        self.from_proj = self.from_lamb_cus if proj1 == "L1" and sens == 1 else self.en_geo
+        if proj1=="LL":
+            self.from_proj = self.torad
 
         self.grille_ign = None
         if proj1 in ("L1", "L2") and proj2 in ("CC48", "CC49"):
@@ -121,10 +117,9 @@ class Projection(object):
         else:
             self.grille_ign = None
 
-        if self.proj2:
-            self.to_proj = self.geo_EN
-        if proj2 == "L1" and sens == 2:
-            self.to_proj = self.to_lamb_cus
+        self.to_proj = self.to_lamb_cus if proj2 == "L1" and sens == 2 else self.geo_EN
+        if proj2=="LL":
+            self.to_proj = self.todeg
 
         self.description = (
             proj1
@@ -142,13 +137,19 @@ class Projection(object):
 
         self.valide = 1
 
+    def torad(self, x_cour,y_cour, tol):
+        return x_cour * PI / 180, y_cour * PI / 180
+
+    def todeg(self, lam,phi):
+        return (lam * 180 / PI, phi * 180 / PI)
+
+
     def calcule_point_proj(self, x_cour, y_cour, tol=TOLDEF):
         """ calcul de reprojection d'un point """
-        lam, phi = (
-            self.from_proj(x_cour, y_cour, tol)
-            if self.from_proj
-            else (x_cour * PI / 180, y_cour * PI / 180)
-        )
+        lam, phi = self.from_proj(x_cour, y_cour, tol)
+            # if self.from_proj
+            # else (x_cour * PI / 180, y_cour * PI / 180)
+
         #        print ('coord initiales', x, y, self.grille_courante, self.sens)
         #        print ('coord geo      ', lam, phi)
         if self.grille_ign:
@@ -160,9 +161,7 @@ class Projection(object):
             lam1, phi1 = lam, phi
 
         #        print ('apr grille ign ',lam1,phi1)
-        (x_proj, y_proj) = (
-            self.to_proj(lam1, phi1) if self.to_proj else (lam1 * 180 / PI, phi1 * 180 / PI)
-        )
+        (x_proj, y_proj) = self.to_proj(lam1, phi1)
         #        print ('coord finales  ',X, Y , self.grille_courante, self.sens)
         #        raise
         return self.grille_courante, x_proj, y_proj
@@ -170,7 +169,8 @@ class Projection(object):
     def calcule_point_grille_cus(self, xinit, yinit):
         """Transformation de coordonnées en utilisant une grille locale"""
         if self.sens == 0:
-            return xinit, yinit, "nogrille"
+            self.grille_courante = "nogrille"
+            return xinit, yinit
         ecart_x, ecart_y, nom = self.grilles.recup_corrections(xinit, yinit)
         self.grille_courante = nom
         if self.sens == 1:

@@ -50,7 +50,6 @@ class OraConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        #        self.connection, errdef = dbaccess(self.serveur, self.base, self.user, self.passwd)
         self.connect()
         #        self.errdef = errdef
         self.types_base.update(TYPES_A)

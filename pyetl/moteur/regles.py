@@ -283,7 +283,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def getregle(self, ligne, fichier, numero):
         """retourne une regle pour des operations particulieres"""
-        return RegleTraitement(ligne, self.stock_param, self.fichier, numero, context=self.context)
+        return RegleTraitement(ligne, self.stock_param, fichier, numero, context=self.context)
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""

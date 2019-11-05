@@ -129,14 +129,19 @@ class SglGenSql(PgsGenSql):
             + "');\n"
         )
 
-    @staticmethod
-    def _commande_monitoring(niveau, classe, schema, mode):
+    def _commande_monitoring(self, niveau, classe, schema, mode):
         """ insere une ligne dans une table de stats"""
-        return ('INSERT INTO '+TABLE_MONITORING+ " (nomschema, nomtable, nbvals, mode, nom_script, date_export)"+
-                "VALUES('%s','%s','%s','%s','%s',%s)"%
+        if self.connection:
+            table_monitoring=self.connection.params.getvar('table_monitoring',TABLE_MONITORING)
+        else:
+            table_monitoring=TABLE_MONITORING
+        objcnt = "(SELECT COUNT(*) %s.%s)" %(niveau.lower(),classe.lower())
+        # str(schema.getinfo('objcnt')) if schema else '0',
+        return ('INSERT INTO '+table_monitoring+ " (nomschema, nomtable, nbvals, mode, nom_script, date_export)"+
+                " VALUES('%s','%s',%s,'%s','%s','%s');\n"%
             ( niveau.lower(),
             classe.lower(),
-            str(schema.getinfo('objcnt')) if schema else '0',
+            objcnt,
             mode,
             schema.getinfo('script_ref') if schema else '',
             strftime('%Y-%m-%d %H:%M:%S'),

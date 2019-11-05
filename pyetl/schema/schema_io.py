@@ -370,7 +370,10 @@ def retour_schemas(schemas, mode="util"):
 
 def integre_schemas(schemas, nouveaux):
     """ recree les schemas apres transmission"""
+    if not nouveaux:
+        return
     nomschemas = set()
+    # print ('integration schemas',nouveaux)
     for nom, description in nouveaux.items():
         nomschemas.add(nom)
         tmp = SCI.init_schema(None, nom)

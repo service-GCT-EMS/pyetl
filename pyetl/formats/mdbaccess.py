@@ -418,27 +418,26 @@ def get_schemabase(connect, mode_force_enums=1):
     )
 
 
-def dbaccess(stock_param, nombase, type_base=None, chemin=""):
+def dbaccess(regle, nombase, type_base=None, chemin=""):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = nombase
     base = nombase
     serveur = ""
-
+    stock_param = regle.stock_param
     #    print('bases connues', stock_param.dbconnect.keys())
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
     defmodeconf = 1
     systables = stock_param.get_param("tables_systeme")
     if not type_base:  # on pioche dans les variables
-        base = stock_param.get_param("base_" + codebase, "")
-        serveur = stock_param.get_param("server_" + codebase, "")
-        type_base = stock_param.get_param("db_" + codebase, "")
+        base = regle.getvar("base_" + codebase, "")
+        serveur = regle.getvar("server_" + codebase, "")
+        type_base = regle.getvar("db_" + codebase, "")
         if not base:
             print(
                 "dbaccess: base non definie",
                 nombase,
                 codebase,
-                sorted(stock_param.context.vlocales),
             )
             return None
 
@@ -457,13 +456,13 @@ def dbaccess(stock_param, nombase, type_base=None, chemin=""):
         base = nombase
         print("filedb", type_base, "-->", nombase)
 
-    defmodeconf = stock_param.get_param("mode_enums_" + codebase, 1)
-    user = stock_param.get_param("user_" + codebase, "")
-    passwd = stock_param.get_param("passwd_" + codebase, "")
+    defmodeconf = regle.getvar("mode_enums_" + codebase, 1)
+    user = regle.getvar("user_" + codebase, "")
+    passwd = regle.getvar("passwd_" + codebase, "")
 
     dbdef = DATABASES[type_base]
     connection = dbdef.acces(
-        serveur, base, user, passwd, system=systables, params=stock_param, code=codebase
+        serveur, base, user, passwd, system=systables, params=regle, code=codebase
     )
 
     if connection.valide:
@@ -530,7 +529,7 @@ def dbextload(regle_courante, base, files, log=None):
     """charge un fichier a travers un loader"""
     print("extload chargement ", base, files)
     stock_param = regle_courante.stock_param
-    connect = dbaccess(stock_param, base)
+    connect = dbaccess(regle_courante, base)
     if connect is None:
         return False
     connect = stock_param.dbconnect[base]
@@ -612,36 +611,36 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 
     return False
 
-def dbrunproc(stock_param, base, commande,data):
+def dbrunproc(regle, base, commande,data):
     '''execute une procedure stockeee en base '''
     # print("mdba execution directe commande", base, file)
-    connect = dbaccess(stock_param, base)
+    connect = dbaccess(regle, base)
     if connect is None:
         return False
-    connect = stock_param.dbconnect[base]
+    # connect = regle.stock_param.dbconnect[base]
     return connect.request(commande,data)
 
 
 
-def dbextsql(stock_param, base, file, log=None, out=None):
+def dbextsql(regle, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
     # print("mdba execution sql via un programme externe", base, file)
-    connect = dbaccess(stock_param, base)
+    connect = dbaccess(regle, base)
     if connect is None:
         return False
-    connect = stock_param.dbconnect[base]
+    connect = regle.stock_param.dbconnect[base]
     helpername = connect.sql_helper
-    helper = get_helper(base, [file], ".sql", helpername, stock_param)
+    helper = get_helper(base, [file], ".sql", helpername, regle.stock_param)
     if helper:
-        logfile = setpath(stock_param, log)
-        outfile = setpath(stock_param, out)
+        logfile = setpath(regle.stock_param, log)
+        outfile = setpath(regle.stock_param, out)
         # print("extsql: demarrage", helpername, helper, "user:", connect.user)
         return connect.extsql(helper, file, logfile, outfile)
     return False
 
 
 def get_connect(
-    stock_param,
+    regle,
     base,
     niveau,
     classe,
@@ -653,7 +652,8 @@ def get_connect(
     chemin="",
 ):
     """ recupere la connection a la base et les schemas qui vont bien"""
-    connect = dbaccess(stock_param, base, type_base=type_base, chemin=chemin)
+    stock_param=regle.stock_param
+    connect = dbaccess(regle, base, type_base=type_base, chemin=chemin)
 
     if connect is None:
         LOGGER.error("connection base invalide " + str(base))
@@ -848,7 +848,7 @@ def recup_schema(
         tables = "A"
     #    print ('mdba:recup_schema',nom_schema)
     retour = get_connect(
-        stock_param,
+        regle_courante,
         base,
         niveau,
         classe,
@@ -959,7 +959,7 @@ def lire_requete(ident, regle_courante, parms=None, requete=''):
     base, type_base, chemin, maxobj,sortie,v_sortie = (
         parms
     )
-    connect = get_connect(regle_courante.stock_param, base,'','',type_base=type_base,chemin=chemin)
+    connect = get_connect(regle_courante, base,'','',type_base=type_base,chemin=chemin)
     curs = connect.request(requete, maxobj)
 
     #            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
@@ -1178,7 +1178,7 @@ def recup_count(
 
 
 def recup_table_parametres(
-    stock_param,
+    regle,
     nombase,
     niveau,
     classe,
@@ -1200,7 +1200,7 @@ def recup_table_parametres(
         + type_base
     )
     retour = get_connect(
-        stock_param,
+        regle,
         nombase,
         [niveau],
         [classe],
@@ -1222,11 +1222,11 @@ def recup_table_parametres(
     return resultat
 
 
-def recup_maxval(stock_param, nombase, niveau, classe, clef, type_base=None):
+def recup_maxval(regle, nombase, niveau, classe, clef, type_base=None):
     """ recupere la valeur maxi d'un champ en base """
     #    print('recup_table', nombase, niveau, classe, type_base)
     retour = get_connect(
-        stock_param, nombase, niveau, classe, "A", False, type_base=type_base
+        regle, nombase, niveau, classe, "A", False, type_base=type_base
     )
     if retour:
         connect, schema_travail, _ = retour
@@ -1349,7 +1349,7 @@ class DbWriter(object):
         self.encoding = encoding
         self.schema_base = None
         retour = get_connect(
-            stock_param,
+            regle,
             nom,
             None,
             None,

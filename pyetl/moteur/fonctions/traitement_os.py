@@ -92,6 +92,7 @@ def f_filecopy(regle, obj):
     #pattern||;;;os_copy;C;C
     #pattern2||A;;A;os_copy;?C;?C
     #helper||filerename
+    #req_test||testdir
     """
     try:
         shutil.copy2(os.path.join(regle.chemin_orig,regle.params.att_entree.val),

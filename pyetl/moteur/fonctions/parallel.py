@@ -53,6 +53,7 @@ def initparallel(parametres):
     mainmapper.loginited = True
     mainmapper.macros.update(macros)
     mainmapper.context.update(params)
+    # print ('initparallel: recuperation parametres', params, env, loginfo, schemas)
     integre_schemas(mainmapper.schemas, schemas)
     mainmapper.parametres_lancement = parametres
     time.sleep(1)
@@ -328,12 +329,12 @@ def traite_parallel(regle):
     schemas, env, def_regles = prepare_env_parallel(regle)
     print("passage en mode parallel",num_regle, regle)
     if mapper.worker:
-        print("un worker ne peurt pas passer en parallele", mapper.get_param("_wid"))
+        print("un worker ne peut pas passer en parallele", mapper.get_param("_wid"))
         raise RuntimeError
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
+            executor, nprocs, initparallel, (regle.context.getvars(), mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -400,7 +401,7 @@ def traite_parallel_load(regle):
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
-            executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
+            executor, nprocs, initparallel, (regle.context.getvars(), mapper.macros, env, None, schemas)
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -464,10 +465,8 @@ def gestion_parallel_batch(regle):
         regle.prog(regle, None)
         regle.valide = "done"  # on a fini on le relance pas
 
-    multi = prep_parallel(regle, traite_parallel_batch)
-
-
-#    print("preparation parallel_batch", multi, regle.chargeur, 'st:',regle.store)
+    regle.nbparallel = prep_parallel(regle, traite_parallel_batch)
+    # print("preparation parallel_batch", regle.nbparallel, regle.chargeur, 'st:',regle.store)
 
 
 def traite_parallel_batch(regle):
@@ -475,7 +474,7 @@ def traite_parallel_batch(regle):
     parametres = dict()
     mapper = regle.stock_param
     rdict = dict()
-    nprocs = int(regle.params.cmp2.num)
+    nprocs = regle.nbparallel
 
     for num, obj in enumerate(regle.tmpstore):
         obj.attributs["#_batchnum"] = str(num)
@@ -488,13 +487,13 @@ def traite_parallel_batch(regle):
     for bloc in sorted(parametres):
         if len(parametres[bloc]) == 1:  # il est tout seul on a pas besoin de toute la tringlerie
             numero = parametres[bloc][0][0]
-            obj = regle.tmpstore[numero]
+            obj = regle.tmpstore[int(numero)]
             execbatch(regle, obj)
             continue
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
-                executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, None, None, [])
+                executor, nprocs, initparallel, (regle.context.getvars(), mapper.macros, None, None, None)
             )
 
             workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -663,76 +662,5 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
 
     a_traiter = sorted(a_traiter)
     print("on finit les restes", len(a_traiter))
-    # for i in a_traiter:
-    #     taille, nom = i
-    #     yield taille, nom
     yield from a_traiter
 
-
-# def parallel_load(regle):
-#     """traite les chargements en parallele"""
-
-#     idobj = []
-#     entrees = []
-#     mapper = regle.stock_param
-
-#     for num, obj in enumerate(regle.tmpstore):
-#         fichs = list(getfichs(regle, obj))
-#         idobj.extend([num] * len(fichs))
-#         entrees.extend(fichs)
-#     arglist = [(i, j, regle.index) for i, j in zip(idobj, entrees)]
-#     nprocs, _ = regle.get_max_workers()
-#     num_regle = [regle.index] * len(entrees)
-#     rdict = dict()
-#     schemas, env, def_regles = prepare_env_parallel(regle)
-#     #    print('parallel load',entrees,idobj, type(mapper.env))
-#     with ProcessPoolExecutor(max_workers=nprocs) as executor:
-#         # TODO en python 3.7 l'initialisation peut se faire dans le pool
-#         rinit = parallelexec(
-#             executor, nprocs, initparallel, (mapper.context.vlocales, mapper.macros, env, None, schemas)
-#         )
-#         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
-#         #        print ('workids',workids)
-#         LOGGER.info(" ".join(("workids", str(workids))))
-#         parallelexec(executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params))
-#         if regle.debug:
-#             print("retour init", rinit, num_regle)
-
-#         rdict = paralleliter_suivi(regle, executor, parallelprocess, arglist)
-
-#         rfin = parallelexec(executor, nprocs, endparallel, "")
-#     #        if regle.debug:
-#     #        print ('retour')
-#     for i in rfin:
-#         retour = rfin[i][0]
-#         print(
-#             i,
-#             "worker",
-#             retour["wid"],
-#             "traites",
-#             retour["stats_generales"]["_st_lu_objs"],
-#             list(sorted(retour["schemas"].keys())),
-#         )
-#         for param in retour["stats_generales"]:
-#             mapper.padd(param, retour["stats_generales"][param])
-#         LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
-#         #            print ('traitement schemas ', retour["schemas"])
-#         integre_schemas(mapper.schemas, retour["schemas"])
-
-#         for nom, entete, contenu in retour["stats"].values():
-#             if nom not in mapper.stats:
-#                 mapper.stats[nom] = ExtStat(nom, entete)
-#             mapper.stats[nom].add(entete, contenu)
-#     #            print ('traitement retour stats', mapper.idpyetl, nom,
-#     #                   mapper.stats[nom], len(mapper.stats[nom].lignes))
-
-#     traite = regle.stock_param.moteur.traite_objet
-#     #    print("retour multiprocessing ", results, retour)
-
-#     for i in sorted(rdict):
-#         obj = regle.tmpstore[i]
-#         if regle.params.att_sortie.val:
-#             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-#         print("fin traitement parallele", obj)
-#         traite(obj, regle.branchements.brch["end"])
-#     regle.nbstock = 0

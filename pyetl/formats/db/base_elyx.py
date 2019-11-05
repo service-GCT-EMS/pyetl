@@ -42,10 +42,10 @@ class ElyConnect(ora.OrwConnect):
         self.debuglog = ""
         #        print ('code de la base', code, params)
         if params and code:
-            self.adminschema = params.get_param(
+            self.adminschema = params.getvar(
                 "elyx_adminschema_"+code, defaut=self.adminschema
             )
-            self.modelschema = params.get_param(
+            self.modelschema = params.getvar(
                 "elyx_modelschema_"+code, defaut=self.modelschema
             )
 
@@ -72,7 +72,7 @@ class ElyConnect(ora.OrwConnect):
 
     def setenv(self):
         """positionne les variables d'environnement pour les programmes externes """
-        orahome = self.params.get_param("feaora_oracle_home_"+self.code)
+        orahome = self.params.getvar("feaora_oracle_home_"+self.code)
         env = dict(os.environ)
         #        print('modif_environnement ',env)
         if orahome:  # on manipule les variables d'environnement
@@ -84,7 +84,7 @@ class ElyConnect(ora.OrwConnect):
         """ gere les programmes elyx externe """
         helper, paramfile, size, outfile = parms
         chaine = helper + " -c " + paramfile
-        if self.params.get_param("noload") == "1":  # simulation de chargement pour debug
+        if self.params.getvar("noload") == "1":  # simulation de chargement pour debug
             print("extrunner elyx: mode simulation -------->", chaine)
             print(
                 "extrunner elyx: param_file \n",
@@ -105,7 +105,7 @@ class ElyConnect(ora.OrwConnect):
         """gere le programme externe """
         chaine = helper + " -c " + paramfile
         encoding = "cp1252"
-        if self.params.get_param("noload") == "1":  # simulation de chargement pour debug
+        if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
             print("extrunner elyx: mode simulation -------->", chaine)
             print("extrunner elyx: param_file \n", "\n".join(xml))
             return True
@@ -133,7 +133,7 @@ class ElyConnect(ora.OrwConnect):
     #            time.sleep(10000)
 
     def singlerunner(self, helper, xml, nom, classes):
-        """lance les exports ou les imports a partitr du fichier xml"""
+        """lance les exports ou les imports a partir du fichier xml"""
         # print ('xml import', '\n'.join(xml))
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(str(tmpdir), "param_FEA.xml")
@@ -263,31 +263,30 @@ class ElyConnect(ora.OrwConnect):
         size = dict()
         blocks = dict()
         nom =''
-        if schemabase is None:
-            return
-        if fanout == "no":
-            nom = (classes[0][1],) if len(classes) == 1 else ("export",)
-            size[nom] = 0
-        for i in classes:
-            #            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
-            if schemabase.classes[i].info["objcnt_init"] == "0":
-                #                print('classe vide ', i)
-                resultats[i] = 0
-                continue
+        if schemabase:
             if fanout == "no":
-                size[nom] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
-            elif fanout == "niveau":
-                if (i[0],) in blocks:
-                    blocks[(i[0],)].append(i)
-                    size[(i[0],)] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                nom = (classes[0][1],) if len(classes) == 1 else ("export",)
+                size[nom] = 0
+            for i in classes:
+                #            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
+                if schemabase.classes[i].info["objcnt_init"] == "0":
+                    #                print('classe vide ', i)
+                    resultats[i] = 0
+                    continue
+                if fanout == "no":
+                    size[nom] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                elif fanout == "niveau":
+                    if (i[0],) in blocks:
+                        blocks[(i[0],)].append(i)
+                        size[(i[0],)] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                    else:
+                        blocks[(i[0],)] = [i]
+                        size[(i[0],)] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                elif fanout == "classe":
+                    blocks[i] = [i]
+                    size[i] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
                 else:
-                    blocks[(i[0],)] = [i]
-                    size[(i[0],)] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
-            elif fanout == "classe":
-                blocks[i] = [i]
-                size[i] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
-            else:
-                print("mode de fanout non géré", fanout)
+                    print("mode de fanout non géré", fanout)
         return resultats, size, blocks
 
     def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
@@ -340,8 +339,6 @@ class ElyConnect(ora.OrwConnect):
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
             print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
-            #            self.params.execparallel_ext(blocks, workers, self.fearunner,
-            #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, nbdump)
             fileiter = self.params.iterparallel_ext(
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )

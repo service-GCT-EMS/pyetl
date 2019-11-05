@@ -120,7 +120,7 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
             fich.seek(0)  # on remet le fichier au debut
 
     nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
-        nom_schema, nom_groupe, nom_classe, stock_param, entete, separ
+        nom_schema, nom_groupe, nom_classe, self.regle_ref.stock_param, entete, separ
     )
     controle = len(noms_attributs)
     nbwarn = 0
@@ -146,13 +146,13 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
         else:
             obj.attributs["#type_geom"] = "0"
         obj.attributs["#chemin"] = chemin
-        stock_param.moteur.traite_objet(obj, regle)
+        self.regle_ref.stock_param.moteur.traite_objet(obj, self.regle_start)
 
         if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
             break
 
         if nlignes % 100000 == 0:
-            stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
+            self.regle_ref.stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
 
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")

@@ -337,7 +337,7 @@ class PgrGenSql(DbGenSql):
             if sql:
                 trig.append(sql + ';')
             else:
-                trig.append("\nCREATE "+type_trigger+" " + i)
+                trig.append("\nCREATE "+type_trigger+" " + nom)
                 trig.append(timing + " " + event + (" OF "+ colonnes) if colonnes else '')
                 trig.append("ON " + table)
                 trig.append("FOR EACH " + declencheur)
@@ -955,7 +955,7 @@ class PgrGenSql(DbGenSql):
 
     @staticmethod
     def _commande_monitoring(*args):
-        """ cree une commande de reinitialisation des sequences"""
+        """ cree une commande de stockage de stats"""
         return ("")
 
     def prefix_charge(self, niveau, classe, reinit, gtyp="0", dim="2"):

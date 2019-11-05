@@ -677,6 +677,8 @@ def h_batch(regle):
     if regle.params.cmp1.val == "run":
         regle.chargeur = True
     regle.prog = execbatch
+    if regle.params.cmp2.num:
+        regle.setlocal("multi",regle.params.cmp2.val)
     regle.stock_param.gestion_parallel_batch(regle)
 
 

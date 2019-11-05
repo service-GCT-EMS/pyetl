@@ -184,10 +184,21 @@ def fonctest(mapper, nom=None, debug=0):
     nbtests = 0
     nberrs = 0
     invalides = set()
+    realises = set()
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.commandes[fonc_a_tester]
+        mapper.set_param('test_courant',fonc_a_tester)
+        # print ('test: ', fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
+        # teslist = dict()
+        # for subfonc in fonc.subfonctions:
+        #     if not untestable(mapper,subfonc):
+        #         for j in subfonc.description:
+        #             if "#test" in j:
+        #                 desctest = subfonc.description[j]
+        #                 teslist[(subfonc.nom,j)] = desctest
+
         for subfonc in fonc.subfonctions:
             testee = False
             raison = untestable(mapper,subfonc)
@@ -197,18 +208,19 @@ def fonctest(mapper, nom=None, debug=0):
                         desctest = subfonc.description[j]
                         testee = True
                         idtest = (fonc.nom, subfonc.nom, j)
-                        errs = controle(mapper, idtest, desctest, debug=debug)
-                        if errs:
-                            nberrs += errs
-                            invalides.add(idtest)
-                        nbtests += 2
+                        if idtest not in realises:
+                            realises.add(idtest)
+                            errs = controle(mapper, idtest, desctest, debug=debug)
+                            if errs:
+                                nberrs += 1
+                                invalides.add(idtest)
+                            nbtests += 1
             if not testee:
                 if subfonc.nom != fonc.nom:
-                    print("fonction non testee", fonc.nom, subfonc.nom)
+                    print("fonction non testee", fonc.nom, subfonc.nom,(raison + " non definie") if raison else '')
                 else:
-                    print("fonction non testee", fonc.nom)
-                if raison:
-                    print(raison + " non definie")
+                    print("fonction non testee", fonc.nom, (raison + " non definie") if raison else '')
+    # print ('tests realises',sorted(realises))
     return nbtests, nberrs, invalides
 
 

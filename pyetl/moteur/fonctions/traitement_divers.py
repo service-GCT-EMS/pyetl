@@ -352,7 +352,7 @@ def h_sortir(regle):
         regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")
         regle.f_sortie.writerparms["nodata"] = regle.getvar("nodata")
         if destination:  # on va essayer de se connecter
-            connection = dbaccess(regle.stock_param, destination)
+            connection = dbaccess(regle, destination)
             if connection and connection.valide:
                 regle.f_sortie.gensql = connection.gensql  # la on a une instance connectee
         elif dialecte:

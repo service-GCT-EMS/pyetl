@@ -638,8 +638,12 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
                 if schema.elements_specifiques[i]:
                     if i != 'def_triggers':
                         infos=schema.elements_specifiques[i]
-                        contenu = [i if isinstance(i,str) else ';'.join(i)+';'+
-                            j if isinstance(j,str) else ';'.join(j) for i,j in sorted(infos.items())]
+                        print ('schema:traitement elements specifiques',i)
+                        if isinstance(infos,dict):
+                            contenu = [i if isinstance(i,str) else ';'.join(i)+';'+
+                                j if isinstance(j,str) else ';'.join(j) for i,j in sorted(infos.items())]
+                        else:
+                            contenu = [i if isinstance(i,str) else ';'.join(i)+';'for i in infos]
                         print ('element specifique', i, len(contenu))
                         ecrire_fich_csv(chemref, "_"+i+".csv", contenu, cod)
                 else:
