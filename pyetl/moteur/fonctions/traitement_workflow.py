@@ -308,9 +308,10 @@ def h_bloc(regle):
 
 
 def f_bloc(*_):
-    """#aide||definit un bloc d'instructions qui reagit comme une seule
+    """#aide||definit un bloc d'instructions qui reagit comme une seule et genere un contexte
        #pattern||;;;bloc;;
        #test||obj||^X;1;;set;||C1;BCD;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
+       #test2||obj||^X;1;;set;||$vr=3||;;;;;;;bloc;;;;vr=2||^X;%vr%;;set;||;;;;;;;~fin_bloc;||atv;X;1;
     """
 
     return True

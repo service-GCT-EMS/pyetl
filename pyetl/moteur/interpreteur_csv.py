@@ -541,9 +541,11 @@ def prepare_regle(regle, prec=None):
             regle.context.setref(prec.context)
         elif regle.niveau==prec.niveau:
             regle.context.setref(prec.context.ref)
-        elif regle.niveau < prec.niveau:
-            regle.context.setref(prec.context.ref.ref)
+    if prec and regle.niveau < prec.niveau:
+        regle.context.setref(prec.context.ref.ref)
     #    print ('2regle:',regle,regle.valide)
+
+
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = Selecteur.true
         regle.valide = True
@@ -787,6 +789,18 @@ def traite_regle_std(
             print("erreur structure de blocs", bloc, numero, texte)
             erreurs = 1
         position = len(regles)
+        r_cour.bloc = bloc
+        if regles: # contextes dans le systeme de blocs
+            prec=regles[-1]
+            if r_cour.ebloc ==1:
+                r_cour.context.setref(r_cour.context)
+                print ("bloc",r_cour.ebloc,r_cour.context)
+            elif r_cour.ebloc ==-1:
+                r_cour.context.setref(prec.context.ref.ref)
+            elif prec.bloc:
+                print ("bloc",r_cour.ebloc,r_cour.context)
+                r_cour.context.setref(prec.context.ref)
+
         regles.append(r_cour)
         # for i in binding:  # enregistre les regles dynamiques
         #     mapper.bindings.setdefault(texte, []).append(r_cour)
