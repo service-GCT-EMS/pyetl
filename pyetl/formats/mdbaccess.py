@@ -332,7 +332,7 @@ def _get_attributs(connect):
             #                cible_clef = ''
             if not cible_clef:
                 print(
-                    "mdbaccess: erreur schema : cible clef etrangere non definie",
+                    "mdba: erreur schema : cible clef etrangere non definie",
                     atd.nom_groupe,
                     atd.nom_classe,
                     atd.nom_attr,
@@ -435,7 +435,7 @@ def dbaccess(regle, nombase, type_base=None, chemin=""):
         type_base = regle.getvar("db_" + codebase, "")
         if not base:
             print(
-                "dbaccess: base non definie",
+                "mdba: base non definie",
                 nombase,
                 codebase,
             )
@@ -634,7 +634,7 @@ def dbextsql(regle, base, file, log=None, out=None):
     if helper:
         logfile = setpath(regle.stock_param, log)
         outfile = setpath(regle.stock_param, out)
-        # print("extsql: demarrage", helpername, helper, "user:", connect.user)
+        # print("mdba:extsql: demarrage", helpername, helper, "user:", connect.user)
         return connect.extsql(helper, file, logfile, outfile)
     return False
 
@@ -729,9 +729,9 @@ def sortie_resultats(
     regle_debut = regle_courante.branchements.brch["next"]
     traite_objet = regle_courante.stock_param.moteur.traite_objet
 
-    # print ('dbaccess:sortie_resultat ',type_geom,type(curs))
+    # print ('mdba:sortie_resultat ',type_geom,type(curs))
     # valeurs = curs.fetchone()
-    # print ('dbaccess:recuperation valeurs ',valeurs)
+    # print ('mdba:recuperation valeurs ',valeurs)
     schema_init = None
     stock_param = regle_courante.stock_param
     if not niveau:
@@ -767,7 +767,7 @@ def sortie_resultats(
     decile = curs.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-        #        print ('dbaccess: creation objet',niveau,classe,obj.ident,type_geom)
+        #        print ('mdba: creation objet',niveau,classe,obj.ident,type_geom)
         obj = Objet(
             niveau,
             classe,
@@ -799,7 +799,7 @@ def sortie_resultats(
             for nom, val in zip(sortie, v_sortie):
                 obj.attributs[nom] = val
         #                print ('renseigne',obj.attributs)
-        # print ("dbaccess sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
+        # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
         obj.setorig(nbvals)
         traite_objet(obj, regle_debut)
         if nbvals == maxobj:
@@ -901,8 +901,8 @@ def lire_table(ident, regle_courante, parms=None):
     )
 
     schema_classe_base = schema_base.get_classe(ident)
-    #            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
-    #        print ('dbaccess : ',ident)
+    #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+    #        print ('mdba : ',ident)
     schema_classe_travail = schema_travail.get_classe(ident)
     if isinstance(attribut, list):
         if ident in reqdict:
@@ -962,8 +962,8 @@ def lire_requete(ident, regle_courante, parms=None, requete=''):
     connect = get_connect(regle_courante, base,'','',type_base=type_base,chemin=chemin)
     curs = connect.request(requete, maxobj)
 
-    #            print ('dbaccess : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
-    #        print ('dbaccess : ',ident)
+    #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
+    #        print ('mdba : ',ident)
     treq = time.time()
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
@@ -1040,8 +1040,8 @@ def recup_donnees_req_alpha(
 
             niveau, classe = ident
             schema_classe_base = schema_base.get_classe(ident)
-            #            print('dbaccess : ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
-            # print ('dbaccess : ',ident)
+            #            print('mdba: ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
+            # print ('mdba: ',ident)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info[
                 "type_geom"

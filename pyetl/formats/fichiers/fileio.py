@@ -75,6 +75,7 @@ class FileWriter(object):
         self.hinit = ""
         self.ttext = ""
         self.transtable = None
+        self.regle_ref = None # regle de reference pour l'acces aux contextes
 
     def header(self, init=None):
         """entete du fichier"""

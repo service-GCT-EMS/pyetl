@@ -200,7 +200,7 @@ class PgrConnect(DbConnect):
             outfile = self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
 
-        chaine = " --".join((prog, chaine_connect, 'file="' + file+'"'))
+        chaine = " --".join((prog, "tuples-only", chaine_connect, 'file="' + file+'"'))
         # print("loader ", chaine)
         host = [i for i in serveur.split(' ') if 'host' in i].pop() if 'host' in serveur else ''
         print ('postgres: traitement sql', host,self.base, os.path.basename(file))

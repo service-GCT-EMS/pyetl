@@ -156,12 +156,12 @@ def prepare_batch_from_object(regle, obj):
     entree = obj.attributs.get("entree", mapper.get_param("_entree"))
     sortie = obj.attributs.get("sortie", mapper.get_param("_sortie"))
     numero = obj.attributs.get("#_batchnum", "0")
+    nom = obj.attributs.get("nom", "batch")
     #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
     parametres = obj.attributs.get("parametres")  # parametres en format hstore
-    params = None
+    params = ["_nom_batch="+nom]
     if parametres:
-        params = ["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
-
+        params = params+["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
     return (numero, commande, entree, sortie, params)
 
 
@@ -169,6 +169,7 @@ def execbatch(regle, obj):
     """execute un batch"""
     if obj is None:  # pas d'objet on en fabrique un sur mesure
         obj = Objet("_batch", "_batch", format_natif="interne")
+        obj.attributs[nom]=regle.getvar('_nom_batch','batch') # on lui donne un nom
     _, commande, entree, sortie, params = prepare_batch_from_object(regle, obj)
     processor = regle.stock_param.getpyetl(
         commande, liste_params=params, entree=entree, rep_sortie=sortie

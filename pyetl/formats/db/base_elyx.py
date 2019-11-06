@@ -40,7 +40,7 @@ class ElyConnect(ora.OrwConnect):
         self.modelschema = "ELYX_MODELE"
         self.types_base["REEL"] = "F"
         self.debuglog = ""
-        #        print ('code de la base', code, params)
+        print ('code de la base', code, params)
         if params and code:
             self.adminschema = params.getvar(
                 "elyx_adminschema_"+code, defaut=self.adminschema
@@ -72,7 +72,7 @@ class ElyConnect(ora.OrwConnect):
 
     def setenv(self):
         """positionne les variables d'environnement pour les programmes externes """
-        orahome = self.params.getvar("feaora_oracle_home_"+self.code)
+        orahome = self.regle.getvar("feaora_oracle_home_"+self.code)
         env = dict(os.environ)
         #        print('modif_environnement ',env)
         if orahome:  # on manipule les variables d'environnement
@@ -84,7 +84,7 @@ class ElyConnect(ora.OrwConnect):
         """ gere les programmes elyx externe """
         helper, paramfile, size, outfile = parms
         chaine = helper + " -c " + paramfile
-        if self.params.getvar("noload") == "1":  # simulation de chargement pour debug
+        if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
             print("extrunner elyx: mode simulation -------->", chaine)
             print(
                 "extrunner elyx: param_file \n",

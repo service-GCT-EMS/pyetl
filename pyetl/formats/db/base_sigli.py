@@ -13,7 +13,7 @@ from .base_postgis import PgsConnect, PgsGenSql
 # from . import database
 
 SCHEMA_ADM = "admin_sigli"
-TABLE_MONITORING = SCHEMA_ADM+'.stat_upload'
+TABLE_MONITORING = SCHEMA_ADM+'.stats_upload'
 
 class SglConnect(PgsConnect):
     """connecteur de la base de donnees postgres"""
@@ -131,21 +131,28 @@ class SglGenSql(PgsGenSql):
 
     def _commande_monitoring(self, niveau, classe, schema, mode):
         """ insere une ligne dans une table de stats"""
-        if self.connection:
-            table_monitoring=self.connection.params.getvar('table_monitoring',TABLE_MONITORING)
+        regle_ref = self.connection.regle if self.connection else self.regle_ref
+        # print ('monitoring', regle_ref)
+        if regle_ref:
+            table_monitoring=regle_ref.getvar('table_monitoring',TABLE_MONITORING)
         else:
             table_monitoring=TABLE_MONITORING
-        objcnt = "(SELECT COUNT(*) %s.%s)" %(niveau.lower(),classe.lower())
-        # str(schema.getinfo('objcnt')) if schema else '0',
-        return ('INSERT INTO '+table_monitoring+ " (nomschema, nomtable, nbvals, mode, nom_script, date_export)"+
+        objcnt = ("(SELECT COUNT(*) FROM %s.%s)" %(niveau.lower(),classe.lower())
+                 if ('T' in mode or 'D' in mode)
+                else "'%d'" % (schema.objcnt,)
+                )
+        ligne =  ('INSERT INTO '+table_monitoring+ " (nomschema, nomtable, nbvals, mode_chargement, nom_script, date_export)"+
                 " VALUES('%s','%s',%s,'%s','%s','%s');\n"%
             ( niveau.lower(),
             classe.lower(),
             objcnt,
             mode,
-            schema.getinfo('script_ref') if schema else '',
+            regle_ref.getvar('_nom_batch') if regle_ref else '',
             strftime('%Y-%m-%d %H:%M:%S'),
             ))
+        # print ('cm:',ligne)
+        # print ('cm:regle', regle_ref)
+        return ligne
 
 
 

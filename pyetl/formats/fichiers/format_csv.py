@@ -349,6 +349,7 @@ class SqlWriter(CsvWriter):
         niveau, classe = self.schema.identclasse
         nouveau = self.schema.identclasse not in self.classes
         self.classes.add(self.schema.identclasse)
+        gensql.regle_ref = self.regle_ref
         prefix = "SET client_encoding = 'UTF8';\n" if init else ""
         #        print ('parametres sql ', self.writerparms)
         nodata = False
@@ -381,7 +382,7 @@ class SqlWriter(CsvWriter):
         reinit = self.writerparms.get("reinit", "0")
         niveau, classe = self.schema.identclasse
         gensql = self.schema.schema.dbsql
-
+        gensql.regle_ref = self.regle_ref
         type_geom = self.schema.info["type_geom"]
         courbe = self.schema.info["courbe"]
         dim = self.schema.info["dimension"]

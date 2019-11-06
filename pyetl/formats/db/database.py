@@ -783,6 +783,7 @@ class DbGenSql(object):
         self.connection = connection
         self.basic = basic
         self.schema = None
+        self.regle_ref = None
 
     def setbasic(self, mode):
         """mode basic pour les bases de consultation"""
