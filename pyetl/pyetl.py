@@ -846,9 +846,11 @@ class Pyetl(object):
 
     def pushcontext(self,context=None, ident=''):
         self.contextstack.append(context or self.getcontext(context, ident))
+        print("apres push",self.contextstack)
         return self.cur_context
 
     def popcontext(self):
+        print("avant pop",self.contextstack)
         self.contextstack.pop()
         return self.cur_context
 

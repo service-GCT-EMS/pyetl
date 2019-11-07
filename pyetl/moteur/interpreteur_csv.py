@@ -514,9 +514,9 @@ def setvloc(regle):
 
 
 def ajuste_contexte(regle, prec):
-    if  prec and regle.niveau > prec.niveau:
+    if regle.niveau > prec.niveau:
         regle.context.setref(regle.stock_param.pushcontext(prec.context))
-    if prec and regle.niveau < prec.niveau:
+    if regle.niveau < prec.niveau:
         for i in range(prec.niveau - regle.niveau):
             context=regle.stock_param.popcontext()
         regle.context.setref(context)
@@ -547,7 +547,9 @@ def prepare_regle(regle, prec=None):
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     regles_liees(regle, v_nommees["sel1"])
-    ajuste_contexte(regle,prec)
+    print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
+    if prec:
+        ajuste_contexte(regle,prec)
     # if  prec and regle.niveau > prec.niveau:
     #     regle.context.setref(regle.stock_param.pushcontext(prec.context))
     # if prec and regle.niveau < prec.niveau:
@@ -865,16 +867,16 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     texte = match.group(4)
     # on gere les niveaux
     if regle_ref:
-        prec = regle_ref.regles[-1] if regle_ref.regles else None
+        prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
     else:
         prec = mapper.regles[-1] if mapper.regles else None
     nivmacro = len(niveau)
     if prec and nivmacro > prec.niveau:
         mapper.pushcontext(prec.context)
     if prec and nivmacro < prec.niveau:
-        print ('macro:pop', prec.niveau-nivmacro,mapper.cur_context)
+        # print ('macro:pop', prec.niveau-nivmacro,mapper.cur_context,mapper.contextstack)
         for i in range(prec.niveau-nivmacro):
-            print('pop',mapper.cur_context)
+            # print('pop',mapper.cur_context,mapper.contextstack)
             mapper.popcontext()
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, ismacro = prepare_env(mapper, texte, fichier_regles)
@@ -883,8 +885,12 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     macro = mapper.macros.get(inclus)
     if macro:
         liste_regles = macro.get_commands()
+        print ("contexte avant macro",mapper.contextstack)
+
         erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, regle_ref=regle_ref)
         if ismacro:
+            print ("contexte apres macro", mapper.contextstack)
+
             mapper.popcontext() # on depile un contexte
     else:
         erreurs = 1
@@ -927,7 +933,7 @@ def lire_regles_csv(
     # print('regles lues:\n'+'\n'.join((str(i) for i in liste_regles)))
     bloc = 0
     for defligne in liste_regles[:]:
-        #        print ('traitement regle', defligne)
+        print ('traitement regle', defligne)
         #        numero, texte = defligne
         numero, texte, texte_brut = prepare_texte(defligne)
         context =  mapper.cur_context
