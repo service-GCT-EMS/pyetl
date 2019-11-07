@@ -256,7 +256,7 @@ def f_uniq(regle, obj):
     """#aide||unicite de la sortie laisse passer le premier objet et filtre le reste
     #aide_spec||liste des attibuts devant etre uniques si #geom : test geometrique
     #pattern||;?=#geom;?L;unique;;;
-    #test||obj;point;2||^;;C1;unique||+fail:;;;;;;;pass>;;||cnt;1
+    #test||obj;point;2||^;;C1;unique||+fail:;;;;;;;pass>;;||^;;;pass;||cnt;1
     #test2||obj;point;2||^;;C1;unique-||cnt;1
     #test3||obj;point;2||^;#geom;;unique-||cnt;1
     #test4||obj;point;2||^;#geom;C1;unique-||cnt;1

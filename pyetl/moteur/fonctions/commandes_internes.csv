@@ -93,13 +93,13 @@ K:%multi%;;;;;;%multi%;;multigeom;;;fin;
 K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 #groupe;%niveau%;#classe;%classe%;;;;valide_schema;;;fin;10,date_creation
 !===========================================================================================;;;;;;;;;;;
-&&#define;#analyse;;;;;;;;;;
+&&#define;#analyse;force;;;;;;;;;
 #!help;analyse d'un jeu de donnees p:format force ;;;;;;;;;;
 $format_schema=csv,xml,sql;;;;;;;;;;;
 $max_conf=%max_conf%;40;;;;;;;;;;
 $mode_sortie=D;;;;;;;;;;;
 !$F_sortie=#poubelle
-!;;;;;;#schema;supp;;;;
+K:force;;;;;;;#schema;supp;;;;
 ;;;;;;;schema>;%nom%;%max_conf%;;
 !=================================== acces bases de donnees ================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;

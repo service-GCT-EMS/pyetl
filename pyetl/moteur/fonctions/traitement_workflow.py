@@ -311,7 +311,7 @@ def f_bloc(*_):
     """#aide||definit un bloc d'instructions qui reagit comme une seule et genere un contexte
        #pattern||;;;bloc;;
        #test||obj||^X;1;;set;||C1;BCD;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
-       #test2||obj||^X;1;;set;||$vr=3||;;;;;;;bloc;;;;vr=2||^X;%vr%;;set;||;;;;;;;~fin_bloc;||atv;X;1;
+       #test2||obj||^X;1;;set;||$vr=3||;;;;;;;bloc;;;;vr=2||^X;%vr%;;set;||;;;;;;;~fin_bloc;||atv;X;2;
     """
 
     return True
@@ -333,7 +333,6 @@ def f_finbloc(*_):
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
     regle.call = regle.mode in {'call'}
-    # context = regle.context.getcontext(regle.mode+":"+regle.params.cmp1.val)
     # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
     if regle.mode == 'geomprocess':
@@ -343,13 +342,14 @@ def h_callmacro(regle):
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
     # print("callmacro commande:", commande,regle.params.cmp2.val)
     # print("regle.context.atts:",regle.context.getvar('atts'))
+    mapper.pushcontext(regle.context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)
     if regle.liste_regles:
         if regle.call: # la on applatit
             regle.liste_regles[-1]._return = True
         else:
             mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
-
+    mapper.popcontext()
     return erreurs
 
 

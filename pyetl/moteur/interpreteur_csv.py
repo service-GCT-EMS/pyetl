@@ -20,7 +20,6 @@ from pyetl.moteur.regles import RegleTraitement, ParametresSelecteur
 from .fonctions.outils import charge_fichier
 
 LOGGER = logging.getLogger("pyetl")
-
 NOMS_CHAMPS_N = [
     "sel1",
     "val_sel1",
@@ -514,6 +513,18 @@ def setvloc(regle):
     regle.v_nommees = dict(zip(NOMS_CHAMPS_N, valeurs))
 
 
+def ajuste_contexte(regle, prec):
+    if  prec and regle.niveau > prec.niveau:
+        regle.context.setref(regle.stock_param.pushcontext(prec.context))
+    if prec and regle.niveau < prec.niveau:
+        for i in range(prec.niveau - regle.niveau):
+            context=regle.stock_param.popcontext()
+        regle.context.setref(context)
+
+
+
+
+
 def prepare_regle(regle, prec=None):
     """ positionne les elements standard de la regle"""
 
@@ -536,14 +547,12 @@ def prepare_regle(regle, prec=None):
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     regles_liees(regle, v_nommees["sel1"])
-    if regle.niveau and prec:
-        if regle.niveau>prec.niveau:
-            regle.context.setref(prec.context)
-        elif regle.niveau==prec.niveau:
-            regle.context.setref(prec.context.ref)
-    if prec and regle.niveau < prec.niveau:
-        regle.context.setref(prec.context.ref.ref)
-    #    print ('2regle:',regle,regle.valide)
+    ajuste_contexte(regle,prec)
+    # if  prec and regle.niveau > prec.niveau:
+    #     regle.context.setref(regle.stock_param.pushcontext(prec.context))
+    # if prec and regle.niveau < prec.niveau:
+    #     regle.context.setref(regle.stock_param.popcontext())
+
 
 
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
@@ -586,12 +595,12 @@ def reinterprete_regle(regle, mapper, context=None):
     prepare_regle(regle)
 
 
-def interprete_ligne_csv(mapper, ligne, fichier, numero, context=None, prec=None):
+def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
 
     # print('traitement_ligne', ligne, mapper.context)
-    regle = RegleTraitement(ligne, mapper, fichier, numero, context=context)
+    regle = RegleTraitement(ligne, mapper, fichier, numero)
     prepare_regle(regle, prec=prec)
 
     # print ('retour prepare', regle.valide, regle)
@@ -763,7 +772,7 @@ def prepare_texte(defligne):
 
 
 def traite_regle_std(
-    mapper, numero, texte, texte_brut, context, fichier_regles, bloc, regle_ref=None
+    mapper, numero, texte, texte_brut, fichier_regles, bloc, regle_ref=None
 ):
     """ traite une regle classique """
     #    texte = texte_brut.strip()
@@ -771,7 +780,7 @@ def traite_regle_std(
     regles = mapper.regles if regle_ref is None else regle_ref.liste_regles
     precedent=regles[-1] if regles else None
     try:
-        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, context=context, prec=precedent)
+        r_cour = interprete_ligne_csv(mapper, texte, fichier_regles, numero, prec=precedent)
     #                print ('interp regle',i,erreurs)
     except SyntaxError:
         #        print( 'syntaxerror ',r_cour)
@@ -793,13 +802,13 @@ def traite_regle_std(
         if regles: # contextes dans le systeme de blocs
             prec=regles[-1]
             if r_cour.ebloc ==1:
-                r_cour.context.setref(r_cour.context)
+                mapper.pushcontext(r_cour.context) # devient le contexte de reference
                 print ("bloc",r_cour.ebloc,r_cour.context)
             elif r_cour.ebloc ==-1:
-                r_cour.context.setref(prec.context.ref.ref)
-            elif prec.bloc:
+                mapper.popcontext() # on depile
+            if prec.bloc:
                 print ("bloc",r_cour.ebloc,r_cour.context)
-                r_cour.context.setref(prec.context.ref)
+                r_cour.context.setref(mapper.cur_context)
 
         regles.append(r_cour)
         # for i in binding:  # enregistre les regles dynamiques
@@ -817,12 +826,13 @@ def traite_regle_std(
         erreurs = 1
     return bloc, erreurs
 
-def prepare_env(mapper, texte:str, context, fichier_regles):
+def prepare_env(mapper, texte:str, fichier_regles):
     '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
     # print ('mapping parametres macro', texte)
     champs = texte.split(";")
     nom_inclus = champs[0][1:].strip()
     parametres = champs[1:]
+    context = mapper.cur_context
     cmd, *pars = context.SPLITTER_B.split(nom_inclus) if context.SPLITTER_B.search(nom_inclus) else context.SPLITTER_2P.split(nom_inclus)
     nom_inclus = cmd
     if pars:
@@ -832,8 +842,7 @@ def prepare_env(mapper, texte:str, context, fichier_regles):
         inclus = nom_inclus  # macro
         macro = mapper.macros.get(inclus)
         if macro:
-            macroenv = macro.bind(parametres,context)
-            context=macroenv
+            context = mapper.pushcontext(macro.bind(parametres,context))
     elif nom_inclus.startswith('.') or os.path.abspath(nom_inclus):
         inclus = nom_inclus
         context.affecte(parametres)
@@ -841,13 +850,12 @@ def prepare_env(mapper, texte:str, context, fichier_regles):
         inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
         context.affecte(parametres)
     #            print("lecture de regles incluses", inclus,pps)
-    return inclus, context
+    return inclus, context, macro
 
 def execute_macro(mapper, texte, context, fichier_regles):
     '''lance une macro en one shot'''
     print ('preparation macro', texte,context)
-    # inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
-    mapper.macrorunner(texte,  context=macroenv)
+    mapper.macrorunner(texte)
 
 def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
@@ -855,14 +863,29 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
+    # on gere les niveaux
+    if regle_ref:
+        prec = regle_ref.regles[-1] if regle_ref.regles else None
+    else:
+        prec = mapper.regles[-1] if mapper.regles else None
+    nivmacro = len(niveau)
+    if prec and nivmacro > prec.niveau:
+        mapper.pushcontext(prec.context)
+    if prec and nivmacro < prec.niveau:
+        print ('macro:pop', prec.niveau-nivmacro,mapper.cur_context)
+        for i in range(prec.niveau-nivmacro):
+            print('pop',mapper.cur_context)
+            mapper.popcontext()
     # on cree un contexte avec ses propres valeurs locales
-    inclus, macroenv = prepare_env(mapper, texte, context, fichier_regles)
+    inclus, macroenv, ismacro = prepare_env(mapper, texte, fichier_regles)
     if macroenv.getlocal('debug'):
         print ('debug macro:',context, texte, '->',inclus,macroenv.vlocales)
     macro = mapper.macros.get(inclus)
     if macro:
         liste_regles = macro.get_commands()
-        erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, context=macroenv, regle_ref=regle_ref)
+        erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, regle_ref=regle_ref)
+        if ismacro:
+            mapper.popcontext() # on depile un contexte
     else:
         erreurs = 1
     return erreurs
@@ -881,16 +904,13 @@ def initmacro(mapper, texte, fichier_regles):
 
 
 def lire_regles_csv(
-    mapper, fichier_regles, numero_ext=0, context=None, liste_regles=None, niveau="", regle_ref=None
+    mapper, fichier_regles, numero_ext=0, liste_regles=None, niveau="", regle_ref=None
 ):
     """ lecture des fichiers de regles """
     erreurs = 0
     #    mstore = False
     autonum = 0
     macro = None
-    if context is None:
-        context = regle_ref.context if regle_ref else mapper.context
-    # print ('appel lire_regles', context)
 
     if liste_regles is None:
         liste_regles = []
@@ -910,7 +930,7 @@ def lire_regles_csv(
         #        print ('traitement regle', defligne)
         #        numero, texte = defligne
         numero, texte, texte_brut = prepare_texte(defligne)
-
+        context =  mapper.cur_context
         if texte is None:
             continue
         # lignes conditionelles (lignes incluses dans le code seulement si la condition est vraie)
@@ -985,9 +1005,10 @@ def lire_regles_csv(
         elif texte.startswith("<<"): # execution immediate d'une macro
             # print('avant execution, contexte:',context)
             # execute_macro(mapper,texte[1:],context,fichier_regles)
-            mapper.macrorunner(texte[2:],  context=context)
+            mapper.macrorunner(texte[2:])
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             # print ('avant macro',texte, context, context.getvar('atts'))
+
             erreurs += importe_macro(mapper, texte, context, fichier_regles, regle_ref=regle_ref)
             if erreurs:
                 print("erreur chargement macro", texte)
@@ -999,7 +1020,6 @@ def lire_regles_csv(
                 numero,
                 texte,
                 texte_brut,
-                context,
                 fichier_regles,
                 bloc,
                 regle_ref=regle_ref,

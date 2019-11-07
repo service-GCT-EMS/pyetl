@@ -225,8 +225,9 @@ class RegleTraitement(object):  # regle de mapping
         self.shelper = None
         self.fonction_schema = None
         self.numero = numero
-
-        self.context = stock_param.getcontext(context, ident="R" + str(numero),ref=True)
+        if context is None:
+            context = stock_param.cur_context
+        self.context = context.getcontext(ident="R" + str(numero),ref=True)
         #        print ('contexte regle',self.ligne, self.context)
         self.val_tri = re.compile("")
         self.index = 0

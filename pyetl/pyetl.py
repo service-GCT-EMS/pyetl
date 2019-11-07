@@ -196,6 +196,7 @@ class Pyetl(object):
         )
         # print ('initialisation', self.context, self.context.parent, "P" + str(self.idpyetl))
         self.context.root = self.context # on romp la chaine racine
+        self.contextstack=[self.context]
         self.parent = parent  # permet un appel en cascade
         setparallel(self)  # initialise la gestion du parallelisme
 
@@ -571,7 +572,7 @@ class Pyetl(object):
 
 
     def getpyetl(
-        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None, context=None,
+        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None,
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch"""
@@ -835,10 +836,26 @@ class Pyetl(object):
         # print ('--------getstats', self.context,self.context.getgroup("_st_"))
         return self.context.getgroup("_st_")
 
+    # ======================== fonctions de manipulation des contextes =====================
+
+
     def getcontext(self, context, ident="",ref=False):
         """recupere un contexte en cascade"""
-        return (context.getcontext(ident=ident,ref=ref)
-                if context else self.context.getcontext(ident=ident,ref=ref))
+        context = self.cur_context if context is None else context
+        return context.getcontext(ident=ident,ref=ref)
+
+    def pushcontext(self,context=None, ident=''):
+        self.contextstack.append(context or self.getcontext(context, ident))
+        return self.cur_context
+
+    def popcontext(self):
+        self.contextstack.pop()
+        return self.cur_context
+
+    @property
+    def cur_context(self):
+        return self.contextstack[-1]
+
 
     def get_param(self, nom, defaut=""):
         """recupere la valeur d une varible depuis le contexte"""
@@ -1079,10 +1096,10 @@ class Pyetl(object):
         self.macro_final()
         return
 
-    def macrorunner(self, texte, parametres=None, entree=None, sortie=None, retour=None, context=None):
+    def macrorunner(self, texte, parametres=None, entree=None, sortie=None, retour=None):
         '''execute une macro (initiale ou finale)'''
         regles = [(1,texte if texte.startswith('<') else '<'+texte)]
-        processor = self.getpyetl(regles, liste_params=parametres, entree=entree, rep_sortie=sortie, context=context)
+        processor = self.getpyetl(regles, liste_params=parametres, entree=entree, rep_sortie=sortie)
         #        print('parametres macro', processor.nompyetl, [(i,processor.get_param(i))
         #                                                       for i in macro.vpos])
         if processor is not None:
