@@ -315,7 +315,7 @@ def autotest_partiel(mapper, nom):
     print("part:-------------------test ", nom, "-------------------")
     #       charge_cmd_internes(mapper,test=liste_commandes[1])
     liste_regles = []
-    testconfig,testdb=set_test_config(mapper)
+    testconfig, testdb, testrep=set_test_config(mapper)
     mapper.charge_cmd_internes(test="test_" + nom)
     test = mapper.macros.get("#start_test")
     if test:

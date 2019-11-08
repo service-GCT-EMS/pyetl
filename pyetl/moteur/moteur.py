@@ -271,6 +271,7 @@ class Context(object):
         self.ref = None
         self.root = self
         self.env = env
+        self.niveau = 0
         # gestion des hierarchies
         if parent is not None:
             self.ident = parent.ident + "<-" + self.nom
@@ -293,13 +294,17 @@ class Context(object):
         """fournit un contexte ephemere lie au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="M")
 
+    def getblocenvenv(self, ident=""):
+        """fournit un contexte ephemere lie au contexte de reference"""
+        return Context(parent=self, ident=ident, type_c="B")
+
     def setbinding(self,nom,binding):
         """ gere les retours de parametres"""
         self.binding[nom]=binding
 
-    def getcontext(self, ident="", liste=None, ref=False):
+    def getcontext(self, ident="", liste=None, ref=False, type_c='C'):
         """fournit un nouveau contexte de reference empilé"""
-        context = Context(parent=self, ident=ident)
+        context = Context(parent=self, ident=ident, type_c=type_c)
         if ref:
             context.ref=self.ref if self.ref else self
         if liste:

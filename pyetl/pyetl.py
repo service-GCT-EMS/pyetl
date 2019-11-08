@@ -839,19 +839,22 @@ class Pyetl(object):
     # ======================== fonctions de manipulation des contextes =====================
 
 
-    def getcontext(self, context, ident="",ref=False):
+    def getcontext(self, context, ident="",ref=False, type_c='C'):
         """recupere un contexte en cascade"""
         context = self.cur_context if context is None else context
-        return context.getcontext(ident=ident,ref=ref)
+        return context.getcontext(ident=ident,ref=ref,type_c=type_c)
 
-    def pushcontext(self,context=None, ident=''):
-        self.contextstack.append(context or self.getcontext(context, ident))
-        print("apres push",self.contextstack)
+    def pushcontext(self,context=None, ident='',type_c='C'):
+        self.contextstack.append(context or self.getcontext(context, ident,type_c))
+        # print("apres push",self.contextstack)
         return self.cur_context
 
-    def popcontext(self):
-        print("avant pop",self.contextstack)
-        self.contextstack.pop()
+    def popcontext(self,typecheck=None):
+        # print("avant pop",self.contextstack)
+        if typecheck and self.cur_context.type_c == typecheck:
+            self.contextstack.pop()
+        else:
+            print ('=========================popcontext warning typecheck attendu',typecheck,'trouve',self.cur_context.type_c)
         return self.cur_context
 
     @property

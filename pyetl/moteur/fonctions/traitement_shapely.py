@@ -197,7 +197,7 @@ def f_ingeom(regle, obj):
     #aide_spec||liste des attributs a recuperer
         #pattern||L;?C;L;geoselect;=in;C
         #pattern2||;;;geoselect;=in;C
-        #test||obj;poly||^;1;;buffer;;||;has:geomV;;;X;1;;set||atv;X;1
+        #test||obj;poly||^;1;;buffer;;||;;;;;;;tmpstore||atv;X;1
         """
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__

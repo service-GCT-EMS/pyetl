@@ -553,11 +553,9 @@ def h_preload(regle):
     regle.repl = lambda x: obj.attributs.get(x.group(1), "")
     regle.resub = re.compile(r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]")
     fich = regle.params.val_entree.val
-    #    fich = fich.replace('[R]', regle.stock_param.racine)
+    fich = fich.replace('[R]', regle.stock_param.racine)
     regle.fich = fich
     regle.dynlevel = 0
-    if "[R]" in fich:
-        regle.dynlevel = 1
     if "[F]" in fich:
         regle.dynlevel = 2
     elif "[G]" in fich:
@@ -588,7 +586,6 @@ def f_preload(regle, obj):
 
     if regle.dynlevel > 0:
         fich = fich.replace("[G]", obj.attributs["#groupe"])
-        fich = fich.replace("[R]", regle.stock_param.racine)
         fich = fich.replace("[F]", obj.attributs["#classe"])
         if fich != regle.entree:
             regle.entree = fich

@@ -518,7 +518,7 @@ def ajuste_contexte(regle, prec):
         regle.context.setref(regle.stock_param.pushcontext(prec.context))
     if regle.niveau < prec.niveau:
         for i in range(prec.niveau - regle.niveau):
-            context=regle.stock_param.popcontext()
+            context=regle.stock_param.popcontext(typecheck='C')
         regle.context.setref(context)
 
 
@@ -547,14 +547,9 @@ def prepare_regle(regle, prec=None):
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     regles_liees(regle, v_nommees["sel1"])
-    print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
+    # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
     if prec:
         ajuste_contexte(regle,prec)
-    # if  prec and regle.niveau > prec.niveau:
-    #     regle.context.setref(regle.stock_param.pushcontext(prec.context))
-    # if prec and regle.niveau < prec.niveau:
-    #     regle.context.setref(regle.stock_param.popcontext())
-
 
 
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
@@ -804,12 +799,12 @@ def traite_regle_std(
         if regles: # contextes dans le systeme de blocs
             prec=regles[-1]
             if r_cour.ebloc ==1:
-                mapper.pushcontext(r_cour.context) # devient le contexte de reference
-                print ("bloc",r_cour.ebloc,r_cour.context)
+                mapper.pushcontext(r_cour.context,type_c='B') # devient le contexte de reference
+                # print ("bloc",r_cour.ebloc,r_cour.context)
             elif r_cour.ebloc ==-1:
-                mapper.popcontext() # on depile
+                mapper.popcontext(typecheck='B') # on depile
             if prec.bloc:
-                print ("bloc",r_cour.ebloc,r_cour.context)
+                # print ("bloc",r_cour.ebloc,r_cour.context)
                 r_cour.context.setref(mapper.cur_context)
 
         regles.append(r_cour)
@@ -854,6 +849,7 @@ def prepare_env(mapper, texte:str, fichier_regles):
     #            print("lecture de regles incluses", inclus,pps)
     return inclus, context, macro
 
+
 def execute_macro(mapper, texte, context, fichier_regles):
     '''lance une macro en one shot'''
     print ('preparation macro', texte,context)
@@ -871,27 +867,20 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     else:
         prec = mapper.regles[-1] if mapper.regles else None
     nivmacro = len(niveau)
-    if prec and nivmacro > prec.niveau:
-        mapper.pushcontext(prec.context)
-    if prec and nivmacro < prec.niveau:
-        # print ('macro:pop', prec.niveau-nivmacro,mapper.cur_context,mapper.contextstack)
-        for i in range(prec.niveau-nivmacro):
-            # print('pop',mapper.cur_context,mapper.contextstack)
-            mapper.popcontext()
+    if prec:
+        if nivmacro != prec.niveau:
+            # on ajoute une regle virtuelle pour ajuster les niveaux
+            rvirt=niveau+';;;;;;;pass;;;;'
+            traite_regle_std(mapper,0,rvirt,rvirt,'',0,regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, ismacro = prepare_env(mapper, texte, fichier_regles)
     if macroenv.getlocal('debug'):
         print ('debug macro:',context, texte, '->',inclus,macroenv.vlocales)
     macro = mapper.macros.get(inclus)
     if macro:
-        liste_regles = macro.get_commands()
-        print ("contexte avant macro",mapper.contextstack)
-
-        erreurs = lire_regles_csv(mapper,'', liste_regles=liste_regles, niveau=niveau, regle_ref=regle_ref)
+        erreurs = lire_regles_csv(mapper,'', liste_regles=macro.get_commands(), niveau=niveau, regle_ref=regle_ref)
         if ismacro:
-            print ("contexte apres macro", mapper.contextstack)
-
-            mapper.popcontext() # on depile un contexte
+            mapper.popcontext(typecheck='M') # on depile un contexte
     else:
         erreurs = 1
     return erreurs
@@ -933,7 +922,6 @@ def lire_regles_csv(
     # print('regles lues:\n'+'\n'.join((str(i) for i in liste_regles)))
     bloc = 0
     for defligne in liste_regles[:]:
-        print ('traitement regle', defligne)
         #        numero, texte = defligne
         numero, texte, texte_brut = prepare_texte(defligne)
         context =  mapper.cur_context
@@ -966,6 +954,7 @@ def lire_regles_csv(
         if not texte:
             continue
         # enregistrement d'une macro
+        # print ('traitement regle', texte_brut)
 
         if texte.startswith("&&#define"):
             macro = initmacro(mapper, texte, fichier_regles)
@@ -1014,7 +1003,7 @@ def lire_regles_csv(
             mapper.macrorunner(texte[2:])
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             # print ('avant macro',texte, context, context.getvar('atts'))
-
+            # on transforme ca en appel call
             erreurs += importe_macro(mapper, texte, context, fichier_regles, regle_ref=regle_ref)
             if erreurs:
                 print("erreur chargement macro", texte)

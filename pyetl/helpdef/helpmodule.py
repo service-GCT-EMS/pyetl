@@ -9,6 +9,18 @@ module d'aide
 #    return
 
 
+def decription_pattern(pattern, description):
+    """formatte la description des parametres d'entree"""
+    patdef = pattern.split(";")
+    patdesc = ";".join(description).split(";")
+    retour = [
+        "%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else ""))
+        for i, j in zip([i for i in patdef if i], patdesc)
+    ]
+    # print ('description',[i for i in patdef if i], patdesc,retour)
+    return retour
+
+
 def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
@@ -37,13 +49,24 @@ def print_help(mapper, nom):
                             variante.description.get("#aide_spec", [""])[0],
                         )
                     )
-                    print("%s" % (variante.description.get("#parametres",[""])))
                     for i in variante.description.get("#aide_spec", [""])[1:]:
                         print("%-20s: %s" % ("", i))
-                for i in sorted(variante.description):
-                    pnum = variante.patternnum
-                    if "#aide_spec" + pnum in i and i != "#aide_spec":
-                        print("%-20s: %s" % ("", variante.description.get(i)[0]))
+                    for i in sorted(variante.description):
+                        pnum = variante.patternnum
+                        if "#aide_spec" + pnum in i and i != "#aide_spec":
+                            print("%-20s: %s" % ("", variante.description.get(i)[0]))
+                    if variante.description.get("#parametres"):
+                        print(
+                            "\n".join(
+                                decription_pattern(
+                                    variante.pattern,
+                                    variante.description.get("#parametres"),
+                                )
+                            )
+                        )
+                        # print("%s" % "\n".join(variante.description.get("#parametres")))
+
+
 
         elif nom == "selecteurs":
             print_aide_selecteurs(mapper)

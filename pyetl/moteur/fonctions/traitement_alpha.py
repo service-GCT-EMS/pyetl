@@ -43,25 +43,24 @@ from .outils import compilefonc, charge_mapping
 
 def f_setliste(regle, obj):
     """#aide||affectation d'un ensemble d'attributs
-       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #aide_spec||remplacement d'une liste de valeurs d'attribut avec defaut
+       #parametres||liste de sortie;liste de defauts;liste d'entree
        #pattern||M;?LC;?L;set;;||sortie
        #test1||obj||^V4,V5;;C1,C2;set||atv;V4;AB
        #test2||obj||^V4,V5;;C1,C2;set||atv;V5;BCD
     """
     #    print ("dans setliste", regle.ligne,regle.params.att_sortie, regle.params.att_entree)
-    #    regle.fstore(regle.params.att_sortie, obj,
-    #                 [obj.attributs.get(i, j)
-    #                  for i, j in itertools.zip_longest(regle.params.att_entree.liste,
-    #                                                    regle.params.val_entree.liste)])
     regle.setval_sortie(obj, regle.getlist_entree(obj))
     return True
 
 def f_setmatch_liste(regle, obj):
     """#aide||affectation d un attribut
-       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #aide_spec||remplacement d'une valeur d'attribut par les valeurs retenues dans la selection
+       ||par expression regulieres (recupere les groupes de selections)
        #pattern||M;;;set;=match;||sortie
-       #test1||obj||^V4;;C1;set||atv;V4;AB
-       #test2||obj||^V4;1;X;set||atv;V4;1
+    #parametres||liste de sortie
+       #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
+       #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
     """
     # print ('regle.match',regle.match )
     regle.setval_sortie(obj, regle.matchlist)
@@ -76,6 +75,7 @@ def f_setval(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
        #pattern||S;?;?A;set;;||sortie
+    #parametres||attribut de sortie;defaut;attribut d'entree
        #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
     """
@@ -84,12 +84,12 @@ def f_setval(regle, obj):
 
 def f_setmatch(regle, obj):
     """#aide||affectation d un attribut
-       #aide_spec||remplacement d'une valeur d'attribut avec defaut
+       #aide_spec||remplacement d'une valeur d'attribut par les valeurs retenues dans la selection
+       ||par expression regulieres (recupere toute la selection)
        #pattern||S;;;set;=match;||sortie
-       #test1||obj||^V4;;C1;set||atv;V4;AB
-       #test2||obj||^V4;1;X;set||atv;V4;1
+    #parametres||attribut de sortie
+       #test1||obj||^X;BCDXX;;set;||X;re:(.)C(.);;;V4;;;set;match||atv;V4;BCD
     """
-    # print ('regle.match',regle.match )
     regle.setval_sortie(obj, regle.match)
     return True
 
@@ -103,10 +103,14 @@ def h_setschema(regle):
 
 def f_setschema(regle, obj):
     """#aide||affectation d un schema en adaptant la casse des attributs du schema a l'objet
-  #aide_spec||remplacement d'une valeur d'attribut avec defaut
+  #aide_spec||change le schema de reference d'un objet
+ #parametres||#schema (mot clef);valeur par defaut;attribut d'entree;;
      #helper||setval
-    #pattern||=#schema;?;?A;set;?=maj;||sortie
+   #pattern1||=#schema;?;?A;set;?=maj;||sortie
+ #aide_spec1||passe en majuscule
    #pattern2||=#schema;?;?A;set;?=min;||sortie
+ #aide_spec2||passe en minuscule
+
     """
     obj.attributs["#schema"] = regle.get_entree(obj)
     return True
@@ -117,6 +121,7 @@ def f_setgeom(regle, obj):
   #aide_spec||cree une geometrie texte
      #helper||setval
     #pattern||=#geom;?;?A;set;C;N||sortie
+ #parametres||#geom (mot clef);valeur par defaut;attribut d'entree;;format;dimension
       #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;
             ||^;;;geom||atv;#type_geom;2
       #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
@@ -206,6 +211,8 @@ def h_setcalc(regle):
 def f_setcalc(regle, obj):
     """#aide||remplacement d une valeur
         #aide_spec||fonction de calcul libre (attention injection de code)
+        || les attributs doivent etre précédes de N: pour un traitement numerique
+        || ou C: pour un traitement alpha
         #pattern||S;;NC:;set;;
         #test1||obj||^V4;;N:V1+1;set||atn;V4;13
     """
@@ -216,11 +223,7 @@ def f_setcalc(regle, obj):
 def h_setself(regle):
     """helper generique permettant de gerer les cas ou entree = sortie"""
     #    print("helper self",regle)
-    #    regle.params.att_ref = regle.params.att_entree if regle.params.att_entree.val\
-    #                                                      else regle.params.att_sortie
     regle.selset = set(regle.params.att_ref.liste)
-
-
 #    print ('selset',regle.selset)
 
 
@@ -231,16 +234,13 @@ def f_upper(regle, obj):
         #test1||obj||^V4;a;;set||^V4;;V4;upper||atv;V4;A
 
     """
-    #    regle.fstore(regle.params.att_sortie, obj,
-    #                 obj.attributs.get(regle.params.att_entree.val,
-    #                                   regle.params.val_entree.val).upper())
     regle.setval_sortie(obj, regle.getval_entree(obj).upper())
     return True
 
 
 def f_upper2(regle, obj):
     """#aide||remplacement d une valeur
-        #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en majuscule
+        #aide_spec||passage en majuscule d'un attribut ( avec defaut eventuel)
         #pattern||A;?;;upper||sortie||50
         #pattern2||;?;A;upper||sortie||50
         #schema||ajout_attribut

@@ -305,6 +305,7 @@ def f_retour(regle, obj):
 def h_bloc(regle):
     """initialise le compteur de blocs"""
     regle.ebloc = 1
+    regle.context.type_c='B'
 
 
 def f_bloc(*_):
@@ -343,13 +344,15 @@ def h_callmacro(regle):
     # print("callmacro commande:", commande,regle.params.cmp2.val)
     # print("regle.context.atts:",regle.context.getvar('atts'))
     mapper.pushcontext(regle.context)
+    # print ('contexte macro', mapper.cur_context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)
     if regle.liste_regles:
         if regle.call: # la on applatit
             regle.liste_regles[-1]._return = True
         else:
             mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
-    mapper.popcontext()
+    # print ('contexte apres macro', mapper.cur_context)
+    mapper.popcontext(typecheck='C')
     return erreurs
 
 

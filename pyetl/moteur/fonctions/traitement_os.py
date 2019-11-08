@@ -19,7 +19,7 @@ import win32security
 
 from pyetl.formats.mdbaccess import dbaccess
 from pyetl.formats.generic_io import Writer
-from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch
+from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch, getfichs
 
 
 LOGGER = logging.getLogger("pyetl")
@@ -268,7 +268,24 @@ def f_adquery(regle,obj):
 
 def f_listefich(regle,obj):
     """#aide genere un objet par fichier repondant aux criteres d'entree
-    #pattern||;?C;?A;listefich;;
+    #pattern||S;?C;?A;listefich;?C;
     """
     if regle.get_entree(obj):
-        fichs = getfichs(regle,obj)
+        classe = regle.params.cmp1.val or obj.attributs.get('#classe')
+        traite_objet = regle.stock_param.traite_objets
+        for fich in getfichs(regle,obj):
+            nouveau = obj.dupplique()
+            nouveau.attributs['#classe'] = classe
+            regle.setval_sortie(nouveau,fich)
+            traite_objets(nouveau)
+        return True
+    return False
+
+def sel_isfile(selecteur, obj):
+    """#aide||tesste si un fichier existe
+       #pattern||=is:file;[A]||1
+       #pattern2||=is:file;C||1
+       #test||obj||^;;;virtuel||^?;;;reel||;is:virtuel;;;C1;1;;set||^;;;reel||atv;C1;1
+
+    """
+    return os.path.isfile(obj.attributs[selecteur.params.val.val])
