@@ -30,10 +30,20 @@ def print_help(mapper, nom):
             print("%-15s: %s" % (nom, macro.help[:-1]))
             if macro.vpos:
                 print("parametres:", macro.vpos[0])
-                for i in macro.vpos[1:]:
-                    print("            %s" % (i))
+                desc_pp=";".join(macro.parametres_pos).split(";")
+                if desc_pp:
+                    for i ,j in zip(macro.vpos[1:],desc_pp):
+                        print("            %10s :%s" % (i,j))
+                else:
+                    for i in zip(macro.vpos[1:],desc_pp):
+                        print("            %s" % (i))
             for i in macro.help_detaillee:
                 print("%16s   %s" % ("", i[:-1]))
+            if macro.vars_utilisees:
+                print ("variables utilisees")
+                for i in macro.vars_utilisees:
+                    print("%16s   %s" % ("", i[:-1]))
+
 
         elif nom in mapper.commandes:
             print("aide commande :", nom)
