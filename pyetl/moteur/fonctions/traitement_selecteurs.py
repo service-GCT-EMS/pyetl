@@ -428,6 +428,7 @@ def sel_pregex(selecteur, _):
     #pattern||P;re||100
       #test1||obj||^P:AA;1;;set||^?P:AA;0;;set||P:AA;1;;;res;1;;set||atv;res;1
     """
+    # print ('------------------------------pregex',selecteur.params.attr.val,'->',selecteur.regle.getvar(selecteur.params.attr.val))
     return selecteur.fselect(selecteur.regle.getvar(selecteur.params.attr.val))
 
 
@@ -669,7 +670,7 @@ def sel_is_type_geom(selecteur, obj):
 
 def selh_is_date(selecteur):
     """prepare les selecteurs"""
-    selecteur.vref = "O" if selecteur.pattern in "23" else "T"
+    selecteur.vref = "O" if selecteur.params.pattern in "23" else "T"
 
 
 def sel_is_date(selecteur, obj):
@@ -690,7 +691,7 @@ def sel_is_date(selecteur, obj):
     #test||obj;point;1||^X;2005-11-10;;set||^?X;2005-11-11;;set||^Y;2;;set;
          ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
     """
-    if selecteur.pattern=="1" or selecteur.pattern=="3":
+    if selecteur.params.pattern=="1" or selecteur.params.pattern=="3":
         dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
     else:
         dateref = selecteur.params.vals.val
@@ -699,7 +700,7 @@ def sel_is_date(selecteur, obj):
         date = time.strptime(datedesc,"%Y-%m-%d")
     else:
         date = time.localtime()
-    # print ("comparaison temps", date, dateref,selecteur.pattern)
+    # print ("comparaison temps", date, dateref,selecteur.params.pattern)
 
     if dateref == 'X':
         return False
@@ -750,8 +751,8 @@ def sel_is_date(selecteur, obj):
 
 def selh_is_time(selecteur):
     """prepare les selecteurs"""
-    selecteur.vref = "O" if selecteur.pattern in "23" else "T"
-    if not selecteur.pattern or selecteur.pattern=="2":
+    selecteur.vref = "O" if selecteur.params.pattern in "23" else "T"
+    if not selecteur.params.pattern or selecteur.params.pattern=="2":
         pass
 
 
@@ -772,7 +773,7 @@ def sel_is_time(selecteur, obj):
          ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
     """
     # print ("================================patern ref",selecteur.pattern)
-    if selecteur.pattern=="1" or selecteur.pattern=="3":
+    if selecteur.params.pattern=="1" or selecteur.params.pattern=="3":
         timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
     else:
         timeref = selecteur.params.vals.val
@@ -786,7 +787,7 @@ def sel_is_time(selecteur, obj):
         heures= temps.tm_hour
         minutes= temps.tm_min
 
-    # print ("comparaison temps", heures,minutes,timeref,selecteur.params.vals.val,selecteur.pattern)
+    # print ("comparaison temps", heures,minutes,timeref,selecteur.params.vals.val,selecteur.params.pattern)
 
     if timeref == 'X':
         return False

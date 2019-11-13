@@ -93,7 +93,6 @@ class Selecteur(object):
         self.select = self.selneg if negatif else self.selpos
         self.info = dict()
         self.params = None
-        self.pattern = ""
 
     @staticmethod
     def true(*_):
@@ -115,9 +114,9 @@ class Selecteur(object):
         #        print (" dans select ",self.ligne, obj)
         return not self.fonction(self, obj)
 
-    def setparams(self, elements, definition):
+    def setparams(self, elements, definition, pnum):
         """positionne les parametres standard"""
-        self.params = ParametresSelecteur(elements, definition)
+        self.params = ParametresSelecteur(elements, definition, pnum)
 
 
 def choix_fonction_select(attribut, valeur, regle):
@@ -149,8 +148,8 @@ def choix_fonction_select(attribut, valeur, regle):
                     candidat.helper,
                     erreurs,
                 )
-            select.setparams(elements, candidat.definition)
-            select.pattern = candidat.patternnum
+            select.setparams(elements, candidat.definition, candidat.patternnum)
+            # select.pattern = candidat.patternnum
             for fhelp in candidat.helper:
                 fhelp(select)
             select.fonction = candidat.work
@@ -303,11 +302,13 @@ def printelements(elements):
 def validepattern(regle, definition):
     """validation de la signature d'une fonction"""
     # print (definition)
+    elements={None}
     try:
         elements = {i: definition[i].match(regle.v_nommees[i]) for i in definition}
         # print ('elements',elements)
     except KeyError:
         print("definition erronnee", regle.ligne, definition)
+        elements={None}
     valide = None not in elements.values()
     explication = [
         i + ":" + definition[i].pattern + "<>" + regle.v_nommees[i]
@@ -389,6 +390,7 @@ def identifie_operation(regle):
             valide, elements, erreurs = validepattern(regle, fonc.definition)
             #            print( 'recherche pattern',fonc.nom,erreurs)
             definition = fonc.definition
+            patternnum = fonc.patternnum
             if valide:
                 break
     if not valide:
@@ -403,7 +405,7 @@ def identifie_operation(regle):
             if not regle.fstore:
                 afficher_erreurs(regle, fonc, "fonction de sortie non valide")
         #        print ("regle.setparams", regle.elements, definition)
-        regle.setparams(regle.elements, definition)
+        regle.setparams(regle.elements, definition, patternnum)
         regle.valide = valide
         if valide:
             traite_helpers(regle, fonc)

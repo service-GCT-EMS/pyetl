@@ -99,7 +99,7 @@ class ParametresFonction(object):
 
     #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
 
-    def __init__(self, valeurs, definition):
+    def __init__(self, valeurs, definition, pnum):
         self.valeurs = valeurs
         self.definitions = definition
         self.att_sortie = self._crent("sortie")
@@ -111,6 +111,7 @@ class ParametresFonction(object):
         self.cmp2 = self._crent("cmp2")
         self.specif = dict()
         self.fstore = None
+        self.pattern = pnum
         self.att_ref = self.att_entree if self.att_entree.val else self.att_sortie
 
     def _crent(self, nom, taille=0):
@@ -165,7 +166,7 @@ class ParametresFonction(object):
             "cmp1:%s" % (str(self.cmp1)),
             "cmp2:%s" % (str(self.cmp2)),
         ]
-        return "\t" + "\n\t".join(listev)
+        return "\t" + "\n\t".join(listev) + '\n\tidcommand: pattern'+self.pattern
 
     def _compact(self):
         return ';%s;%s;%s;...;%s;%s;'%(self.att_sortie.val,
@@ -177,17 +178,18 @@ class ParametresFonction(object):
 class ParametresSelecteur(ParametresFonction):
     """stockage des parametres des selecteurs"""
 
-    def __init__(self, valeurs, definition):
+    def __init__(self, valeurs, definition, pnum):
         #        print ('creation param selecteur', valeurs, definition)
         self.valeurs = valeurs
         self.definitions = definition
         self.attr = self._crent("attr")
         self.vals = self._crent("vals")
         self.specif = dict()
+        self.pattern = pnum
 
     def __repr__(self):
         listev = ["attr:%s" % (str(self.attr)), "vals:%s" % (str(self.vals))]
-        return "\n\t".join(listev)
+        return "\n\t".join(listev)+ '\n\tidcommand: pattern'+self.pattern
 
 
 class RegleTraitement(object):  # regle de mapping
@@ -274,9 +276,9 @@ class RegleTraitement(object):  # regle de mapping
             )
         return "regle vide"
 
-    def setparams(self, valeurs, definition):
+    def setparams(self, valeurs, definition, pnum):
         """positionne les parametres """
-        self.params = ParametresFonction(valeurs, definition)
+        self.params = ParametresFonction(valeurs, definition, pnum)
 
     def ftrue(self, *_):
         """ toujours vrai  pour les expressions sans conditions"""

@@ -57,7 +57,7 @@ is:reel;;;;;;;next;;;;;#on sort les objets sur la sortie next
 !===========================================================================================;;;;;;;;;;
 &&#define;#ptv;nom;valeur;;;;;;;;# teste l'existance d'un parametre
 P:%nom%;^%valeur%$;;;;;;retour;test ok:;noms;
-+sinon:;;;;;%nom%;;retour;test ko:;noms;
++sinon:;;;;;%%nom%%;;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
 &&#define;#end;;;;;;;;;;

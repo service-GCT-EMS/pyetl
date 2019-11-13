@@ -6,7 +6,7 @@ Created on Fri Dec 11 14:34:04 2015
 fonctions de manipulation d'attributs
 
 # description des patterns pour les attributs :
-# chaque pattern cmprend 5 champs sous la forme:
+# chaque pattern comprend 5 champs sous la forme:
 # C1,C2,C3,C4,C5,C6
 # C1) sortie A : attribut
 #           L : liste
@@ -140,7 +140,7 @@ def f_setgeom(regle, obj):
 
 def h_setnonvide(regle):
     """ pour repl_c il faut mettre en forme la liste """
-    regle.params.att_entree.liste.pop()  # on vide la liste pour la recreer
+    regle.params.att_entree.liste=[]  # on vide la liste pour la recreer
     regle.params.att_entree.liste.extend(regle.params.att_entree.val.split("|"))
 
 

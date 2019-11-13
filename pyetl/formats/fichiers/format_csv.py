@@ -201,11 +201,6 @@ class CsvWriter(FileWriter):
         if obj.virtuel:
             return False  #  les objets virtuels ne sont pas sortis
         attributs = self.prepare_attributs(obj)
-        # atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
-        #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
-        #                obj.geomnatif, obj.type_geom)
-        #        print ('orig',obj.attributs)
-        # attributs = self.separ.join((i if i else self.null for i in atlist))
         if self.type_geom != "0":
             if obj.format_natif == "#ewkt" and obj.geomnatif:  # on a pas change la geometrie
                 geom = obj.attributs['#geom']

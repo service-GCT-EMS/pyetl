@@ -74,7 +74,10 @@ def print_help(mapper, nom):
                                 )
                             )
                         )
-                        # print("%s" % "\n".join(variante.description.get("#parametres")))
+                    if variante.description.get("#variables"):
+                        for i in variante.description.get("#variables", [""]):
+                            print("%-20s: %s" % ("", i))
+                            # print("%s" % "\n".join(variante.description.get("#parametres")))
 
 
 
