@@ -26,28 +26,33 @@ from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_ba
 
 LOGGER = logging.getLogger("pyetl")
 
+
+def commandrunner(regle, chaine):
+    """execute une commande et renvoie eventuellement le resultat"""
+    # print ("commandrunner",regle.params)
+    # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
+    chaine = regle.params.cmp1.val+" "+ chaine
+    if regle.params.att_sortie.val:
+        fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
+        retour = fini.stdout+fini.stderr
+        if retour.endswith("\n"):
+            retour = retour[:-1]
+        return retour
+    else:
+        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding)
+        return None
+
+
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding=regle.getvar('console_encoding','CP850')
-    if regle.params.att_entree.val or regle.params.val_entree.val:
-        # print ('retour run par obj', regle, regle.params)
+    if regle.params.pattern=="1":
         return
     if regle.runscope():  # on voit si on doit l'executer
-        chaine = " ".join((regle.params.cmp1.val, regle.params.cmp2.val))
-        # print("lancement ", chaine)
+        retour=commandrunner(regle, regle.params.cmp2.val)
         if regle.params.att_sortie.val:
-            fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
-            retour = fini.stdout+fini.stderr
-            # print ('retour',retour, len(retour), ord(retour[-1]))
-            if retour.endswith("\n"):
-                retour = retour[:-1]
-            # print ('retour',retour, len(retour))
             regle.setvar(regle.params.att_sortie.val, retour)
-            # print ('affectation ',regle.params.att_sortie.val, retour, regle.params)
-        else:
-            fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding)
-
-    print ('retour run : done')
+    print ('retour run : done',retour)
     regle.valide = "done"
 
 
@@ -65,19 +70,12 @@ def f_run(regle, obj):
      #test1||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     if regle.runscope():  # on voit si on doit l'executer
-        chaine = " ".join((regle.params.cmp1.val, regle.getval_entree(obj)))
-        fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
+        retour=commandrunner(regle, regle.getval_entree(obj))
         if regle.params.att_sortie.val:
-            retour = fini.stdout+fini.stderr
-            if retour.endswith("\n"):
-                retour = retour[:-1]
-            # print ('retour',retour, len(retour), ord(retour[-1]))
             obj.attributs[regle.params.att_sortie.val] = retour
-            return True
-        else:
-            fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding)
-            return True
+        return True
     return False
+
 
 def h_filerename(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
@@ -98,10 +96,19 @@ def h_filerename(regle):
 
 def f_filerename(regle, obj):
     """#aide||renomme un fichier
-  #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
-    #pattern||;;;os_ren;C;C
-    #pattern2||A;;A;os_ren;?C;?C
-    """
+   #pattern1||;;;os_ren;C;C
+ #aide_spec1||execution unique au demarrage
+#parametres1||nom destination;nom d origine
+ #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+   #pattern2||A;;A;os_ren;?C;?C
+ #aide_spec2||execution pour chaque objet
+#parametres2||nom destination,nom d origine;chemin destination;chemin origine
+       #test||obj||;;;os_copy;%testrep%/refdata/liste.csv;%testwriterep%||
+            ||^;;;os_rename;liste2.csv;%testwriterep%/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;X;1;;set||atv:X:1
+
+   """
     try:
         os.rename(os.path.join(regle.chemin_orig,regle.params.att_entree.val),
                     os.path.join(regle.chemin_final,regle.params.att_sortie.val))
