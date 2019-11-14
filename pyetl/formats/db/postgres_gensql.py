@@ -271,6 +271,8 @@ class PgrGenSql(DbGenSql):
                 fks.append("\t\tON DELETE SET DEFAULT")
             elif 'ur' in props:
                 fks.append("\t\tON DELETE RESTRICT")
+            elif 'ua' in props:
+                fks.append("\t\tON DELETE NO ACTION")
             if 'dc' in props:
                 fks.append("\t\tON DELETE CASCADE")
             elif 'dn' in props:
@@ -279,6 +281,8 @@ class PgrGenSql(DbGenSql):
                 fks.append("\t\tON DELETE SET DEFAULT")
             elif 'dr' in props:
                 fks.append("\t\tON DELETE RESTRICT")
+            elif 'da' in props:
+                fks.append("\t\tON DELETE NO ACTION")
             fks.append(
                 "\t\tDEFERRABLE INITIALLY DEFERRED; " if "defer" in props else "\t\tNOT DEFERRABLE;"
             )

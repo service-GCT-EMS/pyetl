@@ -736,22 +736,22 @@ def affecte_variable(commande, context):
 
     if not nom:
         raise SyntaxError('affectation impossible '+ commande_orig+'->'+repr(commande))
-    set = context.setvar
+    setter = context.setvar
     if nom.startswith("$"): # $$X variable globale
         nom=nom[1:]
-        set = context.setroot
+        setter = context.setroot
     elif nom.startswith("-"): # $-X variable locale
         nom=nom[1:]
-        set = context.setlocal
+        setter = context.setlocal
     elif nom.startswith("*"): # $*X variable retour
         nom=nom[1:]
-        set = context.setretour
+        setter = context.setretour
     elif nom.startswith("!"): # $*X variable retour
         nom=nom[1:]
-        set = context.setretour_env
+        setter = context.setretour_env
     else:
-        set(nom, valeur)
-    # print ('affectation variable',commande, set, nom,"=", valeur)
+        setter(nom, valeur)
+    # print ('affectation variable',commande, setter, nom,"=", valeur)
 
 
 def prepare_texte(defligne):

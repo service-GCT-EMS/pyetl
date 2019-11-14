@@ -29,8 +29,8 @@ LOGGER = logging.getLogger("pyetl")
 
 def commandrunner(regle, chaine):
     """execute une commande et renvoie eventuellement le resultat"""
-    # print ("commandrunner",regle.params)
-    # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
+    print ("commandrunner",regle.params)
+    print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
     chaine = regle.params.cmp1.val+" "+ chaine
     if regle.params.att_sortie.val:
         fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
@@ -46,13 +46,14 @@ def commandrunner(regle, chaine):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding=regle.getvar('console_encoding','CP850')
+    print('---------hrun', regle.runscope(),regle,regle.params.pattern)
     if regle.params.pattern=="1":
         return
     if regle.runscope():  # on voit si on doit l'executer
         retour=commandrunner(regle, regle.params.cmp2.val)
         if regle.params.att_sortie.val:
             regle.setvar(regle.params.att_sortie.val, retour)
-    print ('retour run : done',retour)
+    # print ('retour run : done',retour)
     regle.valide = "done"
 
 
@@ -67,7 +68,8 @@ def f_run(regle, obj):
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
      #schema||ajout_attribut
      #test||obj||^P:aaa;;;run;echo;tété;||ptv:aaa:tété
-     #test1||obj||^X;toto;;run;echo;;||atv:X:toto
+     #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
+     #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     if regle.runscope():  # on voit si on doit l'executer
         retour=commandrunner(regle, regle.getval_entree(obj))
@@ -104,8 +106,9 @@ def f_filerename(regle, obj):
    #pattern2||A;;A;os_ren;?C;?C
  #aide_spec2||execution pour chaque objet
 #parametres2||nom destination,nom d origine;chemin destination;chemin origine
-       #test||obj||;;;os_copy;%testrep%/refdata/liste.csv;%testwriterep%||
-            ||^;;;os_rename;liste2.csv;%testwriterep%/liste.csv||
+   #req_test||testwriterep
+       #test||obj||^;;;os_copy;%testrep%/refdata/liste.csv;%testwriterep%||
+            ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
             ||is:file;%testwriterep%/liste2.csv;;X;1;;set||atv:X:1
 
    """
@@ -122,7 +125,7 @@ def f_filecopy(regle, obj):
     #pattern||;;;os_copy;C;C
     #pattern2||A;;A;os_copy;?C;?C
     #helper||filerename
-    #req_test||testdir
+    #req_test||testwriterep
     """
     try:
         shutil.copy2(os.path.join(regle.chemin_orig,regle.params.att_entree.val),

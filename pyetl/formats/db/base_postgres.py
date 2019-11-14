@@ -269,7 +269,7 @@ class PgrConnect(DbConnect):
 
     def _def_vues(self):
         return {
-            (i[0], i[1]): (i[2], i[3]) for i in self.request(self.requetes["info_vues"])
+            (i[0], i[1]): (i[2], str(i[3])) for i in self.request(self.requetes["info_vues"])
         }
 
     def _def_fonctions_trigger(self):
@@ -302,7 +302,7 @@ class PgrConnect(DbConnect):
             ident = (i[0], i[1])
             if ident not in def_trigg:
                 def_trigg[ident] = dict()
-            definition = i[3:]
+            definition = list((str(j) for j in i[3:]))
             nom = i[2]
             def_trigg[ident][nom] = definition
         return def_trigg

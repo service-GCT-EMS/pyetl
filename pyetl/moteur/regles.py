@@ -273,6 +273,11 @@ class RegleTraitement(object):  # regle de mapping
                 +str(self.numero)
                 + ":"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
+                +'->'
+                +self.params._compact()
+                +'('
+                +repr(self.context)
+                +')'
             )
         return "regle vide"
 

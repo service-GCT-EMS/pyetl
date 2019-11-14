@@ -162,7 +162,7 @@ class Moteur(object):
 
             except Exception as exc:
                 print("==========erreur de traitement non gérée")
-                print("====regle courante:", regle,'->',regle.params._compact() )
+                print("====regle courante:", regle)
                 if regle.stock_param.worker:
                     print("====mode parallele: process :", regle.getvar('_wid'))
                 printexception()
