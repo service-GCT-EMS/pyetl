@@ -361,6 +361,7 @@ def _ecrire_point_asc(geom):
         return code, chaine
     except ValueError:
         print("erreur ecriture point", geom.coords, dim)
+        return ';0 ',""
 
 
 def format_date(date):

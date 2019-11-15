@@ -2,6 +2,7 @@
 """moteur de traitement principal : gere l'enchainement des regles """
 import logging
 import re
+import typing as T
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion
 from .fonctions.outils import printexception
 
@@ -334,9 +335,7 @@ class Context(object):
 
 
 
-
-
-    def resolve(self, element:str)->str:
+    def resolve(self, element:str)->T.Tuple[str, str]:
         '''effectue le remplacement de variables'''
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]),element[2:-1]

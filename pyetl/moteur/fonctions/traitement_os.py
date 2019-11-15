@@ -29,8 +29,8 @@ LOGGER = logging.getLogger("pyetl")
 
 def commandrunner(regle, chaine):
     """execute une commande et renvoie eventuellement le resultat"""
-    print ("commandrunner",regle.params)
-    print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
+    # print ("commandrunner",regle.params)
+    # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
     chaine = regle.params.cmp1.val+" "+ chaine
     if regle.params.att_sortie.val:
         fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
@@ -46,7 +46,8 @@ def commandrunner(regle, chaine):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding=regle.getvar('console_encoding','CP850')
-    print('---------hrun', regle.runscope(),regle,regle.params.pattern)
+    # print('---------hrun', regle.runscope(),regle,regle.params.pattern)
+    # print('valeurs parametres', regle.getvar('import'))
     if regle.params.pattern=="1":
         return
     if regle.runscope():  # on voit si on doit l'executer
@@ -60,7 +61,7 @@ def h_run(regle):
 def f_run(regle, obj):
     """#aide||execute une commande externe
    #pattern1||?A;?C;?A;run;C
-   #pattern3||?P;;;run;C;?C
+   #pattern3||P;;;run;C;?C
  #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
  #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
 #parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres
@@ -99,11 +100,11 @@ def h_filerename(regle):
 def f_filerename(regle, obj):
     """#aide||renomme un fichier
    #pattern1||;;;os_ren;C;C
+   #pattern2||A;;A;os_ren;?C;?C
  #aide_spec1||execution unique au demarrage
 #parametres1||nom destination;nom d origine
  #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
-   #pattern2||A;;A;os_ren;?C;?C
  #aide_spec2||execution pour chaque objet
 #parametres2||nom destination,nom d origine;chemin destination;chemin origine
    #req_test||testwriterep
@@ -120,10 +121,16 @@ def f_filerename(regle, obj):
         return False
 
 def f_filecopy(regle, obj):
-    """#aide||renomme un fichier
+    """#aide||copie un fichier
   #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
     #pattern||;;;os_copy;C;C
     #pattern2||A;;A;os_copy;?C;?C
+ #aide_spec1||execution unique au demarrage
+#parametres1||nom destination;nom d origine
+ #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+ #aide_spec2||execution pour chaque objet
+#parametres2||nom destination,nom d origine;chemin destination;chemin origine
     #helper||filerename
     #req_test||testwriterep
     """
@@ -135,11 +142,19 @@ def f_filecopy(regle, obj):
         return False
 
 def f_filemove(regle, obj):
-    """#aide||renomme un fichier
+    """#aide||deplace un fichier
   #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
     #pattern||;;;os_move;C;C
-    #pattern2||A;;A;os_move;?C;?C
-    #helper||filerename
+   #pattern2||A;;A;os_move;?C;?C
+ #aide_spec1||execution unique au demarrage
+#parametres1||nom destination;nom d origine
+ #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+ #aide_spec2||execution pour chaque objet
+#parametres2||nom destination,nom d origine;chemin destination;chemin origine
+     #helper||filerename
+   #req_test||testwriterep
+
     """
     try:
         shutil.move(os.path.join(regle.chemin_orig,regle.params.att_entree.val),
@@ -149,10 +164,9 @@ def f_filemove(regle, obj):
         return False
 
 def f_filedel(regle, obj):
-    """#aide||renomme un fichier
-  #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
+    """#aide||supprime un fichier
     #pattern||;;;os_del;C;
-    #pattern2||;;A;os_del;?C;
+    #pattern2||;?C;A;os_del;?C;
     #helper||filerename
     """
     try:

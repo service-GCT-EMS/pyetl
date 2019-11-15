@@ -569,7 +569,7 @@ def scan_entree_2(rep=None, force_format=None, fileselect=None, filtre_entree=No
                 identifies[racine, chemin, nom] = ext
                 yield f_courant, (racine, chemin, fichier, ext)
             except KeyError:
-                non_identifies.add((racine, chemin, nom, ext))
+                non_identifies.add((chemin, nom, ext))
         valide_auxiliaires(identifies, non_identifies)
 
 

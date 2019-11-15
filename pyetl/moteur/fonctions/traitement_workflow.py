@@ -185,6 +185,7 @@ def f_abort(regle, obj):
     """
     niveau = regle.params.cmp1.val or regle.params.att_sortie.val
     message = regle.params.cmp2.val or regle.params.val_entree.val
+    LOGGER.info('stop iteration '+repr(regle))
     if message.startswith("["):
         message = obj.attributs.get(message[1:-1])
     if message:
@@ -695,7 +696,7 @@ def f_batch(regle, obj):
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
       #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
-      #test3||obj;;10||^X;#obj,#atv:V1:12;;batch;;3;||atv;X;12
+      #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;3;;z=12||atv;X;12
     """
     if regle.store:
         regle.tmpstore.append(obj)

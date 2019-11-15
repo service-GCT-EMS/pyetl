@@ -38,22 +38,26 @@ def setparallel(mapper):
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
     #    commandes, args, params, macros, env, log = parametres
-    params, macros, env, loginfo, schemas = parametres
+    if parametres:
+        params, macros, env, loginfo, schemas = parametres
+    else:
+        print ('initialisation sans parametres')
+        return (os.getpid(), False)
     mainmapper = getmainmapper()
-
     if mainmapper.loginited:
         #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
     if paralleldebug:
-        print("pyetl initworker", os.getpid(), schemas.keys())
+        print("pyetl initworker", os.getpid(), schemas.keys(), mainmapper, mainmapper.schemas)
     LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
     mainmapper.initenv(env, loginfo)
     mainmapper.loginited = True
     mainmapper.macros.update(macros)
     mainmapper.context.update(params)
-    # print ('initparallel: recuperation parametres', params, env, loginfo, schemas)
+    # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
+    # print ('initparallel: valeur de import',params.get('import'))
     integre_schemas(mainmapper.schemas, schemas)
     mainmapper.parametres_lancement = parametres
     time.sleep(1)
@@ -147,7 +151,7 @@ def endparallel(test=None):
         mainmapper.menage_final()
         succes = True
     except StopIteration:
-        nb_total, nb_fichs = mainmapper.sorties.final()
+        nb_total, nb_fichs = mainmapper.sorties.final(mainmapper.idpyetl)
         mainmapper.padd("_st_wr_fichs", nb_fichs)
         mainmapper.padd("_st_wr_objs", nb_total)
         succes = False
@@ -186,7 +190,12 @@ def parallelexec(executor, nprocs, fonction, args):
             if not i.done():
                 attente.append(i)
             else:
-                #                print ('termine',i)
+                # print ('termine',i)
+                exception = i.exception()
+                if exception:
+                    print ('retour en erreur', exception)
+                    nprocs-=1
+                    continue
                 retour_final = i.result()
                 #                print('retour pexec ',retour_final)
                 if retour_final is not None:
@@ -333,6 +342,7 @@ def traite_parallel(regle):
         raise RuntimeError
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
+        # print ('initialistaion parallele', schemas.keys())
         rinit = parallelexec(
             executor, nprocs, initparallel, (regle.context.getvars(), mapper.macros, env, None, schemas)
         )

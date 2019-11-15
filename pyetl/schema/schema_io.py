@@ -154,7 +154,7 @@ def ecrire_schema_sql(
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace("#", "_")
-    nomschema = os.path.basename(nomschema)
+    nomschema = str(os.path.basename(nomschema))
 
     #    print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
     if type_base == "basic" or type_base == "consult":
@@ -373,7 +373,6 @@ def integre_schemas(schemas, nouveaux):
     if not nouveaux:
         return
     nomschemas = set()
-    # print ('integration schemas',nouveaux)
     for nom, description in nouveaux.items():
         nomschemas.add(nom)
         tmp = SCI.init_schema(None, nom)
@@ -385,7 +384,7 @@ def integre_schemas(schemas, nouveaux):
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
-    #    print ('schemas recuperes ',nomschemas,schemas.keys())
+        # print ('schemas recuperes ',nomschemas,schemas.keys())
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids

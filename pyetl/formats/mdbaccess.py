@@ -170,6 +170,7 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
             rec = re.compile(exp_clas)
         except:  # on essaye de remplacesr les *
             lmulti = False
+            rec=None
             print("erreur de description de classe ", exp_clas)
 
         # print ('selection boucle', ren,rec,len(schema.classes))
@@ -592,7 +593,6 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
         print(
             "extalpha",
             regle_courante,
-            regle_courante.context,
             regle_courante.get_max_workers(),
             regle_courante.getvar("_wid"),
         )
@@ -959,7 +959,11 @@ def lire_requete(ident, regle_courante, parms=None, requete=''):
     base, type_base, chemin, maxobj,sortie,v_sortie = (
         parms
     )
-    connect = get_connect(regle_courante, base,'','',type_base=type_base,chemin=chemin)
+    retour = get_connect(regle_courante, base,'','',type_base=type_base,chemin=chemin)
+    if retour:
+        connect,schema,liste = retour
+    else:
+        return 0
     curs = connect.request(requete, maxobj)
 
     #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
@@ -1341,7 +1345,7 @@ def recup_donnees_req_geo(
 class DbWriter(object):
     """ ressource d'ecriture en base de donnees"""
 
-    def __init__(self, nom, liste_att=None, encoding="utf-8", stock_param=None):
+    def __init__(self, nom, liste_att=None, encoding="utf-8", regle=None):
 
         self.nom = nom
         self.liste_att = liste_att
@@ -1470,7 +1474,7 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
                 dest,
                 liste_att,
                 encoding=regle.getvar("codec_sortie", "utf-8"),
-                stock_param=regle.stock_param,
+                regle=regle,
             )
             sorties.creres(regle, dest, swr)
             ressource = sorties.get_res(regle, dest)

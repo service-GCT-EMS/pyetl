@@ -30,6 +30,8 @@ def init_schema(
     if not nom_schema: # on demande un schema temporaire
         return Schema('##tmp', origine=origine, fich=fich, defmodeconf=defmodeconf)
     #    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
+    if not mapper: # on demande un schema temporaire nomme
+        return Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
     if isinstance(modele, str):
         if modele in mapper.schemas:
             modele = mapper.schemas[modele]
@@ -182,6 +184,7 @@ class Schema(object):
         self.dbsql = None  # generateur sql
         self.alias_groupes = dict()
         self.compteurs = defaultdict(int)
+        self.stable = True
 
     def __repr__(self):
         return "schema:"+self.nom+" "+str(len(self.classes))+' classes'
