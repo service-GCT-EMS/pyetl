@@ -36,10 +36,7 @@ NOMS_CHAMPS_N = [
 ]
 
 PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
-SPLITTER_PV = re.compile(r'(?<!\\);')
-SPLITTER_V = re.compile(r'(?<!\\),')
-SPLITTER_B = re.compile(r'(?<!\\)\|')
-SPLITTER_2P = re.compile(r'(?<!\\):')
+
 # quelques fonction générales
 def fdebug(regle, obj):
     """gestion des affichages de debug"""
@@ -429,7 +426,7 @@ def afficher_erreurs(regle, fonc, message):
         print(motif, "\n".join(regle.erreurs))
     if not regle.mode:  # pas de mode en general un decalage
         print(motif, "regle vide")
-        morceaux = regle.ligne.replace("\n", "").split(";")
+        morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
         morceaux[7] = "???"
         print(motif, ";".join(morceaux))
     if regle.elements:
@@ -500,12 +497,12 @@ def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
     valeurs = regle.context.SPLITTER_PV.split(regle.ligne)
     if len(valeurs) > 11:
-        listevlocs = valeurs[11].split(',')
+        listevlocs = regle.context.SPLITTER_V.split(valeurs[11])
         regle.context.affecte(listevlocs)
 
     # print("decodage v nommees",valeurs)
     for n,v in enumerate(valeurs):
-        valeurs[n], _= regle.context.resolve(v.strip())
+        valeurs[n], _= regle.context.resolve(v)
     #("apres decodage v nommees",valeurs)
 
     if len(valeurs) <= 11:
@@ -519,6 +516,7 @@ def ajuste_contexte(regle, prec):
     if regle.niveau > prec.niveau:
         regle.context.setref(regle.stock_param.pushcontext(prec.context))
     if regle.niveau < prec.niveau:
+        context=None
         for i in range(prec.niveau - regle.niveau):
             context=regle.stock_param.popcontext(typecheck='C')
         regle.context.setref(context)
@@ -536,7 +534,7 @@ def prepare_regle(regle, prec=None):
     ndebug = 10
     if any(i in v_nommees["debug"] for i in ("debug", "print", "step")):
         vdebug = v_nommees["debug"].split(",")
-        if vdebug[-1].isnumeric():
+        if vdebug[-1].strip().isnumeric():
             ndebug = vdebug.pop()
         regle.debug = int(ndebug)
         if len(vdebug) > 1:
@@ -576,7 +574,7 @@ def prepare_regle(regle, prec=None):
                 "------>regle sans fonction",
                 regle.numero,
             )
-            morceaux = regle.ligne.replace("\n", "").split(";")
+            morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
             if len(morceaux) < 8:
                 morceaux = morceaux + [""] * 8
             morceaux[7] = "???"
@@ -643,7 +641,7 @@ def decoupe_liste_commandes(fichier_regles):
 
 def lire_commandes_en_base(mapper, fichier_regles):
     """ lit les commandes en base de donnees"""
-    defs = fichier_regles.split(":")
+    defs = mapper.context.SPLITTER_2P.split(fichier_regles)
     if len(defs) != 2:
         print(
             "erreur commande en base de donnees la commande doit" "avoir le format suivant  #db:nom"
@@ -746,11 +744,11 @@ def affecte_variable(commande, context):
     elif nom.startswith("*"): # $*X variable retour
         nom=nom[1:]
         setter = context.setretour
-    elif nom.startswith("!"): # $*X variable retour
+    elif nom.startswith("!"): # $!X variable retour environnement
         nom=nom[1:]
         setter = context.setretour_env
-    else:
-        setter(nom, valeur)
+
+    setter(nom, valeur)
     # print ('affectation variable',commande, setter, nom,"=", valeur)
 
 
@@ -828,10 +826,10 @@ def traite_regle_std(
 def prepare_env(mapper, texte:str, fichier_regles):
     '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
     # print ('mapping parametres macro', texte)
-    champs = texte.split(";")
+    context = mapper.cur_context
+    champs = context.SPLITTER_PV.split(texte)
     nom_inclus = champs[0][1:].strip()
     parametres = champs[1:]
-    context = mapper.cur_context
     cmd, *pars = context.SPLITTER_B.split(nom_inclus) if context.SPLITTER_B.search(nom_inclus) else context.SPLITTER_2P.split(nom_inclus)
     nom_inclus = cmd
     if pars:
@@ -892,7 +890,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
 
 def initmacro(mapper, texte, fichier_regles):
     """ initialise le stockage """
-    champs_macro = texte.split(";")
+    champs_macro = mapper.context.SPLITTER_PV.split(texte)
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
@@ -948,7 +946,7 @@ def lire_regles_csv(
             start += 1
 
         if texte and start:
-            defligne = (defligne[0], texte_brut.split(";", start)[1])
+            defligne = (defligne[0], mapper.context.SPLITTER_PV.split(texte_brut, start)[1])
             #        liste_val[0] = ''
             #        liste_val[1] = ''
             numero, texte, texte_brut = prepare_texte(defligne)

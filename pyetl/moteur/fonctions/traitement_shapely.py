@@ -48,8 +48,9 @@ def h_angle(regle):
 
 def f_angle(regle, obj):
     """#aide||calcule un angle de reference de l'objet
-    #aide_spec||N:N indices des pointsd a utiliser, P creation d'un point au centre
+    #aide_spec||N:N indices des point a utiliser, P creation d'un point au centre
     #pattern||S;;;angle;?N:N;?=P
+    #schema||ajout_attribut
     #test1||obj;poly||^Z;;;angle;;||atv;Z;0.0
     #test2||obj;poly||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;X;0.5
     #test3||obj;ligne||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Y;0.5

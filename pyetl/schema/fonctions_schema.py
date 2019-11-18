@@ -488,24 +488,27 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
     else:
         if not obj.attributs["#geom"]:
             obj.attributs["#type_geom"] = "0"
-    if obj.attributs["#type_geom"] != schemaclasse.info["type_geom"]:
-        if obj.attributs["#type_geom"] == "3" and schemaclasse.info["type_geom"] == "2":
-            # ligne fermee on autorise et on corrige le type
-            obj.geom_v.forceligne()
-            obj.infogeom()
-        else:
-            #            print(obj.ident, '---------------------- type geometrie non conforme a',
-            #                  schemaclasse.info["type_geom"], ':', obj.attributs['#type_geom'])
-            erreurs.append(
-                set_err(
-                    schemaclasse,
-                    obj,
-                    "%s type geometrie non conforme : attendu %s objet :%s",
-                    schemaclasse.info["type_geom"],
-                    obj.attributs["#type_geom"],
-                    0,
+    if obj.virtuel and obj.attributs["#type_geom"]=="indef":
+        pass
+    else:
+        if obj.attributs["#type_geom"] != schemaclasse.info["type_geom"]:
+            if obj.attributs["#type_geom"] == "3" and schemaclasse.info["type_geom"] == "2":
+                # ligne fermee on autorise et on corrige le type
+                obj.geom_v.forceligne()
+                obj.infogeom()
+            else:
+                print(obj.ident,'--type geometrie non conforme schema->',
+                    schemaclasse.info["type_geom"], ', objet->', obj.attributs['#type_geom'],schemaclasse.identclasse, schemaclasse.info)
+                erreurs.append(
+                    set_err(
+                        schemaclasse,
+                        obj,
+                        "%s type geometrie non conforme : attendu %s objet :%s",
+                        schemaclasse.info["type_geom"],
+                        obj.attributs["#type_geom"],
+                        0,
+                    )
                 )
-            )
 
     if obj.attributs["#type_geom"] != "0" and str(obj.dimension) != schemaclasse.info["dimension"]:
         if obj.attributs["#type_geom"] == 'indef':

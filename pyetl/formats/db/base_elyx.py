@@ -942,7 +942,8 @@ class ElyConnect(ora.OrwConnect):
             liste = [
                 ";".join([j if j is not None else "" for j in i]) for i in self.request(requete, ())
             ]
-        print("db_elyx---------selection droits elyx ", len(liste))
+        if self.debug:
+            print("db_elyx---------selection droits elyx ", len(liste))
         entete = "nom_role;type_droit;schema;table"
         return (entete, liste)
 
@@ -997,8 +998,8 @@ class ElyConnect(ora.OrwConnect):
             liste = [
                 ";".join([j if j is not None else "" for j in i]) for i in self.request(requete, ())
             ]
-
-        print("db_elyx---------selection droits attributs elyx ", len(liste))
+        if self.debug:
+            print("db_elyx---------selection droits attributs elyx ", len(liste))
         entete = "nom_role;type_droit;schema;table;attribut;droits_classe"
         return (entete, liste)
 
@@ -1038,8 +1039,8 @@ class ElyConnect(ora.OrwConnect):
                 ";".join([str(j) if j is not None else "" for j in i])
                 for i in self.request(requete, ())
             ]
-
-        print("db_elyx---------selection complements table elyx ", len(liste))
+        if self.debug:
+            print("db_elyx---------selection complements table elyx ", len(liste))
         entete = "niveau;classe;theme;alias_theme;ech_min;ech_max"
         return (entete, liste)
 
@@ -1068,7 +1069,8 @@ class ElyConnect(ora.OrwConnect):
             if i in schema.classes:
                 schema.classes[i].specifique["roles"] = droits_table[i]
         #        schema.specifique['roles_old']=self.select_droits_old()
-        print("db_elyx---------specifique droits elyx ", schema.elements_specifiques.keys())
+        if self.debug:
+            print("db_elyx---------specifique droits elyx ", schema.elements_specifiques.keys())
 
 
 class ElyGenSql(ora.OrwGenSql):

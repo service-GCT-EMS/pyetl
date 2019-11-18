@@ -730,8 +730,8 @@ def f_fileloader(regle, obj):
         return True
         # on est en mode virtuel pour completer les schemas  il suffit de laisser passer les objets
     if regle.store:
-        #        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
-        #        print ('regles', regle.stock_param.regles)
+        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
+        print ('regles', regle.stock_param.regles)
         regle.tmpstore.append(obj)
         regle.nbstock += 1
         return True

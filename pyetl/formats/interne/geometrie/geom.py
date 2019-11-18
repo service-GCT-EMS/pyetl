@@ -259,8 +259,9 @@ class Geometrie(object):
         self.sgeom=None
         self.multi = False
         self.courbe = False
-        # print ("finalise:",self,type_geom)
-        self.null = not self.coords
+
+        self.null = (len(self.points) + len(self.lignes)) == 0
+        # print ("finalise:",type_geom, len(self.points)+len(self.lignes))
         if type_geom == "0":
             self.type = "0"
             self.lignes = []
@@ -269,6 +270,7 @@ class Geometrie(object):
 
         if self.null:
             self.valide=False
+            self.type = "0"
             return False
         if self.type == "1":
             self.multi = len(self.points) > 1

@@ -875,7 +875,8 @@ def recup_schema(
                 "tables a sortir",
             )
         schema_base = connect.schemabase
-        #        print("recup_schema", schema_base, schema_travail, stock_param.schemas.keys())
+        # print("recup_schema", schema_base, schema_travail, stock_param.schemas.keys())
+        # print('recup_schema', schema_travail.classes)
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)

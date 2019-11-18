@@ -265,10 +265,10 @@ class Context(object):
     """contexte de stockage des variables"""
     PARAM_EXP = re.compile(r"%((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%")
     PARAM_BIND = re.compile(r"^%(\*#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%$")
-    SPLITTER_B = re.compile(r'(?<!\\)\|')
-    SPLITTER_PV = re.compile(r'(?<!\\);')
-    SPLITTER_V = re.compile(r'(?<!\\),')
-    SPLITTER_2P = re.compile(r'(?<!\\):')
+    SPLITTER_PV = re.compile(r'(?<!\\);') #reconnait les ; non précédes d'un \
+    SPLITTER_V = re.compile(r'(?<!\\),')  #reconnait les , non précédes d'un \
+    SPLITTER_B = re.compile(r'(?<!\\)\|') #reconnait les | non précédes d'un \
+    SPLITTER_2P = re.compile(r'(?<!\\):') #reconnait les : non précédes d'un \
 
     def __init__(self, parent=None, ident="", type_c="C", env=None, root=False):
         self.nom = type_c + ident
@@ -337,6 +337,7 @@ class Context(object):
 
     def resolve(self, element:str)->T.Tuple[str, str]:
         '''effectue le remplacement de variables'''
+        element=element.strip() # on debarasse les blancs parasites
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]),element[2:-1]
         while self.PARAM_EXP.search(element):
@@ -353,6 +354,11 @@ class Context(object):
             element = eval(element.split(":")[1], {})
         # print('resolve ', element)
         # element = self.getfirst(element)
+        element = element.strip() # on enleve les blancs parasites
+        if element.startswith(r"\ "): # mais on garde les blancs voulus
+            element = element[1:]
+        if element.endswith(" \\"): # mais on garde les blancs voulus
+            element = element[:-1]
         return element, None
 
     def getfirst(self,element):
@@ -407,6 +413,7 @@ class Context(object):
                     nom = val
                     val = ''
             if nom:
+                nom=nom.strip()
                 if not nolocal:
                     context.setlocal(nom,val) if context else self.setlocal(nom,val)
                 if binding:
