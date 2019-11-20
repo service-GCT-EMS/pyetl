@@ -57,6 +57,7 @@ def sh_simple(regle):
     regle.changeschema = regle.params.att_sortie.val == "#schema"
     regle.changeclasse = regle.params.att_sortie.val in ("#groupe", "#classe")
     regle.action_schema = fschema_ajout_attribut
+    regle.fonctions_schema.append(fschema_ajout_attribut)
     if regle.params.att_sortie.val and regle.params.att_sortie.val[0] == "#":
         regle.action_schema = None
 
@@ -71,13 +72,16 @@ def sh_liste(regle):
     for i in regle.params.att_sortie.liste:
         if i[0] != "#":
             regle.action_schema = fschema_ajout_attribut
-
+            regle.fonctions_schema.append(fschema_ajout_attribut)
+            break
 
 def sh_dyn(regle):
     """ helper pour les sorties dynamiques"""
     regle.changeschema = True
     regle.changeclasse = True
     regle.action_schema = fschema_ajout_attribut_d
+    regle.fonctions_schema.append(fschema_ajout_attribut_d)
+    regle.dynschema=True
 
 
 def s_simple(sortie, obj, valeur):
@@ -173,7 +177,7 @@ def s_indirect_post(sortie, obj, valeur):
 
 
 def s_dyn_pre(sortie, obj, valeur):
-    """#aide|| cree les attributs dynamiquement en fonction des dictionaires
+    """#aide|| cree les attributs dynamiquement en fonction des dictionaires avec prefixe
        #pattern||A*||D
        #shelper||dyn
        """
@@ -186,7 +190,7 @@ def s_dyn_pre(sortie, obj, valeur):
 
 
 def s_dyn_post(sortie, obj, valeur):
-    """#aide|| cree les attributs dynamiquement en fonction des dictionaires
+    """#aide|| cree les attributs dynamiquement en fonction des dictionaires avec suffixe
        #pattern||*A||D
        #shelper||dyn
        """
@@ -202,11 +206,10 @@ def s_dyn(sortie, obj, valeur):
        #pattern||*||D
        #shelper||dyn
        """
-    pref = sortie.val
     for i in valeur:
-        obj.attributs[i + pref] = valeur[i]
+        obj.attributs[i] = valeur[i]
         if obj.schema:
-            obj.schema.stocke_attribut(i + pref, "T")
+            obj.schema.stocke_attribut(i, "T")
 
 
 def h_stat(regle):
@@ -295,23 +298,23 @@ def fschema_ajout_att_from_obj_dyn(regle, obj):
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
-def fschema_ajout_att_from_liste_d(regle, obj, liste):
+def fschema_ajout_att_from_liste_d(regle, obj):
     """ajoute des attributs a partir de la definition de l'objet"""
     # print ('ajout attribut',liste)
-    if liste is None:
+    if not regle.liste_atts:
         return
-    for att in [a for a in liste if a and a[0] != "#"]:
+    for att in [a for a in regle.liste_atts if a and a[0] != "#"]:
         if att in obj.schema.attributs:
             continue
         # print ('ajout attribut',att)
         obj.schema.ajout_attribut_modele(regle.params.def_sortie, nom=att)
 
 
-def fschema_ajout_att_from_liste(regle, obj, liste=None):
+def fschema_ajout_att_from_liste(regle, obj):
     """ajoute un attribut au schema"""
     if obj.schema.amodifier(regle):
         #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
-        fschema_ajout_att_from_liste_d(regle, obj, liste)
+        fschema_ajout_att_from_liste_d(regle, obj)
 
 
 def fschema_ajout_att_from_obj(regle, obj):

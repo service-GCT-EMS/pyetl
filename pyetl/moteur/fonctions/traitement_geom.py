@@ -13,29 +13,29 @@ from .outils import compilefonc
 from shapely import geometry as SG
 
 
-def setschemainfo(regle, obj, multi=None, type=None):
+def setschemainfo(regle, obj, multi=None, type=None, dyn=False):
     """ reporte les infos sur le schema en cas de modification de la geometrie """
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
     tgeom = obj.geom_v.type_geom
     obj.attributs["#type_geom"] = tgeom
-    if obj.schema and obj.schema.amodifier(regle):
+    if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
         if multi is not None:
             obj.schema.multigeom = multi
         obj.schema.info["type_geom"] = tgeom if type is None else type
 
 
-def setschemadim(regle, obj):
+def setschemadim(regle, obj, dyn=False):
     """ reporte les infos sur le schema en cas de modification de la geometrie """
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
-    if obj.schema and obj.schema.amodifier(regle):
+    if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
 
 
-def setschema_typegeom(regle, obj):
+def setschema_typegeom(regle, obj, dyn=False):
     """ reporte les infos sur le schema en cas de modification de la geometrie """
     obj.attributs["#type_geom"] = obj.geom_v.type
-    if obj.schema and obj.schema.amodifier(regle):
+    if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["type_geom"] = obj.geom_v.type
 
 
@@ -67,9 +67,9 @@ def f_initgeom(regle, obj):
 
 
 def f_resetgeom(_, obj):
-    """#aide||anulle l'interpretation de la geometrie
-       #pattern||;;;resetgeom;;
-       #schema||set_geom
+    """#aide||annulle l'interpretation de la geometrie
+    #pattern||;;;resetgeom;;
+     #schema||set_geom
        #test||obj;ligne||^;;;resetgeom||;!has:geomV;;;C1;1;;set||atv;C1;1
     """
     # on fait comme si on avait pas traite la geometrie
@@ -92,15 +92,12 @@ def cregeompoint(obj, point, srid):
     return obj.finalise_geom()
 
 
-#    print ('setpoint',point,'->',obj.attributs['#type_geom'],list(obj.geom_v.coords))
-
 
 def f_setpoint(regle, obj):
     """#aide||ajoute une geometrie point a partir des coordonnes en attribut
-    #aide_spec||N: numero de srid
-    #aide_spec1||defauts, attribut contenant les coordonnees separees par des ,
+ #parametres||defauts;attribut contenant les coordonnees separees par des ,;numero de srid
    #pattern1||;LC;?A;setpoint;?N;
-   #test||obj||^;1,2;;setpoint||atv;#type_geom;1
+       #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     """
     if obj.virtuel:
         return True
@@ -691,12 +688,12 @@ def f_extractcouleur(regle, obj):
         obj.geom_v = geom
         obj.geomnatif = False
         if obj.finalise_geom(type_geom="2"):
-            setschema_typegeom(regle, obj)
+            setschema_typegeom(regle, obj, dyn=True)
             #            print ('extract_couleur',couleur,obj,list(obj.geom_v.coords))
             return True
         return False
     print(
-        "split_couleur,geometrie invalide ",
+        "extract_couleur,geometrie invalide ",
         obj.ident,
         obj.numobj,
         obj.geom_v.type,

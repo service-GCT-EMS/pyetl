@@ -92,7 +92,7 @@ def f_angle(regle, obj):
             geom.setpoint(
                 [(i + j) / 2 for i, j in zip(pt1, pt2)], dim=len(pt1), angle=angle, longueur=longueur
             )
-            setschemainfo(regle, obj, multi = False, type = '1')
+            setschemainfo(regle, obj, multi = False, type = '1', dyn=True)
 
         regle.fstore(regle.params.att_sortie, obj, str(angle))
         return True
@@ -167,8 +167,10 @@ def f_buffer(regle, obj):
         # print ("buffer calcule",buffer)
         obj.geom_v.setsgeom(buffer)
         if regle.params.att_sortie.val:
-            obj.attributs[regle.params.att_sortie.val]=str(largeur)
-        setschemainfo(regle, obj, multi=True, type='3')
+            setschemainfo(regle, obj, multi=True, type='3', dyn=True)
+            regle.fstore(regle.params.att_sortie, obj, str(largeur))
+        else:
+            setschemainfo(regle, obj, multi=True, type='3')
         # print ('rectangle',ror )
 
 

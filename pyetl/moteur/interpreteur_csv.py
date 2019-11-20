@@ -351,6 +351,7 @@ def set_resultat_regle(regle, fonc):
         if j.definition[cref].match(regle.v_nommees[cref]):
             regle.fstore = j.work
             regle.action_schema = regle.action_schema or j.fonction_schema
+            regle.fonctions_schema.append(j.fonction_schema)
             regle.shelper = j.helper
             #            if not regle.action_schema:
             #                print('erreur action', j.nom, j.fonction_schema,
@@ -395,7 +396,10 @@ def identifie_operation(regle):
 
     if callable(fonc.work):
         regle.fonc = fonc.work
-        regle.action_schema = fonc.fonction_schema
+        if fonc.fonction_schema:
+            regle.action_schema = fonc.fonction_schema
+            regle.fonctions_schema.append(fonc.fonction_schema)
+
         regle.elements = elements
         if fonc.fonctions_sortie:
             valide = set_resultat_regle(regle, fonc)

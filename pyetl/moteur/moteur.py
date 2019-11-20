@@ -359,7 +359,7 @@ class Context(object):
             element = element[1:]
         if element.endswith(" \\"): # mais on garde les blancs voulus
             element = element[:-1]
-        return element, None
+        return element, ""
 
     def getfirst(self,element):
         '''retourne le premier non vide d'une liste d'elements'''

@@ -50,11 +50,15 @@ is:reel;;;;;;;next;;;;;#on sort les objets sur la sortie next
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atne;nom;;;;;;;;;# teste l existance d un attribut
+&&#define;#atne;nom;;;;;;;;;# teste l inexistance d un attribut
 %nom%;;;;;;;retour;test ko:;noms;
 +sinon:;;;;;;%nom%;retour;test ok:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
+&&#define;#ats;nom;;;;;;;;;# teste l existance d un attribut dans le schema
+%nom%;in:schema;;;;;;retour;test ok:;noms;
++sinon:;;;;;;%nom%;retour;test ko:;noms;
+;;;;;;;pass>;;;fin;;# on jette tout!===========================================================================================;;;;;;;;;;
 &&#define;#ptv;nom;valeur;;;;;;;;# teste l'existance d'un parametre
 P:%nom%;^%valeur%$;;;;;;retour;test ok:;noms;
 +sinon:;;;;;%%nom%%;;retour;test ko:;noms;

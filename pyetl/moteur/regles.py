@@ -225,7 +225,7 @@ class RegleTraitement(object):  # regle de mapping
         self.fonc = None
         self.fstore = self.ftrue
         self.shelper = None
-        self.fonction_schema = None
+        self.fonctions_schema = []
         self.numero = numero
         if context is None:
             context = stock_param.cur_context
@@ -236,6 +236,7 @@ class RegleTraitement(object):  # regle de mapping
         self.bloc = 0
         # -----------------flags de comportement-------------------
         self.action_schema = None
+        self.dynschema = False
         self.final = False
         self.filter = False
         self.copy = False
@@ -527,18 +528,11 @@ class RegleTraitement(object):  # regle de mapping
             print("erreur changement classe", ident, obj.schema)
         obj.setschema(schema_classe)
 
-    #    def dupplique(self):
-    #        '''retourne une copie de la regle
-    #            sert pour le multiiprocessing'''
-    #        stock_param = self.stock_param
-    #        self.stock_param = None
-    #        reg2 = copy.deepcopy(self)
-    #        self.stock_param = stock_param
-
-    #        ob2.schema = old_sc
-    #        if old_sc is not None:
-    #            old_sc.objcnt += 1 # on a un objet de plus dans le schema
-    #        return reg2
+    def execute_actions_schema(self, obj):
+        if obj.schema:
+            if self.dynschema or obj.schema.amodifier():
+                for tache in self.fonctions_schema:
+                    tache(self,obj)
 
     def runscope(self):
         """determine si une regle peut tourner"""

@@ -490,9 +490,11 @@ def sel_ininfoschema(selecteur, obj):
 
 def sel_inschema(selecteur, obj):
     """#aide||vrai si un attribut est defini dans le schema
-    #pattern||A;=in_schema||1
+    #pattern||A;=in:schema||1
+    #pattern2||A;=in_schema||1
        #test||obj||^?C1;;;supp;;;||C1;in_schema;;;res;1;;set||atv;res;1
     """
+    # print("sel inschema",obj.schema.attributs)
     return obj.schema and selecteur.params.attr.val in obj.schema.attributs
 
 

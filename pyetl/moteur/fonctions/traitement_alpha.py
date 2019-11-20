@@ -48,6 +48,8 @@ def f_setliste(regle, obj):
        #pattern||M;?LC;?L;set;;||sortie
        #test1||obj||^V4,V5;;C1,C2;set||atv;V4;AB
        #test2||obj||^V4,V5;;C1,C2;set||atv;V5;BCD
+       #test3||obj||^V4,V5;;C1,C2;set||ats;V5
+
     """
     #    print ("dans setliste", regle.ligne,regle.params.att_sortie, regle.params.att_entree)
     regle.setval_sortie(obj, regle.getlist_entree(obj))
@@ -78,6 +80,8 @@ def f_setval(regle, obj):
     #parametres||attribut de sortie;defaut;attribut d'entree
        #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
+       #test3||obj||^V4;1;X;set||ats;V4
+
     """
     regle.setval_sortie(obj, regle.get_entree(obj))
     return True
@@ -89,6 +93,7 @@ def f_setmatch(regle, obj):
        #pattern||S;;;set;=match;||sortie
     #parametres||attribut de sortie
        #test1||obj||^X;BCDXX;;set;||X;re:(.)C(.);;;V4;;;set;match||atv;V4;BCD
+       #test2||obj||^X;BCDXX;;set;||X;re:(.)C(.);;;V4;;;set;match||ats;V4
     """
     regle.setval_sortie(obj, regle.match)
     return True
@@ -152,6 +157,7 @@ def f_setnonvide(regle, obj):
         #pattern||S;?;|L;set;;||entree
         #test3||obj||^V4;1;A|C1|C2;set||atv;V4;AB
         #test4||obj||^V4;1;A|B;set||atv;V4;1
+        #test2||obj||^V4;1;A|B;set||ats;V4
     """
     regle.fstore(
         regle.params.att_sortie,
@@ -194,6 +200,8 @@ def f_sub(regle, obj):  # fonction de substution
     #parametres||resultat;defaut;entree;;expression de selection;expression de substitution
         #test1||obj||^V4;;C1;sub;A;B;||atv;V4;BB
         #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;ab
+        #test3||obj||^V4;;C1;sub;A;B;||ats;V4
+
     """
     # substitution
     regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj)))
@@ -219,6 +227,7 @@ def f_setcalc(regle, obj):
     #parametres||attribut resultat;formule de calcul
         #pattern||S;;NC:;set;;
         #test1||obj||^V4;;N:V1+1;set||atn;V4;13
+        #test2||obj||^V4;;N:V1+1;set||ats;V4
     """
     regle.setval_sortie(obj, str(regle.calcul(obj)))
     return True
@@ -237,6 +246,7 @@ def f_upper(regle, obj):
         #pattern||S;?;A;upper;;
     #parametres||attribut resultat;defaut;attribut d'entree
         #test1||obj||^V4;a;;set||^V4;;V4;upper||atv;V4;A
+        #test2||obj||^V4;a;;set||^V5;;V4;upper||ats;V5
 
     """
     regle.setval_sortie(obj, regle.getval_entree(obj).upper())
@@ -250,7 +260,6 @@ def f_upper2(regle, obj):
     #parametres1||attribut;defaut
         #pattern2||;?;A;upper||sortie||50
     #parametres2||defaut,attribut
-        #schema||ajout_attribut
         #helper||setself
         #test2||obj||^V4;a;;set||^V4;;;upper||atv;V4;A
         #test3||obj||^V4;a;;set||^;;V4;upper||atv;V4;A
@@ -266,6 +275,7 @@ def f_upper_liste(regle, obj):
     #parametres||liste attributs sortie;defaut;liste attributs entree
         #test1||obj||^V4,V5;a,b;;set||^V4,V5;;V4,V5;upper||atv;V5;B
         #test2||obj||^V4,V5;a,b;;set||^V4,V5;;V4,V5;upper||atv;V4;A
+        #test3||obj||^V4,V5;a,b;;set||^V4,V6;;V4,V5;upper||ats;V6
     """
     regle.process_liste(obj, str.upper)
     return True
@@ -802,7 +812,8 @@ def geocode_traite_stock(regle, final=True):
             if obj.schema:
                 # print ('geocodage action schema',regle.action_schema, header)
                 obj.schema.force_modif(regle)
-                regle.action_schema(regle, obj, liste=header)
+                regle.liste_atts=header
+                regle.action_schema(regle, obj)
                 # print ('schema :', obj.schema)
         else:
             if not final:
