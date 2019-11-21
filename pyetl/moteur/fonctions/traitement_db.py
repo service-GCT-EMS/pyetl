@@ -16,13 +16,14 @@ from .outils import prepare_mode_in, objloader
 LOGGER = logging.getLogger("pyetl")
 
 
-def _mode_niv_in(mapper, niv):
+def _mode_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
-    mode_select, valeurs = prepare_mode_in(niv, mapper, 2)
+    mode_select, valeurs = prepare_mode_in(niv, regle, taille=2)
     niveau = []
     classe = []
     attrs = []
     cmp = []
+    base= []
     # print("mode_niv in:lecture_fichier",valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
@@ -56,13 +57,18 @@ def _mode_niv_in(mapper, niv):
                     vals = liste_defs[0]
             cmp.append(vals)
     # print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
-    return niveau, classe, attrs, cmp
+    if autobase:
+        return base, niveau, classe, attrs, cmp
+    else:
+        return niveau, classe, attrs, cmp
 
 
 def param_base(regle):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
+    if base=='*':
+        base=''
 
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
@@ -80,10 +86,13 @@ def param_base(regle):
     #    elif re.match("\[.*\]", niv) and
 
     elif niv.lower().startswith("in:"):  # mode in
-        niveau, classe, attrs, cmp = _mode_niv_in(regle.stock_param, niv[3:])
+        if base:
+            niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
+        else:
+            base, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:], autobase=True)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
-        mode_select, valeurs = prepare_mode_in(cla[3:], regle.stock_param, 1, clef=clef)
+        mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         classe = list(valeurs.keys())
         niveau = [niv] * len(classe)
     elif "," in niv:
@@ -123,10 +132,10 @@ def h_dbalpha(regle):
     if param_base(regle):
         #        print (" preparation lecture ",regle.cible_base)
         #    raise
-        defaut = regle.v_nommees.get("defaut", "")
+        defaut = regle.v_nommees.get("defaut", "") # on utilise in comme selecteur attributaire
         if defaut[:3].lower() == "in:":
             mode_multi, valeurs = prepare_mode_in(
-                regle.v_nommees["defaut"][3:], regle.stock_param, 1
+                regle.v_nommees["defaut"][3:], regle, taille=1
             )
             regle.params.val_entree = regle.params.st_val(
                 defaut, None, list(valeurs.keys()), False, ""

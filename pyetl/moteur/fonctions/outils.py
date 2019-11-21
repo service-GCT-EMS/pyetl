@@ -272,6 +272,15 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
     #    print('prechargement csv', stock)
     return stock
 
+def _extract(ligne,clef):
+    """ extrait un element de la ligne"""
+    l_tmp = ligne.split(clef)
+    if len(l_tmp) > 1:
+        liste = l_tmp[1].split(" ")
+        valeur = liste[0].replace('"', "")
+        return valeur
+    return ""
+
 
 def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
     """prechargement d un fichier projet qgis"""
@@ -283,16 +292,16 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
             for i in fich:
 
                 if "datasource" in i:
-                    #                        dbname=''
-                    #                        l_tmp = i.split('dbname=')
-                    #                        if len(l_tmp) > 1:
-                    #                            dbname = l_tmp[1].split(" ")
-                    l_tmp = i.split("table=")
-                    if len(l_tmp) > 1:
+                    table=_extract(i, 'table=')
+                    database =_extract(i, 'dbname=')
+                    host=_extract(i, 'host=')
+                    # l_tmp = i.split("table=")
+                    # if len(l_tmp) > 1:
 
-                        liste = l_tmp[1].split(" ")
-                        valeur = liste[0].replace('"', "")
-                        stock[valeur] = [valeur]
+                    #     liste = l_tmp[1].split(" ")
+                    #     valeur = liste[0].replace('"', "")
+                    if table:
+                        stock[table] = [table,database,host]
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
@@ -357,7 +366,7 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
 #    return txt[1:-1].split(",") if txt.startswith('{') else []
 
 
-def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
+def prepare_mode_in(fichier, regle, taille=1, clef=0):
     """precharge les fichiers utilises pour les jointures ou les listes d'appartenance
     formats acceptes:
         in:{a,b,c}                  -> liste de valeurs dans la commande
@@ -368,6 +377,7 @@ def prepare_mode_in(fichier, stock_param, taille=1, clef=0):
         in:st:nom_du_stockage       -> valeurs des objets en memoire (la clef donne l'attribut)
         in:db:nom_de_la_table       -> valeur des attributs de l'objet en base (la clef donne le nom du champs)
     """
+    stock_param=regle.stock_param
     fichier = fichier.strip()
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []

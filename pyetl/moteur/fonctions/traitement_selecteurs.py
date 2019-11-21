@@ -110,7 +110,7 @@ def selh_infich(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     mode, valeurs = prepare_mode_in(
-        selecteur.params.vals.val, selecteur.regle.stock_param, len(selecteur.params.attr.liste)
+        selecteur.params.vals.val, selecteur.regle, taille=len(selecteur.params.attr.liste)
     )
     if mode == 'in_s':
         if isinstance(valeurs, list):
@@ -148,7 +148,7 @@ def selh_infich_re(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(
-        selecteur.params.vals.val, selecteur.regle.stock_param, len(selecteur.params.attr.liste)
+        selecteur.params.vals.val, selecteur.regle, taille=len(selecteur.params.attr.liste)
     )
     # on recupere les complements s'il y en a
 

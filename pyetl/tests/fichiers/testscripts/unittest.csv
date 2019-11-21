@@ -23,6 +23,11 @@ is:reel;;;;;;;next;;;;;#on sort les objets sur la sortie next
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
+&&#define;#atvs;nom;valeur;;;;;;;;# teste la valeur d un attribut avec verif schema
+%nom%;^%valeur%$;%nom%;in:schema;;;;retour;test ok:;noms;fin
++sinon:;;;;;;%nom%;retour;test ko:;noms;
+;;;;;;;pass>;;;fin;;# on jette tout
+!===========================================================================================;;;;;;;;;;
 &&#define;#ata;nom;nom2;;;;;;;;# teste l egalite d attributs
 %nom%;C: ==C:%nom2%;;;;;;retour;test ok:;noms;fin
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
