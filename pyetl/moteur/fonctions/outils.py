@@ -278,6 +278,7 @@ def _extract(ligne,clef):
     if len(l_tmp) > 1:
         liste = l_tmp[1].split(" ")
         valeur = liste[0].replace('"', "")
+        valeur = valeur.replace("'", "")
         return valeur
     return ""
 
@@ -301,7 +302,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        stock[table] = [table,database,host]
+                        stock[table] = [table,'',database,host]
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:

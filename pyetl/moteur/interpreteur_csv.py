@@ -728,7 +728,7 @@ def affecte_variable(commande, context):
     liste_vals = context.SPLITTER_PV.split(commande)
     commande = liste_vals[0][1:]
     if not '=' in commande:
-        commande=commande+'='
+        commande=commande+'=True'
     nom, valeur, binding, nolocal = context.traite_egalite(commande)
     if not valeur:
         for i in liste_vals[1:]:

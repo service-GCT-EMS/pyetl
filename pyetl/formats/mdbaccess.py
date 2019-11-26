@@ -432,14 +432,19 @@ def dbaccess(regle, nombase, type_base=None, chemin=""):
     systables = stock_param.get_param("tables_systeme")
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
+        if not base and regle.getvar("autobase"): #on essaye de charger des groupes connus
+            print ('mode autobase', codebase)
+            try:
+                stock_param.load_paramgroup(codebase, nom=codebase)
+                base = regle.getvar("base_" + codebase, "")
+            except KeyError:
+                print( "mdba: multiple : base non definie", codebase)
+
+
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
         if not base:
-            print(
-                "mdba: base non definie",
-                nombase,
-                codebase,
-            )
+            print("mdba: base non definie",codebase,)
             return None
 
     if type_base not in DATABASES:

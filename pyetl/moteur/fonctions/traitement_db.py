@@ -24,13 +24,13 @@ def _mode_niv_in(regle, niv, autobase=False):
     attrs = []
     cmp = []
     base= []
-    # print("mode_niv in:lecture_fichier",valeurs)
+    print("mode_niv in:lecture_fichier",valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
         # print("mode_niv in:liste_defs",liste_defs)
 
         def1 = liste_defs.pop(0).split(".")
-        if len(def1) == 1 and liste_defs and liste_defs[0]:
+        if len(def1) == 1 and liste_defs and liste_defs[0]: # c'est de la forme niveau;classe
             defs2 = liste_defs.pop(0).split(".")
             def1.extend(defs2)
         # print("mode_niv in:def1",def1)
@@ -44,6 +44,8 @@ def _mode_niv_in(regle, niv, autobase=False):
             classe.append(def1[1])
             attrs.append("")
             cmp.append("")
+            if autobase and len(liste_defs)>1: # on a rajoute la base
+                base.append(liste_defs[1])
         elif len(def1) == 3:
             #                print("detection attribut")
             classe.append(def1[1])
@@ -57,10 +59,7 @@ def _mode_niv_in(regle, niv, autobase=False):
                     vals = liste_defs[0]
             cmp.append(vals)
     # print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
-    if autobase:
-        return base, niveau, classe, attrs, cmp
-    else:
-        return niveau, classe, attrs, cmp
+    return base, niveau, classe, attrs, cmp
 
 
 def param_base(regle):
@@ -87,7 +86,7 @@ def param_base(regle):
 
     elif niv.lower().startswith("in:"):  # mode in
         if base:
-            niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
+            _ ,niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
         else:
             base, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:], autobase=True)
     elif cla.lower().startswith("in:"):  # mode in
@@ -219,6 +218,7 @@ def f_dbalpha(regle, obj):
     #          valeur, 'cmp1:', regle.params.cmp1, 'sortie:', regle.params.att_sortie)
 
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
+
     if base:
         connect = DB.dbaccess(regle, base, type_base=type_base, chemin=chemin)
         if connect is None:
@@ -552,18 +552,29 @@ def h_recup_schema(regle):
 
     nombase, niveau, classe, _ = regle.cible_base
     regle.setlocal('mode_schema','dbschema')
-    regle.type_base = regle.getvar("db_" + nombase)
 
-    if nombase:
-        nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
-        if regle.params.att_sortie.val == "schema_entree":
-            regle.setvar("schema_entree", nomschema)
-        if regle.params.att_sortie.val == "schema_sortie":
-            regle.setvar("schema_sortie", nomschema)
+    if isinstance(nombase,list): # cas particulier des extractions multibases
+        print ('detection extraction multibase',nombase)
+        # raise
+        regle.setlocal('autobase','1')
+        for nom in nombase:
+            nomschema=nom
+            print ('multibase:recup base',nom)
+            DB.recup_schema(regle, nom, niveau, classe, nomschema)
+
         regle.valide = "done"
-        print("h_recup_schema", nomschema, '->', nombase)
-        DB.recup_schema(regle, nombase, niveau, classe, nomschema)
-    return True
+    else:
+        regle.type_base = regle.getvar("db_" + nombase)
+        if nombase:
+            nomschema = regle.params.val_entree.val if regle.params.val_entree.val else nombase
+            if regle.params.att_sortie.val == "schema_entree":
+                regle.setvar("schema_entree", nomschema)
+            if regle.params.att_sortie.val == "schema_sortie":
+                regle.setvar("schema_sortie", nomschema)
+            regle.valide = "done"
+            print("h_recup_schema", nomschema, '->', nombase)
+            DB.recup_schema(regle, nombase, niveau, classe, nomschema)
+        return True
 
 
 def f_recup_schema(regle, obj):

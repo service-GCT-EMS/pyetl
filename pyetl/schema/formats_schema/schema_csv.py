@@ -174,16 +174,25 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
         )
     return liste_att_csv
 
+def initmetaheader(schema,header):
+    # prepare la ligne de metadonnees
+    retour = [header]
+    if schema.metas:
+        retour.append("!meta;" + ";".join(k + "=" + v for k, v in schema.metas.items()))
+    return retour
+
+
 
 def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False):
     """ecrit un schema complet en csv"""
-    conf = ["!conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"]
+    conf = initmetaheader(sch, "!conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin")
     #    print("schema: info sortir_schema", sch.nom, len(sch.conformites),
     #          'conformites', len(sch.classes), 'classes')
     #    print ('conformites presentes',
     #          [(sch.conformites[i].nom,sch.conformites[i].stock.values())
     #          for i in sch.conformites])
     #    print('schema_csv : conformites', len(sch.conformites))
+
     if sch.conformites:
         unused = []
         for i in sorted(sch.conformites.keys()):
@@ -196,15 +205,11 @@ def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False)
                 "schema : ::: warning", len(unused), "conformites inutilisees ", unused[:10], "..."
             )
 
-    description = [
+    description = initmetaheader(sch,
         "!groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;"
         + "Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK"
-    ]
+    )
     #    print("schema:  csv sortir_classes",len(sch.classes))
-    if sch.metas:
-        #        print ('sortir metas ',sch.metas)
-        metadef = "!meta;" + ";".join(k + "=" + v for k, v in sch.metas.items())
-        description.append(metadef)
     if sch.classes:
         for i in sorted(sch.classes.keys()):
             if sch.classes[i].a_sortir:
@@ -614,9 +619,10 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     if schema.origine == "B" or schema.origine == "L":
         init = True
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
-    mapping = schema.mapping_schema()
+    mapping = initmetaheader(schema,"!schema;classe;schema_orig;classe_orig;nombre")
+    mapping.extend(schema.mapping_schema())
     nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
-    deftrig = ['schema;table;trigger;condition;fonction;etendue;timing;declencheur']
+    deftrig = initmetaheader(schema,'schema;table;trigger;condition;fonction;etendue;timing;declencheur')
     if "def_triggers" in schema.elements_specifiques:
         for table, triggers in sorted(schema.elements_specifiques["def_triggers"].items()):
             # lignes = [';'.join(table+(trig,)+definition) for trig, definition in sorted(triggers.items())]

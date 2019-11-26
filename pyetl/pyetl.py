@@ -286,7 +286,6 @@ class Pyetl(object):
 
         self.initenv(env, loginfo)
         LOGGER.info('::'.join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args))))
-
         try:
             return self.prepare_module(commandes, args)
         except SyntaxError as err:
@@ -720,13 +719,15 @@ class Pyetl(object):
 
     def load_paramgroup(self, clef, nom="", check="", fin=True, context=None):
         """ charge un groupe de parametres """
+        # print("chargement", clef, self.site_params[clef], context)
+
         if not clef:
             return
         context = context if context is not None else self.context
         if check:  # on verifie que l'on a pas deja defini les choses avant
             #            print ('validation ',check,check+nom,check+nom in self.parms)
             if context.exists(check + nom):
-                return
+                return True
         if clef in self.site_params:
             # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
@@ -735,13 +736,13 @@ class Pyetl(object):
                 # print('loadparamgroup',setter,var,val)
                 if nom:
                     context.setvar(var + "_" + nom, val)
-
+            return True
         elif fin:
             print("definition parametres de site >" + clef + "< introuvable")
             print("aide:groupes connus: ")
             print("\n".join([str(i) for i in sorted(self.site_params)]))
             raise KeyError
-        return -1
+        return False
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
         """ charge un ensemble de macros utilisables directement """
@@ -1013,20 +1014,6 @@ class Pyetl(object):
                 "mapper: debut traitement donnees:>" + entree + "-->",
                 self.regle_sortir.params.cmp1.val,
             )
-            # try:
-            #     fichs, parametres = scan_entree(
-            #         rep=entree,
-            #         force_format=self.get_param("F_entree"),
-            #         fileselect=self.get_param("fileselect"),
-            #         dirselect=self.get_param("dirselect"),
-            #         filtre_entree=self.get_param("filtre_entree"),
-            #     )
-
-            # except NotADirectoryError as err:
-            #     print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
-            #     print("type entree ", type(entree))
-            #     fichs = None
-            # if fichs:
             try:
                 self.aff.send(("init", 0, 0))
                 # for i in fichs:
@@ -1051,9 +1038,6 @@ class Pyetl(object):
                         abort = True
                         nb_lu = 0
                         break
-                    # self.aff.send(('fich', 1, nb_lu))
-                # self.aff.send(("end", 0, 0))
-            #                self.aff.close()
             except NotADirectoryError as err:
                 print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
                 print("type entree ", type(entree))
@@ -1076,9 +1060,6 @@ class Pyetl(object):
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
         return
-
-    #        return (self.get_param('_st_lus_total', 0), self.get_param('_st_lus_fichs', 0),
-    #                nb_total, nb_fichs)
 
     def menage_final(self):
         """vidage de tous les tuyaux et stats finales"""

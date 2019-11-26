@@ -173,7 +173,7 @@ class Mapping(object):
 
     def mapping_schema(self, classes, fusion):
         """ sort la table de correspondance entre schemas"""
-        def_mapping = ["!schema;classe;schema_orig;classe_orig;nombre"]
+        def_mapping = []
         if self.mode_fusion:
             fusion = True
         if fusion:

@@ -36,7 +36,7 @@ def fusion_schema(nom, schema, schema_tmp):
     schema_tmp.map_classes()
     liste_mapping = schema_tmp.mapping_schema(fusion=True)
     # print ('mapping_fusion','\n'.join(liste_mapping[:10]))
-    schema.init_mapping(liste_mapping[1:])
+    schema.init_mapping(liste_mapping)
 
 
 

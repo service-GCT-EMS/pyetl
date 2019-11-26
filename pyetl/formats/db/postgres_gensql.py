@@ -264,15 +264,15 @@ class PgrGenSql(DbGenSql):
                 + ("MATCH FULL" if "mf" in props else "MATCH SIMPLE")
             )
             if 'uc' in props:
-                fks.append("\t\tON DELETE CASCADE")
+                fks.append("\t\tON UPDATE CASCADE")
             elif 'un' in props:
-                fks.append("\t\tON DELETE SET NULL")
+                fks.append("\t\tON UPDATE SET NULL")
             elif 'ud' in props:
-                fks.append("\t\tON DELETE SET DEFAULT")
+                fks.append("\t\tON UPDATE SET DEFAULT")
             elif 'ur' in props:
-                fks.append("\t\tON DELETE RESTRICT")
+                fks.append("\t\tON UPDATE RESTRICT")
             elif 'ua' in props:
-                fks.append("\t\tON DELETE NO ACTION")
+                fks.append("\t\tON UPDATE NO ACTION")
             if 'dc' in props:
                 fks.append("\t\tON DELETE CASCADE")
             elif 'dn' in props:
