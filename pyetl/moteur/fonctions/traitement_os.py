@@ -21,7 +21,7 @@ import win32security
 
 from pyetl.formats.mdbaccess import dbaccess
 from pyetl.formats.generic_io import Writer
-from .outils import charge_mapping, remap, prepare_elmap, renseigne_attributs_batch, getfichs
+from .outils import getfichs
 
 
 LOGGER = logging.getLogger("pyetl")

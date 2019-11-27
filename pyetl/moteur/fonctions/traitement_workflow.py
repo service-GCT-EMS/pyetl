@@ -538,9 +538,10 @@ def f_ftpupload(regle, obj):
             print ("transfert effectue",filename,'->',destname)
         return True
 
-    except ftplib.error_perm as err:
+    except ftplib.all_errors as err:
         print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user)
-        print("retour_erreur",err)
+        print("retour_erreur", err)
+        LOGGER.error("ftp upload error: Houston, we have a %s", "major problem", exc_info=1)
         return False
 
 
@@ -582,8 +583,9 @@ def f_ftpdownload(regle, obj):
         print ("transfert effectue",filename,'->',localname)
         return True
 
-    except ftplib.error_perm:
+    except ftplib.all_errors as err:
         print("!!!!! erreur ftp: acces non autorisé")
+        LOGGER.error("ftp download error: Houston, we have a %s", "major problem", exc_info=1)
         return False
 
 
@@ -649,7 +651,7 @@ def f_archive(regle, obj):
     dest = regle.params.cmp1.val + ".zip"
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     stock = dict()
-    print("archive", regle.params.val_entree.liste, dest, regle.getvar("_sortie"))
+    print("archive",time.ctime, regle.params.val_entree.liste, dest, regle.getvar("_sortie"))
     if regle.params.att_entree.val:
         fich = obj.attributs.get(regle.params.att_entree.val)
         if fich:
@@ -657,6 +659,7 @@ def f_archive(regle, obj):
         mode = "a"
     else:
         mode = "w"
+        LOGGER.info("archive : ecriture zip:"+','.join(regle.params.val_entree.liste)+' -> '+dest)
         for f_interm in regle.params.val_entree.liste:
             clefs = []
             if "*" in os.path.basename(f_interm):
@@ -674,6 +677,8 @@ def f_archive(regle, obj):
     with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
         for i in stock:
             file.write(i, arcname=stock[i])
+    print ('fin_archive',dest, time.ctime())
+    LOGGER.info("fin_archive "+dest)
     return True
 
 
@@ -869,4 +874,25 @@ def f_idle(_, __):
     """#aide||ne fait rien mais laisse le mainmapper en attente (initialisation en mode parallele)
     #pattern||;;;idle;;
     """
+    return True
+
+
+def f_sleep(regle, obj):
+    """#aide||ne fait rien mais laisse le mainmapper en attente (initialisation en mode parallele)
+    #pattern||;?C;?A;sleep;;
+    """
+    try:
+        flemme = float(regle.regle.getval_entree(obj))
+    except ValueError:
+        flemme = 1
+    # un peu de deco ....
+    print ('attente:', flemme, 's')
+    if flemme > 5:
+        dormir = flemme/10
+        for i in range(10):
+            print ('.',end='',flush=True)
+            time.sleep(dormir)
+        print
+    else:
+        time.sleep(sleeptime)
     return True

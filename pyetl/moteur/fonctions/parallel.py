@@ -98,6 +98,7 @@ def set_parallelretour(mapper, valide):
         "retour": mapper.retour,
         "schemas": retour_schemas(mapper.schemas, mode=mapper.get_param("force_schema", "util")),
         "stats": {nom: stat.retour() for nom, stat in mapper.stats.items()},
+        "timers": {'fin': time.time(),'debut': mapper.starttime}
     }
     return retour
 
