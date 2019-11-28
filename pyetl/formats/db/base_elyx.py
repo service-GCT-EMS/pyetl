@@ -145,13 +145,13 @@ class ElyConnect(ora.OrwConnect):
             print("traitement externe %10.1f secondes" % (time.time() - dinit))
             return resultats
 
-    def gen_importxml(self, helper, file, logfile, reinit, vgeom="1"):
+    def gen_importxml(self, helper, file, logdir, reinit, vgeom="1"):
         """prepare le fichier xml pour l'import elyx"""
         csystem = os.path.join(str(os.path.dirname(helper)), r"syscoord\sysgeo.dat")
-        logobject = os.path.join(logfile, "log_import.txt")
-        rejectdir = os.path.join(logfile, "erreurs")
+        logobject = os.path.join(logdir, "log_import.txt")
+        rejectdir = os.path.join(logdir, "erreurs")
         os.makedirs(rejectdir, exist_ok=True)
-        print("generation import ", file, logfile, rejectdir)
+        print("generation import ", file, logdir, rejectdir)
         loadxml = [
             "<Fea2OraConfig>",
             '<oraCnx cnx="'
@@ -164,8 +164,8 @@ class ElyConnect(ora.OrwConnect):
             '<apicBase name="' + self.base + '" version="5"/>',
             "<filePath>",
             '<srcFile path="' + file + '"/>',
-            '<reportDir path="' + logfile + '"/>',
-            '<logDir path="' + logfile + '"/>',
+            '<reportDir path="' + logdir + '"/>',
+            '<logDir path="' + logdir + '"/>',
             '<coordinateSystem sysgeoPath="' + csystem + '" sysgeoValue=""/>',
             '<logObject path="' + logobject + '"/>',
             '<rejectDir path="' + rejectdir + '"/>',

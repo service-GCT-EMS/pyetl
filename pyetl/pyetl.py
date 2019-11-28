@@ -285,14 +285,15 @@ class Pyetl(object):
         """ initialisation standardisee: cree l'objet pyetl de base"""
 
         self.initenv(env, loginfo)
-        LOGGER.info('::'.join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args))))
         try:
-            return self.prepare_module(commandes, args)
+            result = self.prepare_module(commandes, args)
         except SyntaxError as err:
             LOGGER.critical(
                 "erreur script " + str(commandes) + " " + str(err) + " worker:" + str(self.worker)
             )
-        return False
+            result=False
+        LOGGER.info('::'.join(("====== demarrage == ",self.nompyetl, str(self.idpyetl), repr(commandes), repr(args))))
+        return result
 
     def init_environ(self, env=None):
         """initialise les variables d'environnement et les macros"""
@@ -987,29 +988,27 @@ class Pyetl(object):
     def process(self, debug=0):
         """traite les entrees """
         # print ('debut_process avant macro',self.idpyetl)
-        self.macro_entree()
-        if self.done:
-            try:
-                self.menage_final()
-            except StopIteration:
-                self._finalise_sorties()
-            return
-        if debug:
-            self.debug = debug
-        entree = self.get_param("_entree", None)
-        if self.get_param("sans_entree"):
-            entree = None
-        # print("process E:",entree,'S:',self.get_param("sortie"),'regles', self.regles)
-
-        if isinstance(entree, (Stat, ExtStat)):
-            nb_total = entree.to_obj(self)
-            #            nb_total = self._lecture_stats(entree)
-            return
-
+        self.debug = debug
         abort = False
         duree = 0
+        entree = None if self.get_param("sans_entree") else self.get_param("_entree", None)
+        self.macro_entree()
+        entree = None if self.get_param("sans_entree") else self.get_param("_entree", None)
+        # if self.done:
+        #     try:
+        #         self.menage_final()
+        #     except StopIteration:
+        #         self._finalise_sorties()
+        #     return
 
-        if entree and entree.strip() and entree != "!!vide":
+
+        # print("process E:",entree,'S:',self.get_param("sortie"),'regles', self.regles)
+        if self.done:
+            pass
+        elif isinstance(entree, (Stat, ExtStat)):
+            nb_total = entree.to_obj(self)
+            #            nb_total = self._lecture_stats(entree)
+        elif entree and entree.strip() and entree != "!!vide":
             print(
                 "mapper: debut traitement donnees:>" + entree + "-->",
                 self.regle_sortir.params.cmp1.val,
@@ -1059,6 +1058,7 @@ class Pyetl(object):
             except StopIteration:
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
+        LOGGER.info('::'.join(("====== fin == ",self.nompyetl, str(self.idpyetl), str(self.get_param("_st_lu_objs", '0')))))
         return
 
     def menage_final(self):

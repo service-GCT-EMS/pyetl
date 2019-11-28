@@ -224,13 +224,13 @@ def f_dbalpha(regle, obj):
         if connect is None:
             return False
         if connect.accept_sql == "non":  # pas de requetes directes on essaye le mode dump
-            dest = regle.context.getvar("dest")
+            dest = regle.getvar("dest")
             if not dest:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
             os.makedirs(dest, exist_ok=True)
             regle.setvar("_entree", dest)
-            log = regle.context.getvar("log", os.path.join(dest, "log"))
-            os.makedirs(log, exist_ok=True)
+            log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
+            os.makedirs(os.path.dirname(log), exist_ok=True)
             print("traitement db: dump donnees de", base, "vers", dest)
             retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
 

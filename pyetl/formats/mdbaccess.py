@@ -521,10 +521,10 @@ def get_helper(base, files, loadext, helpername, stock_param):
     return helper
 
 
-def setpath(stock_param, nom):
+def setpath(regle, nom):
     """prepare les fichiers de log pour les programmes externes"""
     if nom:
-        nom = os.path.join(stock_param.get_param("_sortie"), nom)
+        nom = os.path.join(regle.getvar("_sortie"), nom)
         rep = os.path.dirname(nom)
         if rep:
             os.makedirs(rep, exist_ok=True)
@@ -545,6 +545,7 @@ def dbextload(regle_courante, base, files, log=None):
     reinit = regle_courante.getvar("reinit", "0")
     vgeom = regle_courante.getvar("valide_geom", "1")
     if helper:
+        logfile = setpath(regle, log)
         return connect.extload(helper, files, logfile=log, reinit=reinit, vgeom=vgeom)
     return False
 
@@ -637,8 +638,8 @@ def dbextsql(regle, base, file, log=None, out=None):
     helpername = connect.sql_helper
     helper = get_helper(base, [file], ".sql", helpername, regle.stock_param)
     if helper:
-        logfile = setpath(regle.stock_param, log)
-        outfile = setpath(regle.stock_param, out)
+        logfile = setpath(regle, log)
+        outfile = setpath(regle, out)
         # print("mdba:extsql: demarrage", helpername, helper, "user:", connect.user)
         return connect.extsql(helper, file, logfile, outfile)
     return False
