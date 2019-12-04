@@ -296,13 +296,14 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
                     table=_extract(i, 'table=')
                     database =_extract(i, 'dbname=')
                     host=_extract(i, 'host=')
+                    port=_extract(i, 'port=')
                     # l_tmp = i.split("table=")
                     # if len(l_tmp) > 1:
 
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        stock[table] = [table,'',database,host]
+                        stock[table] = [table,'',database,host,port]
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:

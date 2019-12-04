@@ -419,7 +419,7 @@ def get_schemabase(connect, mode_force_enums=1):
     )
 
 
-def dbaccess(regle, nombase, type_base=None, chemin=""):
+def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = nombase
     base = nombase
@@ -432,17 +432,23 @@ def dbaccess(regle, nombase, type_base=None, chemin=""):
     systables = stock_param.get_param("tables_systeme")
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
+        serveur = regle.getvar("server_" + codebase, "")
+        type_base = regle.getvar("db_" + codebase, "")
         if not base and regle.getvar("autobase"): #on essaye de charger des groupes connus
             print ('mode autobase', codebase)
             try:
                 stock_param.load_paramgroup(codebase, nom=codebase)
                 base = regle.getvar("base_" + codebase, "")
+                serveur = regle.getvar("server_" + codebase, "")
+                type_base = regle.getvar("db_" + codebase, "")
+
             except KeyError:
                 print( "mdba: multiple : base non definie", codebase)
-
-
-        serveur = regle.getvar("server_" + codebase, "")
-        type_base = regle.getvar("db_" + codebase, "")
+                if description:
+                    base,host,port = description
+                    print ('utilisation definition du fichier:', description)
+                    serveur = 'host='+host+' port='+port
+                    type_base='postgres'
         if not base:
             print("mdba: base non definie",codebase,)
             return None
@@ -656,10 +662,11 @@ def get_connect(
     nomschema="",
     type_base=None,
     chemin="",
+    description=None
 ):
     """ recupere la connection a la base et les schemas qui vont bien"""
     stock_param=regle.stock_param
-    connect = dbaccess(regle, base, type_base=type_base, chemin=chemin)
+    connect = dbaccess(regle, base, type_base=type_base, chemin=chemin, description=description)
 
     if connect is None:
         LOGGER.error("connection base invalide " + str(base))
@@ -836,6 +843,7 @@ def recup_schema(
     type_base=None,
     chemin="",
     mods=None,
+    description=None
 ):
     """ recupere juste les schemas de la base sans donnees """
     stock_param = regle_courante.stock_param
@@ -864,6 +872,7 @@ def recup_schema(
         nomschema=nom_schema,
         type_base=type_base,
         chemin=chemin,
+        description=description
     )
 
     if retour:
