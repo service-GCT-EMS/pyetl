@@ -68,7 +68,6 @@ def tablesorter(liste, schema, complete=False):
     while ajouts:
         ajouts=set()
         schema.calcule_cibles()
-        niveau = dict()
         niveau = {i: 0 for i in liste}
         trouve = 1
         niv_ref = 0
@@ -551,12 +550,12 @@ def dbextload(regle_courante, base, files, log=None):
     reinit = regle_courante.getvar("reinit", "0")
     vgeom = regle_courante.getvar("valide_geom", "1")
     if helper:
-        logfile = setpath(regle, log)
-        return connect.extload(helper, files, logfile=log, reinit=reinit, vgeom=vgeom)
+        logfile = setpath(regle_courante, log)
+        return connect.extload(helper, files, logfile=logfile, reinit=reinit, vgeom=vgeom)
     return False
 
 
-def dbextdump(regle_courante, base, niveau, classe, dest="", log=""):
+def dbextdump(regle_courante, base, niveau, classe, dest="", log=None):
     """extrait un fichier a travers un loader"""
 
     connect, schema_base, schema_travail, liste_tables = recup_schema(
@@ -572,7 +571,8 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=""):
     if helper:
         workers, extworkers = regle_courante.get_max_workers()
         print("extdump", regle_courante.context.vlocales, extworkers)
-        resultats = connect.extdump(helper, liste_tables, dest, log, workers=extworkers)
+        logfile = setpath(regle_courante, log)
+        resultats = connect.extdump(helper, liste_tables, dest, logfile, workers=extworkers)
         #        print(' extdump' , resultats)
         if resultats:
             for idclasse in resultats:
@@ -608,12 +608,13 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
             regle_courante.get_max_workers(),
             regle_courante.getvar("_wid"),
         )
+        logfile = setpath(regle_courante, log)
         resultats = connect.extalpha(
             regle_courante,
             helper,
             liste_tables,
             dest,
-            log,
+            logfile,
             nbworkers=regle_courante.get_max_workers(),
         )
         #        print(' extdump' , resultats)
@@ -740,13 +741,13 @@ def sortie_resultats(
 ):
     """ recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["next"]
-    traite_objet = regle_courante.stock_param.moteur.traite_objet
+    stock_param = regle_courante.stock_param
+    traite_objet = stock_param.moteur.traite_objet
 
     # print ('mdba:sortie_resultat ',type_geom,type(curs))
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
     schema_init = None
-    stock_param = regle_courante.stock_param
     if not niveau:
         niveau = schema_classe_travail.fichier
     if regle_courante.getvar("schema_entree"):
@@ -1231,7 +1232,7 @@ def recup_table_parametres(
     if retour:
         connect, schema_travail, _ = retour
     else:
-        return None
+        return []
 
     ident = (niveau, classe)
     curs = connect.req_alpha(

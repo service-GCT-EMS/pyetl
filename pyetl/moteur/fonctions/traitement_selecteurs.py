@@ -685,28 +685,32 @@ def sel_is_date(selecteur, obj):
             ||     7/2S :  dimanche toutes les 2 semaines
             ||     7/M  :  premier dimanche du mois
             ||    07/M  :  jour 7 du mois
-    #pattern||=is:valid_date;A||1
-    #pattern||=is:valid_date;C||1
+    #pattern0||=is:valid_date;C||2
     #pattern1||=is:valid_date;[A]||1
-    #pattern2||(is:valid_date:)A;C||1
+    #pattern2||(is:valid_date:)A;C||2
     #pattern3||(is:valid_date:)A;[A]||1
     #test||obj;point;1||^X;2005-11-10;;set||^?X;2005-11-11;;set||^Y;2;;set;
          ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
     """
+    # print ("comparaison temps", selecteur.params.pattern)
     if selecteur.params.pattern=="1" or selecteur.params.pattern=="3":
         dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
     else:
         dateref = selecteur.params.vals.val
-    if selecteur.vref=="O": # temps pris dans l objet
+    if selecteur.vref=="O": # temps de reference pris dans l objet: faux si invalide
         datedesc = obj.attributs.get(selecteur.params.attr.val)
-        date = time.strptime(datedesc,"%Y-%m-%d")
+        try:
+            date = time.strptime(datedesc,"%Y-%m-%d")
+        except ValueError:
+            return False
     else:
-        date = time.localtime()
+        date = time.localtime() # temps de reference = jour courant
     # print ("comparaison temps", date, dateref,selecteur.params.pattern)
 
     if dateref == 'X':
         return False
     if dateref == '':
+        # print ('toujours')
         return True
     tmp =  dateref.split('/')
     if len(tmp)!=2:
@@ -767,10 +771,10 @@ def sel_is_time(selecteur, obj):
             ||   1,15/1H  :  minutes 1 et 15 toutes les heures
             ||     7/2H :  minute 7 toutes les 2 heures
             ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
-    #pattern||=is:valid_time;C||1
+    #pattern0||=is:valid_time;C||2
     #pattern1||=is:valid_time;[A]||1
     #pattern2||(is:valid_time:)A;C||1
-    #pattern3||(is:valid_time:)A;[A]||1
+    #pattern3||(is:valid_time:)A;[A]||2
     #test||obj;point;1||^X;12:32:10;;set||^?X;12:31:10;;set||^Y;2;;set;
          ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
     """

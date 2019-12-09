@@ -665,13 +665,23 @@ def lire_commandes_en_base(mapper, fichier_regles):
         nomtable = mapper.get_param("macrotable")
     else:
         nomtable = mapper.get_param("scripttable")
+    commandtable = mapper.get_param("commandtable")
     #    print('lecture de regles en base ', serv, type_base, nomschema+"."+nomtable,
     #          "->", nom)
-    recup = recup_table_parametres(
+    description = recup_table_parametres(
         mapper,
         serv,
         nomschema,
         nomtable,
+        clef="nom",
+        valeur=nom,
+        type_base=type_base,
+    )
+    regles = recup_table_parametres(
+        mapper,
+        serv,
+        nomschema,
+        commandtable,
         clef="nom",
         valeur=nom,
         ordre="ordre",
@@ -679,10 +689,10 @@ def lire_commandes_en_base(mapper, fichier_regles):
     )
 
     liste_regles = [
-        (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]])) for v in recup
+        (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]])) for v in regles
     ]
 
-    #    print('regles lues en base:', serv, nom, liste_regles)
+    print('regles lues en base:', serv, nom, '\n'.join(liste_regles))
 
     return liste_regles
 

@@ -487,8 +487,8 @@ class Objet(object):
     def get_listeattval(self, liste, noms=False):
         """retourne une liste de valeurs selectionees"""
         if noms:
-            return [i + "=" + self.attributs.get(i, "") for i in liste if i]
-        return [self.attributs.get(i, "") for i in liste if i]
+            return [str(i) + "=" + str(self.attributs.get(i, "")) for i in liste if i]
+        return [str(self.attributs.get(i, "")) for i in liste if i]
 
     def get_dynlisteval(self, noms=False):
         """ gestion des attributs en liste dynamique"""

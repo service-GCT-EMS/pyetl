@@ -213,7 +213,7 @@ def printfunc(regle, obj):
     else:
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:
-        return cmp1 + ",".join(liste)
+        return str(cmp1) + ",".join(liste)
     return cmp1 + regle.getval_entree(obj)
 
 

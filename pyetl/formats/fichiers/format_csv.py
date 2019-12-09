@@ -148,11 +148,11 @@ class CsvWriter(FileWriter):
             encoding=encoding,
             schema=schema,
             f_sortie=f_sortie,
+            separ=separ,
             geomwriter=geomwriter,
         )
 
         self.extension = extension
-        self.separ = separ
         self.nom = nom
         self.schema = schema
 
@@ -173,9 +173,13 @@ class CsvWriter(FileWriter):
         self.escape = "\\" + separ
         self.repl = "\\" + self.escape
         self.encoding = encoding
-        self.transtable = str.maketrans(
+        if len(self.separ) != 1:
+            print ('attention separateur non unique', self.separ)
+            self.transtable = str.maketrans({"\n": "\\" + "n", "\r": "\\" + "n"})
+        else:
+            self.transtable = str.maketrans(
             {"\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
-        )
+            )
 
     def header(self, init=1):
         """ preparation de l'entete du fichiersr csv"""
@@ -535,7 +539,7 @@ def ecrire_objets_csv(writer, regle, _):
 
 def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
     '''positionne les parametres du writer csv (sql et txt)'''
-    # print ('initialisation writer', extension, header)
+    print ('initialisation writer', extension, header,separ,null)
     writer.separ = separ
     writer.extension = extension
     writer.header = header
@@ -545,12 +549,14 @@ def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
 def init_csv(writer):
     '''writer csv'''
     separ = writer.regle.getchain(("separ_csv_out","separ_csv"), ";")
-    initwriter(writer, '.csv', 'csv', ';' if separ == '#std' else separ,'')
+    if separ == r'\;':
+        separ = ';'
+    initwriter(writer, '.csv', 'csv', (';' if separ == '#std' else separ),'')
 
 def init_txt(writer):
     '''writer txt separateur tab pour le mode copy de postgres'''
     separ = writer.regle.getchain(("separ_txt_out","separ_txt"), "\t")
-    initwriter(writer, '.txt', False, ';' if separ == '#std' else separ,'')
+    initwriter(writer, '.txt', False, ('\t' if separ == '#std' else separ), '')
 
 def init_geo(writer):
     '''writer geo covadis'''

@@ -261,7 +261,7 @@ $_entree=%_paramdir%\site_params.csv;;;;;;;;;;;
 $_sortie=%_paramdir%;;;;;;;;;;;
 $F_sortie=csv;;;;;;;;;;;
 $mode_sortie=A;;;;;;;;
-"$separ_csv_out=\;";;;;;;;;;;;
+$separ_csv_out=#std;;;;;;;;;;;
 $force_schema=0;;;;;;;;;;;
 $key=%clef%;;;;;;;;
 ;;;;#classe;site_params_c;;set;;;;
@@ -300,7 +300,9 @@ $sans_entree=True;;;;;;;;;;;
 $bdef=%bdef%;batchmode;;;;;;;;;;
 $#%bdef%;;;;;;;;;;;
 $ordrebatch=ordre,famille;;;;;;;;;;;
+K:%sortie%;$sans_sortie=True
 <#dbextract;%batchserver%;%batchschema%;%batchtable%;;;%ordrebatch%;;;;;
+is:valid_date;[jours];;;;;;pass-;
 p:sortie;print;;;;;;tmpstore;;;;
 +:;;;;;;nom,famille,ordre,commentaire;print>;;;;
 !;;;;;;;pass;;;print;
