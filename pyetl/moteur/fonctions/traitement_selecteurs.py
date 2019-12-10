@@ -764,7 +764,7 @@ def selh_is_time(selecteur):
 
 
 def sel_is_time(selecteur, obj):
-    """#aide||vrai si l'heure est compatible avec la description ( sert dans les declecnheurs de batch)
+    """#aide||vrai si l'heure est compatible avec la description ( sert dans les declencheurs de batch)
   #aide_spec||format de temps: (liste de jours)/intervalle
             ||ex:  rien : tout le temps
             ||      /2m :  tous les 2 minutes
@@ -803,21 +803,31 @@ def sel_is_time(selecteur, obj):
     if len(tmp)!=2:
         return False
     decalage,intervalle=tmp
-    if '[]' in intervalle:
+    lastsel = obj.attributs.get('#_lastsel')
+    if lastsel and lastsel.isnumeric():
+        lastseln = int(lastsel)
+    else:
+        lastseln = -1
+    if '[' in intervalle:
         debut, fin = intervalle.split('[')[1][:-1].split('-')
+        intervalle = intervalle.split('[')[0]
     else:
          debut,fin =(-1,25)
 
     if debut > heures or fin < heures:
         return False
     if 'm' in intervalle:
-        intdef = int(intervalle.replace('m',''))
-        vdef = int(decalage) if decalage else 0
-        return  minutes%intdef == vdef
-    if 'H' in intervalle:
-        intdef = int(intervalle.replace('H',''))
-        if heures%intervalle:
+        mdef = intervalle.replace('m','')
+        intdef = int(mdef) if mdef.isnumeric() else 1
+        minutes = minutes%intdef
+    elif 'H' in intervalle:
+        hdef = intervalle.replace('H','')
+        intdef = int(hdef) if hdef.isnumeric() else 1
+        minutes = minutes+(heures%intdef)*60
+    else:
+        return False
+    if minutes == lastseln: # on a deja selectionne
             return False
-        if str(minutes) in decalage.split(','):
-            return True
-    return False
+    if str(minutes) in decalage.split(','):
+        obj.attributs['#_lastsel'] = str(minutes)
+        return True

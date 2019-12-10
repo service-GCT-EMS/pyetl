@@ -343,6 +343,7 @@ class ElyConnect(ora.OrwConnect):
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )
             regle_courante.listgen = fileiter
+            regle_courante.parallelmode = 'process'
             # print ('elyx : extalpha ', regle_courante)
             if nbtrait > 1:
                 try:

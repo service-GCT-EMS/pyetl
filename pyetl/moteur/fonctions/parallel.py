@@ -297,15 +297,16 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
     return rfin
 
 
-def prep_parallel(regle, fonction):
+def prep_parallel(regle, fonction, reprog=False):
     """ initialise le mecanisme pour la parallelisation d'une regle"""
     multi, _ = regle.get_max_workers()
-    if multi > 1 and not regle.stock_param.worker:
+    if multi > 1 or reprog and not regle.stock_param.worker:
         regle.store = True
         regle.traite_stock = fonction
         regle.nbstock = 0
         regle.traite = 0
         regle.tmpstore = []
+        regle.reprog = reprog
     return multi
 
 
@@ -341,6 +342,7 @@ def traite_parallel(regle):
     if mapper.worker:
         print("un worker ne peut pas passer en parallele", mapper.get_param("_wid"))
         raise RuntimeError
+    fonction = parallelprocess if regle.parallelmode == 'process' else parallelbatch
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         # print ('initialistaion parallele', schemas.keys())
@@ -354,7 +356,7 @@ def traite_parallel(regle):
         if regle.debug or paralleldebug:
             print("traite_parallel: retour init", rinit, num_regle)
         #        results = executor.map(parallelprocess, idobj, entrees, num_regle)
-        rdict = paralleliter_suivi(regle, executor, parallelprocess, regle.listgen)
+        rdict = paralleliter_suivi(regle, executor, fonction, regle.listgen)
         rfin = parallelexec(executor, nprocs, endparallel, "")
     #        if regle.debug:
     #        print ('retour')
@@ -475,8 +477,12 @@ def gestion_parallel_batch(regle):
         # (se lance dans chaque worker parallele)
         regle.prog(regle, None)
         regle.valide = "done"  # on a fini on le relance pas
-
-    regle.nbparallel = prep_parallel(regle, traite_parallel_batch)
+    if regle.params.cmp1.val == "boucle" and not regle.stock_param.worker:
+        regle.listgen = iter_boucle(regle)
+        regle.parallelmode = 'batch'
+        regle.nbparallel = prep_parallel(regle, traite_parallel, reprog=True)
+    else:
+        regle.nbparallel = prep_parallel(regle, traite_parallel_batch)
     # print("preparation parallel_batch", regle.nbparallel, regle.chargeur, 'st:',regle.store)
 
 
@@ -532,6 +538,24 @@ def traite_parallel_batch(regle):
             renseigne_attributs_batch(regle, obj, parametres)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
+
+
+
+
+def iter_boucle(regle):
+    """traite les batchs en parallele en mode bouclage (iterateur de jobs)"""
+    endtime = regle.getvar('endtime','23:59')
+    minute = -1
+    while time.strftime('%H:%M') < endtime:
+        time.sleep(1)
+        if time.localtime().tm_min == minute:
+            continue
+        minute = time.localtime().tm_min
+        for obj in regle.tmpstore:
+            retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            if obj.attributs.get('#_timeselect','') == '1':# validation d' execution
+                job = prepare_batch_from_object(regle, obj)
+                yield job
 
 
 # -----------gestion de process externes en batch--------
