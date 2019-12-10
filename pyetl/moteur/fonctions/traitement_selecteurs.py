@@ -803,6 +803,8 @@ def sel_is_time(selecteur, obj):
     if len(tmp)!=2:
         return False
     decalage,intervalle=tmp
+    if not decalage:
+        decalage='0'
     lastsel = obj.attributs.get('#_lastsel')
     if lastsel and lastsel.isnumeric():
         lastseln = int(lastsel)

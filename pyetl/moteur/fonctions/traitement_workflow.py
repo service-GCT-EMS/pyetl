@@ -689,7 +689,7 @@ def h_batch(regle):
     regle.prog = execbatch
     if regle.params.cmp2.num:
         regle.setlocal("multi",regle.params.cmp2.val)
-    if regle.pattern=='4': # boucle : on compile la macro de selection temporelle
+    if regle.params.pattern=='4': # boucle : on compile la macro de selection temporelle
         mapper = regle.stock_param
         erreurs = mapper.lecteur_regles(regle.params.cmp2.val, regle_ref=regle)
         if regle.liste_regles:
