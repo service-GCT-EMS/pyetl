@@ -539,7 +539,7 @@ def ecrire_objets_csv(writer, regle, _):
 
 def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
     '''positionne les parametres du writer csv (sql et txt)'''
-    print ('initialisation writer', extension, header,separ,null)
+    # print ('initialisation writer', extension, header,separ,null)
     writer.separ = separ
     writer.extension = extension
     writer.header = header

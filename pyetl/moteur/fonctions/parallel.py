@@ -103,7 +103,7 @@ def set_parallelretour(mapper, valide):
     return retour
 
 
-def parallelbatch(parametres_batch):
+def parallelbatch(id ,parametres_batch, regle):
     """execute divers traitements en parallele"""
     #    print ("pyetl startbatch",os.getpid(), parametres_batch[:3])
     numero, mapping, entree, sortie, args = parametres_batch
@@ -216,11 +216,15 @@ def suivi_job(mapper, work):
             #            print ('termine',job)
             #            print ('retour', job.result())
             retour_process = job.result()
-            #            print('retour pexec ',job,retour_process)
+            # print('retour pexec ',job,retour_process)
             if retour_process is not None:
-                num_obj, lus = retour_process
-                rfin[num_obj] = lus
-                mapper.aff.send(("fich", 1, lus))
+                num_obj, retour = retour_process
+                if isinstance(retour, dict): # c'est un retour complet de type batch
+                    print ('retour batch', retour['stats_generales']['_st_lu_objs'])
+                    rfin[num_obj] = 0
+                else:
+                    rfin[num_obj] = retour
+                    mapper.aff.send(("fich", 1, retour))
     work[:] = attente
     return rfin
 
@@ -239,18 +243,19 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
     return rfin
 
 
-def submit_job(jobs, job, regle, executor, fonction):
-    """ajoute une tache au traitement parallele"""
+# def submit_job(jobs, job, regle, executor, fonction):
+#     """ajoute une tache au traitement parallele"""
     #    print ('transmission ',job)
     #    rfin = dict()
-    dest, nom, ext = job
-    file = str(os.path.join(*nom) + "." + ext)
-    chemin = str(os.path.dirname(file))
-    nom = str(os.path.basename(file))
-    clef = os.path.join(str(dest), chemin, nom)
-    loadarg = (clef, (dest, chemin, nom, ext))
+    # dest, nom, ext = job
+    # file = str(os.path.join(*nom) + "." + ext)
+    # chemin = str(os.path.dirname(file))
+    # nom = str(os.path.basename(file))
+    # clef = os.path.join(str(dest), chemin, nom)
+    # loadarg = (clef, (dest, chemin, nom, ext))
+    # loadarg=job
     # print ('appel parallele ',clef,'->',loadarg, regle, regle.index)
-    jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
+    # jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
 
 
 #    print ('attente', len(jobs))
@@ -262,6 +267,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
         entree soient généréés"""
     rfin = dict()
     mapper = regle.stock_param
+    paralleldebug=0
     if paralleldebug:
         print('start paralleliter_suivi', fonction, argiter)
     #    work = [executor.submit(fonction, *arg) for arg in arglist]
@@ -282,7 +288,8 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
                     taille, job = waitlist.pop()
                     if paralleldebug:
                         print ('traitement job', job, fonction)
-                    submit_job(jobs, job, regle, executor, fonction)
+                    # submit_job(jobs, job, regle, executor, fonction)
+                    jobs.append(executor.submit(fonction, 1, job, regle.index))
                 except IndexError:
                     time.sleep(0.1)
         # print('paralleliter_suivi : fin traitement', arg, jobs)
@@ -291,7 +298,8 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
         time.sleep(0.1)
     for arg in sorted(waitlist, reverse=True):
         taille, job = arg
-        submit_job(jobs, job, regle, executor, fonction)
+        jobs.append(executor.submit(fonction, 1, job, regle.index))
+        # submit_job(jobs, job, regle, executor, fonction)
 
     rfin.update(parallelmap_suivi(mapper, None, None, None, work=jobs))
     return rfin
@@ -338,7 +346,7 @@ def traite_parallel(regle):
     num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-    print("passage en mode parallel",num_regle, regle)
+    print("passage en mode parallel sur ",nprocs,'process',num_regle, regle)
     if mapper.worker:
         print("un worker ne peut pas passer en parallele", mapper.get_param("_wid"))
         raise RuntimeError
@@ -386,11 +394,6 @@ def traite_parallel(regle):
     #            print ('traitement retour stats', mapper.idpyetl, nom,
     #                   mapper.stats[nom], len(mapper.stats[nom].lignes))
 
-    #    traite = regle.stock_param.moteur.traite_objet
-    #    print("retour multiprocessing ", results, retour)
-    #    obj = regle.objet_courant
-    #    obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-    #    traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 
 
@@ -517,7 +520,7 @@ def traite_parallel_batch(regle):
             parallelexec(executor, nprocs, setparallelid, (workids, "#init_mp", ""))
             if regle.debug:
                 print("retour init", rinit)
-            results = executor.map(parallelbatch, parametres[bloc])
+            results = executor.map(parallelbatch, (1,parametres[bloc],regle.index))
             #        print('retour map',results)
             rdict.update(results)
             #        print('retour map rdict',rdict)
@@ -549,13 +552,19 @@ def iter_boucle(regle):
     while time.strftime('%H:%M') < endtime:
         time.sleep(1)
         if time.localtime().tm_min == minute:
+            print('.', end='',flush=True)
+            yield None
             continue
         minute = time.localtime().tm_min
         for obj in regle.tmpstore:
             retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            n=0
             if obj.attributs.get('#_timeselect','') == '1':# validation d' execution
                 job = prepare_batch_from_object(regle, obj)
-                yield job
+                n+=1
+                # print ('------------------------------iter_boucle envoi', job)
+                yield (1,job)
+                print ('envoye',n,'jobs\nattente', end='',flush=True)
 
 
 # -----------gestion de process externes en batch--------
@@ -643,6 +652,17 @@ def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 patience(nom, retour["params"], retour["end"] - retour["start"])
                 print ('exec parallel_ext retour patience wait end')
 
+
+def prepare_filejob(description):
+    dest, nom, ext = description
+    file = str(os.path.join(*nom) + "." + ext)
+    chemin = str(os.path.dirname(file))
+    nom = str(os.path.basename(file))
+    clef = os.path.join(str(dest), chemin, nom)
+    loadarg = (clef, (dest, chemin, nom, ext))
+    return loadarg
+
+
 def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     """lance des process en parallele et retourne les resultats des que disponible"""
     pool = get_pool(maxworkers)
@@ -656,10 +676,10 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
         try:
             #            print ('itp:',a_traiter, len(libres), len(pool))
             #            a_traiter = sorted(a_traiter)
-            taille, nom = a_traiter.pop()
+            taille, job = a_traiter.pop()
             if paralleldebug:
-                print ('envoi pour traitement',nom, taille, len(a_traiter))
-            yield (taille, nom)
+                print ('envoi pour traitement',job, taille, len(a_traiter))
+            yield (taille, job)
         except IndexError:
             yield None
         libres = 0
@@ -670,7 +690,8 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 nom_r = retour["nom"]
                 if paralleldebug:
                     print ('retour parallel ext', nom_r)
-                a_traiter.append((retour["taille"], retour["fich"]))
+                loadarg = prepare_filejob(retour["fich"])
+                a_traiter.append((retour["taille"], loadarg))
 
                 if patience:
                     patience(nom_r, retour["params"], retour["end"] - retour["start"])
