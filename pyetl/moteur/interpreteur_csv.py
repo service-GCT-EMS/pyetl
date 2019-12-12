@@ -369,10 +369,12 @@ def set_resultat_regle(regle, fonc):
 def identifie_operation(regle):
     """ identifie la fonction a appliquer et recupere les parametres """
     fonction = regle.stock_param.commandes.get(regle.mode)
-    #    print ('detecte commande',regle.valide, regle.mode, regle.ligne, fonction.nom)
+    # print ('detecte commande',regle.mode, regle.ligne, fonction)
     #        printpattern (fonction)
     #        definitions=[i.definition for i in fonction.subfonctions.values()]
     if not fonction:
+        afficher_erreurs(regle, fonction, "fonction non valide")
+        # raise SyntaxError ('fonction inconnue'+ regle.mode)
         return False, None
     elements = None
     definition = None
@@ -393,6 +395,7 @@ def identifie_operation(regle):
                 break
     if not valide:
         afficher_erreurs(regle, fonction, "fonction non valide")
+
 
     if callable(fonc.work):
         regle.fonc = fonc.work

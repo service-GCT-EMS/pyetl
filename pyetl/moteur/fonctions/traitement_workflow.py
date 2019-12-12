@@ -687,7 +687,7 @@ def h_batch(regle):
     if regle.params.cmp1.val == "run":
         regle.chargeur = True
     regle.prog = execbatch
-    if regle.params.pattern=='4': # boucle : on compile la macro de selection temporelle
+    if regle.params.pattern in '45': # boucle : on compile la macro
         mapper = regle.stock_param
         erreurs = mapper.lecteur_regles(regle.params.cmp2.val, regle_ref=regle)
         if regle.liste_regles:
@@ -702,6 +702,7 @@ def f_batch(regle, obj):
     #pattern2||A;?C;?A;batch;=init;||cmp1
     #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
     #pattern4||A;?C;?A;batch;=boucle;C||cmp1
+    #pattern5||A;?C;?A;batch;=load;C||cmp1
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
       #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12

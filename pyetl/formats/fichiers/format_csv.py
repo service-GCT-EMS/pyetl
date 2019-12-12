@@ -85,6 +85,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 # si l'entete n'est pas fourni on le lit dans le fichier
             if entete[0] == "!":
                 entete = entete[1:]
+            elif reader.regle_ref.getvar('entete_csv', '') == '1':
+                pass
             else:  # il faut l'inventer...
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
@@ -103,6 +105,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 if len(val_attributs) != controle:
                     nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
                 obj = reader.getobj(valeurs=val_attributs)
+                if obj is None:
+                    continue # filtrage entree
                 # print ('attributs:',obj.attributs['nombre_de_servitudes'])
                 # if geom:
                 #     obj.geom = [val_attributs[-1]]

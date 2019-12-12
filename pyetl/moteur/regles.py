@@ -271,11 +271,13 @@ class RegleTraitement(object):  # regle de mapping
         if self.ligne:
             return ((self.source if self.source else "")
                 +':'
+                +str(self.index)
+                +'('
                 +str(self.numero)
-                + ":"
+                + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
                 +'->'
-                +self.params._compact()
+                +self.params._compact() if self.params else 'noparams ' + str(self.idregle)
                 +'('
                 +repr(self.context)
                 +')'

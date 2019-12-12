@@ -105,6 +105,7 @@ class Reader(object):
         self.set_format_entree(nom)
         self.nb_lus = 0
         self.lus_fich = 0
+        self.obj_crees = 0
         self.groupe = ""
         self.classe = ""
         self.fixe=()
@@ -217,6 +218,7 @@ class Reader(object):
         """prepare les parametres de lecture"""
         regle = self.regle_ref
         self.lus_fich = 0
+        self.obj_crees = 0
         self.chemin = chemin
         chem = chemin
         niveaux = []
@@ -340,6 +342,10 @@ class Reader(object):
                 self.schemaclasse.attmap.get(i, i if i.startswith("#") else "#" + i)
                 for i in attlist
             ]
+            unmapped = [i for i in attlist if i.startswith('#')]
+            if unmapped:
+                LOGGER.warn('champs non mappés:'+','.join(unmapped))
+                print('-----warning----- champs non mappés:'+','.join(unmapped))
         else:
             self.attlist = attlist
 
@@ -364,24 +370,24 @@ class Reader(object):
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
             self.filtervalue = vals
-            # print ('filtrage entree active', readfilter,self, self.filter)
+            print ('filtrage entree active', readfilter, self.filterfield,'->', filtertype,'<-',self.filtervalue)
 
     def valuefilter(self, attributs):
         try:
-            return attributs[self.filterfield]==self.filtervalue
+            return attributs.get(self.filterfield,'#vide')==self.filtervalue
         except KeyError:
             return False
 
     def regexfilter(self, attributs):
         try:
-            return self.filtervalue.match(attributs[self.filterfield])
+            return self.filtervalue.match(attributs.get(self.filterfield,'#vide'))
         except KeyError:
             return False
 
     def listfilter(self, attributs):
         # print ('appel listfilter', attributs[self.filterfield] in self.filtervalue)
         try:
-            return attributs[self.filterfield] in self.filtervalue
+            return attributs.get(self.filterfield,'#vide') in self.filtervalue
         except KeyError:
             return False
 
@@ -396,33 +402,25 @@ class Reader(object):
     ):
         """retourne un objet neuf a envoyer dans le circuit
            cree un objet si on a pas depasse la limite de lecture"""
+
+        errs = []
+        if self.maxobj >0 and self.lus_fich >= self.maxobj:
+            raise GeneratorExit
         self.nb_lus += 1
         self.lus_fich += 1
-        errs = []
-        if self.maxobj and self.lus_fich > self.maxobj:
-            self.nb_lus -= 1
-            self.lus_fich -= 1
-            raise GeneratorExit
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
             self.aff.send(("interm", 0, self.lus_fich))
-        # print ('getobj', self.filter, attributs)
-        if self.filter and attributs:
-            # print ('filter ',self.filter(dict(attributs)))
-            if isinstance(attributs, dict):
-                if not self.filter(attributs):
-                    return None
-            else:
-                if not self.filter(dict(attributs)):
-                # if not self.filter(attributs):
-                    return None
+
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)
             attributs = self.attremap(attributs)
         elif valeurs:
             attributs = zip(self.attlist, valeurs)
+
         if self.attformatters and attributs is not None:
             attributs = dict(attributs)
+            print ('getobj1b', list(attributs),self.attformatters)
             for nom in self.attformatters:
                 if nom in attributs:
                     try:
@@ -430,6 +428,16 @@ class Reader(object):
                     except TypeError:
                         errs.append('formattage attribut'+ str(self.ident) +' '+nom+' '+attributs[nom])
                         # print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
+        if self.filter and attributs:
+            # print ('filter ',self.filter(dict(attributs)))
+            if isinstance(attributs, dict):
+                if not self.filter(attributs):
+                    return None
+            else:
+                attributs = dict(attributs)
+                if not self.filter(dict(attributs)):
+                # if not self.filter(attributs):
+                    return None
         # if self.filter:
         #     if not self.filter(attributs):
         #         return None
@@ -447,12 +455,14 @@ class Reader(object):
         if geom:
             # print ('getobj:affectation geometrie',geom)
             obj.attributs["#geom"] = geom
-        # print ('creation obj',obj)
         if errs:
             obj.attributs["#erreurs"]=','.join(errs)
         if self.fixe:
             # print ('fixe', self.fixe)
             obj.attributs.update(self.fixe)
+        if self.maxobj and self.obj_crees == -self.maxobj:
+            raise GeneratorExit
+        self.obj_crees += 1
         return obj
 
 
