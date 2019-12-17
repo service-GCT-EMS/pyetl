@@ -420,7 +420,7 @@ class Reader(object):
 
         if self.attformatters and attributs is not None:
             attributs = dict(attributs)
-            print ('getobj1b', list(attributs),self.attformatters)
+            # print ('getobj1b', list(attributs),self.attformatters)
             for nom in self.attformatters:
                 if nom in attributs:
                     try:

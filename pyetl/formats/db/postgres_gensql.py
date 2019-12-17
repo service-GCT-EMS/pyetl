@@ -326,8 +326,9 @@ class PgrGenSql(DbGenSql):
         type_trigger, action, declencheur, timing, event,colonnes,condition,sql = trigdef
         fonction = action
         trig =[]
+        # print ('sql_trigger',fonction)
         if "." in action:
-            scf, nomf = fonction.split(".")
+            scf, nomf = fonction.split(".",1)
         else:
             nomf = fonction
             scf = self.defaut_schema

@@ -355,13 +355,14 @@ class ElyConnect(ora.OrwConnect):
                 for retour in fileiter:
                     if retour is not None:
                         print('elyx extalpha,recu', retour)
-                        nb,pars = retour
-                        rep, idclasse, ext = pars
-                        chemin, classe = idclasse
-                        fichier = os.path.join(rep,chemin,classe)+'.'+ext
+                        nb,infos = retour
+                        clef, pars = infos
+                        rep, chemin, classe, ext = pars
+                        # chemin, classe = idclasse
+                        fichier = os.path.join(rep,chemin,classe)
                         print ("fichier a traiter :", fichier)
                         try:
-                            self.params.lecture(classe+'.'+ext, regle=regle_courante, parms=(rep, chemin, classe+'.'+ext, ext))
+                            self.params.lecture(classe, regle=regle_courante, parms=(rep, chemin, classe, ext))
                         except Exception as err:
                             print ('erreur traitement base', err)
 

@@ -405,6 +405,7 @@ def _ecrire_entete_asc(obj) ->str:
         fin_ent = fin_ent[:-1]
 
     if type_geom_sortie == "3":
+
         code, chaine = _ecrire_point_asc(obj.geom_v)
         entete = code + idobj + chaine + fin_ent + ";\n"
     else:

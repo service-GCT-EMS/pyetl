@@ -796,7 +796,7 @@ def sortie_resultats(
         #     print ('objet lu',obj)
         #     raise
         if type_geom == "1":  # on prepare les angles s'il y en a
-            obj.attributs["#angle"] = obj.attributs.get("angle", "0")
+            obj.attributs["#angle"] = obj.attributs.get("angle_g", "0")
 
         obj.attributs["#type_geom"] = type_geom
         obj.setschema(schema_classe_travail)
