@@ -176,7 +176,7 @@ def geom_from_ewkt(obj):
         geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
         #        print ('decodage geometrie ewkt ',obj.geom)
         _parse_ewkt(obj.geom_v, geom)
-        obj.geom_v.angle=obj.attributs.get("#angle",0)
+        obj.geom_v.angle=float(obj.attributs.get("#angle",0))
         obj.finalise_geom(type_geom=geom_demandee)
     return obj.geom_v.valide
 
