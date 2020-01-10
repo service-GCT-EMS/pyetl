@@ -65,6 +65,15 @@ def print_help(mapper, nom):
                         pnum = variante.patternnum
                         if "#aide_spec" + pnum in i and i != "#aide_spec":
                             print("%-20s: %s" % ("", variante.description.get(i)[0]))
+                        if "#parametres" + pnum in i and i != "#parametres":
+                            print(
+                            "\n".join(
+                                decription_pattern(
+                                    variante.pattern,
+                                    variante.description.get("#parametres"+ pnum),
+                                )
+                            )
+                        )
                     if variante.description.get("#parametres"):
                         print(
                             "\n".join(

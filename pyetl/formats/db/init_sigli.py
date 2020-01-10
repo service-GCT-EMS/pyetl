@@ -268,30 +268,28 @@ requetes_sigli[
 requetes_sigli[
     "info_attributs"
 ] = """
-         WITH t AS (
+ WITH t AS (
          SELECT c.oid AS identifiant,
             n.nspname AS nomschema,
             c.relname AS nomtable,
             c.relkind AS type_table,
             i.indexrelid,
             (c.oid::text || ':'::text) || COALESCE(array_to_string(i.indkey, ':'::text),
-                 ':'::text) AS clef,
+             ':'::text) AS clef,
             row_number() OVER (PARTITION BY c.oid, i.indrelid) AS num_index,
             i.indkey,
-                CASE
-                    WHEN i.indkey IS NULL THEN NULL::smallint
-                    ELSE unnest(i.indkey)
-                END AS champ,
+            champ.champ,
             i.indisprimary AS pk,
             i.indisunique AS uniq
            FROM pg_class c
              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
              LEFT JOIN pg_index i ON c.oid = i.indrelid
+             LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
           WHERE n.nspname <> 'information_schema'::name
-              --AND n.nspname <> 'public'::name
-              AND has_schema_privilege(n.nspname,'usage')
-              AND n.nspname !~~ 'pg_%'::text
-              AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text]))
+           --AND n.nspname <> 'public'::name
+           AND has_schema_privilege(n.nspname,'usage')
+           AND n.nspname !~~ 'pg_%'::text
+           AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text]))
         ), t2 AS (
          SELECT t.identifiant,
             t.nomschema,
@@ -351,7 +349,7 @@ requetes_sigli[
             string_agg(t3."unique"::text, ''::text) AS "unique"
            FROM t3
           GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.attname, t3.attnum,
-                  t3.atttypid, t3.atttypmod, t3.atthasdef, t3.attnotnull
+           t3.atttypid, t3.atttypmod, t3.atthasdef, t3.attnotnull
         )
  SELECT t4.nomschema,
     t4.nomtable,
@@ -361,12 +359,12 @@ requetes_sigli[
             WHEN (( SELECT pg_type.typtype
                FROM pg_type
               WHERE t4.atttypid = pg_type.oid)) = 'e'::"char" THEN 'text'::text
-	    WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'integer'
-		AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
-		THEN 'serial'
-	    WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'bigint'
-		AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
-		THEN 'bigserial'
+            WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'integer'
+		        AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
+		    THEN 'serial'
+	        WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'bigint'
+		        AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
+		    THEN 'bigserial'
             ELSE format_type(t4.atttypid, t4.atttypmod)
         END AS type_attribut,
     'non'::text AS graphique,
@@ -403,12 +401,12 @@ requetes_sigli[
              LEFT JOIN pg_class t ON t.oid = c.confrelid
              LEFT JOIN pg_namespace n ON t.relnamespace = n.oid
           WHERE has_schema_privilege(n.nspname,'usage') AND c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
-                  AND (t4.attnum = ANY (c.conkey))) AS clef_etrangere,
+           AND (t4.attnum = ANY (c.conkey))) AS clef_etrangere,
     ( SELECT a1.attname
            FROM pg_constraint c,
             pg_attribute a1
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
-                  AND (t4.attnum = ANY (c.conkey)) AND a1.attrelid = c.confrelid AND a1.attnum = c.confkey[1]) AS cible_clef,
+            AND (t4.attnum = ANY (c.conkey)) AND a1.attrelid = c.confrelid AND a1.attnum = c.confkey[1]) AS cible_clef,
    ( SELECT 'u'||c.confupdtype||',d'||c.confdeltype||',m'||c.confmatchtype||','|| (case when c.condeferrable then 'defer' else 'nd' end)
           FROM pg_constraint c
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char" AND (t4.attnum = ANY (c.conkey))) as parametres_clef,

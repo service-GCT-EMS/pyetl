@@ -80,27 +80,45 @@ def f_run(regle, obj):
     return False
 
 
-def h_filerename(regle):
-    """renomme un fichier execution unique si pas d'objet dans la definition"""
-    if regle.params.att_sortie.val:
+def fileprep(regle,fonction):
+    """prepare l'execution d'une fonction generique d'operation sur fichier"""
+    if regle.params.att_entree.val:
         regle.chemin_orig = regle.params.cmp2.val if regle.params.cmp2.val else regle.params.cmp1.val
         regle.chemin_final = regle.params.cmp1.val
         regle.valide = True
     else:
         regle.valide = "done"
         if regle.runscope():  # on voit si on doit l'executer
-            try:
-                os.rename(regle.params.cmp2.val, regle.params.cmp1.val)
-                print ('retour run : done')
-            except (FileNotFoundError,FileExistsError):
-                regle.valide = False
+            if regle.statictest():
+                try:
+                    if regle.params.cmp2.val:
+                        fonction(regle.params.cmp2.val, regle.params.cmp1.val)
+                    else:
+                        fonction(regle.params.cmp1.val)
+                except (FileNotFoundError,FileExistsError,OSError) as err:
+                    print ('erreur ', regle.mode,regle.params.cmp2.val,'->',regle.params.cmp1.val, err)
 
+
+
+def fileop(regle,obj,fonction):
+    """fonction generique d'operation sur fichier"""
+    try:
+        fonction(os.path.join(regle.chemin_orig,regle.getval_entree(obj)),
+                    os.path.join(regle.chemin_final,regle.params.att_sortie.val))
+        return True
+    except (FileNotFoundError,FileExistsError,OSError):
+        return False
+
+
+def h_filerename(regle):
+    """renomme un fichier execution unique si pas d'objet dans la definition"""
+    fileprep(regle,os.rename)
 
 
 def f_filerename(regle, obj):
     """#aide||renomme un fichier
    #pattern1||;;;os_ren;C;C
-   #pattern2||A;;A;os_ren;?C;?C
+   #pattern2||A;?C;A;os_ren;?C;?C
  #aide_spec1||execution unique au demarrage
 #parametres1||nom destination;nom d origine
  #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
@@ -108,73 +126,88 @@ def f_filerename(regle, obj):
  #aide_spec2||execution pour chaque objet
 #parametres2||nom destination,nom d origine;chemin destination;chemin origine
    #req_test||testwriterep
-       #test||obj||^;;;os_copy;%testrep%/refdata/liste.csv;%testwriterep%||
+       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
             ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;X;1;;set||atv:X:1
-
+            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
    """
-    try:
-        os.rename(os.path.join(regle.chemin_orig,regle.params.att_entree.val),
-                    os.path.join(regle.chemin_final,regle.params.att_sortie.val))
-        return True
-    except (FileNotFoundError,FileExistsError):
-        return False
+    return fileop(regle,obj,os.rename)
+
+
+def h_filecopy(regle):
+    """renomme un fichier execution unique si pas d'objet dans la definition"""
+    fileprep(regle,shutil.copy2)
+
 
 def f_filecopy(regle, obj):
     """#aide||copie un fichier
   #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
-    #pattern||;;;os_copy;C;C
-    #pattern2||A;;A;os_copy;?C;?C
+   #pattern1||;;;os_copy;C;C
+   #pattern2||A;?C;A;os_copy;?C;?C
  #aide_spec1||execution unique au demarrage
 #parametres1||nom destination;nom d origine
  #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
  #aide_spec2||execution pour chaque objet
 #parametres2||nom destination,nom d origine;chemin destination;chemin origine
-    #helper||filerename
-    #req_test||testwriterep
+   #req_test||testwriterep
+       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
+            ||^;;;os_copy;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
-    try:
-        shutil.copy2(os.path.join(regle.chemin_orig,regle.params.att_entree.val),
-                    os.path.join(regle.chemin_final,regle.params.att_sortie.val))
-        return True
-    except (FileNotFoundError,FileExistsError):
-        return False
+    return fileop(regle,obj,shutil.copy2)
+
+
+def h_filemove(regle):
+    """renomme un fichier execution unique si pas d'objet dans la definition"""
+    fileprep(regle,shutil.move)
+
 
 def f_filemove(regle, obj):
     """#aide||deplace un fichier
   #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
-    #pattern||;;;os_move;C;C
-   #pattern2||A;;A;os_move;?C;?C
+   #pattern1||;;;os_move;C;C
+   #pattern2||A;?C;A;os_move;?C;?C
  #aide_spec1||execution unique au demarrage
 #parametres1||nom destination;nom d origine
  #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
  #aide_spec2||execution pour chaque objet
-#parametres2||nom destination,nom d origine;chemin destination;chemin origine
-     #helper||filerename
+#parametres2||nom destination,defaut,nom d origine;chemin destination;chemin origine
    #req_test||testwriterep
-
+       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
+            ||^;;;os_move;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
+            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
-    try:
-        shutil.move(os.path.join(regle.chemin_orig,regle.params.att_entree.val),
-                    os.path.join(regle.chemin_final,regle.params.att_sortie.val))
-        return True
-    except (FileNotFoundError,FileExistsError):
-        return False
+    return fileop(regle,obj,shutil.move)
+
+def h_filedel(regle):
+    """renomme un fichier execution unique si pas d'objet dans la definition"""
+    fileprep(regle,os.remove)
+
 
 def f_filedel(regle, obj):
     """#aide||supprime un fichier
-    #pattern||;;;os_del;C;
-    #pattern2||;?C;A;os_del;?C;
-    #helper||filerename
+  #aide_spec||suppression d'un fichier
+   #pattern1||;;;os_del;C;
+   #pattern2||;?C;A;os_del;?C;
+ #aide_spec1||execution unique au demarrage
+#parametres1||;nom du fichier a supprimer
+ #aide_spec2||execution pour chaque objet
+#parametres2||defaut;nom du fichier a supprimer;;chemin
+   #req_test||testwriterep
+       #test||obj||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
+            ||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+            ||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
+            ||is:file;!%testwriterep%/liste.csv;;;X;1;;set||atv:X:1
     """
     try:
         os.remove(os.path.join(regle.chemin_orig,regle.params.att_entree.val))
         return True
-    except (FileNotFoundError):
+    except (FileNotFoundError,OSError):
         return False
-
 
 
 def fileinfo(fichier, ajout_attributs):
@@ -217,10 +250,11 @@ def f_infofich(regle,obj):
     """#aide||ajoute les informations du fichier sur les objets
   #aide_spec||usage prefix;defaut;attribut;infofich;;;
             ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
-            ||cree les attributs: #chemin_fich, #nom_fich, #ext_fich,
-            ||     #domaine_fich, #proprietaire_fich, #creation_fich, #modif_fich, #acces_fich
+            ||cree les attributs: #chemin, #nom, #ext,
+            ||     #domaine, #proprietaire, #creation, #modif, #acces
      #schema||ajout_attribut
     #pattern||?A;?C;?A;infofich;;
+       #test||obj||^;%testrep%/refdata/liste.csv;;infofich||atv:#ext:.csv
     """
     # print ('infofich',obj)
     if regle.nomexiste:
@@ -319,7 +353,7 @@ def f_listefich(regle,obj):
     """
     if regle.get_entree(obj):
         classe = regle.params.cmp1.val or obj.attributs.get('#classe')
-        traite_objet = regle.stock_param.traite_objets
+        traite_objets = regle.stock_param.traite_objets
         for fich in getfichs(regle,obj):
             nouveau = obj.dupplique()
             nouveau.attributs['#classe'] = classe
@@ -330,9 +364,23 @@ def f_listefich(regle,obj):
 
 def sel_isfile(selecteur, obj):
     """#aide||tesste si un fichier existe
-       #pattern||=is:file;[A]||1
+       #pattern1||=is:file;[A]||1
        #pattern2||=is:file;C||1
-       #test||obj||^;;;virtuel||^?;;;reel||;is:virtuel;;;C1;1;;set||^;;;reel||atv;C1;1
-
+       #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
     """
-    return os.path.isfile(obj.attributs[selecteur.params.val.val])
+    if selecteur.params.pattern=='2':
+        # print ('isfile',selecteur.params.vals.val,os.path.isfile(selecteur.params.vals.val))
+        return os.path.isfile(selecteur.params.vals.val)
+    else:
+        return os.path.isfile(obj.attributs.get(selecteur.params.vals.val)) if obj is not None else None
+
+def sel_isdir(selecteur, obj):
+    """#aide||tesste si un fichier existe
+       #pattern1||=is:dir;[A]||1
+       #pattern2||=is:dir;C||1
+       #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
+    """
+    if selecteur.params.pattern=='2':
+        return os.path.isdir(selecteur.params.vals.val)
+    else:
+        return os.path.isdir(obj.attributs.get(selecteur.params.vals.val)) if obj is not None else None

@@ -338,11 +338,7 @@ def _ecrire_point_asc(geom):
     """retourne un point pour l'entete"""
 
     dim = geom.dimension
-    angle = (90 - geom.angle) if geom.angle is not None else 0
-    while angle < 0:
-        angle = angle+360
-    while angle > 360:
-        angle = angle-360
+    angle = (90 - geom.angle) % 360 if geom.angle is not None else 0
     angle = round(angle*FA)
     try:
         if dim == 2:

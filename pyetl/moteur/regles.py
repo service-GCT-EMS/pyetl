@@ -536,6 +536,11 @@ class RegleTraitement(object):  # regle de mapping
                 for tache in self.fonctions_schema:
                     tache(self,obj)
 
+    def statictest(self):
+        '''determine si une regle peurt etre executee statiquement'''
+        statictest = self.selstd is None or self.selstd(None)
+        return statictest
+
     def runscope(self):
         """determine si une regle peut tourner"""
         pdef = self.getvar("process")

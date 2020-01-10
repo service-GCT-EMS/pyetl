@@ -63,7 +63,8 @@ class Cursinfo(object):
                 # print ('creation curseur nommé', volume, nom)
                 self.ssc = True
             else:
-                connection.autocommit = True
+                if hasattr(connection,'autocommit'):
+                    connection.autocommit = True
                 self.cursor = connection.cursor()
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)

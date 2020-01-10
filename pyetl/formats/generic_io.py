@@ -122,7 +122,7 @@ class Reader(object):
         if nom in READERS:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
             description = READERS[nom]
-            print ('---initialisation reader',nom ,self.regle_ref)
+            # print ('---initialisation reader',nom ,self.regle_ref)
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
@@ -138,7 +138,7 @@ class Reader(object):
             self.nomschema = ""
             schemas=self.stock_param.schemas
             nom_schema_entree = self.regle_ref.getvar("schema_entree")
-            print ('schema_entree', nom_schema_entree, self.regle_ref.context.vlocales)
+            # print ('schema_entree', nom_schema_entree, self.regle_ref.context.vlocales)
             if nom_schema_entree:
                 if nom_schema_entree.startswith("#"):
                     self.schema_entree = schemas.get(nom_schema_entree)
