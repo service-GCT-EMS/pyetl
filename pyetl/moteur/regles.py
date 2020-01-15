@@ -308,6 +308,10 @@ class RegleTraitement(object):  # regle de mapping
         """positionne une variable dans le contexte de reference"""
         self.context.setvar(nom, valeur)
 
+    def setroot(self, nom, valeur):
+        """positionne une variable dans le contexte base"""
+        self.context.setroot(nom, valeur)
+
     def setlocal(self, nom, valeur):
         """positionne une variable dans le contexte local"""
         self.context.setlocal(nom, valeur)

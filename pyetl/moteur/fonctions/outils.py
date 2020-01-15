@@ -137,11 +137,10 @@ def printexception():
 def renseigne_attributs_batch(regle, obj, retour):
     """stocke les infos du traitement dans les objets"""
     #    print ('recu ', parametres)
-    mapper = regle.stock_param
-    obj.attributs["#objets_lus"] = mapper.get_param("_st_lu_objs", "0")
-    obj.attributs["#fichiers_lus"] = mapper.get_param("_st_lu_fichs", "0")
-    obj.attributs["#objets_ecrits"] = mapper.get_param("_st_wr_objs", "0")
-    obj.attributs["#fichiers_ecrits"] = mapper.get_param("_st_wr_fichs", "0")
+    obj.attributs["#objets_lus"] = regle.getvar("_st_lu_objs", "0")
+    obj.attributs["#fichiers_lus"] = regle.getvar("_st_lu_fichs", "0")
+    obj.attributs["#objets_ecrits"] = regle.getvar("_st_wr_objs", "0")
+    obj.attributs["#fichiers_ecrits"] = regle.getvar("_st_wr_fichs", "0")
     obj.attributs[regle.params.att_sortie.val] = str(retour)
 
 
@@ -152,9 +151,8 @@ def prepare_batch_from_object(regle, obj):
     commande = comm if comm else obj.attributs.get("commandes",'')
     #    print("commande batch", commande)
 
-    mapper = regle.stock_param
-    entree = obj.attributs.get("entree", mapper.get_param("_entree"))
-    sortie = obj.attributs.get("sortie", mapper.get_param("_sortie"))
+    entree = obj.attributs.get("entree", regle.getvar("_entree"))
+    sortie = obj.attributs.get("sortie", regle.getvar("_sortie"))
     numero = obj.attributs.get("#_batchnum", "0")
     nom = obj.attributs.get("nom", "batch")
     #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])

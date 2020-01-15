@@ -29,12 +29,12 @@ def getnoms(rep, chemin, fichier):
     return schema, niveaux
 
 
-def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, stock_param, entete, separ):
+def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, regle, entete, separ):
     """prepare l'entete et les noma d'un fichier csv"""
 
     geom = False
-
-    schema_courant = stock_param.schemas.get(stock_param.get_param("schema_entree"))
+    stock_param = regle.stock_param
+    schema_courant = stock_param.schemas.get(regle.getvar("schema_entree"))
 
     #    print('decodage entete csv',schema_courant.nom if schema_courant else '' ,entete)
 
@@ -120,7 +120,7 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
             fich.seek(0)  # on remet le fichier au debut
 
     nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
-        nom_schema, nom_groupe, nom_classe, self.regle_ref.stock_param, entete, separ
+        nom_schema, nom_groupe, nom_classe, self.regle_ref, entete, separ
     )
     controle = len(noms_attributs)
     nbwarn = 0

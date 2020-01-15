@@ -70,6 +70,24 @@ def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
             )
     return nbwarn
 
+def decoupage_soigne(ligne):
+    ''' de coupe une ligne en respectant les " '''
+    cote = False
+    bloc=''
+    decoup = []
+    for i in ligne:
+        if i =='"':
+            cote=not cote
+            bloc+=i
+        elif i==';' and not cote:
+            decoup.append(bloc)
+            bloc=''
+        else:
+            bloc+=i
+    if bloc:
+        decoup.append(bloc.strip('" '))
+    return decoup
+
 
 def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
@@ -86,6 +104,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             if entete[0] == "!":
                 entete = entete[1:]
             elif reader.regle_ref.getvar('entete_csv', '') == '1':
+                print('entete csv forcee a la premiere ligne', entete)
                 pass
             else:  # il faut l'inventer...
                 entete = separ * len(fich.readline()[:-1].split(separ))
@@ -99,10 +118,13 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             for i in fich:
                 # nlignes = nlignes + 1
 
-                val_attributs = [j.strip() for j in i[:-1].split(separ)]
+                val_attributs = [j.strip('" ') for j in i[:-1].split(separ)]
+                if len(val_attributs) != controle:
+                    val_attributs = decoupage_soigne(i[:-1])
                 # liste_attributs = zip(noms_attributs, val_attributs)
                 # print ('lecture_csv:',[i for i in liste_attributs])
                 if len(val_attributs) != controle:
+
                     nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
                 obj = reader.getobj(valeurs=val_attributs)
                 if obj is None:

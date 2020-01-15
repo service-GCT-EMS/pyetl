@@ -440,7 +440,7 @@ def decode_classes_csv(schema_courant, entree):
 
         groupe = v_tmp[0]
         nom = v_tmp[1]
-        #            print ('schema_io:lecture_attribut ', nom, v_tmp[2])
+        # print ('schema_io:lecture_attribut ', nom, v_tmp[2],v_tmp)
         if groupe and nom:
             schema_courant.origine = "L"
             idorig = (groupe, nom)
@@ -463,7 +463,7 @@ def decode_classes_csv(schema_courant, entree):
             obligatoire = v_tmp[8] == "oui"
             # nom_conformite = ''
             if v_tmp[9]:
-                # print 'conformite',v
+                # print ('conformite',v_tmp)
                 type_attr = v_tmp[9].lower()
                 type_attr_base = "text"
                 # nom_conformite = type_attr
@@ -516,7 +516,7 @@ def decode_classes_csv(schema_courant, entree):
                         multiple=multiple,
                     )
             else:  # on ne fait que definir l'alias de la classe
-                if v_tmp[11].isnumeric():
+                if len(v_tmp) > 11 and v_tmp[11].isnumeric():
                     classe.poids = int(v_tmp[11])
                 classe.alias = v_tmp[3]
                 if v_tmp[5] == "courbe":
@@ -594,7 +594,7 @@ def lire_schema_csv(mapper, nom, fichier, mode_alias="num", cod="cp1252", schema
                 schema.elements_specifiques.divers[i] = (entete, contenu)
 
     FSC.analyse_interne(schema, "init")
-    #    print("schema: lecture_schema realisee --->", fichier, len(schema.classes),
+    print("schema: lecture_schema realisee --->", fichier, len(schema.classes))
     #          "<-----")
     #    print ('mapping enregistre','\n'.join(schema.mapping_schema(fusion=True)[:10]))
     return schema

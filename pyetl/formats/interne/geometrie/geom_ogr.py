@@ -880,16 +880,7 @@ class Geometrie(object):
     @property
     def fold(self):
         """retourne une structure compacte pour les comparaisons"""
-        if self.type == 'indef':
-            return ()
-        if self.null:
-            return None
-        crd = tuple(tuple(i) for i in self.coords)
-        if len(crd) == 1:
-            crd = (crd, self.angle, self.longueur_point)
-        ldef = tuple(i.sdef for i in self.lignes)
-        pdef = tuple(len(i.lignes) for i in self.polygones)
-        return (crd,ldef,pdef)
+        return self.geom.ExportToWkb()
 
     def unfold(self, folded):
         """recree une geometrie a partir de la forme compacte"""

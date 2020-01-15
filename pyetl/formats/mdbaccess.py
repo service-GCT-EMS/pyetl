@@ -428,7 +428,7 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     if codebase in stock_param.dbconnect:
         return stock_param.dbconnect[codebase]
     defmodeconf = 1
-    systables = stock_param.get_param("tables_systeme")
+    systables = regle.getvar("tables_systeme")
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         serveur = regle.getvar("server_" + codebase, "")
@@ -460,8 +460,8 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
-        #       if stock_param.get_param("racine",''):
-        #       serveur = os.path.join(stock_param.get_param("racine"), chemin)
+        #       if regle.getvar("racine",''):
+        #       serveur = os.path.join(regle.getvar("racine"), chemin)
         serveur = ""
         #        servertyp = type_base
         base = nombase
@@ -692,7 +692,7 @@ def get_connect(
         )  # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
-    complete = stock_param.get_param('gestion_coherence')
+    complete = regle.getvar('gestion_coherence')
     niveau = tablesorter(liste2, connect.schemabase, complete)
     #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:

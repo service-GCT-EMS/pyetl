@@ -822,6 +822,7 @@ class Pyetl(object):
                 ("fstat", ""),
                 ("force_schema", "util"),
                 ("epsg", "3948"),
+                ("_pv", ";"),
                 ("F_sortie", ""),
                 ("xmldefaultheader", '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
                 ("codec_sortie", DEFCODEC),

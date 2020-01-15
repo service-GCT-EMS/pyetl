@@ -92,8 +92,9 @@ def _gestion_types_simples(attr, type_attribut):
         #                print("schema: type attribut inconnu ", self.groupe, self.nom,
         #                      " : texte par defaut ",
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
-        print("schemaclasse--------attention type inconnu passage en texte--->", attr, type_attr)
         attr.type_att = "T"
+        print("schemaclasse--------attention type inconnu passage en texte--->", attr, type_attr)
+
     if attr.type_att_base == "E" and taille and taille > 9:
         attr.type_att_base = "EL"
         attr.dec = dec

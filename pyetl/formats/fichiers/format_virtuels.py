@@ -116,7 +116,7 @@ def intstreamer(self, obj, regle, *_, **__):  # ecritures non bufferisees
         groupe, classe = obj.ident
         #        if obj.schema:
         schema_courant = obj.schema
-        dest = regle.stock_param.get_param("_sortie")
+        dest = regle.getvar("_sortie")
         nom = dest if dest else "_".join(obj.ident)
 
         ressource = store.get(nom)
@@ -146,7 +146,7 @@ def ecrire_objets_int(self, regle, *_, **__):
             groupe, classe = obj.ident
             if obj.ident != dident:
                 schema_courant = obj.schema
-                dest = regle.stock_param.get_param("_sortie")
+                dest = regle.getvar("_sortie")
                 nom = dest if dest else "_".join(obj.ident)
                 ressource = store.get(nom)
                 if ressource is None:

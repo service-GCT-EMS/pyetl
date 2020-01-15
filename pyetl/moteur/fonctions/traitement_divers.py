@@ -367,7 +367,7 @@ def h_sortir(regle):
     )
 
     if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
-        rep_base = regle.context.getvar("_sortie")
+        rep_base = regle.getvar("_sortie")
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
         if os.path.isabs(regle.params.cmp2.val): # si absolu on ignore le rep de sortie
             rep_base = ''
@@ -376,6 +376,7 @@ def h_sortir(regle):
             regle.f_sortie.writerparms["destination"] = os.path.basename(regle.params.cmp2.val)
         else:
             regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
+            print ('sortir: ', os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema

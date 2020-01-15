@@ -172,6 +172,9 @@ class PgrConnect(DbConnect):
 
         self.type_base = "postgres"
         self.dialecte = "postgres"
+        style,ordre = self.datestyle()
+        self.params.setroot('dateordre',ordre)
+        self.params.setroot('datestyle',style)
 
     def set_searchpath(self):
         """positionne les path pour la session"""
@@ -179,6 +182,15 @@ class PgrConnect(DbConnect):
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
         cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
+
+    def datestyle(self):
+        '''recupere la config de formattage de dates'''
+        #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
+        retour = self.request("show DateStyle", ())
+        datestyle = retour.pop()[0].split(',')
+        return map(str.strip,datestyle)
+        # print ('retour date', *datestyle)
+
 
 
     @staticmethod
