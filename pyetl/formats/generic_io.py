@@ -225,7 +225,14 @@ class Reader(object):
         while chem:
             chem, nom = os.path.split(chem)
             niveaux.append(nom)
-        self.fixe={'#chemin': os.path.abspath(os.path.join(rep,chemin)), '#fichier':fichier}
+        fich,ext=os.path.splitext(fichier)
+        self.fixe={'#chemin': os.path.abspath(os.path.join(rep,chemin)), '#fichier':fich, '#ext':ext}
+        macro_ouverture=regle.getvar('macro_ouverture') # possibilite de declencher une macro a l'ouverture d'un fichier
+        variables=regle.getvar('variables_ouverture').split(',')
+        if macro_ouverture:
+            retour = regle.stock_param.macrorunner(macro_ouverture,retour=variables)
+            if retour:
+                self.fixe.update(retour)
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
         # print ('prepare lecture',self.nomschema,self.cree_schema)
         if not self.nomschema and self.cree_schema:

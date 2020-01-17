@@ -1093,8 +1093,7 @@ class Pyetl(object):
             processor.process()
             print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
             if retour:
-                for nom in retour:
-                    self.set_param(nom, processor.get_param(retour[nom]))
+                return {i:processor.get_param(i) for i in retour}
         return
 
 
