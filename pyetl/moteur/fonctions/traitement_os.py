@@ -29,7 +29,7 @@ LOGGER = logging.getLogger("pyetl")
 
 def commandrunner(regle, chaine):
     """execute une commande et renvoie eventuellement le resultat"""
-    # print ("commandrunner",regle.params)
+    # print ("commandrunner",regle)
     # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
     chaine = regle.params.cmp1.val+" "+ chaine
     if regle.params.att_sortie.val:
@@ -60,8 +60,8 @@ def h_run(regle):
 
 def f_run(regle, obj):
     """#aide||execute une commande externe
-   #pattern1||?A;?C;?A;run;C
-   #pattern3||P;;;run;C;?C
+   #pattern1||?A;?C;A;run;C
+   #pattern3||?P;;;run;C;?C
  #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
  #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
 #parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres

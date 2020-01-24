@@ -864,12 +864,13 @@ def prepare_env(mapper, texte:str, fichier_regles):
         inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
         context.affecte(parametres)
     #            print("lecture de regles incluses", inclus,pps)
+    # print ('prepare_env', inclus, context, context.vlocales, parametres)
     return inclus, context, macro
 
 
 def execute_macro(mapper, texte, context, fichier_regles):
     '''lance une macro en one shot'''
-    print ('preparation macro', texte,context)
+    print ('preparation macro direct', texte, context)
     mapper.macrorunner(texte)
 
 def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
@@ -891,8 +892,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             traite_regle_std(mapper,0,rvirt,rvirt,'',0,regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, ismacro = prepare_env(mapper, texte, fichier_regles)
-    if macroenv.getlocal('debug'):
-        print ('debug macro:',context, texte, '->',inclus,macroenv.vlocales)
+    if macroenv.getvar('debug')!='0':
+        print ('debug macro:',context, texte, '->',inclus,sorted(macroenv.vlocales.items()))
     macro = mapper.macros.get(inclus)
     if macro:
         erreurs = lire_regles_csv(mapper,'', liste_regles=macro.get_commands(), niveau=niveau, regle_ref=regle_ref)
@@ -1021,6 +1022,7 @@ def lire_regles_csv(
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             # print ('avant macro',texte, context, context.getvar('atts'))
             # on transforme ca en appel call
+            # ligne,_ = context.resolve(texte)
             erreurs += importe_macro(mapper, texte, context, fichier_regles, regle_ref=regle_ref)
             if erreurs:
                 print("erreur chargement macro", texte)

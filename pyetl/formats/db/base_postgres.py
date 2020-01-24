@@ -24,12 +24,16 @@ TYPES_A = {
     "ALPHA": "T",
     "NAME": "T",
     '"CHAR"': "T",
+    'CHAR': "T",
     "REGCLASS": "T",
     "E": "E",
     "ENTIER": "E",
     "INTEGER": "E",
     "INT": "E",
+    "INT2": "E",
+    "INT4": "E",
     "EL": "EL",
+    "INT8": "EL",
     "BIGINT": "EL",
     "LONG": "EL",
     "ENTIER_LONG": "EL",
@@ -41,6 +45,7 @@ TYPES_A = {
     "TIME WITHOUT TIME ZONE": "D",
     "F": "F",
     "FLOAT": "F",
+    "FLOAT4": "F",
     "REEL": "F",
     "REAL": "F",
     "FLOTTANT": "F",
@@ -175,6 +180,7 @@ class PgrConnect(DbConnect):
         style,ordre = self.datestyle()
         self.params.setroot('dateordre',ordre)
         self.params.setroot('datestyle',style)
+        self.numtypes = self._getnumtypes()
 
     def set_searchpath(self):
         """positionne les path pour la session"""
@@ -291,6 +297,19 @@ class PgrConnect(DbConnect):
 
     def _def_ftables(self):
         return {i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])}
+
+    def _getnumtypes(self):
+        numtypes = {i:j for i,j in self.schemarequest("num_types")}
+        # print ('recup numtypes',numtypes)
+        return numtypes
+
+    def getdatatype(self,datatype):
+        '''recupere le type interne associe a un type cx_oracle'''
+        typebase=self.numtypes.get(datatype,'T').upper().strip('_')
+        # print ('recup numtype',self.numtypes.get(datatype,'inconnu'), self.types_base.get(typebase))
+        return self.types_base.get(typebase,'T')
+
+
 
     def _def_triggers(self):
         def_trigg = dict()

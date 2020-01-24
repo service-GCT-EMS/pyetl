@@ -842,6 +842,7 @@ def h_geocode(regle):
     regle.traite = 0
     regle.traite_stock = geocode_traite_stock
     regle.tmpstore = []
+    regle.liste_atts = []
     regle.scoremin = 0
     print("liste_filtres demandes", regle.params.cmp2.liste)
     regle.filtres = dict(i.split(":") for i in regle.params.cmp2.liste)
@@ -856,6 +857,7 @@ def f_geocode(regle, obj):
     #parametres||liste attributs adresse;;confiance mini;liste filtres
     #pattern||;;L;geocode;?C;?LC
     #schema||ajout_att_from_liste
+    #test||obj||^X;1 parc de l'etoile Strasbourg;;set||^;;X;geocode;;||atv:result_housenumber:1
     """
     #    clef = obj.attributs.get(regle.params.cmp1.val)
     #    print("avant geocodeur", regle.nbstock)

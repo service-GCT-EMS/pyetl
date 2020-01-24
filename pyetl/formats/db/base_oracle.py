@@ -234,6 +234,11 @@ class OraConnect(DbConnect):
 
         return requete
 
+    def getdatatype(self,datatype):
+        '''recupere le type interne associe a un type cx_oracle'''
+        nom=datatype.__name__
+        return TYPES_A.get(nom,'T')
+
     def get_dateformat(self, nom):
         """formattage dates"""
         return 'TO_CHAR("' + nom + '"' + ",'" + self.dateformat + "')"

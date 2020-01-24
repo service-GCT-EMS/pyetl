@@ -252,8 +252,8 @@ class Macro(object):
 
     def __repr__(self):
         """affichage lisible de la macro"""
-        header = "&&#def;" + self.nom
-        return "\n".join(
+        header = "&&#def;" + self.nom+';'+';'.join(self.vpos)+'\n'
+        return " ".join(
             [header]
             + [self.help]
             + self.help_detaillee

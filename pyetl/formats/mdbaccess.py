@@ -715,13 +715,12 @@ def get_dbtype(connect, typecode):
     connection.request()
 
 
-def schema_from_curs(curs, nomclasse):
+def schema_from_curs(schema, curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
-    connect = curs.connect
-    schemaclasse = connect.schemabase.get_classe(nomclasse, cree=True)
-    for colonne in curs.description:
-        nom, typecode, _, _, taille, dec, _ = colonne
-        type_attribut = get_dbtype(connect,typecode)
+    schemaclasse = schema.get_classe(nomclasse, cree=True)
+    attlist = curs.infoschema
+    for colonne in curs.attlist:
+        nom, type_attribut,taille, dec = colonne
         schemaclasse.stocke_attribut(nom,type_attribut,taille=taille,dec=dec)
     return schemaclasse
 
@@ -968,20 +967,18 @@ def lire_table(ident, regle_courante, parms=None):
         return res
     return 0
 
-def lire_requete(ident, regle_courante, parms=None, requete=''):
+def lire_requete(base, niveau, classe , regle_courante, requete='', parms=None, maxobj=0):
     """lecture directe"""
-    if ident is None:
+    if classe is None:
         return 0
-    niveau, classe = ident
-    base, type_base, chemin, maxobj,sortie,v_sortie = (
-        parms
-    )
-    retour = get_connect(regle_courante, base,'','',type_base=type_base,chemin=chemin)
+
+    nom_schema=regle_courante.getvar('#schema','tmp')
+    retour = get_connect(regle_courante, base,'','',nomschema=nom_schema)
     if retour:
-        connect,schema,liste = retour
+        connect, schema, liste = retour
     else:
         return 0
-    curs = connect.request(requete, maxobj)
+    curs = connect.iterreq(requete,data=parms)
 
     #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
     #        print ('mdba : ',ident)
@@ -990,7 +987,7 @@ def lire_requete(ident, regle_courante, parms=None, requete=''):
     treq = time.time() - treq
     connect.connection.commit()
     if curs:
-        schema_classe_travail = schema_from_curs(curs, ident)
+        schema_classe_travail = schema_from_curs(schema, curs, ident)
         res = sortie_resultats(
             regle_courante,
             curs,
@@ -1002,6 +999,7 @@ def lire_requete(ident, regle_courante, parms=None, requete=''):
             schema_classe_travail.info["type_geom"],
             schema_classe_travail,
             treq=treq,
+            maxobj=maxobj
         )
 
         if sortie:

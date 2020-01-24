@@ -87,7 +87,7 @@ def param_base(regle):
     elif niv.lower().startswith("in:"):  # mode in
         if base:
             _ ,niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
-        else:
+        else: # mode mutibase (projets qgis ou csv multibase)
             base, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:], autobase=True)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
@@ -319,6 +319,23 @@ def f_dbgeo(regle, obj):
             type_base=type_base,
             chemin=chemin,
         )
+    return retour
+    # recup_donnees(stock_param,niveau,classe,attribut,valeur):
+
+def f_dbrequest(regle, obj):
+    """#aide||recuperation d'objets depuis une requtere sur la base de donnees
+    #aide_spec||db:base;niveau;classe;;att_sortie;valeurs;champ a integrer;dbreq;requete
+    #groupe||database
+    #pattern||?A;?;?L;dbgeo;C;?N
+    #req_test||testdb
+    """
+    # regle.stock_param.regle_courante=regle
+    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(regle, obj, att=False)
+    if not fonction:
+        print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
+        return False
+    else:
+        retour = DB.lire_requete(regle, base, niveau, classe, requete='', parms=None)
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -559,9 +576,9 @@ def h_recup_schema(regle):
         regle.setlocal('autobase','1')
 
         for nom in nombase: # description schemas multibases
-            nombase,_,host,port=nom
+            nombase,val,host,port=nom
 
-            print ('multibase:recup base',nom)
+            print ('multibase:recup base',nombase,val,host,port)
             DB.recup_schema(regle, nombase, niveau, classe, nombase, description=nom)
 
         regle.valide = "done"

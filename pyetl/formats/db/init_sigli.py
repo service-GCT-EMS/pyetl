@@ -83,7 +83,6 @@ requetes_sigli[
 """
 
 
-
 requetes_sigli[
     "info_tables_distantes"
 ] = """
@@ -427,6 +426,12 @@ requetes_sigli[
                 WHERE pg_enum.enumtypid = pg_type.oid
                 ORDER BY pg_type.typname, pg_enum.enumsortorder
                 """
+requetes_sigli[
+    "num_types"
+] = """
+        SELECT t.oid,t.typname
+        from pg_type t left join pg_namespace n on t.typnamespace=n.oid where n.nspname='pg_catalog' or n.nspname='public'
+        """
 
 
 def cree_sigli(nomschema):

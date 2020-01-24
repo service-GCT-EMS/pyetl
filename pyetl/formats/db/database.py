@@ -51,7 +51,8 @@ class SpecDefs(object):
 class Cursinfo(object):
     """contient un curseur de base de donnees et des infos complementaires (requete,liste...)"""
 
-    def __init__(self, connection, volume=0, nom=""):
+    def __init__(self, connecteur, volume=0, nom=""):
+        connection=connecteur.connection
         self.cursor = None
         if connection:
             # if volume > 100000 and nom:
@@ -68,6 +69,7 @@ class Cursinfo(object):
                 self.cursor = connection.cursor()
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)
+        self.connecteur=connecteur
         self.request = None
         self.data = None
         self.attlist = None
@@ -101,7 +103,6 @@ class Cursinfo(object):
         self.data = data
         self.attlist = attlist
         # print('dans execute ', requete)
-
         if self.cursor:
             if data is not None:
                 self.cursor.execute(requete, data)
@@ -116,6 +117,8 @@ class Cursinfo(object):
                 self.decile = int(self.rowcount / 10 + 1)
                 if self.decile == 1:
                     self.decile = 100000
+        # if attlist is None:
+        #     self.attlist=self.schemaclasse
         # print ('fin')
 
     @property
@@ -128,6 +131,31 @@ class Cursinfo(object):
             except:
                 pass
         return self.volume
+
+    @property
+    def infoschema(self):
+        """fournit un schema issu de la requete"""
+
+        if self.cursor:
+            try:
+                # print('dans cursor.schemaclasse',self.cursor.description)
+                if self.cursor.description:
+                    attlist=[]
+                    typelist=[]
+                    for ordre,colonne in enumerate(self.cursor.description):
+                        name, datatype, display_size, internal_size, precision, scale, null_ok = colonne
+                        # print ('lecture requete',name, type, display_size, internal_size, precision, scale, null_ok )
+                        nomtype = self.connecteur.getdatatype(datatype)
+                        attlist.append((name,nomtype,internal_size, precision))
+                        # typelist.append(type.__name__)
+                    print ('attlist', attlist)
+                    return attlist
+            except:
+                print('planté dans cursor.schemaclasse')
+                pass
+        return None
+
+
 
 
 class DbConnect(object):
@@ -238,7 +266,7 @@ class DbConnect(object):
     def get_cursinfo(self, volume=0, nom=""):
         """recupere un curseur"""
         return (
-            Cursinfo(self.connection, volume=volume, nom=nom)
+            Cursinfo(self, volume=volume, nom=nom)
             if self.connection
             else None
         )
@@ -257,6 +285,9 @@ class DbConnect(object):
     def connect(self):
         self.connection = DummyConnect()
 
+    def getdatatype(self,datatype):
+        '''recupere le type interne associe a un type cx_oracle'''
+        return 'T'
 
 
     def schemarequest(self, nom, fallback=False):
@@ -311,6 +342,10 @@ class DbConnect(object):
         """produit les objets issus de la base de donnees"""
 
         yield from [self.attdef(*i) for i in self.schemarequest("info_attributs")]
+
+
+
+
 
     def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):
         """ lancement requete specifique base"""

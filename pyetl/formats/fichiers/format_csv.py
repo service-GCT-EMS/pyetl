@@ -337,7 +337,7 @@ class SqlWriter(CsvWriter):
 
 
     def prepare_attributs(self, obj):
-        ''' prepare la es attributs en fonction du format'''
+        ''' prepare les attributs en fonction du format'''
         if obj.hdict:
             # atlist = []
             atlist = (",".join(['"'+i+'"=>"'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())]) if nom in obj.hdict else
