@@ -1222,7 +1222,7 @@ class Pyetl(object):
         open(self.get_param("job_control"), "w").write("fin mapper\n")
 
 
-    def lecture(self, fich, regle=None, reglenum=None, parms: [str]=None):
+    def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""
         if parms is not None:
             racine, chemin, fichier, ext = parms

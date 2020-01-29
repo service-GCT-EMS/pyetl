@@ -568,7 +568,7 @@ def scan_entree_2(rep=None, force_format=None, fileselect=None, filtre_entree=No
         else:
             nom = os.path.splitext(fichier)[0].lower()
             if force_format:
-                ext = force_format
+                ext = str(force_format)
             try:
                 aux = READERS[ext][3]
                 if '!' in aux: # attention il y a des incompatibilites
@@ -587,82 +587,82 @@ def scan_entree_2(rep=None, force_format=None, fileselect=None, filtre_entree=No
 
 
 
-def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):
-    " etablit la liste des fichiers a lire"
-    entree = rep
-    parametres_fichiers = {}
-    retour = []
-    if debug:
-        print ('scan_entree repertoire a scanner',rep)
-    if not entree:
-        return retour, parametres_fichiers
-    #    force_format = ''
-    #    liste_formats = F.LECTEURS.keys()
-    # print("formats",Reader.get_formats())
-    liste_formats = READERS.keys()
-    #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
-    if debug:
-        print("format entree forcee ", force_format)
-    # print ('scan_entree', rep, os.path.isfile(entree))
-    if os.path.isfile(entree):  # traitement un seul fichier
+# def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None, dirselect = None, debug=0):
+#     " etablit la liste des fichiers a lire"
+#     entree = rep
+#     parametres_fichiers = {}
+#     retour = []
+#     if debug:
+#         print ('scan_entree repertoire a scanner',rep)
+#     if not entree:
+#         return retour, parametres_fichiers
+#     #    force_format = ''
+#     #    liste_formats = F.LECTEURS.keys()
+#     # print("formats",Reader.get_formats())
+#     liste_formats = READERS.keys()
+#     #        auxiliaires = {a:F.AUXILIAIRES.get(a) for a in F.LECTEURS}
+#     if debug:
+#         print("format entree forcee ", force_format)
+#     # print ('scan_entree', rep, os.path.isfile(entree))
+#     if os.path.isfile(entree):  # traitement un seul fichier
 
-        fichs = [(os.path.basename(entree), "")]
-        entree = os.path.dirname(entree)  # on extrait le repertoire
-    elif '*' in entree:
-        rep = str(os.path.dirname(entree))
-        while '*' in rep:
-            rep=str(os.path.dirname(rep))
-        print ('repertoire de reference', rep)
-        fichs = [(os.path.basename(i),str(os.path.dirname(i)).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
-        entree = rep
+#         fichs = [(os.path.basename(entree), "")]
+#         entree = os.path.dirname(entree)  # on extrait le repertoire
+#     elif '*' in entree:
+#         rep = str(os.path.dirname(entree))
+#         while '*' in rep:
+#             rep=str(os.path.dirname(rep))
+#         print ('repertoire de reference', rep)
+#         fichs = [(os.path.basename(i),str(os.path.dirname(i)).replace(rep,'')) for i in  glob.glob(entree, recursive=True)]
+#         entree = rep
 
-        # print ( 'fichiers lus', fichs)
-    else:
-        fichs = [i for i in scandirs(entree, "", True, pattern=fileselect, dirpattern=dirselect)]
+#         # print ( 'fichiers lus', fichs)
+#     else:
+#         fichs = [i for i in scandirs(entree, "", True, pattern=fileselect, dirpattern=dirselect)]
 
-    identifies = dict()
-    non_identifies = []
+#     identifies = dict()
+#     non_identifies = []
 
-    if filtre_entree:
-        print("filtrage entrees ", filtre_entree)
-    # print ('fichs',fichs, filtre_entree)
-    for fichier, chemin in fichs:
-        if filtre_entree:
-            if not re.search(filtre_entree, fichier):
-                #                    print ('ignore ',filtre_entree,fichier)
-                continue
+#     if filtre_entree:
+#         print("filtrage entrees ", filtre_entree)
+#     # print ('fichs',fichs, filtre_entree)
+#     for fichier, chemin in fichs:
+#         if filtre_entree:
+#             if not re.search(filtre_entree, fichier):
+#                 #                    print ('ignore ',filtre_entree,fichier)
+#                 continue
 
-        nom = os.path.splitext(fichier)[0].lower()
-        ext = (
-            force_format if force_format else str(os.path.splitext(fichier)[1]).lower().replace(".", "")
-        )
-        # print ('ici', nom,ext, ext in liste_formats, liste_formats)
-        if ext in liste_formats:
-            aux = READERS[ext][3]
-            if '!' in aux: # attention il y a des incompatibilites
-                racine = os.path.splitext(fichier)[0]
-                valide = True
-                for ex2 in aux:
-                    if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
-                        non_identifies.append((chemin, nom, ext))
-                        valide = False
-                        continue
-                if not valide:
-                    continue
-            f_courant = os.path.join(str(entree), str(chemin), str(fichier))
-            identifies[chemin, nom] = ext
-            if debug:
-                print("fichier a traiter", f_courant, ext)
-            retour.append(f_courant)
-            parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
-        #                print('fichier a traiter', f_courant, fichier, ext)
-        else:
-            non_identifies.append((chemin, nom, ext))
-    valide_auxiliaires(identifies, non_identifies)
+#         nom = os.path.splitext(fichier)[0].lower()
+#         ext = (
+#             force_format if force_format else str(os.path.splitext(fichier)[1]).lower().replace(".", "")
+#         )
+#         # print ('ici', nom,ext, ext in liste_formats, liste_formats)
+#         if ext in liste_formats:
+#             aux = READERS[ext][3]
+#             if '!' in aux: # attention il y a des incompatibilites
+#                 racine = os.path.splitext(fichier)[0]
+#                 valide = True
+#                 for ex2 in aux:
+#                     if os.path.isfile(os.path.join(str(entree), str(chemin), str(racine+'.'+ex2))):
+#                         non_identifies.append((chemin, nom, ext))
+#                         valide = False
+#                         continue
+#                 if not valide:
+#                     continue
+#             f_courant = os.path.join(str(entree), str(chemin), str(fichier))
+#             identifies[chemin, nom] = ext
+#             if debug:
+#                 print("fichier a traiter", f_courant, ext)
+#             retour.append(f_courant)
+#             parametres_fichiers[f_courant] = (entree, chemin, fichier, ext)
+#         #                print('fichier a traiter', f_courant, fichier, ext)
+#         else:
+#             non_identifies.append((chemin, nom, ext))
+#     valide_auxiliaires(identifies, non_identifies)
 
-    if debug:
-        print("fichiers a traiter", fichs, retour, parametres_fichiers)
-    return retour, parametres_fichiers
+#     if debug:
+#         print("fichiers a traiter", fichs, retour, parametres_fichiers)
+#     return retour, parametres_fichiers
 
 
 def remap_noms(items, intmap1, intmap2, elt):

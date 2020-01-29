@@ -719,7 +719,7 @@ def schema_from_curs(schema, curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
     schemaclasse = schema.get_classe(nomclasse, cree=True)
     attlist = curs.infoschema
-    for colonne in curs.attlist:
+    for colonne in attlist:
         nom, type_attribut,taille, dec = colonne
         schemaclasse.stocke_attribut(nom,type_attribut,taille=taille,dec=dec)
     return schemaclasse
@@ -761,11 +761,11 @@ def sortie_resultats(
     )
     stock_param.set_param("printpending", 1)
     nbvals = 0
-    attlist = curs.attlist
+    attlist = curs.infoschema
     # print (' attributs recuperes avant', attlist)
 
     if type_geom != "0":
-        attlist.append("#geom")
+        attlist.append(("#geom",'T',0,None))
     # print (' attributs recuperes ', attlist)
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
@@ -825,10 +825,9 @@ def sortie_resultats(
     tget = time.time() - tget
     if nb_pts < 10:
         print("." * (10 - nb_pts), end="")
-    attrs, vals = cond
-    cdef = repr(cond) if attrs else ""
 
-    print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, cdef))
+
+    print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
     stock_param.set_param("printpending", 0)
     curs.close()
     return nbvals
@@ -967,12 +966,17 @@ def lire_table(ident, regle_courante, parms=None):
         return res
     return 0
 
-def lire_requete(base, niveau, classe , regle_courante, requete='', parms=None, maxobj=0):
+def lire_requete(regle_courante, base, niveau, classe ,attribut=None, requete='', parms=None):
     """lecture directe"""
     if classe is None:
         return 0
-
+    ident = (niveau[0], classe[0])
+    if not ident:
+        return 0
+    print ('requete',requete,'->',ident)
     nom_schema=regle_courante.getvar('#schema','tmp')
+    v_sortie=parms
+    sortie=attribut
     retour = get_connect(regle_courante, base,'','',nomschema=nom_schema)
     if retour:
         connect, schema, liste = retour
@@ -987,19 +991,18 @@ def lire_requete(base, niveau, classe , regle_courante, requete='', parms=None, 
     treq = time.time() - treq
     connect.connection.commit()
     if curs:
+        print ('creation schema', ident)
         schema_classe_travail = schema_from_curs(schema, curs, ident)
         res = sortie_resultats(
             regle_courante,
             curs,
-            niveau,
-            classe,
+            *ident,
             connect,
             sortie,
             v_sortie,
             schema_classe_travail.info["type_geom"],
             schema_classe_travail,
             treq=treq,
-            maxobj=maxobj
         )
 
         if sortie:

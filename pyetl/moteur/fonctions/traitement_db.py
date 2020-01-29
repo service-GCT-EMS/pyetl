@@ -322,20 +322,36 @@ def f_dbgeo(regle, obj):
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
+
+def h_dbrequest(regle):
+    """gestion des fonctions geographiques"""
+    param_base(regle)
+    regle.chargeur = True  # c est une regle qui cree des objets
+    attribut = regle.v_nommees.get("val_sel2", "")
+    requete=regle.params.cmp1.val
+    if requete.startswith('F:'): # lecture requete en fichier
+        with open(requete[2:],'r') as fich:
+            requete = ''.join(fich.readlines())
+    regle.requete=requete
+    valide = True
+    return valide
+
+
+
 def f_dbrequest(regle, obj):
     """#aide||recuperation d'objets depuis une requtere sur la base de donnees
-    #aide_spec||db:base;niveau;classe;;att_sortie;valeurs;champ a integrer;dbreq;requete
+    #aide_spec||db:base;niveau;classe;att_ref;att_sortie;valeurs;champ a integrer;dbreq;requete
     #groupe||database
-    #pattern||?A;?;?L;dbgeo;C;?N
+    #pattern||?A;?;?L;dbreq;C
     #req_test||testdb
+    #
     """
     # regle.stock_param.regle_courante=regle
-    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(regle, obj, att=False)
-    if not fonction:
-        print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
-        return False
-    else:
-        retour = DB.lire_requete(regle, base, niveau, classe, requete='', parms=None)
+    base, niveau, classe, attribut, valeur, chemin, type_base = setdb(regle, obj, att=False)
+    # parms = [regle.getv]
+    print ('execution requete',regle.params.cmp1.val)
+    parms = [obj.attributs.get(i,'') for i in regle.params.att_entree.liste]
+    retour = DB.lire_requete(regle, base, niveau, classe, requete=regle.requete, parms=parms)
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 

@@ -142,13 +142,13 @@ class Cursinfo(object):
                 if self.cursor.description:
                     attlist=[]
                     typelist=[]
-                    for ordre,colonne in enumerate(self.cursor.description):
+                    for colonne in self.cursor.description:
                         name, datatype, display_size, internal_size, precision, scale, null_ok = colonne
                         # print ('lecture requete',name, type, display_size, internal_size, precision, scale, null_ok )
                         nomtype = self.connecteur.getdatatype(datatype)
                         attlist.append((name,nomtype,internal_size, precision))
                         # typelist.append(type.__name__)
-                    print ('attlist', attlist)
+                    # print ('attlist', attlist)
                     return attlist
             except:
                 print('planté dans cursor.schemaclasse')

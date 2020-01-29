@@ -209,7 +209,7 @@ class CsvWriter(FileWriter):
 
     def header(self, init=1):
         """ preparation de l'entete du fichiersr csv"""
-        print("csvheader ", self.entete)
+        # print("csvheader ", self.entete)
         if not self.entete:
             #            raise
             return ""

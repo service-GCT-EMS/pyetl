@@ -159,7 +159,11 @@ db:%acces%;%niveau%;%classe%;dans_emprise;;buffer;;dbgeo;%mod%;%ordre%;fin;
 #!help;lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;
 <#dbextract;%acces%;%niveau%;%classe%;%attribut%;%valeur%;;;;;;
 <#gid;;;;;;;;;;;
-
+!===========================================================================================;;;;;;;;;;;
+&&#define;#dbrequest;acces;niveau;classe;requete;;;;
+#!help;recuperation d'un jeu de donnees par requete directe;;;;;;;;;;
+<#initdb;%acces%;%nom%;;;;
+db:%acces%;%niveau%;%classe%;;;;;dbreq;%requete%;;
 !========================= conversion ======================================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#to_sigli;;;;;;;;;;
