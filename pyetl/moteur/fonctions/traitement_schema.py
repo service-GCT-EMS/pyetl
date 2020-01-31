@@ -54,8 +54,13 @@ def f_info_schema(regle, obj):
 
 
 def f_set_schema(regle, obj):
-    """#aide||positionne des valeurs de schema (statique)
+    """#aide||positionne des parametres de schema (statique)
        #pattern||C;?C;;set_schema;;
+       #aide_spec||parametres positionnables:
+        || pk : nom de la clef primaire
+        || alias : commentaire de la table
+        || dimension : dimension geometrique
+    #parametres||nom du parametre a positionner;valeur
        #test1||obj;poly||^type_geom;2;;set_schema;||^V4;type_geom;;info_schema;||atv;V4;2
     """
     schem = obj.schema

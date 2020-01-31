@@ -318,7 +318,6 @@ def reg_stockage(store, nom_module, nom, fonction, description):
     priorite = def_sortie.priorite
     if len(pattern) > 1:
         def_sortie.groupe = pattern[1]
-    #        validepattern(clef,'S',nom)
     if sdef[cref].nature == "erreur":
         print("fonction stockage incompatible", nom)
     else:

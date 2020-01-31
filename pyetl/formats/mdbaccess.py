@@ -966,6 +966,19 @@ def lire_table(ident, regle_courante, parms=None):
         return res
     return 0
 
+def execute_requete(regle_courante, base, requete='', parms=None, nom_schema=''):
+    retour = get_connect(regle_courante, base,'','',nomschema=nom_schema)
+    if retour:
+        connect, schema, liste = retour
+    else:
+        return 0
+    curs = connect.iterreq(requete,data=parms)
+
+
+
+
+
+
 def lire_requete(regle_courante, base, niveau, classe ,attribut=None, requete='', parms=None):
     """lecture directe"""
     if classe is None:

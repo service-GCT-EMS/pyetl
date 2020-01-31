@@ -36,6 +36,7 @@ from .moteur.interpreteur_csv import (
     reinterprete_regle,
     interprete_ligne_csv,
 )
+from .moteur.regles import RegleTraitement
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, Macro, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS
@@ -227,6 +228,7 @@ class Pyetl(object):
         self.schemas = dict()  # schemas des classes
         self.regles = list()  # regles de mapping
         self.regle_sortir = None
+        self.regleref = RegleTraitement('', self, '', 0)
         self.racine = ''
         self.fichier_regles = None
 
@@ -747,7 +749,6 @@ class Pyetl(object):
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
         """ charge un ensemble de macros utilisables directement """
-        macro =None
         configfile = os.path.join(
             os.path.dirname(__file__), "moteur/fonctions/commandes_internes.csv"
         )
@@ -766,18 +767,39 @@ class Pyetl(object):
             if not opt:
                 print("fichier de config", configfile, "introuvable")
             return
-        for conf in open(configfile, "r").readlines():
-            num += 1
+        description = enumerate(open(configfile, "r").readlines())
+        self.stocke_macro(description, configfile)
+        # for conf in open(configfile, "r").readlines():
+        #     num += 1
+        #     if not conf or conf.startswith("!"):
+        #         continue
+        #     liste = conf.split(";")
+        #     if conf.startswith("&&#define"):
+        #         nom = liste[1]
+        #         vpos = [i for i in liste[2:] if i]
+        #         macro = self.regmacro(nom, file=configfile, vpos=vpos)
+        #         continue
+        #     if macro:
+        #         macro.add_command(conf, num)
+
+
+    def stocke_macro(self, description, origine):
+        """stocke une description de macro"""
+        macro=None
+        for num, conf in description:
             if not conf or conf.startswith("!"):
                 continue
-            liste = conf.split(";")
             if conf.startswith("&&#define"):
+                liste = conf.split(";")
                 nom = liste[1]
                 vpos = [i for i in liste[2:] if i]
-                macro = self.regmacro(nom, file=configfile, vpos=vpos)
-                continue
-            if macro:
+                macro = self.regmacro(nom, file=origine, vpos=vpos)
+            elif macro:
                 macro.add_command(conf, num)
+
+
+
+
 
     def charge_macros_bd(self):
         """charge des macros depuis la base de donnees definie dans les paramettres de site"""

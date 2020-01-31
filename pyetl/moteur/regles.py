@@ -191,10 +191,107 @@ class ParametresSelecteur(ParametresFonction):
         listev = ["attr:%s" % (str(self.attr)), "vals:%s" % (str(self.vals))]
         return "\n\t".join(listev)+ '\n\tidcommand: pattern'+self.pattern
 
+class Selecteur(object):
+    """ container pour les objets de selection """
+
+    def __init__(self, regle, attribut, valeur):
+        self.regle = regle
+        self.fonction = self.true
+        self.ligne = attribut + ";" + valeur
+        self.v_nommees = {"attr": attribut, "vals": valeur}
+        self.info = dict()
+        self.params = None
+        self.nom = ''
+        self.valide = False
+        self.choix_fonction(attribut, valeur)
+
+    def __repr__(self):
+        return 'selecteur:'+(('valide:'+ self.nom) if self.valide else 'invalide') +'->' + repr(self.v_nommees)
+
+    @staticmethod
+    def true(*_):
+        """toujours vrai"""
+        return True
+
+    @staticmethod
+    def false(*_):
+        """toujours faux"""
+        return False
+
+    def _selpos(self, obj):
+        """selecteur standard """
+        #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
+        return self.fonction(self, obj)
+
+    def _selneg(self, obj):
+        """negation"""
+        #        print (" dans select ",self.ligne, obj)
+        return not self.fonction(self, obj)
+
+
+    def validepattern(self, definition):
+        """validation de la signature d'une fonction"""
+        return validepattern(self, definition)
+
+
+    def choix_fonction(self, attribut, valeur):
+        """ definition d un critere de selection """
+        if not (attribut or valeur):
+            return None
+        self.select=self._selpos
+        if valeur.startswith("!"):
+            self.select = self._selneg
+            self.v_nommees['vals'] = valeur[1:]
+        for candidat in self.regle.stock_param.sortedsels:
+            # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
+            self.valide, elements, erreurs = self.validepattern(candidat.definition)
+            if self.valide:
+                self.params = ParametresSelecteur(elements, candidat.definition, candidat.patternnum)
+                for fhelp in candidat.helper:
+                    fhelp(self)
+                self.fonction = candidat.work
+                self.nom = candidat.nom
+                return
+        print("erreur selecteur inconnu", ascii(attribut), ascii(valeur), "dans:", self)
+
+
+
+def validepattern(operateur, definition):
+        """validation de la signature d'une fonction"""
+        # print (definition)
+        elements={None:None}
+        try:
+            elements = {i: definition[i].match(operateur.v_nommees[i]) for i in definition}
+            # print ('elements',elements)
+        except KeyError:
+            print("definition erronnee", operateur.ligne, definition)
+        valide = None not in elements.values()
+        explication = [
+            i + ":" + definition[i].pattern + "<>" + operateur.v_nommees[i]
+            for i in elements
+            if elements[i] is None
+        ]
+        return valide, elements, explication
+
+
 
 class RegleTraitement(object):  # regle de mapping
     """ descripteur de traitement unitaire """
     _ido = count(1)  # compteur d'instance
+    NOMS_CHAMPS = [
+    "sel1",
+    "val_sel1",
+    "sel2",
+    "val_sel2",
+    "sortie",
+    "defaut",
+    "entree",
+    "commande",
+    "cmp1",
+    "cmp2",
+    "debug",
+    "vlocs",
+]
 
     def __init__(self, ligne, stock_param, fichier, numero, context=None):
 
@@ -205,6 +302,7 @@ class RegleTraitement(object):  # regle de mapping
         self.branchements = Branch()
         self.params = None
         self.selstd = None
+        self.code_classe = None
         self.valide = "inconnu"
         self.enchainement = ""
         self.ebloc = 0
@@ -249,7 +347,7 @@ class RegleTraitement(object):  # regle de mapping
         self.changeclasse = None
         self.changeschema = None
         self.ajout_attributs = []
-        self.elements = None
+        self.elements = dict()
         self.f_sortie = None
         self.get_entree = self.getval_entree
         self.stockage = dict()
@@ -284,9 +382,173 @@ class RegleTraitement(object):  # regle de mapping
             )
         return "regle vide"
 
-    def setparams(self, valeurs, definition, pnum):
-        """positionne les parametres """
-        self.params = ParametresFonction(valeurs, definition, pnum)
+#------------------------------------fonctions d'initialisation---------------------------------
+    def _select_fonc(self, fonc):
+        """validation de la signature d'une fonction # pretest de la clef prioritaire"""
+        if not fonc.clef_sec:
+            return True
+        definition = fonc.definition
+        clef = fonc.clef_sec
+        if clef == "sortie" and fonc.fonctions_sortie:  # on teste les sorties comme clef
+            #        print ('test des fonctions de sortie ',clef,'->',definition[clef])
+            for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
+                if j.definition[clef].match(self.v_nommees[clef]):
+                    return True
+            return False
+        if clef != "-1":
+            return definition[clef].match(self.v_nommees[clef])
+        return True
+
+
+    def set_resultat(self, fonc):
+        """ positionne la fonction de sortie de la regle"""
+        cref = "sortie"
+        elements = self.elements
+        #                for j in sorted(fonc.fonctions_sortie.values(),key=lambda x:x.priorite):
+        #                    print ('ordre choix ',j.work)
+        for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
+            #                print ('sortie')
+            if j.definition[cref].match(self.v_nommees[cref]):
+                self.fstore = j.work
+                self.action_schema = self.action_schema or j.fonction_schema
+                self.fonctions_schema.append(j.fonction_schema)
+                self.shelper = j.helper
+                #            if not regle.action_schema:
+                #                print('erreur action', j.nom, j.fonction_schema,
+                #                      fonc.nom, regle.ligne[:-1])
+                elements[cref] = j.definition[cref].match(self.v_nommees[cref])
+                break
+        #                print ('fonction sortie',regle,'sortie:',j.work)
+        if self.fstore:
+            return True
+        self.erreurs.append("erreur sortie")
+        elements[cref] = None
+        return False
+
+
+    def traite_helpers(self, fonc):
+        """execute les fonctions auxiliaires """
+        self.valide = True
+        for fhelp in fonc.helper:
+            #         la fonction prevoit une sequence d'initialisation : on l'execute
+            #        print ("execution helper",fonc.nom)
+            mode_orig = self.mode
+            fhelp(self)  # on prepare les elements
+            #                print ('retour', regle.valide)
+            if self.mode != mode_orig:  # la fonction helper a change la fonction a appeler
+                fonc2 = self.stock_param.commandes.get(self.mode)
+                if fonc2 and callable(fonc2.work):
+                    self.fonc = fonc2.work
+                else:
+                    self.afficher_erreurs(fonc, "fonction non implementee:")
+        if self.shelper:
+            erreur = self.shelper(self)
+            if erreur:
+                print ('erreur initialisation regle', self)
+                self.valide = False
+                return False
+        if self.changeclasse:
+            self.changeclasse = fonc.changeclasse
+        if self.changeschema:
+            self.changeschema = fonc.changeschema
+        else:
+            if self.action_schema:
+                if (
+                    self.params.att_sortie.origine
+                    or "#classe" in self.params.att_sortie.liste
+                    or "#groupe" in self.params.att_sortie.liste
+                ):
+                    self.changeclasse = fonc.changeclasse
+
+                if self.params.att_sortie.origine or "#schema" in self.params.att_sortie.liste:
+                    self.changeschema = fonc.changeschema
+        #    if regle.params.att_sortie.val:
+        # description_schema(self)  # mets en place le schema pour l'attribut de sortie
+        return True
+
+    def identifie_operation(self):
+        """ identifie la fonction a appliquer et recupere les parametres """
+        fonction = self.stock_param.commandes.get(self.mode)
+        # print ('detecte commande',regle.mode, regle.ligne, fonction)
+        #        printpattern (fonction)
+        #        definitions=[i.definition for i in fonction.subfonctions.values()]
+        if not fonction:
+            self.afficher_erreurs(fonction, "fonction non valide")
+            # raise SyntaxError ('fonction inconnue'+ regle.mode)
+            return False, None
+        valide = False
+        fonc = None
+        erreurs = []
+        #    print( 'traitement fonction',fonction.nom,erreurs)
+        for fonc in fonction.subfonctions:
+            if fonc.style != self.style:
+                continue
+            if self._select_fonc(fonc):
+                valide, self.elements, erreurs = self.validepattern(fonc.definition)
+                #            print( 'recherche pattern',fonc.nom,erreurs)
+                if valide:
+                    break
+        if not valide:
+            self.afficher_erreurs(fonction, "fonction non valide")
+
+        if callable(fonc.work):
+            self.fonc = fonc.work
+            if fonc.fonction_schema:
+                self.action_schema = fonc.fonction_schema
+                self.fonctions_schema.append(fonc.fonction_schema)
+            if fonc.fonctions_sortie:
+                valide = self.set_resultat(fonc)
+                if not self.fstore:
+                    self.afficher_erreurs(fonc, "fonction de sortie non valide")
+            self.params = ParametresFonction(self.elements, fonc.definition, fonc.patternnum)
+            self.valide = valide
+            self.traite_helpers(fonc)
+            return
+        self.afficher_erreurs(fonc, "fonction non implementee:")
+
+
+
+
+
+
+
+    def afficher_erreurs(self, fonc, message):
+        """donne des indications sur les erreurs de syntaxe"""
+        motif = "------->"
+        print(motif + " erreur interpretation regle", self.fichier, self.numero)
+        print(motif, self.ligne.replace("\n", ""))
+        print(motif+ " contexte d'execution:", self.context)
+        print(motif, ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]))
+        print(motif, message)
+        if self.erreurs:
+            print(motif, "\n".join(self.erreurs))
+        if not self.mode:  # pas de mode en general un decalage
+            print(motif, "regle vide")
+            morceaux = self.context.SPLITTER_PV.split(self.ligne.replace("\n", ""))
+            morceaux[7] = "???"
+            print(motif, ";".join(morceaux))
+        if self.elements:
+            for i in self.elements:
+                if self.elements[i] is None:
+                    print(
+                        motif + "erreur commande>",
+                        self.mode,
+                        "<",
+                        i,
+                        fonc.nom if fonc else "",
+                        fonc.definition[i].pattern if fonc else "",
+                        "<-//->",
+                        self.v_nommees[i],
+                    )
+        else:
+            fonction = self.stock_param.commandes.get(self.mode)
+            if fonction:
+                patternlist = [i.pattern for i in fonction.subfonctions if i.style == self.style]
+                print(motif + " patterns autorises ", patternlist)
+            else:
+                print ('---------commande inconnue', self.mode)
+        raise SyntaxError("erreurs parametres de commande")
+
 
     def ftrue(self, *_):
         """ toujours vrai  pour les expressions sans conditions"""
@@ -294,7 +556,30 @@ class RegleTraitement(object):  # regle de mapping
 
     def getregle(self, ligne, fichier, numero):
         """retourne une regle pour des operations particulieres"""
-        return RegleTraitement(ligne, self.stock_param, fichier, numero, context=self.context)
+        return RegleTraitement(ligne, self.stock_param, fichier, numero)
+
+    def prepare_selecteur(self, v_nommees):
+        """prepare la fonction de selection de la regle"""
+        sel1 = Selecteur(self, self.code_classe, v_nommees["val_sel1"])
+        sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
+        if not sel1.valide:
+            sel1, sel2 = sel2, sel1
+        # print ('-------------selecteurs',sel1,sel2)
+        if not sel1.valide:  # pas de conditions
+            select = None
+            self.nocond = True
+        elif not sel2.valide:
+            select = sel1.select
+        else:
+            select = lambda x: sel1.select(x) and sel2.select(x)
+
+        self.selstd = select
+        self.sel1 = sel1
+        self.sel2 = sel2  # pour le debug
+
+    def validepattern(self, definition):
+        """validation de la signature d'une fonction"""
+        return validepattern(self, definition)
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""

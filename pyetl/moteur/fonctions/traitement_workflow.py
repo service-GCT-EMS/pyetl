@@ -377,8 +377,8 @@ def f_callmacro(regle, obj):
 
 
 def f_geomprocess(regle,obj):
-    """#aide||applique une macro sur la geometrie et recupere des attributs et/ou la geometrie
-    #aide_spec||
+    """#aide||applique une macro sur une copie de la geometrie et recupere des attributs
+    #aide_spec||permet d'appliquer des traitements destructifs sur la geometrie sans l'affecter
     #pattern||;;;geomprocess;C;?LC
     #helper||callmacro
     #

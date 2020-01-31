@@ -14,27 +14,12 @@ import re
 import logging
 from pyetl.schema.schema_interne import get_attribut
 from pyetl.formats.mdbaccess import recup_table_parametres
-from pyetl.moteur.regles import RegleTraitement, ParametresSelecteur
+# from pyetl.moteur.regles import ParametresSelecteur
 
 # from pyetl.moteur.selecteurs import Selecteur
 from .fonctions.outils import charge_fichier
 
 LOGGER = logging.getLogger("pyetl")
-NOMS_CHAMPS_N = [
-    "sel1",
-    "val_sel1",
-    "sel2",
-    "val_sel2",
-    "sortie",
-    "defaut",
-    "entree",
-    "commande",
-    "cmp1",
-    "cmp2",
-    "debug",
-    "vlocs",
-]
-
 PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
 
 # quelques fonction générales
@@ -74,109 +59,6 @@ def fdebug(regle, obj):
         #        print('debug: non affichage ', regle, obj)
         succes = regle.f_init(regle, obj)
     return succes
-
-
-# =======================================selecteurs============================
-
-
-class Selecteur(object):
-    """ container pour les objets de selection """
-
-    def __init__(self, regle, attribut, valeur, negatif):
-        self.regle = regle
-        self.fonction = self.true
-        self.ligne = attribut + ";" + valeur
-        self.v_nommees = {"attr": attribut, "vals": valeur}
-        self.select = self.selneg if negatif else self.selpos
-        self.info = dict()
-        self.params = None
-
-    @staticmethod
-    def true(*_):
-        """toujours vrai"""
-        return True
-
-    @staticmethod
-    def false(*_):
-        """toujours faux"""
-        return False
-
-    def selpos(self, obj):
-        """selecteur standard """
-        #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
-        return self.fonction(self, obj)
-
-    def selneg(self, obj):
-        """negation"""
-        #        print (" dans select ",self.ligne, obj)
-        return not self.fonction(self, obj)
-
-    def setparams(self, elements, definition, pnum):
-        """positionne les parametres standard"""
-        self.params = ParametresSelecteur(elements, definition, pnum)
-
-
-def choix_fonction_select(attribut, valeur, regle):
-    """ definition d un critere de selection """
-    mapper = regle.stock_param
-    debug = regle.getvar("debug") == "1"
-    if not (attribut or valeur):
-        return None
-    isnot = False
-    if valeur.startswith("!"):
-        #        print ('icsv :detection negatif',fonction)
-        isnot = True
-        valeur = valeur[1:]
-
-    select = Selecteur(regle, attribut, valeur, isnot)
-    #    debug=1
-    for candidat in mapper.sortedsels:
-        # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
-        valide, elements, erreurs = validepattern(select, candidat.definition)
-        #        if elements["attr"] is not None:
-        #            print ("elements",elements,candidat.definition)
-        if valide:
-            if debug:
-                print(
-                    "candidat retenu ",
-                    regle.numero,
-                    candidat.nom,
-                    candidat.work,
-                    candidat.helper,
-                    erreurs,
-                )
-            select.setparams(elements, candidat.definition, candidat.patternnum)
-            # select.pattern = candidat.patternnum
-            for fhelp in candidat.helper:
-                fhelp(select)
-            select.fonction = candidat.work
-            return select
-    #    print("erreur selecteur inconnu",regle.ligne.encode('utf8'),'<')
-    print("erreur selecteur inconnu", ascii(attribut), ascii(valeur), "dans:", regle)
-    return None
-
-
-def prepare_selecteur(regle, v_nommees):
-    """prepare la fonction de selection de la regle"""
-    sel1 = choix_fonction_select(regle.code_classe, v_nommees["val_sel1"], regle)
-    sel2 = choix_fonction_select(v_nommees["sel2"], v_nommees["val_sel2"], regle)
-    if not sel1:
-        sel1, sel2 = sel2, sel1
-
-    if not sel1:  # pas de conditions
-        select = None
-        regle.nocond = True
-    elif not sel2:
-        select = sel1.select
-    else:
-        select = lambda x: sel1.select(x) and sel2.select(x)
-
-    regle.selstd = select
-    regle.sel1 = sel1
-    regle.sel2 = sel2  # pour le debug
-
-
-#    print("selecteur final",regle.numero, regle.selstd)
 
 
 def regles_liees(regle, param):
@@ -253,12 +135,6 @@ def description_schema(regle):
     modele.def_index = def_index
     regle.params.def_sortie = modele
 
-    # print("description de schema",regle.params.att_sortie.val,
-    #     desc_schema,modele)
-
-
-#    if def_index:
-    # print( "modele attribut",modele.type_att, desc_schema, regle.params.att_sortie)
 
 
 def extraction_operation(regle, fonction):
@@ -296,209 +172,6 @@ def printelements(elements):
         print(i, elements[i].groups(), elements[i].re)
 
 
-def validepattern(regle, definition):
-    """validation de la signature d'une fonction"""
-    # print (definition)
-    elements={None}
-    try:
-        elements = {i: definition[i].match(regle.v_nommees[i]) for i in definition}
-        # print ('elements',elements)
-    except KeyError:
-        print("definition erronnee", regle.ligne, definition)
-        elements={None}
-    valide = None not in elements.values()
-    explication = [
-        i + ":" + definition[i].pattern + "<>" + regle.v_nommees[i]
-        for i in elements
-        if elements[i] is None
-    ]
-    # if valide:
-    #     print("valide pattern",definition,elements)
-    return valide, elements, explication
-
-
-def select_fonc(regle, fonc):
-    """validation de la signature d'une fonction"""
-    definition = fonc.definition
-    clef = fonc.clef_sec
-    #    print ("signature", regle, definition, clef)
-    #    if clef and clef != "-1":
-    #        print(definition[clef].match(regle.v_nommees[clef]))
-    if clef == "sortie" and fonc.fonctions_sortie:  # on teste les sorties comme clef
-        #        print ('test des fonctions de sortie ',clef,'->',definition[clef])
-        for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
-            #            print ('test ', j.nom,j.definition[clef])
-            if j.definition[clef].match(regle.v_nommees[clef]):
-                #                print ('sortie validable ', j.definition[clef])
-                return True
-        #        print ('aucune sortie validable')
-        return False
-    if clef and clef != "-1":
-        #        print ('select_fonc',clef,regle.v_nommees[clef],
-        #        definition[clef].match(regle.v_nommees[clef]))
-        return definition[clef].match(regle.v_nommees[clef])
-    return True
-
-
-def set_resultat_regle(regle, fonc):
-    """ positionne la fonction de sortie de la regle"""
-    cref = "sortie"
-    elements = regle.elements
-    #                for j in sorted(fonc.fonctions_sortie.values(),key=lambda x:x.priorite):
-    #                    print ('ordre choix ',j.work)
-    for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
-        #                print ('sortie')
-        if j.definition[cref].match(regle.v_nommees[cref]):
-            regle.fstore = j.work
-            regle.action_schema = regle.action_schema or j.fonction_schema
-            regle.fonctions_schema.append(j.fonction_schema)
-            regle.shelper = j.helper
-            #            if not regle.action_schema:
-            #                print('erreur action', j.nom, j.fonction_schema,
-            #                      fonc.nom, regle.ligne[:-1])
-            elements[cref] = j.definition[cref].match(regle.v_nommees[cref])
-            break
-    #                print ('fonction sortie',regle,'sortie:',j.work)
-    if regle.fstore:
-        return True
-    regle.erreurs.append("erreur sortie")
-    elements[cref] = None
-    return False
-
-
-def identifie_operation(regle):
-    """ identifie la fonction a appliquer et recupere les parametres """
-    fonction = regle.stock_param.commandes.get(regle.mode)
-    # print ('detecte commande',regle.mode, regle.ligne, fonction)
-    #        printpattern (fonction)
-    #        definitions=[i.definition for i in fonction.subfonctions.values()]
-    if not fonction:
-        afficher_erreurs(regle, fonction, "fonction non valide")
-        # raise SyntaxError ('fonction inconnue'+ regle.mode)
-        return False, None
-    elements = None
-    definition = None
-    valide = False
-    fonc = None
-    regle.elements = None
-    erreurs = []
-    #    print( 'traitement fonction',fonction.nom,erreurs)
-    for fonc in fonction.subfonctions:
-        if fonc.style != regle.style:
-            continue
-        if select_fonc(regle, fonc):
-            valide, elements, erreurs = validepattern(regle, fonc.definition)
-            #            print( 'recherche pattern',fonc.nom,erreurs)
-            definition = fonc.definition
-            patternnum = fonc.patternnum
-            if valide:
-                break
-    if not valide:
-        afficher_erreurs(regle, fonction, "fonction non valide")
-
-
-    if callable(fonc.work):
-        regle.fonc = fonc.work
-        if fonc.fonction_schema:
-            regle.action_schema = fonc.fonction_schema
-            regle.fonctions_schema.append(fonc.fonction_schema)
-
-        regle.elements = elements
-        if fonc.fonctions_sortie:
-            valide = set_resultat_regle(regle, fonc)
-            if not regle.fstore:
-                afficher_erreurs(regle, fonc, "fonction de sortie non valide")
-        #        print ("regle.setparams", regle.elements, definition)
-        regle.setparams(regle.elements, definition, patternnum)
-        regle.valide = valide
-        if valide:
-            traite_helpers(regle, fonc)
-        return valide, fonc
-    afficher_erreurs(regle, fonc, "fonction non implementee:")
-
-
-#            print ("fonction sortie a traiter",len(fonc.fonctions_sortie),
-#                   fonc.fonctions_sortie)
-
-
-def afficher_erreurs(regle, fonc, message):
-    """donne des indications sur les erreurs de syntaxe"""
-    motif = "------->"
-    print(motif + " erreur interpretation regle", regle.fichier, regle.numero)
-    print(motif, regle.ligne.replace("\n", ""))
-    print(motif+ " contexte d'execution:", regle.context)
-    print(motif, ";".join([regle.v_nommees[i] for i in NOMS_CHAMPS_N]))
-    print(motif, message)
-    if regle.erreurs:
-        print(motif, "\n".join(regle.erreurs))
-    if not regle.mode:  # pas de mode en general un decalage
-        print(motif, "regle vide")
-        morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
-        morceaux[7] = "???"
-        print(motif, ";".join(morceaux))
-    if regle.elements:
-        for i in regle.elements:
-            if regle.elements[i] is None:
-                print(
-                    motif + "erreur commande>",
-                    regle.mode,
-                    "<",
-                    i,
-                    fonc.nom if fonc else "",
-                    fonc.definition[i].pattern if fonc else "",
-                    "<-//->",
-                    regle.v_nommees[i],
-                )
-    else:
-        fonction = regle.stock_param.commandes.get(regle.mode)
-        if fonction:
-            patternlist = [i.pattern for i in fonction.subfonctions if i.style == regle.style]
-            print(motif + " patterns autorises ", patternlist)
-        else:
-            print ('---------commande inconnue', regle.mode)
-    raise SyntaxError("erreurs parametres de commande")
-
-
-def traite_helpers(regle, fonc):
-    """execute les fonctions auxiliaires """
-    regle.valide = True
-    for fhelp in fonc.helper:
-        #         la fonction prevoit une sequence d'initialisation : on l'execute
-        #        print ("execution helper",fonc.nom)
-        mode_orig = regle.mode
-        fhelp(regle)  # on prepare les elements
-        #                print ('retour', regle.valide)
-        if regle.mode != mode_orig:  # la fonction helper a change la fonction a appeler
-            fonc2 = regle.stock_param.commandes.get(regle.mode)
-            if fonc2 and callable(fonc2.work):
-                regle.fonc = fonc2.work
-            else:
-                afficher_erreurs(regle, fonc, "fonction non implementee:")
-    if regle.shelper:
-        erreur = regle.shelper(regle)
-        if erreur:
-            print ('erreur initialisation regle', regle)
-            regle.valide = False
-            return False
-    if regle.changeclasse:
-        regle.changeclasse = fonc.changeclasse
-    if regle.changeschema:
-        regle.changeschema = fonc.changeschema
-    else:
-        if regle.action_schema:
-            if (
-                regle.params.att_sortie.origine
-                or "#classe" in regle.params.att_sortie.liste
-                or "#groupe" in regle.params.att_sortie.liste
-            ):
-                regle.changeclasse = fonc.changeclasse
-
-            if regle.params.att_sortie.origine or "#schema" in regle.params.att_sortie.liste:
-                regle.changeschema = fonc.changeschema
-    #    if regle.params.att_sortie.val:
-    description_schema(regle)  # mets en place le schema pour l'attribut de sortie
-    return True
-
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
@@ -516,10 +189,11 @@ def setvloc(regle):
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
         regle.valide = "vide"
-    regle.v_nommees = dict(zip(NOMS_CHAMPS_N, valeurs))
+    regle.v_nommees = dict(zip(regle.NOMS_CHAMPS, valeurs))
 
 
 def ajuste_contexte(regle, prec):
+    ''' grer les contextes entre les regles liees'''
     if regle.niveau > prec.niveau:
         regle.context.setref(regle.stock_param.pushcontext(prec.context))
     if regle.niveau < prec.niveau:
@@ -527,9 +201,6 @@ def ajuste_contexte(regle, prec):
         for i in range(prec.niveau - regle.niveau):
             context=regle.stock_param.popcontext(typecheck='C')
         regle.context.setref(context)
-
-
-
 
 
 def prepare_regle(regle, prec=None):
@@ -560,17 +231,20 @@ def prepare_regle(regle, prec=None):
 
 
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
-        regle.selstd = Selecteur.true
+        regle.selstd = None
         regle.valide = True
     #        print ("interp: mode dbaccess",regle.code_classe,regle.mode,regle)
     else:
-        prepare_selecteur(regle, v_nommees)
+        regle.prepare_selecteur(v_nommees)
 
     fonction = v_nommees["commande"]
     #    regle.valide = "vide"
     if fonction:
         extraction_operation(regle, fonction)
-        identifie_operation(regle)
+        regle.identifie_operation()
+        if regle.valide:
+            description_schema(regle)  # mets en place le schema pour l'attribut de sortie
+
     else:
         #            if re.match('^( *;*)*$',regle.ligne):
         if regle.valide != "vide":
@@ -604,7 +278,10 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
     et la stocke en structure interne"""
 
     # print('traitement_ligne', ligne, mapper.context)
-    regle = RegleTraitement(ligne, mapper, fichier, numero)
+    # regle = RegleTraitement(ligne, mapper, fichier, numero)
+    # print ('context creation1',regle.context)
+    regle = mapper.regleref.getregle(ligne, fichier, numero)
+    # print ('context creation2',regle.context)
     prepare_regle(regle, prec=prec)
 
     # print ('retour prepare', regle.valide, regle)
@@ -644,6 +321,43 @@ def decoupe_liste_commandes(fichier_regles):
         liste_commandes = fichier_regles.split(",")
     # print ('decoupage_macros',fichier_regles,'->',[(n,"<"+i) for n,i in enumerate(liste_commandes)])
     return [(n,"<"+i) for n,i in enumerate(liste_commandes)]
+
+
+def prepare_acces_base_scripts(mapper):
+    ''' initialise les acces a la base de scripts'''
+    if mapper.load_paramgroup("dbscriptmode"):
+        serv = mapper.get_param("scriptserver")
+        LOGGER.info("lecture commande en base " + serv)
+        #    print('lire_db: chargement ', serv)
+        mapper.load_paramgroup(serv, nom=serv)
+        #        print ('parametres',mapper.parms)
+        type_base = mapper.get_param("db_" + serv)
+        #        base = mapper.get_param('base_'+serv)
+        nomschema = mapper.get_param("scriptschema")
+        return (serv,nomschema,type_base)
+    else:
+        LOGGER.error("base de script non definie ")
+        return False
+
+
+
+def get_macro_from_db(mapper, nom_inclus):
+    ''' lit une macro en base '''
+    acces =  prepare_acces_base_scripts(mapper)
+    if acces:
+        serv,nomschema,type_base = acces
+        nomtable = mapper.get_param("macrotable")
+        description = recup_table_parametres(
+        mapper,
+        serv,
+        nomschema,
+        nomtable,
+        clef="nom",
+        valeur=nom_inclus,
+        type_base=type_base,
+    )
+        mapper.stocke_macro(description)
+
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
@@ -840,6 +554,17 @@ def traite_regle_std(
         erreurs = 1
     return bloc, erreurs
 
+def get_macro(mapper, nom_inclus, parametres):
+    """inclut une macro en la lisant en base si necessaire"""
+    if nom_inclus.startswith('#db:') and nom_inclus not in mapper.macros:
+        get_macro_from_db(mapper, nom_inclus) # on mets en cache
+    macro = mapper.macros.get(nom_inclus)
+    context = mapper.cur_context
+    if macro:
+        context = mapper.pushcontext(macro.bind(parametres,context))
+    return macro,context
+
+
 def prepare_env(mapper, texte:str, fichier_regles):
     '''prepare une macro ou un chargement de fichier et son environnement (positionne les variables)'''
     # print ('mapping parametres macro', texte)
@@ -852,20 +577,16 @@ def prepare_env(mapper, texte:str, fichier_regles):
     if pars:
         parametres = pars+parametres
     nom_inclus,_ = context.resolve(nom_inclus)
+    macro = None
     if nom_inclus.startswith("#"):
-        inclus = nom_inclus  # macro
-        macro = mapper.macros.get(inclus)
-        if macro:
-            context = mapper.pushcontext(macro.bind(parametres,context))
-    elif nom_inclus.startswith('.') or os.path.abspath(nom_inclus):
-        inclus = nom_inclus
-        context.affecte(parametres)
+        macro, context = get_macro(mapper, nom_inclus, parametres)
     else:
-        inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
         context.affecte(parametres)
+        if not (nom_inclus.startswith('.') or os.path.abspath(nom_inclus)):
+            nom_inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
     #            print("lecture de regles incluses", inclus,pps)
     # print ('prepare_env', inclus, context, context.vlocales, parametres)
-    return inclus, context, macro
+    return nom_inclus, context, macro
 
 
 def execute_macro(mapper, texte, context, fichier_regles):
@@ -891,14 +612,12 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             rvirt=niveau+';;;;;;;pass;;;;'
             traite_regle_std(mapper,0,rvirt,rvirt,'',0,regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
-    inclus, macroenv, ismacro = prepare_env(mapper, texte, fichier_regles)
+    inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
     if macroenv.getvar('debug')!='0':
         print ('debug macro:',context, texte, '->',inclus,sorted(macroenv.vlocales.items()))
-    macro = mapper.macros.get(inclus)
     if macro:
         erreurs = lire_regles_csv(mapper,'', liste_regles=macro.get_commands(), niveau=niveau, regle_ref=regle_ref)
-        if ismacro:
-            mapper.popcontext(typecheck='M') # on depile un contexte
+        mapper.popcontext(typecheck='M') # on depile un contexte
     else:
         erreurs = 1
     return erreurs
@@ -924,7 +643,6 @@ def lire_regles_csv(
     #    mstore = False
     autonum = 0
     macro = None
-
     if liste_regles is None:
         liste_regles = []
     else:
