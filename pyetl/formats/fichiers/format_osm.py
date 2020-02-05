@@ -242,9 +242,9 @@ def init_osm(reader, config_osm, schema, setups=None):
                 groupe = grouplist[nom_groupe]
                 groupe[valeurs[1]] = (valeurs[4], valeurs[5], int(valeurs[3]))
             else:  # c'est une definition standard
-                geoms = [j for j in valeurs[3].strip('+').split(",")] if valeurs[3] else None
-                if geoms:
-                    for i in geoms:
+                geomdefs = [j for j in valeurs[3].strip('+').split(",")] if valeurs[3] else None
+                if geomdefs:
+                    for i in geomdefs:
                         valeurs[3] = i
                         decodage[i].append(DecodeConfigOsm(valeurs,setups))
                 else:
@@ -362,7 +362,7 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
                     perdus += 100000
         else:
             print ('type_membre inconnu', type_membre)
-            return ([],0,False,[],0)
+            # return ([],0,False,[],0)
     return (geoms, perdus, ferme, rellist, type_geom)
     # else: # objet multi_type
     #     pass
@@ -462,11 +462,16 @@ def lire_objets_osm(self, rep, chemin, fichier):
     nomschema = os.path.splitext(fichier)[0]
     schema = stock_param.init_schema(nomschema, "F")
     if self.nb_lus == 0: # initialisation lecteur
-        config_osm_def = os.path.join(os.path.dirname(__file__), "config_osm.csv")
-        config_osm = self.regle_ref.getvar("config_osm")
-        if config_osm:
-            if os.path.isfile(os.path.join(os.path.dirname(__file__),config_osm+'.csv')):
-                config_osm = os.path.join(os.path.dirname(__file__),config_osm+'.csv')
+        refrep = os.path.dirname(__file__)
+        config_osm_defaut = os.path.join(refrep, "config_osm.csv")
+        config_osm_spe = self.regle_ref.getvar("config_osm")
+        if config_osm_spe:
+            if config_osm_spe.endswith('.csv'): # c'est un fichier absolu
+                config_osm = config_osm_spe
+            else:
+                config_osm = os.path.join(refrep,config_osm_spe+'.csv')
+        else:
+            config_osm = config_osm_defaut
         self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
         print ('gestion des doublons osm','activee' if self.gestion_doublons else 'desactivee')
         minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites

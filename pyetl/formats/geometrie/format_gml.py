@@ -110,6 +110,7 @@ def geom_from_osm(obj):
         return True
     if not obj.attributs["#geom"]:
         obj.attributs["#type_geom"] = "0"
+        geomv.type=0
         return True
     exterieur = False
     interieur = []

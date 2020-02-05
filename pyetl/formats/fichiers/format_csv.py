@@ -185,6 +185,7 @@ class CsvWriter(FileWriter):
         self.entete = entete
         self.null = null
         self.classes = set()
+        self.errcnt = 0
         if schema:
             #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
             if schema.info["type_geom"] == "indef":
@@ -241,7 +242,7 @@ class CsvWriter(FileWriter):
                 if obj.initgeom():
                     geom = self.geomwriter(obj.geom_v, self.type_geom, self.multi, obj.erreurs)
                 else:
-                    if not obj.attributs['#geom'] and self.type_geom == "-1":
+                    if not obj.attributs['#geom']:
                         geom = self.null
                     else:
                         print(
@@ -255,7 +256,7 @@ class CsvWriter(FileWriter):
                             self.schema.info["type_geom"],
                             obj.attributs['#geom'],
                         )
-                        geom = ""
+                        geom = self.null
 
                 obj.format_natif = "#ewkt"
                 obj.attributs['#geom'] = geom
