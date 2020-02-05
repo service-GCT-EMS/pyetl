@@ -334,7 +334,7 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
         self.schema = schema
         # print ('decodage_config',schema)
         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
-            self.regle_ref.stock_param.set_param("fanout","classe")
+            self.regle_ref.stock_param.setvar("fanout","classe")
     base = ET.parse(os.path.join(rep, chemin, fichier))
     for elem in base.iter():
         if elem.tag in self.config: #parent

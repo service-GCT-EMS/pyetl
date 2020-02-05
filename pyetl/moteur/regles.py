@@ -72,15 +72,15 @@ class Branch(object):
 class Valdef(object):
     """classe de stockage d'un parametre"""
 
-    def __init__(self, val, num, liste, dyn, definition, origine, texte):
+    def __init__(self, val, num, liste, dyn, definition, origine, texte, defaut=''):
         self.val = val
         self.num = num
         self.liste = liste
         self.dyn = dyn
         self.definition = definition
         #        self.besoin = None
-        self.origine = origine
-        self.defaut = ""
+        self.origine = origine #valeur dynamique issue d'un champs de l'objet
+        self.defaut = defaut
         self.texte = texte
 
     def update(self, obj):
@@ -90,8 +90,10 @@ class Valdef(object):
     def __repr__(self):
         return self.texte + "->" + str(self.val)
 
-    def getval(self,obj):
-        return obj.attributs.get(self.origine,"") if self.origine else self.val
+    def getval(self,obj,defaut=None):
+        if self.origine:
+            return obj.attributs.get(self.origine,defaut if defaut is not None else self.defaut)
+        return self.val
 
 
 class ParametresFonction(object):
@@ -118,6 +120,7 @@ class ParametresFonction(object):
         """extrait les infos de l'entite selectionnee"""
         #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
         val = ""
+        defaut = ''
         try:
             val = self.valeurs[nom].group(1)
             if r"\;" in val:
@@ -151,12 +154,14 @@ class ParametresFonction(object):
         if val.startswith("["):
             # dyn = True
             origine = val[1:-1]
+            if ':' in origine:
+                origine,defaut=origine.split(':', 1)
 
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
 
         #        return self.st_val(val, num, liste, dyn, defin)
-        return Valdef(val, num, liste, dyn, defin, origine, texte)
+        return Valdef(val, num, liste, dyn, defin, origine, texte, defaut=defaut)
 
     def __repr__(self):
         listev = [
@@ -213,15 +218,18 @@ class Selecteur(object):
         """toujours vrai"""
         return True
 
+
     @staticmethod
     def false(*_):
         """toujours faux"""
         return False
 
+
     def _selpos(self, obj):
         """selecteur standard """
         #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
         return self.fonction(self, obj)
+
 
     def _selneg(self, obj):
         """negation"""

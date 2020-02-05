@@ -69,34 +69,34 @@ def setparallelid(parametres):
     pidset, commandes, args = parametres
     mainmapper = getmainmapper()
 
-    if mainmapper.get_param("_wid"):
+    if mainmapper.getvar("_wid"):
         time.sleep(1)
         return None
     wid = str(pidset[os.getpid()])
-    mainmapper.set_param("_wid", wid)
-    log,log_level,log_print = (mainmapper.get_param("logfile"), mainmapper.get_param("log_level"), mainmapper.get_param("log_print"))
+    mainmapper.setvar("_wid", wid)
+    log,log_level,log_print = (mainmapper.getvar("logfile"), mainmapper.getvar("log_level"), mainmapper.getvar("log_print"))
     if log:
-        base, ext = os.path.splitext(mainmapper.get_param("logfile"))
+        base, ext = os.path.splitext(mainmapper.getvar("logfile"))
         log = str(base) + "_" + wid + "." + str(ext)
     loginfo = log,log_level,log_print
     init = mainmapper.initpyetl(commandes, args, loginfo=loginfo)
     if paralleldebug:
-        print('setparallelid apres init', mainmapper.get_param("_wid"), commandes, args)
+        print('setparallelid apres init', mainmapper.getvar("_wid"), commandes, args)
 
-    return (os.getpid(), mainmapper.get_param("_wid"), init)
+    return (os.getpid(), mainmapper.getvar("_wid"), init)
 
 
 def set_parallelretour(mapper, valide):
     """positionne les variables de retour pour l'execution en parallele"""
-    #    print ('retour parallel',mapper.get_param('_wid'), mapper.stats.keys())
-    #    print ('retour parallel', mapper.get_param('_wid'), retour_stats)
+    #    print ('retour parallel',mapper.getvar('_wid'), mapper.stats.keys())
+    #    print ('retour parallel', mapper.getvar('_wid'), retour_stats)
     retour = {
         "pid": os.getpid(),
-        "wid": mapper.get_param("_wid"),
+        "wid": mapper.getvar("_wid"),
         "valide": valide,
         "stats_generales": mapper.getstats(),
         "retour": mapper.retour,
-        "schemas": retour_schemas(mapper.schemas, mode=mapper.get_param("force_schema", "util")),
+        "schemas": retour_schemas(mapper.schemas, mode=mapper.getvar("force_schema", "util")),
         "stats": {nom: stat.retour() for nom, stat in mapper.stats.items()},
         "timers": {'fin': time.time(),'debut': mapper.starttime}
     }
@@ -126,13 +126,13 @@ def parallelprocess(numero, file, regle):
     """traitement individuel d'un fichier"""
     mainmapper = getmainmapper()
     try:
-        # print ('---------------------------------------' + mainmapper.get_param("_wid") + '-worker:lecture', file, regle)
+        # print ('---------------------------------------' + mainmapper.getvar("_wid") + '-worker:lecture', file, regle)
         nom, parms = file
         nb_lu = mainmapper.lecture(file, reglenum=regle, parms=parms)
     except StopIteration as arret:
         return numero, -1
     except Exception as exc:
-        print("====" + mainmapper.get_param("_wid") + "=erreur de traitement parallele non gérée")
+        print("====" + mainmapper.getvar("_wid") + "=erreur de traitement parallele non gérée")
         print("====regle courante:", regle)
         printexception()
         raise
@@ -348,7 +348,7 @@ def traite_parallel(regle):
     schemas, env, def_regles = prepare_env_parallel(regle)
     print("passage en mode parallel sur ",nprocs,'process',num_regle, regle)
     if mapper.worker:
-        print("un worker ne peut pas passer en parallele", mapper.get_param("_wid"))
+        print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == 'process' else parallelbatch
     with ProcessPoolExecutor(max_workers=nprocs) as executor:

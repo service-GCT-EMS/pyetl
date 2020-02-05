@@ -472,7 +472,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
         minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites
         setups = {"minimal":minitaglist}
         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
-            self.regle_ref.stock_param.set_param("fanout","classe")
+            self.regle_ref.stock_param.setvar("fanout","classe")
         self.decodage = init_osm(self, config_osm, schema, setups)
     self.id_osm=set() # on initialise une structure de stockage des identifiants
     points = dict()

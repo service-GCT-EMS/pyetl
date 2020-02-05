@@ -519,7 +519,7 @@ def get_helper(base, files, loadext, helpername, stock_param):
     if helpername is None:
         print("pas de loader defini sur la base ", base)
         return False
-    helper = stock_param.get_param(helpername)
+    helper = stock_param.getvar(helpername)
     if not helper:
         print("pas de programme externe defini", helpername)
         return False
@@ -759,7 +759,7 @@ def sortie_resultats(
     print(
         "...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True
     )
-    stock_param.set_param("printpending", 1)
+    stock_param.setvar("printpending", 1)
     nbvals = 0
     attlist = curs.infoschema
     # print (' attributs recuperes avant', attlist)
@@ -828,7 +828,7 @@ def sortie_resultats(
 
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
-    stock_param.set_param("printpending", 0)
+    stock_param.setvar("printpending", 0)
     curs.close()
     return nbvals
 

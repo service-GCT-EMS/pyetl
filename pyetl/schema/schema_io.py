@@ -193,7 +193,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
 
     nom = schema.nom.replace("#", "")
     rep_s = os.path.join(rep, 'schemas')
-    cod = stock_param.get_param("codec_sortie", "utf-8")
+    cod = stock_param.getvar("codec_sortie", "utf-8")
 
     for form in formats_a_sortir:
         #        print('sio: ecrire_schema', rep_s, schema.nom, form)
@@ -204,16 +204,16 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
             if ":" in form:
                 dialecte = form.split("sql:")[1]
             else:
-                dialecte = stock_param.get_param("base_destination", "sql")
+                dialecte = stock_param.getvar("base_destination", "sql")
 
             if dialecte == "sql" and schema.dbsql:
                 dialecte = "natif"
 
-            autopk = stock_param.get_param("autopk", "")
-            role = stock_param.get_param("db_role")
+            autopk = stock_param.getvar("autopk", "")
+            role = stock_param.getvar("db_role")
             if not role:
                 role = None
-            type_base = stock_param.get_param("dbgenmode")
+            type_base = stock_param.getvar("dbgenmode")
             if type_base and type_base not in {"basic", "consult"}:
                 print("type base inconnu ", type_base, "passage en standard")
                 type_base = None
@@ -232,48 +232,48 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 cod=cod,
                 modeconf=confs,
                 dialecte=dialecte,
-                transact=stock_param.get_param("transact"),
+                transact=stock_param.getvar("transact"),
                 autopk=autopk,
                 role=role,
             )
         if "csv" in form:
-            cod_csv = stock_param.get_param("codec_csv", "utf-8")
+            cod_csv = stock_param.getvar("codec_csv", "utf-8")
             ecrire_schema_csv(rep_s, schema, mode, cod=cod_csv, modeconf=confs)
         if form == "xml":
-            #            header = stock_param.get_param('xmlheader', '')
+            #            header = stock_param.getvar('xmlheader', '')
             #            if header:
             #                header = header+'\n'
             header = ""
-            header = header + stock_param.get_param("xmldefaultheader")
+            header = header + stock_param.getvar("xmldefaultheader")
 
-            #            alias = ESC_XML(stock_param.get_param('xmlalias'))
+            #            alias = ESC_XML(stock_param.getvar('xmlalias'))
             ecrire_schema_xml(
                 rep_s,
                 schema,
                 mode=mode,
                 cod="utf-8",
                 header=header,
-                alias=stock_param.get_param("xmlalias"),
+                alias=stock_param.getvar("xmlalias"),
             )
         #            copier_xsl(rep_s)
 
         if form == "xml_d":
 
-            header = stock_param.get_param("xmlheader_dist", "")
-            prefix = stock_param.get_param("xmlprefix_dist", "d")
+            header = stock_param.getvar("xmlheader_dist", "")
+            prefix = stock_param.getvar("xmlprefix_dist", "d")
             if header:
                 header = header + "\n"
                 #            header = ''
-                #            header = header+stock_param.get_param('xmldefaultheader')
+                #            header = header+stock_param.getvar('xmldefaultheader')
 
-                #                alias = ESC_XML(stock_param.get_param('xmlalias'))
+                #                alias = ESC_XML(stock_param.getvar('xmlalias'))
                 ecrire_schema_xml(
                     rep_s,
                     schema,
                     mode=mode,
                     cod="utf-8",
                     header=header,
-                    alias=stock_param.get_param("xmlalias"),
+                    alias=stock_param.getvar("xmlalias"),
                     prefix=prefix,
                 )
             else:
@@ -285,9 +285,9 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    print('ecriture_schemas', mode, stock_param.schemas.keys())
     if mode == "no":
         return
-    #    rep_sortie = stock_param.get_param('sortie_schema', stock_param.get_param('_sortie'))
-    #    rep_sortie = stock_param.get_param('_sortie')
-    type_schemas_a_sortir = stock_param.get_param("orig_schema")
+    #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
+    #    rep_sortie = stock_param.getvar('_sortie')
+    type_schemas_a_sortir = stock_param.getvar("orig_schema")
     print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
     #        raise FileNotFoundError
 
@@ -298,7 +298,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
 
     schemas = stock_param.schemas
 
-    a_sortir = stock_param.get_param("schemas_a_sortir")
+    a_sortir = stock_param.getvar("schemas_a_sortir")
     a_sortir = a_sortir.split(",") if a_sortir else None
     for i in schemas:
         #        print('ecriture schema', i, len(schemas[i].classes))

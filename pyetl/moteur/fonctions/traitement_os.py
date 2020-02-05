@@ -6,21 +6,13 @@ Created on Fri Dec 11 14:34:04 2015
 fonctions de structurelles diverses
 """
 import os
-import locale
-import sys
-import re
 import logging
 import subprocess
-from collections import defaultdict
 from pathlib import Path
 import shutil
 import time
-import win32api
 # import win32con
 import win32security
-
-from pyetl.formats.mdbaccess import dbaccess
-from pyetl.formats.generic_io import Writer
 from .outils import getfichs
 
 

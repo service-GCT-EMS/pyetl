@@ -513,7 +513,7 @@ def h_dbmaxval(regle):
     if retour and len(retour) == 1 and regle.params.att_sortie.val:
         # cas simple on stocke l' attribut dans le parametre
         valeur = list(retour.values())[0]
-        regle.stock_param.set_param(regle.params.att_sortie.val, str(valeur))
+        regle.stock_param.setvar(regle.params.att_sortie.val, str(valeur))
         print("maxval stockage", regle.params.att_sortie.val, str(valeur))
     nom = regle.params.cmp1.val if regle.params.cmp1.val else "#maxvals"
     regle.stock_param.store[nom] = retour

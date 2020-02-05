@@ -183,10 +183,10 @@ class ExtStat(object):
         nlignes = 0
         nom_groupe, nom_classe = self.nom.split("_")
         #        print(" conversion stat en objet", nom_schema, nom_groupe, nom_classe)
-        maxobj = stock_param.get_param("lire_maxi", 0)
+        maxobj = stock_param.getvar("lire_maxi", 0)
 
-        if stock_param.get_param("schema_entree"):
-            schema_courant = stock_param.schemas[stock_param.get_param("schema_entree")]
+        if stock_param.getvar("schema_entree"):
+            schema_courant = stock_param.schemas[stock_param.getvar("schema_entree")]
             nom_groupe, nom_classe = schema_courant.map_dest((nom_groupe, nom_classe))
         else:
             schema_courant = stock_param.init_schema(":schema_stats", "F")
@@ -374,10 +374,10 @@ class Stat(object):
 
         nom_groupe, nom_classe = self.nom
         #        print(" conversion stat en objet", nom_schema, nom_groupe, nom_classe)
-        maxobj = stock_param.get_param("lire_maxi", 0)
+        maxobj = stock_param.getvar("lire_maxi", 0)
 
-        if stock_param.get_param("schema_entree"):
-            schema_courant = stock_param.schemas[stock_param.get_param("schema_entree")]
+        if stock_param.getvar("schema_entree"):
+            schema_courant = stock_param.schemas[stock_param.getvar("schema_entree")]
             nom_groupe, nom_classe = schema_courant.map_dest((nom_groupe, nom_classe))
         else:
             schema_courant = stock_param.init_schema(":schema_stats", "F")

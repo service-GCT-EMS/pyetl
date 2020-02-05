@@ -42,7 +42,7 @@ def init_schema(
         nouveau = Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
-        nouveau.metas['script_ref'] = mapper.get_param('pyetl_script_ref')
+        nouveau.metas['script_ref'] = mapper.getvar('pyetl_script_ref')
         #            self.schemas[nom_schema].modele = modele
         #        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 

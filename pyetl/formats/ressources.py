@@ -263,6 +263,6 @@ class GestionSorties(object):
         raise KeyError ("clef non definie")
         return os.path.join(rep_sortie, "defaut" + ext)
 
-    def getstats(self):
+    def getwritestats(self):
         """recupere les stats d'ecriture"""
         return {nom:self.ressources[nom].nbo for nom in self.ressources}

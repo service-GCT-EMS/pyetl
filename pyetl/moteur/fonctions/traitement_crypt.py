@@ -208,11 +208,8 @@ CRYPTOLEVELS = {0: Crypter, 1: BasicCrypter, 2: HcubeCrypter, 3: ExtCrypter}
 CRYPTOCLASS = dict()
 
 
-def descramble(mapper, key):
+def descramble(key):
     """ retourne la clef d'origine si elle est planquee"""
-
-    if not key:
-        key = mapper.get_param("defaultkey")
     if key.endswith("="):
         try:
             return base64.b32decode(key).decode("utf-8")
@@ -230,23 +227,24 @@ def scramble(key):
     return base64.b32encode(binlist)
 
 
-def cryptinit(mapper, key, level):
+def cryptinit(key, level, helper=None):
     """initialise la fonction de cryptage"""
     #    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
-
-    key = descramble(mapper, key)
+    # if not key:
+    #     key = mapper.getvar("defaultkey")
+    # key = descramble(key)
     #    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
     #
-    if level is None:
-        level = mapper.get_param("cryptolevel", 2)
+    level = int(level) if level in {'0','1','2','3'} else 2
     cclass = CRYPTOLEVELS[level](key)
     if cclass.ext:
-        if mapper and mapper.get_param("cryptohelper"):
-            chelper = mapper.get_param("cryptohelper")
-            cclass.set_ext(chelper)
+        # if mapper and mapper.getvar("cryptohelper"):
+        #     chelper = mapper.getvar("cryptohelper")
+        if helper:
+            cclass.set_ext(helper)
         else:
             print("cryptohelper non defini ,passage en niveau", level - 1)
-            cryptinit(mapper, key, level - 1)
+            cryptinit(key, level - 1)
             return
     CRYPTOCLASS[key] = cclass
 
@@ -254,7 +252,7 @@ def cryptinit(mapper, key, level):
 #    print ('initialisation cryptage niveau',level,key)
 
 
-def decrypt(mapper, val, key=None, level=None):
+def decrypt(val, key=None, level=None, helper=None):
     """decrypte les mots de passe"""
     if not val.endswith("="):  # ce n'est pas crypte
         #        print('non crypté', val)
@@ -264,9 +262,9 @@ def decrypt(mapper, val, key=None, level=None):
     else:
         keylist = key
     for key in keylist:
-        key = descramble(mapper, key)
+        key = descramble(key)
         if key not in CRYPTOCLASS:
-            cryptinit(mapper, key, level)
+            cryptinit(key, level, helper)
         # print ('decryptage', key, CRYPTOCLASS[key].decrypt(val))
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
@@ -274,22 +272,124 @@ def decrypt(mapper, val, key=None, level=None):
     return None
 
 
-def crypter(mapper, val, key=None, level=None):
+def crypt(val, key=None, level=None, helper=None):
     """crypte les mots de passe ou tout ce qu'on veur crypter..."""
     #    print ('dans cryptage ',val,key,level)
-    key = descramble(mapper, key)
+    key = descramble(key)
     if not key:
         return scramble(val)
     if key not in CRYPTOCLASS:
-        cryptinit(mapper, key, level)
+        cryptinit(key, level, helper)
     return CRYPTOCLASS[key].crypt(val)
+
+
+def valide_ulist(val, user, master, grouplist):
+    """ valide les autorisations par utilisateur"""
+    if val and val.endswith(")#"):  # il y a des utilisateurs
+        ddv = val.index("#(")
+        if ddv:
+            ulist = val[ddv + 2 : -2].split(",")
+            ulist = [i.strip() for i in ulist]
+            if "*" in ulist:
+                return val[:ddv]
+            if master or user in ulist or any([i in ulist for i in grouplist]):
+                return val[:ddv]
+            #                    print ('decode', ulist,val)
+            else:
+                return None
+    return val
+
+
+def paramdecrypter(site_params,cryptinfo):  # decrypte les parametres cryptes
+        """decrypte d'eventuels parametres cryptes
+           gere 2 clefs une clef maitre et une clef utilisateur"""
+        #        print ('decryptage parametres',self.parms['cryptokey'])
+        user, usergroup, masterkey, userkey, defaultkey, cr_lev, cr_help = cryptinfo
+        localkey = "key_" + user  # clef par defaut
+        grouplist = []
+        master = False
+        if masterkey:
+            masterkey = decrypt(masterkey, key=[localkey, defaultkey, ""], level=cr_lev, helper=cr_help)
+            userkey = decrypt(userkey, key=[masterkey], level=cr_lev, helper=cr_help)
+            if userkey:
+                master = True
+        #            print ('decodege master', masterkey,userkey, userkeyref)
+        elif userkey:
+            userkey = decrypt(userkey, key=[masterkey, localkey])
+            #            print ('decodege user', userkey)
+
+            grouplist = decrypt(usergroup, key=[localkey])
+            if not grouplist:
+                grouplist = []
+            else:
+                grouplist = grouplist.split(",")
+        #        print ('clef', masterkey, 'master', master, 'user',userkey)
+        supr = set()
+
+        for nom in site_params:
+            for numero, parametre in enumerate(site_params[nom]):
+                nom_p, val = parametre
+                if nom_p.startswith("**"):  # cryptage
+                    nom_p = nom_p[2:]
+                    val2 = decrypt(val, key=[masterkey, userkey], level=cr_lev, helper=cr_help)
+                    #                    print ('decryptage ', nom, nom_p, val2)
+                    val = valide_ulist(val2,user, master, grouplist)
+                    #                    print ("valide", val)
+                    #                    val = val2
+                    if val is None:
+                        supr.add(nom)
+                    else:
+                        site_params[nom][numero] = (nom_p, val)
+        for nom in supr:
+            # print("suppression paramgroup", nom)
+            del site_params[nom]
+
+
+def h_crypt(regle):
+    '''prepare la fonction de cryptage'''
+    regle.cryptolevel = regle.getvar('cryptolevel')
+    regle.cryptohelper = regle.getvar('cryptohelper')
+    regle.cryptokey = regle.getvar('defaultkey')
+    return True
+
+
+def f_crypt(regle, obj):
+    """#aide||crypte des valeurs dans un fichier en utilisant une clef
+    #pattern||A;?;A;crypt;C?;
+ #parametres||attribut resultat crypte;defaut;attribut d'entree;;clef de cryptage
+    #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
+    """
+    vcrypte = crypt(regle.getval_entree(obj),
+                                        key=regle.params.cmp1.getval(obj,regle.cryptokey),
+                                        level=regle.cryptolevel,
+                                        helper=regle.cryptohelper)
+    obj.attributs[regle.params.att_sortie.val] = vcrypte
+    return True
+
+
+def f_decrypt(regle, obj):
+    """#aide||decrypte des valeurs dans un fichier en utilisant une clef
+    #pattern||A;?;A;decrypt;C?;
+    #helper||crypt
+ #parametres||attribut resultat decrypte;defaut;attribut d'entree;;clef de cryptage
+    #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
+    """
+    clef = regle.params.cmp1.getval(obj, regle.cryptokey)
+    val = regle.getval_entree(obj)
+    decrypte = decrypt(val, key=clef)
+    obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val
+    return True
+
+
+
+
 
 
 if __name__ == "__main__":
     print(" cryptotest")
     for ii in CRYPTOLEVELS:
         print("test niveau", ii)
-        cryptinit(None, "mot de passe", ii)
+        cryptinit("mot de passe", ii)
         valeur = "test de texte aa bbb cccc ddddddd c"
         print("valeur ", valeur)
         crypte = crypter(None, valeur)

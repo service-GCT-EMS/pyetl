@@ -66,7 +66,7 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
             print("unittest: erreur creation environnement ", nom_fonc, nom_subfonc, nom_test)
             return ""
         if debug and int(debug):
-            map2.set_param("debug", "1")
+            map2.setvar("debug", "1")
         if redirect:
             capture = io.StringIO()
             with redirect_stdout(capture):
@@ -85,7 +85,7 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
         print("test:", exc)
         printexception()
         retour = ""
-        if mapper.get_param("autotest") == "raise":
+        if mapper.getvar("autotest") == "raise":
             raise
     #    print("testrunner",retour)
     return retour
@@ -95,12 +95,12 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
     """realise les tests et evalue le resultat"""
     nom_fonc, nom_subfonc, nom_test = idtest
     err = 0
-    mapper.set_param("testrep", os.path.join(os.path.dirname(__file__), "fichiers"))
+    mapper.setvar("testrep", os.path.join(os.path.dirname(__file__), "fichiers"))
 
     retour = testrunner(mapper, idtest, liste_regles, debug, redirect)
     retour_controle = testrunner(mapper, idtest, liste_controle, debug, redirect)
     #    print("eval:retour tests",retour,retour_controle)
-    if "ok" in retour_controle or "ok" not in retour or mapper.get_param("testmode") == "all":
+    if "ok" in retour_controle or "ok" not in retour or mapper.getvar("testmode") == "all":
         if "ok" in retour_controle or "ok" not in retour:
             print("! test invalide", nom_fonc)
             err = 1
@@ -115,7 +115,7 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
             "--->",
             retour,
         )
-    #                    print ('testmode',mapper.get_param('testmode'))
+    #                    print ('testmode',mapper.getvar('testmode'))
     #                        raise
     return err
 
@@ -173,7 +173,7 @@ def untestable(mapper,fonc):
     if "#req_test" in fonc.description:
         conditions = fonc.description["#req_test"][0].split(",")
         for i in conditions:
-            if not mapper.get_param(i):
+            if not mapper.getvar(i):
                 # print ("non defini",i, conditions)
                 return i
     return ""
@@ -187,7 +187,7 @@ def fonctest(mapper, nom=None, debug=0):
     realises = set()
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.commandes[fonc_a_tester]
-        mapper.set_param('test_courant',fonc_a_tester)
+        mapper.setvar('test_courant',fonc_a_tester)
         # print ('test: ', fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
@@ -254,13 +254,13 @@ def set_test_config(mapper):
     """enregistre la localisation des fichier de test"""
     rep = os.path.join(os.path.dirname(__file__), "fichiers/testscripts")
     print("------------------------------------repertoire de tests", rep)
-    mapper.set_param("_test_path", rep)
+    mapper.setvar("_test_path", rep)
     mapper.charge_cmd_internes(test="unittest")  # on charge les ressources
     try:
         mapper.load_paramgroup("testconfig")  # on charge les configs de test
         print("-----------------------------------chargement params de test")
-        testdb = mapper.get_param("testbd")
-        testrep = mapper.get_param("testrep")
+        testdb = mapper.getvar("testbd")
+        testrep = mapper.getvar("testrep")
         testconfig = True
     except KeyError:
         print("config de test non definie certains tests ne seront pas effectues")
@@ -330,7 +330,7 @@ def full_autotest(mapper, nom):
     if not nom:
         unittests(mapper)
         print("----------------autotest complet--------------")
-        rep = mapper.get_param("_test_path")
+        rep = mapper.getvar("_test_path")
         liste_tests = [
             i.replace("test_", "").replace(".csv", "")
             for i in os.listdir(rep)

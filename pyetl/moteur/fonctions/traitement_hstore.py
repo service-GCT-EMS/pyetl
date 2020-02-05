@@ -31,14 +31,8 @@ fonctions de manipulation d'attributs
 
 """
 # from pyetl.formats.formats import Stat
-import io
 import re
-import time
-#import itertools
-import requests
 
-# import pycurl
-from .outils import compilefonc, charge_mapping
 
 ## ===================================== hstore ===============================
 

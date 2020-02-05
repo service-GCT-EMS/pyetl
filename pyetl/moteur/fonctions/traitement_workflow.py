@@ -20,13 +20,7 @@ from .traitement_geom import setschemainfo
 # from concurrent.futures import ProcessPoolExecutor
 # from multiprocessing.pool import Pool
 # import multiprocessing
-import ftplib
-try:
-    import pysftp
-    SFTP=True
-except ImportError:
-    SFTP=False
-import requests
+
 from pyetl.formats.interne.objet import Objet
 from .outils import execbatch, objloader
 
@@ -129,7 +123,7 @@ def h_sync(regle):
     if regle.stock_params.worker:
         regle.final = True
         if regle.params.cmp1.val:
-            regle.stock_params.set_param("_w_end", regle.params.cmp1.val)
+            regle.stock_params.setvar("_w_end", regle.params.cmp1.val)
     return True
 
 
@@ -462,177 +456,6 @@ def f_creobj(regle, obj):
                 break
             raise
     return True
-
-
-def h_ftpupload(regle):
-    """prepare les parametres ftp"""
-    regle.chargeur = True
-    codeftp = regle.params.cmp1.val
-    regle.destdir = regle.params.cmp2.val
-    serveur = regle.context.getvar("server_" + codeftp, "")
-    servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
-    user = regle.context.getvar("user_" + codeftp, "")
-    passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
-    regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
-    regle.ftp = None
-    regle.servertyp = servertyp
-
-def ftpconnect(regle):
-    '''connection ftp'''
-
-    _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-    # print ('ouverture acces ',regle.getvar('acces_ftp'))
-    try:
-        if servertyp == "tls":
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
-            return True
-        elif servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
-            return True
-    except ftplib.error_perm as err:
-        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
-        print("retour_erreur",err)
-        return False
-    if servertyp == "sftp" and SFTP:
-        try:
-            cno = pysftp.CnOpts()
-            cno.hostkeys = None
-            regle.ftp = pysftp.Connection(serveur, username=user, password=passwd, cnopts=cno)
-            return True
-        except pysftp.ConnectionException as err:
-            print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user, passwd)
-            print("retour_erreur",err)
-            return False
-    else:
-        print ("mode ftp non disponible", servertyp)
-        return False
-
-
-def f_ftpupload(regle, obj):
-    """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;
-    #pattern||;?C;?A;ftp_upload;C;?C
-       #test||notest
-    """
-    filename = regle.getval_entree(obj)
-    destname = regle.destdir+ '/'+ str(os.path.basename(filename))
-
-    # destname = regle.destdir
-    if not regle.ftp:
-        retour = ftpconnect(regle)
-        if not retour:
-            return False
-        print ('connection ftp etablie')
-
-
-    try:
-        # print ('envoi fichier',filename,'->',destname)
-        if regle.servertyp == 'sftp':
-            regle.ftp.cwd(regle.destdir)
-            regle.ftp.put(filename)
-            print ("transfert effectue",filename,'->',destname)
-        else:
-            localfile = open(filename, "rb")
-            regle.ftp.storbinary("STOR " + destname, localfile)
-            localfile.close()
-            print ("transfert effectue",filename,'->',destname)
-        return True
-
-    except ftplib.all_errors as err:
-        print("!!!!! erreur ftp: acces non autorisé",serveur, servertyp, user)
-        print("retour_erreur", err)
-        LOGGER.error("ftp upload error: Houston, we have a %s", "major problem", exc_info=1)
-        return False
-
-
-def f_ftpdownload(regle, obj):
-    """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
-    #pattern||;?C;?A;ftp_download;C;?C
-     #helper||ftpupload
-       #test||notest
-    """
-    if not regle.ftp:
-        if not regle.ftp:
-            retour = ftpconnect(regle)
-            if not retour:
-                return False
-        print ('connection ftp etablie')
-
-
-    filename = regle.getval_entree(obj)
-    localdir = regle.getvar('localdir',os.path.join(regle.getvar('_sortie','.')))
-    localname = os.path.join(localdir,filename)
-    os.makedirs(localdir,exist_ok=True)
-    print('creation repertoire',localdir)
-
-    try:
-        if regle.servertyp == 'sftp':
-            print ('choix repertoire',regle.destdir)
-            regle.ftp.cwd(regle.destdir)
-            if filename == '*':
-                regle.ftp.get_d('.',localdir, preserve_mtime=True)
-            elif filename == '*/*':
-                regle.ftp.get_r('.',localdir, preserve_mtime=True)
-            else:
-                regle.ftp.get(filename,localpath=localname, preserve_mtime=True)
-        else:
-            localfile = open(localname, "wb")
-            regle.ftp.retrbinary("RETR " + filename, localfile.write)
-            localfile.close()
-        print ("transfert effectue",filename,'->',localname)
-        return True
-
-    except ftplib.all_errors as err:
-        print("!!!!! erreur ftp: acces non autorisé")
-        LOGGER.error("ftp download error: Houston, we have a %s", "major problem", exc_info=1)
-        return False
-
-
-def h_httpdownload(regle):
-    """prepare les parametres http"""
-    regle.chargeur = True
-    path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
-    os.makedirs(path, exist_ok=True)
-    regle.path=path
-    if regle.params.cmp2.val:
-        name = os.path.join(path, regle.params.cmp2.val)
-        regle.fichier = name
-    else:
-        regle.fichier = None
-
-def f_httpdownload(regle, obj):
-    """aide||telecharge un fichier via http
- #aide_spec||; url; (attribut contenant le url);http_download;repertoire;nom
-   #pattern||;?C;?A;download;?C;?C
-      #test||notest
-      """
-    url = regle.getval_entree(obj)
-    if regle.fichier is None:
-        fichier = os.path.join(regle.path, os.path.basename(url))
-    else:
-        fichier = regle.fichier
-    print("telechargement", url)
-    retour = requests.get(url, stream=True)
-    print("info", retour.headers)
-    taille = int(retour.headers["Content-Length"])
-    decile = taille / 10
-    recup = 0
-    bloc = 4096
-    nb_pts = 0
-    debut = time.time()
-    if retour.status_code == 200:
-        with open(fichier, "wb") as fich:
-            for chunk in retour.iter_content(bloc):
-                recup += bloc  # ca c'est la deco avec des petits points ....
-                if recup > decile:
-                    recup = recup - decile
-                    nb_pts += 1
-                    print(".", end="", flush=True)
-                fich.write(chunk)
-        print("    ", taille, "octets télecharges en ", int(time.time() - debut), "secondes")
-        return True
-    return False
 
 
 def h_archive(regle):

@@ -420,7 +420,7 @@ def get_fonction(nom, store, clef):
     """recupere la fonction de preparation associee a une fonction d entree"""
     fonctions = store[clef]
     if nom and nom not in fonctions:
-        print("erreur definition de fonction helper", nom, fonctions.keys())
+        print("erreur definition de fonction helper", nom, sorted(fonctions.keys()))
         return None
     #        print ('recup fonction schema ', nom, fschema.get(nom))
     return fonctions.get(nom)

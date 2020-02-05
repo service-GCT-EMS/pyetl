@@ -272,7 +272,7 @@ class Reader(object):
 
     def setvar(self,nom,val):
         '''positionne une variable ( en general variables de format par defaut)'''
-        self.stock_param.set_param(nom,val)
+        self.stock_param.setvar(nom,val)
 
     def get_info(self):
         """ affichage du format courant : debug """
@@ -558,4 +558,4 @@ class Writer(object):
 
     def setvar(self,nom,val):
         '''positionne une variable ( en general variables de format par defaut)'''
-        self.regle.stock_param.set_param(nom,val)
+        self.regle.stock_param.setvar(nom,val)

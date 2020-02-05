@@ -326,14 +326,14 @@ def decoupe_liste_commandes(fichier_regles):
 def prepare_acces_base_scripts(mapper):
     ''' initialise les acces a la base de scripts'''
     if mapper.load_paramgroup("dbscriptmode"):
-        serv = mapper.get_param("scriptserver")
+        serv = mapper.getvar("scriptserver")
         LOGGER.info("lecture commande en base " + serv)
         #    print('lire_db: chargement ', serv)
         mapper.load_paramgroup(serv, nom=serv)
         #        print ('parametres',mapper.parms)
-        type_base = mapper.get_param("db_" + serv)
-        #        base = mapper.get_param('base_'+serv)
-        nomschema = mapper.get_param("scriptschema")
+        type_base = mapper.getvar("db_" + serv)
+        #        base = mapper.getvar('base_'+serv)
+        nomschema = mapper.getvar("scriptschema")
         return (serv,nomschema,type_base)
     else:
         LOGGER.error("base de script non definie ")
@@ -346,7 +346,7 @@ def get_macro_from_db(mapper, nom_inclus):
     acces =  prepare_acces_base_scripts(mapper)
     if acces:
         serv,nomschema,type_base = acces
-        nomtable = mapper.get_param("macrotable")
+        nomtable = mapper.getvar("macrotable")
         description = recup_table_parametres(
         mapper,
         serv,
@@ -370,19 +370,19 @@ def lire_commandes_en_base(mapper, fichier_regles):
         raise SyntaxError("erreur script en base: " + fichier_regles)
     nom = defs[1]
     mapper.load_paramgroup("dbscriptmode")
-    serv = mapper.get_param("scriptserver")
-    nomschema = mapper.get_param("scriptschema")
+    serv = mapper.getvar("scriptserver")
+    nomschema = mapper.getvar("scriptschema")
     LOGGER.info("lecture commande en base " + serv)
     #    print('lire_db: chargement ', serv)
     mapper.load_paramgroup(serv, nom=serv)
     #        print ('parametres',mapper.parms)
-    type_base = mapper.get_param("db_" + serv)
-    #        base = mapper.get_param('base_'+serv)
+    type_base = mapper.getvar("db_" + serv)
+    #        base = mapper.getvar('base_'+serv)
     if nom.startswith("#"):
-        nomtable = mapper.get_param("macrotable")
+        nomtable = mapper.getvar("macrotable")
     else:
-        nomtable = mapper.get_param("scripttable")
-    commandtable = mapper.get_param("commandtable")
+        nomtable = mapper.getvar("scripttable")
+    commandtable = mapper.getvar("commandtable")
     #    print('lecture de regles en base ', serv, type_base, nomschema+"."+nomtable,
     #          "->", nom)
     description = recup_table_parametres(
@@ -426,7 +426,7 @@ def _lire_commandes(mapper, fichier_regles, niveau):
         liste_regles = decoupe_liste_commandes(fichier_regles)
     #        print ('lu', '\n   '.join([str(i) for i in liste_regles]))
     else:
-        liste_regles = charge_fichier(fichier_regles, "", defext=".csv",codec=mapper.get_param('codec_csv'))
+        liste_regles = charge_fichier(fichier_regles, "", defext=".csv",codec=mapper.getvar('codec_csv'))
 
     if niveau:  # on force un niveau d'indentation
         avant = niveau
@@ -762,9 +762,9 @@ def lire_regles_csv(
     if bloc != 0:
         erreurs += 1
         print("erreur structure de blocs", bloc)
-    mapper.debug = int(mapper.get_param("debug"))
+    mapper.debug = int(mapper.getvar("debug"))
     if mapper.debug:
-        print("niveau debug :", mapper.get_param("debug"))
+        print("niveau debug :", mapper.getvar("debug"))
         # on initialise les parametres our finir #print 'parametres ', i
     #    print('fin lecture regles',erreurs)
     return erreurs

@@ -153,15 +153,15 @@ def compile_regles(mapper, liste_regles, debug=0):
         if not regles:
             print("pas de regles a compiler")
             raise EOFError("pas de regles a compiler")
-        # print ('compilateur:gestion sortie',mapper.get_param("F_sortie"))
-        if mapper.get_param("sans_sortie"):
+        # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
+        if mapper.getvar("sans_sortie"):
             regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
         else:
             regle_sortir = mapper.interpreteur(
                 ";;;;;;;sortir;"
-                + mapper.get_param("F_sortie")
+                + mapper.getvar("F_sortie")
                 + ";"
-                + mapper.get_param("nom_sortie")
+                + mapper.getvar("nom_sortie")
                 + ";;;sortie_defaut",
                 "",
                 99999,

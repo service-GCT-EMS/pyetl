@@ -8,14 +8,8 @@ fonctions de structurelles diverses
 import os
 import re
 import logging
-import subprocess
 from collections import defaultdict
-from pathlib import Path
 import psutil
-import time
-import win32api
-# import win32con
-import win32security
 
 from pyetl.formats.mdbaccess import dbaccess
 from pyetl.formats.generic_io import Writer
@@ -514,7 +508,7 @@ def preload(regle, obj):
             renseigne_attributs_batch(regle, obj, processor.retour)
 
         print("------- preload objets", processor.store)
-        nb_total = processor.get_param("_st_lu_objs", "0")
+        nb_total = processor.getvar("_st_lu_objs", "0")
         regle.stock_param.store.update(
             processor.store
         )  # on rappatrie les dictionnaires de stockage
@@ -607,16 +601,6 @@ def compare_traite_stock(regle):
     regle.comp = None
     regle.nbstock = 0
 
-
-# def compare_traite_stock(regle):
-#    """ sort les objets detruits"""
-#    for clef, obj in regle.comp.items():
-#        if obj.redirect is None:
-#            obj.attributs[regle.params.att_sortie.val]='supp'
-#            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["supp:"])
-#        regle.comp[clef] = None
-#    regle.comp = None
-#    regle.nbstock = 0
 
 
 def h_compare(regle):
