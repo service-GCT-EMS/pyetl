@@ -25,7 +25,7 @@ class DecodeConfigOsm(object):
         self.tgs = dict()
         self.schema = None
         self.valeur = vals[2]
-
+        self.description = vals
         self.geom = vals[3]
         self.multiobj = '+' in self.geom
         self.geom = self.geom.strip('+')
@@ -53,7 +53,7 @@ class DecodeConfigOsm(object):
                 if vals[j].startswith('G:ref:'):
                     vl2 = vals[j].split(":")
                     self.geomrest, self.geomrole = self.getrefcond(vl2[2])
-                    print ('detecte geometrie relation', self.classe, self.geomrest, self.geomrole)
+                    print ('detecte geometrie relation', self.classe, self.geomrest, self.geomrole, self.description)
                 elif vals[j].startswith('TG:ref:'):
                     vl2 = vals[j].split(":")
                     self.tgdef(vl2[2],vl2[3],vl2[4])
@@ -194,14 +194,19 @@ class DecodeConfigOsm(object):
         if obj.ident==('osm','om_comm_restriction'):
             print ('obj', obj.ident)
         if self.geomrest: #declaration de geometrie
-            print('geometrie', self.geomrest)
-            obj.attributs["#type_geom"] = '0'
+            # print('geometrie relation', self.geomrest, self.geomrole,self.description, geoms)
+            geoms2=[]
+            if self.geomrest in geoms:
+                for geomdef in geoms[self.geomrest]:
+                    geometrie,role = geomdef
+                    if self.geomrole != role:
+                        continue
+                    geoms2.append(geomdef)
+            obj.attributs["#geom"] = geoms2
         else:
             obj.attributs["#geom"] = next(iter(geoms.values())) if geoms else []
-            obj.attributs["#type_geom"] = self.force_geom
 
-        if self.force_geom is None:
-            obj.attributs["#type_geom"] = type_geom  # on force
+        obj.attributs["#type_geom"] = self.force_geom if self.force_geom is not None else type_geom  # on force
         # print ('decodage tags mode minimal:',self.minimal, obj.attributs["#type_geom"], self.force_geom)
         for att, tag in self.atts:
             if tag in tagdict:
@@ -419,7 +424,7 @@ def classif_elem(reader, elem, points, lignes, objets, used):
         return -1, None, None, None, None
     ido = int(ido)
     if elem.tag == "node":
-        points[ido] = [float(elem.get("lon")), float(elem.get("lat"))]
+        points[ido] = (float(elem.get("lon")), float(elem.get("lat")))
         if attributs:
             type_geom = "1"
             geoms["node"] = [(points[ido],'node')]

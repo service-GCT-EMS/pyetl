@@ -371,6 +371,7 @@ class Objet(object):
             + str(self.attributs.get("#classe"))
         )
         schema = "\t" + repr(self.schema)
+        # print ('attributs',self.attributs)
         aliste = sorted(self.attributs.keys()) if attlist is None else attlist
         print(
             invariant + "\n",
@@ -443,8 +444,8 @@ class Objet(object):
             self.attributs["#schema"] = ""
         if remap:
             if self.schema.attmap is not None:
-                att2 = {self.schema.attmap.get(i, i): self.attributs[i] for i in self.attributs}
-                self.attributs = att2
+                self.attributs = {self.schema.attmap.get(i, i): self.attributs[i] for i in self.attributs}
+
 
     def initattr(self):
         """ initialise les attributs a leur valeur de defaut """

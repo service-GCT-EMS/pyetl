@@ -245,22 +245,22 @@ class CsvWriter(FileWriter):
                     if not obj.attributs['#geom']:
                         geom = self.null
                     else:
-                        print(
-                            "csv: geometrie invalide : erreur geometrique",
-                            obj.ident,
-                            obj.numobj,
-                            "demandé:",
-                            self.type_geom,
-                            obj.geom_v.erreurs.errs,
-                            obj.attributs["#type_geom"],
-                            self.schema.info["type_geom"],
-                            obj.attributs['#geom'],
-                        )
+                        if self.errcnt<10:
+                            print(
+                                "csv: geometrie invalide : erreur geometrique",
+                                obj.ident,
+                                obj.numobj,
+                                "demandé:",
+                                self.type_geom,
+                                obj.geom_v.erreurs.errs,
+                                obj.attributs["#type_geom"],
+                                self.schema.info["type_geom"],
+                                '->'+repr(obj.attributs['#geom'])+'<-',
+                            )
+                        self.errcnt += 1
                         geom = self.null
 
-                obj.format_natif = "#ewkt"
-                obj.attributs['#geom'] = geom
-                obj.geomnatif = True
+
                 if obj.erreurs and obj.erreurs.actif == 2:
                     print(
                         "error: writer csv :",
@@ -272,12 +272,17 @@ class CsvWriter(FileWriter):
                         "demandé:",
                         obj.schema.info["type_geom"],
                         obj.erreurs.errs,
+                        '->'+repr(obj.attributs['#geom'])+'<-',
                     )
-                    print("prep ligne ", attributs, "G:", geom)
-
+                    print("prep ligne ", attributs, "\nG:", geom)
+                    print ('geom initiale', obj.attributs['#geom'])
                     return False
+
             if not geom:
                 geom = self.null
+            obj.format_natif = "#ewkt"
+            obj.attributs['#geom'] = geom
+            obj.geomnatif = True
             ligne = attributs + self.separ + geom
         else:
             ligne = attributs
@@ -401,7 +406,7 @@ class SqlWriter(CsvWriter):
         geom = (
             separ + "geometrie" + end + "\n" if self.schema.info["type_geom"] != "0" else end + "\n"
         )
-        return prefix + separ.join([gensql.ajuste_nom(i.lower()) for i in self.liste_att]) + geom
+        return prefix + separ.join([gensql.ajuste_nom_q(i.lower()) for i in self.liste_att]) + geom
 
     def fin_classe(self):
         """fin de classe pour remettre les sequences"""

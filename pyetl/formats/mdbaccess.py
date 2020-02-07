@@ -767,14 +767,15 @@ def sortie_resultats(
     if type_geom != "0":
         attlist.append(("#geom",'T',0,None))
     # print (' attributs recuperes ', attlist)
+    namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
     maxobj = regle_courante.getvar("lire_maxi", 0)
     nb_pts = 0
     sys_cre, sys_mod = None, None
-    if connect.sys_cre in attlist:
+    if connect.sys_cre in namelist:
         sys_cre = connect.sys_cre
-    if connect.sys_mod in attlist:
+    if connect.sys_mod in namelist:
         sys_mod = connect.sys_mod
     tget = time.time()
     decile = curs.decile
@@ -786,7 +787,7 @@ def sortie_resultats(
             classe,
             format_natif=format_natif,
             conversion=geom_from_natif,
-            attributs=zip(attlist, [str(i) if i is not None else "" for i in valeurs]),
+            attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
         )
         # if '#geom' in attlist:
         #     print ('attlist', attlist)

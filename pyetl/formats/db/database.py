@@ -19,6 +19,25 @@ RESERVES = {"in": "ins", "as": "ass"}
 GTYPES_DISC = {"alpha": "", "ALPHA": ""}
 GTYPES_CURVE = {"alpha": "", "ALPHA": ""}
 
+def quote_table(ident):
+    """rajoute les cotes autour des noms"""
+    niveau, classe = ident
+    return ' "'+niveau+'"."'+classe+'" '
+
+def quote(att):
+    """rajoute les quotes sur une liste de valeurs ou une valeur"""
+    if att.startswith('"'):
+        return att
+    return '"'+att+'"'
+
+def attqjoiner(attlist,sep):
+    """ join une liste d'attributs et ajoute les quotes"""
+    if isinstance(attlist, (list,tuple)):
+        return sep.join([quote(i) for i in attlist])
+    return quote(attlist)
+
+
+
 class DummyConnect(object):
     '''simule une connection base de donnees'''
     def __init__(self):
@@ -481,7 +500,7 @@ class DbConnect(object):
         """ ajoute des champs systeme"""
         for i in self.sys_fields:
             attlist.append(i)
-            attlist2.append(self.sys_fields[i][0])
+            attlist2.append('"'+self.sys_fields[i][0]+'"')
         return
 
     def construction_champs(self, schema, surf=False, long=False):
@@ -494,14 +513,14 @@ class DbConnect(object):
             if att.type_att == "X":
                 attlist2.append("")
             if att.type_att == "D":
-                attlist2.append(self.get_dateformat(i))
+                attlist2.append(self.get_dateformat(quote(i)))
             else:
                 # attlist2.append('"' + i + '"::text')
-                attlist2.append(self.textcast(i))
+                attlist2.append(self.textcast(quote(i)))
 
         self.get_sys_fields(attlist, attlist2)
         if self.geographique:
-            nom_geometrie = schema.info["nom_geometrie"]
+            nom_geometrie = quote(schema.info["nom_geometrie"])
             if schema.info["type_geom"] == "3":  # surfaces
                 if surf:  # calcul de la surface
                     attlist2.append(self.get_surf(nom_geometrie))
@@ -521,6 +540,8 @@ class DbConnect(object):
 
     def prepare_attribut(self, schema, attribut, valeur):
         """ prepare une requete faisant appel a des attributs"""
+        if not attribut:
+            return "",()
         oper = '='
         if attribut in self.sys_fields:  # c est un champ systeme
             attribut, type_att = self.sys_fields[attribut]
@@ -561,43 +582,28 @@ class DbConnect(object):
             data = {"val": val}
         #                print('valeur simple', valeur, oper, cond, cast, data)
 
-        condition = " WHERE " + cast(attribut) + cond
+        condition = ' WHERE ' + cast(attribut) + cond
         return condition, data
+
 
     def req_count(self, ident, schema, attribut, valeur, mods):
         """compte un enesemble de valeurs en base"""
-        niveau, classe = ident
-        data = ()
-        condition = ""
-        if attribut:
-            condition, data = self.prepare_attribut(schema, attribut, valeur)
 
-        requete = " SELECT count(*) FROM " + niveau + "." + classe + condition
+        condition, data = self.prepare_attribut(schema, attribut, valeur)
+
+        requete = " SELECT count(*) FROM " + quote_table(ident) + condition
         resultat = self.request(requete, data)
         return resultat
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
-
         attlist = []
         atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
-        if attribut:
-            condition, data = self.prepare_attribut(schema, attribut, valeur)
-
-            requete = (
-                " SELECT " + atttext + " FROM " + niveau + "." + classe + condition
-            )
-        #                          " WHERE "+cast(attribut) + cond
-        else:
-            requete = " SELECT " + atttext + " FROM " + niveau + "." + classe
-            data = ()
+        condition, data = self.prepare_attribut(schema, attribut, valeur)
+        requete = (" SELECT " + atttext + " FROM " + quote_table(ident) + condition)
         if ordre:
-            if isinstance(ordre, list):
-                requete = requete + " ORDER BY " + ",".join(ordre)
-            else:
-                requete = requete + " ORDER BY " + ordre
-
+            requete = requete + " ORDER BY " + attqjoiner(ordre,',')
         requete = requete + self.set_limit(maxi, bool(data))
 
         #        print ('parametres',data,valeur)
@@ -606,7 +612,7 @@ class DbConnect(object):
         if not atttext:
             requete = ""
             data = ()
-        #        print('acces alpha', self.geographique, requete, data)
+        # print('acces alpha', self.geographique, requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
         volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
@@ -626,9 +632,7 @@ class DbConnect(object):
             return iter(())
         if schema.info["type_geom"] != "0":
             niveau, classe = ident
-            atttext, attlist = self.construction_champs(
-                schema, "S" in mods, "L" in mods
-            )
+            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
             prefixe = ""
             #            geom2="SDO_UTIL.FROM_WKTGEOMETRY('"+geometrie+"')"
             geomdef = geometrie.split(";", 1)
@@ -656,12 +660,10 @@ class DbConnect(object):
                 " SELECT "
                 + atttext
                 + " FROM "
-                + niveau
-                + "."
-                + classe
+                + quote_table(ident)
                 + " WHERE "
                 + prefixe
-                + self.cond_geom(nom_fonction, schema.info["nom_geometrie"], geom2)
+                + self.cond_geom(nom_fonction, quote(schema.info["nom_geometrie"]), geom2)
                 + self.set_limit(maxi, True)
             )
 
@@ -847,6 +849,10 @@ class DbGenSql(object):
         nom = self.reserves.get(nom, nom)
         return nom
 
+    def ajuste_nom_q(self, nom):
+        """ sort les caracteres speciaux des noms et rajoute des quotes"""
+        return quote(self.ajuste_nom(nom))
+
     def valide_base(self, conf):
         """valide un schema en base"""
         return False
@@ -891,8 +897,7 @@ class DbGenSql(object):
         #        raise
         schemaclasse = self.schema.classes[ident]
         groupe, nom = self.get_nom_base(ident)
-
-        table = groupe + "." + nom
+        table = quote_table((groupe ,nom))
         atts = schemaclasse.get_liste_attributs()
         type_geom = schemaclasse.info["type_geom"]
 
@@ -918,7 +923,7 @@ class DbGenSql(object):
             sql_conf = ""
             attribut = schemaclasse.attributs[j]
             attname = attribut.nom.lower()
-            attname = self.reserves.get(attname, attname)
+            attname = quote(self.reserves.get(attname, attname))
             attype = attribut.type_att
             #            print ('lecture type_attribut',an,at)
             defaut = (
@@ -995,9 +1000,8 @@ class DbGenSql(object):
         drop = []
         for ident in liste:
             groupe, nom = self.get_nom_base(ident)
-            table = groupe + "." + nom
+            table = quote_table((groupe, nom))
             drop.append("DROP TABLE " + table + ";")
-
         return drop
 
     def dropconf(self, liste_confs):
