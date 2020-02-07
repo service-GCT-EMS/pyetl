@@ -52,7 +52,7 @@ def h_run(regle):
 
 def f_run(regle, obj):
     """#aide||execute une commande externe
-   #pattern1||?A;?C;A;run;C
+   #pattern1||?A;?C;?A;run;C
    #pattern3||?P;;;run;C;?C
  #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
  #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable

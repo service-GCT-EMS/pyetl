@@ -17,8 +17,6 @@ from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.interne.stats import ExtStat
 from .outils import (
     renseigne_attributs_batch,
-    prepare_batch_from_object,
-    execbatch,
     getfichs,
     printexception,
 )
@@ -501,14 +499,14 @@ def traite_parallel_batch(regle):
         st_ordre = obj.attributs.get("ordre", "999")
         ordre = int(st_ordre) if st_ordre.isnumeric() else 999
         if ordre in parametres:
-            parametres[ordre].append(prepare_batch_from_object(regle, obj))
+            parametres[ordre].append(regle.prepare(regle, obj))
         else:
-            parametres[ordre] = [prepare_batch_from_object(regle, obj)]
+            parametres[ordre] = [regle.prepare(regle, obj)]
     for bloc in sorted(parametres):
         if len(parametres[bloc]) == 1:  # il est tout seul on a pas besoin de toute la tringlerie
             numero = parametres[bloc][0][0]
             obj = regle.tmpstore[int(numero)]
-            execbatch(regle, obj)
+            regle.prog(regle, obj)
             continue
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
@@ -560,7 +558,7 @@ def iter_boucle(regle):
             retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
             n=0
             if obj.attributs.get('#_timeselect','') == '1':# validation d' execution
-                job = prepare_batch_from_object(regle, obj)
+                job = regle.prepare(regle, obj)
                 n+=1
                 # print ('------------------------------iter_boucle envoi', job)
                 yield (1,job)

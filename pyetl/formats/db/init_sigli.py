@@ -288,7 +288,7 @@ requetes_sigli[
            --AND n.nspname <> 'public'::name
            AND has_schema_privilege(n.nspname,'usage')
            AND n.nspname !~~ 'pg_%'::text
-           AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text]))
+           AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
         ), t2 AS (
          SELECT t.identifiant,
             t.nomschema,

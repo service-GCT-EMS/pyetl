@@ -144,40 +144,7 @@ def renseigne_attributs_batch(regle, obj, retour):
     obj.attributs[regle.params.att_sortie.val] = str(retour)
 
 
-def prepare_batch_from_object(regle, obj):
-    """extrait les parametres pertinents de l'objet decrivant le batch"""
 
-    comm = regle.getval_entree(obj)
-    commande = comm if comm else obj.attributs.get("commandes",'')
-    #    print("commande batch", commande)
-
-    entree = obj.attributs.get("entree", regle.getvar("_entree"))
-    sortie = obj.attributs.get("sortie", regle.getvar("_sortie"))
-    numero = obj.attributs.get("#_batchnum", "0")
-    nom = obj.attributs.get("nom", "batch")
-    #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
-    parametres = obj.attributs.get("parametres")  # parametres en format hstore
-    params = ["_nom_batch="+nom]
-    if parametres:
-        params = params+["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
-    return (numero, commande, entree, sortie, params)
-
-
-def execbatch(regle, obj):
-    """execute un batch"""
-    if obj is None:  # pas d'objet on en fabrique un sur mesure
-        obj = Objet("_batch", "_batch", format_natif="interne")
-        obj.attributs[nom]=regle.getvar('_nom_batch','batch') # on lui donne un nom
-    _, commande, entree, sortie, params = prepare_batch_from_object(regle, obj)
-    processor = regle.stock_param.getpyetl(
-        commande, liste_params=params, entree=entree, rep_sortie=sortie
-    )
-    if processor is None:
-        return False
-
-    processor.process(debug=1)
-    renseigne_attributs_batch(regle, obj, processor.retour)
-    return True
 
 
 def objloader(regle, obj):

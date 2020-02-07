@@ -7,7 +7,7 @@ fonctions de gestion du deroulement d'un script
 """
 import os
 import sys
-
+import re
 # import re
 import zipfile
 import time
@@ -22,7 +22,7 @@ from .traitement_geom import setschemainfo
 # import multiprocessing
 
 from pyetl.formats.interne.objet import Objet
-from .outils import execbatch, objloader
+from .outils import renseigne_attributs_batch, objloader
 
 
 LOGGER = logging.getLogger("pyetl")
@@ -504,12 +504,49 @@ def f_archive(regle, obj):
     LOGGER.info("fin_archive "+dest)
     return True
 
+def _prepare_batch_from_object(regle, obj):
+    """extrait les parametres pertinents de l'objet decrivant le batch"""
+
+    comm = regle.getval_entree(obj)
+    commande = comm if comm else obj.attributs.get("commandes",'')
+    #    print("commande batch", commande)
+
+    entree = obj.attributs.get("entree", regle.getvar("_entree"))
+    sortie = obj.attributs.get("sortie", regle.getvar("_sortie"))
+    numero = obj.attributs.get("#_batchnum", "0")
+    nom = obj.attributs.get("nom", "batch")
+    #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
+    parametres = obj.attributs.get("parametres")  # parametres en format hstore
+    params = ["_nom_batch="+nom]
+    if parametres:
+        params = params+["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
+    return (numero, commande, entree, sortie, params)
+
+
+def _execbatch(regle, obj):
+    """execute un batch"""
+    if obj is None:  # pas d'objet on en fabrique un sur mesure
+        obj = Objet("_batch", "_batch", format_natif="interne")
+        obj.attributs["nom"]=regle.getvar('_nom_batch','batch') # on lui donne un nom
+    _, commande, entree, sortie, params = regle.prepare(regle, obj)
+    processor = regle.stock_param.getpyetl(
+        commande, liste_params=params, entree=entree, rep_sortie=sortie
+    )
+    if processor is None:
+        return False
+
+    processor.process(debug=1)
+    renseigne_attributs_batch(regle, obj, processor.retour)
+    return True
+
+
 
 def h_batch(regle):
     """definit la fonction comme etant a declencher"""
     if regle.params.cmp1.val == "run":
         regle.chargeur = True
-    regle.prog = execbatch
+    regle.prog = _execbatch
+    regle.prepare = _prepare_batch_from_object
     if regle.params.pattern in '45': # boucle : on compile la macro
         mapper = regle.stock_param
         erreurs = mapper.lecteur_regles(regle.params.cmp2.val, regle_ref=regle)
