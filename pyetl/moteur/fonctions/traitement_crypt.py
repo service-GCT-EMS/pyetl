@@ -392,7 +392,7 @@ if __name__ == "__main__":
         cryptinit("mot de passe", ii)
         valeur = "test de texte aa bbb cccc ddddddd c"
         print("valeur ", valeur)
-        crypte = crypter(None, valeur)
+        crypte = crypt(None, valeur)
         print("cryptee", crypte)
         decrypte = decrypt(None, crypte)
         if decrypte == valeur:

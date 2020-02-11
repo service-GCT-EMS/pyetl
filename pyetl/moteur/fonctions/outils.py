@@ -20,25 +20,9 @@ from pyetl.formats.generic_io import READERS
 from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
 
-MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
-MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
 LOGGER = logging.getLogger("pyetl")
 
 
-
-
-def compilefonc(descripteur, variable, debug=False):
-    """compile une expression de champs"""
-    desc1 = descripteur.replace("N:", "n:")
-    desc2 = desc1.replace("C:", "c:")
-    desc3 = MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
-    desc4 = MODIFFONC2.sub(r"regle.getvar('\1')", desc3)
-    if '__' in desc4:
-        raise SyntaxError('fonction non autorisee:'+desc4)
-    if debug:
-        print("fonction a evaluer", "lambda " + variable + ": " + desc4)
-    retour = eval("lambda " + variable + ": " + desc4,{})
-    return retour
 
 
 def description_schema(regle, nom, schema):
@@ -395,98 +379,9 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0):
     return mode, valeurs
 
 
-def prepare_elmap(mapping):
-    """precalcule les dictionaires pour le mapping"""
-    mapping_special = dict()  # mapping simplifie pour modifier les scripts de base de donnees
-    for i in mapping:
-        schema1, table1 = i
-        schema2, table2 = mapping[i]
-        mapping_special[schema1] = schema2
-        mapping_special[table1] = table2
-    items = sorted(mapping_special, key=lambda i: len(mapping_special[i]), reverse=True)
-    intmap1 = {j: "**<<" + str(i) + ">>**" for i, j in enumerate(items)}
-    intmap2 = {"**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)}
-    elmap = (items, intmap1, intmap2)
-    #    print ('definition intmap2', intmap2)
-    return elmap
-
-def traite_mapping(elements):
-    '''decode une definition de mapping
-        elements est une liste de definitions de mapping
-        a ce stade une definition  se presente sous la forme suivante:
-        (groupe.classe, groupe.classe,[(attribut => attribut,...)])
-        ou
-        (groupe,classe, groupe,classe,[(attribut => attribut,...)])
-        '''
-    mapping = dict()
-    mapping_attributs =  dict()
-    for els in elements:
-        # print ("traitement els", els)
-        if not els or els[0].startswith("!") or not els[0]:
-            continue
-        attrmap = ""
-        if len(els) == 2 or len(els) == 3:
-            id1 = tuple(els[0].split("."))
-            id2 = tuple(els[1].split("."))
-            if len(els) == 3:
-                attrmap = els[2]
-        #            print ('mapping',i,id1,id2)
-        elif len(els) == 4 or len(els) == 5:
-            id1 = (els[0], els[1])
-            id2 = (els[2], els[3])
-            if len(els) == 5:
-                attrmap = els[4]
-        else:
-            print("charge_mapping :description incorrecte", len(els), els, elements[els])
-            continue
-
-        if attrmap:
-            attrmap = attrmap.replace('"', "")
-            attrmap = attrmap.replace("'", "")
-            map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attrmap)])
-            mapping_attributs[id1] = map_attributs
-            mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items()) #mapping inverse
-
-        mapping[id1] = id2
-        mapping[id2] = id1
-    return mapping, mapping_attributs
 
 
-def charge_mapping(regle, mapping=None):
-    """ precharge un mapping"""
 
-    if regle.params.cmp1.val.startswith("{"):  # c'est une definition in line
-        # {groupe.classe,groupe.classe,att=>att,att=>att...:groupe.classe,groupe.classe,att=>att,...:...}
-        vtmp = regle.params.cmp1.val[1:-1].split(":")
-        elements = [i.split(',',2) for i in vtmp]
-
-    elif regle.params.cmp1.val:
-        regle.fichier = regle.params.cmp1.val  # nom du fichier
-        fichier = expandfilename(
-            regle.fichier,
-            regle.stock_param.rdef,
-            regle.stock_param.racine,
-            regle.stock_param.chemin_courant,
-            regle.stock_param.fichier_courant,
-        )
-        elements = charge_liste(fichier, taille=-1).values()
-        # on precharge le fichier de mapping
-    else:
-        elements =[]
-
-    regle.mapping, regle.mapping_attributs = traite_mapping(elements)
-
-    if regle.params.att_sortie.val == "#schema":
-        regle.schema_dest = regle.getschema(regle.params.val_entree.val)
-    #        mapping_attributs
-    regle.elmap = prepare_elmap(regle.mapping)
-    # print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
-    #     for i in sorted(regle.mapping)]))
-    # print (regle.mapping_attributs)
-    #
-
-    if not regle.mapping:
-        print("h_map:mapping introuvable", regle.fichier)
 
 
 def valide_auxiliaires(identifies, non_identifies):
@@ -551,41 +446,9 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
 
 
 
-def remap_noms(items, intmap1, intmap2, elt):
-    """ remappe un nom """
-    elt2 = elt
-    for tbl in items:
-        elt2 = elt2.replace(tbl, intmap1[tbl])
-    #        if intmap1[tbl] in elt2:
-    #            print ('remplacement', elt2, tbl, intmap1[tbl])
-    for code in intmap2:
-        elt2 = elt2.replace(code, intmap2[code])
-    #        if intmap2[code] in elt2:
-    #            print ('remplacement', elt2, code, intmap2[code])
-    #    print ('remap_noms',elt,'->',elt2)
-    return elt2
 
 
-def remap_ident(elmap, ident):
-    """ remappe un identifiant """
-    if isinstance(ident, tuple):
-        schema, table = ident
-        schema2 = remap_noms(*elmap, schema)
-        table2 = remap_noms(*elmap, table)
-        return (schema2, table2)
-    elif isinstance(ident, str):
-        return remap_noms(*elmap, ident)
-    return ident
 
 
-def remap(element, elmap):
-    """remappe des noms de tables et de schema dans des structures"""
-    #    print ('valeur elmap',elmap)
-    #    raise
-    if isinstance(element, dict):
-        return {remap_ident(elmap, ident): remap(val, elmap) for ident, val in element.items()}
-    elif isinstance(element, (list, tuple)):
-        return [remap(val, elmap) for val in element]
-    elif isinstance(element, str):
-        return remap_noms(*elmap, element)
-    return element
+
+

@@ -624,7 +624,7 @@ class Pyetl(object):
             return
         configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
-            print("pas de parametres locaux")
+            print("pas de parametres locaux", configfile)
             return
         nom = ""
         #        print('parametres locaux', configfile)

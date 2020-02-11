@@ -9,7 +9,6 @@ fonctions de manipulation d'attributs
 import itertools
 import math as M
 from pyetl.projection import conversion as P
-from .outils import compilefonc
 from shapely import geometry as SG
 
 
@@ -568,7 +567,7 @@ def h_mod_3d(regle):
     """preparation modif 3D"""
     cond = regle.params.cmp1.val
     if cond:  # test sur les valeurs 3D
-        regle.sel3D = compilefonc(cond, "z", debug=regle.debug)
+        regle.sel3D = regle.params.compilefonc(cond, "z", debug=regle.debug)
     else:
         regle.sel3D = regle.ftrue
 
@@ -707,7 +706,7 @@ def f_extractcouleur(regle, obj):
 
 def h_csplit(regle):
     """preparation selection de coordonnees"""
-    regle.selcoords = compilefonc(regle.params.cmp1.val, "x,y,z")
+    regle.selcoords = regle.params.compilefonc(regle.params.cmp1.val, "x,y,z")
 
 
 def crepoint_copie(obj, point, dimension, numero, att_sortie=None):

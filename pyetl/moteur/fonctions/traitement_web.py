@@ -123,6 +123,7 @@ def f_geocode(regle, obj):
     #parametres||liste attributs adresse;;confiance mini;liste filtres
     #pattern||;;L;geocode;?C;?LC
     #schema||ajout_att_from_liste
+    #req_test||url_geocodeur
     #test||obj||^X;1 parc de l'etoile Strasbourg;;set||^;;X;geocode;;||atv:result_housenumber:1
     """
     #    clef = obj.attributs.get(regle.params.cmp1.val)

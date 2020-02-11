@@ -83,14 +83,6 @@ def tablesorter(liste, schema, complete=False):
     return niveau
 
 
-def invalide(schemaclasse, tables):
-    """ determine si une table est eligible """
-    if schemaclasse.type_table in tables:
-        return False
-    print("table non retenue", schemaclasse.nom, schemaclasse.type_table, "->", tables)
-    return True
-
-
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
     """ determine si une table est a retenir """
     if nocase:
@@ -455,8 +447,8 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-    print('--------acces base de donnees', codebase, "->", type_base, 'en memoire:',
-        codebase in stock_param.dbconnect)
+    # print('--------acces base de donnees', codebase, "->", type_base, 'en memoire:',
+    #     codebase in stock_param.dbconnect)
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
@@ -1156,6 +1148,63 @@ def reset_liste_tables(
     )
     return script_clean
 
+def recupval(
+    regle_courante,
+    base,
+    niveau,
+    classe,
+    attribut,
+    valeur,
+    mods=None,
+    type_base=None,
+    chemin="",
+    requete="",
+    ):
+    """ recupere des valeurs en base (une par table)"""
+    connect, schema_base, schema_travail, liste_tables = recup_schema(
+        regle_courante,
+        base,
+        niveau,
+        classe,
+        type_base=type_base,
+        chemin=chemin,
+        mods=mods,
+    )
+    if connect is None:
+        return 0
+    reqdict = dict()
+    if isinstance(attribut, list):
+        for niv, cla, att, val in zip(niveau, classe, attribut, valeur):
+            reqdict[(niv, cla)] = (att, val)
+
+    total = 0
+    reponse=dict()
+    for ident in liste_tables:
+        attr, val = attribut, valeur
+        if ident is not None:
+
+            niveau, classe = ident
+
+            schema_classe_travail = schema_travail.get_classe(ident)
+            if isinstance(attribut, list):
+                if ident in reqdict:
+                    attr, val = reqdict[ident]
+                else:
+                    attr, val = "", ""
+            if (
+                attr
+                and attr not in schema_classe_travail.attributs
+                and attr not in connect.sys_fields
+            ):
+                continue  # on a fait une requete sur un attribut inexistant: on passe
+            reponse[ident] = connect.requete_simple(requete, ident, schema_classe_travail, attr, val, mods)
+            connect.connection.commit()
+
+            #        print ('retour ',nb)
+    return reponse
+
+
+
 
 def recup_count(
     regle_courante,
@@ -1169,6 +1218,10 @@ def recup_count(
     chemin="",
 ):
     """ recupere des comptages en base"""
+
+
+
+
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
         base,

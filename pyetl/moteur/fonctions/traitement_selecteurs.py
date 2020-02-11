@@ -8,7 +8,7 @@ fonctions s de selections : determine si une regle est eligible ou pas
 import re
 import itertools
 import time
-from .outils import compilefonc, prepare_mode_in
+from .outils import prepare_mode_in
 
 # ------------selecteurs sur valeurs d'attributs---------------------
 
@@ -74,7 +74,7 @@ def selh_calc(selecteur):
     exp_final = re.sub("^ *C:(?!#?[A-Za-z])", "C:" + attribut, exp_final)
 
     #    print('exp test final', exp_final, attribut, valeurs)
-    selecteur.fselect = compilefonc(exp_final, "obj", debug=selecteur.regle.debug)
+    selecteur.fselect = selecteur.params.compilefonc(exp_final, "obj", debug=selecteur.regle.debug)
 
 
 def sel_calc(selecteur, obj):
@@ -91,7 +91,7 @@ def sel_calc(selecteur, obj):
 def selh_calc2(selecteur):
     """prepare les expressions pour le calcul """
     valeurs = selecteur.params.vals.val
-    selecteur.fselect = compilefonc(valeurs, "obj", debug=selecteur.regle.debug)
+    selecteur.fselect = selecteur.params.compilefonc(valeurs, "obj", debug=selecteur.regle.debug)
 
 
 def sel_calc2(selecteur, obj):

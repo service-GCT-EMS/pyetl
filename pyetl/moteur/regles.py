@@ -98,7 +98,8 @@ class Valdef(object):
 
 class ParametresFonction(object):
     """ stockage des parametres standanrds des regles """
-
+    MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
+    MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
     #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
 
     def __init__(self, valeurs, definition, pnum):
@@ -178,6 +179,19 @@ class ParametresFonction(object):
             self.att_entree.val,
             self.val_entree.val,
             self.cmp1.val,self.cmp2.val)
+
+    def compilefonc(self, descripteur, variable, debug=False):
+        """compile une expression de champs"""
+        desc1 = descripteur.replace("N:", "n:")
+        desc2 = desc1.replace("C:", "c:")
+        desc3 =self.MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
+        desc4 = self.MODIFFONC2.sub(r"regle.getvar('\1')", desc3)
+        if '__' in desc4:
+            raise SyntaxError('fonction non autorisee:'+desc4)
+        if debug:
+            print("fonction a evaluer", "lambda " + variable + ": " + desc4)
+        retour = eval("lambda " + variable + ": " + desc4,{})
+        return retour
 
 
 class ParametresSelecteur(ParametresFonction):

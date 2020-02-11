@@ -510,11 +510,12 @@ def h_dbmaxval(regle):
     param_base(regle)
     base, niveau, classe, attribut = regle.cible_base
     retour = DB.recup_maxval(regle, base, niveau, classe, attribut)
+    print ("retour maxval",retour)
     if retour and len(retour) == 1 and regle.params.att_sortie.val:
         # cas simple on stocke l' attribut dans le parametre
         valeur = list(retour.values())[0]
-        regle.stock_param.setvar(regle.params.att_sortie.val, str(valeur))
-        print("maxval stockage", regle.params.att_sortie.val, str(valeur))
+        regle.setvar(regle.params.att_sortie.val, str(valeur))
+        print("maxval stockage", regle.params.att_sortie.val, str(valeur),regle.getvar)
     nom = regle.params.cmp1.val if regle.params.cmp1.val else "#maxvals"
     regle.stock_param.store[nom] = retour
     regle.valide = "done"
@@ -526,7 +527,7 @@ def f_dbmaxval(regle, obj):
      #groupe||database
     #pattern||?P;;;dbmaxval;?C;
     #req_test||testdb
-    #test||rien||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;P:toto;;;dbmaxval
+    #test||rien||$#testdb;;||$toto=1||db:testdb;testschema;tablealpha;col3;P:toto;;;dbmaxval
             ||ptv;toto;71
     """
     pass
@@ -544,8 +545,8 @@ def f_dbcount(regle, obj):
      #groupe||database
     #pattern||S;;;dbcount;?C;
    #req_test||testdb
-       #test||obj||$#sigli;sigli;;||db:sigli;admin_sigli;description_fonctions;;toto;;;dbcount;
-            ||atv;toto;64
+       #test||obj||$#testdb;;||db:testdb;testschema;tablealpha;;toto;;;dbcount;
+            ||atv;toto;3
     """
     base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     #    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)

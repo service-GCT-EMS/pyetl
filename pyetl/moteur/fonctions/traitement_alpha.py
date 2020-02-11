@@ -32,8 +32,6 @@ fonctions de manipulation d'attributs
 """
 # from pyetl.formats.formats import Stat
 import re
-from .outils import compilefonc, charge_mapping
-
 
 def f_setliste(regle, obj):
     """#aide||affectation d'un ensemble d'attributs
@@ -97,7 +95,7 @@ def h_setschema(regle):
     """helper : positionne le nocase"""
     regle.changeschema = True
     if regle.params.cmp1.val:
-        regle.context.setvar("schema_nocase", regle.params.cmp1.val)
+        regle.setvar("schema_nocase", regle.params.cmp1.val)
 
 
 def f_setschema(regle, obj):
@@ -206,10 +204,10 @@ def h_setcalc(regle):
     """ preparation de l'expression du calculateur de champs"""
     #    print ('dans hcalc',regle.params)
     try:
-        regle.calcul = compilefonc(regle.params.att_entree.val, "obj")
+        regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
     except SyntaxError:
         print("erreur sur l'expression de calcul->" + regle.params.att_entree.val + "<-")
-        compilefonc(regle.params.att_entree.val, "obj", debug=True)
+        regle.params.compilefonc(regle.params.att_entree.val, "obj", debug=True)
         regle.valide = False
 
 
@@ -722,76 +720,4 @@ def f_vround(regle, obj):
     """
     valeur= str(round(float(regle.getval_entree(obj)), regle.ndec))
     regle.setvar(regle.params.att_sortie.val, valeur)
-    return True
-
-
-def h_map_data(regle):
-    """ precharge le fichier de mapping et prepare les dictionnaires"""
-    regle.dynlevel = 0  # les noms de mapping dependent ils des donnees d entree
-    regle.mapping = None
-    regle.identclasse = None
-    regle.liste_att = None
-    #    if regle.params.att_sortie.val == '#schema': # mapping d un schema existant
-    #        schema2 =
-    regle.lastfich = None
-    fich = regle.params.cmp1.val
-    if "[F]" in fich:
-        regle.dynlevel = 2
-    elif "[C]" in fich:
-        regle.dynlevel = 1
-    if regle.dynlevel:
-        regle.clefdyn = ""
-    else:
-        charge_mapping(regle)
-
-
-def f_map_data(regle, obj):
-    """#aide||applique un mapping complexe aux donnees
-    #aide_spec||C: fichier de mapping
-    #pattern||A;?C;A;map_data;C
-    #schema||ajout_attribut
-    """
-    val = regle.getval_entree(obj)
-    obj.attributs[regle.params.att_sortie.val] = regle.elmap.get(val, val)
-    return val in regle.elmap
-
-
-def f_map_data_liste(regle, obj):
-    """#aide||applique un mapping complexe aux donnees
-    #aide_spec||C: fichier de mapping
-    #pattern||L;?C;L;map_data;C
-    #helper||map_data
-    #schema||ajout_attribut
-    """
-    defaut = regle.params.val_entree.val
-    for entree, sortie in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
-        val = obj.attributs.get(entree, defaut)
-        obj.attributs[sortie] = regle.elmap.get(val, val)
-    return True
-
-
-def f_map_data_type(regle, obj):
-    """#aide||applique un mapping complexe aux donnees
-    #aide_spec||C: fichier de mapping
-    #aide_spec||T: definition de type de donnees (T:)
-    #pattern||*;?C;T:;map_data;C
-    #helper||map_data
-    #schema||ajout_attribut
-    """
-    if obj.schema is None:
-        return False
-    ident = obj.schema.identclasse
-    if ident != regle.identclasse:
-        regle.identclasse = ident
-        regle.liste_att = [
-            i
-            for i in obj.schema.attributs
-            if obj.schema.attributs[i].type_att == regle.params.att_entree.val
-        ]
-    defaut = regle.params.val_entree.val
-    if not regle.liste_att:
-        return False
-    for att in regle.liste_att:
-        val = obj.attributs.get(att, defaut)
-        obj.attributs[att] = regle.elmap.get(val, val)
     return True
