@@ -24,26 +24,25 @@ def decription_pattern(pattern, description):
 def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
-        if nom in mapper.macros:
-            macro = mapper.macros[nom]
+        macro = mapper.getmacro(nom)
+        if macro:
             print("aide macro ", nom, "(", macro.file, ")")
             print("%-15s: %s" % (nom, macro.help[:-1]))
             if macro.vpos:
                 print("parametres:", macro.vpos[0])
-                desc_pp=";".join(macro.parametres_pos).split(";")
+                desc_pp = ";".join(macro.parametres_pos).split(";")
                 if desc_pp:
-                    for i ,j in zip(macro.vpos[1:],desc_pp):
-                        print("            %10s :%s" % (i,j))
+                    for i, j in zip(macro.vpos[1:], desc_pp):
+                        print("            %10s :%s" % (i, j))
                 else:
-                    for i in zip(macro.vpos[1:],desc_pp):
+                    for i in zip(macro.vpos[1:], desc_pp):
                         print("            %s" % (i))
             for i in macro.help_detaillee:
                 print("%16s   %s" % ("", i[:-1]))
             if macro.vars_utilisees:
-                print ("variables utilisees")
+                print("variables utilisees")
                 for i in macro.vars_utilisees:
                     print("%16s   %s" % ("", i[:-1]))
-
 
         elif nom in mapper.commandes:
             print("aide commande :", nom)
@@ -67,13 +66,13 @@ def print_help(mapper, nom):
                             print("%-20s: %s" % ("", variante.description.get(i)[0]))
                         if "#parametres" + pnum in i and i != "#parametres":
                             print(
-                            "\n".join(
-                                decription_pattern(
-                                    variante.pattern,
-                                    variante.description.get("#parametres"+ pnum),
+                                "\n".join(
+                                    decription_pattern(
+                                        variante.pattern,
+                                        variante.description.get("#parametres" + pnum),
+                                    )
                                 )
                             )
-                        )
                     if variante.description.get("#parametres"):
                         print(
                             "\n".join(
@@ -87,8 +86,6 @@ def print_help(mapper, nom):
                         for i in variante.description.get("#variables", [""]):
                             print("%-20s: %s" % ("", i))
                             # print("%s" % "\n".join(variante.description.get("#parametres")))
-
-
 
         elif nom == "selecteurs":
             print_aide_selecteurs(mapper)
@@ -142,7 +139,7 @@ def print_aide_macros(mapper):
     print("-----------------------------------------------------------------")
     print("---macros internes-----------------------------------------------")
     print("-----------------------------------------------------------------")
-    for nom_macro in sorted(mapper.macros.keys()):
+    for nom_macro in sorted(mapper.getmacrolist()):
         print(
             "%-20s: %s"
             % (
@@ -150,7 +147,7 @@ def print_aide_macros(mapper):
                 "\n".join(
                     [
                         i
-                        for i in mapper.macros[nom_macro].help[:-1].split(";")
+                        for i in mapper.getmacro(nom_macro).help[:-1].split(";")
                         if i.strip()
                     ]
                 ),

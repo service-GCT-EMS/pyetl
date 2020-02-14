@@ -63,7 +63,12 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
         map2 = mapper.getpyetl(liste_regles, nom=nom_fonc)
         #        print ("creation",map2.nompyetl)
         if map2 is None:
-            print("unittest: erreur creation environnement ", nom_fonc, nom_subfonc, nom_test)
+            print(
+                "unittest: erreur creation environnement ",
+                nom_fonc,
+                nom_subfonc,
+                nom_test,
+            )
             return ""
         if debug and int(debug):
             map2.setvar("debug", "1")
@@ -100,7 +105,11 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
     retour = testrunner(mapper, idtest, liste_regles, debug, redirect)
     retour_controle = testrunner(mapper, idtest, liste_controle, debug, redirect)
     #    print("eval:retour tests",retour,retour_controle)
-    if "ok" in retour_controle or "ok" not in retour or mapper.getvar("testmode") == "all":
+    if (
+        "ok" in retour_controle
+        or "ok" not in retour
+        or mapper.getvar("testmode") == "all"
+    ):
         if "ok" in retour_controle or "ok" not in retour:
             print("! test invalide", nom_fonc)
             err = 1
@@ -111,7 +120,8 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
             retour_controle,
         )
         print(
-            "regle    %15s %6s %-80s" % (nom_fonc + ":" + nom_subfonc, nom_test[1:], liste_regles),
+            "regle    %15s %6s %-80s"
+            % (nom_fonc + ":" + nom_subfonc, nom_test[1:], liste_regles),
             "--->",
             retour,
         )
@@ -142,7 +152,9 @@ def controle(mapper, idtest, descript_test, debug=0):
     # ~ devant une instruction indique qu elle est liee a l'instruction a tester
     regles_c = [re.sub(r"^\?", "", i) for i in regles if ";~" not in i]
     f_controle = desctest[-1]
-    liste_regles = list(enumerate(["<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"]))
+    liste_regles = list(
+        enumerate(["<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"])
+    )
     #    if "debug" in nom_test:
     #        debug = 1
     #    if debug:
@@ -169,7 +181,7 @@ def controle(mapper, idtest, descript_test, debug=0):
 
 
 #    print ("controle ",liste_regles)
-def untestable(mapper,fonc):
+def untestable(mapper, fonc):
     if "#req_test" in fonc.description:
         conditions = fonc.description["#req_test"][0].split(",")
         for i in conditions:
@@ -187,7 +199,7 @@ def fonctest(mapper, nom=None, debug=0):
     realises = set()
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.commandes[fonc_a_tester]
-        mapper.setvar('test_courant',fonc_a_tester)
+        mapper.setvar("test_courant", fonc_a_tester)
         # print ('test: ', fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
@@ -201,7 +213,7 @@ def fonctest(mapper, nom=None, debug=0):
 
         for subfonc in fonc.subfonctions:
             testee = False
-            raison = untestable(mapper,subfonc)
+            raison = untestable(mapper, subfonc)
             if not raison:
                 for j in subfonc.description:
                     if "#test" in j:
@@ -217,9 +229,18 @@ def fonctest(mapper, nom=None, debug=0):
                             nbtests += 1
             if not testee:
                 if subfonc.nom != fonc.nom:
-                    print("fonction non testee", fonc.nom, subfonc.nom,(raison + " non definie") if raison else '')
+                    print(
+                        "fonction non testee",
+                        fonc.nom,
+                        subfonc.nom,
+                        (raison + " non definie") if raison else "",
+                    )
                 else:
-                    print("fonction non testee", fonc.nom, (raison + " non definie") if raison else '')
+                    print(
+                        "fonction non testee",
+                        fonc.nom,
+                        (raison + " non definie") if raison else "",
+                    )
     # print ('tests realises',sorted(realises))
     return nbtests, nberrs, invalides
 
@@ -267,8 +288,7 @@ def set_test_config(mapper):
         testconfig = False
         testdb = False
         testrep = False
-    return testconfig,testdb,testrep
-
+    return testconfig, testdb, testrep
 
 
 def formattests(mapper, nom=None, debug=0):
@@ -300,9 +320,9 @@ def unittests(mapper, nom=None, debug=0):
     erreurs = err1 + err2
     print("------", nbtests, "tests unitaires effectues", erreurs, "erreurs -----")
     if sinvalides:
-        print("selecteurs en erreur:",sinvalides)
+        print("selecteurs en erreur:", sinvalides)
     if finvalides:
-        print("fonctions en erreur:",finvalides)
+        print("fonctions en erreur:", finvalides)
     return []
 
 
@@ -315,9 +335,9 @@ def autotest_partiel(mapper, nom):
     print("part:-------------------test ", nom, "-------------------")
     #       charge_cmd_internes(mapper,test=liste_commandes[1])
     liste_regles = []
-    testconfig, testdb, testrep=set_test_config(mapper)
+    testconfig, testdb, testrep = set_test_config(mapper)
     mapper.charge_cmd_internes(test="test_" + nom)
-    test = mapper.macros.get("#start_test")
+    test = mapper.getmacro("#start_test")
     if test:
         liste_regles.extend(test.get_commands())
     #    print ("lu regles de test",liste_regles)
@@ -344,7 +364,15 @@ def full_autotest(mapper, nom):
                 print("autotest: erreur creation environnement", i)
                 continue
             nl2, nfl2, _, _ = map2.process()
-            print("-------------------fin test", i, ":", nl2, "objets dans", nfl2, "fichiers")
+            print(
+                "-------------------fin test",
+                i,
+                ":",
+                nl2,
+                "objets dans",
+                nfl2,
+                "fichiers",
+            )
             print("----------------------------------------------------------------")
         return []
     return autotest_partiel(mapper, nom)

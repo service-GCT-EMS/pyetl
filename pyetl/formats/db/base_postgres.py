@@ -24,7 +24,7 @@ TYPES_A = {
     "ALPHA": "T",
     "NAME": "T",
     '"CHAR"': "T",
-    'CHAR': "T",
+    "CHAR": "T",
     "REGCLASS": "T",
     "E": "E",
     "ENTIER": "E",
@@ -177,9 +177,9 @@ class PgrConnect(DbConnect):
 
         self.type_base = "postgres"
         self.dialecte = "postgres"
-        style,ordre = self.datestyle()
-        self.params.setroot('dateordre',ordre)
-        self.params.setroot('datestyle',style)
+        style, ordre = self.datestyle()
+        self.regle.setroot("dateordre", ordre)
+        self.regle.setroot("datestyle", style)
         self.numtypes = self._getnumtypes()
 
     def set_searchpath(self):
@@ -190,14 +190,12 @@ class PgrConnect(DbConnect):
         cur.close()
 
     def datestyle(self):
-        '''recupere la config de formattage de dates'''
+        """recupere la config de formattage de dates"""
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
         retour = self.request("show DateStyle", ())
-        datestyle = retour.pop()[0].split(',')
-        return map(str.strip,datestyle)
+        datestyle = retour.pop()[0].split(",")
+        return map(str.strip, datestyle)
         # print ('retour date', *datestyle)
-
-
 
     @staticmethod
     def change_antislash(nom):
@@ -209,19 +207,25 @@ class PgrConnect(DbConnect):
         serveur = " --".join(self.serveur.split(" "))
         chaine_connect = serveur + " --dbname=" + self.base
         file = self.change_antislash(file)
-        #psql -h bcsigli -p 34000 -d sigli -U sigli -f script.sql --single-transaction -L script.log 2>> script.log
+        # psql -h bcsigli -p 34000 -d sigli -U sigli -f script.sql --single-transaction -L script.log 2>> script.log
         if self.user:
             chaine_connect = chaine_connect + " --username=" + self.user
         if logfile:
-            chaine_connect = chaine_connect + " -L "+logfile
+            chaine_connect = chaine_connect + " -L " + logfile
         if outfile:
             outfile = self.change_antislash(outfile)
             chaine_connect = chaine_connect + " --outfile=" + outfile
 
-        chaine = " --".join((prog, "tuples-only", chaine_connect, 'file="' + file+'"'))
+        chaine = " --".join(
+            (prog, "tuples-only", chaine_connect, 'file="' + file + '"')
+        )
         # print("loader ", chaine)
-        host = [i for i in serveur.split(' ') if 'host' in i].pop() if 'host' in serveur else ''
-        print ('postgres: traitement sql', host,self.base, os.path.basename(file))
+        host = (
+            [i for i in serveur.split(" ") if "host" in i].pop()
+            if "host" in serveur
+            else ""
+        )
+        print("postgres: traitement sql", host, self.base, os.path.basename(file))
         env = dict(os.environ)
         env["PGCLIENTENCODING"] = "UTF8"
         if self.passwd:
@@ -266,7 +270,7 @@ class PgrConnect(DbConnect):
                 self.serveur,
                 self.base,
                 self.user,
-            #    self.passwd,
+                #    self.passwd,
             )
             print("error", err)
 
@@ -287,37 +291,38 @@ class PgrConnect(DbConnect):
 
     def _def_vues(self):
         return {
-            (i[0], i[1]): (i[2], str(i[3])) for i in self.request(self.requetes["info_vues"])
+            (i[0], i[1]): (i[2], str(i[3]))
+            for i in self.request(self.requetes["info_vues"])
         }
 
     def _def_fonctions_trigger(self):
         return {
-            (i[0], i[1]): i[2] for i in self.request(self.requetes["def_fonctions_trigger"])
+            (i[0], i[1]): i[2]
+            for i in self.request(self.requetes["def_fonctions_trigger"])
         }
 
     def _def_ftables(self):
-        return {i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])}
+        return {
+            i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])
+        }
 
     def _getnumtypes(self):
-        numtypes = {i:j for i,j in self.schemarequest("num_types")}
+        numtypes = {i: j for i, j in self.schemarequest("num_types")}
         # print ('recup numtypes',numtypes)
         return numtypes
 
-    def getdatatype(self,datatype):
-        '''recupere le type interne associe a un type cx_oracle'''
-        typebase=self.numtypes.get(datatype,'T').upper().strip('_')
+    def getdatatype(self, datatype):
+        """recupere le type interne associe a un type cx_oracle"""
+        typebase = self.numtypes.get(datatype, "T").upper().strip("_")
         # print ('recup numtype',self.numtypes.get(datatype,'inconnu'), self.types_base.get(typebase))
-        return self.types_base.get(typebase,'T')
-
-
+        return self.types_base.get(typebase, "T")
 
     def _def_triggers(self):
         def_trigg = dict()
         #        print ('triggers')
         #        print (self.request(REQS["info_triggers"]))
         def_trigg["_header"] = [
-            "schema"
-            "table",
+            "schema" "table",
             "nom",
             "type_trigger",
             "action",
@@ -325,8 +330,7 @@ class PgrConnect(DbConnect):
             "timing",
             "event",
             "colonnes",
-            "condition"
-            "sql"
+            "condition" "sql",
         ]
         for i in self.request(self.reqs["info_triggers"]):
             #            print ('triggers',i)
@@ -543,4 +547,3 @@ DBDEF = {
         "base postgres générique",
     )
 }
-

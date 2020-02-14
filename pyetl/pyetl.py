@@ -38,15 +38,15 @@ from .moteur.interpreteur_csv import (
 )
 from .moteur.regles import RegleTraitement
 from .moteur.compilateur import compile_regles
-from .moteur.moteur import Moteur, Macro, Context
+from .moteur.moteur import Moteur, MacroStore, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
+
 from .schema.schema_interne import init_schema  # schemas
-from .schema.schema_io import (
-    ecrire_schemas,
-    lire_schemas_multiples,
-)  # integre_schemas # schemas
+from .schema.schema_io import ecrire_schemas, lire_schemas_multiples
+
+# integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
 
 LOGGER = logging.getLogger("pyetl")  # un logger
@@ -239,7 +239,8 @@ class Pyetl(object):
         )  # la regle de reference n'a pas de contexte propre
         self.racine = ""
         self.fichier_regles = None
-
+        # self.stock_param = self
+        # permet de deguiser mapper en regle pour la bonne cause
         # etats
 
         self.dupcnt = 0
@@ -329,7 +330,7 @@ class Pyetl(object):
         self.liste_params = None
         if self.parent is None:
             self._init_params()  # positionne les parametres predefinis
-            self.macros = dict()
+            self.macrostore = MacroStore()
             self.site_params = dict()
             # charge les parametres de site (fichier ini)
             self._charge_site_params(self.site_params_def)
@@ -350,14 +351,29 @@ class Pyetl(object):
                 self.charge_cmd_internes(
                     direct=os.path.join(self.paramdir, "macros"), opt=1
                 )  # macros perso
-            #            self.charge_cmd_internes(site="macros") # macros internes
             self.sorties = GestionSorties()
             self.debug = int(self.getvar("debug"))
 
         else:
-            self.macros = dict(self.parent.macros)
+            self.macrostore = MacroStore(self.parent.macrostore)
+            # self.macros = dict(self.parent.macros)
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
+
+    def getmacro(self, nom):
+        """recupere une macro par son nom"""
+        return self.macrostore.getmacro(nom)
+
+    def stocke_macro(self, description, origine):
+        return self.macrostore.stocke_macro(description, origine)
+
+    def macrolist(self):
+        """recupere un iterateur sur les macros"""
+        return self.macrostore.getmacrolist()
+
+    @property
+    def macro(self):
+        return self.macrostore.macros
 
     def specialenv(self, params, macros):
         """lit un bloc de parametres et de macros specifiques"""
@@ -652,17 +668,6 @@ class Pyetl(object):
         print("erreur getpyetl", regles)
         return None
 
-    def regmacro(self, nom, file="", liste_commandes=None, vpos=None):
-        """enregistrement d'une macro"""
-        nouvelle = Macro(nom, file=file, vpos=vpos)
-        if liste_commandes is not None:
-            nouvelle.commandes_macro = liste_commandes
-        # if vpos is not None:
-        #     nouvelle.vpos = vpos
-        # print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
-        self.macros[nom] = nouvelle
-        return nouvelle
-
     def _set_streammode(self):
         """positionne le mode de traitement"""
         self.stream = 1 if self.getvar("mode_sortie") == "C" else False
@@ -750,20 +755,6 @@ class Pyetl(object):
             return
         description = enumerate(open(configfile, "r").readlines())
         self.stocke_macro(description, configfile)
-
-    def stocke_macro(self, description, origine):
-        """stocke une description de macro"""
-        macro = None
-        for num, conf in description:
-            if not conf or conf.startswith("!"):
-                continue
-            if conf.startswith("&&#define"):
-                liste = conf.split(";")
-                nom = liste[1]
-                vpos = [i for i in liste[2:] if i]
-                macro = self.regmacro(nom, file=origine, vpos=vpos)
-            elif macro:
-                macro.add_command(conf, num)
 
     def _init_params(self):
         """initialise les parametres

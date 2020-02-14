@@ -330,39 +330,42 @@ def decoupe_liste_commandes(fichier_regles):
     return [(n, "<" + i) for n, i in enumerate(liste_commandes)]
 
 
-def prepare_acces_base_scripts(mapper):
+def prepare_acces_base_scripts(regle):
     """ initialise les acces a la base de scripts"""
+    mapper = regle.stock_param
     if mapper.load_paramgroup("dbscriptmode"):
         serv = mapper.getvar("scriptserver")
         LOGGER.info("lecture commande en base " + serv)
         #    print('lire_db: chargement ', serv)
         mapper.load_paramgroup(serv, nom=serv)
         #        print ('parametres',mapper.parms)
-        type_base = mapper.getvar("db_" + serv)
         #        base = mapper.getvar('base_'+serv)
-        nomschema = mapper.getvar("scriptschema")
-        return (serv, nomschema, type_base)
+        nomschema = regle.getvar("scriptschema")
+        return (serv, nomschema)
     else:
         LOGGER.error("base de script non definie ")
         return False
 
 
-def get_macro_from_db(mapper, nom_inclus):
+def get_macro_from_db(regle, nom_inclus):
     """ lit une macro en base """
-    acces = prepare_acces_base_scripts(mapper)
+    acces = prepare_acces_base_scripts(regle)
     if acces:
-        serv, nomschema, type_base = acces
-        nomtable = mapper.getvar("macrotable")
+        serv, nomschema = acces
+        nomtable = regle.getvar("commandtable")
         description = recup_table_parametres(
-            mapper,
+        regle, serv, nomschema, nomtable, clef="nom", valeur=nom
+    )
+        regles = recup_table_parametres(
+            regle,
             serv,
             nomschema,
             nomtable,
             clef="nom",
             valeur=nom_inclus,
-            type_base=type_base,
+
         )
-        mapper.stocke_macro(description)
+        regle.stock_param.stocke_macro(description)
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
@@ -375,27 +378,35 @@ def lire_commandes_en_base(mapper, fichier_regles):
         )
         raise SyntaxError("erreur script en base: " + fichier_regles)
     nom = defs[1]
+    acces = prepare_acces_base_scripts(regle)
+    if not acces:
+        raise SyntaxError('base scripts non accessible')
+    serv, nomschema, type_base = acces
     mapper.load_paramgroup("dbscriptmode")
     serv = mapper.getvar("scriptserver")
+    if not serv:
+        raise SyntaxError("base de scripts non definie")
     nomschema = mapper.getvar("scriptschema")
     LOGGER.info("lecture commande en base " + serv)
     #    print('lire_db: chargement ', serv)
     mapper.load_paramgroup(serv, nom=serv)
     #        print ('parametres',mapper.parms)
-    type_base = mapper.getvar("db_" + serv)
+    # type_base = mapper.getvar("db_" + serv)
     #        base = mapper.getvar('base_'+serv)
-    if nom.startswith("#"):
-        nomtable = mapper.getvar("macrotable")
-    else:
-        nomtable = mapper.getvar("scripttable")
+    type_base = None
     commandtable = mapper.getvar("commandtable")
-    #    print('lecture de regles en base ', serv, type_base, nomschema+"."+nomtable,
-    #          "->", nom)
-    description = recup_table_parametres(
-        mapper, serv, nomschema, nomtable, clef="nom", valeur=nom, type_base=type_base
+    print(
+        "lecture de regles en base",
+        serv,
+        type_base,
+        nomschema + "." + nomtable,
+        "->",
+        nom,
     )
+    regle = mapper.regleref
+
     regles = recup_table_parametres(
-        mapper,
+        regle,
         serv,
         nomschema,
         commandtable,
@@ -409,8 +420,10 @@ def lire_commandes_en_base(mapper, fichier_regles):
         (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]]))
         for v in regles
     ]
+    if nom.startswith('#'): # c'est une macro
+        entete_macro = '&&#define'+
 
-    print("regles lues en base:", serv, nom, "\n".join(liste_regles))
+    print("regles lues en base:", serv, nom, "\n".join([str(i) for i in liste_regles]))
 
     return liste_regles
 
@@ -571,9 +584,10 @@ def traite_regle_std(
 
 def get_macro(mapper, nom_inclus, parametres):
     """inclut une macro en la lisant en base si necessaire"""
-    if nom_inclus.startswith("#db:") and nom_inclus not in mapper.macros:
-        get_macro_from_db(mapper, nom_inclus)  # on mets en cache
-    macro = mapper.macros.get(nom_inclus)
+    macro = mapper.getmacro(nom_inclus)
+    if macro is None and nom_inclus.startswith("#db:"):
+        get_macro_from_db(mapper.regle_ref, nom_inclus)  # on mets en cache
+    # macro = mapper.macros.get(nom_inclus)
     context = mapper.cur_context
     if macro:
         context = mapper.pushcontext(macro.bind(parametres, context))
@@ -663,7 +677,7 @@ def initmacro(mapper, texte, fichier_regles):
     champs_macro = mapper.context.SPLITTER_PV.split(texte)
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
-    macro = mapper.regmacro(nom, file=fichier_regles, vpos=vposmacro)
+    macro = mapper.macrostore.regmacro(nom, file=fichier_regles, vpos=vposmacro)
     # print('enregistrement macro',mapper.idpyetl,nom)
     return macro
 
@@ -740,7 +754,7 @@ def lire_regles_csv(
                 autonum += 1
                 nom = "#autochain_" + str(autonum)
                 texte = ";;;;;" + nom + ";;;batch;;"
-                macro = mapper.regmacro(nom, file=fichier_regles)
+                macro = mapper.macrostore.regmacro(nom, file=fichier_regles)
             else:
                 macro = None
                 continue

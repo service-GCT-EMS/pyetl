@@ -277,8 +277,8 @@ class Macro(object):
 class MacroStore(object):
     """ conteneur de traitement des macros """
 
-    def __init__(self):
-        self.macros = dict()
+    def __init__(self, parent=None):
+        self.macros = dict() if parent is None else dict(parent.macros)
 
     def regmacro(self, nom, file="", liste_commandes=None, vpos=None):
         """enregistrement d'une macro"""
@@ -290,6 +290,26 @@ class MacroStore(object):
         # print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
         self.macros[nom] = nouvelle
         return nouvelle
+
+    def stocke_macro(self, description, origine):
+        """stocke une description de macro"""
+        macro = None
+        for num, conf in description:
+            if not conf or conf.startswith("!"):
+                continue
+            if conf.startswith("&&#define"):
+                liste = conf.split(";")
+                nom = liste[1]
+                vpos = [i for i in liste[2:] if i]
+                macro = self.regmacro(nom, file=origine, vpos=vpos)
+            elif macro:
+                macro.add_command(conf, num)
+
+    def getmacro(self, nom):
+        return self.macros.get(nom)
+
+    def getmacrolist(self):
+        return self.macros.keys()
 
 
 class Context(object):

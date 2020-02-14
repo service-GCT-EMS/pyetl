@@ -66,7 +66,7 @@ def tablesorter(liste, schema, complete=False):
     niveau = dict()
 
     while ajouts:
-        ajouts=set()
+        ajouts = set()
         schema.calcule_cibles()
         niveau = {i: 0 for i in liste}
         trouve = 1
@@ -161,7 +161,7 @@ def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
             rec = re.compile(exp_clas)
         except:  # on essaye de remplacesr les *
             lmulti = False
-            rec=None
+            rec = None
             print("erreur de description de classe ", exp_clas)
 
         # print ('selection boucle', ren,rec,len(schema.classes))
@@ -421,12 +421,16 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         return stock_param.dbconnect[codebase]
     defmodeconf = 1
     systables = regle.getvar("tables_systeme")
+    # serveur = regle.getvar("server_" + codebase, "")
+
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
-        if not base and regle.getvar("autobase"): #on essaye de charger des groupes connus
-            print ('mode autobase', codebase)
+        if not base and regle.getvar(
+            "autobase"
+        ):  # on essaye de charger des groupes connus
+            print("mode autobase", codebase)
             try:
                 stock_param.load_paramgroup(codebase, nom=codebase)
                 base = regle.getvar("base_" + codebase, "")
@@ -434,21 +438,27 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
                 type_base = regle.getvar("db_" + codebase, "")
 
             except KeyError:
-                print( "mdba: multiple : base non definie", codebase)
+                print("mdba: multiple : base non definie", codebase)
                 if description:
-                    base,host,port = description
-                    print ('utilisation definition du fichier:', description)
-                    serveur = 'host='+host+' port='+port
-                    type_base='postgres'
+                    base, host, port = description
+                    print("utilisation definition du fichier:", description)
+                    serveur = "host=" + host + " port=" + port
+                    type_base = "postgres"
         if not base:
-            print("mdba: base non definie",codebase,)
+            print("mdba: base non definie", codebase)
             return None
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-    # print('--------acces base de donnees', codebase, "->", type_base, 'en memoire:',
-    #     codebase in stock_param.dbconnect)
+    print(
+        "--------acces base de donnees",
+        codebase,
+        "->",
+        type_base,
+        "en memoire:",
+        codebase in stock_param.dbconnect,
+    )
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
@@ -469,7 +479,7 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     )
 
     if connection.valide:
-        print('connection valide', serveur)
+        print("connection valide", serveur)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
@@ -543,7 +553,9 @@ def dbextload(regle_courante, base, files, log=None):
     vgeom = regle_courante.getvar("valide_geom", "1")
     if helper:
         logfile = setpath(regle_courante, log)
-        return connect.extload(helper, files, logfile=logfile, reinit=reinit, vgeom=vgeom)
+        return connect.extload(
+            helper, files, logfile=logfile, reinit=reinit, vgeom=vgeom
+        )
     return False
 
 
@@ -564,7 +576,9 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=None):
         workers, extworkers = regle_courante.get_max_workers()
         print("extdump", regle_courante.context.vlocales, extworkers)
         logfile = setpath(regle_courante, log)
-        resultats = connect.extdump(helper, liste_tables, dest, logfile, workers=extworkers)
+        resultats = connect.extdump(
+            helper, liste_tables, dest, logfile, workers=extworkers
+        )
         #        print(' extdump' , resultats)
         if resultats:
             for idclasse in resultats:
@@ -616,15 +630,15 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 
     return False
 
-def dbrunproc(regle, base, commande,data):
-    '''execute une procedure stockeee en base '''
+
+def dbrunproc(regle, base, commande, data):
+    """execute une procedure stockeee en base """
     # print("mdba execution directe commande", base, file)
     connect = dbaccess(regle, base)
     if connect is None:
         return False
     # connect = regle.stock_param.dbconnect[base]
-    return connect.request(commande,data)
-
+    return connect.request(commande, data)
 
 
 def dbextsql(regle, base, file, log=None, out=None):
@@ -655,11 +669,14 @@ def get_connect(
     nomschema="",
     type_base=None,
     chemin="",
-    description=None
+    description=None,
 ):
     """ recupere la connection a la base et les schemas qui vont bien"""
-    stock_param=regle.stock_param
-    connect = dbaccess(regle, base, type_base=type_base, chemin=chemin, description=description)
+    print("get_connect", regle, base, type_base)
+    stock_param = regle.stock_param
+    connect = dbaccess(
+        regle, base, type_base=type_base, chemin=chemin, description=description
+    )
 
     if connect is None:
         LOGGER.error("connection base invalide " + str(base))
@@ -684,7 +701,7 @@ def get_connect(
         )  # pour eviter qu elle soit marqueee interne
 
         liste2.append(ident)
-    complete = regle.getvar('gestion_coherence')
+    complete = regle.getvar("gestion_coherence")
     niveau = tablesorter(liste2, connect.schemabase, complete)
     #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
     if schema_travail.elements_specifiques:
@@ -712,8 +729,8 @@ def schema_from_curs(schema, curs, nomclasse):
     schemaclasse = schema.get_classe(nomclasse, cree=True)
     attlist = curs.infoschema
     for colonne in attlist:
-        nom, type_attribut,taille, dec = colonne
-        schemaclasse.stocke_attribut(nom,type_attribut,taille=taille,dec=dec)
+        nom, type_attribut, taille, dec = colonne
+        schemaclasse.stocke_attribut(nom, type_attribut, taille=taille, dec=dec)
     return schemaclasse
 
 
@@ -757,7 +774,7 @@ def sortie_resultats(
     # print (' attributs recuperes avant', attlist)
 
     if type_geom != "0":
-        attlist.append(("#geom",'T',0,None))
+        attlist.append(("#geom", "T", 0, None))
     # print (' attributs recuperes ', attlist)
     namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
@@ -819,7 +836,6 @@ def sortie_resultats(
     if nb_pts < 10:
         print("." * (10 - nb_pts), end="")
 
-
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
     stock_param.setvar("printpending", 0)
     curs.close()
@@ -835,10 +851,9 @@ def recup_schema(
     type_base=None,
     chemin="",
     mods=None,
-    description=None
+    description=None,
 ):
     """ recupere juste les schemas de la base sans donnees """
-    stock_param = regle_courante.stock_param
     cmp1 = (
         mods
         if mods is not None
@@ -864,7 +879,7 @@ def recup_schema(
         nomschema=nom_schema,
         type_base=type_base,
         chemin=chemin,
-        description=description
+        description=description,
     )
 
     if retour:
@@ -959,36 +974,35 @@ def lire_table(ident, regle_courante, parms=None):
         return res
     return 0
 
-def execute_requete(regle_courante, base, requete='', parms=None, nom_schema=''):
-    retour = get_connect(regle_courante, base,'','',nomschema=nom_schema)
+
+def execute_requete(regle_courante, base, requete="", parms=None, nom_schema=""):
+    retour = get_connect(regle_courante, base, "", "", nomschema=nom_schema)
     if retour:
         connect, schema, liste = retour
     else:
         return 0
-    curs = connect.iterreq(requete,data=parms)
+    curs = connect.iterreq(requete, data=parms)
 
 
-
-
-
-
-def lire_requete(regle_courante, base, niveau, classe ,attribut=None, requete='', parms=None):
+def lire_requete(
+    regle_courante, base, niveau, classe, attribut=None, requete="", parms=None
+):
     """lecture directe"""
     if classe is None:
         return 0
     ident = (niveau[0], classe[0])
     if not ident:
         return 0
-    print ('requete',requete,'->',ident)
-    nom_schema=regle_courante.getvar('#schema','tmp')
-    v_sortie=parms
-    sortie=attribut
-    retour = get_connect(regle_courante, base,'','',nomschema=nom_schema)
+    print("requete", requete, "->", ident)
+    nom_schema = regle_courante.getvar("#schema", "tmp")
+    v_sortie = parms
+    sortie = attribut
+    retour = get_connect(regle_courante, base, "", "", nomschema=nom_schema)
     if retour:
         connect, schema, liste = retour
     else:
         return 0
-    curs = connect.iterreq(requete,data=parms)
+    curs = connect.iterreq(requete, data=parms)
 
     #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
     #        print ('mdba : ',ident)
@@ -997,7 +1011,7 @@ def lire_requete(regle_courante, base, niveau, classe ,attribut=None, requete=''
     treq = time.time() - treq
     connect.connection.commit()
     if curs:
-        print ('creation schema', ident)
+        print("creation schema", ident)
         schema_classe_travail = schema_from_curs(schema, curs, ident)
         res = sortie_resultats(
             regle_courante,
@@ -1017,7 +1031,6 @@ def lire_requete(regle_courante, base, niveau, classe ,attribut=None, requete=''
                     schema_classe_travail.stocke_attribut(nom, "T")
         return res
     return 0
-
 
 
 def recup_donnees_req_alpha(
@@ -1148,6 +1161,7 @@ def reset_liste_tables(
     )
     return script_clean
 
+
 def recupval(
     regle_courante,
     base,
@@ -1159,7 +1173,7 @@ def recupval(
     type_base=None,
     chemin="",
     requete="",
-    ):
+):
     """ recupere des valeurs en base (une par table)"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
@@ -1178,7 +1192,7 @@ def recupval(
             reqdict[(niv, cla)] = (att, val)
 
     total = 0
-    reponse=dict()
+    reponse = dict()
     for ident in liste_tables:
         attr, val = attribut, valeur
         if ident is not None:
@@ -1197,13 +1211,13 @@ def recupval(
                 and attr not in connect.sys_fields
             ):
                 continue  # on a fait une requete sur un attribut inexistant: on passe
-            reponse[ident] = connect.requete_simple(requete, ident, schema_classe_travail, attr, val, mods)
+            reponse[ident] = connect.requete_simple(
+                requete, ident, schema_classe_travail, attr, val, mods
+            )
             connect.connection.commit()
 
             #        print ('retour ',nb)
     return reponse
-
-
 
 
 def recup_count(
@@ -1218,9 +1232,6 @@ def recup_count(
     chemin="",
 ):
     """ recupere des comptages en base"""
-
-
-
 
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
@@ -1267,35 +1278,13 @@ def recup_count(
 
 
 def recup_table_parametres(
-    regle,
-    nombase,
-    niveau,
-    classe,
-    clef=None,
-    valeur=None,
-    ordre=None,
-    type_base=None,
+    regle, nombase, niveau, classe, clef=None, valeur=None, ordre=None, type_base=None
 ):
     """lit une table en base de donnees et retourne le tableau de valeurs """
-    #    print('recup_table', nombase, niveau, classe, "type_base", type_base)
-    LOGGER.info(
-        "recup table en base "
-        + nombase
-        + ":"
-        + niveau
-        + "."
-        + classe
-        + " type_base"
-        + type_base
-    )
+    print("recup_table", nombase, niveau, classe)
+    LOGGER.info("recup table en base " + nombase + ":" + niveau + "." + classe)
     retour = get_connect(
-        regle,
-        nombase,
-        [niveau],
-        [classe],
-        tables="A",
-        multi=0,
-        type_base=type_base,
+        regle, nombase, [niveau], [classe], tables="A", multi=0, type_base=type_base
     )
     if retour:
         connect, schema_travail, _ = retour
@@ -1303,6 +1292,7 @@ def recup_table_parametres(
         return []
 
     ident = (niveau, classe)
+    print("recup_table schema:", schema_travail)
     curs = connect.req_alpha(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )
