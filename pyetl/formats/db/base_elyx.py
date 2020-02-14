@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import time
 from . import base_oraclespatial as ora
+
 # import base_oraclespatial as ora
 
 # from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
@@ -19,7 +20,9 @@ from . import base_oraclespatial as ora
 class ElyConnect(ora.OrwConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.confs = dict()
         self.compos_id = dict()
@@ -40,13 +43,13 @@ class ElyConnect(ora.OrwConnect):
         self.modelschema = "ELYX_MODELE"
         self.types_base["REEL"] = "F"
         self.debuglog = ""
-        print ('code de la base', code, params)
+        print("code de la base", code, params)
         if params and code:
             self.adminschema = params.getvar(
-                "elyx_adminschema_"+code, defaut=self.adminschema
+                "elyx_adminschema_" + code, defaut=self.adminschema
             )
             self.modelschema = params.getvar(
-                "elyx_modelschema_"+code, defaut=self.modelschema
+                "elyx_modelschema_" + code, defaut=self.modelschema
             )
 
     def extsql(self, prog, file, logfile=None, outfile=None):
@@ -66,13 +69,15 @@ class ElyConnect(ora.OrwConnect):
         if not logfile:
             fini = subprocess.run(chaine, env=env, stderr=subprocess.STDOUT)
         else:
-            fini = subprocess.run(chaine, env=env, stdout=logfile, stderr=subprocess.STDOUT)
+            fini = subprocess.run(
+                chaine, env=env, stdout=logfile, stderr=subprocess.STDOUT
+            )
         if fini.returncode:
             print("sortie en erreur ", fini.returncode, fini.args, fini.stderr)
 
     def setenv(self):
         """positionne les variables d'environnement pour les programmes externes """
-        orahome = self.regle.getvar("feaora_oracle_home_"+self.code)
+        orahome = self.regle.getvar("feaora_oracle_home_" + self.code)
         env = dict(os.environ)
         #        print('modif_environnement ',env)
         if orahome:  # on manipule les variables d'environnement
@@ -97,7 +102,11 @@ class ElyConnect(ora.OrwConnect):
         outdesc = open(outfile, mode="w", encoding="cp1252")
         #        print('elyx: traitement externe', chaine)
         process = subprocess.Popen(
-            chaine, env=env, stdout=outdesc, stderr=subprocess.STDOUT, universal_newlines=True
+            chaine,
+            env=env,
+            stdout=outdesc,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
         )
         return process
 
@@ -117,7 +126,11 @@ class ElyConnect(ora.OrwConnect):
         #        print('elyx: traitement externe', chaine)
         if wait:
             fini = subprocess.run(
-                chaine, env=env, stdout=outdesc, stderr=subprocess.STDOUT, universal_newlines=True
+                chaine,
+                env=env,
+                stdout=outdesc,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
             )
             outdesc.close()
             if fini.returncode:
@@ -126,7 +139,11 @@ class ElyConnect(ora.OrwConnect):
             return True
         else:
             process = subprocess.Popen(
-                chaine, env=env, stdout=outdesc, stderr=subprocess.STDOUT, universal_newlines=True
+                chaine,
+                env=env,
+                stdout=outdesc,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
             )
             return process
 
@@ -141,7 +158,9 @@ class ElyConnect(ora.OrwConnect):
             resultats, size, _ = self.stat_classes(classes, "no")
             dinit = time.time()
             if self.lanceur(helper, xml, paramfile, outfile):
-                self.export_statprint(None, ((nom,), outfile, size, resultats), time.time() - dinit)
+                self.export_statprint(
+                    None, ((nom,), outfile, size, resultats), time.time() - dinit
+                )
             print("traitement externe %10.1f secondes" % (time.time() - dinit))
             return resultats
 
@@ -219,7 +238,9 @@ class ElyConnect(ora.OrwConnect):
         resultats = params[3]
         size = params[2]
         try:
-            for i in open(outfile, "r", encoding="cp1252", errors="backslashreplace").readlines():
+            for i in open(
+                outfile, "r", encoding="cp1252", errors="backslashreplace"
+            ).readlines():
                 #            print('lu:', ascii(i[:-1]))
                 if "Nombre d'objets export" in i:
                     tmp = i.split(":")
@@ -238,12 +259,17 @@ class ElyConnect(ora.OrwConnect):
                     #                print ('analyse log',idexport,ascii(i))
                     print(
                         "%-45s objets exportes: %10d / %10d en %.2f s"
-                        % (".".join(idexport), size[idexport], int(i.split(":")[-1][:-1]), runtime)
+                        % (
+                            ".".join(idexport),
+                            size[idexport],
+                            int(i.split(":")[-1][:-1]),
+                            runtime,
+                        )
                     )
             # print ('fin anlalyse log')
             return 0
-        except  Exception as err:
-            print("fichier non pret",err)
+        except Exception as err:
+            print("fichier non pret", err)
             time.sleep(0.1)  # on est alle trop vite le fichier n'est pas pret
             return 1
 
@@ -253,7 +279,7 @@ class ElyConnect(ora.OrwConnect):
         """
         # print( 'appel log_decoder ',idexport,params)
         retour = self.log_decoder(idexport, params, runtime)
-        if retour: # petit truc pour eviter les problemes de fichier non ferme
+        if retour:  # petit truc pour eviter les problemes de fichier non ferme
             self.log_decoder(idexport, params, runtime)
 
     def stat_classes(self, classes, fanout):
@@ -262,7 +288,7 @@ class ElyConnect(ora.OrwConnect):
         resultats = dict()
         size = dict()
         blocks = dict()
-        nom =''
+        nom = ""
         if schemabase:
             if fanout == "no":
                 nom = (classes[0][1],) if len(classes) == 1 else ("export",)
@@ -278,10 +304,14 @@ class ElyConnect(ora.OrwConnect):
                 elif fanout == "niveau":
                     if (i[0],) in blocks:
                         blocks[(i[0],)].append(i)
-                        size[(i[0],)] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                        size[(i[0],)] += int(
+                            schemabase.classes[i].getinfo("objcnt_init", "0")
+                        )
                     else:
                         blocks[(i[0],)] = [i]
-                        size[(i[0],)] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                        size[(i[0],)] = int(
+                            schemabase.classes[i].getinfo("objcnt_init", "0")
+                        )
                 elif fanout == "classe":
                     blocks[i] = [i]
                     size[i] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
@@ -308,19 +338,35 @@ class ElyConnect(ora.OrwConnect):
             with open(paramfile, mode="w", encoding="cp1252") as tmpf:
                 tmpf.write("\n".join(xml))
             outfile = os.path.join(self.tmpdir, "_".join(nom) + "_out_FEA.txt")
-            retour.append((nom, (helper, paramfile,self.size[nom], outfile), (dest, nom, "asc"), self.size[nom]))
+            retour.append(
+                (
+                    nom,
+                    (helper, paramfile, self.size[nom], outfile),
+                    (dest, nom, "asc"),
+                    self.size[nom],
+                )
+            )
 
         # optimiseur de blocks : on sait qu'il faut commencer par les plus longs
         tmp = sorted(retour, reverse=True, key=lambda x: x[3])
         if len(tmp) > nbworkers * 2:
-            retour = tmp[nbworkers : nbworkers * 2] + tmp[:nbworkers] + tmp[nbworkers * 2 :]
+            retour = (
+                tmp[nbworkers : nbworkers * 2] + tmp[:nbworkers] + tmp[nbworkers * 2 :]
+            )
             # attention logique mongolienne inverse : on commence par la fin ...
             retour.reverse()
 
         return retour
 
     def extalpha(
-        self, regle_courante, helper, classes, dest, log, fanout="classe", nbworkers=(1, 1)
+        self,
+        regle_courante,
+        helper,
+        classes,
+        dest,
+        log,
+        fanout="classe",
+        nbworkers=(1, 1),
     ):
         """extrait des donnees par ORA2FEA"""
         # mise en place de l'environnement:
@@ -330,7 +376,9 @@ class ElyConnect(ora.OrwConnect):
         #        print ('tmpdir',tmpdir)
         self.debuglog = regle_courante.getvar("debuglog")
         if self.debuglog:
-            print("------------------------------------- generation log debug-----------")
+            print(
+                "------------------------------------- generation log debug-----------"
+            )
         nbtrait, nbdump = nbworkers
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -338,39 +386,45 @@ class ElyConnect(ora.OrwConnect):
             self.tmpdir = str(tmpdir)
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            print("calcule blocs ", len(blocks), regle_courante.getvar('_wid'))
+            print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"))
             fileiter = self.params.iterparallel_ext(
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )
             regle_courante.listgen = fileiter
-            regle_courante.parallelmode = 'process'
+            regle_courante.parallelmode = "process"
             # print ('elyx : extalpha ', regle_courante)
             if nbtrait > 1:
                 try:
                     self.params.traite_parallel(regle_courante)
                 except Exception as err:
-                    print ('erreur traitement parallele', err)
+                    print("erreur traitement parallele", err)
                     raise
-            else: # traitement standard
+            else:  # traitement standard
                 for retour in fileiter:
                     if retour is not None:
-                        print('elyx extalpha,recu', retour)
-                        nb,infos = retour
+                        print("elyx extalpha,recu", retour)
+                        nb, infos = retour
                         clef, pars = infos
                         rep, chemin, classe, ext = pars
                         # chemin, classe = idclasse
-                        fichier = os.path.join(rep,chemin,classe)
-                        print ("fichier a traiter :", fichier)
+                        fichier = os.path.join(rep, chemin, classe)
+                        print("fichier a traiter :", fichier)
                         try:
-                            self.params.lecture(classe, regle=regle_courante, parms=(rep, chemin, classe, ext))
+                            self.params.lecture(
+                                classe,
+                                regle=regle_courante,
+                                parms=(rep, chemin, classe, ext),
+                            )
                         except Exception as err:
-                            print ('erreur traitement base', err)
+                            print("erreur traitement base", err)
 
             print("fin traitement extalpha", flush=True)
             # time.sleep(10)
         return self.resultats
 
-    def extdump(self, helper, classes, dest, log, fanout="classe", workers=1, mode="dump"):
+    def extdump(
+        self, helper, classes, dest, log, fanout="classe", workers=1, mode="dump"
+    ):
         """extrait des donnees par ORA2FEA"""
         # mise en place de l'environnement:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -384,24 +438,27 @@ class ElyConnect(ora.OrwConnect):
 
         return self.resultats
 
-
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """charge un fichier par FEA2ORA"""
         retour = False
         if len(files) == 1:
             file = files[0]
-            loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
+            loadxml = self.gen_importxml(
+                helper, file, logfile, reinit=reinit, vgeom=vgeom
+            )
             nom = os.path.splitext(os.path.basename(file))[0]
 
             retour = self.singlerunner(helper, loadxml, nom, [])
             return retour
         for file in files:
-            loadxml = self.gen_importxml(helper, file, logfile, reinit=reinit, vgeom=vgeom)
+            loadxml = self.gen_importxml(
+                helper, file, logfile, reinit=reinit, vgeom=vgeom
+            )
             nom = os.path.splitext(os.path.basename(file))[0]
             retour = self.singlerunner(helper, loadxml, nom, [])
-            print ('retour chargement asc', retour)
+            print("retour chargement asc", retour)
         return retour
-        #TODO gestion des retours
+        # TODO gestion des retours
 
     def traite_defaut(self, nom_att, defaut):
         """analyse les defauts et les convertit en fonctions internes"""
@@ -529,17 +586,28 @@ class ElyConnect(ora.OrwConnect):
             enums.append((nom, ordre, valeur, alias, 1))
 
         if enums_en_table:
-            if def_enums:  # cas particulier des enums en tables : il faut lire la table des enums:
+            if (
+                def_enums
+            ):  # cas particulier des enums en tables : il faut lire la table des enums:
                 for description in def_enums:
                     noms_schema, nom_table, champ_filtre, val_filtre, champ_clef, champ_val, champ_ordre = (
                         description
                     )
                     #                    print('traitement table', table)
                     requete = self.constructeur(
-                        noms_schema, nom_table, [champ_filtre, champ_clef, champ_val, champ_ordre]
+                        noms_schema,
+                        nom_table,
+                        [champ_filtre, champ_clef, champ_val, champ_ordre],
                     )
                     if val_filtre:
-                        requete = requete + " WHERE " + champ_filtre + " = '" + val_filtre + "'"
+                        requete = (
+                            requete
+                            + " WHERE "
+                            + champ_filtre
+                            + " = '"
+                            + val_filtre
+                            + "'"
+                        )
                     #                    print('requete base', requete)
                     def_enums[description] = self.request(requete)
             #                    print ('valeurs en table',table,  valtable)
@@ -567,7 +635,7 @@ class ElyConnect(ora.OrwConnect):
         #        print ('confs',self.confs)
         for i in self.attributs:
             enum = self.confs.get(self.attributs[i].enum)
-            self.attributs[i]=self.attributs[i]._replace(enum=enum)
+            self.attributs[i] = self.attributs[i]._replace(enum=enum)
         #                    if conf is None:
         #                        print (nomschema, nomtable, nom_att,i[13], len(self.confs))
         #            if i[4] == "BOOLEEN":
@@ -740,7 +808,13 @@ class ElyConnect(ora.OrwConnect):
                     obligatoire = i[11] == 1
                     ordre = i[14]
                     if ordre <= 0:
-                        print("elyx:ordre incoherent detecte ", nomschema, nomtable, nom_att, ordre)
+                        print(
+                            "elyx:ordre incoherent detecte ",
+                            nomschema,
+                            nomtable,
+                            nom_att,
+                            ordre,
+                        )
                         ordre = 0.01
                     alias = i[6]
                     multiple = i[9]
@@ -820,7 +894,9 @@ class ElyConnect(ora.OrwConnect):
                         self.attributs[i[0] + 0.2] = attdef
 
                 else:
-                    print("error: elyx : attribut de composant inconnu", i, compos_id[0])
+                    print(
+                        "error: elyx : attribut de composant inconnu", i, compos_id[0]
+                    )
             else:
                 print("error: elyx : nom_non trouve", i[4], i)
         self.compos_id = compos_id
@@ -831,7 +907,15 @@ class ElyConnect(ora.OrwConnect):
 
     def constructeur(self, schema, table, attributs):
         """constructeur de requetes de lecture de tables de donnees"""
-        return ' SELECT "' + '","'.join(attributs) + '" FROM "' + schema + '"."' + table + '"'
+        return (
+            ' SELECT "'
+            + '","'.join(attributs)
+            + '" FROM "'
+            + schema
+            + '"."'
+            + table
+            + '"'
+        )
 
     def menage_version(self, liste, n_action, n_clef, n_version, n_groupe=-1, debug=0):
         """extrait la bonne version d'un objet des tables systeme d'exlyx"""
@@ -876,7 +960,9 @@ class ElyConnect(ora.OrwConnect):
             ["NUMERO_AD", "ACTION", "VERSION", "NUMERO_MODELE", "NUMERO_ROLE_B"],
         )
 
-        liste_roles_sm = self.menage_version(self.request(requete, ()), 1, 0, 2, debug=0)
+        liste_roles_sm = self.menage_version(
+            self.request(requete, ()), 1, 0, 2, debug=0
+        )
 
         requete = self.constructeur(
             schema_oracle,
@@ -898,7 +984,7 @@ class ElyConnect(ora.OrwConnect):
         for i in liste_atts.values():
             num_role_sm = i[4]
             role_sm = liste_roles_sm.get(num_role_sm)
-            nom_role =''
+            nom_role = ""
             if role_sm:
                 num_role = role_sm[4]
                 role = liste_roles.get(num_role)
@@ -906,7 +992,7 @@ class ElyConnect(ora.OrwConnect):
                     nom_role = role[4]
                 else:
                     print("role inconnu", num_role)
-                    nom_role = 'indefini'
+                    nom_role = "indefini"
                     continue
             else:
                 print("role sm inconnu", num_role_sm)
@@ -916,7 +1002,9 @@ class ElyConnect(ora.OrwConnect):
             droit = "consult" if i[6] == 2 else "admin"
             if nom_compo:
                 groupe, classe = nom_compo
-                liste.append(";".join((nom_role, str(droit), groupe, classe, str(i[6]))))
+                liste.append(
+                    ";".join((nom_role, str(droit), groupe, classe, str(i[6])))
+                )
                 #            print (nom_compo,nom_role,droit)
 
         entete = "nom_role;type_droit;schema;table"
@@ -942,7 +1030,8 @@ class ElyConnect(ora.OrwConnect):
             ]
         else:
             liste = [
-                ";".join([j if j is not None else "" for j in i]) for i in self.request(requete, ())
+                ";".join([j if j is not None else "" for j in i])
+                for i in self.request(requete, ())
             ]
         if self.debug:
             print("db_elyx---------selection droits elyx ", len(liste))
@@ -998,7 +1087,8 @@ class ElyConnect(ora.OrwConnect):
             ]
         else:
             liste = [
-                ";".join([j if j is not None else "" for j in i]) for i in self.request(requete, ())
+                ";".join([j if j is not None else "" for j in i])
+                for i in self.request(requete, ())
             ]
         if self.debug:
             print("db_elyx---------selection droits attributs elyx ", len(liste))
@@ -1050,14 +1140,17 @@ class ElyConnect(ora.OrwConnect):
         """ recuperation initialse des elements specifiques"""
         self.select_elements_specifiques(schema)
 
-
     def select_elements_specifiques(self, schema, liste_tables=None):
         """ recupere des elements specifiques a un format et les stocke
         dans une structure du schema """
 
         schema.elements_specifiques["roles"] = self.select_droits(liste_tables)
-        schema.elements_specifiques["droits_attributs"] = self.droits_attributaires(liste_tables)
-        schema.elements_specifiques["complements_table"] = self.complement_table(liste_tables)
+        schema.elements_specifiques["droits_attributs"] = self.droits_attributaires(
+            liste_tables
+        )
+        schema.elements_specifiques["complements_table"] = self.complement_table(
+            liste_tables
+        )
         # on mappe les roles sur le schema initial
         droits_table = dict()
         for i in schema.elements_specifiques["roles"][1]:
@@ -1072,7 +1165,10 @@ class ElyConnect(ora.OrwConnect):
                 schema.classes[i].specifique["roles"] = droits_table[i]
         #        schema.specifique['roles_old']=self.select_droits_old()
         if self.debug:
-            print("db_elyx---------specifique droits elyx ", schema.elements_specifiques.keys())
+            print(
+                "db_elyx---------specifique droits elyx ",
+                schema.elements_specifiques.keys(),
+            )
 
 
 class ElyGenSql(ora.OrwGenSql):

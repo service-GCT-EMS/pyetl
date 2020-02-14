@@ -66,7 +66,8 @@ def sh_liste(regle):
     """ helper pour les sorties listes"""
     regle.changeschema = "#schema" in regle.params.att_sortie.liste
     regle.changeclasse = (
-        "#classe" in regle.params.att_sortie.liste or "#groupe" in regle.params.att_sortie.liste
+        "#classe" in regle.params.att_sortie.liste
+        or "#groupe" in regle.params.att_sortie.liste
     )
     regle.action_schema = None
     for i in regle.params.att_sortie.liste:
@@ -75,13 +76,14 @@ def sh_liste(regle):
             regle.fonctions_schema.append(fschema_ajout_attribut)
             break
 
+
 def sh_dyn(regle):
     """ helper pour les sorties dynamiques"""
     regle.changeschema = True
     regle.changeclasse = True
     regle.action_schema = fschema_ajout_attribut_d
     regle.fonctions_schema.append(fschema_ajout_attribut_d)
-    regle.dynschema=True
+    regle.dynschema = True
 
 
 def s_simple(sortie, obj, valeur):
@@ -215,15 +217,21 @@ def s_dyn(sortie, obj, valeur):
 def h_stat(regle):
     """preparation mode stat"""
     regle.modestat = regle.params.cmp1.val
-    if regle.stock_param.debug:
+    if regle.debug:
         print("moteur: stat", regle.code_classe)
     # TODO  attention risque de melange des statdefs si on utilise la meme colonne
     regle.id_stat = regle.code_classe
-    if regle.id_stat not in regle.stock_param.statdefs:
-        regle.stock_param.statdefs[regle.id_stat] = Statdef(regle.id_stat, regle.stock_param.debug)
-    regle.stock_param.statdefs[regle.id_stat].ajout_colonne(
-        regle.params.att_sortie.val, regle.modestat
+    # statdef = regle.params.statstore.getstatdef(regle.id_stats, debug=regle.debug)
+    # statdef.ajout_colonne(regle.params.att_sortie.val, regle.modestat)
+    regle.stock_param.statstore.ajout_colonne(
+        regle.id_stat, regle.params.att_sortie.val, regle.modestat, debug=regle.debug
     )
+    # print("def stats, ", regle, regle.id_stat, regle.stock_param.statstore.statdefs)
+    # if regle.id_stat not in regle.stock_param.statdefs:
+    #     regle.stock_param.statdefs[regle.id_stat] = Statdef(regle.id_stat, regle.stock_param.debug)
+    # regle.stock_param.statdefs[regle.id_stat].ajout_colonne(
+    #     regle.params.att_sortie.val, regle.modestat
+    # )
 
 
 def f_stat(regle, obj):
@@ -246,14 +254,19 @@ def f_stat(regle, obj):
     if obj.virtuel:
         return True
     entree = (obj.attributs.setdefault("#statgroupe", "total"), regle.id_stat)
-    if entree not in regle.stock_param.stats:
-        regle.stock_param.stats[entree] = Stat(entree, regle.stock_param.statdefs[regle.id_stat])
-    if regle.stock_param.stats[entree].ajout_valeur(
+    # stat = regle.params.statstore.getstat(entree,regle.id_stat)
+    # if entree not in regle.stock_param.stats:
+    #     regle.stock_param.stats[entree] = Stat(entree, regle.stock_param.statdefs[regle.id_stat])
+    # if regle.stock_param.stats[entree].ajout_valeur(
+    if regle.stock_param.statstore.ajout_valeur(
+        entree,
         obj.attributs.get(regle.code_classe, ""),  # ligne
         regle.params.att_sortie.val,  # colonne
         regle.getval_entree(obj),  # valeur
         regle.params.cmp2.val
-        + obj.attributs.get(regle.params.att_sortie.val[1:-1], regle.params.att_sortie.val),
+        + obj.attributs.get(
+            regle.params.att_sortie.val[1:-1], regle.params.att_sortie.val
+        ),
     ):
         # print ('regles:fstat ',regle.params.att_sortie[1:-1],
         #        obj.attributs.get(regle.params.att_sortie[1:-1],regle.params.att_sortie),
@@ -328,7 +341,7 @@ def fschema_ajout_attribut(regle, obj):
     """ajoute un attribut au schema"""
     # print ("ajout attribut", regle,regle.params.def_sortie,obj.schema.regles_modif)
     if obj.schema.amodifier(regle):
-    #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
+        #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
         fschema_ajout_attribut_d(regle, obj)
 
 
@@ -344,6 +357,8 @@ def fschema_set_geom(regle, obj):
             obj.schema.info["type_geom"] = obj.geom_v.type
         else:
             obj.schema.info["type_geom"] = obj.attributs["#type_geom"]
+
+
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])
 
 
@@ -352,8 +367,12 @@ def fschema_rename_attribut(regle, obj):
     if obj.schema.amodifier(regle):
         #        print ('dans rename_attribut',regle.params.att_entree.val,'->',regle.params.att_sortie.val)
         #        print ('dans rename_attribut',obj.attributs.get(regle.params.att_sortie.val))
-        for source,dest in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
+        for source, dest in zip(
+            regle.params.att_entree.liste, regle.params.att_sortie.liste
+        ):
             obj.schema.rename_attribut(source, dest, modele=regle.params.def_sortie)
+
+
 #        print ( 'renommage' , obj.schema.attributs[regle.params.att_sortie.val].nom )
 
 

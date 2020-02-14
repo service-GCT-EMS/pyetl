@@ -30,7 +30,7 @@ from .formats.generic_io import Reader, READERS, WRITERS
 # print('formats',time.time()-t1)
 
 from .formats.ressources import GestionSorties  # formats entree et sortie
-from .formats.interne.stats import Stat, ExtStat
+from .formats.interne.stats import Statstore  # , Stat, ExtStat
 from .moteur.interpreteur_csv import (
     lire_regles_csv,
     reinterprete_regle,
@@ -43,8 +43,12 @@ from .moteur.fonctions import COMMANDES, SELECTEURS
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
 from .schema.schema_interne import init_schema  # schemas
-from .schema.schema_io import ecrire_schemas, lire_schemas_multiples  # integre_schemas # schemas
+from .schema.schema_io import (
+    ecrire_schemas,
+    lire_schemas_multiples,
+)  # integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
+
 LOGGER = logging.getLogger("pyetl")  # un logger
 # MODULEDEBUG = False
 
@@ -52,15 +56,23 @@ LOGGER = logging.getLogger("pyetl")  # un logger
 def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
-    loglevels={'DEBUG':logging.DEBUG,'WARNING':logging.WARNING,'ERROR':logging.ERROR,'CRITICAL':logging.CRITICAL,'INFO':logging.INFO}
-    niveau_f=loglevels.get(log,logging.INFO)
-    niveau_p=loglevels.get(affich,logging.ERROR)
+    loglevels = {
+        "DEBUG": logging.DEBUG,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+        "INFO": logging.INFO,
+    }
+    niveau_f = loglevels.get(log, logging.INFO)
+    niveau_p = loglevels.get(affich, logging.ERROR)
     # print ('niveaux de logging',niveau_f,niveau_p)
     if not LOGGER.handlers:
         # création d'un handler qui va rediriger chaque écriture de log sur la console
         LOGGER.setLevel(niveau_p)
         print_handler = logging.StreamHandler()
-        printformatter = logging.Formatter("\n!!!%(levelname)8s %(funcName)10s: %(message)s")
+        printformatter = logging.Formatter(
+            "\n!!!%(levelname)8s %(funcName)10s: %(message)s"
+        )
         print_handler.setFormatter(printformatter)
         print_handler.setLevel(niveau_p)
         LOGGER.addHandler(print_handler)
@@ -86,8 +98,8 @@ def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
 def getlog(args):
     """recherche s il y a une demande de fichier log dans les arguments"""
     log = None
-    log_level=None
-    log_print=None
+    log_level = None
+    log_print = None
     for i in args:
         if "log=" in i:
             log = i.split("=")[1]
@@ -95,13 +107,15 @@ def getlog(args):
             log_level = i.split("=")[1]
         if "log_print=" in i:
             log_print = i.split("=")[1]
-    return log,log_level,log_print
+    return log, log_level, log_print
 
 
 def runpyetl(commandes, args):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
     loginfo = getlog(args)
-    print('::'.join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args))))
+    print(
+        "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
+    )
     if MAINMAPPER.initpyetl(commandes, args, loginfo=loginfo):
         MAINMAPPER.process()
     else:
@@ -116,7 +130,12 @@ def runpyetl(commandes, args):
         print(MAINMAPPER.getvar("_st_obj_duppliques", 0), "objets dupliques")
     n_ecrits = MAINMAPPER.getvar("_st_wr_objs", 0)
     if n_ecrits:
-        print(n_ecrits, "objets ecrits dans ", MAINMAPPER.getvar("_st_wr_fichs", 0), "fichiers ")
+        print(
+            n_ecrits,
+            "objets ecrits dans ",
+            MAINMAPPER.getvar("_st_wr_fichs", 0),
+            "fichiers ",
+        )
     MAINMAPPER.signale_fin()
     duree, _ = next(MAINMAPPER.maintimer)
     duree += 0.001
@@ -155,11 +174,6 @@ class Pyetl(object):
     selecteurs = SELECTEURS
     sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
     reconfig = reinterprete_regle
-
-
-    #    crypt = crypter
-    #    decrypt = decrypt
-
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS
     #    reader = Reader
@@ -170,8 +184,7 @@ class Pyetl(object):
         self.starttime = time.time()  # timer interne
         # variables d'instance (stockage des elements)
         self.maintimer = self._timer(init=True)
-        self.statdefs = dict()  # description des statistiques
-        self.stats = dict()  # stockage des statistiques
+        self.statstore = Statstore(self)
         self.cntr = dict()  # stockage des compteurs
         self.idpyetl = next(self._ido)
         # jointures
@@ -182,14 +195,14 @@ class Pyetl(object):
         self.store = dict()
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
-        #        self.parms = dict() #parametres ligne de commande et variables globales
         if context is None:
             context = parent.context if parent else None
-        self.context = Context(parent=context,ident=str(self.idpyetl),type_c='P', root=True
+        self.context = Context(
+            parent=context, ident=str(self.idpyetl), type_c="P", root=True
         )
         # print ('initialisation', self.context, self.context.parent, "P" + str(self.idpyetl))
-        self.context.root = self.context # on romp la chaine racine
-        self.contextstack=[self.context]
+        self.context.root = self.context  # on romp la chaine racine
+        self.contextstack = [self.context]
         self.parent = parent  # permet un appel en cascade
         setparallel(self)  # initialise la gestion du parallelisme
 
@@ -199,7 +212,7 @@ class Pyetl(object):
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser("~")
-        self.paramdir = os.path.join(self.userdir, ".pyetl")
+        self.paramdir = str(os.path.join(self.userdir, ".pyetl"))
 
         self.stream = 0
         self.debug = 0
@@ -220,17 +233,16 @@ class Pyetl(object):
         self.schemas = dict()  # schemas des classes
         self.regles = list()  # regles de mapping
         self.regle_sortir = None
-        self.regleref = RegleTraitement('', self, '', 0)
-        self.regleref.context = self.context # la regle de reference n'a pas de contexte propre
-        self.racine = ''
+        self.regleref = RegleTraitement("", self, "", 0)
+        self.regleref.context = (
+            self.context
+        )  # la regle de reference n'a pas de contexte propre
+        self.racine = ""
         self.fichier_regles = None
 
         # etats
 
         self.dupcnt = 0
-        self.statfilter = ""
-        self.statprint = False
-        self.statdest = None
         self.fichier_courant = ""
         self.chemin_courant = ""
 
@@ -238,46 +250,39 @@ class Pyetl(object):
         self.schemadef = False
         self.rdef = None
 
-        # identification d'une reference a un champ  dans une expression
-        #        self.liste_formats = [".ASC", ".SHP", ".CSV"]
-        #        self.sortie_defaut = "asc"
         self.liste_regles = None
 
         self.liens_variables = dict()
         self.duree = 0
-        # self.durees = dict()
         self.attlists = dict()
-        # self.nb_obj = 0 # nombrte d'objets traites
-        # self.parms["rep_regles"] = self.rdef
-        # print ('_avant______________mode sortie' ,self.stream,self.getvar("mode_sortie"))
-
         self.ident_courant = ("", "")
         self._set_streammode()
         self.done = False
 
-    def _relpath(self,path):
-        '''cree un chemin relatif par rapport au fichier de programme'''
+    def _relpath(self, path):
+        """cree un chemin relatif par rapport au fichier de programme"""
         if path is None:
             return None
         return os.path.join(os.path.dirname(__file__), path)
-
 
     def initenv(self, env=None, loginfo=None):
         """initialise le contexte (parametres de site environnement)"""
         if self.loginited:
             return  # on a deja fait le boulot
         env = env if env is not None else os.environ
-        log_level="INFO"
-        log_print="WARNING"
+        log_level = "INFO"
+        log_print = "WARNING"
         if loginfo and not self.worker:
-            log,log_level,log_print = loginfo
+            log, log_level, log_print = loginfo
             self.setvar("logfile", log)
             self.setvar("log_level", log_level)
             self.setvar("log_print", log_print)
 
-        initlogger(fichier=self.getvar("logfile",None),log=log_level,affich=log_print)
+        initlogger(
+            fichier=self.getvar("logfile", None), log=log_level, affich=log_print
+        )
         self.init_environ(env)
-        self.loginited=True
+        self.loginited = True
 
     #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
     #        next(self.aff)
@@ -290,10 +295,25 @@ class Pyetl(object):
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
             LOGGER.critical(
-                "erreur script " + str(commandes) + " " + str(err) + " worker:" + str(self.worker)
+                "erreur script "
+                + str(commandes)
+                + " "
+                + str(err)
+                + " worker:"
+                + str(self.worker)
             )
-            result=False
-        LOGGER.info('::'.join(("====== demarrage == ",self.nompyetl, str(self.idpyetl), repr(commandes), repr(args))))
+            result = False
+        LOGGER.info(
+            "::".join(
+                (
+                    "====== demarrage == ",
+                    self.nompyetl,
+                    str(self.idpyetl),
+                    repr(commandes),
+                    repr(args),
+                )
+            )
+        )
         return result
 
     def init_environ(self, env):
@@ -314,14 +334,15 @@ class Pyetl(object):
             # charge les parametres de site (fichier ini)
             self._charge_site_params(self.site_params_def)
             self._charge_site_params(self.paramdir)
-            cryptinfo = (os.getlogin(),
-                    self.getvar("usergroup"),
-                    self.getvar("masterkey"),
-                    self.getvar("userkey"),
-                    self.getvar('defaultkey'),
-                    self.getvar('cryptolevel'),
-                    self.getvar('cryptohelper'),
-                    )
+            cryptinfo = (
+                os.getlogin(),
+                self.getvar("usergroup"),
+                self.getvar("masterkey"),
+                self.getvar("userkey"),
+                self.getvar("defaultkey"),
+                self.getvar("cryptolevel"),
+                self.getvar("cryptohelper"),
+            )
             paramdecrypter(self.site_params, cryptinfo)
             self.charge_cmd_internes()  # macros internes
             self.charge_cmd_internes(site="macros", opt=1)  # macros de site
@@ -383,7 +404,7 @@ class Pyetl(object):
 
             self.setvar("_sortie", "")
             self.setvar("_testmode", "unittest")
-            print ('positionnement testmode',self.context)
+            print("positionnement testmode", self.context)
             unittests(self, nom=nom, debug=self.getvar("debug"))
             self.done = True
 
@@ -421,13 +442,16 @@ class Pyetl(object):
         self._traite_params(liste_params)
         # on initialise le gestionnaire d'affichage
         self.aff = self._patience(
-            self.getvar("_st_lu_objs", 0), self.getvar("_st_lu_fichs", 0))
+            self.getvar("_st_lu_objs", 0), self.getvar("_st_lu_fichs", 0)
+        )
         next(self.aff)
 
         LOGGER.debug(
             "prepare_module"
-            + repr(regles)+"::"
-            + repr(liste_params)+"::"
+            + repr(regles)
+            + "::"
+            + repr(liste_params)
+            + "::"
             + self.getvar("_sortie", "pas_de_sortie")
         )
         erreurs = None
@@ -439,7 +463,9 @@ class Pyetl(object):
                         self.fichier_regles, liste_regles=self.liste_regles
                     )
                 except KeyError as ker:
-                    LOGGER.critical("erreur lecture " + repr(ker) + "(" + repr(regles) + ")")
+                    LOGGER.critical(
+                        "erreur lecture " + repr(ker) + "(" + repr(regles) + ")"
+                    )
                     erreurs = erreurs + 1 if erreurs else 1
                     raise
 
@@ -457,7 +483,7 @@ class Pyetl(object):
                 )
                 for i in self.regles:
                     if i.erreurs:
-                        print('erreur interpretation',i.numero, i, i.erreur)
+                        print("erreur interpretation", i.numero, i, i.erreur)
                 #                print("sortie en erreur", self.idpyetl)
                 return False
         self.sorties.set_sortie(self.getvar("_sortie"))
@@ -465,7 +491,9 @@ class Pyetl(object):
             #            print('pas de regles', self.done)
             if self.done:
                 return True
-            LOGGER.critical("pas de regles arret du traitement " + str(self.fichier_regles))
+            LOGGER.critical(
+                "pas de regles arret du traitement " + str(self.fichier_regles)
+            )
             return False
 
         self._set_streammode()
@@ -518,20 +546,27 @@ class Pyetl(object):
                 cmp = "int"
             if message == "tab":
                 ftype = "tables"
-            msg = " --%s----> nombre d'objets lus %8d dans %4d %s en %5d " + "secondes %5d o/s"
+            msg = (
+                " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "
+                + "secondes %5d o/s"
+            )
             if self.worker:
                 msg = "worker%3s:" % self.getvar("_wid") + msg
             else:
                 msg = "mapper   :" + msg
-            LOGGER.info(' '.join(
-                (msg,
-                str(cmp),
-                str(nbobj),
-                str(tabletotal),
-                str(ftype),
-                str(int(duree)),
-                str(int(nbobj / duree)),
-                str(int((nbobj - nop) / (interv + 0.001))))),
+            LOGGER.info(
+                " ".join(
+                    (
+                        msg,
+                        str(cmp),
+                        str(nbobj),
+                        str(tabletotal),
+                        str(ftype),
+                        str(int(duree)),
+                        str(int(nbobj / duree)),
+                        str(int((nbobj - nop) / (interv + 0.001))),
+                    )
+                )
             )
             if self.worker:
                 if message == "interm":
@@ -544,13 +579,26 @@ class Pyetl(object):
                         tinterm = nbval / (nbobj / duree)
                     print(msg % (nbval, int(tinterm), int((nbval) / tinterm)))
             else:
-                print(msg % (cmp, nbobj, tabletotal+1, ftype, int(duree), int((nbobj) / duree)))
-            return ((max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich, tinterm)
+                print(
+                    msg
+                    % (
+                        cmp,
+                        nbobj,
+                        tabletotal + 1,
+                        ftype,
+                        int(duree),
+                        int((nbobj) / duree),
+                    )
+                )
+            return (
+                (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
+                tinterm,
+            )
 
         while True:
             message, nbfic, nbval = yield
             #            nbtotal += nbval
-            if message == "init" :
+            if message == "init":
                 temps = self._timer(init=not self.worker)
                 duree, interv = next(temps)
                 interm = 0.001
@@ -566,9 +614,15 @@ class Pyetl(object):
             # print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
             tabletotal += nbfic
 
-
     def getpyetl(
-        self, regles, entree=None, rep_sortie=None, liste_params=None, env=None, nom="", mode=None,
+        self,
+        regles,
+        entree=None,
+        rep_sortie=None,
+        liste_params=None,
+        env=None,
+        nom="",
+        mode=None,
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch"""
@@ -605,7 +659,7 @@ class Pyetl(object):
             nouvelle.commandes_macro = liste_commandes
         # if vpos is not None:
         #     nouvelle.vpos = vpos
-        #print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
+        # print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
         self.macros[nom] = nouvelle
         return nouvelle
 
@@ -615,12 +669,11 @@ class Pyetl(object):
         if self.getvar("mode_sortie") == "D":
             self.stream = 2
 
-#        print('---------pyetl : mode sortie', self.stream, self.getvar("mode_sortie"))
-
+    #        print('---------pyetl : mode sortie', self.stream, self.getvar("mode_sortie"))
 
     def _charge_site_params(self, origine):
         """ charge des definitions de variables liees au site """
-        if origine is None: # localisation non definie
+        if origine is None:  # localisation non definie
             return
         configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
@@ -652,7 +705,6 @@ class Pyetl(object):
     #        print("parametres de site",origine)
     #        print("variables",self.parms)
 
-
     def load_paramgroup(self, clef, nom="", check="", fin=True, context=None):
         """ charge un groupe de parametres """
         # print("chargement", clef, self.site_params[clef], context)
@@ -667,7 +719,7 @@ class Pyetl(object):
         if clef in self.site_params:
             # print("chargement", clef, self.site_params[clef], context)
             for var, val in self.site_params[clef]:
-                val,_ = context.resolve(val)  # on fait du remplacement à la volee
+                val, _ = context.resolve(val)  # on fait du remplacement à la volee
                 context.setlocal(var, val)
                 # print('loadparamgroup',setter,var,val)
                 if nom:
@@ -699,10 +751,9 @@ class Pyetl(object):
         description = enumerate(open(configfile, "r").readlines())
         self.stocke_macro(description, configfile)
 
-
     def stocke_macro(self, description, origine):
         """stocke une description de macro"""
-        macro=None
+        macro = None
         for num, conf in description:
             if not conf or conf.startswith("!"):
                 continue
@@ -713,7 +764,6 @@ class Pyetl(object):
                 macro = self.regmacro(nom, file=origine, vpos=vpos)
             elif macro:
                 macro.add_command(conf, num)
-
 
     def _init_params(self):
         """initialise les parametres
@@ -754,7 +804,10 @@ class Pyetl(object):
                 ("epsg", "3948"),
                 ("_pv", ";"),
                 ("F_sortie", ""),
-                ("xmldefaultheader", '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>'),
+                (
+                    "xmldefaultheader",
+                    '<?xml-stylesheet href="xsl/dico.xsl" type="text/xsl"?>',
+                ),
                 ("codec_sortie", DEFCODEC),
                 ("codec_entree", DEFCODEC),
                 ("_paramdir", self.site_params_def),
@@ -771,29 +824,32 @@ class Pyetl(object):
 
     # ======================== fonctions de manipulation des contextes =====================
 
-
-    def getcontext(self, context, ident="",ref=False, type_c='C'):
+    def getcontext(self, context, ident="", ref=False, type_c="C"):
         """recupere un contexte en cascade"""
         context = self.cur_context if context is None else context
-        return context.getcontext(ident=ident,ref=ref,type_c=type_c)
+        return context.getcontext(ident=ident, ref=ref, type_c=type_c)
 
-    def pushcontext(self,context=None, ident='',type_c='C'):
-        self.contextstack.append(context or self.getcontext(context, ident,type_c))
+    def pushcontext(self, context=None, ident="", type_c="C"):
+        self.contextstack.append(context or self.getcontext(context, ident, type_c))
         # print("apres push",self.contextstack)
         return self.cur_context
 
-    def popcontext(self,typecheck=None):
+    def popcontext(self, typecheck=None):
         # print("avant pop",self.contextstack)
         if typecheck and self.cur_context.type_c == typecheck:
             self.contextstack.pop()
         else:
-            print ('=========================popcontext warning typecheck attendu',typecheck,'trouve',self.cur_context.type_c)
+            print(
+                "=========================popcontext warning typecheck attendu",
+                typecheck,
+                "trouve",
+                self.cur_context.type_c,
+            )
         return self.cur_context
 
     @property
     def cur_context(self):
         return self.contextstack[-1]
-
 
     def getvar(self, nom, defaut=""):
         """recupere la valeur d une varible depuis le contexte"""
@@ -872,7 +928,7 @@ class Pyetl(object):
 
     #        print("charge: prechargement",fichier, ident_fich, stock)
 
-    def _prep_chemins(self, chemin: str, nom:str)-> str:
+    def _prep_chemins(self, chemin: str, nom: str) -> str:
         """effectue la resolution des chemins """
         # chemin du fichier de donnees
         f_intrm = nom.replace("C:", os.path.join(self.racine, chemin))
@@ -888,7 +944,9 @@ class Pyetl(object):
         f_final = self._prep_chemins(chemin, fichier)
         if self.joint_fich[fichier] != f_final:
             self.charge(f_final, fichier)
-        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ + 1)])[champ]
+        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ + 1)])[
+            champ
+        ]
 
     def jointure_s(self, fichier, clef, champ):
         """jointure statique chemin absolu ou relatif au repertoire de regles"""
@@ -898,7 +956,9 @@ class Pyetl(object):
             return self.jointabs[fichier][cle][champ]
         except KeyError:
             if self.debug:
-                print("pyetl: jointure statique clef non trouvee ", fichier, clef, champ)
+                print(
+                    "pyetl: jointure statique clef non trouvee ", fichier, clef, champ
+                )
             return ""
 
     #        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ+1)])[champ]
@@ -929,7 +989,7 @@ class Pyetl(object):
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
         if self.done:
             pass
-        elif isinstance(entree, (Stat, ExtStat)):
+        elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
             #            nb_total = self._lecture_stats(entree)
         elif entree and entree.strip() and entree != "!!vide":
@@ -940,7 +1000,7 @@ class Pyetl(object):
             try:
                 self.aff.send(("init", 0, 0))
                 # for i in fichs:
-                for fich , parms in scan_entree(
+                for fich, parms in scan_entree(
                     rep=entree,
                     force_format=self.getvar("F_entree"),
                     fileselect=self.getvar("fileselect"),
@@ -962,7 +1022,10 @@ class Pyetl(object):
                         nb_lu = 0
                         break
             except NotADirectoryError as err:
-                print("!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:", err)
+                print(
+                    "!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:",
+                    err,
+                )
                 print("type entree ", type(entree))
             # else:
             #     print("pas de fichiers en entree")
@@ -982,7 +1045,16 @@ class Pyetl(object):
             except StopIteration:
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-        LOGGER.info('::'.join(("====== fin == ",self.nompyetl, str(self.idpyetl), str(self.getvar("_st_lu_objs", '0')))))
+        LOGGER.info(
+            "::".join(
+                (
+                    "====== fin == ",
+                    self.nompyetl,
+                    str(self.idpyetl),
+                    str(self.getvar("_st_lu_objs", "0")),
+                )
+            )
+        )
         return
 
     def menage_final(self):
@@ -1002,27 +1074,30 @@ class Pyetl(object):
         # self._finalise_sorties()
         self._ecriture_schemas()
         self._ecriture_stats()
-        self._finalise_sorties() # on ne finalise les sorties que la pour tenir compte des traitements eventuels de schemas
+        self._finalise_sorties()  # on ne finalise les sorties que la pour tenir compte des traitements eventuels de schemas
         self.macro_final()
         return
 
-    def macrorunner(self, texte, parametres=None, entree=None, sortie=None, retour=None):
-        '''execute une macro (initiale ou finale)'''
-        regles = [(1,texte if texte.startswith('<') else '<'+texte)]
-        processor = self.getpyetl(regles, liste_params=parametres, entree=entree, rep_sortie=sortie)
+    def macrorunner(
+        self, texte, parametres=None, entree=None, sortie=None, retour=None
+    ):
+        """execute une macro (initiale ou finale)"""
+        regles = [(1, texte if texte.startswith("<") else "<" + texte)]
+        processor = self.getpyetl(
+            regles, liste_params=parametres, entree=entree, rep_sortie=sortie
+        )
         #        print('parametres macro', processor.nompyetl, [(i,processor.getvar(i))
         #                                                       for i in macro.vpos])
         if processor is not None:
             processor.process()
             print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
             if retour:
-                return {i:processor.getvar(i) for i in retour}
+                return {i: processor.getvar(i) for i in retour}
         return
-
 
     def macro_final(self):
         """ execute une macro finale"""
-        if (self.worker and self.parent is None):
+        if self.worker and self.parent is None:
             macrofinale = self.context.getlocal("_w_end")
         else:
             macrofinale = self.context.getlocal("_end") or self.context.getlocal("#end")
@@ -1037,14 +1112,16 @@ class Pyetl(object):
     def macro_entree(self):
         """ execute une macro de demarrage"""
 
-        if (self.worker and self.parent is None):
+        if self.worker and self.parent is None:
             macroinit = self.context.getlocal("_w_start")
         else:
-            macroinit = self.context.getlocal("_start") or self.context.getlocal("#start")
+            macroinit = self.context.getlocal("_start") or self.context.getlocal(
+                "#start"
+            )
         if not macroinit:
             # print ('pas de macro initiale')
             return
-        print ('macro initiale', macroinit)
+        print("macro initiale", macroinit)
         parametres = self.getvar("parametres_initial")
         entree = self.getvar("entree_initial", self.getvar("_entree"))
         sortie = self.getvar("sortie_initial", self.getvar("_entree"))
@@ -1079,77 +1156,22 @@ class Pyetl(object):
         )
 
     def _ecriture_stats(self):
-        """stockage des stats """
-        #        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
-        rep_sortie = os.path.join(self.getvar("_sortie"), self.getvar("sortie_stats"))
-
-        for i in self.stats:
-            if self.worker and self.parent is None:
-                continue  # on ecrit pas on remonte
-            if self.statprint == "statprocess":
-                petl2 = self.getpyetl(self.statfilter, entree=self.stats[i])
-                #                print ("petl2 statprocess",petl2.idpyetl,petl2.stats)
-                if petl2 is not None:
-                    petl2.process()
-                    retour = petl2.retour
-                    #                    print("retour statprocess", retour)
-                    self.retour.extend(retour)
-            #                    print("retour complet", self.retour)
-            else:
-                dest = self.statdest if self.statdest else rep_sortie
-                statdef = self.getvar("stat_defaut")
-                codec_sortie = self.getvar("codec_sortie", "utf-8")
-                self.stats[i].ecrire(
-                    dest,
-                    self.statprint,
-                    self.statfilter,
-                    statdef,
-                    codec=codec_sortie,
-                    wid=self.getvar("_wid", ""),
-                )
-
+        self.statstore.ecriture_stats()
         if self.getvar("fstat"):  # ecriture de statistiques de fichier
-            if self.worker and self.parent is None:
-                return  # on ecrit pas on remonte
-            liste_fich = self.sorties.getwritestats()
-            if not liste_fich:
-                return
-            if rep_sortie:
-                if self.worker:
-                    fstat = os.path.join(
-                        rep_sortie, self.getvar("fstat") + "_" + self.getvar("_wid") + ".csv"
-                    )
-                else:
-                    fstat = os.path.join(rep_sortie, self.getvar("fstat") + ".csv")
-                print("pyetl : info ecriture stat fichier ", fstat, "\n".join(liste_fich))
-                os.makedirs(os.path.dirname(fstat), exist_ok=True)
-                fichier = open(fstat, "w", encoding=self.getvar("codec_sortie", "utf-8"))
-                fichier.write("repertoire;nom;nombre\n")
-                for i in sorted(liste_fich):
-                    fichier.write(
-                        ";".join((os.path.dirname(i), os.path.basename(i), str(liste_fich[i])))
-                        + "\n"
-                    )
-                fichier.close()
-            else:
-                print("%-60s | %10s |" % ("           nom", "nombre   "))
-                for i in sorted(liste_fich):
-                    print("%-60s | %10d |" % (i, liste_fich[i]))
-        # on ferme proprement ce qui est ouvert
+            self.statstore.ecriture_stat_fichiers()
 
     def signale_fin(self):
         """ecrit un fichier pour signaler la fin du traitement"""
-        if self.worker or self.parent or self.getvar("job_control","no") == "no":
+        if self.worker or self.parent or self.getvar("job_control", "no") == "no":
             return
         print("info: pyetl:job_control", self.getvar("job_control"))
         open(self.getvar("job_control"), "w").write("fin mapper\n")
-
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""
         if parms is not None:
             racine, chemin, fichier, ext = parms
-        else: # on invente
+        else:  # on invente
             ext = os.path.splitext(fich)[1]
             fichier = os.path.basename(fich)
             rep = os.path.dirname(fichier)
@@ -1160,12 +1182,14 @@ class Pyetl(object):
         self.racine = str(racine)
         #        self._setformats(ext if force_sortie is None else force_sortie)
         # positionne le stockage au bon format
-        regle = self.regles[reglenum] if regle is None and reglenum is not None else regle
+        regle = (
+            self.regles[reglenum] if regle is None and reglenum is not None else regle
+        )
         # print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext,'->', regle)
         reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
         if regle is None:
-            regle=reglestart
+            regle = reglestart
         if ext not in regle.lecteurs:
             regle.lecteurs[ext] = Reader(ext, regle, reglestart)
         lecteur = regle.lecteurs[ext]
@@ -1182,8 +1206,8 @@ class Pyetl(object):
         # print ('fin lecture fichier', fichier)
         self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
-        if self.worker: # en mode worker on ne compte que les intermediaires
-            self.aff.send(("init",0,0)) # on reinitialise le compteur
+        if self.worker:  # en mode worker on ne compte que les intermediaires
+            self.aff.send(("init", 0, 0))  # on reinitialise le compteur
         else:
             self.aff.send(("fich", 1, lecteur.lus_fich))
         return lecteur.lus_fich

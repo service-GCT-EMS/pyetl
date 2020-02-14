@@ -67,7 +67,11 @@ class Statdef(object):  # definition d'une statistique
         for i in self.colonnes:
             if i[0] == "[":
                 nouv_colonnes.extend(
-                    [j for j in sorted(colonnes_indirectes.keys()) if colonnes_indirectes[j] == i]
+                    [
+                        j
+                        for j in sorted(colonnes_indirectes.keys())
+                        if colonnes_indirectes[j] == i
+                    ]
                 )
                 for j in colonnes_indirectes.keys():
                     self.types[j] = self.types[i]
@@ -140,7 +144,9 @@ class ExtStat(object):
 
     #        print('contenu de la stat' ,self.nom, len(self.lignes))
 
-    def ecrire(self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""):
+    def ecrire(
+        self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
+    ):
         """ sortie stat en format csv"""
         nom = self.nom
         if wid:
@@ -150,7 +156,9 @@ class ExtStat(object):
         if rep_sortie:
             try:
                 os.makedirs(rep_sortie, exist_ok=True)
-                fichier = open(os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec)
+                fichier = open(
+                    os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec
+                )
                 fichier.write(";".join(self.entete) + "\n")
                 fichier.write("\n".join([";".join(i) for i in result]))
                 fichier.close()
@@ -317,7 +325,16 @@ class Stat(object):
         perfs a ameliorer a l'occasion
         """
         # print self.structure.types
-        # print ('formats:ajout_valeur',ligne,colonne,valeur,val_colonne)
+        # print(
+        #     "formats:ajout_valeur:L:",
+        #     ligne,
+        #     "C:",
+        #     colonne,
+        #     "V:",
+        #     valeur,
+        #     "VC:",
+        #     val_colonne,
+        # )
         if colonne[0] == "[":  # eclatement par colonnes
             clef = (ligne, val_colonne)
             self.colonnes_indirect[val_colonne] = colonne
@@ -384,7 +401,9 @@ class Stat(object):
 
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        colonnes = ["_clef"] + self.structure.get_names(self.colonnes_indirect, process=True)
+        colonnes = ["_clef"] + self.structure.get_names(
+            self.colonnes_indirect, process=True
+        )
         noms_attributs = [i.strip().replace(" ", "_") for i in colonnes]
         #        print( "conversion stats,",result, self.valeurs)
         #        print("stattoobj",noms_attributs)
@@ -409,13 +428,18 @@ class Stat(object):
 
     def retour(self, filtre=""):
         """renvoie une description de stats"""
+        print("retour : filtre", filtre)
         nom = "_".join(self.nom).replace("#", "")
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
-        corps = [self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i]
+        corps = [
+            self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i
+        ]
         return (nom, entete, corps)
 
-    def ecrire(self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""):
+    def ecrire(
+        self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
+    ):
         """ sortie stat en format csv"""
         nom = "_".join(self.nom).replace("#", "")
         if wid:
@@ -424,13 +448,20 @@ class Stat(object):
         #        print ("stats:",result)
 
         #            print("info :format: pas d ecriture stat ", affiche)
-        #        print("info :format: ecriture stat ", os.path.join(rep_sortie, nom)+".csv", affiche)
+        print(
+            "info :format: ecriture stat ",
+            nom,
+            os.path.join(rep_sortie, nom) + ".csv",
+            affiche,
+        )
 
         if rep_sortie:
             if not wid:
                 try:
                     os.makedirs(rep_sortie, exist_ok=True)
-                    fichier = open(os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec)
+                    fichier = open(
+                        os.path.join(rep_sortie, nom + ".csv"), "w", encoding=codec
+                    )
                     fichier.write(self.structure.entete(self.colonnes_indirect) + "\n")
                     fichier.writelines(
                         (self.structure.ligne(i, self.valeurs) + "\n" for i in result)
@@ -459,12 +490,16 @@ class Stat(object):
 
 def statprint(nom, entete, contenu):
     """formatte des stats pour l'affichage"""
-
+    print("statprint", entete)
     tailles = [max(map(len, i)) for i in zip(*contenu, entete)]
     longueur = sum(tailles) + 3 * len(tailles) - 2
 
     pformat = (
-        "| %-" + str(tailles[0]) + "s" + " | ".join("%" + str(i) + "s" for i in tailles[1:]) + " |"
+        "| %-"
+        + str(tailles[0])
+        + "s"
+        + " | ".join("%" + str(i) + "s" for i in tailles[1:])
+        + " |"
     )
     print("-" * longueur)
 
@@ -475,3 +510,116 @@ def statprint(nom, entete, contenu):
     #                             for i in result if filtre in i)))
     print("\n".join((pformat % tuple(i) for i in contenu)))
     print("-" * longueur)
+
+
+class Statstore(object):
+    """classe de gestion des stats"""
+
+    def __init__(self, mapper):
+        self.statdefs = dict()
+        self.stats = dict()
+        self.statfilter = ""
+        self.statdest = ""
+        self.statprint = ""
+        self.parent = mapper
+
+    def _getstatdef(self, nom, debug=False):
+        """recupere une definition de stats et la cree au besoin"""
+        if nom not in self.statdefs:
+            self.statdefs[nom] = Statdef(nom, debug)
+        return self.statdefs[nom]
+
+    def ajout_colonne(self, id_stat, colonne, definition, debug):
+        """ajoute une clonne dans une definition de stats"""
+        stat = self._getstatdef(id_stat, debug=debug)
+        stat.ajout_colonne(colonne, definition)
+
+    def _getstat(self, entree):
+        """recupere un objet statistique et le cree au besoin"""
+        groupe, nom = entree
+        if entree not in self.stats:
+            self.stats[entree] = Stat(entree, self.statdefs[nom])
+        return self.stats[entree]
+
+    def ajout_valeur(self, entree, *args):
+        stat = self._getstat(entree)
+        return stat.ajout_valeur(*args)
+
+    def isstat(self, element):
+        """determine si un element est une stat"""
+        return isinstance(element, (Stat, ExtStat))
+
+    def ecriture_stats(self, regle=None):
+        """stockage des stats """
+        #        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
+        context = regle.context if regle else self.parent.context
+        rep_sortie = os.path.join(
+            context.getvar("_sortie"), context.getvar("sortie_stats")
+        )
+        if self.parent.worker and self.parent.parent is None:
+            return  # on ecrit pas on remonte
+        for i in self.stats:
+            if self.statprint == "statprocess":
+                petl2 = self.parent.getpyetl(self.statfilter, entree=self.stats[i])
+                #                print ("petl2 statprocess",petl2.idpyetl,petl2.stats)
+                if petl2 is not None:
+                    petl2.process()
+                    retour = petl2.retour
+                    #                    print("retour statprocess", retour)
+                    self.parent.retour.extend(retour)
+            #                    print("retour complet", self.retour)
+            else:
+                dest = self.statdest if self.statdest else rep_sortie
+                statdef = context.getvar("stat_defaut")
+                codec_sortie = context.getvar("codec_sortie", "utf-8")
+                self.stats[i].ecrire(
+                    dest,
+                    self.statprint,
+                    self.statfilter,
+                    statdef,
+                    codec=codec_sortie,
+                    wid=context.getvar("_wid", ""),
+                )
+
+    def ecriture_stat_fichiers(self):
+        liste_fich = self.parent.sorties.getwritestats()
+        if not liste_fich:
+            return
+        rep_sortie = os.path.join(
+            self.parent.getvar("_sortie"), self.parent.getvar("sortie_stats")
+        )
+        if rep_sortie:
+            if self.parent.worker:
+                fstat = os.path.join(
+                    rep_sortie,
+                    self.parent.getvar("fstat")
+                    + "_"
+                    + self.parent.getvar("_wid")
+                    + ".csv",
+                )
+            else:
+                fstat = os.path.join(rep_sortie, self.parent.getvar("fstat") + ".csv")
+            print(
+                "ecriture_stat_fichiers : info ecriture stat fichier ",
+                fstat,
+                "\n".join(liste_fich),
+            )
+            os.makedirs(os.path.dirname(fstat), exist_ok=True)
+            fichier = open(
+                fstat, "w", encoding=self.parent.getvar("codec_sortie", "utf-8")
+            )
+            fichier.write("repertoire;nom;nombre\n")
+            for i in sorted(liste_fich):
+                fichier.write(
+                    ";".join(
+                        (os.path.dirname(i), os.path.basename(i), str(liste_fich[i]))
+                    )
+                    + "\n"
+                )
+            fichier.close()
+        else:
+            # print("ecritre stats fichier", self.statprint, self.statfilter)
+
+            print("%-60s | %10s |" % ("           nom", "nombre   "))
+            for i in sorted(liste_fich):
+                print("%-60s | %10d |" % (i, liste_fich[i]))

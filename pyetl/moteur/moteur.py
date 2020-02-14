@@ -45,7 +45,12 @@ class Moteur(object):
             for sch in list(self.mapper.schemas.values()):
 
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
-                    print("moteur: traitement schema", sch.nom, sch.origine, len(sch.classes))
+                    print(
+                        "moteur: traitement schema",
+                        sch.nom,
+                        sch.origine,
+                        len(sch.classes),
+                    )
                     LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
@@ -55,7 +60,9 @@ class Moteur(object):
                             continue
                         #                        print('traitement objet virtuel ', schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
-                        obj = Objet(groupe, classe, conversion="virtuel", schema=schemaclasse)
+                        obj = Objet(
+                            groupe, classe, conversion="virtuel", schema=schemaclasse
+                        )
                         obj.attributs["#categorie"] = "traitement_virtuel"
                         #                        obj = Objet(groupe, classe)
                         #                        obj.virtuel = True
@@ -79,7 +86,10 @@ class Moteur(object):
                 if i.mode == "start":  # on prends la main dans le script
                     i.fonc(i, None)
                 obj = Objet(
-                    "_declencheur", "_chargement", format_natif="interne", conversion="virtuel"
+                    "_declencheur",
+                    "_chargement",
+                    format_natif="interne",
+                    conversion="virtuel",
                 )
                 i.mode_chargeur = True
                 self.traite_objet(obj, i)
@@ -87,7 +97,7 @@ class Moteur(object):
 
     def traite_objet(self, obj, regle):
         """traitement basique toutes les regles sont testees """
-        last=None
+        last = None
         while regle:
             last = regle
             regle.declenchee = True
@@ -99,7 +109,9 @@ class Moteur(object):
                         #                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
                         #                               regle.branchements.brch["fail"])
                         if not obj.virtuel:
-                            self.traite_objet(obj.dupplique(), regle.branchements.brch["copy"])
+                            self.traite_objet(
+                                obj.dupplique(), regle.branchements.brch["copy"]
+                            )
                             # on envoie une copie dans le circuit qui ne passe pas la regle
                             self.dupcnt += 1
                         # print "apres copie ", obj.schema
@@ -149,7 +161,7 @@ class Moteur(object):
                 print("==========erreur de traitement repertoire inconnu", exc)
                 print("====regle courante:", regle)
                 if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar('_wid'))
+                    print("====mode parallele: process :", regle.getvar("_wid"))
                 #                printexception()
                 raise StopIteration(3)
 
@@ -157,7 +169,7 @@ class Moteur(object):
                 print("==========erreur de traitement fonction inexistante", exc)
                 print("====regle courante:", regle)
                 if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar('_wid'))
+                    print("====mode parallele: process :", regle.getvar("_wid"))
                 printexception()
                 raise StopIteration(3)
 
@@ -165,11 +177,15 @@ class Moteur(object):
                 print("==========erreur de traitement non gérée")
                 print("====regle courante:", regle)
                 if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar('_wid'))
+                    print("====mode parallele: process :", regle.getvar("_wid"))
                 printexception()
                 if regle.getvar("debuglevel", "0") != "0":
                     print("==========environnement d'execution")
-                    print("====pyetl :", regle.stock_param.nompyetl, regle.stock_param.idpyetl)
+                    print(
+                        "====pyetl :",
+                        regle.stock_param.nompyetl,
+                        regle.stock_param.idpyetl,
+                    )
                     print("====objet courant :", obj)
                     print("====parametres\n", regle.params)
                     print(regle.context)
@@ -193,9 +209,6 @@ class Moteur(object):
 #                   obj.schema.identclasse, obj.schema.objcnt)
 
 
-
-
-
 class Macro(object):
     """ structure de gestion des macros"""
 
@@ -210,13 +223,13 @@ class Macro(object):
         self.vpos = []
         self.vdef = {}
         if vpos is not None:
-            self.vpos = [i.split('=')[0].strip() for i in vpos if i and i !='\n']
+            self.vpos = [i.split("=")[0].strip() for i in vpos if i and i != "\n"]
             for i in vpos:
-                if '=' in i:
-                    nom,defaut = i.split('=',1)
+                if "=" in i:
+                    nom, defaut = i.split("=", 1)
                     self.vdef[nom.strip()] = defaut
                 else:
-                    self.vdef[i] = ''
+                    self.vdef[i] = ""
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
@@ -235,16 +248,16 @@ class Macro(object):
 
         self.commandes_macro[numero] = ligne
 
-
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
         macroenv = context.getmacroenv(self.nom)
-        for i in self.vpos: # on initialise le contexte local
-            macroenv.setlocal(i,self.vdef[i] if self.vdef.get(i) else context.getvar(i))
+        for i in self.vpos:  # on initialise le contexte local
+            macroenv.setlocal(
+                i, self.vdef[i] if self.vdef.get(i) else context.getvar(i)
+            )
         # print ('macro bind', self.nom, self.vpos,macroenv, macroenv.vlocales)
         context.affecte(liste, context=macroenv, vpos=self.vpos)
         return macroenv
-
 
     def get_commands(self):
         """recupere les commandes de la macro"""
@@ -252,7 +265,7 @@ class Macro(object):
 
     def __repr__(self):
         """affichage lisible de la macro"""
-        header = "&&#def;" + self.nom+';'+';'.join(self.vpos)+'\n'
+        header = "&&#def;" + self.nom + ";" + ";".join(self.vpos) + "\n"
         return " ".join(
             [header]
             + [self.help]
@@ -261,14 +274,33 @@ class Macro(object):
         )
 
 
+class MacroStore(object):
+    """ conteneur de traitement des macros """
+
+    def __init__(self):
+        self.macros = dict()
+
+    def regmacro(self, nom, file="", liste_commandes=None, vpos=None):
+        """enregistrement d'une macro"""
+        nouvelle = Macro(nom, file=file, vpos=vpos)
+        if liste_commandes is not None:
+            nouvelle.commandes_macro = liste_commandes
+        # if vpos is not None:
+        #     nouvelle.vpos = vpos
+        # print ('enrregistrement macro',nom, vpos, nouvelle.vpos)
+        self.macros[nom] = nouvelle
+        return nouvelle
+
+
 class Context(object):
     """contexte de stockage des variables"""
+
     PARAM_EXP = re.compile(r"%((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%")
     PARAM_BIND = re.compile(r"^%(\*#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%$")
-    SPLITTER_PV = re.compile(r'(?<!\\);') #reconnait les ; non précédes d'un \
-    SPLITTER_V = re.compile(r'(?<!\\),')  #reconnait les , non précédes d'un \
-    SPLITTER_B = re.compile(r'(?<!\\)\|') #reconnait les | non précédes d'un \
-    SPLITTER_2P = re.compile(r'(?<!\\):') #reconnait les : non précédes d'un \
+    SPLITTER_PV = re.compile(r"(?<!\\);")  # reconnait les ; non précédes d'un \
+    SPLITTER_V = re.compile(r"(?<!\\),")  # reconnait les , non précédes d'un \
+    SPLITTER_B = re.compile(r"(?<!\\)\|")  # reconnait les | non précédes d'un \
+    SPLITTER_2P = re.compile(r"(?<!\\):")  # reconnait les : non précédes d'un \
 
     def __init__(self, parent=None, ident="", type_c="C", env=None, root=False):
         self.nom = type_c + ident
@@ -295,7 +327,6 @@ class Context(object):
             self.ref = None
         # print('creation contexte', self, self.nom)
 
-
     def setref(self, context):
         """modifie l'enchainement des contextes"""
         self.ref = context
@@ -308,15 +339,15 @@ class Context(object):
         """fournit un contexte ephemere lie au contexte de reference"""
         return Context(parent=self, ident=ident, type_c="B")
 
-    def setbinding(self,nom,binding):
+    def setbinding(self, nom, binding):
         """ gere les retours de parametres"""
-        self.binding[nom]=binding
+        self.binding[nom] = binding
 
-    def getcontext(self, ident="", liste=None, ref=False, type_c='C'):
+    def getcontext(self, ident="", liste=None, ref=False, type_c="C"):
         """fournit un nouveau contexte de reference empilé"""
         context = Context(parent=self, ident=ident, type_c=type_c)
         if ref:
-            context.ref=self.ref if self.ref else self
+            context.ref = self.ref if self.ref else self
         if liste:
             self.affecte(liste, context=context)
         return context
@@ -332,74 +363,70 @@ class Context(object):
                 return ctx[nom]
         return defaut
 
-
-
-
-    def resolve(self, element:str)->T.Tuple[str, str]:
-        '''effectue le remplacement de variables'''
-        element=element.strip() # on debarasse les blancs parasites
+    def resolve(self, element: str) -> T.Tuple[str, str]:
+        """effectue le remplacement de variables"""
+        element = element.strip()  # on debarasse les blancs parasites
         if self.PARAM_BIND.match(element):
-            return self.getvar(element[2:-1]),element[2:-1]
+            return self.getvar(element[2:-1]), element[2:-1]
         while self.PARAM_EXP.search(element):
-            for i,j in self.PARAM_EXP.findall(element):
-                cible = '%'+j+i+'%'
+            for i, j in self.PARAM_EXP.findall(element):
+                cible = "%" + j + i + "%"
                 # print ('recup getvar',cible,i)
-                element=element.replace(cible, self.getvar(i))
+                element = element.replace(cible, self.getvar(i))
         if element.startswith("#env:") and element.split(":")[1]:
-        # on affecte une variable d'environnement
+            # on affecte une variable d'environnement
             element = self.env.get(element.split(":")[1], "")
         elif element.startswith("#eval:") and element.split(":")[1]:
-            if '__' in element:
-                raise SyntaxError('fonction non autorisee '+ element)
+            if "__" in element:
+                raise SyntaxError("fonction non autorisee " + element)
             element = eval(element.split(":")[1], {})
         # print('resolve ', element)
         # element = self.getfirst(element)
-        element = element.strip() # on enleve les blancs parasites
-        if element.startswith(r"\ "): # mais on garde les blancs voulus
+        element = element.strip()  # on enleve les blancs parasites
+        if element.startswith(r"\ "):  # mais on garde les blancs voulus
             element = element[1:]
-        if element.endswith(" \\"): # mais on garde les blancs voulus
+        if element.endswith(" \\"):  # mais on garde les blancs voulus
             element = element[:-1]
         return element, ""
 
-    def getfirst(self,element):
-        '''retourne le premier non vide d'une liste d'elements'''
+    def getfirst(self, element):
+        """retourne le premier non vide d'une liste d'elements"""
         liste = self.SPLITTER_B.split(element)
         for valeur in liste:
             if valeur:
                 if valeur.startswith("#env:") and valeur.split(":")[1]:
-                # on affecte une variable d'environnement
+                    # on affecte une variable d'environnement
                     valeur = self.env.get(valeur.split(":")[1], "")
                 elif valeur.startswith("#eval:") and valeur.split(":")[1]:
-                    if '__' in valeur:
-                        raise SyntaxError('fonction non autorisee '+ valeur)
+                    if "__" in valeur:
+                        raise SyntaxError("fonction non autorisee " + valeur)
                     valeur = eval(valeur.split(":")[1], {})
                 if valeur:
                     return valeur
         return element
 
-    def traite_egalite(self,element):
-        ''' gere une affectation par egal'''
-        defnom,defval = element.split('=',1)
-        nom,_= self.resolve(defnom)
-        nolocal=nom.startswith("*")
-        val,binding=self.resolve(defval)
+    def traite_egalite(self, element):
+        """ gere une affectation par egal"""
+        defnom, defval = element.split("=", 1)
+        nom, _ = self.resolve(defnom)
+        nolocal = nom.startswith("*")
+        val, binding = self.resolve(defval)
         # print ('traite_egalite', defnom, nom,'=',defval,val)
         return nom, val, binding, nolocal
 
-    def traite_hstore(self,element, context):
-        ''' mappe un hstore sur l'environnement'''
-        val, binding = self.resolve(element[1:]) # c'est un eclatement de hstore
+    def traite_hstore(self, element, context):
+        """ mappe un hstore sur l'environnement"""
+        val, binding = self.resolve(element[1:])  # c'est un eclatement de hstore
         liste = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
-        self.affecte(liste,context=context)
-
+        self.affecte(liste, context=context)
 
     def affecte(self, liste, context=None, vpos=[]):
-        '''gestion directe d'une affectation'''
+        """gestion directe d'une affectation"""
         nolocal = False
         for num, element in enumerate(liste):
-            if '=' in element: # c'est une affectation
+            if "=" in element:  # c'est une affectation
                 nom, val, binding, nolocal = self.traite_egalite(element)
-            elif element.startswith('*%'):
+            elif element.startswith("*%"):
                 self.traite_hstore(element, context)
                 continue
             else:
@@ -407,17 +434,17 @@ class Context(object):
                 if num < len(vpos):
                     nom = vpos[num]
                     if nom.startswith("*"):
-                        nolocal=True
-                        nom=nom[1:]
+                        nolocal = True
+                        nom = nom[1:]
                 else:
                     nom = val
-                    val = ''
+                    val = ""
             if nom:
-                nom=nom.strip()
+                nom = nom.strip()
                 if not nolocal:
-                    context.setlocal(nom,val) if context else self.setlocal(nom,val)
+                    context.setlocal(nom, val) if context else self.setlocal(nom, val)
                 if binding:
-                    context.setbinding(nom,binding)
+                    context.setbinding(nom, binding)
 
     def getchain(self, noms, defaut=""):
         """fournit un parametre a partir d'une chaine de fallbacks"""
@@ -436,13 +463,15 @@ class Context(object):
 
         retour = self.parent.getgroup(prefix) if self.parent else dict()
         # print ('getgroup',self, retour)
-        retour.update(((i, j) for i, j in self.vlocales.items() if i.startswith(prefix)))
+        retour.update(
+            ((i, j) for i, j in self.vlocales.items() if i.startswith(prefix))
+        )
         return retour
 
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
         # print ('contexte setvar', self, nom, valeur)
-        if nom in self.vlocales or self.root==self:
+        if nom in self.vlocales or self.root == self:
             self.vlocales[nom] = valeur
             if nom in self.binding and self.ref:
                 self.ref.setvar(self.binding[nom], valeur)
@@ -450,19 +479,16 @@ class Context(object):
         else:
             self.ref.setvar(nom, valeur) if self.ref else self.setlocal(nom, valeur)
 
-
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
         # print ('contexte setlocal', self, nom, valeur)
 
         self.vlocales[nom] = valeur
 
-
     def setroot(self, nom, valeur):
         """positionne une variable du contexte racine"""
         #        print ('contexte setvar', nom, valeur)
         self.root.vlocales[nom] = valeur
-
 
     def setretour(self, nom, valeur):
         """positionne une variable et la mappe sur le contexte parent"""
@@ -476,7 +502,6 @@ class Context(object):
         if nom in self.binding and self.root.parent:
             self.root.parent.setvar(self.binding[nom], valeur)
 
-
     def exists(self, nom):
         """la variable existe"""
         return nom in self.ref.vlocales
@@ -484,8 +509,6 @@ class Context(object):
     def update(self, valeurs):
         """affectation en masse"""
         self.vlocales.update(valeurs)
-
-
 
     def getvars(self):
         """recupere toutes les variables d'un contexte"""
@@ -497,7 +520,7 @@ class Context(object):
     #                print ('contexte getvar', nom, c[nom])
 
     def __repr__(self):
-        return self.ident +("("+self.ref.nom+")" if self.ref else "")
+        return self.ident + ("(" + self.ref.nom + ")" if self.ref else "")
 
 
 ##        return self.ref.vlocales.__repr__(), self.search.__repr__()
@@ -506,7 +529,7 @@ class Context(object):
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.vlocales.items())])+\
 #                 '========================= variables globales==========\n'+\
 #                 '\n\t'+'\n\t'.join([i+':'+str(j) for i, j in sorted(self.ref.vlocales.items())])
-def list_input(mapper,liste,reader):
+def list_input(mapper, liste, reader):
     """gere les listes d entree avec acces seie ou parallele"""
     for element in liste:
-        reader(mapper,element)
+        reader(mapper, element)

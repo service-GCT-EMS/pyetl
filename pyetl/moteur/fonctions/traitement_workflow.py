@@ -8,6 +8,7 @@ fonctions de gestion du deroulement d'un script
 import os
 import sys
 import re
+
 # import re
 import zipfile
 import time
@@ -84,7 +85,9 @@ def f_start(regle, obj):
     #    print ('start',obj)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
-    obj2 = Objet("_declencheur", "_autostart", format_natif="interne", conversion="virtuel")
+    obj2 = Objet(
+        "_declencheur", "_autostart", format_natif="interne", conversion="virtuel"
+    )
     #    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True
@@ -103,6 +106,7 @@ def f_end(_, __):
     """
     return True
 
+
 def h_sync(regle):
     """helper final"""
     if regle.stock_param.worker:
@@ -117,6 +121,7 @@ def f_sync(_, __):
     #test||obj||^;;;sync;;||^V;1;;testobj;test;1;||cnt;1
     """
     return True
+
 
 def h_sync(regle):
     """helper final"""
@@ -179,7 +184,7 @@ def f_abort(regle, obj):
     """
     niveau = regle.params.cmp1.val or regle.params.att_sortie.val
     message = regle.params.cmp2.val or regle.params.val_entree.val
-    LOGGER.info('stop iteration '+repr(regle))
+    LOGGER.info("stop iteration " + repr(regle))
     if message.startswith("["):
         message = obj.attributs.get(message[1:-1])
     if message:
@@ -243,10 +248,16 @@ def f_sample(regle, obj):
 def printvariable(regle):
     """ affichage de variables"""
     if not regle.params.cmp1.val:
-        return "\n".join([i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())])
+        return "\n".join(
+            [i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())]
+        )
 
     if regle.params.cmp2.val:
-        return regle.params.cmp1.val + "=" + str(regle.context.getvar(regle.params.cmp1.val))
+        return (
+            regle.params.cmp1.val
+            + "="
+            + str(regle.context.getvar(regle.params.cmp1.val))
+        )
     return regle.context.getvar(regle.params.cmp1.val)
 
 
@@ -300,7 +311,7 @@ def f_retour(regle, obj):
 def h_bloc(regle):
     """initialise le compteur de blocs"""
     regle.ebloc = 1
-    regle.context.type_c='B'
+    regle.context.type_c = "B"
 
 
 def f_bloc(*_):
@@ -328,11 +339,11 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = regle.mode in {'call'}
+    regle.call = regle.mode in {"call"}
     # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
-    if regle.mode == 'geomprocess':
-        regle.context.setvar('macromode', 'geomprocess')
+    if regle.mode == "geomprocess":
+        regle.context.setvar("macromode", "geomprocess")
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
@@ -342,12 +353,14 @@ def h_callmacro(regle):
     # print ('contexte macro', mapper.cur_context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)
     if regle.liste_regles:
-        if regle.call: # la on applatit
+        if regle.call:  # la on applatit
             regle.liste_regles[-1]._return = True
         else:
-            mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
+            mapper.compilateur(
+                regle.liste_regles, regle.debug
+            )  # la on appelle en mode sous programme
     # print ('contexte apres macro', mapper.cur_context)
-    mapper.popcontext(typecheck='C')
+    mapper.popcontext(typecheck="C")
     return erreurs
 
 
@@ -365,12 +378,7 @@ def f_callmacro(regle, obj):
     return True
 
 
-
-
-
-
-
-def f_geomprocess(regle,obj):
+def f_geomprocess(regle, obj):
     """#aide||applique une macro sur une copie de la geometrie et recupere des attributs
     #aide_spec||permet d'appliquer des traitements destructifs sur la geometrie sans l'affecter
     #pattern||;;;geomprocess;C;?LC
@@ -387,7 +395,6 @@ def f_geomprocess(regle,obj):
 
     # print ('retour geomprocess')
     return retour
-
 
 
 def h_testobj(regle):
@@ -474,7 +481,13 @@ def f_archive(regle, obj):
     dest = regle.params.cmp1.val + ".zip"
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     stock = dict()
-    print("archive",time.ctime, regle.params.val_entree.liste, dest, regle.getvar("_sortie"))
+    print(
+        "archive",
+        time.ctime,
+        regle.params.val_entree.liste,
+        dest,
+        regle.getvar("_sortie"),
+    )
     if regle.params.att_entree.val:
         fich = obj.attributs.get(regle.params.att_entree.val)
         if fich:
@@ -482,7 +495,12 @@ def f_archive(regle, obj):
         mode = "a"
     else:
         mode = "w"
-        LOGGER.info("archive : ecriture zip:"+','.join(regle.params.val_entree.liste)+' -> '+dest)
+        LOGGER.info(
+            "archive : ecriture zip:"
+            + ",".join(regle.params.val_entree.liste)
+            + " -> "
+            + dest
+        )
         for f_interm in regle.params.val_entree.liste:
             clefs = []
             if "*" in os.path.basename(f_interm):
@@ -500,15 +518,16 @@ def f_archive(regle, obj):
     with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
         for i in stock:
             file.write(i, arcname=stock[i])
-    print ('fin_archive',dest, time.ctime())
-    LOGGER.info("fin_archive "+dest)
+    print("fin_archive", dest, time.ctime())
+    LOGGER.info("fin_archive " + dest)
     return True
+
 
 def _prepare_batch_from_object(regle, obj):
     """extrait les parametres pertinents de l'objet decrivant le batch"""
 
     comm = regle.getval_entree(obj)
-    commande = comm if comm else obj.attributs.get("commandes",'')
+    commande = comm if comm else obj.attributs.get("commandes", "")
     #    print("commande batch", commande)
 
     entree = obj.attributs.get("entree", regle.getvar("_entree"))
@@ -517,9 +536,11 @@ def _prepare_batch_from_object(regle, obj):
     nom = obj.attributs.get("nom", "batch")
     #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
     parametres = obj.attributs.get("parametres")  # parametres en format hstore
-    params = ["_nom_batch="+nom]
+    params = ["_nom_batch=" + nom]
     if parametres:
-        params = params+["=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])]
+        params = params + [
+            "=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])
+        ]
     return (numero, commande, entree, sortie, params)
 
 
@@ -527,7 +548,9 @@ def _execbatch(regle, obj):
     """execute un batch"""
     if obj is None:  # pas d'objet on en fabrique un sur mesure
         obj = Objet("_batch", "_batch", format_natif="interne")
-        obj.attributs["nom"]=regle.getvar('_nom_batch','batch') # on lui donne un nom
+        obj.attributs["nom"] = regle.getvar(
+            "_nom_batch", "batch"
+        )  # on lui donne un nom
     _, commande, entree, sortie, params = regle.prepare(regle, obj)
     processor = regle.stock_param.getpyetl(
         commande, liste_params=params, entree=entree, rep_sortie=sortie
@@ -540,18 +563,19 @@ def _execbatch(regle, obj):
     return True
 
 
-
 def h_batch(regle):
     """definit la fonction comme etant a declencher"""
     if regle.params.cmp1.val == "run":
         regle.chargeur = True
     regle.prog = _execbatch
     regle.prepare = _prepare_batch_from_object
-    if regle.params.pattern in '45': # boucle : on compile la macro
+    if regle.params.pattern in "45":  # boucle : on compile la macro
         mapper = regle.stock_param
         erreurs = mapper.lecteur_regles(regle.params.cmp2.val, regle_ref=regle)
         if regle.liste_regles:
-            mapper.compilateur(regle.liste_regles, regle.debug) #la on appelle en mode sous programme
+            mapper.compilateur(
+                regle.liste_regles, regle.debug
+            )  # la on appelle en mode sous programme
     regle.stock_param.gestion_parallel_batch(regle)
 
 
@@ -608,14 +632,13 @@ def f_fileloader(regle, obj):
     return objloader(regle, obj)
 
 
-
-
-
 def h_statprint(regle):
     """ imprime les stats a la fin"""
     #        print ('impression stats ')
-    regle.stock_param.statprint = "print"
-    regle.stock_param.statfilter = regle.params.cmp1.val or regle.params.att_sortie.val
+    regle.stock_param.statstore.statprint = "print"
+    regle.stock_param.statstore.statfilter = (
+        regle.params.cmp1.val or regle.params.att_sortie.val
+    )
     regle.valide = "done"
 
 
@@ -631,9 +654,13 @@ def f_statprint(*_):
 def h_statprocess(regle):
     """ retraite les stats en appliquant une macro"""
     #    print ('impression stats ')
-    regle.stock_param.statprint = "statprocess"
-    regle.stock_param.statfilter = regle.params.cmp1.val or regle.params.att_sortie.val
-    regle.stock_param.statdest = regle.params.cmp2.val or regle.params.val_entree.val
+    regle.stock_param.statstore.statprint = "statprocess"
+    regle.stock_param.statstore.statfilter = (
+        regle.params.cmp1.val or regle.params.att_sortie.val
+    )
+    regle.stock_param.statstore.statdest = (
+        regle.params.cmp2.val or regle.params.val_entree.val
+    )
 
     regle.valide = "done"
 
@@ -687,7 +714,9 @@ def h_filter(regle):
     """prepare les sorties pour le filtre """
 
     ls1 = regle.params.cmp1.liste
-    ls2 = regle.params.cmp2.liste if regle.params.cmp2.liste else regle.params.cmp1.liste
+    ls2 = (
+        regle.params.cmp2.liste if regle.params.cmp2.liste else regle.params.cmp1.liste
+    )
     regle.liste_sortie = dict(zip(ls1, ls2))
     for i in ls2:
         regle.branchements.addsortie(i)
@@ -751,18 +780,19 @@ def f_sleep(regle, obj):
     except ValueError:
         flemme = 1
     # un peu de deco ....
-    print ('attente:', flemme, 's')
+    print("attente:", flemme, "s")
     if flemme > 5:
-        dormir = flemme/10
+        dormir = flemme / 10
         for i in range(10):
-            print ('.',end='',flush=True)
+            print(".", end="", flush=True)
             time.sleep(dormir)
         print
     else:
         time.sleep(sleeptime)
     return True
 
-def f_retry(regle,obj):
+
+def f_retry(regle, obj):
     """#aide||relance un traitement a intervalle regulier
     #pattern||A;;;retry;C;
     """
