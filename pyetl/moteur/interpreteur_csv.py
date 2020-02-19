@@ -344,7 +344,7 @@ def prepare_acces_base_scripts(regle):
         return (serv, nomschema)
     else:
         LOGGER.error("base de script non definie ")
-        return False
+        raise SyntaxError("base de script non definie ")
 
 
 def get_macro_from_db(regle, nom_inclus):
@@ -354,16 +354,10 @@ def get_macro_from_db(regle, nom_inclus):
         serv, nomschema = acces
         nomtable = regle.getvar("commandtable")
         description = recup_table_parametres(
-        regle, serv, nomschema, nomtable, clef="nom", valeur=nom
-    )
+            regle, serv, nomschema, nomtable, clef="nom", valeur=nom_inclus
+        )
         regles = recup_table_parametres(
-            regle,
-            serv,
-            nomschema,
-            nomtable,
-            clef="nom",
-            valeur=nom_inclus,
-
+            regle, serv, nomschema, nomtable, clef="nom", valeur=nom_inclus
         )
         regle.stock_param.stocke_macro(description)
 
@@ -378,10 +372,10 @@ def lire_commandes_en_base(mapper, fichier_regles):
         )
         raise SyntaxError("erreur script en base: " + fichier_regles)
     nom = defs[1]
-    acces = prepare_acces_base_scripts(regle)
+    acces = prepare_acces_base_scripts(mapper.regleref)
     if not acces:
-        raise SyntaxError('base scripts non accessible')
-    serv, nomschema, type_base = acces
+        raise SyntaxError("base scripts non accessible")
+    serv, nomschema = acces
     mapper.load_paramgroup("dbscriptmode")
     serv = mapper.getvar("scriptserver")
     if not serv:
@@ -399,7 +393,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
         "lecture de regles en base",
         serv,
         type_base,
-        nomschema + "." + nomtable,
+        nomschema + "." + commandtable,
         "->",
         nom,
     )
@@ -420,8 +414,6 @@ def lire_commandes_en_base(mapper, fichier_regles):
         (v[3], ";".join([str(i) if i is not None else "" for i in v[4:]]))
         for v in regles
     ]
-    if nom.startswith('#'): # c'est une macro
-        entete_macro = '&&#define'+
 
     print("regles lues en base:", serv, nom, "\n".join([str(i) for i in liste_regles]))
 

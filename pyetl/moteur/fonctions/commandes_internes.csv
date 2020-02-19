@@ -343,6 +343,13 @@ $#%bdef%;;;;;;;;;;;
 ;;;;succes;#dbextract:%batchserver%:%batchschema%:%batchscheduler%;;batch;boucle;#timeselect:intervalle;;;
 actif;true;is:valid_time;[intervalle];succes;;;batch;;;debug;multi=4;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#scriptodb;nom;dest;;;;;;;;
+#!help;charge un script en base;;;;;;;;;;
+$#dest;;;;;;
+<#extract:%nom%
+
+
+!===========================================================================================;;;;;;;;;;;
 &&#define;#runsql;nom;dest;;;;;;;;
 #!help;lancement script_sql;;;;;;;;;;
 $sans_sortie=True;;;;;;;;;;;
