@@ -17,36 +17,47 @@ LOGGER = logging.getLogger("pyetl")
 # fonctions de manipulation de schemas
 
 
-def f_info_schema_attribut(regle, obj):
-    """#aide||recupere des infos du schema de l'objet
-       #pattern||A;?C;?A;info_schema;=attribut;||cmp1
-       #test1||obj||^V4;C1;;info_schema;attribut;;||atv;V4;1
-    """
-    # print ("regles:dans info schema ")
-    if obj.schema:
-        obj.attributs[regle.params.att_sortie.val] = FSC.info_schema(
-            obj.schema, "attribut", nom=regle.getval_entree(obj)
+def h_info_schema(regle):
+    """prepare l'acces a un schema different de l'objet"""
+    regle.nomschema = regle.params.cmp1.val
+    regle.schemaref = None
+
+
+def getschemaclasse(regle, obj):
+    """fournit le schema de recherche"""
+    schemaclasse = None
+    if not regle.nomschema:
+        return obj.schema
+    if not regle.schemaref:
+        regle.schemaref = regle.stock_param.schemas.get(regle.nomschema)
+        if not regle.schemaref:
+            print("schema inconnu", regle.nomschema, regle.stock_param.schemas.keys())
+    if regle.schemaref:
+        schemaclasse = regle.schemaref.get_classe(
+            (None, obj.attributs.get(regle.getdyn(obj, "cmp2")))
         )
-        #        print ("regles:info schema ", regle.params.att_sortie,
-        #        obj.attributs[regle.params.att_sortie])
-        return True
-    return False
+    return schemaclasse
 
 
 def f_info_schema(regle, obj):
     """#aide||recupere des infos du schema de l'objet
-       #pattern||A;?C;;info_schema;;
+       #pattern1||A;C;;info_schema;?C;?C
+       #pattern2||A;=attribut;A;info_schema;?C;?C
+     #parametres||attribut qui recupere le resultat;parametre a recuperer;nom de l'attribut;commande,schema,classe
        #test1||obj;ligne||^V4;dimension;;info_schema;||atv;V4;2
        #test2||obj;ligne||^V4;type_geom;;info_schema;||atv;V4;2
        #test3||obj;poly||^V4;type_geom;;info_schema;||atv;V4;3
 
     """
     # print ("regles:dans info schema ")
-    if obj.schema:
+    schemaclasse = getschemaclasse(regle, obj)
+    nom = None
+    if schemaclasse:
+        if regle.params.pattern == "2":
+            nom = obj.attibuts.get(regle.params.att_entree.val)
         obj.attributs[regle.params.att_sortie.val] = FSC.info_schema(
-            obj.schema, regle.params.val_entree.val
+            schemaclasse, regle.params.val_entree.val, nom=nom
         )
-
         #        print ("regles:info schema ", regle.params.att_sortie,
         #        obj.attributs[regle.params.att_sortie])
         return True
@@ -66,7 +77,9 @@ def f_set_schema(regle, obj):
     schem = obj.schema
     if schem:
         if schem.amodifier(regle):
-            FSC.set_val_schema(schem, regle.params.att_sortie.val, regle.params.val_entree.val)
+            FSC.set_val_schema(
+                schem, regle.params.att_sortie.val, regle.params.val_entree.val
+            )
         return True
     return False
 
@@ -119,9 +132,13 @@ def f_stock_schema(regle, obj):
             print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
     FSC.ajuste_schema(
-        regle.schema_courant, obj, regle.params.cmp2.num if regle.params.cmp2.num else 30
+        regle.schema_courant,
+        obj,
+        regle.params.cmp2.num if regle.params.cmp2.num else 30,
     )
-    if regle.final:  # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
+    if (
+        regle.final
+    ):  # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
         obj.schema = None
     if regle.params.att_sortie.val:
         obj.schema = regle.schema_courant
@@ -214,7 +231,6 @@ def h_def_schema(regle):
         if nom != nomschema:
             if nomschema in regle.stock_param.schemas:  # le schema existe deja
                 regle.stock_param.init_schema(
-
                     nom,
                     origine=None,
                     fich="",
@@ -267,15 +283,22 @@ def h_def_schema(regle):
         mode_alias = regle.context.getvar("mode_alias", "num")
         cod_csv = regle.context.getvar("codec_csv", cod)
         if fusion:
-            regle.stock_param.lire_schemas_multiples(nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
+            regle.stock_param.lire_schemas_multiples(
+                nom, regle.fichier, mode_alias, cod=cod_csv, fusion=fusion
             )
         else:
-            lire_schema_csv(regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv)
+            lire_schema_csv(
+                regle.stock_param, nom, regle.fichier, mode_alias, cod=cod_csv
+            )
     else:
         lire_schema_xml(regle.stock_param, nom, regle.fichier, cod=cod)
     regle.nomschema = nom
     LOGGER.info(
-        "lecture schema " + nom + ":" + str(len(regle.stock_param.schemas[nom].classes)) + "classes"
+        "lecture schema "
+        + nom
+        + ":"
+        + str(len(regle.stock_param.schemas[nom].classes))
+        + "classes"
     )
 
     regle.remap = regle.params.att_entree.val == "map"
@@ -289,7 +312,9 @@ def fschema_change_classe(_, obj):
 
     schema2 = obj.schema.schema
     ident = obj.ident
-    schema_classe = schema2.get_classe(ident, cree=True, modele=obj.schema, filiation=True)
+    schema_classe = schema2.get_classe(
+        ident, cree=True, modele=obj.schema, filiation=True
+    )
     #    print ('regles : changement de classe',obj.schema.identclasse,'--->',
     #           ident,schema_classe.info['type_geom'] )
 
@@ -315,7 +340,7 @@ def f_def_schema(regle, obj):
         if regle.differe:  # c'etait un schema interne on le cree
             regle.stock_param.init_schema(
                 nom_base,
-                origine='G',
+                origine="G",
                 fich="",
                 defmodeconf=0,
                 stable=True,
@@ -378,7 +403,13 @@ def f_def_schema(regle, obj):
             obj.schema = None
             return True
         print(
-            "regles:", regle.numero, "classe non trouvee", nom_base, ident, "dans ", regle.nomschema
+            "regles:",
+            regle.numero,
+            "classe non trouvee",
+            nom_base,
+            ident,
+            "dans ",
+            regle.nomschema,
         )
         print("regles: liste classes ", list(schema.classes.keys())[:10], "....")
         obj.schema = None
@@ -396,7 +427,8 @@ def f_match_schema(regle, obj):
             if not schema_destination:
                 return False
             schema_classe.init_mapping(
-                schema_destination, regle.params.cmp2.num if regle.params.cmp2.val else 0.5
+                schema_destination,
+                regle.params.cmp2.num if regle.params.cmp2.val else 0.5,
             )
             if schema_classe.attmap is None:
                 return False
@@ -472,19 +504,20 @@ def f_diff_schema(regle, obj):
     """
     pass
 
+
 def h_schema_add_attribut(regle):
     """cas statique : on ajoute les attributs a une liste de classes"""
     if regle.params.cmp2.val:
         nom_schema = regle.params.cmp1.val
         classes = [
-                regle.stock_param.schemas[nom_schema].classes.get(i)
-                for i in regle.params.cmp2.liste
-            ]
+            regle.stock_param.schemas[nom_schema].classes.get(i)
+            for i in regle.params.cmp2.liste
+        ]
         for i in classes:
             for att in [a for a in regle.params.att_sortie.liste if a[0] != "#"]:
                 #            print('ajout 2', att)
                 i.ajout_attribut_modele(regle.params.def_sortie, nom=att)
-        regle.valide='done'
+        regle.valide = "done"
 
 
 def f_schema_add_attribut(regle, obj):
@@ -519,8 +552,7 @@ def h_schema_supp_attribut(regle):
                 #            print('ajout 2', att)
                 if att in i.attributs:
                     del i.attributs[att]
-        regle.valide='done'
-
+        regle.valide = "done"
 
 
 def f_schema_supp_attribut(regle, obj):
@@ -539,7 +571,6 @@ def f_schema_supp_attribut(regle, obj):
                 del schemaclasse.attributs[att]
 
 
-
 def f_schema_order(regle, obj):
     """#aide||ordonne les champs dans un schema
        #pattern||L;;;ordre;;
@@ -548,13 +579,11 @@ def f_schema_order(regle, obj):
     if not schemaclasse:
         return False
     if schemaclasse.amodifier(regle):
-        nummax = len(schemaclasse.attributs)+1
+        nummax = len(schemaclasse.attributs) + 1
         for att in schemaclasse.attributs.values():
             if att.nom in regle.params.att_sortie.liste:
-                att.ordre = regle.params.att_sortie.liste.index(att.nom)+1
+                att.ordre = regle.params.att_sortie.liste.index(att.nom) + 1
             else:
-                nummax +=1
+                nummax += 1
                 att.ordre = nummax
     return True
-
-

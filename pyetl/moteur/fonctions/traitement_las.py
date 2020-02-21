@@ -8,20 +8,28 @@ fonctions de traitements de nuages de points
 import logging
 import os
 import io
-import xml.etree.cElementTree as ET
+import pdal
+
+# ==================constructeurs de pipeline=================
+
+
+def f_lasreader(regle, obj):
+    """#aide||defineit les fichiers las en entree
+   #pattern1||C;?;A;lasreader;C;?=D
+
+    """
 
 
 def h_lasfilter(regle):
-    """extraction d'element xml"""
-    regle.prefix = regle.params.cmp2.val
-    regle.recherche = regle.params.cmp1.val
+    """extraction d'elements d'un las"""
+    regle.json = open(regle.params.cmp1.val).readlines()
 
 
 def f_lasfilter(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
   #aide_spec||s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
-   #pattern1||A;?;A;lasfilter;C;C||sortie
-#parametres1||liste attributs sortie;defaut;attribut;;caractere decoupage;nombre de morceaux:debut
+   #pattern1||C;?;?A;lasfilter;C;?=D
+#parametres1||repertoire de sortie;defaut;attribut;;json de traitement;D: dynamique
      #!test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
      #!test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
     """

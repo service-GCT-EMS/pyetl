@@ -93,13 +93,18 @@ def _gestion_types_simples(attr, type_attribut):
         #                      " : texte par defaut ",
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
         attr.type_att = "T"
-        print("schemaclasse--------attention type inconnu passage en texte--->", attr, type_attr)
+        print(
+            "schemaclasse--------attention type inconnu passage en texte--->",
+            attr,
+            type_attr,
+        )
 
     if attr.type_att_base == "E" and taille and taille > 9:
         attr.type_att_base = "EL"
         attr.dec = dec
     attr.taille = taille
     # print ('type_attribut sortie ',attr.nom, attr.type_att)
+
 
 class SchemaClasse(object):
     """ description de la structure d'un objet"""
@@ -190,7 +195,16 @@ class SchemaClasse(object):
 
     def __repr__(self):
         """affichage simplifie"""
-        return "schema->"+self.schema.nom+':' + self.dbident + " " + repr(self.info) +'\n\t\t'+','.join(sorted(self.attributs.keys()))
+        return (
+            "schema->"
+            + self.schema.nom
+            + ":"
+            + self.dbident
+            + " "
+            + repr(self.info)
+            + "\n\t\t"
+            + ",".join(sorted(self.attributs.keys()))
+        )
 
     @property
     def __dic_if__(self):
@@ -222,7 +236,9 @@ class SchemaClasse(object):
         for nom in d_if["__infosc__"]:
             setattr(self, nom, d_if[nom])
 
-        self.attributs = {i: A.Attribut(i, 0, d_if=j) for i, j in d_if["attributs"].items()}
+        self.attributs = {
+            i: A.Attribut(i, 0, d_if=j) for i, j in d_if["attributs"].items()
+        }
 
     @property
     def identclasse(self):
@@ -251,13 +267,17 @@ class SchemaClasse(object):
     def getpkey(self):
         """ retourne la liste de champs comportant la clef principale"""
         return ",".join(
-            [self.minmajfunc(str(self.indexes[i])) for i in sorted(self.indexes) if i.startswith("P")]
+            [
+                self.minmajfunc(str(self.indexes[i]))
+                for i in sorted(self.indexes)
+                if i.startswith("P")
+            ]
         )
 
     @property
     def haspkey(self):
         """vrai si la classe a une clef primaire"""
-        return any([i.startswith('P') for i in self.indexes])
+        return any([i.startswith("P") for i in self.indexes])
 
     @property
     def pkey_simple(self):
@@ -322,7 +342,10 @@ class SchemaClasse(object):
         #        print (' '.join([nom+':'+self.minmajfunc(defindexes[nom])
         #                for nom in sorted(defindexes.keys())]))
         return " ".join(
-            [nom + ":" + self.minmajfunc(defindexes[nom]) for nom in sorted(defindexes.keys())]
+            [
+                nom + ":" + self.minmajfunc(defindexes[nom])
+                for nom in sorted(defindexes.keys())
+            ]
         )
 
     #        return ' '.join([nom+':'+','.join([self.minmajfunc(k) for k in defindexes[nom].split(',')])
@@ -363,10 +386,12 @@ class SchemaClasse(object):
         if f_sortie.dialecte and f_sortie.dialecte != "natif":
             self.schema.dbsql = f_sortie.writerparms["dialecte"].gensql()
         elif self.schema.dbsql:
-            f_sortie.writerparms["dialecte"] = f_sortie.get_formats('d').get(self.schema.dbsql.dialecte,'sql')
+            f_sortie.writerparms["dialecte"] = f_sortie.get_formats("d").get(
+                self.schema.dbsql.dialecte, "sql"
+            )
 
     def force_modif(self, regle):
-        '''force une modif de schema'''
+        """force une modif de schema"""
         idregle = regle.index
         if idregle in self.regles_modif:
             self.regles_modif.remove(idregle)
@@ -383,7 +408,8 @@ class SchemaClasse(object):
             return False
         self.regles_modif.add(idregle)
         return True
-#TODO gerer le pb du call
+
+    # TODO gerer le pb du call
 
     def setorig(self, idorig):
         """positionne l'origine de la classe
@@ -396,7 +422,9 @@ class SchemaClasse(object):
             if i.startswith("P:"):
                 del self.indexes[i]
         if liste:
-            self.indexes.update({("P:" + str(i + 1), j) for i, j in enumerate(liste) if j})
+            self.indexes.update(
+                {("P:" + str(i + 1), j) for i, j in enumerate(liste) if j}
+            )
 
     # gestion des clefs etrangeres
     def listfkeys(self):
@@ -415,7 +443,10 @@ class SchemaClasse(object):
 
     def getfkey(self, attribut):
         """ recupere les infos de clef_etrangere """
-        return (self.attributs[attribut].clef_etr, self.attributs[attribut].parametres_clef)
+        return (
+            self.attributs[attribut].clef_etr,
+            self.attributs[attribut].parametres_clef,
+        )
 
     def renomme_cible_classe(self, id_classe, nouv_classe):
         """renomme les cibles de clef etrangeres"""
@@ -475,6 +506,9 @@ class SchemaClasse(object):
         if nom in self.attributs:
             del self.attributs[nom]
             self.liste_attributs_cache = []
+            for i in list(self.indexes.keys()):
+                if self.indexes[i] == nom:
+                    del self.indexes[i]
 
     def rename_attribut(self, nom, nouveau_nom, modele=None):
         """renomme un attribut en gerant les indexes et les clefs """
@@ -508,14 +542,15 @@ class SchemaClasse(object):
         self.type_table = "i"
 
         for num, i in enumerate(liste):
-            if i in self.attributs:
-                att[i] = self.attributs[i]
-            else:
-                att[i] = A.Attribut(i, 0)
+            att[i] = self.attributs[i] if i in self.attributs else A.Attribut(i, 0)
             if ordre:
-                att[i].ordre = num+1
+                att[i].ordre = num + 1
         self.attributs = att
         self.liste_attributs_cache = []
+        self.indexes = {i: j for i, j in self.indexes.items() if j in liste}
+        # for i in list(self.indexes.keys()):
+        #     if self.indexes[i] not in liste:
+        #         del self.indexes[i]
 
     #        print ('dans schema_garder_attributs',liste, self.attributs.keys())
 
@@ -541,7 +576,9 @@ class SchemaClasse(object):
         for i in self.confs.items():
             nom, vals = i
             if obj.attributs[nom] not in vals:
-                err.append("erreur conformite " + nom + ":->" + obj.attributs[nom] + "<-")
+                err.append(
+                    "erreur conformite " + nom + ":->" + obj.attributs[nom] + "<-"
+                )
 
     def adapte_attributs(self, fonction):
         """ renommage en bloc des attributs avec une fonction
@@ -579,18 +616,24 @@ class SchemaClasse(object):
         liste_att = set(liste_attributs)
         #        print ('attributs',la,list(self.attributs.keys()))
         for i in list(self.attributs.keys()):
-            if i not in liste_att:  # on essaye de creer un attribut on regarde si on a le droit
+            if (
+                i not in liste_att
+            ):  # on essaye de creer un attribut on regarde si on a le droit
 
                 att = self.attributs[i]
                 #                print('---------attributs a supprimer ', i, att.nom, att.oblig)
 
-                if att.oblig:  # on peut pas creer un obligatoire sautf si defaut (pas encore géré)
+                if (
+                    att.oblig
+                ):  # on peut pas creer un obligatoire sautf si defaut (pas encore géré)
                     if not att.defaut:
                         continue
                     if att.type_att == "S" or att.type_att == "BS":
                         continue
                     del self.attributs[i]
-                    print("SC: adapte_schema: attribut obligatoire inexistant supprime", i)
+                    print(
+                        "SC: adapte_schema: attribut obligatoire inexistant supprime", i
+                    )
         self.liste_attributs_cache = []
 
     def _gestion_clef_etr(self, attr, clef_etr, parametres_clef):
@@ -604,11 +647,15 @@ class SchemaClasse(object):
         attr.parametres_clef = parametres_clef
         # on verifie qu'il y a un index
         match = 0
-        for ind in self.listindexes.split(" "):  # on verifie qu'un index ordinaire matche
+        for ind in self.listindexes.split(
+            " "
+        ):  # on verifie qu'un index ordinaire matche
             #            print ('clef_pk',ind,self.listindexes)
             if ind and ind.split(":")[1] == nom:
                 match = 1
-        if not match and not attr.unique:  # il n'u a pas d'index (unique implique un index)
+        if (
+            not match and not attr.unique
+        ):  # il n'u a pas d'index (unique implique un index)
             nmax = 0
             for i in self.indexes:
                 if "X" in i:
@@ -636,7 +683,6 @@ class SchemaClasse(object):
         else:
             self.addindex({i: attr.nom for i in index.split(" ")})
         # print ('ajout index: apres',self.nom,self.indexes)
-
 
     def _gestion_enums(self, attr, type_attribut):
         """gere un attribut de type enum"""
@@ -707,7 +753,9 @@ class SchemaClasse(object):
             position = ordreins
         attr.ordre = ordreins
 
-    def stocke_geometrie(self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None):
+    def stocke_geometrie(
+        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None
+    ):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
         #               dimension,self.info["type_geom"])
@@ -743,7 +791,9 @@ class SchemaClasse(object):
                 self.info["type_geom"] = "-1"
             elif nom_type == "alpha":
                 self.info["type_geom"] = "0"
-            elif nom_type.lower() == "geometry" or nom_type.lower() == "public.geometry":
+            elif (
+                nom_type.lower() == "geometry" or nom_type.lower() == "public.geometry"
+            ):
                 #                print ('stocke_geom : classe ',self.nom, type_geom)
                 #                raise
                 self.info["type_geom"] = "-1"
@@ -759,7 +809,9 @@ class SchemaClasse(object):
                 #                raise TypeError
                 self.info["type_geom"] = "0"
         self.srid = srid
-        self.multigeom = multiple if multiple is not None else (self.info["type_geom"] != "1")
+        self.multigeom = (
+            multiple if multiple is not None else (self.info["type_geom"] != "1")
+        )
         #        self.courbe = courbe
         if courbe:
             self.info["courbe"] = "1"
@@ -834,7 +886,9 @@ class SchemaClasse(object):
         #        if clef_primaire:
         #            attr.clef_primaire = clef_primaire
         if definition.clef_etrangere:
-            attr.clef_etrangere = definition.clef_etrangere + "." + definition.cible_clef
+            attr.clef_etrangere = (
+                definition.clef_etrangere + "." + definition.cible_clef
+            )
         index = definition.index
         if index:
             aa_tmp = index.split(" ")
@@ -853,7 +907,11 @@ class SchemaClasse(object):
     def _liste_ordonnee(self, sys=False):
         """ retourne la liste des atttibuts tries selon leur ordre"""
         return sorted(
-            [i for i in self.attributs if i[0] != "#" and (sys or not i.startswith("_sys_"))],
+            [
+                i
+                for i in self.attributs
+                if i[0] != "#" and (sys or not i.startswith("_sys_"))
+            ],
             key=lambda k: self.attributs[k].ordre,
         )
 
@@ -884,7 +942,12 @@ class SchemaClasse(object):
         self.type_table = "i"
         self.changed = True
         if nom.startswith("#"):
-            print("attention nom d'attribut incorrect : transformation", nom, "->", "_" + nom)
+            print(
+                "attention nom d'attribut incorrect : transformation",
+                nom,
+                "->",
+                "_" + nom,
+            )
             nom = "_" + nom
         #        print ('schema: stocke attribut',self.nom,nom,nom_court,type_attribut,ordre)
         # print ('schema: stocke attribut',self.nom,nom,type_attribut,ordre)
@@ -948,9 +1011,9 @@ class SchemaClasse(object):
                 attr.type_att = type_attribut
                 self._gestion_type_attribut(attr, type_attribut, defaut)
             attr.set_formats()
-        #            if attr.type_att=='A':
-        #                print ("type_attribut inconnu",self.nom,attr.nom,'-',type_attribut,
-        #                       attr.nom_conformite)
+            #            if attr.type_att=='A':
+            #                print ("type_attribut inconnu",self.nom,attr.nom,'-',type_attribut,
+            #                       attr.nom_conformite)
             for i in self.fils:
                 i.ajout_attribut_modele(attr)
         return attr
@@ -970,7 +1033,11 @@ class SchemaClasse(object):
         if ordre:
             # print ('schema : sortie liste ordre alpha')
             self.liste_attributs_cache = sorted(
-                [i for i in self.attributs if i[0] != "#" and (sys or not i.startswith("_sys_"))]
+                [
+                    i
+                    for i in self.attributs
+                    if i[0] != "#" and (sys or not i.startswith("_sys_"))
+                ]
             )
         else:
             #            print ('schema : sortie liste ordre entree')
@@ -1040,11 +1107,11 @@ class SchemaClasse(object):
             att.nom_court = nom
 
     def setautopk(self, obj):
-        '''gere une clef principale croissante'''
+        """gere une clef principale croissante"""
         if not self.autopk:
             return
         pkval = int(obj.attributs[self.pkref])
-        if pkval <= self.pkmax and self.autopk=='correct':
+        if pkval <= self.pkmax and self.autopk == "correct":
             self.pkmax += 1
             pkval = self.pkmax
             obj.attributs[self.pkref] = str(pkval)
@@ -1052,12 +1119,16 @@ class SchemaClasse(object):
             self.pkmax = pkval
 
     def initautopk(self, mode):
-        '''initialise la gestion des clefs principales'''
-        if mode == 'stop':
+        """initialise la gestion des clefs principales"""
+        if mode == "stop":
             self.autopk = False
         else:
             if self.pkey_simple:
-                pk = (str(self.indexes[i]) for i in sorted(self.indexes) if i.startswith("P"))[0]
+                pk = (
+                    str(self.indexes[i])
+                    for i in sorted(self.indexes)
+                    if i.startswith("P")
+                )[0]
                 self.pkref = pk
             self.autopk = mode
 
@@ -1084,18 +1155,20 @@ class SchemaClasse(object):
             old_fils.append(nouvelle_classe)  # gestion des filiations de classes
         # n = 0
         #    print ('nouvelle_classe',nouvelle_classe.identclasse,nouvelle_classe.attributs)
-        for i in nouvelle_classe.attributs:
-            # il faut verifier les conformites
-            conf = nouvelle_classe.attributs[i].conformite
-            if conf:
-                # n = n+1
-                #            print ('copie conformite ',i,conf.nom if conf else "non reference")
-                if conf.nom in schema2.conformites:
-                    # elle existe deja on se branche dessus
-                    nouvelle_classe.attributs[i].conformite = schema2.conformites[conf.nom]
-                    # n2 += 1
-                else:
-                    schema2.conformites[conf.nom] = conf  # on la stocke
         if schema2:
+            for i in nouvelle_classe.attributs:
+                # il faut verifier les conformites
+                conf = nouvelle_classe.attributs[i].conformite
+                if conf:
+                    # n = n+1
+                    #            print ('copie conformite ',i,conf.nom if conf else "non reference")
+                    if conf.nom in schema2.conformites:
+                        # elle existe deja on se branche dessus
+                        nouvelle_classe.attributs[i].conformite = schema2.conformites[
+                            conf.nom
+                        ]
+                        # n2 += 1
+                    else:
+                        schema2.conformites[conf.nom] = conf  # on la stocke
             schema2.ajout_classe(nouvelle_classe)
         return nouvelle_classe

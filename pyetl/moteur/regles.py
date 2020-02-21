@@ -7,7 +7,7 @@ Created on Fri Dec 11 14:34:04 2015
 import re
 import os
 import logging
-from itertools import zip_longest,count
+from itertools import zip_longest, count
 
 # from collections import namedtuple
 import pyetl.schema.fonctions_schema as FSC
@@ -46,12 +46,16 @@ class Branch(object):
 
     def liens_num(self):
         """retourne les numeros de regles """
-        liens_num = {i: self.brch[i].numero if self.brch[i] else 99999 for i in self.brch}
+        liens_num = {
+            i: self.brch[i].numero if self.brch[i] else 99999 for i in self.brch
+        }
         return liens_num
 
     def liens_pos(self):
         """retourne les index dans la liste de regles finale avec les inclus"""
-        liens_num = {i: self.brch[i].index if self.brch[i] else 99999 for i in self.brch}
+        liens_num = {
+            i: self.brch[i].index if self.brch[i] else 99999 for i in self.brch
+        }
         return liens_num
 
     def changeliens(self, regles):
@@ -72,14 +76,14 @@ class Branch(object):
 class Valdef(object):
     """classe de stockage d'un parametre"""
 
-    def __init__(self, val, num, liste, dyn, definition, origine, texte, defaut=''):
+    def __init__(self, val, num, liste, dyn, definition, origine, texte, defaut=""):
         self.val = val
         self.num = num
         self.liste = liste
         self.dyn = dyn
         self.definition = definition
         #        self.besoin = None
-        self.origine = origine #valeur dynamique issue d'un champs de l'objet
+        self.origine = origine  # valeur dynamique issue d'un champs de l'objet
         self.defaut = defaut
         self.texte = texte
 
@@ -90,14 +94,17 @@ class Valdef(object):
     def __repr__(self):
         return self.texte + "->" + str(self.val)
 
-    def getval(self,obj,defaut=None):
+    def getval(self, obj, defaut=None):
         if self.origine:
-            return obj.attributs.get(self.origine,defaut if defaut is not None else self.defaut)
+            return obj.attributs.get(
+                self.origine, defaut if defaut is not None else self.defaut
+            )
         return self.val
 
 
 class ParametresFonction(object):
     """ stockage des parametres standanrds des regles """
+
     MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
     MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
     #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
@@ -121,7 +128,7 @@ class ParametresFonction(object):
         """extrait les infos de l'entite selectionnee"""
         #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
         val = ""
-        defaut = ''
+        defaut = ""
         try:
             val = self.valeurs[nom].group(1)
             if r"\;" in val:
@@ -155,8 +162,8 @@ class ParametresFonction(object):
         if val.startswith("["):
             # dyn = True
             origine = val[1:-1]
-            if ':' in origine:
-                origine,defaut=origine.split(':', 1)
+            if ":" in origine:
+                origine, defaut = origine.split(":", 1)
 
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
@@ -172,25 +179,28 @@ class ParametresFonction(object):
             "cmp1:%s" % (str(self.cmp1)),
             "cmp2:%s" % (str(self.cmp2)),
         ]
-        return "\t" + "\n\t".join(listev) + '\n\tidcommand: pattern'+self.pattern
+        return "\t" + "\n\t".join(listev) + "\n\tidcommand: pattern" + self.pattern
 
     def _compact(self):
-        return ';%s;%s;%s;...;%s;%s;'%(self.att_sortie.val,
+        return ";%s;%s;%s;...;%s;%s;" % (
+            self.att_sortie.val,
             self.att_entree.val,
             self.val_entree.val,
-            self.cmp1.val,self.cmp2.val)
+            self.cmp1.val,
+            self.cmp2.val,
+        )
 
     def compilefonc(self, descripteur, variable, debug=False):
         """compile une expression de champs"""
         desc1 = descripteur.replace("N:", "n:")
         desc2 = desc1.replace("C:", "c:")
-        desc3 =self.MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
+        desc3 = self.MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
         desc4 = self.MODIFFONC2.sub(r"regle.getvar('\1')", desc3)
-        if '__' in desc4:
-            raise SyntaxError('fonction non autorisee:'+desc4)
+        if "__" in desc4:
+            raise SyntaxError("fonction non autorisee:" + desc4)
         if debug:
             print("fonction a evaluer", "lambda " + variable + ": " + desc4)
-        retour = eval("lambda " + variable + ": " + desc4,{})
+        retour = eval("lambda " + variable + ": " + desc4, {})
         return retour
 
 
@@ -208,7 +218,8 @@ class ParametresSelecteur(ParametresFonction):
 
     def __repr__(self):
         listev = ["attr:%s" % (str(self.attr)), "vals:%s" % (str(self.vals))]
-        return "\n\t".join(listev)+ '\n\tidcommand: pattern'+self.pattern
+        return "\n\t".join(listev) + "\n\tidcommand: pattern" + self.pattern
+
 
 class Selecteur(object):
     """ container pour les objets de selection """
@@ -220,55 +231,57 @@ class Selecteur(object):
         self.v_nommees = {"attr": attribut, "vals": valeur}
         self.info = dict()
         self.params = None
-        self.nom = ''
+        self.nom = ""
         self.valide = False
         self.choix_fonction(attribut, valeur)
 
     def __repr__(self):
-        return 'selecteur:'+(('valide:'+ self.nom) if self.valide else 'invalide') +'->' + repr(self.v_nommees)
+        return (
+            "selecteur:"
+            + (("valide:" + self.nom) if self.valide else "invalide")
+            + "->"
+            + repr(self.v_nommees)
+        )
 
     @staticmethod
     def true(*_):
         """toujours vrai"""
         return True
 
-
     @staticmethod
     def false(*_):
         """toujours faux"""
         return False
-
 
     def _selpos(self, obj):
         """selecteur standard """
         #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
         return self.fonction(self, obj)
 
-
     def _selneg(self, obj):
         """negation"""
         #        print (" dans select ",self.ligne, obj)
         return not self.fonction(self, obj)
 
-
     def validepattern(self, definition):
         """validation de la signature d'une fonction"""
         return validepattern(self, definition)
-
 
     def choix_fonction(self, attribut, valeur):
         """ definition d un critere de selection """
         if not (attribut or valeur):
             return None
-        self.select=self._selpos
+        self.select = self._selpos
         if valeur.startswith("!"):
             self.select = self._selneg
-            self.v_nommees['vals'] = valeur[1:]
+            self.v_nommees["vals"] = valeur[1:]
         for candidat in self.regle.stock_param.sortedsels:
             # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
             self.valide, elements, erreurs = self.validepattern(candidat.definition)
             if self.valide:
-                self.params = ParametresSelecteur(elements, candidat.definition, candidat.patternnum)
+                self.params = ParametresSelecteur(
+                    elements, candidat.definition, candidat.patternnum
+                )
                 for fhelp in candidat.helper:
                     fhelp(self)
                 self.fonction = candidat.work
@@ -277,43 +290,42 @@ class Selecteur(object):
         print("erreur selecteur inconnu", ascii(attribut), ascii(valeur), "dans:", self)
 
 
-
 def validepattern(operateur, definition):
-        """validation de la signature d'une fonction"""
-        # print (definition)
-        elements={None:None}
-        try:
-            elements = {i: definition[i].match(operateur.v_nommees[i]) for i in definition}
-            # print ('elements',elements)
-        except KeyError:
-            print("definition erronnee", operateur.ligne, definition)
-        valide = None not in elements.values()
-        explication = [
-            i + ":" + definition[i].pattern + "<>" + operateur.v_nommees[i]
-            for i in elements
-            if elements[i] is None
-        ]
-        return valide, elements, explication
-
+    """validation de la signature d'une fonction"""
+    # print (definition)
+    elements = {None: None}
+    try:
+        elements = {i: definition[i].match(operateur.v_nommees[i]) for i in definition}
+        # print ('elements',elements)
+    except KeyError:
+        print("definition erronnee", operateur.ligne, definition)
+    valide = None not in elements.values()
+    explication = [
+        i + ":" + definition[i].pattern + "<>" + operateur.v_nommees[i]
+        for i in elements
+        if elements[i] is None
+    ]
+    return valide, elements, explication
 
 
 class RegleTraitement(object):  # regle de mapping
     """ descripteur de traitement unitaire """
+
     _ido = count(1)  # compteur d'instance
     NOMS_CHAMPS = [
-    "sel1",
-    "val_sel1",
-    "sel2",
-    "val_sel2",
-    "sortie",
-    "defaut",
-    "entree",
-    "commande",
-    "cmp1",
-    "cmp2",
-    "debug",
-    "vlocs",
-]
+        "sel1",
+        "val_sel1",
+        "sel2",
+        "val_sel2",
+        "sortie",
+        "defaut",
+        "entree",
+        "commande",
+        "cmp1",
+        "cmp2",
+        "debug",
+        "vlocs",
+    ]
 
     def __init__(self, ligne, stock_param, fichier, numero, context=None):
 
@@ -349,7 +361,7 @@ class RegleTraitement(object):  # regle de mapping
         self.numero = numero
         if context is None:
             context = stock_param.cur_context
-        self.context = context.getcontext(ident="R" + str(numero),ref=True)
+        self.context = context.getcontext(ident="R" + str(numero), ref=True)
         #        print ('contexte regle',self.ligne, self.context)
         self.val_tri = re.compile("")
         self.index = 0
@@ -385,33 +397,34 @@ class RegleTraitement(object):  # regle de mapping
         self.erreurs = []
         self.v_nommees = dict()
 
-
     def __repr__(self):
         """pour l impression"""
         if self.ligne:
-            return ((self.source if self.source else "")
-                +':'
-                +str(self.index)
-                +'('
-                +str(self.numero)
+            return (
+                (self.source if self.source else "")
+                + ":"
+                + str(self.index)
+                + "("
+                + str(self.numero)
                 + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
-                +'->'
-                +self.params._compact() if self.params else 'noparams ' + str(self.idregle)
-                +'('
-                +repr(self.context)
-                +')'
+                + "->"
+                + self.params._compact()
+                if self.params
+                else "noparams " + str(self.idregle) + "(" + repr(self.context) + ")"
             )
         return "regle vide"
 
-#------------------------------------fonctions d'initialisation---------------------------------
+    # ------------------------------------fonctions d'initialisation---------------------------------
     def _select_fonc(self, fonc):
         """validation de la signature d'une fonction # pretest de la clef prioritaire"""
         if not fonc.clef_sec:
             return True
         definition = fonc.definition
         clef = fonc.clef_sec
-        if clef == "sortie" and fonc.fonctions_sortie:  # on teste les sorties comme clef
+        if (
+            clef == "sortie" and fonc.fonctions_sortie
+        ):  # on teste les sorties comme clef
             #        print ('test des fonctions de sortie ',clef,'->',definition[clef])
             for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
                 if j.definition[clef].match(self.v_nommees[clef]):
@@ -420,7 +433,6 @@ class RegleTraitement(object):  # regle de mapping
         if clef != "-1":
             return definition[clef].match(self.v_nommees[clef])
         return True
-
 
     def set_resultat(self, fonc):
         """ positionne la fonction de sortie de la regle"""
@@ -447,7 +459,6 @@ class RegleTraitement(object):  # regle de mapping
         elements[cref] = None
         return False
 
-
     def traite_helpers(self, fonc):
         """execute les fonctions auxiliaires """
         self.valide = True
@@ -457,7 +468,9 @@ class RegleTraitement(object):  # regle de mapping
             mode_orig = self.mode
             fhelp(self)  # on prepare les elements
             #                print ('retour', regle.valide)
-            if self.mode != mode_orig:  # la fonction helper a change la fonction a appeler
+            if (
+                self.mode != mode_orig
+            ):  # la fonction helper a change la fonction a appeler
                 fonc2 = self.stock_param.commandes.get(self.mode)
                 if fonc2 and callable(fonc2.work):
                     self.fonc = fonc2.work
@@ -466,7 +479,7 @@ class RegleTraitement(object):  # regle de mapping
         if self.shelper:
             erreur = self.shelper(self)
             if erreur:
-                print ('erreur initialisation regle', self)
+                print("erreur initialisation regle", self)
                 self.valide = False
                 return False
         if self.changeclasse:
@@ -482,7 +495,10 @@ class RegleTraitement(object):  # regle de mapping
                 ):
                     self.changeclasse = fonc.changeclasse
 
-                if self.params.att_sortie.origine or "#schema" in self.params.att_sortie.liste:
+                if (
+                    self.params.att_sortie.origine
+                    or "#schema" in self.params.att_sortie.liste
+                ):
                     self.changeschema = fonc.changeschema
         #    if regle.params.att_sortie.val:
         # description_schema(self)  # mets en place le schema pour l'attribut de sortie
@@ -522,24 +538,20 @@ class RegleTraitement(object):  # regle de mapping
                 valide = self.set_resultat(fonc)
                 if not self.fstore:
                     self.afficher_erreurs(fonc, "fonction de sortie non valide")
-            self.params = ParametresFonction(self.elements, fonc.definition, fonc.patternnum)
+            self.params = ParametresFonction(
+                self.elements, fonc.definition, fonc.patternnum
+            )
             self.valide = valide
             self.traite_helpers(fonc)
             return
         self.afficher_erreurs(fonc, "fonction non implementee:")
-
-
-
-
-
-
 
     def afficher_erreurs(self, fonc, message):
         """donne des indications sur les erreurs de syntaxe"""
         motif = "------->"
         print(motif + " erreur interpretation regle", self.fichier, self.numero)
         print(motif, self.ligne.replace("\n", ""))
-        print(motif+ " contexte d'execution:", self.context)
+        print(motif + " contexte d'execution:", self.context)
         print(motif, ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]))
         print(motif, message)
         if self.erreurs:
@@ -565,12 +577,13 @@ class RegleTraitement(object):  # regle de mapping
         else:
             fonction = self.stock_param.commandes.get(self.mode)
             if fonction:
-                patternlist = [i.pattern for i in fonction.subfonctions if i.style == self.style]
+                patternlist = [
+                    i.pattern for i in fonction.subfonctions if i.style == self.style
+                ]
                 print(motif + " patterns autorises ", patternlist)
             else:
-                print ('---------commande inconnue', self.mode)
+                print("---------commande inconnue", self.mode)
         raise SyntaxError("erreurs parametres de commande")
-
 
     def ftrue(self, *_):
         """ toujours vrai  pour les expressions sans conditions"""
@@ -624,13 +637,13 @@ class RegleTraitement(object):  # regle de mapping
         self.context.setlocal(nom, valeur)
 
     # =========================acces aux schemas=============================
-    def getschema(self,nom):
-        '''recupere un schema'''
+    def getschema(self, nom):
+        """recupere un schema"""
         return self.stock_param.schemas.get(nom)
 
     # =========================acces standardises aux objets==================
     def get_defaut(self, obj):
-        ''' retourne la valeur par defaut s'il n'y a pas de champ'''
+        """ retourne la valeur par defaut s'il n'y a pas de champ"""
         # print("get_defaut",self.params.val_entree.val)
         return self.params.val_entree.val
 
@@ -648,14 +661,23 @@ class RegleTraitement(object):  # regle de mapping
         """acces standadise a la liste d'entree valeur avec defaut en liste"""
         return [
             obj.attributs.get(i, j)
-            for i, j in zip_longest(self.params.att_entree.liste, self.params.val_entree.liste)
+            for i, j in zip_longest(
+                self.params.att_entree.liste, self.params.val_entree.liste
+            )
         ]
+
+    def getdyn(self, obj, info):
+        """recupere une valeur en indirection"""
+        param = getattr(self.params, info)
+        return obj.attributs.get(param.val) if param.dyn else param.val
 
     def getlist_ref(self, obj):
         """acces standadise a la liste d'entree valeur avec defaut en liste"""
         return [
             obj.attributs.get(i, j)
-            for i, j in zip_longest(self.params.att_ref.liste, self.params.val_entree.liste)
+            for i, j in zip_longest(
+                self.params.att_ref.liste, self.params.val_entree.liste
+            )
         ]
 
     def setval_sortie(self, obj, valeurs):
@@ -668,7 +690,9 @@ class RegleTraitement(object):  # regle de mapping
 
     def process_liste(self, obj, fonction):
         """applique une fonction a une liste d'attributs et affecte une nouvelle liste"""
-        self.fstore(self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj)))
+        self.fstore(
+            self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj))
+        )
 
     def process_listeref(self, obj, fonction):
         """applique une fonction a une liste d'attributs"""
@@ -738,7 +762,9 @@ class RegleTraitement(object):  # regle de mapping
                 obj.schema.stocke_attribut(nom_att + "_Y", "float", "", "reel")
 
         if not self.final:
-            obj = obj.dupplique()  # on cree une copie si on veut reutiliser l'objet original
+            obj = (
+                obj.dupplique()
+            )  # on cree une copie si on veut reutiliser l'objet original
         #            print ("endstore:copie de l'objet ",obj.ident,self.stock_param.stream)
         groupe_courant = self.stockage.get(groupe)
         #        print ('stockage objet ',obj.ido, obj.copie, obj.ident, obj.schema, freeze)
@@ -758,8 +784,11 @@ class RegleTraitement(object):  # regle de mapping
         if self.memlimit and self.compt_stock >= self.memlimit:
             print("stockage disque")
             #            raise
-            self.tmpwrite(groupe, self.f_sortie.def_sortie.tmpgeomwriter,
-                          self.f_sortie.def_sortie.tmp_geom)
+            self.tmpwrite(
+                groupe,
+                self.f_sortie.def_sortie.tmpgeomwriter,
+                self.f_sortie.def_sortie.tmp_geom,
+            )
         obj.stored = True
 
     def tmpwrite(self, groupe, geomwriter, nomgeom):
@@ -813,7 +842,9 @@ class RegleTraitement(object):  # regle de mapping
             liste = self.stockage[groupe][classe]
             for obj in liste:
                 if obj.schema is None:
-                    print("recupliste: objet sans schema", obj.ido, obj.ident, obj.virtuel)
+                    print(
+                        "recupliste: objet sans schema", obj.ido, obj.ident, obj.virtuel
+                    )
                     continue
                 #                print ('recup obj',obj.ido,obj.copie,obj.ident,'->',obj.schema,obj.virtuel)
                 yield obj
@@ -836,7 +867,9 @@ class RegleTraitement(object):  # regle de mapping
             modele=obj.schema.schema if obj.schema else None,
         )
 
-        schema_classe = schema2.get_classe(ident, cree=True, modele=obj.schema, filiation=True)
+        schema_classe = schema2.get_classe(
+            ident, cree=True, modele=obj.schema, filiation=True
+        )
         if not schema_classe:
             print("erreur changement classe", ident, obj.schema)
         obj.setschema(schema_classe)
@@ -845,10 +878,10 @@ class RegleTraitement(object):  # regle de mapping
         if obj.schema:
             if self.dynschema or obj.schema.amodifier():
                 for tache in self.fonctions_schema:
-                    tache(self,obj)
+                    tache(self, obj)
 
     def statictest(self):
-        '''determine si une regle peurt etre executee statiquement'''
+        """determine si une regle peurt etre executee statiquement"""
         statictest = self.selstd is None or self.selstd(None)
         return statictest
 
@@ -858,7 +891,7 @@ class RegleTraitement(object):  # regle de mapping
         #        print('runscope', pdef, self.stock_param.parent is None)
         if not pdef:
             return True
-        if pdef == 'all':
+        if pdef == "all":
             return True
         if pdef == "worker":
             return self.stock_param.worker

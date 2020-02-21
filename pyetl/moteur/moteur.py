@@ -204,9 +204,7 @@ class Moteur(object):
             if obj.schema:  # c est un objet qui a ete jete par une regle filtrante
                 obj.schema.objcnt -= 1
 
-
-#            print ('fin de l objet ', last.affiche(), obj.schema.schema.nom,
-#                   obj.schema.identclasse, obj.schema.objcnt)
+        # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)
 
 
 class Macro(object):

@@ -33,6 +33,7 @@ fonctions de manipulation d'attributs
 # from pyetl.formats.formats import Stat
 import re
 
+
 def f_setliste(regle, obj):
     """#aide||affectation d'un ensemble d'attributs
        #aide_spec||remplacement d'une liste de valeurs d'attribut avec defaut
@@ -47,6 +48,7 @@ def f_setliste(regle, obj):
     regle.setval_sortie(obj, regle.getlist_entree(obj))
     return True
 
+
 def f_setmatch_liste(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut par les valeurs retenues dans la selection
@@ -60,10 +62,12 @@ def f_setmatch_liste(regle, obj):
     regle.setval_sortie(obj, regle.matchlist)
     return True
 
+
 def h_setval(regle):
     """helper de fonctiond'entree"""
     if not regle.params.att_entree.val:
         regle.get_entree = regle.get_defaut
+
 
 def f_setval(regle, obj):
     """#aide||affectation d un attribut
@@ -77,6 +81,7 @@ def f_setval(regle, obj):
     """
     regle.setval_sortie(obj, regle.get_entree(obj))
     return True
+
 
 def f_setmatch(regle, obj):
     """#aide||affectation d un attribut
@@ -137,7 +142,7 @@ def f_setgeom(regle, obj):
 
 def h_setnonvide(regle):
     """ pour repl_c il faut mettre en forme la liste """
-    regle.params.att_entree.liste=[]  # on vide la liste pour la recreer
+    regle.params.att_entree.liste = []  # on vide la liste pour la recreer
     regle.params.att_entree.liste.extend(regle.params.att_entree.val.split("|"))
 
 
@@ -155,7 +160,11 @@ def f_setnonvide(regle, obj):
         regle.params.att_sortie,
         obj,
         next(
-            (obj.attributs.get(i) for i in regle.params.att_entree.liste if obj.attributs.get(i)),
+            (
+                obj.attributs.get(i)
+                for i in regle.params.att_entree.liste
+                if obj.attributs.get(i)
+            ),
             regle.params.val_entree.val,
         ),
     )
@@ -165,7 +174,9 @@ def f_setnonvide(regle, obj):
 def h_sub(regle):
     """helper pour sub : compile les expressions regulieres"""
     try:
-        regle.exp_entree = re.compile(regle.params.cmp1.val)  # expression sur l'attribut d'entree
+        regle.exp_entree = re.compile(
+            regle.params.cmp1.val
+        )  # expression sur l'attribut d'entree
     except re.error as err:
         print("expression reguliere invalide", regle.params.cmp1.val, err)
         regle.valide = False
@@ -174,10 +185,10 @@ def h_sub(regle):
     regle.exp_sortie = regle.params.cmp2.val
 
     if regle.params.cmp2.val.startswith("f:"):
-        if '__' in regle.params.cmp2.val:
-            raise SyntaxError('fonction non autorisee:'+regle.params.cmp2.val)
+        if "__" in regle.params.cmp2.val:
+            raise SyntaxError("fonction non autorisee:" + regle.params.cmp2.val)
         try:
-            regle.exp_sortie = eval("lambda " + regle.params.cmp2.val,{})
+            regle.exp_sortie = eval("lambda " + regle.params.cmp2.val, {})
             regle.valide = True
         except SyntaxError as err:
             regle.valide = False
@@ -196,7 +207,9 @@ def f_sub(regle, obj):  # fonction de substution
 
     """
     # substitution
-    regle.setval_sortie(obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj)))
+    regle.setval_sortie(
+        obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj))
+    )
     return True
 
 
@@ -206,7 +219,9 @@ def h_setcalc(regle):
     try:
         regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
     except SyntaxError:
-        print("erreur sur l'expression de calcul->" + regle.params.att_entree.val + "<-")
+        print(
+            "erreur sur l'expression de calcul->" + regle.params.att_entree.val + "<-"
+        )
         regle.params.compilefonc(regle.params.att_entree.val, "obj", debug=True)
         regle.valide = False
 
@@ -229,6 +244,8 @@ def h_setself(regle):
     """helper generique permettant de gerer les cas ou entree = sortie"""
     #    print("helper self",regle)
     regle.selset = set(regle.params.att_ref.liste)
+
+
 #    print ('selset',regle.selset)
 
 
@@ -285,7 +302,9 @@ def f_upper_liste2(regle, obj):
         #test1||obj||^V4,V5;a,b;;set||^;;V4,V5;upper||atv;V5;B
         #test2||obj||^V4,V5;a,b;;set||^V4,V5;;;upper||atv;V4;A
     """
-    obj.attributs.update(zip(regle.params.att_ref.liste, map(str.upper, regle.getlist_ref(obj))))
+    obj.attributs.update(
+        zip(regle.params.att_ref.liste, map(str.upper, regle.getlist_ref(obj)))
+    )
     return True
 
 
@@ -341,7 +360,9 @@ def f_lower_liste2(regle, obj):
       #test1||obj||^V4,V5;A,B;;set||^;;V4,V5;lower||atv;V5;b
       #test2||obj||^V4,V5;A,B;;set||^V4,V5;;;lower||atv;V4;a
     """
-    obj.attributs.update(zip(regle.params.att_ref.liste, map(str.lower, regle.getlist_ref(obj))))
+    obj.attributs.update(
+        zip(regle.params.att_ref.liste, map(str.lower, regle.getlist_ref(obj)))
+    )
     return True
 
 
@@ -362,7 +383,9 @@ def h_asplit(regle):
         f_debut = tmp[0]
     if tmp and len(tmp) > 1:
         f_fin = tmp[1]
-    regle.defcible = slice(int(f_debut) if f_debut else None, int(f_fin) if f_fin else None)
+    regle.defcible = slice(
+        int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
+    )
     nbdecoup = nbres + (int(f_debut) if f_debut else 0)
     #    print ('cible decoupage',regle.defcible, nbdecoup,regle.params.att_sortie.liste, regle.multi)
     regle.sep = sep
@@ -388,7 +411,8 @@ def f_asplit(regle, obj):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     else:
         regle.setval_sortie(
-            obj, regle.getval_entree(obj).split(regle.sep, regle.nbdecoup)[regle.defcible]
+            obj,
+            regle.getval_entree(obj).split(regle.sep, regle.nbdecoup)[regle.defcible],
         )
     return True
 
@@ -418,7 +442,9 @@ def f_strip2(regle, obj):
     #test2||obj||^V4;abbaa;;set||^V4;;;strip;a;||atv;V4;bb
     """
     if regle.params.cmp1.val:
-        obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip(regle.params.cmp1.val)
+        obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip(
+            regle.params.cmp1.val
+        )
     else:
         obj.attributs[regle.params.att_ref.val] = regle.getval_ref(obj).strip()
     return True
@@ -441,7 +467,9 @@ def f_vset(regle, obj):
      #parametres||variable (sans les %);defaut;attribut d'entree
         #test1||obj||^P:AA;1;;set||ptv;AA;1
     """
-    valeur = obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
+    valeur = (
+        obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
+    )
     #    print ('dans vset',regle.params.att_sortie.val,valeur)
     if valeur != regle.getvar(regle.params.att_sortie.val):
         regle.setvar(regle.params.att_sortie.val, valeur)
@@ -449,7 +477,7 @@ def f_vset(regle, obj):
             print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
         # print ('stocke ', regle.params.att_sortie.val,
-            #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
+        #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 
@@ -460,10 +488,10 @@ def f_renamelist(regle, obj):  # fonction de substution
      #schema||rename_attribut
       #test1||obj||^V4,V5;;C1,C2;ren||atv;V4;AB
     """
-    ok=True
+    ok = True
     for dest, orig in zip(regle.params.att_sortie.liste, regle.params.att_entree.liste):
         if dest in obj.attributs:
-            ok=False
+            ok = False
         elif orig in obj.attributs:
             obj.attributs[dest] = obj.attributs[orig]
             del obj.attributs[orig]
@@ -480,7 +508,9 @@ def f_rename(regle, obj):  # fonction de substution
     if regle.params.att_sortie.val in obj.attributs:
         return False  # on ecrase pas d'attribut
     if regle.params.att_entree.val in obj.attributs:
-        obj.attributs[regle.params.att_sortie.val] = obj.attributs[regle.params.att_entree.val]
+        obj.attributs[regle.params.att_sortie.val] = obj.attributs[
+            regle.params.att_entree.val
+        ]
         del obj.attributs[regle.params.att_entree.val]
         return True
     return False  # l attribut n' existe pas on ne fait rien
@@ -571,17 +601,21 @@ def f_keep2(regle, obj):
        #test||obj||^;;C1;garder||^X;2;C2;set||atv;X;2
       #test2||obj||^C1;;;garder||^X;2;C2;set||atv;X;2
     """
-    asupprimer = [i for i in obj.attributs if not i.startswith("#") and i not in regle.selset]
+    asupprimer = [
+        i for i in obj.attributs if not i.startswith("#") and i not in regle.selset
+    ]
     #    print ('garder sauf ' , asupprimer)
     regle.asupprimer = asupprimer
     for nom in asupprimer:
         _suppatt(obj, nom)
     return True
 
+
 def h_keep(regle):
-    '''cree un ensemble a partir de la liste de sortie'''
-    regle.selset=set(regle.params.att_sortie.liste)
+    """cree un ensemble a partir de la liste de sortie"""
+    regle.selset = set(regle.params.att_sortie.liste)
     return True
+
 
 def f_keep(regle, obj):
     """#aide||suppression de tous les attributs sauf ceux de la liste
@@ -600,7 +634,9 @@ def f_keep(regle, obj):
         ):
             obj.attributs[dest] = obj.attributs.get(source, defaut)
     else:
-        for dest, defaut in zip(regle.params.att_sortie.liste, regle.params.val_entree.liste):
+        for dest, defaut in zip(
+            regle.params.att_sortie.liste, regle.params.val_entree.liste
+        ):
             if dest not in obj.attributs:
                 obj.attributs[dest] = defaut
 
@@ -710,6 +746,7 @@ def f_round(regle, obj):
     regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)), regle.ndec)))
     return True
 
+
 def f_vround(regle, obj):
     """#aide|| arrondit une variable a n decimales
     #pattern||P;?N;A;round;?N;||sortie
@@ -718,6 +755,6 @@ def f_vround(regle, obj):
     #helper||round
     #test||obj||^X;1.534;;set||^P:W;;X;round;2||ptv;W;1.53
     """
-    valeur= str(round(float(regle.getval_entree(obj)), regle.ndec))
+    valeur = str(round(float(regle.getval_entree(obj)), regle.ndec))
     regle.setvar(regle.params.att_sortie.val, valeur)
     return True

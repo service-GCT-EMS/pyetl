@@ -83,7 +83,11 @@ NOMS_MOIS = {
 }
 
 DDEF = D.datetime(9999, 2, 28)
-DFORM = {"in": "%Y/%m/%d %H:%M:%S.%f", "en": "%m-%d-%Y %H:%M:%S.%f", "fr": "%d-%m-%Y %H:%M:%S.%f"}
+DFORM = {
+    "in": "%Y/%m/%d %H:%M:%S.%f",
+    "en": "%m-%d-%Y %H:%M:%S.%f",
+    "fr": "%d-%m-%Y %H:%M:%S.%f",
+}
 
 # ----------------fonctions de validation de contenu-----------------------
 # --------------dates--------------------
@@ -92,7 +96,7 @@ def get_jma(date, sep):
     #    print ('extraction date ', date,'->'+sep+'<-')
     def_mois = DEF_MOIS
     el_date1, el_date2, el_date3 = date.split(sep)
-    annee, mois, jour = '','',''
+    annee, mois, jour = "", "", ""
     fdate = "inc"
     if len(el_date3) == 4 and el_date3.isnumeric():  # jj-mm-aaaa
         if el_date2.isnumeric() and el_date1.isnumeric():
@@ -174,7 +178,6 @@ def _valide_heure(heure):
     return ":".join((hrs, mins, secs))
 
 
-
 def valide_dates(val, format_dates=""):
     """controle la validite de la definition d'une date et eventuellement la corrige"""
 
@@ -201,12 +204,12 @@ def valide_dates(val, format_dates=""):
     if date:
         date = _valide_jour(date, format_dates)
         if date is None:
-            err = 'erreur date'
+            err = "erreur date"
     #        print ('date validee', date)
     if heure:
         heure = _valide_heure(heure)
         if heure is None:
-            err = 'erreur heure'
+            err = "erreur heure"
     if date and heure:
         return err, date + " " + heure
     if date:
@@ -248,6 +251,10 @@ def info_schema(schemaclasse, request, nom=None):
 
     elif request == "alias":
         return str(schemaclasse.alias)
+    elif request == "ident":
+        return str(schemaclasse.identclasse)
+    elif request == "groupe":
+        return str(schemaclasse.groupe)
     elif request == "pk":
         return str(schemaclasse.getpkey)
     elif request == "attribut":
@@ -264,7 +271,7 @@ def set_val_schema(schemaclasse, nom, valeur):
 
     #    print('dans set_schema :', classe.nom, nom, valeur)
     schemaclasse.type_table = "i"
-    nom=nom.lower()
+    nom = nom.lower()
     if nom in schemaclasse.info:
         schemaclasse.info[nom] = str(valeur)
         return True
@@ -292,6 +299,7 @@ def set_val_schema(schemaclasse, nom, valeur):
 
 
 #    print ('apres',classe.info['type_geom'], classe)
+
 
 def _gere_conformite_invalide(classe, atdef, val, mode):
     """ gere le controle de type par rapport au schema"""
@@ -339,7 +347,14 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
         atdef.conformite = False
         atdef.nom_conformite = ""
     elif mode == "change_conf":
-        print("schema:", nom_schema, ": modification conformité ", atdef.nom, atdef.type_att, val)
+        print(
+            "schema:",
+            nom_schema,
+            ": modification conformité ",
+            atdef.nom,
+            atdef.type_att,
+            val,
+        )
         warnings.append(
             nom_classe
             + "."
@@ -392,12 +407,11 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
 
 def _valide_bool(val):
     """convertit un booleen en format interne"""
-    btypes = {'t','f'}
+    btypes = {"t", "f"}
     if val and val in btypes:
         return "", val, ""
-    print ('erreur booleen',val)
-    return "booleen: " + val,val, "T"
-
+    print("erreur booleen", val)
+    return "booleen: " + val, val, "T"
 
 
 def _valide_type(classe, atdef, val):
@@ -436,7 +450,7 @@ def _valide_type(classe, atdef, val):
     elif atdef.type_att == "B":  # test booleen
         err, val, changetype = _valide_bool(val)
         if changetype:
-            print ('attention suppression type booleen', val, atdef)
+            print("attention suppression type booleen", val, atdef)
             atdef.type_att = "T"
 
     else:
@@ -488,17 +502,27 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
     else:
         if not obj.attributs["#geom"]:
             obj.attributs["#type_geom"] = "0"
-    if obj.virtuel and obj.attributs["#type_geom"]=="indef":
+    if obj.virtuel and obj.attributs["#type_geom"] == "indef":
         pass
     else:
         if obj.attributs["#type_geom"] != schemaclasse.info["type_geom"]:
-            if obj.attributs["#type_geom"] == "3" and schemaclasse.info["type_geom"] == "2":
+            if (
+                obj.attributs["#type_geom"] == "3"
+                and schemaclasse.info["type_geom"] == "2"
+            ):
                 # ligne fermee on autorise et on corrige le type
                 obj.geom_v.forceligne()
                 obj.infogeom()
             else:
-                print(obj.ident,'--type geometrie non conforme schema->',
-                    schemaclasse.info["type_geom"], ', objet->', obj.attributs['#type_geom'],schemaclasse.identclasse, schemaclasse.info)
+                print(
+                    obj.ident,
+                    "--type geometrie non conforme schema->",
+                    schemaclasse.info["type_geom"],
+                    ", objet->",
+                    obj.attributs["#type_geom"],
+                    schemaclasse.identclasse,
+                    schemaclasse.info,
+                )
                 erreurs.append(
                     set_err(
                         schemaclasse,
@@ -510,8 +534,11 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
                     )
                 )
 
-    if obj.attributs["#type_geom"] != "0" and str(obj.dimension) != schemaclasse.info["dimension"]:
-        if obj.attributs["#type_geom"] == 'indef':
+    if (
+        obj.attributs["#type_geom"] != "0"
+        and str(obj.dimension) != schemaclasse.info["dimension"]
+    ):
+        if obj.attributs["#type_geom"] == "indef":
             pass
         elif schemaclasse.autodim:
             # choix automatique de la dimension c'est le premier objet qui gagne
@@ -558,17 +585,33 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             if atdef.oblig:
                 if mode == "strict":
                     erreurs.append(
-                        set_err(schemaclasse, obj, "%s.%s obligatoire: %s", i, "#NOMSCHEMA", 1)
+                        set_err(
+                            schemaclasse,
+                            obj,
+                            "%s.%s obligatoire: %s",
+                            i,
+                            "#NOMSCHEMA",
+                            1,
+                        )
                     )
                 else:
                     warnings.append(
-                        set_err(schemaclasse, obj, "%s.%s obligatoire: %s", i, "#NOMSCHEMA", 0)
+                        set_err(
+                            schemaclasse,
+                            obj,
+                            "%s.%s obligatoire: %s",
+                            i,
+                            "#NOMSCHEMA",
+                            0,
+                        )
                     )
         #                    erreurs.append(classe+'.'+i +' obligatoire('+nom_schema+')')
         elif atdef.conformite:
             if not atdef.conformite.valide_valeur(val):
                 # print ('conformite erronee',val,atdef.conformite.valide_valeur(val))
-                repl, errs, warns = _gere_conformite_invalide(schemaclasse, atdef, val, mode)
+                repl, errs, warns = _gere_conformite_invalide(
+                    schemaclasse, atdef, val, mode
+                )
                 if repl:
                     obj.attributs[i] = repl
                 warnings.extend(warns)
@@ -617,7 +660,9 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
 
     if warnings:
         if obj.attributs.get("#warnings", ""):
-            obj.attributs["#warnings"] = obj.attributs["#warnings"] + "+" + "+".join(warnings)
+            obj.attributs["#warnings"] = (
+                obj.attributs["#warnings"] + "+" + "+".join(warnings)
+            )
         else:
             obj.attributs["#warnings"] = "+".join(warnings)
         LOGGER.info(
@@ -629,7 +674,9 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
 
     if erreurs:
         if obj.attributs.get("#erreurs", ""):
-            obj.attributs["#erreurs"] = obj.attributs["#erreurs"] + "+" + "+".join(erreurs)
+            obj.attributs["#erreurs"] = (
+                obj.attributs["#erreurs"] + "+" + "+".join(erreurs)
+            )
         else:
             obj.attributs["#erreurs"] = "+".join(erreurs)
 
@@ -678,7 +725,11 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
             )
             attr.type_att_defaut = type_defaut
             if not attr:
-                print("ajuste_schema: erreur stockage attribut", schemaclasse.identclasse, nom)
+                print(
+                    "ajuste_schema: erreur stockage attribut",
+                    schemaclasse.identclasse,
+                    nom,
+                )
             if att_orig:
                 #                attr.clef = att_orig.clef
                 #                attr.defindex = {i:j for i,j in att_orig.defindex.items()}
@@ -687,7 +738,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
             attr.graphique = True
         attr.ajout_valeur(obj.attributs.get(nom))
     if obj.hdict:
-        for nom in obj.hdict: # traitement des attributs hstore
+        for nom in obj.hdict:  # traitement des attributs hstore
             att_orig = None
             alias = ""
             nom_court = ""
@@ -696,8 +747,10 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
                 if att_orig:
                     alias = att_orig.alias
                     nom_court = att_orig.nom_court
-            attr = schemaclasse.stocke_attribut(nom, "H", alias=alias, nom_court=nom_court)
-            attr.type_att_defaut = 'H'
+            attr = schemaclasse.stocke_attribut(
+                nom, "H", alias=alias, nom_court=nom_court
+            )
+            attr.type_att_defaut = "H"
     type_geom = obj.attributs["#type_geom"]
     dimension = obj.dimension
     multigeom = False
@@ -781,7 +834,9 @@ def mapping(mapp, classes, id_cl):
             print(" mapping ambigu ", id_cl[1])
             return ""
         else:
-            id_cl = mapp.mapping_classe_schema.get(id_cl[1], ("mapping non trouve", id_cl[1]))
+            id_cl = mapp.mapping_classe_schema.get(
+                id_cl[1], ("mapping non trouve", id_cl[1])
+            )
             # print ('recuperation',ci,cl[1])
     if id_cl in mapp.mapping_origine:
         origine = mapp.mapping_origine[id_cl]
@@ -806,7 +861,9 @@ def analyse_interne(schema, mode="util", type_schema=None):
         return False
     if mode == "no":
         return False
-    if mode == "non_vide":  # on teste si au moins une classe du schema contient un objet
+    if (
+        mode == "non_vide"
+    ):  # on teste si au moins une classe du schema contient un objet
         #        if not schema.rep_sortie:
         #            return False
         if not schema.classes:
@@ -846,14 +903,22 @@ def analyse_interne(schema, mode="util", type_schema=None):
             conf.poids = 0
         for schema_classe in schema.classes.values():
             if schema_classe.a_sortir:
-                schema_classe.poids = schema_classe.objcnt if schema_classe.objcnt>0 else int(schema_classe.info["objcnt_init"])
+                schema_classe.poids = (
+                    schema_classe.objcnt
+                    if schema_classe.objcnt > 0
+                    else int(schema_classe.info["objcnt_init"])
+                )
                 for att in schema_classe.attributs.values():
                     if att.nom_conformite:
                         conf = schema.conformites[att.nom_conformite]
                         att.conformite = conf
                         conf.utilise = True
-                        conf.usages.append((schema_classe.groupe, schema_classe.nom, att.nom))
-                        conf.poids += schema_classe.poids  # sert pour la fusion de schemas
+                        conf.usages.append(
+                            (schema_classe.groupe, schema_classe.nom, att.nom)
+                        )
+                        conf.poids += (
+                            schema_classe.poids
+                        )  # sert pour la fusion de schemas
     if mode == "fusion":
         schema.stock_mapping.mode_fusion = True
     return retour
@@ -917,7 +982,13 @@ def analyse_conformites(schema):
                             ):
                                 if str(val1) != str(val2):
                                     astocker = True
-                                    print("schema: ecart schema", val1, val2, nom_conf, schem_c.nom)
+                                    print(
+                                        "schema: ecart schema",
+                                        val1,
+                                        val2,
+                                        nom_conf,
+                                        schem_c.nom,
+                                    )
                                     nom_conf = nom_conf + "_" + schem_c.nom
                                     break
                     else:
@@ -940,7 +1011,11 @@ def analyse_conformites(schema):
 
                     for k in sorted(att.valeurs, key=key):
                         conf.stocke_valeur(k, k, 1)
-                    print("longueur stockee", nom_conf, len(schema.conformites[nom_conf].stock))
+                    print(
+                        "longueur stockee",
+                        nom_conf,
+                        len(schema.conformites[nom_conf].stock),
+                    )
                 if confvalide:
                     att.nom_conformite = nom_conf
                     att.type_att_base = "T"
