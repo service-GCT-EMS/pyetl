@@ -8,9 +8,18 @@ fonctions de traitements de nuages de points
 import logging
 import os
 import io
-import pdal
 
 # ==================constructeurs de pipeline=================
+# initialiseur de module : gere les imports couteux
+def _initer():
+    """charge la librairie Pdal"""
+    try:
+        import pdal
+
+        return True
+    except ImportError as err:
+        print("fonctions pointcloud non disponibles", err)
+        return False
 
 
 def f_lasreader(regle, obj):

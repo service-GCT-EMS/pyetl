@@ -462,6 +462,9 @@ class RegleTraitement(object):  # regle de mapping
     def traite_helpers(self, fonc):
         """execute les fonctions auxiliaires """
         self.valide = True
+        if not fonc.module.init():
+            raise SyntaxError("module non disponible" + fonc.module.nom)
+
         for fhelp in fonc.helper:
             #         la fonction prevoit une sequence d'initialisation : on l'execute
             #        print ("execution helper",fonc.nom)

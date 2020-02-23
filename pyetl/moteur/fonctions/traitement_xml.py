@@ -22,9 +22,10 @@ def f_xmlextract(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
   #aide_spec||s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
    #pattern1||;;A;xmlextract;C;?C||sortie
+   #pattern2||M;;A;xmlextract;C;?C||sortie
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^XX;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||ath;XX;p2;titi
+      #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||ath;XX;p2;titi
        """
     trouve = False
     xml = obj.attributs.get(regle.params.att_entree.val)

@@ -110,12 +110,16 @@ class DefinitionAttribut(object):
             self.nature = "fixe"
             self.priorite = 1
             self.expression = "^(" + pattern.replace("=", "") + ")$"
-        elif pattern.startswith('('):
-            self.nature = 'A'
-            tmp=re.match(r"^\(([a-z_:]+)\)(.*)",pattern)
+        elif pattern.startswith("("):
+            self.nature = "A"
+            tmp = re.match(r"^\(([a-z_:]+)\)(.*)", pattern)
             if tmp:
-                compl=(self.relist[tmp.group(2)][0][1:]) if tmp.group(2) in self.relist else ""
-                self.expression = "^" + tmp.group(1)+compl
+                compl = (
+                    (self.relist[tmp.group(2)][0][1:])
+                    if tmp.group(2) in self.relist
+                    else ""
+                )
+                self.expression = "^" + tmp.group(1) + compl
                 self.groupe = ""
                 # print (" detecte expression",compl, tmp.groups(),self.expression)
                 self.priorite = 2
@@ -138,7 +142,8 @@ class DefinitionAttribut(object):
 
         if not self.obligatoire:
             self.priorite += 1
-#        self.helper = None
+
+    #        self.helper = None
 
     def match(self, texte):
         """ determine si un texte est compatible avec la definition"""
@@ -162,12 +167,29 @@ class DefinitionAttribut(object):
         )
 
 
+class ModuleInfo(object):
+    """gere l, initialisation d un module et son aide"""
+
+    def __init__(self, nom, fonction):
+        self.nom_module = nom
+        self.initable = callable(fonction)
+        self.disponible = not self.initable
+        self.fonction = fonction
+        self.help = ""
+
+    def init(self):
+        if self.disponible:
+            return True
+        if self.initable:
+            self.disponible = self.fonction()
+
+
 class FonctionTraitement(object):
     """ description d une fonction de traitment """
 
     def __init__(self, nom, fonction, description, definition):
         self.nom = nom
-        self.module = ""
+        self.module = None
         self.subfonctions = []
         self.fonctions_sortie = dict()
         self.description = description
@@ -184,7 +206,7 @@ class FonctionTraitement(object):
         self.shelper = None
         self.definition = definition  # definition_champs
         self.fonction_schema = None
-        self.prepare = description.get("#helper","")
+        self.prepare = description.get("#helper", "")
         self.priorite = 99
         self.style = "N"
         # gestion des clefs secondaires :
@@ -195,7 +217,9 @@ class FonctionTraitement(object):
     #            if self.clef_sec and self.clef_sec not in self.definition:
     #                print("erreur clef fonction ", self.nom, ">"+self.clef_sec+"<", pat)
 
-    def subfonc(self, nom, fonction, description, definition, groupe_sortie, clef_sec, style):
+    def subfonc(
+        self, nom, fonction, description, definition, groupe_sortie, clef_sec, style
+    ):
         """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
         pnum = description["pn"]
         if not "#aide_spec" + pnum in description:
@@ -219,7 +243,7 @@ class FonctionTraitement(object):
     def __repr__(self):
         return (
             "fonction_traitement "
-            + self.module
+            + self.module.nom_module
             + ":"
             + self.nom
             + ":"
@@ -231,7 +255,7 @@ class FonctionTraitement(object):
 def interprete_doc(listedoc):
     """decompose la docstring pour extraire les exemples"""
     description_fonction = dict()
-
+    lastel = ""
     for i in listedoc:
         ligne = i.strip()
         if ligne.startswith("#"):
@@ -263,7 +287,7 @@ def controle_pattern(pattern, noms):
     return definition_champs
 
 
-def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
+def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
     """stockage d une description de fonction standard"""
     for i in list(description_fonction.keys()):
         # on passe tout ce qu'on a defini pour la fonction
@@ -293,18 +317,26 @@ def reg_fonction(stockage, nom_module, nom, fonction, description_fonction):
 
             else:
                 if clef not in stockage:  # la clef existe
-                    fct = FonctionTraitement(clef, fonction, description, definition_champs)
-                    fct.module = nom_module
+                    fct = FonctionTraitement(
+                        clef, fonction, description, definition_champs
+                    )
+                    fct.module = info_module
                     fct.style = style
                     stockage[clef] = fct
                 #        print ('definitions',definition)
                 groupe_sortie = definition_champs["sortie"].groupe
                 stockage[clef].subfonc(
-                    nom, fonction, description, definition_champs, groupe_sortie, clef_sec, style
+                    nom,
+                    fonction,
+                    description,
+                    definition_champs,
+                    groupe_sortie,
+                    clef_sec,
+                    style,
                 )
 
 
-def reg_stockage(store, nom_module, nom, fonction, description):
+def reg_stockage(store, info_module, nom, fonction, description):
     """ enregistre les fonctions de stockage """
     pattern = description.get("#pattern")
     description["pn"] = "0"
@@ -323,12 +355,12 @@ def reg_stockage(store, nom_module, nom, fonction, description):
     else:
         fct = FonctionTraitement(pattern[0], fonction, description, sdef)
         fct.priorite = priorite
-        fct.module = nom_module
+        fct.module = info_module
         #            print ('stockage fonction' ,fct.work,priorite)
         store[pattern[0]] = fct
 
 
-def reg_select(fonctions, nom_module, nom, fonction, description_fonction):
+def reg_select(fonctions, info_module, nom, fonction, description_fonction):
     """stockage d une description de fonction de selection"""
     for i in list(description_fonction.keys()):
         # on passe tout ce qu'on a defini pour la fonction
@@ -354,7 +386,7 @@ def reg_select(fonctions, nom_module, nom, fonction, description_fonction):
                 print("fonction incompatible", nom)
             else:
                 fct = FonctionTraitement(nom, fonction, description, definition_champs)
-                fct.module = nom_module
+                fct.module = info_module
                 fct.priorite = priorite
                 fonctions[clef] = fct
 
@@ -382,7 +414,8 @@ def register(nom_module, module, store, prefixes, simple_prefix):
     """ enregistre toutes les fonctions du module """
     #    for nom, fonction in inspect.getmembers(module, inspect.isfunction):
     #        if nom[:2] == 'f_':
-
+    initer = getattr(module, "_initer") if "_initer" in dir(module) else None
+    infomodule = ModuleInfo(nom_module, initer)
     for nom in dir(module):
         fonction = getattr(module, nom)
         #        print ('traitement ',module.__name__, nom)
@@ -396,24 +429,34 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             continue
         nom_fonction = nom.replace(pref + "_", "", 1)
         listedoc = fonction.__doc__.split("\n")
-        description_fonction = interprete_doc(listedoc)  # on decoupe la doc sous forme de listes
+        description_fonction = interprete_doc(
+            listedoc
+        )  # on decoupe la doc sous forme de listes
         stockage = store[pref]
         if pref in simple_prefix:
-            reghelpers(nom_module, nom_fonction, fonction, stockage, simple_prefix[pref])
+            reghelpers(
+                nom_module, nom_fonction, fonction, stockage, simple_prefix[pref]
+            )
 
         if pref == "f":  # c'est une fonction de traitement
             #            print ('fonction ',module.__name__, nom)
             #                regwarnings(nom_module, nom[2:], COMMANDES, 'fonctions de traitement')
             regwarnings(nom_module, nom_fonction, stockage, "traitement")
-            reg_fonction(stockage, nom_module, nom_fonction, fonction, description_fonction)
+            reg_fonction(
+                stockage, infomodule, nom_fonction, fonction, description_fonction
+            )
 
         elif pref == "s":  # c'est une fonction de stockage
             regwarnings(nom_module, nom_fonction, stockage, "stockage")
-            reg_stockage(stockage, nom_module, nom_fonction, fonction, description_fonction)
+            reg_stockage(
+                stockage, infomodule, nom_fonction, fonction, description_fonction
+            )
 
         elif pref == "sel":  # c'est une fonction de selection
             regwarnings(nom_module, nom_fonction, stockage, "selecteur")
-            reg_select(stockage, nom_module, nom_fonction, fonction, description_fonction)
+            reg_select(
+                stockage, infomodule, nom_fonction, fonction, description_fonction
+            )
 
 
 def get_fonction(nom, store, clef):
@@ -433,7 +476,7 @@ def set_helper(sbf, store, clef):
         sbf.helper.append(get_fonction(sbf.nom, store, clef))
     #    else:
     #        print("non trouve ",sbf.nom)
-#    if sbf.description.get("#helper"):
+    #    if sbf.description.get("#helper"):
     if sbf.prepare:
         sbf.helper.extend([get_fonction(i, store, clef) for i in sbf.prepare])
 
@@ -444,7 +487,9 @@ def complete_fonction(sbf, store):
         stockage = store["s"]
         grouperef = sbf.definition["sortie"].groupe
         sbf.fonctions_sortie = {
-            k: stockage[k] for k in stockage if stockage[k].definition["sortie"].groupe == grouperef
+            k: stockage[k]
+            for k in stockage
+            if stockage[k].definition["sortie"].groupe == grouperef
         }
 
         for i in sbf.fonctions_sortie.values():
@@ -457,13 +502,17 @@ def complete_fonction(sbf, store):
     set_helper(sbf, store, "h")
 
     if sbf.description.get("#shelper"):
-        sbf.shelper = get_fonction(sbf.description.get("#shelper", [""])[0], store, "sh")
+        sbf.shelper = get_fonction(
+            sbf.description.get("#shelper", [""])[0], store, "sh"
+        )
 
     sbf.changeclasse = get_fonction("change_classe", store, "fschema")
     sbf.changeschema = get_fonction("change_schema", store, "fschema")
 
     #    print ('fonction schema ',sbf.nom, sbf.description.get('#schema'))
-    sbf.fonction_schema = get_fonction(sbf.description.get("#schema", [""])[0], store, "fschema")
+    sbf.fonction_schema = get_fonction(
+        sbf.description.get("#schema", [""])[0], store, "fschema"
+    )
 
 
 def loadmodules():
@@ -473,7 +522,10 @@ def loadmodules():
     for fich_module in os.listdir(os.path.dirname(__file__)):
         if fich_module.startswith("traitement"):
             module = "." + os.path.splitext(fich_module)[0]
-            modules[module] = importlib.import_module(module, package=__package__)
+            try:
+                modules[module] = importlib.import_module(module, package=__package__)
+            except ImportError as err:
+                print("module ", fich_module, "non disponible:", err)
 
     simple_prefix = {
         "h": "helper fonction",
