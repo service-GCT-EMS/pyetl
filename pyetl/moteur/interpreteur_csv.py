@@ -108,12 +108,12 @@ def description_schema(regle):
     U:  : unique
     FK: : clef etrangere doit etre suivi de la ref schema.table.attribut"""
     # TODO: gerer les enums
-    type_att_sortie = "T"
+    type_att_sortie = regle.params.att_sortie.typedef
     position = -1
     valeur_defaut = ""
     def_index = ""
     desc_schema = regle.params.att_sortie.definition
-    print("desc schema", regle.params.att_sortie)
+    # print("desc schema1", type(regle.params.att_sortie), desc_schema, type_att_sortie)
     if desc_schema:
         if ":" in desc_schema[0]:  # ( indicateur de position)
             position = int(desc_schema[0][: desc_schema[0].index(":")])

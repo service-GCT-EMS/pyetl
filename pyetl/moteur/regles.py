@@ -76,7 +76,9 @@ class Branch(object):
 class Valdef(object):
     """classe de stockage d'un parametre"""
 
-    def __init__(self, val, num, liste, dyn, definition, origine, texte, defaut=""):
+    def __init__(
+        self, val, num, liste, dyn, definition, origine, texte, defaut, typedef
+    ):
         self.val = val
         self.num = num
         self.liste = liste
@@ -86,6 +88,7 @@ class Valdef(object):
         self.origine = origine  # valeur dynamique issue d'un champs de l'objet
         self.defaut = defaut
         self.texte = texte
+        self.typedef = typedef
 
     def update(self, obj):
         """mets a jour les elements a partir de l'objet"""
@@ -112,6 +115,7 @@ class ParametresFonction(object):
     def __init__(self, valeurs, definition, pnum):
         self.valeurs = valeurs
         self.definitions = definition
+        # print("definition parametres", definition)
         self.att_sortie = self._crent("sortie")
         self.def_sortie = None
         self.att_entree = self._crent("entree")
@@ -167,9 +171,10 @@ class ParametresFonction(object):
 
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
+        typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
 
         #        return self.st_val(val, num, liste, dyn, defin)
-        return Valdef(val, num, liste, dyn, defin, origine, texte, defaut=defaut)
+        return Valdef(val, num, liste, dyn, defin, origine, texte, defaut, typedef)
 
     def __repr__(self):
         listev = [
@@ -691,22 +696,21 @@ class RegleTraitement(object):  # regle de mapping
 
     def setval_sortie(self, obj, valeurs):
         """stockage standardise"""
-        # print(
-        #     "----------stockage ",
-        #     valeurs,
-        #     self.params.att_sortie.val,
-        #     "----",
-        #     self,
-        #     self.fstore,
-        # )
+        print(
+            "----------stockage ",
+            valeurs,
+            self.params.att_sortie.val,
+            "----",
+            self.fstore,
+        )
         self.fstore(self.params.att_sortie, obj, valeurs)
 
-        print(
-            "-----val stockee- ",
-            self.params.att_sortie.val,
-            "->",
-            obj.attributs[self.params.att_sortie.val],
-        )
+        # print(
+        #     "-----val stockee- ",
+        #     self.params.att_sortie.val,
+        #     "->",
+        #     obj.attributs[self.params.att_sortie.val],
+        # )
 
     def process_liste(self, obj, fonction):
         """applique une fonction a une liste d'attributs et affecte une nouvelle liste"""

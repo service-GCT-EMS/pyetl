@@ -170,6 +170,8 @@ class DefinitionAttribut(object):
             + self.pattern
             + "||"
             + self.expression
+            + "||"
+            + self.deftype
             + "\n"
         )
 

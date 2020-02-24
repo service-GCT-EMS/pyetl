@@ -96,10 +96,11 @@ def sh_hstore(regle):
 
 def s_hstore(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
-       #pattern||H||S
+       #pattern||A||H
        #shelper||simple
        """
     print("dans s_hstore")
+    obj.attributs[sortie.val] = valeur
     return True
 
 

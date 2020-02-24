@@ -23,7 +23,7 @@ def f_xmlextract(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
   #aide_spec||on cree un objet pour chaque element
    #pattern1||;;A;xmlextract;C;?C||sortie
-   #pattern2||H;;A;xmlextract;C;?C||sortie
+   #pattern2||A;;A;xmlextract;C;?C||sortie
    #pattern3||S;;A;xmlextract;C:C;?C||sortie
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
@@ -58,9 +58,10 @@ def f_xmlextract(regle, obj):
                 ]
             )
             if regle.params.att_sortie.val:
+                print("traitement", regle.params.att_sortie.val, contenu)
                 regle.setval_sortie(obj, contenu)
                 obj.attributs[regle.params.att_entree.val] = xml
-                print("apres xml", obj.attributs)
+                # print("apres xml", obj.attributs)
                 return True
             obj2 = obj.dupplique()
             # print("detecte element", elem.items())
