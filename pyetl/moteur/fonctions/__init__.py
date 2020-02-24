@@ -43,6 +43,10 @@ class DefinitionAttribut(object):
     #                   groupe : S simple / M multiple / H hstore / D dynamique / P variable moteur
     relist = {
         "A": (r"^" + adef + r"$", "A", "S"),  # variable
+        "AH": (r"^" + adef + r"$", "A:H", "S"),  # variable hstore
+        "AE": (r"^" + adef + r"$", "A:E", "S"),  # variable entiere
+        "AN": (r"^" + adef + r"$", "A:F", "S"),  # variable numerique
+        "AD": (r"^" + adef + r"$", "A:D", "S"),  # variable date
         "AV": (r"^$", "A", "S"),  # vide pour des definitions ou sortie=entree
         "+A": (r"^\+" + adef + r"$", "A", "S"),
         "A+": (r"^" + adef + r"\+$", "A", "S"),
@@ -98,6 +102,7 @@ class DefinitionAttribut(object):
         self.ident = ident
         self.pattern = pattern
         self.groupe = ""
+        self.deftype = "T"
         vide = pattern == ""
         self.expression = ""
         self.obligatoire = vide or not "?" in pattern
@@ -126,6 +131,8 @@ class DefinitionAttribut(object):
         elif pattern in self.relist:
             self.priorite = 4
             self.expression, self.nature, self.groupe, = self.relist[pattern]
+            if ":" in self.nature:
+                self.nature, self.deftype = self.nature.split(":", 1)
             if self.groupe:
                 self.priorite = 6
             if self.groupe == "M":
@@ -218,7 +225,15 @@ class FonctionTraitement(object):
     #                print("erreur clef fonction ", self.nom, ">"+self.clef_sec+"<", pat)
 
     def subfonc(
-        self, nom, fonction, description, definition, groupe_sortie, clef_sec, style
+        self,
+        nom,
+        fonction,
+        description,
+        definition,
+        groupe_sortie,
+        clef_sec,
+        style,
+        module,
     ):
         """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
         pnum = description["pn"]
@@ -228,6 +243,7 @@ class FonctionTraitement(object):
         tsubfonc.groupe_sortie = groupe_sortie
         tsubfonc.style = style
         tsubfonc.patternnum = pnum
+        tsubfonc.module = module
         priorite = 99
         if clef_sec:
             priorite = tsubfonc.definition[clef_sec].priorite
@@ -333,6 +349,7 @@ def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
                     groupe_sortie,
                     clef_sec,
                     style,
+                    info_module,
                 )
 
 

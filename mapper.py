@@ -2,10 +2,12 @@
 """modification d'attributs en fonction d'un fichier de parametrage avec
 prise en charge des expressions regulieres"""
 import time
-import sys
-from pyetl.pyetl import runpyetl, VERSION
-
 STARTTIME = time.time()
+import sys
+from pyetl.vglobales import VERSION
+
+
+
 
 # print ('mapper: fin import modules',int(time.time()-t1))
 # import cProfile as profile
@@ -31,9 +33,10 @@ def main():
     if len(sys.argv) == 1:
         message_help()
     else:
+        from pyetl.pyetl import runpyetl
         mapping = sys.argv[1]
         runpyetl(mapping, sys.argv[2:])
-        print("temps total %.2f secondes" % (time.time() - STARTTIME))
+    print("temps total %.2f secondes" % (time.time() - STARTTIME))
 
 
 # profile.run('main()','schemamapper.profile')

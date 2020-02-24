@@ -86,6 +86,23 @@ def sh_dyn(regle):
     regle.dynschema = True
 
 
+def sh_hstore(regle):
+    """ helper pour les sorties hstore"""
+    regle.action_schema = fschema_ajout_attribut
+    regle.fonctions_schema.append(fschema_ajout_attribut)
+    if regle.params.att_sortie.val and regle.params.att_sortie.val[0] == "#":
+        regle.action_schema = None
+
+
+def s_hstore(sortie, obj, valeur):
+    """#aide||fonction de stockage d'un hstore
+       #pattern||H||S
+       #shelper||simple
+       """
+    print("dans s_hstore")
+    return True
+
+
 def s_simple(sortie, obj, valeur):
     """#aide||affectation cree l' attribut si necessaire
         #pattern||A||S
@@ -337,7 +354,7 @@ def fschema_ajout_att_from_obj(regle, obj):
         fschema_ajout_att_from_obj_dyn(regle, obj)
 
 
-def fschema_ajout_attribut(regle, obj):
+def fschema_ajout_attribut(regle, obj, typedefaut="T"):
     """ajoute un attribut au schema"""
     # print ("ajout attribut", regle,regle.params.def_sortie,obj.schema.regles_modif)
     if obj.schema.amodifier(regle):

@@ -21,6 +21,9 @@ def h_info_schema(regle):
     """prepare l'acces a un schema different de l'objet"""
     regle.nomschema = regle.params.cmp1.val
     regle.schemaref = None
+    regle.fixe = ""
+    if regle.params.att_entree.val.startswith(":"):
+        regle.fixe = regle.params.att_entree.val[1:]
 
 
 def getschemaclasse(regle, obj):
@@ -42,7 +45,7 @@ def getschemaclasse(regle, obj):
 def f_info_schema(regle, obj):
     """#aide||recupere des infos du schema de l'objet
        #pattern1||A;C;;info_schema;?C;?C
-       #pattern2||A;=attribut;A;info_schema;?C;?C
+       #pattern2||A;=attribut;C;info_schema;?C;?C
      #parametres||attribut qui recupere le resultat;parametre a recuperer;nom de l'attribut;commande,schema,classe
        #test1||obj;ligne||^V4;dimension;;info_schema;||atv;V4;2
        #test2||obj;ligne||^V4;type_geom;;info_schema;||atv;V4;2
@@ -53,8 +56,13 @@ def f_info_schema(regle, obj):
     schemaclasse = getschemaclasse(regle, obj)
     nom = None
     if schemaclasse:
+        # print("infoschema", regle.params.pattern, regle.params.att_entree.val)
         if regle.params.pattern == "2":
-            nom = obj.attibuts.get(regle.params.att_entree.val)
+            nom = (
+                regle.fixe
+                if regle.fixe
+                else obj.attributs.get(regle.params.att_entree.val)
+            )
         obj.attributs[regle.params.att_sortie.val] = FSC.info_schema(
             schemaclasse, regle.params.val_entree.val, nom=nom
         )
@@ -523,7 +531,7 @@ def h_schema_add_attribut(regle):
 def f_schema_add_attribut(regle, obj):
     """#aide||ajoute un attribut a un schema sans toucher aux objets
        #pattern||A;;;sc_add_attr;C?;L?
-       #test||obj||^Z;;;sc_add_attr||^W;Z;;info_schema;attribut||atv;W;1
+       #test||obj||^Z;;;sc_add_attr||^W;attribut;:Z;info_schema;||atv;W;1
     """
 
     schemaclasse = obj.schema
@@ -558,7 +566,7 @@ def h_schema_supp_attribut(regle):
 def f_schema_supp_attribut(regle, obj):
     """#aide||supprime un attribut d un schema sans toucher aux objets
        #pattern||A;;;sc_supp_attr;C?;L?
-       #test||obj||^C1;;;sc_supp_attr||^W;C1;;info_schema;attribut||atv;W;0;
+       #test||obj||^C1;;;sc_supp_attr||^W;attribut;:C1;info_schema;||atv;W;0;
     """
 
     schemaclasse = obj.schema

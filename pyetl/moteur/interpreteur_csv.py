@@ -113,6 +113,7 @@ def description_schema(regle):
     valeur_defaut = ""
     def_index = ""
     desc_schema = regle.params.att_sortie.definition
+    print("desc schema", regle.params.att_sortie)
     if desc_schema:
         if ":" in desc_schema[0]:  # ( indicateur de position)
             position = int(desc_schema[0][: desc_schema[0].index(":")])

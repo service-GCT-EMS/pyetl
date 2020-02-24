@@ -242,7 +242,7 @@ def _valide_entiers(val):
 
 def info_schema(schemaclasse, request, nom=None):
     """retourne des elements modifiables du schema"""
-    #    print('dans info_schema :',classe.nom,classe.info["type_geom"],classe.info["dimension"])
+    # print("dans info_schema :", request, nom, schemaclasse.nom)
     if request in schemaclasse.info:
         return str(schemaclasse.info[request])
 
@@ -258,6 +258,7 @@ def info_schema(schemaclasse, request, nom=None):
     elif request == "pk":
         return str(schemaclasse.getpkey)
     elif request == "attribut":
+        # print("dans info_att :", nom in schemaclasse.attributs)
         return "1" if nom in schemaclasse.attributs else "0"
     print("infoschema: commande inconnue ", schemaclasse, request)
 

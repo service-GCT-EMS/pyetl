@@ -367,7 +367,7 @@ class Pyetl(object):
     def stocke_macro(self, description, origine):
         return self.macrostore.stocke_macro(description, origine)
 
-    def macrolist(self):
+    def getmacrolist(self):
         """recupere un iterateur sur les macros"""
         return self.macrostore.getmacrolist()
 

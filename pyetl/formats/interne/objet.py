@@ -10,7 +10,9 @@ from .geometrie.geom import Geometrie, Erreurs
 
 class AttributsSpeciaux(object):
     """gere les attibuts speciaux a certains formats """
-    __slots__=['typespecial','valeurs','special']
+
+    __slots__ = ["typespecial", "valeurs", "special"]
+
     def __init__(self):
         self.typespecial = dict()
         self.valeurs = dict()
@@ -35,16 +37,46 @@ class Objet(object):
     """structure de stockage d'un objet.   """
 
     _ido = itertools.count(1)  # compteur d'instance
-    __slots__=['geom_v','geom_shape','forcegeom','ido','numobj','copie',
-                'stored','is_ok','redirect','classe_is_att',
-                'liste_attributs','idorig','attributs',
-                'hdict','multiples','attributs_speciaux',
-                'text_graph','tg_coords','etats','geomnatif',
-                'erreurs','format_natif',
-                'virtuel','schema','attributs_geom','casefold'
-
+    __slots__ = [
+        "geom_v",
+        "geom_shape",
+        "forcegeom",
+        "ido",
+        "numobj",
+        "copie",
+        "stored",
+        "is_ok",
+        "redirect",
+        "classe_is_att",
+        "liste_attributs",
+        "idorig",
+        "attributs",
+        "hdict",
+        "multiples",
+        "attributs_speciaux",
+        "text_graph",
+        "tg_coords",
+        "etats",
+        "geomnatif",
+        "erreurs",
+        "format_natif",
+        "virtuel",
+        "schema",
+        "attributs_geom",
+        "casefold",
     ]
-    def __init__(self, groupe, classe, format_natif="asc", conversion=None, schema=None, attributs=None, numero=None, orig=None):
+
+    def __init__(
+        self,
+        groupe,
+        classe,
+        format_natif="asc",
+        conversion=None,
+        schema=None,
+        attributs=None,
+        numero=None,
+        orig=None,
+    ):
         self.geom_v = Geometrie()
         #        self.valide = False
         self.geom_shape = None
@@ -62,15 +94,17 @@ class Objet(object):
         self.liste_attributs = None
         self.idorig = orig if orig is not None else (groupe, classe)
         groupe_orig, classe_orig = self.idorig
-        self.attributs = dict((
-            ("#statgroupe", "total"),
-            ("#type_geom", "0"),
-            ("#groupe", groupe),
-            ("#classe", classe),
-            ("#groupe_orig", groupe_orig),
-            ("#classe_orig", classe_orig),
-            ("#geom",'')
-        ))
+        self.attributs = dict(
+            (
+                ("#statgroupe", "total"),
+                ("#type_geom", "0"),
+                ("#groupe", groupe),
+                ("#classe", classe),
+                ("#groupe_orig", groupe_orig),
+                ("#classe_orig", classe_orig),
+                ("#geom", ""),
+            )
+        )
         if attributs is not None:
             self.attributs.update(attributs)
         self.hdict = None
@@ -110,7 +144,7 @@ class Objet(object):
 
     def setnogeom(self, tmp=False):
         """annulle la geometrie"""
-        self.attributs["#geom"] = ''
+        self.attributs["#geom"] = ""
         #        erreurs_geom = self.geom_v.erreurs.getvals() if self.geom_v else ""
         self.geom_v = Geometrie()
         if tmp:  # operation temporaire on fait autre chose derriere
@@ -168,7 +202,9 @@ class Objet(object):
 
     def finalise_geom(self, type_geom=None, orientation="L", desordre=False):
         """finalise la geometrie et renseigne les attributs"""
-        self.geom_v.finalise_geom(type_geom=type_geom, orientation=orientation, desordre=desordre)
+        self.geom_v.finalise_geom(
+            type_geom=type_geom, orientation=orientation, desordre=desordre
+        )
         if not self.geom_v.valide:
             self.setnogeom(tmp=True)
         self.infogeom()
@@ -216,7 +252,9 @@ class Objet(object):
         if self.schema:
             if schema2 is None:
                 schema2 = self.schema.schema
-            schema_classe = schema2.get_classe(ident, cree=True, modele=self.schema, filiation=True)
+            schema_classe = schema2.get_classe(
+                ident, cree=True, modele=self.schema, filiation=True
+            )
             self.setschema(schema_classe)
 
     @property
@@ -234,7 +272,10 @@ class Objet(object):
         geom = self.geom_v.__json_if__
         #        print ('jsonio recupere ',geom)
         atts = ",\n".join(
-            ['"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"' for i in liste]
+            [
+                '"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"'
+                for i in liste
+            ]
         )
         if geom:
             return (
@@ -274,7 +315,9 @@ class Objet(object):
             for i in liste:
                 if i in sch.attributs and sch.attributs[i].type_att.startswith("D"):
                     attributs[i] = (
-                        self.attributs[i].replace("/", "-") if self.attributs.get(i) else None
+                        self.attributs[i].replace("/", "-")
+                        if self.attributs.get(i)
+                        else None
                     )
                 #                    .replace(' ', 'T')'Z' if self.attributs.get(i) else None
                 else:
@@ -304,7 +347,8 @@ class Objet(object):
             goif = {
                 "id": attributs.get("#gid", str(self.ido)),
                 "properties": {
-                    self.casefold(i): attributs[i] if i in attributs else None for i in liste
+                    self.casefold(i): attributs[i] if i in attributs else None
+                    for i in liste
                 },
                 "geometry": geom,
             }
@@ -319,7 +363,6 @@ class Objet(object):
 
                 # self.attributs.update(((self.schema.attmap.get(i,i),v) for i, v in props.items()))
 
-
                 # print("traitement attmap", self.schema.attmap)
                 for i, val in props.items():
                     if val is None:
@@ -329,11 +372,13 @@ class Objet(object):
                         attdef = self.schema.attributs[nom]
                         # print ('recherche',i, 'trouve' , nom,attdef.format_entree)
                         if attdef.format_entree:
-                            self.attributs[nom] = attdef.format_entree.format(attdef.typeconv(val))
+                            self.attributs[nom] = attdef.format_entree.format(
+                                attdef.typeconv(val)
+                            )
                         else:
                             self.attributs[nom] = str(val)
                     except KeyError:
-                        print ('recherche',i, ' non trouve' , nom)
+                        print("recherche", i, " non trouve", nom)
                         self.attributs[nom] = str(val)
             else:
                 for nom, val in props.items():
@@ -343,13 +388,17 @@ class Objet(object):
                         attdef = self.schema.attributs[nom]
                         # print ('recherche',i, 'trouve' , nom,attdef.format_entree)
                         if attdef.format_entree:
-                            self.attributs[nom] = attdef.format_entree.format(attdef.typeconv(val))
+                            self.attributs[nom] = attdef.format_entree.format(
+                                attdef.typeconv(val)
+                            )
                         else:
                             self.attributs[nom] = str(val)
                     except KeyError:
                         self.attributs[nom] = str(val)
         else:
-            self.attributs.update({i: str(props[i]) for i in props if props[i] is not None})
+            self.attributs.update(
+                {i: str(props[i]) for i in props if props[i] is not None}
+            )
         self.geom_v.from_geo_interface(geoif.get("geometry", {}))
         self.infogeom()
 
@@ -375,9 +424,18 @@ class Objet(object):
         aliste = sorted(self.attributs.keys()) if attlist is None else attlist
         print(
             invariant + "\n",
-            (schema + "\n\t") if not attlist else '',
-            [(i, (str(self.attributs[i])[:50]+'...') if len(str(self.attributs.get(i,'')))>50 else self.attributs.get(i, "<non defini>")) for i in aliste] if limit else
-            [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
+            (schema + "\n\t") if not attlist else "",
+            [
+                (
+                    i,
+                    (str(self.attributs[i])[:50] + "...")
+                    if len(str(self.attributs.get(i, ""))) > 50
+                    else self.attributs.get(i, "<non defini>"),
+                )
+                for i in aliste
+            ]
+            if limit
+            else [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
         )
 
     def initatt(self, nom, valeur):
@@ -417,8 +475,7 @@ class Objet(object):
     def atget_n(self, nom, defaut=0.0):
         """conversion decimale"""
         try:
-            val = self.attributs[nom]
-            return float(val)
+            return float(self.attributs[nom])
         except (ValueError, KeyError):
             return defaut
 
@@ -444,8 +501,10 @@ class Objet(object):
             self.attributs["#schema"] = ""
         if remap:
             if self.schema.attmap is not None:
-                self.attributs = {self.schema.attmap.get(i, i): self.attributs[i] for i in self.attributs}
-
+                self.attributs = {
+                    self.schema.attmap.get(i, i): self.attributs[i]
+                    for i in self.attributs
+                }
 
     def initattr(self):
         """ initialise les attributs a leur valeur de defaut """
@@ -453,7 +512,9 @@ class Objet(object):
             return False
         for i in self.schema.get_liste_attributs(sys=True):
             self.attributs[i] = (
-                self.schema.attributs[i].defaut if self.schema.attributs[i].defaut else ""
+                self.schema.attributs[i].defaut
+                if self.schema.attributs[i].defaut
+                else ""
             )
 
     def setschema_auto(self, schema):
@@ -475,7 +536,7 @@ class Objet(object):
             self.schema = None
             self.attributs["#schema"] = ""
 
-    def get_valeur(self, nom, defaut=''):
+    def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""
         try:
             return self.attributs[nom]
@@ -509,7 +570,10 @@ class Objet(object):
         res = ""
         if dic:
             res = ", ".join(
-                [" => ".join((i, dic[i].replace('"', r"\""))) for i in sorted(dic.keys())]
+                [
+                    " => ".join((i, dic[i].replace('"', r"\"")))
+                    for i in sorted(dic.keys())
+                ]
             )
         self.attributs[nom] = res
         return res
@@ -522,8 +586,15 @@ class Objet(object):
             self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
-            self.hdict[nom] = dict(
-                [i.replace(r"\"", '"').split('" => "') for i in hstore[1:-1].split('", "')]
+            self.hdict[nom] = (
+                dict(
+                    [
+                        i.replace(r"\"", '"').split('" => "')
+                        for i in hstore[1:-1].split('", "')
+                    ]
+                )
+                if hstore
+                else dict()
             )
         return self.hdict[nom]
 

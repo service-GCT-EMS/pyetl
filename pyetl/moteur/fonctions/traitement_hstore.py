@@ -103,7 +103,11 @@ def f_hset3(regle, obj):
     """
     obj.attributs[regle.params.att_sortie.val] = ", ".join(
         [
-            '"' + i + '" => "' + obj.attributs[i].replace("\\", "\\\\").replace('"', r"\"") + '"'
+            '"'
+            + i
+            + '" => "'
+            + obj.attributs[i].replace("\\", "\\\\").replace('"', r"\"")
+            + '"'
             for i in obj.attributs
             if not i.startswith("#")
         ]
@@ -171,7 +175,9 @@ def f_hget1(regle, obj):
     except ValueError:
         return False
     regle.fstore(
-        regle.params.att_sortie, obj, hdic.get(regle.params.cmp1.val, regle.params.val_entree.val)
+        regle.params.att_sortie,
+        obj,
+        hdic.get(regle.params.cmp1.val, regle.params.val_entree.val),
     )
     return True
 
@@ -216,6 +222,7 @@ def f_hget3(regle, obj):
         return False
     regle.fstore(regle.params.att_sortie, obj, hdic)
     return True
+
 
 def f_hsplit(regle, obj):
     """#aide||decoupage d'un attribut hstore

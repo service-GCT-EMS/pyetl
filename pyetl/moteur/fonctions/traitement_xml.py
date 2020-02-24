@@ -15,17 +15,21 @@ import xml.etree.cElementTree as ET
 def h_xmlextract(regle):
     """extraction d'element xml"""
     regle.cadre = regle.params.cmp2.val
-    regle.recherche = regle.params.cmp1.val
+    tmp = regle.params.cmp1.val.split(":")
+    regle.recherche = tmp[0]
 
 
 def f_xmlextract(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
-  #aide_spec||s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
+  #aide_spec||on cree un objet pour chaque element
    #pattern1||;;A;xmlextract;C;?C||sortie
-   #pattern2||M;;A;xmlextract;C;?C||sortie
+   #pattern2||H;;A;xmlextract;C;?C||sortie
+   #pattern3||S;;A;xmlextract;C:C;?C||sortie
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||ath;XX;p2;titi
+     #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^;;V4;xmlextract;pp;||#xmltag;pp;;;;;;pass-;;||ath;#xmlextract;p1;titi
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp;||ath;XX;p2;titi
+      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp:p1;||atv;XX;toto
        """
     trouve = False
     xml = obj.attributs.get(regle.params.att_entree.val)
@@ -43,9 +47,7 @@ def f_xmlextract(regle, obj):
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
-            obj2 = obj.dupplique()
-            # print("detecte element", elem.items())
-            obj2.attributs["#xmlextract"] = ", ".join(
+            contenu = ", ".join(
                 [
                     '"'
                     + i
@@ -55,6 +57,14 @@ def f_xmlextract(regle, obj):
                     for i, j in elem.items()
                 ]
             )
+            if regle.params.att_sortie.val:
+                regle.setval_sortie(obj, contenu)
+                obj.attributs[regle.params.att_entree.val] = xml
+                print("apres xml", obj.attributs)
+                return True
+            obj2 = obj.dupplique()
+            # print("detecte element", elem.items())
+            obj2.attributs["#xmlextract"] = contenu
             # obj2.attributs.update(((regle.prefix + i, j) for i, j in elem.items()))
             obj2.attributs["#xmltag"] = regle.recherche
             if regle.cadre:

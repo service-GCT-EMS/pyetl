@@ -462,8 +462,14 @@ class RegleTraitement(object):  # regle de mapping
     def traite_helpers(self, fonc):
         """execute les fonctions auxiliaires """
         self.valide = True
-        if not fonc.module.init():
-            raise SyntaxError("module non disponible" + fonc.module.nom)
+        inited = False
+        try:
+            inited = fonc.module.init()
+        except:
+            print("erreur initialisation module", fonc.nom)
+            pass
+        if not inited:
+            raise SyntaxError("module non disponible" + fonc.nom)
 
         for fhelp in fonc.helper:
             #         la fonction prevoit une sequence d'initialisation : on l'execute
@@ -685,11 +691,22 @@ class RegleTraitement(object):  # regle de mapping
 
     def setval_sortie(self, obj, valeurs):
         """stockage standardise"""
-        #        print ("----------stockage ", valeurs, self.params.att_sortie.val, "----",
-        #               self, self.fstore)
+        # print(
+        #     "----------stockage ",
+        #     valeurs,
+        #     self.params.att_sortie.val,
+        #     "----",
+        #     self,
+        #     self.fstore,
+        # )
         self.fstore(self.params.att_sortie, obj, valeurs)
 
-    #        print ("-----val stockee- ", obj.attributs[self.params.att_sortie.val])
+        print(
+            "-----val stockee- ",
+            self.params.att_sortie.val,
+            "->",
+            obj.attributs[self.params.att_sortie.val],
+        )
 
     def process_liste(self, obj, fonction):
         """applique une fonction a une liste d'attributs et affecte une nouvelle liste"""
