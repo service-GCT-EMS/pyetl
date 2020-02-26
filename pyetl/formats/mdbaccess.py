@@ -206,208 +206,208 @@ def ihmtablelist(liste):
     return "<" + ",".join(liste) + ">"
 
 
-def _get_tables(connect):
-    """recupere la structure des tables"""
-    schema_base = connect.schemabase
-    for i in connect.get_tables():
-        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table = (
-            "",
-            "",
-            "",
-            "0",
-            "2",
-            "0",
-            "r",
-        )
-        if len(i) == 12:
-            _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
-                i
-            )
-        elif len(i) == 11:
-            nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
-                i
-            )
-        else:
-            print("mdba:table mal formee ", connect.type_base, len(i), i)
-            continue
+# def _get_tables(connect):
+#     """recupere la structure des tables"""
+#     schema_base = connect.schemabase
+#     for i in connect.get_tables():
+#         nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table = (
+#             "",
+#             "",
+#             "",
+#             "0",
+#             "2",
+#             "0",
+#             "r",
+#         )
+#         if len(i) == 12:
+#             _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
+#                 i
+#             )
+#         elif len(i) == 11:
+#             nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
+#                 i
+#             )
+#         else:
+#             print("mdba:table mal formee ", connect.type_base, len(i), i)
+#             continue
 
-        #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
-        #        index_geometrique, clef_primaire, index, clef_etrangere = i
-        #        print ('mdba:select tables' ,i)
-        ident = (nom_groupe, nom_classe)
-        schemaclasse = schema_base.get_classe(ident)
-        if not schemaclasse:
-            #            print ("schema incoherent",ident,sorted(schema_base.classes.keys()))
-            if type_table == "r":
-                LOGGER.info("table sans attributs" + ".".join(ident))
-            #                print("table sans attributs", ident)
-            elif type_table == "v" or type_table == "m":
-                LOGGER.info("vue sans attributs" + ".".join(ident))
-            #                print("vue sans attributs", ident)
+#         #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
+#         #        index_geometrique, clef_primaire, index, clef_etrangere = i
+#         #        print ('mdba:select tables' ,i)
+#         ident = (nom_groupe, nom_classe)
+#         schemaclasse = schema_base.get_classe(ident)
+#         if not schemaclasse:
+#             #            print ("schema incoherent",ident,sorted(schema_base.classes.keys()))
+#             if type_table == "r":
+#                 LOGGER.info("table sans attributs" + ".".join(ident))
+#             #                print("table sans attributs", ident)
+#             elif type_table == "v" or type_table == "m":
+#                 LOGGER.info("vue sans attributs" + ".".join(ident))
+#             #                print("vue sans attributs", ident)
 
-            schemaclasse = schema_base.setdefault_classe(ident)
-        schemaclasse.alias = alias_classe if alias_classe else ""
-        schemaclasse.setinfo("objcnt_init", str(nb_obj) if nb_obj is not None else "0")
-        schemaclasse.setinfo("dimension", str(dimension))
-        schemaclasse.fichier = connect.nombase
-        #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
-        if schemaclasse.info["type_geom"] == "indef":
-            schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
-            #            print('stockage type geometrique', ident, type_geometrique,
-            #                  schemaclasse.info["type_geom"])
-            if schemaclasse.info["type_geom"] != "0":
-                schemaclasse.info["nom_geometrie"] = "geometrie"
-        if schemaclasse.info["type_geom"] == "indef":
-            print(
-                ident,
-                "apres _get_tables: type_geometrique",
-                schemaclasse.info["type_geom"],
-            )
+#             schemaclasse = schema_base.setdefault_classe(ident)
+#         schemaclasse.alias = alias_classe if alias_classe else ""
+#         schemaclasse.setinfo("objcnt_init", str(nb_obj) if nb_obj is not None else "0")
+#         schemaclasse.setinfo("dimension", str(dimension))
+#         schemaclasse.fichier = connect.nombase
+#         #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
+#         if schemaclasse.info["type_geom"] == "indef":
+#             schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
+#             #            print('stockage type geometrique', ident, type_geometrique,
+#             #                  schemaclasse.info["type_geom"])
+#             if schemaclasse.info["type_geom"] != "0":
+#                 schemaclasse.info["nom_geometrie"] = "geometrie"
+#         if schemaclasse.info["type_geom"] == "indef":
+#             print(
+#                 ident,
+#                 "apres _get_tables: type_geometrique",
+#                 schemaclasse.info["type_geom"],
+#             )
 
-        schemaclasse.type_table = type_table
-
-
-def _get_attributs(connect):
-    """recupere les attributs"""
-    types_base = connect.types_base
-    schema_base = connect.schemabase
-    fields = connect.attdef._fields
-    fdebug = None
-    if DEBUG:
-        print("ecriture debug:", "lecture_base_attr_" + connect.type_base + ".csv")
-        fdebug = open("lecture_base_attr_" + connect.type_base + ".csv", "w")
-        fdebug.write("\n".join(fields) + "\n")
-
-    for atd in connect.get_attributs():
-        # atd = connect.attdef(*i)
-        # print ('schema attributs', atd)
-        if DEBUG:
-            fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
-            fdebug.write("\n")
-        num_attribut = float(atd.num_attribut)
-        classe = schema_base.setdefault_classe((atd.nom_groupe, atd.nom_classe))
-        #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
-        if not atd.type_attr:
-            print(
-                "attribut sans type",
-                "g:",
-                atd.nom_groupe,
-                "c:",
-                atd.nom_classe,
-                "a:",
-                atd.nom_attr,
-            )
-        type_ref = atd.type_attr
-        taille_att = atd.taille
-        if "(" in atd.type_attr:  # il y a une taille
-            tmp = atd.type_attr.split("(")
-            if tmp[1][-1].isnumeric():
-                type_ref = tmp[0]
-                taille_att = tmp[1][-1]
-        if type_ref.upper() in types_base:
-            type_attr = types_base[type_ref.upper()]
-        else:
-            type_attr = connect.get_type(type_ref)
-
-        if atd.enum:
-            #            print ('detection enums ',atd.enum)
-            #            if enum in schema_base.conformites:
-            type_attr_base = "T"
-            type_attr = atd.enum
-        else:
-            type_attr_base = type_attr
-
-        clef_etr = ""
-        if atd.clef_etrangere:
-            cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
-            #            if atd.cible_clef is None:
-            #                cible_clef = ''
-            if not cible_clef:
-                print(
-                    "mdba: erreur schema : cible clef etrangere non definie",
-                    atd.nom_groupe,
-                    atd.nom_classe,
-                    atd.nom_attr,
-                    atd.clef_etrangere,
-                )
-            #            print ('trouve clef etrangere',clef_etrangere)
-            clef_etr = atd.clef_etrangere + "." + cible_clef
-        #        if clef:  print (clef)
-        index = atd.index if atd.index is not None else ""
-        #        if index is None:
-        #            index = ''
-        if atd.clef_primaire:
-            code = "P:" + str(atd.clef_primaire)
-            if code not in index:
-                index = index + " " + code if index else code
-
-        obligatoire = atd.obligatoire == "oui"
-        parametres_clef = atd.parametres_clef if "parametres_clef" in fields else ""
-        #        if type_attr == 'geometry':
-        #            print ('attribut',atd)
-        classe.stocke_attribut(
-            atd.nom_attr,
-            type_attr,
-            defaut=atd.defaut,
-            type_attr_base=type_attr_base,
-            taille=taille_att,
-            dec=atd.decimales,
-            force=True,
-            alias=atd.alias,
-            dimension=atd.dimension,
-            clef_etr=clef_etr,
-            ordre=num_attribut,
-            mode_ordre="a",
-            parametres_clef=parametres_clef,
-            index=index,
-            unique=atd.unique,
-            obligatoire=obligatoire,
-            multiple=atd.multiple,
-        )
-
-    if DEBUG:
-        fdebug.close()
+#         schemaclasse.type_table = type_table
 
 
-def get_schemabase(connect, mode_force_enums=1):
-    """ recupere le schema complet de la base """
-    debut = time.time()
-    schema_base = connect.schemabase
-    #    types_base = connect.types_base
-    metas = {
-        "type_base": connect.idconnect,
-        "date_extraction": time.asctime(),
-        "serveur": connect.serveur,
-        "base": connect.base,
-        "origine": "B",
-        "user": connect.user,
-    }
-    schema_base.metas = metas
-    for i in connect.get_enums():
-        nom_enum, ordre, valeur, alias = i[:4]
-        conf = schema_base.get_conf(nom_enum)
-        conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
+# def _get_attributs(connect):
+#     """recupere les attributs"""
+#     types_base = connect.types_base
+#     schema_base = connect.schemabase
+#     fields = connect.attdef._fields
+#     fdebug = None
+#     if DEBUG:
+#         print("ecriture debug:", "lecture_base_attr_" + connect.type_base + ".csv")
+#         fdebug = open("lecture_base_attr_" + connect.type_base + ".csv", "w")
+#         fdebug.write("\n".join(fields) + "\n")
 
-    _get_attributs(connect)
-    _get_tables(connect)
+#     for atd in connect.get_attributs():
+#         # atd = connect.attdef(*i)
+#         # print ('schema attributs', atd)
+#         if DEBUG:
+#             fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
+#             fdebug.write("\n")
+#         num_attribut = float(atd.num_attribut)
+#         classe = schema_base.setdefault_classe((atd.nom_groupe, atd.nom_classe))
+#         #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
+#         if not atd.type_attr:
+#             print(
+#                 "attribut sans type",
+#                 "g:",
+#                 atd.nom_groupe,
+#                 "c:",
+#                 atd.nom_classe,
+#                 "a:",
+#                 atd.nom_attr,
+#             )
+#         type_ref = atd.type_attr
+#         taille_att = atd.taille
+#         if "(" in atd.type_attr:  # il y a une taille
+#             tmp = atd.type_attr.split("(")
+#             if tmp[1][-1].isnumeric():
+#                 type_ref = tmp[0]
+#                 taille_att = tmp[1][-1]
+#         if type_ref.upper() in types_base:
+#             type_attr = types_base[type_ref.upper()]
+#         else:
+#             type_attr = connect.get_type(type_ref)
 
-    for i in connect.db_get_schemas():
-        nom, alias = i
-        schema_base.alias_groupes[nom] = alias if alias else ""
-    #        print ('recuperation alias',nom,alias)
-    connect.get_elements_specifiques(schema_base)
-    schema_base.dialecte = connect.dialecte
-    LOGGER.info(
-        "lecture schema base "
-        + schema_base.nom
-        + ":"
-        + str(len(schema_base.classes))
-        + " tables en "
-        + str(int(time.time() - debut))
-        + "s ("
-        + schema_base.dialecte
-        + ")"
-    )
+#         if atd.enum:
+#             #            print ('detection enums ',atd.enum)
+#             #            if enum in schema_base.conformites:
+#             type_attr_base = "T"
+#             type_attr = atd.enum
+#         else:
+#             type_attr_base = type_attr
+
+#         clef_etr = ""
+#         if atd.clef_etrangere:
+#             cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
+#             #            if atd.cible_clef is None:
+#             #                cible_clef = ''
+#             if not cible_clef:
+#                 print(
+#                     "mdba: erreur schema : cible clef etrangere non definie",
+#                     atd.nom_groupe,
+#                     atd.nom_classe,
+#                     atd.nom_attr,
+#                     atd.clef_etrangere,
+#                 )
+#             #            print ('trouve clef etrangere',clef_etrangere)
+#             clef_etr = atd.clef_etrangere + "." + cible_clef
+#         #        if clef:  print (clef)
+#         index = atd.index if atd.index is not None else ""
+#         #        if index is None:
+#         #            index = ''
+#         if atd.clef_primaire:
+#             code = "P:" + str(atd.clef_primaire)
+#             if code not in index:
+#                 index = index + " " + code if index else code
+
+#         obligatoire = atd.obligatoire == "oui"
+#         parametres_clef = atd.parametres_clef if "parametres_clef" in fields else ""
+#         #        if type_attr == 'geometry':
+#         #            print ('attribut',atd)
+#         classe.stocke_attribut(
+#             atd.nom_attr,
+#             type_attr,
+#             defaut=atd.defaut,
+#             type_attr_base=type_attr_base,
+#             taille=taille_att,
+#             dec=atd.decimales,
+#             force=True,
+#             alias=atd.alias,
+#             dimension=atd.dimension,
+#             clef_etr=clef_etr,
+#             ordre=num_attribut,
+#             mode_ordre="a",
+#             parametres_clef=parametres_clef,
+#             index=index,
+#             unique=atd.unique,
+#             obligatoire=obligatoire,
+#             multiple=atd.multiple,
+#         )
+
+#     if DEBUG:
+#         fdebug.close()
+
+
+# def get_schemabase(connect, mode_force_enums=1):
+#     """ recupere le schema complet de la base """
+#     debut = time.time()
+#     schema_base = connect.schemabase
+#     #    types_base = connect.types_base
+#     metas = {
+#         "type_base": connect.idconnect,
+#         "date_extraction": time.asctime(),
+#         "serveur": connect.serveur,
+#         "base": connect.base,
+#         "origine": "B",
+#         "user": connect.user,
+#     }
+#     schema_base.metas = metas
+#     for i in connect.get_enums():
+#         nom_enum, ordre, valeur, alias = i[:4]
+#         conf = schema_base.get_conf(nom_enum)
+#         conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
+
+#     _get_attributs(connect)
+#     _get_tables(connect)
+
+#     for i in connect.db_get_schemas():
+#         nom, alias = i
+#         schema_base.alias_groupes[nom] = alias if alias else ""
+#     #        print ('recuperation alias',nom,alias)
+#     connect.get_elements_specifiques(schema_base)
+#     schema_base.dialecte = connect.dialecte
+#     LOGGER.info(
+#         "lecture schema base "
+#         + schema_base.nom
+#         + ":"
+#         + str(len(schema_base.classes))
+#         + " tables en "
+#         + str(int(time.time() - debut))
+#         + "s ("
+#         + schema_base.dialecte
+#         + ")"
+#     )
 
 
 def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
@@ -492,7 +492,7 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         connection.schemabase = schema_base
 
         schema_base.dbsql = connection.gensql
-        get_schemabase(connection)
+        connection.get_schemabase()
         stock_param.dbconnect[codebase] = connection
         connection.connection.commit()  # on referme toutes les ressources
         return connection
@@ -728,10 +728,12 @@ def schema_from_curs(schema, curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
     schemaclasse = schema.get_classe(nomclasse, cree=True)
     attlist = curs.infoschema
-    for colonne in attlist:
-        nom, type_attribut, taille, dec = colonne
-        schemaclasse.stocke_attribut(nom, type_attribut, taille=taille, dec=dec)
-    return schemaclasse
+    if attlist:
+        for colonne in attlist:
+            nom, type_attribut, taille, dec = colonne
+            schemaclasse.stocke_attribut(nom, type_attribut, taille=taille, dec=dec)
+        return schemaclasse
+    return None
 
 
 def sortie_resultats(
@@ -910,9 +912,19 @@ def lire_table(ident, regle_courante, parms=None):
     if ident is None:
         return 0
     niveau, classe = ident
-    base, attribut, valeur, mods, sortie, v_sortie, ordre, type_base, chemin, reqdict, maxobj = (
-        parms
-    )
+    (
+        base,
+        attribut,
+        valeur,
+        mods,
+        sortie,
+        v_sortie,
+        ordre,
+        type_base,
+        chemin,
+        reqdict,
+        maxobj,
+    ) = parms
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
         base,
@@ -993,7 +1005,7 @@ def lire_requete(
     ident = (niveau[0], classe[0])
     if not ident:
         return 0
-    print("requete", requete, "->", ident)
+    # print("requete", requete, "->", ident)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
@@ -1013,23 +1025,24 @@ def lire_requete(
     if curs:
         print("creation schema", ident)
         schema_classe_travail = schema_from_curs(schema, curs, ident)
-        res = sortie_resultats(
-            regle_courante,
-            curs,
-            *ident,
-            connect,
-            sortie,
-            v_sortie,
-            schema_classe_travail.info["type_geom"],
-            schema_classe_travail,
-            treq=treq,
-        )
+        if schema_classe_travail:
+            res = sortie_resultats(
+                regle_courante,
+                curs,
+                *ident,
+                connect,
+                sortie,
+                v_sortie,
+                schema_classe_travail.info["type_geom"],
+                schema_classe_travail,
+                treq=treq,
+            )
 
-        if sortie:
-            for nom in sortie:
-                if nom and nom[0] != "#":
-                    schema_classe_travail.stocke_attribut(nom, "T")
-        return res
+            if sortie:
+                for nom in sortie:
+                    if nom and nom[0] != "#":
+                        schema_classe_travail.stocke_attribut(nom, "T")
+            return res
     return 0
 
 

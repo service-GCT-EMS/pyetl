@@ -14,7 +14,9 @@ from cx_Oracle import connect as oraconnect, Error as OraError
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from pyetl.formats.db.database import DbConnect, DbGenSql
+from .database import DbConnect
+from .gensql import DbGenSql
+
 TYPES_A = {
     "VARCHAR": "T",
     "VARCHAR2": "T",
@@ -55,7 +57,11 @@ class OraConnect(DbConnect):
         self.types_base.update(TYPES_A)
         self.accept_sql = "alpha"
         self.dateformat = "YYYY/MM/DD HH24:MI:SS"
-        self.requetes = {"info_enums":self.req_enums,"info_tables":self.req_tables,"info_attributs":self.req_attributs}
+        self.requetes = {
+            "info_enums": self.req_enums,
+            "info_tables": self.req_tables,
+            "info_attributs": self.req_attributs,
+        }
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -234,10 +240,10 @@ class OraConnect(DbConnect):
 
         return requete
 
-    def getdatatype(self,datatype):
-        '''recupere le type interne associe a un type cx_oracle'''
-        nom=datatype.__name__
-        return TYPES_A.get(nom,'T')
+    def getdatatype(self, datatype):
+        """recupere le type interne associe a un type cx_oracle"""
+        nom = datatype.__name__
+        return TYPES_A.get(nom, "T")
 
     def get_dateformat(self, nom):
         """formattage dates"""
@@ -302,7 +308,7 @@ class OraConnect(DbConnect):
             return cur
         except OraError as errs:
             cursor = cur.cursor
-            error, = errs.args
+            (error,) = errs.args
             print("error: oracle: erreur acces base ", self.base, self.connection)
             print("error: oracle: erreur acces base ", cursor.statement, "-->", data)
             print("error: oracle: variables ", cursor.bindnames())
@@ -315,7 +321,7 @@ class OraConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         self.decile = 1

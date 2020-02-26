@@ -6,18 +6,20 @@ Created on Fri Feb 16 10:00:04 2018
 """
 # import os
 import re
-from  time import strftime, time
+from time import strftime, time
 
 # import subprocess
-from .database import DbGenSql
+from .gensql import DbGenSql
 
 # from .postgres import RESERVES, GTYPES_DISC, GTYPES_CURVE, TYPES_A
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}
 SCHEMA_CONF = "public"
 
-def _nomsql(niveau,classe):
-    '''retourne un identifiant standard sql'''
-    return niveau.lower()+"."+ classe.lower()
+
+def _nomsql(niveau, classe):
+    """retourne un identifiant standard sql"""
+    return niveau.lower() + "." + classe.lower()
+
 
 class PgrGenSql(DbGenSql):
     """classe de generation des structures sql"""
@@ -145,7 +147,12 @@ class PgrGenSql(DbGenSql):
             #                print(' mode 2', conf.stock)
             val = j[4].replace("'", "''")
             if len(val) > 62:
-                print("postgres: valeur trop longue ", val, " : conformite ignoree", conf.nombase)
+                print(
+                    "postgres: valeur trop longue ",
+                    val,
+                    " : conformite ignoree",
+                    conf.nombase,
+                )
                 del schema.conformites[nom_conf]
                 return False, ""
             if val not in ctrl:
@@ -181,7 +188,13 @@ class PgrGenSql(DbGenSql):
         #        ctr.append('\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+classe.getpkey+'),')
         table = groupe + "." + nom
         if schemaclasse.haspkey:
-            ctr.append("\tCONSTRAINT " + nom + "_pkey PRIMARY KEY (" + schemaclasse.getpkey + "),")
+            ctr.append(
+                "\tCONSTRAINT "
+                + nom
+                + "_pkey PRIMARY KEY ("
+                + schemaclasse.getpkey
+                + "),"
+            )
         # print ('pkey', '\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+schemaclasse.getpkey+'),',schemaclasse.indexes)
         dicindexes = schemaclasse.dicindexes()
         #        if len(dicindexes) > 1:
@@ -252,7 +265,9 @@ class PgrGenSql(DbGenSql):
             fks.append("ALTER TABLE IF EXISTS " + table)
             fks.append("\tDROP CONSTRAINT IF EXISTS " + nom + "_" + i + ";")
             fks.append("ALTER TABLE IF EXISTS " + table)
-            fks.append("\tADD CONSTRAINT " + nom + "_" + i + "_fkey FOREIGN KEY (" + i + ")")
+            fks.append(
+                "\tADD CONSTRAINT " + nom + "_" + i + "_fkey FOREIGN KEY (" + i + ")"
+            )
             fks.append(
                 "\t\tREFERENCES "
                 + deffk[0].replace("FK:", "")
@@ -263,28 +278,30 @@ class PgrGenSql(DbGenSql):
                 + ") "
                 + ("MATCH FULL" if "mf" in props else "MATCH SIMPLE")
             )
-            if 'uc' in props:
+            if "uc" in props:
                 fks.append("\t\tON UPDATE CASCADE")
-            elif 'un' in props:
+            elif "un" in props:
                 fks.append("\t\tON UPDATE SET NULL")
-            elif 'ud' in props:
+            elif "ud" in props:
                 fks.append("\t\tON UPDATE SET DEFAULT")
-            elif 'ur' in props:
+            elif "ur" in props:
                 fks.append("\t\tON UPDATE RESTRICT")
-            elif 'ua' in props:
+            elif "ua" in props:
                 fks.append("\t\tON UPDATE NO ACTION")
-            if 'dc' in props:
+            if "dc" in props:
                 fks.append("\t\tON DELETE CASCADE")
-            elif 'dn' in props:
+            elif "dn" in props:
                 fks.append("\t\tON DELETE SET NULL")
-            elif 'dd' in props:
+            elif "dd" in props:
                 fks.append("\t\tON DELETE SET DEFAULT")
-            elif 'dr' in props:
+            elif "dr" in props:
                 fks.append("\t\tON DELETE RESTRICT")
-            elif 'da' in props:
+            elif "da" in props:
                 fks.append("\t\tON DELETE NO ACTION")
             fks.append(
-                "\t\tDEFERRABLE INITIALLY DEFERRED; " if "defer" in props else "\t\tNOT DEFERRABLE;"
+                "\t\tDEFERRABLE INITIALLY DEFERRED; "
+                if "defer" in props
+                else "\t\tNOT DEFERRABLE;"
             )
 
         return fks
@@ -305,7 +322,9 @@ class PgrGenSql(DbGenSql):
             if type_table == "V":
                 comments.append("COMMENT ON VIEW " + table + " IS '" + al2 + "';")
             elif type_table == "M":
-                comments.append("COMMENT ON MATERIALIZED VIEW " + table + " IS '" + al2 + "';")
+                comments.append(
+                    "COMMENT ON MATERIALIZED VIEW " + table + " IS '" + al2 + "';"
+                )
             else:
                 comments.append("COMMENT ON TABLE " + table + " IS '" + al2 + "';")
 
@@ -322,43 +341,53 @@ class PgrGenSql(DbGenSql):
         return comments
 
     def cree_sql_trigger(self, nom, table, trigdef):
-        '''genere le sql d'un trigger'''
-        type_trigger, action, declencheur, timing, event,colonnes,condition,sql = trigdef
+        """genere le sql d'un trigger"""
+        (
+            type_trigger,
+            action,
+            declencheur,
+            timing,
+            event,
+            colonnes,
+            condition,
+            sql,
+        ) = trigdef
         fonction = action
-        trig =[]
+        trig = []
         # print ('sql_trigger',fonction)
         if "." in action:
-            scf, nomf = fonction.split(".",1)
+            scf, nomf = fonction.split(".", 1)
         else:
             nomf = fonction
             scf = self.defaut_schema
             # schema d'admin comprenant routes les fonctions standard
             fonction_2 = scf + "." + nomf
             action_2 = action.replace(fonction, fonction_2, 1)
-            sql = sql.replace(action,action_2)
+            sql = sql.replace(action, action_2)
             action = action_2
         if nomf not in self.stdtriggers:
-            trig=["\nDROP TRIGGER IF EXISTS " + nom + " ON " + table + ";"]
+            trig = ["\nDROP TRIGGER IF EXISTS " + nom + " ON " + table + ";"]
             if sql:
-                trig.append(sql + ';')
+                trig.append(sql + ";")
             else:
-                trig.append("\nCREATE "+type_trigger+" " + nom)
-                trig.append(timing + " " + event + (" OF "+ colonnes) if colonnes else '')
+                trig.append("\nCREATE " + type_trigger + " " + nom)
+                trig.append(
+                    timing + " " + event + (" OF " + colonnes) if colonnes else ""
+                )
                 trig.append("ON " + table)
                 trig.append("FOR EACH " + declencheur)
                 if condition:
                     trig.append("WHEN " + condition)
-                trig.append('EXECUTE PROCEDURE' + action + ";")
-        idfonc = (scf, nomf.split('(')[0])
+                trig.append("EXECUTE PROCEDURE" + action + ";")
+        idfonc = (scf, nomf.split("(")[0])
         return idfonc, trig
-
 
     def cree_triggers(self, classe, groupe, nom):
         """ cree les triggers """
         evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD OF"}
         evs2 = {"I": "INSERT ", "D": "DELETE ", "U": "UPDATE ", "T": "TRUNCATE"}
-        ttype = {"T": "TRIGGER","C": "CONSTRAINT"}
-        decl = {'R': "ROW", 'S':"STATEMENT"}
+        ttype = {"T": "TRIGGER", "C": "CONSTRAINT"}
+        decl = {"R": "ROW", "S": "STATEMENT"}
         table = groupe + "." + nom
         if self.basic:
             return []
@@ -366,9 +395,27 @@ class PgrGenSql(DbGenSql):
 
         liste_triggers = classe.triggers
         for i in liste_triggers:
-            type_trigger, action, declencheur, timing, event,colonnes,condition,sql = liste_triggers[i].split(',')
-            trigdef=(ttype[type_trigger],action,decl[declencheur],evs[timing], evs2[event], colonnes,condition,sql)
-            idfonc,trigsql = self.cree_sql_trigger(i, table, trigdef)
+            (
+                type_trigger,
+                action,
+                declencheur,
+                timing,
+                event,
+                colonnes,
+                condition,
+                sql,
+            ) = liste_triggers[i].split(",")
+            trigdef = (
+                ttype[type_trigger],
+                action,
+                decl[declencheur],
+                evs[timing],
+                evs2[event],
+                colonnes,
+                condition,
+                sql,
+            )
+            idfonc, trigsql = self.cree_sql_trigger(i, table, trigdef)
             trig.extend(trigsql)
         return trig
 
@@ -378,7 +425,7 @@ class PgrGenSql(DbGenSql):
         deffoncs = dict()
         trig = []
         schema = self.schema
-        schemabase =  None
+        schemabase = None
         if self.connection and self.connection.schemabase:
             schemabase = self.connection.schemabase
         specs = schema.elements_specifiques
@@ -388,21 +435,29 @@ class PgrGenSql(DbGenSql):
             #            print ('definition triggers',schema.elements_specifiques['def_triggers'])
             if ident in specs["def_triggers"]:
                 table_trigs = specs["def_triggers"][ident]
-                print ('traitement trigger',table_trigs)
+                print("traitement trigger", table_trigs)
                 for i in table_trigs:
                     idfonc, trigsql = self.cree_sql_trigger(i, table, table_trigs[i])
                     try:
                         deffoncs[idfonc] = specs["def_fonctions_trigger"][idfonc]
                     except KeyError:
-                        print("gsql fonction trigger manquante en base", idfonc,sorted(deffoncs.keys()))
+                        print(
+                            "gsql fonction trigger manquante en base",
+                            idfonc,
+                            sorted(deffoncs.keys()),
+                        )
                         if schemabase:
-                            print ("recup def en base")
+                            print("recup def en base")
                             try:
                                 deffoncs[idfonc] = schemabase.elements_specifiques[
                                     "def_fonctions_trigger"
                                 ][idfonc]
                             except KeyError:
-                                print("gsql fonction trigger manquante en base", idfonc,sorted(deffoncs.keys()))
+                                print(
+                                    "gsql fonction trigger manquante en base",
+                                    idfonc,
+                                    sorted(deffoncs.keys()),
+                                )
                     #                        stdnom = "tr_"+nomf+"_"+nom
                     trig.extend(trigsql)
         return trig, deffoncs
@@ -417,7 +472,7 @@ class PgrGenSql(DbGenSql):
     def get_type_geom(self, schemaclasse):
         """ retourne le type geometrique de la classe precis """
         type_geom = schemaclasse.info["type_geom"]
-        if type_geom == "0" or type_geom ==  'indef':
+        if type_geom == "0" or type_geom == "indef":
             return "0", False
         arc = schemaclasse.info["courbe"]
         geomt = type_geom
@@ -437,7 +492,9 @@ class PgrGenSql(DbGenSql):
         table = groupe + "." + nom
         atts = classe.get_liste_attributs()
         cretable = []
-        cretable.append("\n-- ############## creation table " + table + "###############\n")
+        cretable.append(
+            "\n-- ############## creation table " + table + "###############\n"
+        )
 
         cretable.append("CREATE FOREIGN TABLE " + table + "\n(")
         geomt, arc = self.get_type_geom(classe)
@@ -448,8 +505,10 @@ class PgrGenSql(DbGenSql):
             attname = self.reserves.get(attname, attname)
             attype = attribut.type_att
             #            print ('lecture type_attribut',an,at)
-            cretable.append("\t" + attname + " " + self.types_db.get(attype, deftype) + ",")
-        if geomt and geomt != "ALPHA" and geomt!='0':
+            cretable.append(
+                "\t" + attname + " " + self.types_db.get(attype, deftype) + ","
+            )
+        if geomt and geomt != "ALPHA" and geomt != "0":
             if type_courbes == "curve" and arc:
                 cretable.append("\tgeometrie public." + self.gtypes_curve[geomt])
             else:
@@ -516,7 +575,9 @@ class PgrGenSql(DbGenSql):
                 elif self.types_db.get(attype) == "bigint":
                     attype = "BS"  # sequence
                 if attype not in {"S", "BS"}:
-                    print("type serial incompatible avec le type", attype, attribut.defaut)
+                    print(
+                        "type serial incompatible avec le type", attype, attribut.defaut
+                    )
                     seq = False
             conf = attribut.conformite
             #            print ('lecture type_attribut',attname,attype,conf.nom if conf else '')
@@ -553,7 +614,10 @@ class PgrGenSql(DbGenSql):
                         seq = True
 
             if pkey == attname:
-                if self.types_db.get(attype) == "integer" or self.types_db.get(attype) == "bigint":
+                if (
+                    self.types_db.get(attype) == "integer"
+                    or self.types_db.get(attype) == "bigint"
+                ):
                     seq = True
             if attname == "auteur":
                 if not attype:
@@ -602,7 +666,7 @@ class PgrGenSql(DbGenSql):
                         predef = attribut.defaut[1:].replace('"', "'")
                         defaut = " DEFAULT " + predef
             if defaut is None:
-                defaut = (" DEFAULT " + attribut.defaut) if attribut.defaut else ''
+                defaut = (" DEFAULT " + attribut.defaut) if attribut.defaut else ""
 
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
@@ -614,17 +678,29 @@ class PgrGenSql(DbGenSql):
                     attype = "BS"
                     defaut = ""
             if attype not in self.types_db and not nomconf:
-                print("type inconnu", attype, deftype, "defaut", attype in self.schema.conformites)
+                print(
+                    "type inconnu",
+                    attype,
+                    deftype,
+                    "defaut",
+                    attype in self.schema.conformites,
+                )
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == "numeric" and attribut.taille:
-                type_sortie = "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec) if attribut.dec is not None else '0' + ")"
+                type_sortie = (
+                    "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec)
+                    if attribut.dec is not None
+                    else "0" + ")"
+                )
             elif type_sortie == "text" and attribut.taille:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
             if sql_conf and self.basic != "basic":
                 creconf[nomconf] = sql_conf
         if geomt != "0":
-            cretable.append(self.getgeomsql(classe))  # la on est pas geometrique on gere en texte
+            cretable.append(
+                self.getgeomsql(classe)
+            )  # la on est pas geometrique on gere en texte
 
         # contraintes et indexes
         ctr, idx = self.cree_indexes(classe, groupe, nom)
@@ -696,7 +772,7 @@ class PgrGenSql(DbGenSql):
             groupe, nom = self.get_nom_base(ident)
             table = groupe + "." + nom
             drop.append("DROP TABLE IF EXISTS " + table + ";")
-        drop.reverse() # on inverse l'ordre de destruction par rapport a la creation
+        drop.reverse()  # on inverse l'ordre de destruction par rapport a la creation
         return drop
 
     def dropvues(self, liste):
@@ -722,7 +798,10 @@ class PgrGenSql(DbGenSql):
 
     def dropconf(self, liste_confs):
         """sql de suppression des types """
-        return ["DROP TYPE IF EXISTS " + self.schema_conf + "." + i + ";" for i in liste_confs]
+        return [
+            "DROP TYPE IF EXISTS " + self.schema_conf + "." + i + ";"
+            for i in liste_confs
+        ]
 
     # scripts de creation de tables
     def sio_crestyle(self, liste=None):
@@ -747,11 +826,15 @@ class PgrGenSql(DbGenSql):
         )
         self.role = role
         if liste is None:
-            liste = sorted([i for i in self.schema.classes if self.schema.classes[i].a_sortir])
+            liste = sorted(
+                [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
+            )
         vues_base = self.get_vues_base(liste)
         def_speciales = set(vues_base)
         liste_ftables = [
-            i for i in liste if self.schema.classes[i].type_table.upper() == "F" and not self.basic
+            i
+            for i in liste
+            if self.schema.classes[i].type_table.upper() == "F" and not self.basic
         ]
         def_speciales |= set(liste_ftables)
         liste_tables = [i for i in liste if i not in def_speciales]
@@ -770,14 +853,25 @@ class PgrGenSql(DbGenSql):
             "\n-- ########### definition des tables ###############\n",
         ]
         cretables.extend(
-            list([self.cree_tables(ident, creconf, autopk=autopk) for ident in liste_tables])
+            list(
+                [
+                    self.cree_tables(ident, creconf, autopk=autopk)
+                    for ident in liste_tables
+                ]
+            )
         )
         if not self.basic:
             if liste_ftables:
-                cretables.append("\n-- ########### definition des tables distantes ############\n")
-                cretables.extend(list([self.cretable_dist(ident) for ident in liste_ftables]))
+                cretables.append(
+                    "\n-- ########### definition des tables distantes ############\n"
+                )
+                cretables.extend(
+                    list([self.cretable_dist(ident) for ident in liste_ftables])
+                )
             if vues_base:
-                cretables.append("\n-- ########### definition des vues ###############\n")
+                cretables.append(
+                    "\n-- ########### definition des vues ###############\n"
+                )
                 cretables.extend(self.def_vues(liste, vues_base))
 
             else:
@@ -791,9 +885,13 @@ class PgrGenSql(DbGenSql):
                 #                print ('definition triggers ', ident,len(trigs),len(foncs))
                 trigdefs.extend(trigs)
                 foncdefs.update(foncs)
-            cretables.append("\n-- ########### definition des fonctions triggers ###############\n")
+            cretables.append(
+                "\n-- ########### definition des fonctions triggers ###############\n"
+            )
             cretables.extend([i.replace("\r", "") + ";" for i in foncdefs.values()])
-            cretables.append("\n-- ########### definition des triggers ###############\n")
+            cretables.append(
+                "\n-- ########### definition des triggers ###############\n"
+            )
 
             cretables.extend(trigdefs)
         droptables = [self._setrole()]
@@ -961,7 +1059,7 @@ class PgrGenSql(DbGenSql):
     @staticmethod
     def _commande_monitoring(*args):
         """ cree une commande de stockage de stats"""
-        return ("")
+        return ""
 
     def prefix_charge(self, niveau, classe, reinit, gtyp="0", dim="2"):
         """ grere toutes les reinitialisations eventuelles
@@ -980,15 +1078,21 @@ class PgrGenSql(DbGenSql):
             prefix = prefix + self._commande_sequence(niveau, classe)
         if "I" in reinit and gtyp > "0":
             prefix = prefix + self._commande_index_gist(niveau, classe, True)
-        if ("L" in reinit or "C" in reinit) and gtyp in "23":  # ouverture de la geometrie'
+        if (
+            "L" in reinit or "C" in reinit
+        ) and gtyp in "23":  # ouverture de la geometrie'
             prefix = prefix + self._commande_geom_strict(niveau, classe, False, dim=dim)
         return prefix
 
-    def tail_charge(self, niveau, classe, reinit, gtyp="0", dim="2", courbe=False, schema=None):
+    def tail_charge(
+        self, niveau, classe, reinit, gtyp="0", dim="2", courbe=False, schema=None
+    ):
         """ menage de fin de chargement """
         prefix = ""
         if "L" in reinit and gtyp in "23":  # discretisation'
-            prefix = prefix + self._commande_geom_strict(niveau, classe, True, gtyp=gtyp, dim=dim)
+            prefix = prefix + self._commande_geom_strict(
+                niveau, classe, True, gtyp=gtyp, dim=dim
+            )
         if "C" in reinit and gtyp in "23":  # discretisation'
             prefix = prefix + self._commande_geom_strict(
                 niveau, classe, True, gtyp=gtyp, dim=dim, courbe=courbe
@@ -1000,5 +1104,5 @@ class PgrGenSql(DbGenSql):
         if "G" in reinit:
             prefix = prefix + self._commande_trigger(niveau, classe, True)
         if "M" in reinit:
-            prefix = prefix +self._commande_monitoring(niveau, classe, schema, reinit)
+            prefix = prefix + self._commande_monitoring(niveau, classe, schema, reinit)
         return prefix

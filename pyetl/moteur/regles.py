@@ -696,13 +696,13 @@ class RegleTraitement(object):  # regle de mapping
 
     def setval_sortie(self, obj, valeurs):
         """stockage standardise"""
-        print(
-            "----------stockage ",
-            valeurs,
-            self.params.att_sortie.val,
-            "----",
-            self.fstore,
-        )
+        # print(
+        #     "----------stockage ",
+        #     valeurs,
+        #     self.params.att_sortie.val,
+        #     "----",
+        #     self.fstore,
+        # )
         self.fstore(self.params.att_sortie, obj, valeurs)
 
         # print(

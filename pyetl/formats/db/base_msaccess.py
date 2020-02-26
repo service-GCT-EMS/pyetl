@@ -11,7 +11,8 @@ import os
 from pyodbc import connect as OdbcConnect, Error as OdbcError
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from .database import DbConnect, DbGenSql
+from .database import DbConnect
+from .gensql import DbGenSql
 
 
 TYPES_A = {
@@ -52,7 +53,9 @@ TYPES_A = {
 class AccConnect(DbConnect):
     """connecteur de la base de donnees """
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base = TYPES_A
         #        print ('connection base access', serveur,base, user, passwd )
@@ -68,20 +71,30 @@ class AccConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         base = os.path.join(self.serveur, self.base)
 
-        print("info : access: connection access", self.user, "*" * len(self.passwd), self.base)
+        print(
+            "info : access: connection access",
+            self.user,
+            "*" * len(self.passwd),
+            self.base,
+        )
         try:
             #        base = r"C:\outils\projet_mapper\test_mapper\entree\access\test.access"
             #        drv = 'DRIVER={Microsoft Access Driver (*.mdb,*.accdb)};'
             #        file = 'DBQ='+base+";"
             #        pwd = 'PWD='+passwd+";" if passwd else ""
-            conn_str = r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};" r"DBQ=" + base + ";"
+            conn_str = (
+                r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
+                r"DBQ=" + base + ";"
+            )
 
             self.connection = OdbcConnect(conn_str)
 
             #        connection = odbc.win_connect_mdb(base)
             return self.connection
         except OdbcError as exp:
-            print("error: access pyodbc: utilisateur ou mot de passe errone sur la base access")
+            print(
+                "error: access pyodbc: utilisateur ou mot de passe errone sur la base access"
+            )
             print("error: access:", base, self.passwd)
             print(exp)
             #        sys.exit(1)
@@ -139,16 +152,16 @@ class AccConnect(DbConnect):
                     type_t = "x"
                 taille = 0
                 idt = ".".join((schema, nom)) if schema else nom
-#                print ('calcul taille',self.request("select count(*) from "+idt,()))
+                #                print ('calcul taille',self.request("select count(*) from "+idt,()))
                 taille = self.request('select count(*) from "' + idt + '"', ())
-#                taille = cur2.execute('select count(*) from "'+idt+'"').fetchval()
-#                print ("taille table ",idt,taille)
+                #                taille = cur2.execute('select count(*) from "'+idt+'"').fetchval()
+                #                print ("taille table ",idt,taille)
                 taille = taille[0][0] if taille else "0"
                 nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
                 tables.append(nouv_table)
         return tables
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
         """iteration sur le retour"""
         if has_geom:
             print("erreur requete geometrique impossible", requete)
@@ -201,7 +214,9 @@ class AccConnect(DbConnect):
                 for pkey in cur2.statistics(tablename):
                     print("valeurs stat", pkey)
                     if pkey.index_name == "PrimaryKey":
-                        pkeys[(tablename, pkey.column_name)] = "P:" + str(pkey.ordinal_position)
+                        pkeys[(tablename, pkey.column_name)] = "P:" + str(
+                            pkey.ordinal_position
+                        )
         #                for fkey in cur2.foreignKeys(table=tablename):
         #                    print('info : access: detection fk:', fkey.pkcolumn_name+
         #                          ':'+fkey.fktable_schem+
@@ -209,7 +224,8 @@ class AccConnect(DbConnect):
         #    #                fclefs=','.join(fkeys)
 
         #        print ('msaccess ',[i for i in cur.columns()])
-        return [self.attdef(
+        return [
+            self.attdef(
                 cd.table_schem if cd.table_schem else "",
                 cd.table_name,
                 cd.column_name,
@@ -256,7 +272,9 @@ class AccConnect(DbConnect):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         if attribut:
-            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
+            atttext, attlist = self.construction_champs(
+                schema, "S" in mods, "L" in mods
+            )
 
             if isinstance(valeur, list):
                 requete = (
@@ -285,7 +303,9 @@ class AccConnect(DbConnect):
                 )
                 data = (valeur,)
         else:
-            atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
+            atttext, attlist = self.construction_champs(
+                schema, "S" in mods, "L" in mods
+            )
             requete = " SELECT " + atttext + " FROM " + niveau + "." + classe
             data = ()
 
@@ -318,6 +338,20 @@ class AccGenSql(DbGenSql):
 
 
 DBDEF = {
-    "ms_access": (AccConnect, AccGenSql, "file", ".accdb", "", "base access apres 2007"),
-    "ms_access_old": (AccConnect, AccGenSql, "file", ".mdb", "", "base access avant 2007"),
+    "ms_access": (
+        AccConnect,
+        AccGenSql,
+        "file",
+        ".accdb",
+        "",
+        "base access apres 2007",
+    ),
+    "ms_access_old": (
+        AccConnect,
+        AccGenSql,
+        "file",
+        ".mdb",
+        "",
+        "base access avant 2007",
+    ),
 }

@@ -565,15 +565,15 @@ def _execbatch(regle, obj):
 
 def h_batch(regle):
     """definit la fonction comme etant a declencher"""
-    if regle.params.cmp1.val == "run":
-        regle.chargeur = True
+    regle.chargeur = regle.params.cmp1.val == "run"
     regle.prog = _execbatch
     regle.prepare = _prepare_batch_from_object
     if regle.params.pattern in "45":  # boucle : on compile la macro
-        mapper = regle.stock_param
-        erreurs = mapper.lecteur_regles(regle.params.cmp2.val, regle_ref=regle)
+        erreurs = regle.stock_param.lecteur_regles(
+            regle.params.cmp2.val, regle_ref=regle
+        )
         if regle.liste_regles:
-            mapper.compilateur(
+            regle.stock_param.compilateur(
                 regle.liste_regles, regle.debug
             )  # la on appelle en mode sous programme
     regle.stock_param.gestion_parallel_batch(regle)
@@ -581,12 +581,17 @@ def h_batch(regle):
 
 def f_batch(regle, obj):
     """#aide||execute un traitement batch a partir des parametres de l'objet
-  #aide_spec||parametres:attribut_resultat,commandes,attribut_commandes,batch
+  #parametres||;attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+  #aide_spec1|| en mode run le traitement s'autodeclenche sans objet
     #pattern1||A;?C;?A;batch;?=run;?N||cmp1
+  #aide_spec2|| en mode init le traitement demarre a l'initialisation du script
     #pattern2||A;?C;?A;batch;=init;||cmp1
-    #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
-    #pattern4||A;?C;?A;batch;=boucle;C||cmp1
-    #pattern5||A;?C;?A;batch;=load;C||cmp1
+  #aide_spec1|| en mode parallel_init le traitement demarre a l'initialisation de chaque worker
+   #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
+   #aide_spec1|| en mode boucle le traitement reprend le jeu de donnees en boucle
+   #pattern4||A;?C;?A;batch;=boucle;C||cmp1
+   #aide_spec1|| en mode load le traitement passe une fois le jeu de donnees
+   #pattern5||A;?C;?A;batch;=load;C||cmp1
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
       #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
@@ -786,9 +791,9 @@ def f_sleep(regle, obj):
         for i in range(10):
             print(".", end="", flush=True)
             time.sleep(dormir)
-        print
+        print()
     else:
-        time.sleep(sleeptime)
+        time.sleep(flemme)
     return True
 
 

@@ -9,7 +9,8 @@ import sys
 import sqlite3
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from .database import DbConnect, DbGenSql
+from .database import DbConnect
+from .gensql import DbGenSql
 
 TYPES_A = {
     "T": "T",
@@ -38,21 +39,28 @@ TYPES_A = {
     "E": "E",
 }
 
-TYPES_G = {"POINT": "1","MULTIPOINT": "1",
-     "MULTILINESTRING": "2", "MULTIPOLYGON": "3", "BLOB":"-1"}
+TYPES_G = {
+    "POINT": "1",
+    "MULTIPOINT": "1",
+    "MULTILINESTRING": "2",
+    "MULTIPOLYGON": "3",
+    "BLOB": "-1",
+}
 
 
 class SqltConnect(DbConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
         self.type_base = "sqlite"
         self.connect()
         self.geographique = True
         self.accept_sql = "alpha"
-        self.curtable = ''
+        self.curtable = ""
         self.curnb = 0
 
     #        self.encoding =
@@ -65,11 +73,14 @@ class SqltConnect(DbConnect):
         try:
             self.connection = sqlite3.Connection(self.base)
         except sqlite3.Error as err:
-            print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
+            print(
+                "error: sqlite: utilisateur ou mot de passe errone sur la base sqlite",
+                self.base,
+            )
             print("error: sqlite: ", err)
             sys.exit(1)
             return None
-        print ('connection réussie',self.type_base)
+        print("connection réussie", self.type_base)
 
     def _set_tablelist(self):
         """ produit la liste des tables pour definir les tables a recuperer (systeme ou pas) """
@@ -84,7 +95,7 @@ class SqltConnect(DbConnect):
         tables_tmp = self.request(requete, None)
         tables = []
         for i in tables_tmp:
-            if i[0] == 'geom_cols_ref_sys':
+            if i[0] == "geom_cols_ref_sys":
                 self.accept_sql = "geo"
             else:
                 tables.append(i)
@@ -136,7 +147,8 @@ class SqltConnect(DbConnect):
             for att in attributs:
                 # print ('att', att)
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
-                attlist.append(self.attdef(
+                attlist.append(
+                    self.attdef(
                         schema,
                         nom,
                         nom_att,
@@ -157,16 +169,28 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                    ))
+                    )
+                )
                 if nom_att == "GEOMETRY" or type_att in TYPES_G:
-                    table_geom = TYPES_G.get(type_att, '-1')
+                    table_geom = TYPES_G.get(type_att, "-1")
                     table_dim = 2
 
-            nouv_table = [schema, nom, "", table_geom, table_dim, nb, type_table, "", "", "", ""]
+            nouv_table = [
+                schema,
+                nom,
+                "",
+                table_geom,
+                table_dim,
+                nb,
+                type_table,
+                "",
+                "",
+                "",
+                "",
+            ]
             # print ('table', nouv_table)
             self.tables.append(nouv_table)
         return attlist
-
 
     def get_enums(self):
         return ()
@@ -200,20 +224,18 @@ class SqltConnect(DbConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        cond = ''
-        fonction =''
+        cond = ""
+        fonction = ""
         if nom_fonction == "dans_emprise":
-            cond = 'MbrWithin('+nom_geometrie+ ' , '+geom2+' )'
-            return  geom2 + " && " + nom_geometrie
+            cond = "MbrWithin(" + nom_geometrie + " , " + geom2 + " )"
+            return geom2 + " && " + nom_geometrie
         if nom_fonction == "intersect":
             fonction = "Intersects("
         elif nom_fonction == "dans":
             fonction = "Contains("
         if fonction:
             return fonction + geom2 + "," + nom_geometrie + ")"
-        return ''
-
-
+        return ""
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
@@ -283,12 +305,13 @@ class SqltConnect(DbConnect):
         #        print('acces alpha', self.geographique, requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
-        print ('sqlite req alpha ', requete)
-        print ('sqlite appel iterreq', type(self.iterreq))
-        has_geom=schema.info["type_geom"] != "0"
-        aa=self.iterreq(requete, data, has_geom=has_geom)
-        print ('sqlite apres iterreq', type(aa))
+        print("sqlite req alpha ", requete)
+        print("sqlite appel iterreq", type(self.iterreq))
+        has_geom = schema.info["type_geom"] != "0"
+        aa = self.iterreq(requete, data, has_geom=has_geom)
+        print("sqlite apres iterreq", type(aa))
         return aa
+
 
 class SqltGenSql(DbGenSql):
     """generateur sql"""
@@ -296,4 +319,13 @@ class SqltGenSql(DbGenSql):
     pass
 
 
-DBDEF = {"sqlite": (SqltConnect, SqltGenSql, "file", ".sqlite", "#ewkt", "base sqlite basique")}
+DBDEF = {
+    "sqlite": (
+        SqltConnect,
+        SqltGenSql,
+        "file",
+        ".sqlite",
+        "#ewkt",
+        "base sqlite basique",
+    )
+}

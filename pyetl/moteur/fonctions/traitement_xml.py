@@ -17,6 +17,7 @@ def h_xmlextract(regle):
     regle.cadre = regle.params.cmp2.val
     tmp = regle.params.cmp1.val.split(":")
     regle.recherche = tmp[0]
+    regle.item = tmp[1] if len(tmp)==2 else ''
 
 
 def f_xmlextract(regle, obj):
@@ -58,8 +59,10 @@ def f_xmlextract(regle, obj):
                 ]
             )
             if regle.params.att_sortie.val:
-                print("traitement", regle.params.att_sortie.val, contenu)
-                regle.setval_sortie(obj, contenu)
+                if regle.item:
+                    contenu=elem.get(regle.item,'')
+                # print("traitement", regle.params.att_sortie.val, contenu)
+                obj.attributs[regle.params.att_sortie.val]=contenu
                 obj.attributs[regle.params.att_entree.val] = xml
                 # print("apres xml", obj.attributs)
                 return True

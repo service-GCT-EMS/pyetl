@@ -623,7 +623,7 @@ def execute_macro(mapper, texte, context, fichier_regles):
 
 def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
-    match = re.match(r"(([\|\+-]+)([a-z]*):)?(<.*)", texte)
+    match = re.match(r"(([\|\+\-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)

@@ -7,7 +7,8 @@ acces a la base de donnees
 """
 import sys
 import sqlite3
-from .database import DbConnect, DbGenSql
+from .database import DbConnect
+from .gensql import DbGenSql
 
 TYPES_A = {
     "T": "T",
@@ -42,13 +43,16 @@ TYPES_G = {"POINT": "1", "MULTILINESTRING": "2", "MULTIPOLYGON": "3"}
 class SqltConnect(DbConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
         self.connect()
         self.geographique = True
-        self.curtable = ''
-        self.curnb= 0
+        self.curtable = ""
+        self.curnb = 0
+
     #        self.encoding =
 
     def connect(self):
@@ -59,7 +63,10 @@ class SqltConnect(DbConnect):
         try:
             self.connection = sqlite3.Connection(self.base)
         except self.errs as err:
-            print("error: sqlite: utilisateur ou mot de passe errone sur la base sqlite", self.base)
+            print(
+                "error: sqlite: utilisateur ou mot de passe errone sur la base sqlite",
+                self.base,
+            )
             print("error: sqlite: ", err)
             sys.exit(1)
             return None
@@ -118,7 +125,8 @@ class SqltConnect(DbConnect):
             attributs = self.request(requete, None)
             for att in attributs:
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
-                attlist.append(self.attdef(
+                attlist.append(
+                    self.attdef(
                         schema,
                         nom,
                         nom_att,
@@ -139,12 +147,25 @@ class SqltConnect(DbConnect):
                         "",
                         0,
                         0,
-                ))
+                    )
+                )
                 if nom_att == "GEOMETRY":
                     table_geom = type_att
                     table_dim = 2
 
-            nouv_table = [schema, nom, "", table_geom, table_dim, -1, type_table, "", "", "", ""]
+            nouv_table = [
+                schema,
+                nom,
+                "",
+                table_geom,
+                table_dim,
+                -1,
+                type_table,
+                "",
+                "",
+                "",
+                "",
+            ]
             self.tables.append(nouv_table)
         return attlist
 
@@ -163,20 +184,19 @@ class SqltConnect(DbConnect):
 
     def textcast(self, nom):
         """forcage text"""
-        return 'cast('+nom+' as text)'
+        return "cast(" + nom + " as text)"
 
     def datecast(self, nom):
         """forcage date"""
-        return 'cast('+nom+' as timestamp)'
+        return "cast(" + nom + " as timestamp)"
 
     def dscast(self, nom):
         """forcage date"""
-        return 'cast('+nom+' as date)'
+        return "cast(" + nom + " as date)"
 
     def numcast(self, nom):
         """forcage numerique"""
-        return 'cast('+nom+' as number)'
-
+        return "cast(" + nom + " as number)"
 
     def get_surf(self, nom):
         return "ST_area(%s)" % nom
@@ -202,7 +222,7 @@ class SqltConnect(DbConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        cond = ''
+        cond = ""
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
@@ -211,12 +231,12 @@ class SqltConnect(DbConnect):
             elif nom_fonction == "dans":
                 fonction = "ST_Contains("
             else:
-                fonction = ''
+                fonction = ""
             if fonction:
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=''):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         cur.decile = 1
         if cur is None:
@@ -257,7 +277,7 @@ class SqltConnect(DbConnect):
             cast = self.nocast
             if type_att == "D":
                 cast = self.datecast
-            elif type_att =='DS':
+            elif type_att == "DS":
                 cast = self.dscast
             elif type_att in "EFS":
                 cast = self.numcast
@@ -322,5 +342,12 @@ class SqltGenSql(DbGenSql):
 
 
 DBDEF = {
-    "spatialite": (SqltConnect, SqltGenSql, "file", ".sqlite", "#ewkt", "base spatialite basique")
+    "spatialite": (
+        SqltConnect,
+        SqltGenSql,
+        "file",
+        ".sqlite",
+        "#ewkt",
+        "base spatialite basique",
+    )
 }
