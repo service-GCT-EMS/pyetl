@@ -407,6 +407,7 @@ def f_testobj(regle, obj):
     """#aide||cree des objets de test pour les tests fonctionnels
        #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
        #pattern||L;LC;;testobj;C;?N||sortie
+       #pattern2||L;LC;;creobj;C;?N||sortie
        #test||rien||^A;1;;testobj;essai;2||cnt;2
     """
     #    if not obj.virtuel:
@@ -802,3 +803,8 @@ def f_retry(regle, obj):
     #pattern||A;;;retry;C;
     """
     pass
+
+
+def f_attreader(regle, obj):
+    """#aide||traite un attribut d'un objet comme une source de donnees
+    """

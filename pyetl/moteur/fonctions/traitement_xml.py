@@ -17,7 +17,7 @@ def h_xmlextract(regle):
     regle.cadre = regle.params.cmp2.val
     tmp = regle.params.cmp1.val.split(":")
     regle.recherche = tmp[0]
-    regle.item = tmp[1] if len(tmp)==2 else ''
+    regle.item = tmp[1] if len(tmp) == 2 else ""
 
 
 def f_xmlextract(regle, obj):
@@ -60,9 +60,9 @@ def f_xmlextract(regle, obj):
             )
             if regle.params.att_sortie.val:
                 if regle.item:
-                    contenu=elem.get(regle.item,'')
+                    contenu = elem.get(regle.item, "")
                 # print("traitement", regle.params.att_sortie.val, contenu)
-                obj.attributs[regle.params.att_sortie.val]=contenu
+                obj.attributs[regle.params.att_sortie.val] = contenu
                 obj.attributs[regle.params.att_entree.val] = xml
                 # print("apres xml", obj.attributs)
                 return True
@@ -73,7 +73,7 @@ def f_xmlextract(regle, obj):
             obj2.attributs["#xmltag"] = regle.recherche
             if regle.cadre:
                 obj2.attributs["#xmlgroup"] = regle.cadre
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             trouve = True
     obj.attributs[regle.params.att_entree.val] = xml
     return trouve

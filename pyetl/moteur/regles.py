@@ -21,7 +21,7 @@ LOGGER = logging.getLogger("pyetl")
 class Branch(object):
     """gestion des liens avec possibilite de creer de nouvelles sorties"""
 
-    enchainements = {"", "sinon", "fail", "next"}
+    enchainements = {"", "sinon", "fail", "next", "gen"}
 
     def __init__(self):
         self.brch = {"ok": None, "sinon": None, "fail": None, "next": None, "gen": None}
