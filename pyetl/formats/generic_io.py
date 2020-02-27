@@ -12,6 +12,7 @@ commencent par format_
 import os
 import codecs
 import re
+import io
 import logging
 from types import MethodType
 
@@ -54,7 +55,8 @@ for nom in DATABASES:
             converter=GEOMDEF[tmp.geom].converter, geomwriter=GEOMDEF[tmp.geom].writer
         )
 
-def get_read_encoding(regle,nom_format):
+
+def get_read_encoding(regle, nom_format):
     defchain = [
         "encoding",
         "codec_" + nom_format + "_in",
@@ -64,25 +66,24 @@ def get_read_encoding(regle,nom_format):
     ]
     return regle.getchain(defchain, "utf-8-sig")
 
-def get_read_separ(regle,nom_format):
 
-    sep_chain = [
-            "sep",
-            "separ_" + nom_format + "_in",
-            "separ_" + nom_format,
-        ]
+def get_read_separ(regle, nom_format):
+
+    sep_chain = ["sep", "separ_" + nom_format + "_in", "separ_" + nom_format]
     return regle.getchain(sep_chain, ";")
+
 
 class Reader(object):
     """wrappers d'entree génériques"""
+
     @classmethod
-    def get_formats(cls,nature):
+    def get_formats(cls, nature):
         """retourne la liste des formats connus"""
-        if nature == 'r':
+        if nature == "r":
             return READERS
-        elif nature == 'w':
+        elif nature == "w":
             return WRITERS
-        elif nature == 'd':
+        elif nature == "d":
             return DATABASES
 
     #    auxiliaires = AUXILIAIRES
@@ -90,8 +91,12 @@ class Reader(object):
 
     def __init__(self, nom, regle, regle_start, debug=0):
         self.nom_format = nom
-        self.filters = {'in': self.listfilter, '=': self.valuefilter, 're': self.regexfilter}
-        self.filter=None
+        self.filters = {
+            "in": self.listfilter,
+            "=": self.valuefilter,
+            "re": self.regexfilter,
+        }
+        self.filter = None
         self.debug = debug
         self.regle = regle  # on separe la regle de lecture de la regle de demarrage
         self.regle_start = regle_start
@@ -101,14 +106,14 @@ class Reader(object):
         self.traite_objets = self.stock_param.moteur.traite_objet
         self.schema = None
         self.schema_entree = None
-        self.newschema=True
+        self.newschema = True
         self.set_format_entree(nom)
         self.nb_lus = 0
         self.lus_fich = 0
         self.obj_crees = 0
         self.groupe = ""
         self.classe = ""
-        self.fixe=()
+        self.fixe = ()
         self.orig = None
         self.affich = 1000
         self.nextaff = self.affich
@@ -126,6 +131,7 @@ class Reader(object):
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
+            self.objreader = MethodType(description.objreader, self)
             self.nom_format = nom
             self.cree_schema = description.has_schema
             self.auxiliaires = description.auxfiles
@@ -136,7 +142,7 @@ class Reader(object):
                 self.initer(self)
             self.initfilter()
             self.nomschema = ""
-            schemas=self.stock_param.schemas
+            schemas = self.stock_param.schemas
             nom_schema_entree = self.regle_ref.getvar("schema_entree")
             # print ('schema_entree', nom_schema_entree, self.regle_ref.context.vlocales)
             if nom_schema_entree:
@@ -146,7 +152,7 @@ class Reader(object):
                 elif "#" + nom_schema_entree in schemas:
                     self.schema_entree = schemas["#" + nom_schema_entree]
                 else:
-                    cod_csv = get_read_encoding(self.regle_ref,"csv")
+                    cod_csv = get_read_encoding(self.regle_ref, "csv")
                     self.schema_entree = self.stock_param.lire_schemas_multiples(
                         nom_schema_entree, nom_schema_entree, cod_csv=cod_csv
                     )
@@ -161,7 +167,13 @@ class Reader(object):
                     self.schema = self.stock_param.init_schema(
                         self.nomschema, "L"
                     )  # et un schema pour les objets
-                print ('----------------------------definition schema_entree ', nom_schema_entree,'->',self.nomschema,self.schema)
+                print(
+                    "----------------------------definition schema_entree ",
+                    nom_schema_entree,
+                    "->",
+                    self.nomschema,
+                    self.schema,
+                )
             elif self.regle_ref.getvar("autoschema"):
                 self.nomschema = self.regle_ref.getvar("autoschema")
                 self.schema = self.stock_param.init_schema(
@@ -194,8 +206,14 @@ class Reader(object):
             raise KeyError
 
     def __repr__(self):
-        return "Reader "+ self.nom_format + " conv: "+repr(self.converter)+ " sc: "+ repr(self.schema)
-
+        return (
+            "Reader "
+            + self.nom_format
+            + " conv: "
+            + repr(self.converter)
+            + " sc: "
+            + repr(self.schema)
+        )
 
     def getobjvirtuel(
         self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None
@@ -225,12 +243,18 @@ class Reader(object):
         while chem:
             chem, nom = os.path.split(chem)
             niveaux.append(nom)
-        fich,ext=os.path.splitext(fichier)
-        self.fixe={'#chemin': os.path.abspath(os.path.join(rep,chemin)), '#fichier':fich, '#ext':ext}
-        macro_ouverture=regle.getvar('macro_ouverture') # possibilite de declencher une macro a l'ouverture d'un fichier
-        variables=regle.getvar('variables_ouverture').split(',')
+        fich, ext = os.path.splitext(fichier)
+        self.fixe = {
+            "#chemin": os.path.abspath(os.path.join(rep, chemin)),
+            "#fichier": fich,
+            "#ext": ext,
+        }
+        macro_ouverture = regle.getvar(
+            "macro_ouverture"
+        )  # possibilite de declencher une macro a l'ouverture d'un fichier
+        variables = regle.getvar("variables_ouverture").split(",")
         if macro_ouverture:
-            retour = regle.stock_param.macrorunner(macro_ouverture,retour=variables)
+            retour = regle.stock_param.macrorunner(macro_ouverture, retour=variables)
             if retour:
                 self.fixe.update(retour)
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
@@ -242,8 +266,8 @@ class Reader(object):
         classe, regle.ext = os.path.splitext(fichier)
         # print ('prepare lecture: initfich', groupe,classe,self.nomschema,rep,os.path.basename(rep))
         # self.setidententree(groupe,classe)
-        self.encoding = get_read_encoding(regle,self.nom_format)
-        self.separ = get_read_separ(regle,self.nom_format)
+        self.encoding = get_read_encoding(regle, self.nom_format)
+        self.separ = get_read_separ(regle, self.nom_format)
 
         # self.setidententree(groupe, classe)
         # print('apres setidenttnetree', self.schemaclasse._id)
@@ -252,27 +276,59 @@ class Reader(object):
             self.encoding = "utf-8-sig"
 
         self.setidententree(groupe, classe)
-        return groupe,classe
+        return groupe, classe
+
+    def prepare_lecture_att(self, obj, ext, schema=True):
+        """prepare les parametres de lecture"""
+        regle = self.regle_ref
+        self.lus_fich = 0
+        self.obj_crees = 0
+        self.chemin = ""
+        self.fixe = {"#ext": ext}
+        macro_ouverture = regle.getvar(
+            "macro_ouverture"
+        )  # possibilite de declencher une macro a l'ouverture d'un fichier
+        variables = regle.getvar("variables_ouverture").split(",")
+        if macro_ouverture:
+            retour = regle.stock_param.macrorunner(macro_ouverture, retour=variables)
+            if retour:
+                self.fixe.update(retour)
+        groupe, classe = obj.ident
+        if not self.nomschema and self.cree_schema:
+            # les objets ont un schema issu du fichier (le format a un schema)
+            self.nomschema = "schema"
+        self.encoding = get_read_encoding(regle, self.nom_format)
+        self.separ = get_read_separ(regle, self.nom_format)
+        regle.ext = ext
+        self.fichier = ""
+        self.setidententree(groupe, classe)
+        return groupe, classe
+
+    def attaccess(self, obj, nom, ext):
+        """lance le reader sur un fichier en ouvrant le fichier"""
+        groupe, classe = self.prepare_lecture_att(self, obj, ext)
+        with io.BytesIO(obj.attributs[nom]) as ouvert:
+            self.objreader(ouvert)
 
     def process(self, obj):
         """renvoie au moteur de traitement"""
         self.traite_objets(obj, self.regle_start)
 
-    def alphaprocess(self,attributs,hdict=None):
+    def alphaprocess(self, attributs, hdict=None):
         # print ('alphaprocess', self, self.filter)
         obj = self.getobj(attributs=attributs)
         if obj:
             if hdict:
-                for nom,dico in hdict.items():
-                    obj.sethtext(nom,dico)
-            obj.attributs["#type_geom"] = '0'
+                for nom, dico in hdict.items():
+                    obj.sethtext(nom, dico)
+            obj.attributs["#type_geom"] = "0"
             self.traite_objets(obj, self.regle_start)
         # else:
         #     print ('rejet')
 
-    def setvar(self,nom,val):
-        '''positionne une variable ( en general variables de format par defaut)'''
-        self.stock_param.setvar(nom,val)
+    def setvar(self, nom, val):
+        """positionne une variable ( en general variables de format par defaut)"""
+        self.stock_param.setvar(nom, val)
 
     def get_info(self):
         """ affichage du format courant : debug """
@@ -303,9 +359,9 @@ class Reader(object):
 
     def setidententree(self, groupe, classe):
         """positionne les identifiants"""
-        if self.orig==(groupe,classe):
+        if self.orig == (groupe, classe):
             # print ('retour', (groupe,classe),self.orig,self.groupe,self.classe)
-            return # on a rien touche
+            return  # on a rien touche
         if self.schema is None:
             self.schemaclasse = None
         if self.schema_entree:
@@ -315,7 +371,9 @@ class Reader(object):
         else:
             groupe2, classe2 = groupe, classe
             if not self.schema and self.nomschema:
-                self.schema = self.regle_ref.stock_param.init_schema(self.nomschema, "L")
+                self.schema = self.regle_ref.stock_param.init_schema(
+                    self.nomschema, "L"
+                )
         self.groupe = groupe2
         self.classe = classe2
         self.orig = (groupe, classe)
@@ -336,7 +394,12 @@ class Reader(object):
             # print ('------controle', self.schema.get_classe(self.ident)._id)
             return
         if self.schema_entree:
-            print ('mapping schema_entree impossible',self.ident,'->',self.schema_entree.nom)
+            print(
+                "mapping schema_entree impossible",
+                self.ident,
+                "->",
+                self.schema_entree.nom,
+            )
         self.newschema = True
         if self.schema:
             self.schemaclasse = self.schema.setdefault_classe(self.ident)
@@ -349,10 +412,10 @@ class Reader(object):
                 self.schemaclasse.attmap.get(i, i if i.startswith("#") else "#" + i)
                 for i in attlist
             ]
-            unmapped = [i for i in attlist if i.startswith('#')]
+            unmapped = [i for i in attlist if i.startswith("#")]
             if unmapped:
-                LOGGER.warn('champs non mappés:'+','.join(unmapped))
-                print('-----warning----- champs non mappés:'+','.join(unmapped))
+                LOGGER.warn("champs non mappés:" + ",".join(unmapped))
+                print("-----warning----- champs non mappés:" + ",".join(unmapped))
         else:
             self.attlist = attlist
 
@@ -362,39 +425,47 @@ class Reader(object):
 
     def initfilter(self):
         """definit un filtre de lecture sur un champs"""
-        readfilter = self.regle_ref.getvar('readfilter')
+        readfilter = self.regle_ref.getvar("readfilter")
         if readfilter:
-            filterdef = readfilter.split(':',3)
-            field,filtertype,vals = filterdef
-            if filtertype == 're':
-                vals=re.compile(vals)
-            elif filtertype == 'in':
-                vals = set(i.strip() for i in vals[1:-1].split(','))
-            elif filtertype == '=':
+            filterdef = readfilter.split(":", 3)
+            field, filtertype, vals = filterdef
+            if filtertype == "re":
+                vals = re.compile(vals)
+            elif filtertype == "in":
+                vals = set(i.strip() for i in vals[1:-1].split(","))
+            elif filtertype == "=":
                 pass
             else:
-                raise SyntaxError("definition de filtre inconnue: "+filtertype)
+                raise SyntaxError("definition de filtre inconnue: " + filtertype)
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
             self.filtervalue = vals
-            print ('filtrage entree active', readfilter, self.filterfield,'->', filtertype,'<-',self.filtervalue)
+            print(
+                "filtrage entree active",
+                readfilter,
+                self.filterfield,
+                "->",
+                filtertype,
+                "<-",
+                self.filtervalue,
+            )
 
     def valuefilter(self, attributs):
         try:
-            return attributs.get(self.filterfield,'#vide')==self.filtervalue
+            return attributs.get(self.filterfield, "#vide") == self.filtervalue
         except KeyError:
             return False
 
     def regexfilter(self, attributs):
         try:
-            return self.filtervalue.match(attributs.get(self.filterfield,'#vide'))
+            return self.filtervalue.match(attributs.get(self.filterfield, "#vide"))
         except KeyError:
             return False
 
     def listfilter(self, attributs):
         # print ('appel listfilter', attributs[self.filterfield] in self.filtervalue)
         try:
-            return attributs.get(self.filterfield,'#vide') in self.filtervalue
+            return attributs.get(self.filterfield, "#vide") in self.filtervalue
         except KeyError:
             return False
 
@@ -411,7 +482,7 @@ class Reader(object):
            cree un objet si on a pas depasse la limite de lecture"""
 
         errs = []
-        if self.maxobj >0 and self.lus_fich >= self.maxobj:
+        if self.maxobj > 0 and self.lus_fich >= self.maxobj:
             raise GeneratorExit
         self.nb_lus += 1
         self.lus_fich += 1
@@ -433,7 +504,14 @@ class Reader(object):
                     try:
                         attributs[nom] = self.attformatters[nom](attributs[nom])
                     except TypeError:
-                        errs.append('formattage attribut'+ str(self.ident) +' '+nom+' '+attributs[nom])
+                        errs.append(
+                            "formattage attribut"
+                            + str(self.ident)
+                            + " "
+                            + nom
+                            + " "
+                            + attributs[nom]
+                        )
                         # print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
         if self.filter and attributs:
             # print ('filter ',self.filter(dict(attributs)))
@@ -443,7 +521,7 @@ class Reader(object):
             else:
                 attributs = dict(attributs)
                 if not self.filter(dict(attributs)):
-                # if not self.filter(attributs):
+                    # if not self.filter(attributs):
                     return None
         # if self.filter:
         #     if not self.filter(attributs):
@@ -463,7 +541,7 @@ class Reader(object):
             # print ('getobj:affectation geometrie',geom)
             obj.attributs["#geom"] = geom
         if errs:
-            obj.attributs["#erreurs"]=','.join(errs)
+            obj.attributs["#erreurs"] = ",".join(errs)
         if self.fixe:
             # print ('fixe', self.fixe)
             obj.attributs.update(self.fixe)
@@ -475,14 +553,15 @@ class Reader(object):
 
 class Writer(object):
     """wrappers de sortie génériques"""
+
     @classmethod
-    def get_formats(cls,nature):
+    def get_formats(cls, nature):
         """retourne la liste des formats connus"""
-        if nature == 'r':
+        if nature == "r":
             return READERS
-        elif nature == 'w':
+        elif nature == "w":
             return WRITERS
-        elif nature == 'd':
+        elif nature == "d":
             return DATABASES
 
     def __init__(self, nom, regle, debug=0):
@@ -556,6 +635,6 @@ class Writer(object):
         fgeom = WRITERS.get(format_natif, WRITERS["interne"]).geom
         return GEOMDEF[fgeom].writer
 
-    def setvar(self,nom,val):
-        '''positionne une variable ( en general variables de format par defaut)'''
-        self.regle.stock_param.setvar(nom,val)
+    def setvar(self, nom, val):
+        """positionne une variable ( en general variables de format par defaut)"""
+        self.regle.stock_param.setvar(nom, val)

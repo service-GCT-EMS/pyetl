@@ -14,7 +14,18 @@ def loadmodules():
     et enregistre les readers et writers"""
     writers = dict()
     readers = dict()
-    rdef = namedtuple("readerdef", ("reader", "geom", "has_schema", "auxfiles", "initer", "converter",))
+    rdef = namedtuple(
+        "readerdef",
+        (
+            "reader",
+            "geom",
+            "has_schema",
+            "auxfiles",
+            "initer",
+            "converter",
+            "objreader",
+        ),
+    )
     wdef = namedtuple(
         "writerdef",
         (
@@ -30,7 +41,6 @@ def loadmodules():
             "initer",
             "geomwriter",
             "tmpgeomwriter",
-
         ),
     )
 

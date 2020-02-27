@@ -56,34 +56,36 @@ class JsonWriter(FileWriter):
         return True
 
 
-
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
     regle_ref = self.regle if self.regle else self.regle_start
     stock_param = regle_ref.stock_param
-    n_lin, n_obj = 0, 0
     # ouv = None
     obj = None
-    maxobj = regle_ref.getvar("lire_maxi", 0)
     codec = regle_ref.getvar("codec_entree", "utf-8")
     entree = os.path.join(rep, chemin, fichier)
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
     self.setidententree(chemin, stock_param.fichier_courant)
     with open(entree, "r", 65536, encoding=codec) as ouvert:
-        for i in json.load(ouvert):
-            if maxobj and n_obj > maxobj:
-                break
-            if not i:
-                continue  # ligne vide
-            n_obj += 1
-            obj = self.getobj()
-            if n_obj % 100000 == 0:
-                print("formats :", fichier, "lecture_objets_json ", n_lin, n_obj)
-            obj.from_geo_interface(i)
-            obj.setorig(n_obj)
-            obj.attributs["#chemin"] = chemin
-            self.traite_objet(obj, self.regle_start)
-    return n_obj
+        return self.objreader(ouvert)
+
+
+def objreader(self, ouvert):
+    n_obj = 0
+    obj = None
+
+    for i in json.load(ouvert):
+        if self.maxobj and n_obj > self.maxobj:
+            break
+        if not i:
+            continue  # ligne vide
+        n_obj += 1
+        obj = self.getobj()
+        if n_obj % 100000 == 0:
+            print("formats :", self.fichier, "lecture_objets_json ", n_obj)
+        obj.from_geo_interface(i)
+        obj.setorig(n_obj)
+        self.traite_objet(obj, self.regle_start)
 
 
 def _convertir_objet(obj, ensure_ascii=False):
@@ -208,8 +210,21 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
 
 #        ressource.compte(1)
 
-READERS = {"json": (lire_objets, None, True, (), None)}
-WRITERS = {"json": (ecrire_objets, jsonstreamer, False, "", 0, "", "classe", None, "#tmp",None)}
+READERS = {"json": (lire_objets, None, True, (), None, objreader)}
+WRITERS = {
+    "json": (
+        ecrire_objets,
+        jsonstreamer,
+        False,
+        "",
+        0,
+        "",
+        "classe",
+        None,
+        "#tmp",
+        None,
+    )
+}
 
 
 #########################################################################
