@@ -3,7 +3,7 @@ import pdal
 json = """
 [
     {
-        "filename":"entree/lidar/2050000_7274500_Lidar_15-16.laz"
+        "filename":"entree/las/*Lidar_15-16.laz"
     },
     {
         "type":"filters.range",
@@ -19,7 +19,7 @@ json = """
         "resolution": 0.5,
         "radius": 0.6,
         "output_type":"count",
-        "filename":"sortie/lidar/dalle_#.tif",
+        "filename":"sortie/lidar/dalle_#.asc",
         "origin_x":"2050000",
         "origin_y":"7274500",
         "width":"100",

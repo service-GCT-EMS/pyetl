@@ -339,6 +339,10 @@ def f_adquery(regle,obj):
     # print("pas d'entree adquery",regle.get_entree(obj) )
     return False
 
+def h_listefich(regle):
+    """rends la regle executable"""
+    regle.chargeur=True
+
 def f_listefich(regle,obj):
     """#aide genere un objet par fichier repondant aux criteres d'entree
     #pattern||S;?C;?A;listefich;?C;
