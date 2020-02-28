@@ -481,10 +481,10 @@ def gdalstreamer_b(self, obj, regle, final, attributs=None, rep_sortie=None):
 
 #                       reader,      geom,    hasschema,  auxfiles
 READERS = {
-    "dxf": (lire_objets, None, True, (), None),
-    "shp": (lire_objets, None, True, ("dbf", "prj", "shx", "cpg", "qpj"), None),
-    "mif": (lire_objets, None, True, (("mid",)), None),
-    "gpkg": (lire_objets, None, True, (), None),
+    "dxf": (lire_objets, None, True, (), None, None),
+    "shp": (lire_objets, None, True, ("dbf", "prj", "shx", "cpg", "qpj"), None, None),
+    "mif": (lire_objets, None, True, (("mid",)), None, None),
+    "gpkg": (lire_objets, None, True, (), None, None),
 }
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)

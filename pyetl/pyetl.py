@@ -220,7 +220,7 @@ class Pyetl(object):
 
         # parametres globaux ressources
         self.bindings = dict()
-        self.moteur = None
+        self.moteur = Moteur(self)
         # parametres de lancement
 
         # variables de stockage interne
@@ -517,7 +517,7 @@ class Pyetl(object):
             self.compilateur(None, self.debug)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
-            self.moteur = Moteur(self, self.regles, self.debug)
+            self.moteur.setregles(self.regles, self.debug)
             self.moteur.regle_debut = self.regles[0].numero
             #            print('preparation module',self.getvar('_entree'), '->', self.getvar('_sortie'))
             return True
@@ -1157,6 +1157,10 @@ class Pyetl(object):
             return
         print("info: pyetl:job_control", self.getvar("job_control"))
         open(self.getvar("job_control"), "w").write("fin mapper\n")
+
+    def getreader(self, nom_format, regle):
+        """retourne un reader"""
+        return Reader(nom_format, regle, None)
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""

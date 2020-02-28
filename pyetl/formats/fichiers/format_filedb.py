@@ -43,10 +43,10 @@ def lire_objets_fdb(self, rep, chemin, fichier):
 
 
 READERS = {
-    "mdb": (lire_objets_fdb, "", True, (), None),
-    "accdb": (lire_objets_fdb, "", True, (), None),
-    "sqlite": (lire_objets_fdb, "", True, (), None),
-    "spatialite": (lire_objets_fdb, "#ewkt", True, (), None),
+    "mdb": (lire_objets_fdb, "", True, (), None, None),
+    "accdb": (lire_objets_fdb, "", True, (), None, None),
+    "sqlite": (lire_objets_fdb, "", True, (), None, None),
+    "spatialite": (lire_objets_fdb, "#ewkt", True, (), None, None),
 }
 
 WRITERS = {}

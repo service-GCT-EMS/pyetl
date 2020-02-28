@@ -524,5 +524,5 @@ def lire_objets_osm(self, rep, chemin, fichier):
 
     return
 
-READERS = {"osm": (lire_objets_osm, "#osm", True, (), None)}
+READERS = {"osm": (lire_objets_osm, "#osm", True, (), None, None)}
 WRITERS = {}

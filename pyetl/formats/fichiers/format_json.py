@@ -57,7 +57,7 @@ class JsonWriter(FileWriter):
 
 
 def lire_objets(self, rep, chemin, fichier):
-    """ lecture d'un fichier asc et stockage des objets en memoire"""
+    """ lecture d'un fichier json et stockage des objets en memoire"""
     regle_ref = self.regle if self.regle else self.regle_start
     stock_param = regle_ref.stock_param
     # ouv = None
@@ -73,19 +73,22 @@ def lire_objets(self, rep, chemin, fichier):
 def objreader(self, ouvert):
     n_obj = 0
     obj = None
-
-    for i in json.load(ouvert):
-        if self.maxobj and n_obj > self.maxobj:
-            break
-        if not i:
-            continue  # ligne vide
-        n_obj += 1
-        obj = self.getobj()
-        if n_obj % 100000 == 0:
-            print("formats :", self.fichier, "lecture_objets_json ", n_obj)
-        obj.from_geo_interface(i)
-        obj.setorig(n_obj)
-        self.traite_objet(obj, self.regle_start)
+    contenu = json.load(ouvert)
+    if contenu.get("type") == "FeatureCollection":
+        # c'est des objets
+        for i in contenu["features"]:
+            if self.maxobj and n_obj > self.maxobj:
+                break
+            if not i:
+                continue  # ligne vide
+            n_obj += 1
+            obj = self.getobj()
+            if n_obj % 100000 == 0:
+                print("formats :", self.fichier, "lecture_objets_json ", n_obj)
+            # print("traitement json", i)
+            obj.from_geo_interface(i)
+            obj.setorig(n_obj)
+            self.traite_objets(obj, self.regle_start)
 
 
 def _convertir_objet(obj, ensure_ascii=False):

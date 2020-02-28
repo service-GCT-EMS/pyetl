@@ -180,4 +180,4 @@ WRITERS = {
     "#store": (ecrire_objets_int, intstreamer, False, "", 0, "", "classe", "", "",None)
 }
 #                  reader,geom,hasschema,auxfiles
-READERS = {"interne": (None, None, False, (), None)}
+READERS = {"interne": (None, None, False, (), None, None)}

@@ -88,8 +88,8 @@ def ecrire_objets_text(regle, _, attributs=None):
 
 
 READERS = {
-            "ligne": (lire_textfile_ligne, "", False, (), None),
-            "text": (lire_textfile_bloc, "", False, (), None),
+            "ligne": (lire_textfile_ligne, "", False, (), None, None),
+            "text": (lire_textfile_bloc, "", False, (), None, None),
             }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "",None)}

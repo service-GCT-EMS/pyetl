@@ -261,8 +261,8 @@ def f_ftpdownload(regle, obj):
     """#aide||charge un fichier sur ftp
   #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
     #pattern1||;?C;?A;ftp_download;C;?C
-    #pattern2||;C;;ftp_download;;
-    #pattern3||A;C;;ftp_download;;
+    #pattern2||;?C;?A;ftp_download;;
+    #pattern3||A;?C;?A;ftp_download;;
      #helper||ftpupload
        #test||notest
     """
@@ -270,16 +270,17 @@ def f_ftpdownload(regle, obj):
     if regle.servertyp == "direct":
         filename = getftpinfo(regle, regle.getval_entree(obj))
     if not regle.ftp:
-        if not regle.ftp:
-            retour = ftpconnect(regle)
-            if not retour:
-                return False
+        retour = ftpconnect(regle)
+        if not retour:
+            return False
         print("connection ftp etablie")
-
-    localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
-    localname = os.path.join(localdir, filename)
-    os.makedirs(os.path.dirname(localname), exist_ok=True)
-    print("creation repertoire", os.path.dirname(localname))
+    if not regle.params.att_sortie.val:
+        localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
+        localname = os.path.join(localdir, filename)
+        os.makedirs(os.path.dirname(localname), exist_ok=True)
+        print("creation repertoire", os.path.dirname(localname))
+    else:
+        localname = "[" + regle.params.att_sortie.val + "]"
 
     try:
         if regle.servertyp == "sftp":
@@ -292,10 +293,12 @@ def f_ftpdownload(regle, obj):
             else:
                 regle.ftp.get(filename, localpath=localname, preserve_mtime=True)
         else:
-            if regle.params.att_sortie:
+            if regle.params.att_sortie.val:
                 output = io.BytesIO()
                 regle.ftp.retrbinary("RETR " + filename, output.write)
-                obj.attributs[regle.params.att_sortie] = str(output.getvalue())
+                obj.attributs[regle.params.att_sortie.val] = output.getvalue().decode(
+                    "utf8"
+                )
                 output.close()
             else:
                 localfile = open(localname, "wb")

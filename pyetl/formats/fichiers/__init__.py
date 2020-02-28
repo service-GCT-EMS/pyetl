@@ -22,8 +22,8 @@ def loadmodules():
             "has_schema",
             "auxfiles",
             "initer",
-            "converter",
             "objreader",
+            "converter",
         ),
     )
     wdef = namedtuple(
@@ -55,6 +55,7 @@ def loadmodules():
                     writers[nom] = wdef(*desc, None, None)
                     # a ce stade les fonctions ne sont pas connues
                 for nom, desc in getattr(format_def, "READERS").items():
+                    # print("definition du format d'entree", nom, desc)
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
                     readers[nom] = rdef(*desc, None)

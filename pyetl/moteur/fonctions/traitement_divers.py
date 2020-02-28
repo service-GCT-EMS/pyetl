@@ -35,7 +35,9 @@ def store_traite_stock(regle):
             #            print ('store: relecture objet ', obj, obj.schema.identclasse,obj.schema.info)
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     else:
-        for clef in sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store:
+        for clef in (
+            sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
+        ):
             obj = store[clef]
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     h_stocke(regle)  # on reinitialise
@@ -62,11 +64,11 @@ def f_stocke(regle, obj):
     """#aide||stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
   #aide_spec||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
   #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
-   #pattern1||;;?L;tmpstore;?=uniq;?=sort;||
-   #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||
-   #pattern3||;;?L;tmpstore;=cmp;A;?=clef||
-   #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||
-   #pattern5||S;;?L;tmpstore;=cnt;||
+   #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
+   #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
+   #pattern3||;;?L;tmpstore;=cmp;A;?=clef||cmp1
+   #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||cmp1
+   #pattern5||S;;?L;tmpstore;=cnt;||cmp1
        #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
@@ -78,14 +80,16 @@ def f_stocke(regle, obj):
 
     if regle.params.cmp1.val:
         if len(regle.params.att_entree.liste) > 1:
-            clef = "|".join(obj.attributs.get(i, "") for i in regle.params.att_entree.liste)
+            clef = "|".join(
+                obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+            )
         else:
             clef = obj.attributs.get(regle.params.att_entree.val, "")
         if regle.stocke_obj:
             if regle.cnt:
                 cnt = 1
                 if clef in regle.tmpstore:
-                    obj =  regle.tmpstore[clef]
+                    obj = regle.tmpstore[clef]
                     cnt += int(obj.attributs[regle.params.att_sortie.val])
                 obj.attributs[regle.params.att_sortie.val] = str(cnt)
             regle.tmpstore[clef] = obj
@@ -117,7 +121,9 @@ def f_uniq(regle, obj):
         if regle.params.val_entree.val == "#geom"
         else ""
     )
-    clef = clef + "|".join(obj.attributs.get(i, "") for i in regle.params.att_entree.liste)
+    clef = clef + "|".join(
+        obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+    )
 
     #    print ('uniq ',clef, regle.params.att_entree.val )
     if clef in regle.tmpstore:
@@ -149,7 +155,9 @@ def f_uniqcnt(regle, obj):
         if regle.params.val_entree.val == "#geom"
         else ""
     )
-    clef = clef + "|".join(obj.attributs.get(i, "") for i in regle.params.att_entree.liste)
+    clef = clef + "|".join(
+        obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+    )
     regle.tmpstore[clef] += 1
     obj.attributs[regle.params.att_sortie.val] = str(regle.tmpstore[clef])
     if regle.tmpstore[clef] > regle.maxobj:
@@ -177,7 +185,9 @@ def sortir_traite_stock(regle):
 def h_sortir(regle):
     """preparation sortie"""
 
-    if regle.params.att_sortie.val == "#schema":  # on force les noms de schema pour l'ecriture
+    if (
+        regle.params.att_sortie.val == "#schema"
+    ):  # on force les noms de schema pour l'ecriture
         regle.nom_fich_schema = regle.params.val_entree.val
     else:
         regle.nom_fich_schema = regle.params.cmp2.val
@@ -196,7 +206,9 @@ def h_sortir(regle):
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = Writer(regle.params.cmp1.val, regle)  # tout le reste
     #    print ('positionnement writer ',regle, regle.params.cmp1.val)
-    if regle.f_sortie.nom_format == "sql":  # gestion des dialectes sql et du mode connecté
+    if (
+        regle.f_sortie.nom_format == "sql"
+    ):  # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get("base_dest")
         dialecte = regle.f_sortie.writerparms.get("dialecte")
         regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")
@@ -204,7 +216,9 @@ def h_sortir(regle):
         if destination:  # on va essayer de se connecter
             connection = dbaccess(regle, destination)
             if connection and connection.valide:
-                regle.f_sortie.gensql = connection.gensql  # la on a une instance connectee
+                regle.f_sortie.gensql = (
+                    connection.gensql
+                )  # la on a une instance connectee
         elif dialecte:
             regle.f_sortie.gensql = dialecte.gensql()
     #        print ('sortie',regle.ligne,regle.f_sortie.writerparms)
@@ -213,20 +227,27 @@ def h_sortir(regle):
         regle.ext = dialecte
 
     regle.fanout = (
-        regle.context.getvar("fanout", "groupe") if regle.f_sortie.multiclasse else "classe"
+        regle.context.getvar("fanout", "groupe")
+        if regle.f_sortie.multiclasse
+        else "classe"
     )
 
     if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
         rep_base = regle.getvar("_sortie")
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        if os.path.isabs(regle.params.cmp2.val): # si absolu on ignore le rep de sortie
-            rep_base = ''
-        if regle.fanout == 'no': # sans fanout pas de sous repertoires
-            regle.setlocal("_sortie", os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)))
-            regle.f_sortie.writerparms["destination"] = os.path.basename(regle.params.cmp2.val)
+        if os.path.isabs(regle.params.cmp2.val):  # si absolu on ignore le rep de sortie
+            rep_base = ""
+        if regle.fanout == "no":  # sans fanout pas de sous repertoires
+            regle.setlocal(
+                "_sortie",
+                os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)),
+            )
+            regle.f_sortie.writerparms["destination"] = os.path.basename(
+                regle.params.cmp2.val
+            )
         else:
             regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
-            print ('sortir: ', os.path.join(rep_base, regle.params.cmp2.val))
+            print("sortir: ", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema
@@ -241,7 +262,7 @@ def h_sortir(regle):
         print("sortir :", regle.params.att_entree.liste)
     regle.final = True
     regle.menage = True
-#     print ('icsv: sortir copy:',regle.copy,'stream:',regle.stock_param.stream)
+    #     print ('icsv: sortir copy:',regle.copy,'stream:',regle.stock_param.stream)
     if regle.copy and mode_sortie == "D":
         # cette regle consomme les objets sauf si on est en mode copie et streaming
         regle.final = False
@@ -286,7 +307,9 @@ def f_sortir(regle, obj):
     setschemasortie(regle, obj)
     #    print ('stockage ',regle.f_sortie.calcule_schema, regle.store)
     if regle.store is None:  # on decide si la regle est stockante ou pas
-        regle.store = regle.f_sortie.calcule_schema and (not obj.schema or not obj.schema.stable)
+        regle.store = regle.f_sortie.calcule_schema and (
+            not obj.schema or not obj.schema.stable
+        )
         if regle.store:  # on ajuste les branchements
             regle.setstore()
             print("f_sortir: passage en mode stockant")
@@ -300,13 +323,11 @@ def f_sortir(regle, obj):
             # regle.stock_param.nb_obj+=1
             if regle.stock_param.stream:  # sortie classe par classe
                 if groupe not in regle.stockage:
-                    regle.f_sortie.ecrire_objets(regle, False)  # on sort le groupe precedent
+                    regle.f_sortie.ecrire_objets(
+                        regle, False
+                    )  # on sort le groupe precedent
                     regle.compt_stock = 0
-            regle.endstore(
-                nom_base,
-                groupe,
-                obj,
-            )
+            regle.endstore(nom_base, groupe, obj)
             return True
 
     regle.f_sortie.ecrire_objets_stream(obj, regle, False)
@@ -334,10 +355,10 @@ def preload(regle, obj):
     vrep = lambda x: regle.resub.sub(regle.repl, x)
     chaine_comm = vrep(regle.params.cmp1.val)
     regle.setvar("nocomp", False)
-    #=================surveillance de la consommation mémoire================
+    # =================surveillance de la consommation mémoire================
     process = psutil.Process(os.getpid())
     mem1 = process.memory_info()[0]
-    #=========================================
+    # =========================================
     if obj and regle.params.att_entree.val:
         entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
     else:
@@ -356,7 +377,9 @@ def preload(regle, obj):
             if regle.params.cmp2.val.startswith("#")
             else "#" + regle.params.cmp2.val
         )
-        processor = regle.stock_param.getpyetl(chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context)
+        processor = regle.stock_param.getpyetl(
+            chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context
+        )
         if not processor:
             return False
         processor.process()
@@ -379,18 +402,26 @@ def preload(regle, obj):
         regle.reglestore.tmpstore = dict()
         try:
             regle.stock_param.store[regle.params.cmp2.val] = regle.reglestore.tmpstore
-            lecteur.lire_objets("", chemin, fichier, regle.stock_param, regle.reglestore)
+            lecteur.lire_objets(
+                "", chemin, fichier, regle.stock_param, regle.reglestore
+            )
         except FileNotFoundError:
             regle.stock_param.store[regle.params.cmp2.val] = None
             print("fichier inconnu", os.path.join(chemin, fichier))
         except StopIteration:
             pass
         nb_total = lecteur.lus_fich
-    #=================surveillance de la consommation mémoire================
+    # =================surveillance de la consommation mémoire================
     mem2 = process.memory_info()[0]
     mem = mem2 - mem1
-    print("------- preload info memoire ", nb_total, mem, "--------", int(mem / (nb_total + 1)))
-    #=============================
+    print(
+        "------- preload info memoire ",
+        nb_total,
+        mem,
+        "--------",
+        int(mem / (nb_total + 1)),
+    )
+    # =============================
     return True
 
 
@@ -398,13 +429,18 @@ def h_preload(regle):
     """prechargement"""
     obj = None
     mapper = regle.stock_param
-    tstor = ";;;;;;" + regle.params.att_sortie.val + ";tmpstore;cmp;" + regle.params.cmp2.val
+    tstor = (
+        ";;;;;;"
+        + regle.params.att_sortie.val
+        + ";tmpstore;cmp;"
+        + regle.params.cmp2.val
+    )
     reglestore = mapper.interpreteur(tstor, "", 99999)
     regle.reglestore = reglestore
     regle.repl = lambda x: obj.attributs.get(x.group(1), "")
     regle.resub = re.compile(r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]")
     fich = regle.params.val_entree.val
-    fich = fich.replace('[R]', regle.stock_param.racine)
+    fich = fich.replace("[R]", regle.stock_param.racine)
     regle.fich = fich
     regle.dynlevel = 0
     if "[F]" in fich:
@@ -419,7 +455,6 @@ def h_preload(regle):
         regle.entree = regle.params.val_entree.val
         regle.fich = regle.entree
         regle.valide = "done" if preload(regle, None) else False
-
 
     print("==================h_preload===", regle.dynlevel, regle.valide)
 
@@ -440,7 +475,9 @@ def f_preload(regle, obj):
         fich = fich.replace("[F]", obj.attributs["#classe"])
         if fich != regle.entree:
             regle.entree = fich
-            print("==================f_preload===", regle.stock_param.racine, regle.entree)
+            print(
+                "==================f_preload===", regle.stock_param.racine, regle.entree
+            )
 
             regle.loaded = preload(regle, obj)
     #            print ('chargement ',regle.params.cmp2.val,
@@ -456,7 +493,6 @@ def compare_traite_stock(regle):
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["supp:"])
     regle.comp = None
     regle.nbstock = 0
-
 
 
 def h_compare(regle):
@@ -492,17 +528,25 @@ def f_compare2(regle, obj):
         if regle.comp:
             if regle.params.att_entree.liste:
                 regle.comp2 = {
-                    i: ([i.attributs[j] for j in regle.params.att_entree.liste]) for i in regle.comp
+                    i: ([i.attributs[j] for j in regle.params.att_entree.liste])
+                    for i in regle.comp
                 }
             else:
                 regle.comp2 = {
-                    i: ([i.attributs[j] for j in sorted([k for k in i.attributs if k[0] != "#"])])
+                    i: (
+                        [
+                            i.attributs[j]
+                            for j in sorted([k for k in i.attributs if k[0] != "#"])
+                        ]
+                    )
                     for i in regle.comp
                 }
     #    print ('comparaison ', len(regle.comp), regle.comp)
     try:
         if len(regle.params.cmp1.liste) > 1:
-            clef = "|".join(obj.attributs.get(i, "") for i in regle.params.att_entree.liste)
+            clef = "|".join(
+                obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+            )
         else:
             clef = obj.attributs[regle.params.cmp1.val]
         ref = regle.comp2[clef]
@@ -512,14 +556,18 @@ def f_compare2(regle, obj):
         obj.attributs[regle.params.att_sortie.val] = "new"
         return False
     if regle.params.att_entree.liste:
-        compare = all([obj.attributs[i] == ref.attributs[i] for i in regle.params.att_entree.liste])
+        compare = all(
+            [
+                obj.attributs[i] == ref.attributs[i]
+                for i in regle.params.att_entree.liste
+            ]
+        )
     else:
-        atts = {i for i in obj.attributs if i[0] != "#" or i=='#geom'}
-        kref = {i for i in ref.attributs if i[0] != "#" or i=='#geom'}
+        atts = {i for i in obj.attributs if i[0] != "#" or i == "#geom"}
+        kref = {i for i in ref.attributs if i[0] != "#" or i == "#geom"}
         #    id_att = atts == kref
-        compare = (
-            atts == kref
-            and all([obj.attributs[i] == ref.attributs[i] for i in atts])
+        compare = atts == kref and all(
+            [obj.attributs[i] == ref.attributs[i] for i in atts]
         )
     if compare:
         return True
@@ -552,7 +600,9 @@ def f_compare(regle, obj):
 
     try:
         if len(regle.params.cmp1.liste) > 1:
-            clef = "|".join(obj.attributs.get(i, "") for i in regle.params.att_entree.liste)
+            clef = "|".join(
+                obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+            )
         else:
             clef = obj.attributs[regle.params.cmp1.val]
         ref = regle.comp.pop(clef)
@@ -562,14 +612,18 @@ def f_compare(regle, obj):
         obj.attributs[regle.params.att_sortie.val] = "new"
         return False
     if regle.params.att_entree.liste:
-        compare = all([obj.attributs[i] == ref.attributs[i] for i in regle.params.att_entree.liste])
+        compare = all(
+            [
+                obj.attributs[i] == ref.attributs[i]
+                for i in regle.params.att_entree.liste
+            ]
+        )
     else:
-        atts = {i for i in obj.attributs if i[0] != "#" or i=='#geom'}
-        kref = {i for i in ref.attributs if i[0] != "#" or i=='#geom'}
+        atts = {i for i in obj.attributs if i[0] != "#" or i == "#geom"}
+        kref = {i for i in ref.attributs if i[0] != "#" or i == "#geom"}
         #    id_att = atts == kref
-        compare = (
-            atts == kref
-            and all([obj.attributs[i] == ref.attributs[i] for i in atts])
+        compare = atts == kref and all(
+            [obj.attributs[i] == ref.attributs[i] for i in atts]
         )
     if compare:
         return True
@@ -582,25 +636,23 @@ def f_compare(regle, obj):
     return False
 
 
-
 def h_getkey(regle):
-    '''prepare les stockages'''
+    """prepare les stockages"""
     if regle.params.cmp1.val not in regle.stock_param.keystore:
-        regle.stock_param.keystore[regle.params.cmp1.val]=dict()
+        regle.stock_param.keystore[regle.params.cmp1.val] = dict()
     regle.keystore = regle.stock_param.keystore[regle.params.cmp1.val]
 
 
-def f_getkey(regle,obj):
-    '''#aide||retourne une clef numerique incrementale correspondant a une valeur
+def f_getkey(regle, obj):
+    """#aide||retourne une clef numerique incrementale correspondant a une valeur
   #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
   #pattern||S;?C;?A;getkey;?A;;;
-    '''
+    """
     ref = regle.get_entree(obj)
     if ref not in regle.keystore:
-        regle.keystore[ref] = len(regle.keystore)+1
+        regle.keystore[ref] = len(regle.keystore) + 1
     regle.setval_sortie(obj, regle.keystore[ref])
     return True
-
 
 
 def h_loadconfig(regle):
@@ -615,4 +667,3 @@ def f_loadconfig(regle, obj):
     #pattern||;;;loadconfig;C;C
     """
     return True
-

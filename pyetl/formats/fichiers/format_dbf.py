@@ -38,6 +38,6 @@ def lire_objets_dbf(self, rep, chemin, fichier):
 
 
 #                  reader,geom,hasschema,auxfiles,initer
-READERS = {"dbf": (lire_objets_dbf, None, True, ('!','shp'), None)}
+READERS = {"dbf": (lire_objets_dbf, None, True, ('!','shp'), None,None)}
 # READERS={}
 WRITERS = {}

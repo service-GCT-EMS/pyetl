@@ -131,6 +131,7 @@ class Reader(object):
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
+            print("objreader", description)
             self.objreader = MethodType(description.objreader, self)
             self.nom_format = nom
             self.cree_schema = description.has_schema
@@ -232,11 +233,31 @@ class Reader(object):
         obj.virtuel = True
         return obj
 
+    def prepare_lecture(self):
+        """prepare les parametres de lecture"""
+        regle = self.regle_ref
+        if self.regle_start is None:
+            self.regle_start = self.regle_ref.getgen
+        self.lus_fich = 0
+        self.obj_crees = 0
+        self.chemin = ""
+        # possibilite de declencher une macro a l'ouverture d'un fichier
+        macro_ouverture = regle.getvar("macro_ouverture")
+        variables = regle.getvar("variables_ouverture").split(",")
+        if macro_ouverture:
+            retour = regle.stock_param.macrorunner(macro_ouverture, retour=variables)
+            if retour:
+                self.fixe.update(retour)
+        if not self.nomschema and self.cree_schema:
+            # les objets ont un schema issu du fichier (le format a un schema)
+            self.nomschema = "schema"
+        self.encoding = get_read_encoding(regle, self.nom_format)
+        self.separ = get_read_separ(regle, self.nom_format)
+        self.fichier = ""
+
     def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True):
         """prepare les parametres de lecture"""
         regle = self.regle_ref
-        self.lus_fich = 0
-        self.obj_crees = 0
         self.chemin = chemin
         chem = chemin
         niveaux = []
@@ -249,14 +270,7 @@ class Reader(object):
             "#fichier": fich,
             "#ext": ext,
         }
-        macro_ouverture = regle.getvar(
-            "macro_ouverture"
-        )  # possibilite de declencher une macro a l'ouverture d'un fichier
-        variables = regle.getvar("variables_ouverture").split(",")
-        if macro_ouverture:
-            retour = regle.stock_param.macrorunner(macro_ouverture, retour=variables)
-            if retour:
-                self.fixe.update(retour)
+        self.prepare_lecture()
         groupe = "_".join(niveaux) if niveaux else os.path.basename(rep)
         # print ('prepare lecture',self.nomschema,self.cree_schema)
         if not self.nomschema and self.cree_schema:
@@ -264,50 +278,29 @@ class Reader(object):
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
         # self.aff.send(("initfich", 0, 0))
         classe, regle.ext = os.path.splitext(fichier)
-        # print ('prepare lecture: initfich', groupe,classe,self.nomschema,rep,os.path.basename(rep))
-        # self.setidententree(groupe,classe)
-        self.encoding = get_read_encoding(regle, self.nom_format)
-        self.separ = get_read_separ(regle, self.nom_format)
-
-        # self.setidententree(groupe, classe)
-        # print('apres setidenttnetree', self.schemaclasse._id)
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = "utf-8-sig"
-
         self.setidententree(groupe, classe)
         return groupe, classe
 
-    def prepare_lecture_att(self, obj, ext, schema=True):
+    def prepare_lecture_att(self, obj, format, schema=True):
         """prepare les parametres de lecture"""
-        regle = self.regle_ref
-        self.lus_fich = 0
-        self.obj_crees = 0
         self.chemin = ""
-        self.fixe = {"#ext": ext}
-        macro_ouverture = regle.getvar(
-            "macro_ouverture"
-        )  # possibilite de declencher une macro a l'ouverture d'un fichier
-        variables = regle.getvar("variables_ouverture").split(",")
-        if macro_ouverture:
-            retour = regle.stock_param.macrorunner(macro_ouverture, retour=variables)
-            if retour:
-                self.fixe.update(retour)
+        self.fixe = {"#format": format}
+        self.prepare_lecture()
         groupe, classe = obj.ident
         if not self.nomschema and self.cree_schema:
             # les objets ont un schema issu du fichier (le format a un schema)
             self.nomschema = "schema"
-        self.encoding = get_read_encoding(regle, self.nom_format)
-        self.separ = get_read_separ(regle, self.nom_format)
-        regle.ext = ext
         self.fichier = ""
         self.setidententree(groupe, classe)
         return groupe, classe
 
     def attaccess(self, obj, nom, ext):
         """lance le reader sur un fichier en ouvrant le fichier"""
-        groupe, classe = self.prepare_lecture_att(self, obj, ext)
-        with io.BytesIO(obj.attributs[nom]) as ouvert:
+        groupe, classe = self.prepare_lecture_att(obj, format)
+        with io.StringIO(obj.attributs[nom]) as ouvert:
             self.objreader(ouvert)
 
     def process(self, obj):

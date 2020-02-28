@@ -402,8 +402,8 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
             ressource.write(obj, regle.idregle)
 
 # extension : (fonction de lecture, format graphique, schema, fichiers aux, initialiseur)
-READERS = {"xml": (lire_objets_xml, "#gml", False, (), None),
-            "qgs": (lire_objets_xml_simple, None, False, (), init_qgs),
+READERS = {"xml": (lire_objets_xml, "#gml", False, (), None, None),
+            "qgs": (lire_objets_xml_simple, None, False, (), init_qgs, None),
             }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"xml": (ecrire_objets_xml, xml_streamer, False, "", 0, "", "groupe", "#gml", "#gml",None)}

@@ -15,7 +15,7 @@ LOGGER = logging.getLogger("pyetl")
 class Moteur(object):
     """gestionnaire de traitements """
 
-    def __init__(self, mapper, regles, debug=0):
+    def __init__(self, mapper, regles=None, debug=0):
         self.regles = regles
         self.mapper = mapper
         self.debug = debug
@@ -29,6 +29,10 @@ class Moteur(object):
     def regle_sortir(self):
         """ retourne la regle finale"""
         return self.regles[-1]
+
+    def setregles(self, regles, debug=0):
+        self.regles = regles
+        self.debug = debug
 
     def traitement_virtuel(self, unique=0):
         """ cree un objet virtuel et le traite pour toutes les classes non utilisees """

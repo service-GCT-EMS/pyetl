@@ -420,6 +420,11 @@ class RegleTraitement(object):  # regle de mapping
             )
         return "regle vide"
 
+    @property
+    def getgen(self):
+        return self.branchements.brch['gen']
+
+
     # ------------------------------------fonctions d'initialisation---------------------------------
     def _select_fonc(self, fonc):
         """validation de la signature d'une fonction # pretest de la clef prioritaire"""

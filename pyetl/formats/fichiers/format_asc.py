@@ -617,7 +617,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
 
 #                       reader,      geom,    hasschema,  auxfiles, initer
-READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"),  init_format_asc)}
+READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"),  init_format_asc, None)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "asc": (

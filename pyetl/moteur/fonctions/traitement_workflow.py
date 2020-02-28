@@ -805,6 +805,17 @@ def f_retry(regle, obj):
     pass
 
 
+def h_attreader(regle):
+    """initialise le reader"""
+    format = regle.params.cmp1.val
+    if format not in regle.stock_param.formats_connus_lecture:
+        raise SyntaxError("format de lecture inconnu:" + format)
+    regle.reader = regle.stock_param.getreader(format, regle)
+
+
 def f_attreader(regle, obj):
     """#aide||traite un attribut d'un objet comme une source de donnees
+    #pattern||;;A;attreader;C;
     """
+    print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
+    regle.reader.attaccess(obj, regle.params.att_entree.val, regle.params.cmp1.val)
