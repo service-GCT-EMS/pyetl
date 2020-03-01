@@ -50,9 +50,9 @@ class DefinitionAttribut(object):
         "AV": (r"^$", "A", "S"),  # vide pour des definitions ou sortie=entree
         "+A": (r"^\+" + adef + r"$", "A", "S"),
         "A+": (r"^" + adef + r"\+$", "A", "S"),
-        "A*": (r"^" + adef + r"\*$", "C", "D"),
-        "*A": (r"^\*" + adef + r"$", "C", "D"),
-        "H:A": (r"^H:(" + asdef + r")$", "C", "H"),
+        "A*": (r"^" + adef + r"\*$", "A", "D"),
+        "*A": (r"^\*" + adef + r"$", "A", "D"),
+        "H:A": (r"^H:(" + asdef + r")$", "A", "H"),
         "*": (r"^\*$", "C", "D"),
         "[A]": (r"^" + vdef + "$", "A", "S"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S"),
@@ -210,7 +210,6 @@ class FonctionTraitement(object):
         self.pattern = pat[0]
         self.patternnum = description["pn"]
         self.work = fonction
-        self.store = None
         self.helper = []
         self.shelper = None
         self.definition = definition  # definition_champs
@@ -502,22 +501,26 @@ def set_helper(sbf, store, clef):
 
 def complete_fonction(sbf, store):
     """complete la fonction acec les sorties et les assitants"""
+    stockage = store["s"]
     if sbf.definition["sortie"].nature == "G":  # c'est une definition de groupe
-        stockage = store["s"]
         grouperef = sbf.definition["sortie"].groupe
         sbf.fonctions_sortie = {
             k: stockage[k]
             for k in stockage
             if stockage[k].definition["sortie"].groupe == grouperef
         }
-
-        for i in sbf.fonctions_sortie.values():
-            #            print ('fonction schema ',i.nom, i.description.get('#schema'))
-            i.fonction_schema = get_fonction(
-                i.description.get("#schema", [""])[0], store, "fschema"
-            )
-            i.helper = get_fonction(i.description.get("#shelper", [""])[0], store, "sh")
+    else:
+        idstock = sbf.definition["sortie"].nature
+        if idstock in stockage:
+            sbf.fonctions_sortie = {idstock: stockage[idstock]}
+    for i in sbf.fonctions_sortie.values():
+        #            print ('fonction schema ',i.nom, i.description.get('#schema'))
+        i.fonction_schema = get_fonction(
+            i.description.get("#schema", [""])[0], store, "fschema"
+        )
+        i.helper = get_fonction(i.description.get("#shelper", [""])[0], store, "sh")
     #        print ("detecte groupe",grouperef,sbf.nom,len(sbf.fonctions_sortie))
+
     set_helper(sbf, store, "h")
 
     if sbf.description.get("#shelper"):

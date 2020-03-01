@@ -156,8 +156,7 @@ def f_setnonvide(regle, obj):
         #test4||obj||^V4;1;A|B;set||atv;V4;1
         #test2||obj||^V4;1;A|B;set||ats;V4
     """
-    regle.fstore(
-        regle.params.att_sortie,
+    regle.setval_sortie(
         obj,
         next(
             (
@@ -252,12 +251,14 @@ def h_setself(regle):
 def f_upper(regle, obj):
     """#aide||remplacement d une valeur
         #aide_spec||remplacement d'une valeur d'attribut avec defaut passage en majuscule
-        #pattern||S;?;A;upper;;
+        #!pattern||S;?;A;upper;;||sortie
+        #pattern||A;?;A;upper;;||sortie
     #parametres||attribut resultat;defaut;attribut d'entree
         #test1||obj||^V4;a;;set||^V4;;V4;upper||atv;V4;A
         #test2||obj||^V4;a;;set||^V5;;V4;upper||ats;V5
 
     """
+    print("-----------upper", regle.params.att_sortie, regle.fstore)
     regle.setval_sortie(obj, regle.getval_entree(obj).upper())
     return True
 
@@ -408,7 +409,7 @@ def f_asplit(regle, obj):
         for i in elems[1:]:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
     else:
         regle.setval_sortie(
             obj,
@@ -675,26 +676,31 @@ def f_cnt(regle, obj):
 def h_join(regle):
     """preparation jointure"""
     regle.fichier = regle.params.cmp1.val  # nom du fichier
-    definition_jointure = regle.params.cmp2.liste
-    regle.clef = definition_jointure.index(regle.params.att_entree.val)
-    regle.champ = definition_jointure.index(regle.params.att_sortie.val)
-    regle.stock_param.jointdef[regle.fichier] = regle.clef
-    regle.stock_param.joint_fich[regle.fichier] = ""
-    if re.search(r"\[[CDF]\]", regle.fichier):
-        regle.joint_statique = False
+    if regle.fichier.startswith("#"):  # jointure objets sur tmpstore
+        regle.jointtype = "obj"
+        regle.champs = regle.params.cmp2.liste
     else:
-        #        regle.mode = "sjoin" # jointure statique)
-        regle.joint_statique = True
-        regle.stock_param.charge(
-            regle.fichier, regle.fichier
-        )  # on precharge le fichier de jointure
-    #    print(" prechargement",regle.fichier)
+        regle.jointtype = "fich"
+        definition_jointure = regle.params.cmp2.liste
+        regle.clef = definition_jointure.index(regle.params.att_entree.val)
+        regle.champ = definition_jointure.index(regle.params.att_sortie.val)
+        regle.stock_param.jointdef[regle.fichier] = regle.clef
+        regle.stock_param.joint_fich[regle.fichier] = ""
+        if re.search(r"\[[CDF]\]", regle.fichier):
+            regle.joint_statique = False
+        else:
+            #        regle.mode = "sjoin" # jointure statique)
+            regle.joint_statique = True
+            regle.stock_param.charge(
+                regle.fichier, regle.fichier
+            )  # on precharge le fichier de jointure
+        #    print(" prechargement",regle.fichier)
     return True
 
 
 def f_join(regle, obj):
     """#aide||jointures
-    #pattern||A;?;A;join;C[];?C||cmp1
+    #pattern||L;?;A;join;C[];?C||cmp1
  #parametres||sortie;defaut;entree;;fichier (dynamique)
             ||position des champs dans le fichier (ordre)
   #attributs||#repertoire (optionnel) repertoire du fichier
@@ -702,12 +708,23 @@ def f_join(regle, obj):
      #schema||ajout_attribut
        #test||obj||^X;C;;set||^val;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;val;3
     """
-    obj.attributs[regle.params.att_sortie.val] = regle.stock_param.jointure(
-        regle.fichier,
-        obj.attributs.get("#repertoire", ""),
-        obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val),
-        regle.champ,
-    )
+    if regle.jointtype == "obj":
+        clef_jointure = obj.attributs.get(regle.params.att_entree)
+        obj_joint = regle.stock_param.tmpstore.get(clef_jointure)
+        if obj_joint:
+            vlist = [obj_joint.attributs.get(i) for i in regle.champs]
+        else:
+            vlist = [""] * len(regle.champs)
+        obj.attributs.update(
+            ((i, j) for i, j in zip(regle.params.att_sortie.liste, vlist))
+        )
+    else:
+        obj.attributs[regle.params.att_sortie.val] = regle.stock_param.jointure(
+            regle.fichier,
+            obj.attributs.get("#repertoire", ""),
+            obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val),
+            regle.champ,
+        )
     return True
 
 

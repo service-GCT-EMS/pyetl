@@ -168,16 +168,14 @@ def f_hget1(regle, obj):
         #test||obj||^X;;;hset||^Z;;X;hget;C1;||atv;Z;AB
     """
     if regle.params.att_entree.val not in obj.attributs:
-        regle.fstore(regle.params.att_sortie, obj, regle.params.val_entree.val)
+        regle.setval_sortie(obj, regle.params.val_entree.val)
     try:
         hdic = obj.gethdict(regle.params.att_entree.val)
     #        print("recupere hdict ", hdict)
     except ValueError:
         return False
-    regle.fstore(
-        regle.params.att_sortie,
-        obj,
-        hdic.get(regle.params.cmp1.val, regle.params.val_entree.val),
+    regle.setval_sortie(
+        obj, hdic.get(regle.params.cmp1.val, regle.params.val_entree.val)
     )
     return True
 
@@ -190,19 +188,15 @@ def f_hget2(regle, obj):
         #test||obj||^X;;;hset||^Z1,Z2;;X;hget;C1,C2;||atv;Z2;BCD
     """
     if regle.params.att_entree.val not in obj.attributs:
-        regle.fstore(
-            regle.params.att_sortie,
-            obj,
-            [regle.params.val_entree.val for i in regle.params.att_entree.liste],
+        regle.setval_sortie(
+            obj, [regle.params.val_entree.val for i in regle.params.att_entree.liste]
         )
     try:
         hdic = obj.gethdict(regle.params.att_entree.val)
     except ValueError:
         return False
-    regle.fstore(
-        regle.params.att_sortie,
-        obj,
-        [hdic.get(i, regle.params.val_entree.val) for i in regle.params.cmp1.liste],
+    regle.setval_sortie(
+        obj, [hdic.get(i, regle.params.val_entree.val) for i in regle.params.cmp1.liste]
     )
     return True
 
@@ -220,7 +214,7 @@ def f_hget3(regle, obj):
         hdic = obj.gethdict(regle.params.att_entree.val)
     except ValueError:
         return False
-    regle.fstore(regle.params.att_sortie, obj, hdic)
+    regle.setval_sortie(obj, hdic)
     return True
 
 

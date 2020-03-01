@@ -260,9 +260,10 @@ def f_ftpupload(regle, obj):
 def f_ftpdownload(regle, obj):
     """#aide||charge un fichier sur ftp
   #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
-    #pattern1||;?C;?A;ftp_download;C;?C
-    #pattern2||;?C;?A;ftp_download;;
-    #pattern3||A;?C;?A;ftp_download;;
+   #pattern1||;?C;?A;ftp_download;C;?C
+   #pattern2||;?C;?A;ftp_download;;
+   #pattern3||A;?C;?A;ftp_download;;
+   #pattern4||A;?C;?A;ftp_download;C;?C
      #helper||ftpupload
        #test||notest
     """
@@ -319,7 +320,8 @@ def h_httpdownload(regle):
     """prepare les parametres http"""
     regle.chargeur = True
     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
-    os.makedirs(path, exist_ok=True)
+    if path:
+        os.makedirs(path, exist_ok=True)
     regle.path = path
     if regle.params.cmp2.val:
         name = os.path.join(path, regle.params.cmp2.val)
@@ -332,7 +334,7 @@ def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
  #aide_spec||; url; (attribut contenant le url);http_download;repertoire;nom
    #pattern1||;?C;?A;download;?C;?C
-   #pattern2||S;?C;?A;download
+   #pattern2||A;?C;?A;download
       #test||notest
       """
     url = regle.getval_entree(obj)

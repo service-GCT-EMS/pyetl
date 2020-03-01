@@ -132,7 +132,11 @@ class Reader(object):
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
             print("objreader", description)
-            self.objreader = MethodType(description.objreader, self)
+            self.objreader = (
+                MethodType(description.objreader, self)
+                if description.objreader
+                else None
+            )
             self.nom_format = nom
             self.cree_schema = description.has_schema
             self.auxiliaires = description.auxfiles
@@ -284,22 +288,22 @@ class Reader(object):
         self.setidententree(groupe, classe)
         return groupe, classe
 
-    def prepare_lecture_att(self, obj, format, schema=True):
+    def prepare_lecture_att(self, obj, nom, format, schema=True):
         """prepare les parametres de lecture"""
         self.chemin = ""
         self.fixe = {"#format": format}
         self.prepare_lecture()
-        groupe, classe = obj.ident
+        groupe, oclasse = obj.ident
         if not self.nomschema and self.cree_schema:
             # les objets ont un schema issu du fichier (le format a un schema)
             self.nomschema = "schema"
         self.fichier = ""
-        self.setidententree(groupe, classe)
-        return groupe, classe
+        self.setidententree(groupe, nom)
+        return groupe, nom
 
     def attaccess(self, obj, nom, ext):
-        """lance le reader sur un fichier en ouvrant le fichier"""
-        groupe, classe = self.prepare_lecture_att(obj, format)
+        """lance le reader sur un attribut en le traitant comme un buffer texte"""
+        groupe, classe = self.prepare_lecture_att(obj, nom, format)
         with io.StringIO(obj.attributs[nom]) as ouvert:
             self.objreader(ouvert)
 

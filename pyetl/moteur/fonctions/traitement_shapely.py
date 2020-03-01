@@ -10,6 +10,7 @@ import math as M
 from shapely import geometry as SG
 
 from .traitement_geom import setschemainfo
+
 # ===============================================fonctions du module shapely============================================
 
 
@@ -33,7 +34,7 @@ def f_rectangle_oriente(regle, obj):
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = r_orient(obj.geom_v)
         obj.geom_v.setsgeom(sgeom)
-        setschemainfo(regle, obj, multi = False, type = '3')
+        setschemainfo(regle, obj, multi=False, type="3")
 
 
 def h_angle(regle):
@@ -62,11 +63,11 @@ def f_angle(regle, obj):
         if npt == 1:
             angle = geom.angle
             pt1 = list(geom.coords)[0]
-            pt2=None
+            pt2 = None
         elif npt == 2:
             pt1, pt2 = list(geom.coords)[:2]
             angle = calculeangle(pt1, pt2)
-            longueur=geom.longueur
+            longueur = geom.longueur
         elif regle.ip1 is not None:
             tmp = list(geom.coords)
             pt1 = tmp[regle.ip1]
@@ -82,19 +83,22 @@ def f_angle(regle, obj):
                 # print('coordonnées',ror.exterior.coords)
                 angle = (calculeangle(pt1, pt3) + calculeangle(pt4, pt2)) / 2
                 pt2 = pt3
-            elif isinstance(ror, SG.LineString): # cas du rectangle degénéré
+            elif isinstance(ror, SG.LineString):  # cas du rectangle degénéré
                 pt1, pt2 = list(ror.coords)[:2]
                 angle = calculeangle(pt1, pt2)
-            else: # cas de 3 points identiques: ne devrait pas exister
-                 angle = 0
-                 return False
+            else:  # cas de 3 points identiques: ne devrait pas exister
+                angle = 0
+                return False
         if regle.params.cmp2 and pt2 is not None:
             geom.setpoint(
-                [(i + j) / 2 for i, j in zip(pt1, pt2)], dim=len(pt1), angle=angle, longueur=longueur
+                [(i + j) / 2 for i, j in zip(pt1, pt2)],
+                dim=len(pt1),
+                angle=angle,
+                longueur=longueur,
             )
-            setschemainfo(regle, obj, multi = False, type = '1', dyn=True)
+            setschemainfo(regle, obj, multi=False, type="1", dyn=True)
 
-        regle.fstore(regle.params.att_sortie, obj, str(angle))
+        regle.setval_sortie(obj, str(angle))
         return True
 
 
@@ -105,39 +109,49 @@ def h_buffer(regle):
     regle.join_style = int(regle.getvar("join_style", 1))
     regle.mitre_limit = float(regle.getvar("mitre_limit", 5.0))
     regle.limite = regle.params.cmp1.num
-    regle.largeur = regle.params.val_entree.num if regle.params.att_entree.val=="" else 0
+    regle.largeur = (
+        regle.params.val_entree.num if regle.params.att_entree.val == "" else 0
+    )
 
 
 def calcul_db(geom, regle, largeur):
     buffer = geom.buffer(
-        largeur, resolution=regle.resolution, cap_style=regle.cap_style, join_style=regle.join_style,
-            mitre_limit=regle.mitre_limit,)
+        largeur,
+        resolution=regle.resolution,
+        cap_style=regle.cap_style,
+        join_style=regle.join_style,
+        mitre_limit=regle.mitre_limit,
+    )
 
     aire_courante = buffer.area
     db = geom.buffer(
-        largeur+0.01,
+        largeur + 0.01,
         resolution=regle.resolution,
-            cap_style=regle.cap_style,
-            join_style=regle.join_style,
-            mitre_limit=regle.mitre_limit,).area
-    return aire_courante,db-aire_courante
+        cap_style=regle.cap_style,
+        join_style=regle.join_style,
+        mitre_limit=regle.mitre_limit,
+    ).area
+    return aire_courante, db - aire_courante
+
 
 def optimise_buffer_aire(geom, regle, largeur):
     """ calcule un buffer selon l'aire"""
-    aire_demandee=geom.area*regle.limite
+    aire_demandee = geom.area * regle.limite
     ecart_largeur = 1
 
     while abs(ecart_largeur) > 0.001:
-        aire_courante,da = calcul_db(geom, regle, largeur)
-        ecart_aire=aire_demandee-aire_courante
-        ecart_largeur=ecart_aire/(da*100)
-        largeur=largeur+ecart_largeur
+        aire_courante, da = calcul_db(geom, regle, largeur)
+        ecart_aire = aire_demandee - aire_courante
+        ecart_largeur = ecart_aire / (da * 100)
+        largeur = largeur + ecart_largeur
         # print ("ecart vb",largeur,ecart_largeur)
         buffer = geom.buffer(
-            largeur, resolution=regle.resolution,
+            largeur,
+            resolution=regle.resolution,
             cap_style=regle.cap_style,
             join_style=regle.join_style,
-            mitre_limit=regle.mitre_limit,)
+            mitre_limit=regle.mitre_limit,
+        )
     return buffer, largeur
 
 
@@ -158,7 +172,8 @@ def f_buffer(regle, obj):
             resolution=regle.resolution,
             cap_style=regle.cap_style,
             join_style=regle.join_style,
-            mitre_limit=regle.mitre_limit,)
+            mitre_limit=regle.mitre_limit,
+        )
         if regle.limite:
             aire_init = sgeom.area
             if aire_init and buffer.area / aire_init > regle.limite:
@@ -167,19 +182,20 @@ def f_buffer(regle, obj):
         # print ("buffer calcule",buffer)
         obj.geom_v.setsgeom(buffer)
         if regle.params.att_sortie.val:
-            setschemainfo(regle, obj, multi=True, type='3', dyn=True)
-            regle.fstore(regle.params.att_sortie, obj, str(largeur))
+            setschemainfo(regle, obj, multi=True, type="3", dyn=True)
+            regle.setval_sortie(obj, str(largeur))
         else:
-            setschemainfo(regle, obj, multi=True, type='3')
+            setschemainfo(regle, obj, multi=True, type="3")
         # print ('rectangle',ror )
 
 
-
 def h_ingeom(regle):
-    '''prepare les objets pour l'intersection'''
+    """prepare les objets pour l'intersection"""
     regle.objets = regle.stock_param.store.get(regle.params.cmp2.val)
     if not regle.objets:
-        regle.erreurs.append('il faut precharger des objets pour une selection geometrique')
+        regle.erreurs.append(
+            "il faut precharger des objets pour une selection geometrique"
+        )
         regle.valide = False
         return
     regle.multiple = len(regle.objets) > 1
@@ -187,12 +203,10 @@ def h_ingeom(regle):
         obj = list(regle.objets.values())[0]
         regle.objref = obj
         if obj.geom_v.valide:
-            regle.geomref=obj.geom_v.__shapelyprepared__
+            regle.geomref = obj.geom_v.__shapelyprepared__
         else:
             regle.erreurs.append("l'objet de reference doit avoir une geometrie valide")
             regle.valide = False
-
-
 
 
 def f_ingeom(regle, obj):
@@ -205,7 +219,7 @@ def f_ingeom(regle, obj):
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
         if regle.multiple:
-            intersected=False
+            intersected = False
             for i in regle.objets.values:
                 sgp = i.geom_v.__shapelyprepared__
                 if sgp.intersects(sgeom):

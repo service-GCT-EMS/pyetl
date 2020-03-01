@@ -757,8 +757,7 @@ def f_filter(regle, obj):
     else:
         obj.redirect = "#vide"
 
-    if regle.fstore:
-        regle.fstore(regle.params.att_sortie, obj, obj.redirect)
+    regle.setval_sortie(obj, obj.redirect)
     #    obj.redirect = obj.redirect+':'
     #    print("redirect", obj.redirect, regle.branchements)
     return True

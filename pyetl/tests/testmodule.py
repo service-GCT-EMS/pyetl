@@ -176,6 +176,9 @@ def controle(mapper, idtest, descript_test, debug=0):
             + ["<#" + f_controle + ";"]
         )
     )
+    if liste_controle == liste_regles:
+        # print("attention controle inoperant")
+        return None
     #   variable contenant le nom du repertoire local de fichiers pour les tests
     return eval_test(mapper, idtest, liste_regles, liste_controle, debug, redirect)
 
@@ -221,8 +224,11 @@ def fonctest(mapper, nom=None, debug=0):
                         testee = True
                         idtest = (fonc.nom, subfonc.nom, j)
                         if idtest not in realises:
-                            realises.add(idtest)
                             errs = controle(mapper, idtest, desctest, debug=debug)
+                            if errs is None:
+                                # controle invalide : on ignore
+                                continue
+                            realises.add(idtest)
                             if errs:
                                 nberrs += 1
                                 invalides.add(idtest)

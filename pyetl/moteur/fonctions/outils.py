@@ -173,9 +173,10 @@ def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
         if defext and not os.path.splitext(f_interm)[1]:
             f_interm = f_interm + defext
     try:
-        if codec is None:
+        if not codec:
             codec = DEFCODEC
         codec = hasbom(f_interm, codec)
+        # print("codec lecture commandes:",codec, DEFCODEC)
         with open(f_interm, "r", encoding=codec) as cmdfile:
             nlin = 0
             for ligne in cmdfile:
@@ -443,12 +444,3 @@ def scan_entree(rep=None, force_format=None, fileselect=None, filtre_entree=None
             except KeyError:
                 non_identifies.add((chemin, nom, ext))
         valide_auxiliaires(identifies, non_identifies)
-
-
-
-
-
-
-
-
-

@@ -61,7 +61,6 @@ def f_initgeom(regle, obj):
         obj.geom_v.__shapelygeom__
 
 
-
 # remise a zero de la geometrie (comme si l'objet venait d'etre lu)
 
 
@@ -91,7 +90,6 @@ def cregeompoint(obj, point, srid):
     return obj.finalise_geom()
 
 
-
 def f_setpoint(regle, obj):
     """#aide||ajoute une geometrie point a partir des coordonnes en attribut
  #parametres||defauts;attribut contenant les coordonnees separees par des ,;numero de srid
@@ -116,7 +114,7 @@ def f_setpoint(regle, obj):
         return False
     #    print ('set point',point)
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj, multi = False, type = '1')
+    setschemainfo(regle, obj, multi=False, type="1")
     return True
 
 
@@ -143,14 +141,14 @@ def f_setpoint_liste(regle, obj):
         #                 for i in regle.params.att_entree.liste]
         obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
         obj.finalise_geom()
-        setschemainfo(regle, obj, multi = False, type = '1')
+        setschemainfo(regle, obj, multi=False, type="1")
 
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
         #        print('set point : erreur valeurs entree ',coords)
         return False
     cregeompoint(obj, point, regle.params.cmp1.val)
-    setschemainfo(regle, obj,  multi = False, type = '1')
+    setschemainfo(regle, obj, multi=False, type="1")
     #    print ('creation point',list(obj.geom_v.coords),list(point))
     return True
 
@@ -237,16 +235,20 @@ def f_force_pt(regle, obj):
             position = int(position)
             try:
                 #                print('changement en point ', obj.attributs['#type_geom'])
-                obj.geom_v.setpoint(obj.geom_v.getpoint(position), None, int(obj.attributs["#dimension"]))
+                obj.geom_v.setpoint(
+                    obj.geom_v.getpoint(position),
+                    None,
+                    int(obj.attributs["#dimension"]),
+                )
                 obj.finalise_geom()
             #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
             except ValueError:
                 return False
-        else: # pas de position on prends le centroide
+        else:  # pas de position on prends le centroide
             xmin, ymin, xmax, ymax = obj.geom_v.emprise()
-            obj.geom_v.setpoint((xmin+xmax)/2,(ymin+ymax)/2, None, 2)
+            obj.geom_v.setpoint((xmin + xmax) / 2, (ymin + ymax) / 2, None, 2)
 
-    setschemainfo(regle, obj, multi = False, type = '1')
+    setschemainfo(regle, obj, multi=False, type="1")
     return True
 
 
@@ -262,9 +264,13 @@ def f_forceligne(regle, obj):  # force la geometrie en ligne
     obj.infogeom()
     obj.geomnatif = False
     if obj.attributs["#type_geom"] == "2":
-        setschemainfo(regle, obj, type = '2')
+        setschemainfo(regle, obj, type="2")
         return True
-    print("force_ligne,erreur conversion type", obj.attributs["#type_geom"], obj.geom_v.type)
+    print(
+        "force_ligne,erreur conversion type",
+        obj.attributs["#type_geom"],
+        obj.geom_v.type,
+    )
     return False
 
 
@@ -287,13 +293,18 @@ def f_forcepoly(regle, obj):
         obj.infogeom()
         obj.geomnatif = False
         if obj.attributs["#type_geom"] == "3":
-            setschemainfo(regle, obj, type = '3')
+            setschemainfo(regle, obj, type="3")
             return True
         if regle.params.cmp1.val:  # on force donc si ca passe pas on annulle la geom
             #            print ('fpoly: on invalide la geometrie',regle.params.cmp1.val)
             obj.setnogeom()  # on invalide la geometrie
             setschemainfo(regle, obj)
-        print("erreurs force poly", obj.ido, obj.geom_v.valide, obj.attributs["#type_geom"])
+        print(
+            "erreurs force poly",
+            obj.ido,
+            obj.geom_v.valide,
+            obj.attributs["#type_geom"],
+        )
 
     return False
 
@@ -327,6 +338,7 @@ def f_multigeom(regle, obj):
 
 # calculs :
 
+
 def f_longueur(regle, obj):
     """#aide||calcule la longueur de l'objet
         #pattern||S;;;longueur;;
@@ -336,10 +348,10 @@ def f_longueur(regle, obj):
     if obj.virtuel:
         return False
     if obj.initgeom():
-        regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.longueur))
-        # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
+        regle.setval_sortie(obj, str(obj.geom_v.longueur))
         return True
     return False
+
 
 def f_aire(regle, obj):
     """#aide||calcule l'aire de l'objet
@@ -350,11 +362,9 @@ def f_aire(regle, obj):
     if obj.virtuel:
         return False
     if obj.geom_v.sgeom or obj.initgeom():
-        regle.fstore(regle.params.att_sortie, obj, str(obj.geom_v.area))
-        # regle.fstore(regle.params.att_sortie, obj, obj.attributs.get("#longueur"))
+        regle.setval_sortie(obj, str(obj.geom_v.area))
         return True
     return False
-
 
 
 def f_coordp(regle, obj):
@@ -382,11 +392,16 @@ def f_coordp(regle, obj):
             refpt = list(obj.geom_v.coords)[position]
             # print("coordp: ",list(obj.geom_v.coords),position,refpt)
             if regle.params.att_sortie.val:
-                regle.fstore(regle.params.att_sortie, obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]])
+                regle.setval_sortie(
+                    obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]]
+                )
             else:
                 obj.attributs.update(
-                    zip(("#x", "#y", "#z"), [str(i) for i in refpt[0 : obj.geom_v.dimension]])
-            )
+                    zip(
+                        ("#x", "#y", "#z"),
+                        [str(i) for i in refpt[0 : obj.geom_v.dimension]],
+                    )
+                )
             return True
         except IndexError:
             return False
@@ -419,11 +434,7 @@ def fgrid2(regle, obj, cases, double=True):
 
     if len(cases) > 5:
         xmin, ymin, xmax, ymax = obj.geom_v.emprise()
-        print(
-            "tres gros objet",
-            len(cases), xmin, ymin, xmax, ymax,
-            obj.ident,
-        )
+        print("tres gros objet", len(cases), xmin, ymin, xmax, ymax, obj.ident)
     if double:
         for case in cases[1:]:
             obj2 = obj.dupplique()
@@ -436,7 +447,10 @@ def fgrid2(regle, obj, cases, double=True):
 
 def h_grid(regle):
     """initialise les parametres de grille"""
-    regle.orig_grille = (float(regle.params.cmp1.liste[0]), float(regle.params.cmp1.liste[1]))
+    regle.orig_grille = (
+        float(regle.params.cmp1.liste[0]),
+        float(regle.params.cmp1.liste[1]),
+    )
     regle.gx, regle.gy = regle.params.att_sortie.liste
 
 
@@ -450,8 +464,8 @@ def f_grid(regle, obj):
         return False
     if obj.initgeom():
         xmin, ymin, xmax, ymax = obj.geom_v.emprise()
-        pmin = (xmin,ymin)
-        pmax = (xmax,ymax)
+        pmin = (xmin, ymin)
+        pmax = (xmax, ymax)
         cases = grille2(regle.orig_grille, regle.params.cmp2.num, pmin, pmax)
         fgrid2(regle, obj, cases)
         #    print ('valeur de X', obj.attributs.get('X'))
@@ -466,11 +480,7 @@ def fgrid(regle, obj, cases):
 
     if len(cases) > 5:
         xmin, ymin, xmax, ymax = obj.geom_v.emprise()
-        print(
-            "tres gros objet",
-            len(cases), xmin, ymin, xmax, ymax,
-            obj.ident,
-        )
+        print("tres gros objet", len(cases), xmin, ymin, xmax, ymax, obj.ident)
     for case in cases[1:]:
         obj2 = obj.dupplique()
         obj2.attributs[regle.params.att_sortie.val] = str(case)
@@ -489,13 +499,7 @@ def f_gridx(regle, obj):
     if obj.initgeom():
         xmin, ymin, xmax, ymax = obj.geom_v.emprise()
         fgrid(
-            regle,
-            obj,
-            grille(
-                regle.params.cmp1.num,
-                regle.params.cmp2.num,
-                xmin,xmax,
-            ),
+            regle, obj, grille(regle.params.cmp1.num, regle.params.cmp2.num, xmin, xmax)
         )
     #    print ('valeur de X', obj.attributs.get('X'))
     return True
@@ -513,13 +517,7 @@ def f_gridy(regle, obj):
     if obj.initgeom():
         xmin, ymin, xmax, ymax = obj.geom_v.emprise()
         fgrid(
-            regle,
-            obj,
-            grille(
-                regle.params.cmp1.num,
-                regle.params.cmp2.num,
-                ymin,ymax,
-            ),
+            regle, obj, grille(regle.params.cmp1.num, regle.params.cmp2.num, ymin, ymax)
         )
     return True
 
@@ -585,7 +583,9 @@ def f_mod_3d(regle, obj):
             return False
 
         select = regle.sel3D
-        valeur = float(obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val))
+        valeur = float(
+            obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val)
+        )
         #        print("geomv",obj.geom_v.type, list(obj.geom_v.coords))
         for point in obj.geom_v.coords:
             #            print ("select 3D", pt[2], select(pt[2]))
@@ -651,7 +651,9 @@ def f_splitcouleur(regle, obj):
         obj2.finalise_geom(type_geom="2")
         obj2.attributs[regle.params.att_sortie.val] = i
         obj2.infogeom()
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch.get(i, defaut_dest))
+        regle.stock_param.moteur.traite_objet(
+            obj2, regle.branchements.brch.get(i, defaut_dest)
+        )
         # on l'envoie dans la tuyauterie'
     if geoms:
         obj.geom_v = geoms[liste_coul[0]]
@@ -749,7 +751,9 @@ def f_csplit(regle, obj):
                 obj2.infogeom()
                 if att_sortie:
                     obj2.attributs[att_sortie] = str(npt)
-                regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+                regle.stock_param.moteur.traite_objet(
+                    obj2, regle.branchements.brch["next"]
+                )
                 valide = True
         obj.geom_v = geom
         return valide
@@ -795,7 +799,9 @@ def f_prolonge(regle, obj):
     """
     if obj.virtuel:
         return False
-    longueur = obj.attributs.get(regle.params.att_entree.num, regle.params.val_entree.num)
+    longueur = obj.attributs.get(
+        regle.params.att_entree.num, regle.params.val_entree.num
+    )
     if obj.initgeom():
         retour = obj.geom_v.prolonge(longueur, regle.params.cmp1.num)
         obj.infogeom()
@@ -807,7 +813,7 @@ def f_prolonge(regle, obj):
 
 def h_reproj(regle):
     """ initialise la reprojection """
-    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93":"2154"}
+    srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93": "2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
     # print('reproj srid sortie', regle.srid)
     regle.projection = P.init_proj(
@@ -838,7 +844,7 @@ def f_reproj(regle, obj):
         obj.geom_v.srid = regle.srid
         for pnt in obj.geom_v.coords:
             if isinstance(pnt, tuple):
-                print ('proj', obj)
+                print("proj", obj)
             try:
                 gril, pnt[0], pnt[1] = proj.calcule_point_proj(pnt[0], pnt[1])
                 # print (" projection calculee",gril, pnt[0], pnt[1])
@@ -864,9 +870,9 @@ def f_translate(regle, obj):
     #test||obj;ligne;||^dec;1,1;;set||^;;dec;translate||^;1;;coordp||atn;#x;2
 
     """
-    liste_trans = obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val).split(
-        ","
-    )
+    liste_trans = obj.attributs.get(
+        regle.params.att_entree.val, regle.params.val_entree.val
+    ).split(",")
     liste_trans = [float(i) for i in liste_trans]
     if len(liste_trans) < 3:
         liste_trans.extend([0, 0, 0])

@@ -25,6 +25,7 @@ def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
         macro = mapper.getmacro(nom)
+        debug = mapper.getvar("debug")
         if macro:
             print("aide macro ", nom, "(", macro.file, ")")
             print("%-15s: %s" % (nom, macro.help[:-1]))
@@ -45,7 +46,7 @@ def print_help(mapper, nom):
                     print("%16s   %s" % ("", i[:-1]))
 
         elif nom in mapper.commandes:
-            print("aide commande :", nom)
+            print("aide commande :", nom, debug)
             commande = mapper.commandes[nom]
             print("%-20s: %s" % (commande.nom, commande.description.get("#aide")[0]))
             print("------- syntaxes acceptees ----------")
@@ -86,6 +87,12 @@ def print_help(mapper, nom):
                         for i in variante.description.get("#variables", [""]):
                             print("%-20s: %s" % ("", i))
                             # print("%s" % "\n".join(variante.description.get("#parametres")))
+                    if debug:
+                        print("pattern", variante.pattern)
+                        print("fonction", variante.work)
+                        print("helper", variante.helper)
+                        print("shelper", variante.shelper)
+                        print("fsorties", tuple(i for i in variante.fonctions_sortie))
 
         elif nom == "selecteurs":
             print_aide_selecteurs(mapper)

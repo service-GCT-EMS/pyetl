@@ -422,8 +422,7 @@ class RegleTraitement(object):  # regle de mapping
 
     @property
     def getgen(self):
-        return self.branchements.brch['gen']
-
+        return self.branchements.brch["gen"]
 
     # ------------------------------------fonctions d'initialisation---------------------------------
     def _select_fonc(self, fonc):
@@ -719,17 +718,15 @@ class RegleTraitement(object):  # regle de mapping
 
     def process_liste(self, obj, fonction):
         """applique une fonction a une liste d'attributs et affecte une nouvelle liste"""
-        self.fstore(
-            self.params.att_sortie, obj, map(fonction, self.getlist_entree(obj))
-        )
+        self.setval_sortie(obj, map(fonction, self.getlist_entree(obj)))
 
     def process_listeref(self, obj, fonction):
         """applique une fonction a une liste d'attributs"""
-        self.fstore(self.params.att_ref, obj, map(fonction, self.getlist_ref(obj)))
+        self.setval_sortie(obj, map(fonction, self.getlist_ref(obj)))
 
     def process_val(self, obj, fonction):
         """applique une fonction a un attribut"""
-        self.fstore(self.params.att_sortie, obj, fonction(self.getval_entree(obj)))
+        self.setval_sortie(obj, fonction(self.getval_entree(obj)))
 
     #    def process_list_inplace(self, obj, fonction):
     #        '''applique une fonction a une liste d'attributs'''
