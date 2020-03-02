@@ -201,13 +201,15 @@ def setvloc(regle):
 
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
+    print("avant ajuste_context", regle, prec)
     if regle.niveau > prec.niveau:
         regle.context.setref(regle.stock_param.pushcontext(prec.context))
     if regle.niveau < prec.niveau:
         context = None
         for i in range(prec.niveau - regle.niveau):
-            context = regle.stock_param.popcontext(typecheck="C")
+            context = regle.stock_param.popcontext()
         regle.context.setref(context)
+    print("apres ajuste_context", regle.context)
 
 
 def prepare_regle(regle, prec=None):
@@ -627,6 +629,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
+    print("importe macro", niveau, texte)
     # on gere les niveaux
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
@@ -635,8 +638,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     nivmacro = len(niveau)
     if prec:
         if nivmacro != prec.niveau:
-            # on ajoute une regle virtuelle pour ajuster les niveaux
-            rvirt = niveau + ";;;;;;;pass;;;;"
+            rvirt = niveau + ":;;;;;;;pass;;;;"
+            print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
@@ -650,6 +653,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             sorted(macroenv.vlocales.items()),
         )
     if macro:
+        # mapper.pushcontext(type_c="M")
+        print("contexte macros :", mapper.cur_context)
         erreurs = lire_regles_csv(
             mapper,
             "",
@@ -657,7 +662,10 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             niveau=niveau,
             regle_ref=regle_ref,
         )
-        mapper.popcontext(typecheck="M")  # on depile un contexte
+        print("contexte macros apres:", mapper.cur_context)
+        mapper.popcontext()  # on depile un contexte
+        print("contexte macros apres pop:", mapper.cur_context)
+
     else:
         erreurs = 1
     return erreurs

@@ -434,9 +434,11 @@ class RegleTraitement(object):  # regle de mapping
         if (
             clef == "sortie" and fonc.fonctions_sortie
         ):  # on teste les sorties comme clef
-            #        print ('test des fonctions de sortie ',clef,'->',definition[clef])
+            # print("test des fonctions de sortie ", fonc.nom, clef, "->", definition)
             for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
                 if j.definition[clef].match(self.v_nommees[clef]):
+                    print("trouve f_sortie ", fonc.nom, clef, "->", definition)
+
                     return True
             return False
         if clef != "-1":
@@ -529,7 +531,7 @@ class RegleTraitement(object):  # regle de mapping
         #        printpattern (fonction)
         #        definitions=[i.definition for i in fonction.subfonctions.values()]
         if not fonction:
-            self.afficher_erreurs(fonction, "fonction non valide")
+            self.afficher_erreurs(fonction, "fonction inconnue")
             # raise SyntaxError ('fonction inconnue'+ regle.mode)
             return False, None
         valide = False
@@ -541,7 +543,7 @@ class RegleTraitement(object):  # regle de mapping
                 continue
             if self._select_fonc(fonc):
                 valide, self.elements, erreurs = self.validepattern(fonc.definition)
-                #            print( 'recherche pattern',fonc.nom,erreurs)
+                # print( 'recherche pattern',valide, fonc.nom, erreurs, fonc.definition)
                 if valide:
                     break
         if not valide:
@@ -584,6 +586,7 @@ class RegleTraitement(object):  # regle de mapping
                 if self.elements[i] is None:
                     print(
                         motif + "erreur commande>",
+                        # fonc.definition,
                         self.mode,
                         "<",
                         i,

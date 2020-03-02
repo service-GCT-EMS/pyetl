@@ -96,17 +96,23 @@ def sh_hstore(regle):
 
 def s_hstore(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
-       #pattern||A||H
+       #pattern||H:A||H
        #shelper||simple
        """
     print("dans s_hstore")
-    obj.attributs[sortie.val] = valeur
+    if isinstance(valeur, str):
+        obj.attributs[sortie.val] = valeur
+    else:
+        obj.sethtext(sortie.val, dic=valeur)
     return True
 
 
 def s_simple(sortie, obj, valeur):
     """#aide||affectation cree l' attribut si necessaire
         #pattern||A||S
+        #pattern1||AE||S
+        #pattern2||AN||S
+        #pattern3||AD||S
         #shelper||simple
         #test1||X:x||X?||X:x||S:X
     """

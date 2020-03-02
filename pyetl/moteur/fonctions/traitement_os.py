@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 import shutil
 import time
+
 # import win32con
 import win32security
 from .outils import getfichs
@@ -23,27 +24,31 @@ def commandrunner(regle, chaine):
     """execute une commande et renvoie eventuellement le resultat"""
     # print ("commandrunner",regle)
     # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
-    chaine = regle.params.cmp1.val+" "+ chaine
+    chaine = regle.params.cmp1.val + " " + chaine
     if regle.params.att_sortie.val:
-        fini = subprocess.run(chaine, capture_output=True, shell=True, encoding=regle.consoleencoding)
-        retour = fini.stdout+fini.stderr
+        fini = subprocess.run(
+            chaine, capture_output=True, shell=True, encoding=regle.consoleencoding
+        )
+        retour = fini.stdout + fini.stderr
         if retour.endswith("\n"):
             retour = retour[:-1]
         return retour
     else:
-        fini = subprocess.run(chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding)
+        fini = subprocess.run(
+            chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding
+        )
         return None
 
 
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
-    regle.consoleencoding=regle.getvar('console_encoding','CP850')
+    regle.consoleencoding = regle.getvar("console_encoding", "CP850")
     # print('---------hrun', regle.runscope(),regle,regle.params.pattern)
     # print('valeurs parametres', regle.getvar('import'))
-    if regle.params.pattern=="1":
+    if regle.params.pattern == "1":
         return
     if regle.runscope():  # on voit si on doit l'executer
-        retour=commandrunner(regle, regle.params.cmp2.val)
+        retour = commandrunner(regle, regle.params.cmp2.val)
         if regle.params.att_sortie.val:
             regle.setvar(regle.params.att_sortie.val, retour)
     # print ('retour run : done',retour)
@@ -65,17 +70,19 @@ def f_run(regle, obj):
      #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     if regle.runscope():  # on voit si on doit l'executer
-        retour=commandrunner(regle, regle.getval_entree(obj))
+        retour = commandrunner(regle, regle.getval_entree(obj))
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = retour
         return True
     return False
 
 
-def fileprep(regle,fonction):
+def fileprep(regle, fonction):
     """prepare l'execution d'une fonction generique d'operation sur fichier"""
     if regle.params.att_entree.val:
-        regle.chemin_orig = regle.params.cmp2.val if regle.params.cmp2.val else regle.params.cmp1.val
+        regle.chemin_orig = (
+            regle.params.cmp2.val if regle.params.cmp2.val else regle.params.cmp1.val
+        )
         regle.chemin_final = regle.params.cmp1.val
         regle.valide = True
     else:
@@ -87,24 +94,32 @@ def fileprep(regle,fonction):
                         fonction(regle.params.cmp2.val, regle.params.cmp1.val)
                     else:
                         fonction(regle.params.cmp1.val)
-                except (FileNotFoundError,FileExistsError,OSError) as err:
-                    print ('erreur ', regle.mode,regle.params.cmp2.val,'->',regle.params.cmp1.val, err)
+                except (FileNotFoundError, FileExistsError, OSError) as err:
+                    print(
+                        "erreur ",
+                        regle.mode,
+                        regle.params.cmp2.val,
+                        "->",
+                        regle.params.cmp1.val,
+                        err,
+                    )
 
 
-
-def fileop(regle,obj,fonction):
+def fileop(regle, obj, fonction):
     """fonction generique d'operation sur fichier"""
     try:
-        fonction(os.path.join(regle.chemin_orig,regle.getval_entree(obj)),
-                    os.path.join(regle.chemin_final,regle.params.att_sortie.val))
+        fonction(
+            os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
+            os.path.join(regle.chemin_final, regle.params.att_sortie.val),
+        )
         return True
-    except (FileNotFoundError,FileExistsError,OSError):
+    except (FileNotFoundError, FileExistsError, OSError):
         return False
 
 
 def h_filerename(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle,os.rename)
+    fileprep(regle, os.rename)
 
 
 def f_filerename(regle, obj):
@@ -123,12 +138,12 @@ def f_filerename(regle, obj):
             ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
             ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
    """
-    return fileop(regle,obj,os.rename)
+    return fileop(regle, obj, os.rename)
 
 
 def h_filecopy(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle,shutil.copy2)
+    fileprep(regle, shutil.copy2)
 
 
 def f_filecopy(regle, obj):
@@ -148,12 +163,12 @@ def f_filecopy(regle, obj):
             ||^;;;os_copy;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
             ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
-    return fileop(regle,obj,shutil.copy2)
+    return fileop(regle, obj, shutil.copy2)
 
 
 def h_filemove(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle,shutil.move)
+    fileprep(regle, shutil.move)
 
 
 def f_filemove(regle, obj):
@@ -173,11 +188,12 @@ def f_filemove(regle, obj):
             ||^;;;os_move;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
             ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
-    return fileop(regle,obj,shutil.move)
+    return fileop(regle, obj, shutil.move)
+
 
 def h_filedel(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle,os.remove)
+    fileprep(regle, os.remove)
 
 
 def f_filedel(regle, obj):
@@ -196,49 +212,70 @@ def f_filedel(regle, obj):
             ||is:file;!%testwriterep%/liste.csv;;;X;1;;set||atv:X:1
     """
     try:
-        os.remove(os.path.join(regle.chemin_orig,regle.params.att_entree.val))
+        os.remove(os.path.join(regle.chemin_orig, regle.params.att_entree.val))
         return True
-    except (FileNotFoundError,OSError):
+    except (FileNotFoundError, OSError):
         return False
 
 
 def fileinfo(fichier, ajout_attributs):
-    '''recupere les infos detaillees d'un fichier'''
+    """recupere les infos detaillees d'un fichier"""
     # print ('infos', fichier)
     tmp = Path(fichier)
-    definition = [str(tmp),str(tmp.parent),tmp.stem,tmp.suffix]
-    infos = [0,'inexistant','inexistant']
+    definition = [str(tmp), str(tmp.parent), tmp.stem, tmp.suffix]
+    infos = [0, "inexistant", "inexistant"]
     try:
-        sd = win32security.GetFileSecurity (fichier, win32security.OWNER_SECURITY_INFORMATION)
-        owner_sid = sd.GetSecurityDescriptorOwner ()
-        uname, domain, typef = win32security.LookupAccountSid (None, owner_sid)
+        sd = win32security.GetFileSecurity(
+            fichier, win32security.OWNER_SECURITY_INFORMATION
+        )
+        owner_sid = sd.GetSecurityDescriptorOwner()
+        uname, domain, typef = win32security.LookupAccountSid(None, owner_sid)
         statinfo = os.stat(fichier)
         taille = statinfo.st_size
         creation = statinfo.st_ctime
         modif = statinfo.st_mtime
         acces = statinfo.st_atime
-        infos = [taille,domain,uname,time.ctime(creation),time.ctime(modif),time.ctime(acces)]
+        infos = [
+            taille,
+            domain,
+            uname,
+            time.ctime(creation),
+            time.ctime(modif),
+            time.ctime(acces),
+        ]
     except NameError:
-        uname,domain = '',''
+        uname, domain = "", ""
     except Exception as err:
-        print ('fichier introuvable', fichier, err)
-
+        print("fichier introuvable:", fichier, "->", err)
 
     # print ('fichier', fichier, statinfo)
-    return list(zip(ajout_attributs,definition+infos))
+    return list(zip(ajout_attributs, definition + infos))
+
 
 def h_infofich(regle):
     """prepare la structure d'info de fichier"""
-    infos= ("nom_complet","chemin","nom","ext","taille",'domaine','proprietaire','creation','modif','acces')
+    infos = (
+        "nom_complet",
+        "chemin",
+        "nom",
+        "ext",
+        "taille",
+        "domaine",
+        "proprietaire",
+        "creation",
+        "modif",
+        "acces",
+    )
     regle.infofich = dict()
     prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#"
-    regle.ajout_attributs = [prefix+i for i in infos]
+    regle.ajout_attributs = [prefix + i for i in infos]
     regle.nomexiste = regle.params.att_entree.val or regle.params.val_entree.val
 
     # print ('infofich: champs generes',regle.ajout_attributs)
     return True
 
-def f_infofich(regle,obj):
+
+def f_infofich(regle, obj):
     """#aide||ajoute les informations du fichier sur les objets
   #aide_spec||usage prefix;defaut;attribut;infofich;;;
             ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
@@ -254,7 +291,9 @@ def f_infofich(regle,obj):
         # print ('infofich avec entree', fichier)
 
     else:
-        fichier = os.path.join(obj.attributs.get('#chemin',''),obj.attributs.get('#fichier',''))
+        fichier = os.path.join(
+            obj.attributs.get("#chemin", ""), obj.attributs.get("#fichier", "")
+        )
         # print ('infofich sans entree', fichier)
     if fichier:
         if fichier not in regle.infofich:
@@ -263,15 +302,16 @@ def f_infofich(regle,obj):
         return True
     return False
 
+
 def h_abspath(regle):
     """ prepare le chemin absolu"""
-    regle.dynref = regle.params.cmp1.val.startswith('[')
+    regle.dynref = regle.params.cmp1.val.startswith("[")
     regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
     if not regle.ref:
         regle.ref = os.path.curdir
 
 
-def f_abspath(regle,obj):
+def f_abspath(regle, obj):
     """#aide||change un chemin relatif en chemin absolu
   #aide_spec||le point de depart est le chemin ou cmp1
     #pattern||S;C?;A?;abspath;C?;
@@ -283,20 +323,26 @@ def f_abspath(regle,obj):
     if os.path.isabs(candidat):
         final = candidat
     else:
-        ref = os.path.abspath(obj.attributs.get(regle.ref,"")) if regle.dynref else regle.ref
+        ref = (
+            os.path.abspath(obj.attributs.get(regle.ref, ""))
+            if regle.dynref
+            else regle.ref
+        )
         final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
     # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
     regle.setval_sortie(obj, final)
     return True
 
+
 def h_namesplit(regle):
     """prepare la structure d'info de fichier"""
     prefix = regle.params.att_sortie.val if regle.params.att_sortie.val else "#s_"
-    regle.ajout_attributs = [prefix+"chemin",prefix+"nom",prefix+"ext"]
+    regle.ajout_attributs = [prefix + "chemin", prefix + "nom", prefix + "ext"]
     return True
 
-def f_namesplit(regle,obj):
+
+def f_namesplit(regle, obj):
     """#aide||decoupe un nom de fichier en chemin,nom,extention
   #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
  #parametres||prefixe;defaut;attr contenant le nom;namesplit
@@ -306,10 +352,13 @@ def f_namesplit(regle,obj):
     """
     fichier = Path(regle.get_entree(obj))
     # print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
-    obj.attributs.update(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix)))
+    obj.attributs.update(
+        zip(regle.ajout_attributs, (str(fichier.parent), fichier.stem, fichier.suffix))
+    )
     return True
 
-def f_namejoin(regle,obj):
+
+def f_namejoin(regle, obj):
     """#aide||combine des element en nom de fichier en chemin,nom,extention
     #pattern||S;C?;L?;namejoin;;
  #parametres||sortie;defaut;liste d'attributs;namesjoin
@@ -318,45 +367,50 @@ def f_namejoin(regle,obj):
     regle.setval_sortie(obj, os.path.join(*regle.getlist_entree(obj)))
     return True
 
+
 def h_adquery(regle):
     """initialise l'acces active_directory"""
     from . import active_directory as ACD
+
     print("acces LDAP", ACD.root())
     regle.AD = ACD
-    regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else 'CN'
+    regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
 
 
-def f_adquery(regle,obj):
+def f_adquery(regle, obj):
     """#aide extait des information de active_directory
     #pattern||S;?C;?A;adquery;=user;?C;
     # """
     if regle.get_entree(obj):
         user = regle.AD.find_user(regle.get_entree(obj))
         if user:
-            val = getattr(user,regle.a_recuperer)
-            regle.setval_sortie(obj,val)
+            val = getattr(user, regle.a_recuperer)
+            regle.setval_sortie(obj, val)
             return True
     # print("pas d'entree adquery",regle.get_entree(obj) )
     return False
 
+
 def h_listefich(regle):
     """rends la regle executable"""
-    regle.chargeur=True
+    regle.chargeur = True
 
-def f_listefich(regle,obj):
+
+def f_listefich(regle, obj):
     """#aide genere un objet par fichier repondant aux criteres d'entree
     #pattern||S;?C;?A;listefich;?C;
     """
     if regle.get_entree(obj):
-        classe = regle.params.cmp1.val or obj.attributs.get('#classe')
+        classe = regle.params.cmp1.val or obj.attributs.get("#classe")
         traite_objets = regle.stock_param.traite_objets
-        for fich in getfichs(regle,obj):
+        for fich in getfichs(regle, obj):
             nouveau = obj.dupplique()
-            nouveau.attributs['#classe'] = classe
-            regle.setval_sortie(nouveau,fich)
+            nouveau.attributs["#classe"] = classe
+            regle.setval_sortie(nouveau, fich)
             traite_objets(nouveau)
         return True
     return False
+
 
 def sel_isfile(selecteur, obj):
     """#aide||tesste si un fichier existe
@@ -364,11 +418,16 @@ def sel_isfile(selecteur, obj):
        #pattern2||=is:file;C||1
        #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
     """
-    if selecteur.params.pattern=='2':
+    if selecteur.params.pattern == "2":
         # print ('isfile',selecteur.params.vals.val,os.path.isfile(selecteur.params.vals.val))
         return os.path.isfile(selecteur.params.vals.val)
     else:
-        return os.path.isfile(obj.attributs.get(selecteur.params.vals.val)) if obj is not None else None
+        return (
+            os.path.isfile(obj.attributs.get(selecteur.params.vals.val))
+            if obj is not None
+            else None
+        )
+
 
 def sel_isdir(selecteur, obj):
     """#aide||tesste si un fichier existe
@@ -376,7 +435,11 @@ def sel_isdir(selecteur, obj):
        #pattern2||=is:dir;C||1
        #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
     """
-    if selecteur.params.pattern=='2':
+    if selecteur.params.pattern == "2":
         return os.path.isdir(selecteur.params.vals.val)
     else:
-        return os.path.isdir(obj.attributs.get(selecteur.params.vals.val)) if obj is not None else None
+        return (
+            os.path.isdir(obj.attributs.get(selecteur.params.vals.val))
+            if obj is not None
+            else None
+        )

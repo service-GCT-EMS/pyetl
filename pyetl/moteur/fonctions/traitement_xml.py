@@ -59,7 +59,7 @@ def f_xmlextract(regle, obj):
         for elem in cadre.iter(regle.recherche):
 
             # print("traitement", regle.params.att_sortie.val, contenu)
-            contenu = elem.get(regle.item, "") if regle.item else elem
+            contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
             print(
                 "-------------------xmlextract",
                 regle.params.att_sortie,

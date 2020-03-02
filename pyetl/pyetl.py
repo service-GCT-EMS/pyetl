@@ -815,7 +815,7 @@ class Pyetl(object):
 
     # ======================== fonctions de manipulation des contextes =====================
 
-    def getcontext(self, context, ident="", ref=False, type_c="C"):
+    def getcontext(self, context=None, ident="", ref=False, type_c="C"):
         """recupere un contexte en cascade"""
         context = self.cur_context if context is None else context
         return context.getcontext(ident=ident, ref=ref, type_c=type_c)
@@ -827,7 +827,7 @@ class Pyetl(object):
 
     def popcontext(self, typecheck=None):
         # print("avant pop",self.contextstack)
-        if typecheck and self.cur_context.type_c == typecheck:
+        if typecheck is None or self.cur_context.type_c == typecheck:
             self.contextstack.pop()
         else:
             print(
@@ -835,7 +835,11 @@ class Pyetl(object):
                 typecheck,
                 "trouve",
                 self.cur_context.type_c,
+                "(",
+                self.cur_context,
+                ")",
             )
+            # raise
         return self.cur_context
 
     @property

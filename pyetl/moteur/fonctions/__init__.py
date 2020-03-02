@@ -52,7 +52,7 @@ class DefinitionAttribut(object):
         "A+": (r"^" + adef + r"\+$", "A", "S"),
         "A*": (r"^" + adef + r"\*$", "A", "D"),
         "*A": (r"^\*" + adef + r"$", "A", "D"),
-        "H:A": (r"^H:(" + asdef + r")$", "A", "H"),
+        "H:A": (r"^H:(" + asdef + r")$", "A:H", "H"),
         "*": (r"^\*$", "C", "D"),
         "[A]": (r"^" + vdef + "$", "A", "S"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S"),
@@ -502,7 +502,9 @@ def set_helper(sbf, store, clef):
 def complete_fonction(sbf, store):
     """complete la fonction acec les sorties et les assitants"""
     stockage = store["s"]
-    if sbf.definition["sortie"].nature == "G":  # c'est une definition de groupe
+    naturestock = sbf.definition["sortie"].nature
+    groupestock = sbf.definition["sortie"].groupe
+    if naturestock == "G":  # c'est une definition de groupe
         grouperef = sbf.definition["sortie"].groupe
         sbf.fonctions_sortie = {
             k: stockage[k]
@@ -510,9 +512,19 @@ def complete_fonction(sbf, store):
             if stockage[k].definition["sortie"].groupe == grouperef
         }
     else:
-        idstock = sbf.definition["sortie"].nature
-        if idstock in stockage:
-            sbf.fonctions_sortie = {idstock: stockage[idstock]}
+        if naturestock in stockage:
+            sbf.fonctions_sortie = {naturestock: stockage[naturestock]}
+
+    # print(
+    #     "completement fonction",
+    #     sbf.nom,
+    #     "\t\t",
+    #     naturestock,
+    #     "\t",
+    #     groupestock,
+    #     sbf.fonctions_sortie.keys(),
+    # )
+
     for i in sbf.fonctions_sortie.values():
         #            print ('fonction schema ',i.nom, i.description.get('#schema'))
         i.fonction_schema = get_fonction(
