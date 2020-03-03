@@ -414,9 +414,11 @@ class RegleTraitement(object):  # regle de mapping
                 + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
                 + "->"
-                + self.params._compact()
-                if self.params
-                else "noparams " + str(self.idregle) + "(" + repr(self.context) + ")"
+                + (self.params._compact() if self.params else "noparams ")
+                + str(self.idregle)
+                + "("
+                + repr(self.context)
+                + ")"
             )
         return "regle vide"
 
@@ -437,7 +439,7 @@ class RegleTraitement(object):  # regle de mapping
             # print("test des fonctions de sortie ", fonc.nom, clef, "->", definition)
             for j in sorted(fonc.fonctions_sortie.values(), key=lambda x: x.priorite):
                 if j.definition[clef].match(self.v_nommees[clef]):
-                    print("trouve f_sortie ", fonc.nom, clef, "->", definition)
+                    # print("trouve f_sortie ", fonc.nom, clef, "->", definition)
 
                     return True
             return False

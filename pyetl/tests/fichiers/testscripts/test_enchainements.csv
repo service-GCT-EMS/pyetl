@@ -1,10 +1,8 @@
 !att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;fin
 &&#define;#printmacro;etat;;;
 ;;;;;;V0;print ;printmacro %etat%    all ok->;;
-;;;;;;;pass;;;
 |:;;;;;;V0;print;printmacro %etat%   enchainement ok->;;
 |sinon:;;;;;;V0;print;printmacro %etat%   erreur sinon ->;;
-;;;;;;;pass;;;
 
 &&#define;#start_test;enchainements;;;;;;;;
 $F_sortie=#poubelle;;;;;;;;;;
@@ -12,12 +10,13 @@ $mode_sortie=D;;;;;;;;;;
 $force_schema=0;;;;;;;;;;
 !======================================test ;;;;;;;;;;
 <#obj;;1;;;;;;;;
-;;;;;;;pass;;;
+;;;;;;;pass;;;;;p1
 |:;;;;;;V0;print;enchainement ok->;;
 |:;;;;;;V0;print;enchainement 2ok->;;
 |sinon:;;;;;;V0;print;erreur sinon ->;;
 |:;;;;;;V0;print;erreur sinon1 ->;;
 ;;;;;;V0;print ;all ok->;;
+<#printmacro;ok_base;;;
 ;;;;;;;fail;;;
 |:<#printmacro;ko;
 |:;;;;;;V0;print;erreur enchainement ->;;
@@ -28,3 +27,4 @@ $force_schema=0;;;;;;;;;;
 |fail:;;;;;;V0;print;fail->;;
 |:;;;;;;V0;print;fail 1->;;
 |:<#printmacro;ok;
+!;;;;;;V0;print;fin 1->;;

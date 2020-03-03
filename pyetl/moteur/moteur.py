@@ -36,7 +36,10 @@ class Moteur(object):
 
     def traitement_virtuel(self, unique=0):
         """ cree un objet virtuel et le traite pour toutes les classes non utilisees """
-
+        if self.debug:
+            print("moteur: mode debug")
+            for i in self.regles:
+                print(i)
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
         LOGGER.info("traitement virtuel" + str(unique))
@@ -337,13 +340,7 @@ class Context(object):
         self.env = env
         self.niveau = 0
         # gestion des hierarchies
-        if parent is not None:
-            self.ident = parent.ident + "<-" + self.nom
-            self.search.extend(parent.search)
-            self.root = self.parent.root
-            self.ref = parent
-            if env is None:
-                self.env = parent.env
+        self.setparent(parent)
         if root:
             self.root = self
             self.ref = None
@@ -352,6 +349,17 @@ class Context(object):
     def setref(self, context):
         """modifie l'enchainement des contextes"""
         self.ref = context
+
+    def setparent(self, parent, ref=True):
+        """modifie l'enchainement des contextes"""
+        self.parent = parent
+        if parent is not None:
+            self.ident = parent.ident + "<-" + self.nom
+            self.search.extend(parent.search)
+            self.root = self.parent.root
+            self.ref = parent if (ref or not parent.ref) else parent.ref
+            if self.env is None:
+                self.env = parent.env
 
     def getmacroenv(self, ident=""):
         """fournit un contexte ephemere lie au contexte de reference"""

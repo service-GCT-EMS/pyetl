@@ -246,7 +246,7 @@ def fileinfo(fichier, ajout_attributs):
     except NameError:
         uname, domain = "", ""
     except Exception as err:
-        print("fichier introuvable:", fichier, "->", err)
+        print("info:fichier introuvable:", fichier, "->", err)
 
     # print ('fichier', fichier, statinfo)
     return list(zip(ajout_attributs, definition + infos))

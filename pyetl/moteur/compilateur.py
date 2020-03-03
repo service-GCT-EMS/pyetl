@@ -26,7 +26,11 @@ def _affiche_debug(regles, debug):
                 "-->",
                 [(i, liens_pos[i], liens_num[i]) for i in sorted(liens_num)],
             )
-            print("flags", "final" if regle.final else "", "nonext" if regle.nonext else "")
+            print(
+                "flags",
+                "final" if regle.final else "",
+                "nonext" if regle.nonext else "",
+            )
             if "+" in regle.v_nommees["debug"]:
                 print(
                     "\n".join(
@@ -40,8 +44,12 @@ def _affiche_debug(regles, debug):
                 print(
                     "   compile: select",
                     regle.selstd.__name__ if regle.selstd else "None",
-                    ("sel1:", regle.sel1.fonction.__name__) if hasattr(regle,"sel1") and regle.sel1 else "",
-                    ("sel2:", regle.sel2.fonction.__name__) if hasattr(regle,"sel2") and regle.sel2 else "",
+                    ("sel1:", regle.sel1.fonction.__name__)
+                    if hasattr(regle, "sel1") and regle.sel1
+                    else "",
+                    ("sel2:", regle.sel2.fonction.__name__)
+                    if hasattr(regle, "sel2") and regle.sel2
+                    else "",
                 )
 
 
@@ -64,7 +72,7 @@ def _finalise(regle, debug):
             print("regle filtrante ", regle.ligne)
     if regle.call:  # c est un appel de procedure / macro
         if not regle.liste_regles:
-            raise SyntaxError("macro non definie:"+repr(regle))
+            raise SyntaxError("macro non definie:" + repr(regle))
         for brc in regle.branchements.brch:
             regle.liste_regles[-1].branchements.brch[brc] = regle.branchements.brch[brc]
         for rmacro in regle.liste_regles:
@@ -155,7 +163,9 @@ def compile_regles(mapper, liste_regles, debug=0):
             raise EOFError("pas de regles a compiler")
         # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
         if mapper.getvar("sans_sortie"):
-            regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;pas de sortie", "", 99999)
+            regle_sortir = mapper.interpreteur(
+                ";;;;;;;pass;;;;;pas de sortie", "", 99999
+            )
         else:
             regle_sortir = mapper.interpreteur(
                 ";;;;;;;sortir;"
@@ -165,6 +175,7 @@ def compile_regles(mapper, liste_regles, debug=0):
                 + ";;;sortie_defaut",
                 "",
                 99999,
+                prec=regles[-1],
             )
         regle_sortir.final = True
 

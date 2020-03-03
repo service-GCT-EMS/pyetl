@@ -362,31 +362,32 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
             self.regle_ref.stock_param.setvar("fanout", "classe")
     try:
         base = ET.parse(os.path.join(rep, chemin, fichier))
-        for elem in base.iter():
-            if elem.tag in self.config:  # parent
-                fixe["#parent"] = elem.tag
-                # print ('parsing',elem.tag,elem.text)
-                config = self.config[elem.tag]
-                # print ('detecte parent',elem.tag)
-                attributs = dict()
-                hdict = dict()
-                for tag, conf in config.items():
-                    # groupe,classe,select,vselect,config_att = conf
-                    # print ('recherche', tag)
-                    select = conf["select"]
-                    vselect = conf["vselect"]
-                    config_att = conf["attributs"]
-                    for el2 in elem.iter(tag=tag):
-                        # print ('traitement',el2.tag,el2.text)
-                        if select and el2.get(select) != vselect:
-                            continue
-                        decode_elem(el2, attributs, hdict, config_att, fixe)
-                if attributs or hdict:
-                    if conf:
-                        self.setidententree(conf["groupe"], conf["classe"])
-                        self.alphaprocess(attributs, hdict=hdict)
     except ET.ParseError as err:
         print("xml mal forme", err)
+        return
+    for elem in base.iter():
+        if elem.tag in self.config:  # parent
+            fixe["#parent"] = elem.tag
+            # print ('parsing',elem.tag,elem.text)
+            config = self.config[elem.tag]
+            # print ('detecte parent',elem.tag)
+            attributs = dict()
+            hdict = dict()
+            for tag, conf in config.items():
+                # groupe,classe,select,vselect,config_att = conf
+                # print ('recherche', tag)
+                select = conf["select"]
+                vselect = conf["vselect"]
+                config_att = conf["attributs"]
+                for el2 in elem.iter(tag=tag):
+                    # print ('traitement',el2.tag,el2.text)
+                    if select and el2.get(select) != vselect:
+                        continue
+                    decode_elem(el2, attributs, hdict, config_att, fixe)
+            if attributs or hdict:
+                if conf:
+                    self.setidententree(conf["groupe"], conf["classe"])
+                    self.alphaprocess(attributs, hdict=hdict)
     return
 
 

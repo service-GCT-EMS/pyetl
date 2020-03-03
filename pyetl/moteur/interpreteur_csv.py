@@ -201,15 +201,16 @@ def setvloc(regle):
 
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
-    print("avant ajuste_context", regle, prec)
+    # print("avant ajuste_context", regle, prec)
     if regle.niveau > prec.niveau:
-        regle.context.setref(regle.stock_param.pushcontext(prec.context))
+        cprec = regle.stock_param.pushcontext(prec.context)
+        regle.context.setparent(cprec, ref=False)
     if regle.niveau < prec.niveau:
         context = None
         for i in range(prec.niveau - regle.niveau):
             context = regle.stock_param.popcontext()
-        regle.context.setref(context)
-    print("apres ajuste_context", regle.context)
+        regle.context.setparent(context, ref=False)
+    # print("apres ajuste_context", regle.context)
 
 
 def prepare_regle(regle, prec=None):
@@ -291,10 +292,10 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
     # regle = RegleTraitement(ligne, mapper, fichier, numero)
     # print ('context creation1',regle.context)
     regle = mapper.regleref.getregle(ligne, fichier, numero)
-    # print ('context creation2',regle.context)
+    # print("creation regle", regle, ligne)
     prepare_regle(regle, prec=prec)
 
-    # print ('retour prepare', regle.valide, regle)
+    # print("retour prepare", regle.valide, regle)
     if regle.valide == "vide":
         #        print('regle vide ',regle)
         return None
@@ -439,23 +440,6 @@ def _lire_commandes(mapper, fichier_regles, niveau):
             fichier_regles, "", defext=".csv", codec=mapper.getvar("codec_csv")
         )
 
-    if niveau:  # on force un niveau d'indentation
-        avant = niveau
-        #        avant = '+'*niveau
-        regles2 = []
-        for regle in liste_regles:
-            num, texte = regle
-            cond = ""
-            if texte.startswith("K:"):  # c'est une instruction conditionelle
-                tmp = texte.split(";")
-                cond = tmp[0] + ";"  # on isole la condition
-                texte = ";".join(tmp[1:])
-            if texte:
-                prefixe = avant if texte[0] in "|+-" else avant + ":"
-                texte = cond + prefixe + texte
-            regles2.append((num, texte))
-
-        liste_regles = regles2
     #    print ('lu:',liste_regles)
     return liste_regles
 
@@ -496,22 +480,23 @@ def affecte_variable(commande, context):
     # print ('affectation variable',commande, setter, nom,"=", valeur)
 
 
-def prepare_texte(defligne):
+def prepare_texte(defligne, niveau):
     """ prepare le texte pour l 'interpretation et verifie s 'il y a des choses a faire """
     numero, texte_brut = defligne
     #        texte_brut = texte
     texte = texte_brut.strip()
-    if not texte:
+    if not texte or texte.startswith("!"):
         return None, None, texte_brut
-    if re.match(r"^[\+\-\|]*:?!", texte):
-        return None, None, texte_brut
-    if (
-        texte[0] == '"'
-    ):  # on a mis des cotes dans les champs : petite touille pour nettoyer
+    if texte.startswith('"'):
+        # on a mis des cotes dans les champs : petite touille pour nettoyer
         tmp = texte.replace('""', "&&trucmuch&&")  # on sauve les doubles cotes
         tmp = tmp.replace('"', "")
         texte = tmp.replace("&&trucmuch&&", '"')
-    return numero, texte, texte_brut
+    if not niveau:
+        return numero, texte, texte_brut
+    if re.match(r"^[\+\-\|]", texte):
+        return numero, niveau + texte, texte_brut
+    return numero, niveau + ":" + texte, texte_brut
 
 
 def traite_regle_std(
@@ -564,6 +549,7 @@ def traite_regle_std(
             regles[position - 1].branchements.suivante = r_cour
         r_cour.suivante = None
         r_cour.index = position
+        # print("regle:", r_cour)
     #                print ('regle valide ', r_cour.ligne, r_cour.val_entree, r_cour.valide)
     else:
         print("interp: regle invalide -------------->", r_cour)
@@ -629,17 +615,18 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     texte = match.group(4)
-    print("importe macro", niveau, texte)
+    # print("importe macro", niveau, texte)
     # on gere les niveaux
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
     else:
         prec = mapper.regles[-1] if mapper.regles else None
     nivmacro = len(niveau)
+    rvirt = ""
     if prec:
         if nivmacro != prec.niveau:
-            rvirt = niveau + ":;;;;;;;pass;;;;"
-            print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
+            rvirt = niveau + ":;;;;;;;pass;;;;;rv"
+            # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
@@ -654,7 +641,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         )
     if macro:
         # mapper.pushcontext(type_c="M")
-        print("contexte macros :", mapper.cur_context)
+        # print("contexte macros :", mapper.cur_context)
         erreurs = lire_regles_csv(
             mapper,
             "",
@@ -662,9 +649,13 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             niveau=niveau,
             regle_ref=regle_ref,
         )
-        print("contexte macros apres:", mapper.cur_context)
+        if rvirt:
+            traite_regle_std(
+                mapper, 0, rvirt + "f", rvirt + "f", "", 0, regle_ref=regle_ref
+            )
+        # print("contexte macros apres:", mapper.cur_context)
         mapper.popcontext()  # on depile un contexte
-        print("contexte macros apres pop:", mapper.cur_context)
+        # print("contexte macros apres pop:", mapper.cur_context)
 
     else:
         erreurs = 1
@@ -707,8 +698,9 @@ def lire_regles_csv(
     bloc = 0
     for defligne in liste_regles[:]:
         #        numero, texte = defligne
-        numero, texte, texte_brut = prepare_texte(defligne)
+        numero, texte, texte_brut = prepare_texte(defligne, niveau)
         context = mapper.cur_context
+        # print("context lecture", context)
         if texte is None:
             continue
         # lignes conditionelles (lignes incluses dans le code seulement si la condition est vraie)
@@ -738,7 +730,7 @@ def lire_regles_csv(
             )
             #        liste_val[0] = ''
             #        liste_val[1] = ''
-            numero, texte, texte_brut = prepare_texte(defligne)
+            numero, texte, texte_brut = prepare_texte(defligne, niveau)
         #            print('traitement_ligne', texte)
         if not texte:
             continue
