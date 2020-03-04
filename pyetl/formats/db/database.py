@@ -129,6 +129,14 @@ class Cursinfo(object):
         return self.volume
 
     @property
+    def namelist(self):
+        if self.attlist:
+            # print("trouve attlist", self.attlist)
+            return self.attlist
+        else:
+            return list((i[0] for i in self.infoschema))
+
+    @property
     def infoschema(self):
         """fournit un schema issu de la requete"""
 
