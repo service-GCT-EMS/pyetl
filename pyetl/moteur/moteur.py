@@ -159,6 +159,8 @@ class Moteur(object):
                         regle.affiche("--non executee--->")
                         print("suite", regle.branchements.liens_num()["sinon"])
                     regle = regle.branchements.brch["sinon"]
+                # if regle and regle.valide=="done":
+                #     regle = regle.branchements.brch["ok"]
             except StopIteration as abort:
                 #                print ('stopiteration', ab.args)
                 if abort.args[0] == "1":  # arret de traitement de l'objet
