@@ -2,6 +2,7 @@
 """ format asc en lecture et ectiture"""
 
 import os
+import re
 
 # import time
 # from numba import jit
@@ -62,7 +63,7 @@ def _point_apic(liste_elt, log_erreurs):
     type_geom = "0"
     dim = "2"
     angle = "0"
-    erreurs = ''
+    erreurs = ""
 
     type_geom_asc = liste_elt[0][0]
     classe = liste_elt[1].strip()
@@ -169,8 +170,10 @@ def _erreurs_entete():
     return
 
     # print obj.attributs
+
+
 def traite_booleen(vatt):
-    ''' traitement des booleens '''
+    """ traitement des booleens """
     bcode = {"-1": "t", "0": "f", "t": "t", "f": "f"}
     # print("asc: traitement booleen")
     try:
@@ -180,6 +183,7 @@ def traite_booleen(vatt):
         raise TypeError
     return vatt
 
+
 # entree sortie en asc
 # @jit
 def ajout_attribut_asc(attributs, attr):
@@ -188,7 +192,7 @@ def ajout_attribut_asc(attributs, attr):
     suite = False
     liste_elts = attr.split(",", 2)  # les 2 premiers suffisent en general
     nom = liste_elts[0][1:]
-    vatt =''
+    vatt = ""
     type_att = "A"
     # if obj.schema:
     #     if nom in obj.schema.attmap:
@@ -243,11 +247,12 @@ def ajout_attribut_asc(attributs, attr):
 
 
 def init_format_asc(reader):
-    '''positionnne des elements de lecture (traitement des booleens)'''
-    reader.formatters['B'] = traite_booleen
-    reader.setvar('codec_asc','cp1252')
+    """positionnne des elements de lecture (traitement des booleens)"""
+    reader.formatters["B"] = traite_booleen
+    reader.setvar("codec_asc", "cp1252")
     # print ('initialisation reader', reader.formatters)
     # raise
+
 
 # def _get_schemas(regle, rep, fichier):
 #     """definit le schemas de reference et les elementt immuables """
@@ -265,31 +270,31 @@ def init_format_asc(reader):
 #             )
 #     return schema, schema_init
 
+
 def finalise_obj(reader, attributs, coords, geom, angle, dim):
-    '''finalise un objet et le traite'''
+    """finalise un objet et le traite"""
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
-    if obj is None: # filtrage en entree
+    if obj is None:  # filtrage en entree
         return
     if coords:
         obj.geom_v.setpoint(coords, angle, dim)
     if geom:
         obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
     if obj.dimension == 0:
-        print ('asc: erreur finalisation ', obj, coords, geom, dim)
+        print("asc: erreur finalisation ", obj, coords, geom, dim)
     reader.process(obj)
-
 
 
 def lire_objets_asc(self, rep, chemin, fichier):
     """ lecture d'un fichier asc et stockage des objets en memoire"""
     obj = None
-    nom = ''
+    nom = ""
     attributs = dict()
     geom = []
     coords = []
     angle = 0
     dim = 2
-    groupe,dclasse = self.prepare_lecture_fichier(rep, chemin, fichier)
+    groupe, dclasse = self.prepare_lecture_fichier(rep, chemin, fichier)
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
     log_erreurs = _erreurs_entete()
@@ -307,18 +312,20 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 attributs[nom] += i
                 suite = False
                 continue
-            if len(i) <= 2 or i.startswith("*") or i.startswith(';4'):
+            if len(i) <= 2 or i.startswith("*") or i.startswith(";4"):
                 continue
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
                 # print ('asc lecture', i)
                 finalise_obj(self, attributs, coords, geom, angle, dim)
-                geom=[]
+                geom = []
 
                 if code_1 in "9356":
-                    classe, attributs, coords, angle, dim = _decode_entete_asc(i, log_erreurs)
+                    classe, attributs, coords, angle, dim = _decode_entete_asc(
+                        i, log_erreurs
+                    )
                     if classe != dclasse:
-                        self.setidententree(groupe,classe)
+                        self.setidententree(groupe, classe)
                         dclasse = classe
 
             elif (code_0 == "2" or code_0 == "4") and (
@@ -339,7 +346,7 @@ def _ecrire_point_asc(geom):
 
     dim = geom.dimension
     angle = (90 - geom.angle) % 360 if geom.angle is not None else 0
-    angle = round(angle*FA)
+    angle = round(angle * FA)
     try:
         if dim == 2:
             ccx, ccy = list(geom.coords)[0][:2]
@@ -362,19 +369,21 @@ def _ecrire_point_asc(geom):
         return code, chaine
     except ValueError:
         print("erreur ecriture point", geom.coords, dim)
-        return ';0 ',""
+        return ";0 ", ""
 
 
-def format_date(date):
+def format_date(date, format_d="ISO"):
     """ genere une date en format entete elyx"""
-    return (
-        date.replace("/", "-").replace(" ", ",").split(".")[0]
-        if date
-        else ""
-    )
+    if not date:
+        return ""
+    if format_d == "ISO":
+        dd1 = date.split(".")[0]
+        return dd1[8:10] + dd1[4:8] + dd1[:4] + dd1[10:]
+    else:
+        return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else ""
 
 
-def _ecrire_entete_asc(obj) ->str:
+def _ecrire_entete_asc(obj) -> str:
     """ genere le texte d'entete asc a partir d'un objet en memoire"""
     types_geom_asc = {"0": ";5 ", "1": "3", "2": ";9 ", "3": ";9 "}
     type_geom_sortie = ";5 "
@@ -395,7 +404,13 @@ def _ecrire_entete_asc(obj) ->str:
         if obj.initgeom():
             type_geom_sortie = types_geom_asc.get(type_geom, ";5 ")
         else:
-            print("geometrie asc invalide ", id_num, obj.attributs["#geom"], obj.geom_v.erreurs, obj)
+            print(
+                "geometrie asc invalide ",
+                id_num,
+                obj.attributs["#geom"],
+                obj.geom_v.erreurs,
+                obj,
+            )
             type_geom_sortie = ";5 "
 
     dcre = format_date(attr.get("#_sys_date_cre"))
@@ -605,9 +620,7 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
 
                     streamwriter = AscWriter(
-                        nom,
-                        encoding="cp1252",
-                        geomwriter=self.geomwriter,
+                        nom, encoding="cp1252", geomwriter=self.geomwriter
                     )
                     streamwriter.set_liste_att(attributs)
                     ressource = sorties.creres(regle, nom, streamwriter)
@@ -617,7 +630,9 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
 
 
 #                       reader,      geom,    hasschema,  auxfiles, initer
-READERS = {"asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"),  init_format_asc, None)}
+READERS = {
+    "asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"), init_format_asc, None)
+}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "asc": (
@@ -630,7 +645,7 @@ WRITERS = {
         "groupe",
         "geom_asc",
         "geom_asc",
-        None
+        None,
     )
 }
 #########################################################################

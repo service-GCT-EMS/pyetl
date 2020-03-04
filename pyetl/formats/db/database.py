@@ -18,25 +18,6 @@ from .gensql import DbGenSql
 DEBUG = False
 
 
-def quote_table(ident):
-    """rajoute les cotes autour des noms"""
-    return '"%s"."%s"' % ident
-
-
-def quote(att):
-    """rajoute les quotes sur une liste de valeurs ou une valeur"""
-    if att.startswith('"'):
-        return att
-    return '"%s"' % (att)
-
-
-def attqjoiner(attlist, sep):
-    """ join une liste d'attributs et ajoute les quotes"""
-    if isinstance(attlist, (list, tuple)):
-        return sep.join([quote(i) for i in attlist])
-    return quote(attlist)
-
-
 class DummyConnect(object):
     """simule une connection base de donnees"""
 
@@ -716,17 +697,23 @@ class DbConnect(object):
             nom_geometrie = quote(schema.info["nom_geometrie"])
             if schema.info["type_geom"] == "3":  # surfaces
                 if surf:  # calcul de la surface
-                    attlist2.append(self.get_surf(nom_geometrie))
+                    attlist2.append(
+                        self.get_surf(nom_geometrie) + 'as "#surface_calculee"'
+                    )
                     attlist.append("#surface_calculee")
                 if long:  # longueur
-                    attlist2.append(self.get_perim(nom_geometrie))
+                    attlist2.append(
+                        self.get_perim(nom_geometrie) + 'as "#longueur_calculee"'
+                    )
                     attlist.append("#longueur_calculee")
             elif schema.info["type_geom"] == "2":  # lignes
                 if long:  # longueur
-                    attlist2.append(self.get_long(nom_geometrie))
+                    attlist2.append(
+                        self.get_long(nom_geometrie) + 'as "#longueur_calculee"'
+                    )
                     attlist.append("#longueur_calculee")
             if schema.info["type_geom"] != "0":
-                attlist2.append(self.get_geom(nom_geometrie))
+                attlist2.append(self.get_geom(nom_geometrie) + "as geometrie")
         join_char = self.join_char
         atttext = join_char.join(attlist2)
         return atttext, attlist
