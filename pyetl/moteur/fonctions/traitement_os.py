@@ -293,8 +293,8 @@ def f_infofich(regle, obj):
     else:
         fichier = os.path.join(
             obj.attributs.get("#chemin", ""), obj.attributs.get("#fichier", "")
-        )
-        # print ('infofich sans entree', fichier)
+        ) + obj.attributs.get("#ext", "")
+        # print("infofich sans entree", fichier)
     if fichier:
         if fichier not in regle.infofich:
             regle.infofich[fichier] = fileinfo(fichier, regle.ajout_attributs)
@@ -330,7 +330,7 @@ def f_abspath(regle, obj):
         )
         final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
-    # print ('chemin final',candidat,os.path.isabs(candidat), '->', final)
+    # print("chemin final", candidat, os.path.isabs(candidat), "->", final)
     regle.setval_sortie(obj, final)
     return True
 
@@ -382,7 +382,11 @@ def f_adquery(regle, obj):
     #pattern||S;?C;?A;adquery;=user;?C;
     # """
     if regle.get_entree(obj):
-        user = regle.AD.find_user(regle.get_entree(obj))
+        try:
+            user = regle.AD.find_user(regle.get_entree(obj))
+        except TypeError as err:
+            print("erreur adquery", err, regle.get_entree(obj))
+            user = ""
         if user:
             val = getattr(user, regle.a_recuperer)
             regle.setval_sortie(obj, val)

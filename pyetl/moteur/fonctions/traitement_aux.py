@@ -50,48 +50,32 @@ from pyetl.formats.interne.stats import Stat, Statdef
 
 
 # fonctions de remplacement
-
-
-def sh_simple(regle):
-    """ helper pour les sorties simples"""
-    regle.changeschema = regle.params.att_sortie.val == "#schema"
-    regle.changeclasse = regle.params.att_sortie.val in ("#groupe", "#classe")
-    regle.action_schema = fschema_ajout_attribut
-    regle.fonctions_schema.append(fschema_ajout_attribut)
-    if regle.params.att_sortie.val and regle.params.att_sortie.val[0] == "#":
-        regle.action_schema = None
-
-
-def sh_liste(regle):
-    """ helper pour les sorties listes"""
+def setajout(regle, liste):
+    """cree l'ajout d'attributs au schema si necessaire"""
     regle.changeschema = "#schema" in regle.params.att_sortie.liste
     regle.changeclasse = (
         "#classe" in regle.params.att_sortie.liste
         or "#groupe" in regle.params.att_sortie.liste
     )
-    regle.action_schema = None
-    for i in regle.params.att_sortie.liste:
-        if i[0] != "#":
-            regle.action_schema = fschema_ajout_attribut
-            regle.fonctions_schema.append(fschema_ajout_attribut)
-            break
+    if not regle.action_schema and not all(i.startswith("#") for i in liste):
+        regle.action_schema = fschema_ajout_attribut
+
+
+def sh_simple(regle):
+    """ helper pour les sorties simples"""
+    setajout(regle, [regle.params.att_sortie.val])
+
+
+def sh_liste(regle):
+    """ helper pour les sorties listes"""
+    setajout(regle, regle.params.att_sortie.liste)
 
 
 def sh_dyn(regle):
     """ helper pour les sorties dynamiques"""
     regle.changeschema = True
     regle.changeclasse = True
-    regle.action_schema = fschema_ajout_attribut_d
-    regle.fonctions_schema.append(fschema_ajout_attribut_d)
     regle.dynschema = True
-
-
-def sh_hstore(regle):
-    """ helper pour les sorties hstore"""
-    regle.action_schema = fschema_ajout_attribut
-    regle.fonctions_schema.append(fschema_ajout_attribut)
-    if regle.params.att_sortie.val and regle.params.att_sortie.val[0] == "#":
-        regle.action_schema = None
 
 
 def s_hstore(sortie, obj, valeur):
@@ -404,7 +388,7 @@ def fschema_garder_attributs(regle, obj):
     """supprime tous les attributs du schema qui ne figurent pas dans l'objet"""
     #    for att in [i for i in obj.schema.attributs if i not in regle.liste_attributs]:
     #        obj.schema.supprime_attribut(att)
-    # print('garder attributs',obj.schema.identclasse)
+    # print("garder attributs", obj.schema.identclasse, regle.params.att_sortie.liste)
     if obj.schema.amodifier(regle):
         agarder = (
             regle.params.att_sortie.liste
@@ -412,7 +396,7 @@ def fschema_garder_attributs(regle, obj):
             else [i for i in obj.attributs if i[0] != "#" and i in regle.selset]
         )
         obj.schema.garder_attributs(agarder, ordre=regle.params.att_sortie.liste)
-        # print('garder attributs ->',obj.schema)
+    # print("garder attributs ->", obj.schema)
 
 
 def fschema_change_schema(regle, obj):

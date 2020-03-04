@@ -614,6 +614,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     match = re.match(r"(([\|\+\-]+)([a-z]*):)?(<.*)", texte)
     #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
+    # print("niveau retenu", niveau)
     texte = match.group(4)
     # print("importe macro", niveau, texte)
     # on gere les niveaux
@@ -625,7 +626,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     rvirt = ""
     if prec:
         if nivmacro != prec.niveau:
-            rvirt = niveau + ":;;;;;;;pass;;;;;rv"
+            rvirt = (niveau + ":" if niveau else "") + ";;;;;;;pass;;;;;rv"
             # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales

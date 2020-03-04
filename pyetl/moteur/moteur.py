@@ -33,13 +33,17 @@ class Moteur(object):
     def setregles(self, regles, debug=0):
         self.regles = regles
         self.debug = debug
+        if self.debug:
+            self.debug_moteur()
+
+    def debug_moteur(self):
+        print("moteur: mode debug")
+        for i in self.regles:
+            print(i)
 
     def traitement_virtuel(self, unique=0):
         """ cree un objet virtuel et le traite pour toutes les classes non utilisees """
-        if self.debug:
-            print("moteur: mode debug")
-            for i in self.regles:
-                print(i)
+
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
         LOGGER.info("traitement virtuel" + str(unique))
@@ -130,8 +134,8 @@ class Moteur(object):
                     if resultat:
                         if obj.schema is not None:
                             if regle.action_schema:
-                                #                                print ('action schema',regle.action_schema)
-                                #                                print ('schema avant',obj.schema)
+                                # print("action schema", regle, regle.action_schema)
+                                # print("schema avant", obj.schema)
                                 regle.action_schema(regle, obj)
                             #                                print ('schema apres',obj.schema)
                             if regle.changeclasse:

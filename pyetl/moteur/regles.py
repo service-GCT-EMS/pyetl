@@ -292,7 +292,14 @@ class Selecteur(object):
                 self.fonction = candidat.work
                 self.nom = candidat.nom
                 return
-        print("erreur selecteur inconnu", ascii(attribut), ascii(valeur), "dans:", self)
+        print("erreur selecteur", self.regle)
+        raise SyntaxError(
+            "erreur selecteur inconnu",
+            ascii(attribut),
+            ascii(valeur),
+            "dans:",
+            self.regle,
+        )
 
 
 def validepattern(operateur, definition):
@@ -362,7 +369,7 @@ class RegleTraitement(object):  # regle de mapping
         self.fonc = None
         self.fstore = self.ftrue
         self.shelper = None
-        self.fonctions_schema = []
+        # self.fonctions_schema = []
         self.numero = numero
         if context is None:
             context = stock_param.cur_context
@@ -457,16 +464,17 @@ class RegleTraitement(object):  # regle de mapping
             #                print ('sortie')
             if j.definition[cref].match(self.v_nommees[cref]):
                 self.fstore = j.work
-                self.action_schema = self.action_schema or j.fonction_schema
-                self.fonctions_schema.append(j.fonction_schema)
+                # self.action_schema = j.fonction_schema or self.action_schema
+                # self.fonctions_schema.append(j.fonction_schema)
                 self.shelper = j.helper
                 #            if not regle.action_schema:
                 #                print('erreur action', j.nom, j.fonction_schema,
                 #                      fonc.nom, regle.ligne[:-1])
                 elements[cref] = j.definition[cref].match(self.v_nommees[cref])
                 break
-        #                print ('fonction sortie',regle,'sortie:',j.work)
+        #
         if self.fstore:
+            # print("fonction sortie", regle, "sortie:", j.work, self.fonctions_schema)
             return True
         self.erreurs.append("erreur sortie")
         elements[cref] = None
@@ -554,8 +562,9 @@ class RegleTraitement(object):  # regle de mapping
         if callable(fonc.work):
             self.fonc = fonc.work
             if fonc.fonction_schema:
+                # print("fonctions schema", self, fonc.fonction_schema)
                 self.action_schema = fonc.fonction_schema
-                self.fonctions_schema.append(fonc.fonction_schema)
+                # self.fonctions_schema.append(fonc.fonction_schema)
             if fonc.fonctions_sortie:
                 valide = self.set_resultat(fonc)
                 if not self.fstore:
@@ -905,11 +914,11 @@ class RegleTraitement(object):  # regle de mapping
             print("erreur changement classe", ident, obj.schema)
         obj.setschema(schema_classe)
 
-    def execute_actions_schema(self, obj):
-        if obj.schema:
-            if self.dynschema or obj.schema.amodifier():
-                for tache in self.fonctions_schema:
-                    tache(self, obj)
+    # def execute_actions_schema(self, obj):
+    #     if obj.schema:
+    #         if self.dynschema or obj.schema.amodifier():
+    #             for tache in self.fonctions_schema:
+    #                 tache(self, obj)
 
     def statictest(self):
         """determine si une regle peurt etre executee statiquement"""

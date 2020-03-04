@@ -772,13 +772,12 @@ def sortie_resultats(
     )
     stock_param.setvar("printpending", 1)
     nbvals = 0
-    attlist = curs.infoschema
+    namelist = curs.namelist
     # print (' attributs recuperes avant', attlist)
-
     if type_geom != "0":
-        attlist.append(("#geom", "T", 0, None))
+        namelist.append(("#geom"))
     # print (' attributs recuperes ', attlist)
-    namelist = [i[0] for i in attlist]
+    # namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
     maxobj = regle_courante.getvar("lire_maxi", 0)
