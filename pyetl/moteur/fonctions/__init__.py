@@ -52,7 +52,7 @@ class DefinitionAttribut(object):
         "A+": (r"^" + adef + r"\+$", "A", "S"),
         "A*": (r"^" + adef + r"\*$", "A", "D"),
         "*A": (r"^\*" + adef + r"$", "A", "D"),
-        "H:A": (r"^H:(" + asdef + r")$", "A:H", "H"),
+        "H": (r"^H:(" + asdef + r")$", "A:H", "H"),
         "*": (r"^\*$", "C", "D"),
         "[A]": (r"^" + vdef + "$", "A", "S"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S"),
@@ -75,6 +75,7 @@ class DefinitionAttribut(object):
         "=:": (r"^=:(.+)", "C", ""),
         "re:re": (r"^re:(.+)$", "C", ""),
         "C": (r"(.+)", "C", ""),
+        "C:C": (r"^(.+):(.+)$", "C", ""),
         "C[]": (r"^(.*\[[CDF]\].*)$", "C", ""),
         "C#": (r"(.*#.+)", "C", ""),
         "?": (r"(.*)", "C", ""),
@@ -90,7 +91,6 @@ class DefinitionAttribut(object):
         "schema:A:": (r"^schema:(" + asdef + ")=$", "A", ""),
         "schema:T:": (r"^schema:T:([A-Z]+)", "A", ""),  # selection par type d'attribut
         "hasval:C": (r"^hasval:(.*)$", "A", ""),
-        "C:C": (r"^C:(.*)$", "C", ""),
         "A:C": (r"^(" + asdef + "):(.*)$", "A", ""),
         "M": (r"", "G", "M"),  # multiple (groupes de sortie)
         "S": (r"", "G", "S"),  # simple
@@ -300,7 +300,8 @@ def controle_pattern(pattern, noms):
         if i.nature == "erreur"
     ]:
         return False
-    #    print ('controle:',definition_champs)
+    # if "xmlextract" in pattern:
+    #     print("controle:", pattern, "\n", definition_champs)
     return definition_champs
 
 

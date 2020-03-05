@@ -434,7 +434,7 @@ class DbConnect(object):
         if DEBUG:
             print("ecriture debug:", "lecture_base_attr_" + self.type_base + ".csv")
             fdebug = open("lecture_base_attr_" + self.type_base + ".csv", "w")
-            fdebug.write("\n".join(fields) + "\n")
+            fdebug.write("\n".join(self.fields) + "\n")
 
         for atd in self.get_attributs():
             # atd = connect.attdef(*i)

@@ -20,6 +20,7 @@ def sel_attexiste(selecteur, obj):
     """
     return selecteur.params.attr.val in obj.attributs
 
+
 def selh_attexiste_re(selecteur):
     """ compile les expressions regulieres"""
     #    print (" dans helper regex",selecteur.params.vals.val)
@@ -32,8 +33,8 @@ def sel_attexiste_re(selecteur, obj):
        #test||obj||^?Z;0;;set||Z;!;;;res;1;;set||atv;res;1
     """
     result = sorted([i for i in obj.attributs if selecteur.fselect(i)])
-    selecteur.regle.match=result[0] if result else ''
-    selecteur.regle.matchlist=result if result else []
+    selecteur.regle.match = result[0] if result else ""
+    selecteur.regle.matchlist = result if result else []
     return selecteur.regle.match
 
 
@@ -42,13 +43,15 @@ def selh_regex(selecteur):
     # print (" dans helper regex",selecteur.params.vals.val,re.compile(selecteur.params.vals.val))
     selecteur.fselect = re.compile(selecteur.params.vals.val).search
 
-def sel_egal(selecteur,obj):
+
+def sel_egal(selecteur, obj):
     """#aide||selection sur la valeur d un attribut egalite stricte
        #pattern||A;=:||1
        #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
     """
     # print ("selecteur egal",selecteur.params.vals.val)
     return selecteur.params.vals.val == obj.attributs.get(selecteur.params.attr.val)
+
 
 def sel_regex(selecteur, obj):
     """#aide||selection sur la valeur d un attribut
@@ -59,8 +62,8 @@ def sel_regex(selecteur, obj):
     """
     result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
     # print (" test variable",obj.attributs.get(selecteur.params.attr.val, ""),result)
-    selecteur.regle.match=result.group(0) if result else ''
-    selecteur.regle.matchlist=result.groups() if result else []
+    selecteur.regle.match = result.group(0) if result else ""
+    selecteur.regle.matchlist = result.groups() if result else []
     return result
 
 
@@ -74,7 +77,9 @@ def selh_calc(selecteur):
     exp_final = re.sub("^ *C:(?!#?[A-Za-z])", "C:" + attribut, exp_final)
 
     #    print('exp test final', exp_final, attribut, valeurs)
-    selecteur.fselect = selecteur.params.compilefonc(exp_final, "obj", debug=selecteur.regle.debug)
+    selecteur.fselect = selecteur.params.compilefonc(
+        exp_final, "obj", debug=selecteur.regle.debug
+    )
 
 
 def sel_calc(selecteur, obj):
@@ -84,14 +89,16 @@ def sel_calc(selecteur, obj):
        #test2||obj||^A;5;;set||^?A;0;;set||A;C: in "3456";;;res;1;;set||atv;res;1
     """
     result = selecteur.fselect(obj)
-    selecteur.regle.match=result if result else ''
+    selecteur.regle.match = result if result else ""
     return selecteur.fselect(obj)
 
 
 def selh_calc2(selecteur):
     """prepare les expressions pour le calcul """
     valeurs = selecteur.params.vals.val
-    selecteur.fselect = selecteur.params.compilefonc(valeurs, "obj", debug=selecteur.regle.debug)
+    selecteur.fselect = selecteur.params.compilefonc(
+        valeurs, "obj", debug=selecteur.regle.debug
+    )
 
 
 def sel_calc2(selecteur, obj):
@@ -101,7 +108,7 @@ def sel_calc2(selecteur, obj):
 
     """
     result = selecteur.fselect(obj)
-    selecteur.regle.match=result if result else ''
+    selecteur.regle.match = result if result else ""
     return selecteur.fselect(obj)
 
 
@@ -110,15 +117,17 @@ def selh_infich(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     mode, valeurs = prepare_mode_in(
-        selecteur.params.vals.val, selecteur.regle, taille=len(selecteur.params.attr.liste)
+        selecteur.params.vals.val,
+        selecteur.regle,
+        taille=len(selecteur.params.attr.liste),
     )
-    if mode == 'in_s':
+    if mode == "in_s":
         if isinstance(valeurs, list):
             valeurs = set(valeurs)
         selecteur.info = set(valeurs)
         selecteur.dyn = False
     else:
-        selecteur.dyn=True
+        selecteur.dyn = True
 
 
 #    print ('selecteur liste fich charge ',selecteur.info)
@@ -133,13 +142,13 @@ def sel_vinfich(selecteur, obj):
        #test||obj;||^A;B;;set||^?A;xxx;;set||
            +||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     """
-    if selecteur.dyn: # mode dynamique
+    if selecteur.dyn:  # mode dynamique
         pass
     else:
         selecteur.regle.match = obj.attributs.get(selecteur.params.attr.val, "")
         if selecteur.regle.match in selecteur.info:
             return True
-        selecteur.regle.match = ''
+        selecteur.regle.match = ""
         return False
 
 
@@ -148,7 +157,9 @@ def selh_infich_re(selecteur):
     """
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(
-        selecteur.params.vals.val, selecteur.regle, taille=len(selecteur.params.attr.liste)
+        selecteur.params.vals.val,
+        selecteur.regle,
+        taille=len(selecteur.params.attr.liste),
     )
     # on recupere les complements s'il y en a
 
@@ -180,10 +191,10 @@ def sel_infich_re(selecteur, obj):
         vals = obj.attributs.get(selecteur.params.attr.val, "")
     for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
         selecteur.regle.match = i.search(vals).group(0)
-        selecteur.regle.matchlist=i.search(vals).groups()
+        selecteur.regle.matchlist = i.search(vals).groups()
 
         return True
-    selecteur.regle.match = ''
+    selecteur.regle.match = ""
     return False
     # return any((i.search(vals) for i in selecteur.info))
 
@@ -203,9 +214,9 @@ def sel_inlist(selecteur, obj):
     """
     val = obj.attributs.get(selecteur.params.attr.val, "")
     if val in selecteur.info:
-        selecteur.regle.match=val
+        selecteur.regle.match = val
         return True
-    selecteur.regle.match=''
+    selecteur.regle.match = ""
     return False
 
 
@@ -238,11 +249,12 @@ def sel_inlist_re(selecteur, obj):
     # return any((i.search(vals) for i in selecteur.info))
     for i in itertools.dropwhile(lambda i: not i.search(vals), selecteur.info):
         selecteur.regle.match = i.search(vals).group(0)
-        selecteur.regle.matchlist=i.search(vals).groups()
+        selecteur.regle.matchlist = i.search(vals).groups()
 
         return True
-    selecteur.regle.match = ''
+    selecteur.regle.match = ""
     return False
+
 
 def selh_inmem(selecteur):
     """stocke la liste"""
@@ -266,16 +278,18 @@ def sel_inmem(selecteur, obj):
         selecteur.precedent = obj.ident
     #    print ('comparaison ', len(regle.comp), regle.comp)
     if selecteur.info is None:
-        selecteur.regle.match = ''
+        selecteur.regle.match = ""
         return False
 
     clef = str(tuple(tuple(i) for i in obj.geom_v.coords)) if selecteur.geom else ""
-    clef = clef + "|".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
+    clef = clef + "|".join(
+        obj.attributs.get(i, "") for i in selecteur.params.attr.liste
+    )
 
     if clef in selecteur.info:
         selecteur.regle.match = clef
         return True
-    selecteur.regle.match = ''
+    selecteur.regle.match = ""
     return False
 
 
@@ -332,7 +346,7 @@ def sel_isnotnull(selecteur, obj):
 
 def sel_hselk(selecteur, obj):
     """#aide||selection si une clef de hstore existe
-    #pattern||H:A;haskey:A||3
+    #pattern||H;haskey:A||3
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;haskey:V0;;;res;1;;set||atv;res;1
     """
     att = selecteur.params.attr.val
@@ -343,7 +357,7 @@ def sel_hselk(selecteur, obj):
 
 def sel_hselv(selecteur, obj):
     """#aide||selection si une clef de hstore n'est pas vide
-    #pattern||H:A;hasval:C||3
+    #pattern||H;hasval:C||3
        #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;hasval:0;;;res;1;;set||atv;res;1
 
     """
@@ -354,7 +368,7 @@ def sel_hselv(selecteur, obj):
 
 def sel_hselvk(selecteur, obj):
     """#aide||selection sur une valeur d'un hstore
-    #pattern||H:A;A:C||10
+    #pattern||H;A:C||10
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;V0:0;;;res;1;;set||atv;res;1
     #!test||rien||H:AA;V0:0;;;res;1;;set||rien
 
@@ -530,7 +544,11 @@ def sel_infoschema_has_type(selecteur, obj):
     if obj.schema.identclasse == selecteur.lastschema:
         return selecteur.lastvaleur
     atts = obj.schema.attributs
-    val = selecteur.params.attr.val if selecteur.params.attr.val else selecteur.params.vals.val
+    val = (
+        selecteur.params.attr.val
+        if selecteur.params.attr.val
+        else selecteur.params.vals.val
+    )
     selecteur.lastschema = obj.schema.identclasse  # on mets en cache
     selecteur.lastvaleur = any([atts[i].type_att == val for i in atts])
     #    print ('sel info type',selecteur.lastschema, selecteur.lastvaleur, val,
@@ -630,7 +648,7 @@ def sel_hasgeom(_, obj):
        #pattern1||=has:geom||1
        #test||obj;asc;1||^;;;geom||^?#geom;;;supp||;has:geom;;;res;1;;set||atv;res;1
     """
-    return bool(obj.attributs.get('#geom'))
+    return bool(obj.attributs.get("#geom"))
 
 
 def sel_hascouleur(selecteur, obj):
@@ -693,74 +711,71 @@ def sel_is_date(selecteur, obj):
          ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
     """
     # print ("comparaison temps", selecteur.params.pattern)
-    if selecteur.params.pattern=="1" or selecteur.params.pattern=="3":
-        dateref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    if selecteur.params.pattern == "1" or selecteur.params.pattern == "3":
+        dateref = obj.attributs.get(selecteur.params.vals.val, "X")
     else:
         dateref = selecteur.params.vals.val
-    if selecteur.vref=="O": # temps de reference pris dans l objet: faux si invalide
+    if selecteur.vref == "O":  # temps de reference pris dans l objet: faux si invalide
         datedesc = obj.attributs.get(selecteur.params.attr.val)
         try:
-            date = time.strptime(datedesc,"%Y-%m-%d")
+            date = time.strptime(datedesc, "%Y-%m-%d")
         except ValueError:
             return False
     else:
-        date = time.localtime() # temps de reference = jour courant
+        date = time.localtime()  # temps de reference = jour courant
     # print ("comparaison temps", date, dateref,selecteur.params.pattern)
 
-    if dateref == 'X':
+    if dateref == "X":
         return False
-    if dateref == '':
+    if dateref == "":
         # print ('toujours')
         return True
-    tmp =  dateref.split('/')
-    if len(tmp)!=2:
+    tmp = dateref.split("/")
+    if len(tmp) != 2:
         return False
-    jours,intervalle=tmp
-    if ',' in jours:
-        lj = jours.split(',')
-    elif '-' in jours:
-        debut, fin = jours.split('-')
-        lj = list(range(int(debut), int(fin)+1))
+    jours, intervalle = tmp
+    if "," in jours:
+        lj = jours.split(",")
+    elif "-" in jours:
+        debut, fin = jours.split("-")
+        lj = list(range(int(debut), int(fin) + 1))
     else:
         lj = [jours]
-    wn = int(time.strftime('%W',date))
-    if 'J' in intervalle:
-        intdef = int(intervalle.replace('J',''))
+    wn = int(time.strftime("%W", date))
+    if "J" in intervalle:
+        intdef = int(intervalle.replace("J", ""))
         vdef = int(jours) if jours else 0
 
-        return date.tm_yday%intdef==vdef
-    if intervalle == 'S': # toutes les semaines
-        return str(date.tm_wday+1) in lj
-    if 'S' in intervalle:
-        intdef = int(intervalle.replace('S',''))
-        if wn%intdef:
+        return date.tm_yday % intdef == vdef
+    if intervalle == "S":  # toutes les semaines
+        return str(date.tm_wday + 1) in lj
+    if "S" in intervalle:
+        intdef = int(intervalle.replace("S", ""))
+        if wn % intdef:
             return False
-        return str(date.tm_wday+1) in lj
-    if intervalle=='M': # tous les mois
-        if '%2.2d' % (date.tm_mday) in lj:
+        return str(date.tm_wday + 1) in lj
+    if intervalle == "M":  # tous les mois
+        if "%2.2d" % (date.tm_mday) in lj:
             return True
         if date.tm_mday < 8 and str(date.tm_wday) in lj:
             return True
         return False
-    if 'M' in intervalle:
-        intdef = int(intervalle.replace('M'))
-        if date.tm_mon%intdef != 1:
+    if "M" in intervalle:
+        intdef = int(intervalle.replace("M"))
+        if date.tm_mon % intdef != 1:
             return False
-        if '%2.2d' % (date.tm_mday) in lj:
+        if "%2.2d" % (date.tm_mday) in lj:
             return True
         if date.tm_mday < 8 and str(date.tm_wday) in lj:
             return True
         return False
-
-
 
 
 def selh_is_time(selecteur):
     """prepare les selecteurs"""
     selecteur.vref = "O" if selecteur.params.pattern in "23" else "T"
-    if not selecteur.params.pattern or selecteur.params.pattern=="2":
+    if not selecteur.params.pattern or selecteur.params.pattern == "2":
         pass
-
 
 
 def sel_is_time(selecteur, obj):
@@ -779,57 +794,57 @@ def sel_is_time(selecteur, obj):
          ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
     """
     # print ("================================patern ref",selecteur.pattern)
-    if selecteur.params.pattern=="1" or selecteur.params.pattern=="3":
-        timeref =  obj.attributs.get(selecteur.params.vals.val,'X')
+    if selecteur.params.pattern == "1" or selecteur.params.pattern == "3":
+        timeref = obj.attributs.get(selecteur.params.vals.val, "X")
     else:
         timeref = selecteur.params.vals.val
-    if selecteur.vref=="O": # temps pris dans l objet
+    if selecteur.vref == "O":  # temps pris dans l objet
         temps = obj.attributs.get(selecteur.params.attr.val)
-        heures,minutes,*_ = temps.split(":")
+        heures, minutes, *_ = temps.split(":")
         heures = int(heures)
         minutes = int(minutes)
     else:
         temps = time.localtime()
-        heures= temps.tm_hour
-        minutes= temps.tm_min
+        heures = temps.tm_hour
+        minutes = temps.tm_min
 
     # print ("comparaison temps", heures,minutes,timeref,selecteur.params.vals.val,selecteur.params.pattern)
 
-    if timeref == 'X':
+    if timeref == "X":
         return False
-    if timeref == '':
+    if timeref == "":
         return True
-    tmp =  timeref.split('/')
-    if len(tmp)!=2:
+    tmp = timeref.split("/")
+    if len(tmp) != 2:
         return False
-    decalage,intervalle=tmp
+    decalage, intervalle = tmp
     if not decalage:
-        decalage='0'
-    lastsel = obj.attributs.get('#_lastsel')
+        decalage = "0"
+    lastsel = obj.attributs.get("#_lastsel")
     if lastsel and lastsel.isnumeric():
         lastseln = int(lastsel)
     else:
         lastseln = -1
-    if '[' in intervalle:
-        debut, fin = intervalle.split('[')[1][:-1].split('-')
-        intervalle = intervalle.split('[')[0]
+    if "[" in intervalle:
+        debut, fin = intervalle.split("[")[1][:-1].split("-")
+        intervalle = intervalle.split("[")[0]
     else:
-         debut,fin =(-1,25)
+        debut, fin = (-1, 25)
 
     if debut > heures or fin < heures:
         return False
-    if 'm' in intervalle:
-        mdef = intervalle.replace('m','')
+    if "m" in intervalle:
+        mdef = intervalle.replace("m", "")
         intdef = int(mdef) if mdef.isnumeric() else 1
-        minutes = minutes%intdef
-    elif 'H' in intervalle:
-        hdef = intervalle.replace('H','')
+        minutes = minutes % intdef
+    elif "H" in intervalle:
+        hdef = intervalle.replace("H", "")
         intdef = int(hdef) if hdef.isnumeric() else 1
-        minutes = minutes+(heures%intdef)*60
+        minutes = minutes + (heures % intdef) * 60
     else:
         return False
-    if minutes == lastseln: # on a deja selectionne
-            return False
-    if str(minutes) in decalage.split(','):
-        obj.attributs['#_lastsel'] = str(minutes)
+    if minutes == lastseln:  # on a deja selectionne
+        return False
+    if str(minutes) in decalage.split(","):
+        obj.attributs["#_lastsel"] = str(minutes)
         return True

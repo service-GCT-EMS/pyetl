@@ -80,7 +80,7 @@ def sh_dyn(regle):
 
 def s_hstore(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
-       #pattern||H:A||H
+       #pattern||H||H
        #shelper||simple
        """
     print("dans s_hstore")
