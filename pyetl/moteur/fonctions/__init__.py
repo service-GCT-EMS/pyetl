@@ -43,7 +43,7 @@ class DefinitionAttribut(object):
     #                   groupe : S simple / M multiple / H hstore / D dynamique / P variable moteur
     relist = {
         "A": (r"^" + adef + r"$", "A", "S"),  # variable
-        "AH": (r"^" + adef + r"$", "A:H", "S"),  # variable hstore
+        # "AH": (r"^" + adef + r"$", "A:H", "S"),  # variable hstore
         "AE": (r"^" + adef + r"$", "A:E", "S"),  # variable entiere
         "AN": (r"^" + adef + r"$", "A:F", "S"),  # variable numerique
         "AD": (r"^" + adef + r"$", "A:D", "S"),  # variable date
@@ -52,7 +52,8 @@ class DefinitionAttribut(object):
         "A+": (r"^" + adef + r"\+$", "A", "S"),
         "A*": (r"^" + adef + r"\*$", "A", "D"),
         "*A": (r"^\*" + adef + r"$", "A", "D"),
-        "H": (r"^H:(" + asdef + r")$", "A:H", "H"),
+        "H:A": (r"^H:(" + asdef + r")$", "H", "H"),
+        "+H:A": (r"^\+H:(" + asdef + r")$", "H", "H"),
         "*": (r"^\*$", "C", "D"),
         "[A]": (r"^" + vdef + "$", "A", "S"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S"),
@@ -166,13 +167,13 @@ class DefinitionAttribut(object):
         return (
             "definition_attribut "
             + self.ident
-            + "||"
+            + "->"
             + self.pattern
             + "||"
             + self.expression
-            + "||"
+            + "("
             + self.deftype
-            + "\n"
+            + ")\n"
         )
 
 
@@ -300,8 +301,8 @@ def controle_pattern(pattern, noms):
         if i.nature == "erreur"
     ]:
         return False
-    # if "xmlextract" in pattern:
-    #     print("controle:", pattern, "\n", definition_champs)
+    if "xmlextract" in pattern:
+        print("controle:", pattern, "\n", definition_champs)
     return definition_champs
 
 

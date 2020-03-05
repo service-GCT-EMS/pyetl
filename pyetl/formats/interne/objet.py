@@ -559,12 +559,15 @@ class Objet(object):
             return [a + "=" + b for a, b in self.attributs.items()]
         return list(self.attributs.values())
 
-    def sethtext(self, nom, dic=None):
+    def sethtext(self, nom, dic=None, upd=False):
         """convertit un dict en hstore et le range"""
         if dic is None:
             dic = self.hdict.get(nom) if self.hdict else None
         elif self.hdict:
-            self.hdict[nom] = dict(dic)
+            if nom in self.hdict and upd:
+                self.hdict[nom].update(dic)
+            else:
+                self.hdict[nom] = dict(dic)
         else:
             self.hdict = {nom: dict(dic)}
         res = ""
