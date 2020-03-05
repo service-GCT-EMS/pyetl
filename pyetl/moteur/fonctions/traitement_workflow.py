@@ -818,3 +818,15 @@ def f_attreader(regle, obj):
     """
     print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.reader.attaccess(obj, regle.params.att_entree.val, regle.params.cmp1.val)
+
+def h_branch(regle):
+    """branchements hors structure"""
+    regle.branchements.addsortie(regle.params.cmp1.val)
+
+
+def f_branch(regle,obj):
+    """#aide||genere un branchement
+       #pattern||;;;branch;C;
+       #test||obj||^X;0;;set||^;;;branch;#toto;||^X;1;;set||+#toto:;;;;;;;pass||atv;X;0
+    """
+    obj.redirect=regle.params.cmp1.val
