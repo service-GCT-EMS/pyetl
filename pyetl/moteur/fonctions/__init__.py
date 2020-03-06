@@ -52,8 +52,8 @@ class DefinitionAttribut(object):
         "A+": (r"^" + adef + r"\+$", "A", "S"),
         "A*": (r"^" + adef + r"\*$", "A", "D"),
         "*A": (r"^\*" + adef + r"$", "A", "D"),
-        "H:A": (r"^H:(" + asdef + r")$", "H", "H"),
-        "+H:A": (r"^\+H:(" + asdef + r")$", "H", "H"),
+        "H:A": (r"^H:(" + asdef + r")$", "A:H", "H"),
+        "+H:A": (r"^\+H:(" + asdef + r")$", "A:H", "H"),
         "*": (r"^\*$", "C", "D"),
         "[A]": (r"^" + vdef + "$", "A", "S"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S"),
@@ -97,6 +97,13 @@ class DefinitionAttribut(object):
         "S": (r"", "G", "S"),  # simple
         "D": (r"", "G", "D"),  # dynamique
         "H": (r"", "G", "H"),  # hstore
+    }
+
+    grouplist = {
+        "M": ("sortie", "G", "M"),  # multiple (groupes de sortie)
+        "S": ("sortie", "G", "S"),  # simple
+        "D": ("sortie", "G", "D"),  # dynamique
+        "H": ("sortie", "G", "H"),  # hstore
     }
 
     def __init__(self, ident, pattern):
@@ -214,6 +221,7 @@ class FonctionTraitement(object):
         self.helper = []
         self.shelper = None
         self.definition = definition  # definition_champs
+        # self.definition = None  # definition_champs
         self.fonction_schema = None
         self.prepare = description.get("#helper", "")
         self.priorite = 99
@@ -238,6 +246,7 @@ class FonctionTraitement(object):
         module,
     ):
         """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
+        # self.definition = None
         pnum = description["pn"]
         if not "#aide_spec" + pnum in description:
             description["#aide_spec"] = description.get("#aide")
@@ -301,8 +310,8 @@ def controle_pattern(pattern, noms):
         if i.nature == "erreur"
     ]:
         return False
-    if "xmlextract" in pattern:
-        print("controle:", pattern, "\n", definition_champs)
+    # if "xmlextract" in pattern:
+    #     print("controle:", pattern, "\n", definition_champs)
     return definition_champs
 
 
@@ -354,6 +363,16 @@ def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
                     style,
                     info_module,
                 )
+                # if clef == "xmlextract":
+                #     print(
+                #         "enregistrement",
+                #         clef,
+                #         clef_sec,
+                #         groupe_sortie,
+                #         definition_champs,
+                #         pattern,
+                #         stockage[clef].subfonctions,
+                #     )
 
 
 def reg_stockage(store, info_module, nom, fonction, description):
@@ -400,7 +419,7 @@ def reg_select(fonctions, info_module, nom, fonction, description_fonction):
             definition_champs = controle_pattern(pattern, noms)
             if not definition_champs:
                 continue
-            #                print ('lecure',nom,pattern,description)
+            # print("lecture selecteur", nom, pattern, description)
             clef = pattern if pattern else None
             if clef is None:
                 print("fonction incompatible", nom)
@@ -583,7 +602,7 @@ def loadmodules():
     #    print(" selecteurs lus ",selecteurs.keys())
     for i in sorted(commandes):
         fct = commandes[i]
-        complete_fonction(fct, store)
+        # complete_fonction(fct, store)
         for sbf in fct.subfonctions:
             complete_fonction(sbf, store)
         fct.subfonctions = sorted(fct.subfonctions, key=lambda i: i.priorite)
