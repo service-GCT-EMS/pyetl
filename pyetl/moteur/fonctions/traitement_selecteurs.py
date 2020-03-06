@@ -76,7 +76,7 @@ def selh_calc(selecteur):
     exp_final = re.sub("^ *N:(?!#?[A-Za-z])", "N:" + attribut, valeurs)
     exp_final = re.sub("^ *C:(?!#?[A-Za-z])", "C:" + attribut, exp_final)
 
-    print("exp test final", exp_final, attribut, valeurs)
+    #    print('exp test final', exp_final, attribut, valeurs)
     selecteur.fselect = selecteur.params.compilefonc(
         exp_final, "obj", debug=selecteur.regle.debug
     )

@@ -330,7 +330,7 @@ def f_abspath(regle, obj):
         )
         final = os.path.normpath(os.path.join(ref, candidat))
     final = os.path.realpath(final)
-    print("chemin final", candidat, os.path.isabs(candidat), "->", final)
+    # print("chemin final", candidat, os.path.isabs(candidat), "->", final)
     regle.setval_sortie(obj, final)
     return True
 

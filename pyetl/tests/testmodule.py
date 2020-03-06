@@ -32,7 +32,7 @@ def retest(mapper):
     commande_test = None
     for commande_test in mapper.commandes.values():
         break
-    relist = commande_test.subfonctions[0].definition["entree"].relist
+    relist = commande_test.definition["entree"].relist
     nbtests = 0
     for i in relist:
         if i in RETESTOK:
