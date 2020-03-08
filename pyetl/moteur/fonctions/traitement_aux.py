@@ -83,30 +83,28 @@ def s_hstore(sortie, obj, valeur):
        #pattern||H:A||H
        #shelper||simple
        """
-    print("dans s_hstore")
+    # print("dans s_hstore")
     if isinstance(valeur, str):
         obj.attributs[sortie.val] = valeur
     else:
         obj.sethtext(sortie.val, dic=valeur)
     return True
 
+
 def s_hupdate(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
        #pattern||+H:A||H
        #shelper||simple
        """
-    print("dans s_hstore")
+    # print("dans s_hstore")
     if isinstance(valeur, str):
         if sortie.val in obj.attributs and obj.attributs[sortie.val]:
-            obj.attributs[sortie.val] = obj.attributs[sortie.val]+", "+valeur
+            obj.attributs[sortie.val] = obj.attributs[sortie.val] + ", " + valeur
         else:
             obj.attributs[sortie.val] = valeur
     else:
         obj.sethtext(sortie.val, dic=valeur, upd=True)
     return True
-
-
-
 
 
 def s_simple(sortie, obj, valeur):
