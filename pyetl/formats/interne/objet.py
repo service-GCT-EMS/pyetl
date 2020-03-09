@@ -64,6 +64,7 @@ class Objet(object):
         "schema",
         "attributs_geom",
         "casefold",
+        "key"
     ]
 
     def __init__(
@@ -85,6 +86,7 @@ class Objet(object):
         self.numobj = self.ido if numero is None else numero
         #        print ("nouveau",self.ido)
         # self.ccx, self.ccy, self.ccz, self.angle = 0, 0, 0, 0
+        self.key=None
         self.copie = 0
         self.stored = False
         self.is_ok = True
@@ -263,7 +265,7 @@ class Objet(object):
         liste = (
             self.liste_attributs
             if self.liste_attributs
-            else [i for i in self.attributs if i[0] != "#"]
+            else [i for i in self.attributs if i[0] != "#" and i!=self.key]
         )
         if self.classe_is_att:
             liste.insert(0, "#classe")
@@ -271,30 +273,21 @@ class Objet(object):
             self.attributs_geom(self)
         geom = self.geom_v.__json_if__
         #        print ('jsonio recupere ',geom)
-        atts = ",\n".join(
-            [
-                '"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"'
-                for i in liste
-            ]
-        )
-        if geom:
-            return (
-                '{"type": "feature",\n"id": "'
-                + self.attributs.get("#gid", str(self.ido))
-                + '",\n"properties": {\n'
-                + atts
-                + "},\n"
-                + geom
-                + "}\n"
-            )
-
         return (
-            '{"type": "feature",\n"id": "'
-            + self.attributs.get("#gid", str(self.ido))
-            + '",\n"properties": {\n'
-            + atts
-            + "}}\n"
+            '{"type": "feature",'+('\n"id": "'
+            + (self.attributs.get(self.key, str(self.ido))) + '",') if self.key else ''
+            + '\n"properties": {\n'
+            + ",\n".join(
+                [
+                    '"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"'
+                    for i in liste
+                ]
+            )
+            + "},\n"
+            + geom if geom else ""
+            + "}\n"
         )
+
 
     @property
     def __geo_interface__(self):

@@ -679,6 +679,7 @@ def h_join(regle):
     if regle.fichier.startswith("#"):  # jointure objets sur tmpstore
         regle.jointtype = "obj"
         regle.champs = regle.params.cmp2.liste
+        regle.tmpstore = regle.stock_param.store.get(regle.params.cmp1.val)
     else:
         regle.jointtype = "fich"
         definition_jointure = regle.params.cmp2.liste
@@ -701,6 +702,7 @@ def h_join(regle):
 def f_join(regle, obj):
     """#aide||jointures
     #pattern||L;?;A;join;C[];?C||cmp1
+    #pattern2||;?;A;join;#C;?C||cmp1
  #parametres||sortie;defaut;entree;;fichier (dynamique)
             ||position des champs dans le fichier (ordre)
   #attributs||#repertoire (optionnel) repertoire du fichier
@@ -710,9 +712,16 @@ def f_join(regle, obj):
     """
     if regle.jointtype == "obj":
         clef_jointure = obj.attributs.get(regle.params.att_entree)
-        obj_joint = regle.stock_param.tmpstore.get(clef_jointure)
+        obj_joint = regle.tmpstore.get(clef_jointure)
         if obj_joint:
-            vlist = [obj_joint.attributs.get(i) for i in regle.champs]
+            if regle.champs:
+                vlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
+            else:
+                vlist = [
+                    (i, j)
+                    for i, j in obj_joint.attributs.items()
+                    if not i.startswith("#")
+                ]
         else:
             vlist = [""] * len(regle.champs)
         obj.attributs.update(

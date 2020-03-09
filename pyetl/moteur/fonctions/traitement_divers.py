@@ -53,6 +53,12 @@ def h_stocke(regle):
     regle.tmpstore = dict() if regle.params.cmp1.val else list()
     # mode comparaison : le stock est reutilise ailleurs (direct_reuse)=False
     regle.direct_reuse = not "cmp" in regle.params.cmp1.val
+    if regle.direct_reuse:
+        regle.tmpstore = dict() if regle.params.cmp1.val else list()
+    else:
+        if regle.params.cmp2.val not in regle.stock_param.store:
+            regle.stock_param.store[regle.params.cmp2.val] = dict()
+        regle.tmpstore = regle.stock_param.store[regle.params.cmp2.val]
     regle.fold = regle.params.cmp1.val == "cmpf"
     regle.cnt = regle.params.cmp1.val == "cnt"
     if regle.params.cmp2.val == "clef":
@@ -66,9 +72,9 @@ def f_stocke(regle, obj):
   #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
    #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
    #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
-   #pattern3||;;?L;tmpstore;=cmp;A;?=clef||cmp1
-   #pattern4||;;?L;tmpstore;=cmpf;A;?=clef||cmp1
-   #pattern5||S;;?L;tmpstore;=cnt;||cmp1
+   #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
+   #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
+   #pattern5||S;;?L;tmpstore;=cnt;?=clef||cmp1
        #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
