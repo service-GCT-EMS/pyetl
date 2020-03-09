@@ -76,7 +76,7 @@ class DefinitionAttribut(object):
         "=:": (r"^=:(.+)", "C", ""),
         "re:re": (r"^re:(.+)$", "C", ""),
         "C": (r"(.+)", "C", ""),
-        "C:C": (r"^(.+):(.+)$", "C", ""),
+        "C:C": (r"^C:(.*)$", "C", ""),
         "C[]": (r"^(.*\[[CDF]\].*)$", "C", ""),
         "C#": (r"(.*#.+)", "C", ""),
         "?": (r"(.*)", "C", ""),
@@ -92,7 +92,7 @@ class DefinitionAttribut(object):
         "schema:A:": (r"^schema:(" + asdef + ")=$", "A", ""),
         "schema:T:": (r"^schema:T:([A-Z]+)", "A", ""),  # selection par type d'attribut
         "hasval:C": (r"^hasval:(.*)$", "A", ""),
-        "A:C": (r"^(" + asdef + "):(.*)$", "A", ""),
+        "A.C": (r"^(" + asdef + ").(.*)$", "A", ""),
         "M": (r"", "G", "M"),  # multiple (groupes de sortie)
         "S": (r"", "G", "S"),  # simple
         "D": (r"", "G", "D"),  # dynamique

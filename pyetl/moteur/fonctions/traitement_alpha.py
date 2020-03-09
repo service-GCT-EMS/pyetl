@@ -258,7 +258,7 @@ def f_upper(regle, obj):
         #test2||obj||^V4;a;;set||^V5;;V4;upper||ats;V5
 
     """
-    print("-----------upper", regle.params.att_sortie, regle.fstore)
+    # print("-----------upper", regle.params.att_sortie, regle.fstore)
     regle.setval_sortie(obj, regle.getval_entree(obj).upper())
     return True
 

@@ -60,8 +60,8 @@ def sel_regex(selecteur, obj):
        #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
        #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
     """
+    # print ("------------------- test variable",obj.attributs.get(selecteur.params.attr.val, ""))
     result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
-    # print (" test variable",obj.attributs.get(selecteur.params.attr.val, ""),result)
     selecteur.regle.match = result.group(0) if result else ""
     selecteur.regle.matchlist = result.groups() if result else []
     return result
@@ -346,7 +346,7 @@ def sel_isnotnull(selecteur, obj):
 
 def sel_hselk(selecteur, obj):
     """#aide||selection si une clef de hstore existe
-    #pattern||H;haskey:A||3
+    #pattern||H:A;haskey:A||3
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;haskey:V0;;;res;1;;set||atv;res;1
     """
     att = selecteur.params.attr.val
@@ -357,7 +357,7 @@ def sel_hselk(selecteur, obj):
 
 def sel_hselv(selecteur, obj):
     """#aide||selection si une clef de hstore n'est pas vide
-    #pattern||H;hasval:C||3
+    #pattern||H:A;hasval:C||3
        #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;hasval:0;;;res;1;;set||atv;res;1
 
     """
@@ -368,7 +368,7 @@ def sel_hselv(selecteur, obj):
 
 def sel_hselvk(selecteur, obj):
     """#aide||selection sur une valeur d'un hstore
-    #pattern||H;A:C||10
+    #pattern||H:A;A.C||10
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;V0:0;;;res;1;;set||atv;res;1
     #!test||rien||H:AA;V0:0;;;res;1;;set||rien
 

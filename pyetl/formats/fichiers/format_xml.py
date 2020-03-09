@@ -294,7 +294,7 @@ def qgs_datasourceparser(text):
 
 def basickvlistparser(text):
     """decode les testes formae d'une suite clef=valeur"""
-    tmp = txt.split(" ")
+    tmp = text.split(" ")
     return [tuple(([i.split("=") + [""]])[:2]) for i in tmp if i]
 
 
