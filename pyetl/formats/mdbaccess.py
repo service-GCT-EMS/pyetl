@@ -672,7 +672,7 @@ def get_connect(
     description=None,
 ):
     """ recupere la connection a la base et les schemas qui vont bien"""
-    print("get_connect", regle, base, type_base)
+    # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
     connect = dbaccess(
         regle, base, type_base=type_base, chemin=chemin, description=description

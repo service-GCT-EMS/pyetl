@@ -23,33 +23,36 @@ LOGGER = logging.getLogger("pyetl")
 ####################################################################################
 #### traitement  format asc
 ####################################################################################
+def apic2iso(date, heure):
+    # convertit une date apic en format iso
+    return (date[6:10] + date[2:6] + date[:2] + " " + heure).strip()
 
 
 def _decode_dates_apic(chaine):
     """ decode une date au format apic"""
     dates = chaine.split(",")
-
+    # on passe les dates en format ISO
     if len(dates) == 4:
-        dat_cre = " ".join(dates[:2]).strip()
-        dat_mod = " ".join(dates[2:4]).strip()
+        dat_cre = apic2iso(dates[0].strip(), dates[1].strip())
+        dat_mod = apic2iso(dates[2].strip(), dates[3].strip())
     elif len(dates) == 3:  # une seule date
         if dates[0] == "":
             dat_cre = ""
-            dat_mod = " ".join(dates[1:2]).strip()
+            dat_mod = apic2iso(dates[0].strip(), dates[1].strip())
         else:
-            dat_cre = " ".join(dates[:2]).strip()
+            dat_cre = apic2iso(dates[2].strip(), dates[3].strip())
             dat_mod = ""
     elif len(dates) == 2:  # une seule date partielle
         if dates[0] == "":
             dat_cre = ""
-            dat_mod = dates[1].strip()
+            dat_mod = apic2iso(dates[1].strip(), "")
         else:
             if ":" in dates[1]:
-                dat_cre = " ".join(dates[:2]).strip()
+                dat_cre = apic2iso(dates[0].strip(), dates[1].strip())
                 dat_mod = ""
             else:
-                dat_cre = dates[0].strip()
-                dat_mod = dates[1].strip()
+                dat_cre = apic2iso(dates[0].strip(), "")
+                dat_mod = apic2iso(dates[1].strip(), "")
     else:
         dat_cre = ""
         dat_mod = ""
@@ -378,7 +381,7 @@ def format_date(date, format_d="ISO"):
         return ""
     if format_d == "ISO":
         dd1 = date.split(".")[0]
-        return dd1[8:10] + dd1[4:8] + dd1[:4] + dd1[10:]
+        return dd1[8:10] + dd1[4:8] + dd1[:4] + "," + dd1[11:]
     else:
         return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else ""
 
