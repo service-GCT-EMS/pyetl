@@ -872,7 +872,7 @@ class PgrGenSql(DbGenSql):
                 cretables.append(
                     "\n-- ########### definition des vues ###############\n"
                 )
-                cretables.extend(self.def_vues(liste, vues_base))
+                cretables.extend(self.cre_vues(liste, vues_base))
 
             else:
                 print("pas de vues a sortir")
@@ -947,7 +947,8 @@ class PgrGenSql(DbGenSql):
 
     def dropvue(self, ident, is_mat):
         """ nettoyage """
-        if is_mat:
+        # print("dropview", ident, is_mat)
+        if is_mat == "True":
             return "DROP MATERIALIZED VIEW IF EXISTS " + ".".join(ident) + ";"
         return "DROP VIEW IF EXISTS " + ".".join(ident) + ";"
 
@@ -963,7 +964,7 @@ class PgrGenSql(DbGenSql):
 
     def vue_to_sql(self, ident, definition, is_mat):
         """creation des vues """
-        if is_mat:
+        if is_mat == "True":
             return (
                 "CREATE MATERIALIZED VIEW "
                 + ".".join(ident)
@@ -973,15 +974,18 @@ class PgrGenSql(DbGenSql):
             )
         return "CREATE OR REPLACE VIEW " + ".".join(ident) + " AS\n" + definition
 
-    def def_vues(self, liste, vues_base):
+    def cre_vues(self, liste, vues_base):
         """fournit les definitione de vues lues en base"""
         vues_sql = ["--gestion des vues en base \n", "--menage"]
         niveau = self.viewsorter(liste, vues_base)
         liste_d = liste[::-1]
         for ident in liste_d:
             if ident in vues_base:
+                # print(
+                #     "drop_vues", ident, vues_base[ident][1], type(vues_base[ident][1])
+                # )
                 vues_sql.append(self.dropvue(ident, vues_base[ident][1]))
-        vues_sql.append
+                # print("recu ", self.dropvue(ident, vues_base[ident][1]))
         for ident in liste:
             if ident in vues_base:
                 vues_sql.append(

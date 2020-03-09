@@ -29,19 +29,30 @@ from .outils import renseigne_attributs_batch, objloader
 LOGGER = logging.getLogger("pyetl")
 
 
-def f_pass(*_):
-    """#aide||ne fait rien et passe
-        #pattern||;;;pass;;
+def h_pass(regle):
+    """ajoute un point de branchement"""
+    regle.sortie = ""
+    if regle.params.cmp1.val:
+        regle.branchements.addsortie(regle.params.cmp1.val)
+        regle.sortie = regle.params.cmp1.val
+    return True
+
+
+def f_pass(regle, obj):
+    """#aide||ne fait rien et passe. permet un branchement distant
+        #pattern||;;;pass;?C;
         #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
         #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
               ||X;1;;;X;%defaut%;;set||atv;X;3
     """
+    obj.redirect = regle.sortie
     return True
 
 
 def f_fail(*_):
-    """#aide||ne fait rien mais plante
-        #pattern||;;;fail;;
+    """#aide||ne fait rien mais plante. permet un branchement distant
+        #pattern||;;;fail;?C;
+        #helper||pass
         #test||obj||^;;;fail||+fail:;;;;C1;Y;;set||atv;C1;Y
     """
     #    print ("fail:prochaine regle",regle.branchements.brch["sinon"])
@@ -819,14 +830,17 @@ def f_attreader(regle, obj):
     print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.reader.attaccess(obj, regle.params.att_entree.val, regle.params.cmp1.val)
 
+
 def h_branch(regle):
     """branchements hors structure"""
-    regle.branchements.addsortie(regle.params.cmp1.val)
+    h_pass(regle)
+    regle.longjump = True
 
 
-def f_branch(regle,obj):
+def f_branch(regle, obj):
     """#aide||genere un branchement
        #pattern||;;;branch;C;
        #test||obj||^X;0;;set||^;;;branch;#toto;||^X;1;;set||+#toto:;;;;;;;pass||atv;X;0
     """
-    obj.redirect=regle.params.cmp1.val
+    obj.redirect = regle.sortie
+    return True
