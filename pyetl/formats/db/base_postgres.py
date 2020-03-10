@@ -163,7 +163,10 @@ class PgrConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        self.connect()
+        try:
+            self.connect()
+        except psycopg2.Error:
+            self.connection=None
         self.types_base.update(TYPES_A)
         self.types_pg = TYPES_PG
         self.gtypes_curve = GTYPES_CURVE
@@ -174,13 +177,15 @@ class PgrConnect(DbConnect):
         if self.connection:
             self.set_searchpath()
             # self.connection.commit()
-
+            style, ordre = self.datestyle()
+            self.numtypes = self._getnumtypes()
+            self.regle.setroot("dateordre", ordre)
+            self.regle.setroot("datestyle", style)
         self.type_base = "postgres"
         self.dialecte = "postgres"
-        style, ordre = self.datestyle()
-        self.regle.setroot("dateordre", ordre)
-        self.regle.setroot("datestyle", style)
-        self.numtypes = self._getnumtypes()
+
+
+
 
     def set_searchpath(self):
         """positionne les path pour la session"""
@@ -270,11 +275,11 @@ class PgrConnect(DbConnect):
                 self.serveur,
                 self.base,
                 self.user,
-                #    self.passwd,
+                self.passwd,
             )
             print("error", err)
 
-    #        raise
+            raise
     # traitement des elements specifiques
 
     def get_elements_specifiques(self, schema):
