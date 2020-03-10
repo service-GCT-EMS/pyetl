@@ -500,8 +500,8 @@ class DbConnect(object):
             parametres_clef = (
                 atd.parametres_clef if "parametres_clef" in self.attdef._fields else ""
             )
-            #        if type_attr == 'geometry':
-            #            print ('attribut',atd)
+            # if atd.multiple=='oui':
+            #     print ('attribut',atd)
             classe.stocke_attribut(
                 atd.nom_attr,
                 type_attr,

@@ -713,7 +713,7 @@ class ElyConnect(ora.OrwConnect):
                       """
         taille_tables = self.request(requete_tables, ())
         dict_tailles = {(i[0], i[1]): i[2] for i in taille_tables}
-        #        print ('tailles',taille_tables)
+        print("tailles", sorted(taille_tables))
 
         self.tables = dict()
         for i in compos.values():

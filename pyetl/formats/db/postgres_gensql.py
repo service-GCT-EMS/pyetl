@@ -694,6 +694,9 @@ class PgrGenSql(DbGenSql):
                 )
             elif type_sortie == "text" and attribut.taille:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
+            print("creation attribut", attname, type_sortie, attribut.multiple)
+            if attribut.multiple:
+                type_sortie = type_sortie + "[]"
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
             if sql_conf and self.basic != "basic":
                 creconf[nomconf] = sql_conf
@@ -861,6 +864,7 @@ class PgrGenSql(DbGenSql):
             )
         )
         if not self.basic:
+
             if liste_ftables:
                 cretables.append(
                     "\n-- ########### definition des tables distantes ############\n"

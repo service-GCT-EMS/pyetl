@@ -79,6 +79,7 @@ def f_set_schema(regle, obj):
         || pk : nom de la clef primaire
         || alias : commentaire de la table
         || dimension : dimension geometrique
+        || no_multiple : transforme les attributs multiples en simple
     #parametres||nom du parametre a positionner;valeur
        #test1||obj;poly||^type_geom;2;;set_schema;||^V4;type_geom;;info_schema;||atv;V4;2
     """

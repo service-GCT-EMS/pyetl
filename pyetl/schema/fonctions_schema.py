@@ -291,7 +291,9 @@ def set_val_schema(schemaclasse, nom, valeur):
         schemaclasse.setpkey(keys)
     elif nom == "mode_sortie":
         schemaclasse.schema.mode_sortie = valeur
-
+    elif nom == "no_multiple":
+        for i in schemaclasse.attributs.values():
+            i.multiple == False
     else:
         print("erreur mode schema non pris en compte", nom)
         return False

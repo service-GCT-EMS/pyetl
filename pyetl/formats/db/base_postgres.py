@@ -283,10 +283,8 @@ class PgrConnect(DbConnect):
         schema.elements_specifiques["def_vues"] = self._def_vues()
         schema.elements_specifiques["def_triggers"] = self._def_triggers()
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
-        schema.elements_specifiques[
-            "def_fonctions_trigger"
-        ] = self._def_fonctions_trigger()
-
+        schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
+        schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
         # print (list(i for i in self._def_fonctions_trigger()))
 
     def _def_vues(self):
@@ -295,10 +293,16 @@ class PgrConnect(DbConnect):
             for i in self.request(self.requetes["info_vues"])
         }
 
-    def _def_fonctions_trigger(self):
+    def _def_f_trigger(self):
         return {
             (i[0], i[1]): i[2]
             for i in self.request(self.requetes["def_fonctions_trigger"])
+        }
+
+    def _def_fonctions(self):
+        return {
+            (i[0], i[1]): i[2]
+            for i in self.request(self.requetes["def_fonctions_utilisateur"])
         }
 
     def _def_ftables(self):
@@ -420,7 +424,7 @@ class PgrConnect(DbConnect):
             taille = 0
             dec = 0
             tmp0 = list(i)
-            if "[]" in i[4]:
+            if "[]" in i[4]:  # attributs multiples (tableaux)
                 tmp0[6] = "oui"
                 tmp0[4] = i[4].replace("[]", "")
 

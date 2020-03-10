@@ -16,7 +16,7 @@ MAINMAPPER = None
 def set_mainmapper(val):
     """positionnement du point d entree pou les traitements paralleles"""
     global MAINMAPPER
-    #    print ('positionnement de mainMapper', val)
+    print("positionnement de mainMapper", val)
     MAINMAPPER = val
 
 

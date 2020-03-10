@@ -38,6 +38,21 @@ requetes_sigli[
             AND n.nspname <> 'information_schema'::name
             AND p.prorettype = 'trigger'::regtype::oid;
           """
+requetes_sigli[
+    "def_fonctions_utilisateur"
+] = """
+        SELECT n.nspname AS schema,
+            p.proname AS name,
+            pg_get_functiondef(p.oid) AS definition
+        FROM pg_proc p
+            LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE pg_function_is_visible(p.oid)
+            AND n.nspname <> 'public'::name
+            AND n.nspname <> 'pg_catalog'::name
+            AND n.nspname <> 'information_schema'::name
+            AND p.prorettype <> 'trigger'::regtype::oid;
+    """
+
 
 requetes_sigli[
     "info_triggers_old"
