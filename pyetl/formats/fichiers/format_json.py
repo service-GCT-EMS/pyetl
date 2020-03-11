@@ -52,7 +52,6 @@ class JsonWriter(FileWriter):
             print("att:", obj.attributs)
         if chaine[-1] != "\n":
             self.fichier.write("\n")
-        # self.stats[self.nom] += 1
         return True
 
 

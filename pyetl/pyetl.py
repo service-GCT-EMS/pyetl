@@ -420,7 +420,7 @@ class Pyetl(object):
 
             self.setvar("_sortie", "")
             self.setvar("_testmode", "unittest")
-            print("positionnement testmode", self.context)
+            # print("positionnement testmode", self.context)
             unittests(self, nom=nom, debug=self.getvar("debug"))
             self.done = True
 
@@ -1143,7 +1143,7 @@ class Pyetl(object):
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         LOGGER.info("ecriture schemas " + str(mode_schema))
         if mode_schema in {"all", "int", "fusion"} and not self.done:
-            #            print('pyetl: traitement virtuel ', mode_schema)
+            print("pyetl: traitement virtuel ", mode_schema)
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
         #        print('pyetl: ecriture schemas ', mode_schema)
         ecrire_schemas(

@@ -54,7 +54,7 @@ class Moteur(object):
             self.traite_regles_chargement()
         else:
             for sch in list(self.mapper.schemas.values()):
-
+                # print("traitement virtuel: schema a traiter", sch.nom, sch.origine)
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
                     print(
                         "moteur: traitement schema",
@@ -66,6 +66,9 @@ class Moteur(object):
 
                     # (on ne traite que les schemas d'entree')
                     for schemaclasse in list(sch.classes.values()):
+                        # print(
+                        #     "traitement virtuel", schemaclasse.nom, schemaclasse.utilise
+                        # )
                         if schemaclasse.utilise:
                             #                            print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
                             continue
@@ -80,7 +83,7 @@ class Moteur(object):
                         #                        obj.setschema(schemaclasse)
                         #                        obj.initattr()
                         obj.attributs["#type_geom"] = schemaclasse.info["type_geom"]
-                        #                        print ('traitement obj',obj)
+                        # print("tv:traitement obj", obj)
                         self.traite_objet(obj, self.regles[0])
 
     def traite_regles_chargement(self):
@@ -119,11 +122,11 @@ class Moteur(object):
                     if regle.copy:
                         #                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
                         #                               regle.branchements.brch["fail"])
+                        self.traite_objet(
+                            obj.dupplique(), regle.branchements.brch["copy"]
+                        )
+                        # on envoie une copie dans le circuit qui ne passe pas la regle
                         if not obj.virtuel:
-                            self.traite_objet(
-                                obj.dupplique(), regle.branchements.brch["copy"]
-                            )
-                            # on envoie une copie dans le circuit qui ne passe pas la regle
                             self.dupcnt += 1
                         # print "apres copie ", obj.schema
                     #                print("traitement regle",regle)

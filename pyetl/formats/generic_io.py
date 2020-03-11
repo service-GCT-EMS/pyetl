@@ -131,7 +131,7 @@ class Reader(object):
             self.description = description
             self.format_natif = description.geom
             self.lire_objets = MethodType(description.reader, self)
-            print("objreader", description)
+            # print("objreader", description)
             self.objreader = (
                 MethodType(description.objreader, self)
                 if description.objreader

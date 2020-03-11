@@ -265,13 +265,21 @@ class DbGenSql(object):
             + " ###(controle éèàç)#####\n"
         )
         if liste is None:
-            liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
+            liste = list(
+                [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
+            )
 
         liste_tables = liste
 
         #       for i in liste_tables:
         #            print('type :',i,self.schema.classes[i].type_table)
         print("definition de tables a sortir:", len(liste_tables), self.dialecte)
+        print(
+            "tables non sorties:",
+            list(
+                [i for i in self.schema.classes if not self.schema.classes[i].a_sortir]
+            ),
+        )
         cretables = [
             codecinfo,
             "\n-- ########### definition des tables ###############\n",

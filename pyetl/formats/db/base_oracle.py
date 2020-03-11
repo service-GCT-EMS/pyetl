@@ -54,6 +54,7 @@ class OraConnect(DbConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.connect()
         #        self.errdef = errdef
+        self.type_base = "oracle"
         self.types_base.update(TYPES_A)
         self.accept_sql = "alpha"
         self.dateformat = "YYYY/MM/DD HH24:MI:SS"

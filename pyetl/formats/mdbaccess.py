@@ -686,6 +686,8 @@ def get_connect(
     schema_travail = stock_param.init_schema(nomschema, "B", modele=connect.schemabase)
     schema_travail.metas = dict(connect.schemabase.metas)
     schema_travail.metas["tables"] = tables
+    schema_travail.metas["filtre niveau"] = ",".join(niveau)
+    schema_travail.metas["filtre classe"] = ",".join(classe)
     liste2 = []
     # print ( 'schema base ',connect.schemabase.classes.keys())
     for ident in select_tables(
@@ -885,7 +887,9 @@ def recup_schema(
 
     if retour:
         connect, schema_travail, liste_tables = retour
-
+        print(
+            "recup_schema", schema_travail.nom, len(schema_travail.classes), "classes"
+        )
         if not liste_tables or DEBUG:
             print(
                 "dbschema :",

@@ -428,7 +428,7 @@ class Stat(object):
 
     def retour(self, filtre=""):
         """renvoie une description de stats"""
-        print("retour : filtre", filtre)
+        # print("retour : filtre", filtre)
         nom = "_".join(self.nom).replace("#", "")
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
@@ -541,6 +541,19 @@ class Statstore(object):
             self.stats[entree] = Stat(entree, self.statdefs[nom])
         return self.stats[entree]
 
+    def _get_extstat(self, nom, entete):
+        if nom not in self.stats:
+            self.stats[nom] = ExtStat(nom, entete)
+        return self.stats[nom]
+
+    def store_extstats(self, statdict):
+        for nom, entete, contenu in statdict.values():
+            self.ajout_valeur_ext(nom, entete, contenu)
+
+    def ajout_valeur_ext(self, nom, entete, contenu):
+        stat = self._get_extstat(nom, entete)
+        stat.add(entete, contenu)
+
     def ajout_valeur(self, entree, *args):
         stat = self._getstat(entree)
         return stat.ajout_valeur(*args)
@@ -548,6 +561,10 @@ class Statstore(object):
     def isstat(self, element):
         """determine si un element est une stat"""
         return isinstance(element, (Stat, ExtStat))
+
+    def retour(self):
+        """revoie les stats en format externe (gestion du paralleleisme)"""
+        return {nom: stat.retour() for nom, stat in self.stats.items()}
 
     def ecriture_stats(self, regle=None):
         """stockage des stats """

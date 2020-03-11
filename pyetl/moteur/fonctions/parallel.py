@@ -97,8 +97,7 @@ def setparallelid(parametres):
 
 def set_parallelretour(mapper, valide):
     """positionne les variables de retour pour l'execution en parallele"""
-    #    print ('retour parallel',mapper.getvar('_wid'), mapper.stats.keys())
-    #    print ('retour parallel', mapper.getvar('_wid'), retour_stats)
+
     retour = {
         "pid": os.getpid(),
         "wid": mapper.getvar("_wid"),
@@ -108,7 +107,8 @@ def set_parallelretour(mapper, valide):
         "schemas": retour_schemas(
             mapper.schemas, mode=mapper.getvar("force_schema", "util")
         ),
-        "stats": {nom: stat.retour() for nom, stat in mapper.stats.items()},
+        # "stats": {nom: stat.retour() for nom, stat in mapper.statstore.stats.items()},
+        "stats": mapper.statstore.retour(),
         "timers": {"fin": time.time(), "debut": mapper.starttime},
     }
     return retour
@@ -417,14 +417,14 @@ def traite_parallel(regle):
             #            print ('traitement schemas ', retour["schemas"])
             integre_schemas(mapper.schemas, retour["schemas"])
 
-            for nom, entete, contenu in retour["stats"].values():
-                if nom not in mapper.stats:
-                    mapper.stats[nom] = ExtStat(nom, entete)
-                mapper.stats[nom].add(entete, contenu)
+            mapper.statstore.store_extstats(retour["stats"])
+
+            # for nom, entete, contenu in retour["stats"].values():
+            #     if nom not in mapper.statstore.stats:
+            #         mapper.statstore.stats[nom] = ExtStat(nom, entete)
+            #     mapper.statstore.stats[nom].add(entete, contenu)
         else:
             print("erreur retour", rfin)
-    #            print ('traitement retour stats', mapper.idpyetl, nom,
-    #                   mapper.stats[nom], len(mapper.stats[nom].lignes))
 
     regle.nbstock = 0
 
@@ -476,7 +476,9 @@ def traite_parallel_load(regle):
             retour["wid"],
             "traites",
             retour["stats_generales"]["_st_lu_objs"],
-            list(sorted(retour["schemas"].keys())),
+            list(
+                sorted([(a, len(b["classes"])) for a, b in retour["schemas"].items()])
+            ),
         )
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
@@ -484,12 +486,12 @@ def traite_parallel_load(regle):
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
 
-        for nom, entete, contenu in retour["stats"].values():
-            if nom not in mapper.stats:
-                mapper.stats[nom] = ExtStat(nom, entete)
-            mapper.stats[nom].add(entete, contenu)
-    #            print ('traitement retour stats', mapper.idpyetl, nom,
-    #                   mapper.stats[nom], len(mapper.stats[nom].lignes))
+        mapper.statstore.store_extstats(retour["stats"])
+
+        # for nom, entete, contenu in retour["stats"].values():
+        #     if nom not in mapper.statstore.stats:
+        #         mapper.statstore.stats[nom] = ExtStat(nom, entete)
+        #     mapper.statstore.stats[nom].add(entete, contenu)
 
     traite = regle.stock_param.moteur.traite_objet
     #    print("retour multiprocessing ", results, retour)

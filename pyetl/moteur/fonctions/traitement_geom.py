@@ -59,6 +59,7 @@ def f_initgeom(regle, obj):
     geom_ok = obj.initgeom()
     if regle.use_shapely and geom_ok:
         obj.geom_v.__shapelygeom__
+    return geom_ok
 
 
 # remise a zero de la geometrie (comme si l'objet venait d'etre lu)
@@ -71,7 +72,7 @@ def f_resetgeom(_, obj):
        #test||obj;ligne||^;;;resetgeom||;!has:geomV;;;C1;1;;set||atv;C1;1
     """
     # on fait comme si on avait pas traite la geometrie
-    return True if obj.virtuel else obj.geompending()
+    return obj.virtuel or obj.geompending()
 
 
 # creation de geometries

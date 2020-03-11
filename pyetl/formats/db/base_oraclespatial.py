@@ -15,10 +15,13 @@ TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}
 class OrwConnect(OraConnect):
     """connecteur de la base de donnees oracle"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base.update(TYPES_A)
         self.accept_sql = "geo"
+        self.type_base = "oracle_spatial"
 
     @property
     def req_tables(self):
@@ -200,14 +203,28 @@ class OrwConnect(OraConnect):
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
         """definition d'ne condition geometrique"""
         if nom_fonction == "dans_emprise":
-            cond = "SDO_FILTER(" + nom_geometrie + "," + geom2 + "','querytype=WINDOW') = 'TRUE'"
+            cond = (
+                "SDO_FILTER("
+                + nom_geometrie
+                + ","
+                + geom2
+                + "','querytype=WINDOW') = 'TRUE'"
+            )
         else:
-            masque=''
+            masque = ""
             if nom_fonction == "intersect":
                 masque = "anyinteract"
             elif nom_fonction == "dans":
                 masque = "coveredby+inside"
-            cond = "SDO_RELATE(" + nom_geometrie + "," + geom2 + ",'mask=" + masque + "') = 'TRUE'"
+            cond = (
+                "SDO_RELATE("
+                + nom_geometrie
+                + ","
+                + geom2
+                + ",'mask="
+                + masque
+                + "') = 'TRUE'"
+            )
         return cond
 
 

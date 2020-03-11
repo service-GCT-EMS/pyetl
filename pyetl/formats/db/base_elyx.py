@@ -28,6 +28,7 @@ class ElyConnect(ora.OrwConnect):
         self.compos_id = dict()
         self.tables = dict()
         self.attributs = dict()
+        self.type_base = "ELYX"
         self.accept_sql = "non"
         self.load_helper = "prog_fea2ora"
         self.load_ext = "asc"
@@ -713,7 +714,7 @@ class ElyConnect(ora.OrwConnect):
                       """
         taille_tables = self.request(requete_tables, ())
         dict_tailles = {(i[0], i[1]): i[2] for i in taille_tables}
-        print("tailles", sorted(taille_tables))
+        # print("tailles", sorted(taille_tables))
 
         self.tables = dict()
         for i in compos.values():
@@ -752,7 +753,7 @@ class ElyConnect(ora.OrwConnect):
                 # print "association ",i[3],i[0]
             # print cl.nom,cl.type_geom,cl.fermeture
         # print sorted(compos_nom)
-        print("info : elyx : tables/composants trouves", len(self.tables), len(compos))
+        # print("info : elyx : tables/composants trouves", len(self.tables), len(compos))
 
         requete = self.constructeur(
             schema,

@@ -694,7 +694,7 @@ class PgrGenSql(DbGenSql):
                 )
             elif type_sortie == "text" and attribut.taille:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
-            print("creation attribut", attname, type_sortie, attribut.multiple)
+            # print("creation attribut", attname, type_sortie, attribut.multiple)
             if attribut.multiple:
                 type_sortie = type_sortie + "[]"
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
@@ -832,6 +832,16 @@ class PgrGenSql(DbGenSql):
             liste = sorted(
                 [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
             )
+            print(
+                "tables non sorties:",
+                list(
+                    [
+                        i
+                        for i in self.schema.classes
+                        if not self.schema.classes[i].a_sortir
+                    ]
+                ),
+            )
         vues_base = self.get_vues_base(liste)
         def_speciales = set(vues_base)
         liste_ftables = [
@@ -840,7 +850,7 @@ class PgrGenSql(DbGenSql):
             if self.schema.classes[i].type_table.upper() == "F" and not self.basic
         ]
         def_speciales |= set(liste_ftables)
-        liste_tables = [i for i in liste if i not in def_speciales]
+        liste_tables = list([i for i in liste if i not in def_speciales])
 
         #       for i in liste_tables:
         #            print('type :',i,self.schema.classes[i].type_table)
