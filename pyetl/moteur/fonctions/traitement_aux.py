@@ -57,6 +57,7 @@ def setajout(regle, liste):
         "#classe" in regle.params.att_sortie.liste
         or "#groupe" in regle.params.att_sortie.liste
     )
+    # print("setajout", regle.params.att_sortie.liste, regle.changeclasse, regle)
     if not regle.action_schema and not all(i.startswith("#") for i in liste):
         regle.action_schema = fschema_ajout_attribut
 

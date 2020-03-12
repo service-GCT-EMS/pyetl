@@ -32,7 +32,7 @@ def store_traite_stock(regle):
             )
             store.sort(key=keyval, reverse=reverse)
         for obj in store:
-            #            print ('store: relecture objet ', obj, obj.schema.identclasse,obj.schema.info)
+            # print("store: relecture objet ", obj)
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     else:
         for clef in (
@@ -69,7 +69,7 @@ def h_stocke(regle):
 def f_stocke(regle, obj):
     """#aide||stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
   #aide_spec||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
-  #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
+ #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
    #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
    #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
    #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
@@ -79,8 +79,10 @@ def f_stocke(regle, obj):
       #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
     #    regle.stock.append(obj)
-    if obj.virtuel:
-        return True
+    # if obj.virtuel:
+    #     return True
+    # print("store: stockage objet ", obj)
+
     if regle.direct_reuse:
         regle.nbstock += 1
 
@@ -102,7 +104,7 @@ def f_stocke(regle, obj):
         else:
             regle.tmpstore.add(clef)
         return True
-    #    print ('store: stockage objet ', obj, obj.schema.identclasse,obj.schema.info)
+    # print("store: stockage objet ", regle.nbstock, obj)
     regle.tmpstore.append(obj)
     return True
 

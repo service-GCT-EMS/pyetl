@@ -1054,17 +1054,7 @@ class Pyetl(object):
 
     def menage_final(self):
         """vidage de tous les tuyaux et stats finales"""
-
-        stock = True
-
-        while stock:
-            stock = False
-            for regle in self.regles:
-                if regle.store and regle.nbstock:
-                    #                    print ('--------menage_final ', regle, regle.nbstock)
-                    stock = True
-                    regle.traite_stock(regle)
-
+        self.moteur.vide_stock()
         self.debug = 0
         # self._finalise_sorties()
         self._ecriture_schemas()
@@ -1145,6 +1135,7 @@ class Pyetl(object):
         if mode_schema in {"all", "int", "fusion"} and not self.done:
             print("pyetl: traitement virtuel ", mode_schema)
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
+            self.moteur.vide_stock()
         #        print('pyetl: ecriture schemas ', mode_schema)
         ecrire_schemas(
             self, rep_sortie, mode_schema, formats=self.getvar("format_schema", "csv")

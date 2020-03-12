@@ -27,7 +27,14 @@ PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
 def fdebug(regle, obj):
     """gestion des affichages de debug"""
     #    print('dans debug', regle, obj)
-    if regle.debug and obj:
+    regle.debugvalid = regle.debug and obj
+    if regle.debugvalid:
+        cond = regle.getvar("debug_cond")
+        if "=" in cond:
+            att, val = cond.split("=", 1)
+            regle.debugvalid = obj.attributs.get(att) == val
+
+    if regle.debugvalid:
         wid = regle.getvar("_wid")
         regle.debug = regle.debug - 1
         if regle.v_nommees["debug"] == "print":
@@ -38,7 +45,6 @@ def fdebug(regle, obj):
         obj.debug("avant", attlist=regle.champsdebug)
 
         succes = regle.f_init(regle, obj)
-        obj.debug("apres", attlist=regle.champsdebug)
 
         liens_num = regle.branchements.liens_num()
         redirect = obj.redirect if obj.redirect else "ok"

@@ -325,8 +325,13 @@ def fschema_change_classe(_, obj):
     schema_classe = schema2.get_classe(
         ident, cree=True, modele=obj.schema, filiation=True
     )
-    #    print ('regles : changement de classe',obj.schema.identclasse,'--->',
-    #           ident,schema_classe.info['type_geom'] )
+    # print(
+    #     "regles : changement de classe",
+    #     obj.schema.identclasse,
+    #     "--->",
+    #     ident,
+    #     schema_classe.identclasse,
+    # )
 
     obj.setschema(schema_classe)
 

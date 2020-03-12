@@ -396,6 +396,8 @@ def f_geomprocess(regle, obj):
     #helper||callmacro
     #
     # """
+    if obj.virtuel:
+        return True
     geom = obj.geom_v
     obj.geom_v = copy.deepcopy(geom)
     multi = obj.schema.multigeom if obj.schema else None

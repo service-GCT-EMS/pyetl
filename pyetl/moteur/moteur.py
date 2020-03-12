@@ -65,11 +65,12 @@ class Moteur(object):
                     LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
+                    force_virtuel = self.mapper.getvar("force_virtuel") == "1"
                     for schemaclasse in list(sch.classes.values()):
                         # print(
                         #     "traitement virtuel", schemaclasse.nom, schemaclasse.utilise
                         # )
-                        if schemaclasse.utilise:
+                        if schemaclasse.utilise and not force_virtuel:
                             #                            print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
                             continue
                         #                        print('traitement objet virtuel ', schemaclasse.identclasse)
@@ -140,12 +141,13 @@ class Moteur(object):
                                 # print("action schema", regle, regle.action_schema)
                                 # print("schema avant", obj.schema)
                                 regle.action_schema(regle, obj)
-                            #                                print ('schema apres',obj.schema)
                             if regle.changeclasse:
                                 regle.changeclasse(regle, obj)
+
                         if regle.changeschema:
                             regle.changeschema(regle, obj)
-
+                        if regle.debugvalid:
+                            obj.debug("apres", attlist=regle.champsdebug)
                     obj.is_ok = resultat
 
                     if regle.mode_chargeur:  # la on fait des monocoups
@@ -221,6 +223,17 @@ class Moteur(object):
                 obj.schema.objcnt -= 1
 
         # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)
+
+    def vide_stock(self):
+        """vidange des tuyeaux"""
+        stock = True
+        while stock:
+            stock = False
+            for regle in self.regles:
+                if regle.store and regle.nbstock:
+                    # print("--------menage_final ", regle, regle.nbstock)
+                    stock = True
+                    regle.traite_stock(regle)
 
 
 class Macro(object):

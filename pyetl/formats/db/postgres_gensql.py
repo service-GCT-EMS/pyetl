@@ -114,7 +114,7 @@ class PgrGenSql(DbGenSql):
             nom,
         )
         nom = self.reserves.get(nom, nom)
-        return nom
+        return nom.lower()
 
     def valide_base(self, conf):
         """valide un schema en base"""
