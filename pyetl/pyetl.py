@@ -222,14 +222,13 @@ class Pyetl(object):
         self.bindings = dict()
         self.moteur = Moteur(self)
         # parametres de lancement
-
         # variables de stockage interne
         # commandes internes
-        # strucutres de stockage partagees
+        # structures de stockage partagees
         self.retour = []
         # description des fonctions statistiques (dictionnaire d'objets stats)
         # entree
-        #        self.parametres_fichiers = dict() # paramteres d'acces
+        #        self.parametres_fichiers = dict() # parametres d'acces
         self.schemas = dict()  # schemas des classes
         self.regles = list()  # regles de mapping
         self.regle_sortir = None

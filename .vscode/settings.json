@@ -1,10 +1,11 @@
 {
-    "python.pythonPath": "C:\\Users\\89965\\AppData\\Local\\Continuum\\Anaconda3\\envs\\mapper\\python.exe",
+    "python.pythonPath": "C:\\Users\\claude\\Anaconda3\\envs\\mapper\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": false,
     "python.linting.pylintEnabled": true,
     "editor.formatOnSave": true,
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "python.condaPath": "C:\\Users\\claude\\Anaconda3\\Scripts"
 }

@@ -675,11 +675,19 @@ def f_cnt(regle, obj):
 
 def h_join(regle):
     """preparation jointure"""
+    # print(" jointure", regle.params)
     regle.fichier = regle.params.cmp1.val  # nom du fichier
     if regle.fichier.startswith("#"):  # jointure objets sur tmpstore
         regle.jointtype = "obj"
-        regle.champs = regle.params.cmp2.liste
+        regle.champs = list((i for i in regle.params.cmp2.liste if i != "#geom"))
+        regle.recup_geom = "#geom" in regle.params.cmp2.liste
+
         regle.tmpstore = regle.stock_param.store.get(regle.params.cmp1.val)
+        if regle.tmpstore is None:
+            print("element de comparaison non defini " + regle.params.cmp1.val)
+            raise SyntaxError(
+                "element de comparaison non defini " + regle.params.cmp1.val
+            )
     else:
         regle.jointtype = "fich"
         definition_jointure = regle.params.cmp2.liste
@@ -711,10 +719,15 @@ def f_join(regle, obj):
        #test||obj||^X;C;;set||^val;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;val;3
     """
     if regle.jointtype == "obj":
-        clef_jointure = obj.attributs.get(regle.params.att_entree)
+        clef_jointure = obj.attributs.get(regle.params.att_entree.val)
+        print("clef jointure", clef_jointure)
         obj_joint = regle.tmpstore.get(clef_jointure)
+        # print(obj_joint)
+
         if obj_joint:
-            if regle.champs:
+            if regle.recup_geom:
+                obj.geom_v = obj_joint.geom_v.copy()
+            if regle.champs and regle.champs != "*":
                 vlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
             else:
                 vlist = [
@@ -723,10 +736,9 @@ def f_join(regle, obj):
                     if not i.startswith("#")
                 ]
         else:
-            vlist = [""] * len(regle.champs)
-        obj.attributs.update(
-            ((i, j) for i, j in zip(regle.params.att_sortie.liste, vlist))
-        )
+            vlist = []
+        print("list", vlist)
+        obj.attributs.update(vlist)
     else:
         obj.attributs[regle.params.att_sortie.val] = regle.stock_param.jointure(
             regle.fichier,

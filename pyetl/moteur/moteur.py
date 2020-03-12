@@ -16,7 +16,7 @@ class Moteur(object):
     """gestionnaire de traitements """
 
     def __init__(self, mapper, regles=None, debug=0):
-        self.regles = regles
+        self.regles = regles if regles else ()
         self.mapper = mapper
         self.debug = debug
         self.ident_courant = ""
