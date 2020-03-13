@@ -166,7 +166,7 @@ class PgrConnect(DbConnect):
         try:
             self.connect()
         except psycopg2.Error:
-            self.connection=None
+            self.connection = None
         self.types_base.update(TYPES_A)
         self.types_pg = TYPES_PG
         self.gtypes_curve = GTYPES_CURVE
@@ -183,9 +183,6 @@ class PgrConnect(DbConnect):
             self.regle.setroot("datestyle", style)
         self.type_base = "postgres"
         self.dialecte = "postgres"
-
-
-
 
     def set_searchpath(self):
         """positionne les path pour la session"""
@@ -280,6 +277,7 @@ class PgrConnect(DbConnect):
             print("error", err)
 
             raise
+
     # traitement des elements specifiques
 
     def get_elements_specifiques(self, schema):
@@ -293,27 +291,28 @@ class PgrConnect(DbConnect):
         # print (list(i for i in self._def_fonctions_trigger()))
 
     def _def_vues(self):
-        return {
-            (i[0], i[1]): (i[2], str(i[3]))
-            for i in self.request(self.requetes["info_vues"])
-        }
+        entete = "schema;nom;definition;materialise"
+        infos = self.request(self.requetes["info_vues"])
+        vals = {(i[0], i[1]): (i[2], str(i[3])) for i in infos}
+        return (entete, vals)
 
     def _def_f_trigger(self):
-        return {
-            (i[0], i[1]): i[2]
-            for i in self.request(self.requetes["def_fonctions_trigger"])
-        }
+        entete = "schema;nom;definition"
+        infos = self.request(self.requetes["def_fonctions_trigger"])
+        vals = {(i[0], i[1]): i[2] for i in infos}
+        return (entete, vals)
 
     def _def_fonctions(self):
-        return {
-            (i[0], i[1]): i[2]
-            for i in self.request(self.requetes["def_fonctions_utilisateur"])
-        }
+        entete = "schema;nom;definition"
+        infos = self.request(self.requetes["def_fonctions_utilisateur"])
+        vals = {(i[0], i[1]): i[2] for i in infos}
+        return (entete, vals)
 
     def _def_ftables(self):
-        return {
-            i[0]: i[1:] for i in self.request(self.requetes["info_tables_distantes"])
-        }
+        entete = "nom;serveur;definition"
+        infos = self.request(self.requetes["info_tables_distantes"])
+        vals = {i[0]: i[1:] for i in infos}
+        return (entete, vals)
 
     def _getnumtypes(self):
         numtypes = {i: j for i, j in self.schemarequest("num_types")}

@@ -591,9 +591,15 @@ class ElyConnect(ora.OrwConnect):
                 def_enums
             ):  # cas particulier des enums en tables : il faut lire la table des enums:
                 for description in def_enums:
-                    noms_schema, nom_table, champ_filtre, val_filtre, champ_clef, champ_val, champ_ordre = (
-                        description
-                    )
+                    (
+                        noms_schema,
+                        nom_table,
+                        champ_filtre,
+                        val_filtre,
+                        champ_clef,
+                        champ_val,
+                        champ_ordre,
+                    ) = description
                     #                    print('traitement table', table)
                     requete = self.constructeur(
                         noms_schema,
@@ -614,9 +620,15 @@ class ElyConnect(ora.OrwConnect):
             #                    print ('valeurs en table',table,  valtable)
 
             for nom in enums_en_table:
-                noms_schema, nom_table, champ_filtre, val_filtre, champ_clef, champ_val, champ_ordre = enums_en_table[
-                    nom
-                ]
+                (
+                    noms_schema,
+                    nom_table,
+                    champ_filtre,
+                    val_filtre,
+                    champ_clef,
+                    champ_val,
+                    champ_ordre,
+                ) = enums_en_table[nom]
                 table = def_enums[
                     noms_schema,
                     nom_table,
@@ -1024,6 +1036,8 @@ class ElyConnect(ora.OrwConnect):
         if liste_tables:
             liste = []
             ref = set(liste_tables)
+            # infos = list(self.request(requete, ()))
+            # print("recup droits", "\n".join(infos))
             liste = [
                 ";".join([j if j is not None else "" for j in i])
                 for i in self.request(requete, ())
@@ -1037,6 +1051,8 @@ class ElyConnect(ora.OrwConnect):
         if self.debug:
             print("db_elyx---------selection droits elyx ", len(liste))
         entete = "nom_role;type_droit;schema;table"
+        # print("recup droits", "\n".join(liste))
+
         return (entete, liste)
 
     def droits_attributaires(self, liste_tables=None):
@@ -1146,6 +1162,7 @@ class ElyConnect(ora.OrwConnect):
         dans une structure du schema """
 
         schema.elements_specifiques["roles"] = self.select_droits(liste_tables)
+        # print("info schema elyx", schema.elements_specifiques["roles"])
         schema.elements_specifiques["droits_attributs"] = self.droits_attributaires(
             liste_tables
         )

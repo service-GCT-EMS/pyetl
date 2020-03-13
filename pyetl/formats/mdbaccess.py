@@ -684,6 +684,12 @@ def get_connect(
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
     schema_travail = stock_param.init_schema(nomschema, "B", modele=connect.schemabase)
+    # print(
+    #     "creation schema_travail",
+    #     nomschema,
+    #     connect.schemabase.nom,
+    #     schema_travail.elements_specifiques["roles"],
+    # )
     schema_travail.metas = dict(connect.schemabase.metas)
     schema_travail.metas["tables"] = tables
     schema_travail.metas["filtre niveau"] = ",".join(niveau)
@@ -903,7 +909,11 @@ def recup_schema(
             )
         schema_base = connect.schemabase
         # print("recup_schema", schema_base, schema_travail, stock_param.schemas.keys())
-        # print('recup_schema', schema_travail.classes)
+        print(
+            "mdba:recup_schema",
+            schema_travail.nom,
+            len(schema_travail.elements_specifiques["roles"][1]),
+        )
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)

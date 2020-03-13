@@ -32,6 +32,7 @@ fonctions de manipulation d'attributs
 """
 # from pyetl.formats.formats import Stat
 import re
+import copy
 
 
 def f_setliste(regle, obj):
@@ -726,7 +727,7 @@ def f_join(regle, obj):
 
         if obj_joint:
             if regle.recup_geom:
-                obj.geom_v = obj_joint.geom_v.copy()
+                obj.geom_v = copy.deepcopy(obj_joint.geom_v)
             if regle.champs and regle.champs != "*":
                 vlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
             else:

@@ -781,13 +781,14 @@ class PgrGenSql(DbGenSql):
     def dropvues(self, liste):
         """ nettoyage """
         drop = []
+        tmplist = list(liste)
         if self.connection and self.connection.schemabase:
             listevues = [self.get_nom_base(ident) for ident in liste]
             schemabase = self.connection.schemabase
-            schemabase.elements_specifiques["postgres"].viewsorter(listevues)
-            listevues.reverse()  # on detruit a l'envers de la creation
-            for ident in listevues:
-                drop.append(schemabase.elements_specifiques["postgres"].dropvue(ident))
+            self.viewsorter(tmplist, listevues)
+            tmplist.reverse()  # on detruit a l'envers de la creation
+            for ident in tmplist:
+                drop.append(self.dropvue(ident))
         return drop
 
     def dropf_tables(self, liste):
