@@ -536,6 +536,7 @@ class Statstore(object):
 
     def _getstat(self, entree):
         """recupere un objet statistique et le cree au besoin"""
+        print("=======================getstat", entree)
         groupe, nom = entree
         if entree not in self.stats:
             self.stats[entree] = Stat(entree, self.statdefs[nom])
@@ -555,6 +556,7 @@ class Statstore(object):
         stat.add(entete, contenu)
 
     def ajout_valeur(self, entree, *args):
+        print("-------------------------stats :ajout valeur", entree, *args)
         stat = self._getstat(entree)
         return stat.ajout_valeur(*args)
 
@@ -568,7 +570,12 @@ class Statstore(object):
 
     def ecriture_stats(self, regle=None):
         """stockage des stats """
-        #        print("pyetl : stats a ecrire",self.idpyetl, self.stats.keys(), self.statprint)
+        print(
+            "pyetl : stats a ecrire",
+            self.parent.idpyetl,
+            self.stats.keys(),
+            self.statprint,
+        )
         context = regle.context if regle else self.parent.context
         rep_sortie = os.path.join(
             context.getvar("_sortie"), context.getvar("sortie_stats")

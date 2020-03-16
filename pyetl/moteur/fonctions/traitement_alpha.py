@@ -721,7 +721,7 @@ def f_join(regle, obj):
     """
     if regle.jointtype == "obj":
         clef_jointure = obj.attributs.get(regle.params.att_entree.val)
-        print("clef jointure", clef_jointure)
+        # print("clef jointure", clef_jointure)
         obj_joint = regle.tmpstore.get(clef_jointure)
         # print(obj_joint)
 
@@ -738,7 +738,7 @@ def f_join(regle, obj):
                 ]
         else:
             vlist = []
-        print("list", vlist)
+        # print("list", vlist)
         obj.attributs.update(vlist)
     else:
         obj.attributs[regle.params.att_sortie.val] = regle.stock_param.jointure(
