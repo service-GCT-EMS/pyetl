@@ -73,7 +73,8 @@ class Moteur(object):
                         if schemaclasse.utilise and not force_virtuel:
                             #                            print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
                             continue
-                        #                        print('traitement objet virtuel ', schemaclasse.identclasse)
+                        if not self.mapper.worker:
+                            print("traitement objet virtuel ", schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
                         obj = Objet(
                             groupe, classe, conversion="virtuel", schema=schemaclasse

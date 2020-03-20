@@ -536,7 +536,6 @@ class Statstore(object):
 
     def _getstat(self, entree):
         """recupere un objet statistique et le cree au besoin"""
-        print("=======================getstat", entree)
         groupe, nom = entree
         if entree not in self.stats:
             self.stats[entree] = Stat(entree, self.statdefs[nom])
@@ -556,7 +555,6 @@ class Statstore(object):
         stat.add(entete, contenu)
 
     def ajout_valeur(self, entree, *args):
-        print("-------------------------stats :ajout valeur", entree, *args)
         stat = self._getstat(entree)
         return stat.ajout_valeur(*args)
 

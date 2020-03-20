@@ -330,8 +330,17 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
             + str(val)
             + "<-"
         )
-        #        print("schema:", nom_schema, ":suppression conformite ", nom_classe, atdef.nom,
-        #              atdef.nom_conformite, '->', atdef.type_att, ascii(str(val)))
+        # print(
+        #     "schema:",
+        #     nom_schema,
+        #     ":suppression conformite ",
+        #     nom_classe,
+        #     atdef.nom,
+        #     atdef.nom_conformite,
+        #     "->",
+        #     atdef.type_att,
+        #     ascii(str(val)),
+        # )
 
         warnings.append(
             nom_classe

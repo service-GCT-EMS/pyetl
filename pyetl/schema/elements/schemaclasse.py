@@ -224,6 +224,7 @@ class SchemaClasse(object):
             "type_table",
             "poids",
             "specifique",
+            "utilise",
         }
         d_if = {i: getattr(self, i) for i in infos}
         d_if["__infosc__"] = infos
