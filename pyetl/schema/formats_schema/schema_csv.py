@@ -177,16 +177,28 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
 
 def initmetaheader(schema, header):
     # prepare la ligne de metadonnees
-    retour = [header]
+    retour = [header] if header.startswith("!") else ["!" + header]
     if schema.metas:
         retour.append("!meta;" + ";".join(k + "=" + v for k, v in schema.metas.items()))
     return retour
 
 
+def setmetas(schema, metas):
+    # positionne les metadonnees pour un schema
+    v_tmp = [
+        j.strip().split("=") if "=" in j else [j.strip(), ""]
+        for j in metas.split(";")
+        if j.strip() and j != "!meta"
+    ]
+    print("decodage metas", v_tmp)
+    metas = {var[0]: var[1] for var in v_tmp}
+    schema.metas = metas
+
+
 def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False):
     """ecrit un schema complet en csv"""
     conf = initmetaheader(
-        sch, "!conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"
+        sch, "conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"
     )
     #    print("schema: info sortir_schema", sch.nom, len(sch.conformites),
     #          'conformites', len(sch.classes), 'classes')
@@ -213,7 +225,7 @@ def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False)
 
     description = initmetaheader(
         sch,
-        "!groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;"
+        "groupe;compo_nom;Nom;Alias;Type;graphique;multiple;Valeur par defaut;"
         + "Obligatoire;Conformite;dimension;taille;decimales;nom court;fin;index;FK",
     )
     #    print("schema:  csv sortir_classes",len(sch.classes))
@@ -426,14 +438,7 @@ def decode_classes_csv(schema_courant, entree):
             continue
         if i[0] == "!":
             if i.startswith("!meta;"):  # le fichier contient des metadonnees
-                v_tmp = [
-                    j.strip().split("=") if "=" in j else [j.strip(), ""]
-                    for j in i.split(";")
-                    if j.strip() and j != "!meta"
-                ]
-                print("decodage metas", v_tmp)
-                metas = {var[0]: var[1] for var in v_tmp}
-                schema_courant.metas = metas
+                setmetas(schema_courant, i)
             continue
         v_tmp = [j.strip() for j in i.split(";")]
 
@@ -631,14 +636,14 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
 def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     """ ecrit un schema en csv """
     os.makedirs(rep, exist_ok=True)
-    print(
-        "ecrire schema_csv:", schema.nom, len(schema.elements_specifiques["roles"][1]),
-    )
+    # print(
+    #     "ecrire schema_csv:", schema.nom, len(schema.elements_specifiques["roles"][1]),
+    # )
     init = False
     if schema.origine == "B" or schema.origine == "L":
         init = True
     conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
-    mapping = initmetaheader(schema, "!schema;classe;schema_orig;classe_orig;nombre")
+    mapping = initmetaheader(schema, "schema;classe;schema_orig;classe_orig;nombre")
     mapping.extend(schema.mapping_schema())
     nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
     deftrig = initmetaheader(
@@ -674,17 +679,20 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
                 if schema.elements_specifiques[i]:
                     if i != "def_triggers":
                         entete, infos = schema.elements_specifiques[i]
+                        contenu = initmetaheader(schema, entete)
                         if isinstance(infos, dict):
-                            contenu = [
-                                i
-                                if isinstance(i, str)
-                                else ";".join(i) + ";" + j
-                                if isinstance(j, str)
-                                else ";".join(j)
-                                for i, j in sorted(infos.items())
-                            ]
-                        contenu = [entete]
-                        contenu.extend(infos)
+                            contenu.extend(
+                                [
+                                    i
+                                    if isinstance(i, str)
+                                    else ";".join(i) + ";" + j
+                                    if isinstance(j, str)
+                                    else ";".join(j)
+                                    for i, j in sorted(infos.items())
+                                ]
+                            )
+                        else:
+                            contenu.extend(infos)
                         ecrire_fich_csv(chemref, "_" + i + ".csv", contenu, cod)
                 else:
                     print("element specifique non defini", schema.nom, i)

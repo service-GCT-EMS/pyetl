@@ -108,6 +108,9 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 print("entete csv forcee a la premiere ligne", entete)
                 pass
             else:  # il faut l'inventer...
+                print("============attention fichier csv sans entete==============")
+                print("indice: pour utiliser la premiere ligne comme entete")
+                print("mettre entete_csv=1 ou demarrer la premiere ligne par !")
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
             noms_attributs = decode_entetes_csv(reader, entete, separ)
@@ -118,7 +121,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             nlignes = 0
             for i in fich:
                 # nlignes = nlignes + 1
-
+                if i.startswith("!"):
+                    continue
                 val_attributs = [j.strip('" ') for j in i[:-1].split(separ)]
                 if len(val_attributs) != controle:
                     val_attributs = decoupage_soigne(i[:-1])

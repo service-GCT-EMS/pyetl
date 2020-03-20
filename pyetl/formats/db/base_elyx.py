@@ -1020,7 +1020,7 @@ class ElyConnect(ora.OrwConnect):
                 )
                 #            print (nom_compo,nom_role,droit)
 
-        entete = "nom_role;type_droit;schema;table"
+        entete = "nomrole;fonction;nomschema;nomtable"
         print("droits trouves ", len(liste))
         return (entete, liste)
 
@@ -1050,7 +1050,7 @@ class ElyConnect(ora.OrwConnect):
             ]
         if self.debug:
             print("db_elyx---------selection droits elyx ", len(liste))
-        entete = "nom_role;type_droit;schema;table"
+        entete = "nomrole;fonction;nomschema;nomtable"
         # print("recup droits", "\n".join(liste))
 
         return (entete, liste)
