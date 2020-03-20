@@ -619,6 +619,19 @@ def f_batch(regle, obj):
     return regle.prog(regle, obj)
 
 
+def f_boucle(regle, obj):
+    """#aide||execute un traitement batch en boucle a partir des parametres de l'objet
+  #parametres||;attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+  #aide_spec1|| en mode run le traitement s'autodeclenche sans objet
+    #pattern1||A;?C;?A;boucle;C;?C||cmp1
+     #schema||ajout_attribut
+      #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
+    """
+    regle.tmpstore.append(obj)
+    regle.nbstock += 1
+    return True
+
+
 def h_fileloader(regle):
     """prepare la lecture"""
     if "[" in regle.params.cmp1.val:

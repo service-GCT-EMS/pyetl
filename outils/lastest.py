@@ -18,12 +18,12 @@ json = """
     {
         "resolution": 0.5,
         "radius": 0.6,
-        "output_type":"count",
-        "filename":"sortie/lidar/dalle_#.asc",
+        "output_type":"min,max,count",
+        "filename":"sortie/lidar/dalle_#.tiff",
         "origin_x":"2050000",
         "origin_y":"7274500",
-        "width":"100",
-        "height":"100"
+        "width":"10",
+        "height":"10"
     }
 ]"""
 
