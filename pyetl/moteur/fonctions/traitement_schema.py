@@ -110,11 +110,6 @@ def f_set_schema_d(regle, obj):
     return False
 
 
-# def supp_schema(regle, obj):
-#    '''desassocie un objet d'un schema'''
-#    obj.resetschema()
-
-
 def f_stock_schema(regle, obj):
     """#aide||cree un schema par analyse des objets et l'associe a un objet
        #aide_patt||schema,nom,nombre max de valeurs d enum
@@ -129,8 +124,6 @@ def f_stock_schema(regle, obj):
             nom_base = regle.params.cmp1.val
         elif obj.schema:
             nom_base = obj.schema.schema.nom
-        #            print("detection schema", nom_base)
-
         else:
             nom_base = obj.attributs.get("#schema", "schema")
 
@@ -145,9 +138,8 @@ def f_stock_schema(regle, obj):
         obj,
         regle.params.cmp2.num if regle.params.cmp2.num else 30,
     )
-    if (
-        regle.final
-    ):  # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
+    if regle.final:
+        # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
         obj.schema = None
     if regle.params.att_sortie.val:
         obj.schema = regle.schema_courant
