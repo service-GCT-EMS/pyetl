@@ -341,7 +341,7 @@ class Stat(object):
         else:
             clef = (ligne, colonne)
         vtype = self.structure.types[colonne]
-        #        print('ajout_stat',clef,valeur,vtype)
+        # print("ajout_stat", clef, valeur, vtype)
         try:
             retour = self.fonctions_stat[vtype](clef, valeur)
             self.lignes.add(retour if retour is not None else ligne)

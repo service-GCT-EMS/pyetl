@@ -200,7 +200,6 @@ class Pyetl(object):
         self.context = Context(
             parent=context, ident=str(self.idpyetl), type_c="P", root=True
         )
-        # print ('initialisation', self.context, self.context.parent, "P" + str(self.idpyetl))
         self.context.root = self.context  # on romp la chaine racine
         self.contextstack = [self.context]
         self.parent = parent  # permet un appel en cascade
@@ -212,7 +211,7 @@ class Pyetl(object):
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.username = os.getlogin()
         self.userdir = os.path.expanduser("~")
-        self.paramdir = str(os.path.join(self.userdir, ".pyetl"))
+        self.paramdir = os.path.join(self.userdir, ".pyetl")
 
         self.stream = 0
         self.debug = 0
@@ -324,7 +323,7 @@ class Pyetl(object):
             try:
                 os.makedirs(self.paramdir)
             except PermissionError:
-                self.paramdir = None
+                self.paramdir = ""
         self.site_params_def = env.get("PYETL_SITE_PARAMS", "")
         self.liste_params = None
         if self.parent is None:
@@ -677,7 +676,7 @@ class Pyetl(object):
 
     def _charge_site_params(self, origine):
         """ charge des definitions de variables liees au site """
-        if origine is None:  # localisation non definie
+        if not origine:  # localisation non definie
             return
         configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
@@ -820,7 +819,9 @@ class Pyetl(object):
         return context.getcontext(ident=ident, ref=ref, type_c=type_c)
 
     def pushcontext(self, context=None, ident="", type_c="C"):
-        self.contextstack.append(context or self.getcontext(context, ident, type_c))
+        if context is None:
+            context = self.getcontext(None, ident, type_c)
+        self.contextstack.append(context)
         # print("apres push",self.contextstack)
         return self.cur_context
 

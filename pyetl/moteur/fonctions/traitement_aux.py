@@ -251,12 +251,7 @@ def h_stat(regle):
     regle.stock_param.statstore.ajout_colonne(
         regle.id_stat, regle.params.att_sortie.val, regle.modestat, debug=regle.debug
     )
-    # print("def stats, ", regle, regle.id_stat, regle.stock_param.statstore.statdefs)
-    # if regle.id_stat not in regle.stock_param.statdefs:
-    #     regle.stock_param.statdefs[regle.id_stat] = Statdef(regle.id_stat, regle.stock_param.debug)
-    # regle.stock_param.statdefs[regle.id_stat].ajout_colonne(
-    #     regle.params.att_sortie.val, regle.modestat
-    # )
+    # print("def stats, ", regle.id_stat, regle.stock_param.statstore.statdefs)
 
 
 def f_stat(regle, obj):

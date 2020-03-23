@@ -15,10 +15,10 @@ LOGGER = logging.getLogger("pyetl")
 class Moteur(object):
     """gestionnaire de traitements """
 
-    def __init__(self, mapper, regles=None, debug=0):
-        self.regles = regles if regles else ()
+    def __init__(self, mapper):
+        self.regles = ()
         self.mapper = mapper
-        self.debug = debug
+        self.debug = 0
         self.ident_courant = ""
         self.regle_debut = 0
         self.dupcnt = 0
