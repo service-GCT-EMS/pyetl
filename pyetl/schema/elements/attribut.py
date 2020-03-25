@@ -77,7 +77,7 @@ TYPES_S = {
     "A": "non defini",
 }
 
-typeconv = {"E": int, "EL": int,"S": int, "BS": int, "F": float,"N": float, "T": str}
+typeconv = {"E": int, "EL": int, "S": int, "BS": int, "F": float, "N": float, "T": str}
 
 
 class Conformite(object):
@@ -108,6 +108,7 @@ class Conformite(object):
             self.taille = modele.taille
             self.ajuste = modele.ajuste
             self.poids = modele.poids
+            self.maxobj = modele.maxobj
             self.valide_base = modele.valide_base
 
         else:
@@ -135,6 +136,7 @@ class Conformite(object):
             self.dec = 0
             self.ajuste = False
             self.poids = 0
+            self.maxobj = 0
             self.valide_base = False
 
         if d_if:
@@ -209,7 +211,9 @@ class Conformite(object):
         self.min = valeur
         self.min_strict = strict
         self.type_conf = (
-            3 if self.min and self.max and not (self.max_strict or self.min_strict) else 2
+            3
+            if self.min and self.max and not (self.max_strict or self.min_strict)
+            else 2
         )
 
     def stocke_max(self, valeur, strict):
@@ -217,7 +221,9 @@ class Conformite(object):
         self.max = valeur
         self.max_strict = strict
         self.type_conf = (
-            3 if self.min and self.max and not (self.max_strict or self.min_strict) else 2
+            3
+            if self.min and self.max and not (self.max_strict or self.min_strict)
+            else 2
         )
 
     def __repr__(self):
@@ -228,13 +234,19 @@ class Conformite(object):
         """interface de type dictionnaire en sortie pour communication interprocess"""
 
         vald = {val: desc[:] for val, desc in self.stock.items()}
-        d_if = {"nom": self.nom, "valeurs": vald, "poids": self.poids}
+        d_if = {
+            "nom": self.nom,
+            "valeurs": vald,
+            "poids": self.poids,
+            "maxobj": self.maxobj,
+        }
         return d_if
 
     def from_dic_if(self, d_if):
         """ reinitialise a partir d'une interface dict """
         self.nom = d_if["nom"]
         self.poids = d_if["poids"]
+        self.maxobj = d_if["maxobj"]
         for desc in d_if["valeurs"].values():
             valeur, alias, ordre, mode_force, _ = desc
             self.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force)
@@ -279,22 +291,22 @@ class Attribut(object):
             self.from_dic_if(d_if)
 
     def formatte_entree(self):
-        '''cree un formattage d'entree pour la gestion des decimales'''
+        """cree un formattage d'entree pour la gestion des decimales"""
         if self.dec is None:
             return
-        if self.type_att in {'E','EL','F','N','S','BS'}:
-            self.typeconv=typeconv.get(self.type_att,str)
-            if self.dec == 0 and self.type_att not in {'F','N','EL','BS'} :
-                self.type_att = "EL"  if self.taille and self.taille >10 else "E"
+        if self.type_att in {"E", "EL", "F", "N", "S", "BS"}:
+            self.typeconv = typeconv.get(self.type_att, str)
+            if self.dec == 0 and self.type_att not in {"F", "N", "EL", "BS"}:
+                self.type_att = "EL" if self.taille and self.taille > 10 else "E"
             self.format_entree = "{:." + str(self.dec) + "f}"
 
     def formatte_sortie(self):
-        '''cree un formattage d'entree pour la gestion des decimales'''
+        """cree un formattage d'entree pour la gestion des decimales"""
         if self.dec is None:
             return
-        if self.type_att in {'F','N'}:
+        if self.type_att in {"F", "N"}:
             self.format_sortie = "{:." + str(self.dec) + "f}"
-        elif self.type_att in {'E','EL','S','BS'}:
+        elif self.type_att in {"E", "EL", "S", "BS"}:
             self.format_sortie = "{:.0f}"
 
     def set_type(self, val):
@@ -338,7 +350,7 @@ class Attribut(object):
     def copie(self, nom=None):
         """ retourne un clone de l'attribut """
         conf = self.conformite
-        self.conformite = ""
+        self.conformite = None
         nouveau = copy.deepcopy(self)
         nouveau.conformite = conf
         self.conformite = conf
@@ -348,12 +360,8 @@ class Attribut(object):
 
     def __deepcopy__(self, memo):
         """evite les copies des conformites"""
-        #        conf = self.conformite
-        #        self.conformite = ''
         nouveau = copy.copy(self)
         self.valeurs = self.valeurs.copy()
-        #        nouveau.conformite = conf
-        #        self.conformite = conf
         return nouveau
 
     def ajout_valeur(self, valeur):
@@ -376,10 +384,14 @@ class Attribut(object):
     def get_type(self):
         """recupere le type d'un attribut"""
         #        print ('si:type_attribut',self.type_att,TYPES_S.get(self.type_att))
-        return TYPES_S.get(self.type_att, TYPES_S.get(self.type_att_base, self.type_att))
+        return TYPES_S.get(
+            self.type_att, TYPES_S.get(self.type_att_base, self.type_att)
+        )
 
     def __repr__(self):
-        return str((self.nom, self.type_att, self.nom_conformite, self.taille,self.def_index))
+        return str(
+            (self.nom, self.type_att, self.nom_conformite, self.taille, self.def_index)
+        )
 
     @property
     def __dic_if__(self):

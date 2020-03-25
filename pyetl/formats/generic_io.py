@@ -113,7 +113,7 @@ class Reader(object):
         self.obj_crees = 0
         self.groupe = ""
         self.classe = ""
-        self.fixe = ()
+        self.fixe = dict()
         self.orig = None
         self.affich = 1000
         self.nextaff = self.affich
@@ -427,25 +427,16 @@ class Reader(object):
             filterdef = readfilter.split(":", 3)
             field, filtertype, vals = filterdef
             if filtertype == "re":
-                vals = re.compile(vals)
+                self.matchfilter = re.compile(vals)
             elif filtertype == "in":
-                vals = set(i.strip() for i in vals[1:-1].split(","))
+                self.inlist = set(i.strip() for i in vals[1:-1].split(","))
             elif filtertype == "=":
-                pass
+                self.filtervalue = vals
             else:
                 raise SyntaxError("definition de filtre inconnue: " + filtertype)
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
-            self.filtervalue = vals
-            print(
-                "filtrage entree active",
-                readfilter,
-                self.filterfield,
-                "->",
-                filtertype,
-                "<-",
-                self.filtervalue,
-            )
+            print("filtrage entree:", readfilter, "->", filtertype)
 
     def valuefilter(self, attributs):
         try:
@@ -455,14 +446,14 @@ class Reader(object):
 
     def regexfilter(self, attributs):
         try:
-            return self.filtervalue.match(attributs.get(self.filterfield, "#vide"))
+            return self.matchfilter.match(attributs.get(self.filterfield, "#vide"))
         except KeyError:
             return False
 
     def listfilter(self, attributs):
         # print ('appel listfilter', attributs[self.filterfield] in self.filtervalue)
         try:
-            return attributs.get(self.filterfield, "#vide") in self.filtervalue
+            return attributs.get(self.filterfield, "#vide") in self.inlist
         except KeyError:
             return False
 

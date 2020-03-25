@@ -17,21 +17,40 @@ from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
 
 def fusion_schema(nom, schema, schema_tmp):
-    """fusionne 2 schemas en se basant sur les poids pour garder le bon"""
+    """fusionne 2 schemas en se basant sur les poids ou les maxobj pour garder le bon"""
     if not schema or not schema_tmp:
         print("schema vide fusion impossible", nom, schema, schema_tmp)
         return
     for i in schema_tmp.conformites:
         if i in schema.conformites:
-            if schema.conformites[i].poids >= schema_tmp.conformites[i].poids:
+            if schema.conformites[i].poids > schema_tmp.conformites[i].poids:
                 continue
+            if schema.conformites[i].poids == schema_tmp.conformites[i].poids:
+                if schema.conformites[i].maxobj >= schema_tmp.conformites[i].maxobj:
+                    continue
+
         schema.conformites[i] = schema_tmp.conformites[i]
     for i in schema_tmp.classes:
         # print ('fusion schema' , i)
         if i in schema.classes:
-            # print ('fusion schema',nom ,schema.nom, schema_tmp.nom, schema.classes[i].nom, schema.classes[i].poids, schema_tmp.classes[i].poids)
-            if schema.classes[i].poids >= schema_tmp.classes[i].poids:
+            if schema.classes[i].nom == "pos_app_emprise_er":
+                print(
+                    "fusion schema",
+                    nom,
+                    schema.nom,
+                    schema.classes[i].nom,
+                    schema.classes[i].poids,
+                    schema.classes[i].maxobj,
+                    "tmp:",
+                    schema_tmp.classes[i].poids,
+                    schema_tmp.classes[i].objcnt,
+                    schema_tmp.classes[i].maxobj,
+                )
+            if schema.classes[i].poids > schema_tmp.classes[i].poids:
                 continue
+            if schema.classes[i].poids == schema_tmp.classes[i].poids:
+                if schema.classes[i].maxobj >= schema_tmp.classes[i].maxobj:
+                    continue
         schema.ajout_classe(schema_tmp.classes[i])
     schema_tmp.map_classes()
     liste_mapping = schema_tmp.mapping_schema(fusion=True)
@@ -39,9 +58,15 @@ def fusion_schema(nom, schema, schema_tmp):
     schema.init_mapping(liste_mapping)
 
 
-
-def lire_schemas_multiples(mapper,
-    nom, chemin, mode_alias="num", cod="utf-8", cod_csv=None, specifique=None, fusion=None
+def lire_schemas_multiples(
+    mapper,
+    nom,
+    chemin,
+    mode_alias="num",
+    cod="utf-8",
+    cod_csv=None,
+    specifique=None,
+    fusion=None,
 ):
     """initialise le schema et rajoute tous les elements necessaires"""
     schema = mapper.init_schema(nom)
@@ -56,22 +81,31 @@ def lire_schemas_multiples(mapper,
         racine = os.path.basename(chemin).lower()
         if fusion is None:
             fusion = False
-    rep= str(rep)
+    rep = str(rep)
     for element in os.listdir(rep):
         #            print ('examen ',element ,racine)
         if racine in element.lower():
             ext = os.path.splitext(element)[1]
             if "classes" in element and ext == ".csv":
-                print("schema:lecture ",element,racine,os.path.splitext(element))
+                print("schema:lecture ", element, racine, os.path.splitext(element))
                 element_modif = "_".join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
                 fusion_schema(
                     nom,
                     schema,
-                    lire_schema_csv(mapper, "", fichier, mode_alias, cod=cod_csv, specifique=specifique),
+                    lire_schema_csv(
+                        mapper,
+                        "",
+                        fichier,
+                        mode_alias,
+                        cod=cod_csv,
+                        specifique=specifique,
+                    ),
                 )
             elif ext == ".xml":
-                fusion_schema(nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv))
+                fusion_schema(
+                    nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv)
+                )
     schema.map_classes()
     if schema.classes:
         print("schema:classes totales", len(schema.classes), cod)
@@ -86,7 +120,9 @@ def set_transaction(liste):
     liste.append("COMMIT;\n")
 
 
-def ecrire_fichier_sql(rep, nomschema, numero, nomfich, valeurs, cod="utf-8", transact=False):
+def ecrire_fichier_sql(
+    rep, nomschema, numero, nomfich, valeurs, cod="utf-8", transact=False
+):
     """ ecrit la description du schema en sql """
     if valeurs is None:
         return
@@ -172,7 +208,7 @@ def ecrire_schema_sql(
         ecrire_fichier_sql(rep, nomschema, "01", "schema", tout, cod, False)
 
     else:
-        rep = os.path.join(rep,nomschema)
+        rep = os.path.join(rep, nomschema)
         os.makedirs(rep, exist_ok=True)
         if tsql:
             ecrire_fichier_sql(rep, nomschema, "03", "tables", tsql, cod, transact)
@@ -192,7 +228,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     """ sort un schema dans les differents formats disponibles """
 
     nom = schema.nom.replace("#", "")
-    rep_s = os.path.join(rep, 'schemas')
+    rep_s = os.path.join(rep, "schemas")
     cod = stock_param.getvar("codec_sortie", "utf-8")
 
     for form in formats_a_sortir:
@@ -221,7 +257,6 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 schema.setbasic(type_base)
                 autopk = "" if autopk == "no" else True
                 rep_s = rep
-
 
             print("dialecte de sortie", dialecte)
 
@@ -301,21 +336,25 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     a_sortir = stock_param.getvar("schemas_a_sortir")
     a_sortir = a_sortir.split(",") if a_sortir else None
     for i in schemas:
-        #        print('ecriture schema', i, len(schemas[i].classes))
+
         if not i:
             continue
         if a_sortir and i not in a_sortir:
             if not stock_param.worker:
                 print("schema non sorti", i, "(", a_sortir, ")")
             continue
-        mode_sortie = schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
+        mode_sortie = (
+            schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
+        )
         #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
         #              FSC.analyse_interne(schemas[i], mode_sortie))
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
         if not rep_sortie:
 
-            print("sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params)
+            print(
+                "sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params
+            )
             raise NotADirectoryError("repertoire de sortie non défini")
 
         if stock_param.schemas[i].origine == "G":
@@ -324,7 +363,9 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         #              len(schemas[i].conformites),mode_sortie)
         #        print('choix', FSC.analyse_interne(schemas[i], mode_sortie,
         #                                           type_schema=type_schemas_a_sortir))
-        if FSC.analyse_interne(schemas[i], mode_sortie, type_schema=type_schemas_a_sortir):
+        if FSC.analyse_interne(
+            schemas[i], mode_sortie, type_schema=type_schemas_a_sortir
+        ):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == "sql":
@@ -338,9 +379,15 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
                     formats_a_sortir.add(schemas[i].format_sortie)
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
-            if not stock_param.worker: # on ne sort jamais un schema en mode worker
+            if not stock_param.worker:  # on ne sort jamais un schema en mode worker
+                print("ecriture schema", i, len(schemas[i].classes))
                 ecrire_au_format(
-                    schemas[i], rep_sortie, formats_a_sortir, stock_param, mode_sortie, confs
+                    schemas[i],
+                    rep_sortie,
+                    formats_a_sortir,
+                    stock_param,
+                    mode_sortie,
+                    confs,
                 )
 
 
@@ -365,6 +412,16 @@ def retour_schemas(schemas, mode="util"):
         if FSC.analyse_interne(schema, mode_sortie):
             #            print ('stockage', nom, len(schema.__dic_if__))
             retour[nom] = schema.__dic_if__
+            debug = ("elypu", "pos_app_emprise_er")
+            if debug in schema.classes:
+                print(
+                    "retour schema",
+                    schema.nom,
+                    schema.classes[debug].nom,
+                    schema.classes[debug].poids,
+                    schema.classes[debug].objcnt,
+                    schema.classes[debug].maxobj,
+                )
     return retour
 
 
@@ -378,13 +435,13 @@ def integre_schemas(schemas, nouveaux):
         tmp = SCI.init_schema(None, nom)
         tmp.from_dic_if(description)
 
-        # print ('recup schema ', nom, tmp, schemas.get(nom))
+        print("recup schema transmis", nom, schemas.get(nom), nom in schemas)
         if nom in schemas:
             fusion_schema(nom, schemas[nom], tmp)
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
-        # print ('schemas recuperes ',nomschemas,schemas.keys())
+    print("schemas transmis ", nomschemas, schemas.keys())
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids

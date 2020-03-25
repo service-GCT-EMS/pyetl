@@ -125,6 +125,7 @@ def _valide_jour(date, format_date):
     # on cherche le separateur:
     seps = r"-/\,:"
     sep = None
+    err = ""
     for i in seps:
         if i in date:
             sep = i
@@ -133,9 +134,9 @@ def _valide_jour(date, format_date):
         try:
             annee, mois, jour, fmt = get_jma(date, sep)
             if format_date == "" or format_date == fmt:
-                return date
+                return err, date
         except ValueError:
-            return None
+            return "erreur jour", ""
     else:  # juste une annee
         if len(date) == 4:
             try:  # test dates numeriques
@@ -143,9 +144,9 @@ def _valide_jour(date, format_date):
                 jour, mois, annee = "01", "01", date
             #                print ('test dates ',val,repl)
             except ValueError:
-                return None
+                return "erreur jour", ""
         else:
-            return None
+            return "erreur jour", ""
     if annee:
         if format_date == "fr":
             return "-".join((jour, mois, annee))
@@ -153,7 +154,7 @@ def _valide_jour(date, format_date):
             return "/".join((annee, mois, jour))
         elif format_date == "en":
             return "/".join((mois, jour, annee))
-    return None
+    return "erreur jour", ""
 
 
 def _valide_heure(heure):
@@ -202,14 +203,11 @@ def valide_dates(val, format_dates=""):
         dat1, dat2, dat3, heure = v_2
         date = "-".join((dat1, dat2, dat3))
     if date:
-        date = _valide_jour(date, format_dates)
-        if date is None:
-            err = "erreur date"
-    #        print ('date validee', date)
+        err, date = _valide_jour(date, format_dates)
     if heure:
         heure = _valide_heure(heure)
         if heure is None:
-            err = "erreur heure"
+            err = err + "erreur heure"
     if date and heure:
         return err, date + " " + heure
     if date:
@@ -433,7 +431,7 @@ def _valide_type(classe, atdef, val):
     if atdef.type_att == "D":  # test dates
         err, repl = valide_dates(val, "")
     elif atdef.type_att == "DS":  # test dates
-        err, repl = _valide_jour(val, "")
+        err, date = _valide_jour(val, "")
     elif atdef.type_att == "E" or atdef.type_att_base == "E":  # test numerique
         err, repl, changetype = _valide_entiers(val)
         if changetype:
@@ -915,11 +913,10 @@ def analyse_interne(schema, mode="util", type_schema=None):
             conf.poids = 0
         for schema_classe in schema.classes.values():
             if schema_classe.a_sortir:
-                schema_classe.poids = (
-                    schema_classe.objcnt
-                    if schema_classe.objcnt > 0
-                    else int(schema_classe.info["objcnt_init"])
-                )
+                schema_classe.poids = schema_classe.objcnt
+                # if schema_classe.objcnt > 0
+                # else int(schema_classe.info["objcnt_init"])
+
                 for att in schema_classe.attributs.values():
                     if att.nom_conformite:
                         conf = schema.conformites[att.nom_conformite]
@@ -928,9 +925,9 @@ def analyse_interne(schema, mode="util", type_schema=None):
                         conf.usages.append(
                             (schema_classe.groupe, schema_classe.nom, att.nom)
                         )
-                        conf.poids += (
-                            schema_classe.poids
-                        )  # sert pour la fusion de schemas
+                        conf.poids += schema_classe.poids
+                        conf.maxobj += schema_classe.maxobj
+                        # sert pour la fusion de schemas
     if mode == "fusion":
         schema.stock_mapping.mode_fusion = True
     return retour

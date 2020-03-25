@@ -53,6 +53,18 @@ class Moteur(object):
             # on lance un virtuel unique puis on verifie toutes les regles de chargement
             self.traite_regles_chargement()
         else:
+            f_v = self.mapper.getvar("force_virtuel")
+            if not f_v:
+                force_virtuel = False
+            elif self.mapper.worker and (f_v == "worker" or f_v == "w"):
+                force_virtuel = True
+            elif not self.mapper.worker and (f_v == "master" or f_v == "m"):
+                force_virtuel = True
+            elif f_v == "1" or f_v == "all":
+                force_virtuel = True
+            else:
+                LOGGER.warning("force_virtuel non conforme")
+                force_virtuel = False
             for sch in list(self.mapper.schemas.values()):
                 # print("traitement virtuel: schema a traiter", sch.nom, sch.origine)
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
@@ -65,16 +77,26 @@ class Moteur(object):
                     LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
-                    force_virtuel = self.mapper.getvar("force_virtuel") == "1"
+
                     for schemaclasse in list(sch.classes.values()):
                         # print(
                         #     "traitement virtuel", schemaclasse.nom, schemaclasse.utilise
                         # )
                         if schemaclasse.utilise and not force_virtuel:
-                            #                            print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
+                            # print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
                             continue
-                        if not self.mapper.worker:
-                            print("traitement objet virtuel ", schemaclasse.identclasse)
+                        if schemaclasse.identclasse == ("ELYEA", "E_PROGRA"):
+                            print(
+                                self.mapper.getvar("_wid"),
+                                "traitement virtuel classe",
+                                sch.nom,
+                                schemaclasse.identclasse,
+                                schemaclasse.utilise,
+                                schemaclasse.maxobj,
+                            )
+
+                        # if not self.mapper.worker:
+                        #     print("traitement objet virtuel ", schemaclasse.identclasse)
                         groupe, classe = schemaclasse.identclasse
                         obj = Objet(
                             groupe, classe, conversion="virtuel", schema=schemaclasse

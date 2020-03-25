@@ -1078,7 +1078,7 @@ class Pyetl(object):
             print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
             if retour:
                 return {i: processor.getvar(i) for i in retour}
-        return
+        return ()
 
     def macro_final(self):
         """ execute une macro finale"""
@@ -1132,8 +1132,17 @@ class Pyetl(object):
         mode_schema = self.getvar("force_schema", "util")
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         LOGGER.info("ecriture schemas " + str(mode_schema))
-        if mode_schema in {"all", "int", "fusion"} and not self.done:
-            print("pyetl: traitement virtuel ", mode_schema, self.worker)
+        if (
+            mode_schema in {"all", "int", "fusion"}
+            or self.getvar("force_virtuel") == "1"
+            and not self.done
+        ):
+            print(
+                "pyetl: traitement virtuel ",
+                mode_schema,
+                self.worker,
+                self.getvar("force_virtuel"),
+            )
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
             self.moteur.vide_stock()
         #        print('pyetl: ecriture schemas ', mode_schema)

@@ -120,6 +120,25 @@ class SchemaClasse(object):
         "d": "fichier",
     }
 
+    __transfert__ = (
+        "nom",
+        "groupe",
+        "alias",
+        "srid",
+        "sridmixte",
+        "info",
+        "multigeom",
+        "changed",
+        "objcnt",
+        "triggers",
+        "indexes",
+        "type_table",
+        "poids",
+        "maxobj",
+        "specifique",
+        "utilise",
+    )
+
     def __init__(self, ident, schema, debug=0):
         groupe, nom = ident
         self.info = {
@@ -153,6 +172,7 @@ class SchemaClasse(object):
         self.attmap = dict()
         self.regles_modif = set()  # liste des regles qui ont modifie la classe
         self.objcnt = 0
+        self.maxobj = 0
         self.verrouille = False
         self.conversion_noms = False
         #        self.version = 0
@@ -209,34 +229,17 @@ class SchemaClasse(object):
     @property
     def __dic_if__(self):
         """interface de type dictionnaire pour la transmission de schemas entre instances"""
-        infos = {
-            "nom",
-            "groupe",
-            "alias",
-            "srid",
-            "sridmixte",
-            "info",
-            "multigeom",
-            "changed",
-            "objcnt",
-            "triggers",
-            "indexes",
-            "type_table",
-            "poids",
-            "specifique",
-            "utilise",
+        d_if = {
+            "infos": {i: getattr(self, i) for i in self.__transfert__},
+            "attributs": {nom: att.__dic_if__ for nom, att in self.attributs.items()},
         }
-        d_if = {i: getattr(self, i) for i in infos}
-        d_if["__infosc__"] = infos
-        d_if["attributs"] = {nom: att.__dic_if__ for nom, att in self.attributs.items()}
         return d_if
 
     def from_dic_if(self, d_if):
         """interface de type dictionnaire pour la transmission de schemas entre instances"""
         #        print ('recup schemaclasse ', d_if.keys())
-        for nom in d_if["__infosc__"]:
-            setattr(self, nom, d_if[nom])
-
+        for nom, valeur in d_if["infos"].items():
+            setattr(self, nom, valeur)
         self.attributs = {
             i: A.Attribut(i, 0, d_if=j) for i, j in d_if["attributs"].items()
         }
@@ -259,17 +262,17 @@ class SchemaClasse(object):
         """retourne l'identifiant de classe sous forme 'groupe'.'nom' pour acces base de donnees """
         return "'" + self.groupe + "'.'" + self.nom + "'"
 
-    @property
-    def nomschema(self):
-        """ retourne le nom du schema auquel appartient la classe"""
-        return self.schema.nom if self.schema else ""
+    # @property
+    # def nomschema(self):
+    #     """ retourne le nom du schema auquel appartient la classe"""
+    #     return self.schema.nom if self.schema else ""
 
     @property
     def getpkey(self):
         """ retourne la liste de champs comportant la clef principale"""
         return ",".join(
             [
-                self.minmajfunc(str(self.indexes[i]))
+                self.minmajfunc(self.indexes[i])
                 for i in sorted(self.indexes)
                 if i.startswith("P")
             ]
@@ -283,7 +286,7 @@ class SchemaClasse(object):
     @property
     def pkey_simple(self):
         """ vrai si la clef principale comprend un seul champ"""
-        return len([i for i in sorted(self.indexes) if i.startswith("P")]) == 1
+        return len([i for i in self.indexes if i.startswith("P")]) == 1
 
     @property
     def fkeys(self):
@@ -301,11 +304,15 @@ class SchemaClasse(object):
             return dict()
         return {i: j.parametres_clef for i, j in self.attributs.items() if j.clef_etr}
 
+    @property
+    def nomschema(self):
+        return self.schema.nom if self.schema else ""
+
     def getinfo(self, nom, defaut=""):
         """recupere une info du schema"""
-        if nom not in self.info:
-            return self.schema.metas.get(nom, defaut)
-        return self.info[nom]
+        return (
+            self.info[nom] if nom in self.info else self.schema.metas.get(nom, defaut)
+        )
 
     def setinfo(self, nom, valeur):
         """positionne une info du schema"""
@@ -482,9 +489,9 @@ class SchemaClasse(object):
         else:
             self.minmajfunc = str
 
-    def set_format_lecture(self, nom, desc):
-        """positionne le formattage de lecture"""
-        self.attributs[nom].set_format_lecture(desc)
+    # def set_format_lecture(self, nom, desc):
+    #     """positionne le formattage de lecture"""
+    #     self.attributs[nom].set_format_lecture(desc)
 
     @property
     def fkey_dep(self):
@@ -887,9 +894,7 @@ class SchemaClasse(object):
         #        if clef_primaire:
         #            attr.clef_primaire = clef_primaire
         if definition.clef_etrangere:
-            attr.clef_etrangere = (
-                definition.clef_etrangere + "." + definition.cible_clef
-            )
+            attr.clef_etr = definition.clef_etrangere + "." + definition.cible_clef
         index = definition.index
         if index:
             aa_tmp = index.split(" ")
@@ -1001,7 +1006,7 @@ class SchemaClasse(object):
                 attr.nom_court = nom_court
 
             if index:
-                attr.index = index
+                attr.def_index = index
                 self._gestion_index(attr, index, parametres_clef)
 
             if clef_etr:
@@ -1125,12 +1130,7 @@ class SchemaClasse(object):
             self.autopk = False
         else:
             if self.pkey_simple:
-                pk = (
-                    str(self.indexes[i])
-                    for i in sorted(self.indexes)
-                    if i.startswith("P")
-                )[0]
-                self.pkref = pk
+                self.pkref = self.getpkey
             self.autopk = mode
 
     def copy(self, ident, schema2, filiation=True):

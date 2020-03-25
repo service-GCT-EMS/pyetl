@@ -64,7 +64,7 @@ class Objet(object):
         "schema",
         "attributs_geom",
         "casefold",
-        "key"
+        "key",
     ]
 
     def __init__(
@@ -86,7 +86,7 @@ class Objet(object):
         self.numobj = self.ido if numero is None else numero
         #        print ("nouveau",self.ido)
         # self.ccx, self.ccy, self.ccz, self.angle = 0, 0, 0, 0
-        self.key=None
+        self.key = None
         self.copie = 0
         self.stored = False
         self.is_ok = True
@@ -124,8 +124,11 @@ class Objet(object):
         self.schema = None
         if conversion == "virtuel":
             self.virtuel = True
-            self.schema = schema
-            self.initattr()  # dans un virtuel on initialise les attributs
+            if schema:
+                self.schema = schema
+                schema.utilise = True
+                schema.maxobj += 1
+                self.initattr()  # dans un virtuel on initialise les attributs
         if not callable(conversion):
             conversion = noconversion
         if schema is not None:
@@ -265,7 +268,7 @@ class Objet(object):
         liste = (
             self.liste_attributs
             if self.liste_attributs
-            else [i for i in self.attributs if i[0] != "#" and i!=self.key]
+            else [i for i in self.attributs if i[0] != "#" and i != self.key]
         )
         if self.classe_is_att:
             liste.insert(0, "#classe")
@@ -274,20 +277,26 @@ class Objet(object):
         geom = self.geom_v.__json_if__
         #        print ('jsonio recupere ',geom)
         return (
-            '{"type": "feature",'+('\n"id": "'
-            + (self.attributs.get(self.key, str(self.ido))) + '",') if self.key else ''
+            '{"type": "feature",'
+            # + ('\n"id": "' + (str(self.attributs.get(self.key, self.ido))) + '",')
+            # if self.key
+            # else ""
             + '\n"properties": {\n'
             + ",\n".join(
                 [
-                    '"' + i + '": "' + self.attributs.get(i, "").replace('"', '\\"') + '"'
+                    '"'
+                    + i
+                    + '": "'
+                    + self.attributs.get(i, "").replace('"', '\\"')
+                    + '"'
                     for i in liste
                 ]
             )
             + "},\n"
-            + geom if geom else ""
-            + "}\n"
+            + geom
+            if geom
+            else "" + "}\n"
         )
-
 
     @property
     def __geo_interface__(self):
@@ -486,8 +495,9 @@ class Objet(object):
         if schemaclasse is not None:
             if not self.virtuel:
                 schemaclasse.objcnt += 1
+                schemaclasse.maxobj += 1
                 if schemaclasse.autopk:
-                    schemaclasse.setautopk
+                    schemaclasse.setautopk(self)
             schemaclasse.utilise = True
             self.attributs["#schema"] = schemaclasse.nomschema
         else:
@@ -512,32 +522,25 @@ class Objet(object):
 
     def setschema_auto(self, schema):
         """affecte un schema a l'objet en trouvant la classe et gere le comptage de references"""
-        if self.schema is not None:
-            if not self.virtuel:
-                self.schema.objcnt -= 1
+
         if schema is not None:
             schemaclasse = schema.get_classe(self.ident)
             if not schemaclasse:
                 schemaclasse = schema.def_classe(self.ident)
-
-            self.schema = schemaclasse
-            if not self.virtuel:
-                schemaclasse.objcnt += 1
-            schemaclasse.utilise = True
-            self.attributs["#schema"] = schemaclasse.nomschema
         else:
-            self.schema = None
-            self.attributs["#schema"] = ""
+            schemaclasse = None
+        self.setschema(schemaclasse)
 
     def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""
-        try:
-            return self.attributs[nom]
-        except KeyError:
-            if self.attributs_speciaux and nom in self.attributs_speciaux.valeurs:
-                return self.attributs_speciaux.valeurs[nom]
-            else:
-                return defaut
+        return self.attributs[nom] if nom in self.attributs else defaut
+        # try:
+        #     return self.attributs[nom]
+        # except KeyError:
+        #     if self.attributs_speciaux and nom in self.attributs_speciaux.valeurs:
+        #         return self.attributs_speciaux.valeurs[nom]
+        #     else:
+        #         return defaut
 
     def get_listeattval(self, liste, noms=False):
         """retourne une liste de valeurs selectionees"""
@@ -582,16 +585,13 @@ class Objet(object):
             self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
-            self.hdict[nom] = (
-                dict(
-                    [
-                        i.replace(r"\"", '"').split('" => "')
-                        for i in hstore[1:-1].split('", "')
-                    ]
-                )
-                if hstore
-                else dict()
-            )
+
+            if hstore:
+                vlist = hstore[1:-1].split('", "')
+                hddef = (i.replace(r"\"", '"').split('" => "', 1) for i in vlist)
+            else:
+                hddef = ()
+            self.hdict[nom] = dict(hddef)
         return self.hdict[nom]
 
     def resetschema(self):
