@@ -909,11 +909,11 @@ def recup_schema(
             )
         schema_base = connect.schemabase
         # print("recup_schema", schema_base, schema_travail, stock_param.schemas.keys())
-        print(
-            "mdba:recup_schema",
-            schema_travail.nom,
-            len(schema_travail.elements_specifiques["roles"][1]),
-        )
+        # print(
+        #     "mdba:recup_schema",
+        #     schema_travail.nom,
+        #     len(schema_travail.elements_specifiques["roles"][1]),
+        # )
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)

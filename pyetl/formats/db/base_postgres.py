@@ -194,9 +194,11 @@ class PgrConnect(DbConnect):
     def datestyle(self):
         """recupere la config de formattage de dates"""
         #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
-        retour = self.request("show DateStyle", ())
-        datestyle = retour.pop()[0].split(",")
-        return map(str.strip, datestyle)
+        retour = self.request("show DateStyle")
+        if retour:
+            datestyle = retour.pop()[0].split(",")
+            return map(str.strip, datestyle)
+        return "ISO", "DMY"
         # print ('retour date', *datestyle)
 
     @staticmethod
@@ -326,29 +328,18 @@ class PgrConnect(DbConnect):
         return self.types_base.get(typebase, "T")
 
     def _def_triggers(self):
+        """recupere les definitions de triggers"""
         def_trigg = dict()
-        #        print ('triggers')
-        #        print (self.request(REQS["info_triggers"]))
-        def_trigg["_header"] = [
-            "schema" "table",
-            "nom",
-            "type_trigger",
-            "action",
-            "declencheur",
-            "timing",
-            "event",
-            "colonnes",
-            "condition" "sql",
-        ]
+        entete = "schema;table;nom;type_trigger;action;declencheur;timing;event;colonnes;condition;sql"
         for i in self.request(self.reqs["info_triggers"]):
             #            print ('triggers',i)
-            ident = (i[0], i[1])
-            if ident not in def_trigg:
-                def_trigg[ident] = dict()
-            definition = list((str(j) for j in i[3:]))
+            identtable = (i[0], i[1])
             nom = i[2]
-            def_trigg[ident][nom] = definition
-        return def_trigg
+            definition = list((str(j) for j in i[3:]))
+            if identtable not in def_trigg:
+                def_trigg[identtable] = dict()
+            def_trigg[identtable][nom] = definition
+        return entete, def_trigg
 
     #        print('pgr --------- selection info triggers ', len(triggers))
 
@@ -357,30 +348,35 @@ class PgrConnect(DbConnect):
         info = self.request("select format_type(" + typecode + ",0)", None)[0]
         return info
 
+    def elemrestrict(self, elem, a_garder):
+        """restreint les elements specifiques aux tables a garder"""
+        if elem is None:
+            return None
+        entete, contenu = elem
+        contenu = {i: j for i, j in contenu.items() if i in a_garder}
+        return (entete, contenu)
+
     def select_elements_specifiques(self, schema, liste_tables):
         """ selectionne les elements specifiques pour coller a une restriction de schema"""
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
-        els["def_vues"] = {i: j for i, j in els["def_vues"].items() if i in a_garder}
-        els["def_triggers"] = {
-            i: j for i, j in els["def_triggers"].items() if i in a_garder
-        }
-        els["def_ftables"] = {
-            i: j for i, j in els["def_ftables"].items() if i in a_garder
-        }
+        els["def_vues"] = self.elemrestrict(els["def_vues"], a_garder)
+        els["def_triggers"] = self.elemrestrict(els["def_triggers"], a_garder)
+        els["def_ftables"] = self.elemrestrict(els["def_ftables"], a_garder)
+        els["def_fonctions_trigger"] = self.elemrestrict(
+            els["def_fonctions_trigger"], a_garder
+        )
+
         fonctions_a_garder = set()
-        for i in els["def_triggers"].values():
+        for i in els["def_triggers"][1].values():
             for j in i.values():
                 fonction = re.sub(r"(.*)\(.*\)", r"\1", j[1])
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
-        els["def_fonctions_trigger"] = {
-            i: j
-            for i, j in els["def_fonctions_trigger"].items()
-            if i in fonctions_a_garder
-        }
-        if any(len(els[i]) for i in els):
-            print("elements specifiques gardes", dict([(i, len(els[i])) for i in els]))
+        if any(len(els[i][1]) for i in els):
+            print(
+                "elements specifiques gardes", dict([(i, len(els[i][1])) for i in els])
+            )
             # print ("def trigger", els["def_triggers"])
 
     @property

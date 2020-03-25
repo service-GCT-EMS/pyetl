@@ -643,13 +643,11 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
     mapping = initmetaheader(schema, "schema;classe;schema_orig;classe_orig;nombre")
     mapping.extend(schema.mapping_schema())
     nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
-    deftrig = initmetaheader(
-        schema, "schema;table;trigger;condition;fonction;etendue;timing;declencheur"
-    )
+    deftrig = None
     if "def_triggers" in schema.elements_specifiques:
-        for table, triggers in sorted(
-            schema.elements_specifiques["def_triggers"].items()
-        ):
+        entete, contenu = schema.elements_specifiques["def_triggers"]
+        deftrig = initmetaheader(schema, entete)
+        for table, triggers in sorted(contenu.items()):
             # lignes = [';'.join(table+(trig,)+definition) for trig, definition in sorted(triggers.items())]
             lignes = [
                 ";".join(table + (trig,) + tuple(str(i) for i in definition))
