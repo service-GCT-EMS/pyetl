@@ -12,33 +12,49 @@ import time
 from xml.etree.ElementTree import ParseError
 import xml.etree.cElementTree as ET
 
+LOGGER = logging.getLogger("pyetl")
+
 
 def h_xmlextract(regle):
     """extraction d'element xml"""
     regle.cadre = regle.params.cmp2.val
     regle.recherche = regle.params.cmp1.val
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
+    regle.keepdata = regle.getvar("keepdata") == "1"
+    regle.keeptree = regle.getvar("keeptree") == "1"
 
 
 def getcadre(regle, obj):
     """"analyse un xml et livre le cadre de recherche"""
+
     xml = obj.attributs.get(regle.params.att_entree.val)
     if not xml:
         return (), ""
-    try:
-        tree = ET.fromstring(xml)
-    except ParseError as err:
-        print("erreur xml mal formé", err, obj)
-        return (), ""
+    if obj.attributs_speciaux and "__xmltree" in obj.attributs_speciaux:
+        tree = obj.attributs_speciaux["__xmltree"]
+        if not regle.keeptree:
+            del obj.attributs_speciaux["__xmltree"]
+    else:
+        try:
+            tree = ET.fromstring(xml)
+        except ParseError as err:
+            LOGGER.error("erreur xml mal formé", err, obj)
+            # print("erreur xml mal formé", err, obj)
+            return (), xml
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
-    if regle.getvar("keepxml") != "1":  # on evite du duppliquer des gros xml
+    if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""
+    if regle.keeptree:
+        if obj.attributs_speciaux is None:
+            obj.attributs_speciaux = {"__xmltree": tree}
+        else:
+            obj.attributs_speciaux["__xmltree"] = tree
         # print("on ne dupplique pas")
     return cadres, xml
 
 
 def f_xmlextract(regle, obj):
-    """#aide||decoupage d'un attribut xml en objets
+    """#aide||extraction de valeurs d un xml
   #aide_spec||on cree un objet pour chaque element
    #pattern1||H;;A;xmlextract;C;?C||sortie
    #pattern2||D;;A;xmlextract;C;?C||sortie

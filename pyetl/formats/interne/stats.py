@@ -568,12 +568,12 @@ class Statstore(object):
 
     def ecriture_stats(self, regle=None):
         """stockage des stats """
-        print(
-            "pyetl : stats a ecrire",
-            self.parent.idpyetl,
-            self.stats.keys(),
-            self.statprint,
-        )
+        # print(
+        #     "pyetl : stats a ecrire",
+        #     self.parent.idpyetl,
+        #     self.stats.keys(),
+        #     self.statprint,
+        # )
         context = regle.context if regle else self.parent.context
         rep_sortie = os.path.join(
             context.getvar("_sortie"), context.getvar("sortie_stats")

@@ -534,13 +534,6 @@ class Objet(object):
     def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""
         return self.attributs[nom] if nom in self.attributs else defaut
-        # try:
-        #     return self.attributs[nom]
-        # except KeyError:
-        #     if self.attributs_speciaux and nom in self.attributs_speciaux.valeurs:
-        #         return self.attributs_speciaux.valeurs[nom]
-        #     else:
-        #         return defaut
 
     def get_listeattval(self, liste, noms=False):
         """retourne une liste de valeurs selectionees"""
