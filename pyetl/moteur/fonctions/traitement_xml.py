@@ -75,6 +75,13 @@ def f_xmlextract(regle, obj):
     return trouve
 
 
+def h_xmlsplit(regle):
+    """helper decoupage"""
+    h_xmlextract(regle)
+    # regle.reader = regle.stock_param.getreader("interne", regle)
+    regle.changeschema = False
+
+
 def f_xmlsplit(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
   #aide_spec||on cree un objet pour chaque element
@@ -89,10 +96,18 @@ def f_xmlsplit(regle, obj):
        """
     trouve = False
     cadres, xml = getcadre(regle, obj)
+    groupe, oclasse = obj.ident
+    nat = regle.params.att_entree.val
+    if nat.startswith("#"):
+        nat = nat[1:]
+    classe = oclasse + "_" + nat
+    # regle.reader.prepare_lecture_att(obj, "interne")
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
+            # obj2 = regle.reader.getobj(niveau=groupe, classe=classe)
             obj2 = obj.dupplique()
+            obj2.virtuel = False
             if regle.params.pattern == "1":
                 contenu = ET.tostring(elem)
             elif regle.params.pattern in "23":
@@ -104,6 +119,7 @@ def f_xmlsplit(regle, obj):
             regle.setval_sortie(obj2, contenu)
             obj2.attributs["#xmltag"] = regle.recherche
             obj2.attributs["#xmlgroup"] = regle.cadre
+            # print("xmlsplit traitement", obj2)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             trouve = True
     obj.attributs[regle.params.att_entree.val] = xml

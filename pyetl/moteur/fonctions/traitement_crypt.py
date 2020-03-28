@@ -210,7 +210,7 @@ CRYPTOCLASS = dict()
 
 def descramble(key):
     """ retourne la clef d'origine si elle est planquee"""
-    if key.endswith("="):
+    if key and key.endswith("="):
         try:
             return base64.b32decode(key).decode("utf-8")
         except UnicodeError:
@@ -221,7 +221,7 @@ def descramble(key):
 def scramble(key):
     """ planque la clef d'origine"""
 
-    if key.endswith("="):
+    if key and key.endswith("="):
         return key
     binlist = bytes([i for i in key.encode("utf-8")])
     return base64.b32encode(binlist)
@@ -235,7 +235,7 @@ def cryptinit(key, level, helper=None):
     # key = descramble(key)
     #    print ('initialisation cryptage demande',level,key, key.endswith('='), key[-1])
     #
-    level = int(level) if level in {'0','1','2','3'} else 2
+    level = int(level) if level in {"0", "1", "2", "3"} else 2
     cclass = CRYPTOLEVELS[level](key)
     if cclass.ext:
         # if mapper and mapper.getvar("cryptohelper"):
@@ -254,9 +254,13 @@ def cryptinit(key, level, helper=None):
 
 def decrypt(val, key=None, level=None, helper=None):
     """decrypte les mots de passe"""
+    if not val:
+        return ""
     if not val.endswith("="):  # ce n'est pas crypte
         #        print('non crypté', val)
         return val
+    if not key:
+        return ""
     if isinstance(key, str):  # on en fait une liste
         keylist = [key]
     else:
@@ -269,7 +273,7 @@ def decrypt(val, key=None, level=None, helper=None):
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
             return decrypt
-    return None
+    return ""
 
 
 def crypt(val, key=None, level=None, helper=None):
@@ -300,56 +304,60 @@ def valide_ulist(val, user, master, grouplist):
     return val
 
 
-def paramdecrypter(site_params,cryptinfo):  # decrypte les parametres cryptes
-        """decrypte d'eventuels parametres cryptes
+def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
+    """decrypte d'eventuels parametres cryptes
            gere 2 clefs une clef maitre et une clef utilisateur"""
-        #        print ('decryptage parametres',self.parms['cryptokey'])
-        user, usergroup, masterkey, userkey, defaultkey, cr_lev, cr_help = cryptinfo
-        localkey = "key_" + user  # clef par defaut
-        grouplist = []
-        master = False
-        if masterkey:
-            masterkey = decrypt(masterkey, key=[localkey, defaultkey, ""], level=cr_lev, helper=cr_help)
-            userkey = decrypt(userkey, key=[masterkey], level=cr_lev, helper=cr_help)
-            if userkey:
-                master = True
-        #            print ('decodege master', masterkey,userkey, userkeyref)
-        elif userkey:
-            userkey = decrypt(userkey, key=[masterkey, localkey])
-            #            print ('decodege user', userkey)
+    #        print ('decryptage parametres',self.parms['cryptokey'])
+    user, usergroup, masterkey, userkey, defaultkey, cr_lev, cr_help = cryptinfo
+    localkey = "key_" + user  # clef par defaut
+    grouplist = []
+    master = False
+    if masterkey:
+        masterkey = decrypt(
+            masterkey, key=[localkey, defaultkey, ""], level=cr_lev, helper=cr_help
+        )
+        userkey = decrypt(userkey, key=[masterkey], level=cr_lev, helper=cr_help)
+        if userkey:
+            master = True
+    #            print ('decodege master', masterkey,userkey, userkeyref)
+    elif userkey:
+        userkey = decrypt(userkey, key=[masterkey, localkey])
+        #            print ('decodege user', userkey)
 
-            grouplist = decrypt(usergroup, key=[localkey])
-            if not grouplist:
-                grouplist = []
-            else:
-                grouplist = grouplist.split(",")
-        #        print ('clef', masterkey, 'master', master, 'user',userkey)
-        supr = set()
+        grouplist = decrypt(usergroup, key=[localkey])
+        if not grouplist:
+            grouplist = []
+        else:
+            grouplist = grouplist.split(",")
+    #        print ('clef', masterkey, 'master', master, 'user',userkey)
+    supr = set()
 
-        for nom in site_params:
-            for numero, parametre in enumerate(site_params[nom]):
-                nom_p, val = parametre
-                if nom_p.startswith("**"):  # cryptage
-                    nom_p = nom_p[2:]
-                    val2 = decrypt(val, key=[masterkey, userkey], level=cr_lev, helper=cr_help)
-                    #                    print ('decryptage ', nom, nom_p, val2)
-                    val = valide_ulist(val2,user, master, grouplist)
-                    #                    print ("valide", val)
-                    #                    val = val2
-                    if val is None:
-                        supr.add(nom)
-                    else:
-                        site_params[nom][numero] = (nom_p, val)
-        for nom in supr:
-            # print("suppression paramgroup", nom)
-            del site_params[nom]
+    for nom in site_params:
+        for numero, parametre in enumerate(site_params[nom]):
+            nom_p, val = parametre
+            if nom_p.startswith("**"):  # cryptage
+                nom_p = nom_p[2:]
+                val2 = decrypt(
+                    val, key=[masterkey, userkey], level=cr_lev, helper=cr_help
+                )
+                #                    print ('decryptage ', nom, nom_p, val2)
+                val = valide_ulist(val2, user, master, grouplist)
+                #                    print ("valide", val)
+                #                    val = val2
+                if val is None:
+                    supr.add(nom)
+                else:
+                    site_params[nom][numero] = (nom_p, val)
+    for nom in supr:
+        # print("suppression paramgroup", nom)
+        del site_params[nom]
 
 
 def h_crypt(regle):
-    '''prepare la fonction de cryptage'''
-    regle.cryptolevel = regle.getvar('cryptolevel')
-    regle.cryptohelper = regle.getvar('cryptohelper')
-    regle.cryptokey = regle.getvar('defaultkey')
+    """prepare la fonction de cryptage"""
+    regle.cryptolevel = regle.getvar("cryptolevel")
+    regle.cryptohelper = regle.getvar("cryptohelper")
+    regle.cryptokey = regle.getvar("defaultkey")
     return True
 
 
@@ -359,10 +367,12 @@ def f_crypt(regle, obj):
  #parametres||attribut resultat crypte;defaut;attribut d'entree;;clef de cryptage
     #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
-    vcrypte = crypt(regle.getval_entree(obj),
-                                        key=regle.params.cmp1.getval(obj,regle.cryptokey),
-                                        level=regle.cryptolevel,
-                                        helper=regle.cryptohelper)
+    vcrypte = crypt(
+        regle.getval_entree(obj),
+        key=regle.params.cmp1.getval(obj, regle.cryptokey),
+        level=regle.cryptolevel,
+        helper=regle.cryptohelper,
+    )
     obj.attributs[regle.params.att_sortie.val] = vcrypte
     return True
 
@@ -379,10 +389,6 @@ def f_decrypt(regle, obj):
     decrypte = decrypt(val, key=clef)
     obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val
     return True
-
-
-
-
 
 
 if __name__ == "__main__":

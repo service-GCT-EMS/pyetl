@@ -205,13 +205,17 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
 
     retour = ressource.handler.write(obj)
 
-    if retour:
+    if retour and schema_courant:
         if not schema_courant.info["courbe"] and obj.geom_v.courbe:
             schema_courant.info["courbe"] = "1"
 
 
 #        ressource.compte(1)
-
+# geomdef = namedtuple("geomdef", ("writer", "converter"))
+#
+# reader: (reader, geom, has_schema, auxfiles, converter, initer)
+# writer: (writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,
+#          geomwriter, tmpgeowriter))
 READERS = {"json": (lire_objets, None, True, (), None, objreader)}
 WRITERS = {
     "json": (

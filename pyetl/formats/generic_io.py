@@ -288,23 +288,52 @@ class Reader(object):
         self.setidententree(groupe, classe)
         return groupe, classe
 
-    def prepare_lecture_att(self, obj, nom, format, schema=True):
+    def transfert_attribut(self, obj):
+        "recupere les attributs de l objet initial"
+        if self.regle.params.att_sortie.val == "*":
+            liste_att = {
+                i: j for i, j in obj.attributs.items() if not i.startswith("#")
+            }
+        else:
+            liste_att = {
+                i: j
+                for i, j in obj.attributs.items()
+                if i in self.regle.params.att_sortie.liste
+            }
+        return liste_att
+
+    def prepare_lecture_att(self, obj, format, schema=True):
         """prepare les parametres de lecture"""
         self.chemin = ""
         self.fixe = {"#format": format}
         self.prepare_lecture()
-        groupe, oclasse = obj.ident
+        if self.regle.params.att_sortie.val:
+            self.fixe.update(self.transfert_attribut(obj))
+        groupe = None
+        classe = None
+        oclasse = ""
+        cdef = self.regle.params.cmp2.liste
+        if len(cdef) == 1:
+            classe = cdef[0]
+        elif len(cdef) == 2:
+            groupe, classe = cdef[:2]
+        if groupe is None:
+            groupe, oclasse = obj.ident
+        if classe is None:
+            nat = self.regle.nom_att
+            if nat.startswith("#"):
+                nat = nat[1:]
+            classe = oclasse + "_" + nat
         if not self.nomschema and self.cree_schema:
             # les objets ont un schema issu du fichier (le format a un schema)
-            self.nomschema = "schema"
+            self.nomschema = "schema" + format
         self.fichier = ""
-        self.setidententree(groupe, nom)
-        return groupe, nom
+        self.setidententree(groupe, classe)
 
-    def attaccess(self, obj, nom, ext):
+    def attaccess(self, obj):
         """lance le reader sur un attribut en le traitant comme un buffer texte"""
-        groupe, classe = self.prepare_lecture_att(obj, nom, format)
-        with io.StringIO(obj.attributs[nom]) as ouvert:
+        self.prepare_lecture_att(obj, self.regle.format)
+        with io.StringIO(obj.attributs[self.regle.nom_att]) as ouvert:
             self.objreader(ouvert)
 
     def process(self, obj):

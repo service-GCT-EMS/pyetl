@@ -737,7 +737,7 @@ def f_join(regle, obj):
                     if not i.startswith("#")
                 ]
         else:
-            vlist = []
+            return False
         # print("list", vlist)
         obj.attributs.update(vlist)
     else:
@@ -754,11 +754,11 @@ def f_sjoin(regle, obj):
     """#aide||jointures
   #aide_spec||jointure statique
     #pattern||A;?;A;join;?C;?C||cmp1
-#parametres||sortie;defaut;entree;;fichier
+ #parametres||sortie;defaut;entree;;fichier
             ||position des champs dans le fichier (ordre)
-    #schema||ajout_attribut
-    #helper||join
-    #test||obj||^X;C;;set||^nom;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;nom;tata
+     #schema||ajout_attribut
+     #helper||join
+  #test||obj||^X;C;;set||^nom;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;nom;tata
     """
     #    print ('jointure ', obj.attributs.get(regle.params.att_entree.val,
     #           regle.params.val_entree.val), regle.champ)

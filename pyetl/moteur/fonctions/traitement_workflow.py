@@ -96,9 +96,7 @@ def f_start(regle, obj):
     #    print ('start',obj)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
-    obj2 = Objet(
-        "_declencheur", "_autostart", format_natif="interne", conversion="virtuel"
-    )
+    obj2 = Objet("_declencheur", "_start", format_natif="interne", conversion="virtuel")
     #    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True
@@ -837,13 +835,45 @@ def h_attreader(regle):
         raise SyntaxError("format de lecture inconnu:" + format)
     regle.reader = regle.stock_param.getreader(format, regle)
 
+    regle.nom_att = regle.params.att_entree.val
+    regle.format = regle.params.cmp1.val
+    regle.keepdata = regle.getvar("keepdata") == "1"
+
 
 def f_attreader(regle, obj):
     """#aide||traite un attribut d'un objet comme une source de donnees
-    #pattern||;;A;attreader;C;
+    #aide_spec||par defaut attreader supprime le contenu de l attribut source
+    #aide_speca||pour le conserver positionner la variable keepdata a 1
+    #pattern||;?C;A;attreader;C;?C
     """
     print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
-    regle.reader.attaccess(obj, regle.params.att_entree.val, regle.params.cmp1.val)
+    regle.reader.attaccess(obj)
+    if not regle.keepdata:  # on evite du duppliquer des gros xml
+        obj.attributs[regle.params.att_entree.val] = ""
+
+
+def h_attwriter(regle):
+    """initialise le reader"""
+    format = regle.params.cmp1.val
+    if format not in regle.stock_param.formats_connus_lecture:
+        raise SyntaxError("format de lecture inconnu:" + format)
+    regle.writer = regle.stock_param.getwriter(format, regle)
+
+    regle.nom_att = regle.params.att_sortie.val
+    regle.format = regle.params.cmp1.val
+    regle.store = True
+
+
+def f_attwriter(regle, obj):
+    """#aide||traite un attribut d'un objet comme une source de donnees
+    #aide_spec||par defaut attreader supprime le contenu de l attribut source
+    #aide_speca||pour le conserver positionner la variable keepdata a 1
+    #pattern||A;;;attwriter;C;?C
+    """
+    print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
+    regle.writer.attstore(obj)
+    regle.nbstock = 1
+
 
 
 def h_branch(regle):

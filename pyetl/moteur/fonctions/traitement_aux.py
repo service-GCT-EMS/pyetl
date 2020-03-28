@@ -415,8 +415,9 @@ def fschema_change_schema(regle, obj):
     """changement de schema """
     nom_schema = obj.attributs.get("#schema")
     if not nom_schema:
-        print("F-schema: schema sans nom ", obj.ident, regle.ligne)
-        return False
+        # print("F-schema: schema sans nom ", obj, regle.ligne)
+        # raise
+        return
     if obj.schema is None:
         schema2 = regle.stock_param.init_schema(
             nom_schema,
@@ -458,6 +459,11 @@ def fschema_change_schema(regle, obj):
         return
     if regle.getvar("supp_schema", False):
         schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
+
+
+def f_schema_nochange(regle, obj):
+    """ inhibe les changements de schema si non utiles """
+    regle.changeschema = None
 
 
 def fschema_map(regle, obj):
