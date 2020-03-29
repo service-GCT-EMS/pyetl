@@ -206,7 +206,7 @@ class FonctionTraitement(object):
 
     def __init__(self, nom, fonction, description, definition):
         self.nom = nom
-        self.module = None
+        self.module = ModuleInfo(nom, None)
         self.subfonctions = []
         self.fonctions_sortie = dict()
         self.description = description

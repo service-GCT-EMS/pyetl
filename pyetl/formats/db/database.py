@@ -16,6 +16,55 @@ from .gensql import DbGenSql
 
 
 DEBUG = False
+LOGGER = logging.getLogger("pyetl")
+
+
+def fkref(liste, niveau, niv_ref, schema, add=False):
+    """identifie les tables referenceees par des fk"""
+    trouve = 0
+    adds = set()
+    for ident in liste:
+        if niveau[ident] == niv_ref:
+            cibles = schema.is_cible(ident)
+            #            print(ident,":tables  visant la classe",cibles)
+            for j in cibles:
+                if j not in niveau:
+                    print("fkref: erreur cible", j)
+                    if add:
+                        adds.add(j)
+                    continue
+                if niveau[j] >= niv_ref and j != ident:
+                    if ident in schema.is_cible(j):
+                        print("attention references croisees", ident, j)
+                    else:
+                        niveau[ident] += 1
+                        #                        print(" trouve",ident,niveau[ident],j)
+                        trouve = 1
+                    break
+    return trouve, adds
+
+
+def tablesorter(liste, schema, complete=False):
+    """ trie les tables en fonction des cibles de clef etrangeres """
+    ajouts = True
+    niveau = dict()
+
+    while ajouts:
+        ajouts = set()
+        schema.calcule_cibles()
+        niveau = {i: 0 for i in liste}
+        trouve = 1
+        niv_ref = 0
+        while trouve:
+            trouve, adds = fkref(liste, niveau, niv_ref, schema)
+            ajouts.update(adds)
+            niv_ref += 1
+        #    print("niveau maxi", niv_ref)
+        if complete and ajouts:
+            liste.extend(ajouts)
+    niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
+    liste.sort(key=niv2.get)
+    return niveau
 
 
 class DummyConnect(object):
@@ -29,6 +78,9 @@ class DummyConnect(object):
         pass
 
     def request(self, *args):
+        pass
+
+    def commit(self):
         pass
 
     def cursor(self):
@@ -252,7 +304,10 @@ class DbConnect(object):
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
-        self.schemabase = None
+        defmodeconf = self.regle.getvar("mode_enums", 1)
+        self.schemabase = self.params.init_schema(
+            "#" + base, "B", defmodeconf=defmodeconf
+        )
         #        self.connect()
         self.gensql = DbGenSql()
         self.decile = 100000
@@ -299,6 +354,7 @@ class DbConnect(object):
         }
 
     def connect(self):
+
         self.connection = DummyConnect()
 
     def getdatatype(self, datatype):
@@ -397,7 +453,7 @@ class DbConnect(object):
             #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
             #        index_geometrique, clef_primaire, index, clef_etrangere = i
             #        print ('mdba:select tables' ,i)
-            ident = (nom_groupe, nom_classe)
+            ident = (str(nom_groupe), str(nom_classe))
             schemaclasse = self.schemabase.get_classe(ident)
             if not schemaclasse:
                 if type_table == "r":
@@ -434,7 +490,7 @@ class DbConnect(object):
         if DEBUG:
             print("ecriture debug:", "lecture_base_attr_" + self.type_base + ".csv")
             fdebug = open("lecture_base_attr_" + self.type_base + ".csv", "w")
-            fdebug.write("\n".join(self.fields) + "\n")
+            fdebug.write("\n".join(self.attdef.fields) + "\n")
 
         for atd in self.get_attributs():
             # atd = connect.attdef(*i)
@@ -550,6 +606,52 @@ class DbConnect(object):
             self.schemabase.dialecte,
         )
 
+    def select_elements_specifiques(self, schema, liste_tables):
+        """ selectionne les elements specifiques pour coller a une restriction de schema"""
+        return None
+
+    def getschematravail(
+        self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
+    ):
+        """recupere le schema de travail"""
+
+        nomschema = nomschema if nomschema else self.schemabase.nom.replace("#", "")
+        schema_travail = self.params.init_schema(nomschema, "B", modele=self.schemabase)
+        schema_travail.metas = dict(self.schemabase.metas)
+        schema_travail.metas["tables"] = tables
+        schema_travail.metas["filtre niveau"] = ",".join(niveau)
+        schema_travail.metas["filtre classe"] = ",".join(classe)
+        liste2 = []
+        # print ( 'schema base ',connect.schemabase.classes.keys())
+        for ident in self.schemabase.select_classes(
+            niveau, classe, tables, multi, nocase
+        ):
+            classe = self.schemabase.get_classe(ident)
+            #        print ('classe a copier ',classe.identclasse,classe.attributs)
+            clas2 = classe.copy(ident, schema_travail)
+            clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
+            # on renseigne le nombre d'objets de la table
+            clas2.type_table = (
+                classe.type_table
+            )  # pour eviter qu elle soit marqueee interne
+
+            liste2.append(ident)
+        complete = regle.getvar("gestion_coherence")
+        niveau = tablesorter(liste2, self.schemabase, complete)
+        #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
+        if schema_travail.elements_specifiques:
+            self.select_elements_specifiques(schema_travail, liste2)
+
+        LOGGER.info(
+            "getschematravail "
+            + str(len(self.schemabase.classes))
+            + "-->"
+            + str(len(schema_travail.classes))
+            + str(len(schema_travail.conformites))
+        )
+        self.connection.commit()
+        return schema_travail, liste2
+
     def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):
         """ lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom)
@@ -560,13 +662,7 @@ class DbConnect(object):
             return cur
 
         except self.errs as err:
-            LOGGER.error(
-                "erreur db %s : %s -> %s",
-                self.type_base,
-                requete,
-                str(data),
-                exc_info=1,
-            )
+            LOGGER.error("erreur db %s : %s -> %s", self.type_base, requete, str(data))
             LOGGER.info("requete finale %s", cur.cursor.mogrify(requete, data))
             cur.close()
             raise StopIteration(2)
@@ -587,16 +683,12 @@ class DbConnect(object):
     ):
         """ lancement requete et gestion retours en mode iterateur"""
         # print('appel iterreq database', volume,nom)
-
         cur = self.execrequest(
             requete, data=data, attlist=attlist, volume=volume, nom=nom
         )
-
         return cur
 
-    #        return iter(())
-
-    # elements de formattage sql
+    # ===================elements de formattage sql=======================
 
     def get_dateformat(self, nom):
         """formattage dates"""
@@ -691,7 +783,6 @@ class DbConnect(object):
         attlist2 = []
         for i in attlist:
             att = schema.attributs[i]
-            # print ('dbaccess:type_attribut ', i,att.type_att)
             if att.type_att == "X":
                 attlist2.append("")
             if att.type_att == "D":
@@ -910,7 +1001,7 @@ class DbConnect(object):
             return existe, conforme
         nom = conf.nombase
         if self.valide:
-            schemabase = self.connection.schemabase
+            schemabase = self.schemabase
             if schemabase is not None and nom in schemabase.conformites:
                 # si elle existe on verifie qu'elle est bonne
                 self.prepare_conf(conf)

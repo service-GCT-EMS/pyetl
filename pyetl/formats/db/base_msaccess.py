@@ -60,9 +60,6 @@ class AccConnect(DbConnect):
         self.types_base = TYPES_A
         #        print ('connection base access', serveur,base, user, passwd )
         self.connect()
-        #        if self.connection is None:
-        #            self.connection = dbaccess2(chembase, user, passwd)
-
         self.nombase = os.path.splitext(os.path.basename(base))[0]
         self.tables = set()
         self.set_tablelist()
@@ -257,7 +254,6 @@ class AccConnect(DbConnect):
         attlist2 = []
         for i in attlist:
             att = schema.attributs[i]
-            # print ('dbaccess:type_attribut ', i,att.type_att)
             if att.type_att == "X":
                 continue  # on ne sait pas traiter
             #            if att.type_att == 'D':
@@ -315,7 +311,7 @@ class AccConnect(DbConnect):
             else:
                 requete = requete + " ORDER BY " + ordre
         #        print ('parametres',data,valeur)
-        #        print ('dbaccess:requete de selection alpha',
+        #        print ('msaccess:requete de selection alpha',
         #           curs.mogrify(requete,data), niveau, classe)
         self.attlist = attlist
         #        print ('acces alpha',requete)

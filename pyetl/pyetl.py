@@ -25,7 +25,8 @@ from zipfile import ZipFile
 from .vglobales import VERSION, set_mainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
-from .formats.generic_io import Reader, READERS, WRITERS
+from .formats.generic_io import Reader, Writer, READERS, WRITERS
+from .formats.mdbaccess import dbaccess
 
 # print('formats',time.time()-t1)
 
@@ -176,7 +177,6 @@ class Pyetl(object):
     reconfig = reinterprete_regle
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS
-    #    reader = Reader
 
     def __init__(self, parent=None, nom=None, context=None):
 
@@ -1162,9 +1162,22 @@ class Pyetl(object):
         print("info: pyetl:job_control", self.getvar("job_control"))
         open(self.getvar("job_control"), "w").write("fin mapper\n")
 
-    def getreader(self, nom_format, regle):
+    def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""
-        return Reader(nom_format, regle, None)
+        return Reader(nom_format, regle, reglestart)
+
+    def getwriter(self, nom_format, regle):
+        """retourne un reader"""
+        return Writer(nom_format, regle, None)
+
+    def getdbaccess(self, regle, nombase, type_base=None, chemin="", description=None):
+        """retourne une connection et la cache"""
+        if nombase in self.dbconnect:
+            return self.dbconnect[nombase]
+        connection = dbaccess(regle, nombase, type_base, chemin, description)
+        if connection:
+            self.dbconnect[nombase] = connection
+        return connection
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""

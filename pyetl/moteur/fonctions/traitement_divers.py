@@ -11,8 +11,6 @@ import logging
 from collections import defaultdict
 import psutil
 
-from pyetl.formats.mdbaccess import dbaccess
-from pyetl.formats.generic_io import Writer
 from .outils import renseigne_attributs_batch
 
 
@@ -212,7 +210,7 @@ def h_sortir(regle):
 
         regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    regle.f_sortie = Writer(regle.params.cmp1.val, regle)  # tout le reste
+    regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
     #    print ('positionnement writer ',regle, regle.params.cmp1.val)
     if (
         regle.f_sortie.nom_format == "sql"
@@ -222,7 +220,7 @@ def h_sortir(regle):
         regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")
         regle.f_sortie.writerparms["nodata"] = regle.getvar("nodata")
         if destination:  # on va essayer de se connecter
-            connection = dbaccess(regle, destination)
+            connection = regle.stock_param.getdbaccess(regle, destination)
             if connection and connection.valide:
                 regle.f_sortie.gensql = (
                     connection.gensql

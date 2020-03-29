@@ -9,8 +9,6 @@ import re
 import time
 import os
 import logging
-from collections import defaultdict
-
 from .db import DATABASES
 from .interne.objet import Objet
 
@@ -23,393 +21,6 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-def coroutine(func):
-    """ decorateur de coroutine"""
-
-    def wrapper(*arg, **kwargs):
-        """decorateur de coroutine"""
-        generator = func(*arg, **kwargs)
-        next(generator)
-        return generator
-
-    return wrapper
-
-
-def fkref(liste, niveau, niv_ref, schema, add=False):
-    """identifie les tables referenceees par des fk"""
-    trouve = 0
-    adds = set()
-    for ident in liste:
-        if niveau[ident] == niv_ref:
-            cibles = schema.is_cible(ident)
-            #            print(ident,":tables  visant la classe",cibles)
-            for j in cibles:
-                if j not in niveau:
-                    print("fkref: erreur cible", j)
-                    if add:
-                        adds.add(j)
-                    continue
-                if niveau[j] >= niv_ref and j != ident:
-                    if ident in schema.is_cible(j):
-                        print("attention references croisees", ident, j)
-                    else:
-                        niveau[ident] += 1
-                        #                        print(" trouve",ident,niveau[ident],j)
-                        trouve = 1
-                    break
-    return trouve, adds
-
-
-def tablesorter(liste, schema, complete=False):
-    """ trie les tables en fonction des cibles de clef etrangeres """
-    ajouts = True
-    niveau = dict()
-
-    while ajouts:
-        ajouts = set()
-        schema.calcule_cibles()
-        niveau = {i: 0 for i in liste}
-        trouve = 1
-        niv_ref = 0
-        while trouve:
-            trouve, adds = fkref(liste, niveau, niv_ref, schema)
-            ajouts.update(adds)
-            niv_ref += 1
-        #    print("niveau maxi", niv_ref)
-        if complete and ajouts:
-            liste.extend(ajouts)
-    niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
-    liste.sort(key=niv2.get)
-    return niveau
-
-
-def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
-    """ determine si une table est a retenir """
-    if nocase:
-        return (
-            bool(ren.search(schemaclasse.groupe.lower())) != negniv
-            and bool(rec.search(schemaclasse.nom.lower())) != negclass
-        )
-    return (
-        bool(ren.search(schemaclasse.groupe)) != negniv
-        and bool(rec.search(schemaclasse.nom)) != negclass
-    )
-
-
-def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
-    """ determine si une table est a retenir """
-    groupe = schemaclasse.groupe.lower() if nocase else schemaclasse.groupe
-    vniv = groupe == exp_niv if exp_niv else True
-    vniv = vniv and not negniv
-    nom = schemaclasse.nom.lower() if nocase else schemaclasse.nom
-    vclass = nom == exp_class if exp_class else True
-    vclass = vclass and not negclass
-    #    if vniv and vclass:
-    #        print ('choix simple ',groupe,nom,exp_niv,'.',exp_class)
-    return vniv and vclass
-
-
-def selection_directe(schema, niveau):
-    """ selection directe d une table """
-    tables_a_sortir = set()
-    niv = niveau[0][2:]
-    if len(niv.split(".")) != 3:
-        print(
-            "dbselect: il faut une description complete s:niveau.classe.attribut",
-            niveau,
-        )
-    niv, clas = niv.split(".")[:2]
-    #    print("mdba select: recherche ", niv, clas)
-    for i in schema.classes:
-        #            print (schema.classes[i].groupe,schema.classes[i].nom)
-        if schema.classes[i].groupe == niv and schema.classes[i].nom == clas:
-            tables_a_sortir.add(i)
-            return tables_a_sortir
-
-
-def select_tables(schema, niveau, classe, tables="A", multi=True, nocase=False):
-    """produit la liste des tables a partir du schema utile pour id_in:"""
-    tables_a_sortir = set()
-    #    print('select ', niveau, classe, tables, multi)
-    if len(niveau) == 1 and niveau[0][:2] == "s:":  # selection directe
-        return selection_directe(schema, niveau)
-    convert = {"a": "rtmfv", "v": "vm", "t": "r"}
-    tables = convert.get(tables.lower(), tables.lower())
-    # print('db:sortie liste', len(niveau), len(classe))
-    # print('db:sortie liste', tables,niveau,classe)
-    for exp_niv, exp_clas in zip(niveau, classe):
-        #            trouve = False
-        exp_niv = exp_niv.strip()
-        exp_clas = exp_clas.strip()
-        lmulti = multi
-        if nocase:
-            exp_niv = exp_niv.lower()
-            exp_clas = exp_clas.lower()
-        negniv = False
-        negclass = False
-        if exp_niv and exp_niv[0] == "!":
-            negniv = True
-            exp_niv = exp_niv[1:]
-        if exp_clas and exp_clas[0] == "!":
-            negclass = True
-            exp_clas = exp_clas[1:]
-        if "*" in exp_clas:
-            exp_clas.replace("*", ".*")
-            lmulti = True
-        ren = re.compile(exp_niv)
-        try:
-            rec = re.compile(exp_clas)
-        except:  # on essaye de remplacesr les *
-            lmulti = False
-            rec = None
-            print("erreur de description de classe ", exp_clas)
-
-        # print ('selection boucle', ren,rec,len(schema.classes))
-        for i in schema.classes:
-            if schema.classes[i].type_table not in tables:
-                continue
-            if lmulti:
-                if choix_multi(schema.classes[i], ren, rec, negniv, negclass, nocase):
-                    tables_a_sortir.add(i)
-                #                    print ('sortir multi')
-                continue
-            if choix_simple(
-                schema.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
-            ):
-                tables_a_sortir.add(i)
-    #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
-    if not tables_a_sortir:
-        print("pas de tables a sortir")
-        print("select tables: requete", tables, niveau, classe, multi)
-        print("taille schema", schema.nom, len(schema.classes))
-
-    return tables_a_sortir
-
-
-def ihmtablelist(liste):
-    """retourne une liste hierarchique de niveaux classe"""
-    schemas = dict()
-    for i in liste:
-        nomschema, nomtable, commentaire, nb_enreg = i
-        if nomschema not in schemas:
-            schemas[nomschema] = dict()
-        schemas[nomschema][nomtable] = (commentaire, nb_enreg)
-    liste = []
-    for i in sorted(schemas):
-        valeur = (
-            i
-            + ":<"
-            + ",".join([j + ":" + str(schemas[i][j]) for j in sorted(schemas[i])])
-            + ">"
-        )
-        liste.append(valeur)
-    return "<" + ",".join(liste) + ">"
-
-
-# def _get_tables(connect):
-#     """recupere la structure des tables"""
-#     schema_base = connect.schemabase
-#     for i in connect.get_tables():
-#         nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table = (
-#             "",
-#             "",
-#             "",
-#             "0",
-#             "2",
-#             "0",
-#             "r",
-#         )
-#         if len(i) == 12:
-#             _, nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
-#                 i
-#             )
-#         elif len(i) == 11:
-#             nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table, _, _, _, _ = (
-#                 i
-#             )
-#         else:
-#             print("mdba:table mal formee ", connect.type_base, len(i), i)
-#             continue
-
-#         #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
-#         #        index_geometrique, clef_primaire, index, clef_etrangere = i
-#         #        print ('mdba:select tables' ,i)
-#         ident = (nom_groupe, nom_classe)
-#         schemaclasse = schema_base.get_classe(ident)
-#         if not schemaclasse:
-#             #            print ("schema incoherent",ident,sorted(schema_base.classes.keys()))
-#             if type_table == "r":
-#                 LOGGER.info("table sans attributs" + ".".join(ident))
-#             #                print("table sans attributs", ident)
-#             elif type_table == "v" or type_table == "m":
-#                 LOGGER.info("vue sans attributs" + ".".join(ident))
-#             #                print("vue sans attributs", ident)
-
-#             schemaclasse = schema_base.setdefault_classe(ident)
-#         schemaclasse.alias = alias_classe if alias_classe else ""
-#         schemaclasse.setinfo("objcnt_init", str(nb_obj) if nb_obj is not None else "0")
-#         schemaclasse.setinfo("dimension", str(dimension))
-#         schemaclasse.fichier = connect.nombase
-#         #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
-#         if schemaclasse.info["type_geom"] == "indef":
-#             schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
-#             #            print('stockage type geometrique', ident, type_geometrique,
-#             #                  schemaclasse.info["type_geom"])
-#             if schemaclasse.info["type_geom"] != "0":
-#                 schemaclasse.info["nom_geometrie"] = "geometrie"
-#         if schemaclasse.info["type_geom"] == "indef":
-#             print(
-#                 ident,
-#                 "apres _get_tables: type_geometrique",
-#                 schemaclasse.info["type_geom"],
-#             )
-
-#         schemaclasse.type_table = type_table
-
-
-# def _get_attributs(connect):
-#     """recupere les attributs"""
-#     types_base = connect.types_base
-#     schema_base = connect.schemabase
-#     fields = connect.attdef._fields
-#     fdebug = None
-#     if DEBUG:
-#         print("ecriture debug:", "lecture_base_attr_" + connect.type_base + ".csv")
-#         fdebug = open("lecture_base_attr_" + connect.type_base + ".csv", "w")
-#         fdebug.write("\n".join(fields) + "\n")
-
-#     for atd in connect.get_attributs():
-#         # atd = connect.attdef(*i)
-#         # print ('schema attributs', atd)
-#         if DEBUG:
-#             fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
-#             fdebug.write("\n")
-#         num_attribut = float(atd.num_attribut)
-#         classe = schema_base.setdefault_classe((atd.nom_groupe, atd.nom_classe))
-#         #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
-#         if not atd.type_attr:
-#             print(
-#                 "attribut sans type",
-#                 "g:",
-#                 atd.nom_groupe,
-#                 "c:",
-#                 atd.nom_classe,
-#                 "a:",
-#                 atd.nom_attr,
-#             )
-#         type_ref = atd.type_attr
-#         taille_att = atd.taille
-#         if "(" in atd.type_attr:  # il y a une taille
-#             tmp = atd.type_attr.split("(")
-#             if tmp[1][-1].isnumeric():
-#                 type_ref = tmp[0]
-#                 taille_att = tmp[1][-1]
-#         if type_ref.upper() in types_base:
-#             type_attr = types_base[type_ref.upper()]
-#         else:
-#             type_attr = connect.get_type(type_ref)
-
-#         if atd.enum:
-#             #            print ('detection enums ',atd.enum)
-#             #            if enum in schema_base.conformites:
-#             type_attr_base = "T"
-#             type_attr = atd.enum
-#         else:
-#             type_attr_base = type_attr
-
-#         clef_etr = ""
-#         if atd.clef_etrangere:
-#             cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
-#             #            if atd.cible_clef is None:
-#             #                cible_clef = ''
-#             if not cible_clef:
-#                 print(
-#                     "mdba: erreur schema : cible clef etrangere non definie",
-#                     atd.nom_groupe,
-#                     atd.nom_classe,
-#                     atd.nom_attr,
-#                     atd.clef_etrangere,
-#                 )
-#             #            print ('trouve clef etrangere',clef_etrangere)
-#             clef_etr = atd.clef_etrangere + "." + cible_clef
-#         #        if clef:  print (clef)
-#         index = atd.index if atd.index is not None else ""
-#         #        if index is None:
-#         #            index = ''
-#         if atd.clef_primaire:
-#             code = "P:" + str(atd.clef_primaire)
-#             if code not in index:
-#                 index = index + " " + code if index else code
-
-#         obligatoire = atd.obligatoire == "oui"
-#         parametres_clef = atd.parametres_clef if "parametres_clef" in fields else ""
-#         #        if type_attr == 'geometry':
-#         #            print ('attribut',atd)
-#         classe.stocke_attribut(
-#             atd.nom_attr,
-#             type_attr,
-#             defaut=atd.defaut,
-#             type_attr_base=type_attr_base,
-#             taille=taille_att,
-#             dec=atd.decimales,
-#             force=True,
-#             alias=atd.alias,
-#             dimension=atd.dimension,
-#             clef_etr=clef_etr,
-#             ordre=num_attribut,
-#             mode_ordre="a",
-#             parametres_clef=parametres_clef,
-#             index=index,
-#             unique=atd.unique,
-#             obligatoire=obligatoire,
-#             multiple=atd.multiple,
-#         )
-
-#     if DEBUG:
-#         fdebug.close()
-
-
-# def get_schemabase(connect, mode_force_enums=1):
-#     """ recupere le schema complet de la base """
-#     debut = time.time()
-#     schema_base = connect.schemabase
-#     #    types_base = connect.types_base
-#     metas = {
-#         "type_base": connect.idconnect,
-#         "date_extraction": time.asctime(),
-#         "serveur": connect.serveur,
-#         "base": connect.base,
-#         "origine": "B",
-#         "user": connect.user,
-#     }
-#     schema_base.metas = metas
-#     for i in connect.get_enums():
-#         nom_enum, ordre, valeur, alias = i[:4]
-#         conf = schema_base.get_conf(nom_enum)
-#         conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
-
-#     _get_attributs(connect)
-#     _get_tables(connect)
-
-#     for i in connect.db_get_schemas():
-#         nom, alias = i
-#         schema_base.alias_groupes[nom] = alias if alias else ""
-#     #        print ('recuperation alias',nom,alias)
-#     connect.get_elements_specifiques(schema_base)
-#     schema_base.dialecte = connect.dialecte
-#     LOGGER.info(
-#         "lecture schema base "
-#         + schema_base.nom
-#         + ":"
-#         + str(len(schema_base.classes))
-#         + " tables en "
-#         + str(int(time.time() - debut))
-#         + "s ("
-#         + schema_base.dialecte
-#         + ")"
-#     )
-
-
 def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = nombase
@@ -417,9 +28,6 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
     serveur = ""
     stock_param = regle.stock_param
     #    print('bases connues', stock_param.dbconnect.keys())
-    if codebase in stock_param.dbconnect:
-        return stock_param.dbconnect[codebase]
-    defmodeconf = 1
     systables = regle.getvar("tables_systeme")
     # serveur = regle.getvar("server_" + codebase, "")
 
@@ -469,7 +77,6 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         base = nombase
         print("filedb", type_base, "-->", nombase)
 
-    defmodeconf = regle.getvar("mode_enums_" + codebase, 1)
     user = regle.getvar("user_" + codebase, "")
     passwd = regle.getvar("passwd_" + codebase, "")
 
@@ -485,15 +92,8 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         connection.geom_from_natif = dbdef.converter
         connection.geom_to_natif = dbdef.geomwriter
         connection.format_natif = dbdef.geom
-
-        schema_base = stock_param.init_schema(
-            "#" + codebase, "B", defmodeconf=defmodeconf
-        )
-        connection.schemabase = schema_base
-
-        schema_base.dbsql = connection.gensql
+        connection.schemabase.dbsql = connection.gensql
         connection.get_schemabase()
-        stock_param.dbconnect[codebase] = connection
         connection.connection.commit()  # on referme toutes les ressources
         return connection
 
@@ -542,7 +142,7 @@ def dbextload(regle_courante, base, files, log=None):
     """charge un fichier a travers un loader"""
     print("extload chargement ", base, files)
     stock_param = regle_courante.stock_param
-    connect = dbaccess(regle_courante, base)
+    connect = stock_param.getdbaccess(regle_courante, base)
     if connect is None:
         return False
     connect = stock_param.dbconnect[base]
@@ -634,7 +234,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
 def dbrunproc(regle, base, commande, data):
     """execute une procedure stockeee en base """
     # print("mdba execution directe commande", base, file)
-    connect = dbaccess(regle, base)
+    connect = regle.stock_param.getdbaccess(regle, base)
     if connect is None:
         return False
     # connect = regle.stock_param.dbconnect[base]
@@ -644,7 +244,7 @@ def dbrunproc(regle, base, commande, data):
 def dbextsql(regle, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
     # print("mdba execution sql via un programme externe", base, file)
-    connect = dbaccess(regle, base)
+    connect = regle.stock_param.getdbaccess(regle, base)
     if connect is None:
         return False
     connect = regle.stock_param.dbconnect[base]
@@ -674,7 +274,7 @@ def get_connect(
     """ recupere la connection a la base et les schemas qui vont bien"""
     # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
-    connect = dbaccess(
+    connect = stock_param.getdbaccess(
         regle, base, type_base=type_base, chemin=chemin, description=description
     )
 
@@ -683,46 +283,15 @@ def get_connect(
         return None
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
-    schema_travail = stock_param.init_schema(nomschema, "B", modele=connect.schemabase)
-    # print(
-    #     "creation schema_travail",
-    #     nomschema,
-    #     connect.schemabase.nom,
-    #     schema_travail.elements_specifiques["roles"],
-    # )
-    schema_travail.metas = dict(connect.schemabase.metas)
-    schema_travail.metas["tables"] = tables
-    schema_travail.metas["filtre niveau"] = ",".join(niveau)
-    schema_travail.metas["filtre classe"] = ",".join(classe)
-    liste2 = []
-    # print ( 'schema base ',connect.schemabase.classes.keys())
-    for ident in select_tables(
-        connect.schemabase, niveau, classe, tables, multi, nocase
-    ):
-        classe = connect.schemabase.get_classe(ident)
-        #        print ('classe a copier ',classe.identclasse,classe.attributs)
-        clas2 = classe.copy(ident, schema_travail)
-        clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
-        # on renseigne le nombre d'objets de la table
-        clas2.type_table = (
-            classe.type_table
-        )  # pour eviter qu elle soit marqueee interne
-
-        liste2.append(ident)
-    complete = regle.getvar("gestion_coherence")
-    niveau = tablesorter(liste2, connect.schemabase, complete)
-    #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
-    if schema_travail.elements_specifiques:
-        connect.select_elements_specifiques(schema_travail, liste2)
-
-    LOGGER.info(
-        "get_connect schema_travail "
-        + str(len(connect.schemabase.classes))
-        + "-->"
-        + str(len(schema_travail.classes))
-        + str(len(schema_travail.conformites))
+    schema_travail, liste2 = connect.getschematravail(
+        regle,
+        niveau,
+        classe,
+        tables=tables,
+        multi=multi,
+        nocase=nocase,
+        nomschema=nomschema,
     )
-    connect.connection.commit()
     return connect, schema_travail, liste2
 
 
@@ -1467,7 +1036,7 @@ class DbWriter(object):
         if retour:
             connect, schema_travail, liste_tables = retour
             self.connect = connect
-            self.schema_base = connect.schema_base
+            self.schema_base = connect.schemabase
 
     def dbtable(self, idtable):
         """ cree une table """

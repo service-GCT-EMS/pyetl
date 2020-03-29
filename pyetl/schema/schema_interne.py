@@ -6,7 +6,7 @@ Created on Wed Dec 10 09:28:45 2014
 """
 import copy
 
-# import re
+import re
 from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
@@ -24,13 +24,20 @@ def get_attribut(nom, vmax):
 
 
 def init_schema(
-    mapper, nom_schema, origine="G", fich="", defmodeconf=0, stable=True, modele=None, copie=False
+    mapper,
+    nom_schema,
+    origine="G",
+    fich="",
+    defmodeconf=0,
+    stable=True,
+    modele=None,
+    copie=False,
 ):
     """ retourne le schemas qui va bien et les cree si necsssaire """
-    if not nom_schema: # on demande un schema temporaire
-        return Schema('##tmp', origine=origine, fich=fich, defmodeconf=defmodeconf)
+    if not nom_schema:  # on demande un schema temporaire
+        return Schema("##tmp", origine=origine, fich=fich, defmodeconf=defmodeconf)
     #    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
-    if not mapper: # on demande un schema temporaire nomme
+    if not mapper:  # on demande un schema temporaire nomme
         return Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
     if isinstance(modele, str):
         if modele in mapper.schemas:
@@ -39,10 +46,12 @@ def init_schema(
             print("schema introuvable", modele, "dans", mapper.schemas.keys())
             modele = None
     if nom_schema not in mapper.schemas:
-        nouveau = Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
+        nouveau = Schema(
+            nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf
+        )
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
-        nouveau.metas['script_ref'] = mapper.getvar('pyetl_script_ref')
+        nouveau.metas["script_ref"] = mapper.getvar("pyetl_script_ref")
         #            self.schemas[nom_schema].modele = modele
         #        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 
@@ -57,9 +66,36 @@ def init_schema(
 
     #                self.schemas[nom_schema].dic_abrev = modele.dic_abrev
     if mapper.schemas[nom_schema].origine is None:
-        print ('schema incorrect', origine, modele)
+        print("schema incorrect", origine, modele)
         raise ValueError
     return mapper.schemas[nom_schema]
+
+
+def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
+    """ determine si une table est a retenir """
+    if nocase:
+        return (
+            bool(ren.search(schemaclasse.groupe.lower())) != negniv
+            and bool(rec.search(schemaclasse.nom.lower())) != negclass
+        )
+    return (
+        bool(ren.search(schemaclasse.groupe)) != negniv
+        and bool(rec.search(schemaclasse.nom)) != negclass
+    )
+
+
+def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
+    """ determine si une table est a retenir """
+    groupe = schemaclasse.groupe.lower() if nocase else schemaclasse.groupe
+    vniv = groupe == exp_niv if exp_niv else True
+    vniv = vniv and not negniv
+    nom = schemaclasse.nom.lower() if nocase else schemaclasse.nom
+    vclass = nom == exp_class if exp_class else True
+    vclass = vclass and not negclass
+    #    if vniv and vclass:
+    #        print ('choix simple ',groupe,nom,exp_niv,'.',exp_class)
+    return vniv and vclass
+
 
 
 class Schema(object):
@@ -167,8 +203,12 @@ class Schema(object):
         self.direct = dict()
         #        self.dic_abrev = dict()
         self.stock_mapping = M.Mapping()
-        self.origine = origine  # G: schema genere L: schema lu S: schema de sortie B: schema base
-        self.systeme_orig = "def"  # systeme d'origine : permets de gerer les particularites
+        self.origine = (
+            origine
+        )  # G: schema genere L: schema lu S: schema de sortie B: schema base
+        self.systeme_orig = (
+            "def"
+        )  # systeme d'origine : permets de gerer les particularites
         self.metas = dict()  # metadonnees du schema
         self.modele = None
         self.nom = nom_schema
@@ -187,7 +227,7 @@ class Schema(object):
         self.stable = True
 
     def __repr__(self):
-        return "schema:"+self.nom+" "+str(len(self.classes))+' classes'
+        return "schema:" + self.nom + " " + str(len(self.classes)) + " classes"
 
     def copy(self, nom=None):
         "retourne une copie du schema "
@@ -215,7 +255,9 @@ class Schema(object):
         d_if = {i: getattr(self, i) for i in infos}
         d_if["__infos__"] = infos
         d_if["classes"] = {nom: cl.__dic_if__ for nom, cl in self.classes.items()}
-        d_if["conformites"] = {nom: conf.__dic_if__ for nom, conf in self.conformites.items()}
+        d_if["conformites"] = {
+            nom: conf.__dic_if__ for nom, conf in self.conformites.items()
+        }
         d_if["stock_mapping"] = self.stock_mapping.__dic_if__
         return d_if
 
@@ -389,7 +431,12 @@ class Schema(object):
         """ force les origines des classes"""
         id2 = self.stock_mapping.map_dest(id_orig)
         if id2 is None:
-            print ('attention mapping destination impossible', self.nom,id_orig, id_orig in self.classes)
+            print(
+                "attention mapping destination impossible",
+                self.nom,
+                id_orig,
+                id_orig in self.classes,
+            )
             return id_orig
         return id2
 
@@ -420,7 +467,11 @@ class Schema(object):
         for i in self.classes:
             groupes[i[0]] = 1
         print(
-            "schema : stat schema", self.nom, len(groupes), len(self.classes), len(self.conformites)
+            "schema : stat schema",
+            self.nom,
+            len(groupes),
+            len(self.classes),
+            len(self.conformites),
         )
 
     def get_conf(self, nom_conf, type_c="", mode=1):
@@ -444,3 +495,68 @@ class Schema(object):
         for i in self.classes:
             self.classes[i].setbasic(mode)
         self.elements_specifiques = {}
+
+    def selection_directe(self, ident):
+        """ selection directe d une table """
+        tables_a_sortir = set()
+        niv, clas = ident.split(".")[:2]
+        #    print("mdba select: recherche ", niv, clas)
+        for i in self.classes:
+            #            print (schema.classes[i].groupe,schema.classes[i].nom)
+            if self.classes[i].groupe == niv and self.classes[i].nom == clas:
+                tables_a_sortir.add(i)
+                return tables_a_sortir
+
+    def select_classes(self, niveau, classe, tables="A", multi=True, nocase=False):
+        """produit la liste des classes demandees a partir du schema utile pour id_in:"""
+        tables_a_sortir = set()
+        if len(niveau) == 1 and niveau[0][:2] == "s:":  # selection directe
+            return self.selection_directe(niveau[0][:2])
+        convert = {"v": "vm", "t": "r"}
+        tables = convert.get(tables.lower(), tables.lower())
+        for exp_niv, exp_clas in zip(niveau, classe):
+            #            trouve = False
+            exp_niv = exp_niv.strip()
+            exp_clas = exp_clas.strip()
+            lmulti = multi
+            if nocase:
+                exp_niv = exp_niv.lower()
+                exp_clas = exp_clas.lower()
+            negniv = False
+            negclass = False
+            if exp_niv and exp_niv[0] == "!":
+                negniv = True
+                exp_niv = exp_niv[1:]
+            if exp_clas and exp_clas[0] == "!":
+                negclass = True
+                exp_clas = exp_clas[1:]
+            if "*" in exp_clas:
+                exp_clas.replace("*", ".*")
+                lmulti = True
+            ren = re.compile(exp_niv)
+            try:
+                rec = re.compile(exp_clas)
+            except:  # on essaye de remplacesr les *
+                lmulti = False
+                rec = None
+                print("erreur de description de classe ", exp_clas)
+
+            # print ('selection boucle', ren,rec,len(schema.classes))
+            for i in self.classes:
+                if tables != "a" and self.classes[i].type_table not in tables:
+                    continue
+                if lmulti:
+                    if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
+                        tables_a_sortir.add(i)
+                    #                    print ('sortir multi')
+                    continue
+                if choix_simple(
+                    self.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
+                ):
+                    tables_a_sortir.add(i)
+        #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
+        if not tables_a_sortir:
+            print("pas de tables a sortir")
+            print("select tables: requete", tables, niveau, classe, multi)
+            print("taille schema", self.nom, len(self.classes))
+        return tables_a_sortir

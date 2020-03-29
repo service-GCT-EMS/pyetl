@@ -11,7 +11,7 @@ import glob
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
-from .outils import prepare_mode_in, objloader
+from .outils import prepare_mode_in
 
 LOGGER = logging.getLogger("pyetl")
 
@@ -121,7 +121,7 @@ def param_base(regle):
         att = (attrs, cmp)
 
     regle.dyn = "#" in niv or "#" in cla
-    #    print('parametres dbaccess', base, niveau, classe, att, regle)
+    #    print('parametres acces base', base, niveau, classe, att, regle)
 
     regle.cible_base = (base, niveau, classe, att)
     return True
@@ -240,7 +240,9 @@ def f_dbalpha(regle, obj):
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
 
     if base:
-        connect = DB.dbaccess(regle, base, type_base=type_base, chemin=chemin)
+        connect = regle.stock_param.getdbaccess(
+            regle, base, type_base=type_base, chemin=chemin
+        )
         if connect is None:
             return False
         if (

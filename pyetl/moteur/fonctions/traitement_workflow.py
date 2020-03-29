@@ -855,8 +855,8 @@ def f_attreader(regle, obj):
 def h_attwriter(regle):
     """initialise le reader"""
     format = regle.params.cmp1.val
-    if format not in regle.stock_param.formats_connus_lecture:
-        raise SyntaxError("format de lecture inconnu:" + format)
+    if format not in regle.stock_param.formats_connus_ecriture:
+        raise SyntaxError("format d'ecriture inconnu:" + format)
     regle.writer = regle.stock_param.getwriter(format, regle)
 
     regle.nom_att = regle.params.att_sortie.val
@@ -865,15 +865,15 @@ def h_attwriter(regle):
 
 
 def f_attwriter(regle, obj):
-    """#aide||traite un attribut d'un objet comme une source de donnees
+    """#aide||traite un attribut d'un objet comme une sortie cree un objet pas fanout
     #aide_spec||par defaut attreader supprime le contenu de l attribut source
     #aide_speca||pour le conserver positionner la variable keepdata a 1
+    #helper||sortir||attwriter
     #pattern||A;;;attwriter;C;?C
     """
-    print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
+    print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.writer.attstore(obj)
     regle.nbstock = 1
-
 
 
 def h_branch(regle):

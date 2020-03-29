@@ -248,7 +248,7 @@ def prepare_regle(regle, prec=None):
     if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
         regle.selstd = None
         regle.valide = True
-    #        print ("interp: mode dbaccess",regle.code_classe,regle.mode,regle)
+    #        print ("interp: acces base de donnees",regle.code_classe,regle.mode,regle)
     else:
         regle.prepare_selecteur(v_nommees)
         regle.code_classe = regle.code_classe.split(":")[-1]

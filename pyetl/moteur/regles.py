@@ -13,8 +13,6 @@ from itertools import zip_longest, count
 import pyetl.schema.fonctions_schema as FSC
 import pyetl.formats.format_temporaire as T
 
-# import pyetl.formats.mdbaccess as DB
-# from pyetl.moteur.fonctions import gestion_schema as GS
 LOGGER = logging.getLogger("pyetl")
 
 

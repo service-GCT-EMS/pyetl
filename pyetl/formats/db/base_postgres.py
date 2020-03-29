@@ -187,13 +187,11 @@ class PgrConnect(DbConnect):
     def set_searchpath(self):
         """positionne les path pour la session"""
         cur = self.connection.cursor()
-        #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
         cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
 
     def datestyle(self):
         """recupere la config de formattage de dates"""
-        #    print ('dbaccess:requete de selection table', cur.mogrify(requete,data))
         retour = self.request("show DateStyle")
         if retour:
             datestyle = retour.pop()[0].split(",")
