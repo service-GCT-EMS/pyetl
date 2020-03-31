@@ -637,7 +637,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
-    if macroenv.getvar("debug") != "0":
+    if macroenv.getvar("debug", "0") != "0":
         print(
             "debug macro:",
             context,
@@ -818,7 +818,7 @@ def lire_regles_csv(
     if bloc != 0:
         erreurs += 1
         print("erreur structure de blocs", bloc)
-    mapper.debug = int(mapper.getvar("debug"))
+    mapper.debug = int(mapper.getvar("debug", 0))
     if mapper.debug:
         print("niveau debug :", mapper.getvar("debug"))
         # on initialise les parametres our finir #print 'parametres ', i

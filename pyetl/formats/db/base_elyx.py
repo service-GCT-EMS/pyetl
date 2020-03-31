@@ -905,7 +905,29 @@ class ElyConnect(ora.OrwConnect):
                             0,
                         )
                         self.attributs[i[0] + 0.2] = attdef
-
+                        attdef = self.attdef(
+                            nomschema,
+                            nomtable,
+                            nom_att + "_O",
+                            "orientation " + str(alias),
+                            "F",
+                            "False",
+                            multiple,
+                            "",
+                            obligatoire,
+                            "",
+                            dimension,
+                            ordre + 0.2,
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            0,
+                            0,
+                        )
+                        self.attributs[i[0] + 0.3] = attdef
                 else:
                     print(
                         "error: elyx : attribut de composant inconnu", i, compos_id[0]

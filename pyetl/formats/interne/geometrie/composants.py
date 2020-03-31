@@ -31,7 +31,9 @@ def cercle_3pts(pt1, pt2, pt3):
     if vma == vmb:
         print("error: compos: erreur cercle ", cx1, cy1, cx2, cy2, cx3, cy3)
         raise ValueError("cercle degenere")
-    xctr = (vma * vmb * (cy1 - cy3) + vmb * (cx1 + cx2) - vma * (cx2 + cx3)) / (2 * (vmb - vma))
+    xctr = (vma * vmb * (cy1 - cy3) + vmb * (cx1 + cx2) - vma * (cx2 + cx3)) / (
+        2 * (vmb - vma)
+    )
     yctr = (
         -(xctr - (cx1 + cx2) / 2) / vma + (cy1 + cy2) / 2
         if vma != 0
@@ -94,8 +96,11 @@ def cercle_3pts(pt1, pt2, pt3):
 
 
 class Section(object):
-    """# definition d'une section"""
-    __slots__=['coords','couleur','courbe','aire','dimension','encours']
+    """# definition d'une section
+        - la section est l'element fondamental d une geometrie """
+
+    __slots__ = ["coords", "couleur", "courbe", "aire", "dimension", "encours"]
+
     def __init__(self, pnt, dim):
         if pnt:
             self.coords = [list(pnt)]
@@ -132,7 +137,9 @@ class Section(object):
 
     @property
     def __list_if__(self):
-        return ",".join([" ".join([str(j) for j in i[: self.dimension]]) for i in self.coords])
+        return ",".join(
+            [" ".join([str(j) for j in i[: self.dimension]]) for i in self.coords]
+        )
 
     #        return '('+','.join(map(lambda i: map(str,i[:self.dimension]) , self.coords) )+')'
 
@@ -143,7 +150,7 @@ class Section(object):
         double.courbe = self.courbe
         double.aire = self.aire
         double.encours = self.encours
-        double.coords = [list(i) for i in self.coords]
+        double.coords = [i[:] for i in self.coords]
         return double
 
     def addpoint(self, pnt):
@@ -228,7 +235,7 @@ class Section(object):
     def longueur(self):
         """ calcule la longueur : attention faux pour les courbes"""
         long = 0
-        coords = list(self.coords)
+        coords = self.coords
         #        print("calcul longueur",coords)
         if len(coords) > 1:
             if self.dimension == 3:
@@ -236,7 +243,9 @@ class Section(object):
                 for pnt in coords[1:]:
                     xcour, ycour, zcour = pnt[:3]
                     long += Ma.sqrt(
-                        ((xpr - xcour)) ** 2 + ((ypr - ycour)) ** 2 + ((zpr - zcour)) ** 2
+                        ((xpr - xcour)) ** 2
+                        + ((ypr - ycour)) ** 2
+                        + ((zpr - zcour)) ** 2
                     )
                     #                print("calcul",pnt,long)
                     xpr, ypr, zpr = xcour, ycour, zcour
@@ -268,7 +277,11 @@ class Section(object):
         for i in range(ncoord):
             aire += (
                 (self.coords[(i + 1) % ncoord][0] - self.coords[i][0])
-                * (self.coords[(i + 1) % ncoord][1] + self.coords[i][1] - 2 * self.ppt[1])
+                * (
+                    self.coords[(i + 1) % ncoord][1]
+                    + self.coords[i][1]
+                    - 2 * self.ppt[1]
+                )
                 / 2
             )
         return aire
@@ -280,9 +293,20 @@ class Section(object):
 
 class Ligne(object):
     """definition d'une ligne"""
-    __slots__=['sections','termine','interieur','err','point_double',
-                'aire','dimension','courbe','type']
-    def __init__(self, sect, interieur=None):
+
+    __slots__ = [
+        "sections",
+        "termine",
+        "interieur",
+        "err",
+        "point_double",
+        "aire",
+        "dimension",
+        "courbe",
+        "type",
+    ]
+
+    def __init__(self, sect, interieur=False):
         self.sections = [sect.dupplique()]
         self.termine = False
         self.interieur = interieur
@@ -363,7 +387,9 @@ class Ligne(object):
             return False
         if desordre and self.dpt == ligne.dpt:  # on inverse si necessaire
             ligne.inverse()
-        if self.dpt == ligne.ppt:  # cas simple on ajoute les sections sans se poser de questions
+        if (
+            self.dpt == ligne.ppt
+        ):  # cas simple on ajoute les sections sans se poser de questions
             self.termine = False
             for sect in ligne.sections:
                 if self.ajout_section(sect):
@@ -377,7 +403,9 @@ class Ligne(object):
         sc.finalise(couleur, courbe)
         self.termine = True
         if courbe == 3:  # cas particulier du cercle
-            if len(self.sections) > 1:  # il y a deja des sections il faut une nouvelle ligne
+            if (
+                len(self.sections) > 1
+            ):  # il y a deja des sections il faut une nouvelle ligne
                 return self.sections.pop()
         self.courbe = sc.courbe or self.courbe
 
@@ -491,8 +519,8 @@ class Ligne(object):
         return itertools.chain(*[i.coords for i in self.sections])
 
     def sdef(self):
-        '''retourne un descriptif des sections'''
-        return ((len(i),i.courbe) for i in self.sections)
+        """retourne un descriptif des sections"""
+        return ((len(i), i.courbe) for i in self.sections)
 
     def convert(self, fonction):
         #        print("ligne avant conv",list(self.coords))
@@ -535,7 +563,9 @@ class Ligne(object):
 
 class Polygone(object):
     """definition d'un polygone eventuellement a trous"""
-    __slots__=['lignes','dimension','courbe']
+
+    __slots__ = ["lignes", "dimension", "courbe"]
+
     def __init__(self, lig):
         self.lignes = [lig]
         self.dimension = lig.dimension

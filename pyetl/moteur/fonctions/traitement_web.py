@@ -3,7 +3,7 @@
 Created on Fri Dec 11 14:34:04 2015
 
 @author: 89965
-fonctions de structurelles diverses
+fonctions de chargement web up/download http et ftp + acces web services
 """
 import logging
 import os
@@ -152,7 +152,8 @@ def f_geocode(regle, obj):
 
 def h_ftpupload(regle):
     """prepare les parametres ftp"""
-    regle.chargeur = True
+    if regle.params.pattern == "1":
+        regle.chargeur = True
     codeftp = regle.params.cmp1.val
     regle.ftp = None
     if codeftp:
@@ -222,8 +223,9 @@ def ftpconnect(regle):
 
 def f_ftpupload(regle, obj):
     """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;
-    #pattern||;?C;?A;ftp_upload;C;?C
+  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;chemin ftp
+    #pattern1||;?C;?A;ftp_upload;?C;?C
+    #pattern2||;=#att;A;ftp_upload;?C;C
        #test||notest
     """
     filename = regle.getval_entree(obj)
@@ -243,9 +245,15 @@ def f_ftpupload(regle, obj):
             regle.ftp.put(filename)
             print("transfert effectue", filename, "->", destname)
         else:
-            localfile = open(filename, "rb")
-            regle.ftp.storbinary("STOR " + destname, localfile)
-            localfile.close()
+            if regle.params.pattern == "2":
+                input = io.BytesIO()
+                input = obj.attributs[regle.params.att_entree.val].encode("utf8")
+                regle.ftp.storbinary("STOR " + destname, input.read)
+                input.close()
+            else:
+                localfile = open(filename, "rb")
+                regle.ftp.storbinary("STOR " + destname, localfile)
+                localfile.close()
             print("transfert effectue", filename, "->", destname)
         return True
 

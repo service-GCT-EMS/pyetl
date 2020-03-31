@@ -350,7 +350,7 @@ class Pyetl(object):
                     direct=os.path.join(self.paramdir, "macros"), opt=1
                 )  # macros perso
             self.sorties = GestionSorties()
-            self.debug = int(self.getvar("debug"))
+            self.debug = int(self.getvar("debug", 0))
 
         else:
             self.macrostore = MacroStore(self.parent.macrostore)
@@ -787,7 +787,6 @@ class Pyetl(object):
                 ("jour_m", time.strftime("%d")),
                 ("jour_s", time.strftime("%w")),
                 ("stat_defaut", "affiche"),
-                ("debug", "0"),
                 ("fstat", ""),
                 ("force_schema", "util"),
                 ("epsg", "3948"),

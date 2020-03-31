@@ -8,24 +8,24 @@ import collections
 from .geometrie.geom import Geometrie, Erreurs
 
 
-class AttributsSpeciaux(object):
-    """gere les attibuts speciaux a certains formats """
+# class AttributsSpeciaux(object):
+#     """gere les attibuts speciaux a certains formats """
 
-    __slots__ = ["typespecial", "valeurs", "special"]
+#     __slots__ = ["typespecial", "valeurs", "special"]
 
-    def __init__(self):
-        self.typespecial = dict()
-        self.valeurs = dict()
-        self.special = dict()
+#     def __init__(self):
+#         self.typespecial = dict()
+#         self.valeurs = dict()
+#         self.special = dict()
 
-    def set_att(self, nom, nature, valeur):
-        """positionne un attribut special"""
-        self.special[nom] = nature
-        self.valeurs[nom] = valeur
+#     def set_att(self, nom, nature, valeur):
+#         """positionne un attribut special"""
+#         self.special[nom] = nature
+#         self.valeurs[nom] = valeur
 
-    def get_speciaux(self):
-        """ recupere la lisdte des attributs speciaux"""
-        return self.special, self.valeurs
+#     def get_speciaux(self):
+#         """ recupere la lisdte des attributs speciaux"""
+#         return self.special, self.valeurs
 
 
 def noconversion(obj):
@@ -54,7 +54,6 @@ class Objet(object):
         "hdict",
         "multiples",
         "attributs_speciaux",
-        "text_graph",
         "tg_coords",
         "etats",
         "geomnatif",
@@ -112,8 +111,7 @@ class Objet(object):
         self.hdict = None
         self.multiples = None  # atributs multiples
         #        self.attributs_speciaux = AttributsSpeciaux()
-        self.attributs_speciaux = None
-        self.text_graph = dict()
+        self.attributs_speciaux = dict()
         self.tg_coords = dict()
         self.etats = None  # stockage des codes etat
         #        self.schema = schema # schema impose

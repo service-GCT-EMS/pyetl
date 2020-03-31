@@ -23,6 +23,86 @@ LOGGER = logging.getLogger("pyetl")
 ####################################################################################
 #### traitement  format asc
 ####################################################################################
+def att_to_text(obj, liste, transtable):
+    """convertit la liste d attributs en chaine"""
+    attmap = obj.schema.attmap if obj.schema else dict()
+    #    print "ecriture", liste
+    tliste = list()
+    eliste = list()
+    fliste = []
+    if liste is None:
+        a_sortir = [i for i in obj.attributs if i[0] != "#" and obj.attributs[i]]
+    else:
+        a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
+
+    aliste = (
+        (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+        for i in a_sortir
+        if i not in obj.attributs_speciaux
+    )
+    if obj.attributs_speciaux:
+        for nom, nature in obj.attributs_speciaux.items():
+            if nom in a_sortir:
+                if nature == "TG":
+                    tliste.append(nom)
+                elif nature == "C":  # complement on ignore
+                    pass
+                elif nature == "ET":
+                    eliste.append(nom)
+                else:
+                    fliste.append(nom)
+
+    attlist = "\n".join(
+        ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
+    )
+
+    if tliste:
+        tglist = list()
+        for nom in tliste:
+            val = str(obj.attributs[nom]).translate(transtable)
+            adef = obj.attributs.get(nom + "_O")
+            angle = (90 - float(adef)) % 360 if adef else 0
+            angle = str(int(round(angle * FA)))
+            tglist.append(
+                "2"
+                + attmap.get(nom, nom).upper()
+                + ",TL"
+                + str(len(val))
+                + ","
+                + str(int(float(obj.attributs[nom + "_X"]) * FC))
+                + ","
+                + str(int(float(obj.attributs[nom + "_Y"]) * FC))
+                + ","
+                + angle
+                + ",RC1,TC1,"
+                + val
+                + ";"
+            )
+        attlist = attlist + "\n" + "\n".join(tglist)
+    if eliste:
+        elist = "\n".join(
+            (
+                "4"
+                + attmap.get(i, i).upper()
+                + ","
+                + str(obj.attributs.get("#_sys_E_" + i), "")
+                + ";"
+                for i in eliste
+            )
+        )
+        attlist = attlist + "\n" + elist
+    if fliste:
+        tflist = (
+            (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+            for i in fliste
+        )
+        flist = "\n".join(
+            ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in tflist)
+        )
+        attlist = attlist + "\n" + flist
+    return attlist
+
+
 def apic2iso(date, heure):
     # convertit une date apic en format iso
     return (date[6:10] + date[2:6] + date[:2] + " " + heure).strip()
@@ -189,7 +269,7 @@ def traite_booleen(vatt):
 
 # entree sortie en asc
 # @jit
-def ajout_attribut_asc(attributs, attr):
+def ajout_attribut_asc(attributs, attr, speciaux):
     """decodage d'un attribut asc et stockage"""
     code = attr[0]
     suite = False
@@ -197,15 +277,7 @@ def ajout_attribut_asc(attributs, attr):
     nom = liste_elts[0][1:]
     vatt = ""
     type_att = "A"
-    # if obj.schema:
-    #     if nom in obj.schema.attmap:
-    #         nom = obj.schema.attmap[nom].nom
-    #     elif nom not in obj.schema.attributs:
-    #         if obj.schema.schema.origine == "B":  # c'est un schema autogenere
-    #             obj.schema.stocke_attribut(nom, "A")
-    #         else:
-    #             nom = "#" + nom
-    #     type_att = obj.schema.attributs[nom].type_att
+
     if code == "2":
         code_att = liste_elts[1][0:2]
         long_attrib = int(liste_elts[1][2:])
@@ -215,21 +287,27 @@ def ajout_attribut_asc(attributs, attr):
             suite = len(vatt) < long_attrib
 
         elif code_att == "TL":
-            # obj.text_graph[liste_elts[0][1:]] = liste_elts[2:-1]  # texte_graphique
+            speciaux[nom] = "TG"  # texte_graphique
             nom_x = nom + "_X"
             nom_y = nom + "_Y"
+            nom_o = nom + "_O"
+            speciaux[nom_x] = "C"
+            speciaux[nom_y] = "C"
+            speciaux[nom_o] = "C"
             # obj.tg_coords[nom_x] = 1
             # obj.tg_coords[nom_y] = 1
             liste_elts = attr.split(",")  # d on decode plus loin
             #            try:
             attributs[nom_x] = str(float(liste_elts[2]) / FC)
             attributs[nom_y] = str(float(liste_elts[3]) / FC)
+            attributs[nom_o] = str(90 - round(float(liste_elts[4]) / FA, 1))
             #            except ValueError:
             #                print("error: asc  : texte graphique incorrect", liste_elts)
             texte_candidat = ",".join(liste_elts[7:])
             vatt = texte_candidat[0:long_attrib]
         elif code_att == "CT":  # texte symbolique (recupere en texte)
             liste_elts = attr.split(",")  # d on decode plus loin
+            speciaux[nom] = "TS"
             vatt = liste_elts[6]
         else:
             print("error: asc  : lecture_asc code inconnu ", code_att, attr)
@@ -239,6 +317,7 @@ def ajout_attribut_asc(attributs, attr):
         #     obj.etats = dict()
         # obj.etats[liste_elts[0][1:]] = liste_elts[1][:-1]  # code etat
         vatt = liste_elts[1][:-1]
+        speciaux[nom] = "ET"
         nom = "#_sys_E_" + liste_elts[0][1:]
     else:
         print("error: asc  : code inconnu", liste_elts)
@@ -253,32 +332,14 @@ def init_format_asc(reader):
     """positionnne des elements de lecture (traitement des booleens)"""
     reader.formatters["B"] = traite_booleen
     reader.setvar("codec_asc", "cp1252")
-    # print ('initialisation reader', reader.formatters)
-    # raise
 
 
-# def _get_schemas(regle, rep, fichier):
-#     """definit le schemas de reference et les elementt immuables """
-#     schema = None
-#     schema_init = None
-#     stock_param = regle.stock_param
-#     stock_param.fichier_courant = os.path.splitext(fichier)[0]
-#     if regle.getvar("schema_entree"):
-#         schema = regle.getschema(regle.getvar("schema_entree"))
-#         schema_init = schema
-#     else:
-#         if regle.getvar("autoschema"):
-#             schema = stock_param.init_schema(
-#                 rep, origine="B", fich=fichier, stable=False
-#             )
-#     return schema, schema_init
-
-
-def finalise_obj(reader, attributs, coords, geom, angle, dim):
+def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
     """finalise un objet et le traite"""
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
     if obj is None:  # filtrage en entree
         return
+    obj.attributs_speciaux = speciaux
     if coords:
         obj.geom_v.setpoint(coords, angle, dim)
     if geom:
@@ -293,6 +354,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
     obj = None
     nom = ""
     attributs = dict()
+    speciaux = dict()
     geom = []
     coords = []
     angle = 0
@@ -320,7 +382,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
             code_0, code_1 = i[0], i[1]
             if code_0 == ";" and code_1.isnumeric():
                 # print ('asc lecture', i)
-                finalise_obj(self, attributs, coords, geom, angle, dim)
+                finalise_obj(self, attributs, coords, geom, angle, dim, speciaux)
                 geom = []
 
                 if code_1 in "9356":
@@ -334,12 +396,12 @@ def lire_objets_asc(self, rep, chemin, fichier):
             elif (code_0 == "2" or code_0 == "4") and (
                 code_1.isalpha() or code_1 == "_"
             ):
-                nom, suite = ajout_attribut_asc(attributs, i)
+                nom, suite = ajout_attribut_asc(attributs, i, speciaux)
             elif i.startswith("FIN"):
                 continue
             else:
                 geom.append(i)
-        finalise_obj(self, attributs, coords, geom, angle, dim)
+        finalise_obj(self, attributs, coords, geom, angle, dim, speciaux)
         log_erreurs.send("")
     return
 
@@ -485,70 +547,75 @@ class AscWriter(FileWriter):
         else:
             geometrie = self.geomwriter(obj.geom_v)
 
-        attmap = obj.schema.attmap if obj.schema else dict()
-        #    print "ecriture", liste
-        tliste = list()
-        eliste = list()
-        if liste is None:
-            liste = [i for i in obj.attributs if i[0] != "#"]
+        attlist = att_to_text(obj, liste, transtable)
 
-        a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
+        # attmap = obj.schema.attmap if obj.schema else dict()
+        # #    print "ecriture", liste
+        # tliste = list()
+        # eliste = list()
+        # if liste is None:
+        #     liste = [i for i in obj.attributs if i[0] != "#"]
 
-        #    print('asc  attributs',liste)
-        #    aliste = (i for i in a_sortir if i not in obj.text_graph and i not in obj.tg_coords)
-        aliste = (
-            (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
-            for i in a_sortir
-            if i not in obj.text_graph and i not in obj.tg_coords
-        )
-        if obj.text_graph:
-            tliste = (
-                (i, str(obj.attributs[i]).translate(transtable))
-                for i in a_sortir
-                if i in obj.text_graph
-            )
-        if obj.etats:
-            eliste = (i for i in a_sortir if i in obj.etats)
+        # a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
 
-        #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
-        #                             ",NG"+str(len(str(obj.attributs[i])))+","+
-        #                         str(obj.attributs[i])+";" for i in aliste))
-        attlist = "\n".join(
-            ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
-        )
+        # aliste = (
+        #     (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+        #     for i in a_sortir
+        #     if i not in obj.attributs_speciaux
+        # )
+        # if obj.attributs_speciaux:
+        #     tliste = (
+        #         i
+        #         for i in a_sortir
+        #         if i in obj.attributs_speciaux and obj.attributs_speciaux[i] == "TG"
+        #     )
 
-        if tliste:
-            tglist = "\n".join(
-                (
-                    "2"
-                    + attmap.get(i, i).upper()
-                    + ",TL"
-                    + str(len(j))
-                    + ","
-                    + str(int(float(obj.attributs[i + "_X"]) * FC))
-                    + ","
-                    + str(int(float(obj.attributs[i + "_Y"]) * FC))
-                    + ","
-                    + ",".join(obj.text_graph[i])
-                    + ","
-                    + j
-                    + ";"
-                    for i, j in tliste
-                )
-            )
-            attlist = attlist + "\n" + tglist
-        if eliste:
-            elist = "\n".join(
-                (
-                    "4"
-                    + attmap.get(i, i).upper()
-                    + ","
-                    + str(obj.attributs.get("#_sys_E_" + i), "")
-                    + ";"
-                    for i in eliste
-                )
-            )
-            attlist = attlist + "\n" + elist
+        #     eliste = (
+        #         i
+        #         for i in a_sortir
+        #         if i in obj.attributs_speciaux and obj.attributs_speciaux[i] == "ET"
+        #     )
+
+        # #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
+        # #                             ",NG"+str(len(str(obj.attributs[i])))+","+
+        # #                         str(obj.attributs[i])+";" for i in aliste))
+        # attlist = "\n".join(
+        #     ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
+        # )
+
+        # if tliste:
+        #     tglist = list()
+        #     for nom in tliste:
+        #         val = str(obj.attributs[nom]).translate(transtable)
+        #         adef = obj.attributs.get(nom + "_O")
+        #         angle = (90 - float(adef)) % 360 if adef else 0
+        #         angle = str(int(round(angle * FA)))
+        #         tglist.append(
+        #             "2"
+        #             + attmap.get(nom, nom).upper()
+        #             + ",TL"
+        #             + str(len(val))
+        #             + str(int(float(obj.attributs[nom + "_X"]) * FC))
+        #             + ","
+        #             + str(int(float(obj.attributs[nom + "_Y"]) * FC))
+        #             + ","
+        #             + angle
+        #             + ",RC1,TC1,"
+        #             + val
+        #         )
+        #     attlist = attlist + "\n" + "\n".join(tglist)
+        # if eliste:
+        #     elist = "\n".join(
+        #         (
+        #             "4"
+        #             + attmap.get(i, i).upper()
+        #             + ","
+        #             + str(obj.attributs.get("#_sys_E_" + i), "")
+        #             + ";"
+        #             for i in eliste
+        #         )
+        #     )
+        #     attlist = attlist + "\n" + elist
 
         return entete + geometrie + attlist
 

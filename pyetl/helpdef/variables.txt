@@ -1,0 +1,712 @@
+variables utilisees:
+statistiques:
+    _st_lu_objs: stats de nombre d objets lus
+    _st_lu_fichs: stats de nombre de fichiers lus
+    _st_obj_duppliques: stats de nombre d objets duppliques
+    _st_wr_objs: stats de nombre d objets ecrits
+    _st_wr_fichs: stats de nombre de fichiers ecrits
+
+logging:
+    logfile: nom du fichier de log
+
+cryptage:
+
+  usergroup: groupe de l utilisateur permet d acceder a des autorisations de groupe
+  masterkey: clef principale deverrouille tous les mors de passe
+  userkey: clef utilisateurs deverrouille les acces autorises a l utilisateur
+  defaultkey: clef par defaut permet de fornir des acces nun identifies
+  cryptolevel: niveau de cryptage (2 par defaut)
+  cryptohelper:programme de cryptage externe (pour le niveau 3)
+
+debug:
+    debug: niveau de debug toute autre valeur que 0 passe en mode debug
+    le mode debug peut etre mis globalement ou regle par regle
+
+entree/sortie
+    _sortie: repertoire de sortie
+    _entree: repertoire de'entree
+    nbaffich: intervalle d affichage des stats de sortie
+    mode_sortie: gestion de la bufferisation
+        A: bufferisation totale: on ecrit les objets que
+           si tous les fichers d entree ont ete traites
+        B: bufferisation par schema ou repertoire:
+           on ecrit les objets repertoire par repertoire
+        C: bufferisation par classe
+            on ecrit les objets classe par classe
+        D: Streaming on ecrit les objets au fil de l'eau
+            c est le defaut
+parallelisme:
+    _wid: identifiant de process
+
+tests:
+  _test_path: repertoire de test
+
+
+  898,30:             dic_abrev = self.getvar("abreviations")
+  915,55:             for i in open(fichier, "r", encoding=self.getvar("codec_entree", "utf-8")):
+  979,31:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+  979,63:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+  981,31:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+  981,63:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+  983,47:         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
+  999,39:                     force_format=self.getvar("F_entree"),
+  1000,37:                     fileselect=self.getvar("fileselect"),
+  1001,36:                     dirselect=self.getvar("dirselect"),
+  1002,40:                     filtre_entree=self.getvar("filtre_entree"),
+  1048,30:                     str(self.getvar("_st_lu_objs", "0")),
+  1073,78:         #        print('parametres macro', processor.nompyetl, [(i,processor.getvar(i))
+  1079,38:                 return {i: processor.getvar(i) for i in retour}
+  1090,27:         parametres = self.getvar("parametres_final")
+  1091,23:         entree = self.getvar("entree_final", self.getvar("_sortie"))
+  1091,51:         entree = self.getvar("entree_final", self.getvar("_sortie"))
+  1092,23:         sortie = self.getvar("sortie_final", self.getvar("_sortie"))
+  1092,51:         sortie = self.getvar("sortie_final", self.getvar("_sortie"))
+  1109,27:         parametres = self.getvar("parametres_initial")
+  1110,23:         entree = self.getvar("entree_initial", self.getvar("_entree"))
+  1110,53:         entree = self.getvar("entree_initial", self.getvar("_entree"))
+  1111,23:         sortie = self.getvar("sortie_initial", self.getvar("_entree"))
+  1111,53:         sortie = self.getvar("sortie_initial", self.getvar("_entree"))
+  1125,27:         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
+  1125,56:         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
+  1126,73:         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
+  1126,99:         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
+  1128,25:             if not self.getvar("_testmode"):  # en mode test on rale pas
+  1131,28:         mode_schema = self.getvar("force_schema", "util")
+  1136,21:             or self.getvar("force_virtuel") == "1"
+  1143,22:                 self.getvar("force_virtuel"),
+  1149,57:             self, rep_sortie, mode_schema, formats=self.getvar("format_schema", "csv")
+  1154,17:         if self.getvar("fstat"):  # ecriture de statistiques de fichier
+  1159,47:         if self.worker or self.parent or self.getvar("job_control", "no") == "no":
+  1161,47:         print("info: pyetl:job_control", self.getvar("job_control"))
+  1162,19:         open(self.getvar("job_control"), "w").write("fin mapper\n")
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\generic_io.py
+  105,42:         self.maxobj = int(self.regle_ref.getvar("lire_maxi", 0))
+
+  151,48:             nom_schema_entree = self.regle_ref.getvar("schema_entree")
+
+  182,33:             elif self.regle_ref.getvar("autoschema"):
+
+  183,49:                 self.nomschema = self.regle_ref.getvar("autoschema")
+
+  200,40:                         self.regle_ref.getvar("schema_entree"),
+
+  249,33:         macro_ouverture = regle.getvar("macro_ouverture")
+
+  250,27:         variables = regle.getvar("variables_ouverture").split(",")
+
+  454,37:         readfilter = self.regle_ref.getvar("readfilter")
+
+  638,41:         self.schema_sortie = self.regle.getvar("schema_sortie", None)
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\mdbaccess.py
+  31,23:     systables = regle.getvar("tables_systeme")
+
+  32,23:     # serveur = regle.getvar("server_" + codebase, "")
+
+  35,22:         base = regle.getvar("base_" + codebase, "")
+
+  36,25:         serveur = regle.getvar("server_" + codebase, "")
+
+  37,27:         type_base = regle.getvar("db_" + codebase, "")
+
+  38,31:         if not base and regle.getvar(
+
+  44,30:                 base = regle.getvar("base_" + codebase, "")
+
+  45,33:                 serveur = regle.getvar("server_" + codebase, "")
+
+  46,35:                 type_base = regle.getvar("db_" + codebase, "")
+
+  73,26:         #       if regle.getvar("racine",''):
+
+  74,46:         #       serveur = os.path.join(regle.getvar("racine"), chemin)
+
+  80,18:     user = regle.getvar("user_" + codebase, "")
+
+  81,20:     passwd = regle.getvar("passwd_" + codebase, "")
+
+  124,26:     helper = stock_param.getvar(helpername)
+
+  134,34:         nom = os.path.join(regle.getvar("_sortie"), nom)
+
+  152,29:     reinit = regle_courante.getvar("reinit", "0")
+
+  153,28:     vgeom = regle_courante.getvar("valide_geom", "1")
+
+  215,28:             regle_courante.getvar("_wid"),
+
+  340,23:     if regle_courante.getvar("schema_entree"):
+
+  341,58:         schema_init = stock_param.schemas[regle_courante.getvar("schema_entree")]
+
+  345,23:     if regle_courante.getvar("printpending"):
+
+  360,29:     maxobj = regle_courante.getvar("lire_maxi", 0)
+
+  591,33:     nom_schema = regle_courante.getvar("#schema", "tmp")
+
+  668,33:     maxobj = int(regle_courante.getvar("lire_maxi", 0))
+
+  942,29:     maxobj = regle_courante.getvar("lire_maxi", 0)
+
+  1084,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+  1112,56:                         nom, liste_att, encoding=regle.getvar("codec_sortie", "utf-8")
+
+  1133,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+  1146,32:                 encoding=regle.getvar("codec_sortie", "utf-8"),
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\db\base_elyx.py
+  49,39:             self.adminschema = params.getvar(
+
+  52,39:             self.modelschema = params.getvar(
+
+  81,30:         orahome = self.regle.getvar("feaora_oracle_home_" + self.code)
+
+  93,23:         if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
+
+  118,23:         if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
+
+  378,40:         self.debuglog = regle_courante.getvar("debuglog")
+
+  390,65:             print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"))
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\db\base_sigli.py
+  137,40:             table_monitoring=regle_ref.getvar('table_monitoring',TABLE_MONITORING)
+
+  150,23:             regle_ref.getvar('_nom_batch') if regle_ref else '',
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\db\database.py
+  307,34:         defmodeconf = self.regle.getvar("mode_enums", 1)
+
+  639,26:         complete = regle.getvar("gestion_coherence")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_asc.py
+  266,16: #     if regle.getvar("schema_entree"):
+
+  267,42: #         schema = regle.getschema(regle.getvar("schema_entree"))
+
+  270,20: #         if regle.getvar("autoschema"):
+
+  564,24:     rep_sortie = regle.getvar("_sortie")
+
+  605,24:     rep_sortie = regle.getvar("_sortie")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_csv.py
+  107,35:             elif reader.regle_ref.getvar("entete_csv", "") == "1":
+
+  506,24:     rep_sortie = regle.getvar("_sortie")
+
+  539,37:     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
+
+  562,28:             encoding=regle.getvar("codec_sortie", "utf-8"),
+
+  650,24:         self.regle_ref.getvar("schema_entree")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_excel.py
+  37,52:     schema_courant = stock_param.schemas.get(regle.getvar("schema_entree"))
+
+  97,29:     maxobj = self.regle_ref.getvar("lire_maxi", 0)
+
+  241,24:     rep_sortie = regle.getvar("_sortie")
+
+  270,37:     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
+
+  285,27:             separ = regle.getvar("separ_csv_out", regle.getvar("separ_csv", ";"))
+
+  285,57:             separ = regle.getvar("separ_csv_out", regle.getvar("separ_csv", ";"))
+
+  295,28:             encoding=regle.getvar("codec_sortie", "utf-8"),
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_filedb.py
+  31,28:     force = self.regle_ref.getvar("F_entree")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_gdalio.py
+  398,28:         rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+  415,32:                 encoding=regle.getvar("codec_sortie", "utf-8"),
+
+  450,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_geocity.py
+  323,29:     maxobj = self.regle_ref.getvar("lire_maxi", 0)
+
+  324,28:     codec = self.regle_ref.getvar("codec_entree", "utf8")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_json.py
+  64,23:     codec = regle_ref.getvar("codec_entree", "utf-8")
+
+  110,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+  137,38:                     encoding = regle.getvar("codec_sortie", "utf-8")
+
+  162,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+
+  191,32:                 encoding=regle.getvar("codec_sortie", "utf-8"),
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_osm.py
+  472,41:         config_osm_spe = self.regle_ref.getvar("config_osm")
+
+  480,48:         self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
+
+  482,38:         minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites
+
+  484,31:         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_textfile.py
+  59,24:     rep_sortie = regle.getvar("_sortie")
+
+  81,40:                         encoding=regle.getvar("codec_sortie", "utf-8"),
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_virtuels.py
+  119,22:         dest = regle.getvar("_sortie")
+
+  149,30:                 dest = regle.getvar("_sortie")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_xml.py
+  187,24:     rep_sortie = regle.getvar("_sortie")
+
+  204,28:             encoding=regle.getvar("codec_sortie", "utf-8"),
+
+  359,31:         if not self.regle_ref.getvar(
+
+  396,35:     config_qgs = reader.regle_ref.getvar("config_qgs", config_qgs_def)
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\formats\interne\stats.py
+  194,30:         maxobj = stock_param.getvar("lire_maxi", 0)
+
+  196,24:         if stock_param.getvar("schema_entree"):
+
+  197,62:             schema_courant = stock_param.schemas[stock_param.getvar("schema_entree")]
+
+  394,30:         maxobj = stock_param.getvar("lire_maxi", 0)
+
+  396,24:         if stock_param.getvar("schema_entree"):
+
+  397,62:             schema_courant = stock_param.schemas[stock_param.getvar("schema_entree")]
+
+  579,21:             context.getvar("_sortie"), context.getvar("sortie_stats")
+
+  579,48:             context.getvar("_sortie"), context.getvar("sortie_stats")
+
+  595,35:                 statdef = context.getvar("stat_defaut")
+
+  596,40:                 codec_sortie = context.getvar("codec_sortie", "utf-8")
+
+  603,33:                     wid=context.getvar("_wid", ""),
+
+  611,25:             self.parent.getvar("_sortie"), self.parent.getvar("sortie_stats")
+
+  611,56:             self.parent.getvar("_sortie"), self.parent.getvar("sortie_stats")
+
+  617,33:                     self.parent.getvar("fstat")
+
+  619,35:                     + self.parent.getvar("_wid")
+
+  623,62:                 fstat = os.path.join(rep_sortie, self.parent.getvar("fstat") + ".csv")
+
+  631,50:                 fstat, "w", encoding=self.parent.getvar("codec_sortie", "utf-8")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\helpdef\helpmodule.py
+  28,24:         debug = mapper.getvar("debug")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\compilateur.py
+  164,54:         # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
+
+  165,19:         if mapper.getvar("sans_sortie"):
+
+  172,26:                 + mapper.getvar("F_sortie")
+
+  174,26:                 + mapper.getvar("nom_sortie")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\interpreteur_csv.py
+  32,22:         cond = regle.getvar("debug_cond")
+  38,21:         wid = regle.getvar("_wid")
+  97,18:         if regle.getvar("debug") == "1":
+  347,23:         serv = mapper.getvar("scriptserver")
+  352,32:         #        base = mapper.getvar('base_'+serv)
+  353,27:         nomschema = regle.getvar("scriptschema")
+  365,26:         nomtable = regle.getvar("commandtable")
+  390,19:     serv = mapper.getvar("scriptserver")
+  393,24:     nomschema = mapper.getvar("scriptschema")
+  398,26:     # type_base = mapper.getvar("db_" + serv)
+  399,28:     #        base = mapper.getvar('base_'+serv)
+  401,27:     commandtable = mapper.getvar("commandtable")
+  446,61:             fichier_regles, "", defext=".csv", codec=mapper.getvar("codec_csv")
+  640,17:     if macroenv.getvar("debug", "0") != "0":
+  770,71:             # print('$# resolve ',context ,texte,'->', ligne, context.getvar('acces'))
+  795,60:             # print ('avant macro',texte, context, context.getvar('atts'))
+  821,31:     mapper.debug = int(mapper.getvar("debug", 0))
+  823,40:         print("niveau debug :", mapper.getvar("debug"))
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\moteur.py
+  56,31:             f_v = self.mapper.getvar("force_virtuel")
+
+  90,45:                                 self.mapper.getvar("_wid"),
+
+  205,66:                     print("====mode parallele: process :", regle.getvar("_wid"))
+
+  213,66:                     print("====mode parallele: process :", regle.getvar("_wid"))
+
+  221,66:                     print("====mode parallele: process :", regle.getvar("_wid"))
+
+  223,26:                 if regle.getvar("debuglevel", "0") != "0":
+
+  233,30:                     if regle.getvar("debuglevel", "0") > "1":
+
+  306,66:                 i, self.vdef[i] if self.vdef.get(i) else context.getvar(i)
+
+  430,9:     def getvar(self, nom, defaut=""):
+
+  445,25:             return self.getvar(element[2:-1]), element[2:-1]
+
+  450,55:                 element = element.replace(cible, self.getvar(i))
+
+  527,24:             res = self.getvar(nom, None)
+
+  593,25:         return {i: self.getvar(i) for i in vlist}
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\regles.py
+  201,45:         desc4 = self.MODIFFONC2.sub(r"regle.getvar('\1')", desc3)
+
+  407,30:         self.memlimit = self.getvar("memlimit", 0)
+
+  650,9:     def getvar(self, nom, defaut=""):
+
+  652,29:         return self.context.getvar(nom, defaut)
+
+  836,18:             self.getvar("tmpdir"),
+
+  844,26:         os.makedirs(self.getvar("tmpdir"), exist_ok=True)
+
+  929,21:         pdef = self.getvar("process")
+
+  948,26:             multi = self.getvar("multi", "1")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\outils.py
+  106,24:         racine = regle.getvar("_entree", ".")
+
+  111,28:         force_format=regle.getvar("F_entree"),
+
+  112,26:         fileselect=regle.getvar("fileselect"),
+
+  113,25:         dirselect=regle.getvar("dirselect"),
+
+  114,29:         filtre_entree=regle.getvar("filtre_entree"),
+
+  138,42:     obj.attributs["#objets_lus"] = regle.getvar("_st_lu_objs", "0")
+
+  139,44:     obj.attributs["#fichiers_lus"] = regle.getvar("_st_lu_fichs", "0")
+
+  140,45:     obj.attributs["#objets_ecrits"] = regle.getvar("_st_wr_objs", "0")
+
+  141,47:     obj.attributs["#fichiers_ecrits"] = regle.getvar("_st_wr_fichs", "0")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\parallel.py
+  77,19:     if mainmapper.getvar("_wid"):
+
+  83,20:         mainmapper.getvar("logfile"),
+
+  84,20:         mainmapper.getvar("log_level"),
+
+  85,20:         mainmapper.getvar("log_print"),
+
+  88,49:         base, ext = os.path.splitext(mainmapper.getvar("logfile"))
+
+  93,54:         print("setparallelid apres init", mainmapper.getvar("_wid"), commandes, args)
+
+  95,37:     return (os.getpid(), mainmapper.getvar("_wid"), init)
+
+  103,23:         "wid": mapper.getvar("_wid"),
+
+  108,41:             mapper.schemas, mode=mapper.getvar("force_schema", "util")
+
+  140,73:         # print ('---------------------------------------' + mainmapper.getvar("_wid") + '-worker:lecture', file, regle)
+
+  148,26:             + mainmapper.getvar("_wid")
+
+  378,67:         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
+
+  592,21:     endtime = regle.getvar("endtime", "23:59")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\parallel2.py
+  77,19:     if mainmapper.getvar("_wid"):
+
+  83,20:         mainmapper.getvar("logfile"),
+
+  84,20:         mainmapper.getvar("log_level"),
+
+  85,20:         mainmapper.getvar("log_print"),
+
+  88,49:         base, ext = os.path.splitext(mainmapper.getvar("logfile"))
+
+  93,54:         print("setparallelid apres init", mainmapper.getvar("_wid"), commandes, args)
+
+  95,37:     return (os.getpid(), mainmapper.getvar("_wid"), init)
+
+  103,23:         "wid": mapper.getvar("_wid"),
+
+  108,41:             mapper.schemas, mode=mapper.getvar("force_schema", "util")
+
+  140,73:         # print ('---------------------------------------' + mainmapper.getvar("_wid") + '-worker:lecture', file, regle)
+
+  148,26:             + mainmapper.getvar("_wid")
+
+  378,67:         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
+
+  592,21:     endtime = regle.getvar("endtime", "23:59")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_alpha.py
+  476,24:     if valeur != regle.getvar(regle.params.att_sortie.val):
+
+  482,20:         #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_aux.py
+  374,18:         if regle.getvar("type_geom"):
+
+  375,50:             obj.schema.info["type_geom"] = regle.getvar("type_geom")
+
+  448,22:         mode = regle.getvar("schema_nocase", False)
+
+  460,14:     if regle.getvar("supp_schema", False):
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_crypt.py
+  234,24:     #     key = mapper.getvar("defaultkey")
+
+  241,32:         # if mapper and mapper.getvar("cryptohelper"):
+
+  242,32:         #     chelper = mapper.getvar("cryptohelper")
+
+  358,31:     regle.cryptolevel = regle.getvar("cryptolevel")
+
+  359,32:     regle.cryptohelper = regle.getvar("cryptohelper")
+
+  360,29:     regle.cryptokey = regle.getvar("defaultkey")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_db.py
+  154,18:         if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
+
+  225,18:     if not regle.getvar("traitement_virtuel"):
+
+  227,77:             # print ('detection traitement virtuel : on ignore', obj, regle.getvar('traitement_virtuel'), regle.context.vlocales)
+
+  251,26:             dest = regle.getvar("dest")
+
+  253,43:                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
+
+  256,25:             log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
+
+  454,38:             nom = os.path.join(regle.getvar("_progdir"), "formats/db/sql", nom[1:])
+
+  526,22:         dest = regle.getvar("_sortie")
+
+  654,33:         regle.type_base = regle.getvar("db_" + nombase)
+
+  732,29:     regle.type_base = regle.getvar("db_" + nombase)
+
+  739,38:             nom = os.path.join(regle.getvar("_sortie"), nom)
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_divers.py
+  220,54:         regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")
+
+  221,54:         regle.f_sortie.writerparms["nodata"] = regle.getvar("nodata")
+
+  236,23:         regle.context.getvar("fanout", "groupe")
+
+  242,26:         rep_base = regle.getvar("_sortie")
+
+  260,40:     regle.memlimit = int(regle.context.getvar("memlimit", 0))
+
+  261,33:     mode_sortie = regle.context.getvar("mode_sortie", "D")
+
+  288,28:         rep_sortie = regle.getvar("sortie_schema")
+
+  291,23:                 regle.getvar("_sortie"), os.path.dirname(regle.params.cmp1.val)
+
+  396,30:         nb_total = processor.getvar("_st_lu_objs", "0")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_mapping.py
+  161,18:         if regle.getvar("schema_entree"):
+
+  162,62:             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_os.py
+  45,35:     regle.consoleencoding = regle.getvar("console_encoding", "CP850")
+
+  47,41:     # print('valeurs parametres', regle.getvar('import'))
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_schema.py
+  133,18:         if regle.getvar("taux_conformite"):
+
+  134,56:             print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
+
+  135,62:             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
+
+  214,17:     cod = regle.getvar("codec_entree", "cp1252")
+
+  245,69:             #                       regle.stock_param.worker, regle.getvar('_wid'),
+
+  285,36:         mode_alias = regle.context.getvar("mode_alias", "num")
+
+  286,33:         cod_csv = regle.context.getvar("codec_csv", cod)
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_selecteurs.py
+  434,31:     #         selecteur.regle.getvar(selecteur.params.attr.val),'<-',
+
+  435,36:     #         bool(selecteur.regle.getvar(selecteur.params.attr.val)))
+
+  436,28:     return selecteur.regle.getvar(selecteur.params.attr.val)
+
+  445,100:     # print ('------------------------------pregex',selecteur.params.attr.val,'->',selecteur.regle.getvar(selecteur.params.attr.val))
+
+  446,46:     return selecteur.fselect(selecteur.regle.getvar(selecteur.params.attr.val))
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_shapely.py
+  107,34:     regle.resolution = int(regle.getvar("resolution", 16))
+
+  108,33:     regle.cap_style = int(regle.getvar("cap_style", 1))
+
+  109,34:     regle.join_style = int(regle.getvar("join_style", 1))
+
+  110,37:     regle.mitre_limit = float(regle.getvar("mitre_limit", 5.0))
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_web.py
+  37,23:     geocodeur = regle.getvar("url_geocodeur")
+  101,18:     if not regle.getvar("_testmode"):
+  115,18:     if not regle.getvar("_testmode"):
+  116,43:         print("geocodeur utilise ", regle.getvar("url_geocodeur"))
+  118,33:     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
+  160,33:         serveur = regle.context.getvar("server_" + codeftp, "")
+  161,35:         servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
+  162,30:         user = regle.context.getvar("user_" + codeftp, "")
+  163,32:         passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
+  192,49:     _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
+  193,39:     # print ('ouverture acces ',regle.getvar('acces_ftp'))
+  287,26:         localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
+  287,64:         localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
+  330,70:     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_workflow.py
+  268,33:             + str(regle.context.getvar(regle.params.cmp1.val))
+
+  270,26:     return regle.context.getvar(regle.params.cmp1.val)
+
+  360,49:     # print("regle.context.atts:",regle.context.getvar('atts'))
+
+  443,36:     schema = regle.getschema(regle.getvar("schema_entree"))
+
+  501,15:         regle.getvar("_sortie"),
+
+  545,48:     entree = obj.attributs.get("entree", regle.getvar("_entree"))
+
+  546,48:     sortie = obj.attributs.get("sortie", regle.getvar("_sortie"))
+
+  563,38:         obj.attributs["nom"] = regle.getvar(
+
+  840,28:     regle.keepdata = regle.getvar("keepdata") == "1"
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\moteur\fonctions\traitement_xml.py
+  23,28:     regle.keepdata = regle.getvar("keepdata") == "1"
+
+  24,28:     regle.keeptree = regle.getvar("keeptree") == "1"
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\schema\schema_interne.py
+  54,46:         nouveau.metas["script_ref"] = mapper.getvar("pyetl_script_ref")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\schema\schema_io.py
+  232,23:     cod = stock_param.getvar("codec_sortie", "utf-8")
+
+  243,40:                 dialecte = stock_param.getvar("base_destination", "sql")
+
+  248,34:             autopk = stock_param.getvar("autopk", "")
+
+  249,32:             role = stock_param.getvar("db_role")
+
+  252,37:             type_base = stock_param.getvar("dbgenmode")
+
+  270,38:                 transact=stock_param.getvar("transact"),
+
+  275,35:             cod_csv = stock_param.getvar("codec_csv", "utf-8")
+
+  278,47:             #            header = stock_param.getvar('xmlheader', '')
+
+  282,43:             header = header + stock_param.getvar("xmldefaultheader")
+
+  284,54:             #            alias = ESC_XML(stock_param.getvar('xmlalias'))
+
+  291,35:                 alias=stock_param.getvar("xmlalias"),
+
+  297,34:             header = stock_param.getvar("xmlheader_dist", "")
+
+  298,34:             prefix = stock_param.getvar("xmlprefix_dist", "d")
+
+  302,58:                 #            header = header+stock_param.getvar('xmldefaultheader')
+
+  304,62:                 #                alias = ESC_XML(stock_param.getvar('xmlalias'))
+
+  311,39:                     alias=stock_param.getvar("xmlalias"),
+
+  323,35:     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
+
+  323,71:     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
+
+  324,35:     #    rep_sortie = stock_param.getvar('_sortie')
+
+  325,41:     type_schemas_a_sortir = stock_param.getvar("orig_schema")
+
+  336,28:     a_sortir = stock_param.getvar("schemas_a_sortir")
+
+
+S:\Commun\outils_publics\pyetl_dev\pyetl\tests\testmodule.py
+  93,19:         if mapper.getvar("autotest") == "raise":
+
+  111,19:         or mapper.getvar("testmode") == "all"
+
+  128,51:     #                    print ('testmode',mapper.getvar('testmode'))
+
+  191,27:             if not mapper.getvar(i):
+
+  289,25:         testdb = mapper.getvar("testbd")
+
+  290,26:         testrep = mapper.getvar("testrep")
+
+  359,22:         rep = mapper.getvar("_test_path")

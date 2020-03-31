@@ -796,9 +796,11 @@ class RegleTraitement(object):  # regle de mapping
                 FSC.ajuste_schema(schem, obj)
             #                print (obj.schema.nom)
 
-            for nom_att in obj.text_graph:
-                obj.schema.stocke_attribut(nom_att + "_X", "float", "", "reel")
-                obj.schema.stocke_attribut(nom_att + "_Y", "float", "", "reel")
+            for nom_att, nature in obj.attributs_speciaux.items():
+                if nature == "TG":
+                    obj.schema.stocke_attribut(nom_att + "_X", "float", "", "reel")
+                    obj.schema.stocke_attribut(nom_att + "_Y", "float", "", "reel")
+                    obj.schema.stocke_attribut(nom_att + "_O", "float", "", "reel")
 
         if not self.final:
             obj = (

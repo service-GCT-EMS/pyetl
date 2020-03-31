@@ -7,8 +7,10 @@ from . import composants as C
 from shapely import geometry as SG
 from shapely import prepared as P
 
+
 class Geometrie(object):
     """classe de base de stockage de la geometrie d'un objet"""
+
     TYPES_G = {
         "0": "ALPHA",
         "1": "POINT",
@@ -17,12 +19,36 @@ class Geometrie(object):
         "-1": "GEOMETRIE",
         "4": "TIN",
         "5": "POLYHEDRAL",
-        "indef": "ALPHA"
+        "indef": "ALPHA",
     }
-    STYPES = {'Point':'1','MultiPoint':'1','LineString':'2','LinearRing':'2','MultiLineString':'2','Polygon':'3','MultiPolygon':'3"'}
-    __slots__=['polygones','lignes','points','type','null','valide','courbe','angle',
-                'sgeom','sgp',
-               'longueur_point','dim','multi','srid','force_multi','erreurs']
+    STYPES = {
+        "Point": "1",
+        "MultiPoint": "1",
+        "LineString": "2",
+        "LinearRing": "2",
+        "MultiLineString": "2",
+        "Polygon": "3",
+        "MultiPolygon": '3"',
+    }
+    __slots__ = [
+        "polygones",
+        "lignes",
+        "points",
+        "type",
+        "null",
+        "valide",
+        "courbe",
+        "angle",
+        "sgeom",
+        "sgp",
+        "longueur_point",
+        "dim",
+        "multi",
+        "srid",
+        "force_multi",
+        "erreurs",
+    ]
+
     def __init__(self):
         self.polygones = []
         self.lignes = []
@@ -52,18 +78,18 @@ class Geometrie(object):
         if srid:
             self.srid = str(int(srid))
 
-
-
-#------------------------------------informations----------------------------------------------
+    # ------------------------------------informations----------------------------------------------
 
     def shapely_npt(self, geom):
-        if geom.type == 'Polygon':
-            npt = len(geom.exterior.coords)+ sum((len(i.coords) for i in geom.interiors))
+        if geom.type == "Polygon":
+            npt = len(geom.exterior.coords) + sum(
+                (len(i.coords) for i in geom.interiors)
+            )
             return npt
         try:
             return len(geom.coords)
         except:
-            print('erreur longueur',geom.type, geom)
+            print("erreur longueur", geom.type, geom)
             raise
 
     @property
@@ -79,12 +105,16 @@ class Geometrie(object):
             return self.STYPES[type_geom]
         return self.type
 
-
     @property
     def npt(self):
         """ retourne le nombre de points en eliminant les points doubles entre sections"""
         if self.sgeom:
-            if self.sgeom.type in {'GeometryCollection','MultiPolygon','MultiLine','MultiPoint'}:
+            if self.sgeom.type in {
+                "GeometryCollection",
+                "MultiPolygon",
+                "MultiLine",
+                "MultiPoint",
+            }:
                 return sum(self.shapely_npt(i) for i in self.sgeom.geoms)
             return self.shapely_npt(self.sgeom)
         if self.null:
@@ -92,7 +122,9 @@ class Geometrie(object):
         if self.points:
             return len(self.points)
         cc = self.lignes
-        return sum([i.npt for i in cc]) - sum([len(i.sections) - (0 if i.ferme else 1) for i in cc])
+        return sum([i.npt for i in cc]) - sum(
+            [len(i.sections) - (0 if i.ferme else 1) for i in cc]
+        )
 
     @property
     def ferme(self):
@@ -116,28 +148,22 @@ class Geometrie(object):
         #        print (" calcul de la longueur", comp,list(i.longueur for i in comp) )
         return sum(i.longueur for i in comp) if comp else 0
 
-
-
-
     @property
     def area(self):
         if self.sgeom:
             # print ("calcul aire",self.sgeom)
             return self.sgeom.area
-        if self.type < '3':
+        if self.type < "3":
             return 0
         return sum(p.aire() for p in self.polygones) if self.polygones else 0
 
-
     def setsgeom(self, shape=None):
-        '''positionne l'element shapely'''
+        """positionne l'element shapely"""
         if shape:
             self.sgeom = shape
             self.valide = False
         else:
-            self.sgeom=SG.shape(self)
-
-
+            self.sgeom = SG.shape(self)
 
     def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
         """cree une geometrie de point"""
@@ -164,10 +190,10 @@ class Geometrie(object):
         self.shapesync()
         if self.type == "1":
             if coords is None:
-                self.null=True
+                self.null = True
                 return
             self.points.append(list(coords[:dim]))
-            self.multi = len(self.points)>1
+            self.multi = len(self.points) > 1
             self.dim = dim
             # raise
             return
@@ -181,7 +207,6 @@ class Geometrie(object):
         else:
             self.lignes = [C.Ligne(C.Section(coords, dim))]
         self.sgeom = None
-
 
     #
 
@@ -256,7 +281,7 @@ class Geometrie(object):
     def finalise_geom(self, type_geom="0", orientation="L", desordre=False):
         """termine une geometrie et finalise la structure"""
         self.valide = True
-        self.sgeom=None
+        self.sgeom = None
         self.multi = False
         self.courbe = False
 
@@ -269,7 +294,7 @@ class Geometrie(object):
             return True
 
         if self.null:
-            self.valide=False
+            self.valide = False
             self.type = "0"
             return False
         if self.type == "1":
@@ -287,7 +312,7 @@ class Geometrie(object):
                 #                print( 'finalisation', len(self.lignes))
                 for i in self.lignes:
                     aire = i.aire_orientee()
-                    if aire == 0 and self.dimension==2:
+                    if aire == 0 and self.dimension == 2:
                         self.erreurs.ajout_erreur("contour degénéré " + type_geom)
                         self.valide = False
                         return False
@@ -325,7 +350,10 @@ class Geometrie(object):
 
         elif type_geom != "-1" and type_geom != "indef" and type_geom != self.type:
             self.erreurs.ajout_warning(
-                "attention geometrie demandee: " + str(type_geom) + " trouve " + str(self.type)
+                "attention geometrie demandee: "
+                + str(type_geom)
+                + " trouve "
+                + str(self.type)
             )
         #            self.valide = 0
         #        print ('fin_geom2:type_geom ', self.type, type_geom)
@@ -363,7 +391,8 @@ class Geometrie(object):
         """retourne True si la couleur existe dans l'objet"""
         self.shapesync()
         liste_couleurs = {
-            j.couleur for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
+            j.couleur
+            for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
         }
         #        print('has_couleur',couleur, liste_couleurs, couleur in liste_couleurs)
         return couleur in liste_couleurs
@@ -385,7 +414,6 @@ class Geometrie(object):
             self.type = "2"
         self.multi = len(self.lignes) - 1
         self.sgeom = None
-
 
     def translate(self, dx, dy, dz):
         """decale une geometrie"""
@@ -416,6 +444,7 @@ class Geometrie(object):
                 self.lignes[-1].prolonge_fin(longueur)
         self.sgeom = None
         return True
+
     #        print("geom apres prolonge", list(self.coords))
     #        print("longueur ",self.longueur)
 
@@ -454,7 +483,6 @@ class Geometrie(object):
             return itertools.chain(*[i.coords for i in self.lignes])
         return iter(())
 
-
     def convert(self, fonction, srid=None):
         """ applique une fonction aux points """
         self.shapesync()
@@ -464,7 +492,6 @@ class Geometrie(object):
         if srid:
             self.srid = str(int(srid))
         self.sgeom = None
-
 
     def set_2d(self):
         """transforme la geometrie en 2d"""
@@ -486,7 +513,7 @@ class Geometrie(object):
             return
         self.dim = 3
         for i in self.coords:
-            if len(i)<3:
+            if len(i) < 3:
                 i.append(0)
         for i in self.lignes:
             i.set_3d()
@@ -502,7 +529,7 @@ class Geometrie(object):
                 return
         self.dim = 3
         for i in self.coords:
-            i[2]=val_z if len(i)==3 else i.append(val_z)
+            i[2] = val_z if len(i) == 3 else i.append(val_z)
         for i in self.lignes:
             i.set_3d()
         self.sgeom = None
@@ -542,10 +569,7 @@ class Geometrie(object):
         except:
             print(liste_coords)
             print("erreur emprise 3D")
-        return (xmin,ymin,zmin, xmax,ymax,zmax)
-
-
-
+        return (xmin, ymin, zmin, xmax, ymax, zmax)
 
     def getpoint(self, numero):
         """retourne le n ieme point"""
@@ -566,10 +590,9 @@ class Geometrie(object):
         for i in self.lignes:
             i.print_debug()
 
-    #-------------------------------------------------------------------
-    #---------------------- interfaces ---------------------------------
-    #-------------------------------------------------------------------
-
+    # -------------------------------------------------------------------
+    # ---------------------- interfaces ---------------------------------
+    # -------------------------------------------------------------------
 
     @property
     def __json_if__(self):
@@ -594,13 +617,14 @@ class Geometrie(object):
                     + "]\n}"
                 )
 
-
         if self.type == "2":
             #            print ('type 2')
             if len(self.lignes) == 1:
                 return (
                     '"geometry": {\n"type": "LineString",\n"coordinates":[\n['
-                    + "],\n[".join([",".join(map(str, i[:dim])) for i in self.lignes[0].coords])
+                    + "],\n[".join(
+                        [",".join(map(str, i[:dim])) for i in self.lignes[0].coords]
+                    )
                     + "]\n]\n}"
                 )
             else:
@@ -608,7 +632,9 @@ class Geometrie(object):
                     '"geometry": {\n"type": "MultiLineString",\n"coordinates":[\n[\n['
                     + "]],\n[[".join(
                         [
-                            "],\n[".join([",".join(map(str, i[:dim])) for i in j.coords])
+                            "],\n[".join(
+                                [",".join(map(str, i[:dim])) for i in j.coords]
+                            )
                             for j in self.lignes
                         ]
                     )
@@ -619,7 +645,9 @@ class Geometrie(object):
                 if len(self.lignes) == 1:  # polygone sans trous
                     return (
                         '"geometry": {\n"type": "Polygon",\n"coordinates":[\n[\n['
-                        + "],\n[".join([",".join(map(str, i[:dim])) for i in self.lignes[0].coords])
+                        + "],\n[".join(
+                            [",".join(map(str, i[:dim])) for i in self.lignes[0].coords]
+                        )
                         + "]\n]\n]\n}"
                     )
                 else:
@@ -627,7 +655,9 @@ class Geometrie(object):
                         '"geometry": {\n"type": "Polygon",\n"coordinates":[\n[\n['
                         + "]],\n[[".join(
                             [
-                                "],\n[".join([",".join(map(str, i[:dim])) for i in j.coords])
+                                "],\n[".join(
+                                    [",".join(map(str, i[:dim])) for i in j.coords]
+                                )
                                 for j in self.lignes
                             ]
                         )
@@ -640,7 +670,12 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
+                                "],\n[".join(
+                                    [
+                                        ",".join(map(str, pnt[:dim]))
+                                        for pnt in lin.coords
+                                    ]
+                                )
                                 for lin in pol.lignes
                             ]
                         )
@@ -656,7 +691,12 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
+                                "],\n[".join(
+                                    [
+                                        ",".join(map(str, pnt[:dim]))
+                                        for pnt in lin.coords
+                                    ]
+                                )
                                 for lin in pol.lignes
                             ]
                         )
@@ -673,7 +713,12 @@ class Geometrie(object):
                     [
                         "]],\n[[".join(
                             [
-                                "],\n[".join([",".join(map(str, pnt[:dim])) for pnt in lin.coords])
+                                "],\n[".join(
+                                    [
+                                        ",".join(map(str, pnt[:dim]))
+                                        for pnt in lin.coords
+                                    ]
+                                )
                                 for lin in pol.lignes
                             ]
                         )
@@ -690,18 +735,16 @@ class Geometrie(object):
         dim = self.dimension
         if self.type == "1":  # point
             if not self.points:
-                print ('geo_interface : point inexistant')
+                print("geo_interface : point inexistant")
                 if self.force_multi or self.multi:
-                    return {"type": "MultiPoint","coordinates": ()}
+                    return {"type": "MultiPoint", "coordinates": ()}
                 else:
-                    return {"type": "Point", "coordinates":()}
+                    return {"type": "Point", "coordinates": ()}
             multi = self.force_multi or self.multi or len(self.points) > 1
             if multi:
                 return {
                     "type": "MultiPoint",
-                    "coordinates": tuple(
-                        [tuple(p[:dim]) for p in self.coords]
-                    ),
+                    "coordinates": tuple([tuple(p[:dim]) for p in self.coords]),
                 }
             else:
                 return {"type": "Point", "coordinates": tuple(self.points[0][:dim])}
@@ -765,7 +808,9 @@ class Geometrie(object):
                 polys.append(tuple(rings))
             return {"type": "PolyhedralSurface", "coordinates": tuple(polys)}
 
-    def from_geo_interface(self, geo_if):  # cree une geometrie a partir de la geo_interface
+    def from_geo_interface(
+        self, geo_if
+    ):  # cree une geometrie a partir de la geo_interface
         #        print ('geom from geo_if',geo_if)
         if not geo_if:
             self.finalise_geom(type_geom="0")
@@ -863,29 +908,28 @@ class Geometrie(object):
 
     @property
     def __shapelygeom__(self):
-        ''' retourne un format shapely de la geometrie'''
+        """ retourne un format shapely de la geometrie"""
         # print("geom:",self)
         if not self.sgeom:
-            self.sgeom=SG.shape(self)
+            self.sgeom = SG.shape(self)
         return self.sgeom
 
     @property
     def __shapelyprepared__(self):
-        '''stocke une geometrie pereparee de l'objet'''
+        """stocke une geometrie pereparee de l'objet"""
         if not self.sgp:
             self.sgp = P.prep(self.__shapelygeom__)
         return self.sgp
 
     def shapesync(self):
-        '''recree la geometrie a partir d'un element shapely'''
+        """recree la geometrie a partir d'un element shapely"""
         if not self.valide and self.sgeom:
             self.from_geo_interface(SG.mapping(self.sgeom))
-
 
     @property
     def fold(self):
         """retourne une structure compacte pour les comparaisons"""
-        if self.type == 'indef':
+        if self.type == "indef":
             return ()
         if self.null:
             return None
@@ -894,21 +938,21 @@ class Geometrie(object):
             crd = (crd, self.angle, self.longueur_point)
         ldef = tuple(i.sdef for i in self.lignes)
         pdef = tuple(len(i.lignes) for i in self.polygones)
-        return (crd,ldef,pdef)
+        return (crd, ldef, pdef)
 
     def unfold(self, folded):
         """recree une geometrie a partir de la forme compacte"""
         if folded is None:
             self.valide = True
             self.sgeom_valide = False
-            self.type = '0'
+            self.type = "0"
             self.null = True
             return
-        if folded == ((),(),()):
+        if folded == ((), (), ()):
             self.__init__()
             return
-        crd,ldef,pdef = folded
-        if len(crd) == 1: # c 'est un point
+        crd, ldef, pdef = folded
+        if len(crd) == 1:  # c 'est un point
             coords, angle, longueur = crd[0]
             self.setpoint(coords, angle, len(coords), longueur)
             self.finalise_geom(type_geom="1")
@@ -921,9 +965,9 @@ class Geometrie(object):
             return
         if not pdef:
             for ligne in ldef:
-                depart=0
+                depart = 0
                 for fin, couleur, courbe in ligne:
-                    fin = fin+depart
+                    fin = fin + depart
                     self.cree_section(crd[depart:fin], dim, couleur, courbe)
                     depart = fin
             self.finalise_geom(type_geom="2")
@@ -931,26 +975,26 @@ class Geometrie(object):
         for poly in pdef:
             dep_p = 0
             for fin_p in poly:
-                fin_p = dep_p+fin_p
+                fin_p = dep_p + fin_p
                 interieur = False
                 for ligne in ldef[dep_p:fin_p]:
-                    depart=0
+                    depart = 0
                     for fin, couleur, courbe in ligne:
-                        fin = fin+depart
+                        fin = fin + depart
                         self.cree_section(crd[depart:fin], dim, couleur, courbe)
                         depart = fin
                     interieur = True
-                dep_p=fin_p
+                dep_p = fin_p
         self.finalise_geom(type_geom="2")
 
-
     def __repr__(self):
+        if self.null:
+            return "geometrie vide"
         if self.valide:
             return "type:" + self.type + " ".join(str(i) for i in self.coords)
         elif self.sgeom:
             return repr(self.sgeom)
         return "geometrie invalide " + repr(self.erreurs)
-
 
 
 class Erreurs(object):
@@ -983,7 +1027,7 @@ class Erreurs(object):
     def __repr__(self):
         """erreurs et warnings pour affichage direct"""
         if not self.actif:
-            return 'aucune erreur'
+            return ""
         return "\n".join(("actif:" + str(self.actif), "errs:" + self.getvals()))
 
 

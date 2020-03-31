@@ -744,7 +744,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
                 #                attr.clef = att_orig.clef
                 #                attr.defindex = {i:j for i,j in att_orig.defindex.items()}
                 attr.unique = att_orig.unique
-        if nom in obj.text_graph:
+        if obj.attributs_speciaux.get(nom) == "TG":
             attr.graphique = True
         attr.ajout_valeur(obj.attributs.get(nom))
     if obj.hdict:
