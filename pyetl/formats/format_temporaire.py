@@ -7,7 +7,7 @@ Created on Mon Dec 21 13:33:58 2015
 # from . import csv as E
 from collections import namedtuple
 from itertools import chain
-from .fichiers.format_asc import ajout_attribut_asc
+from .fichiers.format_asc import ajout_attribut_asc, att_to_text
 from .interne.objet import Objet
 
 
@@ -26,7 +26,9 @@ def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
-    return "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+    return (
+        "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+    )
 
 
 # def ecrire_ligne_tmp(ligne):
@@ -49,7 +51,11 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + list((chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes]))) + ["Q"]
+    return (
+        ["P"]
+        + list((chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])))
+        + ["Q"]
+    )
 
 
 def _ecrire_polygones_tmp(polygones):
@@ -81,7 +87,7 @@ def geom_from_tmp(obj):
     geom_v = obj.geom_v
     geom_v.type = "2"
     poly = None
-    geom = obj.attributs['#geom']
+    geom = obj.attributs["#geom"]
     lig = None
     for i in geom:
         code = i[0]
@@ -116,7 +122,17 @@ def tmp_entetes(obj, form):
     niveau, classe = obj.ident
     if not form:
         form = ""
-    entete = "1" + niveau + "," + classe + "," + form + "," + obj.attributs["#type_geom"] + "\n"
+    entete = (
+        "1"
+        + niveau
+        + ","
+        + classe
+        + ","
+        + form
+        + ","
+        + obj.attributs["#type_geom"]
+        + "\n"
+    )
     return entete
 
 
@@ -124,47 +140,8 @@ def tmp_attributs(obj):
     """stockage des attributs.
         c'est de l'asc
     """
-    elist = []
-    tglist = []
 
-    attlist = "\n".join(
-        (
-            "2" + i + ",NG" + str(len(str(obj.attributs[i]))) + "," + str(obj.attributs[i]) + ";"
-            for i in obj.attributs
-        )
-    )
-
-    if obj.text_graph:
-        tglist = "\n".join(
-            (
-                "2"
-                + i
-                + ",TL"
-                + str(len(str(obj.attributs[i])))
-                + ","
-                + ",".join(obj.text_graph[i])
-                + ","
-                + str(obj.attributs[i])
-                + ";"
-                for i in obj.text_graph
-            )
-        )
-        attlist = attlist + "\n" + tglist
-
-    if obj.etats:
-        elist = "\n".join(
-            (
-                "4"
-                + i
-                + ",NG"
-                + str(len(str(obj.attributs[i])))
-                + ","
-                + str(obj.attributs[i])
-                + ";"
-                for i in obj.etats
-            )
-        )
-        attlist = attlist + "\n" + elist
+    attlist = att_to_text(obj, None, None)
 
     return attlist
 
@@ -181,7 +158,7 @@ def tmp_geom(obj, convertisseur):
             convertisseur = ecrire_geometrie_tmp
         geom = convertisseur(obj.geom_v)
     else:
-        geom = obj.attributs['#geom']
+        geom = obj.attributs["#geom"]
     if isinstance(geom, list):
         return "3" + "\n3".join(geom) + "\n"
     if isinstance(geom, str):
@@ -191,7 +168,7 @@ def tmp_geom(obj, convertisseur):
 # =================== format temporaire ==============================
 def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
-    obj =  None
+    obj = None
     form = None
     for ligne in open(fichier, "r", encoding="utf-8"):
         if ligne:
@@ -199,15 +176,18 @@ def lire_objets(fichier, stock_param):
             if code == "1":
                 niveau, classe, form, type_geom = ligne[1:-1].split(",")
                 obj = Objet(
-                    niveau, classe, format_natif=form, conversion=stock_param.get_converter(form)
+                    niveau,
+                    classe,
+                    format_natif=form,
+                    conversion=stock_param.get_converter(form),
                 )
                 obj.attributs["#type_geom"] = type_geom
-            #                if form: print ('format natif ',form,stock_param.get_converter(form))
-                if type_geom != '0':
-                    obj.attributs["#geom"]=[]
+                #                if form: print ('format natif ',form,stock_param.get_converter(form))
+                if type_geom != "0":
+                    obj.attributs["#geom"] = []
                 continue
             if not obj:
-                print ('erreur fichier temporaire ', ligne)
+                print("erreur fichier temporaire ", ligne)
                 continue
             if code == "2" or code == "4":
                 ajout_attribut_asc(obj, ligne)
@@ -228,13 +208,13 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
     # print('ecriture temporaire',groupe, nom_format)
     for classe in groupe:
         liste_obj = groupe[classe]
-#        print( "ecriture" , classe, len(liste_obj))
+        #        print( "ecriture" , classe, len(liste_obj))
         for i in liste_obj:
             if i.geom_v.valide:
                 fichier.write(tmp_entetes(i, nom_format))
             else:
                 fichier.write(tmp_entetes(i, i.format_natif))
-            fichier.write(tmp_attributs(i))
+            fichier.write(att_to_text(i, None, None))
             fichier.write("\n")
             geom = tmp_geom(i, geomwriter)
             if geom:
@@ -242,5 +222,3 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
                 fichier.write("\n")
             fichier.write("5fin_objet\n")
     fichier.close()
-
-

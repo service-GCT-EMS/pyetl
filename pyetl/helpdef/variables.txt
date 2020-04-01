@@ -24,7 +24,10 @@ debug:
 
 entree/sortie
     _sortie: repertoire de sortie
-    _entree: repertoire de'entree
+    _entree: repertoire ou fichier d'entree: peut etre null
+
+    entree
+
     nbaffich: intervalle d affichage des stats de sortie
     mode_sortie: gestion de la bufferisation
         A: bufferisation totale: on ecrit les objets que
@@ -35,6 +38,12 @@ entree/sortie
             on ecrit les objets classe par classe
         D: Streaming on ecrit les objets au fil de l'eau
             c est le defaut
+
+    encoding:
+        par defaut utf-8 sauf pour le csv et le asc ou le defaut est cp1252
+        codec_entree: encoding entree
+        codec_sortie: encoding de sortie
+
 parallelisme:
     _wid: identifiant de process
 
@@ -42,13 +51,8 @@ tests:
   _test_path: repertoire de test
 
 
+
   898,30:             dic_abrev = self.getvar("abreviations")
-  915,55:             for i in open(fichier, "r", encoding=self.getvar("codec_entree", "utf-8")):
-  979,31:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
-  979,63:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
-  981,31:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
-  981,63:         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
-  983,47:         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
   999,39:                     force_format=self.getvar("F_entree"),
   1000,37:                     fileselect=self.getvar("fileselect"),
   1001,36:                     dirselect=self.getvar("dirselect"),
@@ -231,31 +235,11 @@ S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_excel.py
 S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_filedb.py
   31,28:     force = self.regle_ref.getvar("F_entree")
 
-
-S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_gdalio.py
-  398,28:         rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-
-  415,32:                 encoding=regle.getvar("codec_sortie", "utf-8"),
-
-  450,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-
-
 S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_geocity.py
   323,29:     maxobj = self.regle_ref.getvar("lire_maxi", 0)
 
   324,28:     codec = self.regle_ref.getvar("codec_entree", "utf8")
 
-
-S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_json.py
-  64,23:     codec = regle_ref.getvar("codec_entree", "utf-8")
-
-  110,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-
-  137,38:                     encoding = regle.getvar("codec_sortie", "utf-8")
-
-  162,24:     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-
-  191,32:                 encoding=regle.getvar("codec_sortie", "utf-8"),
 
 
 S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_osm.py
@@ -268,22 +252,14 @@ S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_osm.py
   484,31:         if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
 
 
-S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_textfile.py
-  59,24:     rep_sortie = regle.getvar("_sortie")
-
-  81,40:                         encoding=regle.getvar("codec_sortie", "utf-8"),
 
 
-S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_virtuels.py
-  119,22:         dest = regle.getvar("_sortie")
 
-  149,30:                 dest = regle.getvar("_sortie")
+
 
 
 S:\Commun\outils_publics\pyetl_dev\pyetl\formats\fichiers\format_xml.py
-  187,24:     rep_sortie = regle.getvar("_sortie")
 
-  204,28:             encoding=regle.getvar("codec_sortie", "utf-8"),
 
   359,31:         if not self.regle_ref.getvar(
 
@@ -309,22 +285,9 @@ S:\Commun\outils_publics\pyetl_dev\pyetl\formats\interne\stats.py
 
   595,35:                 statdef = context.getvar("stat_defaut")
 
-  596,40:                 codec_sortie = context.getvar("codec_sortie", "utf-8")
-
-  603,33:                     wid=context.getvar("_wid", ""),
-
-  611,25:             self.parent.getvar("_sortie"), self.parent.getvar("sortie_stats")
-
-  611,56:             self.parent.getvar("_sortie"), self.parent.getvar("sortie_stats")
-
   617,33:                     self.parent.getvar("fstat")
 
-  619,35:                     + self.parent.getvar("_wid")
-
   623,62:                 fstat = os.path.join(rep_sortie, self.parent.getvar("fstat") + ".csv")
-
-  631,50:                 fstat, "w", encoding=self.parent.getvar("codec_sortie", "utf-8")
-
 
 S:\Commun\outils_publics\pyetl_dev\pyetl\helpdef\helpmodule.py
   28,24:         debug = mapper.getvar("debug")
@@ -685,11 +648,8 @@ S:\Commun\outils_publics\pyetl_dev\pyetl\schema\schema_io.py
 
   311,39:                     alias=stock_param.getvar("xmlalias"),
 
-  323,35:     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
 
-  323,71:     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
 
-  324,35:     #    rep_sortie = stock_param.getvar('_sortie')
 
   325,41:     type_schemas_a_sortir = stock_param.getvar("orig_schema")
 

@@ -239,7 +239,6 @@ class Pyetl(object):
         self.fichier_regles = None
         # self.stock_param = self
         # permet de deguiser mapper en regle pour la bonne cause
-        # etats
 
         self.dupcnt = 0
         self.fichier_courant = ""
@@ -1197,7 +1196,7 @@ class Pyetl(object):
             self.regles[reglenum] if regle is None and reglenum is not None else regle
         )
         # print('pyetl:lecture ', fich, self.racine, chemin, fichier, ext,'->', regle)
-        reglestart = regle.branchements.brch["next"] if regle else self.regles[0]
+        reglestart = regle.branchements.brch["gen"] if regle else self.regles[0]
         # print ('--------------------appel lecture ',fichier, regle, '->', reglestart)
         if regle is None:
             regle = reglestart

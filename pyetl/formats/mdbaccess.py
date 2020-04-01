@@ -327,7 +327,7 @@ def sortie_resultats(
     cond="",
 ):
     """ recupere les resultats et génére les objets"""
-    regle_debut = regle_courante.branchements.brch["next"]
+    regle_debut = regle_courante.branchements.brch["gen"]
     stock_param = regle_courante.stock_param
     traite_objet = stock_param.moteur.traite_objet
 

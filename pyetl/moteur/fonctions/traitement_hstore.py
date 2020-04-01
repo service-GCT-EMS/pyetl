@@ -239,7 +239,7 @@ def f_hsplit(regle, obj):
         obj2 = obj.dupplique()
         obj2.attributs[nom_clef] = k
         obj2.attributs[nom_val] = val
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
     return True
 
 

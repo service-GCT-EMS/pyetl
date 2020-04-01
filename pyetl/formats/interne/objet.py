@@ -38,12 +38,12 @@ class Objet(object):
 
     _ido = itertools.count(1)  # compteur d'instance
     __slots__ = [
-        "geom_v",
-        "geom_shape",
-        "forcegeom",
         "ido",
         "numobj",
         "copie",
+        "geom_v",
+        "geom_shape",
+        "forcegeom",
         "stored",
         "is_ok",
         "redirect",
@@ -54,8 +54,6 @@ class Objet(object):
         "hdict",
         "multiples",
         "attributs_speciaux",
-        "tg_coords",
-        "etats",
         "geomnatif",
         "erreurs",
         "format_natif",
@@ -112,8 +110,6 @@ class Objet(object):
         self.multiples = None  # atributs multiples
         #        self.attributs_speciaux = AttributsSpeciaux()
         self.attributs_speciaux = dict()
-        self.tg_coords = dict()
-        self.etats = None  # stockage des codes etat
         #        self.schema = schema # schema impose
         self.geomnatif = True
         self.erreurs = Erreurs()

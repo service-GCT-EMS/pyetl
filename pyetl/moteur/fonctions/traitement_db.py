@@ -359,7 +359,7 @@ def f_dbgeo(regle, obj):
 
 
 def h_dbrequest(regle):
-    """gestion des fonctions geographiques"""
+    """passage direct de requetes"""
     param_base(regle)
     regle.chargeur = True  # c est une regle qui cree des objets
     attribut = regle.v_nommees.get("val_sel2", "")
@@ -379,7 +379,7 @@ def h_dbrequest(regle):
 
 
 def f_dbrequest(regle, obj):
-    """#aide||recuperation d'objets depuis une requtere sur la base de donnees
+    """#aide||recuperation d'objets depuis une requete sur la base de donnees
     #aide_spec||db:base;niveau;classe;;att_sortie;valeurs;champ a integrer;dbreq;requete
     #groupe||database
     #pattern||?A;?;?L;dbreq;C

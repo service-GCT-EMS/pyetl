@@ -57,7 +57,13 @@ def geocode_traite_stock(regle, final=True):
     # print('geocodage', regle.nbstock, adlist,flist, data)
 
     files = {"data": io.BytesIO(buffer)}
-    res = requests.post(geocodeur, files=files, data=data)
+    try:
+        res = requests.post(geocodeur, files=files, data=data)
+    except requests.RequestException as prob:
+        print("url geocodeur defectueuse", geocodeur)
+        print("exception levee", prob)
+
+        raise StopIteration(2)
     # print ('retour', res.text)
 
     #        print ('retour ',buf)
@@ -355,7 +361,7 @@ def f_httpdownload(regle, obj):
     if regle.params.pattern == "2":  # retour dans un attribut
         regle.setval_sortie(obj, retour.text)
         if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
         # print("apres", obj)
         return True
     if regle.fichier is None:

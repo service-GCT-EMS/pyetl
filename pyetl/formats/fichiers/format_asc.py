@@ -294,8 +294,6 @@ def ajout_attribut_asc(attributs, attr, speciaux):
             speciaux[nom_x] = "C"
             speciaux[nom_y] = "C"
             speciaux[nom_o] = "C"
-            # obj.tg_coords[nom_x] = 1
-            # obj.tg_coords[nom_y] = 1
             liste_elts = attr.split(",")  # d on decode plus loin
             #            try:
             attributs[nom_x] = str(float(liste_elts[2]) / FC)
@@ -312,10 +310,6 @@ def ajout_attribut_asc(attributs, attr, speciaux):
         else:
             print("error: asc  : lecture_asc code inconnu ", code_att, attr)
     elif code == "4":
-        #        print('detection code etat ', obj.ident, liste_elts)
-        # if obj.etats is None:
-        #     obj.etats = dict()
-        # obj.etats[liste_elts[0][1:]] = liste_elts[1][:-1]  # code etat
         vatt = liste_elts[1][:-1]
         speciaux[nom] = "ET"
         nom = "#_sys_E_" + liste_elts[0][1:]

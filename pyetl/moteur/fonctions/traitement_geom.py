@@ -753,7 +753,7 @@ def f_csplit(regle, obj):
                 if att_sortie:
                     obj2.attributs[att_sortie] = str(npt)
                 regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["next"]
+                    obj2, regle.branchements.brch["gen"]
                 )
                 valide = True
         obj.geom_v = geom
@@ -782,7 +782,7 @@ def f_splitgeom(regle, obj):
             obj2.infogeom()
             if att_sortie:
                 obj2.attributs[att_sortie] = str(npt)
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         obj.geom_v = geom
         return True
     return False

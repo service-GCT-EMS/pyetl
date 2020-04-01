@@ -89,7 +89,6 @@ def f_xmlsplit(regle, obj):
    #pattern2||H;;A;xmlsplit;C;?C||sortie
    #pattern3||D;;A;xmlsplit;C;?C||sortie
    #pattern4||S;;A;xmlsplit;A.C;?C||sortie
-   #helper||xmlextract
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
      #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
@@ -124,3 +123,21 @@ def f_xmlsplit(regle, obj):
             trouve = True
     obj.attributs[regle.params.att_entree.val] = xml
     return trouve
+
+
+def f_xmledit(regle, obj):
+    """#aide||modification d elements xml
+  #aide_spec||on cree un objet pour chaque element
+   #pattern1||re;re;A;xmledit;C;?C||sortie
+   #pattern2||A;C;A;xmledit;A.C;?C||sortie
+   #pattern1||re;re;A;xmledit;C;?C||sortie
+     #helper||xmlextract
+#parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a modifier;groupe de recherche
+      #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
+      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
+       """
+    trouve = False
+    cadres, xml = getcadre(regle, obj)
+    for cadre in cadres:
+        trouve = True

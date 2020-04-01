@@ -468,7 +468,7 @@ def f_creobj(regle, obj):
         #        print ("objet_test",obj2.attributs,obj2.schema.schema.nom)
         obj2.setorig(i)
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == "2":
@@ -728,7 +728,7 @@ def f_schema_liste_classes(regle, _):
         )
         obj2.initattr()
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == "2":
