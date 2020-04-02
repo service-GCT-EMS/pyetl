@@ -5,6 +5,7 @@
 # import pyetl.schema as SC
 import sys
 import os
+import io
 
 
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
@@ -92,6 +93,8 @@ class FileWriter(object):
 
         if self.nom == "#print":
             self.fichier = sys.stdout
+        elif self.nom == "#attw":
+            self.fichier = io.StringIO()
         else:
             self.fichier = open(self.nom, mode, encoding=self.encoding)
 

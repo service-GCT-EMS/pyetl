@@ -9,6 +9,7 @@ import logging
 import os
 import io
 import time
+import re
 from xml.etree.ElementTree import ParseError
 import xml.etree.cElementTree as ET
 
@@ -125,19 +126,43 @@ def f_xmlsplit(regle, obj):
     return trouve
 
 
+def h_xmlextract(regle):
+    """helper decoupage"""
+    h_xmlextract(regle)
+    if regle.params.pattern == 1:
+        regle.reselect = re.compile(regle.params.att_sortie.val)
+    # regle.reader = regle.stock_param.getreader("interne", regle)
+    regle.changeschema = False
+
+
 def f_xmledit(regle, obj):
     """#aide||modification d elements xml
   #aide_spec||on cree un objet pour chaque element
+ #aide_spec1||remplacement de texte
+ #aide_spec2||remplacement ou ajout d un tag
+ #aide_spec3||remplacement ou ajout d un ensemble de tags * conserve la valeur
    #pattern1||re;re;A;xmledit;C;?C||sortie
-   #pattern2||A;C;A;xmledit;A.C;?C||sortie
-   #pattern1||re;re;A;xmledit;C;?C||sortie
+   #pattern2||;C;A;xmledit;A.C;?C||sortie
+   #pattern3||;H;A;xmledit;C;?C||sortie
      #helper||xmlextract
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a modifier;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
       #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
       #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
        """
-    trouve = False
     cadres, xml = getcadre(regle, obj)
+    groupe, oclasse = obj.ident
+    nat = regle.params.att_entree.val
+    if nat.startswith("#"):
+        nat = nat[1:]
+    classe = oclasse + "_" + nat
+    # regle.reader.prepare_lecture_att(obj, "interne")
     for cadre in cadres:
-        trouve = True
+        # print("traitement", cadre)
+        for elem in cadre.iter(regle.recherche):
+            if regle.params.pattern == "1":  # regex sur texte
+                contenu = ET.tostring(elem)
+                contenu = re.sub(
+                    regle.params.att_sortie.val, regle.params.val_entree.val, contenu
+                )
+                elem = ET.fromstring(contenu)
