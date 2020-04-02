@@ -333,7 +333,7 @@ def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
     if obj is None:  # filtrage en entree
         return
-    obj.attributs_speciaux = speciaux
+    obj.attributs_speciaux.update(speciaux)
     if coords:
         obj.geom_v.setpoint(coords, angle, dim)
     if geom:
@@ -378,7 +378,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 # print ('asc lecture', i)
                 finalise_obj(self, attributs, coords, geom, angle, dim, speciaux)
                 geom = []
-
+                speciaux = dict()
                 if code_1 in "9356":
                     classe, attributs, coords, angle, dim = _decode_entete_asc(
                         i, log_erreurs

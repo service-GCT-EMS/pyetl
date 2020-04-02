@@ -102,10 +102,7 @@ class Moteur(object):
                             groupe, classe, conversion="virtuel", schema=schemaclasse
                         )
                         obj.attributs["#categorie"] = "traitement_virtuel"
-                        #                        obj = Objet(groupe, classe)
-                        #                        obj.virtuel = True
-                        #                        obj.setschema(schemaclasse)
-                        #                        obj.initattr()
+
                         obj.attributs["#type_geom"] = schemaclasse.info["type_geom"]
                         # print("tv:traitement obj", obj)
                         self.traite_objet(obj, self.regles[0])

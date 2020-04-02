@@ -296,6 +296,7 @@ def f_ftpdownload(regle, obj):
         print("creation repertoire", os.path.dirname(localname))
     else:
         localname = "[" + regle.params.att_sortie.val + "]"
+        localdir = "."
 
     try:
         if regle.servertyp == "sftp":

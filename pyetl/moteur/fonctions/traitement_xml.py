@@ -126,7 +126,7 @@ def f_xmlsplit(regle, obj):
     return trouve
 
 
-def h_xmlextract(regle):
+def h_xmledit(regle):
     """helper decoupage"""
     h_xmlextract(regle)
     if regle.params.pattern == 1:
@@ -144,7 +144,6 @@ def f_xmledit(regle, obj):
    #pattern1||re;re;A;xmledit;C;?C||sortie
    #pattern2||;C;A;xmledit;A.C;?C||sortie
    #pattern3||;H;A;xmledit;C;?C||sortie
-     #helper||xmlextract
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a modifier;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
       #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
@@ -161,8 +160,14 @@ def f_xmledit(regle, obj):
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
             if regle.params.pattern == "1":  # regex sur texte
-                contenu = ET.tostring(elem)
+                contenu = elem.text
                 contenu = re.sub(
                     regle.params.att_sortie.val, regle.params.val_entree.val, contenu
                 )
-                elem = ET.fromstring(contenu)
+                elem.text = contenu
+            elif regle.params.pattern == "2":
+                elem.set(regle.item, regle.params.val_entree.val)
+            elif regle.params.pattern == "3":
+                vals = obj.gethdict()
+                for i, j in vals.items():
+                    elem.set(i, j)

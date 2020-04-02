@@ -434,13 +434,6 @@ class Objet(object):
             else [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
         )
 
-    def initatt(self, nom, valeur):
-        """initialise un attribut en tenant compte des mappings initiaux de schemas"""
-        if self.schema and nom in self.schema.attmap:
-            self.attributs[self.schema.attmap[nom]] = valeur
-        else:
-            self.attributs[nom] = valeur
-
     @property
     def attdict(self):
         """sort un dictionnaire ordonne des attributs"""
@@ -498,9 +491,13 @@ class Objet(object):
             self.attributs["#schema"] = ""
         if remap:
             if self.schema.attmap is not None:
+
                 self.attributs = {
-                    self.schema.attmap.get(i, i): self.attributs[i]
-                    for i in self.attributs
+                    self.schema.attmap.get(i, i): j for i, j in self.attributs.items()
+                }
+                self.attributs_speciaux = {
+                    self.schema.attmap.get(i, i): j
+                    for i, j in self.attributs_speciaux.items()
                 }
 
     def initattr(self):
