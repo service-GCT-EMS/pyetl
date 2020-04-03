@@ -170,7 +170,6 @@ class ParametresFonction(object):
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
         typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
-
         #        return self.st_val(val, num, liste, dyn, defin)
         return Valdef(val, num, liste, dyn, defin, origine, texte, defaut, typedef)
 

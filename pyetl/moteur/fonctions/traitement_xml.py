@@ -64,12 +64,16 @@ def f_xmlextract(regle, obj):
       #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
       #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
       #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
+      #test3||obj||^V4;<g><pp p1="toto" p2="titi">text</pp></g>;;set||^XX;;V4;xmlextract;pp._T;||atv;XX;text
        """
     trouve = False
     cadres, xml = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
-            contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
+            if regle.item=="_T":
+                contenu = elem.text
+            else:
+                contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
             regle.setval_sortie(obj, contenu)
             obj.attributs[regle.params.att_entree.val] = xml
             return True
@@ -136,16 +140,23 @@ def h_xmledit(regle):
 
 
 def f_xmledit(regle, obj):
-    """#aide||modification d elements xml
-  #aide_spec||on cree un objet pour chaque element
- #aide_spec1||remplacement de texte
- #aide_spec2||remplacement ou ajout d un tag
- #aide_spec3||remplacement ou ajout d un ensemble de tags * conserve la valeur
+    """#aide||modification en place d elements xml
    #pattern1||re;re;A;xmledit;C;?C||sortie
+ #aide_spec1||remplacement de texte
+#parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
    #pattern2||;C;A;xmledit;A.C;?C||sortie
-   #pattern3||;H;A;xmledit;C;?C||sortie
-#parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a modifier;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
+ #aide_spec2||remplacement ou ajout d un tag
+#parametres2||;valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
+   #pattern3||;[A];A;xmledit;A.C;?C||sortie
+ #aide_spec3||remplacement ou ajout d un tags
+#parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
+   #pattern4||?=\\*;H;A;xmledit;C;?C||sortie
+ #aide_spec4||remplacement ou ajout d un ensemble de tags * conserve la valeur
+#parametres4||* : remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
+   #pattern5||;L;A;xmledit;C;?C||sortie
+ #aide_spec5||suppression d un ensemble de tags
+#parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
+      #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^ss;xx;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
       #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
       #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
        """
@@ -168,6 +179,30 @@ def f_xmledit(regle, obj):
             elif regle.params.pattern == "2":
                 elem.set(regle.item, regle.params.val_entree.val)
             elif regle.params.pattern == "3":
-                vals = obj.gethdict()
+                vals = obj.gethdict(regle.params.val_entree.val)
                 for i, j in vals.items():
                     elem.set(i, j)
+
+def f_xmlload(regle,obj):
+    """#aide||lecture d un fichier xml dans un attribut
+   #pattern1||A;?;?A;xml_load;;;
+#parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
+    """
+    nom = regle.getval_entree(obj)
+    if not os.path.isabs(nom):
+        nom=os.path.join(regle.getvar("_entree",""),nom)
+    obj.attribut[regle.params.att_sortie.val]="".join(open(nom,'r',encoding="utf-8").readlines())
+
+def f_xmlsave(regle,obj):
+    """#aide||stockage dans un fichier d un xml contenu dans un attribut
+   #pattern1||;;A;xml_save;C;;
+   #pattern2||;;A;xml_save;[A];;
+#parametres1||;;attribut contenant le xml;;nom du fichier
+#parametres2||;;attribut contenant le xml;;attribut contenant le nom du fichier
+    """
+    nom = regle.getcmp1(obj)
+    nom = obj.attributs.get(regle.params.cmp1.origine,"") if regle.params.cmp1.origine else regle.params.cmp1.val
+    if not os.path.isabs(nom):
+        nom=os.path.join(regle.getvar("_sortie",""),nom)
+
+    open(nom,'w',encoding="utf-8").write(obj.attribut.get(regle.params.att_entree.val,""))
