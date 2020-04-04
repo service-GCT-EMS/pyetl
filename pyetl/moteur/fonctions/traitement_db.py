@@ -372,6 +372,14 @@ def h_dbrequest(regle):
         regle.grp = os.path.basename(os.path.dirname(nom_fich))
         with open(requete[2:], "r") as fich:
             requete = "".join(fich.readlines())
+    maxi = regle.getvar("lire_maxi")
+    if maxi and maxi != "0":
+        try:
+            vmax = int(maxi)
+            limit = " LIMIT " + str(maxi)
+            requete = requete + limit
+        except ValueError:
+            pass
     regle.requete = requete
 
     valide = True

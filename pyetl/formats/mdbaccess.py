@@ -605,8 +605,8 @@ def lire_requete(
     treq = time.time() - treq
     connect.connection.commit()
     if curs:
-        print("creation schema", ident)
         schema_classe_travail = schema_from_curs(schema, curs, ident)
+        print("creation schema", schema.nom, ident, len(schema.classes))
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,

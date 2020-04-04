@@ -6,6 +6,7 @@ import os
 import time
 import xml.etree.cElementTree as ET
 from collections import defaultdict
+
 # print ('osm start')
 # import pyetl.schema as SC
 
@@ -27,17 +28,17 @@ class DecodeConfigOsm(object):
         self.valeur = vals[2]
         self.description = vals
         self.geom = vals[3]
-        self.multiobj = '+' in self.geom
-        self.geom = self.geom.strip('+')
+        self.multiobj = "+" in self.geom
+        self.geom = self.geom.strip("+")
         self.reader = None
         self.setups = setups
-        self.minimal= setups.get("minimal")
+        self.minimal = setups.get("minimal")
         self.niveau = vals[4]
         self.classe = vals[5]
-        self.def_classes = self.niveau if self.niveau.startswith('groupes') else ''
+        self.def_classes = self.niveau if self.niveau.startswith("groupes") else ""
         self.conds = dict()
         self.force_geom = vals[6]
-        self.multigeom = (vals[7] == '1')
+        self.multigeom = vals[7] == "1"
         self.geomrest = None
         self.geomrole = None
         if vals[0] == "*":
@@ -47,40 +48,47 @@ class DecodeConfigOsm(object):
             self.getident = self.decode_classe
             self.clef = vals[0]
             self.sous_clef = vals[1]
-            self.geom={int(j) for j in self.geom.split(',')}
-            self.liste_classes=None
+            self.geom = {int(j) for j in self.geom.split(",")}
+            self.liste_classes = None
             for j in range(8, len(vals)):
-                if vals[j].startswith('G:ref:'):
+                if vals[j].startswith("G:ref:"):
                     vl2 = vals[j].split(":")
                     self.geomrest, self.geomrole = self.getrefcond(vl2[2])
-                    print ('detecte geometrie relation', self.classe, self.geomrest, self.geomrole, self.description)
-                elif vals[j].startswith('TG:ref:'):
+                    print(
+                        "detecte geometrie relation",
+                        self.classe,
+                        self.geomrest,
+                        self.geomrole,
+                        self.description,
+                    )
+                elif vals[j].startswith("TG:ref:"):
                     vl2 = vals[j].split(":")
-                    self.tgdef(vl2[2],vl2[3],vl2[4])
+                    self.tgdef(vl2[2], vl2[3], vl2[4])
                 elif vals[j]:
                     vl2 = vals[j].split(":")
                     if len(vl2) == 1:
                         self.storeatt(vl2[0], self.clef)
                     elif len(vl2) == 2:
                         self.storeatt(vl2[0], vl2[1])
-                    elif len(vl2) == 3: # definition de conditions supplementaires
-                        conditions = vl2[2].strip()[1:-1].split(',')
+                    elif len(vl2) == 3:  # definition de conditions supplementaires
+                        conditions = vl2[2].strip()[1:-1].split(",")
                         self.storeatt(vl2[0], vl2[1])
                         for cond in conditions:
-                            tag,val = cond.split('=')
-                            self.conds[vl2[0]]=(tag,val)
+                            tag, val = cond.split("=")
+                            self.conds[vl2[0]] = (tag, val)
 
-    def getrefcond(self,geomcond):
+    def getrefcond(self, geomcond):
         role = None
         geomtype = None
-        geomcond = geomcond[1:-1].strip() if geomcond.startswith('{') else geomcond.strip()
-        for i in geomcond.split(','):
-            if 'role=' in i:
-                role = i.split('=')[1]
-            if 'type=' in i:
-                geomtype = i.split('=')[1]
-        return geomtype,role
-
+        geomcond = (
+            geomcond[1:-1].strip() if geomcond.startswith("{") else geomcond.strip()
+        )
+        for i in geomcond.split(","):
+            if "role=" in i:
+                role = i.split("=")[1]
+            if "type=" in i:
+                geomtype = i.split("=")[1]
+        return geomtype, role
 
     def storeatt(self, att, val):
         if val.startswith("#"):
@@ -88,10 +96,9 @@ class DecodeConfigOsm(object):
         else:
             self.atts.append((att, val))
 
-    def tgdef(self,geomcond,att,val):
-        self.storeatt(att,val)
+    def tgdef(self, geomcond, att, val):
+        self.storeatt(att, val)
         geomtype, self.tgs[att] = self.getrefcond(geomcond)
-
 
 
     def setliste(self, groupes):
@@ -99,12 +106,12 @@ class DecodeConfigOsm(object):
         if self.def_classes:
             liste_classes = groupes.get(self.def_classes, None)
             # print (' choix groupes', self.clef, liste_classes, self.geom)
-            self.liste_classes = ({i:(j[0], j[1]) for i, j in liste_classes.items() if j[2] in self.geom }
+            self.liste_classes = (
+                {i: (j[0], j[1]) for i, j in liste_classes.items() if j[2] in self.geom}
                 if liste_classes
                 else None
             )
             # print (' affectation groupes',self.geom, self.liste_classes)
-
 
     def init_schema(self, schema_travail):
         """genere le schema des donnees"""
@@ -114,9 +121,9 @@ class DecodeConfigOsm(object):
         """ range les objets residuels dans les classes par defaut """
         if len(tagdict) == 1:
             if "source" in tagdict or "created_by" in tagdict:
-                return ('tmp')
+                return "tmp"
             if "type" in tagdict and tagdict["type"] == "multipolygon":
-                return ('tmp')
+                return "tmp"
         return (self.niveau, self.classe)
 
     def decode_classe(self, tagdict):
@@ -145,7 +152,7 @@ class DecodeConfigOsm(object):
         if schem:
             return schem
 
-        schemaclasse = self.schema.def_classe(idref)
+        schemaclasse = self.schema.setdefault_classe(idref)
         if self.reader.gestion_doublons:
             schemaclasse.stocke_attribut("id_osm", "EL", index="P:")
         else:
@@ -158,7 +165,9 @@ class DecodeConfigOsm(object):
             schemaclasse.stocke_attribut(nom, "T")
         schemaclasse.stocke_attribut("tags", "H")
         #        schemaclasse.stocke_attribut('#all_tags', 'H')
-        schemaclasse.info["type_geom"] = self.force_geom if self.force_geom else self.geom
+        schemaclasse.info["type_geom"] = (
+            self.force_geom if self.force_geom else self.geom
+        )
         schemaclasse.multigeom = self.multigeom
         incomplet = schemaclasse.copy(idref, None, filiation=False)
         incomplet.groupe = "osm_incomplet"
@@ -182,7 +191,7 @@ class DecodeConfigOsm(object):
             return None
         if multi and not self.multigeom:
             return None
-        if ident == 'tmp':
+        if ident == "tmp":
             parties[ido] = tagdict.copy()
             return 0
         idref = ident
@@ -191,14 +200,14 @@ class DecodeConfigOsm(object):
             ident = ("osm_incomplet", ident[1])
         self.reader.setidententree(*ident)
         obj = self.reader.getobj()
-        if obj.ident==('osm','om_comm_restriction'):
-            print ('obj', obj.ident)
-        if self.geomrest: #declaration de geometrie
+        if obj.ident == ("osm", "om_comm_restriction"):
+            print("obj", obj.ident)
+        if self.geomrest:  # declaration de geometrie
             # print('geometrie relation', self.geomrest, self.geomrole,self.description, geoms)
-            geoms2=[]
+            geoms2 = []
             if self.geomrest in geoms:
                 for geomdef in geoms[self.geomrest]:
-                    geometrie,role = geomdef
+                    geometrie, role = geomdef
                     if self.geomrole != role:
                         continue
                     geoms2.append(geomdef)
@@ -206,7 +215,9 @@ class DecodeConfigOsm(object):
         else:
             obj.attributs["#geom"] = next(iter(geoms.values())) if geoms else []
 
-        obj.attributs["#type_geom"] = self.force_geom if self.force_geom is not None else type_geom  # on force
+        obj.attributs["#type_geom"] = (
+            self.force_geom if self.force_geom is not None else type_geom
+        )  # on force
         # print ('decodage tags mode minimal:',self.minimal, obj.attributs["#type_geom"], self.force_geom)
         for att, tag in self.atts:
             if tag in tagdict:
@@ -231,9 +242,9 @@ def init_osm(reader, config_osm, schema, setups=None):
 
     #    CONFIGFILE = os.path.join(os.path.dirname(__file__), config_osm)
     grouplist = dict()
-    decodage = {"1": [], "2": [], "3": [],'4': []}
+    decodage = {"1": [], "2": [], "3": [], "4": []}
     if setups is None:
-        setups=dict()
+        setups = dict()
     # print ('setups decodage',setups)
     reader.parties = dict()
     for conf in open(config_osm, "r").readlines():
@@ -247,15 +258,19 @@ def init_osm(reader, config_osm, schema, setups=None):
                 groupe = grouplist[nom_groupe]
                 groupe[valeurs[1]] = (valeurs[4], valeurs[5], int(valeurs[3]))
             else:  # c'est une definition standard
-                geomdefs = [j for j in valeurs[3].strip('+').split(",")] if valeurs[3] else None
+                geomdefs = (
+                    [j for j in valeurs[3].strip("+").split(",")]
+                    if valeurs[3]
+                    else None
+                )
                 if geomdefs:
                     for i in geomdefs:
                         valeurs[3] = i
-                        decodage[i].append(DecodeConfigOsm(valeurs,setups))
+                        decodage[i].append(DecodeConfigOsm(valeurs, setups))
                 else:
                     for i in decodage:
-                        valeurs[3] = str(i).strip('+')
-                        decodage[i].append(DecodeConfigOsm(valeurs,setups))
+                        valeurs[3] = str(i).strip("+")
+                        decodage[i].append(DecodeConfigOsm(valeurs, setups))
     for i in decodage:
         #    DECODAGE[ii].append(Decodeconfig(['*', '', str(ii)]))
         for conf in decodage[i]:
@@ -275,7 +290,6 @@ def init_osm(reader, config_osm, schema, setups=None):
 
 
 
-
 def _getpoints(points, elem):
     """decodage des structures de type  way
     recupere les points d une ligne et renvoie une liste de points
@@ -291,13 +305,17 @@ def _getpoints(points, elem):
     contour = ppt == dpt
     return (geom, ninc, contour, ppt, dpt)
 
+
 def _getplist(elem):
     liste = tuple(int(i.get("ref")) for i in elem.iter(tag="nd"))
     return liste
 
+
 def _getgeom(points, liste):
     geom = list([points[i] for i in liste if i in points])
     return (geom, len(liste) - len(geom), liste[0] == liste[-1] if liste else False)
+
+
 #    return _creeliste(points, liste)
 
 
@@ -310,8 +328,8 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
     perdus = 0
     ppt = None
     ferme = False
-    type_geom = '0'
-    decodeurs = reader.decodage['4']
+    type_geom = "0"
+    decodeurs = reader.decodage["4"]
     # print ('getmembers: decodeurs',decodeurs)
     for i in elem.iter(tag="member"):
         type_membre = i.get("type")
@@ -323,50 +341,52 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
             else:
                 perdus += 100000
         else:
-            membres[type_membre].append((identifiant,role))
+            membres[type_membre].append((identifiant, role))
 
     # if len(membres)==1: # objet monotype
     for type_membre in membres:
         geomlist = membres[type_membre]
-        if type_membre == 'node':
-            if type_geom == '0':
-                type_geom='1'
-            if type_geom !='1':
-                type_geom = '4'
+        if type_membre == "node":
+            if type_geom == "0":
+                type_geom = "1"
+            if type_geom != "1":
+                type_geom = "4"
             for identifiant, role in geomlist:
                 if identifiant in points:
-                # nodelist.append((identifiant, role))
+                    # nodelist.append((identifiant, role))
                     used.add(identifiant)
-                    geoms[type_membre].append((points[identifiant], role if role else 'node'))
+                    geoms[type_membre].append(
+                        (points[identifiant], role if role else "node")
+                    )
                 else:
                     perdus += 1
-        elif type_membre == 'way':
-            if type_geom == '0':
-                type_geom='2'
-            if type_geom !='2':
-                type_geom = '4'
+        elif type_membre == "way":
+            if type_geom == "0":
+                type_geom = "2"
+            if type_geom != "2":
+                type_geom = "4"
             for identifiant, role in geomlist:
                 ligne = lignes.get(identifiant)
                 if ligne:
                     used.add(identifiant)
-                    gligne,manquants,lferm = _getgeom(points,ligne)
+                    gligne, manquants, lferm = _getgeom(points, ligne)
                     ferme = lferm or ferme
                     ppt = ppt or ligne[0]
                     used.update(ligne)
-                    geoms[type_membre].append((gligne, role if role else 'outer'))
+                    geoms[type_membre].append((gligne, role if role else "outer"))
                     ferme = ferme or ppt == ligne[-1]
                     perdus += manquants
                 else:
                     perdus += 10000
         elif type_membre == "relation":
-            type_geom=4
+            type_geom = 4
             for identifiant, role in geomlist:
                 if identifiant in objets:
                     rellist.append((identifiant, role, type_membre))
                 else:
                     perdus += 100000
         else:
-            print ('type_membre inconnu', type_membre)
+            print("type_membre inconnu", type_membre)
             # return ([],0,False,[],0)
     return (geoms, perdus, ferme, rellist, type_geom)
     # else: # objet multi_type
@@ -375,28 +395,33 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
     #     return ([],0,False,[])
 
 
-
-
 def _classif_osm(reader, tagdict, geoms, type_geom, manquants, ido, parties):
     """ applique les regles de classification a l'objet """
     #    print (' dans classif osm ')
     # print ('avant decodage', tagdict, reader.decodage.keys())
     objs = []
     valide = False
-    multi = len(geoms)>1
+    multi = len(geoms) > 1
     for decodeur in reader.decodage[type_geom]:
-        obj = decodeur.decode_objet(tagdict, geoms, type_geom, manquants, ido, parties, multi)
+        obj = decodeur.decode_objet(
+            tagdict, geoms, type_geom, manquants, ido, parties, multi
+        )
         valide = valide or obj is not None
         if obj:
             tags = ", ".join(
-                ['"' + i + '" => "' + tagdict[i].replace('"', r'\"') + '"' for i in sorted(tagdict)]
+                [
+                    '"' + i + '" => "' + tagdict[i].replace('"', r"\"") + '"'
+                    for i in sorted(tagdict)
+                ]
             )
             # print ('apres decodage', tags)
 
             obj.hdict = {"tags": tagdict}
             obj.attributs["tags"] = tags
             obj.attributs["id_osm"] = ido
-            if not reader.gestion_doublons: # dans ce cas on a besoin d'une clef primaire
+            if (
+                not reader.gestion_doublons
+            ):  # dans ce cas on a besoin d'une clef primaire
                 obj.attributs["gid"] = str(obj.ido)
             obj.geom_v.srid = "4326"
             objs.append(obj)
@@ -409,7 +434,7 @@ def _classif_osm(reader, tagdict, geoms, type_geom, manquants, ido, parties):
 
 def classif_elem(reader, elem, points, lignes, objets, used):
     """ classifie un element """
-    ignore = {"tag", "nd", "member", "bounds","osm"}
+    ignore = {"tag", "nd", "member", "bounds", "osm"}
     type_geom = "0"
     manquants = 0
     geoms = defaultdict(list)
@@ -420,14 +445,14 @@ def classif_elem(reader, elem, points, lignes, objets, used):
     attributs = {i.get("k", "undefined"): i.get("v") for i in elem.iter(tag="tag")}
     ido = elem.get("id")
     if ido is None:
-        print ('element non identifié', elem)
+        print("element non identifié", elem)
         return -1, None, None, None, None
     ido = int(ido)
     if elem.tag == "node":
         points[ido] = (float(elem.get("lon")), float(elem.get("lat")))
         if attributs:
             type_geom = "1"
-            geoms["node"] = [(points[ido],'node')]
+            geoms["node"] = [(points[ido], "node")]
             used.add(ido)
     elif elem.tag == "way":  # lignes
         ldef = tuple(int(i.get("ref")) for i in elem.iter(tag="nd"))
@@ -444,12 +469,13 @@ def classif_elem(reader, elem, points, lignes, objets, used):
                 type_geom = "3" if ferme else "2"
             lignes[ido] = ldef
     elif elem.tag == "relation":
-        geoms, manquants, ferme, rellist, type_geom = _getmembers(reader, attributs, points, lignes, objets, elem,used)
-        if type_geom==2 and ferme:
-            type_geom=3
+        geoms, manquants, ferme, rellist, type_geom = _getmembers(
+            reader, attributs, points, lignes, objets, elem, used
+        )
+        if type_geom == 2 and ferme:
+            type_geom = 3
         if rellist:
-            print('detecte relation',rellist)
-
+            print("detecte relation", rellist)
 
     else:
         print("tag inconnu", elem.tag)
@@ -466,32 +492,41 @@ def lire_objets_osm(self, rep, chemin, fichier):
     self.lus_fich = 0
     nomschema = os.path.splitext(fichier)[0]
     schema = stock_param.init_schema(nomschema, "F")
-    if self.nb_lus == 0: # initialisation lecteur
+    if self.nb_lus == 0:  # initialisation lecteur
         refrep = os.path.dirname(__file__)
         config_osm_defaut = os.path.join(refrep, "config_osm.csv")
         config_osm_spe = self.regle_ref.getvar("config_osm")
         if config_osm_spe:
-            if config_osm_spe.endswith('.csv'): # c'est un fichier absolu
+            if config_osm_spe.endswith(".csv"):  # c'est un fichier absolu
                 config_osm = config_osm_spe
             else:
-                config_osm = os.path.join(refrep,config_osm_spe+'.csv')
+                config_osm = os.path.join(refrep, config_osm_spe + ".csv")
         else:
             config_osm = config_osm_defaut
-        self.gestion_doublons = self.regle_ref.getvar("doublons_osm", '1') == '1'
-        print ('gestion des doublons osm','activee' if self.gestion_doublons else 'desactivee')
-        minitaglist = self.regle_ref.getvar("tags_osm_minimal", '1') == '1' # si 1 on ne stocke que les tags non traites
-        setups = {"minimal":minitaglist}
-        if not self.regle_ref.getvar("fanout"): # on positionne un fanout approprie par defaut
-            self.regle_ref.stock_param.setvar("fanout","classe")
+        self.gestion_doublons = self.regle_ref.getvar("doublons_osm", "1") == "1"
+        print(
+            "gestion des doublons osm",
+            "activee" if self.gestion_doublons else "desactivee",
+        )
+        minitaglist = (
+            self.regle_ref.getvar("tags_osm_minimal", "1") == "1"
+        )  # si 1 on ne stocke que les tags non traites
+        setups = {"minimal": minitaglist}
+        if not self.regle_ref.getvar(
+            "fanout"
+        ):  # on positionne un fanout approprie par defaut
+            self.regle_ref.stock_param.setvar("fanout", "classe")
         self.decodage = init_osm(self, config_osm, schema, setups)
-    self.id_osm=set() # on initialise une structure de stockage des identifiants
+    self.id_osm = set()  # on initialise une structure de stockage des identifiants
     points = dict()
     lignes = dict()
     objets = dict()
     parties = dict()
     used = set()
     for _, elem in ET.iterparse(os.path.join(rep, chemin, fichier)):
-        ido, attributs, geoms, type_geom, manquants = classif_elem(self, elem, points, lignes, objets, used)
+        ido, attributs, geoms, type_geom, manquants = classif_elem(
+            self, elem, points, lignes, objets, used
+        )
         if ido == -1:
             continue
         if self.gestion_doublons:
@@ -500,7 +535,9 @@ def lire_objets_osm(self, rep, chemin, fichier):
             self.id_osm.add(ido)
         if type_geom != "0":  # analyse des objets et mise en categorie
             try:
-                objs = _classif_osm(self, attributs, geoms, type_geom, manquants, ido, parties)
+                objs = _classif_osm(
+                    self, attributs, geoms, type_geom, manquants, ido, parties
+                )
             except StopIteration:
                 # print ('osm :stopIteration')
                 return
@@ -508,21 +545,24 @@ def lire_objets_osm(self, rep, chemin, fichier):
                 nobj += 1
                 obj.setorig(nobj)
                 obj.attributs["#chemin"] = chemin
-                if obj.ident==('osm','om_comm_restriction'):
-                    print ('obj', obj )
-                stock_param.moteur.traite_objet(obj, self.regle_start)  # on traite le dernier objet
+                if obj.ident == ("osm", "om_comm_restriction"):
+                    print("obj", obj)
+                stock_param.moteur.traite_objet(
+                    obj, self.regle_start
+                )  # on traite le dernier objet
         elem.clear()
-    print ('parties', len(parties))
+    print("parties", len(parties))
     for ideelem in parties:
         if ideelem not in used:
-            print ('element non  utilise', idelem, parties(idelem))
+            print("element non  utilise", idelem, parties(idelem))
 
     lostpt = set(points.keys()).difference(used)
-    print ('points_perdus', len(lostpt))
+    print("points_perdus", len(lostpt))
     lostl = set(lignes.keys()).difference(used)
-    print ('lignes_perdues', len(lostl))
+    print("lignes_perdues", len(lostl))
 
     return
+
 
 READERS = {"osm": (lire_objets_osm, "#osm", True, (), None, None)}
 WRITERS = {}

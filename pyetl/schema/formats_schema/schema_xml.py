@@ -87,7 +87,12 @@ def _sortir_attribut_xml(classe, attr, keys):
 
     if attr.nom in keys:
         #        print ("clefs primaires",keys)
-        texte = texte + " clef_primaire = 'oui' ordre = '" + str(keys.index(attr.nom) + 1) + "'"
+        texte = (
+            texte
+            + " clef_primaire = 'oui' ordre = '"
+            + str(keys.index(attr.nom) + 1)
+            + "'"
+        )
     if attr.nom in classe.fkey_attribs:
         cible, params = classe.getfkey(attr.nom)
         dec = cible.split(".")
@@ -120,7 +125,14 @@ def _sortir_attribut_xml(classe, attr, keys):
 
     if attr.conf and attr.nom_conformite == "":
         description = [texte + ">"]
-        if attr.type_att in {"E", "EL", "F", "S", "BS", "N"} or attr.type_att_base in {"E", "EL", "F", "S", "BS", "N"}:
+        if attr.type_att in {"E", "EL", "F", "S", "BS", "N"} or attr.type_att_base in {
+            "E",
+            "EL",
+            "F",
+            "S",
+            "BS",
+            "N",
+        }:
             # types numeriques
             # print "type attribut",self.type_att
             try:
@@ -137,7 +149,11 @@ def _sortir_attribut_xml(classe, attr, keys):
             vals = sorted(attr.valeurs)
 
         valeurs_conf = [
-            "\t\t<valeur_conformite v='" + ESC_XML(str(j)) + "' n='" + str(attr.valeurs[j]) + "'/>"
+            "\t\t<valeur_conformite v='"
+            + ESC_XML(str(j))
+            + "' n='"
+            + str(attr.valeurs[j])
+            + "'/>"
             for j in vals
         ]
         description.extend(valeurs_conf)
@@ -232,7 +248,10 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
         conf = (
             "<conformites>\n"
             + "\n".join(
-                [_sortir_conformite_xml(sch.conformites[i]) for i in sorted(sch.conformites.keys())]
+                [
+                    _sortir_conformite_xml(sch.conformites[i])
+                    for i in sorted(sch.conformites.keys())
+                ]
             )
             + "\n</conformites>\n"
         )
@@ -284,7 +303,7 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
         nom = i.get("nom")
         groupe = i.get("schema")
         ident = (groupe, nom)
-        classe = schema.def_classe(ident)
+        classe = schema.setdefault_classe(ident)
         #        g[nom]=sc
         for j in i.getiterator("attribut"):
             nom_a = j.get("nom")
@@ -307,12 +326,14 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
 def lire_schema_xml(mapper, base, fichier, cod="utf-8"):
     """lit un ensemble de fichiers schema en xml"""
     print("lecture xml")
-    schema = mapper.init_schema(base, origine='L')
+    schema = mapper.init_schema(base, origine="L")
     fusion_schema_xml(schema, fichier, cod=cod)
     return schema
 
 
-def ecrire_schema_xml(rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""):
+def ecrire_schema_xml(
+    rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""
+):
     """ecrit un schema en xml"""
     os.makedirs(rep, exist_ok=True)
     alias = ESC_XML(alias)

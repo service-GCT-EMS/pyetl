@@ -70,7 +70,7 @@ def f_xmlextract(regle, obj):
     cadres, xml = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
-            if regle.item=="_T":
+            if regle.item == "_T":
                 contenu = elem.text
             else:
                 contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
@@ -157,7 +157,7 @@ def f_xmledit(regle, obj):
  #aide_spec5||suppression d un ensemble de tags
 #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^ss;xx;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmledit;pp;||atv;p2;titi
       #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
        """
     cadres, xml = getcadre(regle, obj)
@@ -183,17 +183,21 @@ def f_xmledit(regle, obj):
                 for i, j in vals.items():
                     elem.set(i, j)
 
-def f_xmlload(regle,obj):
+
+def f_xmlload(regle, obj):
     """#aide||lecture d un fichier xml dans un attribut
    #pattern1||A;?;?A;xml_load;;;
 #parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
     """
     nom = regle.getval_entree(obj)
     if not os.path.isabs(nom):
-        nom=os.path.join(regle.getvar("_entree",""),nom)
-    obj.attribut[regle.params.att_sortie.val]="".join(open(nom,'r',encoding="utf-8").readlines())
+        nom = os.path.join(regle.getvar("_entree", ""), nom)
+    obj.attribut[regle.params.att_sortie.val] = "".join(
+        open(nom, "r", encoding="utf-8").readlines()
+    )
 
-def f_xmlsave(regle,obj):
+
+def f_xmlsave(regle, obj):
     """#aide||stockage dans un fichier d un xml contenu dans un attribut
    #pattern1||;;A;xml_save;C;;
    #pattern2||;;A;xml_save;[A];;
@@ -201,8 +205,14 @@ def f_xmlsave(regle,obj):
 #parametres2||;;attribut contenant le xml;;attribut contenant le nom du fichier
     """
     nom = regle.getcmp1(obj)
-    nom = obj.attributs.get(regle.params.cmp1.origine,"") if regle.params.cmp1.origine else regle.params.cmp1.val
+    nom = (
+        obj.attributs.get(regle.params.cmp1.origine, "")
+        if regle.params.cmp1.origine
+        else regle.params.cmp1.val
+    )
     if not os.path.isabs(nom):
-        nom=os.path.join(regle.getvar("_sortie",""),nom)
+        nom = os.path.join(regle.getvar("_sortie", ""), nom)
 
-    open(nom,'w',encoding="utf-8").write(obj.attribut.get(regle.params.att_entree.val,""))
+    open(nom, "w", encoding="utf-8").write(
+        obj.attribut.get(regle.params.att_entree.val, "")
+    )

@@ -97,7 +97,6 @@ def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
     return vniv and vclass
 
 
-
 class Schema(object):
     """ definition d'un schema : ensemble de classes et de conformites
         code origine : L schema lu
@@ -267,8 +266,8 @@ class Schema(object):
             setattr(self, i, d_if[i])
         for conf, cd_if in d_if["conformites"].items():
             self.get_conf(conf).from_dic_if(cd_if)
-        for cls, cd_if in d_if["classes"].items():
-            sc_classe = self.def_classe(cls)
+        for ident, cd_if in d_if["classes"].items():
+            sc_classe = self.setdefault_classe(ident)
             sc_classe.from_dic_if(cd_if)
             #            print ('recup schemaclasse',sc_classe)
             self.gere_conformites(sc_classe)
@@ -277,18 +276,13 @@ class Schema(object):
 
     #        print ('fin recup_schema')
 
-    def def_classe(self, ident):
-        """ cree un schema pour une nouvelle classe"""
-        if ident in self.classes:
-            return self.classes[ident]
-        return self.ajout_classe(C.SchemaClasse(ident, self))
-
     def ajout_classe(self, sc_classe):
         """ajoute une classe dans un schema"""
         ident = sc_classe.identclasse
         self.classes[ident] = sc_classe
         self.direct[ident[1]] = ident
         sc_classe.schema = self
+        # print("sci:ajout_classe", self.nom, len(self.classes))
         return sc_classe
 
     def get_classe(self, ident, cree=False, modele=None, filiation=False, guess=False):
@@ -356,7 +350,7 @@ class Schema(object):
         """copie du schema d'une classe vers un nouveau schema avec gestion des conformites"""
         #        print ('avant copie',modele.type_geom, modele)
         if modele is None:  # on cree une classe a partir de 0
-            return C.SchemaClasse(ident, self)
+            return self.setdefault_classe(ident)
         #        on recopie le modele
         old_schema = modele.schema  # on evite de recopier toute la structure
         old_fils = modele.fils
@@ -411,8 +405,9 @@ class Schema(object):
 
     def setdefault_classe(self, ident):
         """ trouve une classe ou la cree au besoin"""
-        classe = self.classes.get(ident)
-        return classe if classe else self.def_classe(ident)
+        if ident in self.classes:
+            return self.classes[ident]
+        return self.ajout_classe(C.SchemaClasse(ident, self))
 
     # -------------------gestion interne des mappings ---------------------------#
     def mapping_schema(self, fusion=False):

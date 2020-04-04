@@ -375,21 +375,33 @@ def h_adquery(regle):
     print("acces LDAP", ACD.root())
     regle.AD = ACD
     regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
+    if regle.params.pattern == "1":
+        regle.queryfonc = regle.AD.find_user
+    elif regle.params.pattern == "2":
+        regle.queryfonc = regle.AD.find_computer
+    elif regle.params.pattern == "3":
+        regle.queryfonc = regle.AD.find_group
 
 
 def f_adquery(regle, obj):
     """#aide extait des information de active_directory
-    #pattern||S;?C;?A;adquery;=user;?C;
+    #pattern1||S;?C;?A;adquery;=user;?C;
+    #pattern2||S;?C;?A;adquery;=machine;?C;
+    #pattern3||S;?C;?A;adquery;=groupe;?C;
     # """
     if regle.get_entree(obj):
         try:
-            user = regle.AD.find_user(regle.get_entree(obj))
+            item = regle.queryfonc(regle.get_entree(obj))
         except TypeError as err:
             print("erreur adquery", err, regle.get_entree(obj))
-            user = ""
-        if user:
-            val = getattr(user, regle.a_recuperer)
-            regle.setval_sortie(obj, val)
+            item = ""
+        if item:
+            if regle.a_recuperer == "*":
+                print("infos:", item)
+                item.dump()
+            else:
+                val = getattr(item, regle.a_recuperer)
+                regle.setval_sortie(obj, val)
             return True
     # print("pas d'entree adquery",regle.get_entree(obj) )
     return False
@@ -398,26 +410,35 @@ def f_adquery(regle, obj):
 def h_listefich(regle):
     """rends la regle executable"""
     regle.chargeur = True
+    if regle.params.pattern == "2":
+        regle.setlocal("fileselect", regle.params.val_entree.val)
+    regle.setlocal("F_entree", "*")
 
 
 def f_listefich(regle, obj):
     """#aide genere un objet par fichier repondant aux criteres d'entree
-    #pattern||S;?C;?A;listefich;?C;
+    #pattern1||S;?C;A;listefich;?C;?C
+    #pattern2||S;?C;;listefich;?C;?C
+    #parametres1||attribut de sortie;defaut;selecteur de fichiers;;repertoire;extension;
+    #variables||dirselect:selecteur de repertoires
+              ||filtre_entree:filtrage noms par expression reguliere
     """
-    if regle.get_entree(obj):
-        classe = regle.params.cmp1.val or obj.attributs.get("#classe")
-        traite_objets = regle.stock_param.traite_objets
-        for fich in getfichs(regle, obj):
-            nouveau = obj.dupplique()
-            nouveau.attributs["#classe"] = classe
-            regle.setval_sortie(nouveau, fich)
-            traite_objets(nouveau)
-        return True
-    return False
+    if regle.params.pattern == "1":
+        regle.setlocal("fileselect", regle.get_entree(obj))
+    classe = regle.params.cmp1.val or obj.attributs.get("#classe")
+    traite_objets = regle.stock_param.traite_objets
+    trouve = False
+    for fich in getfichs(regle, obj):
+        nouveau = obj.dupplique()
+        nouveau.attributs["#classe"] = classe
+        regle.setval_sortie(nouveau, fich)
+        traite_objets(nouveau)
+        trouve = True
+    return trouve
 
 
 def sel_isfile(selecteur, obj):
-    """#aide||tesste si un fichier existe
+    """#aide||teste si un fichier existe
        #pattern1||=is:file;[A]||1
        #pattern2||=is:file;C||1
        #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1

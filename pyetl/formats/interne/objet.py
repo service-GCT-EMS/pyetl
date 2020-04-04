@@ -513,14 +513,10 @@ class Objet(object):
 
     def setschema_auto(self, schema):
         """affecte un schema a l'objet en trouvant la classe et gere le comptage de references"""
-
-        if schema is not None:
-            schemaclasse = schema.get_classe(self.ident)
-            if not schemaclasse:
-                schemaclasse = schema.def_classe(self.ident)
+        if schema is None:
+            self.setschema(None)
         else:
-            schemaclasse = None
-        self.setschema(schemaclasse)
+            self.setschema(schema.setdefault_classe(self.ident))
 
     def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""

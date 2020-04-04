@@ -12,11 +12,12 @@ from fiona.crs import from_epsg
 
 # from .fileio import FileWriter
 
+
 def formatte_entree(type_orig):
-    '''cree un formattage d'netree pour la gestion des decimales'''
+    """cree un formattage d'netree pour la gestion des decimales"""
     format_entree = ""
     dec = None
-    taille=None
+    taille = None
     type_att = type_orig
     if ":" in type_orig:
         vv_tmp = type_orig.split(":")
@@ -27,13 +28,12 @@ def formatte_entree(type_orig):
             taille = vv_tmp[0]
             dec = vv_tmp[1]
 
-    if type_att == "float" or type_att =='F':
+    if type_att == "float" or type_att == "F":
         if dec == "0":
             type_att = "long" if taille is not None and int(taille) >= 10 else "int"
     # print( 'traitement shapefile', type_orig,'->',type_att, taille, dec)
 
-    return type_att, taille ,dec
-
+    return type_att, taille, dec
 
 
 def recup_schema_fiona(schema_courant, ident, description, driver):
@@ -71,7 +71,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
     # if ident in schema_courant.classes:
     #     return schema_courant.classes[ident]
 
-    sc_classe = schema_courant.def_classe(ident)
+    sc_classe = schema_courant.setdefault_classe(ident)
     multigeom = False
     if "geometry" in description:
         nom_geom = description["geometry"]
@@ -88,11 +88,13 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         type_geom = "0"
         dimension = 0
     # print('type geometrique fiona', type_geom, nom_geom)
-    sc_classe.stocke_geometrie(type_geom, dimension=dimension, srid="3948", multiple=multigeom)
+    sc_classe.stocke_geometrie(
+        type_geom, dimension=dimension, srid="3948", multiple=multigeom
+    )
     # sc_classe.info["type_geom"] = type_geom
     for i in description["properties"]:
         type_att = description["properties"][i]
-        type_att, taille ,dec  = formatte_entree(type_att)
+        type_att, taille, dec = formatte_entree(type_att)
         sc_classe.stocke_attribut(
             i,
             types_a[type_att],
@@ -107,7 +109,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
 
 def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     """cree une description fiona d un schema"""
-    nom_g_s = {'1': 'Point', '2': 'LineString', '3': "Polygon"}
+    nom_g_s = {"1": "Point", "2": "LineString", "3": "Polygon"}
     nom_g_m = {"1": "MultiPoint", "2": "MultiLineString", "3": "MultiPolygon"}
     nom_a = {
         "texte": "str",
@@ -124,8 +126,11 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         type_geom = "0"
     if type_geom > "0":
         # nom_geom = nom_g_m[type_geom]
-        nom_geom = (nom_g_m[type_geom] if sc_classe.multigeom or sc_classe.info['courbe']
-                    else nom_g_s[type_geom])
+        nom_geom = (
+            nom_g_m[type_geom]
+            if sc_classe.multigeom or sc_classe.info["courbe"]
+            else nom_g_s[type_geom]
+        )
         if sc_classe.info["dimension"] == "3":
             nom_geom = "3D " + nom_geom
         description["geometry"] = nom_geom
@@ -167,7 +172,6 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
     return description
 
 
-
 def lire_objets(self, rep, chemin, fichier):
     """ lecture d'un fichier reconnu et stockage des objets en memoire"""
     # print("lecture gdal", (rep, chemin, fichier), self.schemaclasse)
@@ -181,10 +185,13 @@ def lire_objets(self, rep, chemin, fichier):
         with fiona.open(self.fichier, "r", layer=layer) as source:
             # print ('recup fiona',self.newschema,source.driver, source.schema)
             if layer != classe:
-                self.setidententree(self.groupe,layer)
+                self.setidententree(self.groupe, layer)
             if self.newschema:
                 self.schemaclasse = recup_schema_fiona(
-                    self.schemaclasse.schema, (self.groupe, self.classe), source.schema, source.driver
+                    self.schemaclasse.schema,
+                    (self.groupe, self.classe),
+                    source.schema,
+                    source.driver,
                 )
 
             driver = source.driver
@@ -245,15 +252,16 @@ class GdalWriter(object):
             self.fanout = f_sortie.multiclasse
             self.fanoutmax = f_sortie.fanoutmax
 
-
     def open(self):
         """ouvre  sur disque"""
         crs = from_epsg(int(self.srid))
         if self.l_max:
             self.schemaclasse.cree_noms_courts(longueur=self.l_max)
         self.schemaclasse.minmajfunc = self.minmajfunc
-        schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
-        print('fiona: ouverture', self.nom, self.layer)
+        schema = schema_fiona(
+            self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max
+        )
+        print("fiona: ouverture", self.nom, self.layer)
         self.fichier = fiona.open(
             self.nom,
             "w",
@@ -271,7 +279,7 @@ class GdalWriter(object):
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
         self.close()
         _, classe = schemaclasse.identclasse
-        print('fiona: changeclasse depuis', self.nom, self.layer, 'vers',classe)
+        print("fiona: changeclasse depuis", self.nom, self.layer, "vers", classe)
 
         self.layer = classe
         # crs = from_epsg(int(self.srid))
@@ -295,7 +303,9 @@ class GdalWriter(object):
     def reopen(self):
         """reouvre le fichier s'il aete ferme entre temps"""
         crs = from_epsg(int(self.srid))
-        schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
+        schema = schema_fiona(
+            self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max
+        )
         self.fichier = fiona.open(
             self.nom,
             "a",
@@ -362,7 +372,7 @@ class GdalWriter(object):
         if self.buffer:
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                print ('ecriture buffer',ident,len(self.buffer[ident]))
+                print("ecriture buffer", ident, len(self.buffer[ident]))
                 self.fichier.writerecords(self.buffer[ident])
         self.buffer = dict()
         self.close()
@@ -432,7 +442,9 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
     #    print ('gdal: ecriture objet',obj)
     #    print ('gdal: ecriture objet',obj.__geo_interface__)
     try:
-        ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(obj, regle.idregle)
+        ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(
+            obj, regle.idregle
+        )
     except Exception as err:
         print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__)
         raise
@@ -456,23 +468,43 @@ def _ecrire_objets(self, regle, _, attributs=None, rep_sortie=None, usebuffer=Fa
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             #            print ('gdalio: ecriture', obj)
-            _gdalstreamer(obj, regle, None, attributs=attributs, rep_sortie=rep_sortie, usebuffer=usebuffer)
+            _gdalstreamer(
+                obj,
+                regle,
+                None,
+                attributs=attributs,
+                rep_sortie=rep_sortie,
+                usebuffer=usebuffer,
+            )
+
 
 def ecrire_objets_b(self, regle, _, attributs=None, rep_sortie=None):
     """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
     # ng, nf = 0, 0
-    return _ecrire_objets(self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True)
+    return _ecrire_objets(
+        self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
+    )
+
 
 def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
     # ng, nf = 0, 0
-    return _ecrire_objets(self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False)
+    return _ecrire_objets(
+        self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
+    )
+
 
 def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
-    return _gdalstreamer(obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False)
+    return _gdalstreamer(
+        obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
+    )
+
 
 def gdalstreamer_b(self, obj, regle, final, attributs=None, rep_sortie=None):
-    return _gdalstreamer(obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True)
+    return _gdalstreamer(
+        obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
+    )
+
 
 # def init_shape(reader):
 #     reader.multidefaut=True
@@ -489,10 +521,54 @@ READERS = {
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "shp": (ecrire_objets, gdalstreamer, True, "up", 10, "ESRI Shapefile", "classe", None, "#tmp",None),
-    "mif": (ecrire_objets, gdalstreamer, True, "", 0, "MapInfo File", "classe", None, "#tmp",None),
-    "dxf": (ecrire_objets, gdalstreamer, True, "", 0, "DXF", "classe", None, "#tmp",None),
-    "gpkg": (ecrire_objets_b, gdalstreamer_b, True, "", 0, "GPKG", "all", None, "#tmp",None),
+    "shp": (
+        ecrire_objets,
+        gdalstreamer,
+        True,
+        "up",
+        10,
+        "ESRI Shapefile",
+        "classe",
+        None,
+        "#tmp",
+        None,
+    ),
+    "mif": (
+        ecrire_objets,
+        gdalstreamer,
+        True,
+        "",
+        0,
+        "MapInfo File",
+        "classe",
+        None,
+        "#tmp",
+        None,
+    ),
+    "dxf": (
+        ecrire_objets,
+        gdalstreamer,
+        True,
+        "",
+        0,
+        "DXF",
+        "classe",
+        None,
+        "#tmp",
+        None,
+    ),
+    "gpkg": (
+        ecrire_objets_b,
+        gdalstreamer_b,
+        True,
+        "",
+        0,
+        "GPKG",
+        "all",
+        None,
+        "#tmp",
+        None,
+    ),
 }
 
 

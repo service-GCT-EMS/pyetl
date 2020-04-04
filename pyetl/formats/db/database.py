@@ -208,8 +208,8 @@ class Cursinfo(object):
                             scale,
                             null_ok,
                         ) = colonne
-                        # print ('lecture requete',name, type, display_size, internal_size, precision, scale, null_ok )
                         nomtype = self.connecteur.getdatatype(datatype)
+                        print("lecture requete", name, nomtype, internal_size)
                         attlist.append((name, nomtype, internal_size, precision))
                         # typelist.append(type.__name__)
                     # print ('attlist', attlist)

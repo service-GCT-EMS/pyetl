@@ -346,8 +346,13 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         mode_sortie = (
             schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
         )
-        #        print('sortir schema ', i, mode_sortie, len(schemas[i].classes),
-        #              FSC.analyse_interne(schemas[i], mode_sortie))
+        print(
+            "sortir schema ",
+            i,
+            mode_sortie,
+            len(schemas[i].classes),
+            FSC.analyse_interne(schemas[i], mode_sortie),
+        )
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
         if not rep_sortie:
