@@ -12,7 +12,7 @@ import subprocess
 import re
 from collections import namedtuple
 import psycopg2
-from .database import DbConnect
+from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
 
@@ -152,6 +152,39 @@ GTYPES_CURVE = {
 }
 
 
+class PgCursinfo(Cursinfo):
+    @property
+    def infoschema(self):
+        """retourne le schema issu de la requete"""
+        if self.schema_req:
+            return self.schema_req
+        if self.request:
+            req = (
+                "create TEMP TABLE tmp__0001 AS select * from ("
+                + self.request
+                + ") as x limit 0 "
+            )
+
+            self.execute(req, self.data, newcursor=True)
+            # cursor = self.execute("select current_schemas('t')", newcursor=True)
+            # temp_schema = cursor.fetchall()[0][0][0]
+            # print("temp_schema", temp_schema)
+            inforeq = (
+                REQS["info_attributs"].replace("AND n.nspname !~~ 'pg_%'::text", "")
+                + " WHERE t4.nomtable='tmp__0001'"
+            )
+            cursor = self.execute(inforeq, newcursor=True)
+            retour = cursor.fetchall()
+            attlist = [self.connecteur.attdef(*i) for i in retour]
+            # on recupere la structure du schema temporaire
+            # print("retour requete", attlist)
+            self.execute("drop TABLE pg_temp.tmp__0001", newcursor=True)
+            self.schema_req = attlist
+        return self.schema_req
+
+    #    attlist.append((name, nomtype, internal_size, precision))
+
+
 class PgrConnect(DbConnect):
     """connecteur de la base de donnees postgres"""
 
@@ -189,6 +222,11 @@ class PgrConnect(DbConnect):
         cur = self.connection.cursor()
         cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
+
+    def get_cursinfo(self, volume=0, nom=""):
+        """recupere un curseur"""
+        # print(" postgres get cursinfo")
+        return PgCursinfo(self, volume=volume, nom=nom) if self.connection else None
 
     def datestyle(self):
         """recupere la config de formattage de dates"""

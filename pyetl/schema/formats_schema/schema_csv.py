@@ -624,7 +624,7 @@ def lire_schema_csv(
 
 def ecrire_fich_csv(chemin, nom, contenu, cod):
     """ ecriture physique du csv"""
-    print("ecriture_csv", chemin, nom, cod)
+    # print("ecriture_csv", chemin, nom, cod)
     try:
         with open(chemin + nom, "w", encoding=cod, errors="replace") as fich:
             fich.write("\n".join(contenu))
@@ -660,16 +660,17 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
         chemref = os.path.join(str(rep), nomschema)
         if len(classes) > 1:
             # print (conf,'\n',schemas)
-            #        print("schema: ecriture schema csv", chemref+" en csv ("+cod+")")
+            print("schema: ecriture schema csv", chemref + " en csv (" + cod + ")")
             ecrire_fich_csv(chemref, "_classes.csv", classes, cod)
             ecrire_fich_csv(chemref, "_enumerations.csv", conf, cod)
             ecrire_fich_csv(chemref, "_mapping.csv", mapping, cod)
-            if deftrig:
-                ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
+
             print(
                 "schema:traitement elements specifiques",
-                schema.elements_specifiques.keys(),
+                [(i, len(j)) for i, j in schema.elements_specifiques.items()],
             )
+            if deftrig:
+                ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
             for i in schema.elements_specifiques:
                 if schema.elements_specifiques[i]:
                     if i != "def_triggers":

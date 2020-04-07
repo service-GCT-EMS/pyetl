@@ -303,14 +303,8 @@ def get_dbtype(connect, typecode):
 
 def schema_from_curs(schema, curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
-    schemaclasse = schema.get_classe(nomclasse, cree=True)
     attlist = curs.infoschema
-    if attlist:
-        for colonne in attlist:
-            nom, type_attribut, taille, dec = colonne
-            schemaclasse.stocke_attribut(nom, type_attribut, taille=taille, dec=dec)
-        return schemaclasse
-    return None
+    curs.connecteur.cree_schema_classe(nomclasse, curs.infoschema, schema=schema)
 
 
 def sortie_resultats(
@@ -596,6 +590,7 @@ def lire_requete(
         connect, schema, liste = retour
     else:
         return 0
+
     curs = connect.iterreq(requete, data=parms)
 
     #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
@@ -605,8 +600,10 @@ def lire_requete(
     treq = time.time() - treq
     connect.connection.commit()
     if curs:
-        schema_classe_travail = schema_from_curs(schema, curs, ident)
-        print("creation schema", schema.nom, ident, len(schema.classes))
+        schema_classe_travail = curs.connecteur.cree_schema_classe(
+            ident, curs.infoschema, schema=schema
+        )
+        # print("creation schema", schema.nom, ident, len(schema.classes))
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,

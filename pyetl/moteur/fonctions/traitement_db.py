@@ -24,7 +24,7 @@ def _mode_niv_in(regle, niv, autobase=False):
     attrs = []
     cmp = []
     base = []
-    print("mode_niv in:lecture_fichier", valeurs)
+    # print("mode_niv in:lecture_fichier", valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
         # print("mode_niv in:liste_defs",liste_defs)

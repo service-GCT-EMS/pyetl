@@ -123,6 +123,7 @@ class Cursinfo(object):
                 # print ('creation curseur standard', volume, nom)
         self.connecteur = connecteur
         self.request = None
+        self.schema_req = None
         self.data = None
         self.attlist = None
         self.volume = volume
@@ -145,26 +146,31 @@ class Cursinfo(object):
         if self.cursor:
             self.cursor.close()
 
-    def execute(self, requete, data=None, attlist=None):
+    def execute(self, requete, data=None, attlist=None, newcursor=False):
         """execute une requete"""
-        self.request = requete
-        self.data = data
-        self.attlist = attlist
+
         # print("dans execute ", requete, data)
-        if self.cursor:
+        cursor = self.connecteur.connection.cursor() if newcursor else self.cursor
+        if cursor:
             if data is not None:
-                self.cursor.execute(requete, data)
+                cursor.execute(requete, data)
             else:
                 try:
-                    self.cursor.execute(requete)
+                    cursor.execute(requete)
                 except:
                     print("erreur requete", requete)
                     raise
-            if not self.ssc:  # si on utilise des curseurs serveur le decompte est faux
-                # print('calcul decile',self.cursor)
-                self.decile = int(self.rowcount / 10 + 1)
-                if self.decile == 1:
-                    self.decile = 100000
+            if not newcursor:
+                self.request = requete
+                self.data = data
+                self.attlist = attlist
+                if not self.ssc:
+                    # si on utilise des curseurs serveur le decompte est faux
+                    # print('calcul decile',self.cursor)
+                    self.decile = int(self.rowcount / 10 + 1)
+                    if self.decile == 1:
+                        self.decile = 100000
+        return cursor
         # if attlist is None:
         #     self.attlist=self.schemaclasse
         # print ('fin')
@@ -191,10 +197,12 @@ class Cursinfo(object):
     @property
     def infoschema(self):
         """fournit un schema issu de la requete"""
-
+        print(" dans infoschema")
+        if self.schema_req:
+            return self.schema_req
         if self.cursor:
             try:
-                # print('dans cursor.schemaclasse',self.cursor.description)
+                print("dans cursor.schemaclasse", self.cursor.description)
                 if self.cursor.description:
                     attlist = []
                     typelist = []
@@ -209,10 +217,11 @@ class Cursinfo(object):
                             null_ok,
                         ) = colonne
                         nomtype = self.connecteur.getdatatype(datatype)
-                        print("lecture requete", name, nomtype, internal_size)
+                        print("lecture requete", name, datatype, nomtype, internal_size)
                         attlist.append((name, nomtype, internal_size, precision))
                         # typelist.append(type.__name__)
                     # print ('attlist', attlist)
+                    self.schema_req = attlist
                     return attlist
             except:
                 print("planté dans cursor.schemaclasse")
@@ -484,23 +493,12 @@ class DbConnect(object):
 
             schemaclasse.type_table = type_table
 
-    def _recup_attributs(self):
-        """recupere les attributs"""
-        fdebug = None
-        if DEBUG:
-            print("ecriture debug:", "lecture_base_attr_" + self.type_base + ".csv")
-            fdebug = open("lecture_base_attr_" + self.type_base + ".csv", "w")
-            fdebug.write("\n".join(self.attdef.fields) + "\n")
-
-        for atd in self.get_attributs():
-            # atd = connect.attdef(*i)
-            # print ('schema attributs', atd)
-            if DEBUG:
-                fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
-                fdebug.write("\n")
+    def cree_schema_classe(self, ident, attlist, schema=None):
+        """cree un schema de classe a partir d une liste d attributs"""
+        schema = schema if schema is not None else self.schemabase
+        classe = schema.setdefault_classe(ident)
+        for atd in attlist:
             num_attribut = float(atd.num_attribut)
-            classe = self.schemabase.setdefault_classe((atd.nom_groupe, atd.nom_classe))
-            #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
             if not atd.type_attr:
                 LOGGER.error(
                     "attribut sans type G:%s C:%s A:%s",
@@ -577,9 +575,115 @@ class DbConnect(object):
                 obligatoire=obligatoire,
                 multiple=atd.multiple,
             )
+        return classe
 
+    def _recup_attributs(self):
+        """recupere les attributs"""
+        fdebug = None
+        if DEBUG:
+            print("ecriture debug:", "lecture_base_attr_" + self.type_base + ".csv")
+            fdebug = open("lecture_base_attr_" + self.type_base + ".csv", "w")
+            fdebug.write("\n".join(self.attdef.fields) + "\n")
+        infoclasses = dict()
+        for atd in self.get_attributs():
+            if DEBUG:
+                fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
+                fdebug.write("\n")
+            ident = (atd.nom_groupe, atd.nom_classe)
+            if ident in infoclasses:
+                infoclasses[ident].append(atd)
+            else:
+                infoclasses[ident] = [atd]
         if DEBUG:
             fdebug.close()
+        for classe, attlist in infoclasses.items():
+            self.cree_schema_classe(classe, attlist)
+
+        # for atd in self.get_attributs():
+        #     # atd = connect.attdef(*i)
+        #     # print ('schema attributs', atd)
+        #     if DEBUG:
+        #         fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
+        #         fdebug.write("\n")
+        #     num_attribut = float(atd.num_attribut)
+        #     classe = self.schemabase.setdefault_classe((atd.nom_groupe, atd.nom_classe))
+        #     #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
+        #     if not atd.type_attr:
+        #         LOGGER.error(
+        #             "attribut sans type G:%s C:%s A:%s",
+        #             atd.nom_groupe,
+        #             atd.nom_classe,
+        #             atd.nom_attr,
+        #         )
+        #     type_ref = atd.type_attr
+        #     taille_att = atd.taille
+        #     if "(" in atd.type_attr:  # il y a une taille
+        #         tmp = atd.type_attr.split("(")
+        #         if tmp[1][-1].isnumeric():
+        #             type_ref = tmp[0]
+        #             taille_att = tmp[1][-1]
+        #     if type_ref.upper() in self.type_base:
+        #         type_attr = self.types_base[type_ref.upper()]
+        #     else:
+        #         type_attr = self.get_type(type_ref)
+
+        #     if atd.enum:
+        #         #            print ('detection enums ',atd.enum)
+        #         #            if enum in schema_base.conformites:
+        #         type_attr_base = "T"
+        #         type_attr = atd.enum
+        #     else:
+        #         type_attr_base = type_attr
+
+        #     clef_etr = ""
+        #     if atd.clef_etrangere:
+        #         cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
+        #         #            if atd.cible_clef is None:
+        #         #                cible_clef = ''
+        #         if not cible_clef:
+        #             print(
+        #                 "mdba: erreur schema : cible clef etrangere non definie",
+        #                 atd.nom_groupe,
+        #                 atd.nom_classe,
+        #                 atd.nom_attr,
+        #                 atd.clef_etrangere,
+        #             )
+        #         #            print ('trouve clef etrangere',clef_etrangere)
+        #         clef_etr = atd.clef_etrangere + "." + cible_clef
+        #     #        if clef:  print (clef)
+        #     index = atd.index if atd.index is not None else ""
+        #     #        if index is None:
+        #     #            index = ''
+        #     if atd.clef_primaire:
+        #         code = "P:" + str(atd.clef_primaire)
+        #         if code not in index:
+        #             index = index + " " + code if index else code
+
+        #     obligatoire = atd.obligatoire == "oui"
+        #     parametres_clef = (
+        #         atd.parametres_clef if "parametres_clef" in self.attdef._fields else ""
+        #     )
+        #     # if atd.multiple=='oui':
+        #     #     print ('attribut',atd)
+        #     classe.stocke_attribut(
+        #         atd.nom_attr,
+        #         type_attr,
+        #         defaut=atd.defaut,
+        #         type_attr_base=type_attr_base,
+        #         taille=taille_att,
+        #         dec=atd.decimales,
+        #         force=True,
+        #         alias=atd.alias,
+        #         dimension=atd.dimension,
+        #         clef_etr=clef_etr,
+        #         ordre=num_attribut,
+        #         mode_ordre="a",
+        #         parametres_clef=parametres_clef,
+        #         index=index,
+        #         unique=atd.unique,
+        #         obligatoire=obligatoire,
+        #         multiple=atd.multiple,
+        #     )
 
     def get_schemabase(self, mode_force_enums=1):
         """ recupere le schema complet de la base """

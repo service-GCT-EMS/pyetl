@@ -279,6 +279,7 @@ requetes_sigli[
 
 """
 
+
 requetes_sigli[
     "info_attributs"
 ] = """
@@ -426,7 +427,7 @@ requetes_sigli[
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char" AND (t4.attnum = ANY (c.conkey))) as parametres_clef,
     0 as taille,
     0 as decimales
-   FROM t4;
+   FROM t4
         """
 
 requetes_sigli[

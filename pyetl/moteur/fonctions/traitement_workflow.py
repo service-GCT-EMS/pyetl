@@ -495,7 +495,7 @@ def f_archive(regle, obj):
     stock = dict()
     print(
         "archive",
-        time.ctime,
+        time.ctime(),
         regle.params.val_entree.liste,
         dest,
         regle.getvar("_sortie"),
