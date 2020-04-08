@@ -189,7 +189,7 @@ def setdb(regle, obj, att=True):
         type_base = obj.attributs["#type_base"]
         regle.setvar("db", type_base)
         regle.setvar("server", chemin)
-    #    print ('regles alpha: acces base ', base, niveau, classe, attribut)
+    # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
 
     if niveau and niveau[0].startswith("["):  # nom de classe contenu dans un attribut
         niveau = [obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])]

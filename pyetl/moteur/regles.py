@@ -186,8 +186,8 @@ class ParametresFonction(object):
     def _compact(self):
         return ";%s;%s;%s;...;%s;%s;" % (
             self.att_sortie.val,
-            self.att_entree.val,
             self.val_entree.val,
+            self.att_entree.val,
             self.cmp1.val,
             self.cmp2.val,
         )
@@ -265,10 +265,6 @@ class Selecteur(object):
         #        print (" dans select ",self.ligne, obj)
         return not self.fonction(self, obj)
 
-    def validepattern(self, definition):
-        """validation de la signature d'une fonction"""
-        return validepattern(self, definition)
-
     def choix_fonction(self, attribut, valeur):
         """ definition d un critere de selection """
         if not (attribut or valeur):
@@ -279,7 +275,9 @@ class Selecteur(object):
             self.v_nommees["vals"] = valeur[1:]
         for candidat in self.regle.stock_param.sortedsels:
             # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
-            self.valide, elements, erreurs = self.validepattern(candidat.definition)
+            self.valide, elements, erreurs = validepattern(
+                self.v_nommees, candidat.definition, self.ligne
+            )
             if self.valide:
                 self.params = ParametresSelecteur(
                     elements, candidat.definition, candidat.patternnum
@@ -299,18 +297,18 @@ class Selecteur(object):
         )
 
 
-def validepattern(operateur, definition):
+def validepattern(v_nommees, definition, ligne):
     """validation de la signature d'une fonction"""
     # print (definition)
     elements = {None: None}
     try:
-        elements = {i: definition[i].match(operateur.v_nommees[i]) for i in definition}
+        elements = {i: definition[i].match(v_nommees[i]) for i in definition}
         # print ('elements',elements)
     except KeyError:
-        print("definition erronnee", operateur.ligne, definition)
+        print("definition erronnee", ligne, definition)
     valide = None not in elements.values()
     explication = [
-        i + ":" + definition[i].pattern + "<>" + operateur.v_nommees[i]
+        i + ":" + definition[i].pattern + "<>" + v_nommees[i]
         for i in elements
         if elements[i] is None
     ]
@@ -418,7 +416,7 @@ class RegleTraitement(object):  # regle de mapping
                 + str(self.numero)
                 + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
-                + "->"
+                + ":R->"
                 + (self.params._compact() if self.params else "noparams ")
                 + str(self.idregle)
                 + "("
@@ -550,7 +548,9 @@ class RegleTraitement(object):  # regle de mapping
             if fonc.style != self.style:
                 continue
             if self._select_fonc(fonc):
-                valide, self.elements, erreurs = self.validepattern(fonc.definition)
+                valide, self.elements, erreurs = validepattern(
+                    self.v_nommees, fonc.definition, self.ligne
+                )
                 # print( 'recherche pattern',valide, fonc.nom, erreurs, fonc.definition)
                 if valide:
                     break
@@ -641,10 +641,6 @@ class RegleTraitement(object):  # regle de mapping
         self.selstd = select
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
-
-    def validepattern(self, definition):
-        """validation de la signature d'une fonction"""
-        return validepattern(self, definition)
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""

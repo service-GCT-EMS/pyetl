@@ -337,6 +337,11 @@ class DbConnect(object):
 
     #  methodes specifiques a ecraser dans les subclasses ####
 
+    def commit(self):
+        """gere le commit"""
+        if self.connection:
+            self.connection.commit()
+
     def get_cursinfo(self, volume=0, nom=""):
         """recupere un curseur"""
         return Cursinfo(self, volume=volume, nom=nom) if self.connection else None
@@ -456,7 +461,7 @@ class DbConnect(object):
                     _,
                 ) = i
             else:
-                print("mdba:table mal formee ", self.type_base, len(i), i)
+                print("db:table mal formee ", self.type_base, len(i), i)
                 continue
 
             #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
@@ -513,7 +518,7 @@ class DbConnect(object):
                 if tmp[1][-1].isnumeric():
                     type_ref = tmp[0]
                     taille_att = tmp[1][-1]
-            if type_ref.upper() in self.type_base:
+            if type_ref.upper() in self.types_base:
                 type_attr = self.types_base[type_ref.upper()]
             else:
                 type_attr = self.get_type(type_ref)
@@ -599,92 +604,6 @@ class DbConnect(object):
         for classe, attlist in infoclasses.items():
             self.cree_schema_classe(classe, attlist)
 
-        # for atd in self.get_attributs():
-        #     # atd = connect.attdef(*i)
-        #     # print ('schema attributs', atd)
-        #     if DEBUG:
-        #         fdebug.write(";".join([str(v) if v is not None else "" for v in atd]))
-        #         fdebug.write("\n")
-        #     num_attribut = float(atd.num_attribut)
-        #     classe = self.schemabase.setdefault_classe((atd.nom_groupe, atd.nom_classe))
-        #     #        if 'G' in nom_attr:print ('type avant',nom_attr,type_attr)
-        #     if not atd.type_attr:
-        #         LOGGER.error(
-        #             "attribut sans type G:%s C:%s A:%s",
-        #             atd.nom_groupe,
-        #             atd.nom_classe,
-        #             atd.nom_attr,
-        #         )
-        #     type_ref = atd.type_attr
-        #     taille_att = atd.taille
-        #     if "(" in atd.type_attr:  # il y a une taille
-        #         tmp = atd.type_attr.split("(")
-        #         if tmp[1][-1].isnumeric():
-        #             type_ref = tmp[0]
-        #             taille_att = tmp[1][-1]
-        #     if type_ref.upper() in self.type_base:
-        #         type_attr = self.types_base[type_ref.upper()]
-        #     else:
-        #         type_attr = self.get_type(type_ref)
-
-        #     if atd.enum:
-        #         #            print ('detection enums ',atd.enum)
-        #         #            if enum in schema_base.conformites:
-        #         type_attr_base = "T"
-        #         type_attr = atd.enum
-        #     else:
-        #         type_attr_base = type_attr
-
-        #     clef_etr = ""
-        #     if atd.clef_etrangere:
-        #         cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
-        #         #            if atd.cible_clef is None:
-        #         #                cible_clef = ''
-        #         if not cible_clef:
-        #             print(
-        #                 "mdba: erreur schema : cible clef etrangere non definie",
-        #                 atd.nom_groupe,
-        #                 atd.nom_classe,
-        #                 atd.nom_attr,
-        #                 atd.clef_etrangere,
-        #             )
-        #         #            print ('trouve clef etrangere',clef_etrangere)
-        #         clef_etr = atd.clef_etrangere + "." + cible_clef
-        #     #        if clef:  print (clef)
-        #     index = atd.index if atd.index is not None else ""
-        #     #        if index is None:
-        #     #            index = ''
-        #     if atd.clef_primaire:
-        #         code = "P:" + str(atd.clef_primaire)
-        #         if code not in index:
-        #             index = index + " " + code if index else code
-
-        #     obligatoire = atd.obligatoire == "oui"
-        #     parametres_clef = (
-        #         atd.parametres_clef if "parametres_clef" in self.attdef._fields else ""
-        #     )
-        #     # if atd.multiple=='oui':
-        #     #     print ('attribut',atd)
-        #     classe.stocke_attribut(
-        #         atd.nom_attr,
-        #         type_attr,
-        #         defaut=atd.defaut,
-        #         type_attr_base=type_attr_base,
-        #         taille=taille_att,
-        #         dec=atd.decimales,
-        #         force=True,
-        #         alias=atd.alias,
-        #         dimension=atd.dimension,
-        #         clef_etr=clef_etr,
-        #         ordre=num_attribut,
-        #         mode_ordre="a",
-        #         parametres_clef=parametres_clef,
-        #         index=index,
-        #         unique=atd.unique,
-        #         obligatoire=obligatoire,
-        #         multiple=atd.multiple,
-        #     )
-
     def get_schemabase(self, mode_force_enums=1):
         """ recupere le schema complet de la base """
         debut = time.time()
@@ -753,7 +672,7 @@ class DbConnect(object):
             + str(len(schema_travail.classes))
             + str(len(schema_travail.conformites))
         )
-        self.connection.commit()
+        self.commit()
         return schema_travail, liste2
 
     def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):

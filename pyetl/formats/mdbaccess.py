@@ -21,10 +21,9 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
+def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
-    codebase = nombase
-    base = nombase
+    base = codebase
     serveur = ""
     stock_param = regle.stock_param
     #    print('bases connues', stock_param.dbconnect.keys())
@@ -35,6 +34,7 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         base = regle.getvar("base_" + codebase, "")
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
+        # print("acces base", codebase, base, serveur, type_base)
         if not base and regle.getvar(
             "autobase"
         ):  # on essaye de charger des groupes connus
@@ -94,7 +94,7 @@ def dbaccess(regle, nombase, type_base=None, chemin="", description=None):
         connection.format_natif = dbdef.geom
         connection.schemabase.dbsql = connection.gensql
         connection.get_schemabase()
-        connection.connection.commit()  # on referme toutes les ressources
+        connection.commit()  # on referme toutes les ressources
         return connection
 
     print("connection invalide", base, type_base)
@@ -538,7 +538,7 @@ def lire_table(ident, regle_courante, parms=None):
     )
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
-    connect.connection.commit()
+    connect.commit()
 
     if curs:
         res = sortie_resultats(
@@ -598,7 +598,7 @@ def lire_requete(
     treq = time.time()
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
-    connect.connection.commit()
+    connect.commit()
     if curs:
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
@@ -694,7 +694,7 @@ def recup_donnees_req_alpha(
             curs = connect.req_alpha(
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )
-            connect.connection.commit()
+            connect.commit()
             # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
             treq = time.time() - treq
             if curs:
@@ -806,7 +806,7 @@ def recupval(
             reponse[ident] = connect.requete_simple(
                 requete, ident, schema_classe_travail, attr, val, mods
             )
-            connect.connection.commit()
+            connect.commit()
 
             #        print ('retour ',nb)
     return reponse
@@ -861,7 +861,7 @@ def recup_count(
             ):
                 continue  # on a fait une requete sur un attribut inexistant: on passe
             reponse = connect.req_count(ident, schema_classe_travail, attr, val, mods)
-            connect.connection.commit()
+            connect.commit()
 
             #        print ('retour ',nb)
             if reponse and reponse[0]:
@@ -888,7 +888,7 @@ def recup_table_parametres(
     curs = connect.req_alpha(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )
-    connect.connection.commit()
+    connect.commit()
     resultat = [valeurs for valeurs in curs.cursor] if curs else []
     return resultat
 
@@ -917,7 +917,7 @@ def recup_maxval(regle, nombase, niveau, classe, clef, type_base=None):
         if mval:
             retour[ident] = str(mval)
         #            print('maxval:', ident, retour[ident], champ)
-        connect.connection.commit()
+        connect.commit()
     return retour
 
 
@@ -973,7 +973,7 @@ def recup_donnees_req_geo(
         curs = connect.req_geom(
             ident, schema_classe_travail, mods, fonction, geometrie, maxobj, buffer
         )
-        connect.connection.commit()
+        connect.commit()
         treq = time.time() - treq
         if curs.cursor is None:
             continue

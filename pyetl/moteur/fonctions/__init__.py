@@ -76,6 +76,7 @@ class DefinitionAttribut(object):
         "=:": (r"^=:(.+)", "C", ""),
         "re:re": (r"^re:(.+)$", "C", ""),
         "C": (r"(.+)", "C", ""),
+        "F": (r"F:(.+)", "C", ""),
         "C:C": (r"^C:(.*)$", "C", ""),
         "C[]": (r"^(.*\[[CDF]\].*)$", "C", ""),
         "#C": (r"(#.+)", "C", ""),
@@ -113,7 +114,11 @@ class DefinitionAttribut(object):
         self.deftype = "T"
         vide = pattern == ""
         self.expression = ""
+        self.commonlist = 0
         self.obligatoire = vide or not "?" in pattern
+        if "~?" in pattern:
+            self.commonlist = 1
+            pattern = pattern.replace("~?", "")
         if pattern != "?":
             pattern = pattern.replace("?", "")
         if pattern == "":

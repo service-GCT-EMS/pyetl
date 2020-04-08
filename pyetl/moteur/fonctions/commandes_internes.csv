@@ -445,9 +445,9 @@ $mode_sortie=D;;;;
 ;;;;;;;run;%prog%;%params%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#editparams;perso;;;;;
-$fich=%_paramdir%
-K:perso;$fich=%_paramperso%
-;;;;;;;run;notepad;%fich%\site_params.csv;;
+$fich=%_paramdir%;;
+K:perso;$fich=%_paramperso%;;
+;;;;;^;;run;notepad %fich%\site_params.csv;;debug;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#debug;;;;;;
 ;;;;;;;pass;;;print;

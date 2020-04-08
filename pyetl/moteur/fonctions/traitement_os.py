@@ -43,7 +43,7 @@ def commandrunner(regle, chaine):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding = regle.getvar("console_encoding", "CP850")
-    # print('---------hrun', regle.runscope(),regle,regle.params.pattern)
+    print("---------hrun", regle.runscope(), regle, regle.params.pattern)
     # print('valeurs parametres', regle.getvar('import'))
     if regle.params.pattern == "1":
         return
@@ -57,17 +57,18 @@ def h_run(regle):
 
 def f_run(regle, obj):
     """#aide||execute une commande externe
-   #pattern1||?A;?C;?A;run;C
-   #pattern3||?P;;;run;C;?C
+   #pattern1||?A;?C;?A;run;C;
+   #pattern2||?P;=^;;run;C;
+   #pattern3||?P;;;run;C;C;
  #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
  #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
 #parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres
   #variables||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
      #schema||ajout_attribut
-     #test||obj||^P:aaa;;;run;echo;tété;||ptv:aaa:tété
-     #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
-     #test2||obj||^X;toto;;run;echo;;||atv:X:toto
+       #test||obj||^P:aaa;^;;run;echo;tété;||ptv:aaa:tété
+      #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
+      #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     if regle.runscope():  # on voit si on doit l'executer
         retour = commandrunner(regle, regle.getval_entree(obj))

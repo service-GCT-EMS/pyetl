@@ -347,7 +347,7 @@ def h_httpdownload(regle):
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
- #aide_spec||; url; (attribut contenant le url);http_download;repertoire;nom
+ #aide_spec||; url; (attribut contenant le url);http_download;racine;nom
    #pattern1||;?C;?A;download;?C;?C
    #pattern2||A;?C;?A;download
       #test||notest
@@ -357,6 +357,79 @@ def f_httpdownload(regle, obj):
     retour = requests.get(url, stream=regle.params.pattern == "1")
     print("info", retour.headers)
     obj.sethtext("#http_header", dic=retour.headers)
+    taille = int(retour.headers["Content-Length"])
+
+    if regle.params.pattern == "2":  # retour dans un attribut
+        regle.setval_sortie(obj, retour.text)
+        if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        # print("apres", obj)
+        return True
+    if regle.fichier is None:
+        fichier = os.path.join(regle.path, os.path.basename(url))
+    else:
+        fichier = regle.fichier
+
+    decile = taille / 10
+    recup = 0
+    bloc = 4096
+    nb_pts = 0
+    debut = time.time()
+    if retour.status_code == 200:
+        with open(fichier, "wb") as fich:
+            for chunk in retour.iter_content(bloc):
+                recup += bloc  # ca c'est la deco avec des petits points ....
+                if recup > decile:
+                    recup = recup - decile
+                    nb_pts += 1
+                    print(".", end="", flush=True)
+                fich.write(chunk)
+        print(
+            "    ",
+            taille,
+            "octets télecharges en ",
+            int(time.time() - debut),
+            "secondes",
+        )
+        return True
+    return False
+
+
+def h_wfsdownload(regle):
+    """prepare les parametres http"""
+    regle.chargeur = True
+    regle.path = None
+    if regle.params.pattern == "1":
+        path = regle.params.att_sortie.val
+        if not os.path.isabs(path):
+            path = os.path.join(regle.getvar("_sortie"), path)
+        regle.path = path
+
+    regle.wfsparams = {"SERVICE": "WFS"}
+    regle.wfsparams["OUTPUTFORMAT"] = "text/xml"
+    if regle.params.cmp2.val == "json":
+        regle.wfsparams["OUTPUTFORMAT"] = "json"
+
+
+def f_wfsdownload(regle, obj):
+    """aide||recupere une couche wfs
+ #aide_spec||; classe;  attribut contenant la classe;wfs;url;format
+   #pattern1||F;?C;?A;wfs;C;?C
+   #pattern2||A;?C;?A;wfs;C;?C
+      #test||notest
+      """
+    # https://data.strasbourg.eu/api/wfs?
+    # TYPENAME=ods%3Asections_cadastrales&REQUEST=GetFeature
+    # &RESULTTYPE =RESULTS
+    # &OUTPUTFORMAT=text%2Fxml%3B+suntype%3Dgml%2F3.1.1
+    # &VESRION=1.1&SERVICE=WFS
+    url = regle.params.cmp1.val
+    params = regle.wfsparams
+    params["TYPENAME"] = regle.getval_entree(obj)
+    print("wfs", url, params)
+    retour = requests.get(url, params, stream=regle.params.pattern == "1")
+    print("info", retour.headers)
+    obj.sethtext("#wfs_header", dic=retour.headers)
     taille = int(retour.headers["Content-Length"])
 
     if regle.params.pattern == "2":  # retour dans un attribut

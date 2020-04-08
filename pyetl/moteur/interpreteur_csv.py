@@ -782,8 +782,8 @@ def lire_regles_csv(
                 erreurs += 1
                 return erreurs
             # genere des variables internes de la forme 'nomDefiniDansLeFichier_nomDuGroupe
-        #            print ("apres chargement groupe",vgroup,ngroup)
-        #            print ("variables", mapper.parms)
+            # print("apres chargement groupe", vgroup, ngroup)
+            # print("variables", mapper.context.vlocales)
 
         elif texte.startswith("$"):
             affecte_variable(texte, context)

@@ -227,6 +227,10 @@ class SchemaClasse(object):
         )
 
     @property
+    def pending(self):
+        return "__pending" in self.attributs
+
+    @property
     def __dic_if__(self):
         """interface de type dictionnaire pour la transmission de schemas entre instances"""
         d_if = {
