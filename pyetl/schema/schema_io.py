@@ -230,7 +230,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     nom = schema.nom.replace("#", "")
     rep_s = os.path.join(rep, "schemas")
     cod = stock_param.getvar("codec_sortie", "utf-8")
-
+    schema.resolve()  # la on force la resolution de tous les differes
     for form in formats_a_sortir:
         #        print('sio: ecrire_schema', rep_s, schema.nom, form)
         if "sql" in form:  # on met le sql en premier car on modifie des choses

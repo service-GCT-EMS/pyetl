@@ -10,7 +10,8 @@ import logging
 
 DEBUG = False
 LOGGER = logging.getLogger("pyetl")
-TYPES_A = {i: i for i in "TFHGDNSIEB"}
+TYPES_A = {i: i for i in "TFHGDNSIEB0123"}
+TYPES_A.update({i: i for i in ("DS", "EL", "-1")})
 TYPENUM = {
     "1": "POINT",
     "2": "LIGNE",

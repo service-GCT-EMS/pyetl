@@ -8,8 +8,7 @@ acces a la base de donnees
 from copy import Error
 import sys
 import requests
-from xml.etree.ElementTree import ParseError
-import xml.etree.cElementTree as ET
+from owslib.wfs import WebFeatureService
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
@@ -75,32 +74,17 @@ class WfsConnect(DbConnect):
 
         #        import pyodbc as odbc
         try:
-            retour = requests.get(
-                self.serveur, params={"REQUEST": "GetCapabilities", "SERVICE": "WFS"}
-            )
+            print("connection wfs", self.serveur)
+            wfs = WebFeatureService(url=self.serveur, version="1.1.0")
+            raise
+            tables = list(wfs.contents)
+            print(" contenu", tables)
         except Error as err:
             print("erreur wfs", err)
             return False
-        caps = retour.text
-        try:
-            tree = ET.fromstring(caps)
-        except ParseError as per:
-            print("capabilites mal formees", per)
-            return False
-        namespace = getnamespace(tree)
-        nametag = namespace + "Name"
-        for table in tree.iter(namespace + "FeatureType"):
-            for elem in table.iter():
-                # print("elem", elem)
-                if elem.tag == nametag:
-                    nom = elem.text
-                    if ":" in nom:
-                        groupe, nom = nom.split(":", 1)
-                    else:
-                        groupe = ""
-                    # print(" nom_table", nom)
-                    self.tablelist.append((groupe, nom))
-        print("retour getcap", len(caps), "->", len(self.tablelist))
+        for nom in tables:
+            self.tablelist.append(("wfs", nom))
+        print("retour getcap", len(self.tablelist))
         self.connection = True
 
     def commit(self):
@@ -350,4 +334,4 @@ class WfstGenSql(DbGenSql):
     pass
 
 
-DBDEF = {"wfs": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs")}
+DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs")}

@@ -230,6 +230,11 @@ class SchemaClasse(object):
     def pending(self):
         return "__pending" in self.attributs
 
+    def resolve(self):
+        if self.pending:
+            # print("resolve:appel fonction", self.attributs["__pending"].alias)
+            self.attributs["__pending"].alias(self)
+
     @property
     def __dic_if__(self):
         """interface de type dictionnaire pour la transmission de schemas entre instances"""
@@ -829,9 +834,14 @@ class SchemaClasse(object):
             self.info["courbe"] = "1"
         #        self.is_3d = dimension==3
         self.info["dimension"] = str(dimension)
-
-    #        print ("apres stockage geometrie ",self.info["nom_geometrie"],type_geom,
-    #               dimension, self.info["type_geom"])
+        # if type_geom:
+        #     print(
+        #         "apres stockage geometrie ",
+        #         self.info["nom_geometrie"],
+        #         type_geom,
+        #         dimension,
+        #         self.info["type_geom"],
+        #     )
 
     def ajout_attribut_modele(self, modele, nom=None, nom_court=None, force=False):
         """ ajoute un attribut a partir d'un modele modele (surtout pour la filiation) """
@@ -872,7 +882,7 @@ class SchemaClasse(object):
         type_attribut = definition.type_attribut
         if type_attribut == "X":
             return  # attribut non géré
-        elif type_attribut in CODES_G:
+        elif type_attribut in CODES_G or type_attribut in TYPES_G:
             self.info["nom_geometrie"] = nom_attr
             self.stocke_geometrie(CODES_G[type_attribut], definition.dimension)
 
@@ -960,7 +970,16 @@ class SchemaClasse(object):
             )
             nom = "_" + nom
         #        print ('schema: stocke attribut',self.nom,nom,nom_court,type_attribut,ordre)
-        # print ('schema: stocke attribut',self.nom,nom,type_attribut,ordre)
+        if nom == "geo_shape":
+            print(
+                "schema: stocke attribut",
+                self.nom,
+                nom,
+                type_attribut,
+                ordre,
+                type_attribut in TYPES_G,
+            )
+            # raise
         if nom in self.attributs:
             if force:
                 #                print ('schema: stocke attribut: modif attribut ',
@@ -973,6 +992,7 @@ class SchemaClasse(object):
         elif type_attribut in TYPES_G:
             self.info["nom_geometrie"] = nom
             self.stocke_geometrie(type_attribut, dimension)
+            print("stocke_geometrie", type_attribut)
         elif type_attribut in CODES_G:
             self.info["nom_geometrie"] = nom
             self.stocke_geometrie(CODES_G[type_attribut], dimension)

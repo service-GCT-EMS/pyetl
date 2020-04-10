@@ -477,6 +477,7 @@ def recup_schema(
         #     schema_travail.nom,
         #     len(schema_travail.elements_specifiques["roles"][1]),
         # )
+
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         print("erreur de connection a la base", base, niveau, classe)

@@ -224,6 +224,7 @@ class Schema(object):
         self.alias_groupes = dict()
         self.compteurs = defaultdict(int)
         self.stable = True
+        self.pending = False
 
     def __repr__(self):
         return "schema:" + self.nom + " " + str(len(self.classes)) + " classes"
@@ -233,6 +234,13 @@ class Schema(object):
         nouveau = Schema(self.nom if nom is None else nom)
         nouveau.from_dic_if(self.__dic_if__)
         return nouveau
+
+    def resolve(self):
+        "genere les schemas non totalement resolus"
+        if self.pending:
+            for cl in self.classes:
+                cl.resolve
+        self.pending = False
 
     @property
     def __dic_if__(self):

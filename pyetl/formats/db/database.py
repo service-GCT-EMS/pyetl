@@ -521,6 +521,7 @@ class DbConnect(object):
             if type_ref.upper() in self.types_base:
                 type_attr = self.types_base[type_ref.upper()]
             else:
+                print(" type non trouve", type_ref, self.types_base)
                 type_attr = self.get_type(type_ref)
 
             if atd.enum:
@@ -580,6 +581,8 @@ class DbConnect(object):
                 obligatoire=obligatoire,
                 multiple=atd.multiple,
             )
+        if classe.pending:
+            schema.pending = True
         return classe
 
     def _recup_attributs(self):
@@ -650,6 +653,7 @@ class DbConnect(object):
             niveau, classe, tables, multi, nocase
         ):
             classe = self.schemabase.get_classe(ident)
+            classe.resolve()
             #        print ('classe a copier ',classe.identclasse,classe.attributs)
             clas2 = classe.copy(ident, schema_travail)
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
