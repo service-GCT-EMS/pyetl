@@ -75,13 +75,14 @@ class WfsConnect(DbConnect):
 
         #        import pyodbc as odbc
         try:
-            retour = requests.get(
+            retourcaps = requests.get(
                 self.serveur, params={"REQUEST": "GetCapabilities", "SERVICE": "WFS"}
             )
+
         except Error as err:
             print("erreur wfs", err)
             return False
-        caps = retour.text
+        caps = retourcaps.text
         try:
             tree = ET.fromstring(caps)
         except ParseError as per:
@@ -101,6 +102,7 @@ class WfsConnect(DbConnect):
                     # print(" nom_table", nom)
                     self.tablelist.append((groupe, nom))
         print("retour getcap", len(caps), "->", len(self.tablelist))
+
         self.connection = True
 
     def commit(self):
@@ -136,8 +138,8 @@ class WfsConnect(DbConnect):
                 xmltype = elem.get("type")
                 nom_att = elem.get("name")
                 pyetltype = ALLTYPES.get(xmltype)
-                if nom_att == "geo_shape":
-                    print("wfs: stocke geom", nom, xmltype, pyetltype)
+                # if nom_att == "geo_shape":
+                #     print("wfs: stocke geom", nom, xmltype, pyetltype)
                 if pyetltype is None:
                     print(" type inconnu", xmltype)
                     pyetltype = "T"
@@ -184,18 +186,34 @@ class WfsConnect(DbConnect):
             nom_groupe;nom_classe;nom_attr;alias;type_attr;graphique;multiple;\
             defaut;obligatoire;enum;dimension;num_attribut;index;unique;clef_primaire;\
             clef_etrangere;cible_clef;taille;decimales"""
-
+        retourdesc = requests.get(
+            self.serveur, params={"REQUEST": "DescribeFeatureType", "SERVICE": "WFS"}
+        )
+        tree = ET.fromstring(retourdesc.text)
         attlist = []
         tables = self.tablelist
         # print("sqlite: lecture tables", tables)
-
-        for groupe, nom in tables:
+        namespace = getnamespace(tree)
+        for elem in tree.iter(namespace + "element"):
+            if elem.get("substitutionGroup") == "gml:_Feature":
+                nom = elem.get("name")
+                groupe = elem.get("type").split(":")[0]
+                continue
+            else:
+                xmltype = elem.get("type")
+                nom_att = elem.get("name")
+                pyetltype = ALLTYPES.get(xmltype)
+                # if nom_att == "geo_shape":
+                #     print("wfs: stocke geom", nom, xmltype, pyetltype)
+                if pyetltype is None:
+                    print(" type inconnu", xmltype)
+                    pyetltype = "T"
             att = self.attdef(
                 groupe,
                 nom,
-                "__pending",
-                self.get_attr_of_classe,
-                "T",
+                nom_att,
+                "",
+                pyetltype,
                 "",
                 "",
                 "",
@@ -213,7 +231,6 @@ class WfsConnect(DbConnect):
                 0,
             )
             attlist.append(att)
-
             ident = (groupe, nom)
             nouv_table = [groupe, nom, "", "", "", -1, "", "", "", "", ""]
             # print ('table', nouv_table)

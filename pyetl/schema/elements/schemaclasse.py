@@ -771,12 +771,13 @@ class SchemaClasse(object):
         attr.ordre = ordreins
 
     def stocke_geometrie(
-        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None
+        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None, nom=None
     ):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
         #               dimension,self.info["type_geom"])
-
+        if nom is not None:
+            self.info["nom_geometrie"] = nom
         if isinstance(type_geom, (int, float)):
             type_geom = str(type_geom)
 
@@ -883,12 +884,12 @@ class SchemaClasse(object):
         if type_attribut == "X":
             return  # attribut non géré
         elif type_attribut in CODES_G or type_attribut in TYPES_G:
-            self.info["nom_geometrie"] = nom_attr
-            self.stocke_geometrie(CODES_G[type_attribut], definition.dimension)
+            self.stocke_geometrie(
+                CODES_G[type_attribut], definition.dimension, nom=nom_attr
+            )
 
         elif "geometry" in type_attribut.lower():
-            self.info["nom_geometrie"] = nom_attr
-            self.stocke_geometrie(type_attribut, definition.dimension)
+            self.stocke_geometrie(type_attribut, definition.dimension, nom=nom_attr)
         else:  # self.liste_attributs.append(nom)
             self.liste_attributs_cache = []
             attr = A.Attribut(nom_attr, 0)
@@ -970,16 +971,16 @@ class SchemaClasse(object):
             )
             nom = "_" + nom
         #        print ('schema: stocke attribut',self.nom,nom,nom_court,type_attribut,ordre)
-        if nom == "geo_shape":
-            print(
-                "schema: stocke attribut",
-                self.nom,
-                nom,
-                type_attribut,
-                ordre,
-                type_attribut in TYPES_G,
-            )
-            # raise
+        # if nom == "geo_shape":
+        #     print(
+        #         "schema: stocke attribut",
+        #         self.nom,
+        #         nom,
+        #         type_attribut,
+        #         ordre,
+        #         type_attribut in TYPES_G,
+        #     )
+        # raise
         if nom in self.attributs:
             if force:
                 #                print ('schema: stocke attribut: modif attribut ',
@@ -990,19 +991,16 @@ class SchemaClasse(object):
         if type_attribut == "X":
             return  # attribut non géré
         elif type_attribut in TYPES_G:
-            self.info["nom_geometrie"] = nom
-            self.stocke_geometrie(type_attribut, dimension)
-            print("stocke_geometrie", type_attribut)
+            self.stocke_geometrie(type_attribut, dimension, nom=nom)
+            # print("stocke_geometrie", type_attribut)
         elif type_attribut in CODES_G:
-            self.info["nom_geometrie"] = nom
-            self.stocke_geometrie(CODES_G[type_attribut], dimension)
+            self.stocke_geometrie(CODES_G[type_attribut], dimension, nom=nom)
         #        elif nom.lower() =='geometrie': # c'est une description de geometrie
         #            self.nom_geometrie=nom
         #            self.stocke_geometrie(type_attribut,dimension)
         elif "geometry" in type_attribut.lower():
-            self.info["nom_geometrie"] = nom
             #            print ('stockage attribut ',nom, type_attribut)
-            self.stocke_geometrie(type_attribut, dimension)
+            self.stocke_geometrie(type_attribut, dimension, nom=nom)
 
         else:  # self.liste_attributs.append(nom)
             self.liste_attributs_cache = []

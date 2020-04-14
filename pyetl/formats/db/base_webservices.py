@@ -8,6 +8,8 @@ acces a la base de donnees
 from copy import Error
 import sys
 import requests
+
+# version patchee de owslib pour eviter un crash sur data.strasbourg.eu
 from owslib.wfs import WebFeatureService
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
@@ -36,7 +38,7 @@ TYPES_A = {
     "double": "F",
 }
 
-TYPES_G = {"gml:PointPropertyType": "1", "gml:GeometryPropertyType": "-1"}
+TYPES_G = {"GeometryCollection": "-1", "Point": "1"}
 
 ALLTYPES = dict(TYPES_A)
 ALLTYPES.update(TYPES_G)
@@ -67,25 +69,22 @@ class WfsConnect(DbConnect):
         self.curtable = ""
         self.curnb = 0
 
-    #        self.encoding =
-
     def connect(self):
         """effectue un getcapabilities pour connaitre le schema"""
-
-        #        import pyodbc as odbc
         try:
             print("connection wfs", self.serveur)
-            wfs = WebFeatureService(url=self.serveur, version="1.1.0")
-            raise
-            tables = list(wfs.contents)
-            print(" contenu", tables)
+            if "version=" in self.serveur:
+                serveur, vdef = self.serveur.split(" ", 1)
+                version = vdef.split("=")[1]
+            else:
+                serveur = self.serveur
+                version = "1.1.0"
+            self.connection = WebFeatureService(url=serveur, version=version)
         except Error as err:
             print("erreur wfs", err)
             return False
-        for nom in tables:
-            self.tablelist.append(("wfs", nom))
+        self.tablelist = [tuple(i.split(":", 1)) for i in self.connection.contents]
         print("retour getcap", len(self.tablelist))
-        self.connection = True
 
     def commit(self):
         pass
@@ -101,66 +100,36 @@ class WfsConnect(DbConnect):
     def get_attr_of_classe(self, schemaclasse):
         """recupere la description d une classe"""
         ident = schemaclasse.identclasse
+        print("analyse classe", ident)
         groupe, nom = ident
-        params = {"REQUEST": "DescribeFeatureType", "SERVICE": "WFS"}
-        # params["TYPENAME"] = groupe + ":" + nom if groupe else nom
-        params["TYPENAME"] = nom
-        try:
-            retour = requests.get(self.serveur, params=params)
-        except Error as err:
-            print("erreur wfs", params, err)
-            return False
-        description = retour.text
-        tree = ET.fromstring(description)
-        namespace = getnamespace(tree)
-        attlist = []
+        wfsid = ":".join(ident)
+        schemadef = self.connection.get_schema(wfsid)
+        # print("recup attlist ", attdict)
         del schemaclasse.attributs["__pending"]
-        for seq in tree.iter(namespace + "sequence"):
-            for elem in seq.iter(namespace + "element"):
-                xmltype = elem.get("type")
-                nom_att = elem.get("name")
+        if schemadef is None:
+            print("schema non present sur le serveur", ident)
+            return
+        attdict = schemadef["properties"]
+        if attdict is not None:
+            for nom_att, xmltype in attdict.items():
+                # print(nom_att, xmltype)
                 pyetltype = ALLTYPES.get(xmltype)
-                if nom_att == "geo_shape":
-                    print("wfs: stocke geom", nom, xmltype, pyetltype)
                 if pyetltype is None:
                     print(" type inconnu", xmltype)
                     pyetltype = "T"
-                    print(
-                        "attributs",
-                        groupe,
-                        nom,
-                        elem.get("name"),
-                        xmltype,
-                        "->",
-                        pyetltype,
-                    )
-
-                attlist.append(
-                    self.attdef(
-                        groupe,
-                        nom,
-                        nom_att,
-                        "",
-                        pyetltype,
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        2,
-                        0,
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        0,
-                        0,
-                    )
-                )
-        # print("wfs:attlist:", attlist)
-        self.cree_schema_classe(ident, attlist, schema=None)
+                schemaclasse.stocke_attribut(nom_att, pyetltype)
+        type_geom = schemadef.get("geometry")
+        if type_geom:
+            if type_geom in TYPES_G:
+                type_geom = TYPES_G[type_geom]
+            else:
+                print("geometrie inconnue", type_geom)
+                type_geom = "-1"
+            nom_geom = schemadef["geometry_column"]
+            dimension = 2
+            schemaclasse.stocke_geometrie(
+                type_geom, dimension=dimension, srid="3948", multiple=1, nom=nom_geom
+            )
 
     def get_attributs(self):
         """description des attributs de la base sqlite
@@ -255,9 +224,8 @@ class WfsConnect(DbConnect):
         requete = ""
         data = ""
         schema.resolve()
-        # if schema.pending:
-        #     self.get_attr_of_classe(schema)
         attlist = []
+
         atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
         if attribut:
             if attribut in self.sys_fields:  # c est un champ systeme
