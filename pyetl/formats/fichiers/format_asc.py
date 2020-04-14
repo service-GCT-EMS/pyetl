@@ -363,6 +363,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
         self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:
         suite = False
+        basename = os.path.splitext(os.path.basename(fichier))[0]
         if not chemin:
             chemin = os.path.basename(rep)
         for i in ouvert:
@@ -384,6 +385,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                         i, log_erreurs
                     )
                     if classe != dclasse:
+                        groupe = chemin if basename == classe else basename
                         self.setidententree(groupe, classe)
                         dclasse = classe
 
@@ -503,6 +505,12 @@ class AscWriter(FileWriter):
             geomwriter=geomwriter,
         )
         self.htext = "*****\n** sortie_mapper\n*****\n"
+        if schema and schema.schema.metas:
+            self.htext += (
+                "** meta;"
+                + ";".join(k + "=" + v for k, v in schema.schema.metas.items())
+                + "\n*****\n"
+            )
         self.ttext = "FIN\n"
         self.transtable = str.maketrans({"\n": "\\" + "n", "\r": ""})
         self.liste_graphique = None
@@ -543,74 +551,6 @@ class AscWriter(FileWriter):
 
         attlist = att_to_text(obj, liste, transtable)
 
-        # attmap = obj.schema.attmap if obj.schema else dict()
-        # #    print "ecriture", liste
-        # tliste = list()
-        # eliste = list()
-        # if liste is None:
-        #     liste = [i for i in obj.attributs if i[0] != "#"]
-
-        # a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
-
-        # aliste = (
-        #     (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
-        #     for i in a_sortir
-        #     if i not in obj.attributs_speciaux
-        # )
-        # if obj.attributs_speciaux:
-        #     tliste = (
-        #         i
-        #         for i in a_sortir
-        #         if i in obj.attributs_speciaux and obj.attributs_speciaux[i] == "TG"
-        #     )
-
-        #     eliste = (
-        #         i
-        #         for i in a_sortir
-        #         if i in obj.attributs_speciaux and obj.attributs_speciaux[i] == "ET"
-        #     )
-
-        # #    attlist = "\n".join(("2"+attmap.get(i, i).upper()+
-        # #                             ",NG"+str(len(str(obj.attributs[i])))+","+
-        # #                         str(obj.attributs[i])+";" for i in aliste))
-        # attlist = "\n".join(
-        #     ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in aliste)
-        # )
-
-        # if tliste:
-        #     tglist = list()
-        #     for nom in tliste:
-        #         val = str(obj.attributs[nom]).translate(transtable)
-        #         adef = obj.attributs.get(nom + "_O")
-        #         angle = (90 - float(adef)) % 360 if adef else 0
-        #         angle = str(int(round(angle * FA)))
-        #         tglist.append(
-        #             "2"
-        #             + attmap.get(nom, nom).upper()
-        #             + ",TL"
-        #             + str(len(val))
-        #             + str(int(float(obj.attributs[nom + "_X"]) * FC))
-        #             + ","
-        #             + str(int(float(obj.attributs[nom + "_Y"]) * FC))
-        #             + ","
-        #             + angle
-        #             + ",RC1,TC1,"
-        #             + val
-        #         )
-        #     attlist = attlist + "\n" + "\n".join(tglist)
-        # if eliste:
-        #     elist = "\n".join(
-        #         (
-        #             "4"
-        #             + attmap.get(i, i).upper()
-        #             + ","
-        #             + str(obj.attributs.get("#_sys_E_" + i), "")
-        #             + ";"
-        #             for i in eliste
-        #         )
-        #     )
-        #     attlist = attlist + "\n" + elist
-
         return entete + geometrie + attlist
 
 
@@ -632,7 +572,9 @@ def asc_streamer(self, obj, regle, _, attributs=None):
         ressource = regle.ressource
     else:
         groupe, classe = obj.ident
-        if regle.fanout == "groupe":
+        if regle.fanout == "no":
+            nom = sorties.get_id(rep_sortie, "export", "", ".asc")
+        elif regle.fanout == "groupe":
             nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
         else:
             nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")

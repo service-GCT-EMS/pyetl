@@ -174,10 +174,11 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=None):
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
         workers, extworkers = regle_courante.get_max_workers()
+        fanout = regle_courante.getvar("fanout", "classe")
         print("extdump", regle_courante.context.vlocales, extworkers)
         logfile = setpath(regle_courante, log)
         resultats = connect.extdump(
-            helper, liste_tables, dest, logfile, workers=extworkers
+            helper, liste_tables, dest, logfile, workers=extworkers, fanout=fanout
         )
         #        print(' extdump' , resultats)
         if resultats:

@@ -412,14 +412,14 @@ class Reader(object):
             self.setattformatter()
             # print ('------classe_existe ',self.schemaclasse._id,self.schemaclasse.identclasse)
             return
-        if self.schema_entree and self.ident in self.schema_entree.classes:
-            modele = self.schema_entree.get_classe(self.ident)
-            self.schemaclasse = modele.copy(self.ident, self.schema)
-            self.setattformatter()
-            # print ('------nouvelle classe ',self.schemaclasse._id, self.schemaclasse.attmap)
-            # print ('------controle', self.schema.get_classe(self.ident)._id)
-            return
         if self.schema_entree:
+            modele = self.schema_entree.get_classe(self.ident, guess=1)
+            if modele:
+                self.schemaclasse = modele.copy(self.ident, self.schema)
+                self.setattformatter()
+                # print ('------nouvelle classe ',self.schemaclasse._id, self.schemaclasse.attmap)
+                # print ('------controle', self.schema.get_classe(self.ident)._id)
+                return
             print(
                 "mapping schema_entree impossible",
                 self.ident,

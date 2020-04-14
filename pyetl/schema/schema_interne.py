@@ -222,6 +222,7 @@ class Schema(object):
         #        self.rep_sortie = ''
         self.dbsql = None  # generateur sql
         self.alias_groupes = dict()
+        self.groupes = dict()
         self.compteurs = defaultdict(int)
         self.stable = True
         self.pending = False
@@ -289,6 +290,10 @@ class Schema(object):
         ident = sc_classe.identclasse
         self.classes[ident] = sc_classe
         self.direct[ident[1]] = ident
+        if ident[0] not in self.groupes:
+            self.groupes[ident[0]] = 1
+        else:
+            self.groupes[ident[0]] += 1
         sc_classe.schema = self
         # print("sci:ajout_classe", self.nom, len(self.classes))
         return sc_classe
@@ -299,11 +304,11 @@ class Schema(object):
         if schema_classe:
             return schema_classe
         # on tente une recherche par le nom s il n'y a pas de groupe
-        if not ident[0]:
+        if not ident[0] or guess == 1:
             schema_classe = self.classes.get(self.direct.get(ident[1]))
             if schema_classe:
                 return schema_classe
-        if guess:
+        if guess == 2:
             classe = self.guess_classe(ident[1])
             if classe:
                 return classe
@@ -332,6 +337,7 @@ class Schema(object):
         del self.classes[ancien_ident]
         for scl in self.classes.values():
             scl.renomme_cible_classe(ancien_ident, nouvel_ident)
+        self.liste_groupes()
 
     def supp_classe(self, ident):
         """supprime une classe du schema"""
@@ -461,14 +467,13 @@ class Schema(object):
         """ retourne la liste des groupes d'un schema"""
         groupes = dict()
         for i in self.classes:
-            groupes[i[0]] = 1
+            groupes[i[0]] = (groupes[i[0]] + 1) if i[0] in groupes else 1
+        self.groupes = groupes
         return sorted(groupes.keys())
 
     def stat_schema(self):
         """ sort les stats standard"""
-        groupes = dict()
-        for i in self.classes:
-            groupes[i[0]] = 1
+        groupes = self.liste_groupes()
         print(
             "schema : stat schema",
             self.nom,

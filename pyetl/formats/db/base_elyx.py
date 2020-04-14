@@ -290,34 +290,28 @@ class ElyConnect(ora.OrwConnect):
         size = dict()
         blocks = dict()
         nom = ""
+        if fanout not in {"classe", "groupe", "no"}:
+            print("mode de fanout non géré", fanout)
+            fanout = "no"
         if schemabase:
             if fanout == "no":
                 nom = (classes[0][1],) if len(classes) == 1 else ("export",)
-                size[nom] = 0
             for i in classes:
-                #            print('traitement classe', i, schemabase.classes[i].info['objcnt_init'])
-                if schemabase.classes[i].info["objcnt_init"] == "0":
-                    #                print('classe vide ', i)
+                if fanout == "classe":
+                    nom = i
+                elif fanout == "groupe":
+                    nom = (i[0],)
+                nbobjs = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                if nbobjs == 0:
                     resultats[i] = 0
                     continue
-                if fanout == "no":
-                    size[nom] += int(schemabase.classes[i].getinfo("objcnt_init", "0"))
-                elif fanout == "niveau":
-                    if (i[0],) in blocks:
-                        blocks[(i[0],)].append(i)
-                        size[(i[0],)] += int(
-                            schemabase.classes[i].getinfo("objcnt_init", "0")
-                        )
-                    else:
-                        blocks[(i[0],)] = [i]
-                        size[(i[0],)] = int(
-                            schemabase.classes[i].getinfo("objcnt_init", "0")
-                        )
-                elif fanout == "classe":
-                    blocks[i] = [i]
-                    size[i] = int(schemabase.classes[i].getinfo("objcnt_init", "0"))
+                if (nom) in blocks:
+                    blocks[nom].append(i)
+                    size[nom] += nbobjs
                 else:
-                    print("mode de fanout non géré", fanout)
+                    blocks[nom] = [i]
+                    size[nom] = nbobjs
+
         return resultats, size, blocks
 
     def get_blocks(self, helper, classes, dest, log, fanout, nbworkers):
@@ -359,16 +353,7 @@ class ElyConnect(ora.OrwConnect):
 
         return retour
 
-    def extalpha(
-        self,
-        regle_courante,
-        helper,
-        classes,
-        dest,
-        log,
-        fanout="classe",
-        nbworkers=(1, 1),
-    ):
+    def extalpha(self, regle_courante, helper, classes, dest, log, nbworkers=(1, 1)):
         """extrait des donnees par ORA2FEA"""
         # mise en place de l'environnement:
         #        print ('elyx extalpha',classes)
@@ -381,20 +366,20 @@ class ElyConnect(ora.OrwConnect):
                 "------------------------------------- generation log debug-----------"
             )
         nbtrait, nbdump = nbworkers
-
+        fanout = regle_courante.getvar("fanout", "classe")
         with tempfile.TemporaryDirectory() as tmpdir:
             #        if True:
             self.tmpdir = str(tmpdir)
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"))
+            print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"), fanout)
             fileiter = self.params.iterparallel_ext(
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )
             regle_courante.listgen = fileiter
             regle_courante.parallelmode = "process"
             # print ('elyx : extalpha ', regle_courante)
-            if nbtrait > 1:
+            if nbtrait > 1 and len(blocks) > 1:
                 try:
                     self.params.traite_parallel(regle_courante)
                 except Exception as err:
