@@ -427,13 +427,19 @@ def f_listefich(regle, obj):
     if regle.params.pattern == "1":
         regle.setlocal("fileselect", regle.get_entree(obj))
     classe = regle.params.cmp1.val or obj.attributs.get("#classe")
-    traite_objets = regle.stock_param.traite_objets
+    traite_objet = regle.stock_param.moteur.traite_objet
     trouve = False
     for fich in getfichs(regle, obj):
+        nom, defs = fich
+        racine, chemin, nom_f, ext = defs
         nouveau = obj.dupplique()
         nouveau.attributs["#classe"] = classe
-        regle.setval_sortie(nouveau, fich)
-        traite_objets(nouveau)
+        regle.setval_sortie(nouveau, nom)
+        obj.attributs["#f_racine"] = racine
+        obj.attributs["#f_chemin"] = chemin
+        obj.attributs["#f_nom"] = nom_f
+        obj.attributs["#f_ext"] = ext
+        traite_objet(nouveau, regle.branchements.brch["gen"])
         trouve = True
     return trouve
 

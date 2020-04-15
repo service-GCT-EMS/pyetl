@@ -100,7 +100,7 @@ class AccConnect(DbConnect):
 
     def get_type(self, nom_type):
         """recupere un type a partir de son code"""
-        return self.types_base.get(nom_type, "T")
+        return self.types_base.get(nom_type, "?")
 
     def dbclose(self):
         """ferme la base"""

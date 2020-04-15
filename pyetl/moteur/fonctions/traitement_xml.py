@@ -131,7 +131,7 @@ def f_xmlsplit(regle, obj):
 
 
 def h_xmledit(regle):
-    """helper decoupage"""
+    """helper edition"""
     h_xmlextract(regle)
     if regle.params.pattern == 1:
         regle.reselect = re.compile(regle.params.att_sortie.val)
@@ -190,29 +190,21 @@ def f_xmlload(regle, obj):
 #parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
     """
     nom = regle.getval_entree(obj)
-    if not os.path.isabs(nom):
-        nom = os.path.join(regle.getvar("_entree", ""), nom)
-    obj.attribut[regle.params.att_sortie.val] = "".join(
+    # print("xmlload traitement ", nom)
+
+    obj.attributs[regle.params.att_sortie.val] = "".join(
         open(nom, "r", encoding="utf-8").readlines()
     )
 
 
 def f_xmlsave(regle, obj):
     """#aide||stockage dans un fichier d un xml contenu dans un attribut
-   #pattern1||;;A;xml_save;C;;
-   #pattern2||;;A;xml_save;[A];;
-#parametres1||;;attribut contenant le xml;;nom du fichier
-#parametres2||;;attribut contenant le xml;;attribut contenant le nom du fichier
+   #pattern1||A;?C;A;xml_save;?C;?C;
+#parametres1||nom fichier;;attribut contenant le xml;;nom du rep
     """
-    nom = regle.getcmp1(obj)
-    nom = (
-        obj.attributs.get(regle.params.cmp1.origine, "")
-        if regle.params.cmp1.origine
-        else regle.params.cmp1.val
-    )
-    if not os.path.isabs(nom):
-        nom = os.path.join(regle.getvar("_sortie", ""), nom)
-
-    open(nom, "w", encoding="utf-8").write(
-        obj.attribut.get(regle.params.att_entree.val, "")
-    )
+    sortie = obj.attributs.get(regle.params.att_sortie.val)
+    rep = regle.params.cmp1.getval(obj)
+    if rep:
+        sortie = os.path.join(rep, sortie)
+    print("ecriture xml", sortie)
+    open(sortie, "w", encoding="utf-8").write(regle.getval_entree(obj))

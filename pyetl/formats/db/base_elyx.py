@@ -481,7 +481,7 @@ class ElyConnect(ora.OrwConnect):
     def get_type(self, nom_type):
         if nom_type.upper() not in self.types_base:
             print("elyx:type inconnu ", nom_type)
-        return self.types_base.get(nom_type.upper(), "T")
+        return self.types_base.get(nom_type.upper(), "?")
 
     def get_tables(self):
         return list(self.tables.values())

@@ -6,7 +6,7 @@ Created on Mon Feb 22 11:49:29 2016
 acces a la base de donnees postgis
 """
 # import re
-#from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
+# from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 from .base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
 
@@ -67,7 +67,9 @@ GTYPES_CURVE = {
 class PgsConnect(PgrConnect):
     """connecteur de la base de donnees postgres"""
 
-    def __init__(self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None):
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
 
         self.gtypes_curve = GTYPES_CURVE
@@ -80,7 +82,7 @@ class PgsConnect(PgrConnect):
     def get_type(self, nom_type):
         if "geometry" in nom_type:
             return nom_type
-        return self.types_base.get(nom_type.upper(), "T")
+        return self.types_base.get(nom_type.upper(), "?")
 
     def get_surf(self, nom):
         return "ST_area(%s)" % nom
@@ -106,11 +108,11 @@ class PgsConnect(PgrConnect):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        cond = ''
+        cond = ""
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
-            fonction =''
+            fonction = ""
             if nom_fonction == "intersect":
                 fonction = "ST_Intersects("
             elif nom_fonction == "dans":
@@ -148,7 +150,13 @@ class PgsGenSql(PgrGenSql):
         geomt, arc = self.get_type_geom(schemaclasse)
         if geomt != "0":
             idx.append(
-                "CREATE INDEX " + nom + "_gist ON " + groupe + "." + nom + " USING gist(geometrie);"
+                "CREATE INDEX "
+                + nom
+                + "_gist ON "
+                + groupe
+                + "."
+                + nom
+                + " USING gist(geometrie);"
             )
         return ctr, idx
 
@@ -156,7 +164,7 @@ class PgsGenSql(PgrGenSql):
         """retourne la definition sql de la geometrie"""
         geomt, arc = self.get_type_geom(classe)
         # print ('getgeomsql: type_geom',classe.identclasse, classe.info["type_geom"], geomt)
-        if geomt and geomt.upper() != "ALPHA" and geomt!='0':
+        if geomt and geomt.upper() != "ALPHA" and geomt != "0":
             if self.type_courbes == "curve" and arc:
                 return "\tgeometrie public." + self.gtypes_curve[geomt] + ","
             else:
@@ -171,8 +179,8 @@ class PgsGenSql(PgrGenSql):
         _, nom = self.get_nom_base(ident)
         atts = classe.get_liste_attributs()
         nom_style = nom
-        if len(nom_style) >28:
-            nom_style=nom_style[:28]
+        if len(nom_style) > 28:
+            nom_style = nom_style[:28]
         nom_style = nom_style + "_d"
         als = ["<aliases>"]
         index = 0
@@ -203,14 +211,15 @@ class PgsGenSql(PgrGenSql):
                         [
                             '<value key="' + i + '" value="' + i + '"/>'
                             for i in sorted(
-                                list(attribut.conformite.stock.values()), key=lambda v: v[2]
+                                list(attribut.conformite.stock.values()),
+                                key=lambda v: v[2],
                             )
                         ]
                     )
             elif attribut.type_att in self.types_base:
                 typb = self.types_base[attribut.type_att]
                 #                print ('typage attributs', nom_att, attribut.type_att, typb)
-                if typb in {"timestamp","D","DS","TIMESTAMP",'d','ds'}:
+                if typb in {"timestamp", "D", "DS", "TIMESTAMP", "d", "ds"}:
                     editype = "DateTime"
                     complements = (
                         'calendar_popup="1" allow_null="1" '

@@ -103,7 +103,7 @@ class Reader(object):
         self.regle_ref = self.regle if regle is not None else self.regle_start
         self.stock_param = self.regle_ref.stock_param
         self.maxobj = int(self.regle_ref.getvar("lire_maxi", 0))
-        self.traite_objets = self.stock_param.moteur.traite_objet
+        self.traite_objet = self.stock_param.moteur.traite_objet
         self.schema = None
         self.schema_entree = None
         self.newschema = True
@@ -338,7 +338,7 @@ class Reader(object):
 
     def process(self, obj):
         """renvoie au moteur de traitement"""
-        self.traite_objets(obj, self.regle_start)
+        self.traite_objet(obj, self.regle_start)
 
     def alphaprocess(self, attributs, hdict=None):
         # print ('alphaprocess', self, self.filter)
@@ -348,7 +348,7 @@ class Reader(object):
                 for nom, dico in hdict.items():
                     obj.sethtext(nom, dico)
             obj.attributs["#type_geom"] = "0"
-            self.traite_objets(obj, self.regle_start)
+            self.traite_objet(obj, self.regle_start)
         # else:
         #     print ('rejet')
 

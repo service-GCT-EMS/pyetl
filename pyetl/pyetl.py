@@ -329,6 +329,7 @@ class Pyetl(object):
             self._init_params()  # positionne les parametres predefinis
             self.macrostore = MacroStore()
             self.site_params = dict()
+            self.dbref = dict()
             # charge les parametres de site (fichier ini)
             self._charge_site_params(self.site_params_def)
             self._charge_site_params(self.paramdir)
@@ -342,6 +343,7 @@ class Pyetl(object):
                 self.getvar("cryptohelper"),
             )
             paramdecrypter(self.site_params, cryptinfo)
+            self._setdbref()  # reference les bases de donnees
             self.charge_cmd_internes()  # macros internes
             self.charge_cmd_internes(site="macros", opt=1)  # macros de site
             if self.paramdir is not None:
@@ -355,6 +357,7 @@ class Pyetl(object):
             self.macrostore = MacroStore(self.parent.macrostore)
             # self.macros = dict(self.parent.macros)
             self.site_params = self.parent.site_params
+            self.dbref = self.parent.dbref
             self.sorties = self.parent.sorties
 
     def getmacro(self, nom):
@@ -672,6 +675,19 @@ class Pyetl(object):
             self.stream = 2
 
     #        print('---------pyetl : mode sortie', self.stream, self.getvar("mode_sortie"))
+
+    def _setdbref(self):
+        """identifie les references de bases de donnees pour qgis"""
+        for nom in self.site_params:
+            variables = self.site_params[nom]
+            base, host, port = None, None, None
+            for clef, val in variables:
+                if clef == "server" and "port" in val and "host" in val:
+                    host, port = val.split(" ", 1)
+                elif clef == "base":
+                    base = val
+            if base:
+                self.dbref[base, host, port] = nom
 
     def _charge_site_params(self, origine):
         """ charge des definitions de variables liees au site """

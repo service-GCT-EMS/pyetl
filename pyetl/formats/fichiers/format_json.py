@@ -87,7 +87,7 @@ def objreader(self, ouvert):
             # print("traitement json", i)
             obj.from_geo_interface(i)
             obj.setorig(n_obj)
-            self.traite_objets(obj, self.regle_start)
+            self.traite_objet(obj, self.regle_start)
 
 
 def _convertir_objet(obj, ensure_ascii=False):

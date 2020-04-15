@@ -176,7 +176,7 @@ class SqltConnect(DbConnect):
     def get_type(self, nom_type):
         if nom_type in TYPES_G:
             return nom_type
-        return self.types_base.get(nom_type.upper(), "T")
+        return self.types_base.get(nom_type.upper(), "?")
 
     def nocast(self, nom):
         """ pas de formattage"""

@@ -402,7 +402,7 @@ class DbConnect(object):
         """ type en base d'un type interne """
         if nom_type not in self.types_base:
             print(self.nombase, "db:type inconnu", nom_type, self.types_base)
-        return self.types_base.get(nom_type, "T")
+        return self.types_base.get(nom_type, "?")
 
     def dbclose(self):
         """fermeture base de donnees"""
@@ -515,14 +515,20 @@ class DbConnect(object):
             taille_att = atd.taille
             if "(" in atd.type_attr:  # il y a une taille
                 tmp = atd.type_attr.split("(")
-                if tmp[1][-1].isnumeric():
+                if tmp[1][0].isnumeric():
                     type_ref = tmp[0]
-                    taille_att = tmp[1][-1]
-            if type_ref.upper() in self.types_base:
-                type_attr = self.types_base[type_ref.upper()]
-            else:
-                print(" type non trouve", type_ref, self.types_base)
-                type_attr = self.get_type(type_ref)
+                    taille_att = tmp[1][:-1]
+            type_attr = self.get_type(type_ref)
+            if type_attr == "?":
+                LOGGER.error(
+                    "%s type non trouve G:%s C:%s A:%s ->%s",
+                    self.type_base,
+                    atd.nom_groupe,
+                    atd.nom_classe,
+                    atd.nom_attr,
+                    type_ref,
+                )
+                type_attr = "T"
 
             if atd.enum:
                 #            print ('detection enums ',atd.enum)

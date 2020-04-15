@@ -754,12 +754,13 @@ class SchemaClasse(object):
 
                 if position == 0:
                     ordreins = self.attributs[latt[0]].ordre / 2.0
-                elif position >= len(latt):
+                elif position + 1 >= len(latt):
                     ordreins = self.attributs[latt[-1]].ordre + 1
                 #                        print ('ordrecalcule',ordreins,self.attributs[latt[-1]].ordre)
                 else:
                     #                        print ('position intermediaire ',position,len(latt),latt)
                     precedent = int(position)
+                    print("insertion apres", precedent, len(latt))
                     ordreins = (
                         self.attributs[latt[precedent]].ordre
                         + self.attributs[latt[precedent + 1]].ordre

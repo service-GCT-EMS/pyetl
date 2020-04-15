@@ -26,6 +26,7 @@ TYPES_A = {
     '"CHAR"': "T",
     "CHAR": "T",
     "REGCLASS": "T",
+    "CHARACTER VARYING": "T",
     "E": "E",
     "ENTIER": "E",
     "INTEGER": "E",
@@ -433,7 +434,7 @@ class PgrConnect(DbConnect):
     def get_type(self, nom_type):
         if "geometry" in nom_type:
             return nom_type
-        return self.types_base.get(nom_type.upper(), "T")
+        return self.types_base.get(nom_type.upper(), "?")
 
     def set_limit(self, maxi, _):
         if maxi:

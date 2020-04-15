@@ -47,7 +47,7 @@ def _mode_niv_in(regle, niv, autobase=False):
             attrs.append("")
             cmp.append("")
             if autobase and len(liste_defs) > 2:  # on a rajoute la base
-                base.append(liste_defs[2:])
+                base.append(tuple(liste_defs[1:]))
         elif len(def1) == 3:
             #                print("detection attribut")
             classe.append(def1[1])
@@ -650,13 +650,20 @@ def h_recup_schema(regle):
         print("detection extraction multibase", nombase)
         # raise
         regle.setlocal("autobase", "1")
-
-        for nom in nombase:  # description schemas multibases
-            nombase, val, host, port = nom
-
-            print("multibase:recup base", nombase, val, host, port)
+        distincts = set(nombase)
+        for nom in distincts:  # description schemas multibases
+            nombase, host, port = nom
+            host = host.lower()
+            port = port.lower()
+            nom = (nombase, host, port)
+            if nom in regle.stock_param.dbref:
+                nombase = regle.stock_param.dbref[nom]
+                print("multibase:recup base", nom, nombase)
+                regle.stock_param.load_paramgroup(nombase, nom=nombase)
+            else:
+                print("recup impossible", nom, regle.stock_param.dbref)
+                nombase, host, port = nom
             DB.recup_schema(regle, nombase, niveau, classe, nombase, description=nom)
-
         regle.valide = "done"
     else:
         regle.type_base = regle.getvar("db_" + nombase)

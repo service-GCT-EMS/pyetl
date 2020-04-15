@@ -103,7 +103,18 @@ def print_help(mapper, nom):
         elif nom == "formats":
             print_aide_formats(mapper)
         elif nom:
-            print("aide: commande inconnue")
+            # essais de noms partiels
+            trouve = False
+            for n1 in mapper.getmacrolist():
+                if nom in n1:
+                    trouve = True
+                    print_help(mapper, n1)
+            for n1 in mapper.commandes:
+                if nom in n1:
+                    trouve = True
+                    print_help(mapper, n1)
+            if not trouve:
+                print("aide: commande inconnue")
     else:
         print(
             "-------------------mapper version",

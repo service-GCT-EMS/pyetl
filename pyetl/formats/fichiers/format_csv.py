@@ -142,7 +142,6 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 # else:
                 #     obj.attributs["#type_geom"] = "0"
                 obj.attributs["#chemin"] = chemin
-                # reader.traite_objets(obj, reader.regle_start)
                 reader.process(obj)
 
                 # if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier

@@ -35,9 +35,8 @@ def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
         # print("acces base", codebase, base, serveur, type_base)
-        if not base and regle.getvar(
-            "autobase"
-        ):  # on essaye de charger des groupes connus
+        if not base and regle.getvar("autobase"):
+            # on essaye de charger des groupes connus
             print("mode autobase", codebase)
             try:
                 stock_param.load_paramgroup(codebase, nom=codebase)

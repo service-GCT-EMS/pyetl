@@ -99,9 +99,7 @@ def getfichs(regle, obj):
     """recupere une liste de fichiers"""
 
     #    mapper = regle.stock_param
-    racine = (
-        obj.attributs.get(regle.params.cmp1.val) if regle.dyn else regle.params.cmp1.val
-    )
+    racine = regle.params.cmp1.getval(obj)
     if not racine:
         racine = regle.getvar("_entree", ".")
     nom = regle.getval_entree(obj)
@@ -268,7 +266,13 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        stock[table] = [table, "", database, host, port]
+                        stock[table] = [
+                            table,
+                            "",
+                            database,
+                            "host=" + host,
+                            "port=" + port,
+                        ]
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
