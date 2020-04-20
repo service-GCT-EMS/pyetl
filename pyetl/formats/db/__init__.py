@@ -45,4 +45,5 @@ def loadmodules():
 
 
 DATABASES = loadmodules()
-DATABASES["sql"] = DATABASES["postgis"]  # generique
+if "postgis" in DATABASES:
+    DATABASES["sql"] = DATABASES["postgis"]  # generique

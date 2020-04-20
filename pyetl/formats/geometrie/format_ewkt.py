@@ -5,7 +5,11 @@
 
 
 import re
-from shapely import wkb,wkt
+
+try:
+    from shapely import wkb, wkt
+except ImportError:
+    wkb = None
 
 # from numba import jit
 
@@ -31,7 +35,7 @@ KEYWORDS = {
     "LINESTRING(": "2",
     "POINT(": "1",
     "(": "0",
-    "EMPTY":'0',
+    "EMPTY": "0",
     "TIN(": "4",
     "POLYHEDRALSURFACE(": "5",
 }
@@ -156,12 +160,14 @@ def _parse_ewkt(geometrie, texte):
             elif oper == "start":
                 dim = valeurs
                 niveau += 1
-                type_lu, poly, ring, nbring = _parse_start(nature, niveau, poly, ring, nbring)
+                type_lu, poly, ring, nbring = _parse_start(
+                    nature, niveau, poly, ring, nbring
+                )
                 geometrie.type = type_lu
     #                if not type_geom:
     #                    print ('erreur decodage', texte, oper, nature, valeurs)
     except RuntimeError as err:
-        if 'EMPTY' in texte:
+        if "EMPTY" in texte:
             geometrie.type = "0"
             print("geometrie nulle", texte)
         else:
@@ -176,7 +182,7 @@ def geom_from_ewkt(obj):
         geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
         #        print ('decodage geometrie ewkt ',obj.geom)
         _parse_ewkt(obj.geom_v, geom)
-        obj.geom_v.angle=float(obj.attributs.get("#angle",0))
+        obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         obj.finalise_geom(type_geom=geom_demandee)
     return obj.geom_v.valide
 
@@ -206,12 +212,19 @@ def _ecrire_point_ewkt(geom):
         )
     return ""
 
+
 def _ecrire_multipoint_ewkt(geom):
-    ''' ecrit un multipoint'''
+    """ ecrit un multipoint"""
     if geom.points:
-        return ("MULTIPOINT((" + '),('.join(_ecrire_coord_ewkt2d(point) for point in geom.points) +'))'
-        if geom.dimension == 2
-        else "MULTIPOINT((" + '),('.join(_ecrire_coord_ewkt3d(point) for point in geom.points) +'))')
+        return (
+            "MULTIPOINT(("
+            + "),(".join(_ecrire_coord_ewkt2d(point) for point in geom.points)
+            + "))"
+            if geom.dimension == 2
+            else "MULTIPOINT(("
+            + "),(".join(_ecrire_coord_ewkt3d(point) for point in geom.points)
+            + "))"
+        )
     return ""
 
 
@@ -261,7 +274,11 @@ def _ecrire_ligne_ewkt(ligne, poly, erreurs, multiline=False):
                 #                print ('ajout ',sect_courante.courbe,sec2[-1].courbe)
                 sec2.append(sect_courante)
     if len(sec2) > 1:
-        return "COMPOUNDCURVE(" + ",".join((_ecrire_section_ewkt(i, False) for i in sec2)) + ")"
+        return (
+            "COMPOUNDCURVE("
+            + ",".join((_ecrire_section_ewkt(i, False) for i in sec2))
+            + ")"
+        )
     return _ecrire_section_ewkt(sec2[0], poly or multiline)
 
 
@@ -269,7 +286,11 @@ def _ecrire_multiligne_ewkt(lignes, courbe, erreurs, force_courbe=False):
     """ecrit une multiligne en ewkt"""
     # courbe=True # test courbes
     code = "MULTICURVE(" if courbe or force_courbe else "MULTILINESTRING("
-    return code + ",".join((_ecrire_ligne_ewkt(i, False, erreurs, True) for i in lignes)) + ")"
+    return (
+        code
+        + ",".join((_ecrire_ligne_ewkt(i, False, erreurs, True) for i in lignes))
+        + ")"
+    )
 
 
 def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=False):
@@ -282,7 +303,9 @@ def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=F
         code = "POLYGON("
     return (
         code
-        + ",".join((_ecrire_ligne_ewkt(i, True, erreurs, False) for i in polygone.lignes))
+        + ",".join(
+            (_ecrire_ligne_ewkt(i, True, erreurs, False) for i in polygone.lignes)
+        )
         + ")"
     )
 
@@ -296,7 +319,9 @@ def _ecrire_poly_tin(polygones, tin, _):
 
     return (
         code
-        + ",".join((_ecrire_section_simple_ewkt(i.lignes[0].sections[0]) for i in polygones))
+        + ",".join(
+            (_ecrire_section_simple_ewkt(i.lignes[0].sections[0]) for i in polygones)
+        )
         + ")"
     )
 
@@ -307,14 +332,16 @@ def _ecrire_multipolygone_ewkt(polygones, courbe, erreurs, force_courbe):
     # courbe=True # test courbes
     code = "MULTISURFACE(" if courbe or force_courbe else "MULTIPOLYGON("
     return (
-        code + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True) for i in polygones)) + ")"
+        code
+        + ",".join((_ecrire_polygone_ewkt(i, courbe, erreurs, True) for i in polygones))
+        + ")"
     )
 
 
 def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     if geometrie_demandee != type_geom:
         if not isinstance(geometrie_demandee, str) or not isinstance(type_geom, str):
-            print ('attention type incorrect', type_geom)
+            print("attention type incorrect", type_geom)
             raise TypeError
         if type_geom == "1" or geometrie_demandee == "1":
             if erreurs is not None:
@@ -338,16 +365,19 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
     else:
         return 0
 
-def ecrire_geom_ewkb(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
-    return hex(wkb.dumps(geom))
+
+def ecrire_geom_ewkb(
+    geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
+):
+    return hex(wkb.dumps(geom)) if wkb else ""
+
 
 def geom_from_ewkb(obj):
     pass
 
-
-
-
-def ecrire_geom_ewkt(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
+def ecrire_geom_ewkt(
+    geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
+):
     """ecrit une geometrie en ewkt"""
 
     if geometrie_demandee == "0" or geom.type == "0" or geom.null:
@@ -379,9 +409,13 @@ def ecrire_geom_ewkt(geom, geometrie_demandee="-1", multiple=0, erreurs=None, fo
     elif geometrie_demandee == "3":
         if geom.polygones:
             geomt = (
-                _ecrire_multipolygone_ewkt(geom.polygones, courbe, erreurs, force_courbe)
+                _ecrire_multipolygone_ewkt(
+                    geom.polygones, courbe, erreurs, force_courbe
+                )
                 if multiple
-                else _ecrire_polygone_ewkt(geom.polygones[0], courbe, erreurs, False, force_courbe)
+                else _ecrire_polygone_ewkt(
+                    geom.polygones[0], courbe, erreurs, False, force_courbe
+                )
             )
         else:
             if erreurs is not None:
@@ -411,6 +445,8 @@ def nowrite(obj):
     return ""
 
 
-GEOMDEF = {"#ewkt": (ecrire_geom_ewkt, geom_from_ewkt),
-           "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb),
-           None: (nowrite, noconversion)}
+GEOMDEF = {
+    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt),
+    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb),
+    None: (nowrite, noconversion),
+}

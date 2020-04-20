@@ -651,19 +651,21 @@ def h_recup_schema(regle):
         # raise
         regle.setlocal("autobase", "1")
         distincts = set(nombase)
-        for nom in distincts:  # description schemas multibases
-            nombase, host, port = nom
+        for defbase in distincts:  # description schemas multibases
+            nombase, host, port = defbase
             host = host.lower()
             port = port.lower()
-            nom = (nombase, host, port)
-            if nom in regle.stock_param.dbref:
-                nombase = regle.stock_param.dbref[nom]
-                print("multibase:recup base", nom, nombase)
+            defbase = (nombase, host, port)
+            if defbase in regle.stock_param.dbref:
+                nombase = regle.stock_param.dbref[defbase]
+                print("multibase:recup base", defbase, nombase)
                 regle.stock_param.load_paramgroup(nombase, nom=nombase)
             else:
-                print("recup impossible", nom, regle.stock_param.dbref)
-                nombase, host, port = nom
-            DB.recup_schema(regle, nombase, niveau, classe, nombase, description=nom)
+                print("recup impossible", defbase, regle.stock_param.dbref)
+                nombase, host, port = defbase
+            DB.recup_schema(
+                regle, nombase, niveau, classe, nombase, description=defbase
+            )
         regle.valide = "done"
     else:
         regle.type_base = regle.getvar("db_" + nombase)

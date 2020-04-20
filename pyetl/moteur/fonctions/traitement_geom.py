@@ -9,7 +9,6 @@ fonctions de manipulation d'attributs
 import itertools
 import math as M
 from pyetl.projection import conversion as P
-from shapely import geometry as SG
 
 
 def setschemainfo(regle, obj, multi=None, type=None, dyn=False):

@@ -18,14 +18,7 @@ from .fileio import FileWriter
 
 def decode_entetes_csv(reader, entete, separ):
     """prepare l'entete et les noma d'un fichier csv"""
-    # geom = False
-    #    print('decodage entete csv',schema_courant.nom if schema_courant else '' ,entete)
-    # if (nom_groupe, nom_classe) in schema_courant.classes:
-    #     schemaclasse = schema_courant.classes[(nom_groupe, nom_classe)]
-    #     noms_attributs = schemaclasse.get_liste_attributs()
-    #     geom = schemaclasse.info["type_geom"] != "0"
-    # else:
-    #     schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
+
     noms_attributs = [i.strip().replace(" ", "_") for i in entete.split(separ)]
     # on verifie que les noms existent et sont uniques
     noms = set()

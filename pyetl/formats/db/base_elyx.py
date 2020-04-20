@@ -690,11 +690,7 @@ class ElyConnect(ora.OrwConnect):
             nom = i[0]
             nom_schema_elyx[nom] = i[5]
             dimensions[nom] = i[4]
-        # print ('tableau des dimensions',dimensions)
-        #    cl=schema_oracle.setdefault_classe(nom)
-        #    if i[4]==3 : cl.G3D=True
-        #
-        #    cl.groupe=i[5]
+
         requete_tables = """      SELECT tab.owner as nomschema,
                                 tab.table_name as nomtable,
                                  tab.num_rows as nb_enreg

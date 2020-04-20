@@ -9,8 +9,11 @@ import os
 import re
 import logging
 from collections import defaultdict
-import psutil
 
+try:
+    import psutil
+except ImportError:
+    psutil = None
 from .outils import renseigne_attributs_batch
 
 
@@ -362,8 +365,9 @@ def preload(regle, obj):
     chaine_comm = vrep(regle.params.cmp1.val)
     regle.setvar("nocomp", False)
     # =================surveillance de la consommation mémoire================
-    process = psutil.Process(os.getpid())
-    mem1 = process.memory_info()[0]
+    if psutil:
+        process = psutil.Process(os.getpid())
+        mem1 = process.memory_info()[0]
     # =========================================
     if obj and regle.params.att_entree.val:
         entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
@@ -418,15 +422,16 @@ def preload(regle, obj):
             pass
         nb_total = lecteur.lus_fich
     # =================surveillance de la consommation mémoire================
-    mem2 = process.memory_info()[0]
-    mem = mem2 - mem1
-    print(
-        "------- preload info memoire ",
-        nb_total,
-        mem,
-        "--------",
-        int(mem / (nb_total + 1)),
-    )
+    if psutil:
+        mem2 = process.memory_info()[0]
+        mem = mem2 - mem1
+        print(
+            "------- preload info memoire ",
+            nb_total,
+            mem,
+            "--------",
+            int(mem / (nb_total + 1)),
+        )
     # =============================
     return True
 

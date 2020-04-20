@@ -25,6 +25,19 @@ def h_xmlextract(regle):
     regle.keeptree = regle.getvar("keeptree") == "1"
 
 
+def keeptree(regle, obj, tree):
+    """gestion de la persistance de structure xml"""
+    if regle.keeptree:
+        if obj.attributs_speciaux is None:
+            obj.attributs_speciaux = {"__xmltree": tree}
+        else:
+            obj.attributs_speciaux["__xmltree"] = tree
+    else:
+        if obj.attributs_speciaux and "__xmltree" in obj.attributs_speciaux:
+            del obj.attributs_speciaux["__xmltree"]
+
+
+
 def getcadre(regle, obj):
     """"analyse un xml et livre le cadre de recherche"""
 
@@ -45,12 +58,8 @@ def getcadre(regle, obj):
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
     if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""
-    if regle.keeptree:
-        if obj.attributs_speciaux is None:
-            obj.attributs_speciaux = {"__xmltree": tree}
-        else:
-            obj.attributs_speciaux["__xmltree"] = tree
-        # print("on ne dupplique pas")
+    keeptree(regle, obj, tree)
+    # print("on ne dupplique pas")
     return cadres, xml
 
 
@@ -142,23 +151,22 @@ def h_xmledit(regle):
 def f_xmledit(regle, obj):
     """#aide||modification en place d elements xml
    #pattern1||re;re;A;xmledit;C;?C||sortie
+   #pattern2||;C;A;xmledit;A.C;?C||sortie
+   #pattern3||;[A];A;xmledit;A.C;?C||sortie
+   #pattern4||?=\\*;H;A;xmledit;C;?C||sortie
+   #pattern5||;L;A;xmledit;C;?C||sortie
  #aide_spec1||remplacement de texte
 #parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
-   #pattern2||;C;A;xmledit;A.C;?C||sortie
  #aide_spec2||remplacement ou ajout d un tag
 #parametres2||;valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
-   #pattern3||;[A];A;xmledit;A.C;?C||sortie
  #aide_spec3||remplacement ou ajout d un tags
 #parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
-   #pattern4||?=\\*;H;A;xmledit;C;?C||sortie
- #aide_spec4||remplacement ou ajout d un ensemble de tags * conserve la valeur
-#parametres4||* : remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
-   #pattern5||;L;A;xmledit;C;?C||sortie
+ #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
  #aide_spec5||suppression d un ensemble de tags
 #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^ss;xx;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmledit;pp;||atv;p2;titi
-      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
+      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmledit;pp.p1;||atv;XX;toto
        """
     cadres, xml = getcadre(regle, obj)
     groupe, oclasse = obj.ident
@@ -172,9 +180,11 @@ def f_xmledit(regle, obj):
         for elem in cadre.iter(regle.recherche):
             if regle.params.pattern == "1":  # regex sur texte
                 contenu = elem.text
+                print("xmledit avant", contenu)
                 contenu = re.sub(
                     regle.params.att_sortie.val, regle.params.val_entree.val, contenu
                 )
+                print("xmledit apres", contenu)
                 elem.text = contenu
             elif regle.params.pattern == "2":
                 elem.set(regle.item, regle.params.val_entree.val)

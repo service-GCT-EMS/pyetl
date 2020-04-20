@@ -13,7 +13,11 @@ import shutil
 import time
 
 # import win32con
-import win32security
+try:
+    import win32security
+except ImportError:
+    print("Module win32security non disponible : pas d info utilisateurs")
+    win32security = None
 from .outils import getfichs
 
 
@@ -43,7 +47,7 @@ def commandrunner(regle, chaine):
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding = regle.getvar("console_encoding", "CP850")
-    print("---------hrun", regle.runscope(), regle, regle.params.pattern)
+    # pri:nt("---------hrun", regle.runscope(), regle, regle.params.pattern)
     # print('valeurs parametres', regle.getvar('import'))
     if regle.params.pattern == "1":
         return
@@ -66,7 +70,7 @@ def f_run(regle, obj):
   #variables||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
             ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
      #schema||ajout_attribut
-       #test||obj||^P:aaa;^;;run;echo;tété;||ptv:aaa:tété
+       #test||obj||^P:aaa;;;run;echo;tété;||ptv:aaa:tété
       #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
       #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
@@ -226,11 +230,14 @@ def fileinfo(fichier, ajout_attributs):
     definition = [str(tmp), str(tmp.parent), tmp.stem, tmp.suffix]
     infos = [0, "inexistant", "inexistant"]
     try:
-        sd = win32security.GetFileSecurity(
-            fichier, win32security.OWNER_SECURITY_INFORMATION
-        )
-        owner_sid = sd.GetSecurityDescriptorOwner()
-        uname, domain, typef = win32security.LookupAccountSid(None, owner_sid)
+        if win32security:
+            sd = win32security.GetFileSecurity(
+                fichier, win32security.OWNER_SECURITY_INFORMATION
+            )
+            owner_sid = sd.GetSecurityDescriptorOwner()
+            uname, domain, typef = win32security.LookupAccountSid(None, owner_sid)
+        else:
+            uname, domain = "", ""
         statinfo = os.stat(fichier)
         taille = statinfo.st_size
         creation = statinfo.st_ctime

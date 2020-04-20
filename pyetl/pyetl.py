@@ -9,7 +9,6 @@ import os
 
 # import sys
 import re
-import psutil
 
 # import platform
 import logging
@@ -688,6 +687,7 @@ class Pyetl(object):
                     base = val
             if base:
                 self.dbref[base, host, port] = nom
+                self.dbref[nom] = (base, host, port)
 
     def _charge_site_params(self, origine):
         """ charge des definitions de variables liees au site """

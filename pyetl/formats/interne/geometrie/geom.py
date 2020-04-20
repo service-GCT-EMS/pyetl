@@ -4,8 +4,13 @@ attributs et geometrie """
 
 import itertools
 from . import composants as C
-from shapely import geometry as SG
-from shapely import prepared as P
+
+try:
+    from shapely import geometry as SG
+    from shapely import prepared as P
+except ImportError:
+    SG = None
+    P = None
 
 
 class Geometrie(object):
@@ -163,7 +168,7 @@ class Geometrie(object):
             self.sgeom = shape
             self.valide = False
         else:
-            self.sgeom = SG.shape(self)
+            self.sgeom = SG.shape(self) if SG else None
 
     def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
         """cree une geometrie de point"""
@@ -911,14 +916,14 @@ class Geometrie(object):
         """ retourne un format shapely de la geometrie"""
         # print("geom:",self)
         if not self.sgeom:
-            self.sgeom = SG.shape(self)
+            self.sgeom = SG.shape(self) if SG else None
         return self.sgeom
 
     @property
     def __shapelyprepared__(self):
         """stocke une geometrie pereparee de l'objet"""
         if not self.sgp:
-            self.sgp = P.prep(self.__shapelygeom__)
+            self.sgp = P.prep(self.__shapelygeom__) if P else None
         return self.sgp
 
     def shapesync(self):
