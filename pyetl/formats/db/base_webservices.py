@@ -11,9 +11,11 @@ import requests
 
 # version patchee de owslib pour eviter un crash sur data.strasbourg.eu
 from owslib.wfs import WebFeatureService
+import owslib.fes as F
+from owslib.etree import etree
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-from .database import DbConnect
+from .database import DbConnect, Cursinfo
 from .gensql import DbGenSql
 
 TYPES_A = {
@@ -53,6 +55,10 @@ def getnamespace(root):
     return namespace
 
 
+class WfsCursinfo(Cursinfo):
+    pass
+
+
 class WfsConnect(DbConnect):
     """connecteur wwfs: simule un acces base a partir du schema"""
 
@@ -80,6 +86,8 @@ class WfsConnect(DbConnect):
                 serveur = self.serveur
                 version = "1.1.0"
             self.connection = WebFeatureService(url=serveur, version=version)
+            self.connection.cursor = lambda: None
+            # simulation de curseur pour l'initialisation
         except Error as err:
             print("erreur wfs", err)
             return False
@@ -181,6 +189,11 @@ class WfsConnect(DbConnect):
             return nom_type
         return self.types_base.get(nom_type.upper(), "?")
 
+    def get_cursinfo(self, volume=0, nom=""):
+        """recupere un curseur"""
+        # print(" postgres get cursinfo")
+        return WfsCursinfo(self, volume=volume, nom=nom) if self.connection else None
+
     def get_surf(self, nom):
         return ""
 
@@ -208,14 +221,8 @@ class WfsConnect(DbConnect):
         cond = ""
         fonction = ""
         if nom_fonction == "dans_emprise":
-            cond = "MbrWithin(" + nom_geometrie + " , " + geom2 + " )"
-            return geom2 + " && " + nom_geometrie
-        if nom_fonction == "intersect":
-            fonction = "Intersects("
-        elif nom_fonction == "dans":
-            fonction = "Contains("
-        if fonction:
-            return fonction + geom2 + "," + nom_geometrie + ")"
+            bbox = getbbox(geom2)
+            return bbox
         return ""
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
@@ -224,76 +231,20 @@ class WfsConnect(DbConnect):
         requete = ""
         data = ""
         schema.resolve()
-        attlist = []
-
-        atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
+        attlist = schema.get_liste_attributs()
+        self.get_attr_of_classe
+        params = {"typename": niveau + ":" + classe}
         if attribut:
-            if attribut in self.sys_fields:  # c est un champ systeme
-                attribut, type_att = self.sys_fields[attribut]
-            else:
-                type_att = schema.attributs[attribut].type_att
-            cast = self.nocast
-            if type_att == "D":
-                cast = self.datecast
-            elif type_att in "EFS":
-                cast = self.numcast
-            elif schema.attributs[attribut].conformite:
-                cast = self.textcast
-
-            if isinstance(valeur, (set, list)) and len(valeur) > 1:
-
-                data = self.multivaldata(valeur)
-                #                data = {'val':"{'"+"','".join(valeur)+"'}"}
-                cond = self.multival(len(data), cast=cast)
-            else:
-                if isinstance(valeur, (set, list)):
-                    val = valeur[0]
-                oper = "="
-                val = valeur
-                if val:
-                    if val[0] in "<>=~":
-                        oper = val[0]
-                        val = val[1:]
-                    if val[0] == "\\":
-                        val = val[1:]
-                cond = self.monoval(oper, cast)
-                data = {"val": val}
-                print("valeur simple", valeur, oper, cond, cast, data)
-
-            requete = (
-                " SELECT "
-                + atttext
-                + ' FROM "'
-                + niveau
-                + "."
-                + classe
-                + '" WHERE '
-                + cast(attribut)
-                + cond
+            filter = F.PropertyIsLike(
+                propertyname=attribut, literal=valeur, wildCard="*"
             )
-        else:
-            requete = " SELECT " + atttext + ' FROM "' + niveau + "." + classe + '"'
-            data = ()
-        if ordre:
-            if isinstance(ordre, list):
-                requete = requete + " ORDER BY " + ",".join(ordre)
-            else:
-                requete = requete + " ORDER BY " + ordre
-
-        requete = requete + self.set_limit(maxi, bool(data))
-        self.attlist = attlist
-        if not atttext:
-            requete = ""
-            data = ()
-        #        print('acces alpha', self.geographique, requete, data)
-        #        raise
-        #        print ('geometrie',schema.info["type_geom"])
-        print("sqlite req alpha ", requete)
-        print("sqlite appel iterreq", type(self.iterreq))
-        has_geom = schema.info["type_geom"] != "0"
-        aa = self.iterreq(requete, data, has_geom=has_geom)
-        print("sqlite apres iterreq", type(aa))
-        return aa
+            filterxml = etree.tostring(filter.toXML()).decode("utf-8")
+            params["filter"] = filterxml
+        print("envoi requete", params)
+        # reponse = self.connection.getfeature(**params)
+        reponse = self.connection.getfeature(typename=niveau + ":" + classe)
+        print("wfs apres reponse", type(reponse))
+        return reponse
 
 
 class WfstGenSql(DbGenSql):
