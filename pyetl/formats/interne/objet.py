@@ -108,7 +108,6 @@ class Objet(object):
             self.attributs.update(attributs)
         self.hdict = None
         self.multiples = None  # atributs multiples
-        #        self.attributs_speciaux = AttributsSpeciaux()
         self.attributs_speciaux = dict()
         #        self.schema = schema # schema impose
         self.geomnatif = True

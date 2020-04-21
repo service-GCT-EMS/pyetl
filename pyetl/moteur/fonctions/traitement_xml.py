@@ -25,47 +25,35 @@ def h_xmlextract(regle):
     regle.keeptree = regle.getvar("keeptree") == "1"
 
 
-def keeptree(regle, obj, tree):
-    """gestion de la persistance de structure xml"""
-    if regle.keeptree:
-        if obj.attributs_speciaux is None:
-            obj.attributs_speciaux = {"__xmltree": tree}
-        else:
-            obj.attributs_speciaux["__xmltree"] = tree
-    else:
-        if obj.attributs_speciaux and "__xmltree" in obj.attributs_speciaux:
-            del obj.attributs_speciaux["__xmltree"]
-
-
-
 def getcadre(regle, obj):
-    """"analyse un xml et livre le cadre de recherche"""
-
-    xml = obj.attributs.get(regle.params.att_entree.val)
-    if not xml:
-        return (), ""
-    if obj.attributs_speciaux and "__xmltree" in obj.attributs_speciaux:
-        tree = obj.attributs_speciaux["__xmltree"]
-        if not regle.keeptree:
-            del obj.attributs_speciaux["__xmltree"]
-    else:
+    """gestion de la persistance de structure xml"""
+    tree = obj.attributs_speciaux.pop("__xmltree", None)
+    if not tree:
         try:
-            tree = ET.fromstring(xml)
+            tree = ET.fromstring(obj.attributs.get(regle.params.att_entree.val))
         except ParseError as err:
             LOGGER.error("erreur xml mal formé", err, obj)
-            # print("erreur xml mal formé", err, obj)
-            return (), xml
+            return None, ()
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
-    if not regle.keepdata:  # on evite du duppliquer des gros xml
-        obj.attributs[regle.params.att_entree.val] = ""
-    keeptree(regle, obj, tree)
-    # print("on ne dupplique pas")
-    return cadres, xml
+    return tree, cadres
+
+
+def writeback(regle, obj, tree, nomxml, changed=False):
+    changed = changed or obj.attributs_speciaux.pop("__xmlchanged", None)
+    if regle.keeptree:
+        obj.attributs_speciaux["__xmltree"] = tree
+        obj.attributs_speciaux["__xmlchanged"] = changed
+        return
+
+    if changed:
+        if not tree:
+            tree = obj.attributs_speciaux.get("__xmltree")
+        obj.attributs[nomxml] = ET.tostring(tree, encoding="unicode") if tree else ""
 
 
 def f_xmlextract(regle, obj):
     """#aide||extraction de valeurs d un xml
-  #aide_spec||on cree un objet pour chaque element
+  #aide_spec||retourne le premier element trouve
    #pattern1||H;;A;xmlextract;C;?C||sortie
    #pattern2||D;;A;xmlextract;C;?C||sortie
    #pattern3||S;;A;xmlextract;A.C;?C||sortie
@@ -76,7 +64,7 @@ def f_xmlextract(regle, obj):
       #test3||obj||^V4;<g><pp p1="toto" p2="titi">text</pp></g>;;set||^XX;;V4;xmlextract;pp._T;||atv;XX;text
        """
     trouve = False
-    cadres, xml = getcadre(regle, obj)
+    tree, cadres = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
             if regle.item == "_T":
@@ -84,8 +72,9 @@ def f_xmlextract(regle, obj):
             else:
                 contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
             regle.setval_sortie(obj, contenu)
-            obj.attributs[regle.params.att_entree.val] = xml
+            writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
             return True
+    writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
     return trouve
 
 
@@ -108,13 +97,18 @@ def f_xmlsplit(regle, obj):
      #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
        """
     trouve = False
-    cadres, xml = getcadre(regle, obj)
+    tree, cadres = getcadre(regle, obj)
     groupe, oclasse = obj.ident
     nat = regle.params.att_entree.val
     if nat.startswith("#"):
         nat = nat[1:]
     classe = oclasse + "_" + nat
     # regle.reader.prepare_lecture_att(obj, "interne")
+    if regle.keepdata:  # on actualise l xml
+        writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
+    else:  # on evite du duppliquer des gros xml
+        xml = obj.attributs.get(regle.params.att_entree.val, "")
+        obj.attributs[regle.params.att_entree.val] = ""
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
@@ -135,7 +129,9 @@ def f_xmlsplit(regle, obj):
             # print("xmlsplit traitement", obj2)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             trouve = True
-    obj.attributs[regle.params.att_entree.val] = xml
+    if not regle.keepdata:
+        obj.attributs[regle.params.att_entree.val] = xml
+    writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
     return trouve
 
 
@@ -151,10 +147,10 @@ def h_xmledit(regle):
 def f_xmledit(regle, obj):
     """#aide||modification en place d elements xml
    #pattern1||re;re;A;xmledit;C;?C||sortie
-   #pattern2||;C;A;xmledit;A.C;?C||sortie
-   #pattern3||;[A];A;xmledit;A.C;?C||sortie
-   #pattern4||?=\\*;H;A;xmledit;C;?C||sortie
-   #pattern5||;L;A;xmledit;C;?C||sortie
+   #pattern2||;C;A;xmledit;A.C;?C||cmp1
+   #pattern3||;[A];A;xmledit;A.C;?C||cmp1
+   #pattern4||?=\\*;H;A;xmledit;C;?C||defaut
+   #pattern5||;;A;xmledit;A.C;?C||defaut
  #aide_spec1||remplacement de texte
 #parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
  #aide_spec2||remplacement ou ajout d un tag
@@ -164,34 +160,45 @@ def f_xmledit(regle, obj):
  #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
  #aide_spec5||suppression d un ensemble de tags
 #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^ss;xx;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
-      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmledit;pp.p1;||atv;XX;toto
+      #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^xx;ss;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
+      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
+      #test5||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;
        """
-    cadres, xml = getcadre(regle, obj)
+    tree, cadres = getcadre(regle, obj)
     groupe, oclasse = obj.ident
     nat = regle.params.att_entree.val
     if nat.startswith("#"):
         nat = nat[1:]
     classe = oclasse + "_" + nat
     # regle.reader.prepare_lecture_att(obj, "interne")
+    # print("xmledit", regle.params.pattern)
+    trouve = 0
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
+            trouve = 1
             if regle.params.pattern == "1":  # regex sur texte
                 contenu = elem.text
-                print("xmledit avant", contenu)
+                # print("xmledit avant", contenu)
                 contenu = re.sub(
-                    regle.params.att_sortie.val, regle.params.val_entree.val, contenu
+                    regle.params.val_entree.val, regle.params.att_sortie.val, contenu
                 )
-                print("xmledit apres", contenu)
+                # print("xmledit apres", contenu)
                 elem.text = contenu
             elif regle.params.pattern == "2":
+                # print("set tag", regle.item, regle.params.val_entree.val)
                 elem.set(regle.item, regle.params.val_entree.val)
             elif regle.params.pattern == "3":
+                # print("set tag", regle.item, regle.params.val_entree.val)
+                elem.set(regle.item, obj.attributs[regle.params.val_entree.val])
+            elif regle.params.pattern == "4":
                 vals = obj.gethdict(regle.params.val_entree.val)
                 for i, j in vals.items():
                     elem.set(i, j)
+            elif regle.params.pattern == "5":
+                elem.attrib.pop(regle.item, None)
+    writeback(regle, obj, tree, regle.params.att_entree.val, changed=True)
+    return trouve
 
 
 def f_xmlload(regle, obj):
@@ -201,20 +208,36 @@ def f_xmlload(regle, obj):
     """
     nom = regle.getval_entree(obj)
     # print("xmlload traitement ", nom)
+    try:
+        obj.attributs[regle.params.att_sortie.val] = "".join(
+            open(nom, "r", encoding="utf-8").readlines()
+        )
+    except (FileNotFoundError, PermissionError):
+        print("fichier non trouve", nom)
+        return False
+    return True
 
-    obj.attributs[regle.params.att_sortie.val] = "".join(
-        open(nom, "r", encoding="utf-8").readlines()
-    )
+
+def h_xmlsave(regle):
+    """helper sauvegarde"""
+    regle.keeptree = False
 
 
 def f_xmlsave(regle, obj):
     """#aide||stockage dans un fichier d un xml contenu dans un attribut
-   #pattern1||A;?C;A;xml_save;?C;?C;
+   #pattern1||A;?C;A;xml_save;?C;;
 #parametres1||nom fichier;;attribut contenant le xml;;nom du rep
     """
+    writeback(regle, obj, None, regle.params.att_entree.val, changed=False)
     sortie = obj.attributs.get(regle.params.att_sortie.val)
     rep = regle.params.cmp1.getval(obj)
     if rep:
         sortie = os.path.join(rep, sortie)
+    os.makedirs(os.path.dirname(sortie), exist_ok=True)
     print("ecriture xml", sortie)
-    open(sortie, "w", encoding="utf-8").write(regle.getval_entree(obj))
+    try:
+        open(sortie, "w", encoding="utf-8").write(regle.getval_entree(obj))
+    except (FileNotFoundError, PermissionError):
+        print("ecriture impossible", sortie)
+        return False
+    return True

@@ -647,10 +647,10 @@ def h_recup_schema(regle):
     regle.setlocal("mode_schema", "dbschema")
 
     if isinstance(nombase, list):  # cas particulier des extractions multibases
-        print("detection extraction multibase", nombase)
         # raise
         regle.setlocal("autobase", "1")
         distincts = set(nombase)
+        print("detection extraction multibase", distincts)
         for defbase in distincts:  # description schemas multibases
             nombase, host, port = defbase
             host = host.lower()

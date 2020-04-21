@@ -193,6 +193,10 @@ def h_sub(regle):
         except SyntaxError as err:
             regle.valide = False
             regle.erreurs.append("erreur compilation des expressions" + err.msg)
+    try:
+        regle.maxsub = int(regle.getvar(".maxsub"))
+    except ValueError:
+        regle.maxsub = 0
 
 
 # fonctions de traitement alpha
@@ -201,14 +205,19 @@ def f_sub(regle, obj):  # fonction de substution
         #aide_spec||application d'une fonction de transformation par expression reguliere
         #pattern||S;?;A;sub;re;?re||sortie
     #parametres||resultat;defaut;entree;;expression de selection;expression de substitution
+    #variables||maxsub:nombre maxi de substitutions
         #test1||obj||^V4;;C1;sub;A;B;||atv;V4;BB
         #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;ab
         #test3||obj||^V4;;C1;sub;A;B;||ats;V4
+        #test4||obj||^XX;AAA;;set||^V4;;XX;sub;A;B;;.maxsub=2||atv;V4;BBA
 
     """
     # substitution
     regle.setval_sortie(
-        obj, regle.exp_entree.sub(regle.exp_sortie, regle.getval_entree(obj))
+        obj,
+        regle.exp_entree.sub(
+            regle.exp_sortie, regle.getval_entree(obj), count=regle.maxsub
+        ),
     )
     return True
 

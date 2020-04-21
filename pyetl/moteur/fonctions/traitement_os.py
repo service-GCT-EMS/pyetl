@@ -115,7 +115,9 @@ def fileop(regle, obj, fonction):
     try:
         fonction(
             os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
-            os.path.join(regle.chemin_final, regle.params.att_sortie.val),
+            os.path.join(
+                regle.chemin_final, obj.attributs.get(regle.params.att_sortie.val, "")
+            ),
         )
         return True
     except (FileNotFoundError, FileExistsError, OSError):
@@ -421,6 +423,7 @@ def h_listefich(regle):
     if regle.params.pattern == "2":
         regle.setlocal("fileselect", regle.params.val_entree.val)
     regle.setlocal("F_entree", "*")
+    regle.extfilter = regle.params.cmp2.liste
 
 
 def f_listefich(regle, obj):
@@ -439,13 +442,16 @@ def f_listefich(regle, obj):
     for fich in getfichs(regle, obj):
         nom, defs = fich
         racine, chemin, nom_f, ext = defs
+        if regle.extfilter and ext not in regle.extfilter:
+            continue
         nouveau = obj.dupplique()
         nouveau.attributs["#classe"] = classe
         regle.setval_sortie(nouveau, nom)
-        obj.attributs["#f_racine"] = racine
-        obj.attributs["#f_chemin"] = chemin
-        obj.attributs["#f_nom"] = nom_f
-        obj.attributs["#f_ext"] = ext
+        nouveau.attributs["#f_racine"] = racine
+        nouveau.attributs["#f_chemin"] = chemin
+        nouveau.attributs["#f_base"] = nom_f
+        nouveau.attributs["#f_ext"] = ext
+        nouveau.attributs["#f_nom"] = nom_f + "." + ext
         traite_objet(nouveau, regle.branchements.brch["gen"])
         trouve = True
     return trouve
