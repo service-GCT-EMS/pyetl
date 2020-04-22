@@ -433,6 +433,7 @@ def _decode_attribut_csv(liste):
 def decode_classes_csv(schema_courant, entree):
     """stocke les  classes  dans le schema"""
     metas = dict()
+    schema_courant.origine = "L"
     for i in entree:
         if not i:
             continue
@@ -581,7 +582,7 @@ def fichs_schema(racine):
 def lire_schema_csv(
     mapper, nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None
 ):
-    """lit un schema conplet en csv"""
+    """lit un schema complet en csv"""
     if schema is None:
         #        print ('lecture_csv')
         schema = mapper.init_schema(nom, origine="L")
@@ -616,7 +617,13 @@ def lire_schema_csv(
                 schema.elements_specifiques.divers[i] = (entete, contenu)
 
     FSC.analyse_interne(schema, "init")
-    print("schema: lecture_schema realisee --->", fichier, len(schema.classes))
+    print(
+        "schema: lecture_schema realisee --->",
+        fichier,
+        len(schema.classes),
+        schema.nom,
+        schema.origine,
+    )
     #          "<-----")
     #    print ('mapping enregistre','\n'.join(schema.mapping_schema(fusion=True)[:10]))
     return schema

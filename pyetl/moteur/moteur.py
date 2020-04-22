@@ -83,17 +83,20 @@ class Moteur(object):
                         #     "traitement virtuel", schemaclasse.nom, schemaclasse.utilise
                         # )
                         if schemaclasse.utilise and not force_virtuel:
-                            # print ('traitement virtuel classe ignoree',schemaclasse.identclasse)
+                            # print(
+                            #     "traitement virtuel classe ignoree",
+                            #     schemaclasse.identclasse,
+                            # )
                             continue
-                        if schemaclasse.identclasse == ("ELYEA", "E_PROGRA"):
-                            print(
-                                self.mapper.getvar("_wid"),
-                                "traitement virtuel classe",
-                                sch.nom,
-                                schemaclasse.identclasse,
-                                schemaclasse.utilise,
-                                schemaclasse.maxobj,
-                            )
+                            # if schemaclasse.identclasse == ("ELYEA", "E_PROGRA"):
+                            # print(
+                            #     self.mapper.getvar("_wid"),
+                            #     "traitement virtuel classe",
+                            #     sch.nom,
+                            #     schemaclasse.identclasse,
+                            #     schemaclasse.utilise,
+                            #     schemaclasse.maxobj,
+                            # )
 
                         # if not self.mapper.worker:
                         #     print("traitement objet virtuel ", schemaclasse.identclasse)

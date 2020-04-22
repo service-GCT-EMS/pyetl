@@ -33,19 +33,6 @@ def fusion_schema(nom, schema, schema_tmp):
     for i in schema_tmp.classes:
         # print ('fusion schema' , i)
         if i in schema.classes:
-            if schema.classes[i].nom == "pos_app_emprise_er":
-                print(
-                    "fusion schema",
-                    nom,
-                    schema.nom,
-                    schema.classes[i].nom,
-                    schema.classes[i].poids,
-                    schema.classes[i].maxobj,
-                    "tmp:",
-                    schema_tmp.classes[i].poids,
-                    schema_tmp.classes[i].objcnt,
-                    schema_tmp.classes[i].maxobj,
-                )
             if schema.classes[i].poids > schema_tmp.classes[i].poids:
                 continue
             if schema.classes[i].poids == schema_tmp.classes[i].poids:
@@ -69,7 +56,7 @@ def lire_schemas_multiples(
     fusion=None,
 ):
     """initialise le schema et rajoute tous les elements necessaires"""
-    schema = mapper.init_schema(nom)
+    schema = mapper.init_schema(nom, origine="L")
     if cod_csv is None:
         cod_csv = cod
     if os.path.isdir(chemin):

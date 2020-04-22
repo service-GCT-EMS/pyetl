@@ -100,7 +100,6 @@ class DecodeConfigOsm(object):
         self.storeatt(att, val)
         geomtype, self.tgs[att] = self.getrefcond(geomcond)
 
-
     def setliste(self, groupes):
         """stocke les listes associees"""
         if self.def_classes:
@@ -287,7 +286,6 @@ def init_osm(reader, config_osm, schema, setups=None):
 #########################################################################
 # format osm
 #########################################################################
-
 
 
 def _getpoints(points, elem):
@@ -491,7 +489,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
 
     self.lus_fich = 0
     nomschema = os.path.splitext(fichier)[0]
-    schema = stock_param.init_schema(nomschema, "F")
+    schema = stock_param.init_schema(nomschema, origine="B")
     if self.nb_lus == 0:  # initialisation lecteur
         refrep = os.path.dirname(__file__)
         config_osm_defaut = os.path.join(refrep, "config_osm.csv")
