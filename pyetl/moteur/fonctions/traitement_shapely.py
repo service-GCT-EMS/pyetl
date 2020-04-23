@@ -210,10 +210,10 @@ def h_ingeom(regle):
 
 
 def f_ingeom(regle, obj):
-    """#aide||recupere des attributs par selection geometrique
-    #aide_spec||liste des attributs a recuperer
-        #pattern||L;?C;L;geoselect;=in;C
-        #pattern2||;;;geoselect;=in;C
+    """#aide||intersection geometrique par reapport a une couche stockee
+    #aide_spec1||l 'objet contenu recupere une liste d attributs de l objet contenant
+   #parametres1||attributs recuperes;valeurs recuperees;attributs contenant;;;nom memoire
+      #pattern1||?L;?LC;?L;geoselect;=in;C
         !#test||obj;poly||^;1;;buffer;;||;;;;;;;tmpstore||atv;X;1
         """
     if obj.geom_v.sgeom or obj.initgeom():

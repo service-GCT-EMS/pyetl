@@ -384,13 +384,13 @@ class Pyetl(object):
     def commandes_speciales(self):
         """commandes speciales"""
         #        print("commandes speciales: ", self.fichier_regles)
-        commandes_speciales={"help","autodoc","autotest","unittest","formattest"}
+        commandes_speciales = {"help", "autodoc", "autotest", "unittest", "formattest"}
         # on ne lit pas de regles mais on prends les commandes predefinies
         if self.fichier_regles is None:
             return
         liste_commandes = self.fichier_regles.split(",")
         commande, *pars = liste_commandes[0].split(":")
-        commande = commande.replace("#","")
+        commande = commande.replace("#", "")
         if commande not in commandes_speciales:
             return
         nom = self.getvar("_sortie")
@@ -398,21 +398,29 @@ class Pyetl(object):
         self.setvar("_testmode", commande)
         if commande == "help":
             from pyetl.helpdef.helpmodule import print_help
+
             print_help(self, nom)
 
         elif commande == "autodoc":
             from pyetl.helpdef.helpmodule import autodoc
-            print (" generation documentation ",nom)
-            doc=autodoc(self)
-            print ("apres generation documentation ",autodoc)
+
+            print(" generation documentation ", nom)
+            doc = autodoc(self)
+            print("apres generation documentation ", autodoc)
             if not nom:
-                nom=os.path.join(self.getvar("_progdir"),"../doc_pyetl/source/reference/commandedef.rst")
-            with open(nom,"w") as dest:
+                tmp = os.path.join(
+                    self.getvar("_progdir"),
+                    "../doc_pyetl/source/autodoc/commandedef.rst",
+                )
+                nom = self.getvar("_autodoc", tmp)
+
+            with open(nom, "w") as dest:
                 dest.write("\n".join(doc))
 
         elif commande == "#autotest" or commande == "autotest":
             #            print("detecte autotest ", self.fichier_regles, self.posparm)
             from pyetl.tests.testmodule import full_autotest
+
             liste_regles = full_autotest(self, pars[0] if pars else nom)
             if liste_regles:
                 self.fichier_regles = ""
@@ -421,14 +429,15 @@ class Pyetl(object):
 
         elif commande == "#unittest" or commande == "unittest":
             from pyetl.tests.testmodule import unittests
+
             unittests(self, nom=nom, debug=self.getvar("debug"))
 
         elif commande == "#formattest" or commande == "formattest":
             from pyetl.tests.testmodule import formattests
+
             formattests(self, nom=nom, debug=self.getvar("debug"))
 
-        self.done=True
-
+        self.done = True
 
 
     def _traite_params(self, liste_params):

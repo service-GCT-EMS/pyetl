@@ -18,7 +18,7 @@ Welcome to pyetl's documentation!
 
    refs
    reference/commandes
-   reference/commandedef
+   autodoc/commandedef
    reference/macros
    reference/scripts
    reference/fichiers

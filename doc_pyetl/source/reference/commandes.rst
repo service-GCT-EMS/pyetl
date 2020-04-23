@@ -57,5 +57,5 @@ commande
 commandes standard
 ==================
 
-.. automodule:: moteur.fonctions.traitement_alpha
+.. automodule:: pyetl.moteur.fonctions.traitement_alpha
    :members:

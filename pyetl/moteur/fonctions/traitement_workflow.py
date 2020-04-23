@@ -593,21 +593,21 @@ def h_batch(regle):
 
 def f_batch(regle, obj):
     """#aide||execute un traitement batch a partir des parametres de l'objet
-  #parametres||;attribut_resultat;commandes;attribut_commandes;batch;mode_batch
-  #aide_spec1|| en mode run le traitement s'autodeclenche sans objet
-    #pattern1||A;?C;?A;batch;?=run;?N||cmp1
-  #aide_spec2|| en mode init le traitement demarre a l'initialisation du script
+  #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+  #aide_spec1||s'autodeclenche dans tous les cas
+    #pattern1||A;?C;?A;batch;?=run;||cmp1
+  #aide_spec2||demarre a l'initialisation du script
     #pattern2||A;?C;?A;batch;=init;||cmp1
-  #aide_spec1|| en mode parallel_init le traitement demarre a l'initialisation de chaque worker
+  #aide_spec3|| en mode parallel_init le traitement demarre a l'initialisation de chaque worker
    #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
-   #aide_spec1|| en mode boucle le traitement reprend le jeu de donnees en boucle
+   #aide_spec4|| en mode boucle le traitement reprend le jeu de donnees en boucle
    #pattern4||A;?C;?A;batch;=boucle;C||cmp1
-   #aide_spec1|| en mode load le traitement passe une fois le jeu de donnees
+   #aide_spec5|| en mode load le traitement passe une fois le jeu de donnees
    #pattern5||A;?C;?A;batch;=load;C||cmp1
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
       #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
-      #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;3;;z=12||atv;X;12
+      #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;;;z=12||atv;X;12
     """
     if regle.store:
         regle.tmpstore.append(obj)

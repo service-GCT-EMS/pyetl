@@ -42,62 +42,82 @@ class DefinitionAttribut(object):
     #                                / P variable moteur / H hstore
     #                   groupe : S simple / M multiple / H hstore / D dynamique / P variable moteur
     relist = {
-        "A": (r"^" + adef + r"$", "A", "S"),  # variable
+        "A": (r"^" + adef + r"$", "A", "S", "attribut"),  # attribut
         # "AH": (r"^" + adef + r"$", "A:H", "S"),  # variable hstore
-        "AE": (r"^" + adef + r"$", "A:E", "S"),  # variable entiere
-        "AN": (r"^" + adef + r"$", "A:F", "S"),  # variable numerique
-        "AD": (r"^" + adef + r"$", "A:D", "S"),  # variable date
+        "AE": (r"^" + adef + r"$", "A:E", "S", "attribut entier"),  # variable entiere
+        "AN": (
+            r"^" + adef + r"$",
+            "A:F",
+            "S",
+            "attribut numerique",
+        ),  # variable numerique
+        "AD": (r"^" + adef + r"$", "A:D", "S", "attribut date"),  # variable date
         "AV": (r"^$", "A", "S"),  # vide pour des definitions ou sortie=entree
-        "+A": (r"^\+" + adef + r"$", "A", "S"),
-        "A+": (r"^" + adef + r"\+$", "A", "S"),
-        "A*": (r"^" + adef + r"\*$", "A", "D"),
-        "*A": (r"^\*" + adef + r"$", "A", "D"),
-        "H:A": (r"^H:(" + asdef + r")$", "A:H", "H"),
-        "+H:A": (r"^\+H:(" + asdef + r")$", "A:H", "H"),
-        "*": (r"^\*$", "C", "D"),
-        "[A]": (r"^" + vdef + "$", "A", "S"),
-        "+[A]": (r"^\+" + vdef + "$", "A", "S"),
-        "[A]+": (r"^" + vdef + r"\+$", "A", "S"),
-        "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")*)$", "S", "S"),  # liste
-        "L": (r"^(" + asdef + r"(?:," + asdef + r")*|\*)$", "L", "M"),  # liste
-        "LV": (r"^$", "L", "M"),  # liste avec defauts
-        "L2": (r"^(" + asdef + r"(?:\|" + asdef + r")*|\*)$", "L", "M"),  # liste
-        "LC": (r"^(.+(?:,.*)*)$", "C", ""),  # liste de valeurs
-        "T:": (r"^T:([A-Z]+)$", "L", ""),  # definition d'attributs par leutr type
-        "+L": (r"^\+(" + asdef + r"(?:," + asdef + r")*)$", "L", "M"),  # liste
-        "L+": (r"^(" + asdef + r"(?:," + asdef + r")*)\+$", "L", "M"),  # liste
-        "P": (r"^[Pp]:(" + asdef + r")$", "P", "P"),
-        "N:N": (r"^(" + ndef + r"(?::" + ndef + r")?)$", "N", ""),
-        "LN": (r"^(" + ndef + r"(?:,(" + ndef + r"))*)$", "N", ""),
-        "N": (r"^([" + ndef + r")$", "N", ""),
-        "NC:": (r"^(.*(:?(:?N:|C:) ?(" + asdef + r").*)$)", "S", ""),
-        "NC2:": (r"^(.*(:?(:?N:|C:) .*).*$)", "S", ""),
-        "re": (r"(.+)", "C", ""),
-        "=:": (r"^=:(.+)", "C", ""),
-        "re:re": (r"^re:(.+)$", "C", ""),
-        "C": (r"(.+)", "C", ""),
-        "F": (r"F:(.+)", "C", ""),
-        "C:C": (r"^C:(.*)$", "C", ""),
-        "C[]": (r"^(.*\[[CDF]\].*)$", "C", ""),
-        "#C": (r"(#.+)", "C", ""),
-        "?": (r"(.*)", "C", ""),
-        ".": (r"(.+)", "C", ""),
-        "": (r"(^$)", "", ""),
-        "in:fich": (r"^in:([^#][^(]+)$", "C", ""),
-        "in:fich(re)": (r"^in:([^#].+?)\((.*)\)$", "C", ""),
-        "in:mem": (r"^in:(#[a-zA-Z][a-zA-Z0-9_]*)$", "C", ""),
-        "in:list": (r"^in:\{(.+(?:,.*)*)\}$", "C", ""),
-        "in:list(re)": (r"^in:\{(.+(?:,.*)*)\}\((.*)\)$", "C", ""),
-        "haskey:A": (r"^haskey:(" + asdef + ")$", "A", ""),
-        "schema:A": (r"^schema:(" + asdef + ")$", "A", ""),
-        "schema:A:": (r"^schema:(" + asdef + ")=$", "A", ""),
-        "schema:T:": (r"^schema:T:([A-Z]+)", "A", ""),  # selection par type d'attribut
-        "hasval:C": (r"^hasval:(.*)$", "A", ""),
-        "A.C": (r"^(" + asdef + ").(.*)$", "A", ""),
-        "M": (r"", "G", "M"),  # multiple (groupes de sortie)
-        "S": (r"", "G", "S"),  # simple
-        "D": (r"", "G", "D"),  # dynamique
-        "H": (r"", "G", "H"),  # hstore
+        "+A": (r"^\+" + adef + r"$", "A", "S", "attribut"),
+        "A+": (r"^" + adef + r"\+$", "A", "S", "attribut"),
+        "A*": (r"^" + adef + r"\*$", "A", "D", "attribut"),
+        "*A": (r"^\*" + adef + r"$", "A", "D", "attribut"),
+        "H:A": (r"^H:(" + asdef + r")$", "A:H", "H", "attribut"),
+        "+H:A": (r"^\+H:(" + asdef + r")$", "A:H", "H", "attribut"),
+        "*": (r"^\*$", "C", "D", "libre"),
+        "[A]": (r"^" + vdef + "$", "A", "S", "indirect"),
+        "+[A]": (r"^\+" + vdef + "$", "A", "S", "indirect"),
+        "[A]+": (r"^" + vdef + r"\+$", "A", "S", "indirect"),
+        "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")*)$", "S", "S", "liste"),  # liste
+        "L": (r"^(" + asdef + r"(?:," + asdef + r")*|\*)$", "L", "M", "liste"),  # liste
+        "LV": (r"^$", "L", "M", "liste"),  # liste avec defauts
+        "L2": (
+            r"^(" + asdef + r"(?:\|" + asdef + r")*|\*)$",
+            "L",
+            "M",
+            "liste",
+        ),  # liste
+        "LC": (r"^(.+(?:,.*)*)$", "C", "", "liste"),  # liste de valeurs
+        "T:": (
+            r"^T:([A-Z]+)$",
+            "L",
+            "",
+            "type",
+        ),  # definition d'attributs par leutr type
+        "+L": (r"^\+(" + asdef + r"(?:," + asdef + r")*)$", "L", "M", "liste"),  # liste
+        "L+": (r"^(" + asdef + r"(?:," + asdef + r")*)\+$", "L", "M", "liste"),  # liste
+        "P": (r"^[Pp]:(" + asdef + r")$", "P", "P", "parametre"),
+        "N:N": (r"^(" + ndef + r"(?::" + ndef + r")?)$", "N", "", "numerique"),
+        "LN": (r"^(" + ndef + r"(?:,(" + ndef + r"))*)$", "N", "", "liste numerique"),
+        "N": (r"^([" + ndef + r")$", "N", "", "numerique"),
+        "NC:": (r"^(.*(:?(:?N:|C:) ?(" + asdef + r").*)$)", "S", "", "expression"),
+        "NC2:": (r"^(.*(:?(:?N:|C:) .*).*$)", "S", "", "expression"),
+        "re": (r"(.+)", "C", "", "expression reguliere"),
+        "=:": (r"^=:(.+)", "C", "", "expression"),
+        "re:re": (r"^re:(.+)$", "C", "", "expression"),
+        "C": (r"(.+)", "C", "", "texte"),
+        "F": (r"F:(.+)", "C", "", "F:nom de fichier"),
+        "C:C": (r"^C:(.*)$", "C", "", "texte double"),
+        "C[]": (r"^(.*\[[CDF]\].*)$", "C", "", "nom de fichier"),
+        "#C": (r"(#.+)", "C", "", "texte"),
+        "?": (r"(.*)", "C", "", "texte"),
+        ".": (r"(.+)", "C", "", "texte"),
+        "": (r"(^$)", "", "", "vide"),
+        "in:fich": (r"^in:([^#][^(]+)$", "C", "", "en fichier"),
+        "in:fich(re)": (r"^in:([^#].+?)\((.*)\)$", "C", "", "en fichier"),
+        "in:mem": (r"^in:(#[a-zA-Z][a-zA-Z0-9_]*)$", "C", "", "en memoire"),
+        "in:list": (r"^in:\{(.+(?:,.*)*)\}$", "C", "", "liste"),
+        "in:list(re)": (r"^in:\{(.+(?:,.*)*)\}\((.*)\)$", "C", "", "liste"),
+        "haskey:A": (r"^haskey:(" + asdef + ")$", "A", "", "clef hstore"),
+        "schema:A": (r"^schema:(" + asdef + ")$", "A", "", "schema"),
+        "schema:A:": (r"^schema:(" + asdef + ")=$", "A", "", "schema"),
+        "schema:T:": (
+            r"^schema:T:([A-Z]+)",
+            "A",
+            "",
+            "schema",
+        ),  # selection par type d'attribut
+        "hasval:C": (r"^hasval:(.*)$", "A", "", "valeur hstore"),
+        "A.C": (r"^(" + asdef + ").(.*)$", "A", "", "sous element"),
+        "M": (r"", "G", "M", "liste"),  # multiple (groupes de sortie)
+        "S": (r"", "G", "S", "attribut"),  # simple
+        "D": (r"", "G", "D", "attributs dynamiques"),  # dynamique
+        "H": (r"", "G", "H", "hstore"),  # hstore
     }
 
     grouplist = {
@@ -143,7 +163,7 @@ class DefinitionAttribut(object):
                 self.priorite = 2
         elif pattern in self.relist:
             self.priorite = 4
-            self.expression, self.nature, self.groupe, = self.relist[pattern]
+            self.expression, self.nature, self.groupe, self.aide = self.relist[pattern]
             if ":" in self.nature:
                 self.nature, self.deftype = self.nature.split(":", 1)
             if self.groupe:
