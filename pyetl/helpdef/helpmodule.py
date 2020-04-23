@@ -21,6 +21,11 @@ def decription_pattern(pattern, description):
     return retour
 
 
+
+
+
+
+
 def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
@@ -48,7 +53,7 @@ def print_help(mapper, nom):
         elif nom in mapper.commandes:
             print("aide commande :", nom, debug)
             commande = mapper.commandes[nom]
-            print("%-20s: %s" % (commande.nom, commande.description.get("#aide")[0]))
+            print("%-20s: %s" % (commande.nom, commande.description.get("#aide",[""])[0]))
             print("------- syntaxes acceptees ----------")
             for variante in commande.subfonctions:
                 if variante.description:
@@ -142,6 +147,9 @@ def print_aide_commandes(mapper):
         )
 
 
+
+
+
 def print_aide_selecteurs(mapper):
     """affiche l'aide des selecteurs """
     print("-----------------------------------------------------------------")
@@ -187,7 +195,105 @@ def print_aide_formats(mapper):
         ecrit = "oui" if nom_format in mapper.formats_connus_ecriture else "non"
         print("%-20s:   %s    :   %s" % (nom_format, lect, ecrit))
 
+# =================================================================================
+# ====================generation automatique de la doc sphynx======================
+# =================================================================================
+
+def souligne(doc,signe):
+    doc.append(signe*len(doc[-1]))
+    doc.append("")
+
+def indent(val,n):
+
+    if isinstance(val,list):
+        return ["   "*n+i for i in val]
+    return "   "*n+val
+
+def delim_tableau(tailles,signe):
+    ligne="+"+"+".join([signe*i for i in tailles])+"+"
+    return ligne
+
+def center(taille,contenu):
+    pads=taille-len(contenu)
+    pad1=int(pads/2)
+    pad2=pads-pad1
+    return " "*pad1+contenu+" "*pad2
+
+def contenu_tableau(tailles,vals):
+    return "|"+"|".join([center(l,i)for l,i, in zip(tailles,vals)])+"|"
+
+
+def tableau(pattern):
+    vals=pattern.split(";")
+    if len(vals)<6:
+        vals=vals+[""]*(6-len(vals))
+    entetes=["sortie","defaut","entree","commande","param1","param2"]
+    tailles=[max(len(i),len(j))+2 for i,j in zip(vals,entetes)]
+    retour=[delim_tableau(tailles,"-")]
+    retour.append(contenu_tableau(tailles,entetes))
+    retour.append(delim_tableau(tailles,"="))
+    retour.append(contenu_tableau(tailles,vals))
+    retour.append(delim_tableau(tailles,"-"))
+    retour.append("")
+    return retour
+
+def doc_pattern(pattern, description):
+    """formatte la description des parametres d'entree"""
+    patdef = pattern.split(";")
+    patdesc = ";".join(description).split(";")
+    retour=[]
+    for i,j in zip([i for i in patdef if i], patdesc):
+        retour.append(indent(i,2))
+        retour.append(indent(j + (" (optionnel)" if "?" in i else ""),3))
+    retour.append("")
+    return retour
+
+
+def docgen(mapper,nom):
+    """genere la doc sphinx d une commande"""
+    doc=[nom,"-"*len(nom),""]
+    commande = mapper.commandes[nom]
+    aide = commande.description.get("#aide")
+    doc.extend(aide if aide else [""])
+    doc.append("")
+    doc.append("syntaxes acceptees")
+    souligne(doc,".")
+    for variante in commande.subfonctions:
+        if variante.description:
+            doc.extend(tableau(variante.pattern))
+            # doc.append(indent(variante.pattern,1))
+            aide=variante.description.get("#aide_spec")
+            doc.extend(indent(aide if aide else [""],1))
+            doc.append("")
+            for i in sorted(variante.description):
+                pnum = variante.patternnum
+                if "#aide_spec" + pnum in i and i != "#aide_spec":
+                    doc.append(variante.description.get(i)[0])
+                if "#parametres" + pnum in i and i != "#parametres":
+                    doc.extend(doc_pattern(
+                                variante.pattern,
+                                variante.description.get("#parametres" + pnum)))
+                if variante.description.get("#parametres"):
+                    doc.extend(doc_pattern(
+                                variante.pattern,
+                                variante.description.get("#parametres")))
+                if variante.description.get("#variables"):
+                    for i in variante.description.get("#variables"):
+                        doc.append(i)
+                        # print("%s" % "\n".join(variante.description.get("#parametres")))
+    doc.append("")
+    return doc
+
+def doc_commandes(mapper):
+    """genere la doc sphinx des commandes"""
+    doc=["commandes"]
+    souligne(doc,"=")
+    for nom in sorted(mapper.commandes):
+        doc.append("")
+        doc.extend(docgen(mapper, nom))
+    return doc
 
 def autodoc(mapper):
-    """genere une documentation automatique du programme"""
-    pass
+    doc=[]
+    doc.extend(doc_commandes(mapper))
+    return doc

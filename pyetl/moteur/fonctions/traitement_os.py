@@ -394,7 +394,7 @@ def h_adquery(regle):
 
 
 def f_adquery(regle, obj):
-    """#aide extait des information de active_directory
+    """#aide||extait des information de active_directory
     #pattern1||S;?C;?A;adquery;=user;?C;
     #pattern2||S;?C;?A;adquery;=machine;?C;
     #pattern3||S;?C;?A;adquery;=groupe;?C;
