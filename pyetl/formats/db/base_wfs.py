@@ -31,6 +31,8 @@ TYPES_A = {
     "date": "DS",
     "xsd:int": "E",
     "int": "E",
+    "integer": "E",
+    "long": "EL",
     "xsd:dateTime": "D",
     "dateTime": "D",
     "xsd:double": "F",
@@ -76,7 +78,12 @@ class WfsConnect(DbConnect):
         #        import pyodbc as odbc
         try:
             retourcaps = requests.get(
-                self.serveur, params={"REQUEST": "GetCapabilities", "SERVICE": "WFS"}
+                self.serveur,
+                params={
+                    "REQUEST": "GetCapabilities",
+                    "SERVICE": "WFS",
+                    "version": "1.0.0",
+                },
             )
 
         except Error as err:
@@ -120,7 +127,11 @@ class WfsConnect(DbConnect):
         """recupere la description d une classe"""
         ident = schemaclasse.identclasse
         groupe, nom = ident
-        params = {"REQUEST": "DescribeFeatureType", "SERVICE": "WFS"}
+        params = {
+            "REQUEST": "DescribeFeatureType",
+            "SERVICE": "WFS",
+            "version": "1.0.0",
+        }
         # params["TYPENAME"] = groupe + ":" + nom if groupe else nom
         params["TYPENAME"] = nom
         try:
@@ -187,12 +198,17 @@ class WfsConnect(DbConnect):
             defaut;obligatoire;enum;dimension;num_attribut;index;unique;clef_primaire;\
             clef_etrangere;cible_clef;taille;decimales"""
         retourdesc = requests.get(
-            self.serveur, params={"REQUEST": "DescribeFeatureType", "SERVICE": "WFS"}
+            self.serveur,
+            params={
+                "REQUEST": "DescribeFeatureType",
+                "SERVICE": "WFS",
+                "version": "1.0.0",
+            },
         )
         tree = ET.fromstring(retourdesc.text)
         attlist = []
         tables = self.tablelist
-        # print("sqlite: lecture tables", tables)
+        # print("servicewfs: get_atttributs", retourdesc.text)
         namespace = getnamespace(tree)
         for elem in tree.iter(namespace + "element"):
             if elem.get("substitutionGroup") == "gml:_Feature":

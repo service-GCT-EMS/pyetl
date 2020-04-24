@@ -34,6 +34,8 @@ TYPES_A = {
     "date": "DS",
     "xsd:int": "E",
     "int": "E",
+    "long": "EL",
+    "integer": "E",
     "xsd:dateTime": "D",
     "dateTime": "D",
     "xsd:double": "F",
@@ -91,7 +93,10 @@ class WfsConnect(DbConnect):
         except Error as err:
             print("erreur wfs", err)
             return False
-        self.tablelist = [tuple(i.split(":", 1)) for i in self.connection.contents]
+        self.tablelist = [
+            tuple(i.split(":", 1) if ":" in i else ["", i])
+            for i in self.connection.contents
+        ]
         print("retour getcap", len(self.tablelist))
 
     def commit(self):
@@ -148,7 +153,7 @@ class WfsConnect(DbConnect):
 
         attlist = []
         tables = self.tablelist
-        # print("sqlite: lecture tables", tables)
+        print("webservices: lecture tables", tables)
 
         for groupe, nom in tables:
             att = self.attdef(
