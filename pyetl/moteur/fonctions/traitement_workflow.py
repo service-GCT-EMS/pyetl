@@ -182,17 +182,21 @@ def h_chargeur(regle):
 
 def f_abort(regle, obj):
     """#aide||arrete le traitement
-  #aide_spec||usage: abort,niveau,message
- #aide_spec1||1 arret du traitement de l'objet
- #aide_spec2||2 arret du traitment de la classe
- #aide_spec3||3 arret du traitement pour le module
- #aide_spec4||4 sortie en catastrophe
-    #pattern||;;;abort;?N;?C
+  #aide_spec||arrete l operation en cours et renvoie un message
+            ||
+            ||niveaux d arret
+            ||
+            ||* 1 arret du traitement de l'objet (defaut)
+            ||* 2 arret du traitment de la classe
+            ||* 3 arret du traitement pour le module
+            ||* 4 sortie en catastrophe du programme
+   #pattern1||;;;abort;?N;?C
+   #parametres1||;niveau;message
        #test||obj;point;2;||V0;1;;;;;;abort;1;;;||^X;0;;set||cnt;1
 
     """
-    niveau = regle.params.cmp1.val or regle.params.att_sortie.val
-    message = regle.params.cmp2.val or regle.params.val_entree.val
+    niveau = regle.params.cmp1.val or "1"
+    message = regle.params.cmp2.val
     LOGGER.info("stop iteration " + repr(regle))
     if message.startswith("["):
         message = obj.attributs.get(message[1:-1])
@@ -593,16 +597,16 @@ def h_batch(regle):
 
 def f_batch(regle, obj):
     """#aide||execute un traitement batch a partir des parametres de l'objet
-  #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
-  #aide_spec1||s'autodeclenche dans tous les cas
-    #pattern1||A;?C;?A;batch;?=run;||cmp1
-  #aide_spec2||demarre a l'initialisation du script
-    #pattern2||A;?C;?A;batch;=init;||cmp1
-  #aide_spec3|| en mode parallel_init le traitement demarre a l'initialisation de chaque worker
+ #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+ #aide_spec1||execute pour chaque objet, demarre toujours, meme sans objets
+   #pattern1||A;?C;?A;batch;?=run;||cmp1
+ #aide_spec2||demarre a l'initialisation du script maitre
+   #pattern2||A;?C;?A;batch;=init;||cmp1
+ #aide_spec3||demarre a l'initialisation de chaque process parallele
    #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
-   #aide_spec4|| en mode boucle le traitement reprend le jeu de donnees en boucle
+ #aide_spec4||reprend le jeu de donnees en boucle
    #pattern4||A;?C;?A;batch;=boucle;C||cmp1
-   #aide_spec5|| en mode load le traitement passe une fois le jeu de donnees
+ #aide_spec5||passe une fois le jeu de donnees
    #pattern5||A;?C;?A;batch;=load;C||cmp1
      #schema||ajout_attribut
        #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12

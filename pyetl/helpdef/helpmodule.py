@@ -46,27 +46,29 @@ def print_help(mapper, nom):
                     print("%16s   %s" % ("", i[:-1]))
 
         elif nom in mapper.commandes:
-            print("aide commande :", nom, debug)
+            print("aide commande :", nom, debug, "\n")
             commande = mapper.commandes[nom]
-            print(
-                "%-20s: %s" % (commande.nom, commande.description.get("#aide", [""])[0])
-            )
+            print("  %s" % (commande.description.get("#aide", [""])[0]))
+            for i in commande.description.get("#aide_spec", []):
+                print("   %s" % (i))
+            print("")
             print("------- syntaxes acceptees ----------")
+            print("")
             for variante in commande.subfonctions:
+                pnum = variante.patternnum
                 if variante.description:
                     print(
                         "%-20s: %s"
                         % (
                             variante.pattern,
-                            variante.description.get("#aide_spec", [""])[0],
+                            variante.description.get("#aide_spec" + pnum, [""])[0],
                         )
                     )
-                    for i in variante.description.get("#aide_spec", [""])[1:]:
+                    for i in variante.description.get("#aide_spec" + pnum, [""])[1:]:
                         print("%-20s: %s" % ("", i))
                     for i in sorted(variante.description):
-                        pnum = variante.patternnum
-                        if "#aide_spec" + pnum in i and i != "#aide_spec":
-                            print("%-20s: %s" % ("", variante.description.get(i)[0]))
+                        # if "#aide_spec" + pnum in i and i != "#aide_spec":
+                        #     print("%-20s: %s" % ("", variante.description.get(i)[0]))
                         if "#parametres" + pnum in i and i != "#parametres":
                             print(
                                 "\n".join(
@@ -213,10 +215,7 @@ def delim_tableau(tailles, signe):
 
 
 def center(taille, contenu):
-    pads = taille - len(contenu)
-    pad1 = int(pads / 2)
-    pad2 = pads - pad1
-    return " " * pad1 + contenu + " " * pad2
+    return contenu + " " * (taille - len(contenu))
 
 
 def contenu_tableau(tailles, vals):
@@ -233,22 +232,37 @@ def tableau(pattern):
     if isinstance(pattern, str):
         pattern = [pattern]
     tailles = [0, 0, 0, 0, 0, 0]
+    tmax = 0
     lignes = []
     for ligne in pattern:
+        if ligne.startswith(":"):
+            tmax = max(tmax, len(ligne))
+            lignes.append([" *" + ligne[1:] + "*"])
+            continue
         vals = ligne.split(";")
-        if len(vals) < 6:
-            vals = vals + [""] * (6 - len(vals))
         tailles = [max(len(i), j) for i, j in zip(vals, tailles)]
         lignes.append(vals)
-
-    entetes = ["sortie", "defaut", "entree", "commande", "param1", "param2"]
-    tailles = [max(i, len(j)) + 2 for i, j in zip(tailles, entetes)]
+    tmax = tmax + 3
+    entetes = ["sortie", "defaut", "entree", "commande", "param1", "param2  "]
+    tailles = [max(i, len(j)) for i, j in zip(tailles, entetes)]
+    sommetaille = sum(tailles) + 5
+    while sommetaille < tmax:
+        tailles = [i + 1 for i in tailles]
+        sommetaille = sum(tailles) + 5
     retour = [delim_tableau(tailles, "-")]
     retour.append(contenu_tableau(tailles, entetes))
     retour.append(delim_tableau(tailles, "="))
+    prec = 0
     for vals in lignes:
-        retour.append(contenu_tableau(tailles, vals))
-        retour.append(delim_tableau(tailles, "-"))
+        if prec == 6 or (prec == 1 and len(vals) != prec):
+            retour.append(delim_tableau(tailles, "-"))
+
+        retour.append(
+            contenu_tableau(tailles if len(vals) > 1 else [sommetaille], vals)
+        )
+        prec = len(vals)
+        # print(" taille prec", prec, vals)
+    retour.append(delim_tableau(tailles, "-"))
     retour.append("")
     return retour
 
@@ -269,21 +283,36 @@ def docgen(mapper, nom):
     """genere la doc sphinx d une commande"""
     doc = [nom, "-" * len(nom), ""]
     commande = mapper.commandes[nom]
-    aide = commande.description.get("#aide")
-    doc.extend(aide if aide else [""])
+    aide = commande.description.get("#aide", "")
+    aide_spec = commande.description.get("#aide_spec", "")
+    doc.extend(indent(quote_etoile(aide), 1))
     doc.append("")
-    doc.append("syntaxes acceptees")
-    souligne(doc, ".")
-    patterns = sorted([variante.pattern for variante in commande.subfonctions])
+    doc.extend(indent(quote_etoile(aide_spec), 1) if aide_spec else [])
+    doc.append("")
+    doc.append("**syntaxes acceptees**")
+    doc.append("")
+    patterns = []
+    for v in sorted(commande.subfonctions, key=lambda x: x.patternnum):
+        pattern = v.pattern
+        vals = pattern.split(";")
+        if len(vals) < 6:
+            vals = vals + [""] * (6 - len(vals))
+        vals = vals[:6]
+        pattern = ";".join(vals)
+        patterns.append(pattern)
+        aides = v.description.get("#aide_spec" + v.patternnum)
+        if not aides:
+            continue
+        for i in aides:
+            explication = ":" + i
+            patterns.append(explication)
+
     doc.extend(tableau(patterns))
     for variante in commande.subfonctions:
         if variante.description:
             # doc.extend(tableau(variante.pattern))
             # doc.append(indent(variante.pattern,1))
             # aide = variante.description.get("#aide_spec")
-            if aide:
-                doc.extend(indent(quote_etoile(aide), 1))
-                doc.append("")
             for i in sorted(variante.description):
                 pnum = variante.patternnum
                 if ("#aide_spec" + pnum) in i and i != "#aide_spec":

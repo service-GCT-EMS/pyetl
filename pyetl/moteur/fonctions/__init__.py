@@ -273,8 +273,8 @@ class FonctionTraitement(object):
         """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
         # self.definition = None
         pnum = description["pn"]
-        if not "#aide_spec" + pnum in description:
-            description["#aide_spec"] = description.get("#aide")
+        # if not "#aide_spec" + pnum in description:
+        #     description["#aide_spec"] = description.get("#aide")
         tsubfonc = FonctionTraitement(nom, fonction, description, definition)
         tsubfonc.groupe_sortie = groupe_sortie
         tsubfonc.style = style
