@@ -414,7 +414,7 @@ class Pyetl(object):
                 )
                 nom = self.getvar("_autodoc", tmp)
 
-            with open(nom, "w") as dest:
+            with open(nom, "w", encoding="utf-8") as dest:
                 dest.write("\n".join(doc))
 
         elif commande == "#autotest" or commande == "autotest":
@@ -438,7 +438,6 @@ class Pyetl(object):
             formattests(self, nom=nom, debug=self.getvar("debug"))
 
         self.done = True
-
 
     def _traite_params(self, liste_params):
         """gere la liste de parametres"""
