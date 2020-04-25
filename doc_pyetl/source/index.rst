@@ -9,22 +9,21 @@ Documentation de Pyetl
 
    introduction
 
-
    usage/installation
    usage/quickstart
-
-   refs
-   reference/commandes
+   usage/principes
+   references/commandes
    autodoc/commandedef
-   reference/macros
-   reference/scripts
-   reference/fichiers
-   reference/formats
-   reference/variables
-   reference/parametres
+   references/macros
+   autodoc/macrodef
+   references/scripts
+   references/fichiers
+   references/formats
+   autodoc/formatdef
+   references/variables
+   references/parametres
 
-   extension
-   extensions/scripts
+   extension/principes
    extensions/macros
    extensions/commandes
    extensions/formats

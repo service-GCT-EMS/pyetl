@@ -16,6 +16,13 @@ modules complementaires
     * creer une environnement python specifique (recommandé)
     * dezipper le paquet mapper.zip
     * utiliser le gestionnaire de paquets de votre environnement pour installer les librairies manquantes
-    * la liste est disponible grace à la commande mapper #missinglibs
+    * la liste est disponible grace à la commande ``mapper #missinglibs``
+
+le ficher mapper.bat contient la commande
+ python mapper.py %*
+
+ce fichier peut etre completé avec des variables d environnement specifiques au site
+
+
     * test de l installation :
-      mapper #unittest
+      ``mapper #unittest``

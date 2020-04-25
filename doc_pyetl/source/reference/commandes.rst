@@ -5,9 +5,14 @@ reference pyetl
 structure generale
 ==================
 
-toutes les commandes pyetl sont structurees de la meme facon sous forme d une ligne de 13 colonnes
+toutes les commandes pyetl sont structurées de la même facon sous forme d une ligne de 13 colonnes
 toutes les colonnes ne sont pas utilisees systematiquement
 la position est importante
+
+
++------+--------+------+--------+-------+--------+--------+-----------+--------+--------+-------+-----------+
+|attr1 |valeur1 |attr2 |valeur2 |sortie | defaut | entree |  commande | param1 | param2 | debug | variables |
++------+--------+------+--------+-------+--------+--------+-----------+--------+--------+-------+-----------+
 
 
 types de lignes de commande
@@ -31,31 +36,67 @@ import de groupes
 commande
 --------
 
-        * colonnes 1 a 4: determinent l'execution de la commande sous forme de 2 conditions
++------+--------+------+--------+--------+--------+--------+-----------+--------+--------+-------+-----------+
++------+--------+------+--------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+|attr1 |valeur1 |attr2 |valeur2 | sortie | defaut | entree |  commande | param1 | param2 | debug | variables |
++------+--------+------+--------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+| condition 1   |   condition2  |attribut| valeur |attribut|  commande | parametres      |       | variables |
++---------------+------+--------+--------+--------+--------+-----------+--------+--------+-------+-----------+
++------+--------+------+--------+--------+--------+--------+-----------+--------+--------+-------+-----------+
 
-            * att_tri1
-            * valeur_tri1
-            * att_tri2
-            * valeur_tri2
 
-        * colonnes 5 a 7: sortie et entrees
+    * colonnes 1 a 4: determinent l'execution de la commande sous forme de 2 conditions
+        chaque conditon est exprimee sur 2 colonnes
 
-            * att_sortie
-            * defaut
-            * att_entree
+        * att_tri1
+        * valeur_tri1
+        * att_tri2
+        * valeur_tri2
 
-        * colonne 8: nom de la commande
-        * colonnes 9 et 10: parametres
+    * colonnes 5 a 7: sortie et entrees
 
-            * param1
-            * param2
+        * att_sortie
+        * defaut
+        * att_entree
 
-        * colonne 11 flag de debug
-        * colonne 12 definition de variables locales
-        * colonne 13 commentaires
+    * colonne 8: nom de la commande
+    * colonnes 9 et 10: parametres
 
-commandes standard
-==================
+        * param1
+        * param2
 
-.. automodule:: pyetl.moteur.fonctions.traitement_alpha
-   :members:
+    * colonne 11 flag de debug
+    * colonne 12 definition de variables locales
+    * colonne 13 commentaires
+
+acces bases de données
+----------------------
+
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+| selection par critere alpha sur un attribut                                                                |
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+|base |niveau |classe |attribut | sortie | defaut | entree |  commande | param1 | param2 | debug | variables |
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+| selection par critere geometrique sur un attribut                                                          |
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+|base |niveau |classe |cond geo | sortie | defaut | entree |  commande | param1 | param2 | debug | variables |
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
++-----+-------+-------+---------+--------+--------+--------+-----------+--------+--------+-------+-----------+
+
+les commandes d acces aux bases de donnees ne comportent pas les colonnes de test mais des colonnes de selection
+table en base
+
+    * colonnes 1 a 4: determinent le choix des tables et eventuellemnt des enregistrements
+    les autres colonnes sont standard
+
+
+import de macros
+----------------
+
+<#nomdemacro;variable;variable....
+
+definition de macros
+--------------------
+
+&&#define;#nom;variable;variable...
