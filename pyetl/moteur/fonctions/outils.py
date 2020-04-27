@@ -246,7 +246,7 @@ def _extract(ligne, clef):
     return ""
 
 
-def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
+def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1):
     """prechargement d un fichier projet qgis"""
 
     stock = dict()
@@ -266,7 +266,15 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False):
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        stock[table] = [
+                        dbdef = (database, host, port)
+                        if taille == 1:
+                            clef = table
+                        elif taille == 2:
+                            clef = (dbdef, table)
+                        else:
+                            niv, cla = table.split(".", 1)
+                            clef = (dbdef, niv, cla)
+                        stock[clef] = [
                             table,
                             "",
                             database,
@@ -306,7 +314,10 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
                     if os.path.splitext(i)[-1] == ".qgs":
                         stock.update(
                             _charge_liste_projet_qgs(
-                                os.path.join(f_interm, i), codec=codec, debug=debug
+                                os.path.join(f_interm, i),
+                                codec=codec,
+                                debug=debug,
+                                taille=taille,
                             )
                         )
                     elif os.path.splitext(i)[-1] == ".csv":
@@ -324,7 +335,9 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
         else:
             if os.path.splitext(f_interm)[-1] == ".qgs":
                 stock.update(
-                    _charge_liste_projet_qgs(f_interm, codec=codec, debug=debug)
+                    _charge_liste_projet_qgs(
+                        f_interm, codec=codec, debug=debug, taille=taille
+                    )
                 )
             elif os.path.splitext(f_interm)[-1] == ".csv":
                 stock.update(
@@ -405,8 +418,13 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0):
                 positions = [int(i) for i in fi2[1:]]
             valeurs = charge_liste(fichier, taille=taille, positions=positions)
             # on precharge le fichier de jointure
-            # print ('outils: chargement liste ',fichier,'------>',
-            #         '\n'.join((str(i)+':'+str(valeurs[i]) for i in valeurs)))
+            print(
+                "outils: chargement liste ",
+                fichier,
+                "------>",
+                "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
+            )
+            raise
     return mode, valeurs
 
 

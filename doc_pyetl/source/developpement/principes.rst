@@ -1,6 +1,6 @@
-==========
-parametres
-==========
+========================
+Developpement avec Pyetl
+========================
 
 Les parametres permettent d enregistre les caracteristiques des connections pour les
     * bases de donnees

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Dec 11 14:34:04 2015
-
+#titre||fonctions géometriques
 @author: 89965
-fonctions de manipulation d'attributs
+fonctions de manipulation geometriques
 """
 # import re
 import itertools

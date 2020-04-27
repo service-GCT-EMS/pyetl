@@ -1,5 +1,5 @@
-commandes
-=========
+reference des commandes
+=======================
 
 manipulation d'attributs
 ------------------------
@@ -532,10 +532,10 @@ decrypt
    C? :  clef de cryptage (optionnel)
 
 
-db
---
+accés aux bases de données
+--------------------------
 
-db
+accés aux bases de données
 
 dbalpha
 .......
@@ -992,10 +992,10 @@ unique
 
 
 
-geom
-----
+fonctions géometriques
+----------------------
 
-geom
+fonctions géometriques
 
 addgeom
 .......
@@ -1977,10 +1977,10 @@ run
 process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
 		 en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
 
-schema
-------
+manipulation de schemas
+-----------------------
 
-schema
+manipulation de schemas
 
 compare_schema
 ..............
@@ -2234,10 +2234,6 @@ valide_schema
 
 
 
-selecteurs
-----------
-
-selecteurs
 shapely
 -------
 

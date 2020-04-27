@@ -85,7 +85,7 @@ def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
     )
 
     if connection.valide:
-        print("connection valide", serveur)
+        print("connection valide", serveur, base)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter

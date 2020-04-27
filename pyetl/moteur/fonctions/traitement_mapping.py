@@ -8,14 +8,17 @@ fonctions de structurelles diverses
 import re
 import logging
 
-from .outils import expandfilename,charge_liste
+from .outils import expandfilename, charge_liste
 
 
 LOGGER = logging.getLogger("pyetl")
 
+
 def prepare_elmap(mapping):
     """precalcule les dictionaires pour le mapping"""
-    mapping_special = dict()  # mapping simplifie pour modifier les scripts de base de donnees
+    mapping_special = (
+        dict()
+    )  # mapping simplifie pour modifier les scripts de base de donnees
     for i in mapping:
         schema1, table1 = i
         schema2, table2 = mapping[i]
@@ -23,7 +26,9 @@ def prepare_elmap(mapping):
         mapping_special[table1] = table2
     items = sorted(mapping_special, key=lambda i: len(mapping_special[i]), reverse=True)
     intmap1 = {j: "**<<" + str(i) + ">>**" for i, j in enumerate(items)}
-    intmap2 = {"**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)}
+    intmap2 = {
+        "**<<" + str(i) + ">>**": mapping_special[j] for i, j in enumerate(items)
+    }
     elmap = (items, intmap1, intmap2)
     #    print ('definition intmap2', intmap2)
     return elmap
@@ -61,7 +66,10 @@ def remap(element, elmap):
     #    print ('valeur elmap',elmap)
     #    raise
     if isinstance(element, dict):
-        return {remap_ident(elmap, ident): remap(val, elmap) for ident, val in element.items()}
+        return {
+            remap_ident(elmap, ident): remap(val, elmap)
+            for ident, val in element.items()
+        }
     elif isinstance(element, (list, tuple)):
         return [remap(val, elmap) for val in element]
     elif isinstance(element, str):
@@ -70,15 +78,15 @@ def remap(element, elmap):
 
 
 def traite_mapping(elements):
-    '''decode une definition de mapping
+    """decode une definition de mapping
         elements est une liste de definitions de mapping
         a ce stade une definition  se presente sous la forme suivante:
         (groupe.classe, groupe.classe,[(attribut => attribut,...)])
         ou
         (groupe,classe, groupe,classe,[(attribut => attribut,...)])
-        '''
+        """
     mapping = dict()
-    mapping_attributs =  dict()
+    mapping_attributs = dict()
     for els in elements:
         # print ("traitement els", els)
         if not els or els[0].startswith("!") or not els[0]:
@@ -96,21 +104,26 @@ def traite_mapping(elements):
             if len(els) == 5:
                 attrmap = els[4]
         else:
-            print("traite_mapping :description incorrecte", len(els), els, elements[els])
+            print(
+                "traite_mapping :description incorrecte", len(els), els, elements[els]
+            )
             continue
-
+        if len(id1) == 3:  # on a ajoute la base : on supprime
+            id1 = tuple(id1[1:])
         if attrmap:
             attrmap = attrmap.replace('"', "")
             attrmap = attrmap.replace("'", "")
-            map_attributs = dict([re.split(" *=> *", i) for i in re.split(" *, *", attrmap)])
+            map_attributs = dict(
+                [re.split(" *=> *", i) for i in re.split(" *, *", attrmap)]
+            )
             mapping_attributs[id1] = map_attributs
-            mapping_attributs[id2] = dict((b, a) for a, b in map_attributs.items()) #mapping inverse
+            mapping_attributs[id2] = dict(
+                (b, a) for a, b in map_attributs.items()
+            )  # mapping inverse
 
         mapping[id1] = id2
         mapping[id2] = id1
     return mapping, mapping_attributs
-
-
 
 
 def charge_mapping(regle, mapping=None):
@@ -119,7 +132,7 @@ def charge_mapping(regle, mapping=None):
     if regle.params.cmp1.val.startswith("{"):  # c'est une definition in line
         # {groupe.classe,groupe.classe,att=>att,att=>att...:groupe.classe,groupe.classe,att=>att,...:...}
         vtmp = regle.params.cmp1.val[1:-1].split(":")
-        elements = [i.split(',',2) for i in vtmp]
+        elements = [i.split(",", 2) for i in vtmp]
 
     elif regle.params.cmp1.val:
         regle.fichier = regle.params.cmp1.val  # nom du fichier
@@ -133,7 +146,7 @@ def charge_mapping(regle, mapping=None):
         elements = charge_liste(fichier, taille=-1).values()
         # on precharge le fichier de mapping
     else:
-        elements =[]
+        elements = []
 
     regle.mapping, regle.mapping_attributs = traite_mapping(elements)
 
@@ -148,6 +161,7 @@ def charge_mapping(regle, mapping=None):
 
     if not regle.mapping:
         print("h_map:mapping introuvable", regle.fichier)
+
 
 def map_struct(regle):
     """mappe la structure clef etrangeres et fonctions"""
@@ -206,6 +220,7 @@ def _map_schemas(regle, obj):
             for dest, orig in regle.mapping_attributs[clef].items():
                 schema2.classes[clef].rename_attribut(orig, dest)
                 # print ('-----------------------------mappin attributs', clef, orig,dest)
+
 
 def applique_mapping(regle):
     """gere les clefs etrangeres et les elements speciaux dans les mappings"""
@@ -293,8 +308,6 @@ def f_map(regle, obj):
     return False
 
 
-
-
 def h_map_data(regle):
     """ precharge le fichier de mapping et prepare les dictionnaires"""
     regle.dynlevel = 0  # les noms de mapping dependent ils des donnees d entree
@@ -334,7 +347,9 @@ def f_map_data_liste(regle, obj):
     #schema||ajout_attribut
     """
     defaut = regle.params.val_entree.val
-    for entree, sortie in zip(regle.params.att_entree.liste, regle.params.att_sortie.liste):
+    for entree, sortie in zip(
+        regle.params.att_entree.liste, regle.params.att_sortie.liste
+    ):
         val = obj.attributs.get(entree, defaut)
         obj.attributs[sortie] = regle.elmap.get(val, val)
     return True

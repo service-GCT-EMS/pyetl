@@ -1,6 +1,6 @@
-==========
-parametres
-==========
+=====================
+Creation de commandes
+=====================
 
 Les parametres permettent d enregistre les caracteristiques des connections pour les
     * bases de donnees

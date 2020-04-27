@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Dec 11 14:34:04 2015
-
+#titre||manipulation de schemas
 @author: 89965
 fonctions de manipulation d'attributs
 """

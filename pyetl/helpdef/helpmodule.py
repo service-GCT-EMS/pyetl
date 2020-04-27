@@ -343,30 +343,32 @@ def docgen(mapper, nom):
 
 def doc_commandes(mapper):
     """genere la doc sphinx des commandes"""
-    doc = ["commandes"]
+    doc = ["reference des commandes"]
     souligne(doc, "=")
     # print(" modules de commande", mapper.modules)
     for nommodule in sorted(mapper.modules):
-        print(" traitement module", mapper.modules[nommodule].titre)
-        doc.append(mapper.modules[nommodule].titre)
-        souligne(doc, "-")
-        doc.append(mapper.modules[nommodule].titre)
-        for nom in sorted(mapper.modules[nommodule].commandes):
-            doc.append("")
-            doc.extend(docgen(mapper, nom))
+        print("traitement module", nommodule, "->", mapper.modules[nommodule].titre)
+        # print("commandes", mapper.modules[nommodule].commandes)
+        if mapper.modules[nommodule].commandes:
+            doc.append(mapper.modules[nommodule].titre)
+            souligne(doc, "-")
+            doc.append(mapper.modules[nommodule].titre)
+            for nom in sorted(mapper.modules[nommodule].commandes):
+                doc.append("")
+                doc.extend(docgen(mapper, nom))
     return doc
 
 
 def doc_macros(mapper):
     """genere la doc sphinx des commandes"""
-    doc = ["macros"]
+    doc = ["reference macros"]
     souligne(doc, "-")
     return doc
 
 
 def doc_formats(mapper):
     """genere la doc sphinx des commandes"""
-    doc = ["formats"]
+    doc = ["reference formats"]
     souligne(doc, "-")
     return doc
 

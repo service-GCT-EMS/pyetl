@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 11 14:34:04 2015
-
-@author: 89965
+#titre||accés aux bases de données
 fonctions de manipulation d'attributs
 """
 import os
@@ -24,7 +22,7 @@ def _mode_niv_in(regle, niv, autobase=False):
     attrs = []
     cmp = []
     base = []
-    # print("mode_niv in:lecture_fichier", valeurs)
+    print("mode_niv in:lecture_fichier", valeurs)
     for i in valeurs:
         liste_defs = valeurs[i]
         # print("mode_niv in:liste_defs",liste_defs)
@@ -36,7 +34,8 @@ def _mode_niv_in(regle, niv, autobase=False):
             defs2 = liste_defs.pop(0).split(".")
             def1.extend(defs2)
         # print("mode_niv in:def1",def1)
-
+        if autobase:
+            base.append(def1.pop(0))
         niveau.append(def1[0])
         if len(def1) == 1:
             classe.append("")
@@ -46,10 +45,10 @@ def _mode_niv_in(regle, niv, autobase=False):
             classe.append(def1[1])
             attrs.append("")
             cmp.append("")
-            if autobase and len(liste_defs) > 2:  # on a rajoute la base
-                base.append(tuple(liste_defs[1:]))
+            # if autobase and len(liste_defs) > 2:  # on a rajoute la base
+            #     base.append(tuple(liste_defs[1:]))
         elif len(def1) == 3:
-            #                print("detection attribut")
+            # print("detection attribut")
             classe.append(def1[1])
             attrs.append(def1[2])
             vals = ""
@@ -77,7 +76,7 @@ def param_base(regle):
     att = regle.v_nommees["val_sel2"]
     attrs = []
     cmp = []
-
+    print("param_base", base, niv, cla, att)
     if niv.lower().startswith(
         "s:"
     ):  # selection directe du style niveau,classe.attribut
@@ -121,7 +120,7 @@ def param_base(regle):
         att = (attrs, cmp)
 
     regle.dyn = "#" in niv or "#" in cla
-    #    print('parametres acces base', base, niveau, classe, att, regle)
+    print("parametres acces base", base, niveau, classe, att, regle)
 
     regle.cible_base = (base, niveau, classe, att)
     return True
@@ -212,7 +211,22 @@ def setdb(regle, obj, att=True):
         valeur = regle.params.val_entree.liste
     else:
         valeur = cmp
-    return (base, niveau, classe, attrs, valeur, chemin, type_base)
+    basedict = dict()
+    if isinstance(base, list):
+        for numero, idbase in enumerate(base):
+            if idbase in basedict:
+                niv, cla, attr, val, chm, typ = basedict[idbase]
+                niv.extend(niveau[numero])
+                cla.extend(classe[numero])
+                attr.extend(attrs[numero])
+                val.extend(valeur[numero])
+                basedict[idbase] = (niv, cla, attr, val, chm, typ)
+            else:
+                basedict[idbase] = (niveau, classe, attrs, valeur, chemin, type_base)
+    else:
+        basedict[base] = (niveau, classe, attrs, valeur, chemin, type_base)
+    return basedict
+    # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
 
 def f_dbalpha(regle, obj):
@@ -227,19 +241,27 @@ def f_dbalpha(regle, obj):
             # print ('detection traitement virtuel : on ignore', obj, regle.getvar('traitement_virtuel'), regle.context.vlocales)
             return False
 
-    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
+    # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
+    basedict = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
     # print ('regles alpha: acces base apres ', base, niveau, classe, attrs)
 
-    LOGGER.debug("regles alpha:ligne  " + repr(regle) + repr(type_base) + repr(mods))
     #    print('regles alpha:ligne  ', regle, type_base, mods)
     #    print('regles alpha:parms:', base, niveau, classe, attribut, 'entree:',regle.params.val_entree,
     #          valeur, 'cmp1:', regle.params.cmp1, 'sortie:', regle.params.att_sortie)
 
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
 
-    if base:
+    if not basedict:
+        print("fdbalpha: base non definie ", regle.context, regle)
+        return False
+    retour = 0
+    for base, description in basedict.items():
+        niveau, classe, attrs, valeur, chemin, type_base = description
+        LOGGER.debug(
+            "regles alpha:ligne  " + repr(regle) + repr(type_base) + repr(mods)
+        )
         connect = regle.stock_param.getdbaccess(
             regle, base, type_base=type_base, chemin=chemin
         )
@@ -266,7 +288,7 @@ def f_dbalpha(regle, obj):
         #                return True
         #            return objloader(regle, obj)
         else:
-            retour = DB.recup_donnees_req_alpha(
+            retour += DB.recup_donnees_req_alpha(
                 regle,
                 base,
                 niveau,
@@ -281,9 +303,8 @@ def f_dbalpha(regle, obj):
                 chemin=chemin,
             )
         #    print ('regles alpha: valeur retour',retour,obj)
-        return retour
-    print("fdbalpha: base non definie ", base, regle.context, regle)
-    return False
+    return retour
+
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
 
@@ -334,26 +355,29 @@ def f_dbgeo(regle, obj):
     #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
-    base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
-        regle, obj, att=False
-    )
-    if not fonction:
-        print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
-        return False
-    else:
-        retour = DB.recup_donnees_req_geo(
-            regle,
-            base,
-            niveau,
-            classe,
-            fonction,
-            obj,
-            regle.params.cmp1.val,
-            regle.params.att_sortie.liste,
-            valeur,
-            type_base=type_base,
-            chemin=chemin,
-        )
+    # base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
+    #     regle, obj, att=False
+    # )
+    basedict = setdb(regle, obj, att=False)
+    retour = 0
+    for base, description in basedict.items():
+        niveau, classe, fonction, valeur, chemin, type_base = description
+        if not fonction:
+            print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
+        else:
+            retour += DB.recup_donnees_req_geo(
+                regle,
+                base,
+                niveau,
+                classe,
+                fonction,
+                obj,
+                regle.params.cmp1.val,
+                regle.params.att_sortie.liste,
+                valeur,
+                type_base=type_base,
+                chemin=chemin,
+            )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -395,19 +419,23 @@ def f_dbrequest(regle, obj):
     #
     """
     # regle.stock_param.regle_courante=regle
-    base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
-        regle, obj, att=False
-    )
-    niveau = niveau if niveau[0] else [regle.grp]
-    classe = classe if classe[0] else [regle.fich]
-    # parms = [regle.getv]
-    # print("execution requete", regle.params.cmp1.val, niveau, classe)
-    parms = None
-    if regle.params.att_entree.liste:
-        parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
-    retour = DB.lire_requete(
-        regle, base, niveau, classe, requete=regle.requete, parms=parms
-    )
+    # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
+    #     regle, obj, att=False
+    # )
+    basedict = setdb(regle, obj, att=False)
+    retour = 0
+    for base, description in basedict.items():
+        niveau, classe, fonction, valeur, chemin, type_base = description
+        niveau = niveau if niveau[0] else [regle.grp]
+        classe = classe if classe[0] else [regle.fich]
+        # parms = [regle.getv]
+        # print("execution requete", regle.params.cmp1.val, niveau, classe)
+        parms = None
+        if regle.params.att_entree.liste:
+            parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
+        retour = DB.lire_requete(
+            regle, base, niveau, classe, requete=regle.requete, parms=parms
+        )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -528,19 +556,24 @@ def f_dbextdump(regle, obj):
     #pattern||;;;dbextdump;?C;?C
     #req_test||testdb
     """
-    base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
-    dest = regle.params.cmp1.val
-    if not dest:
-        dest = regle.getvar("_sortie")
-    os.makedirs(dest, exist_ok=True)
-    log = regle.params.cmp2.val
-    if not log:
-        log = os.path.join(dest, "log")
-    os.makedirs(log, exist_ok=True)
+    # base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
+    basedict = setdb(regle, obj, att=False)
+    retour = 0
+    for base, description in basedict.items():
+        niveau, classe, fonction, valeur, chemin, type_base = description
+        dest = regle.params.cmp1.val
+        if not dest:
+            dest = regle.getvar("_sortie")
+        os.makedirs(dest, exist_ok=True)
+        log = regle.params.cmp2.val
+        if not log:
+            log = os.path.join(dest, "log")
+        os.makedirs(log, exist_ok=True)
 
-    print("traitement db: extraction donnees de", base, "vers", dest)
+        print("traitement db: extraction donnees de", base, "vers", dest)
 
-    return DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
+        DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
+    return True
 
 
 def f_dbwrite(regle, obj):
@@ -607,14 +640,19 @@ def f_dbcount(regle, obj):
        #test||obj||$#testdb;;||db:testdb;testschema;tablealpha;;toto;;;dbcount;
             ||atv;toto;3
     """
-    base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
+    # base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     #    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)
 
     mods = regle.params.cmp1.liste
 
-    LOGGER.debug("regles count:ligne  " + repr(regle) + repr(type_base) + repr(mods))
+    basedict = setdb(regle, obj, att=False)
+    retour = 0
+    for base, description in basedict.items():
+        niveau, classe, attrs, valeur, chemin, type_base = description
+        LOGGER.debug(
+            "regles count:ligne  " + repr(regle) + repr(type_base) + repr(mods)
+        )
 
-    if base:
         retour = DB.recup_count(
             regle,
             base,
@@ -628,9 +666,7 @@ def f_dbcount(regle, obj):
         )
         #        print ('regles cnt: valeur retour',retour,obj)
         obj.attributs[regle.params.att_sortie.val] = str(retour)
-        return True
-    print("dbcount: base non definie ", base)
-    return False
+    return True
 
 
 # TODO meilleure gestion des schemas
