@@ -4,6 +4,7 @@ Created on Fri Dec 11 14:34:04 2015
 
 @author: 89965
 
+#titre||fonctions auxiliaires
 
 fonctions de sortie et de schema auxiliaires
 

@@ -3,6 +3,7 @@
 Created on Tue Mar 20 20:54:48 2018
 
 @author: claude
+#titre||fonctions de cryptage
 
 module crypt : gere le cryptage des mots de passe dans les parametres de site
 

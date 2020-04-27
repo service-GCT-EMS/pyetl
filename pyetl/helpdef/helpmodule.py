@@ -273,15 +273,18 @@ def doc_pattern(pattern, description):
     patdesc = ";".join(description).split(";")
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
-        retour.append(indent(i, 2))
-        retour.append(indent(j + (" (optionnel)" if "?" in i else ""), 3))
+        val = " :  ".join((i, j + (" (optionnel)" if "?" in i else "")))
+        retour.append(indent(val, 1))
+        # retour.append(indent(i, 2))
+        # retour.append(indent(j + (" (optionnel)" if "?" in i else ""), 3))
     retour.append("")
     return retour
 
 
 def docgen(mapper, nom):
     """genere la doc sphinx d une commande"""
-    doc = [nom, "-" * len(nom), ""]
+    doc = [nom]
+    souligne(doc, ".")
     commande = mapper.commandes[nom]
     aide = commande.description.get("#aide", "")
     aide_spec = commande.description.get("#aide_spec", "")
@@ -298,6 +301,7 @@ def docgen(mapper, nom):
         if len(vals) < 6:
             vals = vals + [""] * (6 - len(vals))
         vals = vals[:6]
+        vals = ["\\" + i if i.startswith("|") else i for i in vals]
         pattern = ";".join(vals)
         patterns.append(pattern)
         aides = v.description.get("#aide_spec" + v.patternnum)
@@ -308,6 +312,7 @@ def docgen(mapper, nom):
             patterns.append(explication)
 
     doc.extend(tableau(patterns))
+    doc.append("")
     for variante in commande.subfonctions:
         if variante.description:
             # doc.extend(tableau(variante.pattern))
@@ -315,8 +320,8 @@ def docgen(mapper, nom):
             # aide = variante.description.get("#aide_spec")
             for i in sorted(variante.description):
                 pnum = variante.patternnum
-                if ("#aide_spec" + pnum) in i and i != "#aide_spec":
-                    doc.append(variante.description.get(i)[0])
+                # if ("#aide_spec" + pnum) in i and i != "#aide_spec":
+                #     doc.append(variante.description.get(i)[0])
                 if ("#parametres" + pnum) in i and i != "#parametres":
                     doc.extend(
                         doc_pattern(
@@ -340,13 +345,35 @@ def doc_commandes(mapper):
     """genere la doc sphinx des commandes"""
     doc = ["commandes"]
     souligne(doc, "=")
-    for nom in sorted(mapper.commandes):
-        doc.append("")
-        doc.extend(docgen(mapper, nom))
+    # print(" modules de commande", mapper.modules)
+    for nommodule in sorted(mapper.modules):
+        print(" traitement module", mapper.modules[nommodule].titre)
+        doc.append(mapper.modules[nommodule].titre)
+        souligne(doc, "-")
+        doc.append(mapper.modules[nommodule].titre)
+        for nom in sorted(mapper.modules[nommodule].commandes):
+            doc.append("")
+            doc.extend(docgen(mapper, nom))
+    return doc
+
+
+def doc_macros(mapper):
+    """genere la doc sphinx des commandes"""
+    doc = ["macros"]
+    souligne(doc, "-")
+    return doc
+
+
+def doc_formats(mapper):
+    """genere la doc sphinx des commandes"""
+    doc = ["formats"]
+    souligne(doc, "-")
     return doc
 
 
 def autodoc(mapper):
-    doc = []
-    doc.extend(doc_commandes(mapper))
+    doc = dict()
+    doc["commande"] = doc_commandes(mapper)
+    doc["macro"] = doc_macros(mapper)
+    doc["format"] = doc_formats(mapper)
     return doc

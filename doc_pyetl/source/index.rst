@@ -1,3 +1,4 @@
+default_role = any
 
 
 Documentation de Pyetl
@@ -23,7 +24,8 @@ Documentation de Pyetl
    references/variables
    references/parametres
 
-   extension/principes
+   extensions/principes
+   extensions/scripts
    extensions/macros
    extensions/commandes
    extensions/formats
@@ -34,5 +36,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-:any:

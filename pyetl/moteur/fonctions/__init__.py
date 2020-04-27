@@ -217,7 +217,9 @@ class ModuleInfo(object):
         self.initable = callable(fonction)
         self.disponible = not self.initable
         self.fonction = fonction
+        self.commandes = set()
         self.help = ""
+        self.titre = nom.split("_")[-1]
 
     def init(self):
         if self.disponible:
@@ -362,6 +364,7 @@ def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
                 continue
             #                print ('lecure',nom,pattern,description)
             clef = pattern.split(";")[3] if pattern else None
+            info_module.commandes.add(clef)
             if clef is None:
                 print("fonction incompatible", nom)
             if clef_sec and clef_sec not in definition_champs:
@@ -480,6 +483,11 @@ def register(nom_module, module, store, prefixes, simple_prefix):
     #        if nom[:2] == 'f_':
     initer = getattr(module, "_initer") if "_initer" in dir(module) else None
     infomodule = ModuleInfo(nom_module, initer)
+    moduledoc = module.__doc__.split("\n")
+    for i in moduledoc:
+        if i.startswith("#titre"):
+            infomodule.titre = i.split("||")[-1]
+
     for nom in dir(module):
         fonction = getattr(module, nom)
         #        print ('traitement ',module.__name__, nom)
@@ -521,6 +529,7 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             reg_select(
                 stockage, infomodule, nom_fonction, fonction, description_fonction
             )
+    return infomodule
 
 
 def get_fonction(nom, store, clef):
@@ -619,8 +628,10 @@ def loadmodules():
     for i in prefixes:
         store[i] = dict()
 
+    infomodules = dict()
     for nom in modules:
-        register(nom, modules[nom], store, prefixes, simple_prefix)
+        infomodule = register(nom, modules[nom], store, prefixes, simple_prefix)
+        infomodules[nom] = infomodule
 
     commandes = dict(store["f"])
     selecteurs = dict(store["sel"])
@@ -637,7 +648,7 @@ def loadmodules():
         set_helper(sel, store, "selh")
     #        print (" enregistrement selecteurs",sel.nom,sel.helper)
 
-    return commandes, selecteurs
+    return commandes, selecteurs, infomodules
 
 
-COMMANDES, SELECTEURS = loadmodules()
+COMMANDES, SELECTEURS, MODULES = loadmodules()

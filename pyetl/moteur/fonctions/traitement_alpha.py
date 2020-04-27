@@ -3,7 +3,7 @@
 Created on Fri Dec 11 14:34:04 2015
 
 @author: 89965
-fonctions de manipulation d'attributs
+#titre||manipulation d'attributs
 
 # description des patterns pour les attributs :
 # chaque pattern comprend 5 champs sous la forme:

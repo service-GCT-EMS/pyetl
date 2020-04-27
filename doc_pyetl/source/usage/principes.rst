@@ -32,7 +32,7 @@ mode ligne de commandes
 mode batch
 ----------
 
-    ``mapper #batch batch=nom``
+    ``mapper #batch fichier_desriptif``
 
     ``mapper #db_batch``
 
@@ -41,7 +41,7 @@ mode batch
 mode temps reel
 ---------------
 
-    ``mapper #tpr batch=nom``
+    ``mapper #tpr fichier_desriptif``
 
     ``mapper #db_tpr``
 

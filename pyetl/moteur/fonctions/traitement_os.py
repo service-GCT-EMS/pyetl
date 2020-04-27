@@ -290,7 +290,7 @@ def f_infofich(regle, obj):
   #aide_spec||usage prefix;defaut;attribut;infofich;;;
             ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
             ||cree les attributs: #chemin, #nom, #ext,
-            ||     #domaine, #proprietaire, #creation, #modif, #acces
+            ||#domaine, #proprietaire, #creation, #modif, #acces
      #schema||ajout_attribut
     #pattern||?A;?C;?A;infofich;;
        #test||obj||^;%testrep%/refdata/liste.csv;;infofich||atv:#ext:.csv

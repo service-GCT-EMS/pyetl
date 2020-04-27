@@ -39,7 +39,7 @@ from .moteur.interpreteur_csv import (
 from .moteur.regles import RegleTraitement
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, MacroStore, Context
-from .moteur.fonctions import COMMANDES, SELECTEURS
+from .moteur.fonctions import COMMANDES, SELECTEURS, MODULES
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
 
@@ -172,6 +172,7 @@ class Pyetl(object):
     init_schema = init_schema
     commandes = COMMANDES
     selecteurs = SELECTEURS
+    modules = MODULES
     sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
     reconfig = reinterprete_regle
     formats_connus_lecture = READERS
@@ -406,16 +407,24 @@ class Pyetl(object):
 
             print(" generation documentation ", nom)
             doc = autodoc(self)
-            print("apres generation documentation ", autodoc)
+            print("apres generation documentation ", doc.keys())
+            build = not nom
             if not nom:
-                tmp = os.path.join(
-                    self.getvar("_progdir"),
-                    "../doc_pyetl/source/autodoc/commandedef.rst",
+                tmpdir = os.path.join(
+                    self.getvar("_progdir"), "../doc_pyetl/source/autodoc"
                 )
-                nom = self.getvar("_autodoc", tmp)
+                nom = self.getvar("_autodoc", tmpdir)
 
-            with open(nom, "w", encoding="utf-8") as dest:
-                dest.write("\n".join(doc))
+            for nomdoc, contenu in doc.items():
+                ref = os.path.join(nom, nomdoc + "def.rst")
+                print("ecriture doc", nomdoc, ref)
+                with open(ref, "w", encoding="utf-8") as dest:
+                    dest.write("\n".join(contenu))
+            if build:
+                builder = (
+                    os.path.join(self.getvar("_progdir"), "../doc_pyetl/make") + " html"
+                )
+                os.system(builder)
 
         elif commande == "#autotest" or commande == "autotest":
             #            print("detecte autotest ", self.fichier_regles, self.posparm)
