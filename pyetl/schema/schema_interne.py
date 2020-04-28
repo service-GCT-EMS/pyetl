@@ -11,6 +11,7 @@ from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
+from .abbrev import dic_abrev
 
 # schemas : description de la structure des objets
 
@@ -106,93 +107,7 @@ class Schema(object):
                        """
 
     # types_G={0:"ALPHA",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
-    dic_abrev = {
-        "commune": "com",
-        "date": "dt",
-        "annee": "an",
-        "code": "cd",
-        "libelle": "lib",
-        "final": "fin",
-        "niveau": "niv",
-        "niv": "n",
-        "intervention": "intrv",
-        "batiment": "bat",
-        "circulation": "circ",
-        "correspondance": "corresp",
-        "corresp": "crsp",
-        "concessionaire": "concess",
-        "concess": "ccs",
-        "concession": "concess",
-        "dependance": "dep",
-        "dependances": "dep",
-        "domanialite": "dom",
-        "distance": "dist",
-        "deformation": "def",
-        "emplacement": "emplact",
-        "emplact": "emp",
-        "emprise": "empr",
-        "fissure": "fis",
-        "gestion": "gest",
-        "numero": "num",
-        "num": "n",
-        "prestataire": "prest",
-        "proprietaire": "prop",
-        "propriete": "prop",
-        "remplissage": "remp",
-        "route": "rte",
-        "surface": "surf",
-        "surf": "s",
-        "taux": "tx",
-        "taux_remplissage": "tr",
-        "toponyme": "tpny",
-        "transversale": "trv",
-        "orientation": "orient",
-        "orient": "ort",
-        "usage": "usg",
-        "geometrie": "geom",
-        "geometrique": "geom",
-        "geom": "g",
-        "commentaire": "comment",
-        "coment": "cmt",
-        "largeur": "larg",
-        "longueur": "long",
-        "source": "src",
-        "comptage": "compt",
-        "compt": "ctg",
-        "creation": "cre",
-        "date_mise_a_jour": "date_maj",
-        "date_creation": "date_creat",
-        "dernier": "der",
-        "deplacement": "depl",
-        "dossier": "dos",
-        "registre": "reg",
-        "identifiant": "id",
-        "primaire": "prim",
-        "sous": "ss",
-        "troncon": "trc",
-        "adresse": "adr",
-        "parcelle": "parc",
-        "parcellaire": "parc",
-        "section": "sec",
-        "description": "desc",
-        "exploitant": "exp",
-        "volume": "vol",
-        "diametre": "d",
-        " diam": "d",
-        "droit": "d",
-        "gauche": "g",
-        "gestionnaire": "gest",
-        "nature_materiau": "mat",
-        "fiche_pdf": "pdf",
-        "reparation": "repar",
-        "chaussee": "ch",
-        "structure": "str",
-        "pann1": "p1",
-        "pann2": "p2",
-        "pann3": "p3",
-        "panneau": "pan",
-        "panneaux": "pan",
-    }
+    dic_abrev = dic_abrev
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()
@@ -515,7 +430,9 @@ class Schema(object):
                 tables_a_sortir.add(i)
                 return tables_a_sortir
 
-    def select_classes(self, niveau, classe, tables="A", multi=True, nocase=False):
+    def select_classes(
+        self, niveau, classe, attr, tables="A", multi=True, nocase=False
+    ):
         """produit la liste des classes demandees a partir du schema utile pour id_in:"""
         tables_a_sortir = set()
         if len(niveau) == 1 and niveau[0][:2] == "s:":  # selection directe
@@ -568,3 +485,82 @@ class Schema(object):
             print("select tables: requete", tables, niveau, classe, multi)
             print("taille schema", self.nom, len(self.classes))
         return tables_a_sortir
+
+    def fkref(self, liste, niveau, niv_ref, add=False):
+        """identifie les tables referenceees par des fk"""
+        trouve = 0
+        adds = set()
+        for ident in liste:
+            if niveau[ident] == niv_ref:
+                cibles = self.is_cible(ident)
+                #            print(ident,":tables  visant la classe",cibles)
+                for j in cibles:
+                    if j not in niveau:
+                        if add:
+                            adds.add(j)
+                            trouve = 1
+                            # print("fkref: ajout cible", niv_ref, j)
+                        else:
+                            print("fkref: erreur cible", niv_ref, j)
+                        continue
+                    if niveau[j] >= niv_ref and j != ident:
+                        if ident in self.is_cible(j):
+                            print("attention references croisees", ident, j)
+                        else:
+                            niveau[ident] += 1
+                            # print(" trouve", ident, niveau[ident], j)
+                            trouve = 1
+                        break
+        return trouve, adds
+
+    def tablesorter(self, liste, complete=False):
+        """ trie les tables en fonction des cibles de clef etrangeres """
+        ajouts = True
+        niveau = dict()
+        tables = set(liste)
+        while ajouts:
+            ajouts = set()
+            self.calcule_cibles()
+            niveau = {i: 0 for i in tables}
+            trouve = 1
+            niv_ref = 0
+            while trouve:
+                trouve, adds = self.fkref(tables, niveau, niv_ref, add=complete)
+                ajouts.update(adds)
+                niv_ref += 1
+            #    print("niveau maxi", niv_ref)
+            if complete and ajouts:
+                tables.update(ajouts)
+        niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
+        liste.clear()
+        liste.extend(sorted(tables, key=niv2.get))
+        return niveau
+
+    def getschematravail(
+        self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
+    ):
+        """recupere le schema de travail"""
+        params = regle.stock_param
+        nomschema = nomschema if nomschema else self.nom.replace("#", "")
+        schema_travail = init_schema(params, nomschema, "B", modele=self)
+        schema_travail.metas = dict(self.metas)
+        schema_travail.metas["tables"] = tables
+        schema_travail.metas["filtre niveau"] = ",".join(niveau)
+        schema_travail.metas["filtre classe"] = ",".join(classe)
+        liste2 = []
+        # print ( 'schema base ',connect.schemabase.classes.keys())
+        liste2 = list(self.select_classes(niveau, classe, [], tables, multi, nocase))
+        complete = regle.getvar("gestion_coherence") == "1"
+        niv = self.tablesorter(liste2, complete=complete)
+        for ident in liste2:
+            classe = self.get_classe(ident)
+            classe.resolve()
+            #        print ('classe a copier ',classe.identclasse,classe.attributs)
+            clas2 = classe.copy(ident, schema_travail)
+            clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
+            # on renseigne le nombre d'objets de la table
+            clas2.type_table = (
+                classe.type_table
+            )  # pour eviter qu elle soit marqueee interne
+
+        return schema_travail, liste2

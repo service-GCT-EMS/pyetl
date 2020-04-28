@@ -199,7 +199,34 @@ def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
     return stock
 
 
-def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None):
+def charge_liste_classes(fichier, codec=DEFCODEC, debug=False, taille=1):
+    codec = hasbom(fichier, codec)
+    retour = dict()
+    with open(fichier, "r", encoding=codec) as fich:
+        for i in fich:
+            ligne = i.replace("\n", "")  # on degage le retour chariot
+            if ligne.startswith("!"):
+                if ligne.startswith("!!"):
+                    ligne = ligne[1:]
+                else:
+                    continue
+            liste = ligne.split(";")
+            if not liste:
+                continue
+            if "." in liste[0]:
+                liste = liste[0].split(".") + ["", ""]
+            if liste[0].startswith("B:"):
+                ident = (liste[0], ".".join(liste[1:3]))
+            else:
+                ident = ("", ".".join(liste[:2]))
+            retour[ident] = ligne
+    return retour
+
+
+
+def _charge_liste_csv(
+    fichier, codec=DEFCODEC, debug=False, taille=1, positions=None, dest=""
+):
     """prechargement d un fichier de liste csv"""
     stock = dict()
     if taille > 0:  # taille = 0 veut dire illimite
@@ -226,12 +253,12 @@ def _charge_liste_csv(fichier, codec=DEFCODEC, debug=False, taille=1, positions=
                             liste = list(
                                 itertools.islice(itertools.cycle(liste), taille)
                             )
-                        stock[";".join([liste[i] for i in positions])] = liste
+                        stock[tuple([liste[i] for i in positions])] = liste
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
         print("fichier liste introuvable ", fichier)
-    #    print('prechargement csv', stock)
+    print("prechargement csv", stock)
     return stock
 
 
@@ -246,7 +273,7 @@ def _extract(ligne, clef):
     return ""
 
 
-def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1):
+def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, dest=""):
     """prechargement d un fichier projet qgis"""
 
     stock = dict()
@@ -266,7 +293,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1):
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        dbdef = (database, host, port)
+                        dbdef = (database, host.lower(), port)
                         if taille == 1:
                             clef = table
                         elif taille == 2:
@@ -355,6 +382,14 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
     return stock
 
 
+def conditionne_liste_classes(valeurs):
+    """ transforme une liste en liste de classes """
+    result = dict()
+    for val in valeurs:
+        if "." in val[0]:
+            pass
+
+
 # def get_listeval(txt):
 #    """decode une liste sous la forme {v,v,v,v}"""
 #    # c est une liste directement dans le champ
@@ -424,7 +459,6 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0):
                 "------>",
                 "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
             )
-            raise
     return mode, valeurs
 
 

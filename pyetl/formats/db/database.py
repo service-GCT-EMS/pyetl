@@ -19,54 +19,6 @@ DEBUG = False
 LOGGER = logging.getLogger("pyetl")
 
 
-def fkref(liste, niveau, niv_ref, schema, add=False):
-    """identifie les tables referenceees par des fk"""
-    trouve = 0
-    adds = set()
-    for ident in liste:
-        if niveau[ident] == niv_ref:
-            cibles = schema.is_cible(ident)
-            #            print(ident,":tables  visant la classe",cibles)
-            for j in cibles:
-                if j not in niveau:
-                    print("fkref: erreur cible", j)
-                    if add:
-                        adds.add(j)
-                    continue
-                if niveau[j] >= niv_ref and j != ident:
-                    if ident in schema.is_cible(j):
-                        print("attention references croisees", ident, j)
-                    else:
-                        niveau[ident] += 1
-                        #                        print(" trouve",ident,niveau[ident],j)
-                        trouve = 1
-                    break
-    return trouve, adds
-
-
-def tablesorter(liste, schema, complete=False):
-    """ trie les tables en fonction des cibles de clef etrangeres """
-    ajouts = True
-    niveau = dict()
-
-    while ajouts:
-        ajouts = set()
-        schema.calcule_cibles()
-        niveau = {i: 0 for i in liste}
-        trouve = 1
-        niv_ref = 0
-        while trouve:
-            trouve, adds = fkref(liste, niveau, niv_ref, schema)
-            ajouts.update(adds)
-            niv_ref += 1
-        #    print("niveau maxi", niv_ref)
-        if complete and ajouts:
-            liste.extend(ajouts)
-    niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
-    liste.sort(key=niv2.get)
-    return niveau
-
-
 class DummyConnect(object):
     """simule une connection base de donnees"""
 
@@ -646,35 +598,12 @@ class DbConnect(object):
         self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
     ):
         """recupere le schema de travail"""
-
-        nomschema = nomschema if nomschema else self.schemabase.nom.replace("#", "")
-        schema_travail = self.params.init_schema(nomschema, "B", modele=self.schemabase)
-        schema_travail.metas = dict(self.schemabase.metas)
-        schema_travail.metas["tables"] = tables
-        schema_travail.metas["filtre niveau"] = ",".join(niveau)
-        schema_travail.metas["filtre classe"] = ",".join(classe)
-        liste2 = []
-        # print ( 'schema base ',connect.schemabase.classes.keys())
-        for ident in self.schemabase.select_classes(
-            niveau, classe, tables, multi, nocase
-        ):
-            classe = self.schemabase.get_classe(ident)
-            classe.resolve()
-            #        print ('classe a copier ',classe.identclasse,classe.attributs)
-            clas2 = classe.copy(ident, schema_travail)
-            clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
-            # on renseigne le nombre d'objets de la table
-            clas2.type_table = (
-                classe.type_table
-            )  # pour eviter qu elle soit marqueee interne
-
-            liste2.append(ident)
-        complete = regle.getvar("gestion_coherence")
-        niveau = tablesorter(liste2, self.schemabase, complete)
-        #        print('tri des tables ,niveau max', {i:niveau[i] for i in niveau if niveau[i] > 0})
+        schema_travail, liste2 = self.schemabase.getschematravail(
+            regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
+        )
         if schema_travail.elements_specifiques:
             self.select_elements_specifiques(schema_travail, liste2)
-
+        self.commit()
         LOGGER.info(
             "getschematravail "
             + str(len(self.schemabase.classes))
@@ -682,7 +611,6 @@ class DbConnect(object):
             + str(len(schema_travail.classes))
             + str(len(schema_travail.conformites))
         )
-        self.commit()
         return schema_travail, liste2
 
     def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):

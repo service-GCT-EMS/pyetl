@@ -704,7 +704,7 @@ class Pyetl(object):
                     base = val
             if base:
                 self.dbref[base, host, port] = nom
-                self.dbref[nom] = (base, host, port)
+                self.dbref[nom] = nom
 
     def _charge_site_params(self, origine):
         """ charge des definitions de variables liees au site """
@@ -928,7 +928,7 @@ class Pyetl(object):
         """cree les abreviations pour la definition automatique de snoms courts"""
         if dic_abrev is None:
             dic_abrev = self.getvar("abreviations")
-        if nom_schema in self.schemas:
+        if nom_schema in self.schemas and dic_abrev:
             self.schemas[nom_schema].dic_abrev = dic_abrev
 
     def charge(self, fichier, ident_fich):

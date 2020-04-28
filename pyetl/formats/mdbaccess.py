@@ -21,6 +21,56 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
+class SchemaSelector(object):
+    """condition de selection de tables dans une base de donnees"""
+
+    def __init__(self, descripteur):
+        self.bases = None
+        self.schemabases = None
+        self.descripteurs = [descripteur]
+        self.direct = set()
+
+    def idbase(self, base, mapper):
+        """identifie une base de donnees"""
+        if base in mapper.dbref:
+            if isinstance(base, str):
+                self.base = base
+            else:
+                self.base = mapper.dbref[base]
+        else:
+            print("base inconnue", base)
+
+    def add_classe(self, classe):
+        self.direct.add(classe)
+
+    def add_descripteur(self, descripteur):
+        self.descripteurs.append(descripteur)
+
+    def resolve(self, regle):
+        """convertit une liste de descripteurs en liste de classes"""
+        mapper = regle.stock_param
+        self.schemabase = schemabase
+        for descripteur in self.descripteurs:
+            base, niveau, classe, attr, mod = descripteur
+            base = self.idbase(base, mapper)
+            retour = get_connect()
+            connect = mapper.getdbaccess(
+                regle, base, type_base=type_base, chemin=chemin, description=description
+            )
+            mod = mod.upper()
+            multi = "=" in mod
+            mod = mod.replace("=", "")
+            nocase = "NOCASE" in mod
+            mod = mod.replace("NOCASE", "")
+            classlist = schemabase.select_classes(
+                niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
+            )
+            self.direct.update(classlist)
+
+    def getschematravail(self, schemabase):
+        pass
+
+
 def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
     base = codebase
@@ -274,12 +324,18 @@ def get_connect(
     """ recupere la connection a la base et les schemas qui vont bien"""
     # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
+    if base in stock_param.dbref:
+        nombase = stock_param.dbref[base]
+    else:
+        print("base inconnue", base)
+        return None
+
     connect = stock_param.getdbaccess(
-        regle, base, type_base=type_base, chemin=chemin, description=description
+        regle, nombase, type_base=type_base, chemin=chemin, description=description
     )
 
     if connect is None:
-        LOGGER.error("connection base invalide " + str(base))
+        LOGGER.error("connection base invalide " + str(nombase))
         return None
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
