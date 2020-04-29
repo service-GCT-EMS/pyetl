@@ -419,24 +419,17 @@ class Schema(object):
             self.classes[i].setbasic(mode)
         self.elements_specifiques = {}
 
-    def selection_directe(self, ident):
-        """ selection directe d une table """
-        tables_a_sortir = set()
-        niv, clas = ident.split(".")[:2]
-        #    print("mdba select: recherche ", niv, clas)
-        for i in self.classes:
-            #            print (schema.classes[i].groupe,schema.classes[i].nom)
-            if self.classes[i].groupe == niv and self.classes[i].nom == clas:
-                tables_a_sortir.add(i)
-                return tables_a_sortir
-
     def select_classes(
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """produit la liste des classes demandees a partir du schema utile pour id_in:"""
         tables_a_sortir = set()
         if len(niveau) == 1 and niveau[0][:2] == "s:":  # selection directe
-            return self.selection_directe(niveau[0][:2])
+            ident = niveau[0][:2]
+            if ident in self.classes:
+                return [ident]
+            else:
+                return []
         convert = {"v": "vm", "t": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         for exp_niv, exp_clas in zip(niveau, classe):
@@ -484,7 +477,7 @@ class Schema(object):
             print("pas de tables a sortir")
             print("select tables: requete", tables, niveau, classe, multi)
             print("taille schema", self.nom, len(self.classes))
-        return tables_a_sortir
+        return list(tables_a_sortir)
 
     def fkref(self, liste, niveau, niv_ref, add=False):
         """identifie les tables referenceees par des fk"""
@@ -536,21 +529,13 @@ class Schema(object):
         liste.extend(sorted(tables, key=niv2.get))
         return niveau
 
-    def getschematravail(
-        self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
-    ):
-        """recupere le schema de travail"""
+    def creschematravail(self, regle, liste, nomschema):
+        """cree un schema de travail a partir d une liste de classes"""
         params = regle.stock_param
         nomschema = nomschema if nomschema else self.nom.replace("#", "")
         schema_travail = init_schema(params, nomschema, "B", modele=self)
-        schema_travail.metas = dict(self.metas)
-        schema_travail.metas["tables"] = tables
-        schema_travail.metas["filtre niveau"] = ",".join(niveau)
-        schema_travail.metas["filtre classe"] = ",".join(classe)
-        liste2 = []
-        # print ( 'schema base ',connect.schemabase.classes.keys())
-        liste2 = list(self.select_classes(niveau, classe, [], tables, multi, nocase))
         complete = regle.getvar("gestion_coherence") == "1"
+        liste2 = liste[:]
         niv = self.tablesorter(liste2, complete=complete)
         for ident in liste2:
             classe = self.get_classe(ident)
@@ -559,8 +544,25 @@ class Schema(object):
             clas2 = classe.copy(ident, schema_travail)
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
             # on renseigne le nombre d'objets de la table
-            clas2.type_table = (
-                classe.type_table
-            )  # pour eviter qu elle soit marqueee interne
+            clas2.type_table = classe.type_table
 
         return schema_travail, liste2
+
+    def getschematravail(
+        self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
+    ):
+        """recupere le schema de travail"""
+        params = regle.stock_param
+        # print ( 'schema base ',connect.schemabase.classes.keys())
+        liste = self.select_classes(niveau, classe, [], tables, multi, nocase)
+        schema_travail, liste2 = self.creschematravail(regle, liste, nomschema)
+        schema_travail.metas = dict(self.metas)
+        schema_travail.metas["tables"] = tables
+        schema_travail.metas["filtre niveau"] = ",".join(niveau)
+        schema_travail.metas["filtre classe"] = ",".join(classe)
+
+        return schema_travail, liste2
+
+    def cleanrules(self):
+        for classe in self.classes.values():
+            classe.regles_modif = set()

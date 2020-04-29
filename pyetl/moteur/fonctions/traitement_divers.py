@@ -215,9 +215,8 @@ def h_sortir(regle):
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
     #    print ('positionnement writer ',regle, regle.params.cmp1.val)
-    if (
-        regle.f_sortie.nom_format == "sql"
-    ):  # gestion des dialectes sql et du mode connecté
+    if regle.f_sortie.nom_format == "sql":
+        # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get("base_dest")
         dialecte = regle.f_sortie.writerparms.get("dialecte")
         regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")

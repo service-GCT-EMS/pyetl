@@ -362,7 +362,6 @@ actif;true;is:valid_time;[intervalle];succes;;;batch;;;debug;multi=4;
 $#dest;;;;;;
 <#extract:%nom%
 
-
 !===========================================================================================;;;;;;;;;;;
 &&#define;#runsql;nom;dest;;;;;;;;
 #!help;lancement script_sql;;;;;;;;;;
@@ -424,7 +423,9 @@ P:#pk;!in:#cmp;;;;;;pass>;;;fin;
 &&#define;#upload;fich;dest;destdir=.;;;;
 #!help;charge des elements par ftp;;;;;;;;;;
 $#ftp_%dest%;;;;;;
-;;;;;%fich%;;ftp_upload;ftp_%dest%;%destdir%;;
+$sans_entree=1
+$fichier=%fich%;%derniere_sortie%
+;;;;;%fichier%;;ftp_upload;ftp_%dest%;%destdir%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#ftpdownload;fich;acces;accdir=.;;;;
 #!help;charge des elements par ftp;;;;;;;;;;

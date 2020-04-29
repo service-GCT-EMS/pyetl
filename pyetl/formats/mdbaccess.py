@@ -21,22 +21,26 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-class SchemaSelector(object):
-    """condition de selection de tables dans une base de donnees"""
+class Tableselector(object):
+    """condition de selection de tables dans une base de donnees ou des fichiers
+        generes par des condition in: complexes"""
 
-    def __init__(self, descripteur):
-        self.bases = None
-        self.schemabases = None
-        self.descripteurs = [descripteur]
+    def __init__(self, mapper, base):
+        self.mapper = mapper
+        self.base = self.idbase(base)
+        self.chemin = ""
+        self.type_base = None
+        self.schemabase = None
+        self.descripteurs = []
         self.direct = set()
 
-    def idbase(self, base, mapper):
+    def idbase(self, base):
         """identifie une base de donnees"""
-        if base in mapper.dbref:
+        if base in self.mapper.dbref:
             if isinstance(base, str):
                 self.base = base
             else:
-                self.base = mapper.dbref[base]
+                self.base = self.mapper.dbref[base]
         else:
             print("base inconnue", base)
 
@@ -48,21 +52,16 @@ class SchemaSelector(object):
 
     def resolve(self, regle):
         """convertit une liste de descripteurs en liste de classes"""
-        mapper = regle.stock_param
-        self.schemabase = schemabase
+        connect = self.mapper.getdbaccess(regle, self.base)
+        self.schemabase = connect.schemabase
         for descripteur in self.descripteurs:
-            base, niveau, classe, attr, mod = descripteur
-            base = self.idbase(base, mapper)
-            retour = get_connect()
-            connect = mapper.getdbaccess(
-                regle, base, type_base=type_base, chemin=chemin, description=description
-            )
+            niveau, classe, attr, mod = descripteur
             mod = mod.upper()
             multi = "=" in mod
             mod = mod.replace("=", "")
             nocase = "NOCASE" in mod
             mod = mod.replace("NOCASE", "")
-            classlist = schemabase.select_classes(
+            classlist = self.schemabase.select_classes(
                 niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
             )
             self.direct.update(classlist)
@@ -71,7 +70,7 @@ class SchemaSelector(object):
         pass
 
 
-def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
+def dbaccess(regle, codebase, type_base=None, chemin=""):
     """ouvre l'acces a la base de donnees et lit le schema"""
     base = codebase
     serveur = ""
@@ -93,14 +92,8 @@ def dbaccess(regle, codebase, type_base=None, chemin="", description=None):
                 base = regle.getvar("base_" + codebase, "")
                 serveur = regle.getvar("server_" + codebase, "")
                 type_base = regle.getvar("db_" + codebase, "")
-
             except KeyError:
                 print("mdba: multiple : base non definie", codebase)
-                if description:
-                    base, host, port = description
-                    print("utilisation definition du fichier:", description)
-                    serveur = "host=" + host + " port=" + port
-                    type_base = "postgres"
         if not base:
             print("mdba: base non definie", codebase)
             return None

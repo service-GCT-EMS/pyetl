@@ -749,6 +749,8 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
         attr.ajout_valeur(obj.attributs.get(nom))
     if obj.hdict:
         for nom in obj.hdict:  # traitement des attributs hstore
+            if nom.startswith("#"):
+                continue
             att_orig = None
             alias = ""
             nom_court = ""

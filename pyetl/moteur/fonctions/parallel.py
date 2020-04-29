@@ -128,8 +128,16 @@ def parallelbatch(id, parametres_batch, regle):
 
     processor.process()
     retour = set_parallelretour(processor, True)
-    #    print("pyetl batchworker", os.getpid(),processor.idpyetl, mapping, args,
-    #          '->', processor.retour)
+    print(
+        "pyetl batchworker",
+        os.getpid(),
+        processor.idpyetl,
+        mapping,
+        args,
+        "->",
+        processor.retour,
+    )
+    processor.cleanschemas()
     return (numero, retour)
 
 
@@ -290,7 +298,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
         entree soient généréés"""
     rfin = dict()
     mapper = regle.stock_param
-    paralleldebug = 0
+    paralleldebug = 1
     if paralleldebug:
         print("start paralleliter_suivi", fonction, argiter)
     #    work = [executor.submit(fonction, *arg) for arg in arglist]
@@ -594,17 +602,21 @@ def iter_boucle(regle):
     while time.strftime("%H:%M") < endtime:
         time.sleep(1)
         if time.localtime().tm_min == minute:
+            # print("attente", time.localtime().tm_min, minute)
             print(".", end="", flush=True)
             yield None
             continue
         minute = time.localtime().tm_min
+        print("traitement", minute)
         for obj in regle.tmpstore:
+            print("traitement", obj)
+            # macro de timeselect
             retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
             n = 0
             if obj.attributs.get("#_timeselect", "") == "1":  # validation d' execution
                 job = regle.prepare(regle, obj)
                 n += 1
-                # print ('------------------------------iter_boucle envoi', job)
+                print("------------------------------iter_boucle envoi", job)
                 yield (1, job)
                 print("envoye", n, "jobs\nattente", end="", flush=True)
 

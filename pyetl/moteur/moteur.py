@@ -486,7 +486,7 @@ class Context(object):
         nom, _ = self.resolve(defnom)
         nolocal = nom.startswith("*")
         val, binding = self.resolve(defval)
-        # print ('traite_egalite', defnom, nom,'=',defval,val)
+        # print("traite_egalite", defnom, nom, "=", defval, val)
         return nom, val, binding, nolocal
 
     def traite_hstore(self, element, context):

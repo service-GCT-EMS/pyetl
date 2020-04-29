@@ -808,7 +808,14 @@ def sel_is_time(selecteur, obj):
         heures = temps.tm_hour
         minutes = temps.tm_min
 
-    # print ("comparaison temps", heures,minutes,timeref,selecteur.params.vals.val,selecteur.params.pattern)
+    # print(
+    #     "comparaison temps",
+    #     heures,
+    #     minutes,
+    #     timeref,
+    #     selecteur.params.vals.val,
+    #     selecteur.params.pattern,
+    # )
 
     if timeref == "X":
         return False
@@ -836,15 +843,16 @@ def sel_is_time(selecteur, obj):
     if "m" in intervalle:
         mdef = intervalle.replace("m", "")
         intdef = int(mdef) if mdef.isnumeric() else 1
-        minutes = minutes % intdef
+        min_interv = minutes % intdef
     elif "H" in intervalle:
         hdef = intervalle.replace("H", "")
         intdef = int(hdef) if hdef.isnumeric() else 1
-        minutes = minutes + (heures % intdef) * 60
+        min_interv = minutes + (heures % intdef) * 60
     else:
         return False
+    # print("intervalle minutes", minutes, lastseln, decalage)
     if minutes == lastseln:  # on a deja selectionne
         return False
-    if str(minutes) in decalage.split(","):
+    if str(min_interv) in decalage.split(","):
         obj.attributs["#_lastsel"] = str(minutes)
         return True

@@ -603,7 +603,7 @@ class DbConnect(object):
         )
         if schema_travail.elements_specifiques:
             self.select_elements_specifiques(schema_travail, liste2)
-        self.commit()
+        # self.commit()
         LOGGER.info(
             "getschematravail "
             + str(len(self.schemabase.classes))

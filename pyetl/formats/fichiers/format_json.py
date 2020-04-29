@@ -160,7 +160,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
     """ ecrit des objets json en streaming"""
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    extention = ".json"
+    extention = "." + self.nom_format
     groupe, classe = obj.ident
     #    print ('json: ecriture ',groupe,classe,obj.schema)
     setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
@@ -193,7 +193,7 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
             sorties.creres(regle, nom, str_w)
             ressource = sorties.get_res(regle, nom)
         else:
-            #            print ('json:changeschema', obj, obj.schema)
+            print("json:changeschema", obj, obj.schema)
 
             ressource.handler.changeclasse(obj.schema)
         regle.ressource = ressource
@@ -216,7 +216,10 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
 # reader: (reader, geom, has_schema, auxfiles, converter, initer)
 # writer: (writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,
 #          geomwriter, tmpgeowriter))
-READERS = {"json": (lire_objets, None, True, (), None, objreader)}
+READERS = {
+    "json": (lire_objets, None, True, (), None, objreader),
+    "geojson": (lire_objets, None, True, (), None, objreader),
+}
 WRITERS = {
     "json": (
         ecrire_objets,
@@ -229,7 +232,19 @@ WRITERS = {
         None,
         "#tmp",
         None,
-    )
+    ),
+    "geojson": (
+        ecrire_objets,
+        jsonstreamer,
+        False,
+        "",
+        0,
+        "",
+        "classe",
+        None,
+        "#tmp",
+        None,
+    ),
 }
 
 

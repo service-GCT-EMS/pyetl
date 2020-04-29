@@ -169,9 +169,10 @@ def h_ftpupload(regle):
         passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
         regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
         regle.servertyp = servertyp
+        regle.destdir = regle.params.cmp2.val
     else:  # connection complete dans l'url
         regle.servertyp = "direct"
-    regle.destdir = regle.params.cmp2.val
+        # regle.destdir = getftpinfo(regle, regle.params.cmp2.val)
 
 
 def getftpinfo(regle, fichier):
@@ -183,7 +184,7 @@ def getftpinfo(regle, fichier):
         servertyp = "sftp"
         fichier = fichier[7:]
     else:
-        print("service FTP inconnu", fichier)
+        print("service FTP inconnu", fichier, regle)
         raise ftplib.error_perm
     acces, elem = fichier.split("@", 1)
     user, passwd = acces.split(":", 1)
@@ -196,7 +197,7 @@ def getftpinfo(regle, fichier):
 def ftpconnect(regle):
     """connection ftp"""
     _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-    # print ('ouverture acces ',regle.getvar('acces_ftp'))
+    print("ouverture acces ", regle.getvar("acces_ftp"))
     try:
         if servertyp == "tls":
             regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)

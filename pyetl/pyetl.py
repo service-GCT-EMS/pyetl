@@ -1094,6 +1094,11 @@ class Pyetl(object):
         self.macro_final()
         return
 
+    def cleanschemas(self):
+        """reinitialise tous les schemas"""
+        for schema in self.schemas.values():
+            schema.cleanrules()
+
     def macrorunner(
         self, texte, parametres=None, entree=None, sortie=None, retour=None
     ):
@@ -1201,11 +1206,11 @@ class Pyetl(object):
         """retourne un reader"""
         return Writer(nom_format, regle, None)
 
-    def getdbaccess(self, regle, nombase, type_base=None, chemin="", description=None):
+    def getdbaccess(self, regle, nombase, type_base=None, chemin=""):
         """retourne une connection et la cache"""
         if nombase in self.dbconnect:
             return self.dbconnect[nombase]
-        connection = dbaccess(regle, nombase, type_base, chemin, description)
+        connection = dbaccess(regle, nombase, type_base, chemin)
         if connection:
             self.dbconnect[nombase] = connection
         return connection
