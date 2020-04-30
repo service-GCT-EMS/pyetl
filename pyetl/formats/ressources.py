@@ -156,10 +156,19 @@ class GestionSorties(object):
         """ verouille une ressource existante"""
         if id_ressource in self.ressources:
             regle.setroot("derniere_sortie", id_ressource)
-            print("positionnement derniere sortie", id_ressource)
+            # print("positionnement derniere sortie", id_ressource)
             if not usebuffer:
                 self.lock(regle, id_ressource)
-            return self.ressources[id_ressource]
+            retour = self.ressources[id_ressource]
+            if retour.etat == 3:
+                # ressource finalisee
+                if regle.getvar("overwrite") == "1":
+                    del self.ressources[id_ressource]
+                    return None
+                else:
+                    print("fichier deja utilise", id_ressource, "positionner overwrite")
+                    raise StopIteration(3)
+            return retour
         return None
 
     def creres(self, regle, id_ressource, handler, usebuffer=False):
@@ -229,7 +238,7 @@ class GestionSorties(object):
     def final(self, idmapper):
         """fin de ficher"""
         nb_obj = 0
-        # print ('dans final', self.ressources)
+        # print("dans final", self.ressources)
         nb_fich = 0
         for res in self.ressources.values():
             if res.idmapper == idmapper:

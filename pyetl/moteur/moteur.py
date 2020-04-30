@@ -19,10 +19,8 @@ class Moteur(object):
         self.regles = ()
         self.mapper = mapper
         self.debug = 0
-        self.ident_courant = ""
         self.regle_debut = 0
         self.dupcnt = 0
-        self.ncnt = 0
         self.suppcnt = 0
 
     @property
@@ -139,7 +137,6 @@ class Moteur(object):
         while regle:
             last = regle
             regle.declenchee = True
-            self.ncnt += 1
             try:
                 if regle.selstd is None or regle.selstd(obj):
                     #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)

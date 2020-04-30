@@ -544,7 +544,6 @@ def _prepare_batch_from_object(regle, obj):
 
     comm = regle.getval_entree(obj)
     commande = comm if comm else obj.attributs.get("commandes", "")
-    #    print("commande batch", commande)
 
     entree = obj.attributs.get("entree", regle.getvar("_entree"))
     sortie = obj.attributs.get("sortie", regle.getvar("_sortie"))
@@ -557,6 +556,8 @@ def _prepare_batch_from_object(regle, obj):
         params = params + [
             "=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])
         ]
+    print("commande batch", numero, commande, entree, sortie, params)
+
     return (numero, commande, entree, sortie, params)
 
 
@@ -597,6 +598,8 @@ def h_batch(regle):
 
 def f_batch(regle, obj):
     """#aide||execute un traitement batch a partir des parametres de l'objet
+            ||s'il n y a pas de commandes en parametres elle sont prises dans l objet
+            ||les attribut utilise sont: commandes,entree,sortie et parametres
  #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
  #aide_spec1||execute pour chaque objet, demarre toujours, meme sans objets
    #pattern1||A;?C;?A;batch;?=run;||cmp1

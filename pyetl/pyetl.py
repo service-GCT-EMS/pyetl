@@ -252,8 +252,6 @@ class Pyetl(object):
 
         self.liens_variables = dict()
         self.duree = 0
-        self.attlists = dict()
-        self.ident_courant = ("", "")
         self._set_streammode()
         self.done = False
 
@@ -1001,6 +999,7 @@ class Pyetl(object):
             self.padd("_st_wr_objs", nb_total)
         if self.moteur:
             self.padd("_st_obj_duppliques", self.moteur.dupcnt)
+            self.padd("_st_obj_supprimes", self.moteur.suppcnt)
 
     def process(self, debug=0):
         """traite les entrees """

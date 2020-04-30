@@ -21,6 +21,8 @@ classe origine; classe destination; mapping attributs (optionnel)
 ou
 
 niveau origine; classe origine; niveau destination; classe destination ; mapping attributs (optionnel)
+exemple:
+
 
 fichier d'inclusion de classes
 ------------------------------

@@ -30,7 +30,8 @@ class JsonWriter(FileWriter):
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
-        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
+        if schemaclasse:
+            self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
 
     def write(self, obj):
         """ecrit un objet"""
