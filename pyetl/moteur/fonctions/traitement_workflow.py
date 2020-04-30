@@ -853,7 +853,7 @@ def f_attreader(regle, obj):
     #aide_speca||pour le conserver positionner la variable keepdata a 1
     #pattern||;?C;A;attreader;C;?C
     """
-    print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
+    # print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.reader.attaccess(obj)
     if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""

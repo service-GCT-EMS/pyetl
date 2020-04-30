@@ -109,7 +109,11 @@ def set_parallelretour(mapper, valide):
         ),
         # "stats": {nom: stat.retour() for nom, stat in mapper.statstore.stats.items()},
         "stats": mapper.statstore.retour(),
-        "timers": {"fin": time.time(), "debut": mapper.starttime},
+        "timers": {
+            "fin": time.time(),
+            "debut": mapper.starttime,
+            "duree": round(time.time() - mapper.starttime, 2),
+        },
     }
     return retour
 
@@ -251,7 +255,13 @@ def suivi_job(mapper, work):
             if retour_process is not None:
                 num_obj, retour = retour_process
                 if isinstance(retour, dict):  # c'est un retour complet de type batch
-                    print("retour batch", retour["stats_generales"]["_st_lu_objs"])
+                    print(
+                        "retour batch",
+                        num_obj,
+                        retour["stats_generales"]["_st_lu_objs"],
+                        retour["timers"]["duree"],
+                        "s",
+                    )
                     rfin[num_obj] = 0
                 else:
                     rfin[num_obj] = retour
@@ -599,6 +609,8 @@ def iter_boucle(regle):
     """traite les batchs en parallele en mode bouclage (iterateur de jobs)"""
     endtime = regle.getvar("endtime", "23:59")
     minute = -1
+    selector = regle.getvar("att_select", "#_timeselect")
+    ordre = regle.getvar("att_ordre", "ordre")
     while time.strftime("%H:%M") < endtime:
         time.sleep(1)
         if time.localtime().tm_min == minute:
@@ -608,17 +620,25 @@ def iter_boucle(regle):
             continue
         minute = time.localtime().tm_min
         print("traitement", minute)
+        blocs = dict()
         for obj in regle.tmpstore:
-            # print("-------------iter----traitement", obj)
-            # macro de timeselect
-            retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
-            n = 0
-            if obj.attributs.get("#_timeselect", "") == "1":  # validation d' execution
-                job = regle.prepare(regle, obj)
-                n += 1
-                # print("------------------------------iter_boucle envoi", job)
-                yield (1, job)
-                print("envoye", n, "jobs\nattente", end="", flush=True)
+            regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            if obj.attributs.get(selector, "") == "1":
+                passage = float(obj.attributs.get(ordre, 9999))
+                if passage in blocs:
+                    blocs[passage].append(obj)
+                else:
+                    blocs[passage] = [obj]
+                # on pretraite toute la liste pour voir ce qui est executable
+        for bloc in blocs:
+            for obj in blocs[bloc]:
+                n = 0
+                if obj.attributs.get(selector, "") == "1":  # validation d' execution
+                    job = regle.prepare(regle, obj)
+                    n += 1
+                    # print("------------------------------iter_boucle envoi", job)
+                    yield (1, job)
+                    # print("envoye", n, "jobs\nattente", end="", flush=True)
 
 
 # -----------gestion de process externes en batch--------

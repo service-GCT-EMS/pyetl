@@ -197,7 +197,8 @@ def getftpinfo(regle, fichier):
 def ftpconnect(regle):
     """connection ftp"""
     _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
-    print("ouverture acces ", regle.getvar("acces_ftp"))
+    if regle.debug:
+        print("ouverture acces ", regle.getvar("acces_ftp"))
     try:
         if servertyp == "tls":
             regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
@@ -243,14 +244,16 @@ def f_ftpupload(regle, obj):
         retour = ftpconnect(regle)
         if not retour:
             return False
-        print("connection ftp etablie")
+        if regle.debug:
+            print("connection ftp etablie")
 
     try:
         # print ('envoi fichier',filename,'->',destname)
         if regle.servertyp == "sftp":
             regle.ftp.cwd(regle.destdir)
             regle.ftp.put(filename)
-            print("transfert effectue", filename, "->", destname)
+            if regle.debug:
+                print("transfert effectue", filename, "->", destname)
         else:
             if regle.params.pattern == "2":
                 input = io.BytesIO()
@@ -261,7 +264,8 @@ def f_ftpupload(regle, obj):
                 localfile = open(filename, "rb")
                 regle.ftp.storbinary("STOR " + destname, localfile)
                 localfile.close()
-            print("transfert effectue", filename, "->", destname)
+            if regle.debug:
+                print("transfert effectue", filename, "->", destname)
         return True
 
     except ftplib.all_errors as err:
@@ -289,19 +293,22 @@ def f_ftpdownload(regle, obj):
         retour = ftpconnect(regle)
         if not retour:
             return False
-        print("connection ftp etablie")
+        if regle.debug:
+            print("connection ftp etablie")
     if not regle.params.att_sortie.val:
         localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
         localname = os.path.join(localdir, filename)
         os.makedirs(os.path.dirname(localname), exist_ok=True)
-        print("creation repertoire", os.path.dirname(localname))
+        if regle.debug:
+            print("creation repertoire", os.path.dirname(localname))
     else:
         localname = "[" + regle.params.att_sortie.val + "]"
         localdir = "."
 
     try:
         if regle.servertyp == "sftp":
-            print("choix repertoire", regle.destdir)
+            if regle.debug:
+                print("choix repertoire", regle.destdir)
             regle.ftp.cwd(regle.destdir)
             if filename == "*":
                 regle.ftp.get_d(".", localdir, preserve_mtime=True)
@@ -321,7 +328,8 @@ def f_ftpdownload(regle, obj):
                 localfile = open(localname, "wb")
                 regle.ftp.retrbinary("RETR " + filename, localfile.write)
                 localfile.close()
-        print("transfert effectue", filename, "->", localname)
+        if regle.debug:
+            print("transfert effectue", filename, "->", localname)
         return True
 
     except ftplib.all_errors as err:
@@ -354,9 +362,11 @@ def f_httpdownload(regle, obj):
       #test||notest
       """
     url = regle.getval_entree(obj)
-    print("telechargement", url)
     retour = requests.get(url, stream=regle.params.pattern == "1")
-    print("info", retour.headers)
+
+    if regle.debug:
+        print("telechargement", url)
+        print("info", retour.headers)
     obj.sethtext("#http_header", dic=retour.headers)
     taille = int(retour.headers["Content-Length"])
 
