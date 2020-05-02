@@ -1,5 +1,5 @@
-default_role = :any:
-autosectionlabel_prefix_document
+.. .. default_role = :any:
+.. autosectionlabel_prefix_document
 
 Documentation de Pyetl
 ======================
@@ -13,22 +13,12 @@ Documentation de Pyetl
    usage/installation
    usage/quickstart
    usage/principes
-   references/commandes
-   autodoc/commandedef
-   references/macros
-   autodoc/macrodef
-   references/scripts
-   references/fichiers
-   references/formats
-   autodoc/formatdef
-   references/variables
-   references/parametres
+   references/reference
+
+
 
    developpement/principes
-   developpement/scripts
-   developpement/macros
-   developpement/commandes
-   developpement/formats
+
 
 Indices and tables
 ==================

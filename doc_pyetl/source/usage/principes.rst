@@ -1,6 +1,11 @@
-=====================================
-principes de fonctionnement de mapper
-=====================================
+===================
+Le programme mapper
+===================
+
+La librairie Pyetl est accompagnee du programme Mapper
+
+Mapper est une interface en ligne de commande permettant d'utiliser la bibliotheque Pyetl
+
 
 modes de fonctionnement
 =======================

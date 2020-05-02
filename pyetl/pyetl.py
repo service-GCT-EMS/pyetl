@@ -409,7 +409,7 @@ class Pyetl(object):
             build = not nom
             if not nom:
                 tmpdir = os.path.join(
-                    self.getvar("_progdir"), "../doc_pyetl/source/autodoc"
+                    self.getvar("_progdir"), "../doc_pyetl/source/references/autodoc"
                 )
                 nom = self.getvar("_autodoc", tmpdir)
 

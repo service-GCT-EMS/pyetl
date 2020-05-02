@@ -1,11 +1,14 @@
 ===================
-Creation de scripts
+Création de scripts
 ===================
 
-Les parametres permettent d enregistre les caracteristiques des connections pour les
-    * bases de donnees
-    * sites web
-    * serveurs ftp
+Le script est le niveau de base de developpement de pyetl. pour tout traitement specifique qui ne
+peut pas etre realise par un simple appel de macro, la solution la plus simple est de creer un scripts
 
-Les parametres peuvent etre partages ou individuels.
-si des parametres incluent des mots de passe il est possible de les crypter
+un script est un fichier csv comportant des lignes de commandes et des inclusions de macros ou d autres scripts
+
+la structure typique d un script comprend
+une partie d affectation de variables
+un ensemble de commandes
+
+si le script definit ses propres macros elles doivent etre definies avant d etre utilisees.

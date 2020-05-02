@@ -1,5 +1,5 @@
 ==================
-creation de macros
+création de macros
 ==================
 
 Les parametres permettent d enregistre les caracteristiques des connections pour les

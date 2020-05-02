@@ -1,4 +1,3 @@
-=========================
 fichiers de configuration
 =========================
 
@@ -54,3 +53,25 @@ niveau.classe.attribut;valeur
 ou
 
 base.niveau.classe.attribut;valeur
+
+fichiers listes
+---------------
+
+fichiers texte simple comprenant un item par ligne utilises par les condition in:
+
+fichiers qgs
+------------
+
+des fichiers qgs peuvent etre utilises directement comme liste de definition de classes
+toutes les classes contenues dans les definitions de type datasource du fichier qgs
+
+une condition ``in:projet.qgs`` selectionne toutes les classes dóbjets utilisees dans le projet qgis
+
+repertoires
+-----------
+
+Pyetl peut scanner des arborescences completes pour extraire l ensemble des classes referenceees
+dans les fichiers qgs et csv. les doublons sont automatiquement géres
+
+une condition de type in:repertoire va selectionner toutes les classes d'objets contenus dans au moin un des projets qgis
+ou fichier csv ou texte du repertoire et de ses sous repertoires

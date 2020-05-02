@@ -1,9 +1,11 @@
-===============
-reference pyetl
-===============
+=========
+commandes
+=========
 
-structure generale
-==================
+
+structure d une ligne de commande
+=================================
+
 
 toutes les commandes pyetl sont structurées de la même facon sous forme d une ligne de 13 colonnes
 toutes les colonnes ne sont pas utilisees systematiquement
@@ -15,8 +17,6 @@ la position est importante
 +------+--------+------+--------+-------+--------+--------+-----------+--------+--------+-------+-----------+
 
 
-types de lignes de commande
-===========================
 il y a 5 types de lignes de commandes
 
 affectation de variables
@@ -64,6 +64,11 @@ commande
     * colonne 11 flag de debug
     * colonne 12 definition de variables locales
     * colonne 13 commentaires
+
+.. toctree::
+    :maxdepth: 2
+
+    autodoc/commandedef
 
 import de macros
 ----------------

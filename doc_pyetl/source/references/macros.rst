@@ -24,3 +24,12 @@ import d une macro avec execution immediate
 <<#nom;valeur...
 
 une macro peut importer d autres macros
+
+macros integrees:
+-----------------
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Contents:
+
+    autodoc/macrodef

@@ -1,5 +1,5 @@
 ===================
-Creation de formats
+Création de formats
 ===================
 
 Les parametres permettent d enregistre les caracteristiques des connections pour les

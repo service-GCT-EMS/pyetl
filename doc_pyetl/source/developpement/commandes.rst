@@ -1,5 +1,5 @@
 =====================
-Creation de commandes
+Création de commandes
 =====================
 
 Les parametres permettent d enregistre les caracteristiques des connections pour les

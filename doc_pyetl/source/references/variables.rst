@@ -1,4 +1,4 @@
-=========
+
 variables
 =========
 
@@ -59,7 +59,7 @@ les variables sont statiques elles sont remplacees par leur valeur a l interpret
 seule la macro finale peut utiliser les variables de stats internes
 
 contextes
-.........
+---------
 
 chaque variable appartient à un contexte, les contextes sont hierarchiques:
  chaue script bloc macro ou regle cree un contexte,

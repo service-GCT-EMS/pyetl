@@ -2538,6 +2538,8 @@ batch
 .....
 
    execute un traitement batch a partir des parametres de l'objet
+   s'il n y a pas de commandes en parametres elle sont prises dans l objet
+   les attribut utilise sont: commandes,entree,sortie et parametres
 
 
 **syntaxes acceptees**
