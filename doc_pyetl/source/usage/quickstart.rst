@@ -21,6 +21,8 @@ aide detaille sur un element
 commandes utiles
 ................
 
+structure generale d un appel:
+
 ``mapper commande entree sortie parametres``
 
     commande   : nom de script ou de macro (obligatoire)
@@ -35,7 +37,6 @@ commandes utiles
 convertit tous les fichier du repertoire rep_entree en shp et les stocke dans rep_sortie
 
 **analyse de fichiers**
-
 
 ``mapper #analyse rep_entree rep_sortie``
 

@@ -363,6 +363,29 @@ def doc_macros(mapper):
     """genere la doc sphinx des commandes"""
     doc = ["reference macros"]
     souligne(doc, "-")
+
+    doc.append("%-25s  %s" % ("=========================", "========"))
+    doc.append("%-25s  %s" % ("     nom de la macro     ", "fonction"))
+    doc.append("%-25s  %s" % ("=========================", "========"))
+    for nom_macro in sorted(mapper.getmacrolist()):
+        doc.append(
+            "%-25s  %s"
+            % (
+                nom_macro,
+                "\n".join(
+                    [
+                        i
+                        for i in mapper.getmacro(nom_macro).help[:-1].split(";")
+                        if i.strip()
+                    ]
+                ),
+            )
+        )
+    doc.append("%-25s  %s" % ("=========================", "========"))
+
+    doc.append("")
+    doc.append("")
+    doc.append("")
     return doc
 
 
@@ -370,6 +393,19 @@ def doc_formats(mapper):
     """genere la doc sphinx des commandes"""
     doc = ["reference formats"]
     souligne(doc, "-")
+    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    doc.append("%-20s   %10s    %10s" % ("format", "lecture", "ecriture"))
+    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+
+    formats_connus = set(mapper.formats_connus_lecture.keys()) | set(
+        mapper.formats_connus_ecriture.keys()
+    )
+    for nom_format in sorted(formats_connus):
+        lect = "oui" if nom_format in mapper.formats_connus_lecture else "non"
+        ecrit = "oui" if nom_format in mapper.formats_connus_ecriture else "non"
+        doc.append("%-20s   %10s    %10s" % (nom_format, lect, ecrit))
+    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+
     return doc
 
 

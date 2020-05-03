@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-""" format asc en lecture et ectiture"""
+""" format asc en lecture et ecriture
+"""
 
 import os
 import re
@@ -653,5 +654,8 @@ WRITERS = {
         "geom_asc",
         None,
     )
+}
+DESCRIPTION = {
+    "asc": ("le format asc est le format externe du logiciel ELYX de one spatial")
 }
 #########################################################################

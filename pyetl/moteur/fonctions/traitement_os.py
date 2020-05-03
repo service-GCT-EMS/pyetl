@@ -16,7 +16,7 @@ import time
 try:
     import win32security
 except ImportError:
-    print("Module win32security non disponible : pas d info utilisateurs")
+    print("module  win32security non disponible : pas d info utilisateurs")
     win32security = None
 from .outils import getfichs
 

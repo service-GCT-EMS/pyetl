@@ -29,10 +29,10 @@ puis par la commande
 
 il est possible de completer un groupe de parametres avec la commande
 
-``&&#add;nom
-  variable;valeur
-  ...
-  ##&end;``
+``&&#add;nom``
+``variable;valeur``
+``...``
+``##&end;``
 
 
 le groupe nomme init est lu automatiquement au lancement de Pyetl

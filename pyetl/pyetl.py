@@ -13,10 +13,11 @@ import re
 # import platform
 import logging
 import itertools
-from collections import defaultdict
-from types import MethodType
-from pathlib import Path
-from zipfile import ZipFile
+
+# from collections import defaultdict
+# from types import MethodType
+# from pathlib import Path
+# from zipfile import ZipFile
 
 
 # print('base',time.time()-t1)
@@ -402,27 +403,31 @@ class Pyetl(object):
 
         elif commande == "autodoc":
             from pyetl.helpdef.helpmodule import autodoc
+            from distutils.dir_util import copy_tree
 
             print(" generation documentation ", nom)
             doc = autodoc(self)
             print("apres generation documentation ", doc.keys())
-            build = not nom
-            if not nom:
-                tmpdir = os.path.join(
-                    self.getvar("_progdir"), "../doc_pyetl/source/references/autodoc"
-                )
-                nom = self.getvar("_autodoc", tmpdir)
-
+            build = self.getvar("_autobuild", "1") == "1"
+            sourcedir = os.path.join(self.getvar("_progdir"), "../doc_pyetl")
+            if nom:
+                os.makedirs(nom, exist_ok=True)
+                copy_tree(sourcedir, nom, update=1)
+                sourcedir = nom
+            autodocdir = os.path.join(sourcedir, "source/references/autodoc")
+            os.makedirs(autodocdir, exist_ok=True)
             for nomdoc, contenu in doc.items():
-                ref = os.path.join(nom, nomdoc + "def.rst")
+                ref = os.path.join(autodocdir, nomdoc + "def.rst")
                 print("ecriture doc", nomdoc, ref)
                 with open(ref, "w", encoding="utf-8") as dest:
                     dest.write("\n".join(contenu))
             if build:
-                builder = (
-                    os.path.join(self.getvar("_progdir"), "../doc_pyetl/make") + " html"
-                )
+                builder = os.path.join(sourcedir, "make") + " html "
+
                 os.system(builder)
+                print(
+                    "generation format html dans", os.path.join(sourcedir, "build/html")
+                )
 
         elif commande == "#autotest" or commande == "autotest":
             #            print("detecte autotest ", self.fichier_regles, self.posparm)

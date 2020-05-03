@@ -73,5 +73,10 @@ repertoires
 Pyetl peut scanner des arborescences completes pour extraire l ensemble des classes referenceees
 dans les fichiers qgs et csv. les doublons sont automatiquement géres
 
-une condition de type in:repertoire va selectionner toutes les classes d'objets contenus dans au moin un des projets qgis
+une condition de type ``in:repertoire`` va selectionner toutes les classes d'objets contenus dans au moins un des projets qgis
 ou fichier csv ou texte du repertoire et de ses sous repertoires
+
+fichiers de jointures
+---------------------
+
+tout fichier csv peut etre utilise comme fichierde jointure

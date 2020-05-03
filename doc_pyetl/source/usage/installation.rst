@@ -26,3 +26,15 @@ ce fichier peut etre completé avec des variables d environnement specifiques au
 
     * test de l installation :
       ``mapper #unittest``
+
+documentation
+=============
+
+Pyetl peut generer sa documentation en incluant notamment les macros specifiques au site
+
+
+Génération de la documentation
+
+``mapper #autodoc destination``
+
+genere une doc sous forme d un site html statique dans le repertoire destination/build/html/index.html
