@@ -20,29 +20,16 @@ DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
-
-class Tableselector(object):
-    """condition de selection de tables dans une base de donnees ou des fichiers
-        generes par des condition in: complexes"""
-
-    def __init__(self, mapper, base):
+class TableBaseSelector(object):
+    """condition de selection de tables dans un schema"""
+    def __init__(self, mapper, base=None, schemaref=None):
         self.mapper = mapper
-        self.base = self.idbase(base)
-        self.chemin = ""
-        self.type_base = None
-        self.schemabase = None
+        self.base = base
+        self.schemaref = schemaref
+        self.valide=bool(base or schemaref)
+        self.mapprefix=""
         self.descripteurs = []
         self.direct = set()
-
-    def idbase(self, base):
-        """identifie une base de donnees"""
-        if base in self.mapper.dbref:
-            if isinstance(base, str):
-                self.base = base
-            else:
-                self.base = self.mapper.dbref[base]
-        else:
-            print("base inconnue", base)
 
     def add_classe(self, classe):
         self.direct.add(classe)
@@ -54,6 +41,7 @@ class Tableselector(object):
         """convertit une liste de descripteurs en liste de classes"""
         connect = self.mapper.getdbaccess(regle, self.base)
         self.schemabase = connect.schemabase
+        self.direct=set([i for i in self.direct if i in self.schemabase.classes])
         for descripteur in self.descripteurs:
             niveau, classe, attr, mod = descripteur
             mod = mod.upper()
@@ -65,6 +53,56 @@ class Tableselector(object):
                 niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
             )
             self.direct.update(classlist)
+
+
+
+class Tableselector(object):
+    """condition de selection de tables dans des base de donnees ou des fichiers
+        generes par des condition in: complexes"""
+
+    def __init__(self, mapper):
+        self.baseselectors=dict()
+        self.classes=dict()
+        self.inverse=dict()
+        self.mapper = mapper
+        self.mapmode=None
+
+    def add_selector(self, base, descripteur):
+        base=self.idbase(base)
+        if not base:
+            return
+        if base not in self.baseselectors:
+            self.baseselectors[base]=TableBaseSelector(self.mapper,base)
+        self.baseselectors[base].add_descripteur(descripteur)
+
+    def idbase(self, base):
+        """identifie une base de donnees"""
+        if base in self.mapper.dbref:
+            if isinstance(base, str):
+                return base
+            return self.mapper.dbref[base]
+        print("base inconnue", base)
+        return None
+
+    def remap(self,ident, base):
+        if self.mapmode is None:
+            return ident
+        niveau,classe=ident
+        n2=(base,niveau) if self.mapmode=="bn" else (niveau,base)
+        return ("_".join(n2),classe)
+
+
+    def resolve(self):
+        for base in self.baseselectors:
+            self.baseselectors[base].resolve()
+            for ident in self.baseselectors[base].direct:
+                id2=self.remap(ident,base)
+                b2=self.inverse.get(id2)
+                if b2 and b2!=base:
+                    print (" mapping ambigu",ident,"dans" , base ,"et", b2)
+                    continue
+                self.inverse[id2]=base
+                self.classes[base][ident]=id2
 
     def getschematravail(self, schemabase):
         pass
@@ -82,7 +120,7 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         serveur = regle.getvar("server_" + codebase, "")
-        type_base = regle.getvar("db_" + codebase, "")
+        type_base = regle.getvar("db_" + codebase, ""
         # print("acces base", codebase, base, serveur, type_base)
         if not base and regle.getvar("autobase"):
             # on essaye de charger des groupes connus
@@ -116,8 +154,8 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
         #       serveur = os.path.join(regle.getvar("racine"), chemin)
         serveur = ""
         #        servertyp = type_base
-        base = nombase
-        print("filedb", type_base, "-->", nombase)
+        base = codebase
+        print("filedb", type_base, "-->", codebase)
 
     user = regle.getvar("user_" + codebase, "")
     passwd = regle.getvar("passwd_" + codebase, "")
@@ -324,7 +362,7 @@ def get_connect(
         return None
 
     connect = stock_param.getdbaccess(
-        regle, nombase, type_base=type_base, chemin=chemin, description=description
+        regle, nombase, type_base=type_base, chemin=chemin
     )
 
     if connect is None:

@@ -409,9 +409,33 @@ def doc_formats(mapper):
     return doc
 
 
+def doc_select(mapper):
+    """genere la doc sphinx des selecteurs"""
+    """affiche l'aide des selecteurs """
+    doc = ["reference sélecteurs"]
+    souligne(doc, "-")
+
+    result = dict()
+    for i in mapper.selecteurs:
+        sel = mapper.selecteurs[i]
+        clef = sel.work.__name__
+        if clef in result:
+            result[clef]["patterns"].append(i)
+        else:
+            result[clef] = {"patterns": [i], "aide": sel.description.get("#aide", [])}
+
+    for i in sorted(result):
+        sel = result[i]
+        doc.extend(["   * " + j for j in sel["patterns"]])
+        doc.extend(["       - " + j for j in sel.get("aide", [])])
+        doc.append("")
+    return doc
+
+
 def autodoc(mapper):
     doc = dict()
     doc["commande"] = doc_commandes(mapper)
     doc["macro"] = doc_macros(mapper)
     doc["format"] = doc_formats(mapper)
+    doc["select"] = doc_select(mapper)
     return doc

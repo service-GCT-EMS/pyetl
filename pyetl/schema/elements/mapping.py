@@ -15,8 +15,8 @@ class MatchClasses(object):
     def __init__(self, source, destination, att_source, att_dest):
         self.classe_source = source
         self.classe_destination = destination
-        self.att_source = att_source if att_source else dict()
-        self.att_dest = att_dest if att_dest else dict()
+        self.att_source = dict(att_source) if att_source else dict()
+        self.att_dest = dict(att_dest) if att_dest else dict()
 
     def _match_direct(self):
         """egalite"""
@@ -47,7 +47,9 @@ class MatchClasses(object):
     def _match_fuzzy(self, qual=0.5):
         """mode rantanplan par defaut on limite les initiatives en gardant qual a 0.5"""
         upperdest = {i.upper(): i for i in self.att_dest if self.att_dest[i] is None}
-        a_traiter = {i.upper(): i for i in self.att_source if self.att_source[i] is None}
+        a_traiter = {
+            i.upper(): i for i in self.att_source if self.att_source[i] is None
+        }
         nb_a_traiter = len(a_traiter)
         matcher = difflib.SequenceMatcher(None)
         while a_traiter and upperdest:
@@ -66,19 +68,29 @@ class MatchClasses(object):
                 valmatch[i] = bestmatch
                 score[i] = vmax
             vmax = 0
+            valeur = None
+            bestmatch = None
             for i in a_traiter:
                 if score[i] > vmax:
                     vmax = score[i]
                     valeur = i
                     bestmatch = valmatch[i]
             if vmax == 0:
-                print("impossible de matcher le reste", a_traiter.values(), upperdest.values())
+                print(
+                    "impossible de matcher le reste",
+                    a_traiter.values(),
+                    upperdest.values(),
+                )
                 break
             self.att_source[a_traiter[valeur]] = upperdest[bestmatch]
             print("match", a_traiter[valeur], upperdest[bestmatch], vmax)
             self.att_dest[upperdest[bestmatch]] = self.att_source[a_traiter[valeur]]
-            upperdest = {i.upper(): i for i in self.att_dest if self.att_dest[i] is None}
-            a_traiter = {i.upper(): i for i in self.att_source if self.att_source[i] is None}
+            upperdest = {
+                i.upper(): i for i in self.att_dest if self.att_dest[i] is None
+            }
+            a_traiter = {
+                i.upper(): i for i in self.att_source if self.att_source[i] is None
+            }
         if upperdest:
             print("attributs destination non mappes ", upperdest.values())
         if a_traiter:
@@ -114,12 +126,15 @@ class MatchClasses(object):
             casematch, reste = self._match_upper()
         if auto > 2 and reste:  # match au mieux
             fuzzymatch, reste = self._match_fuzzy(qual)
-        print("generation de correspondance ", directmatch, casematch, fuzzymatch, reste)
+        print(
+            "generation de correspondance ", directmatch, casematch, fuzzymatch, reste
+        )
 
     def map_attributs(self, obj):
         """ remappe les attributs d'un objet"""
         obj.attributs = {
-            self.att_source.get(nom, nom): valeur for nom, valeur in obj.attributs.items()
+            self.att_source.get(nom, nom): valeur
+            for nom, valeur in obj.attributs.items()
         }
         obj.attributs["#classe"] = self.classe_destination.nom
         obj.setschema(self.classe_destination.schema)
@@ -228,7 +243,7 @@ class Mapping(object):
                 print("ligne incomplete", i)
                 continue
             self.existe = True
-            if '*' in s_orig or '*' in c_orig:
+            if "*" in s_orig or "*" in c_orig:
                 self.multiple = True
             orig = (s_orig, c_orig)
             fin = (s_fin, c_fin)
@@ -241,7 +256,6 @@ class Mapping(object):
             self._valide_mapping(c_orig, self.mapping_classe_schema, s_orig, "orig 2")
             self._valide_mapping(c_fin, self.mapping_classe_schema, s_fin, "fin 2")
 
-
     def map_classes(self, classes):
         """ force les origines des classes"""
         if self.existe:
@@ -250,7 +264,10 @@ class Mapping(object):
                 if i in self.mapping_origine:
                     classes[i].origine = self.mapping_origine[i]
                 else:
-                    if nom in self.mapping_classe_schema and not nom in self.mappings_ambigus:
+                    if (
+                        nom in self.mapping_classe_schema
+                        and not nom in self.mappings_ambigus
+                    ):
                         groupe = self.mapping_classe_schema[nom]
                         if (groupe, nom) in self.mapping_origine:
                             classes[i].origine = self.mapping_origine[(groupe, nom)]
@@ -265,14 +282,23 @@ class Mapping(object):
             id_dest = None
             if self.multiple:
                 g_orig, c_orig = id_orig
-                for gref,cref in self.mapping_destination:
+                for gref, cref in self.mapping_destination:
                     # print ('test' , gref,cref, g_orig,c_orig)
-                    if gref.replace('*','') in g_orig and cref.replace('*','') in c_orig:
+                    if (
+                        gref.replace("*", "") in g_orig
+                        and cref.replace("*", "") in c_orig
+                    ):
                         id_dest = self.mapping_destination.get((gref, cref))
                         break
             else:
                 id_dest = self.mapping_destination.get(id_orig)
-            print ('--------------------------mapping',id_orig,'->',id_dest,self.mapping_destination )
+            print(
+                "--------------------------mapping",
+                id_orig,
+                "->",
+                id_dest,
+                self.mapping_destination,
+            )
 
             if id_dest:
                 return id_dest
@@ -328,7 +354,9 @@ class Mapping(object):
                     print(" mapping ambigu ", id_cl[1])
                     return ""
                 else:
-                    id_cl = self.mapping_classe_schema.get(id_cl[1], ("non trouve", id_cl[1]))
+                    id_cl = self.mapping_classe_schema.get(
+                        id_cl[1], ("non trouve", id_cl[1])
+                    )
                     # print ('recuperation',ci,cl[1])
             if id_cl in self.mapping_origine:
                 origine = self.mapping_origine[id_cl]

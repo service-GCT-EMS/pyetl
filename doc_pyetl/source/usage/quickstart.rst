@@ -1,8 +1,8 @@
 ================
-demarrage rapide
+démarrage rapide
 ================
 
-**demarrage et test de l installation**
+**démarrage et test de l installation**
 
 
 
@@ -10,7 +10,7 @@ demarrage rapide
 
 ``mapper #help``
 
-aide detaille sur un element
+aide détaillée sur un élément
 
 ``mapper #help element``
 
@@ -21,7 +21,7 @@ aide detaille sur un element
 commandes utiles
 ................
 
-structure generale d un appel:
+structure générale d un appel:
 
 ``mapper commande entree sortie parametres``
 
@@ -30,24 +30,24 @@ structure generale d un appel:
     sortie     : repertoire de sortie ( peut etre precise dans le script )
     parametres : groupes de la forme nom=valeur si la valeut contient des blancs il faut l entourer de "
 
-**conversion de fichers**
+**conversion de fichiers**
 
 ``mapper #extract rep_entree rep_sortie format=shp``
 
-convertit tous les fichier du repertoire rep_entree en shp et les stocke dans rep_sortie
+convertit tous les fichier du répertoire rep_entree en shp et les stocke dans rep_sortie
 
 **analyse de fichiers**
 
 ``mapper #analyse rep_entree rep_sortie``
 
-analyse tous les fichier du repertoire rep_entree et genere la structure dans rep_sortie
+analyse tous les fichier du répertoire rep_entree et génère la structure dans rep_sortie
 en csv et xml
 
 ``mapper #analyse rep_entree rep_sortie format_schema=sql:postgis``
 
-analyse tous les fichier du repertoire rep_entree et genere la structure dans rep_sortie
-en sql : l'execution des fichiers generes cree une base postgis capable d acceuillir les donnees
+analyse tous les fichier du répertoire rep_entree et génère la structure dans rep_sortie
+en sql : l'exécution des fichiers générés crée une base postgis capable d accueillir les donnees
 
-**extraction de bases de donnees**
+**extraction de bases de données**
 
 ``mapper #dbextract acces=base format=shp``

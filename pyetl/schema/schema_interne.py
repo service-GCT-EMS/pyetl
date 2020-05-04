@@ -11,7 +11,7 @@ from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
-from .abbrev import dic_abrev
+from .abbrev import dic_abrev as abbr
 
 # schemas : description de la structure des objets
 
@@ -107,7 +107,7 @@ class Schema(object):
                        """
 
     # types_G={0:"ALPHA",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
-    dic_abrev = dic_abrev
+    dic_abrev = abbr
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()

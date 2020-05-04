@@ -648,6 +648,10 @@ def get_pool(maxworkers):
     """prepare un gestionnaire de pool de process"""
     return {i: dict() for i in range(max(maxworkers, 1))}
 
+def add_worker(pool):
+    """ajoute un emplacement a un pool"""
+    maxnum = max(pool.keys())
+    pool[maxnum+1]=dict()
 
 def get_slot(pool):
     """surveille un pool de process et determine s'il y a une disponibilité  sans attendre"""

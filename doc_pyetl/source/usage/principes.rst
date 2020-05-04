@@ -2,9 +2,9 @@
 Le programme mapper
 ===================
 
-La librairie Pyetl est accompagnee du programme Mapper
+La librairie Pyetl est accompagnée du programme Mapper
 
-Mapper est une interface en ligne de commande permettant d'utiliser la bibliotheque Pyetl
+Mapper est une interface en ligne de commande permettant d'utiliser la bibliothèque Pyetl
 
 
 modes de fonctionnement
@@ -28,11 +28,11 @@ mode ligne de commandes
     les macros peuvent etre
 
         * des macros internes fournies avec pyetl
-        * des macros partagees dans un ficher `macros.csv dans un repertoire
+        * des macros partagées dans un ficher ``macros.csv`` dans un répertoire
           indique par la variable d environnement ``PYETL_SITE_PARAMS``
-        * des macros stockees en base de données
-        * des macros personnelles dans le ficher macros.csv du repertoire ``.pyetl``
-          dans le repertoire de l'utilisateur
+        * des macros stockées en base de données
+        * des macros personnelles dans le ficher macros.csv du répertoire ``.pyetl``
+          dans le répertoire de l'utilisateur
 
 mode batch
 ----------
@@ -43,7 +43,7 @@ mode batch
 
     mapper execute un ensemble de scripts decrits dans un fichier csv ou une table de base de données
 
-mode temps reel
+mode temps réel
 ---------------
 
     ``mapper #tpr fichier_desriptif``

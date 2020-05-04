@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\claude\\Anaconda3\\envs\\mapper\\python.exe",
+    "python.pythonPath": "C:\\Users\\89965\\AppData\\Local\\Continuum\\Anaconda3\\envs\\mapper\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": false,
     "python.linting.pylintEnabled": true,
@@ -7,5 +7,15 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    "python.condaPath": "C:\\Users\\claude\\Anaconda3\\Scripts"
+    "python.condaPath": "C:\\Users\\claude\\Anaconda3\\Scripts",
+    "spellright.language": [
+        "fr"
+    ],
+    "spellright.documentTypes": [
+        "*.rst",
+        "markdown",
+        "latex",
+        "plaintext",
+        "rst"
+    ]
 }
