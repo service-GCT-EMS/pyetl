@@ -20,14 +20,16 @@ DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
+
 class TableBaseSelector(object):
     """condition de selection de tables dans un schema"""
+
     def __init__(self, mapper, base=None, schemaref=None):
         self.mapper = mapper
         self.base = base
         self.schemaref = schemaref
-        self.valide=bool(base or schemaref)
-        self.mapprefix=""
+        self.valide = bool(base or schemaref)
+        self.mapprefix = ""
         self.descripteurs = []
         self.direct = set()
 
@@ -41,7 +43,7 @@ class TableBaseSelector(object):
         """convertit une liste de descripteurs en liste de classes"""
         connect = self.mapper.getdbaccess(regle, self.base)
         self.schemabase = connect.schemabase
-        self.direct=set([i for i in self.direct if i in self.schemabase.classes])
+        self.direct = set([i for i in self.direct if i in self.schemabase.classes])
         for descripteur in self.descripteurs:
             niveau, classe, attr, mod = descripteur
             mod = mod.upper()
@@ -55,24 +57,23 @@ class TableBaseSelector(object):
             self.direct.update(classlist)
 
 
-
 class Tableselector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
         generes par des condition in: complexes"""
 
     def __init__(self, mapper):
-        self.baseselectors=dict()
-        self.classes=dict()
-        self.inverse=dict()
+        self.baseselectors = dict()
+        self.classes = dict()
+        self.inverse = dict()
         self.mapper = mapper
-        self.mapmode=None
+        self.mapmode = None
 
     def add_selector(self, base, descripteur):
-        base=self.idbase(base)
+        base = self.idbase(base)
         if not base:
             return
         if base not in self.baseselectors:
-            self.baseselectors[base]=TableBaseSelector(self.mapper,base)
+            self.baseselectors[base] = TableBaseSelector(self.mapper, base)
         self.baseselectors[base].add_descripteur(descripteur)
 
     def idbase(self, base):
@@ -84,25 +85,24 @@ class Tableselector(object):
         print("base inconnue", base)
         return None
 
-    def remap(self,ident, base):
+    def remap(self, ident, base):
         if self.mapmode is None:
             return ident
-        niveau,classe=ident
-        n2=(base,niveau) if self.mapmode=="bn" else (niveau,base)
-        return ("_".join(n2),classe)
-
+        niveau, classe = ident
+        n2 = (base, niveau) if self.mapmode == "bn" else (niveau, base)
+        return ("_".join(n2), classe)
 
     def resolve(self):
         for base in self.baseselectors:
             self.baseselectors[base].resolve()
             for ident in self.baseselectors[base].direct:
-                id2=self.remap(ident,base)
-                b2=self.inverse.get(id2)
-                if b2 and b2!=base:
-                    print (" mapping ambigu",ident,"dans" , base ,"et", b2)
+                id2 = self.remap(ident, base)
+                b2 = self.inverse.get(id2)
+                if b2 and b2 != base:
+                    print(" mapping ambigu", ident, "dans", base, "et", b2)
                     continue
-                self.inverse[id2]=base
-                self.classes[base][ident]=id2
+                self.inverse[id2] = base
+                self.classes[base][ident] = id2
 
     def getschematravail(self, schemabase):
         pass
@@ -120,7 +120,7 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         serveur = regle.getvar("server_" + codebase, "")
-        type_base = regle.getvar("db_" + codebase, ""
+        type_base = regle.getvar("db_" + codebase, "")
         # print("acces base", codebase, base, serveur, type_base)
         if not base and regle.getvar("autobase"):
             # on essaye de charger des groupes connus
