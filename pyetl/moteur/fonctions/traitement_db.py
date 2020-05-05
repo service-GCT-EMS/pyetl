@@ -23,6 +23,10 @@ def _mode_niv_in(regle, niv, autobase=False):
     cmp = []
     base = []
     print("mode_niv in:lecture_fichier", valeurs)
+    selecteur = DB.TableSelector(regle)
+    for i in valeurs:
+        selecteur.add_selector(*i)
+        print("add_selector", i)
     for i in valeurs:
         liste_defs = valeurs[i]
         # print("mode_niv in:liste_defs",liste_defs)
@@ -212,8 +216,10 @@ def setdb(regle, obj, att=True):
     else:
         valeur = cmp
     basedict = dict()
+    # bd2 = DB.TableSelector(regle.stock_param)
     if isinstance(base, list):
         for numero, idbase in enumerate(base):
+            # bd2.add_selector(idbase, basedict[idbase])
             if idbase in basedict:
                 niv, cla, attr, val, chm, typ = basedict[idbase]
                 niv.extend(niveau[numero])

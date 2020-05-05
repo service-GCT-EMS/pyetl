@@ -223,7 +223,6 @@ def charge_liste_classes(fichier, codec=DEFCODEC, debug=False, taille=1):
     return retour
 
 
-
 def _charge_liste_csv(
     fichier, codec=DEFCODEC, debug=False, taille=1, positions=None, dest=""
 ):
@@ -293,7 +292,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, des
                     #     liste = l_tmp[1].split(" ")
                     #     valeur = liste[0].replace('"', "")
                     if table:
-                        dbdef = (database, host.lower(), port)
+                        dbdef = (database, "host=" + host.lower(), "port=" + port)
                         if taille == 1:
                             clef = table
                         elif taille == 2:
@@ -301,13 +300,8 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, des
                         else:
                             niv, cla = table.split(".", 1)
                             clef = (dbdef, niv, cla)
-                        stock[clef] = [
-                            table,
-                            "",
-                            database,
-                            "host=" + host,
-                            "port=" + port,
-                        ]
+                        stock[clef] = (table, dbdef)
+
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
@@ -453,12 +447,12 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0):
                 positions = [int(i) for i in fi2[1:]]
             valeurs = charge_liste(fichier, taille=taille, positions=positions)
             # on precharge le fichier de jointure
-            print(
-                "outils: chargement liste ",
-                fichier,
-                "------>",
-                "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
-            )
+            # print(
+            #     "outils: chargement liste ",
+            #     fichier,
+            #     "------>",
+            #     "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
+            # )
     return mode, valeurs
 
 

@@ -57,18 +57,24 @@ class TableBaseSelector(object):
             self.direct.update(classlist)
 
 
-class Tableselector(object):
+class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
         generes par des condition in: complexes"""
 
-    def __init__(self, mapper):
+    def __init__(self, regle):
+        self.regle_ref = regle
+        self.mapper = regle.stock_param
         self.baseselectors = dict()
         self.classes = dict()
         self.inverse = dict()
-        self.mapper = mapper
         self.mapmode = None
 
     def add_selector(self, base, descripteur):
+        if "." in base:
+            tmp = base.split(".")
+            if len(tmp) >= 3:
+                base = tmp[0]
+                descripteur = tmp[1:]
         base = self.idbase(base)
         if not base:
             return
@@ -82,7 +88,7 @@ class Tableselector(object):
             if isinstance(base, str):
                 return base
             return self.mapper.dbref[base]
-        print("base inconnue", base)
+        print("base inconnue", base, self.mapper.dbref)
         return None
 
     def remap(self, ident, base):
@@ -1158,6 +1164,8 @@ def dbload(regle, base, niveau, classe, obj):
 
 
 def dbupdate(regle, base, niveau, classe, attribut, obj):
+
+    requete = "UPDATE "
     pass
 
 

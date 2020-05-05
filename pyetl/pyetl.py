@@ -402,7 +402,7 @@ class Pyetl(object):
             print_help(self, nom)
 
         elif commande == "autodoc":
-            from pyetl.helpdef.helpmodule import autodoc
+            from pyetl.helpdef.docmodule import autodoc
             from distutils.dir_util import copy_tree
 
             print(" generation documentation ", nom)

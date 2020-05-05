@@ -778,11 +778,8 @@ class DbConnect(object):
         atttext = join_char.join(attlist2)
         return atttext, attlist
 
-    def prepare_attribut(self, schema, attribut, valeur):
-        """ prepare une requete faisant appel a des attributs"""
-        if not attribut:
-            return "", ()
-        oper = "="
+    def getcast(self, schema, attribut):
+        """prepare les conversions de valeurs"""
         if attribut in self.sys_fields:  # c est un champ systeme
             attribut, type_att = self.sys_fields[attribut]
         else:
@@ -796,7 +793,14 @@ class DbConnect(object):
             cast = self.numcast
         elif schema.attributs[attribut].conformite:
             cast = self.textcast
+        return attribut, cast
 
+    def prepare_condition(self, schema, attribut, valeur):
+        """ prepare une requete faisant appel a des attributs"""
+        if not attribut:
+            return "", ()
+        oper = "="
+        attribut, cast = self.getcast(schema, attribut)
         if isinstance(valeur, (set, list)) and len(valeur) > 1:
 
             data = self.multivaldata(valeur)
@@ -828,7 +832,7 @@ class DbConnect(object):
     def req_count(self, ident, schema, attribut, valeur, mods):
         """compte un enesemble de valeurs en base"""
 
-        condition, data = self.prepare_attribut(schema, attribut, valeur)
+        condition, data = self.prepare_condition(schema, attribut, valeur)
 
         requete = " SELECT count(*) FROM " + quote_table(ident) + condition
         resultat = self.request(requete, data)
@@ -839,7 +843,7 @@ class DbConnect(object):
         niveau, classe = ident
         attlist = []
         atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
-        condition, data = self.prepare_attribut(schema, attribut, valeur)
+        condition, data = self.prepare_condition(schema, attribut, valeur)
         requete = " SELECT " + atttext + " FROM " + quote_table(ident) + condition
         if ordre:
             requete = requete + " ORDER BY " + attqjoiner(ordre, ",")
@@ -1011,3 +1015,30 @@ class DbConnect(object):
         curs = self.request(requete, ())
         valeur = curs[0][0]
         return valeur
+
+    def req_update_obj(self, ident, schema, attribut, valeur, clef):
+        """recupere les elements d'une requete alpha"""
+        niveau, classe = ident
+        if ident not in self.schemabase.classes:
+            return False
+        tablekey = self.schemabase.classes[ident].getpkey
+        requete = (
+            " UPDATE "
+            + quote_table(ident)
+            + " SET "
+            + attribut
+            + " = "
+            + valeur
+            + " WHERE "
+            + tablekey
+            + "="
+            + clef
+        )
+
+        #        print ('parametres',data,valeur)
+        data = valeur
+        if not attribut:
+            requete = ""
+            data = ()
+
+        return self.request(requete, data)
