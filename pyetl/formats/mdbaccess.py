@@ -31,6 +31,8 @@ class TableBaseSelector(object):
         self.valide = bool(base or schemaref)
         self.mapprefix = ""
         self.descripteurs = []
+        # un descripteur est un tuple
+        # (type,[niveau],[classe],[attribut], [valeur])
         self.direct = set()
 
     def add_classe(self, classe):
@@ -61,9 +63,11 @@ class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
         generes par des condition in: complexes"""
 
-    def __init__(self, regle):
+    def __init__(self, regle, base=None):
         self.regle_ref = regle
         self.mapper = regle.stock_param
+        self.autobase = base is None
+        self.base = base
         self.baseselectors = dict()
         self.classes = dict()
         self.inverse = dict()
@@ -75,8 +79,11 @@ class TableSelector(object):
             if len(tmp) >= 3:
                 base = tmp[0]
                 descripteur = tmp[1:]
-        base = self.idbase(base)
-        if not base:
+        if self.autobase:
+            base = self.idbase(base)
+        else:
+            base = self.base
+        if base is None:
             return
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self.mapper, base)

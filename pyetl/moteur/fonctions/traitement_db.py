@@ -14,6 +14,15 @@ from .outils import prepare_mode_in
 LOGGER = logging.getLogger("pyetl")
 
 
+def get_tableselector(regle, base=None):
+    """ retourne un selecteur de tables : ensemble de conditions compexes permettant
+    de cibler les tables a traiter
+    un selecteur de tables peut adresser plusieures bases a la fois
+    en general il est cree a partir d un mode in
+    """
+    selector = DB.TableSelector(regle, base=base)
+
+
 def _mode_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
     mode_select, valeurs = prepare_mode_in(niv, regle, taille=2)
@@ -71,8 +80,9 @@ def param_base(regle):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
-    if base == "*":
+    if base == "*" or base == "":
         base = ""
+        autobase = True
 
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
@@ -81,20 +91,9 @@ def param_base(regle):
     attrs = []
     cmp = []
     print("param_base", base, niv, cla, att)
-    if niv.lower().startswith(
-        "s:"
-    ):  # selection directe du style niveau,classe.attribut
-        if len(niv.split(".")) != 3:
-            print(
-                "dbselect: il faut une description complete s:niveau.classe.attribut",
-                niv,
-            )
-        else:
-            att = niv.split(".")[2]
-            niveau = [niv]
-    #    elif re.match("\[.*\]", niv) and
 
-    elif niv.lower().startswith("in:"):  # mode in
+    if niv.lower().startswith("in:"):  # mode in
+        selector = get_tableselector(regle, base=base)
         if base:
             _, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
         else:  # mode mutibase (projets qgis ou csv multibase)
@@ -102,6 +101,7 @@ def param_base(regle):
                 regle, niv[3:], autobase=True
             )
     elif cla.lower().startswith("in:"):  # mode in
+        selector = get_tableselector(base, niveau=niv, descripteur=cla[3:])
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         classe = list(valeurs.keys())

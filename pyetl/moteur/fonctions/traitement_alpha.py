@@ -718,7 +718,7 @@ def h_join(regle):
 def f_join(regle, obj):
     """#aide||jointures
     #pattern||L;?;A;join;C[];?C||cmp1
-    #pattern2||;?;A;join;#C;?C||cmp1
+    #pattern2||M?;?;A;join;#C;?C||cmp1
  #parametres||sortie;defaut;entree;;fichier (dynamique)
             ||position des champs dans le fichier (ordre)
   #attributs||#repertoire (optionnel) repertoire du fichier
@@ -736,9 +736,9 @@ def f_join(regle, obj):
             if regle.recup_geom:
                 obj.geom_v = copy.deepcopy(obj_joint.geom_v)
             if regle.champs and regle.champs != "*":
-                vlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
+                vnlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
             else:
-                vlist = [
+                vnlist = [
                     (i, j)
                     for i, j in obj_joint.attributs.items()
                     if not i.startswith("#")
@@ -746,7 +746,11 @@ def f_join(regle, obj):
         else:
             return False
         # print("list", vlist)
-        obj.attributs.update(vlist)
+        if regle.params.att_sortie.liste:
+            regle.setval_sortie(obj, [i[1] for i in vnlist])
+        else:
+            obj.attributs.update(vnlist)
+
     else:
         obj.attributs[regle.params.att_sortie.val] = regle.stock_param.jointure(
             regle.fichier,

@@ -66,19 +66,9 @@ class DefinitionAttribut(object):
         "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")*)$", "S", "S", "liste"),  # liste
         "L": (r"^(" + asdef + r"(?:," + asdef + r")*|\*)$", "L", "M", "liste"),  # liste
         "LV": (r"^$", "L", "M", "liste"),  # liste avec defauts
-        "L2": (
-            r"^(" + asdef + r"(?:\|" + asdef + r")*|\*)$",
-            "L",
-            "M",
-            "liste",
-        ),  # liste
+        "L2": (r"^(" + asdef + r"(?:\|" + asdef + r")*|\*)$", "L", "M", "liste"),
         "LC": (r"^(.+(?:,.*)*)$", "C", "", "liste"),  # liste de valeurs
-        "T:": (
-            r"^T:([A-Z]+)$",
-            "L",
-            "",
-            "type",
-        ),  # definition d'attributs par leutr type
+        "T:": (r"^T:([A-Z]+)$", "L", "", "type"),
         "+L": (r"^\+(" + asdef + r"(?:," + asdef + r")*)$", "L", "M", "liste"),  # liste
         "L+": (r"^(" + asdef + r"(?:," + asdef + r")*)\+$", "L", "M", "liste"),  # liste
         "P": (r"^[Pp]:(" + asdef + r")$", "P", "P", "parametre"),

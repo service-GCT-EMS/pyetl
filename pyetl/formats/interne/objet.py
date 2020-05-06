@@ -270,7 +270,7 @@ class Objet(object):
         geom = self.geom_v.__json_if__
         #        print ('jsonio recupere ',geom)
         return (
-            '{"type": "feature",'
+            '{"type": "Feature",'
             # + ('\n"id": "' + (str(self.attributs.get(self.key, self.ido))) + '",')
             # if self.key
             # else ""
@@ -286,9 +286,8 @@ class Objet(object):
                 ]
             )
             + "},\n"
-            + geom
-            if geom
-            else "" + "}\n"
+            + (geom if geom else "")
+            + "}\n"
         )
 
     @property
