@@ -168,7 +168,7 @@ def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
 
 
 def hasbom(fichier, encoding):
-    if open(os.path.join(fichier), "rb").read(10).startswith(codecs.BOM_UTF8):
+    if open(fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
         return "utf-8-sig"
     return encoding
 

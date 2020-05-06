@@ -101,13 +101,14 @@ def getlog(args):
     log = None
     log_level = None
     log_print = None
-    for i in args:
-        if "log=" in i:
-            log = i.split("=")[1]
-        if "log_level=" in i:
-            log_level = i.split("=")[1]
-        if "log_print=" in i:
-            log_print = i.split("=")[1]
+    if args:
+        for i in args:
+            if "log=" in i:
+                log = i.split("=")[1]
+            if "log_level=" in i:
+                log_level = i.split("=")[1]
+            if "log_print=" in i:
+                log_print = i.split("=")[1]
     return log, log_level, log_print
 
 

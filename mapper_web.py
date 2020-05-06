@@ -14,8 +14,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello_world():
+    runpyetl("scripts/tps_reel_w.csv", None)
     return "hello world"
-    return runpyetl("#help", None)
 
 
 # print ('mapper: fin import modules',int(time.time()-t1))
