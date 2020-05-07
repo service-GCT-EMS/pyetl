@@ -32,7 +32,7 @@ class TableBaseSelector(object):
         self.mapprefix = ""
         self.descripteurs = []
         # un descripteur est un tuple
-        # (type,[niveau],[classe],[attribut], [valeur])
+        # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.direct = set()
 
     def add_classe(self, classe):
@@ -72,6 +72,58 @@ class TableSelector(object):
         self.classes = dict()
         self.inverse = dict()
         self.mapmode = None
+
+    def make_descripteur(self, liste, classes, attribut, valeur, fonction):
+        niv = ""
+        cla = classes
+        base = liste.pop(0) if self.autobase else self.base
+        if len(liste) == 1:
+            niv = liste[0]
+        elif len(liste) == 2:
+            niv, cla = liste
+        elif len(liste) == 3:
+            _, niv, cla = liste
+        descripteur = (niv, cla, attribut, valeur, fonction)
+        self.add_selector(base, descripteur)
+
+    def split_pt(self, element):
+        if not element:
+            return [""]
+        tmp = element.split(".")
+        tmp2 = [tmp[0]]
+        for j in tmp[1:]:
+            if j and j[0].isalpha():
+                tmp2[-1] = tmp2[-1] + "." + j
+            else:
+                tmp2.append(j)
+        return tmp2
+
+    def make_nivlist(self, niveau):
+        nivlist = []
+        if not niveau:
+            return []
+        if not isinstance(niveau, list):
+            niveau = [niveau]
+        for i in niveau:
+            nivlist.append(self.split_pt(i))
+            tmp = i.split(".")
+            tmp2 = [tmp[0]]
+            for j in tmp[1:]:
+                if j and j[0].isalpha():
+                    tmp2[-1] = tmp2[-1] + "." + j
+                else:
+                    tmp2.append(j)
+
+    def add_niveau(self, niveau, attribut, valeur, fonction):
+        """ajoute un descripteur de niveau simple"""
+
+        self.make_descripteur(tmp2, [], attribut, valeur, fonction)
+
+    def add_niv_class(self, niveau, classe, attribut, valeur, fonction):
+        if not niveau:
+            niveau = [""]
+        for i in niveau:
+            self.make_descripteur(liste, classes, attribut, valeur, fonction)
 
     def add_selector(self, base, descripteur):
         if "." in base:

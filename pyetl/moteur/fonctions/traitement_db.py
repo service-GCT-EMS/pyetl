@@ -32,13 +32,13 @@ def _mode_niv_in(regle, niv, autobase=False):
     cmp = []
     base = []
     print("mode_niv in:lecture_fichier", valeurs)
-    selecteur = DB.TableSelector(regle)
+    # selecteur = DB.TableSelector(regle)
+    # for i in valeurs:
+    #     selecteur.add_selector(*i)
+    #     print("add_selector", i)
     for i in valeurs:
-        selecteur.add_selector(*i)
-        print("add_selector", i)
-    for i in valeurs:
-        liste_defs = valeurs[i]
-        # print("mode_niv in:liste_defs",liste_defs)
+        liste_defs = list(valeurs[i])
+        print("mode_niv in:liste_defs", liste_defs)
 
         def1 = liste_defs.pop(0).split(".")
         if (
@@ -93,7 +93,6 @@ def param_base(regle):
     print("param_base", base, niv, cla, att)
 
     if niv.lower().startswith("in:"):  # mode in
-        selector = get_tableselector(regle, base=base)
         if base:
             _, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
         else:  # mode mutibase (projets qgis ou csv multibase)
@@ -101,7 +100,6 @@ def param_base(regle):
                 regle, niv[3:], autobase=True
             )
     elif cla.lower().startswith("in:"):  # mode in
-        selector = get_tableselector(base, niveau=niv, descripteur=cla[3:])
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         classe = list(valeurs.keys())
