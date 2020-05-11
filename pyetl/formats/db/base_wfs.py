@@ -30,16 +30,26 @@ TYPES_A = {
     "xsd:date": "DS",
     "date": "DS",
     "xsd:int": "E",
+    "xsd:short": "E",
     "int": "E",
     "integer": "E",
     "long": "EL",
+    "xsd:long": "EL",
     "xsd:dateTime": "D",
     "dateTime": "D",
     "xsd:double": "F",
+    "xsd:decimal": "F",
     "double": "F",
 }
 
-TYPES_G = {"gml:PointPropertyType": "1", "gml:GeometryPropertyType": "-1"}
+TYPES_G = {
+    "gml:PointPropertyType": "1",
+    "gml:GeometryPropertyType": "-1",
+    "gml:MultiPolygonPropertyType": "3",
+    "gml:PolygonPropertyType": "3",
+    "gml:MultiLineStringPropertyType": "2",
+    "gml:LineStringPropertyType": "2",
+}
 
 ALLTYPES = dict(TYPES_A)
 ALLTYPES.update(TYPES_G)
@@ -210,6 +220,8 @@ class WfsConnect(DbConnect):
         tables = self.tablelist
         # print("servicewfs: get_atttributs", retourdesc.text)
         namespace = getnamespace(tree)
+        groupe = self.base
+        nom = "inconnu"
         for elem in tree.iter(namespace + "element"):
             if elem.get("substitutionGroup") == "gml:_Feature":
                 nom = elem.get("name")

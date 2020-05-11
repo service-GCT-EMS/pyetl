@@ -14,15 +14,6 @@ from .outils import prepare_mode_in
 LOGGER = logging.getLogger("pyetl")
 
 
-def get_tableselector(regle, base=None):
-    """ retourne un selecteur de tables : ensemble de conditions compexes permettant
-    de cibler les tables a traiter
-    un selecteur de tables peut adresser plusieures bases a la fois
-    en general il est cree a partir d un mode in
-    """
-    selector = DB.TableSelector(regle, base=base)
-
-
 def _mode_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
     mode_select, valeurs = prepare_mode_in(niv, regle, taille=2)
@@ -125,7 +116,8 @@ def param_base(regle):
     print("parametres acces base", base, niveau, classe, att, regle)
 
     regle.cible_base = (base, niveau, classe, att)
-    return True
+    return
+
 
 
 def valide_dbmods(modlist):
@@ -686,41 +678,19 @@ def h_recup_schema(regle):
     nombase, niveau, classe, _ = regle.cible_base
     regle.setlocal("mode_schema", "dbschema")
 
-    if isinstance(nombase, list):  # cas particulier des extractions multibases
-        # raise
-        regle.setlocal("autobase", "1")
-        distincts = set(nombase)
-        print("detection extraction multibase", distincts)
-        for defbase in distincts:  # description schemas multibases
-            nombase, host, port = defbase
-            host = host.lower()
-            port = port.lower()
-            defbase = (nombase, host, port)
-            if defbase in regle.stock_param.dbref:
-                nombase = regle.stock_param.dbref[defbase]
-                print("multibase:recup base", defbase, nombase)
-                regle.stock_param.load_paramgroup(nombase, nom=nombase)
-            else:
-                print("recup impossible", defbase, regle.stock_param.dbref)
-                nombase, host, port = defbase
-            DB.recup_schema(
-                regle, nombase, niveau, classe, nombase, description=defbase
-            )
+    regle.type_base = regle.getvar("db_" + nombase)
+    if nombase:
+        nomschema = (
+            regle.params.val_entree.val if regle.params.val_entree.val else nombase
+        )
+        if regle.params.att_sortie.val == "schema_entree":
+            regle.setvar("schema_entree", nomschema)
+        if regle.params.att_sortie.val == "schema_sortie":
+            regle.setvar("schema_sortie", nomschema)
         regle.valide = "done"
-    else:
-        regle.type_base = regle.getvar("db_" + nombase)
-        if nombase:
-            nomschema = (
-                regle.params.val_entree.val if regle.params.val_entree.val else nombase
-            )
-            if regle.params.att_sortie.val == "schema_entree":
-                regle.setvar("schema_entree", nomschema)
-            if regle.params.att_sortie.val == "schema_sortie":
-                regle.setvar("schema_sortie", nomschema)
-            regle.valide = "done"
-            print("h_recup_schema", nomschema, "->", nombase, regle.valide)
-            DB.recup_schema(regle, nombase, niveau, classe, nomschema)
-        return True
+        print("h_recup_schema", nomschema, "->", nombase, regle.valide)
+        DB.recup_schema(regle, nombase, niveau, classe, nomschema)
+    return True
 
 
 def f_recup_schema(regle, obj):

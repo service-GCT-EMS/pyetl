@@ -122,9 +122,7 @@ def selh_infich(selecteur):
         taille=len(selecteur.params.attr.liste),
     )
     if mode == "in_s":
-        if isinstance(valeurs, list):
-            valeurs = set(valeurs)
-        selecteur.info = set(valeurs)
+        selecteur.info = set(i[0] for i in valeurs)
         selecteur.dyn = False
     else:
         selecteur.dyn = True
@@ -164,11 +162,18 @@ def selh_infich_re(selecteur):
     # on recupere les complements s'il y en a
 
     pref, suf = selecteur.params.vals.definition[0].split(":F:")
-    #    print ('-------------------------------in fich_re',selecteur.params.vals.definition, pref,suf)
+    # print(
+    #     "-------------------------------in fich_re",
+    #     selecteur.params.vals.definition,
+    #     pref,
+    #     suf,
+    #     valeurs,
+    # )
 
     if isinstance(valeurs, list):
         valeurs = set(valeurs)
-    selecteur.info = [re.compile(pref + i + suf) for i in valeurs]
+    selecteur.info = [re.compile(pref + i[0] + suf) for i in valeurs]
+    # TODO gerer correctement les listes
 
 
 #    print ('selecteur infichre fich charge ',selecteur.info)

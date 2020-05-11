@@ -12,3 +12,4 @@ reference pyetl
     fichiers.rst
     variables.rst
     formats.rst
+    selecteurs.rst

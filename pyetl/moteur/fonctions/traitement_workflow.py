@@ -556,7 +556,7 @@ def _prepare_batch_from_object(regle, obj):
         params = params + [
             "=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])
         ]
-    print("commande batch", numero, commande, entree, sortie, params)
+    # print("commande batch", numero, commande, entree, sortie, params)
 
     return (numero, commande, entree, sortie, params)
 

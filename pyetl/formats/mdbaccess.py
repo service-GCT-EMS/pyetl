@@ -21,158 +21,6 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-class TableBaseSelector(object):
-    """condition de selection de tables dans un schema"""
-
-    def __init__(self, mapper, base=None, schemaref=None):
-        self.mapper = mapper
-        self.base = base
-        self.schemaref = schemaref
-        self.valide = bool(base or schemaref)
-        self.mapprefix = ""
-        self.descripteurs = []
-        # un descripteur est un tuple
-        # (type,niveau,classe,attribut,condition,valeur,mapping)
-        self.direct = set()
-
-    def add_classe(self, classe):
-        self.direct.add(classe)
-
-    def add_descripteur(self, descripteur):
-        self.descripteurs.append(descripteur)
-
-    def resolve(self, regle):
-        """convertit une liste de descripteurs en liste de classes"""
-        connect = self.mapper.getdbaccess(regle, self.base)
-        self.schemabase = connect.schemabase
-        self.direct = set([i for i in self.direct if i in self.schemabase.classes])
-        for descripteur in self.descripteurs:
-            niveau, classe, attr, mod = descripteur
-            mod = mod.upper()
-            multi = "=" in mod
-            mod = mod.replace("=", "")
-            nocase = "NOCASE" in mod
-            mod = mod.replace("NOCASE", "")
-            classlist = self.schemabase.select_classes(
-                niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
-            )
-            self.direct.update(classlist)
-
-
-class TableSelector(object):
-    """condition de selection de tables dans des base de donnees ou des fichiers
-        generes par des condition in: complexes"""
-
-    def __init__(self, regle, base=None):
-        self.regle_ref = regle
-        self.mapper = regle.stock_param
-        self.autobase = base is None
-        self.base = base
-        self.baseselectors = dict()
-        self.classes = dict()
-        self.inverse = dict()
-        self.mapmode = None
-
-    def make_descripteur(self, liste, classes, attribut, valeur, fonction):
-        niv = ""
-        cla = classes
-        base = liste.pop(0) if self.autobase else self.base
-        if len(liste) == 1:
-            niv = liste[0]
-        elif len(liste) == 2:
-            niv, cla = liste
-        elif len(liste) == 3:
-            _, niv, cla = liste
-        descripteur = (niv, cla, attribut, valeur, fonction)
-        self.add_selector(base, descripteur)
-
-    def split_pt(self, element):
-        if not element:
-            return [""]
-        tmp = element.split(".")
-        tmp2 = [tmp[0]]
-        for j in tmp[1:]:
-            if j and j[0].isalpha():
-                tmp2[-1] = tmp2[-1] + "." + j
-            else:
-                tmp2.append(j)
-        return tmp2
-
-    def make_nivlist(self, niveau):
-        nivlist = []
-        if not niveau:
-            return []
-        if not isinstance(niveau, list):
-            niveau = [niveau]
-        for i in niveau:
-            nivlist.append(self.split_pt(i))
-            tmp = i.split(".")
-            tmp2 = [tmp[0]]
-            for j in tmp[1:]:
-                if j and j[0].isalpha():
-                    tmp2[-1] = tmp2[-1] + "." + j
-                else:
-                    tmp2.append(j)
-
-    def add_niveau(self, niveau, attribut, valeur, fonction):
-        """ajoute un descripteur de niveau simple"""
-
-        self.make_descripteur(tmp2, [], attribut, valeur, fonction)
-
-    def add_niv_class(self, niveau, classe, attribut, valeur, fonction):
-        if not niveau:
-            niveau = [""]
-        for i in niveau:
-            self.make_descripteur(liste, classes, attribut, valeur, fonction)
-
-    def add_selector(self, base, descripteur):
-        if "." in base:
-            tmp = base.split(".")
-            if len(tmp) >= 3:
-                base = tmp[0]
-                descripteur = tmp[1:]
-        if self.autobase:
-            base = self.idbase(base)
-        else:
-            base = self.base
-        if base is None:
-            return
-        if base not in self.baseselectors:
-            self.baseselectors[base] = TableBaseSelector(self.mapper, base)
-        self.baseselectors[base].add_descripteur(descripteur)
-
-    def idbase(self, base):
-        """identifie une base de donnees"""
-        if base in self.mapper.dbref:
-            if isinstance(base, str):
-                return base
-            return self.mapper.dbref[base]
-        print("base inconnue", base, self.mapper.dbref)
-        return None
-
-    def remap(self, ident, base):
-        if self.mapmode is None:
-            return ident
-        niveau, classe = ident
-        n2 = (base, niveau) if self.mapmode == "bn" else (niveau, base)
-        return ("_".join(n2), classe)
-
-    def resolve(self):
-        for base in self.baseselectors:
-            self.baseselectors[base].resolve()
-            for ident in self.baseselectors[base].direct:
-                id2 = self.remap(ident, base)
-                b2 = self.inverse.get(id2)
-                if b2 and b2 != base:
-                    print(" mapping ambigu", ident, "dans", base, "et", b2)
-                    continue
-                self.inverse[id2] = base
-                self.classes[base][ident] = id2
-
-    def getschematravail(self, schemabase):
-        pass
-
-
 def dbaccess(regle, codebase, type_base=None, chemin=""):
     """ouvre l'acces a la base de donnees et lit le schema"""
     base = codebase
@@ -184,22 +32,12 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
 
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
-        serveur = regle.getvar("server_" + codebase, "")
-        type_base = regle.getvar("db_" + codebase, "")
-        # print("acces base", codebase, base, serveur, type_base)
-        if not base and regle.getvar("autobase"):
-            # on essaye de charger des groupes connus
-            print("mode autobase", codebase)
-            try:
-                stock_param.load_paramgroup(codebase, nom=codebase)
-                base = regle.getvar("base_" + codebase, "")
-                serveur = regle.getvar("server_" + codebase, "")
-                type_base = regle.getvar("db_" + codebase, "")
-            except KeyError:
-                print("mdba: multiple : base non definie", codebase)
         if not base:
             print("mdba: base non definie", codebase)
             return None
+        serveur = regle.getvar("server_" + codebase, "")
+        type_base = regle.getvar("db_" + codebase, "")
+        # print("acces base", codebase, base, serveur, type_base)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
