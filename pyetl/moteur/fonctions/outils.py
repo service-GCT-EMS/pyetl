@@ -224,8 +224,10 @@ def charge_liste_classes(fichier, codec=DEFCODEC, debug=False, taille=1):
 
 
 def _charge_liste_csv(
-    fichier, codec=DEFCODEC, debug=False, taille=1, positions=None, dest=""
+    fichier, codec="", debug=False, taille=1, positions=None, mode="txt"
 ):
+    if not codec:
+        codec = DEFCODEC
     """prechargement d un fichier de liste csv"""
     stock = dict()
     if taille > 0:  # taille = 0 veut dire illimite
@@ -245,9 +247,14 @@ def _charge_liste_csv(
                         continue
                 liste = ligne.split(";")
                 if any([i.strip() for i in liste]):
-                    if taille == -1:
+                    if taille <= 0:
                         stock[ligne] = liste
                     else:
+                        if mode != "txt":
+                            bdef = liste.pop(0)
+                            tmp = bdef.split(".", taille)
+                            tmp.extend(liste)
+                            liste = tmp
                         if len(liste) < taille:
                             liste = list(
                                 itertools.islice(itertools.cycle(liste), taille)
@@ -257,7 +264,7 @@ def _charge_liste_csv(
             print("chargement liste", fichier)
     except FileNotFoundError:
         print("fichier liste introuvable ", fichier)
-    print("prechargement csv", stock)
+    # print("prechargement csv", stock)
     return stock
 
 
@@ -272,13 +279,15 @@ def _extract(ligne, clef):
     return ""
 
 
-def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, dest=""):
+def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, mode="txt"):
     """prechargement d un fichier projet qgis"""
-
+    if not codec:
+        codec = DEFCODEC
     stock = dict()
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
+            print("lecture projet qgs", taille, fichier)
             for i in fich:
 
                 if "datasource" in i:
@@ -296,10 +305,17 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, des
                         if taille == 1:
                             clef = table
                         elif taille == 2:
+                            if mode == "txt" or mode == "n":
+                                clef = tuple(table.split(".", 1))
                             clef = (dbdef, table)
                         else:
+
                             niv, cla = table.split(".", 1)
-                            clef = (dbdef, niv, cla)
+                            if mode == "txt":
+                                txt = ",".join(dbdef)
+                                clef = (txt, niv, cla)
+                            else:
+                                clef = (dbdef, niv, cla)
                         stock[clef] = (table, dbdef)
 
         if debug:
@@ -310,7 +326,7 @@ def _charge_liste_projet_qgs(fichier, codec=DEFCODEC, debug=False, taille=1, des
     return stock
 
 
-def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None):
+def charge_liste(fichier, codec="", debug=False, taille=1, positions=None, mode="txt"):
     """prechargement des fichiers de comparaison """
     # fichier de jointure dans le repertoire de regles
     clef = ""
@@ -339,6 +355,7 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
                                 codec=codec,
                                 debug=debug,
                                 taille=taille,
+                                mode=mode,
                             )
                         )
                     elif os.path.splitext(i)[-1] == ".csv":
@@ -348,6 +365,7 @@ def charge_liste(fichier, codec=DEFCODEC, debug=False, taille=1, positions=None)
                                 taille=taille,
                                 codec=codec,
                                 debug=debug,
+                                mode=mode,
                             )
                         )
                 else:
@@ -390,9 +408,12 @@ def conditionne_liste_classes(valeurs):
 #    return txt[1:-1].split(",") if txt.startswith('{') else []
 
 
-def prepare_mode_in(fichier, regle, taille=1, clef=0):
+def prepare_mode_in(fichier, regle, taille=1, clef=0, mode="txt"):
     """precharge les fichiers utilises pour les jointures ou les listes d'appartenance
     formats acceptes:
+        mode txt: clef simple (pour des selecteurs attributaires)
+        mode n: (niveau,classe) ( pour des selections de schema)
+        mode b: (base,niveau,classe)
         in:{a,b,c}                  -> liste de valeurs dans la commande
         in:#schema:nom_du_schema    -> liste des tables d'un schema
         in:nom_de_fichier           -> contenu d'un fichier
@@ -445,7 +466,9 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0):
                 fi2 = fichier.split(",")
                 fichier = fi2[0]
                 positions = [int(i) for i in fi2[1:]]
-            valeurs = charge_liste(fichier, taille=taille, positions=positions)
+            valeurs = charge_liste(
+                fichier, taille=taille, positions=positions, mode=mode
+            )
             # on precharge le fichier de jointure
             # print(
             #     "outils: chargement liste ",

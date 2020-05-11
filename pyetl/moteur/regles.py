@@ -183,11 +183,12 @@ class ParametresFonction(object):
         ]
         return "\t" + "\n\t".join(listev) + "\n\tidcommand: pattern" + self.pattern
 
-    def _compact(self):
-        return ";%s;%s;%s;...;%s;%s;" % (
+    def _compact(self, mode="..."):
+        return ";%s;%s;%s;%s;%s;%s;" % (
             self.att_sortie.val,
             self.val_entree.val,
             self.att_entree.val,
+            mode,
             self.cmp1.val,
             self.cmp2.val,
         )
@@ -417,7 +418,7 @@ class RegleTraitement(object):  # regle de mapping
                 + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
                 + ":R->"
-                + (self.params._compact() if self.params else "noparams ")
+                + (self.params._compact(self.mode) if self.params else "noparams ")
                 + str(self.idregle)
                 + "("
                 + repr(self.context)

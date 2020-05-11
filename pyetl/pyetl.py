@@ -700,14 +700,16 @@ class Pyetl(object):
         """identifie les references de bases de donnees pour qgis"""
         for nom in self.site_params:
             variables = self.site_params[nom]
-            base, host, port = None, None, None
+            base, host, port = "", "", ""
             for clef, val in variables:
                 if clef == "server" and "port" in val and "host" in val:
                     host, port = val.split(" ", 1)
                 elif clef == "base":
                     base = val
             if base:
-                self.dbref[base, host, port] = nom
+                tb = (base, host, port)
+                self.dbref[tb] = nom
+                self.dbref[",".join(tb)] = nom
                 self.dbref[nom] = nom
 
     def _charge_site_params(self, origine):

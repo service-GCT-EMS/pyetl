@@ -16,54 +16,42 @@ LOGGER = logging.getLogger("pyetl")
 
 def _mode_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
-    mode_select, valeurs = prepare_mode_in(niv, regle, taille=2)
+
+    mode_in = "b" if autobase else "n"
+    taille = 3 if autobase else 2
+    mode_select, valeurs = prepare_mode_in(niv, regle, taille=taille, mode=mode_in)
     niveau = []
     classe = []
     attrs = []
     cmp = []
     base = []
-    print("mode_niv in:lecture_fichier", valeurs)
+    # print("mode_niv in:lecture_fichier", valeurs)
     # selecteur = DB.TableSelector(regle)
     # for i in valeurs:
     #     selecteur.add_selector(*i)
     #     print("add_selector", i)
     for i in valeurs:
-        liste_defs = list(valeurs[i])
-        print("mode_niv in:liste_defs", liste_defs)
-
-        def1 = liste_defs.pop(0).split(".")
-        if (
-            len(def1) == 1 and liste_defs and liste_defs[0]
-        ):  # c'est de la forme niveau;classe
-            defs2 = liste_defs.pop(0).split(".")
-            def1.extend(defs2)
-        # print("mode_niv in:def1",def1)
+        liste_defs = list(i)
+        # print("mode_niv in:liste_defs", liste_defs)
+        bdef = liste_defs[0]
+        if bdef in regle.stock_param.dbref:
+            # c est une definition de base
+            bdef = regle.stock_param.dbref.get(bdef)
         if autobase:
-            base.append(def1.pop(0))
-        niveau.append(def1[0])
-        if len(def1) == 1:
-            classe.append("")
-            attrs.append("")
-            cmp.append("")
-        elif len(def1) == 2:
-            classe.append(def1[1])
-            attrs.append("")
-            cmp.append("")
-            # if autobase and len(liste_defs) > 2:  # on a rajoute la base
-            #     base.append(tuple(liste_defs[1:]))
-        elif len(def1) == 3:
-            # print("detection attribut")
-            classe.append(def1[1])
-            attrs.append(def1[2])
-            vals = ""
-            if liste_defs:
-                if liste_defs[0].startswith("in:"):
-                    txt = liste_defs[0][3:]
-                    vals = txt[1:-1].split(",") if txt.startswith("{") else []
-                else:
-                    vals = liste_defs[0]
-            cmp.append(vals)
-    # print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
+            base.append(bdef)
+            liste_defs.pop(0)
+        else:
+            base.append("")
+
+        niveau.append(liste_defs.pop(0) if liste_defs else "")
+        classe.append(liste_defs.pop(0) if liste_defs else "")
+        attrs.append(liste_defs.pop(0) if liste_defs else "")
+        cmp.append(liste_defs.pop(0) if liste_defs else "")
+
+    # print(
+    #     "mode_niv in:lu ",
+    #     "\n".join(str(i) for i in zip(base, niveau, classe, attrs, cmp)),
+    # )
     return base, niveau, classe, attrs, cmp
 
 
@@ -110,14 +98,25 @@ def param_base(regle):
         niveau = [niv]
         classe = [cla]
     if attrs:
-        att = (attrs, cmp)
+        att = [(i, j) for i, j in zip(attrs, cmp)]
 
     regle.dyn = "#" in niv or "#" in cla
-    print("parametres acces base", base, niveau, classe, att, regle)
+    # print("parametres acces base", base, niveau, classe, att, regle)
 
-    regle.cible_base = (base, niveau, classe, att)
-    return
-
+    # gestion multibase
+    if isinstance(base, list):
+        multibase = {i: ([], [], []) for i in set(base)}
+        for b, n, c, a in zip(base, niveau, classe, att):
+            # print("traitement", b, n, c, a)
+            nl, cl, al = multibase[b]
+            nl.append(n)
+            cl.append(c)
+            al.append(a)
+        regle.cible_base = multibase
+        # print("retour multibase", multibase)
+    else:
+        regle.cible_base = {base: (niveau, classe, att)}
+    return True
 
 
 def valide_dbmods(modlist):
@@ -160,7 +159,7 @@ def h_dbalpha(regle):
 
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
-    base, niveau, classe, attribut = regle.cible_base
+    base, (niveau, classe, attribut) = regle.cible_base
     attrs = []
     cmp = []
     type_base = None
@@ -442,12 +441,12 @@ def f_dbclose(regle, obj):
     #pattern||;;;dbclose;;
     #req_test||testfiledb
     """
-    base, _, _, _ = regle.cible_base
-    if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
-        base = obj.attributs.get("#base", base)
-        regle.setvar("db", obj.attributs.get("#type_base"))
-        regle.setvar("server", obj.attributs.get("#chemin"))
-    DB.dbclose(regle.stock_param, base)
+    for base in regle.cible_base:
+        if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
+            base = obj.attributs.get("#base", base)
+            regle.setvar("db", obj.attributs.get("#type_base"))
+            regle.setvar("server", obj.attributs.get("#chemin"))
+        DB.dbclose(regle.stock_param, base)
     return True
 
 
@@ -465,31 +464,31 @@ def f_dbrunsql(regle, obj):
     #req_test||testdb
 
     """
-    base, _, _, _ = regle.cible_base
-    script = regle.getval_entree(obj)
-    print(
-        "traitement db: execution sql ",
-        base,
-        "->",
-        script,
-        regle.params.cmp1.val,
-        regle.params.cmp2.val,
-    )
-    if "*" in script or "?" in script:
-        scripts = sorted(glob.glob(script))
-    else:
-        scripts = [script]
-    if not scripts:
-        print("pas de scripts a executer: ", script)
-    for nom in scripts:
-        if nom.startswith("#"):  # c'est une commande sql interne
-            nom = os.path.join(regle.getvar("_progdir"), "formats/db/sql", nom[1:])
-        if not nom.endswith(".sql"):
-            nom = nom + ".sql"
-        # print("traitement sql ", nom)
-        DB.dbextsql(
-            regle, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
+    for base in regle.cible_base:
+        script = regle.getval_entree(obj)
+        print(
+            "traitement db: execution sql ",
+            base,
+            "->",
+            script,
+            regle.params.cmp1.val,
+            regle.params.cmp2.val,
         )
+        if "*" in script or "?" in script:
+            scripts = sorted(glob.glob(script))
+        else:
+            scripts = [script]
+        if not scripts:
+            print("pas de scripts a executer: ", script)
+        for nom in scripts:
+            if nom.startswith("#"):  # c'est une commande sql interne
+                nom = os.path.join(regle.getvar("_progdir"), "formats/db/sql", nom[1:])
+            if not nom.endswith(".sql"):
+                nom = nom + ".sql"
+            # print("traitement sql ", nom)
+            DB.dbextsql(
+                regle, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
+            )
 
 
 def h_dbrunproc(regle):
@@ -506,10 +505,10 @@ def f_dbrunproc(regle, obj):
     #pattern||;?LC;?L;runproc;C;
     #req_test||testdb
     """
-    base, _, _, _ = regle.cible_base
-    params = regle.getval_entree(obj)
-    print("runproc", regle.procedure, params)
-    DB.dbrunproc(regle, base, regle.procedure, params)
+    for base in regle.cible_base:
+        params = regle.getval_entree(obj)
+        print("runproc", regle.procedure, params)
+        DB.dbrunproc(regle, base, regle.procedure, params)
 
 
 def h_dbextload(regle):
@@ -525,12 +524,12 @@ def f_dbextload(regle, obj):
     #pattern||;?C;?A;dbextload;C;;
     #req_test||testdb
     """
-    base, _, _, _ = regle.cible_base
-    datas = regle.getval_entree(obj)
-    #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
-    fichs = sorted(glob.glob(datas))
-    retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
-    print("retour chargement:", retour)
+    for base in regle.cible_base:
+        datas = regle.getval_entree(obj)
+        #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
+        fichs = sorted(glob.glob(datas))
+        retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
+        print("retour chargement:", retour)
 
 
 #    for nom in fichs:
@@ -579,8 +578,8 @@ def f_dbwrite(regle, obj):
    #req_test||testdb
 
     """
-    base, niveau, classe, _ = regle.cible_base
-    DB.dbload(regle, base, niveau, classe, obj)
+    for base, (niveau, classe, _) in regle.cible_base.items():
+        DB.dbload(regle, base, niveau, classe, obj)
 
 
 def f_dbupdate(regle, obj):
@@ -589,24 +588,29 @@ def f_dbupdate(regle, obj):
     #pattern||;;;dbupdate;;
    #req_test||testdb
     """
-    base, niveau, classe, attribut = regle.cible_base
-    DB.dbupdate(regle, base, niveau, classe, attribut, obj)
+    for base, (niveau, classe, attribut) in regle.cible_base.items():
+        DB.dbupdate(regle, base, niveau, classe, attribut, obj)
 
 
 def h_dbmaxval(regle):
     """ stocke la valeur maxi """
     param_base(regle)
-    base, niveau, classe, attribut = regle.cible_base
-    retour = DB.recup_maxval(regle, base, niveau, classe, attribut)
-    print("retour maxval", retour)
-    if retour and len(retour) == 1 and regle.params.att_sortie.val:
-        # cas simple on stocke l' attribut dans le parametre
-        valeur = list(retour.values())[0]
-        regle.setvar(regle.params.att_sortie.val, str(valeur))
-        print("maxval stockage", regle.params.att_sortie.val, str(valeur), regle.getvar)
-    nom = regle.params.cmp1.val if regle.params.cmp1.val else "#maxvals"
-    regle.stock_param.store[nom] = retour
-    regle.valide = "done"
+    for base, (niveau, classe, attribut) in regle.cible_base.items():
+        retour = DB.recup_maxval(regle, base, niveau, classe, attribut)
+        print("retour maxval", retour)
+        if retour and len(retour) == 1 and regle.params.att_sortie.val:
+            # cas simple on stocke l' attribut dans le parametre
+            valeur = list(retour.values())[0]
+            regle.setvar(regle.params.att_sortie.val, str(valeur))
+            print(
+                "maxval stockage",
+                regle.params.att_sortie.val,
+                str(valeur),
+                regle.getvar,
+            )
+        nom = regle.params.cmp1.val if regle.params.cmp1.val else "#maxvals"
+        regle.stock_param.store[nom] = retour
+        regle.valide = "done"
     return True
 
 
@@ -671,15 +675,14 @@ def f_dbcount(regle, obj):
 def h_recup_schema(regle):
     """ lecture de schemas """
     if not param_base(regle):
+        print("erreur definition selecteur de base", regle.v_nommees)
         regle.valide = False
         return False
     regle.chargeur = True  # c est une regle a declencher
 
-    nombase, niveau, classe, _ = regle.cible_base
     regle.setlocal("mode_schema", "dbschema")
-
-    regle.type_base = regle.getvar("db_" + nombase)
-    if nombase:
+    for nombase, (niveau, classe, _) in regle.cible_base.items():
+        regle.type_base = regle.getvar("db_" + nombase)
         nomschema = (
             regle.params.val_entree.val if regle.params.val_entree.val else nombase
         )
@@ -707,42 +710,42 @@ def f_recup_schema(regle, obj):
     # print ('recup_schema---------------', obj)
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
-    base, niveau, classe, att = regle.cible_base
-    if obj.attributs["#groupe"] == "__filedb":
-        chemin = obj.attributs["#chemin"]
-        type_base = obj.attributs["#type_base"]
-        if base != obj.attributs["#base"]:
-            base = obj.attributs["#base"]
-            regle.cible_base = (base, niveau, classe, att)
-            DB.recup_schema(
-                regle,
-                base,
-                niveau,
-                classe,
-                regle.get_entree(obj),
-                type_base=type_base,
-                chemin=chemin,
-            )
-            regle.setlocal("db", type_base)
-            regle.setlocal("server", chemin)
-            return True
-    else:
-        type_base = regle.type_base
-        #        print('tdb: acces schema base', type_base, base, niveau, classe)
-        #          regle.ligne,
-        #          regle.params.val_entree.val,
-        #          regle.params)
-        if type_base and base:
-            DB.recup_schema(
-                regle,
-                base,
-                niveau,
-                classe,
-                regle.params.val_entree.val,
-                type_base=type_base,
-                chemin=chemin,
-            )
-            return True
+    valide = True
+    for base, (niveau, classe, _) in regle.cible_base.items():
+        if obj.attributs["#groupe"] == "__filedb":
+            chemin = obj.attributs["#chemin"]
+            type_base = obj.attributs["#type_base"]
+            if base != obj.attributs["#base"]:
+                base = obj.attributs["#base"]
+                DB.recup_schema(
+                    regle,
+                    base,
+                    niveau,
+                    classe,
+                    regle.get_entree(obj),
+                    type_base=type_base,
+                    chemin=chemin,
+                )
+                regle.setlocal("db", type_base)
+                regle.setlocal("server", chemin)
+        else:
+            type_base = regle.type_base
+            #        print('tdb: acces schema base', type_base, base, niveau, classe)
+            #          regle.ligne,
+            #          regle.params.val_entree.val,
+            #          regle.params)
+            if type_base and base:
+                DB.recup_schema(
+                    regle,
+                    base,
+                    niveau,
+                    classe,
+                    regle.params.val_entree.val,
+                    type_base=type_base,
+                    chemin=chemin,
+                )
+    if valide:
+        return True
     print("recup_schema: base non definie ", regle, type_base, base, obj)
     return False
 
@@ -754,13 +757,13 @@ def h_dbclean(regle):
     if not param_base(regle):
         regle.valide = False
         return False
-    nombase, niveau, classe, _ = regle.cible_base
+    for base, (niveau, classe, _) in regle.cible_base.items():
 
-    regle.type_base = regle.getvar("db_" + nombase)
+        regle.type_base = regle.getvar("db_" + base)
 
-    base = nombase
-    nom = regle.params.cmp2.val + ".sql"
-    if base:
+        nom = regle.params.cmp2.val + ".sql"
+        if len(regle.cible_base) > 1:
+            nom = os.path.join(os.path.dirname(nom), base + "_" + os.path.basename(nom))
         script = DB.reset_liste_tables(regle, base, niveau, classe)
         if not os.path.isabs(nom):
             nom = os.path.join(regle.getvar("_sortie"), nom)
@@ -770,8 +773,7 @@ def h_dbclean(regle):
         with open(nom, "w") as sortie:
             sortie.write("".join(script))
         regle.valide = "done"
-    else:
-        print("cible inconnue", regle.cible_base)
+    return True
 
 
 def f_dbclean(regle, obj):

@@ -33,11 +33,14 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         if not base:
-            print("mdba: base non definie", codebase)
-            return None
+            if stock_param.load_paramgroup(codebase, nom=codebase, fin=False):
+                base = regle.getvar("base_" + codebase, "")
+            else:
+                print("mdba: base non definie", codebase)
+                return None
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
-        # print("acces base", codebase, base, serveur, type_base)
+        print("acces base", codebase, base, serveur, type_base)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
@@ -69,7 +72,7 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
     )
 
     if connection.valide:
-        print("connection valide", serveur, base)
+        # print("connection valide", serveur, base)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
