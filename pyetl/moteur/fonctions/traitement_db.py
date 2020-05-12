@@ -159,67 +159,85 @@ def h_dbalpha(regle):
 
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
-    base, (niveau, classe, attribut) = regle.cible_base
-    attrs = []
-    cmp = []
-    type_base = None
-    chemin = ""
-    if att:  # (tri sur attribut si necessaire)
-        if attribut:  # attention il y a des definitions d'attributs
-            if isinstance(attribut, tuple):
-                attrs, cmp = attribut
-            else:
-                attrs = attribut
-    else:  # traitement sans gestion des attributs (geometrique ou dump)
-        attrs = attribut
-    #    print ('f_alpha :',attrs, cmp)
-    if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
+    print("acces base", regle.cible_base)
+    bdict = regle.cible_base
+    for base, (niveau, classe, attribut) in regle.cible_base.items():
+        attrs = []
+        cmp = []
+        type_base = None
+        chemin = ""
+        if att:  # (tri sur attribut si necessaire)
+            if attribut:  # attention il y a des definitions d'attributs
+                if isinstance(attribut, tuple):
+                    attrs, cmp = attribut
+                else:
+                    attrs = attribut
+        else:  # traitement sans gestion des attributs (geometrique ou dump)
+            attrs = attribut
+        #    print ('f_alpha :',attrs, cmp)
+        if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
 
-        chemin = obj.attributs["#chemin"]
-        if not base:
-            base = obj.attributs["#base"]
-        type_base = obj.attributs["#type_base"]
-        regle.setvar("db", type_base)
-        regle.setvar("server", chemin)
-    # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
+            chemin = obj.attributs["#chemin"]
+            if not base:
+                base = obj.attributs["#base"]
+            type_base = obj.attributs["#type_base"]
+            regle.setvar("db", type_base)
+            regle.setvar("server", chemin)
+        # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
 
-    if niveau and niveau[0].startswith("["):  # nom de classe contenu dans un attribut
-        niveau = [obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])]
-    if classe and classe[0].startswith("["):  # nom de classe contenu dans un attribut
-        classe = [
-            obj.attributs.get(
-                classe[0][1:-1],
-                "attribut non defini " + ".".join(obj.ident) + " " + classe[0][1:-1],
-            )
-        ]
-    if regle.params.att_entree.liste:
-        #        print('on a mis un attribut', regle.params.att_entree.liste)
-        valeur = [
-            obj.attributs.get(a, d)
-            for a, d in zip_longest(
-                regle.params.att_entree.liste, regle.params.val_entree.liste
-            )
-        ]
-    elif regle.params.val_entree.liste:
-        valeur = regle.params.val_entree.liste
-    else:
-        valeur = cmp
-    basedict = dict()
-    # bd2 = DB.TableSelector(regle.stock_param)
-    if isinstance(base, list):
-        for numero, idbase in enumerate(base):
-            # bd2.add_selector(idbase, basedict[idbase])
-            if idbase in basedict:
-                niv, cla, attr, val, chm, typ = basedict[idbase]
-                niv.extend(niveau[numero])
-                cla.extend(classe[numero])
-                attr.extend(attrs[numero])
-                val.extend(valeur[numero])
-                basedict[idbase] = (niv, cla, attr, val, chm, typ)
-            else:
-                basedict[idbase] = (niveau, classe, attrs, valeur, chemin, type_base)
-    else:
-        basedict[base] = (niveau, classe, attrs, valeur, chemin, type_base)
+        if niveau and niveau[0].startswith(
+            "["
+        ):  # nom de classe contenu dans un attribut
+            niveau = [
+                obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])
+            ]
+        if classe and classe[0].startswith(
+            "["
+        ):  # nom de classe contenu dans un attribut
+            classe = [
+                obj.attributs.get(
+                    classe[0][1:-1],
+                    "attribut non defini "
+                    + ".".join(obj.ident)
+                    + " "
+                    + classe[0][1:-1],
+                )
+            ]
+        if regle.params.att_entree.liste:
+            #        print('on a mis un attribut', regle.params.att_entree.liste)
+            valeur = [
+                obj.attributs.get(a, d)
+                for a, d in zip_longest(
+                    regle.params.att_entree.liste, regle.params.val_entree.liste
+                )
+            ]
+        elif regle.params.val_entree.liste:
+            valeur = regle.params.val_entree.liste
+        else:
+            valeur = cmp
+        basedict = dict()
+        # bd2 = DB.TableSelector(regle.stock_param)
+        if isinstance(base, list):
+            for numero, idbase in enumerate(base):
+                # bd2.add_selector(idbase, basedict[idbase])
+                if idbase in basedict:
+                    niv, cla, attr, val, chm, typ = basedict[idbase]
+                    niv.extend(niveau[numero])
+                    cla.extend(classe[numero])
+                    attr.extend(attrs[numero])
+                    val.extend(valeur[numero])
+                    basedict[idbase] = (niv, cla, attr, val, chm, typ)
+                else:
+                    basedict[idbase] = (
+                        niveau,
+                        classe,
+                        attrs,
+                        valeur,
+                        chemin,
+                        type_base,
+                    )
+        else:
+            basedict[base] = (niveau, classe, attrs, valeur, chemin, type_base)
     return basedict
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 

@@ -202,7 +202,7 @@ class WfsConnect(DbConnect):
         self.cree_schema_classe(ident, attlist, schema=None)
 
     def get_attributs(self):
-        """description des attributs de la base sqlite
+        """description des attributs du service wfs
         structure fournie :
             nom_groupe;nom_classe;nom_attr;alias;type_attr;graphique;multiple;\
             defaut;obligatoire;enum;dimension;num_attribut;index;unique;clef_primaire;\
@@ -352,41 +352,22 @@ class WfsConnect(DbConnect):
                 cond = self.monoval(oper, cast)
                 data = {"val": val}
                 print("valeur simple", valeur, oper, cond, cast, data)
-
-            requete = (
-                " SELECT "
-                + atttext
-                + ' FROM "'
-                + niveau
-                + "."
-                + classe
-                + '" WHERE '
-                + cast(attribut)
-                + cond
-            )
-        else:
-            requete = " SELECT " + atttext + ' FROM "' + niveau + "." + classe + '"'
-            data = ()
-        if ordre:
-            if isinstance(ordre, list):
-                requete = requete + " ORDER BY " + ",".join(ordre)
-            else:
-                requete = requete + " ORDER BY " + ordre
-
-        requete = requete + self.set_limit(maxi, bool(data))
+        reqparams = {
+            "REQUEST": "GetFeatures",
+            "SERVICE": "WFS",
+            "version": "1.0.0",
+            "outputFormat": "text/xml",
+            "subtype": "gml/3.1.1",
+            "wfs:Query typeName": classe,
+        }
+        if maxi:
+            reqparams["numberOfFeatures"] = str(maxi)
         self.attlist = attlist
-        if not atttext:
-            requete = ""
-            data = ()
-        #        print('acces alpha', self.geographique, requete, data)
-        #        raise
-        #        print ('geometrie',schema.info["type_geom"])
-        print("sqlite req alpha ", requete)
-        print("sqlite appel iterreq", type(self.iterreq))
+
         has_geom = schema.info["type_geom"] != "0"
-        aa = self.iterreq(requete, data, has_geom=has_geom)
-        print("sqlite apres iterreq", type(aa))
-        return aa
+        retourdesc = requests.get(self.serveur, params=reqparams)
+        print("retour", retourdesc)
+        return
 
 
 class WfstGenSql(DbGenSql):
