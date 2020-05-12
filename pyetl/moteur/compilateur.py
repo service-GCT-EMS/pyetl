@@ -206,6 +206,7 @@ def compile_regles(mapper, liste_regles, debug=0):
                 for j in range(i + 1, len(regles)):
                     if not regles[j].nonext:
                         regle.branchements.brch["next"] = regles[j]
+                        regle.branchements.brch["gen"] = regles[j]
                         break
 
         regle.branchements.setclink(regles[i + 1])

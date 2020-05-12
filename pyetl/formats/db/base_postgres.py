@@ -159,10 +159,14 @@ class PgCursinfo(Cursinfo):
         """retourne le schema issu de la requete"""
         if self.schema_req:
             return self.schema_req
-        if self.request:
+        if self.requete:
+            tmp = self.requete.split("\n")
+            tmprequete = " ".join(tmp).strip()
+            if tmprequete.endswith(";"):
+                tmprequete = tmprequete[:-1]
             req = (
                 "create TEMP TABLE tmp__0001 AS select * from ("
-                + self.request
+                + tmprequete
                 + ") as x limit 0 "
             )
 
@@ -178,7 +182,7 @@ class PgCursinfo(Cursinfo):
             retour = cursor.fetchall()
             attlist = [self.connecteur.attdef(*i) for i in retour]
             # on recupere la structure du schema temporaire
-            # print("retour requete", attlist)
+            print("retour requete", attlist)
             self.execute("drop TABLE pg_temp.tmp__0001", newcursor=True)
             self.schema_req = attlist
         return self.schema_req

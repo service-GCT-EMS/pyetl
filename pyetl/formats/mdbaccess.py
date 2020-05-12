@@ -355,7 +355,7 @@ def sortie_resultats(
     decile = curs.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-        #        print ('mdba: creation objet',niveau,classe,obj.ident,type_geom)
+        print("mdba: creation objet", niveau, classe, namelist, valeurs)
         obj = Objet(
             niveau,
             classe,
@@ -367,7 +367,7 @@ def sortie_resultats(
         #     print ('attlist', attlist)
         #     print (valeurs,valeurs)
         #     print ('zip ',zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
-        #     print ('objet lu',obj)
+        print("objet lu", obj)
         #     raise
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj.attributs["#angle"] = obj.attributs.get("angle_g", "0")
@@ -573,13 +573,12 @@ def lire_requete(
     if classe is None:
         return 0
     ident = (niveau[0], classe[0])
-    if not ident:
-        return 0
+
     # print("requete", requete, "->", ident)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
-    retour = get_connect(regle_courante, base, "", "", nomschema=nom_schema)
+    retour = get_connect(regle_courante, base, "_", "_", nomschema=nom_schema)
     if retour:
         connect, schema, liste = retour
     else:
@@ -593,11 +592,11 @@ def lire_requete(
     #        print ('-----------------------traitement curseur ', curs,type(curs) )
     treq = time.time() - treq
     connect.commit()
-    if curs:
+    if curs and classe[0]:
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
-        # print("creation schema", schema.nom, ident, len(schema.classes))
+        print("creation schema", schema.nom, ident, schema_classe_travail)
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,

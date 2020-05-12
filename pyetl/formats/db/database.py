@@ -74,7 +74,7 @@ class Cursinfo(object):
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)
         self.connecteur = connecteur
-        self.request = None
+        self.requete = None
         self.schema_req = None
         self.data = None
         self.attlist = None
@@ -113,7 +113,7 @@ class Cursinfo(object):
                     print("erreur requete", requete)
                     raise
             if not newcursor:
-                self.request = requete
+                self.requete = requete
                 self.data = data
                 self.attlist = attlist
                 if not self.ssc:

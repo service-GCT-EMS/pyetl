@@ -160,7 +160,6 @@ def h_dbalpha(regle):
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
     print("acces base", regle.cible_base)
-    bdict = regle.cible_base
     for base, (niveau, classe, attribut) in regle.cible_base.items():
         attrs = []
         cmp = []
@@ -258,7 +257,7 @@ def f_dbalpha(regle, obj):
     basedict = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
-    # print ('regles alpha: acces base apres ', base, niveau, classe, attrs)
+    print("regles alpha: acces base apres ", basedict)
 
     #    print('regles alpha:ligne  ', regle, type_base, mods)
     #    print('regles alpha:parms:', base, niveau, classe, attribut, 'entree:',regle.params.val_entree,
@@ -271,6 +270,7 @@ def f_dbalpha(regle, obj):
         return False
     retour = 0
     for base, description in basedict.items():
+        print("lecture base", base, description)
         niveau, classe, attrs, valeur, chemin, type_base = description
         LOGGER.debug(
             "regles alpha:ligne  " + repr(regle) + repr(type_base) + repr(mods)
@@ -279,10 +279,10 @@ def f_dbalpha(regle, obj):
             regle, base, type_base=type_base, chemin=chemin
         )
         if connect is None:
-            return False
-        if (
-            connect.accept_sql == "non"
-        ):  # pas de requetes directes on essaye le mode dump
+            print("erreur connection:", base)
+            continue
+        if connect.accept_sql == "non":
+            # pas de requetes directes on essaye le mode dump
             dest = regle.getvar("dest")
             if not dest:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
@@ -292,14 +292,6 @@ def f_dbalpha(regle, obj):
             os.makedirs(os.path.dirname(log), exist_ok=True)
             print("traitement db: dump donnees de", base, "vers", dest)
             retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
-
-        #            if regle.store:
-        ##        print( 'mode parallele', os.getpid(), regle.stock_param.worker)
-        ##        print ('regles', regle.stock_param.regles)
-        #                regle.tmpstore.append(obj)
-        #                regle.nbstock += 1
-        #                return True
-        #            return objloader(regle, obj)
         else:
             retour += DB.recup_donnees_req_alpha(
                 regle,
@@ -315,7 +307,7 @@ def f_dbalpha(regle, obj):
                 type_base=type_base,
                 chemin=chemin,
             )
-        #    print ('regles alpha: valeur retour',retour,obj)
+            print("regles alpha: valeur retour", retour, obj)
     return retour
 
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
@@ -439,8 +431,6 @@ def f_dbrequest(regle, obj):
     retour = 0
     for base, description in basedict.items():
         niveau, classe, fonction, valeur, chemin, type_base = description
-        niveau = niveau if niveau[0] else [regle.grp]
-        classe = classe if classe[0] else [regle.fich]
         # parms = [regle.getv]
         # print("execution requete", regle.params.cmp1.val, niveau, classe)
         parms = None
