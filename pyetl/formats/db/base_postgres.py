@@ -182,7 +182,7 @@ class PgCursinfo(Cursinfo):
             retour = cursor.fetchall()
             attlist = [self.connecteur.attdef(*i) for i in retour]
             # on recupere la structure du schema temporaire
-            print("retour requete", attlist)
+            # print("retour requete", attlist)
             self.execute("drop TABLE pg_temp.tmp__0001", newcursor=True)
             self.schema_req = attlist
         return self.schema_req

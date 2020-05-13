@@ -159,7 +159,7 @@ def h_dbalpha(regle):
 
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
-    print("acces base", regle.cible_base)
+    # print("acces base", regle.cible_base)
     for base, (niveau, classe, attribut) in regle.cible_base.items():
         attrs = []
         cmp = []

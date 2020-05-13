@@ -144,7 +144,7 @@ class Cursinfo(object):
             # print("trouve attlist", self.attlist)
             return self.attlist
         else:
-            return list((i[0] for i in self.infoschema))
+            return list((i.nom_attr for i in self.infoschema))
 
     @property
     def infoschema(self):
@@ -158,7 +158,7 @@ class Cursinfo(object):
                 if self.cursor.description:
                     attlist = []
                     typelist = []
-                    for colonne in self.cursor.description:
+                    for num, colonne in enumerate(self.cursor.description):
                         (
                             name,
                             datatype,
@@ -170,7 +170,10 @@ class Cursinfo(object):
                         ) = colonne
                         nomtype = self.connecteur.getdatatype(datatype)
                         print("lecture requete", name, datatype, nomtype, internal_size)
-                        attlist.append((name, nomtype, internal_size, precision))
+                        attdef = self.connecteur.attdef(
+                            nom_attr=name, type_attr=nomtype, num_attribut=num + 1
+                        )
+                        attlist.append(attdef)
                         # typelist.append(type.__name__)
                     # print ('attlist', attlist)
                     self.schema_req = attlist
@@ -178,7 +181,7 @@ class Cursinfo(object):
             except:
                 print("planté dans cursor.schemaclasse")
                 pass
-        return None
+        return []
 
 
 class DbConnect(object):
@@ -454,8 +457,10 @@ class DbConnect(object):
         """cree un schema de classe a partir d une liste d attributs"""
         schema = schema if schema is not None else self.schemabase
         classe = schema.setdefault_classe(ident)
+        classe.info["type_geom"] = "0"
         for atd in attlist:
             num_attribut = float(atd.num_attribut)
+            type_ref = atd.type_attr
             if not atd.type_attr:
                 LOGGER.error(
                     "attribut sans type G:%s C:%s A:%s",
@@ -463,9 +468,9 @@ class DbConnect(object):
                     atd.nom_classe,
                     atd.nom_attr,
                 )
-            type_ref = atd.type_attr
-            taille_att = atd.taille
-            if "(" in atd.type_attr:  # il y a une taille
+                type_ref = "T"
+            taille_att = atd.taille if atd.taille else 0
+            if "(" in type_ref:  # il y a une taille
                 tmp = atd.type_attr.split("(")
                 if tmp[1][0].isnumeric():
                     type_ref = tmp[0]
@@ -492,7 +497,7 @@ class DbConnect(object):
 
             clef_etr = ""
             if atd.clef_etrangere:
-                cible_clef = atd.cible_clef if atd.cible_clef is not None else ""
+                cible_clef = atd.cible_clef if atd.cible_clef else ""
                 #            if atd.cible_clef is None:
                 #                cible_clef = ''
                 if not cible_clef:

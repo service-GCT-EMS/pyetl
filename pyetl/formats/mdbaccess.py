@@ -40,7 +40,7 @@ def dbaccess(regle, codebase, type_base=None):
                 return None
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
-        print("acces base", codebase, base, serveur, type_base)
+        # print("acces base", codebase, base, serveur, type_base)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
@@ -310,7 +310,7 @@ def sortie_resultats(
     stock_param = regle_courante.stock_param
     traite_objet = stock_param.moteur.traite_objet
 
-    # print ('mdba:sortie_resultat ',type_geom,type(curs))
+    # print ('mdba:sortie_resultat ',type_geom,type(curs),niveau,classe)
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
     schema_init = None
@@ -330,6 +330,8 @@ def sortie_resultats(
     nbvals = 0
     namelist = curs.namelist
     # print (' attributs recuperes avant', attlist)
+    if type_geom == "indef":
+        type_geom = schema_classe_travail.info["type_geom"]
     if type_geom != "0":
         namelist.append(("#geom"))
     # print (' attributs recuperes ', attlist)
@@ -347,7 +349,7 @@ def sortie_resultats(
     decile = curs.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-        print("mdba: creation objet", niveau, classe, namelist, valeurs)
+        # print("mdba: creation objet", niveau, classe, namelist, valeurs)
         obj = Objet(
             niveau,
             classe,
@@ -359,7 +361,6 @@ def sortie_resultats(
         #     print ('attlist', attlist)
         #     print (valeurs,valeurs)
         #     print ('zip ',zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
-        print("objet lu", obj)
         #     raise
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj.attributs["#angle"] = obj.attributs.get("angle_g", "0")
@@ -381,6 +382,7 @@ def sortie_resultats(
         #                print ('renseigne',obj.attributs)
         # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
         obj.setorig(nbvals)
+        # print("sortie_res", obj)
         traite_objet(obj, regle_debut)
         if nbvals == maxobj:
             break
@@ -499,7 +501,7 @@ def lire_requete(
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
-        print("creation schema", schema.nom, ident, schema_classe_travail)
+        # print("creation schema", schema.nom, ident, schema_classe_travail)
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,

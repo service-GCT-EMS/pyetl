@@ -560,8 +560,8 @@ class Schema(object):
         schema_travail, liste2 = self.creschematravail(regle, liste, nomschema)
         schema_travail.metas = dict(self.metas)
         schema_travail.metas["tables"] = tables
-        schema_travail.metas["filtre niveau"] = ",".join(niveau)
-        schema_travail.metas["filtre classe"] = ",".join(classe)
+        schema_travail.metas["filtre niveau"] = ",".join(niveau) if niveau else ""
+        schema_travail.metas["filtre classe"] = ",".join(classe) if classe else ""
 
         return schema_travail, liste2
 
