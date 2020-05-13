@@ -21,7 +21,7 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-def dbaccess(regle, codebase, type_base=None, chemin=""):
+def dbaccess(regle, codebase, type_base=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
     base = codebase
     serveur = ""
@@ -56,9 +56,7 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
-        #       if regle.getvar("racine",''):
-        #       serveur = os.path.join(regle.getvar("racine"), chemin)
-        serveur = ""
+        # serveur = ""
         #        servertyp = type_base
         base = codebase
         print("filedb", type_base, "-->", codebase)
@@ -80,7 +78,7 @@ def dbaccess(regle, codebase, type_base=None, chemin=""):
         connection.format_natif = dbdef.geom
         connection.schemabase.dbsql = connection.gensql
         connection.get_schemabase()
-        connection.commit()  # on referme toutes les ressources
+        connection.commit()  # on referme toutes les transactions
         return connection
 
     print("connection invalide", base, type_base)
@@ -185,11 +183,7 @@ def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
     if not liste_tables:
         print("pas de tables a sortir", base, niveau, classe)
         return False
-    print(
-        "----------------------------------------extalpha schema:",
-        schema_travail.nom,
-        len(schema_travail.classes),
-    )
+
     regle_courante.setvar("schema_entree", schema_travail.nom)
     helpername = connect.dump_helper
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
@@ -267,9 +261,7 @@ def get_connect(
         print("base inconnue", base)
         return None
 
-    connect = stock_param.getdbaccess(
-        regle, nombase, type_base=type_base, chemin=chemin
-    )
+    connect = stock_param.getdbaccess(regle, nombase, type_base=type_base)
 
     if connect is None:
         LOGGER.error("connection base invalide " + str(nombase))
@@ -477,95 +469,6 @@ def recup_schema(
     return (None, None, None, None)
 
 
-def lire_table(ident, regle_courante, parms=None):
-    """lecture directe"""
-    if ident is None:
-        return 0
-    niveau, classe = ident
-    (
-        base,
-        attribut,
-        valeur,
-        mods,
-        sortie,
-        v_sortie,
-        ordre,
-        type_base,
-        chemin,
-        reqdict,
-        maxobj,
-    ) = parms
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
-    )
-
-    schema_classe_base = schema_base.get_classe(ident)
-    #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
-    #        print ('mdba : ',ident)
-    schema_classe_travail = schema_travail.get_classe(ident)
-    if isinstance(attribut, list):
-        if ident in reqdict:
-            attr, val = reqdict[ident]
-        else:
-            attr, val = "", ""
-    else:
-        attr, val = attribut, valeur
-    #        print("id attr,val", ident, attr, val)
-    #        print('%-60s'%('%s : %s.%s'% (connect.type_base, niveau,
-    #    classe)), end='', flush=True)
-    if (
-        attr
-        and attr not in schema_classe_travail.attributs
-        and attr not in connect.sys_fields
-    ):
-        return 0  # on a fait une requete sur un attribut inexistant: on passe
-    treq = time.time()
-
-    curs = connect.req_alpha(
-        ident, schema_classe_travail, attr, val, mods, maxobj, ordre=ordre
-    )
-    #        print ('-----------------------traitement curseur ', curs,type(curs) )
-    treq = time.time() - treq
-    connect.commit()
-
-    if curs:
-        res = sortie_resultats(
-            regle_courante,
-            curs,
-            niveau,
-            classe,
-            connect,
-            sortie,
-            v_sortie,
-            schema_classe_base.info["type_geom"],
-            schema_classe_travail,
-            treq=treq,
-            cond=(attr, val),
-        )
-
-        if sortie:
-            for nom in sortie:
-                if nom and nom[0] != "#":
-                    schema_classe_travail.stocke_attribut(nom, "T")
-        return res
-    return 0
-
-
-def execute_requete(regle_courante, base, requete="", parms=None, nom_schema=""):
-    retour = get_connect(regle_courante, base, "", "", nomschema=nom_schema)
-    if retour:
-        connect, schema, liste = retour
-    else:
-        return 0
-    curs = connect.iterreq(requete, data=parms)
-
-
 def lire_requete(
     regle_courante, base, niveau, classe, attribut=None, requete="", parms=None
 ):
@@ -578,7 +481,7 @@ def lire_requete(
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
-    retour = get_connect(regle_courante, base, "_", "_", nomschema=nom_schema)
+    retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
     if retour:
         connect, schema, liste = retour
     else:

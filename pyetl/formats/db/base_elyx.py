@@ -362,9 +362,7 @@ class ElyConnect(ora.OrwConnect):
         #        print ('tmpdir',tmpdir)
         self.debuglog = regle_courante.getvar("debuglog")
         if self.debuglog:
-            print(
-                "------------------------------------- generation log debug-----------"
-            )
+            print("---------------------------- generation log debug-----------")
         nbtrait, nbdump = nbworkers
         fanout = regle_courante.getvar("fanout", "classe")
         with tempfile.TemporaryDirectory() as tmpdir:

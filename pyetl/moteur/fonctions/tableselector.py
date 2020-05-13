@@ -30,6 +30,7 @@ class TableBaseSelector(object):
         self.valide = bool(base or schemaref)
         self.mapprefix = map_prefix
         self.descripteurs = []
+        self.dyndescr = []
         # un descripteur est un tuple
         # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.direct = set()
@@ -38,24 +39,42 @@ class TableBaseSelector(object):
         self.direct.add(classe)
 
     def add_descripteur(self, descripteur):
-        self.descripteurs.append(descripteur)
+        niveau, classe, attr, mod = descripteur
+        if "[" in niveau or "[" in classe:
+            self.dyndescr.append(descripteur)
+        else:
+            self.descripteurs.append(descripteur)
 
-    def resolve(self, regle):
-        """convertit une liste de descripteurs en liste de classes"""
+    def prepare_direct(self, regle):
         connect = self.mapper.getdbaccess(regle, self.base)
         self.schemabase = connect.schemabase
         self.direct = set([i for i in self.direct if i in self.schemabase.classes])
+    def add_classlist(self, niveau, classe, attr, mod):
+        mod = mod.upper()
+        multi = "=" in mod
+        mod = mod.replace("=", "")
+        nocase = "NOCASE" in mod
+        mod = mod.replace("NOCASE", "")
+        classlist = self.schemabase.select_classes(
+            niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
+        )
+        self.direct.update(classlist)
+
+    def resolve_static(self, regle):
+        """convertit une liste de descripteurs en liste de classes"""
+        self.prepare_direct(regle)
         for descripteur in self.descripteurs:
             niveau, classe, attr, mod = descripteur
-            mod = mod.upper()
-            multi = "=" in mod
-            mod = mod.replace("=", "")
-            nocase = "NOCASE" in mod
-            mod = mod.replace("NOCASE", "")
-            classlist = self.schemabase.select_classes(
-                niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
-            )
-            self.direct.update(classlist)
+            self.add_classlist(niveau, classe, attr, mod)
+    def resolve_dyn(self, regle, obj):
+        self.prepare_direct(regle)
+        for descripteur in self.dyndescr:
+            niveau, classe, attr, mod = descripteur
+            if niveau.startswith("["):
+                niveau = obj.attributs.get(niveau[1:-1])
+            if classe.startswith("]"):
+                niveau = obj.attributs.get(classe[1:-1])
+            self.add_classlist(niveau, classe, attr, mod)
 
 
 class TableSelector(object):
@@ -163,9 +182,9 @@ class TableSelector(object):
         n2 = (base, niveau) if self.mapmode == "bn" else (niveau, base)
         return ("_".join(n2), classe)
 
-    def resolve(self):
+    def resolve(self, regle):
         for base in self.baseselectors:
-            self.baseselectors[base].resolve()
+            self.baseselectors[base].resolve_static(regle)
             for ident in self.baseselectors[base].direct:
                 id2 = self.remap(ident, base)
                 b2 = self.inverse.get(id2)

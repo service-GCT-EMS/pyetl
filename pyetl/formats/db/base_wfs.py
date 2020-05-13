@@ -353,12 +353,12 @@ class WfsConnect(DbConnect):
                 data = {"val": val}
                 print("valeur simple", valeur, oper, cond, cast, data)
         reqparams = {
-            "REQUEST": "GetFeatures",
+            "REQUEST": "GetFeature",
             "SERVICE": "WFS",
             "version": "1.0.0",
-            "outputFormat": "text/xml",
-            "subtype": "gml/3.1.1",
-            "wfs:Query typeName": classe,
+            "outputFormat": "application/json",
+            # "subtype": "gml/3.1.1",
+            "typeName": classe,
         }
         if maxi:
             reqparams["numberOfFeatures"] = str(maxi)
@@ -366,7 +366,7 @@ class WfsConnect(DbConnect):
 
         has_geom = schema.info["type_geom"] != "0"
         retourdesc = requests.get(self.serveur, params=reqparams)
-        print("retour", retourdesc)
+        print("retour", retourdesc.text)
         return
 
 

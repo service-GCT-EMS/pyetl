@@ -1217,7 +1217,7 @@ class Pyetl(object):
         """retourne une connection et la cache"""
         if nombase in self.dbconnect:
             return self.dbconnect[nombase]
-        connection = dbaccess(regle, nombase, type_base, chemin)
+        connection = dbaccess(regle, nombase, type_base)
         if connection:
             self.dbconnect[nombase] = connection
         return connection

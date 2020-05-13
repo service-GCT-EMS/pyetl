@@ -423,6 +423,8 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """produit la liste des classes demandees a partir du schema utile pour id_in:"""
+        if niveau is None or classe is None:
+            return []
         tables_a_sortir = set()
         if len(niveau) == 1 and niveau[0][:2] == "s:":  # selection directe
             ident = niveau[0][:2]

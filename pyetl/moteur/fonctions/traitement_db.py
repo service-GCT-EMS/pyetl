@@ -272,12 +272,8 @@ def f_dbalpha(regle, obj):
     for base, description in basedict.items():
         print("lecture base", base, description)
         niveau, classe, attrs, valeur, chemin, type_base = description
-        LOGGER.debug(
-            "regles alpha:ligne  " + repr(regle) + repr(type_base) + repr(mods)
-        )
-        connect = regle.stock_param.getdbaccess(
-            regle, base, type_base=type_base, chemin=chemin
-        )
+        LOGGER.debug("regles alpha:ligne " + repr(regle) + repr(type_base) + repr(mods))
+        connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         if connect is None:
             print("erreur connection:", base)
             continue

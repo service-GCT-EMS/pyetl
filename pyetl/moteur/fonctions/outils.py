@@ -17,7 +17,6 @@ import codecs
 import typing as T
 
 from pyetl.formats.generic_io import READERS
-from pyetl.formats.interne.objet import Objet
 from pyetl.vglobales import DEFCODEC
 
 LOGGER = logging.getLogger("pyetl")
