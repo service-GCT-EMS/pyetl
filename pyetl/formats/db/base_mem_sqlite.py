@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  7 08:33:53 2016
+bases de donnees sqlite en memoire pour l execution directe de requetes sql
 
-@author: 89965
-acces a la base de donnees
+module experimental non disponible
+
+commandes disponibles :
+
+    * creation de structures
+    * chargement de donnees
+    * lecture des structures
+    * extraction des donnees
+    * passage de commandes sql
+
+pas de dependances externes
+
 """
 import sys
 

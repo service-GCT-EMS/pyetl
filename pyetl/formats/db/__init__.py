@@ -20,6 +20,7 @@ DBDEF = namedtuple(
         "description",
         "converter",
         "geomwriter",
+        "doc",
     ),
 )
 # ("acces", "gensql", "svtyp", "fileext", 'description')
@@ -33,10 +34,11 @@ def loadmodules():
             module = "." + os.path.splitext(fich_module)[0]
             try:
                 format_def = importlib.import_module(module, package=__package__)
+                doc = format_def.__doc__
                 for nom, desc in getattr(format_def, "DBDEF").items():
                     if nom in databases:
                         print("attention : redefinition du format de base", nom)
-                    databases[nom] = DBDEF(*desc, None, None)
+                    databases[nom] = DBDEF(*desc, None, None, doc)
                     # a ce stade les fonctions ne sont pas connues
             except (ImportError, AttributeError) as err:
                 print("module ", module[1:], "non disponible", err)

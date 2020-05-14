@@ -9,6 +9,9 @@ module d'aide
 """
 
 
+from pyetl.formats.db import DATABASES
+
+
 def souligne(doc, signe):
     doc.append(signe * len(doc[-1]))
     doc.append("")
@@ -220,6 +223,18 @@ def doc_formats(mapper):
         ecrit = "oui" if nom_format in mapper.formats_connus_ecriture else "non"
         doc.append("%-20s   %10s    %10s" % (nom_format, lect, ecrit))
     doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    doc.append("")
+    doc.append("reference bases de donnees")
+    souligne(doc, "-")
+    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    doc.append("%-20s   %10s    %10s" % ("format", "lecture", "ecriture"))
+    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    doc.append("")
+    for nombase in sorted(DATABASES):
+        doc.append(nombase)
+        souligne(doc, ".")
+        doc.append(DATABASES[nombase].doc)
+    doc.append("")
 
     return doc
 

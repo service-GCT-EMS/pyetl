@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 11:49:29 2016
+Acces aux bases de donnees ms access
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles
+
+    * lecture des structures
+    * extraction de donnees
+
+
+necessite la librairie pyodbc et le runtime access de microsoft
+
+il est necessaire de positionner les parametres suivant:
+
 """
 import os
 

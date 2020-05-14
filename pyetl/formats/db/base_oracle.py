@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 
 """
-Created on Mon Feb 22 11:49:29 2016
+Acces aux bases de donnees oracle
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles :
+
+    * lecture des structures
+    * extraction multitables et par selection sur un attribut
+
+necessite la librairie cx_Oracle et un client oracle 64 bits
+
+il est necessaire de positionner les parametres suivant:
+
+
 """
 import os
 

@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 11:49:29 2016
+Acces aux bases de donnees elyx
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles :
+
+    * lecture des structures et des droits
+    * multi extraction en parallele par programme externe
+    * chargement par programme externe
+
+necessite la librairie cxOracle et un client oracle 64 bits
+
+l'utilisation des loaders et extracteurs necessite les programmes FEA2ORA et ORA2FEA et un client oraccle 32 bits
+
+il est necessaire de positionner les parametres suivant:
+
+
 """
 import os
 import subprocess
