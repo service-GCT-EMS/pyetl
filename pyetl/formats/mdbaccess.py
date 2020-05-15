@@ -45,14 +45,14 @@ def dbaccess(regle, codebase, type_base=None):
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
         return None
-    print(
-        "--------acces base de donnees",
-        codebase,
-        "->",
-        type_base,
-        "en memoire:",
-        codebase in stock_param.dbconnect,
-    )
+    # print(
+    #     "--------acces base de donnees",
+    #     codebase,
+    #     "->",
+    #     type_base,
+    #     "en memoire:",
+    #     codebase in stock_param.dbconnect,
+    # )
     dbdef = DATABASES[type_base]
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin

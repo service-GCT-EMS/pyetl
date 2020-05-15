@@ -5,7 +5,7 @@ Acces aux bases de donnees postgis
 commandes disponibles :
 
     * lecture des structures et de droits
-    * lecture des fonctions et des triggers
+    * lecture des fonctions et des triggers et tables distantes gestion des clefs etrangeres
     * extraction multitables et par selection sur un attribut et par geometrie
     * ecriture de structures en fichier sql
     * ecritures de donnees au format copy et chargment en base par psql
@@ -290,47 +290,6 @@ class PgsGenSql(PgrGenSql):
         style.append("</aliases>")
         style.append("</qgis>")
         return nom_style, "\n".join(style)
-
-    # scripts de creation de tables
-    def sio_crestyle(self, liste=None):
-        """ genere les styles de saisie"""
-        conf = True
-        if self.basic == "basic":
-            return []
-        if liste is None:
-            liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
-        declaration = []
-        for ident in liste:
-
-            groupe, nom = self.get_nom_base(ident)
-            nom_style, style = self.prepare_style(ident, conf)
-            sql1 = (
-                "INSERT INTO public.layer_styles (f_table_catalog,f_table_schema,"
-                + "f_table_name,f_geometry_column,stylename,useasdefault) "
-                + "SELECT (select catalog_name from information_schema.schemata"
-                + " where schema_name='"
-                + groupe
-                + "'),'"
-                + groupe
-                + "','"
-                + nom
-                + "'"
-                + ",'geometrie','"
-                + nom_style
-                + "','TRUE'\n WHERE NOT EXISTS (\n"
-                + "SELECT * from public.layer_styles WHERE stylename='"
-                + nom_style
-                + "');"
-            )
-            sql2 = (
-                "UPDATE public.layer_styles SET styleqml = XMLPARSE(DOCUMENT '"
-                + style
-                + "') WHERE stylename='"
-                + nom_style
-                + "';"
-            )
-            declaration.extend((sql1, sql2))
-        return declaration
 
     def db_cree_table(self, schema, ident):
         """creation d' une tables en direct """

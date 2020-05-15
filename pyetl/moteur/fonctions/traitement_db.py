@@ -159,7 +159,8 @@ def h_dbalpha(regle):
 
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
-    # print("acces base", regle.cible_base)
+    # print("acces base", regle.cible_base.keys())
+    basedict = dict()
     for base, (niveau, classe, attribut) in regle.cible_base.items():
         attrs = []
         cmp = []
@@ -214,7 +215,6 @@ def setdb(regle, obj, att=True):
             valeur = regle.params.val_entree.liste
         else:
             valeur = cmp
-        basedict = dict()
         # bd2 = DB.TableSelector(regle.stock_param)
         if isinstance(base, list):
             for numero, idbase in enumerate(base):
@@ -257,7 +257,7 @@ def f_dbalpha(regle, obj):
     basedict = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
-    print("regles alpha: acces base apres ", basedict)
+    # print("regles alpha: acces base apres ", basedict)
 
     #    print('regles alpha:ligne  ', regle, type_base, mods)
     #    print('regles alpha:parms:', base, niveau, classe, attribut, 'entree:',regle.params.val_entree,
@@ -269,8 +269,9 @@ def f_dbalpha(regle, obj):
         print("fdbalpha: base non definie ", regle.context, regle)
         return False
     retour = 0
+    print( "dbalpha",basedict.keys())
     for base, description in basedict.items():
-        print("lecture base", base, description)
+        print("lecture base", base)
         niveau, classe, attrs, valeur, chemin, type_base = description
         LOGGER.debug("regles alpha:ligne " + repr(regle) + repr(type_base) + repr(mods))
         connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
@@ -303,7 +304,7 @@ def f_dbalpha(regle, obj):
                 type_base=type_base,
                 chemin=chemin,
             )
-            print("regles alpha: valeur retour", retour, obj)
+            # print("regles alpha: valeur retour", retour, obj)
     return retour
 
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):

@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 11:49:29 2016
+Acces aux bases de donnees postgis
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles :
+
+    * lecture des structures et de droits
+    * lecture des fonctions et des triggers et tables distantes gestion des clefs etrangeres
+    * extraction multitables et par selection sur un attribut et par geometrie
+    * ecriture de structures en fichier sql
+    * ecritures de donnees au format copy et chargment en base par psql
+    * passage de requetes sql
+    * insert et updates en base '(beta)'
+
+necessite la librairie psycopg2 et l acces au loader psql pour le chargement de donnees
+
+il est necessaire de positionner les parametres suivant:
+
+
 """
 import os
 
@@ -25,6 +38,7 @@ TYPES_A = {
     "NAME": "T",
     '"CHAR"': "T",
     "CHAR": "T",
+    "XML": "T",
     "REGCLASS": "T",
     "CHARACTER VARYING": "T",
     "E": "E",

@@ -308,7 +308,7 @@ class DbGenSql(object):
 
     def sio_crestyle(self, cod="utf-8", liste=None):
         """ styles : pas par defaut"""
-        return None
+        return []
 
     # structures specifiques pour stocker les scrips en base
     # cree 4 tables: Macros scripts batchs logs
