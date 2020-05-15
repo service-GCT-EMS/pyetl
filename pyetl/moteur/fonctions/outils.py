@@ -223,7 +223,7 @@ def charge_liste_classes(fichier, codec=DEFCODEC, debug=False, taille=1):
 
 
 def _charge_liste_csv(
-    fichier, codec="", debug=False, taille=1, positions=None, mode="txt"
+    fichier, codec="", debug=False, taille=1, positions=None, type_cle="txt"
 ):
     if not codec:
         codec = DEFCODEC
@@ -249,7 +249,7 @@ def _charge_liste_csv(
                     if taille <= 0:
                         stock[ligne] = liste
                     else:
-                        if mode != "txt":
+                        if type_cle != "txt":
                             bdef = liste.pop(0)
                             tmp = bdef.split(".", taille)
                             tmp.extend(liste)
@@ -278,7 +278,7 @@ def _extract(ligne, clef):
     return ""
 
 
-def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, mode="txt"):
+def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle="txt"):
     """prechargement d un fichier projet qgis"""
     if not codec:
         codec = DEFCODEC
@@ -286,7 +286,7 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, mode="txt
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
-            print("lecture projet qgs", taille, fichier)
+            print("lecture projet qgs", taille, fichier, type_cle)
             for i in fich:
 
                 if "datasource" in i:
@@ -304,13 +304,11 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, mode="txt
                         if taille == 1:
                             clef = table
                         elif taille == 2:
-                            if mode == "txt" or mode == "n":
-                                clef = tuple(table.split(".", 1))
-                            clef = (dbdef, table)
+                            clef = tuple(table.split(".", 1))
                         else:
 
                             niv, cla = table.split(".", 1)
-                            if mode == "txt":
+                            if type_cle == "txt":
                                 txt = ",".join(dbdef)
                                 clef = (txt, niv, cla)
                             else:
@@ -325,7 +323,9 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, mode="txt
     return stock
 
 
-def charge_liste(fichier, codec="", debug=False, taille=1, positions=None, mode="txt"):
+def charge_liste(
+    fichier, codec="", debug=False, taille=1, positions=None, type_cle="txt"
+):
     """prechargement des fichiers de comparaison """
     # fichier de jointure dans le repertoire de regles
     clef = ""
@@ -354,7 +354,7 @@ def charge_liste(fichier, codec="", debug=False, taille=1, positions=None, mode=
                                 codec=codec,
                                 debug=debug,
                                 taille=taille,
-                                mode=mode,
+                                type_cle=type_cle,
                             )
                         )
                     elif os.path.splitext(i)[-1] == ".csv":
@@ -364,7 +364,7 @@ def charge_liste(fichier, codec="", debug=False, taille=1, positions=None, mode=
                                 taille=taille,
                                 codec=codec,
                                 debug=debug,
-                                mode=mode,
+                                type_cle=type_cle,
                             )
                         )
                 else:
@@ -407,7 +407,7 @@ def conditionne_liste_classes(valeurs):
 #    return txt[1:-1].split(",") if txt.startswith('{') else []
 
 
-def prepare_mode_in(fichier, regle, taille=1, clef=0, mode="txt"):
+def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
     """precharge les fichiers utilises pour les jointures ou les listes d'appartenance
     formats acceptes:
         mode txt: clef simple (pour des selecteurs attributaires)
@@ -466,7 +466,7 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, mode="txt"):
                 fichier = fi2[0]
                 positions = [int(i) for i in fi2[1:]]
             valeurs = charge_liste(
-                fichier, taille=taille, positions=positions, mode=mode
+                fichier, taille=taille, positions=positions, type_cle=type_cle
             )
             # on precharge le fichier de jointure
             # print(

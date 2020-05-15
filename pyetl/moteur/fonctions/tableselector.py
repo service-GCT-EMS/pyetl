@@ -28,15 +28,19 @@ class TableBaseSelector(object):
         self.base = base
         self.schemaref = schemaref
         self.valide = bool(base or schemaref)
+        if "." in map_prefix:
+            self.np, self.cp = map_prefix.split(".", 1)
+        else:
+            self.np, self.cp = map_prefix, ""
         self.mapprefix = map_prefix
         self.descripteurs = []
         self.dyndescr = []
         # un descripteur est un tuple
         # (type,niveau,classe,attribut,condition,valeur,mapping)
-        self.direct = set()
+        self.direct = dict()
 
-    def add_classe(self, classe):
-        self.direct.add(classe)
+    # def add_classe(self, classe):
+    #     self.direct.add(classe)
 
     def add_descripteur(self, descripteur):
         niveau, classe, attr, mod = descripteur
@@ -48,7 +52,16 @@ class TableBaseSelector(object):
     def prepare_direct(self, regle):
         connect = self.mapper.getdbaccess(regle, self.base)
         self.schemabase = connect.schemabase
-        self.direct = set([i for i in self.direct if i in self.schemabase.classes])
+        self.direct = {
+            i: j for i, j in self.direct.items() if i in self.schemabase.classes
+        }
+
+    def set_prefix(self, cldef):
+        niveau, classe = cldef[:2]
+        map_n = "_".join((self.np, niveau)) if self.np else niveau
+        map_c = "_".join((self.cp, classe)) if self.np else classe
+        return (map_n, map_c)
+
     def add_classlist(self, niveau, classe, attr, mod):
         mod = mod.upper()
         multi = "=" in mod
@@ -58,7 +71,9 @@ class TableBaseSelector(object):
         classlist = self.schemabase.select_classes(
             niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
         )
-        self.direct.update(classlist)
+        for i in classlist:
+            mapped = self.set_prefix(i)
+            self.direct[i] = mapped
 
     def resolve_static(self, regle):
         """convertit une liste de descripteurs en liste de classes"""
@@ -66,6 +81,7 @@ class TableBaseSelector(object):
         for descripteur in self.descripteurs:
             niveau, classe, attr, mod = descripteur
             self.add_classlist(niveau, classe, attr, mod)
+
     def resolve_dyn(self, regle, obj):
         self.prepare_direct(regle)
         for descripteur in self.dyndescr:
@@ -79,7 +95,16 @@ class TableBaseSelector(object):
 
 class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
-        generes par des condition in: complexes"""
+        generes par des condition in: complexes
+        le selecteur est un objet persistant qui peut etre reutilise par differentes commandes
+        notamment des commandes de mapping
+        un selecteur peut contenir de nombreux sous selecteurs lies a des bases
+        si les memes tables existent dans diverses bases il y a potentiellement conflit
+        3 modes de resolution existent:
+            priorite : une base est prioritaire sur l autre: seule la base prioritaire est retenue
+            mapping : les objets sont renommes en fonction d un prefixe devant le niveau
+            concatenation: les objets sont sortis dans la meme classe (c est l option par defaut)
+        """
 
     def __init__(self, regle, base=None):
         self.regle_ref = regle
@@ -90,7 +115,7 @@ class TableSelector(object):
         self.classes = dict()
         self.inverse = dict()
         self.refbases = set()
-        self.mapmode = None
+        self.onconflict = "add"
 
     def make_descripteur(
         self, base, liste, classes=[""], attribut=[""], valeur="", fonction="="
@@ -175,75 +200,69 @@ class TableSelector(object):
         print("base inconnue", base, self.mapper.dbref)
         return None
 
-    def remap(self, ident, base):
-        if self.mapmode is None:
-            return ident
-        niveau, classe = ident
-        n2 = (base, niveau) if self.mapmode == "bn" else (niveau, base)
-        return ("_".join(n2), classe)
-
     def resolve(self, regle):
         for base in self.baseselectors:
             self.baseselectors[base].resolve_static(regle)
-            for ident in self.baseselectors[base].direct:
-                id2 = self.remap(ident, base)
+            for ident, id2 in self.baseselectors[base].direct.items():
                 b2 = self.inverse.get(id2)
                 if b2 and b2 != base:
                     print(" mapping ambigu", ident, "dans", base, "et", b2)
                     continue
                 self.inverse[id2] = base
-                self.classes[base][ident] = id2
 
     def getschematravail(self, schemabase):
         pass
 
 
-def _select_niv_in(regle, niv):
+def _select_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
-    mode_select, valeurs = prepare_mode_in(niv, regle, taille=2)
+    print("mode_niv in:", niv, autobase)
+
+    mode_in = "b" if autobase else "n"
+    taille = 3 if autobase else 2
+    mode_select, valeurs = prepare_mode_in(niv, regle, taille=taille, type_cle=mode_in)
     niveau = []
     classe = []
     attrs = []
     cmp = []
-    print("mode_niv in:lecture_fichier", valeurs)
+    base = []
+    # selecteur = DB.TableSelector(regle)
+    # for i in valeurs:
+    #     selecteur.add_selector(*i)
+    #     print("add_selector", i)
     for i in valeurs:
-        liste_defs = list(valeurs[i])
-        print("mode_niv in:liste_defs", liste_defs)
-        def1 = liste_defs.pop(0).split(".")
-        if len(def1) == 1 and liste_defs and liste_defs[0]:
-            # c'est de la forme niveau;classe
-            defs2 = liste_defs.pop(0).split(".")
-            def1.extend(defs2)
-        # print("mode_niv in:def1",def1)
-        niveau.append(def1[0])
-        if len(def1) == 1:
-            classe.append("")
-            attrs.append("")
-            cmp.append("")
-        elif len(def1) == 2:
-            classe.append(def1[1])
-            attrs.append("")
-            cmp.append("")
-        elif len(def1) == 3:
-            # print("detection attribut")
-            classe.append(def1[1])
-            attrs.append(def1[2])
-            vals = ""
-            if liste_defs:
-                if liste_defs[0].startswith("in:"):
-                    txt = liste_defs[0][3:]
-                    vals = txt[1:-1].split(",") if txt.startswith("{") else []
-                else:
-                    vals = liste_defs[0]
-            cmp.append(vals)
-    # print ('mode_niv in:lu ','\n'.join(str(i) for i in zip(niveau, classe, attrs, cmp)))
-    return niveau, classe, attrs, cmp
+        liste_defs = list(i)
+        # print("mode_niv in:liste_defs", liste_defs)
+        bdef = liste_defs[0]
+        if bdef in regle.stock_param.dbref:
+            # c est une definition de base
+            bdef = regle.stock_param.dbref.get(bdef)
+        if autobase:
+            base.append(bdef)
+            liste_defs.pop(0)
+        else:
+            base.append("")
+
+        niveau.append(liste_defs.pop(0) if liste_defs else "")
+        classe.append(liste_defs.pop(0) if liste_defs else "")
+        attrs.append(liste_defs.pop(0) if liste_defs else "")
+        cmp.append(liste_defs.pop(0) if liste_defs else "")
+
+    # print(
+    #     "mode_niv in:lu ",
+    #     "\n".join(str(i) for i in zip(base, niveau, classe, attrs, cmp)),
+    # )
+    return base, niveau, classe, attrs, cmp
 
 
 def prepare_selecteur(regle):
-    """ attache une lise de classes a une regle (eventuellement multibase)"""
+    """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
+    autobase = False
+    if base == "*" or base == "":
+        base = ""
+        autobase = True
 
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
@@ -251,16 +270,20 @@ def prepare_selecteur(regle):
     att = regle.v_nommees["val_sel2"]
     attrs = []
     cmp = []
-    print("param_base", base, niv, cla, att)
-    if base == "*" or not base:
-        regle.selecteur = regle.stock_param.selecteurs.get(niveau)
-    elif niv.lower().startswith("in:"):  # mode in
-        regle.selecteur = _select_niv_in(regle, niv[3:])
+    print("param_base", base, niv, cla, "autobase:", autobase)
+
+    if niv.lower().startswith("in:"):  # mode in
+        b_lue, niveau, classe, attrs, cmp = _select_niv_in(
+            regle, niv[3:], autobase=autobase
+        )
+        if autobase:
+            base = b_lue
+        else:
+            base = [base] * len(niveau)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
-        classes = list(valeurs.keys())
-        regle.selecteur = TableSelector(regle, base)
+        classe = list(valeurs.keys())
         niveau = [niv] * len(classe)
     elif "," in niv:
         niveau = niv.split(",")
@@ -277,10 +300,22 @@ def prepare_selecteur(regle):
         niveau = [niv]
         classe = [cla]
     if attrs:
-        att = (attrs, cmp)
+        att = [(i, j) for i, j in zip(attrs, cmp)]
 
     regle.dyn = "#" in niv or "#" in cla
     print("parametres acces base", base, niveau, classe, att, regle)
 
-    regle.cible_base = (base, niveau, classe, att)
+    # gestion multibase
+    if isinstance(base, list):
+        multibase = {i: ([], [], []) for i in set(base)}
+        for b, n, c, a in zip(base, niveau, classe, att):
+            # print("traitement", b, n, c, a)
+            nl, cl, al = multibase[b]
+            nl.append(n)
+            cl.append(c)
+            al.append(a)
+        regle.cible_base = multibase
+        # print("retour multibase", multibase)
+    else:
+        regle.cible_base = {base: (niveau, classe, att)}
     return True

@@ -10,22 +10,23 @@ import glob
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
 from .outils import prepare_mode_in
+from .tableselector import TableSelector
 
 LOGGER = logging.getLogger("pyetl")
 
 
 def _mode_niv_in(regle, niv, autobase=False):
     """gere les requetes de type niveau in..."""
+    print("mode_niv in:", niv, autobase)
 
     mode_in = "b" if autobase else "n"
     taille = 3 if autobase else 2
-    mode_select, valeurs = prepare_mode_in(niv, regle, taille=taille, mode=mode_in)
+    mode_select, valeurs = prepare_mode_in(niv, regle, taille=taille, type_cle=mode_in)
     niveau = []
     classe = []
     attrs = []
     cmp = []
     base = []
-    # print("mode_niv in:lecture_fichier", valeurs)
     # selecteur = DB.TableSelector(regle)
     # for i in valeurs:
     #     selecteur.add_selector(*i)
@@ -59,6 +60,7 @@ def param_base(regle):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
+    autobase = False
     if base == "*" or base == "":
         base = ""
         autobase = True
@@ -69,15 +71,16 @@ def param_base(regle):
     att = regle.v_nommees["val_sel2"]
     attrs = []
     cmp = []
-    print("param_base", base, niv, cla, att)
+    print("param_base", base, niv, cla, "autobase:", autobase)
 
     if niv.lower().startswith("in:"):  # mode in
-        if base:
-            _, niveau, classe, attrs, cmp = _mode_niv_in(regle, niv[3:])
-        else:  # mode mutibase (projets qgis ou csv multibase)
-            base, niveau, classe, attrs, cmp = _mode_niv_in(
-                regle, niv[3:], autobase=True
-            )
+        b_lue, niveau, classe, attrs, cmp = _mode_niv_in(
+            regle, niv[3:], autobase=autobase
+        )
+        if autobase:
+            base = b_lue
+        else:
+            base = [base] * len(niveau)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
@@ -101,7 +104,7 @@ def param_base(regle):
         att = [(i, j) for i, j in zip(attrs, cmp)]
 
     regle.dyn = "#" in niv or "#" in cla
-    # print("parametres acces base", base, niveau, classe, att, regle)
+    print("parametres acces base", base, niveau, classe, att, regle)
 
     # gestion multibase
     if isinstance(base, list):
@@ -269,7 +272,7 @@ def f_dbalpha(regle, obj):
         print("fdbalpha: base non definie ", regle.context, regle)
         return False
     retour = 0
-    print( "dbalpha",basedict.keys())
+    print("dbalpha", basedict.keys())
     for base, description in basedict.items():
         print("lecture base", base)
         niveau, classe, attrs, valeur, chemin, type_base = description

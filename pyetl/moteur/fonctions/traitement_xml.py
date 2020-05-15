@@ -28,11 +28,14 @@ def h_xmlextract(regle):
 def getcadre(regle, obj):
     """gestion de la persistance de structure xml"""
     tree = obj.attributs_speciaux.pop("__xmltree", None)
+    cadres = ()
+
     if not tree:
         try:
-            tree = ET.fromstring(obj.attributs.get(regle.params.att_entree.val))
+            tree = ET.fromstring(regle.getval_entree(obj))
         except ParseError as err:
-            LOGGER.error("erreur xml mal formé", err, obj)
+            print("erreur xml mal formé", err, regle.getval_entree(obj))
+            LOGGER.error("erreur xml mal formé", err)
             return None, ()
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
     return tree, cadres
@@ -212,7 +215,13 @@ def f_xmlload(regle, obj):
         obj.attributs[regle.params.att_sortie.val] = "".join(
             open(nom, "r", encoding="utf-8").readlines()
         )
+        # print(
+        #     " xmlload",
+        #     regle.params.att_sortie.val,
+        #     len(obj.attributs[regle.params.att_sortie.val]),
+        # )
     except (FileNotFoundError, PermissionError):
+        obj.attributs[regle.params.att_sortie.val] = ""
         print("fichier non trouve", nom)
         return False
     return True
