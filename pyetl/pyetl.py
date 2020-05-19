@@ -197,6 +197,8 @@ class Pyetl(object):
         self.store = dict()
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
+        self.namedselectors = dict()
+        # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
         self.context = Context(

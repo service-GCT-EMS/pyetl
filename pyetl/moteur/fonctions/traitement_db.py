@@ -104,7 +104,7 @@ def param_base(regle):
         att = [(i, j) for i, j in zip(attrs, cmp)]
 
     regle.dyn = "#" in niv or "#" in cla
-    print("parametres acces base", base, niveau, classe, att, regle)
+    # print("parametres acces base", base, niveau, classe, att, regle)
 
     # gestion multibase
     if isinstance(base, list):
@@ -119,6 +119,11 @@ def param_base(regle):
         # print("retour multibase", multibase)
     else:
         regle.cible_base = {base: (niveau, classe, att)}
+
+    # gestion des selecteurs
+    if regle.selecteur:
+        selecteur = regle.stock_param.selecteurs
+
     return True
 
 
