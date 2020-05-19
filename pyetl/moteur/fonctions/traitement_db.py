@@ -60,10 +60,7 @@ def param_base(regle):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
-    autobase = False
-    if base == "*" or base == "":
-        base = ""
-        autobase = True
+    regle.autobase = False
 
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
@@ -71,13 +68,16 @@ def param_base(regle):
     att = regle.v_nommees["val_sel2"]
     attrs = []
     cmp = []
-    print("param_base", base, niv, cla, "autobase:", autobase)
+    print("param_base", base, niv, cla, "autobase:", regle.autobase)
 
     if niv.lower().startswith("in:"):  # mode in
+        if base == "*" or base == "":
+            base = ""
+            autobase = True
         b_lue, niveau, classe, attrs, cmp = _mode_niv_in(
-            regle, niv[3:], autobase=autobase
+            regle, niv[3:], autobase=regle.autobase
         )
-        if autobase:
+        if regle.autobase:
             base = b_lue
         else:
             base = [base] * len(niveau)
@@ -689,7 +689,10 @@ def h_recup_schema(regle):
     regle.chargeur = True  # c est une regle a declencher
 
     regle.setlocal("mode_schema", "dbschema")
+    print("dbschema", regle.cible_base)
     for nombase, (niveau, classe, _) in regle.cible_base.items():
+        if not nombase:
+            continue
         regle.type_base = regle.getvar("db_" + nombase)
         nomschema = (
             regle.params.val_entree.val if regle.params.val_entree.val else nombase
@@ -715,7 +718,7 @@ def f_recup_schema(regle, obj):
    #req_test||testdb
     """
     chemin = ""
-    # print ('recup_schema---------------', obj)
+    print("recup_schema---------------", obj)
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
     valide = True
@@ -723,19 +726,18 @@ def f_recup_schema(regle, obj):
         if obj.attributs["#groupe"] == "__filedb":
             chemin = obj.attributs["#chemin"]
             type_base = obj.attributs["#type_base"]
-            if base != obj.attributs["#base"]:
-                base = obj.attributs["#base"]
-                DB.recup_schema(
-                    regle,
-                    base,
-                    niveau,
-                    classe,
-                    regle.get_entree(obj),
-                    type_base=type_base,
-                    chemin=chemin,
-                )
-                regle.setlocal("db", type_base)
-                regle.setlocal("server", chemin)
+            base = obj.attributs["#base"]
+            DB.recup_schema(
+                regle,
+                base,
+                niveau,
+                classe,
+                regle.get_entree(obj),
+                type_base=type_base,
+                chemin=chemin,
+            )
+            regle.setlocal("db", type_base)
+            regle.setlocal("server", chemin)
         else:
             type_base = regle.type_base
             #        print('tdb: acces schema base', type_base, base, niveau, classe)

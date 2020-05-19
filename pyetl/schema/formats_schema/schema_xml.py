@@ -335,12 +335,12 @@ def ecrire_schema_xml(
     rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""
 ):
     """ecrit un schema en xml"""
-    os.makedirs(rep, exist_ok=True)
     alias = ESC_XML(alias)
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
     nomschema = prefix + schema.nom.replace("#", "_")
 
     if xml:
+        os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
         print("schema: ecriture schema xml", os.path.join(rep, nomschema) + ".xml")
         open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
     if not prefix:

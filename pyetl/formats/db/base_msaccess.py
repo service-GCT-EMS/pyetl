@@ -55,6 +55,7 @@ TYPES_A = {
     "INTERVALLE": "I",
     "OID": "I",
     "INTEGER": "E",
+    "SMALLINT": "E",
 }
 
 
@@ -66,7 +67,7 @@ class AccConnect(DbConnect):
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base = TYPES_A
-        #        print ('connection base access', serveur,base, user, passwd )
+        print("connection base access", serveur, base, user, passwd)
         self.connect()
         self.nombase = os.path.splitext(os.path.basename(base))[0]
         self.tables = set()
@@ -142,7 +143,9 @@ class AccConnect(DbConnect):
         #        for i in cur.tables():
         #            print (i)
         tables = []
-        for table in cur.tables():
+        tabledef = list(cur.tables())
+
+        for table in tabledef:
             schema = table.table_schem if table.table_schem else ""
             nom = table.table_name
             if (schema, nom) in self.tables:
@@ -157,11 +160,16 @@ class AccConnect(DbConnect):
                     type_t = "x"
                 taille = 0
                 idt = ".".join((schema, nom)) if schema else nom
-                #                print ('calcul taille',self.request("select count(*) from "+idt,()))
-                taille = self.request('select count(*) from "' + idt + '"', ())
-                #                taille = cur2.execute('select count(*) from "'+idt+'"').fetchval()
-                #                print ("taille table ",idt,taille)
-                taille = taille[0][0] if taille else "0"
+                print("calcul taille", "select count(*) from " + idt)
+                # taille = self.request('select count(*) from "' + idt + '"', ())
+                try:
+                    taille = cur.execute(
+                        'select count(*) from "' + idt + '"'
+                    ).fetchval()
+                except OdbcError:
+                    taille = -1
+                print("taille table ", idt, taille)
+                # taille = taille[0][0] if taille else "0"
                 nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
                 tables.append(nouv_table)
         return tables
@@ -174,7 +182,7 @@ class AccConnect(DbConnect):
         cur = self.execrequest(requete, data, attlist=attlist)
         if cur:
             try:
-                yield from cur
+                yield from cur.cursor
             except OdbcError as err:
                 print("error: access:erreur recuperation donnees", requete)
                 print("parametres", err.args)
@@ -206,18 +214,17 @@ class AccConnect(DbConnect):
         cur2 = self.connection.cursor()
         pkeys = dict()
         #        fkeys=dict()
-
-        for tabledef in cur.tables():
-            if (
-                tabledef.table_schem if tabledef.table_schem else "",
-                tabledef.table_name,
-            ) in self.tables:
+        tabledef = list(cur.tables())
+        for tabledef in tabledef:
+            tschema = tabledef.table_schem if tabledef.table_schem else ""
+            print("analyse", tschema, tabledef.table_name)
+            if (tschema, tabledef.table_name) in self.tables:
                 tablename = tabledef.table_name
                 #                primaryKeys(table, catalog=None, schema=None)
                 #                print("table", tablename, tabledef.table_schem)
                 #                , schema=tabledef.table_schem
                 for pkey in cur2.statistics(tablename):
-                    print("valeurs stat", pkey)
+                    # print("valeurs stat", pkey)
                     if pkey.index_name == "PrimaryKey":
                         pkeys[(tablename, pkey.column_name)] = "P:" + str(
                             pkey.ordinal_position
