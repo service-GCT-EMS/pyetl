@@ -117,6 +117,9 @@ class TableSelector(object):
         self.refbases = set()
         self.onconflict = "add"
 
+    def __repr__(self):
+        return repr([repr(bs) for bs in self.baseselectors.values()])
+
     def make_descripteur(
         self, base, liste, classes=[""], attribut=[""], valeur="", fonction="="
     ):

@@ -121,8 +121,8 @@ def param_base(regle):
         regle.cible_base = {base: (niveau, classe, att)}
 
     # gestion des selecteurs
-    if regle.selecteur:
-        selecteur = regle.stock_param.selecteurs
+    # if regle.selecteur:
+    #     selecteur = regle.stock_param.selecteurs
 
     return True
 
@@ -223,10 +223,10 @@ def setdb(regle, obj, att=True):
             valeur = regle.params.val_entree.liste
         else:
             valeur = cmp
-        # bd2 = DB.TableSelector(regle.stock_param)
+        bd2 = TableSelector(regle)
         if isinstance(base, list):
             for numero, idbase in enumerate(base):
-                # bd2.add_selector(idbase, basedict[idbase])
+                bd2.add_selector(idbase, basedict[idbase])
                 if idbase in basedict:
                     niv, cla, attr, val, chm, typ = basedict[idbase]
                     niv.extend(niveau[numero])
@@ -245,6 +245,8 @@ def setdb(regle, obj, att=True):
                     )
         else:
             basedict[base] = (niveau, classe, attrs, valeur, chemin, type_base)
+        bd2.resolve(regle)
+        print("selecteur", bd2)
     return basedict
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
