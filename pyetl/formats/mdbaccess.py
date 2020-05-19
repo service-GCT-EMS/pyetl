@@ -255,11 +255,14 @@ def get_connect(
     """ recupere la connection a la base et les schemas qui vont bien"""
     # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
-    if base in stock_param.dbref:
-        nombase = stock_param.dbref[base]
-    else:
-        print("base inconnue", base)
-        return None
+    nombase = base
+    if regle.autobase:
+        if base in stock_param.dbref:
+            nombase = stock_param.dbref[base]
+        else:
+            print("base inconnue", base)
+            raise
+            return None
 
     connect = stock_param.getdbaccess(regle, nombase, type_base=type_base)
 
