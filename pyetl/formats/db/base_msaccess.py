@@ -72,6 +72,7 @@ class AccConnect(DbConnect):
         self.nombase = os.path.splitext(os.path.basename(base))[0]
         self.tables = set()
         self.set_tablelist()
+        self.accept_sql = "alpha"
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -94,6 +95,7 @@ class AccConnect(DbConnect):
             )
 
             self.connection = OdbcConnect(conn_str)
+            self.connection.setencoding("utf8")
 
             #        connection = odbc.win_connect_mdb(base)
             return self.connection
@@ -160,7 +162,7 @@ class AccConnect(DbConnect):
                     type_t = "x"
                 taille = 0
                 idt = ".".join((schema, nom)) if schema else nom
-                print("calcul taille", "select count(*) from " + idt)
+                # print("calcul taille", "select count(*) from " + idt)
                 # taille = self.request('select count(*) from "' + idt + '"', ())
                 try:
                     taille = cur.execute(
@@ -168,7 +170,7 @@ class AccConnect(DbConnect):
                     ).fetchval()
                 except OdbcError:
                     taille = -1
-                print("taille table ", idt, taille)
+                # print("taille table ", idt, taille)
                 # taille = taille[0][0] if taille else "0"
                 nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
                 tables.append(nouv_table)
@@ -179,20 +181,19 @@ class AccConnect(DbConnect):
         if has_geom:
             print("erreur requete geometrique impossible", requete)
             return iter(())
-        cur = self.execrequest(requete, data, attlist=attlist)
-        if cur:
-            try:
-                yield from cur.cursor
-            except OdbcError as err:
-                print("error: access:erreur recuperation donnees", requete)
-                print("parametres", err.args)
+        try:
+            cur = self.execrequest(requete, data, attlist=attlist)
+            if cur:
+                return cur
+        except OdbcError as err:
+            print("error: access:erreur recuperation donnees", requete)
+            print("parametres", err.args)
 
             #                raise
-            cur.close()
-            raise StopIteration
+            # raise StopIteration
 
         self.decile = 1
-        return iter(())
+        return None
 
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
@@ -217,7 +218,7 @@ class AccConnect(DbConnect):
         tabledef = list(cur.tables())
         for tabledef in tabledef:
             tschema = tabledef.table_schem if tabledef.table_schem else ""
-            print("analyse", tschema, tabledef.table_name)
+            # print("analyse", tschema, tabledef.table_name)
             if (tschema, tabledef.table_name) in self.tables:
                 tablename = tabledef.table_name
                 #                primaryKeys(table, catalog=None, schema=None)
@@ -282,42 +283,26 @@ class AccConnect(DbConnect):
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
+        if niveau:
+            table = '"' + niveau + '"."' + classe + '"'
+        else:
+            table = '"' + classe + '"'
         if attribut:
             atttext, attlist = self.construction_champs(
                 schema, "S" in mods, "L" in mods
             )
-
+            reqtext = 'SELECT "' + atttext + '" FROM ' + table + ' WHERE "' + attribut
             if isinstance(valeur, list):
-                requete = (
-                    ' SELECT "'
-                    + atttext
-                    + '" FROM "'
-                    + niveau
-                    + '"."'
-                    + classe
-                    + '" WHERE "'
-                    + attribut
-                    + '" = ANY (%s)'
-                )
+                requete = reqtext + '" = ANY (%s)'
                 data = ("{" + ",".join(valeur) + "}",)
             else:
-                requete = (
-                    ' SELECT "'
-                    + atttext
-                    + '" FROM "'
-                    + niveau
-                    + '"."'
-                    + classe
-                    + '" WHERE "'
-                    + attribut
-                    + '" ~ %s'
-                )
+                requete = reqtext + '" ~ %s'
                 data = (valeur,)
         else:
             atttext, attlist = self.construction_champs(
                 schema, "S" in mods, "L" in mods
             )
-            requete = " SELECT " + atttext + " FROM " + niveau + "." + classe
+            requete = " SELECT " + atttext + " FROM " + table
             data = ()
 
         if ordre:

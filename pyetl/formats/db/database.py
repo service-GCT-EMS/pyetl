@@ -93,6 +93,10 @@ class Cursinfo(object):
         """recupere tous les elements"""
         return self.cursor.fetchall() if self.cursor else ()
 
+    def fetchval(self):
+        """recupere tous les elements"""
+        return self.cursor.fetchval() if self.cursor else ()
+
     def close(self):
         """ferme le curseur"""
         if self.cursor:
@@ -149,12 +153,12 @@ class Cursinfo(object):
     @property
     def infoschema(self):
         """fournit un schema issu de la requete"""
-        print(" dans infoschema")
+        # print(" dans infoschema")
         if self.schema_req:
             return self.schema_req
         if self.cursor:
             try:
-                print("dans cursor.schemaclasse", self.cursor.description)
+                # print("dans cursor.schemaclasse", self.cursor.description)
                 if self.cursor.description:
                     attlist = []
                     typelist = []
@@ -169,17 +173,17 @@ class Cursinfo(object):
                             null_ok,
                         ) = colonne
                         nomtype = self.connecteur.getdatatype(datatype)
-                        print("lecture requete", name, datatype, nomtype, internal_size)
+                        # print("lecture requete", name, datatype, nomtype, internal_size)
                         attdef = self.connecteur.attdef(
                             nom_attr=name, type_attr=nomtype, num_attribut=num + 1
                         )
                         attlist.append(attdef)
                         # typelist.append(type.__name__)
-                    # print ('attlist', attlist)
+                    print("attlist", attlist)
                     self.schema_req = attlist
                     return attlist
-            except:
-                print("planté dans cursor.schemaclasse")
+            except TypeError as err:
+                print("planté dans cursor.schemaclasse", err)
                 pass
         return []
 
