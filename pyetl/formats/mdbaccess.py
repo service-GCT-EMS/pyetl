@@ -60,6 +60,7 @@ def dbaccess(regle, codebase, type_base=None):
         #        servertyp = type_base
         base = codebase
         print("filedb", type_base, "-->", codebase)
+        serveur = regle.getvar("server")
 
     user = regle.getvar("user_" + codebase, "")
     passwd = regle.getvar("passwd_" + codebase, "")
@@ -329,7 +330,7 @@ def sortie_resultats(
     print(
         "...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True
     )
-    stock_param.setvar("printpending", 1)
+    regle_courante.setvar("printpending", 1)
     nbvals = 0
     namelist = curs.namelist
     # print (' attributs recuperes avant', attlist)
@@ -399,7 +400,7 @@ def sortie_resultats(
         print("." * (10 - nb_pts), end="")
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
-    stock_param.setvar("printpending", 0)
+    regle_courante.setvar("printpending", 0)
     curs.close()
     return nbvals
 
@@ -429,7 +430,7 @@ def recup_schema(
     #    tables = [i for i in cmp1 if i in DBACMODS]
     if not tables:
         tables = "A"
-    #    print ('mdba:recup_schema',nom_schema)
+    print("mdba:recup_schema", nom_schema, tables)
     retour = get_connect(
         regle_courante,
         base,
@@ -447,7 +448,11 @@ def recup_schema(
     if retour:
         connect, schema_travail, liste_tables = retour
         print(
-            "recup_schema", schema_travail.nom, len(schema_travail.classes), "classes"
+            "recup_schema",
+            chemin,
+            schema_travail.nom,
+            len(schema_travail.classes),
+            "classes",
         )
         if not liste_tables or DEBUG:
             print(

@@ -9,10 +9,16 @@ import glob
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
-from .outils import prepare_mode_in
+from .outils import prepare_mode_in, selecteur_from_fich
 from .tableselector import TableSelector
 
 LOGGER = logging.getLogger("pyetl")
+
+
+def selecteur_in(regle, niv, base):
+
+    selecteur_from_fich(niv, TableSelector(regle, base))
+
 
 
 def _mode_niv_in(regle, niv, autobase=False):
@@ -127,6 +133,70 @@ def param_base(regle):
     return True
 
 
+def param_base2(regle):
+    """ extrait les parametres d acces a la base"""
+    # TODO gerer les modes in dynamiques
+    base = regle.code_classe[3:]
+    regle.autobase = False
+
+    niveau, classe, att = "", "", ""
+    niv = regle.v_nommees["val_sel1"]
+    cla = regle.v_nommees["sel2"]
+    att = regle.v_nommees["val_sel2"]
+    attrs = []
+    cmp = []
+    print("param_base", base, niv, cla, "autobase:", regle.autobase)
+    if base == "*" or base == "":
+        base = ""
+    selecteur = TableSelector(regle, base)
+    if niv.lower().startswith("in:"):  # mode in
+        selecteur_from_fich(niv, selecteur)
+    elif cla.lower().startswith("in:"):  # mode in
+        clef = 1 if "#schema" in cla else 0
+        mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
+        selecteur.add_niv_class(niv, list(valeurs.keys()), att, "", "")
+    elif "," in niv:
+        niveau = niv.split(",")
+        if "." in niv:
+            classe = [(i.split(".") + [""])[1] for i in niveau]
+            niveau = [i.split(".")[0] for i in niveau]
+        else:
+            classe = [cla] * len(niveau)
+    elif "," in cla:
+        classe = cla.split(",")
+        niveau = [niv] * len(classe)
+
+    else:
+        niveau = [niv]
+        classe = [cla]
+    if attrs:
+        att = [(i, j) for i, j in zip(attrs, cmp)]
+
+    regle.dyn = "#" in niv or "#" in cla
+    # print("parametres acces base", base, niveau, classe, att, regle)
+
+    # gestion multibase
+    if isinstance(base, list):
+        multibase = {i: ([], [], []) for i in set(base)}
+        for b, n, c, a in zip(base, niveau, classe, att):
+            # print("traitement", b, n, c, a)
+            nl, cl, al = multibase[b]
+            nl.append(n)
+            cl.append(c)
+            al.append(a)
+        regle.cible_base = multibase
+        # print("retour multibase", multibase)
+    else:
+        regle.cible_base = {base: (niveau, classe, att)}
+
+    # gestion des selecteurs
+    # if regle.selecteur:
+    #     selecteur = regle.stock_param.selecteurs
+
+    return True
+
+
+
 def valide_dbmods(modlist):
     """ valide les modificateur sur les requetes """
 
@@ -186,11 +256,15 @@ def setdb(regle, obj, att=True):
         if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
 
             chemin = obj.attributs["#chemin"]
+            rep = obj.attributs["#racine"]
+            nombase = obj.attributs["#nombase"]
             if not base:
                 base = obj.attributs["#base"]
+            # base = nombase
             type_base = obj.attributs["#type_base"]
-            regle.setvar("db", type_base)
-            regle.setvar("server", chemin)
+            regle.setlocal("base", nombase)
+            regle.setlocal("db", type_base)
+            regle.setlocal("server", rep)
         # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
 
         if niveau and niveau[0].startswith(
@@ -460,7 +534,7 @@ def f_dbclose(regle, obj):
         if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
             base = obj.attributs.get("#base", base)
             regle.setvar("db", obj.attributs.get("#type_base"))
-            regle.setvar("server", obj.attributs.get("#chemin"))
+            regle.setvar("server", obj.attributs.get("#racine"))
         DB.dbclose(regle.stock_param, base)
     return True
 
@@ -729,38 +803,52 @@ def f_recup_schema(regle, obj):
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
     valide = True
-    for base, (niveau, classe, _) in regle.cible_base.items():
-        if obj.attributs["#groupe"] == "__filedb":
-            chemin = obj.attributs["#chemin"]
-            type_base = obj.attributs["#type_base"]
-            base = obj.attributs["#base"]
-            DB.recup_schema(
-                regle,
-                base,
-                niveau,
-                classe,
-                regle.get_entree(obj),
-                type_base=type_base,
-                chemin=chemin,
-            )
-            regle.setlocal("db", type_base)
-            regle.setlocal("server", chemin)
-        else:
-            type_base = regle.type_base
-            #        print('tdb: acces schema base', type_base, base, niveau, classe)
-            #          regle.ligne,
-            #          regle.params.val_entree.val,
-            #          regle.params)
-            if type_base and base:
-                DB.recup_schema(
-                    regle,
-                    base,
-                    niveau,
-                    classe,
-                    regle.params.val_entree.val,
-                    type_base=type_base,
-                    chemin=chemin,
-                )
+    basedict = setdb(regle, obj, att=False)
+    for base, description in basedict.items():
+        niveau, classe, attrs, valeur, chemin, type_base = description
+        DB.recup_schema(
+            regle,
+            base,
+            niveau,
+            classe,
+            regle.get_entree(obj),
+            type_base=type_base,
+            chemin=chemin,
+        )
+
+    # for base, (niveau, classe, _) in regle.cible_base.items():
+    #     if obj.attributs["#groupe"] == "__filedb":
+    #         chemin = obj.attributs["#chemin"]
+    #         type_base = obj.attributs["#type_base"]
+    #         base = obj.attributs["#base"]
+    #         regle.setlocal("db", type_base)
+    #         regle.setlocal("server", chemin)
+    #         DB.recup_schema(
+    #             regle,
+    #             base,
+    #             niveau,
+    #             classe,
+    #             regle.get_entree(obj),
+    #             type_base=type_base,
+    #             chemin=chemin,
+    #         )
+
+    #     else:
+    #         type_base = regle.type_base
+    #         #        print('tdb: acces schema base', type_base, base, niveau, classe)
+    #         #          regle.ligne,
+    #         #          regle.params.val_entree.val,
+    #         #          regle.params)
+    #         if type_base and base:
+    #             DB.recup_schema(
+    #                 regle,
+    #                 base,
+    #                 niveau,
+    #                 classe,
+    #                 regle.params.val_entree.val,
+    #                 type_base=type_base,
+    #                 chemin=chemin,
+    #             )
     if valide:
         return True
     print("recup_schema: base non definie ", regle, type_base, base, obj)

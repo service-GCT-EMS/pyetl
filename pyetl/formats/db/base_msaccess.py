@@ -164,12 +164,14 @@ class AccConnect(DbConnect):
                 idt = ".".join((schema, nom)) if schema else nom
                 # print("calcul taille", "select count(*) from " + idt)
                 # taille = self.request('select count(*) from "' + idt + '"', ())
-                try:
-                    taille = cur.execute(
-                        'select count(*) from "' + idt + '"'
-                    ).fetchval()
-                except OdbcError:
-                    taille = -1
+                taille = -1
+                if type_t != "v":
+                    try:
+                        taille = cur.execute(
+                            'select count(*) from "' + idt + '"'
+                        ).fetchval()
+                    except OdbcError:
+                        taille = -1
                 # print("taille table ", idt, taille)
                 # taille = taille[0][0] if taille else "0"
                 nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
@@ -216,33 +218,42 @@ class AccConnect(DbConnect):
         pkeys = dict()
         #        fkeys=dict()
         tabledef = list(cur.tables())
+        # print ("connection",self.connection.getinfo())
+        # print ("contenu",dir(self.connection))
+        # test=self.connection.GetSchema("Tables")
+
+        # print ("test",test)
+        # raise
         for tabledef in tabledef:
             tschema = tabledef.table_schem if tabledef.table_schem else ""
-            # print("analyse", tschema, tabledef.table_name)
+            # print("analyse", tabledef)
             if (tschema, tabledef.table_name) in self.tables:
                 tablename = tabledef.table_name
+                tabletype = tabledef.table_type
                 #                primaryKeys(table, catalog=None, schema=None)
                 #                print("table", tablename, tabledef.table_schem)
                 #                , schema=tabledef.table_schem
-                for pkey in cur2.statistics(tablename):
-                    # print("valeurs stat", pkey)
-                    if pkey.index_name == "PrimaryKey":
-                        pkeys[(tablename, pkey.column_name)] = "P:" + str(
-                            pkey.ordinal_position
-                        )
-        #                for fkey in cur2.foreignKeys(table=tablename):
-        #                    print('info : access: detection fk:', fkey.pkcolumn_name+
-        #                          ':'+fkey.fktable_schem+
-        #                          '.'+fkey.fktable_name+'.'+fkey.fkcolumn_name)
-        #    #                fclefs=','.join(fkeys)
+                if tabletype != "VIEW":
+                    for pkey in cur2.statistics(tablename):
+                        # print("valeurs stat", pkey)
+                        if pkey.index_name == "PrimaryKey":
+                            pkeys[(tablename, pkey.column_name)] = "P:" + str(
+                                pkey.ordinal_position
+                            )
+                    # for fkey in cur2.foreignKeys(table=tablename):
+                    #     print('info : access: detection fk:', fkey.pkcolumn_name+
+                    #             ':'+fkey.fktable_schem+
+                    #             '.'+fkey.fktable_name+'.'+fkey.fkcolumn_name)
+                    # fclefs=','.join(fkeys)
 
         #        print ('msaccess ',[i for i in cur.columns()])
+
         return [
             self.attdef(
                 cd.table_schem if cd.table_schem else "",
                 cd.table_name,
                 cd.column_name,
-                cd.remarks if cd.remarks else "",
+                cd.remarks.split(chr(0))[0] if cd.remarks else "",
                 cd.type_name,
                 "non",
                 "non",
@@ -288,9 +299,7 @@ class AccConnect(DbConnect):
         else:
             table = '"' + classe + '"'
         if attribut:
-            atttext, attlist = self.construction_champs(
-                schema, "S" in mods, "L" in mods
-            )
+            atttext, attlist = self.construction_champs(schema)
             reqtext = 'SELECT "' + atttext + '" FROM ' + table + ' WHERE "' + attribut
             if isinstance(valeur, list):
                 requete = reqtext + '" = ANY (%s)'
@@ -299,9 +308,7 @@ class AccConnect(DbConnect):
                 requete = reqtext + '" ~ %s'
                 data = (valeur,)
         else:
-            atttext, attlist = self.construction_champs(
-                schema, "S" in mods, "L" in mods
-            )
+            atttext, attlist = self.construction_champs(schema)
             requete = " SELECT " + atttext + " FROM " + table
             data = ()
 
@@ -310,12 +317,11 @@ class AccConnect(DbConnect):
                 requete = requete + " ORDER BY " + ",".join(ordre)
             else:
                 requete = requete + " ORDER BY " + ordre
-        #        print ('parametres',data,valeur)
+        # print("parametres", data, valeur)
         #        print ('msaccess:requete de selection alpha',
         #           curs.mogrify(requete,data), niveau, classe)
-        self.attlist = attlist
         #        print ('acces alpha',requete)
-        return self.iterreq(requete, data)
+        return self.iterreq(requete, data, attlist=attlist)
 
     def req_geom(self, *_, **__):
         """pas de requete geometrique possible sur access"""

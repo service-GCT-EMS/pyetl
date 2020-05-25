@@ -341,7 +341,11 @@ def ecrire_schema_xml(
 
     if xml:
         os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
-        print("schema: ecriture schema xml", os.path.join(rep, nomschema) + ".xml")
+        print(
+            "schema: ecriture schema xml",
+            nomschema,
+            os.path.join(rep, nomschema) + ".xml",
+        )
         open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
     if not prefix:
         copier_xsl(rep)

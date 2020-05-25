@@ -28,11 +28,7 @@ class TableBaseSelector(object):
         self.base = base
         self.schemaref = schemaref
         self.valide = bool(base or schemaref)
-        if "." in map_prefix:
-            self.np, self.cp = map_prefix.split(".", 1)
-        else:
-            self.np, self.cp = map_prefix, ""
-        self.mapprefix = map_prefix
+        self.set_prefix(map_prefix)
         self.descripteurs = []
         self.dyndescr = []
         # un descripteur est un tuple
@@ -41,6 +37,14 @@ class TableBaseSelector(object):
 
     # def add_classe(self, classe):
     #     self.direct.add(classe)
+
+    def set_prefix(self, map_prefix):
+        if "." in map_prefix:
+            self.np, self.cp = map_prefix.split(".", 1)
+        else:
+            self.np, self.cp = map_prefix, ""
+        self.mapprefix = map_prefix
+
 
     def add_descripteur(self, descripteur):
         niveau, classe, attr, mod = descripteur
@@ -119,6 +123,7 @@ class TableSelector(object):
 
     def __repr__(self):
         return repr([repr(bs) for bs in self.baseselectors.values()])
+
 
     def make_descripteur(
         self, base, liste, classes=[""], attribut=[""], valeur="", fonction="="

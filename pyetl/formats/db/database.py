@@ -182,8 +182,9 @@ class Cursinfo(object):
                     print("attlist", attlist)
                     self.schema_req = attlist
                     return attlist
-            except TypeError as err:
-                print("planté dans cursor.schemaclasse", err)
+            except Exception as err:
+                print("planté dans cursor.schemaclasse ", err)
+                raise
                 pass
         return []
 
