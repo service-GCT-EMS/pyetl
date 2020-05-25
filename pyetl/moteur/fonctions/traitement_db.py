@@ -9,16 +9,11 @@ import glob
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
-from .outils import prepare_mode_in, selecteur_from_fich
-from .tableselector import TableSelector
+
+from .outils import prepare_mode_in
+from .tableselector import TableSelector, select_in
 
 LOGGER = logging.getLogger("pyetl")
-
-
-def selecteur_in(regle, niv, base):
-
-    selecteur_from_fich(niv, TableSelector(regle, base))
-
 
 
 def _mode_niv_in(regle, niv, autobase=False):
@@ -27,7 +22,7 @@ def _mode_niv_in(regle, niv, autobase=False):
 
     mode_in = "b" if autobase else "n"
     taille = 3 if autobase else 2
-    mode_select, valeurs = prepare_mode_in(niv, regle, taille=taille, type_cle=mode_in)
+    mode_select, valeurs = prepare_mode_in(regle, niv)
     niveau = []
     classe = []
     attrs = []
@@ -67,7 +62,9 @@ def param_base(regle):
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
     regle.autobase = False
-
+    if base == "*":
+        autobase = True
+        base = ""
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
     cla = regle.v_nommees["sel2"]
@@ -77,16 +74,8 @@ def param_base(regle):
     print("param_base", base, niv, cla, "autobase:", regle.autobase)
 
     if niv.lower().startswith("in:"):  # mode in
-        if base == "*" or base == "":
-            base = ""
-            autobase = True
-        b_lue, niveau, classe, attrs, cmp = _mode_niv_in(
-            regle, niv[3:], autobase=regle.autobase
-        )
-        if regle.autobase:
-            base = b_lue
-        else:
-            base = [base] * len(niveau)
+        selecteur = select_in(regle, niv[3:], base)
+        print("recup selecteur", selecteur)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
@@ -150,11 +139,11 @@ def param_base2(regle):
         base = ""
     selecteur = TableSelector(regle, base)
     if niv.lower().startswith("in:"):  # mode in
-        selecteur_from_fich(niv, selecteur)
+        select_in(niv, selecteur)
     elif cla.lower().startswith("in:"):  # mode in
         clef = 1 if "#schema" in cla else 0
         mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
-        selecteur.add_niv_class(niv, list(valeurs.keys()), att, "", "")
+        selecteur.add_niv_class([niv], list(valeurs.keys()), att, "", "")
     elif "," in niv:
         niveau = niv.split(",")
         if "." in niv:
@@ -194,7 +183,6 @@ def param_base2(regle):
     #     selecteur = regle.stock_param.selecteurs
 
     return True
-
 
 
 def valide_dbmods(modlist):

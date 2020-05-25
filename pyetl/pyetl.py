@@ -752,7 +752,7 @@ class Pyetl(object):
         """ charge un groupe de parametres """
         # print("chargement", clef, self.site_params[clef], context)
 
-        if not clef:
+        if not clef or clef=="*":
             return
         context = context if context is not None else self.context
         if check:  # on verifie que l'on a pas deja defini les choses avant
