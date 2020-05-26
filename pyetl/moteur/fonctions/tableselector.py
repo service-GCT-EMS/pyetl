@@ -9,6 +9,7 @@ import re
 import time
 import os
 import logging
+import itertools
 from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
 from .outils import scandirs, hasbom, _extract
@@ -39,7 +40,8 @@ class TableBaseSelector(object):
         self.dyndescr = []
         # un descripteur est un tuple
         # (type,niveau,classe,attribut,condition,valeur,mapping)
-        self.direct = dict()
+        self.static = dict()
+        self.dynlist = dict()
 
     # def add_classe(self, classe):
     #     self.direct.add(classe)
@@ -51,20 +53,34 @@ class TableBaseSelector(object):
             self.np, self.cp = map_prefix, ""
         self.mapprefix = map_prefix
 
-    def add_descripteur(self, descripteur, dyn=False):
-        print("ajout descripteur", descripteur)
-        # niveau, classe, attr, valeur, fonction = descripteur
+    def add_descripteur(self, descripteur):
+        print("ajout descripteur", self.base, descripteur)
+        # raise
+        niveau, classes, attr, valeur, fonction = descripteur
+        dyn = any(["[" in i for i in classes])
+        if "[" in attr:
+            dyn = True
+        if valeur:
+            att, defaut = valeur
+            if att:
+                dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
         else:
             self.descripteurs.append(descripteur)
 
-    def prepare_direct(self, regle):
+    def resolve_static(self, regle):
+        if self.static:
+            return
         connect = self.mapper.getdbaccess(regle, self.base)
         self.schemabase = connect.schemabase
-        self.direct = {
-            i: j for i, j in self.direct.items() if i in self.schemabase.classes
-        }
+        mod = regle.getvar("mods")
+        mod = mod.upper()
+        for niveau, classes, attr, valeur, fonction in self.descripteurs:
+            for j in classes:
+                self.static.update(
+                    self.add_classlist(niveau, j, attr, valeur, fonction, mod)
+                )
 
     def set_prefix(self, cldef):
         niveau, classe = cldef[:2]
@@ -72,8 +88,7 @@ class TableBaseSelector(object):
         map_c = "_".join((self.cp, classe)) if self.np else classe
         return (map_n, map_c)
 
-    def add_classlist(self, niveau, classe, attr, mod):
-        mod = mod.upper()
+    def add_classlist(self, niveau, classe, attr, valeur, fonction, mod):
         multi = "=" in mod
         mod = mod.replace("=", "")
         nocase = "NOCASE" in mod
@@ -81,26 +96,48 @@ class TableBaseSelector(object):
         classlist = self.schemabase.select_classes(
             niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
         )
+        direct = dict()
         for i in classlist:
             mapped = self.set_prefix(i)
-            self.direct[i] = mapped
+            direct[mapped] = (i, attr, valeur, fonction)
+        return direct
 
-    def resolve_static(self, regle):
-        """convertit une liste de descripteurs en liste de classes"""
-        self.prepare_direct(regle)
-        for descripteur in self.descripteurs:
-            niveau, classe, attr, mod = descripteur
-            self.add_classlist(niveau, classe, attr, mod)
+    def resolve(self, regle, obj):
+
+        self.resolve_static(regle)
+        self.resolve_dyn(regle, obj)
+        self.getschematravail(regle)
 
     def resolve_dyn(self, regle, obj):
-        self.prepare_direct(regle)
-        for descripteur in self.dyndescr:
-            niveau, classe, attr, mod = descripteur
+        mod = regle.getvar("mods")
+        mod = mod.upper()
+        self.dynlist = dict()
+        for niveau, classes, attr, valeur, fonction in self.dyndescr:
+            if attr.startswith("["):
+                attr = obj.attributs.get(attr[1:-1])
             if niveau.startswith("["):
                 niveau = obj.attributs.get(niveau[1:-1])
-            if classe.startswith("]"):
-                niveau = obj.attributs.get(classe[1:-1])
-            self.add_classlist(niveau, classe, attr, mod)
+                for classe in classes:
+                    if classe.startswith("["):
+                        classe = obj.attributs.get(classe[1:-1])
+                    self.dynlist.update(
+                        self.add_classlist(niveau, classe, attr, valeur, fonction, mod)
+                    )
+
+    def classlist(self):
+        return itertools.chain(self.static.items(), self.dynlist.items())
+
+    def getschematravail(self, regle):
+        liste_mapping = []
+        liste_classes = []
+        for mapping, definition in self.classlist():
+            liste_mapping.append((mapping[0], mapping[1], definition[0], definition[1]))
+            liste_classes.append((definition[0], definition[1]))
+        schema_travail, liste2 = self.schemabase.creschematravail(
+            regle, liste_classes, ""
+        )
+        schema_travail.init_mapping(liste_mapping)
+        self.schema_travail = schema_travail
 
 
 class TableSelector(object):
@@ -119,7 +156,7 @@ class TableSelector(object):
     def __init__(self, regle, base=None):
         self.regle_ref = regle
         self.mapper = regle.stock_param
-        self.autobase = base is None
+        self.autobase = base == "*" or not base
         self.base = base
         self.defaultbase = base
         self.baseselectors = dict()
@@ -132,46 +169,13 @@ class TableSelector(object):
         return repr([repr(bs) for bs in self.baseselectors.values()])
 
     def add_descripteur(
-        self, base, niv, classes=[""], attribut=[""], valeur=[""], fonction="="
+        self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
-        niv = ""
-        cla = classes
-        descripteur = (niv, cla, attribut, valeur, fonction)
+        descripteur = (niv, classes, attribut, valeur, fonction)
         map_prefix = ""
         base = (base or self.defaultbase) if self.autobase else self.base
+        print("add descripteur", self.autobase, base, descripteur)
         self.add_selector(base, descripteur)
-
-    def split_pt(self, element):
-        if not element:
-            return [""]
-        tmp = element.split(".")
-        tmp2 = [tmp[0]]
-        for j in tmp[1:]:
-            if j and j[0].isalpha():
-                tmp2[-1] = tmp2[-1] + "." + j
-            else:
-                tmp2.append(j)
-        return tmp2
-
-    def make_nivlist(self, niveau):
-        nivlist = []
-        if not niveau:
-            return []
-        if not isinstance(niveau, list):
-            niveau = [niveau]
-        for i in niveau:
-            nivlist.append(self.split_pt(i))
-            tmp = i.split(".")
-            tmp2 = [tmp[0]]
-            for j in tmp[1:]:
-                if j and j[0].isalpha():
-                    tmp2[-1] = tmp2[-1] + "." + j
-                else:
-                    tmp2.append(j)
-
-    def add_niveau(self, base, niveau, attribut="", valeur="", fonction="="):
-        """ajoute un descripteur de niveau simple"""
-        self.add_descripteur(base, niveau, [], attribut, valeur, fonction)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur="", fonction="="):
         if not niveau:
@@ -204,17 +208,18 @@ class TableSelector(object):
         print("base inconnue", base, self.mapper.dbref)
         return None
 
-    def resolve(self, regle):
+    def resolve(self, regle, obj):
         for base in self.baseselectors:
-            self.baseselectors[base].resolve_static(regle)
-            for ident, id2 in self.baseselectors[base].direct.items():
-                b2 = self.inverse.get(id2)
-                if b2 and b2 != base:
-                    print(" mapping ambigu", ident, "dans", base, "et", b2)
-                    continue
-                self.inverse[id2] = base
+            self.baseselectors[base].resolve(regle, obj)
+
+    def get_classes(self):
+        for base in self.baseselectors:
+            yield from self.baseselectors[base].static.items()
+        for base in self.baseselectors:
+            yield from self.baseselectors[base].dynlist.items()
 
     def getschematravail(self, schemabase):
+
         pass
 
 
@@ -330,7 +335,7 @@ def prepare_selecteur(regle):
 # =============================================================
 
 
-def select_in(regle, fichier, base):
+def select_in(regle, fichier, base, classe=[], att="", valeur=()):
     """precharge les elements des selecteurs:
         in:{a,b,c}                  -> liste de valeurs dans la commande
         in:#schema:nom_du_schema    -> liste des tables d'un schema
@@ -389,9 +394,12 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                 if "datasource" in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
-                    host = _extract(i, "host=")
-                    port = _extract(i, "port=")
-                    selecteur.add_layer((database, host, port), table)
+                    host = _extract(i, "host=").lower()
+                    port = _extract(i, "port=").lower()
+                    niveau, classe = table.split(".")
+                    base = (database, "host=" + host, "port=" + port)
+                    selecteur.add_descripteur(base, niveau, [classe])
+
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
     # print ('lus fichier qgis ',fichier,list(stock))
@@ -439,6 +447,8 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         base, niveau, classe = l2
                     if len(liste) > 2:
                         attribut, valeur = liste[1:3]
+                        if "." in attribut:  # c' est un mapping
+                            attribut, valeur = "", ""
                 else:
                     if len(liste) > 4:
                         base, niveau, classe, attribut, valeur = liste[:5]
@@ -450,7 +460,15 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         niveau = liste[0]
                     elif len(liste) == 2:
                         niveau, classe = liste
-                selecteur.add_descripteur(base, niveau, classe, attribut, valeur)
+                classe = classe.split(",")
+
+                print("analyse ligne", liste, base, niveau, classe)
+                if "," in valeur:
+                    valeur = tuple(valeur.split(",", 1))
+                else:
+                    valeur = ("", valeur)
+                for niv in niveau.split(","):
+                    selecteur.add_descripteur(base, niveau, classe, attribut, valeur)
     except FileNotFoundError:
         print("fichier liste introuvable ", fichier)
     # print("prechargement selecteur csv", selecteur)

@@ -61,186 +61,50 @@ def param_base(regle):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
-    regle.autobase = False
-    if base == "*":
-        autobase = True
-        base = ""
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
-    attrs = []
-    cmp = []
-    print("param_base", base, niv, cla, "autobase:", regle.autobase)
+    vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
+    print("param_base", base, niv, cla)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base)
         print("recup selecteur", selecteur)
-    elif cla.lower().startswith("in:"):  # mode in
-        clef = 1 if "#schema" in cla else 0
-        mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
-        classe = list(valeurs.keys())
-        niveau = [niv] * len(classe)
-    elif "," in niv:
-        niveau = niv.split(",")
-        if "." in niv:
-            classe = [(i.split(".") + [""])[1] for i in niveau]
-            niveau = [i.split(".")[0] for i in niveau]
+    else:
+        selecteur = TableSelector(regle, base)
+        if cla.lower().startswith("in:"):  # mode in
+            clef = 1 if "#schema" in cla else 0
+            mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         else:
-            classe = [cla] * len(niveau)
-    elif "," in cla:
-        classe = cla.split(",")
-        niveau = [niv] * len(classe)
-
-    else:
-        niveau = [niv]
-        classe = [cla]
-    if attrs:
-        att = [(i, j) for i, j in zip(attrs, cmp)]
-
-    regle.dyn = "#" in niv or "#" in cla
-    # print("parametres acces base", base, niveau, classe, att, regle)
-
-    # gestion multibase
-    if isinstance(base, list):
-        multibase = {i: ([], [], []) for i in set(base)}
-        for b, n, c, a in zip(base, niveau, classe, att):
-            # print("traitement", b, n, c, a)
-            nl, cl, al = multibase[b]
-            nl.append(n)
-            cl.append(c)
-            al.append(a)
-        regle.cible_base = multibase
-        # print("retour multibase", multibase)
-    else:
-        regle.cible_base = {base: (niveau, classe, att)}
+            classes = cla.split(",")
+        for niveau in niv.split(","):
+            if "." in niveau:
+                tmp = niveau.split(".")
+                if len(tmp) == 2:
+                    n, c = niveau.split(".")
+                    b = base
+                else:
+                    b, n, c = niveau.split(".")
+                selecteur.add_descripteur(b, n, c, att, vals)
+            else:
+                selecteur.add_descripteur(base, niveau, classes, att, vals)
+    regle.cible_base = selecteur
 
     # gestion des selecteurs
     # if regle.selecteur:
     #     selecteur = regle.stock_param.selecteurs
 
     return True
-
-
-def param_base2(regle):
-    """ extrait les parametres d acces a la base"""
-    # TODO gerer les modes in dynamiques
-    base = regle.code_classe[3:]
-    regle.autobase = False
-
-    niveau, classe, att = "", "", ""
-    niv = regle.v_nommees["val_sel1"]
-    cla = regle.v_nommees["sel2"]
-    att = regle.v_nommees["val_sel2"]
-    attrs = []
-    cmp = []
-    print("param_base", base, niv, cla, "autobase:", regle.autobase)
-    if base == "*" or base == "":
-        base = ""
-    selecteur = TableSelector(regle, base)
-    if niv.lower().startswith("in:"):  # mode in
-        select_in(niv, selecteur)
-    elif cla.lower().startswith("in:"):  # mode in
-        clef = 1 if "#schema" in cla else 0
-        mode_select, valeurs = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
-        selecteur.add_niv_class([niv], list(valeurs.keys()), att, "", "")
-    elif "," in niv:
-        niveau = niv.split(",")
-        if "." in niv:
-            classe = [(i.split(".") + [""])[1] for i in niveau]
-            niveau = [i.split(".")[0] for i in niveau]
-        else:
-            classe = [cla] * len(niveau)
-    elif "," in cla:
-        classe = cla.split(",")
-        niveau = [niv] * len(classe)
-
-    else:
-        niveau = [niv]
-        classe = [cla]
-    if attrs:
-        att = [(i, j) for i, j in zip(attrs, cmp)]
-
-    regle.dyn = "#" in niv or "#" in cla
-    # print("parametres acces base", base, niveau, classe, att, regle)
-
-    # gestion multibase
-    if isinstance(base, list):
-        multibase = {i: ([], [], []) for i in set(base)}
-        for b, n, c, a in zip(base, niveau, classe, att):
-            # print("traitement", b, n, c, a)
-            nl, cl, al = multibase[b]
-            nl.append(n)
-            cl.append(c)
-            al.append(a)
-        regle.cible_base = multibase
-        # print("retour multibase", multibase)
-    else:
-        regle.cible_base = {base: (niveau, classe, att)}
-
-    # gestion des selecteurs
-    # if regle.selecteur:
-    #     selecteur = regle.stock_param.selecteurs
-
-    return True
-
-
-def valide_dbmods(modlist):
-    """ valide les modificateur sur les requetes """
-
-    modlist = [i.upper() for i in modlist]
-    valide = all([i in DB.DBMODS for i in modlist])
-    return valide
-
-
-def h_dbalpha(regle):
-    """preparation lecture"""
-    if param_base(regle):
-        #        print (" preparation lecture ",regle.cible_base)
-        #    raise
-        defaut = regle.v_nommees.get(
-            "defaut", ""
-        )  # on utilise in comme selecteur attributaire
-        if defaut[:3].lower() == "in:":
-            mode_multi, valeurs = prepare_mode_in(
-                regle.v_nommees["defaut"][3:], regle, taille=1
-            )
-            regle.params.val_entree = regle.params.st_val(
-                defaut, None, list(valeurs.keys()), False, ""
-            )
-        regle.chargeur = True  # c est une regle qui cree des objets
-        if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
-            regle.chargeur = False
-        #        regle.stock_param.gestion_parallel_load(regle)
-        if valide_dbmods(regle.params.cmp1.liste):
-            return True
-        regle.erreurs.append(
-            "dbalpha: modificateurs non autorises seulement:", DB.DBMODS
-        )
-        return False
-    print("erreur regle", regle)
-    regle.erreurs.append("dbalpha: erreur base non definie")
-    return False
 
 
 def setdb(regle, obj, att=True):
     """positionne des parametres d'acces aux bases de donnees"""
     # print("acces base", regle.cible_base.keys())
     basedict = dict()
-    for base, (niveau, classe, attribut) in regle.cible_base.items():
-        attrs = []
-        cmp = []
-        type_base = None
-        chemin = ""
-        if att:  # (tri sur attribut si necessaire)
-            if attribut:  # attention il y a des definitions d'attributs
-                if isinstance(attribut, tuple):
-                    attrs, cmp = attribut
-                else:
-                    attrs = attribut
-        else:  # traitement sans gestion des attributs (geometrique ou dump)
-            attrs = attribut
-        #    print ('f_alpha :',attrs, cmp)
+    selecteur = regle.cible_base
+    for base in selecteur.baseselectors:
+        baseselector = selecteur.baseselectors[base]
         if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
 
             chemin = obj.attributs["#chemin"]
@@ -254,62 +118,10 @@ def setdb(regle, obj, att=True):
             regle.setlocal("db", type_base)
             regle.setlocal("server", rep)
         # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
-
-        if niveau and niveau[0].startswith(
-            "["
-        ):  # nom de classe contenu dans un attribut
-            niveau = [
-                obj.attributs.get(niveau[0][1:-1], "niveau non defini " + niveau[0])
-            ]
-        if classe and classe[0].startswith(
-            "["
-        ):  # nom de classe contenu dans un attribut
-            classe = [
-                obj.attributs.get(
-                    classe[0][1:-1],
-                    "attribut non defini "
-                    + ".".join(obj.ident)
-                    + " "
-                    + classe[0][1:-1],
-                )
-            ]
-        if regle.params.att_entree.liste:
-            #        print('on a mis un attribut', regle.params.att_entree.liste)
-            valeur = [
-                obj.attributs.get(a, d)
-                for a, d in zip_longest(
-                    regle.params.att_entree.liste, regle.params.val_entree.liste
-                )
-            ]
-        elif regle.params.val_entree.liste:
-            valeur = regle.params.val_entree.liste
-        else:
-            valeur = cmp
-        bd2 = TableSelector(regle)
-        if isinstance(base, list):
-            for numero, idbase in enumerate(base):
-                bd2.add_selector(idbase, basedict[idbase])
-                if idbase in basedict:
-                    niv, cla, attr, val, chm, typ = basedict[idbase]
-                    niv.extend(niveau[numero])
-                    cla.extend(classe[numero])
-                    attr.extend(attrs[numero])
-                    val.extend(valeur[numero])
-                    basedict[idbase] = (niv, cla, attr, val, chm, typ)
-                else:
-                    basedict[idbase] = (
-                        niveau,
-                        classe,
-                        attrs,
-                        valeur,
-                        chemin,
-                        type_base,
-                    )
-        else:
-            basedict[base] = (niveau, classe, attrs, valeur, chemin, type_base)
-        bd2.resolve(regle)
-        print("selecteur", bd2)
-    return basedict
+        baseselector.resolve(regle, obj)
+        schema_travail = baseselector.getschematravail(regle)
+        print("selecteur", selecteur, schema_travail)
+    return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
 
@@ -326,7 +138,8 @@ def f_dbalpha(regle, obj):
             return False
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
-    basedict = setdb(regle, obj)
+    # basedict = setdb(regle, obj)
+    selecteur = regle.cible_base
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
     # print("regles alpha: acces base apres ", basedict)
@@ -337,12 +150,13 @@ def f_dbalpha(regle, obj):
 
     #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
 
-    if not basedict:
-        print("fdbalpha: base non definie ", regle.context, regle)
-        return False
+    # if not basedict:
+    #     print("fdbalpha: base non definie ", regle.context, regle)
+    #     return False
     retour = 0
-    print("dbalpha", basedict.keys())
-    for base, description in basedict.items():
+    # print("dbalpha", basedict.keys())
+    selecteur.resolve(obj)
+    for base, description in selecteur.classlist():
         print("lecture base", base)
         niveau, classe, attrs, valeur, chemin, type_base = description
         LOGGER.debug("regles alpha:ligne " + repr(regle) + repr(type_base) + repr(mods))
@@ -496,18 +310,21 @@ def f_dbrequest(regle, obj):
     # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
     #     regle, obj, att=False
     # )
-    basedict = setdb(regle, obj, att=False)
+    selecteur = setdb(regle, obj, att=False)
     retour = 0
-    for base, description in basedict.items():
-        niveau, classe, fonction, valeur, chemin, type_base = description
-        # parms = [regle.getv]
-        # print("execution requete", regle.params.cmp1.val, niveau, classe)
-        parms = None
-        if regle.params.att_entree.liste:
-            parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
-        retour = DB.lire_requete(
-            regle, base, niveau, classe, requete=regle.requete, parms=parms
-        )
+    for base, basesel in selecteur.baseselectors.items():
+        for resultat, definition in basesel.classlist():
+            niveau, classe = resultat
+            # parms = [regle.getv]
+            # print("execution requete", regle.params.cmp1.val, niveau, classe)
+            parms = None
+            if regle.params.att_entree.liste:
+                parms = [
+                    obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+                ]
+            retour = DB.lire_requete(
+                regle, base, niveau, classe, requete=regle.requete, parms=parms
+            )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 

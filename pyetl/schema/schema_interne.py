@@ -531,7 +531,7 @@ class Schema(object):
         liste.extend(sorted(tables, key=niv2.get))
         return niveau
 
-    def creschematravail(self, regle, liste, nomschema):
+    def creschematravail(self, regle, liste, nomschema, liste_mapping=None):
         """cree un schema de travail a partir d une liste de classes"""
         params = regle.stock_param
         nomschema = nomschema if nomschema else self.nom.replace("#", "")
