@@ -419,3 +419,13 @@ class Attribut(object):
         for nom, valeur in dic_if.items():
             setattr(self, nom, valeur)
         self.set_formats()
+
+    def compare(self, att2, strict=False):
+        """compare a la definition d'un autre attribut"""
+        if self.type_att != att2.type_att:
+            return False
+        if self.type_att_base != att2.type_att_base:
+            return False
+        if self.nom_conformite != att2.nom_conformite:
+            return False
+        return True

@@ -33,8 +33,13 @@ class TableBaseSelector(object):
     def __init__(self, mapper, base=None, map_prefix="", schemaref=None):
         self.mapper = mapper
         self.base = base
+        self.type_base = ""
+        self.chemin = ""
+        self.racine = ""
+        self.connect = None
         self.schemaref = schemaref
         self.valide = bool(base or schemaref)
+        self.map_prefix = map_prefix
         self.reg_prefix(map_prefix)
         self.descripteurs = []
         self.dyndescr = []
@@ -43,18 +48,18 @@ class TableBaseSelector(object):
         self.static = dict()
         self.dynlist = dict()
 
-    # def add_classe(self, classe):
-    #     self.direct.add(classe)
+    def __repr__(self):
+        return str(self.base) + str(len(self.descripteurs) + len(self.descripteurs))
 
     def reg_prefix(self, map_prefix):
         if "." in map_prefix:
             self.np, self.cp = map_prefix.split(".", 1)
         else:
             self.np, self.cp = map_prefix, ""
-        self.mapprefix = map_prefix
+        self.map_prefix = map_prefix
 
     def add_descripteur(self, descripteur):
-        print("ajout descripteur", self.base, descripteur)
+        # print("ajout descripteur", self.base, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
         dyn = any(["[" in i for i in classes])
@@ -72,34 +77,43 @@ class TableBaseSelector(object):
     def resolve_static(self, regle):
         if self.static:
             return
-        connect = self.mapper.getdbaccess(regle, self.base)
-        self.schemabase = connect.schemabase
-        mod = regle.getvar("mods")
+        self.connect = self.mapper.getdbaccess(regle, self.base)
+        self.schemabase = self.connect.schemabase
+        mod = regle.getvar("mod")
+        set_prefix = regle.getvar("prefix") == "1"
+        if set_prefix:
+            prefix = self.connect.prefix
+            self.reg_prefix(prefix)
         mod = mod.upper()
+        print("resolve", self.base, mod, set_prefix)
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
+            vref = valeur[1] if valeur else ""
             for j in classes:
                 self.static.update(
-                    self.add_classlist(niveau, j, attr, valeur, fonction, mod)
+                    self.add_classlist(niveau, j, attr, vref, fonction, mod)
                 )
 
     def set_prefix(self, cldef):
         niveau, classe = cldef[:2]
         map_n = "_".join((self.np, niveau)) if self.np else niveau
-        map_c = "_".join((self.cp, classe)) if self.np else classe
+        map_c = "_".join((self.cp, classe)) if self.cp else classe
         return (map_n, map_c)
 
     def add_classlist(self, niveau, classe, attr, valeur, fonction, mod):
-        multi = "=" in mod
+        multi = not ("=" in mod)
         mod = mod.replace("=", "")
         nocase = "NOCASE" in mod
         mod = mod.replace("NOCASE", "")
-        classlist = self.schemabase.select_classes(
+        if not mod:
+            mod = "A"
+        classlist = self.schemabase.select_niv_classe(
             niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
         )
         direct = dict()
         for i in classlist:
             mapped = self.set_prefix(i)
             direct[mapped] = (i, attr, valeur, fonction)
+        # print("classlist", direct)
         return direct
 
     def resolve(self, regle, obj):
@@ -109,7 +123,7 @@ class TableBaseSelector(object):
         self.getschematravail(regle)
 
     def resolve_dyn(self, regle, obj):
-        mod = regle.getvar("mods")
+        mod = regle.getvar("mod")
         mod = mod.upper()
         self.dynlist = dict()
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
@@ -120,6 +134,7 @@ class TableBaseSelector(object):
                 for classe in classes:
                     if classe.startswith("["):
                         classe = obj.attributs.get(classe[1:-1])
+                    valeur = obj.attributs.get(*valeur)
                     self.dynlist.update(
                         self.add_classlist(niveau, classe, attr, valeur, fonction, mod)
                     )
@@ -131,13 +146,16 @@ class TableBaseSelector(object):
         liste_mapping = []
         liste_classes = []
         for mapping, definition in self.classlist():
-            liste_mapping.append((mapping[0], mapping[1], definition[0], definition[1]))
-            liste_classes.append((definition[0], definition[1]))
+            ident = definition[0]
+            liste_mapping.append((*mapping, *ident))
+            liste_classes.append(ident)
+        print(" creation schema travail", self.base, len(liste_classes))
         schema_travail, liste2 = self.schemabase.creschematravail(
-            regle, liste_classes, ""
+            regle, liste_classes, self.base
         )
         schema_travail.init_mapping(liste_mapping)
         self.schema_travail = schema_travail
+        return schema_travail
 
 
 class TableSelector(object):
@@ -158,6 +176,7 @@ class TableSelector(object):
         self.mapper = regle.stock_param
         self.autobase = base == "*" or not base
         self.base = base
+        self.schema_travail = None
         self.defaultbase = base
         self.baseselectors = dict()
         self.classes = dict()
@@ -174,14 +193,21 @@ class TableSelector(object):
         descripteur = (niv, classes, attribut, valeur, fonction)
         map_prefix = ""
         base = (base or self.defaultbase) if self.autobase else self.base
-        print("add descripteur", self.autobase, base, descripteur)
+        # print("add descripteur", self.autobase, base, descripteur)
         self.add_selector(base, descripteur)
 
-    def add_niv_class(self, base, niveau, classe, attribut="", valeur="", fonction="="):
-        if not niveau:
-            niveau = [""]
-        for i in niveau:
-            self.add_descripteur(i, classe, attribut, valeur, fonction)
+    def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
+        self.add_descripteur(base, niveau, [classe], attribut, valeur, fonction)
+
+    def add_class_list(self, base, liste):
+        tmp = dict()
+        for niveau, classe in liste:
+            if niveau in tmp:
+                tmp[niveau].add(classe)
+            else:
+                tmp[niveau] = [classe]
+        for niveau, classes in tmp.items():
+            self.add_descripteur(base, niveau, classes)
 
     def add_selector(self, base, descripteur):
         if "." in base:
@@ -202,9 +228,8 @@ class TableSelector(object):
     def idbase(self, base):
         """identifie une base de donnees"""
         if base in self.mapper.dbref:
-            if isinstance(base, str):
-                return base
-            return self.mapper.dbref[base]
+            base = self.mapper.dbref[base]
+            return base
         print("base inconnue", base, self.mapper.dbref)
         return None
 
@@ -218,116 +243,41 @@ class TableSelector(object):
         for base in self.baseselectors:
             yield from self.baseselectors[base].dynlist.items()
 
-    def getschematravail(self, schemabase):
+    def fusion_schema(self, schema_tmp):
+        """fusionne 2 schemas en se basant sur les poids ou les maxobj pour garder le bon"""
+        schema = self.schema_travail
+        if not schema_tmp:
+            print("schema vide fusion impossible")
+            return
+        for i in schema_tmp.conformites:
+            if i in schema.conformites:
+                pass
+                # la il faudrait faire quelque chose
+            else:
+                schema.conformites[i] = schema_tmp.conformites[i]
+        for i in schema_tmp.classes:
+            # print ('fusion schema' , i)
+            if i in schema.classes:
+                if self.onconflict == "add":
+                    if schema.classes[i].compare(schema_tmp.classes[i]):
+                        pass
+                    else:
+                        print("attention schemas incompatibles", i)
+                # la il faudrait faire quelque chose
+            else:
+                schema.ajout_classe(schema_tmp.classes[i])
+        schema_tmp.map_classes()
+        liste_mapping = schema_tmp.mapping_schema(fusion=True)
+        # print ('mapping_fusion','\n'.join(liste_mapping[:10]))
+        schema.init_mapping(liste_mapping)
 
-        pass
-
-
-def _select_niv_in(regle, niv, autobase=False):
-    """gere les requetes de type niveau in..."""
-    print("mode_niv in:", niv, autobase)
-
-    mode_in = "b" if autobase else "n"
-    taille = 3 if autobase else 2
-    mode_select, valeurs = prepare_mode_in(regle, niv)
-    niveau = []
-    classe = []
-    attrs = []
-    cmp = []
-    base = []
-    # selecteur = DB.TableSelector(regle)
-    # for i in valeurs:
-    #     selecteur.add_selector(*i)
-    #     print("add_selector", i)
-    for i in valeurs:
-        liste_defs = list(i)
-        # print("mode_niv in:liste_defs", liste_defs)
-        bdef = liste_defs[0]
-        if bdef in regle.stock_param.dbref:
-            # c est une definition de base
-            bdef = regle.stock_param.dbref.get(bdef)
-        if autobase:
-            base.append(bdef)
-            liste_defs.pop(0)
-        else:
-            base.append("")
-
-        niveau.append(liste_defs.pop(0) if liste_defs else "")
-        classe.append(liste_defs.pop(0) if liste_defs else "")
-        attrs.append(liste_defs.pop(0) if liste_defs else "")
-        cmp.append(liste_defs.pop(0) if liste_defs else "")
-
-    # print(
-    #     "mode_niv in:lu ",
-    #     "\n".join(str(i) for i in zip(base, niveau, classe, attrs, cmp)),
-    # )
-    return base, niveau, classe, attrs, cmp
-
-
-def prepare_selecteur(regle):
-    """ extrait les parametres d acces a la base"""
-    # TODO gerer les modes in dynamiques
-    base = regle.code_classe[3:]
-    autobase = False
-    if base == "*" or base == "":
-        base = ""
-        autobase = True
-
-    niveau, classe, att = "", "", ""
-    niv = regle.v_nommees["val_sel1"]
-    cla = regle.v_nommees["sel2"]
-    att = regle.v_nommees["val_sel2"]
-    attrs = []
-    cmp = []
-    print("param_base", base, niv, cla, "autobase:", autobase)
-
-    if niv.lower().startswith("in:"):  # mode in
-        b_lue, niveau, classe, attrs, cmp = _select_niv_in(
-            regle, niv[3:], autobase=autobase
-        )
-        if autobase:
-            base = b_lue
-        else:
-            base = [base] * len(niveau)
-    elif cla.lower().startswith("in:"):  # mode in
-        clef = 1 if "#schema" in cla else 0
-        mode_select, valeurs = prepare_mode_in(regle, cla[3:])
-        classe = list(valeurs.keys())
-        niveau = [niv] * len(classe)
-    elif "," in niv:
-        niveau = niv.split(",")
-        if "." in niv:
-            classe = [(i.split(".") + [""])[1] for i in niveau]
-            niveau = [i.split(".")[0] for i in niveau]
-        else:
-            classe = [cla] * len(niveau)
-    elif "," in cla:
-        classe = cla.split(",")
-        niveau = [niv] * len(classe)
-
-    else:
-        niveau = [niv]
-        classe = [cla]
-    if attrs:
-        att = [(i, j) for i, j in zip(attrs, cmp)]
-
-    regle.dyn = "#" in niv or "#" in cla
-    print("parametres acces base", base, niveau, classe, att, regle)
-
-    # gestion multibase
-    if isinstance(base, list):
-        multibase = {i: ([], [], []) for i in set(base)}
-        for b, n, c, a in zip(base, niveau, classe, att):
-            # print("traitement", b, n, c, a)
-            nl, cl, al = multibase[b]
-            nl.append(n)
-            cl.append(c)
-            al.append(a)
-        regle.cible_base = multibase
-        # print("retour multibase", multibase)
-    else:
-        regle.cible_base = {base: (niveau, classe, att)}
-    return True
+    def getschematravail(self, regle):
+        for basesel in self.baseselectors.values():
+            schema_travail = basesel.getschematravail(self, regle)
+            if self.schema_travail is None:
+                self.schema_travail = schema_travail.copy()
+            else:
+                self.fusion_schema(schema_travail)
 
 
 # =============================================================
@@ -364,12 +314,12 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=()):
         if nom in stock_param.schemas:
             print("lecture schema", nom)
             classes = stock_param.schemas.get(nom).classes.keys()
-            selecteur.add_class_list(classes)
+            selecteur.add_class_list(base, classes)
             return selecteur
     if fichier.startswith("st:"):
         fichier = fichier[3:]
         classes = stock_param.store.get(fichier)
-        selecteur.add_class_list(classes)
+        selecteur.add_class_list(base, classes)
         return selecteur
     elif fichier.startswith("db:"):
         mode = "in_db"
@@ -462,7 +412,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         niveau, classe = liste
                 classe = classe.split(",")
 
-                print("analyse ligne", liste, base, niveau, classe)
+                # print("analyse ligne", liste, base, niveau, classe)
                 if "," in valeur:
                     valeur = tuple(valeur.split(",", 1))
                 else:
@@ -506,3 +456,4 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
+    print("selecteur from fich", selecteur.baseselectors.keys())

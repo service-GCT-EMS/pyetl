@@ -252,7 +252,7 @@ class DbConnect(object):
         self.base = base
         self.user = user
         self.passwd = passwd
-        self.code = code
+        self.code = code if code is not None else base
         self.regle = params
         self.params = params.stock_param
         self.type_base = "generique"
@@ -275,7 +275,7 @@ class DbConnect(object):
         self.connection = None
         defmodeconf = self.regle.getvar("mode_enums", 1)
         self.schemabase = self.params.init_schema(
-            "#" + base, "B", defmodeconf=defmodeconf
+            "#" + code, "B", defmodeconf=defmodeconf
         )
         #        self.connect()
         self.gensql = DbGenSql()
@@ -292,6 +292,7 @@ class DbConnect(object):
         self.dialecte = "sql"
         self.fallback = {}
         self.errs = KeyError
+        print("====init connection", self.base, self.code)
 
     #        self.req_tables = ("", None)
 

@@ -1196,3 +1196,15 @@ class SchemaClasse(object):
                         schema2.conformites[conf.nom] = conf  # on la stocke
             schema2.ajout_classe(nouvelle_classe)
         return nouvelle_classe
+
+    def compare(self, classe):
+        """ verifie si 2 classes sont identiques """
+        noms1 = set(self.attributs.keys())
+        noms2 = set(classe.attributs.keys())
+        if noms1 != noms2:
+            return False
+        for nom, att in self.attributs.items():
+            att2 = classe.attributs[nom]
+            if not att.compare(att2):
+                return False
+        return True

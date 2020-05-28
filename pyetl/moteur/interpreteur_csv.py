@@ -588,6 +588,11 @@ def prepare_env(mapper, texte: str, fichier_regles):
     champs = context.SPLITTER_PV.split(texte)
     nom_inclus = champs[0][1:].strip()
     parametres = champs[1:]
+    listevlocs = []
+    if len(parametres) > 10:
+        parametres = parametres[:10]
+        listevlocs = context.SPLITTER_V.split(champs[11])
+
     cmd, *pars = (
         context.SPLITTER_B.split(nom_inclus)
         if context.SPLITTER_B.search(nom_inclus)
@@ -605,7 +610,8 @@ def prepare_env(mapper, texte: str, fichier_regles):
         if not (nom_inclus.startswith(".") or os.path.abspath(nom_inclus)):
             nom_inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
     #            print("lecture de regles incluses", inclus,pps)
-    # print ('prepare_env', inclus, context, context.vlocales, parametres)
+    context.affecte(listevlocs)
+    # print("prepare_env", nom_inclus, context, context.vlocales, parametres, listevlocs)
     return nom_inclus, context, macro
 
 

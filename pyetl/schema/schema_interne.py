@@ -111,6 +111,7 @@ class Schema(object):
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()
+        self.nocase = dict()
         self.conformites = dict()
         self.defmodeconf = defmodeconf
         self.taux_conformite = 10
@@ -205,6 +206,9 @@ class Schema(object):
         ident = sc_classe.identclasse
         self.classes[ident] = sc_classe
         self.direct[ident[1]] = ident
+        niv, cla = ident
+        nocase = (niv.lower(), cla.lower())
+        self.nocase[nocase] = ident
         if ident[0] not in self.groupes:
             self.groupes[ident[0]] = 1
         else:
@@ -247,17 +251,22 @@ class Schema(object):
     def renomme_classe(self, ancien_ident, nouvel_ident, spec=False):
         """gere un renommage de classe en terant compte des clefs etrangeres"""
         #        print ('renommage classe ',self.nom,ancien_nom, nouveau_nom)
-        self.classes[nouvel_ident] = self.classes[ancien_ident]
-        self.classes[nouvel_ident].setidentclasse(nouvel_ident)
-        del self.classes[ancien_ident]
+        classe = self.classes[ancien_ident]
+        classe.setidentclasse(nouvel_ident)
+        self.supp_classe(ancien_ident, force=True)
+        self.ajout_classe(classe)
         for scl in self.classes.values():
             scl.renomme_cible_classe(ancien_ident, nouvel_ident)
         self.liste_groupes()
 
-    def supp_classe(self, ident):
+    def supp_classe(self, ident, force=False):
         """supprime une classe du schema"""
-        if ident in self.classes and self.classes[ident].objcnt == 0:
+        if ident in self.classes and (self.classes[ident].objcnt == 0 or force):
             del self.classes[ident]
+            niv, cla = ident
+            nocase = (niv.lower(), cla.lower())
+            del self.nocase[nocase]
+            self.liste_groupes()
 
     def gere_conformites(self, schemaclasse):
         """ recree les liens de conformites vers classe """
@@ -419,10 +428,71 @@ class Schema(object):
             self.classes[i].setbasic(mode)
         self.elements_specifiques = {}
 
+    def select_niv_classe(
+        self, niveau, classe, attr, tables="A", multi=True, nocase=False
+    ):
+        """selectionne des classes a partir d une seule description"""
+        # print("select_niv_classes", niveau, classe, attr, tables)
+
+        if niveau is None or classe is None:
+            return []
+        tables_a_sortir = set()
+        exp_niv = niveau.strip()
+        exp_clas = classe.strip()
+        convert = {"v": "vm", "t": "r"}
+        tables = convert.get(tables.lower(), tables.lower())
+        lmulti = multi
+        if nocase:
+            exp_niv = exp_niv.lower()
+            exp_clas = exp_clas.lower()
+        negniv = False
+        negclass = False
+        if exp_niv and exp_niv[0] == "!":
+            negniv = True
+            exp_niv = exp_niv[1:]
+        if exp_clas and exp_clas[0] == "!":
+            negclass = True
+            exp_clas = exp_clas[1:]
+        if "*" in exp_clas:
+            exp_clas.replace("*", ".*")
+            lmulti = True
+        if negniv or negclass:
+            lmulti = True
+        if lmulti:
+            try:
+                ren = re.compile(exp_niv)
+                rec = re.compile(exp_clas)
+            except:  # on essaye de remplacesr les *
+                lmulti = False
+                rec = None
+                print("erreur de description de classe ", exp_clas)
+                return set()
+            for i in self.classes:
+                if tables != "a" and self.classes[i].type_table not in tables:
+                    continue
+                if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
+                    tables_a_sortir.add(i)
+                #                    print ('sortir multi')
+        else:
+            if nocase:
+                idclas = self.nocase.get((exp_niv.lower(), exp_clas.lower()))
+            else:
+                idclas = (exp_niv, exp_clas)
+                if idclas not in self.classes:
+                    idclas = None
+            if idclas:
+                if tables == "a" or self.classes[idclas].type_table in tables:
+                    tables_a_sortir.add(idclas)
+
+        return tables_a_sortir
+
+    #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
+
     def select_classes(
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """produit la liste des classes demandees a partir du schema utile pour id_in:"""
+        print("select_classes", niveau, classe, attr)
         if niveau is None or classe is None:
             return []
         tables_a_sortir = set()
@@ -435,45 +505,48 @@ class Schema(object):
         convert = {"v": "vm", "t": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         for exp_niv, exp_clas in zip(niveau, classe):
-            #            trouve = False
-            exp_niv = exp_niv.strip()
-            exp_clas = exp_clas.strip()
-            lmulti = multi
-            if nocase:
-                exp_niv = exp_niv.lower()
-                exp_clas = exp_clas.lower()
-            negniv = False
-            negclass = False
-            if exp_niv and exp_niv[0] == "!":
-                negniv = True
-                exp_niv = exp_niv[1:]
-            if exp_clas and exp_clas[0] == "!":
-                negclass = True
-                exp_clas = exp_clas[1:]
-            if "*" in exp_clas:
-                exp_clas.replace("*", ".*")
-                lmulti = True
-            ren = re.compile(exp_niv)
-            try:
-                rec = re.compile(exp_clas)
-            except:  # on essaye de remplacesr les *
-                lmulti = False
-                rec = None
-                print("erreur de description de classe ", exp_clas)
+            tables_a_sortir.update(
+                self.select_niv_classe(exp_niv, exp_clas, attr, tables, multi, nocase)
+            )
+            # #            trouve = False
+            # exp_niv = exp_niv.strip()
+            # exp_clas = exp_clas.strip()
+            # lmulti = multi
+            # if nocase:
+            #     exp_niv = exp_niv.lower()
+            #     exp_clas = exp_clas.lower()
+            # negniv = False
+            # negclass = False
+            # if exp_niv and exp_niv[0] == "!":
+            #     negniv = True
+            #     exp_niv = exp_niv[1:]
+            # if exp_clas and exp_clas[0] == "!":
+            #     negclass = True
+            #     exp_clas = exp_clas[1:]
+            # if "*" in exp_clas:
+            #     exp_clas.replace("*", ".*")
+            #     lmulti = True
+            # ren = re.compile(exp_niv)
+            # try:
+            #     rec = re.compile(exp_clas)
+            # except:  # on essaye de remplacesr les *
+            #     lmulti = False
+            #     rec = None
+            #     print("erreur de description de classe ", exp_clas)
 
-            # print ('selection boucle', ren,rec,len(schema.classes))
-            for i in self.classes:
-                if tables != "a" and self.classes[i].type_table not in tables:
-                    continue
-                if lmulti:
-                    if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
-                        tables_a_sortir.add(i)
-                    #                    print ('sortir multi')
-                    continue
-                if choix_simple(
-                    self.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
-                ):
-                    tables_a_sortir.add(i)
+            # # print ('selection boucle', ren,rec,len(schema.classes))
+            # for i in self.classes:
+            #     if tables != "a" and self.classes[i].type_table not in tables:
+            #         continue
+            #     if lmulti:
+            #         if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
+            #             tables_a_sortir.add(i)
+            #         #                    print ('sortir multi')
+            #         continue
+            #     if choix_simple(
+            #         self.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
+            #     ):
+            #         tables_a_sortir.add(i)
         #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
         if not tables_a_sortir:
             print("pas de tables a sortir")

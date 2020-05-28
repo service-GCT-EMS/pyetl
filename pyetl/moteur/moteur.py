@@ -388,6 +388,9 @@ class Context(object):
             self.ref = None
         # print('creation contexte', self, self.nom)
 
+    def __repr__(self):
+        return self.ident + ("(" + self.ref.nom + ")" if self.ref else "")
+
     def setref(self, context):
         """modifie l'enchainement des contextes"""
         self.ref = context
@@ -481,10 +484,10 @@ class Context(object):
         """ gere une affectation par egal"""
         defnom, defval = element.split("=", 1)
         nom, _ = self.resolve(defnom)
-        nolocal = nom.startswith("*")
+        local = not nom.startswith("*")
         val, binding = self.resolve(defval)
         # print("traite_egalite", defnom, nom, "=", defval, val)
-        return nom, val, binding, nolocal
+        return nom, val, binding, local
 
     def traite_hstore(self, element, context):
         """ mappe un hstore sur l'environnement"""
@@ -494,10 +497,11 @@ class Context(object):
 
     def affecte(self, liste, context=None, vpos=[]):
         """gestion directe d'une affectation"""
-        nolocal = False
+        local = True
+        # print("affecte_contexte", liste)
         for num, element in enumerate(liste):
             if "=" in element:  # c'est une affectation
-                nom, val, binding, nolocal = self.traite_egalite(element)
+                nom, val, binding, local = self.traite_egalite(element)
             elif element.startswith("*%"):
                 self.traite_hstore(element, context)
                 continue
@@ -506,14 +510,14 @@ class Context(object):
                 if num < len(vpos):
                     nom = vpos[num]
                     if nom.startswith("*"):
-                        nolocal = True
+                        local = False
                         nom = nom[1:]
                 else:
                     nom = val
                     val = ""
             if nom:
                 nom = nom.strip()
-                if not nolocal:
+                if local:
                     context.setlocal(nom, val) if context else self.setlocal(nom, val)
                 if binding:
                     context.setbinding(nom, binding)
@@ -590,9 +594,6 @@ class Context(object):
         return {i: self.getvar(i) for i in vlist}
 
     #                print ('contexte getvar', nom, c[nom])
-
-    def __repr__(self):
-        return self.ident + ("(" + self.ref.nom + ")" if self.ref else "")
 
 
 ##        return self.ref.vlocales.__repr__(), self.search.__repr__()

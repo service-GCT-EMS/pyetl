@@ -70,7 +70,7 @@ def param_base(regle):
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base)
-        print("recup selecteur", selecteur)
+        # print("recup selecteur", selecteur)
     else:
         selecteur = TableSelector(regle, base)
         if cla.lower().startswith("in:"):  # mode in
@@ -114,15 +114,60 @@ def setdb(regle, obj, att=True):
                 base = obj.attributs["#base"]
             # base = nombase
             type_base = obj.attributs["#type_base"]
+            baseselector.type_base = type_base
+            baseselector.chemin = chemin
+            baseselector.racine = rep
+            baseselector.base = nombase
+            baseselector.static = dict()
             regle.setlocal("base", nombase)
             regle.setlocal("db", type_base)
             regle.setlocal("server", rep)
         # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
         baseselector.resolve(regle, obj)
-        schema_travail = baseselector.getschematravail(regle)
-        print("selecteur", selecteur, schema_travail)
+        print("selecteur", baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
+
+
+def valide_dbmods(modlist):
+    """ valide les modificateur sur les requetes """
+
+    modlist = [i.upper() for i in modlist]
+    valide = all([i in DB.DBMODS for i in modlist])
+    return valide
+
+
+def h_dbalpha(regle):
+    """preparation lecture"""
+    if param_base(regle):
+        #        print (" preparation lecture ",regle.cible_base)
+        #    raise
+        defaut = regle.v_nommees.get(
+            "defaut", ""
+        )  # on utilise in comme selecteur attributaire
+        if defaut[:3].lower() == "in:":
+            mode_multi, valeurs = prepare_mode_in(
+                regle.v_nommees["defaut"][3:], regle, taille=1
+            )
+            regle.params.val_entree = regle.params.st_val(
+                defaut, None, list(valeurs.keys()), False, ""
+            )
+        regle.chargeur = True  # c est une regle qui cree des objets
+        if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
+            regle.chargeur = False
+        #        regle.stock_param.gestion_parallel_load(regle)
+        if valide_dbmods(regle.params.cmp1.liste):
+            return True
+        regle.erreurs.append(
+            "dbalpha: modificateurs non autorises seulement:"
+            + str(regle.params.cmp1.liste)
+            + ":"
+            + str(DB.DBMODS)
+        )
+        return False
+    print("erreur regle", regle)
+    regle.erreurs.append("dbalpha: erreur base non definie")
+    return False
 
 
 def f_dbalpha(regle, obj):
@@ -138,32 +183,27 @@ def f_dbalpha(regle, obj):
             return False
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
-    # basedict = setdb(regle, obj)
-    selecteur = regle.cible_base
+    selecteur = setdb(regle, obj)
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
     # print("regles alpha: acces base apres ", basedict)
-
-    #    print('regles alpha:ligne  ', regle, type_base, mods)
-    #    print('regles alpha:parms:', base, niveau, classe, attribut, 'entree:',regle.params.val_entree,
-    #          valeur, 'cmp1:', regle.params.cmp1, 'sortie:', regle.params.att_sortie)
-
-    #    print ('regles alpha: ','\n'.join(str(i) for i in (zip(niveau,classe,attrs,cmp))), valeur)
-
-    # if not basedict:
-    #     print("fdbalpha: base non definie ", regle.context, regle)
-    #     return False
     retour = 0
     # print("dbalpha", basedict.keys())
-    selecteur.resolve(obj)
-    for base, description in selecteur.classlist():
-        print("lecture base", base)
-        niveau, classe, attrs, valeur, chemin, type_base = description
-        LOGGER.debug("regles alpha:ligne " + repr(regle) + repr(type_base) + repr(mods))
-        connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
-        if connect is None:
-            print("erreur connection:", base)
-            continue
+    # selecteur.resolve(regle, obj)
+    for base, basesel in selecteur.baseselectors.items():
+        print("lecture base", base, basesel.base, basesel.map_prefix)
+        # for ident, description in basesel.classlist():
+        # ident, att_base, valeur, fonction = description
+        # niveau, classe = ident
+
+        LOGGER.debug(
+            "regles alpha:ligne " + repr(regle) + basesel.type_base + repr(mods)
+        )
+        # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
+        connect = basesel.connect
+        # if connect is None:
+        #     print("erreur connection:", base)
+        #     continue
         if connect.accept_sql == "non":
             # pas de requetes directes on essaye le mode dump
             dest = regle.getvar("dest")
@@ -174,22 +214,9 @@ def f_dbalpha(regle, obj):
             log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
             os.makedirs(os.path.dirname(log), exist_ok=True)
             print("traitement db: dump donnees de", base, "vers", dest)
-            retour = DB.dbextalpha(regle, base, niveau, classe, dest=dest, log=log)
+            retour = DB.dbextalpha(regle, basesel, dest=dest, log=log)
         else:
-            retour += DB.recup_donnees_req_alpha(
-                regle,
-                base,
-                niveau,
-                classe,
-                attrs,
-                valeur,
-                mods=mods,
-                sortie=regle.params.att_sortie.liste,
-                v_sortie=valeur,
-                ordre=ordre,
-                type_base=type_base,
-                chemin=chemin,
-            )
+            retour += DB.recup_donnees_req_alpha(regle, basesel)
             # print("regles alpha: valeur retour", retour, obj)
     return retour
 

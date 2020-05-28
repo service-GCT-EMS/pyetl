@@ -26,10 +26,10 @@ def dbaccess(regle, codebase, type_base=None):
     base = codebase
     serveur = ""
     stock_param = regle.stock_param
-    #    print('bases connues', stock_param.dbconnect.keys())
+    print("dbaccess", codebase)
     systables = regle.getvar("tables_systeme")
     # serveur = regle.getvar("server_" + codebase, "")
-
+    prefix = ""
     if not type_base:  # on pioche dans les variables
         base = regle.getvar("base_" + codebase, "")
         if not base:
@@ -40,7 +40,8 @@ def dbaccess(regle, codebase, type_base=None):
                 return None
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
-        # print("acces base", codebase, base, serveur, type_base)
+        prefix = regle.getvar("prefix_" + codebase, "")
+        print("acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
@@ -73,6 +74,7 @@ def dbaccess(regle, codebase, type_base=None):
     if connection.valide:
         # print("connection valide", serveur, base)
         connection.gensql = dbdef.gensql(connection=connection)
+        connection.prefix = prefix
         connection.type_serveur = dbdef.svtyp
         connection.geom_from_natif = dbdef.converter
         connection.geom_to_natif = dbdef.geomwriter
@@ -173,18 +175,18 @@ def dbextdump(regle_courante, base, niveau, classe, dest="", log=None):
     return False
 
 
-def dbextalpha(regle_courante, base: str, niveau, classe, dest="", log=""):
+def dbextalpha(regle_courante, baseselector, dest="", log=""):
     """extrait un fichier a travers un loader et lance les traitements"""
 
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante, base, niveau, classe
-    )
+    connect = baseselector.connect
     if connect is None:
         return False
-    if not liste_tables:
-        print("pas de tables a sortir", base, niveau, classe)
-        return False
-
+    schema_travail = baseselector.schema_travail
+    base = baseselector.base
+    # if not liste_tables:
+    #     print("pas de tables a sortir", base, niveau, classe)
+    #     return False
+    liste_tables = [desc[0] for ident, desc in baseselector.classlist()]
     regle_courante.setvar("schema_entree", schema_travail.nom)
     helpername = connect.dump_helper
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
@@ -531,64 +533,48 @@ def lire_requete(
     return 0
 
 
-def recup_donnees_req_alpha(
-    regle_courante,
-    base,
-    niveau,
-    classe,
-    attribut,
-    valeur,
-    mods=None,
-    sortie=None,
-    v_sortie=None,
-    ordre=None,
-    type_base=None,
-    chemin="",
-):
+def recup_donnees_req_alpha(regle_courante, baseselector):
     """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
     # print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, classe)
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
-    )
+    connect = baseselector.connect
     # print ('recup liste tables', liste_tables)
     if connect is None:
         return 0
+
+    schema_travail = baseselector.schema_travail
+    print("recup schema_travail ", schema_travail.nom)
+
+    schema_base = connect.schemabase
     reqdict = dict()
-    if isinstance(attribut, list):
-        reqdict = {
-            (niv, cla): (att, val)
-            for niv, cla, att, val in zip(niveau, classe, attribut, valeur)
-        }
+    # if isinstance(attribut, list):
+    #     reqdict = {
+    #         (niv, cla): (att, val)
+    #         for niv, cla, att, val in zip(niveau, classe, attribut, valeur)
+    #     }
 
     stock_param = regle_courante.stock_param
     maxobj = int(regle_courante.getvar("lire_maxi", 0))
-
+    mods = regle_courante.params.cmp1.liste
+    ordre = regle_courante.params.cmp2.liste
+    sortie = regle_courante.params.att_sortie.liste
     res = 0
-    #    print ('dbacces: recup_donnees_req_alpha',connect.idconnect,type_base)
-    curs = None
-    for ident in liste_tables:
+    print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
+    curs = None  #
+    n = 0
+    for ident2, description in baseselector.classlist():
+        ident, attr, val, fonction = description
         treq = time.time()
+        n += 1
         if ident is not None:
-
-            niveau, classe = ident
+            niveau, classe = ident2
             schema_classe_base = schema_base.get_classe(ident)
             #            print('mdba: ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
-            # print ('mdba: ',ident)
+            # print("mdba: ", ident, ident2)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info[
                 "type_geom"
             ]
-            if isinstance(attribut, list):
-                attr, val = reqdict.get(ident, ("", ""))
-            else:
-                attr, val = attribut, valeur
             if (
                 attr
                 and attr not in schema_classe_travail.attributs
@@ -611,7 +597,7 @@ def recup_donnees_req_alpha(
                     classe,
                     connect,
                     sortie,
-                    v_sortie,
+                    val,
                     schema_classe_base.info["type_geom"],
                     schema_classe_travail,
                     treq=treq,
@@ -625,9 +611,7 @@ def recup_donnees_req_alpha(
 
     if stock_param is not None:
         stock_param.padd("_st_lu_objs", res)
-        stock_param.padd(
-            "_st_lu_tables", len(liste_tables) if liste_tables is not None else 0
-        )
+        stock_param.padd("_st_lu_tables", n)
     return res
 
 

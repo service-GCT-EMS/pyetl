@@ -370,7 +370,8 @@ class RegleTraitement(object):  # regle de mapping
         self.numero = numero
         if context is None:
             context = stock_param.cur_context
-        self.context = context.getcontext(ident="R" + str(numero), ref=True)
+        self.context = context.getcontext(ident="R" + str(numero))
+        # self.context = context.getcontext(ident="R" + str(numero), ref=True)
         #        print ('contexte regle',self.ligne, self.context)
         self.val_tri = re.compile("")
         self.index = 0
