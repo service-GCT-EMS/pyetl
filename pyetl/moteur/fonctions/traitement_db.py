@@ -11,7 +11,7 @@ from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
 
 from .outils import prepare_mode_in
-from .tableselector import TableSelector, select_in
+from .tableselector import getselector, select_in, adapt_qgs_datasource
 
 LOGGER = logging.getLogger("pyetl")
 
@@ -57,7 +57,7 @@ def _mode_niv_in(regle, niv, autobase=False):
     return base, niveau, classe, attrs, cmp
 
 
-def param_base(regle):
+def param_base(regle, nom=""):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
@@ -66,13 +66,13 @@ def param_base(regle):
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
-    print("param_base", base, niv, cla)
+    print("param_base", nom, base, niv, cla)
 
     if niv.lower().startswith("in:"):  # mode in
-        selecteur = select_in(regle, niv[3:], base)
+        selecteur = select_in(regle, niv[3:], base, nom=nom)
         # print("recup selecteur", selecteur)
     else:
-        selecteur = TableSelector(regle, base)
+        selecteur = getselector(regle, base, nom=nom)
         if cla.lower().startswith("in:"):  # mode in
             clef = 1 if "#schema" in cla else 0
             mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
@@ -722,3 +722,38 @@ def f_dbclean(regle, obj):
    """
 
     pass
+
+
+def h_dbselect(regle):
+    """preparation selecteur"""
+    nom_selecteur = regle.params.att_sortie.val
+    param_base(regle, nom=nom_selecteur)
+    selecteur = regle.cible_base
+    regle.valide = "done"
+
+
+def f_dbselect(regle, obj):
+    """#aide||creation d un selecteur: ce selecteur peut etre reutilise pour des operations
+            ||sur les bases de donnees
+     #groupe||database
+    #pattern||A;?;?;dbselect;?;?
+   #req_test||testdb
+    """
+    pass
+
+
+def f_dbmap_qgs(regle, obj):
+    """#aide||remappe des fichiers qgis pour un usage en local en prenant en comte un selecteur
+    #pattern||;C;;dbmap_qgs;C;C
+    """
+    print("====================dbmapqgs")
+    regle.base = regle.code_classe[3:]
+    nom_selecteur = regle.params.val_entree.val
+    entree = regle.params.cmp1.val
+    sortie = regle.params.cmp2.val
+    selecteur = regle.stock_param.namedselectors.get(nom_selecteur)
+    if selecteur:
+        adapt_qgs_datasource(regle, obj, entree, selecteur, sortie)
+        return True
+    else:
+        return False

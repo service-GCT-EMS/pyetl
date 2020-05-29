@@ -36,13 +36,25 @@ def fdebug(regle, obj):
 
     if regle.debugvalid:
         wid = regle.getvar("_wid")
+        debugmode = regle.v_nommees["debug"]
         regle.debug = regle.debug - 1
-        if regle.v_nommees["debug"] == "print":
+        if debugmode == "print":
             regle.affiche(wid + "------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
+            regle.debugvalid = False
             return regle.f_init(regle, obj)
-        regle.affiche(wid + "------debug------>")
-        obj.debug("avant", attlist=regle.champsdebug)
+        if debugmode == "step":
+            regle.affiche(wid + "------step------>")
+            succes = regle.f_init(regle, obj)
+            redirect = obj.redirect if obj.redirect else "ok"
+            suite = redirect if succes else "fail"
+            regle2 = regle.branchements.brch[suite]
+            if regle2.v_nommees["debug"] != "end":
+                regle2.v_nommees["debug"] = "step"
+            regle2.debug = 1
+        else:
+            regle.affiche(wid + "------debug------>")
+            obj.debug("avant", attlist=regle.champsdebug)
 
         succes = regle.f_init(regle, obj)
 
@@ -611,7 +623,15 @@ def prepare_env(mapper, texte: str, fichier_regles):
             nom_inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
     #            print("lecture de regles incluses", inclus,pps)
     context.affecte(listevlocs)
-    # print("prepare_env", nom_inclus, context, context.vlocales, parametres, listevlocs)
+    print(
+        "prepare_env",
+        macro.nom,
+        nom_inclus,
+        context,
+        context.vlocales,
+        parametres,
+        listevlocs,
+    )
     return nom_inclus, context, macro
 
 
@@ -628,7 +648,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     # print("niveau retenu", niveau)
     texte = match.group(4)
-    # print("importe macro", niveau, texte)
+    print("importe macro", niveau, texte)
     # on gere les niveaux
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
@@ -662,6 +682,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             niveau=niveau,
             regle_ref=regle_ref,
         )
+        if erreurs:
+            print("=======================erreurs initialisation macro", macro.nom)
         if rvirt:
             traite_regle_std(
                 mapper, 0, rvirt + "f", rvirt + "f", "", 0, regle_ref=regle_ref
@@ -671,6 +693,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         # print("contexte macros apres pop:", mapper.cur_context)
 
     else:
+        print("================================macro introuvable", texte)
         erreurs = 1
     return erreurs
 
@@ -765,7 +788,7 @@ def lire_regles_csv(
                 macro = None
                 continue
         elif macro:
-            #            print('stockage macro',texte,numero)
+            print("stockage macro", macro.nom, texte, numero)
             macro.add_command(texte, numero)
             continue
 
@@ -801,11 +824,12 @@ def lire_regles_csv(
             # print ('avant macro',texte, context, context.getvar('atts'))
             # on transforme ca en appel call
             # ligne,_ = context.resolve(texte)
-            erreurs += importe_macro(
+            errs = importe_macro(
                 mapper, texte, context, fichier_regles, regle_ref=regle_ref
             )
-            if erreurs:
+            if errs:
                 print("erreur chargement macro", texte)
+                erreurs = erreurs + errs
                 return erreurs
         else:
             #            print('regles std', defligne)

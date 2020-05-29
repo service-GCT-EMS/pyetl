@@ -324,7 +324,6 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
     return stock
 
 
-
 def charge_liste(
     fichier, codec="", debug=False, taille=1, positions=None, type_cle="txt"
 ):

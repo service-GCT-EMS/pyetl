@@ -40,7 +40,7 @@ def h_pass(regle):
 
 def f_pass(regle, obj):
     """#aide||ne fait rien et passe. permet un branchement distant
-        #pattern||;;;pass;?C;
+        #pattern||;;;pass;?C;?C
         #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
         #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
               ||X;1;;;X;%defaut%;;set||atv;X;3

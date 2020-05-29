@@ -26,7 +26,7 @@ def dbaccess(regle, codebase, type_base=None):
     base = codebase
     serveur = ""
     stock_param = regle.stock_param
-    print("dbaccess", codebase)
+    print("dbaccess", codebase, regle)
     systables = regle.getvar("tables_systeme")
     # serveur = regle.getvar("server_" + codebase, "")
     prefix = ""

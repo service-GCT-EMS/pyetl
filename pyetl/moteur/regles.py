@@ -748,6 +748,7 @@ class RegleTraitement(object):  # regle de mapping
         """fonction d'affichage de debug"""
         msg = " ".join(
             (
+                origine,
                 repr(self),
                 ("bloc " + str(self.bloc) if self.bloc else ""),
                 ("enchainement:" + str(self.enchainement) if self.enchainement else ""),

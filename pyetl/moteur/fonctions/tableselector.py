@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 11:49:29 2016
-
-@author: 89965
-acces aux bases de donnees
+Selecteurs
+Les selecteurs sont des structures servant a decrire une selection de tables de base de donnees
+Un selecteur peut couvrir diverses bases de donnees
+en cas de selecteur multibase les conflits sont geres par des options du selecteur
+les selecteurs sont soit crees dynamiquement lors d un acces a une base (dbalpha, dbgeo...)
+soit crees explicitement par dbselect
+les selecteurs crees explicitement sont nommes et peuvent etre reutilises a plusieurs endroits.
 """
 import re
 import time
@@ -28,7 +31,8 @@ descripteur = namedtuple(
 
 
 class TableBaseSelector(object):
-    """condition de selection de tables dans un schema"""
+    """conditions de selection de tables dans une base
+       il y a un Tablebaseselector par base concernee par une selection """
 
     def __init__(self, mapper, base=None, map_prefix="", schemaref=None):
         self.mapper = mapper
@@ -52,6 +56,8 @@ class TableBaseSelector(object):
         return str(self.base) + str(len(self.descripteurs) + len(self.descripteurs))
 
     def reg_prefix(self, map_prefix):
+        """enregistre les prefixes a appliquesr aux noms des schemas et/ou de classe
+            en cas de conflit pour des selections multibases"""
         if "." in map_prefix:
             self.np, self.cp = map_prefix.split(".", 1)
         else:
@@ -59,6 +65,11 @@ class TableBaseSelector(object):
         self.map_prefix = map_prefix
 
     def add_descripteur(self, descripteur):
+        """stocke un descripteur de selection il y a un descripteur par niveau ou expression
+           de selection de niveau
+           un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
+           ou dynamique s il depend de l objet courant
+        """
         # print("ajout descripteur", self.base, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
@@ -75,6 +86,8 @@ class TableBaseSelector(object):
             self.descripteurs.append(descripteur)
 
     def resolve_static(self, regle):
+        """transformation de la liste de descripteurs statiques en liste de classes
+           le selecteur gere la connection a la base se donnees"""
         if self.static:
             return
         self.connect = self.mapper.getdbaccess(regle, self.base)
@@ -94,12 +107,14 @@ class TableBaseSelector(object):
                 )
 
     def set_prefix(self, cldef):
+        """prefixage ses noms pour lea gestion des conflits entre base"""
         niveau, classe = cldef[:2]
         map_n = "_".join((self.np, niveau)) if self.np else niveau
         map_c = "_".join((self.cp, classe)) if self.cp else classe
         return (map_n, map_c)
 
     def add_classlist(self, niveau, classe, attr, valeur, fonction, mod):
+        """transformation effective d un descripteur en liste de classes"""
         multi = not ("=" in mod)
         mod = mod.replace("=", "")
         nocase = "NOCASE" in mod
@@ -117,12 +132,15 @@ class TableBaseSelector(object):
         return direct
 
     def resolve(self, regle, obj):
-
+        """fonction de transformation de la liste de descripteurs en liste de classe
+            et preparation du schema de travail"""
         self.resolve_static(regle)
         self.resolve_dyn(regle, obj)
         self.getschematravail(regle)
 
     def resolve_dyn(self, regle, obj):
+        """transformation de descripteurs dynamiques en liste de classes
+        les elements dynamiques sont resolus a partir des champs de l objet courant"""
         mod = regle.getvar("mod")
         mod = mod.upper()
         self.dynlist = dict()
@@ -140,9 +158,11 @@ class TableBaseSelector(object):
                     )
 
     def classlist(self):
-        return itertools.chain(self.static.items(), self.dynlist.items())
+        """retourne un iterateur sur la liste de classes resolue"""
+        yield from itertools.chain(self.static.items(), self.dynlist.items())
 
     def getschematravail(self, regle):
+        """recupere le schema correspondant a la selection de la base demandee"""
         liste_mapping = []
         liste_classes = []
         for mapping, definition in self.classlist():
@@ -182,6 +202,7 @@ class TableSelector(object):
         self.classes = dict()
         self.inverse = dict()
         self.refbases = set()
+        self.resolved = False
         self.onconflict = "add"
 
     def __repr__(self):
@@ -234,6 +255,7 @@ class TableSelector(object):
         return None
 
     def resolve(self, regle, obj):
+        self.resolved = True
         for base in self.baseselectors:
             self.baseselectors[base].resolve(regle, obj)
 
@@ -285,7 +307,7 @@ class TableSelector(object):
 # =============================================================
 
 
-def select_in(regle, fichier, base, classe=[], att="", valeur=()):
+def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     """precharge les elements des selecteurs:
         in:{a,b,c}                  -> liste de valeurs dans la commande
         in:#schema:nom_du_schema    -> liste des tables d'un schema
@@ -303,12 +325,17 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=()):
     valeurs = {i: i for i in liste_valeurs}
     print("fichier a lire ", fichier, valeurs)
     if fichier.startswith("#sel:"):  # selecteur externe
-        selecteur = stock_param.namedselectors.get(fichier[4:])
+        selecteur = stock_param.namedselectors.get(fichier[5:])
         if not selecteur:
-            print("selecteur inconnu", fichier[4:])
+            print(
+                "selecteur inconnu",
+                regle,
+                fichier[5:],
+                stock_param.namedselectors.keys(),
+            )
             raise StopIteration(2)
         return selecteur
-    selecteur = TableSelector(regle, base=base)
+    selecteur = getselector(regle, base=base, nom=nom)
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nom = fichier[7:]
         if nom in stock_param.schemas:
@@ -347,11 +374,49 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     host = _extract(i, "host=").lower()
                     port = _extract(i, "port=").lower()
                     niveau, classe = table.split(".")
+                    niveau = niveau.replace('"', "")
+                    classe = classe.replace('"', "")
                     base = (database, "host=" + host, "port=" + port)
                     selecteur.add_descripteur(base, niveau, [classe])
 
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
+    # print ('lus fichier qgis ',fichier,list(stock))
+    return True
+
+
+def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFCODEC):
+    """ modifie un fichier qgs pour adapter les noms des bases et des niveaux
+    """
+    if not selecteur.resolved:
+        selecteur.resolve(regle, obj)
+    destbase = regle.base
+    for fich, chemin in scandirs("", fichier, rec=True):
+        element = os.path.join(chemin, fich)
+        if not fich.endswith(".qgs"):
+            continue
+        codec = hasbom(fichier, codec)
+        fdest = os.path.join(destination, element)
+        # sortie = open(fdest, "w", encoding=codec)
+        with open(fichier, "r", encoding=codec) as fich:
+            print("adapt projet qgs", fichier)
+            for i in fich:
+                if "datasource" in i:
+                    table = _extract(i, "table=")
+                    database = _extract(i, "dbname=")
+                    host = _extract(i, "host=").lower()
+                    port = _extract(i, "port=").lower()
+                    niveau, classe = table.split(".")
+                    niveau = niveau.replace('"', "")
+                    classe = classe.replace('"', "")
+                    ident = (niveau, classe)
+                    base = (database, "host=" + host, "port=" + port)
+                    idbase = selecteur.idbase(base)
+                    baseselector = selecteur.baseselectors[idbase]
+                    tablemap = baseselector.schema_travail.maping(ident)
+                    print("adaptation qgs", base, table, "->", destbase, tablemap)
+                # sortie.write(i)
+
     # print ('lus fichier qgis ',fichier,list(stock))
     return True
 
@@ -424,31 +489,6 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     # print("prechargement selecteur csv", selecteur)
 
 
-def filelist(fichier):
-
-    """liste des fichiers de comparaison """
-    clef = ""
-    if "*." in os.path.basename(fichier):
-        clef = os.path.basename(fichier)
-        clef = os.path.splitext(clef)[-1]
-        fichier = os.path.dirname(fichier)
-    #        print(' clef ',clef,fichier)
-    LOGGER.info("charge_liste: chargement " + str(fichier))
-
-    #    print ('-------------------------------------------------------chargement',fichier)
-    for f_interm in str(fichier).split(","):
-        if os.path.isdir(f_interm):
-            # on charge toutes les listes d'un repertoire (csv et qgs)
-            for i in os.listdir(f_interm):
-                if clef in i:
-                    LOGGER.debug("chargement liste " + i + " repertoire " + f_interm)
-                    if os.path.isdir(f_interm):
-                        yield from filelist(f_interm)
-                    #                    print("chargement liste ", i, 'repertoire:', f_interm)
-                    else:
-                        yield f_interm
-
-
 def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
@@ -457,3 +497,15 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
     print("selecteur from fich", selecteur.baseselectors.keys())
+
+
+def getselector(regle, base=None, nom=""):
+    """recuperation d un selecteur stocke"""
+    if not nom:
+        return TableSelector(regle, base)
+    if nom in regle.stock_param.selecteurs:
+        selecteur = regle.stock_param.namedselectors[nom]
+    else:
+        selecteur = TableSelector(regle, base)
+        regle.stock_param.namedselectors[nom] = selecteur
+    return selecteur
