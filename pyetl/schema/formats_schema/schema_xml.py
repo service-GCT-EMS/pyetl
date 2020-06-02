@@ -288,7 +288,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
 
 def fusion_schema_xml(schema, fichier, cod="utf-8"):
     """# complete la lecture d'un fichier"""
-    origine = ET.parse(open(fichier, "r", encoding=cod))
+    origine = ET.parse(fichier)
     #    g=schema(groupe)
     #    g.origine='L'
     for i in origine.getiterator("conformite"):

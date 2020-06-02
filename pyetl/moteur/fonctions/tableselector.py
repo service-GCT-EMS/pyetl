@@ -34,13 +34,15 @@ class TableBaseSelector(object):
     """conditions de selection de tables dans une base
        il y a un Tablebaseselector par base concernee par une selection """
 
-    def __init__(self, mapper, base=None, map_prefix="", schemaref=None):
-        self.mapper = mapper
+    def __init__(self, regle_ref, base=None, map_prefix="", schemaref=None):
+        self.mapper = regle_ref.stock_param
+        self.regle_ref = regle_ref
         self.base = base
         self.type_base = ""
         self.chemin = ""
         self.racine = ""
         self.connect = None
+        self.nobase = False
         self.schemaref = schemaref
         self.valide = bool(base or schemaref)
         self.map_prefix = map_prefix
@@ -85,25 +87,41 @@ class TableBaseSelector(object):
         else:
             self.descripteurs.append(descripteur)
 
-    def resolve_static(self, regle):
+    def resolve_static(self):
         """transformation de la liste de descripteurs statiques en liste de classes
            le selecteur gere la connection a la base se donnees"""
         if self.static:
             return
-        self.connect = self.mapper.getdbaccess(regle, self.base)
-        self.schemabase = self.connect.schemabase
-        mod = regle.getvar("mod")
-        set_prefix = regle.getvar("prefix") == "1"
-        if set_prefix:
+        mod = self.regle_ref.getvar("mod")
+        set_prefix = self.regle_ref.getvar("set_prefix") == "1"
+        self.mapper.load_paramgroup(self.base, nom=self.base)
+        prefix = self.regle_ref.getvar("prefix_" + self.base)
+        # print(
+        #     "variables",
+        #     self.regle_ref.getvar("prefix"),
+        #     set_prefix,
+        #     prefix,
+        #     self.base,
+        #     self.regle_ref.stock_param.context.vlocales,
+        # )
+        # raise
+        if not self.nobase:
+            self.connect = self.mapper.getdbaccess(self.regle_ref, self.base)
+            self.schemabase = self.connect.schemabase
             prefix = self.connect.prefix
+
+        if set_prefix:
             self.reg_prefix(prefix)
+        # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)
+
         mod = mod.upper()
-        print("resolve", self.base, mod, set_prefix)
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
             vref = valeur[1] if valeur else ""
             for j in classes:
                 self.static.update(
-                    self.add_classlist(niveau, j, attr, vref, fonction, mod)
+                    self.add_classlist(
+                        niveau, j, attr, vref, fonction, mod, nobase=self.nobase
+                    )
                 )
 
     def set_prefix(self, cldef):
@@ -113,7 +131,7 @@ class TableBaseSelector(object):
         map_c = "_".join((self.cp, classe)) if self.cp else classe
         return (map_n, map_c)
 
-    def add_classlist(self, niveau, classe, attr, valeur, fonction, mod):
+    def add_classlist(self, niveau, classe, attr, valeur, fonction, mod, nobase=False):
         """transformation effective d un descripteur en liste de classes"""
         multi = not ("=" in mod)
         mod = mod.replace("=", "")
@@ -121,9 +139,12 @@ class TableBaseSelector(object):
         mod = mod.replace("NOCASE", "")
         if not mod:
             mod = "A"
-        classlist = self.schemabase.select_niv_classe(
-            niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
-        )
+        if nobase:
+            classlist = [(niveau, classe)]
+        else:
+            classlist = self.schemabase.select_niv_classe(
+                niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
+            )
         direct = dict()
         for i in classlist:
             mapped = self.set_prefix(i)
@@ -131,17 +152,23 @@ class TableBaseSelector(object):
         # print("classlist", direct)
         return direct
 
-    def resolve(self, regle, obj):
+    def resolve(self, obj):
         """fonction de transformation de la liste de descripteurs en liste de classe
             et preparation du schema de travail"""
-        self.resolve_static(regle)
-        self.resolve_dyn(regle, obj)
-        self.getschematravail(regle)
+        self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
+        self.resolve_static()
+        self.resolve_dyn(obj)
+        if not self.nobase:
+            self.getschematravail(self.regle_ref)
+        else:
+            liste_classes, liste_mapping = self.getmapping()
+            # print("mapping", liste_mapping)
+            self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
 
-    def resolve_dyn(self, regle, obj):
+    def resolve_dyn(self, obj):
         """transformation de descripteurs dynamiques en liste de classes
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
-        mod = regle.getvar("mod")
+        mod = self.regle_ref.getvar("mod")
         mod = mod.upper()
         self.dynlist = dict()
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
@@ -154,21 +181,34 @@ class TableBaseSelector(object):
                         classe = obj.attributs.get(classe[1:-1])
                     valeur = obj.attributs.get(*valeur)
                     self.dynlist.update(
-                        self.add_classlist(niveau, classe, attr, valeur, fonction, mod)
+                        self.add_classlist(
+                            niveau,
+                            classe,
+                            attr,
+                            valeur,
+                            fonction,
+                            mod,
+                            nobase=self.nobase,
+                        )
                     )
 
     def classlist(self):
         """retourne un iterateur sur la liste de classes resolue"""
         yield from itertools.chain(self.static.items(), self.dynlist.items())
 
-    def getschematravail(self, regle):
-        """recupere le schema correspondant a la selection de la base demandee"""
+    def getmapping(self):
         liste_mapping = []
         liste_classes = []
         for mapping, definition in self.classlist():
+            # print(" getmapping", self.base, mapping, definition)
             ident = definition[0]
             liste_mapping.append((*mapping, *ident))
             liste_classes.append(ident)
+        return liste_classes, liste_mapping
+
+    def getschematravail(self, regle):
+        """recupere le schema correspondant a la selection de la base demandee"""
+        liste_classes, liste_mapping = self.getmapping()
         print(" creation schema travail", self.base, len(liste_classes))
         schema_travail, liste2 = self.schemabase.creschematravail(
             regle, liste_classes, self.base
@@ -203,6 +243,7 @@ class TableSelector(object):
         self.inverse = dict()
         self.refbases = set()
         self.resolved = False
+        self.nobase = False
         self.onconflict = "add"
 
     def __repr__(self):
@@ -243,7 +284,7 @@ class TableSelector(object):
         if base is None:
             return
         if base not in self.baseselectors:
-            self.baseselectors[base] = TableBaseSelector(self.mapper, base, "")
+            self.baseselectors[base] = TableBaseSelector(self.regle_ref, base, "")
         self.baseselectors[base].add_descripteur(descripteur)
 
     def idbase(self, base):
@@ -251,13 +292,15 @@ class TableSelector(object):
         if base in self.mapper.dbref:
             base = self.mapper.dbref[base]
             return base
-        print("base inconnue", base, self.mapper.dbref)
-        return None
+        print("base inconnue", base)
+        return base
 
-    def resolve(self, regle, obj):
+    def resolve(self, obj):
         self.resolved = True
+        self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
+
         for base in self.baseselectors:
-            self.baseselectors[base].resolve(regle, obj)
+            self.baseselectors[base].resolve(obj)
 
     def get_classes(self):
         for base in self.baseselectors:
@@ -389,32 +432,55 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
     """ modifie un fichier qgs pour adapter les noms des bases et des niveaux
     """
     if not selecteur.resolved:
-        selecteur.resolve(regle, obj)
+        selecteur.resolve(obj)
     destbase = regle.base
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         if not fich.endswith(".qgs"):
             continue
-        codec = hasbom(fichier, codec)
+        codec = hasbom(element, codec)
         fdest = os.path.join(destination, element)
         # sortie = open(fdest, "w", encoding=codec)
-        with open(fichier, "r", encoding=codec) as fich:
-            print("adapt projet qgs", fichier)
+        with open(element, "r", encoding=codec) as fich:
+            print("adapt projet qgs", element)
             for i in fich:
                 if "datasource" in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
-                    host = _extract(i, "host=").lower()
-                    port = _extract(i, "port=").lower()
+                    inithost = _extract(i, "host=")
+                    host = inithost.lower()
+                    initport = _extract(i, "port=")
+                    port = initport.lower()
                     niveau, classe = table.split(".")
-                    niveau = niveau.replace('"', "")
-                    classe = classe.replace('"', "")
                     ident = (niveau, classe)
                     base = (database, "host=" + host, "port=" + port)
                     idbase = selecteur.idbase(base)
-                    baseselector = selecteur.baseselectors[idbase]
-                    tablemap = baseselector.schema_travail.maping(ident)
-                    print("adaptation qgs", base, table, "->", destbase, tablemap)
+                    tablemap = (niveau, classe)
+                    if idbase in selecteur.baseselectors:
+                        baseselector = selecteur.baseselectors[idbase]
+                        if selecteur.nobase:
+                            tablemap = baseselector.mapping.get(ident)
+                            # print("baseselector.mapping", baseselector.mapping)
+                        else:
+                            tablemap = baseselector.schema_travail.maping(ident)
+                    print(
+                        "adaptation qgs", base, ident, table, "->", destbase, tablemap
+                    )
+                    oldtable = '"' + niveau + '"."' + classe + '"'
+                    olddbdef = (
+                        "dbname='"
+                        + database
+                        + "' host="
+                        + inithost
+                        + " port="
+                        + initport
+                    )
+                    i = i.replace(
+                        oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
+                    )
+                    i = i.replace(olddbdef, destbase)
+                    print("datasource=>", i)
+
                 # sortie.write(i)
 
     # print ('lus fichier qgis ',fichier,list(stock))
@@ -496,7 +562,7 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
-    print("selecteur from fich", selecteur.baseselectors.keys())
+    # print("selecteur from fich", selecteur.baseselectors.keys())
 
 
 def getselector(regle, base=None, nom=""):

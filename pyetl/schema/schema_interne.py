@@ -508,46 +508,7 @@ class Schema(object):
             tables_a_sortir.update(
                 self.select_niv_classe(exp_niv, exp_clas, attr, tables, multi, nocase)
             )
-            # #            trouve = False
-            # exp_niv = exp_niv.strip()
-            # exp_clas = exp_clas.strip()
-            # lmulti = multi
-            # if nocase:
-            #     exp_niv = exp_niv.lower()
-            #     exp_clas = exp_clas.lower()
-            # negniv = False
-            # negclass = False
-            # if exp_niv and exp_niv[0] == "!":
-            #     negniv = True
-            #     exp_niv = exp_niv[1:]
-            # if exp_clas and exp_clas[0] == "!":
-            #     negclass = True
-            #     exp_clas = exp_clas[1:]
-            # if "*" in exp_clas:
-            #     exp_clas.replace("*", ".*")
-            #     lmulti = True
-            # ren = re.compile(exp_niv)
-            # try:
-            #     rec = re.compile(exp_clas)
-            # except:  # on essaye de remplacesr les *
-            #     lmulti = False
-            #     rec = None
-            #     print("erreur de description de classe ", exp_clas)
 
-            # # print ('selection boucle', ren,rec,len(schema.classes))
-            # for i in self.classes:
-            #     if tables != "a" and self.classes[i].type_table not in tables:
-            #         continue
-            #     if lmulti:
-            #         if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
-            #             tables_a_sortir.add(i)
-            #         #                    print ('sortir multi')
-            #         continue
-            #     if choix_simple(
-            #         self.classes[i], exp_niv, exp_clas, negniv, negclass, nocase
-            #     ):
-            #         tables_a_sortir.add(i)
-        #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
         if not tables_a_sortir:
             print("pas de tables a sortir")
             print("select tables: requete", tables, niveau, classe, multi)

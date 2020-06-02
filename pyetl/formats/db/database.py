@@ -292,7 +292,7 @@ class DbConnect(object):
         self.dialecte = "sql"
         self.fallback = {}
         self.errs = KeyError
-        print("====init connection", self.base, self.code)
+        # print("====init connection", self.base, self.code)
 
     #        self.req_tables = ("", None)
 

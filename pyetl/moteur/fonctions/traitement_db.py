@@ -124,7 +124,7 @@ def setdb(regle, obj, att=True):
             regle.setlocal("server", rep)
         # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
         baseselector.resolve(regle, obj)
-        print("selecteur", baseselector.schema_travail)
+        # print("selecteur", baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -184,6 +184,8 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
+    if selecteur.nobase:  # on ne fait rien pour le test
+        return True
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
     # print("regles alpha: acces base apres ", basedict)

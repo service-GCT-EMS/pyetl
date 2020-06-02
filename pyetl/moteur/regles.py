@@ -288,7 +288,7 @@ class Selecteur(object):
                 self.fonction = candidat.work
                 self.nom = candidat.nom
                 return
-        print("erreur selecteur", self.regle)
+        print("================================ erreur selecteur:", self.regle)
         raise SyntaxError(
             "erreur selecteur inconnu",
             ascii(attribut),

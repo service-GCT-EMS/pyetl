@@ -788,7 +788,7 @@ def lire_regles_csv(
                 macro = None
                 continue
         elif macro:
-            print("stockage macro", macro.nom, texte, numero)
+            # print("stockage macro", macro.nom, texte, numero)
             macro.add_command(texte, numero)
             continue
 
