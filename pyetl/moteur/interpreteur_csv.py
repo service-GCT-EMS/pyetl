@@ -503,7 +503,7 @@ def prepare_texte(defligne, niveau):
     numero, texte_brut = defligne
     #        texte_brut = texte
     texte = texte_brut.strip()
-    if not texte or texte.startswith("!"):
+    if not texte or texte.startswith("!") or texte.startswith('"!'):
         return None, None, texte_brut
     if texte.startswith('"'):
         # on a mis des cotes dans les champs : petite touille pour nettoyer
@@ -807,7 +807,7 @@ def lire_regles_csv(
             try:
                 mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
             except KeyError:
-                print("groupe de parametres inconnu", vgroup)
+                print("====groupe de parametres inconnu", vgroup)
                 erreurs += 1
                 return erreurs
             # genere des variables internes de la forme 'nomDefiniDansLeFichier_nomDuGroupe
@@ -828,7 +828,7 @@ def lire_regles_csv(
                 mapper, texte, context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
-                print("erreur chargement macro", texte)
+                print("====erreur chargement macro", texte)
                 erreurs = erreurs + errs
                 return erreurs
         else:
@@ -842,6 +842,8 @@ def lire_regles_csv(
                 bloc,
                 regle_ref=regle_ref,
             )
+            if errs:
+                print("====erreur traite_regles_std")
             erreurs += errs
     #            print('apres,regles std', defligne, errs)
 

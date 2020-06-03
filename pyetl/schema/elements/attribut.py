@@ -105,7 +105,7 @@ class Conformite(object):
             self.mode = modele.mode
             self.utilise = modele.utilise
             self.usages = modele.usages[:]
-            self.taille = modele.taille
+            self.taille = modele.taille if modele.taille else 0
             self.ajuste = modele.ajuste
             self.poids = modele.poids
             self.maxobj = modele.maxobj
@@ -275,7 +275,7 @@ class Attribut(object):
         self.version = 0
         self.alias = ""
         self.oblig = False
-        self.taille = None
+        self.taille = 0
         self.dec = nom_conformite
         self.ordre = 0
         self.nom_court = ""

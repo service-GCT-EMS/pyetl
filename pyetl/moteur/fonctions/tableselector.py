@@ -80,6 +80,7 @@ class TableBaseSelector(object):
             dyn = True
         if valeur:
             att, defaut = valeur
+            print(" element dynamique", att)
             if att:
                 dyn = True
         if dyn:
@@ -98,11 +99,11 @@ class TableBaseSelector(object):
         prefix = self.regle_ref.getvar("prefix_" + self.base)
         # print(
         #     "variables",
-        #     self.regle_ref.getvar("prefix"),
+        #     self.regle_ref.getvar("set_prefix"),
         #     set_prefix,
         #     prefix,
         #     self.base,
-        #     self.regle_ref.stock_param.context.vlocales,
+        #     # self.regle_ref.stock_param.context.vlocales,
         # )
         # raise
         if not self.nobase:
@@ -157,19 +158,23 @@ class TableBaseSelector(object):
             et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
         self.resolve_static()
-        self.resolve_dyn(obj)
+        complet = self.resolve_dyn(obj)
         if not self.nobase:
             self.getschematravail(self.regle_ref)
         else:
             liste_classes, liste_mapping = self.getmapping()
             # print("mapping", liste_mapping)
             self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
+        return complet
 
     def resolve_dyn(self, obj):
         """transformation de descripteurs dynamiques en liste de classes
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
         mod = self.regle_ref.getvar("mod")
         mod = mod.upper()
+        if obj is None and self.dyndescr:
+            print("elements dynamiques", self.dyndescr)
+            return False
         self.dynlist = dict()
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
             if attr.startswith("["):
@@ -191,6 +196,7 @@ class TableBaseSelector(object):
                             nobase=self.nobase,
                         )
                     )
+        return True
 
     def classlist(self):
         """retourne un iterateur sur la liste de classes resolue"""
@@ -206,12 +212,14 @@ class TableBaseSelector(object):
             liste_classes.append(ident)
         return liste_classes, liste_mapping
 
-    def getschematravail(self, regle):
+    def getschematravail(self, regle, nom=""):
         """recupere le schema correspondant a la selection de la base demandee"""
         liste_classes, liste_mapping = self.getmapping()
         print(" creation schema travail", self.base, len(liste_classes))
+        if not nom:
+            nom = self.base
         schema_travail, liste2 = self.schemabase.creschematravail(
-            regle, liste_classes, self.base
+            regle, liste_classes, nom
         )
         schema_travail.init_mapping(liste_mapping)
         self.schema_travail = schema_travail
@@ -255,7 +263,7 @@ class TableSelector(object):
         descripteur = (niv, classes, attribut, valeur, fonction)
         map_prefix = ""
         base = (base or self.defaultbase) if self.autobase else self.base
-        # print("add descripteur", self.autobase, base, descripteur)
+        # print("add descripteur", base, descripteur)
         self.add_selector(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
@@ -285,6 +293,7 @@ class TableSelector(object):
             return
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self.regle_ref, base, "")
+        # print("add descripteur", base, descripteur)
         self.baseselectors[base].add_descripteur(descripteur)
 
     def idbase(self, base):
@@ -295,12 +304,16 @@ class TableSelector(object):
         print("base inconnue", base)
         return base
 
-    def resolve(self, obj):
-        self.resolved = True
+    def resolve(self, obj=None):
+        if self.resolved:
+            return True
+        complet = True
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
 
         for base in self.baseselectors:
-            self.baseselectors[base].resolve(obj)
+            complet = complet and self.baseselectors[base].resolve(obj)
+        self.resolved = complet
+        return complet
 
     def get_classes(self):
         for base in self.baseselectors:
@@ -336,11 +349,11 @@ class TableSelector(object):
         # print ('mapping_fusion','\n'.join(liste_mapping[:10]))
         schema.init_mapping(liste_mapping)
 
-    def getschematravail(self, regle):
+    def getschematravail(self, regle, nom=""):
         for basesel in self.baseselectors.values():
             schema_travail = basesel.getschematravail(self, regle)
             if self.schema_travail is None:
-                self.schema_travail = schema_travail.copy()
+                self.schema_travail = schema_travail.copy(nom)
             else:
                 self.fusion_schema(schema_travail)
 
@@ -421,7 +434,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     classe = classe.replace('"', "")
                     base = (database, "host=" + host, "port=" + port)
                     selecteur.add_descripteur(base, niveau, [classe])
-
+                    # print("descripteur", base, niveau, [classe])
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
     # print ('lus fichier qgis ',fichier,list(stock))
@@ -440,7 +453,8 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
             continue
         codec = hasbom(element, codec)
         fdest = os.path.join(destination, element)
-        # sortie = open(fdest, "w", encoding=codec)
+        os.makedirs(os.path.dirname(fdest), exist_ok=True)
+        sortie = open(fdest, "w", encoding=codec)
         with open(element, "r", encoding=codec) as fich:
             print("adapt projet qgs", element)
             for i in fich:
@@ -462,10 +476,13 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                             tablemap = baseselector.mapping.get(ident)
                             # print("baseselector.mapping", baseselector.mapping)
                         else:
-                            tablemap = baseselector.schema_travail.maping(ident)
-                    print(
-                        "adaptation qgs", base, ident, table, "->", destbase, tablemap
-                    )
+                            tmp = baseselector.schema_travail.mapping(ident)
+                            print("baseselector.schemamapping", ident, tmp)
+                            if tmp:
+                                tablemap = tmp[1]
+                    # print(
+                    #     "adaptation qgs", base, ident, table, "->", destbase, tablemap
+                    # )
                     oldtable = '"' + niveau + '"."' + classe + '"'
                     olddbdef = (
                         "dbname='"
@@ -479,9 +496,9 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                         oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
                     )
                     i = i.replace(olddbdef, destbase)
-                    print("datasource=>", i)
+                    # print("datasource=>", i)
 
-                # sortie.write(i)
+                sortie.write(i)
 
     # print ('lus fichier qgis ',fichier,list(stock))
     return True
@@ -563,6 +580,9 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
     # print("selecteur from fich", selecteur.baseselectors.keys())
+    # for nom, sel in selecteur.baseselectors.items():
+    #     print(nom, "====>", sel.descripteurs)
+    # raise
 
 
 def getselector(regle, base=None, nom=""):

@@ -502,7 +502,7 @@ class Pyetl(object):
                     )
                 except KeyError as ker:
                     LOGGER.critical(
-                        "erreur lecture " + repr(ker) + "(" + repr(regles) + ")"
+                        "======erreur lecture " + repr(ker) + "(" + repr(regles) + ")"
                     )
                     erreurs = erreurs + 1 if erreurs else 1
                     raise
@@ -700,16 +700,29 @@ class Pyetl(object):
 
     def _setdbref(self):
         """identifie les references de bases de donnees pour qgis"""
+        priorites = dict()
         for nom in self.site_params:
             variables = self.site_params[nom]
             base, host, port = "", "", ""
+            priorite = 99
             for clef, val in variables:
-                if clef == "server" and "port" in val and "host" in val:
-                    host, port = val.split(" ", 1)
+                if clef == "server":
+                    if "port" in val and "host" in val:
+                        host, port = val.split(" ", 1)
+                    else:
+                        host = val
                 elif clef == "base":
                     base = val
+                if clef == "priorite":
+                    priorite = int(val)
             if base:
                 tb = (base, host, port)
+                if tb in priorites:
+                    if priorite > priorites[tb]:
+                        print("non retenu", nom, tb, priorite, priorites[tb])
+                        continue  # base non prioritaire on a deja la definition
+                print("retenu", nom, tb, priorite, priorites.get(tb))
+                priorites[tb] = priorite
                 self.dbref[tb] = nom
                 self.dbref[",".join(tb)] = nom
                 self.dbref[nom] = nom
@@ -752,7 +765,7 @@ class Pyetl(object):
         """ charge un groupe de parametres """
         # print("chargement", clef, self.site_params[clef], context)
 
-        if not clef or clef=="*":
+        if not clef or clef == "*":
             return
         context = context if context is not None else self.context
         if check:  # on verifie que l'on a pas deja defini les choses avant
@@ -769,7 +782,7 @@ class Pyetl(object):
                     context.setvar(var + "_" + nom, val)
             return True
         elif fin:
-            print("definition parametres de site >" + clef + "< introuvable")
+            print("definition parametres de site >" + str(clef) + "< introuvable")
             print("aide:groupes connus: ")
             print("\n".join([str(i) for i in sorted(self.site_params)]))
             raise KeyError

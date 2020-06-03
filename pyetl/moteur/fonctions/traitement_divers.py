@@ -308,6 +308,8 @@ def f_sortir(regle, obj):
     if regle.f_sortie is None:
         return False
     if obj.virtuel:  # on ne traite pas les virtuels
+        # print("======================sortie objet virtuel", regle, obj)
+        # raise
         return True
     listeref = obj.liste_attributs
     schemaclasse_ref = obj.schema

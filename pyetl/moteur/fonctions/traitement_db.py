@@ -98,10 +98,9 @@ def param_base(regle, nom=""):
     return True
 
 
-def setdb(regle, obj, att=True):
+def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
     # print("acces base", regle.cible_base.keys())
-    basedict = dict()
     selecteur = regle.cible_base
     for base in selecteur.baseselectors:
         baseselector = selecteur.baseselectors[base]
@@ -123,7 +122,7 @@ def setdb(regle, obj, att=True):
             regle.setlocal("db", type_base)
             regle.setlocal("server", rep)
         # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
-        baseselector.resolve(regle, obj)
+        baseselector.resolve(obj)
         # print("selecteur", baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
@@ -275,7 +274,7 @@ def f_dbgeo(regle, obj):
     # base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
     #     regle, obj, att=False
     # )
-    basedict = setdb(regle, obj, att=False)
+    basedict = setdb(regle, obj)
     retour = 0
     for base, description in basedict.items():
         niveau, classe, fonction, valeur, chemin, type_base = description
@@ -339,7 +338,7 @@ def f_dbrequest(regle, obj):
     # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
     #     regle, obj, att=False
     # )
-    selecteur = setdb(regle, obj, att=False)
+    selecteur = setdb(regle, obj)
     retour = 0
     for base, basesel in selecteur.baseselectors.items():
         for resultat, definition in basesel.classlist():
@@ -387,7 +386,8 @@ def f_dbrunsql(regle, obj):
     #req_test||testdb
 
     """
-    for base in regle.cible_base:
+    selecteur = setdb(regle, obj)
+    for base in selecteur.baseselectors:
         script = regle.getval_entree(obj)
         print(
             "traitement db: execution sql ",
@@ -475,10 +475,10 @@ def f_dbextdump(regle, obj):
     #req_test||testdb
     """
     # base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
-    basedict = setdb(regle, obj, att=False)
+    selecteur = setdb(regle, obj)
     retour = 0
-    for base, description in basedict.items():
-        niveau, classe, fonction, valeur, chemin, type_base = description
+    for base, ident in selecteur.get_classes():
+        niveau, classe = ident
         dest = regle.params.cmp1.val
         if not dest:
             dest = regle.getvar("_sortie")
@@ -501,6 +501,7 @@ def f_dbwrite(regle, obj):
    #req_test||testdb
 
     """
+    selecteur = setdb(regle, obj)
     for base, (niveau, classe, _) in regle.cible_base.items():
         DB.dbload(regle, base, niveau, classe, obj)
 
@@ -568,10 +569,10 @@ def f_dbcount(regle, obj):
 
     mods = regle.params.cmp1.liste
 
-    basedict = setdb(regle, obj, att=False)
+    selecteur = setdb(regle, obj)
     retour = 0
-    for base, description in basedict.items():
-        niveau, classe, attrs, valeur, chemin, type_base = description
+    for base, ident in selecteur.get_classses():
+        niveau, classe = ident
         LOGGER.debug(
             "regles count:ligne  " + repr(regle) + repr(type_base) + repr(mods)
         )
@@ -604,21 +605,27 @@ def h_recup_schema(regle):
     regle.chargeur = True  # c est une regle a declencher
 
     regle.setlocal("mode_schema", "dbschema")
-    print("dbschema", regle.cible_base)
-    for nombase, (niveau, classe, _) in regle.cible_base.items():
-        if not nombase:
-            continue
-        regle.type_base = regle.getvar("db_" + nombase)
-        nomschema = (
-            regle.params.val_entree.val if regle.params.val_entree.val else nombase
-        )
-        if regle.params.att_sortie.val == "schema_entree":
-            regle.setvar("schema_entree", nomschema)
-        if regle.params.att_sortie.val == "schema_sortie":
-            regle.setvar("schema_sortie", nomschema)
+    selecteur = regle.cible_base
+    print("dbschema", selecteur)
+    complet = selecteur.resolve()
+    print("retour selecteur", complet, selecteur)
+    if complet:
         regle.valide = "done"
-        print("h_recup_schema", nomschema, "->", nombase, regle.valide)
-        DB.recup_schema(regle, nombase, niveau, classe, nomschema)
+    # for nombase in regle.cible_base.baseselectors:
+
+    #     if not nombase:
+    #         continue
+    #     regle.type_base = regle.getvar("db_" + nombase)
+    #     nomschema = (
+    #         regle.params.val_entree.val if regle.params.val_entree.val else nombase
+    #     )
+    #     if regle.params.att_sortie.val == "schema_entree":
+    #         regle.setvar("schema_entree", nomschema)
+    #     if regle.params.att_sortie.val == "schema_sortie":
+    #         regle.setvar("schema_sortie", nomschema)
+    #     regle.valide = "done"
+    #     print("h_recup_schema", nomschema, "->", nombase, regle.valide)
+    #     DB.recup_schema(regle, nombase, niveau, classe, nomschema)
     return True
 
 
@@ -637,52 +644,10 @@ def f_recup_schema(regle, obj):
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
     valide = True
-    basedict = setdb(regle, obj, att=False)
-    for base, description in basedict.items():
-        niveau, classe, attrs, valeur, chemin, type_base = description
-        DB.recup_schema(
-            regle,
-            base,
-            niveau,
-            classe,
-            regle.get_entree(obj),
-            type_base=type_base,
-            chemin=chemin,
-        )
+    selecteur = setdb(regle, obj)
+    for base, baseselecteur in selecteur.baseselectors.items():
+        schema_travail = baseselecteur.getschematravail(regle)
 
-    # for base, (niveau, classe, _) in regle.cible_base.items():
-    #     if obj.attributs["#groupe"] == "__filedb":
-    #         chemin = obj.attributs["#chemin"]
-    #         type_base = obj.attributs["#type_base"]
-    #         base = obj.attributs["#base"]
-    #         regle.setlocal("db", type_base)
-    #         regle.setlocal("server", chemin)
-    #         DB.recup_schema(
-    #             regle,
-    #             base,
-    #             niveau,
-    #             classe,
-    #             regle.get_entree(obj),
-    #             type_base=type_base,
-    #             chemin=chemin,
-    #         )
-
-    #     else:
-    #         type_base = regle.type_base
-    #         #        print('tdb: acces schema base', type_base, base, niveau, classe)
-    #         #          regle.ligne,
-    #         #          regle.params.val_entree.val,
-    #         #          regle.params)
-    #         if type_base and base:
-    #             DB.recup_schema(
-    #                 regle,
-    #                 base,
-    #                 niveau,
-    #                 classe,
-    #                 regle.params.val_entree.val,
-    #                 type_base=type_base,
-    #                 chemin=chemin,
-    #             )
     if valide:
         return True
     print("recup_schema: base non definie ", regle, type_base, base, obj)

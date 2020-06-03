@@ -686,13 +686,13 @@ class PgrGenSql(DbGenSql):
                     attype in self.schema.conformites,
                 )
             type_sortie = self.types_db.get(attype, deftype)
-            if type_sortie == "numeric" and attribut.taille:
+            if type_sortie == "numeric" and attribut.taille > 0:
                 type_sortie = (
                     "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec)
                     if attribut.dec is not None
                     else "0" + ")"
                 )
-            elif type_sortie == "text" and attribut.taille:
+            elif type_sortie == "text" and attribut.taille > 0:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
             # print("creation attribut", attname, type_sortie, attribut.multiple)
             if attribut.multiple:

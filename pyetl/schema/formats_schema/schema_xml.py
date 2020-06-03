@@ -199,7 +199,9 @@ def _sortir_schema_classe_xml(sc_classe, mode="util"):
     for i in nom_atts:
         attribut = sc_classe.attributs[i]
         if attribut.conformite:
-            attribut.taille = attribut.conformite.taille
+            attribut.taille = (
+                attribut.conformite.taille if attribut.conformite.taille else 0
+            )
         description.extend(_sortir_attribut_xml(sc_classe, attribut, keys))
     complement = "MULTIPLE" if sc_classe.multigeom else "SIMPLE"
     arc = "COURBE" if sc_classe.info["courbe"] else "LIGNE"

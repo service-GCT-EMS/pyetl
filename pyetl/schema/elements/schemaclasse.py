@@ -102,7 +102,7 @@ def _gestion_types_simples(attr, type_attribut):
     if attr.type_att_base == "E" and taille and taille > 9:
         attr.type_att_base = "EL"
         attr.dec = dec
-    attr.taille = taille
+    attr.taille = taille if taille else 0
     # print ('type_attribut sortie ',attr.nom, attr.type_att)
 
 
@@ -712,7 +712,7 @@ class SchemaClasse(object):
         self.confs[attr.nom] = attr.conformite.valide  # controles de conformite
         if not attr.oblig:
             self.confs[attr.nom].add("")
-        attr.taille = attr.conformite.taille
+        attr.taille = attr.conformite.taille if attr.conformite.taille else 0
         attr.type_att_base = "T"
         attr.type_att = "T"
 

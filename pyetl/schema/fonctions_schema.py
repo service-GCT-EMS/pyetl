@@ -639,7 +639,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             nom_schema = schemaclasse.schema.nom
             if mode == "supp_conf":
                 atdef.type_att = "T"
-                atdef.taille = None
+                atdef.taille = 0
                 warnings.append(
                     nom_classe
                     + "."

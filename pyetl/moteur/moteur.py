@@ -170,7 +170,8 @@ class Moteur(object):
                             obj.debug("apres", attlist=regle.champsdebug)
                     obj.is_ok = resultat
 
-                    if regle.mode_chargeur:  # la on fait des monocoups
+                    if regle.mode_chargeur:  # la on fait des
+                        # print("==============mode chargeur", regle)
                         regle = None
                     else:
                         if obj.redirect and obj.redirect in regle.branchements.brch:
@@ -182,12 +183,18 @@ class Moteur(object):
                                 if resultat
                                 else regle.branchements.brch["fail"]
                             )
+                            if not regle and obj.virtuel:
+                                # print(" ============traitement sortie virtuel", regle)
+                                regle = last.branchements.brch["next"]
 
                 else:
                     if regle.debug and "+" in regle.v_nommees["debug"]:
                         regle.affiche("--non executee--->")
                         print("suite", regle.branchements.liens_num()["sinon"])
                     regle = regle.branchements.brch["sinon"]
+
+                # if obj.virtuel:
+                #     print("=========virtuel", last, "\n====>", regle)
                 # if regle and regle.valide=="done":
                 #     regle = regle.branchements.brch["ok"]
             except StopIteration as abort:
@@ -214,26 +221,28 @@ class Moteur(object):
             except Exception as exc:
                 print("==========erreur de traitement non gérée")
                 print("====regle courante:", regle)
-                if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar("_wid"))
-                printexception()
-                if regle.getvar("debuglevel", "0") != "0":
-                    print("==========environnement d'execution")
-                    print(
-                        "====pyetl :",
-                        regle.stock_param.nompyetl,
-                        regle.stock_param.idpyetl,
-                    )
-                    print("====objet courant :", obj)
-                    print("====parametres\n", regle.params)
-                    print(regle.context)
-                    if regle.getvar("debuglevel", "0") > "1":
+                if regle:
+                    if regle.stock_param.worker:
+                        print("====mode parallele: process :", regle.getvar("_wid"))
+                    printexception()
+                    if regle.getvar("debuglevel", "0") != "0":
+                        print("==========environnement d'execution")
                         print(
-                            "========================= variables globales==========",
-                            regle.stock_param.context,
+                            "====pyetl :",
+                            regle.stock_param.nompyetl,
+                            regle.stock_param.idpyetl,
                         )
-                    print("========== fin erreur de traitement")
-
+                        print("====objet courant :", obj)
+                        print("====parametres\n", regle.params)
+                        print(regle.context)
+                        if regle.getvar("debuglevel", "0") > "1":
+                            print(
+                                "========================= variables globales==========",
+                                regle.stock_param.context,
+                            )
+                        print("========== fin erreur de traitement")
+                else:
+                    printexception()
                 raise StopIteration(3)
         #                raise
         if last and not last.store:

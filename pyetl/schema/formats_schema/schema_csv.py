@@ -101,7 +101,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
         if att.conformite:
             # print "nom conformite",att.nom_conformite,att.conformite
             att.type_att = "T"
-            att.taille = att.conformite.taille
+            att.taille = att.conformite.taille if att.conformite.taille else 0
         # graphique="oui" if att.graphique else 'non'
         if att.type_att == "A":
             att.type_att = "T" if att.type_att_defaut == "A" else att.type_att_defaut

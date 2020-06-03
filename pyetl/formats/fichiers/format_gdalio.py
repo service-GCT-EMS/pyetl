@@ -154,7 +154,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         # print ("fiona:", sc_classe.nom, " attribut", i, att.nom_court, nom, l_nom)
         if att.conformite:
             att.type_att = "T"
-            att.taille = att.conformite.taille
+            att.taille = att.conformite.taille if att.conformite.taille else 0
         # graphique="oui" if att.graphique else 'non'
         taille = ""
         type_att = nom_a[att.get_type()]
