@@ -67,7 +67,7 @@ class AccConnect(DbConnect):
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.types_base = TYPES_A
-        print("connection base access", serveur, base, user, passwd)
+        print("connection base access", serveur, base, user, passwd, self.serveur)
         self.connect()
         self.nombase = os.path.splitext(os.path.basename(base))[0]
         self.tables = set()
@@ -76,13 +76,13 @@ class AccConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-        base = os.path.join(self.serveur, self.base)
+        serv = self.serveur
 
         print(
             "info : access: connection access",
             self.user,
             "*" * len(self.passwd),
-            self.base,
+            self.serveur,
         )
         try:
             #        base = r"C:\outils\projet_mapper\test_mapper\entree\access\test.access"
@@ -91,7 +91,7 @@ class AccConnect(DbConnect):
             #        pwd = 'PWD='+passwd+";" if passwd else ""
             conn_str = (
                 r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
-                r"DBQ=" + base + ";"
+                r"DBQ=" + serv + ";"
             )
 
             self.connection = OdbcConnect(conn_str)
@@ -103,7 +103,7 @@ class AccConnect(DbConnect):
             print(
                 "error: access pyodbc: utilisateur ou mot de passe errone sur la base access"
             )
-            print("error: access:", base, self.passwd)
+            print("error: access:", serv, self.passwd)
             print(exp)
             #        sys.exit(1)
             #        raise

@@ -38,6 +38,7 @@ class TableBaseSelector(object):
         self.mapper = regle_ref.stock_param
         self.regle_ref = regle_ref
         self.base = base
+        self.nombase = base if base != "*" else ""
         self.type_base = ""
         self.chemin = ""
         self.racine = ""
@@ -78,7 +79,7 @@ class TableBaseSelector(object):
         dyn = any(["[" in i for i in classes])
         if "[" in attr:
             dyn = True
-        if valeur:
+        if attr and valeur:
             att, defaut = valeur
             print(" element dynamique", att)
             if att:
@@ -95,8 +96,9 @@ class TableBaseSelector(object):
             return
         mod = self.regle_ref.getvar("mod")
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
-        self.mapper.load_paramgroup(self.base, nom=self.base)
-        prefix = self.regle_ref.getvar("prefix_" + self.base)
+        if self.base != "__filedb":
+            self.mapper.load_paramgroup(self.base, nom=self.base)
+            prefix = self.regle_ref.getvar("prefix_" + self.base)
         # print(
         #     "variables",
         #     self.regle_ref.getvar("set_prefix"),
@@ -107,12 +109,15 @@ class TableBaseSelector(object):
         # )
         # raise
         if not self.nobase:
-            self.connect = self.mapper.getdbaccess(self.regle_ref, self.base)
-            self.schemabase = self.connect.schemabase
-            prefix = self.connect.prefix
-
-        if set_prefix:
-            self.reg_prefix(prefix)
+            if self.nombase != "__filedb":
+                print("connection ", self.nombase)
+                self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
+                self.schemabase = self.connect.schemabase
+                prefix = self.connect.prefix
+                if set_prefix:
+                    self.reg_prefix(prefix)
+            else:
+                return
         # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)
 
         mod = mod.upper()
@@ -157,6 +162,23 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
             et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
+        if self.base == "__filedb":
+            if obj and obj.attributs["#groupe"] == "__filedb":
+                self.static = dict()
+                self.nombase = obj.attributs.get("#nombase")
+                nombase = obj.attributs.get("#nombase")
+                base = obj.attributs.get("#base")
+                self.chemin = obj.attributs["#chemin"]
+                self.racine = obj.attributs["#racine"]
+                self.type_base = obj.attributs["#type_base"]
+                self.regle_ref.setlocal("base_" + nombase, self.base)
+                self.regle_ref.setlocal("db_" + nombase, self.type_base)
+                self.regle_ref.setlocal(
+                    "server_" + nombase, os.path.join(self.racine, self.chemin, base)
+                )
+            else:
+                return False
+
         self.resolve_static()
         complet = self.resolve_dyn(obj)
         if not self.nobase:
@@ -216,8 +238,10 @@ class TableBaseSelector(object):
         """recupere le schema correspondant a la selection de la base demandee"""
         liste_classes, liste_mapping = self.getmapping()
         print(" creation schema travail", self.base, len(liste_classes))
+        if not self.nombase:
+            return None
         if not nom:
-            nom = self.base
+            nom = self.nombase
         schema_travail, liste2 = self.schemabase.creschematravail(
             regle, liste_classes, nom
         )
@@ -242,10 +266,10 @@ class TableSelector(object):
     def __init__(self, regle, base=None):
         self.regle_ref = regle
         self.mapper = regle.stock_param
-        self.autobase = base == "*" or not base
-        self.base = base
+        self.autobase = base == "*"
+        self.base = base if base != "*" else ""
         self.schema_travail = None
-        self.defaultbase = base
+        self.defaultbase = "*"
         self.baseselectors = dict()
         self.classes = dict()
         self.inverse = dict()
@@ -261,12 +285,12 @@ class TableSelector(object):
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
-        map_prefix = ""
-        base = (base or self.defaultbase) if self.autobase else self.base
         # print("add descripteur", base, descripteur)
         self.add_selector(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
+        if not base:
+            base = "__filedb"
         self.add_descripteur(base, niveau, [classe], attribut, valeur, fonction)
 
     def add_class_list(self, base, liste):
@@ -289,8 +313,8 @@ class TableSelector(object):
             base = self.idbase(base)
         else:
             base = self.base
-        if base is None:
-            return
+        if not base:
+            base = "__filedb"
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self.regle_ref, base, "")
         # print("add descripteur", base, descripteur)
@@ -305,14 +329,16 @@ class TableSelector(object):
         return base
 
     def resolve(self, obj=None):
+        print(" dans resolve", self.baseselectors.keys(), self.resolved)
         if self.resolved:
             return True
-        complet = True
+        complet = len(self.baseselectors)
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
 
         for base in self.baseselectors:
             complet = complet and self.baseselectors[base].resolve(obj)
         self.resolved = complet
+        print(" dans resolve", self.baseselectors.keys(), self.resolved, complet)
         return complet
 
     def get_classes(self):

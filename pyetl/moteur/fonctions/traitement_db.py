@@ -66,7 +66,7 @@ def param_base(regle, nom=""):
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
-    print("param_base", nom, base, niv, cla)
+    print("param_base", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)
@@ -104,8 +104,9 @@ def setdb(regle, obj):
     selecteur = regle.cible_base
     for base in selecteur.baseselectors:
         baseselector = selecteur.baseselectors[base]
-        if obj.attributs["#groupe"] == "__filedb":  # acces a une base fichier
-
+        if (
+            base == "*" and obj.attributs["#groupe"] == "__filedb"
+        ):  # acces a une base fichier
             chemin = obj.attributs["#chemin"]
             rep = obj.attributs["#racine"]
             nombase = obj.attributs["#nombase"]
@@ -116,8 +117,7 @@ def setdb(regle, obj):
             baseselector.type_base = type_base
             baseselector.chemin = chemin
             baseselector.racine = rep
-            baseselector.base = nombase
-            baseselector.static = dict()
+            baseselector.nombase = nombase
             regle.setlocal("base", nombase)
             regle.setlocal("db", type_base)
             regle.setlocal("server", rep)

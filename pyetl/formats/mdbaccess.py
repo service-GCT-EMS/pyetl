@@ -41,7 +41,7 @@ def dbaccess(regle, codebase, type_base=None):
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
         prefix = regle.getvar("prefix_" + codebase, "")
-        print("acces base", codebase, base, serveur, type_base, prefix)
+        print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
@@ -61,7 +61,7 @@ def dbaccess(regle, codebase, type_base=None):
         #        servertyp = type_base
         base = codebase
         print("filedb", type_base, "-->", codebase)
-        serveur = regle.getvar("server")
+        serveur = regle.getvar("server_" + codebase, "")
 
     user = regle.getvar("user_" + codebase, "")
     passwd = regle.getvar("passwd_" + codebase, "")
