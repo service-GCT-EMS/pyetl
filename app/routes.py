@@ -11,4 +11,4 @@ def index():
 
 @app.route("/scripts")
 def scripts():
-    return [i for i in os.listdir("scripts")]
+    return "\n".join((i for i in os.listdir("scripts")))

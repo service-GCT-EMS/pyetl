@@ -7,7 +7,7 @@ STARTTIME = time.time()
 import sys
 from pyetl.pyetl import runpyetl
 from pyetl.vglobales import VERSION
-from pyetl.web import app
+from app import app
 
 # print ('mapper: fin import modules',int(time.time()-t1))
 # import cProfile as profile
