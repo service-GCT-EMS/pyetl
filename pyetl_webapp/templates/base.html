@@ -1,0 +1,15 @@
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - Mapper</title>
+      {% else %}
+      <title>Mapper - Home</title>
+      {% endif %}
+    </head>
+    <body>
+        <div><a href="/index">Home</a></div>
+        <div><a href=../../doc_pyetl/build/index>Help</a></div>
+        <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>
