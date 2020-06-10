@@ -81,8 +81,8 @@ class TableBaseSelector(object):
             dyn = True
         if attr and valeur:
             att, defaut = valeur
-            print(" element dynamique", att)
             if att:
+                print(" element dynamique", att)
                 dyn = True
         if dyn:
             self.dyndescr.append(descripteur)

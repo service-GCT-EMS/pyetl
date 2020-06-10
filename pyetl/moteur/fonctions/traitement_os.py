@@ -409,6 +409,7 @@ def f_adquery(regle, obj):
             if regle.a_recuperer == "*":
                 print("infos:", item)
                 item.dump()
+                regle.setval_sortie(obj, "")
             else:
                 val = getattr(item, regle.a_recuperer)
                 regle.setval_sortie(obj, val)

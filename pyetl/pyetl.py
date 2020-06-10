@@ -719,14 +719,14 @@ class Pyetl(object):
                 tb = (base, host, port)
                 if tb in priorites:
                     if priorite > priorites[tb]:
-                        print("non retenu", nom, tb, priorite, priorites[tb])
+                        # print("non retenu", nom, tb, priorite, priorites[tb])
                         self.dbref[nom] = self.dbref[tb]
                         for i, j in self.dbref.items():
                             if j == nom:
                                 self.dbref[i] = self.dbref[tb]
                         continue
                 # base non prioritaire on a deja la definition on la remappe sur l autre
-                print("retenu", nom, tb, priorite, priorites.get(tb))
+                # print("retenu", nom, tb, priorite, priorites.get(tb))
                 priorites[tb] = priorite
                 self.dbref[tb] = nom
                 self.dbref[",".join(tb)] = nom

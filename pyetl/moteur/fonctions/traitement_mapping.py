@@ -174,7 +174,7 @@ def _map_schemas(regle, obj):
     if obj is None:
         if regle.getvar("schema_entree"):
             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]
-            print("-------------------------mapping", schema_origine)
+            # print("-------------------------mapping", schema_origine)
         regle.schema = None
         #        else:
         #            return

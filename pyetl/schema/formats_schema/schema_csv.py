@@ -617,13 +617,13 @@ def lire_schema_csv(
                 schema.elements_specifiques.divers[i] = (entete, contenu)
 
     FSC.analyse_interne(schema, "init")
-    print(
-        "schema: lecture_schema realisee --->",
-        fichier,
-        len(schema.classes),
-        schema.nom,
-        schema.origine,
-    )
+    # print(
+    #     "schema: lecture_schema realisee --->",
+    #     fichier,
+    #     len(schema.classes),
+    #     schema.nom,
+    #     schema.origine,
+    # )
     #          "<-----")
     #    print ('mapping enregistre','\n'.join(schema.mapping_schema(fusion=True)[:10]))
     return schema

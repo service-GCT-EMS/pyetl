@@ -3,6 +3,7 @@
 #titre||accés aux bases de données
 fonctions de manipulation d'attributs
 """
+import itertools
 import os
 import logging
 import glob
@@ -321,18 +322,23 @@ def h_dbrequest(regle):
         except ValueError:
             pass
     regle.requete = requete
-
+    regle.ident = (regle.params.cmp2.val, regle.params.cmp2.definition[0])
+    print("---------------------requete: ident sortie", regle.ident)
+    regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
     valide = True
     return valide
 
 
 def f_dbrequest(regle, obj):
     """#aide||recuperation d'objets depuis une requete sur la base de donnees
-    #aide_spec||db:base;niveau;classe;;att_sortie;valeurs;champ a integrer;dbreq;requete
-    #groupe||database
-    #pattern||?A;?;?L;dbreq;C
-    #req_test||testdb
-    #
+  #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete
+            ||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
+            ||classe du selecteur en substituant les variables par la classe courante
+            ||sinon elle est passee une fois pour chaque base du selecteur
+            ||les variables %#base et %#attr sont egalement substituees
+     #groupe||database
+    #pattern||?A;?;?L;dbreq;C;A.C
+   #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
     # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
@@ -340,18 +346,29 @@ def f_dbrequest(regle, obj):
     # )
     selecteur = setdb(regle, obj)
     retour = 0
+    parms = None
+    if regle.params.att_entree.liste:
+        parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
-        for resultat, definition in basesel.classlist():
-            niveau, classe = resultat
-            # parms = [regle.getv]
-            # print("execution requete", regle.params.cmp1.val, niveau, classe)
-            parms = None
-            if regle.params.att_entree.liste:
-                parms = [
-                    obj.attributs.get(i, "") for i in regle.params.att_entree.liste
-                ]
+        requete_ref = regle.requete.replace("%#base", base)
+        if regle.dynrequete:
+            for resultat, definition in basesel.classlist():
+                ident, att, *_ = definition
+                niveau, classe = ident
+                # parms = [regle.getv]
+                # print("execution requete", niveau, classe, definition)
+
+                requete = requete_ref.replace("%#niveau", niveau)
+                requete = requete.replace("%#classe", classe)
+                requete = requete.replace("%#attr", att)
+                # print("execution requete", niveau, classe, requete)
+
+                retour = DB.lire_requete(
+                    regle, base, *regle.ident, requete=requete, parms=parms
+                )
+        else:
             retour = DB.lire_requete(
-                regle, base, niveau, classe, requete=regle.requete, parms=parms
+                regle, base, *regle.ident, requete=requete_ref, parms=parms
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):

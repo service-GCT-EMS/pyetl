@@ -295,13 +295,13 @@ class Mapping(object):
                         break
             else:
                 id_dest = self.mapping_destination.get(id_orig)
-            print(
-                "--------------------------mapping",
-                id_orig,
-                "->",
-                id_dest,
-                self.mapping_destination,
-            )
+            # print(
+            #     "--------------------------mapping",
+            #     id_orig,
+            #     "->",
+            #     id_dest,
+            #     self.mapping_destination,
+            # )
 
             if id_dest:
                 return id_dest

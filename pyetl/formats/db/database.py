@@ -9,7 +9,7 @@ acces a la base de donnees
 import re
 import time
 import logging
-
+from operator import attrgetter
 from collections import namedtuple
 from .dbconstants import *
 from .gensql import DbGenSql
@@ -108,14 +108,14 @@ class Cursinfo(object):
         # print("dans execute ", requete, data)
         cursor = self.connecteur.connection.cursor() if newcursor else self.cursor
         if cursor:
-            if data is not None:
-                cursor.execute(requete, data)
-            else:
-                try:
+            try:
+                if data is not None:
+                    cursor.execute(requete, data)
+                else:
                     cursor.execute(requete)
-                except:
-                    print("erreur requete", requete)
-                    raise
+            except Exception as err:
+                print("erreur requete", err, requete)
+                return None
             if not newcursor:
                 self.requete = requete
                 self.data = data
@@ -144,11 +144,14 @@ class Cursinfo(object):
 
     @property
     def namelist(self):
-        if self.attlist:
-            # print("trouve attlist", self.attlist)
-            return self.attlist
-        else:
-            return list((i.nom_attr for i in self.infoschema))
+        if self.attlist is None:
+            self.attlist = list(
+                [
+                    i.nom_attr
+                    for i in sorted(self.infoschema, key=attrgetter("num_attribut"))
+                ]
+            )
+        return self.attlist
 
     @property
     def infoschema(self):
@@ -462,10 +465,12 @@ class DbConnect(object):
     def cree_schema_classe(self, ident, attlist, schema=None):
         """cree un schema de classe a partir d une liste d attributs"""
         schema = schema if schema is not None else self.schemabase
+        if ident in schema.classes:
+            return schema.classes[ident]
         classe = schema.setdefault_classe(ident)
         classe.info["type_geom"] = "0"
-        for atd in attlist:
-            num_attribut = float(atd.num_attribut)
+        for atd in sorted(attlist, key=attrgetter("num_attribut")):
+            # num_attribut = float(atd.num_attribut)
             type_ref = atd.type_attr
             if not atd.type_attr:
                 LOGGER.error(
@@ -542,7 +547,6 @@ class DbConnect(object):
                 alias=atd.alias,
                 dimension=atd.dimension,
                 clef_etr=clef_etr,
-                ordre=num_attribut,
                 mode_ordre="a",
                 parametres_clef=parametres_clef,
                 index=index,
@@ -630,7 +634,9 @@ class DbConnect(object):
         #        cur.execute(requete, data=data, attlist=attlist)
 
         try:
-            cur.execute(requete, data=data, attlist=attlist)
+            retour = cur.execute(requete, data=data, attlist=attlist)
+            if retour is None:
+                return None
             return cur
 
         except self.errs as err:

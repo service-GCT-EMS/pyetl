@@ -471,7 +471,8 @@ class Schema(object):
                 if tables != "a" and self.classes[i].type_table not in tables:
                     continue
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
-                    tables_a_sortir.add(i)
+                    if not attr or attr in self.classes[i].attributs:
+                        tables_a_sortir.add(i)
                 #                    print ('sortir multi')
         else:
             if nocase:
@@ -482,7 +483,8 @@ class Schema(object):
                     idclas = None
             if idclas:
                 if tables == "a" or self.classes[idclas].type_table in tables:
-                    tables_a_sortir.add(idclas)
+                    if not attr or attr in self.classes[idclas].attributs:
+                        tables_a_sortir.add(idclas)
 
         return tables_a_sortir
 
@@ -492,7 +494,7 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """produit la liste des classes demandees a partir du schema utile pour id_in:"""
-        print("select_classes", niveau, classe, attr)
+        # print("select_classes", niveau, classe, attr)
         if niveau is None or classe is None:
             return []
         tables_a_sortir = set()

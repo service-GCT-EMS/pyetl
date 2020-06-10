@@ -623,15 +623,15 @@ def prepare_env(mapper, texte: str, fichier_regles):
             nom_inclus = os.path.join(os.path.dirname(fichier_regles), nom_inclus)
     #            print("lecture de regles incluses", inclus,pps)
     context.affecte(listevlocs)
-    print(
-        "prepare_env",
-        macro.nom,
-        nom_inclus,
-        context,
-        context.vlocales,
-        parametres,
-        listevlocs,
-    )
+    # print(
+    #     "prepare_env",
+    #     macro.nom,
+    #     nom_inclus,
+    #     context,
+    #     context.vlocales,
+    #     parametres,
+    #     listevlocs,
+    # )
     return nom_inclus, context, macro
 
 
@@ -648,7 +648,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
     # print("niveau retenu", niveau)
     texte = match.group(4)
-    print("importe macro", niveau, texte)
+    # print("importe macro", niveau, texte)
     # on gere les niveaux
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None

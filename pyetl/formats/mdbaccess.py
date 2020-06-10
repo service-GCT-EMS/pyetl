@@ -259,13 +259,6 @@ def get_connect(
     # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
     nombase = base
-    if regle.autobase:
-        if base in stock_param.dbref:
-            nombase = stock_param.dbref[base]
-        else:
-            print("base inconnue", base)
-            raise
-            return None
 
     connect = stock_param.getdbaccess(regle, nombase, type_base=type_base)
 
@@ -320,6 +313,8 @@ def sortie_resultats(
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
     schema_init = None
+    if not curs.cursor:
+        return 0
     if not niveau:
         niveau = schema_classe_travail.fichier
     if regle_courante.getvar("schema_entree"):
@@ -332,10 +327,11 @@ def sortie_resultats(
     print(
         "...%-50s" % ("%s : %s.%s" % (connect.base, niveau, classe)), end="", flush=True
     )
+
     regle_courante.setvar("printpending", 1)
     nbvals = 0
     namelist = curs.namelist
-    # print (' attributs recuperes avant', attlist)
+    # print(" attributs recuperes avant", namelist)
     if type_geom == "indef":
         type_geom = schema_classe_travail.info["type_geom"]
     if type_geom != "0":
@@ -487,9 +483,9 @@ def lire_requete(
     """lecture directe"""
     if classe is None:
         return 0
-    ident = (niveau[0], classe[0])
+    ident = (niveau, classe)
 
-    # print("requete", requete, "->", ident)
+    # print("requete", base, requete, "->", ident)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
@@ -498,20 +494,24 @@ def lire_requete(
         connect, schema, liste = retour
     else:
         return 0
-
+    treq = time.time()
     curs = connect.iterreq(requete, data=parms)
 
     #            print ('mdba : ',ident,schema_base.nom,schema_classe_base.info["type_geom"])
     #        print ('mdba : ',ident)
-    treq = time.time()
-    #        print ('-----------------------traitement curseur ', curs,type(curs) )
+    # print("-----------------------traitement curseur ", curs, type(curs))
     treq = time.time() - treq
     connect.commit()
     if curs and classe[0]:
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
-        # print("creation schema", schema.nom, ident, schema_classe_travail)
+        # print(
+        #     "creation schema",
+        #     schema.nom,
+        #     ident,
+        #     sorted(curs.infoschema, key=lambda x: x.num_attribut),
+        # )
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,
