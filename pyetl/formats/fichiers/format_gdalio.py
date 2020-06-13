@@ -118,6 +118,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         "entier_long": "str",
         "reel": "float",
         "date": "date",
+        "horodatage sans zone": "date",
         "hstore": "str",
     }
     description = dict()
@@ -384,6 +385,8 @@ def gdalconverter(obj, liste_att, minmajfunc):
     if liste_att:
         obj.set_liste_att(liste_att)
     obj.casefold = minmajfunc
+    if obj.geom_v.type_geom > "1":
+        obj.set_multi()
     a_sortir = obj.__geo_interface__
     if not a_sortir["properties"]:
         a_sortir["properties"][obj.casefold("gid")] = a_sortir["id"]

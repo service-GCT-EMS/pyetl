@@ -95,6 +95,7 @@ class TableBaseSelector(object):
         if self.static:
             return
         mod = self.regle_ref.getvar("mod")
+        # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         if self.base != "__filedb":
             self.mapper.load_paramgroup(self.base, nom=self.base)
@@ -122,6 +123,8 @@ class TableBaseSelector(object):
 
         mod = mod.upper()
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
+            if niveau == "#":
+                pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
             for j in classes:
                 self.static.update(
@@ -503,7 +506,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                             # print("baseselector.mapping", baseselector.mapping)
                         else:
                             tmp = baseselector.schema_travail.mapping(ident)
-                            print("baseselector.schemamapping", ident, tmp)
+                            # print("baseselector.schemamapping", ident, tmp)
                             if tmp:
                                 tablemap = tmp[1]
                     # print(
@@ -599,8 +602,10 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
 
 
 def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
+    print("sel_from_fich:scandirs", fichier)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
+        print("sel_from_fich:lu", element)
         if fich.endswith(".qgs"):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):

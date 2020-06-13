@@ -290,6 +290,12 @@ class Objet(object):
             + "}\n"
         )
 
+    def set_multi(self):
+        """forcage multigeom"""
+        if self.schema:
+            self.schema.multigeom = True
+        self.geom_v.multi = True
+
     @property
     def __geo_interface__(self):
         """interface geo_interface en sortie"""

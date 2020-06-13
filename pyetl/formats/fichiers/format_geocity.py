@@ -366,9 +366,9 @@ def lire_objets_geocity(self, rep, chemin, fichier):
         classe = next(iter_gy)
         self.setidententree(niveau, classe)
         # on cree les schemas qui vont bien
-        if base not in self.schemas:
-            self.init_schema(base)
-        schema_courant = self.schemas[base]
+        if base not in self.stock_param.schemas:
+            self.stock_param.init_schema(base)
+        schema_courant = self.stock_param.schemas[base]
 
         classe_courante = schema_courant.setdefault_classe((niveau, classe))
         #        print ('classe_courante', classe_courante)

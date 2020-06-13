@@ -432,7 +432,7 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        # print("select_niv_classes", niveau, classe, attr, tables)
+        # print("select_niv_classes", niveau, classe, attr, tables, multi)
 
         if niveau is None or classe is None:
             return []

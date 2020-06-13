@@ -149,11 +149,11 @@ def _valide_jour(date, format_date):
             return "erreur jour", ""
     if annee:
         if format_date == "fr":
-            return "-".join((jour, mois, annee))
+            return "", "-".join((jour, mois, annee))
         elif format_date == "in":
-            return "/".join((annee, mois, jour))
+            return "", "/".join((annee, mois, jour))
         elif format_date == "en":
-            return "/".join((mois, jour, annee))
+            return "", "/".join((mois, jour, annee))
     return "erreur jour", ""
 
 

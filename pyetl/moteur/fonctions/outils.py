@@ -72,6 +72,14 @@ def scandirs(
 ) -> T.Iterator[T.Tuple[str, str]]:
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
+    if "*" in path:
+        for element in glob.glob(path):
+            fichier = os.path.basename(element)
+            place = os.path.dirname(element)
+            chemin = place.replace(rep_depart, "")
+            if pattern is None or re.search(pattern, fichier):
+                yield (str(fichier), str(chemin))
+        return
     if os.path.exists(path):
         for element in os.listdir(path):
             #        for element in glob.glob(path):
