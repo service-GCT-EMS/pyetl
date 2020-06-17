@@ -322,7 +322,10 @@ def h_dbrequest(regle):
         except ValueError:
             pass
     regle.requete = requete
-    regle.ident = (regle.params.cmp2.val, regle.params.cmp2.definition[0])
+    if regle.params.cmp2.val:
+        regle.ident = (regle.params.cmp2.val, regle.params.cmp2.definition[0])
+    else:
+        regle.ident = ("", "")
     print("---------------------requete: ident sortie", regle.ident)
     regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
     valide = True
@@ -337,7 +340,7 @@ def f_dbrequest(regle, obj):
             ||sinon elle est passee une fois pour chaque base du selecteur
             ||les variables %#base et %#attr sont egalement substituees
      #groupe||database
-    #pattern||?A;?;?L;dbreq;C;A.C
+    #pattern||?A;?;?L;dbreq;C;?A.C
    #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle

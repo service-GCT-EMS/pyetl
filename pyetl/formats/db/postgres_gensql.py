@@ -517,9 +517,11 @@ class PgrGenSql(DbGenSql):
             cretable[-1] = cretable[-1][:-1]  # on degage la virgule en trop
         cretable.append(")")
         serveur, options = "", ""
+
         if self.connection and self.connection.schemabase:
             schemabase = self.connection.schemabase
-            serveur, options = schemabase.elements_specifiques["def_ftables"].get(table)
+            entete, ftables = schemabase.elements_specifiques["def_ftables"]
+            serveur, options = ftables.get(table)
 
         cretable.append("SERVER " + serveur)
         opt = [i.replace("=", " '") + "'" for i in options]
@@ -544,6 +546,9 @@ class PgrGenSql(DbGenSql):
         atts = classe.get_liste_attributs()
         geomt, arc = self.get_type_geom(classe)
         cretable = []
+        if classe.type_table in {"vmf"} and not self.basic:
+            return
+            # c est une vue une vue materialisee ou une table etrangere
 
         cretable.append(
             "\n-- ############## creation table postgres " + table + "###############\n"
@@ -861,11 +866,13 @@ class PgrGenSql(DbGenSql):
             len(liste_tables),
             self.dialecte,
         )
-        cretables = [
-            idschema,
-            self._setrole(),
-            "\n-- ########### definition des tables ###############\n",
-        ]
+        cretables = [idschema, self._setrole()]
+        if not self.basic:
+            cretables.append(
+                "\n-- ########### definition des fonctions ###############\n"
+            )
+            cretables.extend(self.def_fonctions().values())
+        cretables.append("\n-- ########### definition des tables ###############\n")
         cretables.extend(
             list(
                 [
@@ -1023,6 +1030,12 @@ class PgrGenSql(DbGenSql):
         """ cree les fonctions trigger necessaires """
 
         return ftrigs.get(ident, "")
+
+    def def_fonctions(self):
+        """retourne les definitions de fonctions"""
+        entete, fonctions = self.schema.elements_specifiques["def_fonctions"]
+        return fonctions
+        # print("fonctions a creer ", fonctions)
 
     # ============== gestionnaire de reinitialisation de la base===============
 

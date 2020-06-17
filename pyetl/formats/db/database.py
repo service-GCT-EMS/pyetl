@@ -618,6 +618,7 @@ class DbConnect(object):
         )
         if schema_travail.elements_specifiques:
             self.select_elements_specifiques(schema_travail, liste2)
+            # print("selection elements specifiques", liste2)
         # self.commit()
         LOGGER.info(
             "getschematravail "

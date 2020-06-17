@@ -46,8 +46,7 @@ requetes_sigli[
             pg_get_functiondef(p.oid) AS definition
         FROM pg_proc p
             LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
-        WHERE pg_function_is_visible(p.oid)
-            AND n.nspname <> 'public'::name
+        WHERE n.nspname <> 'public'::name
             AND n.nspname <> 'pg_catalog'::name
             AND n.nspname <> 'information_schema'::name
             AND p.prorettype <> 'trigger'::regtype::oid;

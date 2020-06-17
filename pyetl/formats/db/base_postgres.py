@@ -41,6 +41,8 @@ TYPES_A = {
     "XML": "T",
     "REGCLASS": "T",
     "CHARACTER VARYING": "T",
+    "INFORMATION_SCHEMA.SQL_IDENTIFIER": "T",
+    "INFORMATION_SCHEMA.CHARACTER_DATA": "T",
     "E": "E",
     "ENTIER": "E",
     "INTEGER": "E",
@@ -345,12 +347,16 @@ class PgrConnect(DbConnect):
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
         schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
         schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
-        # print (list(i for i in self._def_fonctions_trigger()))
+        print(
+            "elements specifiques",
+            [(i, len(j[1])) for i, j in schema.elements_specifiques.items()],
+        )
 
     def _def_vues(self):
         entete = "schema;nom;definition;materialise"
         infos = self.request(self.requetes["info_vues"])
         vals = {(i[0], i[1]): (i[2], str(i[3])) for i in infos}
+        # print("recup vues", len(vals))
         return (entete, vals)
 
     def _def_f_trigger(self):
@@ -415,12 +421,14 @@ class PgrConnect(DbConnect):
         """ selectionne les elements specifiques pour coller a une restriction de schema"""
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
+        print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
         els["def_vues"] = self.elemrestrict(els["def_vues"], a_garder)
         els["def_triggers"] = self.elemrestrict(els["def_triggers"], a_garder)
         els["def_ftables"] = self.elemrestrict(els["def_ftables"], a_garder)
         els["def_fonctions_trigger"] = self.elemrestrict(
             els["def_fonctions_trigger"], a_garder
         )
+        print("restriction elts spec apres", [(i, len(j[1])) for i, j in els.items()])
 
         fonctions_a_garder = set()
         for i in els["def_triggers"][1].values():

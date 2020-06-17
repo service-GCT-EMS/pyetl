@@ -485,7 +485,7 @@ def lire_requete(
         return 0
     ident = (niveau, classe)
 
-    # print("requete", base, requete, "->", ident)
+    print("requete", ident, "->", base, requete)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
@@ -502,7 +502,7 @@ def lire_requete(
     # print("-----------------------traitement curseur ", curs, type(curs))
     treq = time.time() - treq
     connect.commit()
-    if curs and classe[0]:
+    if curs and classe:
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
