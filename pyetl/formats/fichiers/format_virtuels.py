@@ -59,6 +59,7 @@ def affiche_stream(self, obj, regle, *_, **__):
     )
     return 0, 0
 
+
 # ============================= interne pour comparaison ====================
 
 
@@ -73,7 +74,7 @@ class ObjStore(object):
         struct = self.strlist[:]
         self.fold = False
         struct.append("geometrie") if self.fold else struct.append("geom_v")
-        print ('stockage structure', nom,struct)
+        print("stockage structure", nom, struct)
         self.structure = namedtuple(nom, struct)
         self.key = clef
         self.nbval = 0
@@ -88,7 +89,7 @@ class ObjStore(object):
         if obj.initgeom():
             liste.append(obj.geom_v.fold if self.fold else obj.geom_v)
         else:
-            liste.append('')
+            liste.append("")
         tmp = self.structure(*liste)
         self.data[clef] = tmp
         self.nbval += 1
@@ -160,7 +161,6 @@ def ecrire_objets_int(self, regle, *_, **__):
     return nb_obj, nb_fich
 
 
-
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "#poubelle": (
@@ -175,9 +175,31 @@ WRITERS = {
         None,
         None,
     ),
-    "#comptage": (compte_obj, compte_obj_stream, False, "no", 0, "", "all", None, None,None),
-    "print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None,None),
-    "#store": (ecrire_objets_int, intstreamer, False, "", 0, "", "classe", "", "",None)
+    "#comptage": (
+        compte_obj,
+        compte_obj_stream,
+        False,
+        "no",
+        0,
+        "",
+        "all",
+        None,
+        None,
+        None,
+    ),
+    "#print": (compte_obj, affiche_stream, True, "no", 0, "", "all", None, None, None),
+    "#store": (
+        ecrire_objets_int,
+        intstreamer,
+        False,
+        "",
+        0,
+        "",
+        "classe",
+        "",
+        "",
+        None,
+    ),
 }
 #                  reader,geom,hasschema,auxfiles
 READERS = {"interne": (None, None, False, (), None, None)}

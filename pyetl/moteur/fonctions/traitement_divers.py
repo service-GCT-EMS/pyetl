@@ -213,8 +213,13 @@ def h_sortir(regle):
 
         regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
-    #    print ('positionnement writer ',regle, regle.params.cmp1.val)
+    if regle.params.cmp2.val == "#print":
+        regle.f_sortie = regle.stock_param.getwriter("#print", regle)
+    elif regle.params.cmp2.val == "" and regle.getvar("_sortie") == "#print":
+        regle.f_sortie = regle.stock_param.getwriter("#print", regle)
+    else:
+        regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
+    print("positionnement writer ", regle, regle.f_sortie)
     if regle.f_sortie.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get("base_dest")

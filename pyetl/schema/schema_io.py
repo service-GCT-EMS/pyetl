@@ -140,7 +140,7 @@ def ecrire_fichier_sql(
             + " ###(controle: n°1: éàçêè )####\n"
         )
         fich.write(codecinfo)
-        fich.write("\n".join(valeurs))
+        fich.write("\n".join([i.replace("\r\n", "\n") for i in valeurs if i]))
 
 
 def ecrire_schema_sql(
@@ -185,6 +185,7 @@ def ecrire_schema_sql(
 
     tsql, dtsql, csql, dcsql = gsql.sio_cretable(cod, autopk=autopk, role=role)
     crsc, dsc, dscc = gsql.sio_creschema(cod)
+    # gsql.schema.printelements_specifiques()
 
     csty = gsql.sio_crestyle()
 
@@ -246,6 +247,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 rep_s = rep
 
             print("dialecte de sortie", dialecte)
+            # schema.printelements_specifiques()
 
             ecrire_schema_sql(
                 rep_s,
@@ -373,6 +375,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
                 print("ecriture schema", i, len(schemas[i].classes))
+                # schemas[i].printelements_specifiques()
+
                 ecrire_au_format(
                     schemas[i],
                     rep_sortie,

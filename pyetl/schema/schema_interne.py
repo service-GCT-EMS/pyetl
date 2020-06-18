@@ -604,3 +604,10 @@ class Schema(object):
     def cleanrules(self):
         for classe in self.classes.values():
             classe.regles_modif = set()
+
+    def printelements_specifiques(self):
+        print(
+            self.nom,
+            ":elements specifiques",
+            [(i, len(j[1])) for i, j in self.elements_specifiques.items()],
+        )

@@ -250,6 +250,7 @@ class TableBaseSelector(object):
         )
         schema_travail.init_mapping(liste_mapping)
         self.schema_travail = schema_travail
+        # schema_travail.printelements_specifiques()
         return schema_travail
 
 
@@ -385,6 +386,8 @@ class TableSelector(object):
                 self.schema_travail = schema_travail.copy(nom)
             else:
                 self.fusion_schema(schema_travail)
+        print("tableselecteur")
+        # schema_travail.printelements_specifiques()
 
 
 # =============================================================

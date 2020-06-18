@@ -731,6 +731,8 @@ class SchemaClasse(object):
             _gestion_types_simples(attr, type_attribut)
         if defaut:
             # print 'valeurs defaut',nom,defaut
+            if defaut.startswith("nextval("):
+                defaut = "S"
             attr.defaut = defaut
             if defaut[0] != "V":
                 attr.conf = False

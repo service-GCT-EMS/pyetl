@@ -853,6 +853,6 @@ def lire_regles_csv(
     mapper.debug = int(mapper.getvar("debug", 0))
     if mapper.debug:
         print("niveau debug :", mapper.getvar("debug"))
-        # on initialise les parametres our finir #print 'parametres ', i
+        # on initialise les parametres pour finir #print 'parametres ', i
     #    print('fin lecture regles',erreurs)
     return erreurs

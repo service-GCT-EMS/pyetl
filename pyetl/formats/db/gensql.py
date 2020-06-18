@@ -77,6 +77,7 @@ class DbGenSql(object):
         """schema courant"""
 
         self.schema = schema
+        # schema.printelements_specifiques()
 
     def conf_en_base(self, conf):
         """valide si uneconformiteexisteen base"""

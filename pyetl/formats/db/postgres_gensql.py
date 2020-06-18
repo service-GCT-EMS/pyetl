@@ -693,9 +693,11 @@ class PgrGenSql(DbGenSql):
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == "numeric" and attribut.taille > 0:
                 type_sortie = (
-                    "numeric" + "(" + str(attribut.taille) + "," + str(attribut.dec)
-                    if attribut.dec is not None
-                    else "0" + ")"
+                    "numeric"
+                    + "("
+                    + str(attribut.taille)
+                    + ("," + str(attribut.dec) if attribut.dec is not None else "0")
+                    + ")"
                 )
             elif type_sortie == "text" and attribut.taille > 0:
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
@@ -732,8 +734,9 @@ class PgrGenSql(DbGenSql):
 
     def get_vues_base(self, liste):
         """ retourne la liste des vues dont on a la definition en base"""
+        # self.schema.printelements_specifiques()
         try:
-            vues_schema = self.schema.elements_specifiques["def_vues"]
+            vues_schema = self.schema.elements_specifiques["def_vues"][1]
             vues_utilisees = {i: vues_schema[i] for i in liste if i in vues_schema}
             #                    and self.schema.classes[i].type_table in 'mv'}
             print(
@@ -833,6 +836,7 @@ class PgrGenSql(DbGenSql):
             + ("basique" if self.basic else "std")
             + " ###############\n"
         )
+        # self.schema.printelements_specifiques()
         self.role = role
         if liste is None:
             liste = sorted(
@@ -871,7 +875,7 @@ class PgrGenSql(DbGenSql):
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
             )
-            cretables.extend(self.def_fonctions().values())
+            cretables.extend([i + ";" for i in self.def_fonctions().values()])
         cretables.append("\n-- ########### definition des tables ###############\n")
         cretables.extend(
             list(

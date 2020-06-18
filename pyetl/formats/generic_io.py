@@ -655,3 +655,6 @@ class Writer(object):
     def setvar(self, nom, val):
         """positionne une variable ( en general variables de format par defaut)"""
         self.regle.stock_param.setvar(nom, val)
+
+    def __repr__(self):
+        return "writer " + self.nom_format + " nom: " + self.nom
