@@ -289,7 +289,7 @@ class TableSelector(object):
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
-        # print("add descripteur", base, descripteur)
+        print("add descripteur", base, descripteur)
         self.add_selector(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):

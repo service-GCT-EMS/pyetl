@@ -75,6 +75,11 @@ def init_schema(
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
     """ determine si une table est a retenir """
     if nocase:
+        print("choix_multi", schemaclasse.identclasse)
+        print(
+            bool(ren.search(schemaclasse.groupe.lower())),
+            bool(rec.search(schemaclasse.nom.lower())),
+        )
         return (
             bool(ren.search(schemaclasse.groupe.lower())) != negniv
             and bool(rec.search(schemaclasse.nom.lower())) != negclass
@@ -98,6 +103,29 @@ def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
     return vniv and vclass
 
 
+def compile_regex(regex):
+    """ essaye de compile une regex en transformant les * en .* si ce n est deja fait """
+    placeholder1 = "#1§"
+    placeholder2 = "#2§"
+    while placeholder1 in regex:
+        placeholder1 += "§"
+    while placeholder2 in regex:
+        placeholder2 += "§"
+
+    tmp = regex.replace(".*", placeholder1)
+    tmp = tmp.replace("]*", placeholder2)
+    tmp = tmp.replace("*", ".*")
+    tmp = tmp.replace(placeholder2, "]*")
+    tmp = tmp.replace(placeholder1, ".*")
+
+    try:
+        creg = re.compile(tmp)
+    except:
+        print("erreur compil", tmp)
+        creg = None
+    return creg
+
+
 class Schema(object):
     """ definition d'un schema : ensemble de classes et de conformites
         code origine : L schema lu
@@ -119,11 +147,11 @@ class Schema(object):
         #        self.dic_abrev = dict()
         self.stock_mapping = M.Mapping()
         self.origine = (
-            origine
-        )  # G: schema genere L: schema lu S: schema de sortie B: schema base
+            origine  # G: schema genere L: schema lu S: schema de sortie B: schema base
+        )
         self.systeme_orig = (
-            "def"
-        )  # systeme d'origine : permets de gerer les particularites
+            "def"  # systeme d'origine : permets de gerer les particularites
+        )
         self.metas = dict()  # metadonnees du schema
         self.modele = None
         self.nom = nom_schema
@@ -428,14 +456,39 @@ class Schema(object):
             self.classes[i].setbasic(mode)
         self.elements_specifiques = {}
 
+    def valide_condition(self, classe, tables):
+        """ valide la selection du type de tables"""
+        return tables == "a" or self.classes[classe].type_table in tables
+
+    def single_select(self, condition, tables, indice, multi, nocase, neg):
+        """selectionne un niveeau entier"""
+        if multi:
+            tmp = {i for i in self.classes if (condition.match(i[indice])) != neg}
+        elif nocase:
+            niveau = condition.lower()
+            tmp = {i for i in self.classes if (i[indice].lower() == niveau) != neg}
+        else:
+            tmp = {i for i in self.classes if (i[indice] == condition) != neg}
+
+        return {i for i in tmp if self.valide_condition(i, tables)}
+
+    def select_classe(self, classe, tables, multi, nocase, neg):
+        """selectionne un niveeau entier"""
+        return self.single_select(classe, tables, 1, multi, nocase, neg)
+
+    def select_niveau(self, niveau, tables, multi, nocase, neg):
+        """selectionne un niveeau entier"""
+        return self.single_select(niveau, tables, 0, multi, nocase, neg)
+
     def select_niv_classe(
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        # print("select_niv_classes", niveau, classe, attr, tables, multi)
+        print("select_niv_classes", niveau, classe, attr, tables, multi)
 
-        if niveau is None or classe is None:
-            return []
+        # if niveau is None or classe is None:
+        #     return []
+
         tables_a_sortir = set()
         exp_niv = niveau.strip()
         exp_clas = classe.strip()
@@ -454,26 +507,29 @@ class Schema(object):
             negclass = True
             exp_clas = exp_clas[1:]
         if "*" in exp_clas:
-            exp_clas.replace("*", ".*")
             lmulti = True
         if negniv or negclass:
             lmulti = True
+        if not exp_niv:
+            lmulti = True
+        print("select_niv_classes n:", exp_niv, "c:", exp_clas, attr, tables, multi)
         if lmulti:
-            try:
-                ren = re.compile(exp_niv)
-                rec = re.compile(exp_clas)
-            except:  # on essaye de remplacesr les *
-                lmulti = False
-                rec = None
+            ren = compile_regex(exp_niv)
+            if ren is None:
+                print("erreur de description de niveau ", exp_niv)
+                return set()
+            rec = compile_regex(exp_clas)
+            if rec is None:
                 print("erreur de description de classe ", exp_clas)
                 return set()
+            print("selection ", exp_niv, exp_clas)
             for i in self.classes:
                 if tables != "a" and self.classes[i].type_table not in tables:
+                    print("non retenu", tables, self.classes[i].type_table)
                     continue
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
                     if not attr or attr in self.classes[i].attributs:
                         tables_a_sortir.add(i)
-                #                    print ('sortir multi')
         else:
             if nocase:
                 idclas = self.nocase.get((exp_niv.lower(), exp_clas.lower()))

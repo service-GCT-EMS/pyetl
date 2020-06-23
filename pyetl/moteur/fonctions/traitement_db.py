@@ -79,17 +79,21 @@ def param_base(regle, nom=""):
             mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         else:
             classes = cla.split(",")
-        for niveau in niv.split(","):
-            if "." in niveau:
-                tmp = niveau.split(".")
-                if len(tmp) == 2:
-                    n, c = niveau.split(".")
-                    b = base
+        if niveau:
+            for niveau in niv.split(","):
+                if "." in niveau:
+                    tmp = niveau.split(".")
+                    if len(tmp) == 2:
+                        n, c = niveau.split(".")
+                        b = base
+                    else:
+                        b, n, c = niveau.split(".")
+                    selecteur.add_descripteur(b, n, c, att, vals)
                 else:
-                    b, n, c = niveau.split(".")
-                selecteur.add_descripteur(b, n, c, att, vals)
-            else:
-                selecteur.add_descripteur(base, niveau, classes, att, vals)
+                    selecteur.add_descripteur(base, niveau, classes, att, vals)
+        else:
+            selecteur.add_descripteur(base, niveau, classes, att, vals)
+
     regle.cible_base = selecteur
 
     # gestion des selecteurs
