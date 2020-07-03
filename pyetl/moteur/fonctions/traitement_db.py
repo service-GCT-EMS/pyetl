@@ -79,7 +79,7 @@ def param_base(regle, nom=""):
             mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
         else:
             classes = cla.split(",")
-        if niveau:
+        if niv:
             for niveau in niv.split(","):
                 if "." in niveau:
                     tmp = niveau.split(".")
@@ -630,7 +630,7 @@ def h_recup_schema(regle):
 
     regle.setlocal("mode_schema", "dbschema")
     selecteur = regle.cible_base
-    print("dbschema", selecteur)
+    print("h_recup_schema:selecteur", selecteur)
     complet = selecteur.resolve()
     print("retour selecteur", complet, selecteur)
     if complet:

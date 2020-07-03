@@ -44,6 +44,8 @@ class TableBaseSelector(object):
         self.racine = ""
         self.connect = None
         self.nobase = False
+        # si vrai une liste de classes direct est fournie
+        # dans ce cas le selecteur ne gere que la liste de classes et pas le schema
         self.schemaref = schemaref
         self.valide = bool(base or schemaref)
         self.map_prefix = map_prefix
@@ -56,7 +58,15 @@ class TableBaseSelector(object):
         self.dynlist = dict()
 
     def __repr__(self):
-        return str(self.base) + str(len(self.descripteurs) + len(self.descripteurs))
+        return (
+            str(self.base)
+            + ":"
+            + str(len(self.descripteurs))
+            + "->"
+            + str(len(self.static))
+            + ","
+            + str(len(self.dynlist))
+        )
 
     def reg_prefix(self, map_prefix):
         """enregistre les prefixes a appliquesr aux noms des schemas et/ou de classe
@@ -97,6 +107,7 @@ class TableBaseSelector(object):
         mod = self.regle_ref.getvar("mod")
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
+        prefix = ""
         if self.base != "__filedb":
             self.mapper.load_paramgroup(self.base, nom=self.base)
             prefix = self.regle_ref.getvar("prefix_" + self.base)
@@ -122,7 +133,9 @@ class TableBaseSelector(object):
         # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)
 
         mod = mod.upper()
+        # print("traitement descripteurs", self.descripteurs)
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
+
             if niveau == "#":
                 pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
@@ -240,7 +253,7 @@ class TableBaseSelector(object):
     def getschematravail(self, regle, nom=""):
         """recupere le schema correspondant a la selection de la base demandee"""
         liste_classes, liste_mapping = self.getmapping()
-        print(" creation schema travail", self.base, len(liste_classes))
+        # print(" creation schema travail", self.base, len(liste_classes))
         if not self.nombase:
             return None
         if not nom:
@@ -289,7 +302,7 @@ class TableSelector(object):
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
-        print("add descripteur", base, descripteur)
+        # print("add descripteur", base, descripteur)
         self.add_selector(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
@@ -333,7 +346,7 @@ class TableSelector(object):
         return base
 
     def resolve(self, obj=None):
-        print(" dans resolve", self.baseselectors.keys(), self.resolved)
+        # print(" debut resolve", self.baseselectors.keys(), self.resolved)
         if self.resolved:
             return True
         complet = len(self.baseselectors)
@@ -342,7 +355,7 @@ class TableSelector(object):
         for base in self.baseselectors:
             complet = complet and self.baseselectors[base].resolve(obj)
         self.resolved = complet
-        print(" dans resolve", self.baseselectors.keys(), self.resolved, complet)
+        # print(" fin resolve", self.baseselectors.keys(), self.resolved, complet)
         return complet
 
     def get_classes(self):
@@ -386,7 +399,7 @@ class TableSelector(object):
                 self.schema_travail = schema_travail.copy(nom)
             else:
                 self.fusion_schema(schema_travail)
-        print("tableselecteur")
+        # print("tableselecteur")
         # schema_travail.printelements_specifiques()
 
 
@@ -427,7 +440,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nom = fichier[7:]
         if nom in stock_param.schemas:
-            print("lecture schema", nom)
+            # print("lecture schema", nom)
             classes = stock_param.schemas.get(nom).classes.keys()
             selecteur.add_class_list(base, classes)
             return selecteur
@@ -454,7 +467,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
-            print("select projet qgs", fichier)
+            # print("select projet qgs", fichier)
             for i in fich:
                 if "datasource" in i:
                     table = _extract(i, "table=")
@@ -608,7 +621,7 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
     print("sel_from_fich:scandirs", fichier)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
-        print("sel_from_fich:lu", element)
+        # print("sel_from_fich:lu", element)
         if fich.endswith(".qgs"):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):
