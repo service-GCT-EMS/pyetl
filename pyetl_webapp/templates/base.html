@@ -7,8 +7,9 @@
       {% endif %}
     </head>
     <body>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <div><a href="/index">Home</a></div>
-        <div><a href=../../doc_pyetl/build/index>Help</a></div>
+        <div><a href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a></div>
         <hr>
         {% block content %}{% endblock %}
     </body>

@@ -11,9 +11,13 @@ from pyetl_webapp import app
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template("index.html", text="Hello, World!")
+    return render_template(
+        "index.html", text="Hello, World!", title="mapper interface web"
+    )
 
 
 @app.route("/scripts")
 def scripts():
-    return "\n".join((i for i in os.listdir("scripts")))
+    return render_template(
+        "scriptlist.html", text="\n".join((i for i in os.listdir("scripts")))
+    )
