@@ -501,20 +501,19 @@ def f_dbextdump(regle, obj):
     # base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
     selecteur = setdb(regle, obj)
     retour = 0
-    for base, ident in selecteur.get_classes():
-        niveau, classe = ident
-        dest = regle.params.cmp1.val
-        if not dest:
-            dest = regle.getvar("_sortie")
-        os.makedirs(dest, exist_ok=True)
-        log = regle.params.cmp2.val
-        if not log:
-            log = os.path.join(dest, "log")
-        os.makedirs(log, exist_ok=True)
 
-        print("traitement db: extraction donnees de", base, "vers", dest)
+    dest = regle.params.cmp1.val
+    if not dest:
+        dest = regle.getvar("_sortie")
+    os.makedirs(dest, exist_ok=True)
+    log = regle.params.cmp2.val
+    if not log:
+        log = os.path.join(dest, "log")
+    os.makedirs(log, exist_ok=True)
 
-        DB.dbextdump(regle, base, niveau, classe, dest=dest, log=log)
+    print("traitement db: extraction donnees de vers", dest)
+    for base, baseselector in selecteur.baseselectors.items():
+        DB.dbextdump(regle, base, baseselector, dest=dest, log=log)
     return True
 
 

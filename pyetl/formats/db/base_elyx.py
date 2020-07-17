@@ -424,9 +424,8 @@ class ElyConnect(ora.OrwConnect):
         # mise en place de l'environnement:
         with tempfile.TemporaryDirectory() as tmpdir:
             self.tmpdir = str(tmpdir)
-            #            dumpit = self.dumpiterator(helper, classes, dest, log, fanout, workers)
             blocks = self.get_blocks(helper, classes, dest, log, fanout, workers)
-
+            print("dump elyx", blocks)
             self.params.execparallel_ext(
                 blocks, workers, self.fearunner, patience=self.export_statprint
             )

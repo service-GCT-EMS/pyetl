@@ -146,16 +146,17 @@ def dbextload(regle_courante, base, files, log=None):
     return False
 
 
-def dbextdump(regle_courante, base, niveau, classe, dest="", log=None):
+def dbextdump(regle_courante, base, baseselecteur, dest="", log=None):
     """extrait un fichier a travers un loader"""
 
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante, base, niveau, classe
-    )
+    schema_travail = baseselecteur.getschematravail(regle_courante)
+    connect = baseselecteur.connect
+    liste_tables = baseselecteur.get_liste_extraction()
+    print("dump", liste_tables)
     if connect is None:
         return False
     if not liste_tables:
-        print("pas de tables a sortir", base, niveau, classe)
+        print("pas de tables a sortir", base, baseselecteur)
         return False
     helpername = connect.dump_helper
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)

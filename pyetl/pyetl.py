@@ -559,7 +559,7 @@ class Pyetl(object):
             intermediaire = time.time() - prec
             prec = time.time()
 
-    def _patience(self, nbfic, nbval):
+    def _patience(self, nbfic, nbval, mode="cmd"):
         """petits messages d'avancement pour faire patienter"""
         temps = self._timer()
         nbaffich = int(self.getvar("nbaffich"))
@@ -615,19 +615,24 @@ class Pyetl(object):
                         tinterm = interm + interv
                     else:  # on calcule un temps moyen pour pas afficher n'importe quoi
                         tinterm = nbval / (nbobj / duree)
-                    print(msg % (nbval, int(tinterm), int((nbval) / tinterm)))
+                    ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
+                    if mode == "cmd":
+                        print(ligne)
+                    elif mode == "web":
+                        pass
             else:
-                print(
-                    msg
-                    % (
-                        cmp,
-                        nbobj,
-                        tabletotal + 1,
-                        ftype,
-                        int(duree),
-                        int((nbobj) / duree),
-                    )
+                ligne = msg % (
+                    cmp,
+                    nbobj,
+                    tabletotal + 1,
+                    ftype,
+                    int(duree),
+                    int((nbobj) / duree),
                 )
+                if mode == "cmd":
+                    print(ligne)
+                elif mode == "web":
+                    pass
             return (
                 (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
                 tinterm,

@@ -250,6 +250,10 @@ class TableBaseSelector(object):
             liste_classes.append(ident)
         return liste_classes, liste_mapping
 
+    def get_liste_extraction(self):
+        liste_classes, liste_mapping = self.getmapping()
+        return liste_classes
+
     def getschematravail(self, regle, nom=""):
         """recupere le schema correspondant a la selection de la base demandee"""
         liste_classes, liste_mapping = self.getmapping()
@@ -360,9 +364,8 @@ class TableSelector(object):
 
     def get_classes(self):
         for base in self.baseselectors:
-            yield from self.baseselectors[base].static.items()
-        for base in self.baseselectors:
-            yield from self.baseselectors[base].dynlist.items()
+            for item in self.baseselectors[base].classlist():
+                yield base, item
 
     def fusion_schema(self, schema_tmp):
         """fusionne 2 schemas en se basant sur les poids ou les maxobj pour garder le bon"""

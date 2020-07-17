@@ -484,7 +484,7 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        print("select_niv_classes", niveau, classe, attr, tables, multi)
+        # print("select_niv_classes", niveau, classe, attr, tables, multi)
 
         # if niveau is None or classe is None:
         #     return []
@@ -512,7 +512,7 @@ class Schema(object):
             lmulti = True
         if not exp_niv:
             lmulti = True
-        print("select_niv_classes n:", exp_niv, "c:", exp_clas, attr, tables, multi)
+        # print("select_niv_classes n:", exp_niv, "c:", exp_clas, attr, tables, multi)
         if lmulti:
             ren = compile_regex(exp_niv)
             if ren is None:
@@ -522,7 +522,7 @@ class Schema(object):
             if rec is None:
                 print("erreur de description de classe ", exp_clas)
                 return set()
-            print("selection ", exp_niv, exp_clas)
+            # print("selection ", exp_niv, exp_clas)
             for i in self.classes:
                 if tables != "a" and self.classes[i].type_table not in tables:
                     print("non retenu", tables, self.classes[i].type_table)

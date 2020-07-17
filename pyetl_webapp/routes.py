@@ -18,6 +18,4 @@ def index():
 
 @app.route("/scripts")
 def scripts():
-    return render_template(
-        "scriptlist.html", text="\n".join((i for i in os.listdir("scripts")))
-    )
+    return render_template("scriptlist.html", liste=os.listdir("scripts"))

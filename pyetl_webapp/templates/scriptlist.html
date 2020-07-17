@@ -1,0 +1,12 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% for item in liste %}
+    <tr>
+      <td>{{ item|tojson|safe }}</td>
+    </tr>
+{% endfor %}
+
+{% endblock %}
