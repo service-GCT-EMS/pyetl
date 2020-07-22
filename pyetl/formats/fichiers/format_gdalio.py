@@ -127,6 +127,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         type_geom = "0"
     if type_geom > "0":
         # nom_geom = nom_g_m[type_geom]
+        print("schema_fiona", type_geom, sc_classe.multigeom, sc_classe.info["courbe"])
         nom_geom = (
             nom_g_m[type_geom]
             if sc_classe.multigeom or sc_classe.info["courbe"]

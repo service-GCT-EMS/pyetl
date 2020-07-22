@@ -128,7 +128,7 @@ class ParametresFonction(object):
 
     def _crent(self, nom, taille=0):
         """extrait les infos de l'entite selectionnee"""
-        #        print("creent",nom,self.valeurs[nom].groups(),self.valeurs[nom].re)
+        # print("creent", nom, self.valeurs[nom].groups(), self.valeurs[nom].re)
         val = ""
         defaut = ""
         try:
@@ -147,7 +147,11 @@ class ParametresFonction(object):
             num = float(val)
         except ValueError:
             num = None
-        liste = val.split(",") if val else []
+        val2 = val
+        if ":" in val and not "," in val:
+            val2 = val.replace(":", ",")
+        liste = val2.split(",") if val else []
+
         if taille > len(liste):
             if liste:
                 liste.extend([liste[-1]] * (taille - len(liste)))

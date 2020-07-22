@@ -64,7 +64,12 @@ class DefinitionAttribut(object):
         "+[A]": (r"^\+" + vdef + "$", "A", "S", "indirect"),
         "[A]+": (r"^" + vdef + r"\+$", "A", "S", "indirect"),
         "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")*)$", "S", "S", "liste"),  # liste
-        "L": (r"^(" + asdef + r"(?:," + asdef + r")*|\*)$", "L", "M", "liste"),  # liste
+        "L": (
+            r"^(" + asdef + r"(?:[:,]" + asdef + r")*|\*)$",
+            "L",
+            "M",
+            "liste",
+        ),  # liste
         "LV": (r"^$", "L", "M", "liste"),  # liste avec defauts
         "L2": (r"^(" + asdef + r"(?:\|" + asdef + r")*|\*)$", "L", "M", "liste"),
         "LC": (r"^(.+(?:,.*)*)$", "C", "", "liste"),  # liste de valeurs

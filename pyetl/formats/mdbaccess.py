@@ -152,7 +152,7 @@ def dbextdump(regle_courante, base, baseselecteur, dest="", log=None):
     schema_travail = baseselecteur.getschematravail(regle_courante)
     connect = baseselecteur.connect
     liste_tables = baseselecteur.get_liste_extraction()
-    print("dump", liste_tables)
+    # print("dump", liste_tables)
     if connect is None:
         return False
     if not liste_tables:
@@ -163,7 +163,7 @@ def dbextdump(regle_courante, base, baseselecteur, dest="", log=None):
     if helper:
         workers, extworkers = regle_courante.get_max_workers()
         fanout = regle_courante.getvar("fanout", "classe")
-        print("extdump", regle_courante.context.vlocales, extworkers)
+        print("extdump", regle_courante.context.vlocales, extworkers, log)
         logfile = setpath(regle_courante, log)
         resultats = connect.extdump(
             helper, liste_tables, dest, logfile, workers=extworkers, fanout=fanout
@@ -172,7 +172,7 @@ def dbextdump(regle_courante, base, baseselecteur, dest="", log=None):
         if resultats:
             for idclasse in resultats:
                 schema_travail.classes[idclasse].objcnt = resultats[idclasse]
-            regle_courante.setvar("schema_entree", schema_travail.nom, loc=0)
+            regle_courante.setroot("schema_entree", schema_travail.nom)
     return False
 
 
@@ -956,7 +956,7 @@ class DbWriter(object):
         return True
 
 
-def dbload(regle, base, niveau, classe, obj):
+def dbload(regle, base, selecteur, obj):
     pass
 
 

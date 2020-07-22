@@ -284,24 +284,6 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
     return rfin
 
 
-# def submit_job(jobs, job, regle, executor, fonction):
-#     """ajoute une tache au traitement parallele"""
-#    print ('transmission ',job)
-#    rfin = dict()
-# dest, nom, ext = job
-# file = str(os.path.join(*nom) + "." + ext)
-# chemin = str(os.path.dirname(file))
-# nom = str(os.path.basename(file))
-# clef = os.path.join(str(dest), chemin, nom)
-# loadarg = (clef, (dest, chemin, nom, ext))
-# loadarg=job
-# print ('appel parallele ',clef,'->',loadarg, regle, regle.index)
-# jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
-
-
-#    print ('attente', len(jobs))
-
-
 def paralleliter_suivi(regle, executor, fonction, argiter):
     """gere les appels classique mais avec des retours d'infos en s'appuyant sur
         un iterateur ce qui permet de lancer les traitements sans que toutes les
@@ -648,10 +630,12 @@ def get_pool(maxworkers):
     """prepare un gestionnaire de pool de process"""
     return {i: dict() for i in range(max(maxworkers, 1))}
 
+
 def add_worker(pool):
     """ajoute un emplacement a un pool"""
     maxnum = max(pool.keys())
-    pool[maxnum+1]=dict()
+    pool[maxnum + 1] = dict()
+
 
 def get_slot(pool):
     """surveille un pool de process et determine s'il y a une disponibilité  sans attendre"""
@@ -696,39 +680,10 @@ def wait_end(pool):
 
 def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
     """lance des process en parallele"""
-    pool = get_pool(maxworkers)
-    for nom, params in blocks:
-        slot = wait_slot(pool)  # on cherche une place
-        if pool[slot]:
-            retour = pool[slot]
-            nom_r = retour["nom"]
-            #            print ('slot retour', slot, retour)
-            #            blocks[nom_r] = (retour['params'], retour['end']-retour['start'])
-            if patience:
-                #                patience(nom_r, *blocks[nom_r])
-                patience(nom_r, retour["params"], retour["end"] - retour["start"])
-                print("exec parallel_ext retour patience")
-        if nom is None:  # on envoie un None pour reduire le pool
-            del pool[slot]
-            continue
-        pool[slot] = {
-            "process": lanceur(params),
-            "nom": nom,
-            "start": time.time(),
-            "params": params,
-            "end": None,
-        }
-    wait_end(pool)
-    for i in pool:
-        if pool[i]:
-            retour = pool[i]
-            #            print ('retour fin', i, retour)
-            nom = retour["nom"]
-            #            blocks[nom] = (retour['params'], retour['end']-retour['start'])
-            if patience:
-                #                patience(nom, *blocks[nom])
-                patience(nom, retour["params"], retour["end"] - retour["start"])
-                print("exec parallel_ext retour patience wait end")
+    for i in iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
+        if i is not None:
+            print("traitement effectue", i)
+    return
 
 
 def prepare_filejob(description):

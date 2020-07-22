@@ -500,16 +500,9 @@ def f_dbextdump(regle, obj):
     """
     # base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
     selecteur = setdb(regle, obj)
-    retour = 0
-
-    dest = regle.params.cmp1.val
-    if not dest:
-        dest = regle.getvar("_sortie")
+    dest = regle.params.cmp1.val or regle.getvar("_sortie")
     os.makedirs(dest, exist_ok=True)
-    log = regle.params.cmp2.val
-    if not log:
-        log = os.path.join(dest, "log")
-    os.makedirs(log, exist_ok=True)
+    log = regle.params.cmp2.val or "log"
 
     print("traitement db: extraction donnees de vers", dest)
     for base, baseselector in selecteur.baseselectors.items():
@@ -525,8 +518,8 @@ def f_dbwrite(regle, obj):
 
     """
     selecteur = setdb(regle, obj)
-    for base, (niveau, classe, _) in regle.cible_base.items():
-        DB.dbload(regle, base, niveau, classe, obj)
+    for base, baseselector in selecteur.baseselectors.items():
+        DB.dbload(regle, base, baseselector, obj)
 
 
 def f_dbupdate(regle, obj):
