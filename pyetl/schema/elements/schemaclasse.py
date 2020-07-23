@@ -271,6 +271,13 @@ class SchemaClasse(object):
         """retourne l'identifiant de classe sous forme 'groupe'.'nom' pour acces base de donnees """
         return "'" + self.groupe + "'.'" + self.nom + "'"
 
+    def setmulti(self):
+        self.multigeom = True
+        raise
+
+    def setsimple(self):
+        self.multigeom = False
+
     # @property
     # def nomschema(self):
     #     """ retourne le nom du schema auquel appartient la classe"""
@@ -830,9 +837,12 @@ class SchemaClasse(object):
                 #                raise TypeError
                 self.info["type_geom"] = "0"
         self.srid = srid
-        self.multigeom = (
-            multiple if multiple is not None else (self.info["type_geom"] != "1")
-        )
+        if self.info["type_geom"] != "0":
+            self.multigeom = (
+                multiple if multiple is not None else (self.info["type_geom"] != "1")
+            )
+            # if self.multigeom:
+            #     print("passage multigeom", multiple, self.info["type_geom"])
         #        self.courbe = courbe
         if courbe:
             self.info["courbe"] = "1"

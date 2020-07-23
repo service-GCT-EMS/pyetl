@@ -342,7 +342,8 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
                 contenu = param[-1]
                 classe.info[nom] = contenu
 
-    classe.multigeom = classe.info["type_geom"] > "1"
+    if classe.info["type_geom"] > "1":
+        classe.setmulti()
     classe.setdim(dimension[0])
 
     if len(dimension) > 1 and dimension[1] == "F":

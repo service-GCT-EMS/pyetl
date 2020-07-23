@@ -293,7 +293,7 @@ class Objet(object):
     def set_multi(self):
         """forcage multigeom"""
         if self.schema:
-            self.schema.multigeom = True
+            self.schema.setmulti()
         self.geom_v.multi = True
 
     @property

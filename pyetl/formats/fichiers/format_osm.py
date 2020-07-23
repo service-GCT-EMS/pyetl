@@ -167,7 +167,8 @@ class DecodeConfigOsm(object):
         schemaclasse.info["type_geom"] = (
             self.force_geom if self.force_geom else self.geom
         )
-        schemaclasse.multigeom = self.multigeom
+        if self.multigeom:
+            schemaclasse.setmulti()
         incomplet = schemaclasse.copy(idref, None, filiation=False)
         incomplet.groupe = "osm_incomplet"
         self.schema.ajout_classe(incomplet)

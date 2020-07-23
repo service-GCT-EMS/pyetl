@@ -504,7 +504,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
         courbe = obj.geom_v.courbe
         if mode != "strict":  # on detecte s'il y a des courbes pour la sortie
             if multigeom:
-                schemaclasse.multigeom = True
+                schemaclasse.setmulti()
             if courbe:
                 schemaclasse.info["courbe"] = "1"
             if srid != schemaclasse.srid:
@@ -802,7 +802,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
             schemaclasse.info["type_geom"] = "2"
 
     if multigeom:
-        schemaclasse.multigeom = True
+        schemaclasse.setmulti()
     if courbe:
         schemaclasse.info["courbe"] = "1"
     schemaclasse.info["dimension"] = max(dimension, schemaclasse.info["dimension"])

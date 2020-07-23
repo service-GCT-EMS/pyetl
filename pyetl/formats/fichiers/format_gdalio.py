@@ -344,6 +344,7 @@ class GdalWriter(object):
     def bwrite(self, obj):
         """ecriture bufferisee"""
         chaine = self.converter(obj, self.liste_att, self.minmajfunc)
+        # print("gdal:bwrite", chaine)
         ident = obj.ident
         if ident in self.buffer:
             self.buffer[ident].append(chaine)
@@ -354,7 +355,7 @@ class GdalWriter(object):
     def write(self, obj):
         """ecrit un objet complet"""
         chaine = self.converter(obj, self.liste_att, self.minmajfunc)
-        #        print('gdal:write', chaine)
+        # print("gdal:write", chaine)
         try:
             self.fichier.write(chaine)
         except Exception as err:
@@ -386,7 +387,7 @@ def gdalconverter(obj, liste_att, minmajfunc):
     if liste_att:
         obj.set_liste_att(liste_att)
     obj.casefold = minmajfunc
-    if obj.geom_v.type_geom > "1":
+    if obj.geom_v.type_geom > "1" and obj.geom_v.type_geom != "indef":
         obj.set_multi()
     a_sortir = obj.__geo_interface__
     if not a_sortir["properties"]:
@@ -439,7 +440,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
     #    print ("fichier de sortie ",fich.nom)
     obj.initgeom()
     #    print ('geom objet initialisee', obj.geom_v)
-    if obj.geom_v.type != "1":
+    if obj.geom_v.type in "23":
         #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
         #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
         obj.geom_v.force_multi = True

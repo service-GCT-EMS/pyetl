@@ -740,7 +740,7 @@ class Geometrie(object):
         dim = self.dimension
         if self.type == "1":  # point
             if not self.points:
-                print("geo_interface : point inexistant")
+                print("geo_interface : point inexistant", self.force_multi, self.multi)
                 if self.force_multi or self.multi:
                     return {"type": "MultiPoint", "coordinates": ()}
                 else:

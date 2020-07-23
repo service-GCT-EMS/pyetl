@@ -19,7 +19,10 @@ def setschemainfo(regle, obj, multi=None, type=None, dyn=False):
     if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
         if multi is not None:
-            obj.schema.multigeom = multi
+            if multi:
+                obj.schema.setmulti()
+            else:
+                obj.schema.setsimple()
         obj.schema.info["type_geom"] = tgeom if type is None else type
 
 
@@ -331,7 +334,8 @@ def f_multigeom(regle, obj):
     #        if obj.schema:
     if obj.virtuel:
         return True
-    obj.schema.multigeom = bool(regle.params.val_entree.num)
+    if regle.params.val_entree.num:
+        obj.set_multi()
 
     return True
 
