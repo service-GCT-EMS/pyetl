@@ -177,7 +177,7 @@ db:%acces%;%niveau%;%classe%;dans_emprise;;buffer;;dbgeo;%mod%;%ordre%;fin;
 &&#define;#dbrequest;acces;niveau;classe;requete;;;;
 #!help;recuperation d'un jeu de donnees par requete directe;;;;;;;;;;
 <#initdb;%acces%;%nom%;;;;
-db:%acces%;%niveau%;%classe%;;;;;dbreq;%requete%;;
+db:%acces%;%niveau%;%classe%;;;;;dbreq;%requete%;%nom%;;;
 !========================= conversion ======================================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#to_sigli;;;;;;;;;;

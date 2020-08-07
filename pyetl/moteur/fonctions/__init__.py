@@ -108,7 +108,7 @@ class DefinitionAttribut(object):
             "schema",
         ),  # selection par type d'attribut
         "hasval:C": (r"^hasval:(.*)$", "A", "", "valeur hstore"),
-        "A.C": (r"^(" + asdef + ").(.*)$", "A", "", "sous element"),
+        "A.C": (r"^(" + asdef + ")\.(.*)$", "A", "", "sous element"),
         "M": (r"", "G", "M", "liste"),  # multiple (groupes de sortie)
         "S": (r"", "G", "S", "attribut"),  # simple
         "D": (r"", "G", "D", "attributs dynamiques"),  # dynamique

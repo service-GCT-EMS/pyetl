@@ -315,7 +315,7 @@ def h_dbrequest(regle):
         nom_fich = requete[2:]
         regle.fich = os.path.basename(os.path.splitext(nom_fich)[0])
         regle.grp = os.path.basename(os.path.dirname(nom_fich))
-        with open(requete[2:], "r") as fich:
+        with open(requete[2:], "r", encoding="utf-8-sig") as fich:
             requete = "".join(fich.readlines())
     maxi = regle.getvar("lire_maxi")
     if maxi and maxi != "0":
@@ -327,10 +327,19 @@ def h_dbrequest(regle):
             pass
     regle.requete = requete
     if regle.params.cmp2.val:
-        regle.ident = (regle.params.cmp2.val, regle.params.cmp2.definition[0])
+        regle.ident = (
+            (regle.params.cmp2.val, regle.params.cmp2.definition[0])
+            if regle.params.cmp2.definition
+            else ("tmp", regle.params.cmp2.val)
+        )
     else:
-        regle.ident = ("", "")
-    print("---------------------requete: ident sortie", regle.ident)
+        regle.ident = ("tmp", "tmp")
+    print(
+        "---------------------requete: ident sortie",
+        regle.ident,
+        regle.v_nommees.get("cmp2", ""),
+        regle.params.cmp2.val,
+    )
     regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
     valide = True
     return valide
@@ -345,6 +354,7 @@ def f_dbrequest(regle, obj):
             ||les variables %#base et %#attr sont egalement substituees
      #groupe||database
     #pattern||?A;?;?L;dbreq;C;?A.C
+    #pattern2||?A;?;?L;dbreq;C;?A
    #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
@@ -371,11 +381,11 @@ def f_dbrequest(regle, obj):
                 # print("execution requete", niveau, classe, requete)
 
                 retour = DB.lire_requete(
-                    regle, base, *regle.ident, requete=requete, parms=parms
+                    regle, base, ident, requete=requete, parms=parms
                 )
         else:
             retour = DB.lire_requete(
-                regle, base, *regle.ident, requete=requete_ref, parms=parms
+                regle, base, regle.ident, requete=requete_ref, parms=parms
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):

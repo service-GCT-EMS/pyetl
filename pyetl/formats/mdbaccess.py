@@ -295,8 +295,7 @@ def schema_from_curs(schema, curs, nomclasse):
 def sortie_resultats(
     regle_courante,
     curs,
-    niveau,
-    classe,
+    ident,
     connect,
     sortie,
     v_sortie,
@@ -309,7 +308,7 @@ def sortie_resultats(
     regle_debut = regle_courante.branchements.brch["gen"]
     stock_param = regle_courante.stock_param
     traite_objet = stock_param.moteur.traite_objet
-
+    niveau, classe = ident
     # print ('mdba:sortie_resultat ',type_geom,type(curs),niveau,classe)
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
@@ -478,15 +477,15 @@ def recup_schema(
     return (None, None, None, None)
 
 
-def lire_requete(
-    regle_courante, base, niveau, classe, attribut=None, requete="", parms=None
-):
+def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=None):
     """lecture directe"""
-    if classe is None:
-        return 0
-    ident = (niveau, classe)
 
-    print("requete", ident, "->", base, requete)
+    niveau, classe = ident
+    if not classe:
+        print("lire_requete: attention pas de classe de sortie -> retour")
+        return 0
+
+    # print("lire_requete", ident, "->", base, requete)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms
     sortie = attribut
@@ -517,7 +516,7 @@ def lire_requete(
             res = sortie_resultats(
                 regle_courante,
                 curs,
-                *ident,
+                ident,
                 connect,
                 sortie,
                 v_sortie,
@@ -568,7 +567,6 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
         treq = time.time()
         n += 1
         if ident is not None:
-            niveau, classe = ident2
             schema_classe_base = schema_base.get_classe(ident)
             #            print('mdba: ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
             # print("mdba: ", ident, ident2)
@@ -594,8 +592,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
                 res += sortie_resultats(
                     regle_courante,
                     curs,
-                    niveau,
-                    classe,
+                    ident2,
                     connect,
                     sortie,
                     val,
@@ -885,8 +882,7 @@ def recup_donnees_req_geo(
         res += sortie_resultats(
             regle_courante,
             curs,
-            niveau,
-            classe,
+            ident,
             connect,
             sortie,
             v_sortie,

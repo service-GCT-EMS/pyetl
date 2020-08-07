@@ -178,7 +178,7 @@ class CsvWriter(FileWriter):
         self.extension = extension
         self.nom = nom
         self.schema = schema
-
+        self.headerfonc = str
         self.entete = entete
         self.null = null
         self.classes = set()
@@ -212,11 +212,15 @@ class CsvWriter(FileWriter):
             #            raise
             return ""
         geom = (
-            self.separ + "geometrie" + "\n"
+            self.separ + self.headerfonc("geometrie") + "\n"
             if self.schema.info["type_geom"] != "0"
             else "\n"
         )
-        return "!" + self.separ.join(self.liste_att) + geom
+        return (
+            ("" if self.entete == "csv_f" else "!")
+            + self.separ.join([self.headerfonc(i) for i in self.liste_att])
+            + geom
+        )
 
     def prepare_attributs(self, obj):
         """ prepare la es attributs en fonction du format"""
@@ -617,6 +621,13 @@ def init_csv(writer):
     if separ == r"\;":
         separ = ";"
     initwriter(writer, ".csv", "csv", (";" if separ == "#std" else separ), "")
+    headerdef = writer.regle.getvar("csvheader")
+    if "no!" in headerdef:
+        writer.header = "csv_f"
+    if "up" in headerdef:
+        writer.headerfonc = str.upper
+    elif "low" in headerdef:
+        writer.headerfonc = str.lower
 
 
 def init_txt(writer):
