@@ -481,10 +481,12 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     """lecture directe"""
 
     niveau, classe = ident
+
     if not classe:
         print("lire_requete: attention pas de classe de sortie -> retour")
         return 0
-
+    if niveau is None:
+        ident = ("tmp", classe)
     # print("lire_requete", ident, "->", base, requete)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     v_sortie = parms

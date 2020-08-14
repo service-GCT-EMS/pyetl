@@ -373,7 +373,7 @@ def sel_hselv(selecteur, obj):
 
 def sel_hselvk(selecteur, obj):
     """#aide||selection sur une valeur d'un hstore
-    #pattern||H:A;A.C||10
+    #pattern||H:A;A:C||10
     #test||obj||^AA;;;hset||^?AA;;AA;hdel;V0||H:AA;V0:0;;;res;1;;set||atv;res;1
     #!test||rien||H:AA;V0:0;;;res;1;;set||rien
 

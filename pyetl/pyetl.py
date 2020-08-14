@@ -668,10 +668,11 @@ class Pyetl(object):
         mode=None,
     ):
         """ retourne une instance de pyetl sert pour les tests et le
-        fonctionnement en fcgi et en mode batch"""
+        fonctionnement en fcgi et en mode batch ou parallele"""
         #        print(" dans getpyetl",mode)
         if not regles:
             if mode is None:
+                print("getpyetl:mode non defini")
                 return None
 
         env = env if env is not None else self.env

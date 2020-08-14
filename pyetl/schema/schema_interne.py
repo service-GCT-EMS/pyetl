@@ -525,7 +525,7 @@ class Schema(object):
             # print("selection ", exp_niv, exp_clas)
             for i in self.classes:
                 if tables != "a" and self.classes[i].type_table not in tables:
-                    print("non retenu", tables, self.classes[i].type_table)
+                    # print("non retenu", tables, self.classes[i].type_table)
                     continue
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
                     if not attr or attr in self.classes[i].attributs:

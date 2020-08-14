@@ -114,6 +114,7 @@ def f_xmlsplit(regle, obj):
         obj.attributs[regle.params.att_entree.val] = ""
     for cadre in cadres:
         # print("traitement", cadre)
+        cadretags = dict(cadre.items())
         for elem in cadre.iter(regle.recherche):
             # obj2 = regle.reader.getobj(niveau=groupe, classe=classe)
             obj2 = obj.dupplique()
@@ -129,6 +130,7 @@ def f_xmlsplit(regle, obj):
             regle.setval_sortie(obj2, contenu)
             obj2.attributs["#xmltag"] = regle.recherche
             obj2.attributs["#xmlgroup"] = regle.cadre
+            obj2.attributs["#xmlgrouptags"] = cadretags
             # print("xmlsplit traitement", obj2)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             trouve = True

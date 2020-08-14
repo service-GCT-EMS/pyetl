@@ -219,7 +219,7 @@ def h_sortir(regle):
         regle.f_sortie = regle.stock_param.getwriter("#print", regle)
     else:
         regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
-    print("positionnement writer ", regle, regle.f_sortie)
+    # print("positionnement writer ", regle, regle.f_sortie)
     if regle.f_sortie.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
         destination = regle.f_sortie.writerparms.get("base_dest")

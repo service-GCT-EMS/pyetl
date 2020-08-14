@@ -545,6 +545,7 @@ def traite_regle_std(
         if bloc < 0:
             print("erreur structure de blocs", bloc, numero, texte)
             erreurs = 1
+            return 0, bloc
         position = len(regles)
         r_cour.bloc = bloc
         if regles:  # contextes dans le systeme de blocs
@@ -844,7 +845,7 @@ def lire_regles_csv(
             )
             if errs:
                 print("====erreur traite_regles_std")
-            erreurs += errs
+                erreurs += errs
     #            print('apres,regles std', defligne, errs)
 
     if bloc != 0:
@@ -854,5 +855,5 @@ def lire_regles_csv(
     if mapper.debug:
         print("niveau debug :", mapper.getvar("debug"))
         # on initialise les parametres pour finir #print 'parametres ', i
-    #    print('fin lecture regles',erreurs)
+    # print("fin lecture regles", erreurs)
     return erreurs

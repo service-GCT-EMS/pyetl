@@ -330,15 +330,16 @@ def h_dbrequest(regle):
         regle.ident = (
             (regle.params.cmp2.val, regle.params.cmp2.definition[0])
             if regle.params.cmp2.definition
-            else ("tmp", regle.params.cmp2.val)
+            else (None, regle.params.cmp2.val)
         )
     else:
-        regle.ident = ("tmp", "tmp")
+        regle.ident = None
     print(
         "---------------------requete: ident sortie",
         regle.ident,
         regle.v_nommees.get("cmp2", ""),
         regle.params.cmp2.val,
+        # regle.v_nommees,
     )
     regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
     valide = True
@@ -378,14 +379,25 @@ def f_dbrequest(regle, obj):
                 requete = requete_ref.replace("%#niveau", niveau)
                 requete = requete.replace("%#classe", classe)
                 requete = requete.replace("%#attr", att)
-                # print("execution requete", niveau, classe, requete)
-
+                if regle.ident is not None:
+                    ident = regle.ident
+                    if ident[0] is None:
+                        ident = (niveau, regle.ident)
+                # print("execution requete", niveau, classe, requete, "->", ident)
                 retour = DB.lire_requete(
-                    regle, base, ident, requete=requete, parms=parms
+                    regle,
+                    base,
+                    regle.ident if regle.ident is not None else ident,
+                    requete=requete,
+                    parms=parms,
                 )
         else:
             retour = DB.lire_requete(
-                regle, base, regle.ident, requete=requete_ref, parms=parms
+                regle,
+                base,
+                regle.ident if regle.ident is not None else ("tmp", "tmp"),
+                requete=requete_ref,
+                parms=parms,
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
@@ -413,7 +425,7 @@ def h_dbrunsql(regle):
 
 
 def f_dbrunsql(regle, obj):
-    """#aide||lancement d'un script sql
+    """#aide||lancement d'un script sql via un loader externe
   #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
      #groupe||database
     #pattern||;?C;?A;runsql;?C;?C
@@ -599,9 +611,7 @@ def f_dbcount(regle, obj):
     retour = 0
     for base, ident in selecteur.get_classses():
         niveau, classe = ident
-        LOGGER.debug(
-            "regles count:ligne  " + repr(regle) + repr(type_base) + repr(mods)
-        )
+        LOGGER.debug("regles count:ligne  " + repr(regle) + repr(base) + repr(mods))
 
         retour = DB.recup_count(
             regle,

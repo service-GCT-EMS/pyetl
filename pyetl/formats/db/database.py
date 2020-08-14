@@ -848,7 +848,7 @@ class DbConnect(object):
         return condition, data
 
     def req_count(self, ident, schema, attribut, valeur, mods):
-        """compte un enesemble de valeurs en base"""
+        """compte un ensemble de valeurs en base"""
 
         condition, data = self.prepare_condition(schema, attribut, valeur)
 

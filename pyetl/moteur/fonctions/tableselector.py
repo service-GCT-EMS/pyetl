@@ -477,7 +477,9 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     database = _extract(i, "dbname=")
                     host = _extract(i, "host=").lower()
                     port = _extract(i, "port=").lower()
-                    niveau, classe = table.split(".")
+                    niveau, classe = (
+                        table.split(".") if "." in table else ("tmp", table)
+                    )
                     niveau = niveau.replace('"', "")
                     classe = classe.replace('"', "")
                     base = (database, "host=" + host, "port=" + port)

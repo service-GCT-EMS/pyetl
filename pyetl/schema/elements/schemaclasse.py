@@ -273,7 +273,7 @@ class SchemaClasse(object):
 
     def setmulti(self):
         self.multigeom = True
-        raise
+        # raise
 
     def setsimple(self):
         self.multigeom = False
