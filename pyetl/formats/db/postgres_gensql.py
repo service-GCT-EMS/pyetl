@@ -1037,7 +1037,9 @@ class PgrGenSql(DbGenSql):
 
     def def_fonctions(self):
         """retourne les definitions de fonctions"""
-        entete, fonctions = self.schema.elements_specifiques["def_fonctions"]
+        entete, fonctions = self.schema.elements_specifiques.get(
+            "def_fonctions", (None, dict())
+        )
         return fonctions
         # print("fonctions a creer ", fonctions)
 

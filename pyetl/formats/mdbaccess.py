@@ -542,10 +542,11 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     connect = baseselector.connect
     # print ('recup liste tables', liste_tables)
     if connect is None:
+        print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
         return 0
 
     schema_travail = baseselector.schema_travail
-    print("recup schema_travail ", schema_travail.nom)
+    # print("recup schema_travail ", schema_travail.nom)
 
     schema_base = connect.schemabase
     reqdict = dict()
@@ -560,17 +561,20 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     mods = regle_courante.params.cmp1.liste
     ordre = regle_courante.params.cmp2.liste
     sortie = regle_courante.params.att_sortie.liste
+    v_sortie = regle_courante.liste_sortie
     res = 0
-    print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
+    # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
+
+    print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         treq = time.time()
         n += 1
         if ident is not None:
             schema_classe_base = schema_base.get_classe(ident)
-            #            print('mdba: ', ident, schema_base.nom, schema_classe_base.info["type_geom"])
+            print("mdba:recup_donnees_req_alpha ", ident, schema_base.nom)
             # print("mdba: ", ident, ident2)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info[
@@ -597,7 +601,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
                     ident2,
                     connect,
                     sortie,
-                    val,
+                    v_sortie,
                     schema_classe_base.info["type_geom"],
                     schema_classe_travail,
                     treq=treq,

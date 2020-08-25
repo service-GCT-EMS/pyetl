@@ -67,7 +67,12 @@ def param_base(regle, nom=""):
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
-    print("param_base", nom, base, niv, cla, att, vals)
+    mods = regle.params.cmp1.val
+    if mods:
+        regle.setlocal("mod", mods)
+    fonction = "=" if "=" in mods else ""
+
+    print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)
@@ -88,11 +93,13 @@ def param_base(regle, nom=""):
                         b = base
                     else:
                         b, n, c = niveau.split(".")
-                    selecteur.add_descripteur(b, n, c, att, vals)
+                    selecteur.add_descripteur(b, n, c, att, vals, fonction)
                 else:
-                    selecteur.add_descripteur(base, niveau, classes, att, vals)
+                    selecteur.add_descripteur(
+                        base, niveau, classes, att, vals, fonction
+                    )
         else:
-            selecteur.add_descripteur(base, niveau, classes, att, vals)
+            selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
 
     regle.cible_base = selecteur
 
@@ -192,12 +199,13 @@ def f_dbalpha(regle, obj):
         return True
     mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
-    # print("regles alpha: acces base apres ", basedict)
+    print("dbalpha: acces base ", selecteur)
     retour = 0
     # print("dbalpha", basedict.keys())
     # selecteur.resolve(regle, obj)
+    regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
-        print("lecture base", base, basesel.base, basesel.map_prefix)
+        # print("lecture base", base, basesel.base, basesel.map_prefix)
         # for ident, description in basesel.classlist():
         # ident, att_base, valeur, fonction = description
         # niveau, classe = ident
@@ -493,12 +501,12 @@ def f_dbextload(regle, obj):
     #pattern||;?C;?A;dbextload;C;;
     #req_test||testdb
     """
-    for base in regle.cible_base:
-        datas = regle.getval_entree(obj)
-        #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
-        fichs = sorted(glob.glob(datas))
-        retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
-        print("retour chargement:", retour)
+    base = regle.cible_base.base
+    datas = regle.getval_entree(obj)
+    #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
+    fichs = sorted(glob.glob(datas))
+    retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
+    print("retour chargement:", retour)
 
 
 #    for nom in fichs:

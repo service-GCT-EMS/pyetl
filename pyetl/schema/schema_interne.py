@@ -75,11 +75,11 @@ def init_schema(
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
     """ determine si une table est a retenir """
     if nocase:
-        print("choix_multi", schemaclasse.identclasse)
-        print(
-            bool(ren.search(schemaclasse.groupe.lower())),
-            bool(rec.search(schemaclasse.nom.lower())),
-        )
+        # print("choix_multi", schemaclasse.identclasse)
+        # print(
+        #     bool(ren.search(schemaclasse.groupe.lower())),
+        #     bool(rec.search(schemaclasse.nom.lower())),
+        # )
         return (
             bool(ren.search(schemaclasse.groupe.lower())) != negniv
             and bool(rec.search(schemaclasse.nom.lower())) != negclass
@@ -396,7 +396,7 @@ class Schema(object):
                 "attention mapping destination impossible",
                 self.nom,
                 id_orig,
-                id_orig in self.classes,
+                self.classes,
             )
             return id_orig
         return id2
@@ -484,7 +484,7 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        # print("select_niv_classes", niveau, classe, attr, tables, multi)
+        print("select_niv_classes", niveau, classe, attr, tables, multi)
 
         # if niveau is None or classe is None:
         #     return []

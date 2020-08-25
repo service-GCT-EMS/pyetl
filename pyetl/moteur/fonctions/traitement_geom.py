@@ -819,12 +819,12 @@ def h_reproj(regle):
     """ initialise la reprojection """
     srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93": "2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
-    # print('reproj srid sortie', regle.srid)
+    print("reproj srid sortie", regle.srid)
     regle.projection = P.init_proj(
         regle.params.val_entree.val, regle.params.cmp1.val, regle.params.cmp2.val
     )
     if not regle.projection:
-        print(" erreur projection ")
+        print("============================ erreur projection ")
         regle.erreurs.append(
             "projection introuvable %s->%s (%s)"
             % (regle.params.val_entree, regle.params.cmp1, regle.params.cmp2)

@@ -47,6 +47,7 @@ class TableBaseSelector(object):
         # si vrai une liste de classes direct est fournie
         # dans ce cas le selecteur ne gere que la liste de classes et pas le schema
         self.schemaref = schemaref
+        self.schemabase = None
         self.valide = bool(base or schemaref)
         self.map_prefix = map_prefix
         self.reg_prefix(map_prefix)
@@ -121,8 +122,8 @@ class TableBaseSelector(object):
         # )
         # raise
         if not self.nobase:
+            print("connection ", self.nombase)
             if self.nombase != "__filedb":
-                print("connection ", self.nombase)
                 self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
                 self.schemabase = self.connect.schemabase
                 prefix = self.connect.prefix
@@ -155,7 +156,7 @@ class TableBaseSelector(object):
 
     def add_classlist(self, niveau, classe, attr, valeur, fonction, mod, nobase=False):
         """transformation effective d un descripteur en liste de classes"""
-        multi = not ("=" in mod)
+        multi = not ("=" in mod) and not "=" in fonction
         mod = mod.replace("=", "")
         nocase = "NOCASE" in mod
         mod = mod.replace("NOCASE", "")
@@ -209,31 +210,32 @@ class TableBaseSelector(object):
         """transformation de descripteurs dynamiques en liste de classes
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
         mod = self.regle_ref.getvar("mod")
+        print("resolve:regleref mod", mod)
         mod = mod.upper()
         if obj is None and self.dyndescr:
             print("elements dynamiques", self.dyndescr)
             return False
         self.dynlist = dict()
+        if self.dyndescr:
+            print("resolution descripteur dynamique", self.dyndescr)
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
+            print("descripteur dynamique", niveau, classes, attr, valeur, fonction)
             if attr.startswith("["):
                 attr = obj.attributs.get(attr[1:-1])
             if niveau.startswith("["):
                 niveau = obj.attributs.get(niveau[1:-1])
-                for classe in classes:
-                    if classe.startswith("["):
-                        classe = obj.attributs.get(classe[1:-1])
-                    valeur = obj.attributs.get(*valeur)
-                    self.dynlist.update(
-                        self.add_classlist(
-                            niveau,
-                            classe,
-                            attr,
-                            valeur,
-                            fonction,
-                            mod,
-                            nobase=self.nobase,
-                        )
+            for classe in classes:
+                print("dyn: traitement classe", classe)
+                if classe.startswith("["):
+                    classe = obj.attributs.get(classe[1:-1])
+                valeur = obj.attributs.get(*valeur)
+                print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
+                self.dynlist.update(
+                    self.add_classlist(
+                        niveau, classe, attr, valeur, fonction, mod, nobase=self.nobase
                     )
+                )
+        print("dynlist:", self.dynlist)
         return True
 
     def classlist(self):
@@ -287,7 +289,7 @@ class TableSelector(object):
     def __init__(self, regle, base=None):
         self.regle_ref = regle
         self.mapper = regle.stock_param
-        self.autobase = base == "*"
+        self.autobase = (base == "*") or (regle.getvar("autobase") == "1")
         self.base = base if base != "*" else ""
         self.schema_travail = None
         self.defaultbase = "*"
@@ -311,6 +313,7 @@ class TableSelector(object):
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
         if not base:
+            return
             base = "__filedb"
         self.add_descripteur(base, niveau, [classe], attribut, valeur, fonction)
 
@@ -335,6 +338,8 @@ class TableSelector(object):
         else:
             base = self.base
         if not base:
+            print(" pas de base", descripteur)
+            return
             base = "__filedb"
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self.regle_ref, base, "")
@@ -467,10 +472,11 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
 
 def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
     """prechargement d un fichier projet qgis"""
+    # selecteur.autobase = True
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
-            # print("select projet qgs", fichier)
+            print("----------------select projet qgs", fichier)
             for i in fich:
                 if "datasource" in i:
                     table = _extract(i, "table=")
@@ -483,11 +489,12 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     niveau = niveau.replace('"', "")
                     classe = classe.replace('"', "")
                     base = (database, "host=" + host, "port=" + port)
-                    selecteur.add_descripteur(base, niveau, [classe])
-                    # print("descripteur", base, niveau, [classe])
+                    if database:
+                        selecteur.add_descripteur(base, niveau, [classe], fonction="=")
+                    print("descripteur", base, niveau, [classe])
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
-    # print ('lus fichier qgis ',fichier,list(stock))
+    print("lus fichier qgis ", fichier, selecteur)
     return True
 
 
@@ -515,37 +522,40 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                     host = inithost.lower()
                     initport = _extract(i, "port=")
                     port = initport.lower()
-                    niveau, classe = table.split(".")
+                    niveau, classe = (
+                        table.split(".") if "." in table else ("tmp", table)
+                    )
                     ident = (niveau, classe)
-                    base = (database, "host=" + host, "port=" + port)
-                    idbase = selecteur.idbase(base)
-                    tablemap = (niveau, classe)
-                    if idbase in selecteur.baseselectors:
-                        baseselector = selecteur.baseselectors[idbase]
-                        if selecteur.nobase:
-                            tablemap = baseselector.mapping.get(ident)
-                            # print("baseselector.mapping", baseselector.mapping)
-                        else:
-                            tmp = baseselector.schema_travail.mapping(ident)
-                            # print("baseselector.schemamapping", ident, tmp)
-                            if tmp:
-                                tablemap = tmp[1]
-                    # print(
-                    #     "adaptation qgs", base, ident, table, "->", destbase, tablemap
-                    # )
-                    oldtable = '"' + niveau + '"."' + classe + '"'
-                    olddbdef = (
-                        "dbname='"
-                        + database
-                        + "' host="
-                        + inithost
-                        + " port="
-                        + initport
-                    )
-                    i = i.replace(
-                        oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
-                    )
-                    i = i.replace(olddbdef, destbase)
+                    if database:
+                        base = (database, "host=" + host, "port=" + port)
+                        idbase = selecteur.idbase(base)
+                        tablemap = (niveau, classe)
+                        if idbase in selecteur.baseselectors:
+                            baseselector = selecteur.baseselectors[idbase]
+                            if selecteur.nobase:
+                                tablemap = baseselector.mapping.get(ident)
+                                # print("baseselector.mapping", baseselector.mapping)
+                            else:
+                                tmp = baseselector.schema_travail.mapping(ident)
+                                # print("baseselector.schemamapping", ident, tmp)
+                                if tmp:
+                                    tablemap = tmp[1]
+                        # print(
+                        #     "adaptation qgs", base, ident, table, "->", destbase, tablemap
+                        # )
+                        oldtable = '"' + niveau + '"."' + classe + '"'
+                        olddbdef = (
+                            "dbname='"
+                            + database
+                            + "' host="
+                            + inithost
+                            + " port="
+                            + initport
+                        )
+                        i = i.replace(
+                            oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
+                        )
+                        i = i.replace(olddbdef, destbase)
                     # print("datasource=>", i)
 
                 sortie.write(i)
@@ -616,7 +626,12 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                 else:
                     valeur = ("", valeur)
                 for niv in niveau.split(","):
-                    selecteur.add_descripteur(base, niveau, classe, attribut, valeur)
+                    fonction = "="
+                    if "*" in niveau or "*" in classe:
+                        fonction = ""
+                    selecteur.add_descripteur(
+                        base, niveau, classe, attribut, valeur, fonction
+                    )
     except FileNotFoundError:
         print("fichier liste introuvable ", fichier)
     # print("prechargement selecteur csv", selecteur)

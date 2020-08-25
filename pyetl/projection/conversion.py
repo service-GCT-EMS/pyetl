@@ -9,7 +9,7 @@ def init_proj(entree, sortie, repgrilles=None):
     """initialise la projection
     systemes disponibles : L1,L2,CC48,CC49,LL"""
     sens = 0
-    connus = ["L1", "L2", "CC48", "CC49", "LL","L93"]
+    connus = ["L1", "L2", "CC48", "CC49", "LL", "L93"]
     if entree not in connus or sortie not in connus:
         print("conversion non implementee ", entree, "->", sortie)
         return None
@@ -24,7 +24,7 @@ def init_proj(entree, sortie, repgrilles=None):
         repgrilles = os.path.join(os.path.dirname(__file__), "grilles")
     proj = TC.Projection(repgrilles, "grilles.lst", entree, sortie, sens)
     if proj.valide:
-        #        print('initialisation projection', proj.description)
+        print("=======================initialisation projection", proj.description)
         return proj
     return None
 
@@ -49,4 +49,6 @@ def projette_obj(proj, obj, sortie="None"):
             grilles[grille] = grilles.get(grille, 0) + 1
         if sortie:
             print("liste de grilles ", grilles)
-            obj.attributs[sortie] = ",".join([i + ":" + str(grilles[i]) for i in grilles])
+            obj.attributs[sortie] = ",".join(
+                [i + ":" + str(grilles[i]) for i in grilles]
+            )
