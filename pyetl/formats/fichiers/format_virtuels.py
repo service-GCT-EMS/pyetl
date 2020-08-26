@@ -6,6 +6,7 @@ Created on Fri Mar  1 12:41:26 2019
 sorties fictives
 """
 from collections import namedtuple
+import os
 
 
 def ecrire_objets_neant(self, regle, *_, **__):
@@ -161,6 +162,18 @@ def ecrire_objets_int(self, regle, *_, **__):
     return nb_obj, nb_fich
 
 
+def filelist_to_obj(reader, rep, chemin, fichier, entete=None, separ=None):
+    """lit des objets a partir d'un fichier csv"""
+    reader.prepare_lecture_fichier(rep, chemin, fichier, classe="filelist")
+    obj = reader.getobj()
+    if obj is None:
+        return  # filtrage entree
+    obj.attributs["#type_geom"] = "0"
+    obj.attributs["#nom_complet"] = os.path.join(rep, chemin, fichier)
+    reader.process(obj)
+    return
+
+
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "#poubelle": (
@@ -202,4 +215,7 @@ WRITERS = {
     ),
 }
 #                  reader,geom,hasschema,auxfiles
-READERS = {"interne": (None, None, False, (), None, None)}
+READERS = {
+    "interne": (None, None, False, (), None, None),
+    "#dir": (filelist_to_obj, False, True, (), None, None),
+}

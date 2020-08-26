@@ -61,6 +61,7 @@ def setajout(regle, liste):
     # print("setajout", regle.params.att_sortie.liste, regle.changeclasse, regle)
     if not regle.action_schema and not all(i.startswith("#") for i in liste):
         regle.action_schema = fschema_ajout_attribut
+        # print("-----regle.action_schema", liste, regle.action_schema)
 
 
 def sh_simple(regle):
@@ -140,7 +141,10 @@ def s_liste(sortie, obj, valeur):
         #pattern||L||M
         #shelper||liste
     """
-    obj.attributs.update(zip(sortie.liste, valeur))
+    if isinstance(valeur, dict):
+        obj.attributs.update([(i, valeur.get(i)) for i in sortie.liste])
+    else:
+        obj.attributs.update(zip(sortie.liste, valeur))
 
 
 def s_simple_pre(sortie, obj, valeur):
@@ -360,7 +364,7 @@ def fschema_ajout_att_from_obj(regle, obj):
 
 def fschema_ajout_attribut(regle, obj, typedefaut="T"):
     """ajoute un attribut au schema"""
-    # print ("ajout attribut", regle,regle.params.def_sortie,obj.schema.regles_modif)
+    # print("ajout attribut", regle, regle.params.def_sortie, obj.schema.regles_modif)
     if obj.schema.amodifier(regle):
         #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
         fschema_ajout_attribut_d(regle, obj)

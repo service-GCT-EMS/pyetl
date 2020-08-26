@@ -35,7 +35,7 @@ def getcadre(regle, obj):
             tree = ET.fromstring(regle.getval_entree(obj))
         except ParseError as err:
             print("erreur xml mal formé", err, regle.getval_entree(obj))
-            LOGGER.error("erreur xml mal formé", err)
+            LOGGER.error("erreur xml mal formé" + repr(err))
             return None, ()
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
     return tree, cadres
@@ -94,7 +94,8 @@ def f_xmlsplit(regle, obj):
    #pattern1||S;;A;xmlsplit;C;?C||sortie
    #pattern2||H;;A;xmlsplit;C;?C||sortie
    #pattern3||D;;A;xmlsplit;C;?C||sortie
-   #pattern4||S;;A;xmlsplit;A.C;?C||sortie
+   #pattern4||M;;A;xmlsplit;C;?C||sortie
+   #pattern5||S;;A;xmlsplit;A.C;?C||sortie
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
      #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
@@ -121,16 +122,18 @@ def f_xmlsplit(regle, obj):
             obj2.virtuel = False
             if regle.params.pattern == "1":
                 contenu = ET.tostring(elem)
-            elif regle.params.pattern in "23":
+            elif regle.params.pattern in "234":
                 contenu = dict(elem.items())
             elif regle.item:
                 contenu = elem.get(regle.item, "")
             else:
                 contenu = ""
             regle.setval_sortie(obj2, contenu)
+            regle.action_schema(regle, obj2)
             obj2.attributs["#xmltag"] = regle.recherche
             obj2.attributs["#xmlgroup"] = regle.cadre
-            obj2.attributs["#xmlgrouptags"] = cadretags
+            obj2.sethtext(nom="#xmlgrouptags", dic=cadretags, upd=False)
+            # obj2.attributs["#xmlgrouptags"] = cadretags
             # print("xmlsplit traitement", obj2)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             trouve = True

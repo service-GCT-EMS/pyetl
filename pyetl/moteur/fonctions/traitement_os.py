@@ -428,7 +428,7 @@ def h_listefich(regle):
 
 
 def f_listefich(regle, obj):
-    """#aide genere un objet par fichier repondant aux criteres d'entree
+    """#aide||genere un objet par fichier repondant aux criteres d'entree
     #pattern1||S;?C;A;listefich;?C;?C
     #pattern2||S;?C;;listefich;?C;?C
     #parametres1||attribut de sortie;defaut;selecteur de fichiers;;repertoire;extension;

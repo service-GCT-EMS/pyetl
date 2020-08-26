@@ -569,7 +569,6 @@ class Objet(object):
             self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
-
             if hstore:
                 vlist = hstore[1:-1].split('", "')
                 hddef = (i.replace(r"\"", '"').split('" => "', 1) for i in vlist)

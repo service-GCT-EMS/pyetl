@@ -259,7 +259,7 @@ class Reader(object):
         self.separ = get_read_separ(regle, self.nom_format)
         self.fichier = ""
 
-    def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True):
+    def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True, classe=None):
         """prepare les parametres de lecture"""
         regle = self.regle_ref
         self.chemin = chemin
@@ -281,7 +281,8 @@ class Reader(object):
             # les objets ont un schema issu du fichier (le format a un schema)
             self.nomschema = os.path.basename(rep) if rep and rep != "." else "schema"
         # self.aff.send(("initfich", 0, 0))
-        classe, regle.ext = os.path.splitext(fichier)
+        regle.ext = ext
+        classe = fich if classe is None else classe
         self.fichier = os.path.join(rep, chemin, fichier)
         if open(self.fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
             self.encoding = "utf-8-sig"
