@@ -8,7 +8,7 @@ fonctions de structurelles diverses
 import os
 import re
 import logging
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 try:
     import psutil
@@ -683,4 +683,52 @@ def f_loadconfig(regle, obj):
   #aide_spec||repertoire des parametres et des macros
     #pattern||;;;loadconfig;C;C
     """
+    return True
+
+
+def sortir_objets(regle):
+    """sort les objets"""
+    for obj in regle.objets.values():
+        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+    regle.nbstock = 0
+
+
+def h_objgroup(regle):
+    """regle stockante pour les objets crees"""
+    regle.store = True
+    regle.objets = OrderedDict()
+    regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
+    regle.nbstock = 0
+    regle.traite_stock = sortir_objets
+
+
+def f_objgroup(regle, obj):
+    """#aide||accumule des attributs en un tableau
+    #pattern||L;?C;L;objgroup;C;?L;
+    """
+    clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
+    # print("regroupement", regle.params.cmp2.liste, "->", clef)
+    if clef in regle.objets:
+        obj2 = regle.objets.get(clef)
+    else:
+        # on cree un objet
+        obj2 = obj.dupplique()
+        ident = obj.ident
+        ident2 = (ident[0], regle.params.cmp1.val)
+        obj2.setidentobj(ident2)
+        # on supprime les attributs non communs
+        for i in list(obj2.attributs.keys()):
+            if i.startswith("#") or i in regle.attlist:
+                continue
+            del obj2.attributs[i]
+        # on cree les attributs d accumulation
+        for i in regle.params.att_sortie.liste:
+            obj2.attributs[i] = []
+        # la premiere fois on ajuste le schema
+        if regle.nbstock == 0:
+            obj2.ajuste_schema()
+        regle.objets[clef] = obj2
+        regle.nbstock += 1
+    for i, j in zip(regle.params.att_sortie.liste, regle.params.att_entree.liste):
+        obj2.attributs[i].append(obj.attributs.get(j, regle.params.val_entree.val))
     return True

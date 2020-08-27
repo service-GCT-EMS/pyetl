@@ -522,6 +522,12 @@ class Objet(object):
         else:
             self.setschema(schema.setdefault_classe(self.ident))
 
+    def ajuste_schema(self):
+        """ ajuste le schema de l'objet a la liste d attributs """
+        agarder = [i for i in self.attributs if not i.startswith("#")]
+        if self.schema:
+            self.schema.garder_attributs(agarder)
+
     def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""
         return self.attributs[nom] if nom in self.attributs else defaut
