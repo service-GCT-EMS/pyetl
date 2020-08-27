@@ -43,6 +43,7 @@ class XmlWriter(FileWriter):
         if template:
             self.readtemplate(template)
         self.classes = set()
+        self.blocs = []
 
         self.encoding = encoding
         self.curtemp = None
@@ -75,12 +76,12 @@ class XmlWriter(FileWriter):
                             continue
                     args = i.split(";") + ["", ""]
 
-                    if i.statrswith("xmltemplate"):
+                    if i.startswith("xmltemplate"):
                         while blocs:  # on ferme les blocs
                             self.templates[classe].append("</" + blocs.pop() + ">")
 
                         classe = args[1] if args[1] else "#generique"
-                        self.template[classe] = []
+                        self.templates[classe] = []
                         niveau_courant = 0
                         continue
                     liste = i[:-1].split(";")
@@ -96,7 +97,7 @@ class XmlWriter(FileWriter):
                             niveau_courant = niveau
                             if liste[niveau + 1] == "":
                                 self.blocs.append(element)
-                                self.template[classe].append("<" + element + ">\n")
+                                self.templates[classe].append("<" + element + ">\n")
                                 continue
                             self.templates[classe].append("<" + element + " ")
                             key = True
@@ -147,7 +148,7 @@ class XmlWriter(FileWriter):
         if obj.initgeom():
             if self.type_geom:
                 geom = ecrire_geom_xml(
-                    self.tempates, obj.geom_v, self.type_geom, self.multi, obj.erreurs
+                    self.templates, obj.geom_v, self.type_geom, self.multi, obj.erreurs
                 )
         else:
             print(
@@ -373,6 +374,7 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
             # print ('detecte parent',elem.tag)
             attributs = dict()
             hdict = dict()
+            conf = None
             for tag, conf in config.items():
                 # groupe,classe,select,vselect,config_att = conf
                 # print ('recherche', tag)

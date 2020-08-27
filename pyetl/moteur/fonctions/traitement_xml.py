@@ -12,6 +12,7 @@ import time
 import re
 from xml.etree.ElementTree import ParseError
 import xml.etree.cElementTree as ET
+from jinja2 import FileSystemLoader, Environment
 
 LOGGER = logging.getLogger("pyetl")
 
@@ -240,7 +241,7 @@ def h_xmlsave(regle):
 def f_xmlsave(regle, obj):
     """#aide||stockage dans un fichier d un xml contenu dans un attribut
    #pattern1||A;?C;A;xml_save;?C;;
-#parametres1||nom fichier;;attribut contenant le xml;;nom du rep
+#parametres1||nom fichier;;attribut contenant le xml;;nom du repertoire
     """
     writeback(regle, obj, None, regle.params.att_entree.val, changed=False)
     sortie = obj.attributs.get(regle.params.att_sortie.val)
@@ -254,4 +255,45 @@ def f_xmlsave(regle, obj):
     except (FileNotFoundError, PermissionError):
         print("ecriture impossible", sortie)
         return False
+    return True
+
+
+def h_formated_save(regle):
+    templatedef = regle.params.cmp1.val
+    if os.path.isdir(templatedef):
+        templatedir = templatedef
+        templatename = ""
+    else:
+        templatedir = os.path.dirname(regle.params.cmp1.val)
+        templatename = os.path.basename(regle.params.cmp1.val)
+    loader = FileSystemLoader(templatedir)
+    variables = regle.context.getvars()
+    envir = Environment(loader=loader)
+    envir.globals.update(variables)
+    regle.envir = envir
+    regle.templates = dict()
+    regle.templatename = templatename
+    if templatename:
+        regle.templates[templatename] = envir.get_template(templatename)
+
+
+def f_formated_save(regle, obj):
+    """#aide||stockage de l objet dans un fichier en utilisant un template jinja2
+   #pattern1||A;;;formated_save;C;?C;
+   #pattern2||A;C?;A;formated_save;C;?C;
+#parametres1||nom fichier;;nom du template;nom du repertoire de sortie
+#parametres2||nom fichier;defaut;attribut nom du template;;nom du repertoire de template;nom du repertoire de sortie
+    """
+    templatename = (
+        regle.getval_entree(obj) if regle.params.pattern == "2" else regle.templatename
+    )
+    if templatename not in regle.templates:
+        regle.templates[templatename] = regle.envir.get_template(templatename)
+    template = regle.templates[templatename]
+    sortie = template.render(obj.attributs)
+    dest = os.path.join(
+        regle.params.cmp2.val, obj.attributs.get(regle.params.att_sortie.val)
+    )
+    with open(dest, "w", encoding="utf-8") as fich:
+        fich.write(sortie)
     return True
