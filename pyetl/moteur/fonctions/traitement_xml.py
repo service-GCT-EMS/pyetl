@@ -58,9 +58,9 @@ def writeback(regle, obj, tree, nomxml, changed=False):
 def f_xmlextract(regle, obj):
     """#aide||extraction de valeurs d un xml
   #aide_spec||retourne le premier element trouve
-   #pattern1||H;;A;xmlextract;C;?C||sortie
-   #pattern2||D;;A;xmlextract;C;?C||sortie
-   #pattern3||S;;A;xmlextract;A.C;?C||sortie
+   #pattern1||H;?C;A;xmlextract;C;?C||sortie
+   #pattern2||D;?C;A;xmlextract;C;?C||sortie
+   #pattern3||S;?C;A;xmlextract;A.C;?C||sortie
 #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
       #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
       #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
@@ -258,14 +258,14 @@ def f_xmlsave(regle, obj):
     return True
 
 
-def h_formated_save(regle):
-    templatedef = regle.params.cmp1.val
+def load_templates(regle, templatedef):
+    """precharge les templates"""
     if os.path.isdir(templatedef):
         templatedir = templatedef
         templatename = ""
     else:
-        templatedir = os.path.dirname(regle.params.cmp1.val)
-        templatename = os.path.basename(regle.params.cmp1.val)
+        templatedir = os.path.dirname(templatedef)
+        templatename = os.path.basename(templatedef)
     loader = FileSystemLoader(templatedir)
     variables = regle.context.getvars()
     envir = Environment(loader=loader)
@@ -275,6 +275,15 @@ def h_formated_save(regle):
     regle.templatename = templatename
     if templatename:
         regle.templates[templatename] = envir.get_template(templatename)
+
+
+def h_formated_save(regle):
+    """precharge les templates"""
+    templatedef = regle.params.cmp1.val
+    load_templates(regle, templatedef)
+    destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp2.val)
+    os.makedirs(destdir, exist_ok=True)
+    regle.destdir = destdir
 
 
 def f_formated_save(regle, obj):
@@ -291,9 +300,14 @@ def f_formated_save(regle, obj):
         regle.templates[templatename] = regle.envir.get_template(templatename)
     template = regle.templates[templatename]
     sortie = template.render(obj.attributs)
-    dest = os.path.join(
-        regle.params.cmp2.val, obj.attributs.get(regle.params.att_sortie.val)
-    )
+    # print("xml en sortie", sortie)
+    destname = obj.attributs.get(regle.params.att_sortie.val)
+    subdir = os.path.dirname(destname)
+    if subdir:
+        destdir = os.path.join(regle.destdir, subdir)
+        os.makedirs(destdir, exist_ok=True)
+    dest = os.path.join(regle.destdir, destname)
+    # print("ecriture sortie xml", dest)
     with open(dest, "w", encoding="utf-8") as fich:
         fich.write(sortie)
     return True

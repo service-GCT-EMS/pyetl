@@ -698,9 +698,10 @@ def h_objgroup(regle):
     regle.store = True
     regle.objets = OrderedDict()
     regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
-    if regle.params.pattern == "2":
+    if len(regle.params.att_sortie.liste)==1 and len(regle.params.att_entree.liste)>1:
+        regle.params.pattern="2"
         regle.record = namedtuple(
-            regle.params.att_sortie, regle.params.att_entree.liste
+            regle.params.att_sortie.val, regle.params.att_entree.liste
         )
     regle.nbstock = 0
     regle.traite_stock = sortir_objets
@@ -711,7 +712,6 @@ def f_objgroup(regle, obj):
     #aide_spec1||cree un tableau par attribut autant de tableaux que de champs en entree
     #aide_spec2||cree un seul tableau contenant des enregistrements des champs
     #pattern1||L;?C;L;objgroup;C;?L;
-    #pattern2||A;?C;L;objgroup;C;?L;
     """
     clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
     # print("regroupement", regle.params.cmp2.liste, "->", clef)
@@ -741,6 +741,6 @@ def f_objgroup(regle, obj):
             obj2.attributs[i].append(obj.attributs.get(j, regle.params.val_entree.val))
     elif regle.params.pattern == "2":
         obj2.attributs[regle.params.att_sortie.val].append(
-            regle.record(obj.attributs.get(i) for i in regle.params.att_entree.liste)
+            regle.record._make(obj.attributs.get(i) for i in regle.params.att_entree.liste)
         )
     return True
