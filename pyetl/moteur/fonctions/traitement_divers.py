@@ -710,8 +710,9 @@ def h_objgroup(regle):
 def f_objgroup(regle, obj):
     """#aide||accumule des attributs en un tableau
     #aide_spec1||cree un tableau par attribut autant de tableaux que de champs en entree
-    #aide_spec2||cree un seul tableau contenant des enregistrements des champs
+               ||si un seul attribut en sortie cree un tableau contenant des champs nommes
     #pattern1||L;?C;L;objgroup;C;?L;
+    #parametres1||attributs en sortie;defaut;attributs en entree;;nom de la classe en sortie;attributs de groupage
     """
     clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
     # print("regroupement", regle.params.cmp2.liste, "->", clef)

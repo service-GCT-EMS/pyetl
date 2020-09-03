@@ -1,0 +1,22 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+    <title>nom</title>
+    <table>
+    <thead>
+        <tr>
+            <td>propriete</td>
+            <td>Description</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, value in descriptif.items() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}

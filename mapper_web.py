@@ -12,6 +12,7 @@ from pyetl_webapp import app
 # print ('mapper: fin import modules',int(time.time()-t1))
 # import cProfile as profile
 # ---------------debut programme ---------------
+# lancement flask run mapper_web
 
 if __name__ == "__main__":
     # execute only if run as a script

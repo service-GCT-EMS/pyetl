@@ -2,11 +2,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    {% for item in liste %}
-    <tr>
-      <td>{{ item|tojson|safe }}</td>
-    </tr>
-{% endfor %}
+    <table>
+    <thead>
+        <tr>
+            <td>Nom</td>
+            <td>Date Mise a Jour</td>
+            <td>Description</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in liste %}
+        <tr>
+            <td><a href=scriptdesc/{{ item.nom }}> {{ item.nom }}</a></td>
+            <td>{{ item.date_maj }}</td>
+            <td>{{ item.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
 
 {% endblock %}
