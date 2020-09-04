@@ -23,12 +23,17 @@ class ScriptList(object):
         self.liste = []
         self.descriptif = dict()
         liste = os.listdir(self.scriptdir)
+        nb=0
         for fichier in liste:
             fpath = os.path.join(self.scriptdir, fichier)
             statinfo = os.stat(fpath)
             modif = time.ctime(statinfo.st_mtime)
             desc = ""
             infos = dict()
+            if os.path.isdir(fpath):
+                self.liste.append(fichinfo._make((fichier, modif, 'repertoire')))
+                continue
+            nb+=1
             for ligne in open(fpath, "r").readlines():
                 if ligne.startswith("!#"):
                     tmp = ligne[2:].split(":", 1)
@@ -41,7 +46,7 @@ class ScriptList(object):
             self.liste.append(fichinfo._make((fichier, modif, desc)))
             self.descriptif[fichier] = infos
 
-        print("scripts analyses", infos)
+        print("scripts analyses", nb)
 
 
 scriptlist = ScriptList()
