@@ -5,9 +5,10 @@
       {% else %}
       <title>Mapper - Home</title>
       {% endif %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     </head>
     <body>
-        <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')}}">
+        <link rel="shortcut icon" href="{{url_for('static', filename='images/favicon.ico')}}">
         <div><a href="/index">Home</a></div>
         <div><a href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a></div>
         <div><a href="/scripts">traitements disponibles</a></div>

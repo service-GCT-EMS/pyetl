@@ -5,15 +5,25 @@
     <table>
     <thead>
         <tr>
-            <td>Nom</td>
-            <td>Date Mise a Jour</td>
+            <td>Nom/run</td>
+            <td>infos</td>
+            <td>code</td>
+            <td>Date de Mise a Jour</td>
             <td>Description</td>
         </tr>
     </thead>
     <tbody>
         {% for item in liste %}
         <tr>
-            <td><a href=scriptdesc/{{ item.nom }}> {{ item.nom }}</a></td>
+            <td><a href=exec/{{ item.nom }}> {{ item.nom }}</a></td>
+            <td>
+                <a href=scriptdesc/{{ item.nom }}>
+                <img src="{{url_for('static', filename='images/interrog.png')}}">
+                </a>
+            </td>
+            <td><a href=scriptview/{{ item.nom }}>
+            <img src="{{url_for('static', filename='images/eye.png')}}">
+            </a></td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>
