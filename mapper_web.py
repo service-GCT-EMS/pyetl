@@ -5,8 +5,7 @@ import time
 
 STARTTIME = time.time()
 import sys
-from pyetl.pyetl import runpyetl
-from pyetl.vglobales import VERSION
+
 from pyetl_webapp import app
 
 # print ('mapper: fin import modules',int(time.time()-t1))
@@ -16,4 +15,4 @@ from pyetl_webapp import app
 
 if __name__ == "__main__":
     # execute only if run as a script
-    app.run()
+    app.run(port=3000)

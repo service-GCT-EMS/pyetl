@@ -198,6 +198,7 @@ class Pyetl(object):
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         self.namedselectors = dict()
+        self.env = os.environ
         # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
@@ -1296,6 +1297,7 @@ class Pyetl(object):
 
 # on cree l'objet parent et l'executeur principal
 MAINMAPPER = Pyetl()
+MAINMAPPER.initpyetl("#init_mp", [])
 set_mainmapper(MAINMAPPER)
 
 

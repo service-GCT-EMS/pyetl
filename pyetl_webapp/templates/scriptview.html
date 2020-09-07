@@ -1,0 +1,34 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+    <title>nom</title>
+    <table>
+    <thead>
+        <tr>
+            <td>att_tri1</td>
+            <td>valeur_tri1</td>
+            <td>att_tri2</td>
+            <td>valeur_tri2</td>
+            <td>att_sortie</td>
+            <td>defaut</td>
+            <td>att_entree</td>
+            <td>mode</td>
+            <td>param1</td>
+            <td>param2</td>
+            <td>debug</td>
+            <td>variables</td>
+            <td>commentaires</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ligne in code %}
+            <tr>
+                {% for item in ligne %}
+                    <td>{{ item }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}
