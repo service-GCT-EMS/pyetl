@@ -8,3 +8,15 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
     remember_me = BooleanField("Remember Me")
     submit = SubmitField("Sign In")
+
+
+class basicform(flaskform):
+    entree = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    remember_me = BooleanField("Remember Me")
+    submit = SubmitField("Sign In")
+
+
+def formbuilder(description):
+    "construit un formulaire web a partir d'une description"
+    pass

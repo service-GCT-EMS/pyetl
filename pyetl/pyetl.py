@@ -22,7 +22,7 @@ import itertools
 
 # print('base',time.time()-t1)
 
-from .vglobales import VERSION, set_mainmapper, DEFCODEC
+from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 
 # print ('globales',time.time()-t1)
 from .formats.generic_io import Reader, Writer, READERS, WRITERS
@@ -118,28 +118,30 @@ def runpyetl(commandes, args):
     print(
         "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
     )
-    if MAINMAPPER.initpyetl(commandes, args, loginfo=loginfo):
-        MAINMAPPER.process()
+
+    mapper = getmainmapper().getpyetl(commandes, liste_params=args)
+    if mapper:
+        mapper.process()
     else:
         print("arret du traitement ")
         return
-    nb_total = MAINMAPPER.getvar("_st_lu_objs", 0)
-    nb_fichs = MAINMAPPER.getvar("_st_lu_fichs", 0)
+    nb_total = mapper.getvar("_st_lu_objs", 0)
+    nb_fichs = mapper.getvar("_st_lu_fichs", 0)
     if nb_total:
         print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
 
-    if MAINMAPPER.moteur:
-        print(MAINMAPPER.getvar("_st_obj_duppliques", 0), "objets dupliques")
-    n_ecrits = MAINMAPPER.getvar("_st_wr_objs", 0)
+    if mapper.moteur:
+        print(mapper.getvar("_st_obj_duppliques", 0), "objets dupliques")
+    n_ecrits = mapper.getvar("_st_wr_objs", 0)
     if n_ecrits:
         print(
             n_ecrits,
             "objets ecrits dans ",
-            MAINMAPPER.getvar("_st_wr_fichs", 0),
+            mapper.getvar("_st_wr_fichs", 0),
             "fichiers ",
         )
-    MAINMAPPER.signale_fin()
-    duree, _ = next(MAINMAPPER.maintimer)
+    mapper.signale_fin()
+    duree, _ = next(mapper.maintimer)
     duree += 0.001
     print(
         "fin traitement total :",
@@ -295,26 +297,28 @@ class Pyetl(object):
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
-            LOGGER.critical(
-                "erreur script "
-                + str(commandes)
-                + " "
-                + str(err)
-                + " worker:"
-                + str(self.worker)
-            )
-            result = False
-        LOGGER.info(
-            "::".join(
+            msg = " ".join(
                 (
-                    "====== demarrage == ",
-                    self.nompyetl,
-                    str(self.idpyetl),
+                    "erreur script",
                     repr(commandes),
-                    repr(args),
+                    str(err),
+                    "worker:",
+                    str(self.worker),
                 )
             )
+            LOGGER.critical(msg)
+            result = False
+        msg = "::".join(
+            (
+                "====== demarrage == ",
+                self.nompyetl,
+                str(self.idpyetl),
+                repr(commandes),
+                repr(args),
+            )
         )
+
+        LOGGER.info(msg)
         return result
 
     def init_environ(self, env):
@@ -470,7 +474,7 @@ class Pyetl(object):
 
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
-
+        print("dans prepare_module", regles, liste_params)
         if isinstance(regles, list):
             self.nompyetl = "pyetl"
             self.liste_regles = regles
@@ -1296,16 +1300,17 @@ class Pyetl(object):
 
 
 # on cree l'objet parent et l'executeur principal
-MAINMAPPER = Pyetl()
-MAINMAPPER.initpyetl("#init_mp", [])
-set_mainmapper(MAINMAPPER)
+mapper = Pyetl()
+mapper.initpyetl("#init_mp", [])
+set_mainmapper(mapper)
 
 
 def _main():
     """ mode autotest du module """
     print("autotest complet")
-    ppp = MAINMAPPER
-    if ppp.prepare_module("#autotest", []):
+    ppp = getmainmapper().getpyetl("#autotest", liste_params=[])
+    if ppp:
+        # if ppp.prepare_module("#autotest", []):
         ppp.process()
         print("fin procedure de test", next(ppp.maintimer))
     else:

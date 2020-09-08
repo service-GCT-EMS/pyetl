@@ -1,8 +1,14 @@
 table {
-    border-width: 1;
-    border-color: black;
-    }
-td {
-    border-width: 1;
-    border-color: black;
-    }
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table, th, td {
+    border: 1px solid black;
+  }
+  thead {
+    background-color: #4CAF50;
+    text-align: center;
+    color: white;
+    height:40px
+  }

@@ -10,19 +10,18 @@ import platform
 VERSION = "0.8.3p"
 # version de production
 # LOGGER = logging.getLogger('pyetl') # un logger
-MAINMAPPER = None
+MAINMAPPER = [None]
 
 
 def set_mainmapper(val):
     """positionnement du point d entree pou les traitements paralleles"""
-    global MAINMAPPER
     # print("positionnement de mainMapper", val)
-    MAINMAPPER = val
+    MAINMAPPER[0] = val
 
 
 def getmainmapper():
     """recup du point d entree pour les traitements paralleles"""
-    return MAINMAPPER
+    return MAINMAPPER[0]
 
 
 DEFCODEC = "utf-8"

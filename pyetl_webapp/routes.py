@@ -83,6 +83,14 @@ def scripts():
     return render_template("scriptlist.html", liste=sorted(scriptlist.liste))
 
 
+@app.route("/macros")
+def macros():
+    macrolist = sorted(
+        [fichinfo._make((i, "", "")) for i in scriptlist.mapper.getmacrolist()]
+    )
+    return render_template("scriptlist.html", liste=sorted(macrolist))
+
+
 @app.route("/refresh")
 def refresh():
     scriptlist.refresh()

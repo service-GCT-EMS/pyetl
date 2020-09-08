@@ -6,6 +6,7 @@
     <table>
     <thead>
         <tr>
+            <td>num</td>
             <td>att_tri1</td>
             <td>valeur_tri1</td>
             <td>att_tri2</td>
@@ -22,9 +23,11 @@
         </tr>
     </thead>
     <tbody>
-        {% for ligne in code %}
+        {% for n,span,ligne in code %}
             <tr>
-                {% for item in ligne %}
+                <td>{{ n }}</td>
+                <td colspan={{ span }}>{{ ligne[0] }}</td>
+                {% for item in ligne[1:] %}
                     <td>{{ item }}</td>
                 {% endfor %}
             </tr>

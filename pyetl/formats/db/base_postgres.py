@@ -185,21 +185,21 @@ class PgCursinfo(Cursinfo):
                 + tmprequete
                 + ") as x limit 0 "
             )
-
-            self.execute(req, self.data, newcursor=True)
-            # cursor = self.execute("select current_schemas('t')", newcursor=True)
-            # temp_schema = cursor.fetchall()[0][0][0]
-            # print("temp_schema", temp_schema)
-            inforeq = (
-                REQS["info_attributs"].replace("AND n.nspname !~~ 'pg_%'::text", "")
-                + " WHERE t4.nomtable='tmp__0001'"
-            )
-            cursor = self.execute(inforeq, newcursor=True)
-            retour = cursor.fetchall()
-            attlist = [self.connecteur.attdef(*i) for i in retour]
-            # on recupere la structure du schema temporaire
-            # print("retour requete", attlist)
-            self.execute("drop TABLE pg_temp.tmp__0001", newcursor=True)
+            attlist = None
+            if self.execute(req, self.data, newcursor=True, fail_silent=True):
+                # cursor = self.execute("select current_schemas('t')", newcursor=True)
+                # temp_schema = cursor.fetchall()[0][0][0]
+                # print("temp_schema", temp_schema)
+                inforeq = (
+                    REQS["info_attributs"].replace("AND n.nspname !~~ 'pg_%'::text", "")
+                    + " WHERE t4.nomtable='tmp__0001'"
+                )
+                cursor = self.execute(inforeq, newcursor=True)
+                retour = cursor.fetchall()
+                attlist = [self.connecteur.attdef(*i) for i in retour]
+                # on recupere la structure du schema temporaire
+                # print("retour requete", attlist)
+                self.execute("drop TABLE pg_temp.tmp__0001", newcursor=True)
             self.schema_req = attlist
         return self.schema_req
 

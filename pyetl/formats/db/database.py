@@ -102,7 +102,9 @@ class Cursinfo(object):
         if self.cursor:
             self.cursor.close()
 
-    def execute(self, requete, data=None, attlist=None, newcursor=False):
+    def execute(
+        self, requete, data=None, attlist=None, newcursor=False, fail_silent=False
+    ):
         """execute une requete"""
 
         # print("dans execute ", requete, data)
@@ -114,7 +116,8 @@ class Cursinfo(object):
                 else:
                     cursor.execute(requete)
             except Exception as err:
-                print("erreur requete", err, requete)
+                if not fail_silent:
+                    print("erreur requete", err, requete)
                 return None
             if not newcursor:
                 self.requete = requete
@@ -354,7 +357,7 @@ class DbConnect(object):
                 return self.request(req, None)
         except self.errs as err:
             print("------------------", type(self))
-            print("erreur requete ", nom, err)
+            print("erreur requete schema ", nom, err)
             raise
             if not fallback:
                 return self.schemarequest(nom, fallback=True)
@@ -464,6 +467,8 @@ class DbConnect(object):
 
     def cree_schema_classe(self, ident, attlist, schema=None):
         """cree un schema de classe a partir d une liste d attributs"""
+        if attlist is None:
+            return None
         schema = schema if schema is not None else self.schemabase
         if ident in schema.classes:
             return schema.classes[ident]
