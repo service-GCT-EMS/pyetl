@@ -10,7 +10,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Sign In")
 
 
-class basicform(flaskform):
+class basicform(FlaskForm):
     entree = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     remember_me = BooleanField("Remember Me")
@@ -19,4 +19,24 @@ class basicform(flaskform):
 
 def formbuilder(description):
     "construit un formulaire web a partir d'une description"
-    pass
+    fieldfunctions = {
+        "B": "BooleanField",
+        "DS": "DateField",
+        "D": "DateTimeField",
+        "N": "DecimalField",
+        "FF": "FileField",
+        "F": "FloatField",
+        "K": "HiddenField",
+        "E": "IntegerField",
+        "L": "Label",
+        "FFS": "MultipleFileField",
+        "P": "PasswordField",
+        "R": "RadioField",
+        "S": "SelectField",
+        "SS": "SelectMultipleField",
+        "T": "StringField",
+        "OK": "SubmitField",
+    }
+
+    class dynform(FlaskForm):
+        pass
