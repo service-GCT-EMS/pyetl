@@ -24,7 +24,11 @@ class ScriptList(object):
         self.descriptif = []
         self.refresh()
         self.mapper = getmainmapper()
-        print("initialisation mainmapper", self.mapper)
+        print(
+            "initialisation mainmapper",
+            self.mapper,
+            self.mapper.getvar("mode", "interactif"),
+        )
 
     def refresh(self, script=None):
         """rafraichit la liste de scripts"""

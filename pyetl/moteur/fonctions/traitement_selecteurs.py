@@ -41,7 +41,10 @@ def sel_attexiste_re(selecteur, obj):
 def selh_regex(selecteur):
     """ compile lesexpressions regulieres"""
     # print (" dans helper regex",selecteur.params.vals.val,re.compile(selecteur.params.vals.val))
-    selecteur.fselect = re.compile(selecteur.params.vals.val).search
+    try:
+        selecteur.fselect = re.compile(selecteur.params.vals.val).search
+    except re.error:
+        print("expression selecteur erronee", selecteur, selecteur.regle)
 
 
 def sel_egal(selecteur, obj):

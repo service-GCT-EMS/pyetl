@@ -381,7 +381,7 @@ class Context(object):
     SPLITTER_B = re.compile(r"(?<!\\)\|")  # reconnait les | non précédes d'un \
     SPLITTER_2P = re.compile(r"(?<!\\):")  # reconnait les : non précédes d'un \
 
-    def __init__(self, parent=None, ident="", type_c="C", env=None, root=False):
+    def __init__(self, parent=None, ident="", type_c="C", root=False):
         self.nom = type_c + ident
         self.ident = self.nom
         self.type_c = type_c
@@ -391,7 +391,6 @@ class Context(object):
         self.parent = parent
         self.ref = None
         self.root = self
-        self.env = env
         self.niveau = 0
         # gestion des hierarchies
         self.setparent(parent)
@@ -402,6 +401,10 @@ class Context(object):
 
     def __repr__(self):
         return self.ident + ("(" + self.ref.nom + ")" if self.ref else "")
+
+    def setenv(self, env):
+        "ajoute les variables d environnement au contexte courant"
+        self.search.append(env)
 
     def setref(self, context):
         """modifie l'enchainement des contextes"""
@@ -415,8 +418,6 @@ class Context(object):
             self.search.extend(parent.search)
             self.root = self.parent.root
             self.ref = parent if (ref or not parent.ref) else parent.ref
-            if self.env is None:
-                self.env = parent.env
 
     def getmacroenv(self, ident=""):
         """fournit un contexte ephemere lie au contexte de reference"""

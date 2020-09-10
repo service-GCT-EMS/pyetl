@@ -323,8 +323,16 @@ class Pyetl(object):
 
     def init_environ(self, env):
         """initialise les variables d'environnement et les macros"""
-        self.env = os.environ if env is None else env
-        self.context.env = self.env
+        if env is None:
+            if self.parent:
+                self.env = self.parent.env
+            else:
+                self.env = os.environ
+                self.context.env = self.env
+
+        else:
+            self.env = env
+            self.context.setenv(self.env)
         if not os.path.isdir(self.paramdir):
             try:
                 os.makedirs(self.paramdir)
@@ -474,7 +482,7 @@ class Pyetl(object):
 
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
-        print("dans prepare_module", regles, liste_params)
+        # print("dans prepare_module", regles, liste_params)
         if isinstance(regles, list):
             self.nompyetl = "pyetl"
             self.liste_regles = regles
@@ -1301,7 +1309,7 @@ class Pyetl(object):
 
 # on cree l'objet parent et l'executeur principal
 mapper = Pyetl()
-mapper.initpyetl("#init_mp", [])
+# mapper.initpyetl("#init_mp", [])
 set_mainmapper(mapper)
 
 
