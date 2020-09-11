@@ -182,7 +182,7 @@ class Pyetl(object):
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS
 
-    def __init__(self, parent=None, nom=None, context=None):
+    def __init__(self, parent=None, nom=None, context=None, env=None):
 
         self.nompyetl = nom if nom else "pyetl"
         self.starttime = time.time()  # timer interne
@@ -200,7 +200,6 @@ class Pyetl(object):
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         self.namedselectors = dict()
-        self.env = os.environ
         # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
@@ -210,15 +209,17 @@ class Pyetl(object):
         self.context.root = self.context  # on romp la chaine racine
         self.contextstack = [self.context]
         self.parent = parent  # permet un appel en cascade
+        self.username = os.getlogin()
+        self.userdir = os.path.expanduser("~")
+        self.paramdir = os.path.join(self.userdir, ".pyetl")
+
+        self.init_environ(env=env)
         setparallel(self)  # initialise la gestion du parallelisme
 
         self.loginited = self.parent.loginited if self.parent else False
         self.ended = False
         self.worker = parent.worker if parent else False  # process esclave
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
-        self.username = os.getlogin()
-        self.userdir = os.path.expanduser("~")
-        self.paramdir = os.path.join(self.userdir, ".pyetl")
 
         self.stream = 0
         self.debug = 0
@@ -268,11 +269,10 @@ class Pyetl(object):
             return None
         return os.path.join(os.path.dirname(__file__), path)
 
-    def initenv(self, env=None, loginfo=None):
+    def initlog(self, loginfo=None):
         """initialise le contexte (parametres de site environnement)"""
         if self.loginited:
             return  # on a deja fait le boulot
-        env = env if env is not None else os.environ
         log_level = "INFO"
         log_print = "WARNING"
         if loginfo and not self.worker:
@@ -284,16 +284,15 @@ class Pyetl(object):
         initlogger(
             fichier=self.getvar("logfile", None), log=log_level, affich=log_print
         )
-        self.init_environ(env)
         self.loginited = True
 
     #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
     #        next(self.aff)
 
-    def initpyetl(self, commandes, args, env=None, loginfo=None):
+    def initpyetl(self, commandes, args, loginfo=None):
         """ initialisation standardisee: cree l'objet pyetl de base"""
 
-        self.initenv(env, loginfo)
+        self.initlog(loginfo)
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
@@ -321,15 +320,19 @@ class Pyetl(object):
         LOGGER.info(msg)
         return result
 
-    def init_environ(self, env):
+    def init_environ(self, env=None):
         """initialise les variables d'environnement et les macros"""
+        # print("initenv", env)
         if env is None:
             if self.parent:
                 self.env = self.parent.env
             else:
                 self.env = os.environ
-                self.context.env = self.env
+                self.context.setenv(self.env)
 
+        elif env == "noenv":
+            self.env = dict()
+            self.context.setenv(None)
         else:
             self.env = env
             self.context.setenv(self.env)
@@ -338,7 +341,7 @@ class Pyetl(object):
                 os.makedirs(self.paramdir)
             except PermissionError:
                 self.paramdir = ""
-        self.site_params_def = env.get("PYETL_SITE_PARAMS", "")
+        self.site_params_def = self.env.get("PYETL_SITE_PARAMS", "")
         self.liste_params = None
         if self.parent is None:
             self._init_params()  # positionne les parametres predefinis
@@ -671,14 +674,7 @@ class Pyetl(object):
             tabletotal += nbfic
 
     def getpyetl(
-        self,
-        regles,
-        entree=None,
-        rep_sortie=None,
-        liste_params=None,
-        env=None,
-        nom="",
-        mode=None,
+        self, regles, entree=None, rep_sortie=None, liste_params=None, nom="", mode=None
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
@@ -687,10 +683,7 @@ class Pyetl(object):
             if mode is None:
                 print("getpyetl:mode non defini")
                 return None
-
-        env = env if env is not None else self.env
         petl = Pyetl(parent=self)
-        petl.init_environ(env)
         if rep_sortie is not None:
             if rep_sortie.startswith("#"):
                 petl.setvar("F_sortie", "#store")
@@ -704,7 +697,7 @@ class Pyetl(object):
         # print ('getpyetl entree:', petl.getvar('_entree'),'parent:', self.getvar('_entree'))
         if nom:
             petl.nompyetl = nom
-        if petl.initpyetl(regles, liste_params, env=env):
+        if petl.initpyetl(regles, liste_params):
             return petl
         print("erreur getpyetl", regles)
         return None

@@ -57,8 +57,7 @@ def initparallel(parametres):
         )
     LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
-    mainmapper.initenv(env, loginfo)
-    mainmapper.loginited = True
+    mainmapper.initlog(loginfo)
     mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
     # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
