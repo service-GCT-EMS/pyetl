@@ -379,8 +379,8 @@ def traite_parallel(regle):
         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == "process" else parallelbatch
-    queue = Queue()
-    regle.queue = queue
+    if regle.stock_param.msgqueue is None:
+        regle.stock_param.msgqueue = Queue()
 
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
@@ -395,7 +395,7 @@ def traite_parallel(regle):
                 env,
                 None,
                 schemas,
-                queue,
+                regle.stock_param.msgqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -457,8 +457,8 @@ def traite_parallel_load(regle):
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
     #    print('parallel load',entrees,idobj, type(mapper.env))
-    queue = Queue()
-    regle.queue = queue
+    if regle.stock_param.msgqueue is None:
+        regle.stock_param.msgqueue = Queue()
 
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
@@ -472,7 +472,7 @@ def traite_parallel_load(regle):
                 env,
                 None,
                 schemas,
-                queue,
+                regle.stock_param.msgqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -572,8 +572,8 @@ def traite_parallel_batch(regle):
             obj = regle.tmpstore[int(numero)]
             regle.prog(regle, obj)
             continue
-        queue = Queue()
-        regle.queue = queue
+            if regle.stock_param.msgqueue is None:
+                regle.stock_param.msgqueue = Queue()
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
@@ -586,7 +586,7 @@ def traite_parallel_batch(regle):
                     None,
                     None,
                     None,
-                    queue,
+                    regle.stock_param.msgqueue,
                 ),
             )
 

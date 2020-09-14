@@ -10,7 +10,7 @@ from flask import render_template, flash, redirect
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
-from pyetl_webapp.forms import LoginForm
+from pyetl_webapp.forms import LoginForm, BasicForm
 
 fichinfo = namedtuple("fichinfo", ("nom", "date_maj", "description"))
 
@@ -142,16 +142,23 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=script)
 
 
-@app.route("/exec/<script>")
+@app.route("/exec/<script>", methods=["GET", "POST"])
 def execscript(script):
     scriptlist.refreshscript(script)
     fich_script = os.path.join(scriptlist.scriptdir, script)
-
-    processor = scriptlist.mapper.getpyetl(fich_script)
-    if processor:
-        processor.process()
+    form = BasicForm
+    if form.validate_on_submit():
+        entree = form.entree.data
+        rep_sortie = form.sortie.data
+        processor = scriptlist.mapper.getpyetl(
+            fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
+        )
+        if processor:
+            processor.process()
+            wstats = processor.get_work_stats()
+        return
     return render_template(
-        "scriptdesc.html", descriptif=scriptlist.descriptif[script], nom=script
+        "scriptrun.html", descriptif=scriptlist.descriptif[script], nom=script
     )
 
 

@@ -5,8 +5,10 @@ table {
 
   table, th, td {
     border: 1px solid black;
+
   }
   thead {
+    background-image: url("planche.png");
     background-color: #4CAF50;
     text-align: center;
     color: white;

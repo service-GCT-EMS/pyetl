@@ -11,7 +11,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Sign In")
 
 
-class basicform(FlaskForm):
+class BasicForm(FlaskForm):
     entree = F.MultipleFileField("entree", validators=[DataRequired()])
     sortie = F.FileField("sortie", validators=[DataRequired()])
     submit = SubmitField("executer")

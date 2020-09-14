@@ -125,35 +125,28 @@ def runpyetl(commandes, args):
     else:
         print("arret du traitement ")
         return
-    nb_total = mapper.getvar("_st_lu_objs", 0)
-    nb_fichs = mapper.getvar("_st_lu_fichs", 0)
+    wstats = mapper.get_work_stats()
+    nb_total = wstats["obj_lus"]
+    nb_fichs = wstats["fich_lus"]
+    n_ecrits = wstats["obj_ecrits"]
     if nb_total:
         print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
 
-    if mapper.moteur:
-        print(mapper.getvar("_st_obj_duppliques", 0), "objets dupliques")
-    n_ecrits = mapper.getvar("_st_wr_objs", 0)
+    print(wstats["obj_dupp"], "objets dupliques")
     if n_ecrits:
-        print(
-            n_ecrits,
-            "objets ecrits dans ",
-            mapper.getvar("_st_wr_fichs", 0),
-            "fichiers ",
-        )
+        print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
-    duree, _ = next(mapper.maintimer)
-    duree += 0.001
     print(
         "fin traitement total :",
         nb_fichs,
         "fichiers traites en ",
-        int(duree * 1000),
+        int(wstats["duree"] * 1000),
         "millisecondes",
     )
     if nb_total:
-        print("perf lecture  :", int(nb_total / duree), "o/s")
+        print("perf lecture  :", wstats["perf_r"], "o/s")
     if n_ecrits:
-        print("perf ecriture :", int(n_ecrits / duree), "o/s")
+        print("perf ecriture :", wstats["perf_w"], "o/s")
 
 
 # ---------------debut programme ---------------
@@ -200,6 +193,7 @@ class Pyetl(object):
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         self.namedselectors = dict()
+        self.msgqueue = None
         # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
@@ -220,7 +214,7 @@ class Pyetl(object):
         self.ended = False
         self.worker = parent.worker if parent else False  # process esclave
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
-
+        self.mode = "cmd"
         self.stream = 0
         self.debug = 0
         #        self.stock = False # pas de stockage
@@ -496,7 +490,9 @@ class Pyetl(object):
         self._traite_params(liste_params)
         # on initialise le gestionnaire d'affichage
         self.aff = self._patience(
-            self.getvar("_st_lu_objs", 0), self.getvar("_st_lu_fichs", 0)
+            self.getvar("_st_lu_objs", 0),
+            self.getvar("_st_lu_fichs", 0),
+            mode=self.mode,
         )
         next(self.aff)
 
@@ -676,7 +672,13 @@ class Pyetl(object):
             tabletotal += nbfic
 
     def getpyetl(
-        self, regles, entree=None, rep_sortie=None, liste_params=None, nom="", mode=None
+        self,
+        regles,
+        entree=None,
+        rep_sortie=None,
+        liste_params=None,
+        nom="",
+        mode="cmd",
     ):
         """ retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
@@ -699,6 +701,7 @@ class Pyetl(object):
         # print ('getpyetl entree:', petl.getvar('_entree'),'parent:', self.getvar('_entree'))
         if nom:
             petl.nompyetl = nom
+        petl.mode = mode
         if petl.initpyetl(regles, liste_params):
             return petl
         print("erreur getpyetl", regles)
@@ -1203,7 +1206,9 @@ class Pyetl(object):
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
         if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
-            if not self.getvar("_testmode"):  # en mode test on rale pas
+            if (
+                not self.getvar("_testmode") and self.mode != "web"
+            ):  # en mode test ou web on rale pas
                 print("schema:pas de repertoire de sortie")
             return
         mode_schema = self.getvar("force_schema", "util")
@@ -1238,6 +1243,24 @@ class Pyetl(object):
             return
         print("info: pyetl:job_control", self.getvar("job_control"))
         open(self.getvar("job_control"), "w").write("fin mapper\n")
+
+    def get_work_stats(self):
+        """retourne un dictionnaire avec les stats d execution générales"""
+        duree, _ = next(self.maintimer)
+        duree = 0.001 if duree == 0 else duree
+        obj_lus = self.getvar("_st_lu_objs", 0)
+        obj_ecrits = self.getvar("_st_wr_objs", 0)
+        wstats = {
+            "obj_lus": obj_lus,
+            "fich_lus": self.getvar("_st_lu_fichs", 0),
+            "obj_ecrits": obj_ecrits,
+            "obj_dupp": self.getvar("_st_obj_duppliques", 0),
+            "fich_ecrits": self.getvar("_st_wr_fichs", 0),
+            "duree": duree,
+            "perf_r": int(obj_lus / duree),
+            "perf_w": int(obj_ecrits / duree),
+        }
+        return wstats
 
     def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""
