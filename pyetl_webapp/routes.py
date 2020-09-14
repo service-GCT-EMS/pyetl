@@ -6,11 +6,11 @@
 import os
 import time
 from collections import namedtuple
-from flask import render_template
+from flask import render_template, flash, redirect
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
-
+from pyetl_webapp.forms import LoginForm
 
 fichinfo = namedtuple("fichinfo", ("nom", "date_maj", "description"))
 
@@ -78,7 +78,9 @@ scriptlist = ScriptList()
 @app.route("/index")
 def index():
     return render_template(
-        "index.html", text="Hello, World!", title="mapper interface web"
+        "index.html",
+        text="acces simplifie aux fonctions mapper",
+        title="mapper interface web",
     )
 
 
@@ -151,3 +153,16 @@ def execscript(script):
     return render_template(
         "scriptdesc.html", descriptif=scriptlist.descriptif[script], nom=script
     )
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        flash(
+            "Login requested for user {}, remember_me={}".format(
+                form.username.data, form.remember_me.data
+            )
+        )
+        return redirect("/index")
+    return render_template("login.html", title="Sign In", form=form)

@@ -10,6 +10,7 @@ import os
 import time
 import logging
 from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Queue
 
 from pyetl.vglobales import getmainmapper
 
@@ -34,7 +35,7 @@ def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
     #    commandes, args, params, macros, env, log = parametres
     if parametres:
-        params, macros, env, loginfo, schemas = parametres
+        params, macros, env, loginfo, schemas, queue = parametres
     else:
         print("initialisation sans parametres")
         return (os.getpid(), False)
@@ -60,6 +61,7 @@ def initparallel(parametres):
     mainmapper.initlog(loginfo)
     mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
+    mainmapper.queue = queue
     # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
     # print ('initparallel: valeur de import',params.get('import'))
     integre_schemas(mainmapper.schemas, schemas)
@@ -377,6 +379,9 @@ def traite_parallel(regle):
         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == "process" else parallelbatch
+    queue = Queue()
+    regle.queue = queue
+
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         print("initialistaion parallele", schemas.keys())
@@ -384,7 +389,14 @@ def traite_parallel(regle):
             executor,
             nprocs,
             initparallel,
-            (regle.context.getvars(), mapper.macrostore.macros, env, None, schemas),
+            (
+                regle.context.getvars(),
+                mapper.macrostore.macros,
+                env,
+                None,
+                schemas,
+                queue,
+            ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -445,13 +457,23 @@ def traite_parallel_load(regle):
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
     #    print('parallel load',entrees,idobj, type(mapper.env))
+    queue = Queue()
+    regle.queue = queue
+
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
             executor,
             nprocs,
             initparallel,
-            (regle.context.getvars(), mapper.macrostore.macros, env, None, schemas),
+            (
+                regle.context.getvars(),
+                mapper.macrostore.macros,
+                env,
+                None,
+                schemas,
+                queue,
+            ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
@@ -550,13 +572,22 @@ def traite_parallel_batch(regle):
             obj = regle.tmpstore[int(numero)]
             regle.prog(regle, obj)
             continue
+        queue = Queue()
+        regle.queue = queue
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
                 executor,
                 nprocs,
                 initparallel,
-                (regle.context.getvars(), mapper.macrostore.macros, None, None, None),
+                (
+                    regle.context.getvars(),
+                    mapper.macrostore.macros,
+                    None,
+                    None,
+                    None,
+                    queue,
+                ),
             )
 
             workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -600,7 +631,7 @@ def iter_boucle(regle):
             yield None
             continue
         minute = time.localtime().tm_min
-        print("traitement", minute)
+        print("traitement boucle", minute)
         blocs = dict()
         for obj in regle.tmpstore:
             regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])

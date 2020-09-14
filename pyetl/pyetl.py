@@ -634,6 +634,7 @@ class Pyetl(object):
                     ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
                     if mode == "cmd":
                         print(ligne)
+                        self.queue.put(ligne)
                     elif mode == "web":
                         pass
             else:
@@ -666,6 +667,7 @@ class Pyetl(object):
             elif nbtotal + nbval >= prochain:
                 prochain, interm = affiche(message, nbtotal + nbval)
                 nop = nbtotal + nbval
+
             if message != "interm":
                 nbtotal += nbval
                 nbval = 0

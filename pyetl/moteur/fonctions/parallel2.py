@@ -10,7 +10,7 @@ import os
 import time
 import logging
 from concurrent.futures import ProcessPoolExecutor
-
+from multiprocessing import Process
 from pyetl.vglobales import getmainmapper
 
 from pyetl.schema.schema_io import integre_schemas, retour_schemas
@@ -57,8 +57,7 @@ def initparallel(parametres):
         )
     LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
-    mainmapper.initenv(env, loginfo)
-    mainmapper.loginited = True
+    mainmapper.initlog(loginfo)
     mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
     # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
@@ -109,7 +108,11 @@ def set_parallelretour(mapper, valide):
         ),
         # "stats": {nom: stat.retour() for nom, stat in mapper.statstore.stats.items()},
         "stats": mapper.statstore.retour(),
-        "timers": {"fin": time.time(), "debut": mapper.starttime},
+        "timers": {
+            "fin": time.time(),
+            "debut": mapper.starttime,
+            "duree": round(time.time() - mapper.starttime, 2),
+        },
     }
     return retour
 
@@ -128,8 +131,16 @@ def parallelbatch(id, parametres_batch, regle):
 
     processor.process()
     retour = set_parallelretour(processor, True)
-    #    print("pyetl batchworker", os.getpid(),processor.idpyetl, mapping, args,
-    #          '->', processor.retour)
+    print(
+        "pyetl batchworker",
+        os.getpid(),
+        processor.idpyetl,
+        mapping,
+        args,
+        "->",
+        processor.retour,
+    )
+    processor.cleanschemas()
     return (numero, retour)
 
 
@@ -243,7 +254,13 @@ def suivi_job(mapper, work):
             if retour_process is not None:
                 num_obj, retour = retour_process
                 if isinstance(retour, dict):  # c'est un retour complet de type batch
-                    print("retour batch", retour["stats_generales"]["_st_lu_objs"])
+                    print(
+                        "retour batch",
+                        num_obj,
+                        retour["stats_generales"]["_st_lu_objs"],
+                        retour["timers"]["duree"],
+                        "s",
+                    )
                     rfin[num_obj] = 0
                 else:
                     rfin[num_obj] = retour
@@ -264,24 +281,6 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
         rfin.update(suivi_job(mapper, work))
         time.sleep(0.1)
     return rfin
-
-
-# def submit_job(jobs, job, regle, executor, fonction):
-#     """ajoute une tache au traitement parallele"""
-#    print ('transmission ',job)
-#    rfin = dict()
-# dest, nom, ext = job
-# file = str(os.path.join(*nom) + "." + ext)
-# chemin = str(os.path.dirname(file))
-# nom = str(os.path.basename(file))
-# clef = os.path.join(str(dest), chemin, nom)
-# loadarg = (clef, (dest, chemin, nom, ext))
-# loadarg=job
-# print ('appel parallele ',clef,'->',loadarg, regle, regle.index)
-# jobs.append(executor.submit(fonction, 1, loadarg, regle.index))
-
-
-#    print ('attente', len(jobs))
 
 
 def paralleliter_suivi(regle, executor, fonction, argiter):
@@ -591,22 +590,36 @@ def iter_boucle(regle):
     """traite les batchs en parallele en mode bouclage (iterateur de jobs)"""
     endtime = regle.getvar("endtime", "23:59")
     minute = -1
+    selector = regle.getvar("att_select", "#_timeselect")
+    ordre = regle.getvar("att_ordre", "ordre")
     while time.strftime("%H:%M") < endtime:
         time.sleep(1)
         if time.localtime().tm_min == minute:
+            # print("attente", time.localtime().tm_min, minute)
             print(".", end="", flush=True)
             yield None
             continue
         minute = time.localtime().tm_min
+        print("traitement boucle", minute)
+        blocs = dict()
         for obj in regle.tmpstore:
-            retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
-            n = 0
-            if obj.attributs.get("#_timeselect", "") == "1":  # validation d' execution
-                job = regle.prepare(regle, obj)
-                n += 1
-                # print ('------------------------------iter_boucle envoi', job)
-                yield (1, job)
-                print("envoye", n, "jobs\nattente", end="", flush=True)
+            regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            if obj.attributs.get(selector, "") == "1":
+                passage = float(obj.attributs.get(ordre, 9999))
+                if passage in blocs:
+                    blocs[passage].append(obj)
+                else:
+                    blocs[passage] = [obj]
+                # on pretraite toute la liste pour voir ce qui est executable
+        for bloc in blocs:
+            for obj in blocs[bloc]:
+                n = 0
+                if obj.attributs.get(selector, "") == "1":  # validation d' execution
+                    job = regle.prepare(regle, obj)
+                    n += 1
+                    # print("------------------------------iter_boucle envoi", job)
+                    yield (1, job)
+                    # print("envoye", n, "jobs\nattente", end="", flush=True)
 
 
 # -----------gestion de process externes en batch--------
@@ -617,8 +630,14 @@ def get_pool(maxworkers):
     return {i: dict() for i in range(max(maxworkers, 1))}
 
 
+def add_worker(pool):
+    """ajoute un emplacement a un pool"""
+    maxnum = max(pool.keys())
+    pool[maxnum + 1] = dict()
+
+
 def get_slot(pool):
-    """surveille un pool de process et determine retourne la premiere disponibilité  sans attendre"""
+    """surveille un pool de process et determine s'il y a une disponibilité  sans attendre"""
     i = 0
     for i in sorted(pool):
         if not pool[i]:
@@ -630,7 +649,7 @@ def get_slot(pool):
 
 
 def get_slots(pool):
-    """surveille un pool de process et determine s'il y a des disponibilités  sans attendre"""
+    """surveille un pool de process et determine s'il y a une disponibilité  sans attendre"""
     libres = []
     for i in sorted(pool):
         if not pool[i]:
@@ -660,39 +679,10 @@ def wait_end(pool):
 
 def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
     """lance des process en parallele"""
-    pool = get_pool(maxworkers)
-    for nom, params in blocks:
-        slot = wait_slot(pool)  # on cherche une place
-        if pool[slot]:
-            retour = pool[slot]
-            nom_r = retour["nom"]
-            #            print ('slot retour', slot, retour)
-            #            blocks[nom_r] = (retour['params'], retour['end']-retour['start'])
-            if patience:
-                #                patience(nom_r, *blocks[nom_r])
-                patience(nom_r, retour["params"], retour["end"] - retour["start"])
-                print("exec parallel_ext retour patience")
-        if nom is None:  # on envoie un None pour reduire le pool
-            del pool[slot]
-            continue
-        pool[slot] = {
-            "process": lanceur(params),
-            "nom": nom,
-            "start": time.time(),
-            "params": params,
-            "end": None,
-        }
-    wait_end(pool)
-    for i in pool:
-        if pool[i]:
-            retour = pool[i]
-            #            print ('retour fin', i, retour)
-            nom = retour["nom"]
-            #            blocks[nom] = (retour['params'], retour['end']-retour['start'])
-            if patience:
-                #                patience(nom, *blocks[nom])
-                patience(nom, retour["params"], retour["end"] - retour["start"])
-                print("exec parallel_ext retour patience wait end")
+    for i in iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
+        if i is not None:
+            print("traitement effectue", i)
+    return
 
 
 def prepare_filejob(description):
@@ -761,3 +751,15 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     a_traiter = sorted(a_traiter)
     print("on finit les restes", len(a_traiter))
     yield from a_traiter
+
+
+class poolexecutor(object):
+    def __init__(self, maxworkers):
+        self.pool = {i: dict() for i in range(max(maxworkers, 1))}
+
+    @property
+    def nbworkers(self):
+        return len(self.pool)
+
+    def add_worker(self):
+        add_worker(self.pool)
