@@ -146,7 +146,7 @@ def scriptview(script):
 def execscript(script):
     scriptlist.refreshscript(script)
     fich_script = os.path.join(scriptlist.scriptdir, script)
-    form = BasicForm
+    form = BasicForm()
     if form.validate_on_submit():
         entree = form.entree.data
         rep_sortie = form.sortie.data
@@ -156,10 +156,8 @@ def execscript(script):
         if processor:
             processor.process()
             wstats = processor.get_work_stats()
-        return
-    return render_template(
-        "scriptrun.html", descriptif=scriptlist.descriptif[script], nom=script
-    )
+        return redirect("/result")
+    return render_template("prep_exec.html", nom=script, form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])

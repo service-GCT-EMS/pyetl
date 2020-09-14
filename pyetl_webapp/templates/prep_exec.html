@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>lancement script {{ nom }}</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.entree.label }}<br>
+            {{ form.entree() }}
+        </p>
+        <p>
+            {{ form.sortie.label }}<br>
+            {{ form.sortie() }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
