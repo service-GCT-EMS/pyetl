@@ -6,7 +6,7 @@
 import os
 import time
 from collections import namedtuple
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, session
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
@@ -156,8 +156,18 @@ def execscript(script):
         if processor:
             processor.process()
             wstats = processor.get_work_stats()
+            session["mapper"] = wstats
+
         return redirect("/result")
     return render_template("prep_exec.html", nom=script, form=form)
+
+
+@app.route("/result")
+def showresult():
+    stats = session.get("mapper")
+    if stats:
+        return render_template("showresult.html", stats=stats)
+    return render_template("noresult.html")
 
 
 @app.route("/login", methods=["GET", "POST"])

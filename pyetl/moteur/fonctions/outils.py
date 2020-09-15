@@ -508,30 +508,35 @@ def getfilelist(
     rep=None, fileselect=None, dirselect=None
 ) -> T.Iterator[T.Tuple[str, str, str]]:
     " etablit la liste de fichiers sous forme d'iterateur"
-    entree = rep
-    if entree:
-        # print ("filelist", entree)
-        if os.path.isfile(entree):  # traitement un seul fichier
-            yield (str(os.path.basename(entree)), str(""), str(os.path.dirname(entree)))
-        elif "*" in entree:
-            racine = str(os.path.dirname(entree))
-            while "*" in racine:
-                racine = str(os.path.dirname(rep))
-            yield from (
-                (
-                    str(os.path.basename(i)),
-                    str(os.path.dirname(i)).replace(rep, ""),
-                    racine,
+    liste_entree = rep.split(",")
+    for entree in liste_entree:
+        if entree:
+            # print ("filelist", entree)
+            if os.path.isfile(entree):  # traitement un seul fichier
+                yield (
+                    str(os.path.basename(entree)),
+                    str(""),
+                    str(os.path.dirname(entree)),
                 )
-                for i in glob.glob(entree, recursive=True)
-            )
-        else:
-            yield from (
-                i + (entree,)
-                for i in scandirs(
-                    entree, "", True, pattern=fileselect, dirpattern=dirselect
+            elif "*" in entree:
+                racine = str(os.path.dirname(entree))
+                while "*" in racine:
+                    racine = str(os.path.dirname(rep))
+                yield from (
+                    (
+                        str(os.path.basename(i)),
+                        str(os.path.dirname(i)).replace(rep, ""),
+                        racine,
+                    )
+                    for i in glob.glob(entree, recursive=True)
                 )
-            )
+            else:
+                yield from (
+                    i + (entree,)
+                    for i in scandirs(
+                        entree, "", True, pattern=fileselect, dirpattern=dirselect
+                    )
+                )
 
 
 def scan_entree(

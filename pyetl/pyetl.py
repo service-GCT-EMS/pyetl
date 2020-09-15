@@ -1055,7 +1055,8 @@ class Pyetl(object):
         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
         self.macro_entree()
         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
-
+        if isinstance(entree, list):
+            entree = ",".join(entree)
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
         if self.done:
             pass
