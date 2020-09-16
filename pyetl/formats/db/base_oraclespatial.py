@@ -126,7 +126,7 @@ class OrwConnect(OraConnect):
                 '' as enum,
                 col.data_length as dimension,
                 col.column_id as num_attribut,
-                '',
+                (select ic.column_position from all_ind_columns ic where table_name=col.table_name and col.owner=owner and col.cilumn_name=column_name) as index,
                 CASE WHEN uniq_col.position IS NOT NULL THEN ''||uniq_col.position ELSE '' END AS i_unique,
                 CASE WHEN primkey_col.position IS NOT NULL THEN ''||primkey_col.position ELSE '' END AS primary_key,
                 CASE WHEN fkey_col.position IS NOT NULL THEN

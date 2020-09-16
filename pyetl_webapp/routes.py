@@ -156,6 +156,7 @@ def execscript(script):
         if processor:
             processor.process()
             wstats = processor.get_work_stats()
+            wstats["nom"] = script
             session["mapper"] = wstats
 
         return redirect("/result")
@@ -166,7 +167,7 @@ def execscript(script):
 def showresult():
     stats = session.get("mapper")
     if stats:
-        return render_template("showresult.html", stats=stats)
+        return render_template("script_result.html", stats=stats)
     return render_template("noresult.html")
 
 

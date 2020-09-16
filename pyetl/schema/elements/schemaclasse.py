@@ -1029,6 +1029,7 @@ class SchemaClasse(object):
             attr.type_att_base = type_attr_base
             attr.alias = alias if str(alias) != "None" else ""
             #            if self.identclasse[1]=='vl_sig_ems_doschant':
+            taille = int(taille)
             attr.taille = taille if taille >= 0 else 0
             attr.oblig = obligatoire
             #            print ('stockage champ',self.identclasse, nom,ordre,position,

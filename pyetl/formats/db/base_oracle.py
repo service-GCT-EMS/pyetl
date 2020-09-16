@@ -38,6 +38,7 @@ TYPES_A = {
     "BLOB": "X",
     "SDO_GEOMETRY": "GEOMETRIE",
     "TIMESTAMP(6)": "D",
+    "TIMESTAMP": "D",
     "DATE": "DS",
     "ROWID": "E",
     "SMALLINT": "E",
@@ -191,7 +192,8 @@ class OraConnect(DbConnect):
                 '' as enum,
                 col.data_length as dimension,
                 col.column_id as num_attribut,
-                '',
+                (select ic.column_position from all_ind_columns ic where ic.table_name=col.table_name and col.owner=ic.owner and col.column_name=ic.column_name limit 1) as index_pos,
+                --'' as index_name,
                 CASE WHEN uniq_col.position IS NOT NULL THEN ''||uniq_col.position ELSE '' END AS i_unique,
                 CASE WHEN primkey_col.position IS NOT NULL THEN ''||primkey_col.position ELSE '' END AS primary_key,
                 CASE WHEN fkey_col.position IS NOT NULL THEN
