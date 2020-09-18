@@ -784,6 +784,8 @@ class ElyConnect(ora.OrwConnect):
         liste_atts = self.menage_version(self.request(requete, ()), 1, 0, 2)
         code_type = {1: "E", 2: "F", 3: "T", 4: "B", 5: "D"}
 
+        indexdefs = dict()
+
         for i in liste_atts.values():
             #            print ('num_table',i[4])
             id_compo = compos_id.get(i[4])
@@ -791,9 +793,26 @@ class ElyConnect(ora.OrwConnect):
             if id_compo:
                 nomschema, nomtable = id_compo
                 if id_compo in self.tables:
+                    if id_compo not in indexdefs:
+                        req_indexes = (
+                            """SELECT LISTAGG(index_name||':'||column_position,' ') WITHIN GROUP (order by index_name) as indexes,
+                                column_name from all_ind_columns ic """
+                            + "WHERE ic.table_owner='"
+                            + nomschema
+                            + "' AND ic.table_name='"
+                            + nomtable
+                            + """' GROUP BY table_owner,table_name,column_name"""
+                        )
+                        indexes = dict()
+                        for ligne in self.request(req_indexes, ()):
+                            liste, nom_att = ligne
+                            indexes[nom_att] = liste
+                        indexdefs[id_compo] = indexes
+
                     nom_att = i[5]
                     type_att = code_type[i[10]]
                     #                    if traite_enums:
+                    ind_def = indexdefs[id_compo].get(nom_att, "")
                     conf = i[13]
                     if conf and type_att != "T":
                         #                       print (id_compo, nom_att, 'type attribut_conformite ', type_att, '->', conf)
@@ -836,7 +855,7 @@ class ElyConnect(ora.OrwConnect):
                         conf,
                         dimension,
                         ordre,
-                        "",
+                        ind_def,
                         "",
                         "",
                         "",

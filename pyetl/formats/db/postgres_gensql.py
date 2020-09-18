@@ -192,7 +192,7 @@ class PgrGenSql(DbGenSql):
                 "\tCONSTRAINT "
                 + nom
                 + "_pkey PRIMARY KEY ("
-                + schemaclasse.getpkey
+                + schemaclasse.getpkey.lower()
                 + "),"
             )
         # print ('pkey', '\tCONSTRAINT '+nom+'_pkey PRIMARY KEY ('+schemaclasse.getpkey+'),',schemaclasse.indexes)
@@ -200,15 +200,15 @@ class PgrGenSql(DbGenSql):
         #        if len(dicindexes) > 1:
         #            print("indexes a generer",schemaclasse.nom, sorted(dicindexes.items()))
         for type_index in sorted(dicindexes):
-            champs = dicindexes[type_index]
+            champs = dicindexes[type_index].lower()
             #            print ('postgres: definition indexes', schemaclasse.nom, type_index,
             #                   '->', champs, schemaclasse.getpkey)
             if type_index[0] == "U":
                 ctr.append(
                     "\tCONSTRAINT "
-                    + table.replace(".", "_")
+                    + nom.replace(".", "_")
                     + "_"
-                    + champs.replace(",", "_")
+                    + (champs.replace(",", "_"))
                     + "_key UNIQUE("
                     + champs
                     + "),"
@@ -216,9 +216,9 @@ class PgrGenSql(DbGenSql):
             elif type_index[0] == "K":
                 idx.append(
                     "CREATE INDEX fki_"
-                    + table.replace(".", "_")
+                    + nom.replace(".", "_")
                     + "_"
-                    + champs.replace(",", "_")
+                    + (champs.replace(",", "_"))
                     + "_fkey"
                 )
                 idx.append("\tON " + table)
@@ -226,7 +226,7 @@ class PgrGenSql(DbGenSql):
             elif type_index[0] == "I" or type_index[0] == "X":
                 idx.append(
                     "CREATE INDEX idx_"
-                    + table.replace(".", "_")
+                    + nom.replace(".", "_")
                     + "_"
                     + champs.replace(",", "_")
                     + "_key"
@@ -262,19 +262,27 @@ class PgrGenSql(DbGenSql):
                     continue
             if not fks:
                 fks.append("-- ###### definition des clefs etrangeres ####")
-            fks.append("ALTER TABLE IF EXISTS " + table)
-            fks.append("\tDROP CONSTRAINT IF EXISTS " + nom + "_" + i + ";")
-            fks.append("ALTER TABLE IF EXISTS " + table)
+            fks.append("ALTER TABLE IF EXISTS " + table.lower())
             fks.append(
-                "\tADD CONSTRAINT " + nom + "_" + i + "_fkey FOREIGN KEY (" + i + ")"
+                "\tDROP CONSTRAINT IF EXISTS " + nom.lower() + "_" + i.lower() + ";"
+            )
+            fks.append("ALTER TABLE IF EXISTS " + table.lower())
+            fks.append(
+                "\tADD CONSTRAINT "
+                + nom.lower()
+                + "_"
+                + i.lower()
+                + "_fkey FOREIGN KEY ("
+                + i.lower()
+                + ")"
             )
             fks.append(
                 "\t\tREFERENCES "
-                + deffk[0].replace("FK:", "")
+                + (deffk[0].replace("FK:", "")).lower()
                 + "."
-                + deffk[1]
+                + deffk[1].lower()
                 + " ("
-                + deffk[2]
+                + deffk[2].lower()
                 + ") "
                 + ("MATCH FULL" if "mf" in props else "MATCH SIMPLE")
             )
@@ -320,13 +328,21 @@ class PgrGenSql(DbGenSql):
         al2 = classe.alias.replace("'", "''")
         if al2:
             if type_table == "V":
-                comments.append("COMMENT ON VIEW " + table + " IS '" + al2 + "';")
+                comments.append(
+                    "COMMENT ON VIEW " + table.lower() + " IS '" + al2 + "';"
+                )
             elif type_table == "M":
                 comments.append(
-                    "COMMENT ON MATERIALIZED VIEW " + table + " IS '" + al2 + "';"
+                    "COMMENT ON MATERIALIZED VIEW "
+                    + table.lower()
+                    + " IS '"
+                    + al2
+                    + "';"
                 )
             else:
-                comments.append("COMMENT ON TABLE " + table + " IS '" + al2 + "';")
+                comments.append(
+                    "COMMENT ON TABLE " + table.lower() + " IS '" + al2 + "';"
+                )
 
         for j in classe.get_liste_attributs():
             attribut = classe.attributs[j]
@@ -336,7 +352,13 @@ class PgrGenSql(DbGenSql):
             #            print('creation commentaire',atname, alias )
             if alias and alias != al2:
                 comments.append(
-                    "COMMENT ON COLUMN " + table + "." + atname + " IS '" + alias + "';"
+                    "COMMENT ON COLUMN "
+                    + table.lower()
+                    + "."
+                    + atname.lower()
+                    + " IS '"
+                    + alias
+                    + "';"
                 )
         return comments
 
@@ -366,15 +388,19 @@ class PgrGenSql(DbGenSql):
             sql = sql.replace(action, action_2)
             action = action_2
         if nomf not in self.stdtriggers:
-            trig = ["\nDROP TRIGGER IF EXISTS " + nom + " ON " + table + ";"]
+            trig = [
+                "\nDROP TRIGGER IF EXISTS " + nom.lower() + " ON " + table.lower() + ";"
+            ]
             if sql:
                 trig.append(sql + ";")
             else:
-                trig.append("\nCREATE " + type_trigger + " " + nom)
+                trig.append("\nCREATE " + type_trigger + " " + nom.lower())
                 trig.append(
-                    timing + " " + event + (" OF " + colonnes) if colonnes else ""
+                    timing + " " + event + (" OF " + colonnes.lower())
+                    if colonnes
+                    else ""
                 )
-                trig.append("ON " + table)
+                trig.append("ON " + table.lower())
                 trig.append("FOR EACH " + declencheur)
                 if condition:
                     trig.append("WHEN " + condition)

@@ -170,7 +170,8 @@ class HcubeCrypter(Crypter):
             #            print(" crypt2", bloc,"->",bloc_crypt,"<-")
             retour = retour + bloc_crypt
         crypted = base64.b32encode(bytes(retour))
-        cryptstr = "".join(chr(i) for i in crypted)
+        cryptstr = str(crypted, "utf-8")
+        # cryptstr = "".join(chr(i) for i in crypted)
         if not cryptstr.endswith("="):
             cryptstr = cryptstr + "="
         #        print('retour cryptage', val,'->', cryptstr)
@@ -308,7 +309,7 @@ def valide_ulist(val, user, master, grouplist):
 def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
     """decrypte d'eventuels parametres cryptes
            gere 2 clefs une clef maitre et une clef utilisateur"""
-    #        print ('decryptage parametres',self.parms['cryptokey'])
+    # print("decryptage parametres", cryptinfo)
     user, usergroup, masterkey, userkey, defaultkey, cr_lev, cr_help = cryptinfo
     localkey = "key_" + user  # clef par defaut
     grouplist = []
@@ -374,7 +375,8 @@ def f_crypt(regle, obj):
         level=regle.cryptolevel,
         helper=regle.cryptohelper,
     )
-    obj.attributs[regle.params.att_sortie.val] = vcrypte
+    obj.attributs[regle.params.att_sortie.val] = str(vcrypte)
+    print("type crypt", vcrypte, type(obj.attributs[regle.params.att_sortie.val]))
     return True
 
 

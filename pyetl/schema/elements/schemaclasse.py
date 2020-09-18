@@ -350,11 +350,18 @@ class SchemaClasse(object):
             else:
                 defindexes[nom] = [self.indexes[i]]
         valid = dict()
+        n = 0
         for i in defindexes:
+            n += 1
             champs = ",".join(defindexes[i])
             nature = i[0]
+            nom = i
+            if nature not in HIERARCHIE:
+                nature = "I"
+                indice = str(n)
+                nom = nature + indice
             if champs not in valid or HIERARCHIE[valid[champs][0]] > HIERARCHIE[nature]:
-                valid[champs] = i
+                valid[champs] = nom
 
         return {valid[i]: i for i in valid}
 
@@ -983,7 +990,15 @@ class SchemaClasse(object):
                 "_" + nom,
             )
             nom = "_" + nom
-        #        print ('schema: stocke attribut',self.nom,nom,nom_court,type_attribut,ordre)
+        # print(
+        #     "schema: stocke attribut",
+        #     self.nom,
+        #     nom,
+        #     type_attribut,
+        #     ordre,
+        #     "index:",
+        #     index,
+        # )
         # if nom == "geo_shape":
         #     print(
         #         "schema: stocke attribut",

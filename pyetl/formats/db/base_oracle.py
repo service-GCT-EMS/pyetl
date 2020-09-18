@@ -192,8 +192,9 @@ class OraConnect(DbConnect):
                 '' as enum,
                 col.data_length as dimension,
                 col.column_id as num_attribut,
-                (select ic.column_position from all_ind_columns ic where ic.table_name=col.table_name and col.owner=ic.owner and col.column_name=ic.column_name limit 1) as index_pos,
-                --'' as index_name,
+                ic.indexes as indexes,
+
+                --'' as index_pos,
                 CASE WHEN uniq_col.position IS NOT NULL THEN ''||uniq_col.position ELSE '' END AS i_unique,
                 CASE WHEN primkey_col.position IS NOT NULL THEN ''||primkey_col.position ELSE '' END AS primary_key,
                 CASE WHEN fkey_col.position IS NOT NULL THEN
@@ -210,6 +211,11 @@ class OraConnect(DbConnect):
 
                 FROM all_tab_columns col
                     LEFT JOIN all_col_comments com ON com.table_name=col.table_name AND com.column_name=col.column_name
+                    LEFT JOIN
+                        (SELECT LISTAGG(index_name||':'||column_position,' ')  WITHIN GROUP (order by index_name) as indexes,
+                         table_name,column_name,table_owner from all_ind_columns
+                         GROUP BY table_owner,table_name,column_name) ic
+                        on ic.table_name=col.table_name AND ic.column_name=col.column_name and ic.table_owner=col.owner
                     LEFT JOIN
                         (SELECT con.table_name, cons_col.column_name, cons_col.position
                         FROM all_constraints con,all_cons_columns cons_col
