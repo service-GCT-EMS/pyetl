@@ -48,7 +48,7 @@ class ElyConnect(ora.OrwConnect):
         self.sys_fields = {
             "#_sys_date_cre": ("APIC_CDATE", "D"),
             "#_sys_date_mod": ("APIC_MDATE", "D"),
-            "#_sys_E_ETAT": ("APIC_STATE", "T"),
+            "#_sys_etat": ("APIC_STATE", "T"),
             "#gid": ("GID", "E"),
         }
         self.adminschema = "ELYX_ADMIN_P"
@@ -864,7 +864,7 @@ class ElyConnect(ora.OrwConnect):
                         0,
                         0,
                     )
-                    # print ('attribut',nomschema, nomtable, nom_att,conf)
+                    # print("attribut", i[0], nomschema, nomtable, nom_att, conf)
                     self.attributs[i[0]] = attdef
                     if graphique:
                         attdef = self.attdef(
@@ -944,8 +944,37 @@ class ElyConnect(ora.OrwConnect):
             else:
                 print("error: elyx : nom_non trouve", i[4], i)
         self.compos_id = compos_id
-
+        self.ajout_att_std()
         return list(self.attributs.values())
+
+    def ajout_att_std(self):
+        """ ajoute les attributs standards gid et geometrie pour chaque table"""
+        n = 0
+        for id_compo, definition in self.tables.items():
+            n += 1
+            nomschema, nomtable = id_compo
+            attdef = self.attdef(
+                nom_groupe=nomschema,
+                nom_classe=nomtable,
+                nom_attr="GID",
+                alias="identifiant interne",
+                type_attr="S",
+                clef_primaire="1",
+                num_attribut=0,
+            )
+            attkey = "K" + str(n)
+            self.attributs[attkey] = attdef
+            attdef = self.attdef(
+                nom_groupe=nomschema,
+                nom_classe=nomtable,
+                nom_attr="geometrie",
+                alias="geometrie",
+                type_attr=str(definition[3]),
+                dimension=str(definition[4]),
+                num_attribut=-1,
+            )
+            attkey = "G" + str(n)
+            self.attributs[attkey] = attdef
 
     # import time
 

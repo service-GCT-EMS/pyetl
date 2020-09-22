@@ -376,7 +376,7 @@ def f_crypt(regle, obj):
         helper=regle.cryptohelper,
     )
     obj.attributs[regle.params.att_sortie.val] = str(vcrypte)
-    print("type crypt", vcrypte, type(obj.attributs[regle.params.att_sortie.val]))
+    # print("type crypt", vcrypte, regle.getvar("userkey"))
     return True
 
 

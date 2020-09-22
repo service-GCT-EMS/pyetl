@@ -214,6 +214,7 @@ class DbConnect(object):
             "index",
             "clef_etrangere",
         ),
+        defaults=[""] * 11,
     )
     attdef = namedtuple(
         "attdef",
@@ -239,6 +240,7 @@ class DbConnect(object):
             "taille",
             "decimales",
         ),
+        defaults=[""] * 20,
     )
     typenum = {
         "1": "POINT",

@@ -76,7 +76,6 @@ TYPES_A = {
     "BOOLEAN": "B",
     "BOOL": "B",
     "CASE A COCHER": "B",
-    "CASE_A_COCHER": "B",
     "S": "S",
     "SEQUENCE": "S",
     "SEQ": "S",

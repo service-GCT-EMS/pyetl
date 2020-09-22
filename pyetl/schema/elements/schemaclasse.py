@@ -990,25 +990,7 @@ class SchemaClasse(object):
                 "_" + nom,
             )
             nom = "_" + nom
-        # print(
-        #     "schema: stocke attribut",
-        #     self.nom,
-        #     nom,
-        #     type_attribut,
-        #     ordre,
-        #     "index:",
-        #     index,
-        # )
-        # if nom == "geo_shape":
-        #     print(
-        #         "schema: stocke attribut",
-        #         self.nom,
-        #         nom,
-        #         type_attribut,
-        #         ordre,
-        #         type_attribut in TYPES_G,
-        #     )
-        # raise
+
         if nom in self.attributs:
             if force:
                 #                print ('schema: stocke attribut: modif attribut ',

@@ -331,6 +331,9 @@ def init_format_asc(reader):
 
 def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
     """finalise un objet et le traite"""
+    # print("finalisation ", attributs)
+    if attributs and not "GID" in attributs:
+        attributs["GID"] = attributs["#gid"]
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
     if obj is None:  # filtrage en entree
         return

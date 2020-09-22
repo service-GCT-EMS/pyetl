@@ -902,7 +902,13 @@ class Pyetl(object):
     def popcontext(self, typecheck=None):
         # print("avant pop",self.contextstack)
         if typecheck is None or self.cur_context.type_c == typecheck:
-            self.contextstack.pop()
+            if len(self.contextstack) > 1:
+                self.contextstack.pop()
+            else:
+                print(
+                    "===================warning erreur d empilement de contexte",
+                    self.cur_context,
+                )
         else:
             print(
                 "=========================popcontext warning typecheck attendu",
