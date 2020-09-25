@@ -25,6 +25,7 @@ class DummyConnect(object):
     def __init__(self):
         self.schemabase = None
         self.valide = False
+        self.DBError = None
 
     def close(self):
         pass
@@ -91,7 +92,11 @@ class Cursinfo(object):
 
     def fetchall(self):
         """recupere tous les elements"""
-        return self.cursor.fetchall() if self.cursor else ()
+        try:
+            return self.cursor.fetchall() if self.cursor else ()
+        except self.connecteur.DBError as err:
+            print("erreur base de donnees", err)
+            return ()
 
     def fetchval(self):
         """recupere tous les elements"""

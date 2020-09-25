@@ -629,8 +629,8 @@ class Pyetl(object):
                         tinterm = nbval / (nbobj / duree)
                     ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
                     if mode == "cmd":
-                        print(ligne)
-                        self.queue.put(ligne)
+                        # print("ecriture_queue", ligne)
+                        self.msgqueue.put(ligne)
                     elif mode == "web":
                         pass
             else:

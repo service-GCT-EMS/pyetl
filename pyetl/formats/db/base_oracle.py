@@ -72,6 +72,7 @@ class OraConnect(DbConnect):
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
         }
+        self.DBError = OraError
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""

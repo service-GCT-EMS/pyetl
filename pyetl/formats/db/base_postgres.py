@@ -236,6 +236,7 @@ class PgrConnect(DbConnect):
             self.regle.setroot("datestyle", style)
         self.type_base = "postgres"
         self.dialecte = "postgres"
+        self.DBError = psycopg2.Error
 
     def set_searchpath(self):
         """positionne les path pour la session"""

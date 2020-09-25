@@ -7,12 +7,13 @@ gestion du parallelisme sur les entrees/sorties
 
 """
 import os
+from queue import Empty
 import time
 import logging
 from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import Queue
+from multiprocessing import Manager
 
-from pyetl.vglobales import getmainmapper
+from pyetl.vglobales import MAINMAPPER, getmainmapper
 
 from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.interne.stats import ExtStat
@@ -29,13 +30,35 @@ def setparallel(mapper):
     mapper.traite_parallel = traite_parallel
     mapper.gestion_parallel_batch = gestion_parallel_batch
     mapper.gestion_parallel_load = gestion_parallel_load
+    mapper.parallelmanager = None
+    mapper.msgqueue = None
+
+
+def getmanager():
+    mapper = getmainmapper()
+    if mapper.worker:
+        return None
+    if not mapper.parallelmanager:
+        mapper.parallelmanager = Manager()
+    return mapper.parallelmanager
+
+
+def getqueue():
+    """recupere le gestionnaire de files"""
+    mapper = getmainmapper()
+    if mapper.msgqueue:
+        return mapper.msgqueue
+    manager = getmanager()
+    if manager:
+        mapper.msgqueue = mapper.parallelmanager.Queue()
+    return mapper.msgqueue
 
 
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
     #    commandes, args, params, macros, env, log = parametres
     if parametres:
-        params, macros, env, loginfo, schemas, queue = parametres
+        params, macros, env, loginfo, schemas, msgq = parametres
     else:
         print("initialisation sans parametres")
         return (os.getpid(), False)
@@ -61,7 +84,8 @@ def initparallel(parametres):
     mainmapper.initlog(loginfo)
     mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
-    mainmapper.queue = queue
+    mainmapper.msgqueue = msgq
+
     # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
     # print ('initparallel: valeur de import',params.get('import'))
     integre_schemas(mainmapper.schemas, schemas)
@@ -379,9 +403,7 @@ def traite_parallel(regle):
         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == "process" else parallelbatch
-    if regle.stock_param.msgqueue is None:
-        regle.stock_param.msgqueue = Queue()
-
+    msgqueue = getqueue()
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         print("initialistaion parallele", schemas.keys())
@@ -395,7 +417,7 @@ def traite_parallel(regle):
                 env,
                 None,
                 schemas,
-                regle.stock_param.msgqueue,
+                msgqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -457,9 +479,7 @@ def traite_parallel_load(regle):
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
     #    print('parallel load',entrees,idobj, type(mapper.env))
-    if regle.stock_param.msgqueue is None:
-        regle.stock_param.msgqueue = Queue()
-
+    msgqueue = getqueue()
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
@@ -472,7 +492,7 @@ def traite_parallel_load(regle):
                 env,
                 None,
                 schemas,
-                regle.stock_param.msgqueue,
+                msgqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -572,8 +592,7 @@ def traite_parallel_batch(regle):
             obj = regle.tmpstore[int(numero)]
             regle.prog(regle, obj)
             continue
-            if regle.stock_param.msgqueue is None:
-                regle.stock_param.msgqueue = Queue()
+        msgqueue = getqueue()
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
@@ -586,7 +605,7 @@ def traite_parallel_batch(regle):
                     None,
                     None,
                     None,
-                    regle.stock_param.msgqueue,
+                    msgqueue,
                 ),
             )
 
@@ -733,7 +752,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     libres = len(pool)
     # print("----------------------------dans iter parallelext", maxworkers, len(blocks))
     # optimiseur de position
-
+    msgq = getqueue()
     while blocks or libres < maxworkers:
         # print ('itp:',a_traiter, libres, len(pool))
         try:
@@ -746,6 +765,11 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
         except IndexError:
             yield None
         libres = 0
+        try:
+            txt = msgq.get(block=False)
+            print("-------------------------------retour queue", txt)
+        except Empty:
+            time.sleep(0.1)
         for slot in get_slots(pool):
             if pool[slot]:
                 #                print ('trouve element a traiter',pool[slot])
@@ -773,7 +797,9 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                     "fich": dest,
                     "taille": size,
                 }
+
                 time.sleep(1)  # on dort un peu pour pas surcharger
+
             else:
                 #                print ('fin de tache')
                 pool[slot] = None
