@@ -427,8 +427,8 @@ P:#pk;!in:#cmp;;;;;;pass>;;;fin;
 &&#define;#upload;fich;dest;destdir=.;;;;
 #!help;charge des elements par ftp;;;;;;;;;;
 $#ftp_%dest%;;;;;;
-$sans_entree=1
-$fichier=%fich%;%derniere_sortie%
+$sans_entree=1;;
+$fichier=%fich%;%derniere_sortie%;;
 ;;;;;%fichier%;;ftp_upload;ftp_%dest%;%destdir%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#ftpdownload;fich;acces;accdir=.;;;;

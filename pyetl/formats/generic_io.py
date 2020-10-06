@@ -506,7 +506,15 @@ class Reader(object):
         self.lus_fich += 1
         if self.nb_lus >= self.nextaff:
             self.nextaff += self.affich
-            self.aff.send(("interm", 0, self.lus_fich))
+            # print(
+            #     "envoi",
+            #     self.nb_lus,
+            #     "(",
+            #     self.nextaff,
+            #     ")",
+            #     self.regle_ref.getvar("_wid"),
+            # )
+            self.aff.send(("interm", 0, self.nb_lus))
 
         if attributs and self.schemaclasse and self.schemaclasse.attmap:
             # print ('on remappe', self.schemaclasse.attmap)

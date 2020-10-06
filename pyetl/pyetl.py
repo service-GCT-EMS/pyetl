@@ -13,6 +13,7 @@ import re
 # import platform
 import logging
 import itertools
+from queue import Empty
 
 # from collections import defaultdict
 # from types import MethodType
@@ -54,7 +55,7 @@ LOGGER = logging.getLogger("pyetl")  # un logger
 # MODULEDEBUG = False
 
 
-def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
+def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
     loglevels = {
@@ -67,33 +68,36 @@ def initlogger(fichier=None, log="DEBUG", affich="WARNING"):
     niveau_f = loglevels.get(log, logging.INFO)
     niveau_p = loglevels.get(affich, logging.ERROR)
     # print ('niveaux de logging',niveau_f,niveau_p)
-    if not LOGGER.handlers:
-        # création d'un handler qui va rediriger chaque écriture de log sur la console
-        LOGGER.setLevel(niveau_p)
-        print_handler = logging.StreamHandler()
-        printformatter = logging.Formatter(
-            "\n!!!%(levelname)8s %(funcName)10s: %(message)s"
-        )
-        print_handler.setFormatter(printformatter)
-        print_handler.setLevel(niveau_p)
-        LOGGER.addHandler(print_handler)
     if fichier:
         LOGGER.setLevel(niveau_f)
-        # création d'un formateur qui va ajouter le temps, le niveau
-        # de chaque message quand on écrira un message dans le log
-        fileformatter = logging.Formatter(
-            "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s" + "::%(message)s"
-        )
-        #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
-        # création d'un handler qui va rediriger une écriture du log vers
-        # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
-        file_handler = logging.FileHandler(fichier)
-        # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-        # créé précédement et on ajoute ce handler au logger
-        file_handler.setLevel(niveau_f)
-        file_handler.setFormatter(fileformatter)
-        LOGGER.addHandler(file_handler)
-        LOGGER.info("----pyetl:" + VERSION)
+    else:
+        LOGGER.setLevel(niveau_p)
+    if not worker:
+        if not LOGGER.handlers:
+            # création d'un handler qui va rediriger chaque écriture de log sur la console
+            print_handler = logging.StreamHandler()
+            printformatter = logging.Formatter(
+                "\n!!!%(levelname)8s %(funcName)10s: %(message)s"
+            )
+            print_handler.setFormatter(printformatter)
+            print_handler.setLevel(niveau_p)
+            LOGGER.addHandler(print_handler)
+        if fichier:
+            # création d'un formateur qui va ajouter le temps, le niveau
+            # de chaque message quand on écrira un message dans le log
+            fileformatter = logging.Formatter(
+                "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s" + "::%(message)s"
+            )
+            #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
+            # création d'un handler qui va rediriger une écriture du log vers
+            # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
+            file_handler = logging.FileHandler(fichier)
+            # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
+            # créé précédement et on ajoute ce handler au logger
+            file_handler.setLevel(niveau_f)
+            file_handler.setFormatter(fileformatter)
+            LOGGER.addHandler(file_handler)
+            LOGGER.info("----pyetl:" + VERSION)
 
 
 def getlog(args):
@@ -147,6 +151,7 @@ def runpyetl(commandes, args):
         print("perf lecture  :", wstats["perf_r"], "o/s")
     if n_ecrits:
         print("perf ecriture :", wstats["perf_w"], "o/s")
+    mapper.stoplistener()
 
 
 # ---------------debut programme ---------------
@@ -206,7 +211,7 @@ class Pyetl(object):
         self.username = os.getlogin()
         self.userdir = os.path.expanduser("~")
         self.paramdir = os.path.join(self.userdir, ".pyetl")
-
+        self.ismainmapper = False
         self.init_environ(env=env)
         setparallel(self)  # initialise la gestion du parallelisme
 
@@ -276,7 +281,10 @@ class Pyetl(object):
             self.setvar("log_print", log_print)
 
         initlogger(
-            fichier=self.getvar("logfile", None), log=log_level, affich=log_print
+            fichier=self.getvar("logfile", None),
+            log=log_level,
+            affich=log_print,
+            worker=self.worker,
         )
         self.loginited = True
 
@@ -583,6 +591,9 @@ class Pyetl(object):
         tabletotal = 0
         interm = 0.001
         duree = 0
+        wid = self.getvar("_wid")
+        mainmapper = getmainmapper()
+        nbvals = dict()
 
         def affiche(message, nbobj):
             """gere l'affichage des messages de patience"""
@@ -594,14 +605,15 @@ class Pyetl(object):
             tinterm = 0.001
             if message == "interm":
                 cmp = "int"
-            if message == "tab":
+            elif message == "tab":
                 ftype = "tables"
+
             msg = (
                 " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "
                 + "secondes %5d o/s"
             )
             if self.worker:
-                msg = "worker%3s:" % self.getvar("_wid") + msg
+                msg = "worker%3s:" % wid + msg
             else:
                 msg = "mapper   :" + msg
             LOGGER.info(
@@ -630,9 +642,14 @@ class Pyetl(object):
                     ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
                     if mode == "cmd":
                         # print("ecriture_queue", ligne)
-                        self.msgqueue.put(ligne)
-                    elif mode == "web":
+                        # self.msgqueue.put(ligne)
                         pass
+                        # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
+                    elif mode == "web":
+                        # self.msgqueue.put(ligne)
+                        pass
+                        # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
+
             else:
                 ligne = msg % (
                     cmp,
@@ -654,22 +671,64 @@ class Pyetl(object):
         while True:
             message, nbfic, nbval = yield
             #            nbtotal += nbval
+            if message == "check" and not self.worker:
+                # print("check queue", self.getvar("_wid"), mainmapper.msgqueue)
+                if mainmapper.msgqueue:
+                    while True:
+                        try:
+                            msg = mainmapper.msgqueue.get(block=False)
+                            message, nbfic, w_nbval, wid = msg
+                            # if message == "log":
+                            #     logmessage = w_nbwal
+                            #     print("worker", wid, ":--->", logmessage)
+                            #     continue
+                            if message == "interm":
+                                nbvals[wid] = w_nbval
+                                nbval = sum(nbvals.values())
+                                if nbval >= prochain:
+                                    prochain, interm = affiche(message, nbval)
+                                # print("-main:------------------retour queue", msg, nbvals)
+                            elif message == "fich":
+                                nbtotal += nbfic
+                                nbfic = 0
+                        except Empty:
+                            # print("queue vide")
+                            break
+
             if message == "init":
                 temps = self._timer(init=not self.worker)
                 duree, interv = next(temps)
                 interm = 0.001
                 nbtotal = 0
                 prochain = nbaffich
-            elif nbtotal + nbval >= prochain:
-                prochain, interm = affiche(message, nbtotal + nbval)
-                nop = nbtotal + nbval
+            elif self.worker:
+                self.msgqueue.put((message, nbfic, nbval, wid))
+                # print(" worker : ecriture queue", ("interm", nbfic, mnbval, wid))
+            elif nbval >= prochain:
+                prochain, interm = affiche(message, nbval)
+                print(
+                    "prochain",
+                    self.getvar("_wid"),
+                    self.idpyetl,
+                    prochain,
+                    nbtotal,
+                    sorted(nbvals.items()),
+                )
+                nop = nbval
 
-            if message != "interm":
+            if message == "fich":
                 nbtotal += nbval
-                nbval = 0
                 interm = 0.001
-            # print ('actualisation nbtotal',message,  nbtotal,nbval,'->',nbtotal+nbval, prochain)
-            tabletotal += nbfic
+                # print(
+                #     "actualisation nbtotal",
+                #     message,
+                #     nbtotal,
+                #     nbval,
+                #     "->",
+                #     nbtotal + nbval,
+                #     prochain,
+                # )
+                tabletotal += nbfic
 
     def getpyetl(
         self,
@@ -1325,16 +1384,14 @@ class Pyetl(object):
         # print ('fin lecture fichier', fichier)
         self.padd("_st_lu_objs", lecteur.lus_fich)
         self.padd("_st_lu_fichs", 1)
-        if self.worker:  # en mode worker on ne compte que les intermediaires
-            self.aff.send(("init", 0, 0))  # on reinitialise le compteur
-        else:
-            self.aff.send(("fich", 1, lecteur.lus_fich))
+        self.aff.send(("fich", 1, lecteur.lus_fich))
         return lecteur.lus_fich
 
 
 # on cree l'objet parent et l'executeur principal
 mapper = Pyetl()
 # mapper.initpyetl("#init_mp", [])
+mapper.ismainmapper = True
 set_mainmapper(mapper)
 
 

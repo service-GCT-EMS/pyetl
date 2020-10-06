@@ -23,11 +23,15 @@ import os
 # import re
 import subprocess
 import re
+import logging
 from collections import namedtuple
 import psycopg2
 from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
+
+LOGGER = logging.getLogger("pyetl")  # un logger
+
 
 TYPES_A = {
     "T": "T",
@@ -301,7 +305,10 @@ class PgrConnect(DbConnect):
                     chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT
                 )
         if fini.returncode:
-            print("sortie en erreur ", fini.returncode, fini.args)
+            LOGGER.error(
+                " ".join(("erreur pgsql", repr(fini.returncode), repr(fini.args)))
+            )
+            # print("postgres extsql:sortie en erreur ", fini.returncode, fini.args)
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -325,7 +332,8 @@ class PgrConnect(DbConnect):
             connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
-            print("error: postgres: connection impossible ")
+            LOGGER.error("postgres: connection impossible" + repr(err))
+            # print("error: postgres: connection impossible ")
             print(
                 "info:  postgres: parametres ",
                 self.serveur,
@@ -333,7 +341,7 @@ class PgrConnect(DbConnect):
                 self.user,
                 self.passwd,
             )
-            print("error", err)
+            # print("error", err)
 
             raise
 

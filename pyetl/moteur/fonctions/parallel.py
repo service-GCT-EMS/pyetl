@@ -6,10 +6,12 @@ Created on Tue Jan 15 11:06:21 2019
 gestion du parallelisme sur les entrees/sorties
 
 """
+from logging import StreamHandler
 import os
 from queue import Empty
 import time
 import logging
+import logging.handlers
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
 
@@ -32,10 +34,11 @@ def setparallel(mapper):
     mapper.gestion_parallel_load = gestion_parallel_load
     mapper.parallelmanager = None
     mapper.msgqueue = None
+    mapper.loglistener = None
+    mapper.stoplistener = stoplistener
 
 
-def getmanager():
-    mapper = getmainmapper()
+def getmanager(mapper):
     if mapper.worker:
         return None
     if not mapper.parallelmanager:
@@ -46,19 +49,46 @@ def getmanager():
 def getqueue():
     """recupere le gestionnaire de files"""
     mapper = getmainmapper()
-    if mapper.msgqueue:
-        return mapper.msgqueue
-    manager = getmanager()
-    if manager:
-        mapper.msgqueue = mapper.parallelmanager.Queue()
-    return mapper.msgqueue
+    if not mapper.msgqueue:
+        manager = getmanager(mapper)
+        if manager:
+            mapper.msgqueue = mapper.parallelmanager.Queue()
+            mapper.logqueue = mapper.parallelmanager.Queue()
+    return mapper.msgqueue, mapper.logqueue
+
+
+def setqueuhandler(queue):
+    """ ajoute une gestion de file de messages pour le traitment en multiprocessing"""
+    mapper = getmainmapper()
+    if queue is None:
+        loglistener = logging.handlers.QueueListener(
+            mapper.logqueue, *LOGGER.handlers, respect_handler_level=False
+        )
+        loglistener.start()
+        print("-------------------demarrage listener")
+        mapper.loglistener = loglistener
+    else:
+        # on est sur le worker on ajoute un writer de file
+        mapper.logqueue = queue
+        queuehandler = logging.handlers.QueueHandler(queue)
+        LOGGER.addHandler(queuehandler)
+
+
+def stoplistener():
+    mapper = getmainmapper()
+    print("arret listener", mapper.loglistener)
+    if mapper.loglistener:
+        mapper.loglistener.enqueue_sentinel()
+        # mapper.loglistener = None
+    print("listener arrete")
 
 
 def initparallel(parametres):
     """initialisatin d'un process worker pour un traitement parallele"""
     #    commandes, args, params, macros, env, log = parametres
     if parametres:
-        params, macros, env, loginfo, schemas, msgq = parametres
+        params, macros, env, loginfo, schemas, msgq, logqueue = parametres
+        print("initialisation worker", os.getpid(), loginfo, msgq, logqueue)
     else:
         print("initialisation sans parametres")
         return (os.getpid(), False)
@@ -79,14 +109,15 @@ def initparallel(parametres):
             mainmapper,
             mainmapper.schemas,
         )
-    LOGGER.info("pyetl initworker " + str(os.getpid()))
     mainmapper.worker = True
     mainmapper.initlog(loginfo)
+    setqueuhandler(logqueue)
     mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
     mainmapper.msgqueue = msgq
+    LOGGER.info("pyetl initworker " + str(os.getpid()))
 
-    # print ('initparallel: recuperation parametres', params, env, loginfo, schemas.keys())
+    # print("initparallel: recuperation parametres", loginfo)
     # print ('initparallel: valeur de import',params.get('import'))
     integre_schemas(mainmapper.schemas, schemas)
     mainmapper.parametres_lancement = parametres
@@ -269,6 +300,8 @@ def suivi_job(mapper, work):
     """suit un ensemnle de process en parallele"""
     rfin = dict()
     attente = []
+    # getqueue()
+    mapper.aff.send(("check", 0, 0))
     for job in work:
         if not job.done():
             attente.append(job)
@@ -290,6 +323,8 @@ def suivi_job(mapper, work):
                     rfin[num_obj] = 0
                 else:
                     rfin[num_obj] = retour
+                    # print("retour job", retour)
+                    # mapper.aff.send(("interm", 1, retour))
                     mapper.aff.send(("fich", 1, retour))
     work[:] = attente
     return rfin
@@ -340,7 +375,7 @@ def paralleliter_suivi(regle, executor, fonction, argiter):
                     jobs.append(executor.submit(fonction, 1, job, regle.index))
                 except IndexError:
                     time.sleep(0.1)
-        # print('paralleliter_suivi : fin traitement', arg, jobs)
+            # print("paralleliter_suivi : fin traitement", arg, jobs)
         rfin.update(suivi_job(mapper, jobs))
         # print('paralleliter_suivi : dodo', arg)
         time.sleep(0.1)
@@ -403,10 +438,12 @@ def traite_parallel(regle):
         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == "process" else parallelbatch
-    msgqueue = getqueue()
+    msgqueue, logqueue = getqueue()
+    setqueuhandler(None)
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
-        print("initialistaion parallele", schemas.keys())
+        LOGGER.info("initialisation parallele")
+        # print("initialisation parallele", schemas.keys())
         rinit = parallelexec(
             executor,
             nprocs,
@@ -418,6 +455,7 @@ def traite_parallel(regle):
                 None,
                 schemas,
                 msgqueue,
+                logqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -458,7 +496,6 @@ def traite_parallel(regle):
             #     mapper.statstore.stats[nom].add(entete, contenu)
         else:
             print("erreur retour", rfin)
-
     regle.nbstock = 0
 
 
@@ -479,7 +516,8 @@ def traite_parallel_load(regle):
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
     #    print('parallel load',entrees,idobj, type(mapper.env))
-    msgqueue = getqueue()
+    msgqueue, logqueue = getqueue()
+    setqueuhandler(None)
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
@@ -493,6 +531,7 @@ def traite_parallel_load(regle):
                 None,
                 schemas,
                 msgqueue,
+                logqueue,
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
@@ -592,7 +631,8 @@ def traite_parallel_batch(regle):
             obj = regle.tmpstore[int(numero)]
             regle.prog(regle, obj)
             continue
-        msgqueue = getqueue()
+        msgqueue, logqueue = getqueue()
+        setqueuhandler(None)
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
             # TODO en python 3.7 l'initialisation peut se faire dans le pool
             rinit = parallelexec(
@@ -606,6 +646,7 @@ def traite_parallel_batch(regle):
                     None,
                     None,
                     msgqueue,
+                    logqueue,
                 ),
             )
 
@@ -729,7 +770,7 @@ def wait_end(pool):
 
 def execparallel_ext(blocks, maxworkers, lanceur, patience=None):
     """lance des process en parallele"""
-    for i in iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
+    for i in iterparallel_ext(blocks, maxworkers, lanceur, patience=patience):
         if i is not None:
             print("traitement effectue", i)
     return
@@ -752,7 +793,8 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
     libres = len(pool)
     # print("----------------------------dans iter parallelext", maxworkers, len(blocks))
     # optimiseur de position
-    msgq = getqueue()
+    getqueue()
+    setqueuhandler(None)
     while blocks or libres < maxworkers:
         # print ('itp:',a_traiter, libres, len(pool))
         try:
@@ -765,11 +807,11 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
         except IndexError:
             yield None
         libres = 0
-        try:
-            txt = msgq.get(block=False)
-            print("-------------------------------retour queue", txt)
-        except Empty:
-            time.sleep(0.1)
+        # try:
+        #     msg = msgq.get(block=False)
+        #     print("-------------------------------retour queue", msg)
+        # except Empty:
+        #     time.sleep(0.1)
         for slot in get_slots(pool):
             if pool[slot]:
                 #                print ('trouve element a traiter',pool[slot])

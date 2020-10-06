@@ -5,6 +5,7 @@ gestion des entrees et sorties de schemas
 @author: 89965
 """
 import os
+import logging
 
 # import xml.etree.ElementTree as ET
 from pyetl.formats.db import DATABASES
@@ -15,11 +16,16 @@ from . import fonctions_schema as FSC
 from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
+LOGGER = logging.getLogger("Pyetl")
+
 
 def fusion_schema(nom, schema, schema_tmp):
     """fusionne 2 schemas en se basant sur les poids ou les maxobj pour garder le bon"""
     if not schema or not schema_tmp:
-        print("schema vide fusion impossible", nom, schema, schema_tmp)
+        # print("schema vide fusion impossible", nom, schema, schema_tmp)
+        LOGGER.warning(
+            "schema vide fusion impossible" + nom + repr(schema) + repr(schema_tmp)
+        )
         return
     for i in schema_tmp.conformites:
         if i in schema.conformites:
@@ -431,7 +437,7 @@ def integre_schemas(schemas, nouveaux):
         tmp = SCI.init_schema(None, nom)
         tmp.from_dic_if(description)
 
-        print("recup schema transmis", nom, schemas.get(nom), nom in schemas)
+        # print("recup schema transmis", nom, schemas.get(nom), nom in schemas)
         if nom in schemas:
             fusion_schema(nom, schemas[nom], tmp)
         else:

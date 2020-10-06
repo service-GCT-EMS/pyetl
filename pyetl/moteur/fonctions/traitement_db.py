@@ -62,6 +62,8 @@ def param_base(regle, nom=""):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
+    if not base:
+        base = "*"
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
     cla = regle.v_nommees["sel2"]
@@ -72,7 +74,7 @@ def param_base(regle, nom=""):
         regle.setlocal("mod", mods)
     fonction = "=" if "=" in mods else ""
 
-    print("param_base", regle, "-", nom, base, niv, cla, att, vals)
+    # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)

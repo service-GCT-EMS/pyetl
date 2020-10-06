@@ -333,12 +333,12 @@ class TableSelector(object):
             if len(tmp) >= 3:
                 base = tmp[0]
                 descripteur = tmp[1:]
-        if self.autobase:
+        if self.autobase or not self.base:
             base = self.idbase(base)
         else:
             base = self.base
         if not base:
-            print(" pas de base", descripteur)
+            print(" pas de base", descripteur, self.autobase)
             return
             base = "__filedb"
         if base not in self.baseselectors:
@@ -491,7 +491,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     base = (database, "host=" + host, "port=" + port)
                     if database:
                         selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    print("descripteur", base, niveau, [classe])
+                    print("qgs : descripteur", base, niveau, [classe])
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
     print("lus fichier qgis ", fichier, selecteur)
