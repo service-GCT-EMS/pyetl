@@ -484,7 +484,8 @@ def f_dbrunproc(regle, obj):
     #pattern||;?LC;?L;runproc;C;
     #req_test||testdb
     """
-    for base in regle.cible_base:
+    selecteur = setdb(regle, obj)
+    for base in selecteur.baseselectors:
         params = regle.getval_entree(obj)
         print("runproc", regle.procedure, params)
         DB.dbrunproc(regle, base, regle.procedure, params)

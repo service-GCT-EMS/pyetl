@@ -73,11 +73,13 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
     else:
         LOGGER.setLevel(niveau_p)
     if not worker:
+        print("initialisation log", affich, log, "(", fichier, ")")
         if not LOGGER.handlers:
             # création d'un handler qui va rediriger chaque écriture de log sur la console
+
             print_handler = logging.StreamHandler()
             printformatter = logging.Formatter(
-                "\n!!!%(levelname)8s %(funcName)10s: %(message)s"
+                "%(levelname)-8s %(funcName)-25s: %(message)s"
             )
             print_handler.setFormatter(printformatter)
             print_handler.setLevel(niveau_p)
@@ -97,7 +99,10 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
             file_handler.setLevel(niveau_f)
             file_handler.setFormatter(fileformatter)
             LOGGER.addHandler(file_handler)
-            LOGGER.info("----pyetl:" + VERSION)
+    else:
+        pass
+    print("=====================================================start logger ")
+    LOGGER.info("----demarrage pyetl:" + VERSION)
 
 
 def getlog(args):
@@ -107,12 +112,13 @@ def getlog(args):
     log_print = None
     if args:
         for i in args:
-            if "log=" in i:
+            if "log_file=" in i:
                 log = i.split("=")[1]
             if "log_level=" in i:
                 log_level = i.split("=")[1]
             if "log_print=" in i:
                 log_print = i.split("=")[1]
+    print("dans getlog", log, log_level, log_print)
     return log, log_level, log_print
 
 
@@ -122,7 +128,8 @@ def runpyetl(commandes, args):
     print(
         "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
     )
-
+    mainmapper = getmainmapper()
+    mainmapper.initlog(loginfo)
     mapper = getmainmapper().getpyetl(commandes, liste_params=args)
     if mapper:
         mapper.process()
@@ -272,18 +279,20 @@ class Pyetl(object):
         """initialise le contexte (parametres de site environnement)"""
         if self.loginited:
             return  # on a deja fait le boulot
-        log_level = "INFO"
-        log_print = "WARNING"
-        if loginfo and not self.worker:
-            log, log_level, log_print = loginfo
-            self.setvar("logfile", log)
-            self.setvar("log_level", log_level)
-            self.setvar("log_print", log_print)
-
+        log_level = "DEBUG"
+        log_print = "INFO"
+        log_file = ""
+        if loginfo:
+            logfile, loglevel, logprint = loginfo
+        else:
+            logfile, loglevel, logprint = (None, None, None)
+        log_file = logfile or log_file
+        log_level = loglevel or log_level
+        log_print = logprint or log_print
         initlogger(
-            fichier=self.getvar("logfile", None),
-            log=log_level,
-            affich=log_print,
+            fichier=self.getvar("log_file", log_file),
+            log=self.getvar("log_level", log_level),
+            affich=self.getvar("log_print", log_print),
             worker=self.worker,
         )
         self.loginited = True
@@ -291,10 +300,9 @@ class Pyetl(object):
     #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
     #        next(self.aff)
 
-    def initpyetl(self, commandes, args, loginfo=None):
+    def initpyetl(self, commandes, args):
         """ initialisation standardisee: cree l'objet pyetl de base"""
-
-        self.initlog(loginfo)
+        self.initlog()
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:

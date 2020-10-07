@@ -443,7 +443,8 @@ def integre_schemas(schemas, nouveaux):
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
-    print("schemas transmis ", nomschemas, schemas.keys())
+    print("schemas recus ", nomschemas, schemas.keys())
+    LOGGER.info("schemas recus " + str(nomschemas))
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids

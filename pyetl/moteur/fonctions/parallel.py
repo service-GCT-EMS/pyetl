@@ -57,20 +57,25 @@ def getqueue():
     return mapper.msgqueue, mapper.logqueue
 
 
-def setqueuhandler(queue):
+def setqueuhandler(queue, wid=""):
     """ ajoute une gestion de file de messages pour le traitment en multiprocessing"""
     mapper = getmainmapper()
     if queue is None:
         loglistener = logging.handlers.QueueListener(
-            mapper.logqueue, *LOGGER.handlers, respect_handler_level=False
+            mapper.logqueue, *LOGGER.handlers, respect_handler_level=True
         )
         loglistener.start()
-        print("-------------------demarrage listener")
+        LOGGER.info("demarrage listener")
+        # print("-------------------demarrage listener")
         mapper.loglistener = loglistener
     else:
         # on est sur le worker on ajoute un writer de file
+        # info = {"wid": str("wid")}
+        # adapter = logging.LoggerAdapter(LOGGER, info)
         mapper.logqueue = queue
+        queueformatter = logging.Formatter("(W" + str(wid) + "):%(message)s")
         queuehandler = logging.handlers.QueueHandler(queue)
+        queuehandler.setFormatter(queueformatter)
         LOGGER.addHandler(queuehandler)
 
 
@@ -110,12 +115,11 @@ def initparallel(parametres):
             mainmapper.schemas,
         )
     mainmapper.worker = True
-    mainmapper.initlog(loginfo)
-    setqueuhandler(logqueue)
-    mainmapper.macrostore.macros.update(macros)
     mainmapper.context.update(params)
+    mainmapper.initlog()
+    mainmapper.macrostore.macros.update(macros)
     mainmapper.msgqueue = msgq
-    LOGGER.info("pyetl initworker " + str(os.getpid()))
+    mainmapper.logqueue = logqueue
 
     # print("initparallel: recuperation parametres", loginfo)
     # print ('initparallel: valeur de import',params.get('import'))
@@ -135,16 +139,18 @@ def setparallelid(parametres):
         return None
     wid = str(pidset[os.getpid()])
     mainmapper.setvar("_wid", wid)
-    log, log_level, log_print = (
-        mainmapper.getvar("logfile"),
-        mainmapper.getvar("log_level"),
-        mainmapper.getvar("log_print"),
-    )
-    if log:
-        base, ext = os.path.splitext(mainmapper.getvar("logfile"))
-        log = str(base) + "_" + wid + "." + str(ext)
-    loginfo = log, log_level, log_print
-    init = mainmapper.initpyetl(commandes, args, loginfo=loginfo)
+    # log, log_level, log_print = (
+    #     mainmapper.getvar("logfile"),
+    #     mainmapper.getvar("log_level"),
+    #     mainmapper.getvar("log_print"),
+    # )
+    # if log:
+    #     base, ext = os.path.splitext(mainmapper.getvar("logfile"))
+    #     log = str(base) + "_" + wid + "." + str(ext)
+    # loginfo = log, log_level, log_print
+    init = mainmapper.initpyetl(commandes, args)
+    setqueuhandler(mainmapper.logqueue, wid=wid)
+    LOGGER.info("pyetl initworker " + str(os.getpid()))
     if paralleldebug:
         print("setparallelid apres init", mainmapper.getvar("_wid"), commandes, args)
 
