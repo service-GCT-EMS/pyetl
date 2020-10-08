@@ -81,11 +81,12 @@ def setqueuhandler(queue, wid=""):
 
 def stoplistener():
     mapper = getmainmapper()
-    print("arret listener", mapper.loglistener)
+    # print("arret listener", mapper.loglistener)
+    LOGGER.info("arret listener")
     if mapper.loglistener:
         mapper.loglistener.enqueue_sentinel()
         # mapper.loglistener = None
-    print("listener arrete")
+    # print("listener arrete")
 
 
 def initparallel(parametres):
@@ -93,7 +94,7 @@ def initparallel(parametres):
     #    commandes, args, params, macros, env, log = parametres
     if parametres:
         params, macros, env, loginfo, schemas, msgq, logqueue = parametres
-        print("initialisation worker", os.getpid(), loginfo, msgq, logqueue)
+        # print("initialisation worker", os.getpid(), loginfo, msgq, logqueue)
     else:
         print("initialisation sans parametres")
         return (os.getpid(), False)

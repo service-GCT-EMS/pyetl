@@ -33,6 +33,9 @@ Created on Fri Dec 11 14:34:04 2015
 # from pyetl.formats.formats import Stat
 import re
 import copy
+import logging
+
+LOGGER = logging.getLogger("pyetl")
 
 
 def f_setliste(regle, obj):
@@ -178,7 +181,10 @@ def h_sub(regle):
             regle.params.cmp1.val
         )  # expression sur l'attribut d'entree
     except re.error as err:
-        print("expression reguliere invalide", regle.params.cmp1.val, err)
+        LOGGER.exception(
+            "expression reguliere invalide %s", regle.params.cmp1.val, exc_info=err
+        )
+        # print("expression reguliere invalide", regle.params.cmp1.val, err)
         regle.valide = False
         regle.erreurs.append("erreur compilation des expressions" + repr(err))
         return
@@ -227,10 +233,15 @@ def h_setcalc(regle):
     #    print ('dans hcalc',regle.params)
     try:
         regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
-    except SyntaxError:
-        print(
-            "erreur sur l'expression de calcul->" + regle.params.att_entree.val + "<-"
+    except SyntaxError as err:
+        LOGGER.exception(
+            "erreur sur l'expression de calcul->%s<-",
+            regle.params.att_entree.val,
+            exc_info=err,
         )
+        # print(
+        #     "erreur sur l'expression de calcul->" + regle.params.att_entree.val + "<-"
+        # )
         regle.params.compilefonc(regle.params.att_entree.val, "obj", debug=True)
         regle.valide = False
 
@@ -485,7 +496,8 @@ def f_vset(regle, obj):
     if valeur != regle.getvar(regle.params.att_sortie.val):
         regle.setvar(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
-            print("reinterpretation regle", i)
+            LOGGER.info("reinterpretation regle %s", repr(i))
+            # print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
         # print ('stocke ', regle.params.att_sortie.val,
         #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
@@ -692,9 +704,9 @@ def h_join(regle):
 
         regle.tmpstore = regle.stock_param.store.get(regle.params.cmp1.val)
         if regle.tmpstore is None:
-            print("element de comparaison non defini " + regle.params.cmp1.val)
+            # print("element de comparaison non defini " + regle.params.cmp1.val)
             raise SyntaxError(
-                "element de comparaison non defini " + regle.params.cmp1.val
+                "join: element de comparaison non defini " + regle.params.cmp1.val
             )
     else:
         regle.jointtype = "fich"

@@ -414,16 +414,16 @@ def retour_schemas(schemas, mode="util"):
         if FSC.analyse_interne(schema, mode_sortie):
             #            print ('stockage', nom, len(schema.__dic_if__))
             retour[nom] = schema.__dic_if__
-            debug = ("elypu", "pos_app_emprise_er")
-            if debug in schema.classes:
-                print(
-                    "retour schema",
-                    schema.nom,
-                    schema.classes[debug].nom,
-                    schema.classes[debug].poids,
-                    schema.classes[debug].objcnt,
-                    schema.classes[debug].maxobj,
-                )
+            # debug = ("elypu", "pos_app_emprise_er")
+            # if debug in schema.classes:
+            #     print(
+            #         "retour schema",
+            #         schema.nom,
+            #         schema.classes[debug].nom,
+            #         schema.classes[debug].poids,
+            #         schema.classes[debug].objcnt,
+            #         schema.classes[debug].maxobj,
+            #     )
     return retour
 
 
@@ -443,7 +443,11 @@ def integre_schemas(schemas, nouveaux):
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
-    print("schemas recus ", nomschemas, schemas.keys())
+    print(
+        "------------------------------------------schemas recus ",
+        nomschemas,
+        schemas.keys(),
+    )
     LOGGER.info("schemas recus " + str(nomschemas))
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():

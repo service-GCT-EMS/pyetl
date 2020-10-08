@@ -34,12 +34,12 @@ def getschemaclasse(regle, obj):
     if not regle.schemaref:
         regle.schemaref = regle.stock_param.schemas.get(regle.nomschema)
         if not regle.schemaref:
-            print("schema inconnu", regle.nomschema, regle.stock_param.schemas.keys())
-    if regle.schemaref:
-        schemaclasse = regle.schemaref.get_classe(
-            (None, obj.attributs.get(regle.getdyn(obj, "cmp2")))
-        )
-    return schemaclasse
+            # print("schema inconnu", regle.nomschema, regle.stock_param.schemas.keys())
+            LOGGER.error("schema inconnu %s", regle.nomschema)
+            return None
+    return regle.schemaref.get_classe(
+        (None, obj.attributs.get(regle.getdyn(obj, "cmp2")))
+    )
 
 
 def f_info_schema(regle, obj):
@@ -131,7 +131,7 @@ def f_stock_schema(regle, obj):
         if not regle.schema_courant:
             regle.schema_courant = regle.stock_param.init_schema(nom_base)
         if regle.getvar("taux_conformite"):
-            print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
+            # print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
     FSC.ajuste_schema(
         regle.schema_courant,
@@ -180,6 +180,7 @@ def f_valide_schema(regle, obj):
     """#aide||verifie si des objets sont compatibles avec un schema
      #pattern||?=#schema;?C;;valide_schema;?=strict;
      #pattern2||?=#schema;?C;;valide_schema;=supp_conf;
+     #variables||log_level;err ou warn par defaut no;
      #test||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
      #test2||obj;point||^type_geom;2;;set_schema||^;;;valide_schema||+fail:;;;;res;1;;set||atv;res;1
 
@@ -195,7 +196,9 @@ def f_valide_schema(regle, obj):
         return True
     schem = obj.schema
     if schem:
-        retour = FSC.valide_schema(schem, obj, regle.params.cmp1.val)
+        retour = FSC.valide_schema(
+            schem, obj, regle.params.cmp1.val, log=regle.getvar("log_level", "no")
+        )
         #        print ('retour validation schema', retour, obj)
         return retour
     #            if not v :
@@ -354,11 +357,14 @@ def f_def_schema(regle, obj):
                 modele=regle.params.cmp2.val,
                 copie=True,
             )
-            print("copie de schema differee", regle.params.cmp2.val, nom_base)
+            LOGGER.info(
+                "copie de schema differee %s %s", regle.params.cmp2.val, nom_base
+            )
+            # print("copie de schema differee", regle.params.cmp2.val, nom_base)
         #            raise
         else:
-            LOGGER.error("schema inconnu " + nom_base)
-            print("erreur schema inconnu", nom_base)
+            LOGGER.error("schema inconnu %s", nom_base)
+            # print("erreur schema inconnu", nom_base)
             return False
 
     schema = regle.stock_param.schemas[nom_base]
@@ -409,16 +415,24 @@ def f_def_schema(regle, obj):
         if obj.virtuel:
             obj.schema = None
             return True
-        print(
-            "regles:",
+        LOGGER.warning(
+            "regle %d classe non trouvée %s %s dans %s",
             regle.numero,
-            "classe non trouvee",
             nom_base,
             ident,
-            "dans ",
             regle.nomschema,
         )
-        print("regles: liste classes ", list(schema.classes.keys())[:10], "....")
+        # print(
+        #     "regles:",
+        #     regle.numero,
+        #     "classe non trouvee",
+        #     nom_base,
+        #     ident,
+        #     "dans ",
+        #     regle.nomschema,
+        # )
+        LOGGER.warning("liste classes %s ....", str(list(schema.classes.keys())[:10]))
+        # print("regles: liste classes ", list(schema.classes.keys())[:10], "....")
         obj.schema = None
         return False
 

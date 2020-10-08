@@ -197,13 +197,15 @@ def f_abort(regle, obj):
     """
     niveau = regle.params.cmp1.val or "1"
     message = regle.params.cmp2.val
-    LOGGER.info("stop iteration " + repr(regle))
+    LOGGER.info("stop iteration %s %s", niveau, repr(regle))
     if message.startswith("["):
         message = obj.attributs.get(message[1:-1])
     if message:
-        print("abort: arret du traitement ", message, regle.ligne)
+        # print("abort: arret du traitement ", message, regle.ligne)
+        LOGGER.info("arret %s", message)
     if niveau <= "4":
         raise StopIteration(niveau)
+    LOGGER.critical("panic!!!! arret immediat de mapper")
     exit(0)
 
 
@@ -808,7 +810,7 @@ def f_idle(_, __):
 
 
 def f_sleep(regle, obj):
-    """#aide||ne fait rien mais laisse le mainmapper en attente (initialisation en mode parallele)
+    """#aide||attends;;
     #pattern||;?C;?A;sleep;;
     """
     try:
@@ -816,8 +818,9 @@ def f_sleep(regle, obj):
     except ValueError:
         flemme = 1
     # un peu de deco ....
-    print("attente:", flemme, "s")
-    if flemme > 5:
+    # print("attente:", flemme, "s")
+    LOGGER.info("attente: %d s", flemme)
+    if flemme > 5 and not regle.stock_param.worker:
         dormir = flemme / 10
         for i in range(10):
             print(".", end="", flush=True)
@@ -878,7 +881,7 @@ def f_attwriter(regle, obj):
     #helper||sortir||attwriter
     #pattern||A;;;attwriter;C;?C
     """
-    print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
+    # print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.writer.attstore(obj)
     regle.nbstock = 1
 

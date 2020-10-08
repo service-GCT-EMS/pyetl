@@ -46,9 +46,10 @@ fonctions de sortie et de schema auxiliaires
 
 """
 # from pyetl.formats.formats import Stat
-
+import logging
 from pyetl.formats.interne.stats import Stat, Statdef
 
+LOGGER = logging.getLogger("pyetl")
 
 # fonctions de remplacement
 def setajout(regle, liste):
@@ -297,7 +298,8 @@ def f_stat(regle, obj):
         #        obj.attributs.get(regle.params.att_sortie[1:-1],regle.params.att_sortie),
         #                          obj.attributs.get(regle.params.att_entree, regle.params.val_entree))
         return True
-    print("regles:erreurs_statistiques:", regle.ligne, obj.attributs)
+    # print("regles:erreurs_statistiques:", regle.ligne, obj.attributs)
+    LOGGER.error("erreurs_statistiques:%s", repr(regle), str(obj.attributs))
     # raise
     return False
 

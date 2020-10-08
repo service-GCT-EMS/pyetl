@@ -172,13 +172,18 @@ class Reader(object):
                     self.schema = self.stock_param.init_schema(
                         self.nomschema, "L"
                     )  # et un schema pour les objets
-                print(
-                    "----------------------------definition schema_entree ",
+                LOGGER.info(
+                    "definition schema_entree %s -> %s",
                     nom_schema_entree,
-                    "->",
-                    self.nomschema,
-                    self.schema,
+                    repr(self.schema),
                 )
+                # print(
+                #     "----------------------------definition schema_entree ",
+                #     nom_schema_entree,
+                #     "->",
+                #     self.nomschema,
+                #     self.schema,
+                # )
             elif self.regle_ref.getvar("autoschema"):
                 self.nomschema = self.regle_ref.getvar("autoschema")
                 self.schema = self.stock_param.init_schema(

@@ -8,7 +8,11 @@ fonctions s de selections : determine si une regle est eligible ou pas
 import re
 import itertools
 import time
+import logging
+
 from .outils import prepare_mode_in
+
+LOGGER = logging.getLogger("pyetl")
 
 # ------------selecteurs sur valeurs d'attributs---------------------
 
@@ -44,7 +48,10 @@ def selh_regex(selecteur):
     try:
         selecteur.fselect = re.compile(selecteur.params.vals.val).search
     except re.error:
-        print("expression selecteur erronee", selecteur, selecteur.regle)
+        LOGGER.error(
+            "expression regulière erronée %s %s", repr(selecteur), repr(selecteur.regle)
+        )
+        # print("expression selecteur erronee", selecteur, selecteur.regle)
 
 
 def sel_egal(selecteur, obj):

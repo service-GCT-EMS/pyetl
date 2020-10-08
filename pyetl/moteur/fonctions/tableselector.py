@@ -24,6 +24,7 @@ DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
+
 descripteur = namedtuple(
     "descripteur",
     ("type", "niveau", "classe", "attribut", "condition", "valeur", "mapping"),
@@ -93,7 +94,7 @@ class TableBaseSelector(object):
         if attr and valeur:
             att, defaut = valeur
             if att:
-                print(" element dynamique", att)
+                # print(" element dynamique", att)
                 dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
@@ -633,12 +634,14 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         base, niveau, classe, attribut, valeur, fonction
                     )
     except FileNotFoundError:
-        print("fichier liste introuvable ", fichier)
+        # print("fichier liste introuvable ", fichier)
+        LOGGER.warning("fichier liste introuvable " + fichier)
     # print("prechargement selecteur csv", selecteur)
 
 
 def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
-    print("sel_from_fich:scandirs", fichier)
+    # print("sel_from_fich:scandirs", fichier)
+    LOGGER.debug("sel_from_fich:scandirs " + fichier)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)

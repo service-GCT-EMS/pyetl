@@ -313,21 +313,21 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
     # print( 'dans gestion ',classe,mode,val)
     if mode == "supp_conf":
         atdef.type_att = "T"  # on supprime automatiquement la conformite
-        LOGGER.warning(
-            "schema: "
-            + nom_schema
-            + " :suppression conformite "
-            + nom_classe
-            + "."
-            + atdef.nom
-            + " "
-            + atdef.nom_conformite
-            + " ->"
-            + atdef.type_att
-            + ":"
-            + str(val)
-            + "<-"
-        )
+        # LOGGER.warning(
+        #     "schema: "
+        #     + nom_schema
+        #     + " :suppression conformite "
+        #     + nom_classe
+        #     + "."
+        #     + atdef.nom
+        #     + " "
+        #     + atdef.nom_conformite
+        #     + " ->"
+        #     + atdef.type_att
+        #     + ":"
+        #     + str(val)
+        #     + "<-"
+        # )
         # print(
         #     "schema:",
         #     nom_schema,
@@ -490,7 +490,7 @@ def set_err(classe, obj, message, attendu, erreur, affich):
     return message % (idobj, attendu, erreur)
 
 
-def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
+def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
     """ verifie si un objet est conforme a son schema """
     # print 'dans valide_schema',obj.ident
     # validation des types geometriques
@@ -675,12 +675,13 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             )
         else:
             obj.attributs["#warnings"] = "+".join(warnings)
-        LOGGER.info(
-            "schema: warning validation %s %s :-> %s",
-            schemaclasse.schema.nom,
-            schemaclasse.groupe,
-            "+".join(warnings),
-        )
+        if log == "warn" or log == "err":
+            LOGGER.warning(
+                "schema: warning validation %s %s :-> %s",
+                schemaclasse.schema.nom,
+                schemaclasse.groupe,
+                "+".join(warnings),
+            )
 
     if erreurs:
         if obj.attributs.get("#erreurs", ""):
@@ -689,13 +690,13 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu"):
             )
         else:
             obj.attributs["#erreurs"] = "+".join(erreurs)
-
-        LOGGER.info(
-            "schema: erreurs validation %s %s :-> %s",
-            schemaclasse.schema.nom,
-            schemaclasse.groupe,
-            "+".join(erreurs),
-        )
+        if log == "err":
+            LOGGER.error(
+                "schema: erreurs validation %s %s :-> %s",
+                schemaclasse.schema.nom,
+                schemaclasse.groupe,
+                "+".join(erreurs),
+            )
         return False
     return True
 

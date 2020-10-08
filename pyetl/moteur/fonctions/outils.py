@@ -275,7 +275,8 @@ def _charge_liste_csv(
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
-        print("fichier liste introuvable ", fichier)
+        # print("fichier liste introuvable ", fichier)
+        LOGGER.warning("fichier liste introuvable " + fichier)
     # print("prechargement csv", stock)
     return stock
 
@@ -331,7 +332,8 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
         if debug:
             print("chargement liste", fichier)
     except FileNotFoundError:
-        print("fichier liste introuvable ", fichier)
+        # print("fichier liste introuvable ", fichier)
+        LOGGER.warning("fichier liste introuvable " + fichier)
     # print ('lus fichier qgis ',fichier,list(stock))
     return stock
 
@@ -402,7 +404,8 @@ def charge_liste(
                 )
     #    print ('charge liste',sorted(stock))
     if not stock:  # on a rien trouve
-        print("---------attention aucune liste disponible sous ", fichier)
+        pass
+        # print("---------attention aucune liste disponible sous ", fichier)
     return stock
 
 

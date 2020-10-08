@@ -5,21 +5,13 @@ Created on Mon Dec 21 13:33:58 2015
 @author: 89965
 """
 # from . import csv as E
+import logging
 from collections import namedtuple
 from itertools import chain
 from .fichiers.format_asc import ajout_attribut_asc, att_to_text
 from .interne.objet import Objet
 
-
-# def _extendlist(liste):
-#     """utilitaire d'applatissement d'une liste de liste
-#     c est une syntaxe qui ne s'invente pas alors quand on l'a on la garde"""
-#     #    return [x for slist in liste for x in slist]
-#     return chain.from_iterable(liste)
-#     # l=liste[0]
-#     # print 'liste a applatir',l
-#     # for j in liste[1:]: l.extend(j)
-#     # return l
+LOGGER = logging.getLogger("pyetl")
 
 
 def _ecrire_section_tmp(section):
@@ -31,8 +23,6 @@ def _ecrire_section_tmp(section):
     )
 
 
-# def ecrire_ligne_tmp(ligne):
-#    return (["L"].extend([ecrire_section_tmp(j) for j in ligne.sections])).append("M")
 def _ecrire_ligne_tmp(ligne):
     """ecrit une ligne en format temporaire"""
     #    print("ligne", len(ligne.sections))
@@ -187,7 +177,8 @@ def lire_objets(fichier, stock_param):
                     obj.attributs["#geom"] = []
                 continue
             if not obj:
-                print("erreur fichier temporaire ", ligne)
+                LOGGER.error("erreur fichier temporaire %s", ligne)
+                # print("erreur fichier temporaire ", ligne)
                 continue
             if code == "2" or code == "4":
                 ajout_attribut_asc(obj, ligne)
@@ -195,7 +186,10 @@ def lire_objets(fichier, stock_param):
                 obj.attributs["#geom"].append(ligne[1:-1])
             elif code == "5":
                 if obj.attributs["#geom"] and not obj.attributs_geom:
-                    print("geom_lue sans convertisseur", form, ":", obj.attributs_geom)
+                    LOGGER.error(
+                        "geom_lue sans convertisseur %s : %", form, obj.attributs_geom
+                    )
+                    # print("geom_lue sans convertisseur", form, ":", obj.attributs_geom)
                 #                print (obj.geom)
                 obj.geomnatif = True
                 yield obj

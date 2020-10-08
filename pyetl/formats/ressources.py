@@ -27,7 +27,8 @@ class RessourceDistante(object):
     def finalise(self):
         """ retourne le nombre d'objet"""
         if self.etat > 2:
-            print("ressource deja finalisee", self)
+            LOGGER.warning("ressource deja finalisee %", repr(self))
+            # print("ressource deja finalisee", self)
             return -1
         self.etat = 3
         return self.nbo
@@ -166,7 +167,11 @@ class GestionSorties(object):
                     del self.ressources[id_ressource]
                     return None
                 else:
-                    print("fichier deja utilise", id_ressource, "positionner overwrite")
+                    LOGGER.error(
+                        "fichier deja utilise %s positionner overwrite",
+                        str(id_ressource),
+                    )
+                    # print("fichier deja utilise", id_ressource, "positionner overwrite")
                     raise StopIteration(3)
             return retour
         return None

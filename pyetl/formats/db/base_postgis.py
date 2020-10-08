@@ -20,8 +20,12 @@ il est necessaire de positionner les parametres suivant:
 """
 # import re
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
+import logging
 from .base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
+
+LOGGER = logging.getLogger("pyetl")  # un logger
+
 
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}
 
@@ -315,7 +319,8 @@ class PgsGenSql(PgrGenSql):
                 cur.close()
                 return True
             except Exception as erreur:
-                print("error: sigli: chargement ", fichier, "-->", erreur)
+                LOGGER.exception("erreur chargement %s", fichier, exc_info=erreur)
+                # print("error: sigli: chargement ", fichier, "-->", erreur)
                 cur.close()
                 return False
 
@@ -329,7 +334,8 @@ class PgsGenSql(PgrGenSql):
             cur.close()
             return True
         except Exception as erreur:
-            print("error: sigli: chargement ", ident, "-->", erreur)
+            LOGGER.exception("erreur chargement %s", ident, exc_info=erreur)
+            # print("error: sigli: chargement ", ident, "-->", erreur)
             cur.close()
             return False
 

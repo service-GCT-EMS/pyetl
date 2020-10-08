@@ -64,6 +64,7 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
         "ERROR": logging.ERROR,
         "CRITICAL": logging.CRITICAL,
         "INFO": logging.INFO,
+        "AFFICH": 999,
     }
     niveau_f = loglevels.get(log, logging.INFO)
     niveau_p = loglevels.get(affich, logging.ERROR)
@@ -73,7 +74,7 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
     else:
         LOGGER.setLevel(niveau_p)
     if not worker:
-        print("initialisation log", affich, log, "(", fichier, ")")
+        # print("initialisation log", affich, log, "(", fichier, ")")
         if not LOGGER.handlers:
             # création d'un handler qui va rediriger chaque écriture de log sur la console
 
@@ -82,8 +83,14 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
                 "%(levelname)-8s %(funcName)-25s: %(message)s"
             )
             print_handler.setFormatter(printformatter)
+            print_handler.addFilter(lambda x: x.levelno != 999)
             print_handler.setLevel(niveau_p)
             LOGGER.addHandler(print_handler)
+            aff_handler = logging.StreamHandler()
+            aff_formatter = logging.Formatter("========================== %(message)s")
+            aff_handler.setLevel(loglevels["AFFICH"])
+            aff_handler.setFormatter(aff_formatter)
+            LOGGER.addHandler(aff_handler)
         if fichier:
             # création d'un formateur qui va ajouter le temps, le niveau
             # de chaque message quand on écrira un message dans le log
@@ -101,8 +108,8 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
             LOGGER.addHandler(file_handler)
     else:
         pass
-    print("=====================================================start logger ")
-    LOGGER.info("----demarrage pyetl:" + VERSION)
+    # print("=====================================================start logger ")
+    # LOGGER.log(999, "demarrage pyetl:" + VERSION)
 
 
 def getlog(args):
@@ -118,32 +125,36 @@ def getlog(args):
                 log_level = i.split("=")[1]
             if "log_print=" in i:
                 log_print = i.split("=")[1]
-    print("dans getlog", log, log_level, log_print)
+    # print("dans getlog", log, log_level, log_print)
     return log, log_level, log_print
 
 
 def runpyetl(commandes, args):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
     loginfo = getlog(args)
-    print(
-        "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
-    )
+
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
+    LOGGER.log(999, "demarrage pyetl %s %s (%s)", VERSION, str(commandes), str(args))
+    # print(
+    #     "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
+    # )
     mapper = getmainmapper().getpyetl(commandes, liste_params=args)
     if mapper:
         mapper.process()
     else:
-        print("arret du traitement ")
+        LOGGER.error("demarrage impossible")
+        # print("arret du traitement ")
         return
     wstats = mapper.get_work_stats()
     nb_total = wstats["obj_lus"]
     nb_fichs = wstats["fich_lus"]
     n_ecrits = wstats["obj_ecrits"]
     if nb_total:
-        print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
-
-    print(wstats["obj_dupp"], "objets dupliques")
+        LOGGER.log(999, "%d objets lus dans %d", nb_total, nb_fichs)
+        # print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
+    LOGGER.log(999, "%d objets dupliques", wstats["obj_dupp"])
+    # print(wstats["obj_dupp"], "objets dupliques")
     if n_ecrits:
         print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
@@ -549,7 +560,13 @@ class Pyetl(object):
                 )
                 for i in self.regles:
                     if i.erreurs:
-                        print("erreur interpretation", i.numero, i, i.erreur)
+                        LOGGER.error(
+                            "erreur interpretation %d: %s -> %s",
+                            i.numero,
+                            repr(i),
+                            str(i.erreur),
+                        )
+                        # print("erreur interpretation", i.numero, i, i.erreur)
                 #                print("sortie en erreur", self.idpyetl)
                 return False
         self.sorties.set_sortie(self.getvar("_sortie"))
@@ -617,48 +634,44 @@ class Pyetl(object):
                 ftype = "tables"
 
             msg = (
-                " --%s----> nombre d'objets lus %8d dans %4d %s en %5d "
+                " mapper   :--%s----> nombre d'objets lus %8d dans %4d %s en %5d "
                 + "secondes %5d o/s"
             )
-            if self.worker:
-                msg = "worker%3s:" % wid + msg
-            else:
-                msg = "mapper   :" + msg
-            LOGGER.info(
-                " ".join(
-                    (
-                        msg,
-                        str(cmp),
-                        str(nbobj),
-                        str(tabletotal),
-                        str(ftype),
-                        str(int(duree)),
-                        str(int(nbobj / duree)),
-                        str(int((nbobj - nop) / (interv + 0.001))),
-                    )
-                )
-            )
-            if self.worker:
-                if message == "interm":
-                    tinterm = interm + interv
-                    msg = " --int----> nombre d'objets lus %8d en %5d secondes: %5d o/s"
-                    msg = "worker%3s:" % self.getvar("_wid") + msg
-                    if interm > 1:
-                        tinterm = interm + interv
-                    else:  # on calcule un temps moyen pour pas afficher n'importe quoi
-                        tinterm = nbval / (nbobj / duree)
-                    ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
-                    if mode == "cmd":
-                        # print("ecriture_queue", ligne)
-                        # self.msgqueue.put(ligne)
-                        pass
-                        # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
-                    elif mode == "web":
-                        # self.msgqueue.put(ligne)
-                        pass
-                        # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
+            # if self.worker:
+            #     msg = "worker%3s:" % wid + msg
+            # else:
+            #     msg = "mapper   :" + msg
+            # LOGGER.info(
+            #     msg,
+            #     str(cmp),
+            #     nbobj,
+            #     tabletotal,
+            #     str(ftype),
+            #     int(duree),
+            #     int(nbobj / duree),
+            #     int((nbobj - nop) / (interv + 0.001)),
+            # )
+            if not self.worker:
+                # if message == "interm":
+                #     tinterm = interm + interv
+                #     msg = " --int----> nombre d'objets lus %8d en %5d secondes: %5d o/s"
+                #     msg = "worker%3s:" % self.getvar("_wid") + msg
+                #     if interm > 1:
+                #         tinterm = interm + interv
+                #     else:  # on calcule un temps moyen pour pas afficher n'importe quoi
+                #         tinterm = nbval / (nbobj / duree)
+                #     ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
+                #     if mode == "cmd":
+                #         # print("ecriture_queue", ligne)
+                #         # self.msgqueue.put(ligne)
+                #         pass
+                #         # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
+                #     elif mode == "web":
+                #         # self.msgqueue.put(ligne)
+                #         pass
+                #         # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
 
-            else:
+                # else:
                 ligne = msg % (
                     cmp,
                     nbobj,
@@ -714,14 +727,14 @@ class Pyetl(object):
                 # print(" worker : ecriture queue", ("interm", nbfic, mnbval, wid))
             elif nbval >= prochain:
                 prochain, interm = affiche(message, nbval)
-                print(
-                    "prochain",
-                    self.getvar("_wid"),
-                    self.idpyetl,
-                    prochain,
-                    nbtotal,
-                    sorted(nbvals.items()),
-                )
+                # print(
+                #     "prochain",
+                #     self.getvar("_wid"),
+                #     self.idpyetl,
+                #     prochain,
+                #     nbtotal,
+                #     sorted(nbvals.items()),
+                # )
                 nop = nbval
 
             if message == "fich":
@@ -752,7 +765,8 @@ class Pyetl(object):
         #        print(" dans getpyetl",mode)
         if not regles:
             if mode is None:
-                print("getpyetl:mode non defini")
+                LOGGER.critical("getpyetl:mode non defini")
+                # print("getpyetl:mode non defini")
                 return None
         petl = Pyetl(parent=self)
         if rep_sortie is not None:
@@ -771,7 +785,8 @@ class Pyetl(object):
         petl.mode = mode
         if petl.initpyetl(regles, liste_params):
             return petl
-        print("erreur getpyetl", regles)
+        LOGGER.critical("erreur getpyetl %s", str(regles))
+        # print("erreur getpyetl", regles)
         return None
 
     def _set_streammode(self):
