@@ -151,20 +151,30 @@ def runpyetl(commandes, args):
     nb_fichs = wstats["fich_lus"]
     n_ecrits = wstats["obj_ecrits"]
     if nb_total:
-        LOGGER.log(999, "%d objets lus dans %d", nb_total, nb_fichs)
+        LOGGER.log(999, "%d objets lus dans %d fichiers", nb_total, nb_fichs)
         # print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
     LOGGER.log(999, "%d objets dupliques", wstats["obj_dupp"])
     # print(wstats["obj_dupp"], "objets dupliques")
     if n_ecrits:
-        print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
+        LOGGER.log(
+            999, "%d objets ecritslus dans %d fichiers", n_ecrits, wstats["fich_ecrits"]
+        )
+        # print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
-    print(
-        "fin traitement total :",
+    LOGGER.log(
+        999,
+        "fin traitement total : %d fichiers traites en %d millisecondes",
         nb_fichs,
-        "fichiers traites en ",
         int(wstats["duree"] * 1000),
-        "millisecondes",
     )
+
+    # print(
+    #     "fin traitement total :",
+    #     nb_fichs,
+    #     "fichiers traites en ",
+    #     int(wstats["duree"] * 1000),
+    #     "millisecondes",
+    # )
     if nb_total:
         print("perf lecture  :", wstats["perf_r"], "o/s")
     if n_ecrits:
@@ -286,9 +296,9 @@ class Pyetl(object):
             return None
         return os.path.join(os.path.dirname(__file__), path)
 
-    def initlog(self, loginfo=None):
+    def initlog(self, loginfo=None, force=False):
         """initialise le contexte (parametres de site environnement)"""
-        if self.loginited:
+        if self.loginited and not force:
             return  # on a deja fait le boulot
         log_level = "DEBUG"
         log_print = "INFO"
