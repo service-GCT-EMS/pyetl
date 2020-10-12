@@ -24,6 +24,7 @@ from queue import Empty
 # print('base',time.time()-t1)
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
+from .outils.commandes_speciales import commandes_speciales
 
 # print ('globales',time.time()-t1)
 from .formats.generic_io import Reader, Writer, READERS, WRITERS
@@ -176,9 +177,12 @@ def runpyetl(commandes, args):
     #     "millisecondes",
     # )
     if nb_total:
-        print("perf lecture  :", wstats["perf_r"], "o/s")
+        LOGGER.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
+        # print("perf lecture  :", wstats["perf_r"], "o/s")
     if n_ecrits:
-        print("perf ecriture :", wstats["perf_w"], "o/s")
+        LOGGER.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
+
+        # print("perf ecriture :", wstats["perf_w"], "o/s")
     mapper.stoplistener()
 
 
@@ -431,76 +435,6 @@ class Pyetl(object):
         if macros:
             self.charge_cmd_internes(direct=macros)
 
-    def commandes_speciales(self):
-        """commandes speciales"""
-        #        print("commandes speciales: ", self.fichier_regles)
-        commandes_speciales = {"help", "autodoc", "autotest", "unittest", "formattest"}
-        # on ne lit pas de regles mais on prends les commandes predefinies
-        if self.fichier_regles is None:
-            return
-        liste_commandes = self.fichier_regles.split(",")
-        commande, *pars = liste_commandes[0].split(":")
-        commande = commande.replace("#", "")
-        if commande not in commandes_speciales:
-            return
-        nom = self.getvar("_sortie")
-        self.setvar("_sortie", "")
-        self.setvar("_testmode", commande)
-        if commande == "help":
-            from pyetl.helpdef.helpmodule import print_help
-
-            print_help(self, nom)
-
-        elif commande == "autodoc":
-            from pyetl.helpdef.docmodule import autodoc
-            from distutils.dir_util import copy_tree
-
-            print(" generation documentation ", nom)
-            doc = autodoc(self)
-            print("apres generation documentation ", doc.keys())
-            build = self.getvar("_autobuild", "1") == "1"
-            sourcedir = os.path.join(self.getvar("_progdir"), "../doc_pyetl")
-            if nom:
-                os.makedirs(nom, exist_ok=True)
-                copy_tree(sourcedir, nom, update=1)
-                sourcedir = nom
-            autodocdir = os.path.join(sourcedir, "source/references/autodoc")
-            os.makedirs(autodocdir, exist_ok=True)
-            for nomdoc, contenu in doc.items():
-                ref = os.path.join(autodocdir, nomdoc + "def.rst")
-                print("ecriture doc", nomdoc, ref)
-                with open(ref, "w", encoding="utf-8") as dest:
-                    dest.write("\n".join(contenu))
-            if build:
-                builder = os.path.join(sourcedir, "make") + " html "
-
-                os.system(builder)
-                print(
-                    "generation format html dans", os.path.join(sourcedir, "build/html")
-                )
-
-        elif commande == "#autotest" or commande == "autotest":
-            #            print("detecte autotest ", self.fichier_regles, self.posparm)
-            from pyetl.tests.testmodule import full_autotest
-
-            liste_regles = full_autotest(self, pars[0] if pars else nom)
-            if liste_regles:
-                self.fichier_regles = ""
-                self.liste_regles = liste_regles
-                # on a charge les commandes on neutralise l autotest
-
-        elif commande == "#unittest" or commande == "unittest":
-            from pyetl.tests.testmodule import unittests
-
-            unittests(self, nom=nom, debug=self.getvar("debug"))
-
-        elif commande == "#formattest" or commande == "formattest":
-            from pyetl.tests.testmodule import formattests
-
-            formattests(self, nom=nom, debug=self.getvar("debug"))
-
-        self.done = True
-
     def _traite_params(self, liste_params):
         """gere la liste de parametres"""
         if liste_params is not None:
@@ -543,7 +477,8 @@ class Pyetl(object):
         )
         erreurs = None
         if self.fichier_regles or self.liste_regles:
-            self.commandes_speciales()
+            commandes_speciales(self)
+            # self.commandes_speciales()
             if not self.done:
                 try:
                     erreurs = self.lecteur_regles(

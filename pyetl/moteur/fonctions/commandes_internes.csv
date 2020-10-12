@@ -174,7 +174,7 @@ db:%acces%;%niveau%;%classe%;dans_emprise;;buffer;;dbgeo;%mod%;%ordre%;fin;
 <#dbextract;%acces%;%niveau%;%classe%;%attribut%;%valeur%;;;;;;
 <#gid;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#dbrequest;acces;niveau;classe;requete;;;;
+&&#define;#dbrequest;acces;requete;niveau;classe;;;;
 #!help;recuperation d'un jeu de donnees par requete directe;;;;;;;;;;
 <#initdb;%acces%;%nom%;;;;
 db:%acces%;%niveau%;%classe%;;;;;dbreq;%requete%;%nom%;;;

@@ -15,7 +15,7 @@ import logging.handlers
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
 
-from pyetl.vglobales import MAINMAPPER, getmainmapper
+from pyetl.vglobales import getmainmapper
 
 from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.interne.stats import ExtStat
