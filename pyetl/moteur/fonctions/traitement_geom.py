@@ -8,7 +8,10 @@ fonctions de manipulation geometriques
 # import re
 import itertools
 import math as M
+import logging
 from pyetl.projection import conversion as P
+
+LOGGER = logging.getLogger("pyetl")
 
 
 def setschemainfo(regle, obj, multi=None, type=None, dyn=False):
@@ -90,6 +93,7 @@ def cregeompoint(obj, point, srid):
     obj.geom_v.setpoint(point, None, dim)
     if srid:
         obj.geom_v.setsrid(srid)
+    obj.geomnatif = False  # on a touche a la geom
     return obj.finalise_geom()
 
 
@@ -113,9 +117,9 @@ def f_setpoint(regle, obj):
         obj.finalise_geom()
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
-        #        print('set point : erreur valeurs entree ',coords)
+        # print("set point : erreur valeurs entree ", regle.getval_entree(obj))
         return False
-    #    print ('set point',point)
+    # print("---------------------set point", point)
     cregeompoint(obj, point, regle.params.cmp1.val)
     setschemainfo(regle, obj, multi=False, type="1")
     return True
@@ -135,6 +139,7 @@ def f_setpoint_liste(regle, obj):
             float(obj.attributs.get(i, regle.params.val_entree.val))
             for i in regle.params.att_entree.liste
         ]
+        # print("-----------------------setpoint_liste", point)
     except (ValueError, TypeError):
         #        print('set point : erreur valeurs entree ',
         #              [obj.attributs.get(i, regle.params.val_entree.val)
@@ -152,7 +157,7 @@ def f_setpoint_liste(regle, obj):
         return False
     cregeompoint(obj, point, regle.params.cmp1.val)
     setschemainfo(regle, obj, multi=False, type="1")
-    #    print ('creation point',list(obj.geom_v.coords),list(point))
+    # print("creation point", list(obj.geom_v.coords), list(point))
     return True
 
 
@@ -819,14 +824,20 @@ def h_reproj(regle):
     """ initialise la reprojection """
     srid_sortie = {"LL": "900913", "CC48": "3948", "CC49": "3949", "L93": "2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
-    print("reproj srid sortie", regle.srid)
+    LOGGER.info("reprojection vers %s", str(regle.srid))
+    # print("reproj srid sortie", regle.srid)
     regle.projection = P.init_proj(
         regle.params.val_entree.val, regle.params.cmp1.val, regle.params.cmp2.val
     )
     if not regle.projection:
-        print("============================ erreur projection ")
+        print(
+            "============================ erreur projection ",
+            regle.params.val_entree,
+            regle.params.cmp1,
+            regle.params.cmp2,
+        )
         regle.erreurs.append(
-            "projection introuvable %s->%s (%s)"
+            "projection introuvable %s -> %s (%s)"
             % (regle.params.val_entree, regle.params.cmp1, regle.params.cmp2)
         )
         regle.valide = False

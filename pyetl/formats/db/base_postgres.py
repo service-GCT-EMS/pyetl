@@ -89,6 +89,8 @@ TYPES_A = {
     "SMALLINT": "I",
     "INTERVALLE": "I",
     "OID": "I",
+    "JSON": "J",
+    "XML": "XML",
 }
 TYPES_PG = {
     "T": "text",
@@ -121,6 +123,8 @@ TYPES_PG = {
     "n": "numeric",
     "S": "serial NOT NULL",
     "BS": "bigserial NOT NULL",
+    "J": "json",
+    "XML": "XML",
 }
 GTYPES_DISC = {
     "alpha": "",

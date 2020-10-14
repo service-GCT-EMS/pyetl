@@ -5,9 +5,13 @@ Created on Wed Dec 10 09:28:45 2014
 @author: 89965
 """
 import re
+import logging
+
 from copy import deepcopy
 from . import attribut as A
 from . import mapping as MP
+
+LOGGER = logging.getLogger("pyetl")  # un logger
 
 # schemas : description de la structure des objets
 TYPES_G = {
@@ -93,11 +97,14 @@ def _gestion_types_simples(attr, type_attribut):
         #                      " : texte par defaut ",
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
         attr.type_att = "T"
-        print(
-            "schemaclasse--------attention type inconnu passage en texte--->",
-            attr,
-            type_attr,
+        LOGGER.warning(
+            "attention type inconnu %s passage en texte---> %s", type_attr, attr
         )
+        # print(
+        #     "schemaclasse--------attention type inconnu passage en texte--->",
+        #     attr,
+        #     type_attr,
+        # )
 
     if attr.type_att_base == "E" and taille and taille > 9:
         attr.type_att_base = "EL"

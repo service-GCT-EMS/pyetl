@@ -123,7 +123,7 @@ class TableBaseSelector(object):
         # )
         # raise
         if not self.nobase:
-            print("connection ", self.nombase)
+            # print("connection ", self.nombase)
             if self.nombase != "__filedb":
                 self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
                 self.schemabase = self.connect.schemabase
@@ -492,7 +492,8 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     base = (database, "host=" + host, "port=" + port)
                     if database:
                         selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    print("qgs : descripteur", base, niveau, [classe])
+                    # print("qgs : descripteur", base, niveau, [classe])
+                    LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
     except FileNotFoundError:
         print("fichier qgs introuvable ", fichier)
     print("lus fichier qgis ", fichier, selecteur)

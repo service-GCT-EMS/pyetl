@@ -340,12 +340,16 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
 
 def decoupe_liste_commandes(fichier_regles):
     """ gere les cas ou la liste de commandes est un assemblage complexe de macros"""
+    fichier_regles = fichier_regles.strip()
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
     if fichier_regles.startswith("'") and fichier_regles.endswith("'"):
         fichier_regles = fichier_regles[1:-1]
+    fichier_regles = fichier_regles.strip()
     if "'," in fichier_regles or ",'" in fichier_regles:
         liste_commandes = re.split("' *, *'", fichier_regles)
+    elif fichier_regles.startswith("#"):
+        liste_commandes = fichier_regles.split(",#")
     else:
         liste_commandes = fichier_regles.split(",")
     # print ('decoupage_macros',fichier_regles,'->',[(n,"<"+i) for n,i in enumerate(liste_commandes)])

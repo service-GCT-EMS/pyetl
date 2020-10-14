@@ -245,7 +245,7 @@ class CsvWriter(FileWriter):
             ):  # on a pas change la geometrie
                 geom = obj.attributs["#geom"]
                 if not geom:
-                    geom = self.null  # on recupere la geometrie native
+                    geom = self.null
             #                print("sortie ewkt geom0",len(geom))
             else:
                 if obj.initgeom():

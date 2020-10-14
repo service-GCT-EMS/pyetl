@@ -158,7 +158,7 @@ def runpyetl(commandes, args):
     # print(wstats["obj_dupp"], "objets dupliques")
     if n_ecrits:
         LOGGER.log(
-            999, "%d objets ecritslus dans %d fichiers", n_ecrits, wstats["fich_ecrits"]
+            999, "%d objets ecrits dans %d fichiers", n_ecrits, wstats["fich_ecrits"]
         )
         # print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
@@ -331,28 +331,42 @@ class Pyetl(object):
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
-            msg = " ".join(
-                (
-                    "erreur script",
+            # msg = " ".join(
+            #     (
+            #         "erreur script",
+            #         repr(commandes),
+            #         str(err),
+            #         "worker:",
+            #         str(self.worker),
+            #     )
+            # )
+            if self.worker:
+                LOGGER.exception(
+                    "worker:%s erreur script %s",
+                    os.getpid(),
                     repr(commandes),
-                    str(err),
-                    "worker:",
-                    str(self.worker),
+                    exc_info=err,
                 )
-            )
-            LOGGER.critical(msg)
+            else:
+                LOGGER.exception("erreur script %s", repr(commandes), exc_info=err)
             result = False
-        msg = "::".join(
-            (
-                "====== demarrage == ",
-                self.nompyetl,
-                str(self.idpyetl),
-                repr(commandes),
-                repr(args),
-            )
-        )
+        # msg = "::".join(
+        #     (
+        #         "====== demarrage == ",
+        #         self.nompyetl,
+        #         str(self.idpyetl),
+        #         repr(commandes),
+        #         repr(args),
+        #     )
+        # )
 
-        LOGGER.info(msg)
+        LOGGER.debug(
+            "demarrage %s %s \n %s %s",
+            self.nompyetl,
+            str(self.idpyetl),
+            repr(commandes),
+            repr(args),
+        )
         return result
 
     def init_environ(self, env=None):

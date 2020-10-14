@@ -60,6 +60,9 @@ TYPES_A = {
     "INTERVALLE": "I",
     "OID": "I",
     "#EXTERNE": "#EXTERNE",
+    "JSON": "J",
+    "J": "JSON",
+    "XML": "XML",
 }
 TYPES_S = {
     "T": "texte",
@@ -75,6 +78,8 @@ TYPES_S = {
     "BS": "sequence longue",
     "N": "numerique",
     "A": "non defini",
+    "J": "json",
+    "XML": "XML",
 }
 
 typeconv = {"E": int, "EL": int, "S": int, "BS": int, "F": float, "N": float, "T": str}

@@ -653,9 +653,12 @@ def h_recup_schema(regle):
 
     regle.setlocal("mode_schema", "dbschema")
     selecteur = regle.cible_base
-    print("h_recup_schema:selecteur", selecteur)
+    # print("h_recup_schema:selecteur", selecteur)
+    LOGGER.debug("selecteur %s", repr(selecteur))
     complet = selecteur.resolve()
-    print("retour selecteur", complet, selecteur)
+    LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
+
+    # print("retour selecteur", complet, selecteur)
     if complet:
         regle.valide = "done"
     # for nombase in regle.cible_base.baseselectors:

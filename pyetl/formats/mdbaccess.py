@@ -84,7 +84,8 @@ def dbaccess(regle, codebase, type_base=None):
         connection.commit()  # on referme toutes les transactions
         return connection
 
-    print("connection invalide", base, type_base)
+    LOGGER.error("connection invalide %s %s", base, type_base)
+    # print("connection invalide", base, type_base)
     return None
 
 

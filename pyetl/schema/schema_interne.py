@@ -7,6 +7,7 @@ Created on Wed Dec 10 09:28:45 2014
 import copy
 
 import re
+import logging
 from collections import defaultdict
 from .elements import attribut as A
 from .elements import schemaclasse as C
@@ -14,6 +15,7 @@ from .elements import mapping as M
 from .abbrev import dic_abrev as abbr
 
 # schemas : description de la structure des objets
+LOGGER = logging.getLogger("pyetl")
 
 TYPES_G = C.TYPES_G
 CODES_G = C.CODES_G
@@ -484,8 +486,15 @@ class Schema(object):
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        print("select_niv_classes", niveau, classe, attr, tables, multi)
-
+        # print("select_niv_classes", niveau, classe, attr, tables, multi)
+        LOGGER.debug(
+            "select_niv_classes %s %s %s %s %s",
+            niveau,
+            classe,
+            attr,
+            tables,
+            str(multi),
+        )
         # if niveau is None or classe is None:
         #     return []
 

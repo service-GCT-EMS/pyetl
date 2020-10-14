@@ -16,7 +16,7 @@ from . import fonctions_schema as FSC
 from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
-LOGGER = logging.getLogger("Pyetl")
+LOGGER = logging.getLogger("pyetl")
 
 
 def fusion_schema(nom, schema, schema_tmp):
@@ -318,6 +318,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
     #    rep_sortie = stock_param.getvar('_sortie')
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
+    LOGGER.info("repertoire sortie schema %s", rep_sortie)
     print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
     #        raise FileNotFoundError
 
