@@ -616,7 +616,8 @@ class Objet(object):
 
     def fold(self, classe, alist, geom=True, gsep="|"):
         """ retourne un objet compact pour le stockage temporaire en general un namedtuple"""
-        return classe([self.attributs.get(i) for i in alist])
+        gfold = self.geom_v.fold()
+        return classe([self.attributs.get(i) for i in alist] + [gfold])
 
 
 def unfold(groupe, classe, folded, alist, geom=False, gsep="|"):

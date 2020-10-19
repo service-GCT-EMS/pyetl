@@ -884,18 +884,3 @@ def f_attwriter(regle, obj):
     # print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.writer.attstore(obj)
     regle.nbstock = 1
-
-
-def h_branch(regle):
-    """branchements hors structure"""
-    h_pass(regle)
-    regle.longjump = True
-
-
-def f_branch(regle, obj):
-    """#aide||genere un branchement
-       #pattern||;;;branch;C;
-       #test||obj||^X;0;;set||^;;;branch;#toto;||^X;1;;set||+#toto:;;;;;;;pass||atv;X;0
-    """
-    obj.redirect = regle.sortie
-    return True

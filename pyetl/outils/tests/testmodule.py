@@ -55,7 +55,7 @@ def retest(mapper):
                 if match:
                     erreurs += 1
                     print("retest", i, j, "ko----> ne devrait pas matcher")
-    print("test regex achevé avec", erreurs, "erreurs")
+    # print("test regex achevé avec", erreurs, "erreurs")
     return nbtests, erreurs
 
 
@@ -276,21 +276,21 @@ def seltest(mapper, nom=None, debug=0):
                     invalides.add(idtest)
                 nbtests += 2
         if not testee:
-            print("selecteur non testee", fonc.nom)
+            print("selecteur non teste", fonc.nom)
     return nbtests, nberrs, invalides
 
 
 def set_test_config(mapper):
     """enregistre la localisation des fichier de test"""
     rep = os.path.join(os.path.dirname(__file__), "fichiers/testscripts")
-    print("------------------------------------repertoire de tests", rep)
+    # print("--------------repertoire de tests", rep)
     mapper.setvar("_test_path", rep)
     mapper.setvar("log_print", "wARNING")
 
     mapper.charge_cmd_internes(test="unittest")  # on charge les ressources
     try:
         mapper.load_paramgroup("testconfig")  # on charge les configs de test
-        print("-----------------------------------chargement params de test")
+        # print("-------------------chargement params de test")
         testdb = mapper.getvar("testbd")
         testrep = mapper.getvar("testrep")
         testconfig = True

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """#projection de geometries"""
 import os
-
+import logging
 from . import transfo_coord3 as TC
+
+LOGGER = logging.getLogger("pyetl")
 
 
 def init_proj(entree, sortie, repgrilles=None):
@@ -24,7 +26,8 @@ def init_proj(entree, sortie, repgrilles=None):
         repgrilles = os.path.join(os.path.dirname(__file__), "grilles")
     proj = TC.Projection(repgrilles, "grilles.lst", entree, sortie, sens)
     if proj.valide:
-        print("=======================initialisation projection", proj.description)
+        LOGGER.info("initialisation projection %s", proj.description)
+        # print("=======================initialisation projection", proj.description)
         return proj
     return None
 

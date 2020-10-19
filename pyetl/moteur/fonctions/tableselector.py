@@ -433,7 +433,8 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     valeurs = {i: i for i in liste_valeurs}
-    print("fichier a lire ", fichier, valeurs)
+    LOGGER.info("fichier a lire %s", fichier)
+    # print("fichier a lire ", fichier, valeurs)
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
         if not selecteur:
@@ -467,7 +468,12 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
             mode = "in_d"  # dynamique en fonction du repertoire de lecture
         else:
             mode = "in_s"  # jointure statique
-            selecteur_from_fich(fichier, selecteur)
+            try:
+                selecteur_from_fich(fichier, selecteur)
+            except FileExistsError:
+                LOGGER.error("fichier ou repertoire inexistant %s", fichier)
+                return None
+
         return selecteur
 
 
@@ -580,7 +586,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     il est possible d ajouter une info de mapping derriere sous forme niveau.classe prefix:N.:C
     et un mapping attributaire sous forme att=>nouveau,... elle n est pas utilisee par le secleteur
     """
-
+    # print("select from csv")
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
@@ -642,7 +648,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
 
 def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
     # print("sel_from_fich:scandirs", fichier)
-    LOGGER.debug("sel_from_fich:scandirs " + fichier)
+    LOGGER.info("sel_from_fich:scandirs " + fichier)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)
@@ -650,6 +656,7 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
+
     # print("selecteur from fich", selecteur.baseselectors.keys())
     # for nom, sel in selecteur.baseselectors.items():
     #     print(nom, "====>", sel.descripteurs)

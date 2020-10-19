@@ -350,6 +350,8 @@ def decoupe_liste_commandes(fichier_regles):
         liste_commandes = re.split("' *, *'", fichier_regles)
     elif fichier_regles.startswith("#"):
         liste_commandes = fichier_regles.split(",#")
+        for i in range(1, len(liste_commandes)):
+            liste_commandes[i] = "#" + liste_commandes[i]
     else:
         liste_commandes = fichier_regles.split(",")
     # print ('decoupage_macros',fichier_regles,'->',[(n,"<"+i) for n,i in enumerate(liste_commandes)])
@@ -688,7 +690,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             regle_ref=regle_ref,
         )
         if erreurs:
-            print("=======================erreurs initialisation macro", macro.nom)
+            LOGGER.error("erreurs initialisation macro %s", macro.nom)
+            # print("=======================erreurs initialisation macro", macro.nom)
         if rvirt:
             traite_regle_std(
                 mapper, 0, rvirt + "f", rvirt + "f", "", 0, regle_ref=regle_ref
@@ -698,7 +701,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         # print("contexte macros apres pop:", mapper.cur_context)
 
     else:
-        print("================================macro introuvable", texte)
+        LOGGER.error("macro introuvable %s", texte)
+        # print("================================macro introuvable", texte)
         erreurs = 1
     return erreurs
 
@@ -833,7 +837,8 @@ def lire_regles_csv(
                 mapper, texte, context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
-                print("====erreur chargement macro", texte)
+                LOGGER.error("erreur chargement macro %s", texte)
+                # print("====erreur chargement macro", texte)
                 erreurs = erreurs + errs
                 return erreurs
         else:

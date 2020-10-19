@@ -48,7 +48,7 @@ CONSTANTES = {
         6378249.2,
         600000,
     ),
-	"L93": (
+    "L93": (
         12655612.05,
         0.0523598775598299,
         0.725607765,
@@ -57,7 +57,7 @@ CONSTANTES = {
         6378137,
         700000,
     ),
-    "LL":(0,0,0,0,0,0,0)
+    "LL": (0, 0, 0, 0, 0, 0, 0),
 }
 
 GRILLE_IGN = "gr3df97a.csv"
@@ -74,7 +74,7 @@ class Projection(object):
             self.proj1 = CONSTANTES[proj1]  # constantes de projection
             self.proj2 = CONSTANTES[proj2]
         except KeyError:
-            print ('projection non géreé')
+            print("projection non géreé")
             self.valide = 0
             raise
         _, _, _, _, self.ex1, self.ga1, _ = self.proj1
@@ -94,7 +94,9 @@ class Projection(object):
                 inc = self.grilles.controle_coherence(1)
 
         if "CC" in proj1 or "CC" in proj2:
-            for i in open(repertoire + "/" + GRILLE_IGN, "r"):  # chargement de la grille IGN
+            for i in open(
+                repertoire + "/" + GRILLE_IGN, "r"
+            ):  # chargement de la grille IGN
                 vals = i.split(";")
                 self.grilles_ign[
                     (
@@ -104,8 +106,10 @@ class Projection(object):
                 ] = (float(vals[2]), float(vals[3]), float(vals[4]))
             self.optimise_grilleign()
 
-        self.from_proj = self.from_lamb_cus if proj1 == "L1" and sens == 1 else self.en_geo
-        if proj1=="LL":
+        self.from_proj = (
+            self.from_lamb_cus if proj1 == "L1" and sens == 1 else self.en_geo
+        )
+        if proj1 == "LL":
             self.from_proj = self.torad
 
         self.grille_ign = None
@@ -118,7 +122,7 @@ class Projection(object):
             self.grille_ign = None
 
         self.to_proj = self.to_lamb_cus if proj2 == "L1" and sens == 2 else self.geo_EN
-        if proj2=="LL":
+        if proj2 == "LL":
             self.to_proj = self.todeg
 
         self.description = (
@@ -127,28 +131,27 @@ class Projection(object):
             + proj2
             + " sens grille cus: "
             + str(sens)
-            + "\n"
-            + str(self.from_proj)
-            + "\n-> "
-            + str(self.to_proj)
-            + "\ngrille ign"
+            # + "\n"
+            # + str(self.from_proj)
+            # + "\n-> "
+            # + str(self.to_proj)
+            + " grille ign "
             + str(self.grille_ign)
         )
 
         self.valide = 1
 
-    def torad(self, x_cour,y_cour, tol):
+    def torad(self, x_cour, y_cour, tol):
         return x_cour * PI / 180, y_cour * PI / 180
 
-    def todeg(self, lam,phi):
+    def todeg(self, lam, phi):
         return (lam * 180 / PI, phi * 180 / PI)
-
 
     def calcule_point_proj(self, x_cour, y_cour, tol=TOLDEF):
         """ calcul de reprojection d'un point """
         lam, phi = self.from_proj(x_cour, y_cour, tol)
-            # if self.from_proj
-            # else (x_cour * PI / 180, y_cour * PI / 180)
+        # if self.from_proj
+        # else (x_cour * PI / 180, y_cour * PI / 180)
 
         #        print ('coord initiales', x, y, self.grille_courante, self.sens)
         #        print ('coord geo      ', lam, phi)
@@ -187,7 +190,8 @@ class Projection(object):
             phi1 = (
                 2
                 * M.atan(
-                    pow(((1 + exc * M.sin(phi0)) / (1 - exc * M.sin(phi0))), (exc / 2)) * expliso
+                    pow(((1 + exc * M.sin(phi0)) / (1 - exc * M.sin(phi0))), (exc / 2))
+                    * expliso
                 )
                 - PI / 2
             )
@@ -208,7 +212,8 @@ class Projection(object):
         """passage de coordonnées géographiques à planes"""
         yn, lc, n, c, exc, _, xn = self.proj2
         liso = M.log(
-            M.tan(PI / 4 + phi / 2) * pow((1 - exc * M.sin(phi)) / (1 + exc * M.sin(phi)), exc / 2)
+            M.tan(PI / 4 + phi / 2)
+            * pow((1 - exc * M.sin(phi)) / (1 + exc * M.sin(phi)), exc / 2)
         )
         X = xn + c * M.exp(-n * liso) * M.sin(n * (lam - lc))
         Y = yn - c * M.exp(-n * liso) * M.cos(n * (lam - lc))
@@ -230,7 +235,11 @@ class Projection(object):
         dist = M.sqrt(x_ca * x_ca + y_ca * y_ca)
         exc2 = exc * exc
         phi1 = M.atan(
-            z_ca / (dist * (1 - ((v_a * exc2) / M.sqrt(x_ca * x_ca + y_ca * y_ca + z_ca * z_ca))))
+            z_ca
+            / (
+                dist
+                * (1 - ((v_a * exc2) / M.sqrt(x_ca * x_ca + y_ca * y_ca + z_ca * z_ca)))
+            )
         )
         phi = 999999
         #        print ('calcul', phi1,phi,abs(phi1-phi)<tol)
@@ -240,7 +249,9 @@ class Projection(object):
                 z_ca
                 / dist
                 * pow(
-                    1 - (v_a * (exc2) * M.cos(phi)) / (dist * M.sqrt(1 - exc2 * M.sin(phi) ** 2)),
+                    1
+                    - (v_a * (exc2) * M.cos(phi))
+                    / (dist * M.sqrt(1 - exc2 * M.sin(phi) ** 2)),
                     -1,
                 )
             )
@@ -337,13 +348,17 @@ class Projection(object):
     def to_lamb_cus(self, lam, phi):
         """ on va vers des coordonnees lamb CUS """
         x_lam, y_lam = self.geo_EN(lam, phi)
-        return self.calcule_point_grille_cus(x_lam, y_lam)  # transformation locale (grille CUS)
+        return self.calcule_point_grille_cus(
+            x_lam, y_lam
+        )  # transformation locale (grille CUS)
 
     def lamb_to_cc_grille_ign(self, lam_r, phi_r, tol=TOLDEF):
         """applique la grille de correction IGN dans le sens L->C"""
         haut_elips = 0
         # passage en coordonnées cartésiennes
-        x_cart, y_cart, z_cart = self.geo_xyz(lam_r, phi_r, haut_elips, self.ga1, self.ex1)
+        x_cart, y_cart, z_cart = self.geo_xyz(
+            lam_r, phi_r, haut_elips, self.ga1, self.ex1
+        )
         x_trans = x_cart - 168  # transformation approchée NTF->RGF93
         y_trans = y_cart - 60
         z_trans = z_cart + 320
@@ -359,9 +374,13 @@ class Projection(object):
         """applique la grille de correction IGN dans le sens C->L"""
         haut_elips = 0
         # passage en coordonnées cartésiennes
-        x_cart, y_cart, z_cart = self.geo_xyz(lam_r, phi_r, haut_elips, self.ga1, self.ex1)
+        x_cart, y_cart, z_cart = self.geo_xyz(
+            lam_r, phi_r, haut_elips, self.ga1, self.ex1
+        )
         #  calcul des coordonnées cartésienne précises dans le nouveau système (grille IGN)
-        x_grid, y_grid, z_grid = self.calcule_point_grille_ign(x_cart, y_cart, z_cart, lam_r, phi_r)
+        x_grid, y_grid, z_grid = self.calcule_point_grille_ign(
+            x_cart, y_cart, z_cart, lam_r, phi_r
+        )
         # passage en coordonnées géographiques
         return self.xyz_geo(x_grid, y_grid, z_grid, self.ga2, self.ex2, tol)
 
@@ -371,13 +390,16 @@ def param(v_a, ext, _, p_0, p_1, p_2):
     n_1 = v_a / M.sqrt(1 - ext ** 2 * M.sin(p_1) ** 2)
     n_2 = v_a / M.sqrt(1 - ext ** 2 * M.sin(p_2) ** 2)
     liso1 = M.log(
-        M.tan(PI / 4 + p_1 / 2) * pow((1 - ext * M.sin(p_1)) / (1 + ext * M.sin(p_1)), ext / 2)
+        M.tan(PI / 4 + p_1 / 2)
+        * pow((1 - ext * M.sin(p_1)) / (1 + ext * M.sin(p_1)), ext / 2)
     )
     liso2 = M.log(
-        M.tan(PI / 4 + p_2 / 2) * pow((1 - ext * M.sin(p_2)) / (1 + ext * M.sin(p_2)), ext / 2)
+        M.tan(PI / 4 + p_2 / 2)
+        * pow((1 - ext * M.sin(p_2)) / (1 + ext * M.sin(p_2)), ext / 2)
     )
     liso0 = M.log(
-        M.tan(PI / 4 + p_0 / 2) * pow((1 - ext * M.sin(p_0)) / (1 + ext * M.sin(p_0)), ext / 2)
+        M.tan(PI / 4 + p_0 / 2)
+        * pow((1 - ext * M.sin(p_0)) / (1 + ext * M.sin(p_0)), ext / 2)
     )
     param_pn = M.log((n_2 * M.cos(p_2)) / (n_1 * M.cos(p_1))) / (liso1 - liso2)
     print("tc3:param pn ", param_pn)

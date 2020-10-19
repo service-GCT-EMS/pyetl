@@ -5,8 +5,11 @@ Created on Mon Dec 21 12:03:23 2015
 @author: 89965
 """
 import os
+import logging
+
 from .objet import Objet
 
+LOGGER = logging.getLogger("pyetl")
 # statistiques
 
 
@@ -448,12 +451,18 @@ class Stat(object):
         #        print ("stats:",result)
 
         #            print("info :format: pas d ecriture stat ", affiche)
-        print(
-            "info :format: ecriture stat ",
+        LOGGER.info(
+            "ecriture stats : %s %s.csv adffichage: %s",
             nom,
-            os.path.join(rep_sortie, nom) + ".csv",
-            affiche,
+            os.path.join(rep_sortie, nom),
+            str(affiche),
         )
+        # print(
+        #     "info :format: ecriture stat ",
+        #     nom,
+        #     os.path.join(rep_sortie, nom) + ".csv",
+        #     affiche,
+        # )
 
         if rep_sortie:
             if not wid:

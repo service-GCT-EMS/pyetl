@@ -364,7 +364,7 @@ class Reader(object):
 
     def get_info(self):
         """ affichage du format courant : debug """
-        print("info :format: format courant :", self.nom_format)
+        # print("info :format: format courant :", self.nom_format)
 
     def get_converter(self, format_natif=None):
         """retourne la fonction de conversion geometrique"""

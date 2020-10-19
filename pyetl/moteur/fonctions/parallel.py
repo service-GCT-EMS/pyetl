@@ -229,6 +229,10 @@ def parallelprocess(numero, file, regle):
     return numero, nb_lu
 
 
+def objprocess(numero, objet, regle):
+    mainmapper = getmainmapper()
+
+
 def endparallel(test=None):
     """termine un traitement parallele"""
     mainmapper = getmainmapper()

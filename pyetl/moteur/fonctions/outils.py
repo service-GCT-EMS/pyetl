@@ -72,6 +72,7 @@ def scandirs(
 ) -> T.Iterator[T.Tuple[str, str]]:
     """parcours recursif d'un repertoire."""
     path = os.path.join(rep_depart, chemin)
+    # print("recherche", path)
     if os.path.isfile(path):
         chemin = os.path.dirname(chemin)
         yield (str(os.path.basename(path)), str(chemin))
@@ -102,9 +103,11 @@ def scandirs(
                 if pattern is None or re.search(pattern, os.path.join(chemin, element)):
                     # print ('match',pattern, chemin, element)
                     yield (str(os.path.basename(element)), str(chemin))
-                # else:
-                #     pass
-                # print ('not match',pattern, chemin, element)
+    else:
+        raise FileExistsError
+        # else:
+        #     pass
+        # print ('not match',pattern, chemin, element)
 
 
 def getfichs(regle, obj):

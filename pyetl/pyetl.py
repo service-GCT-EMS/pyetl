@@ -148,38 +148,34 @@ def runpyetl(commandes, args):
         # print("arret du traitement ")
         return
     wstats = mapper.get_work_stats()
-    nb_total = wstats["obj_lus"]
-    nb_fichs = wstats["fich_lus"]
-    n_ecrits = wstats["obj_ecrits"]
-    if nb_total:
-        LOGGER.log(999, "%d objets lus dans %d fichiers", nb_total, nb_fichs)
-        # print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
-    LOGGER.log(999, "%d objets dupliques", wstats["obj_dupp"])
-    # print(wstats["obj_dupp"], "objets dupliques")
-    if n_ecrits:
+    # nb_total = wstats["obj_lus"]
+    # nb_fichs = wstats["fich_lus"]
+    # n_ecrits = wstats["obj_ecrits"]
+    if wstats["obj_lus"]:
         LOGGER.log(
-            999, "%d objets ecrits dans %d fichiers", n_ecrits, wstats["fich_ecrits"]
+            999, "%d objets lus dans %d fichiers", wstats["obj_lus"], wstats["fich_lus"]
+        )
+        # print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
+    if wstats["obj_dupp"]:
+        LOGGER.log(999, "%d objets dupliques", wstats["obj_dupp"])
+    # print(wstats["obj_dupp"], "objets dupliques")
+    if wstats["obj_ecrits"]:
+        LOGGER.log(
+            999,
+            "%d objets ecrits dans %d fichiers",
+            wstats["obj_ecrits"],
+            wstats["fich_ecrits"],
         )
         # print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
     LOGGER.log(
-        999,
-        "fin traitement total : %d fichiers traites en %d millisecondes",
-        nb_fichs,
-        int(wstats["duree"] * 1000),
+        999, "temps de traitement total: %d millisecondes", int(wstats["duree"] * 1000)
     )
 
-    # print(
-    #     "fin traitement total :",
-    #     nb_fichs,
-    #     "fichiers traites en ",
-    #     int(wstats["duree"] * 1000),
-    #     "millisecondes",
-    # )
-    if nb_total:
+    if wstats["obj_lus"]:
         LOGGER.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
         # print("perf lecture  :", wstats["perf_r"], "o/s")
-    if n_ecrits:
+    if wstats["obj_ecrits"]:
         LOGGER.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
 
         # print("perf ecriture :", wstats["perf_w"], "o/s")

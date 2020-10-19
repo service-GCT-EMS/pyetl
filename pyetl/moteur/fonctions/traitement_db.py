@@ -116,28 +116,29 @@ def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
     # print("acces base", regle.cible_base.keys())
     selecteur = regle.cible_base
-    for base in selecteur.baseselectors:
-        baseselector = selecteur.baseselectors[base]
-        if (
-            base == "*" and obj.attributs["#groupe"] == "__filedb"
-        ):  # acces a une base fichier
-            chemin = obj.attributs["#chemin"]
-            rep = obj.attributs["#racine"]
-            nombase = obj.attributs["#nombase"]
-            if not base:
-                base = obj.attributs["#base"]
-            # base = nombase
-            type_base = obj.attributs["#type_base"]
-            baseselector.type_base = type_base
-            baseselector.chemin = chemin
-            baseselector.racine = rep
-            baseselector.nombase = nombase
-            regle.setlocal("base", nombase)
-            regle.setlocal("db", type_base)
-            regle.setlocal("server", rep)
-        # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
-        baseselector.resolve(obj)
-        # print("selecteur", baseselector.schema_travail)
+    if selecteur:
+        for base in selecteur.baseselectors:
+            baseselector = selecteur.baseselectors[base]
+            if (
+                base == "*" and obj.attributs["#groupe"] == "__filedb"
+            ):  # acces a une base fichier
+                chemin = obj.attributs["#chemin"]
+                rep = obj.attributs["#racine"]
+                nombase = obj.attributs["#nombase"]
+                if not base:
+                    base = obj.attributs["#base"]
+                # base = nombase
+                type_base = obj.attributs["#type_base"]
+                baseselector.type_base = type_base
+                baseselector.chemin = chemin
+                baseselector.racine = rep
+                baseselector.nombase = nombase
+                regle.setlocal("base", nombase)
+                regle.setlocal("db", type_base)
+                regle.setlocal("server", rep)
+            # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
+            baseselector.resolve(obj)
+            # print("selecteur", baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -197,6 +198,8 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
+    if not selecteur:
+        return False
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
     mods = regle.params.cmp1.liste

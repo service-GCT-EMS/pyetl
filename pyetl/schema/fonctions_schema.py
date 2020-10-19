@@ -524,15 +524,21 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
                 obj.geom_v.forceligne()
                 obj.infogeom()
             else:
-                print(
-                    obj.ident,
-                    "--type geometrie non conforme schema->",
+                LOGGER.info(
+                    "%s type geometrie non conforme schema: %s , objet: %s",
+                    str(obj.ident),
                     schemaclasse.info["type_geom"],
-                    ", objet->",
                     obj.attributs["#type_geom"],
-                    schemaclasse.identclasse,
-                    schemaclasse.info,
                 )
+                # print(
+                #     obj.ident,
+                #     "--type geometrie non conforme schema->",
+                #     schemaclasse.info["type_geom"],
+                #     ", objet->",
+                #     obj.attributs["#type_geom"],
+                #     schemaclasse.identclasse,
+                #     schemaclasse.info,
+                # )
                 erreurs.append(
                     set_err(
                         schemaclasse,
