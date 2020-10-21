@@ -501,7 +501,7 @@ class Schema(object):
         tables_a_sortir = set()
         exp_niv = niveau.strip()
         exp_clas = classe.strip()
-        convert = {"v": "vm", "t": "r"}
+        convert = {"v": "vm", "t": "r", "r": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         lmulti = multi
         if nocase:
@@ -597,7 +597,12 @@ class Schema(object):
                             trouve = 1
                             # print("fkref: ajout cible", niv_ref, j)
                         else:
-                            print("fkref: erreur cible", niv_ref, j)
+                            LOGGER.warning(
+                                "cible foreign key non selectionnée %s , (%d)",
+                                j,
+                                niv_ref,
+                            )
+                            # print("fkref: erreur cible", niv_ref, j)
                         continue
                     if niveau[j] >= niv_ref and j != ident:
                         if ident in self.is_cible(j):

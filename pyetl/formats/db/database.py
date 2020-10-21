@@ -919,7 +919,8 @@ class DbConnect(object):
                 srid = "3948"
 
             #            geom2="SDO_GEOMETRY('%s',%s)" % (geom,srid)
-            geom2 = self.set_geom(geom, srid)
+            # geom2 = self.set_geom(geom, srid)
+            geom2 = self.set_geom2(geom)
             if buffer:
                 geom2 = self.set_geomb(geom, srid, buffer)
 

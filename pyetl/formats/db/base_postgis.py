@@ -116,6 +116,9 @@ class PgsConnect(PgrConnect):
     def set_geom(self, geom, srid):
         return "ST_GeomFromText('%s',%s)" % (geom, srid)
 
+    def set_geom2(self, geom):
+        return "'%s'::geometry" % (geom)
+
     def set_geomb(self, geom, srid, buffer):
         return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
 

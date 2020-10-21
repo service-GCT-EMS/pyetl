@@ -36,7 +36,9 @@ def main():
 
         mapping = sys.argv[1]
         runpyetl(mapping, sys.argv[2:])
-    print("temps total %.2f secondes" % (time.time() - STARTTIME))
+    print(
+        "=========== temps d'execution total %.2f secondes" % (time.time() - STARTTIME)
+    )
 
 
 # profile.run('main()','schemamapper.profile')

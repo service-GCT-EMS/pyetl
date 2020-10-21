@@ -94,7 +94,7 @@ class TableBaseSelector(object):
         if attr and valeur:
             att, defaut = valeur
             if att:
-                # print(" element dynamique", att)
+                print(" element dynamique", att, attr, defaut)
                 dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
@@ -106,7 +106,7 @@ class TableBaseSelector(object):
            le selecteur gere la connection a la base se donnees"""
         if self.static:
             return
-        mod = self.regle_ref.getvar("mod")
+        mod = self.regle_ref.mods
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
@@ -210,8 +210,8 @@ class TableBaseSelector(object):
     def resolve_dyn(self, obj):
         """transformation de descripteurs dynamiques en liste de classes
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
-        mod = self.regle_ref.getvar("mod")
-        print("resolve:regleref mod", mod)
+        mod = self.regle_ref.mods
+        print("resolve dyn :regleref mod", mod)
         mod = mod.upper()
         if obj is None and self.dyndescr:
             print("elements dynamiques", self.dyndescr)
@@ -648,7 +648,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
 
 def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
     # print("sel_from_fich:scandirs", fichier)
-    LOGGER.info("sel_from_fich:scandirs " + fichier)
+    LOGGER.debug("scandirs %s", fichier)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)

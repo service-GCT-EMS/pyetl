@@ -17,48 +17,7 @@ from .tableselector import getselector, select_in, adapt_qgs_datasource
 LOGGER = logging.getLogger("pyetl")
 
 
-def _mode_niv_in(regle, niv, autobase=False):
-    """gere les requetes de type niveau in..."""
-    print("mode_niv in:", niv, autobase)
-
-    mode_in = "b" if autobase else "n"
-    taille = 3 if autobase else 2
-    mode_select, valeurs = prepare_mode_in(regle, niv)
-    niveau = []
-    classe = []
-    attrs = []
-    cmp = []
-    base = []
-    # selecteur = DB.TableSelector(regle)
-    # for i in valeurs:
-    #     selecteur.add_selector(*i)
-    #     print("add_selector", i)
-    for i in valeurs:
-        liste_defs = list(i)
-        # print("mode_niv in:liste_defs", liste_defs)
-        bdef = liste_defs[0]
-        if bdef in regle.stock_param.dbref:
-            # c est une definition de base
-            bdef = regle.stock_param.dbref.get(bdef)
-        if autobase:
-            base.append(bdef)
-            liste_defs.pop(0)
-        else:
-            base.append("")
-
-        niveau.append(liste_defs.pop(0) if liste_defs else "")
-        classe.append(liste_defs.pop(0) if liste_defs else "")
-        attrs.append(liste_defs.pop(0) if liste_defs else "")
-        cmp.append(liste_defs.pop(0) if liste_defs else "")
-
-    # print(
-    #     "mode_niv in:lu ",
-    #     "\n".join(str(i) for i in zip(base, niveau, classe, attrs, cmp)),
-    # )
-    return base, niveau, classe, attrs, cmp
-
-
-def param_base(regle, nom=""):
+def param_base(regle, nom="", geo=False, mods=True):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
@@ -69,12 +28,19 @@ def param_base(regle, nom=""):
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
-    mods = regle.params.cmp1.val
     if mods:
-        regle.setlocal("mod", mods)
-    fonction = "=" if "=" in mods else ""
+        regle.mods = regle.params.cmp1.val
+    else:
+        regle.mods = regle.context.getlocal("mods")
 
-    # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
+    fonction = "=" if "=" in regle.mods else ""
+
+    if geo:
+        fonction = att
+        att = ""
+        vals = regle.params.att_entree.liste
+
+    print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)
@@ -202,7 +168,6 @@ def f_dbalpha(regle, obj):
         return False
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
-    mods = regle.params.cmp1.liste
     ordre = regle.params.cmp2.liste
     print("dbalpha: acces base ", selecteur)
     retour = 0
@@ -216,7 +181,7 @@ def f_dbalpha(regle, obj):
         # niveau, classe = ident
 
         LOGGER.debug(
-            "regles alpha:ligne " + repr(regle) + basesel.type_base + repr(mods)
+            "regles alpha:ligne " + repr(regle) + basesel.type_base + repr(regle.mods)
         )
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
@@ -255,9 +220,8 @@ def f_dblast(regle, obj):
 
 def h_dbgeo(regle):
     """gestion des fonctions geographiques"""
-    param_base(regle)
+    param_base(regle, geo=True)
     regle.chargeur = True  # c est une regle qui cree des objets
-
     fonctions = [
         "intersect",
         "dans",
@@ -266,13 +230,14 @@ def h_dbgeo(regle):
         "!dans",
         "!dans_emprise",
     ]
-    attribut = regle.v_nommees.get("val_sel2", "")
+    regle.fonction_geom = regle.v_nommees.get("val_sel2", "")
     valide = True
-    if attribut not in fonctions:
+    if regle.fonction_geom not in fonctions:
         regle.erreurs.append(
-            "dbgeo: fonction inconnue seulement:" + ",".join(fonctions)
+            "dbgeo: fonction geometrique inconnue " + regle.fonction_geom
         )
         valide = False
+
     if not valide_dbmods(regle.params.cmp1.liste):
         valide = False
         regle.erreurs.append(
@@ -285,32 +250,33 @@ def f_dbgeo(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
     #aide_spec||db:base;niveau;classe;fonction;att_sortie;valeur;champs a recuperer;dbgeo;buffer
      #groupe||database
-    #pattern||?A;?;?L;dbgeo;?C;?N
+    #pattern||?L;?;?L;dbgeo;?C;?N
     #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
     # base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
     #     regle, obj, att=False
     # )
-    basedict = setdb(regle, obj)
+    selecteur = setdb(regle, obj)
     retour = 0
-    for base, description in basedict.items():
-        niveau, classe, fonction, valeur, chemin, type_base = description
-        if not fonction:
+    for base, basesel in selecteur.baseselectors.items():
+        connect = basesel.connect
+        # niveau, classe, fonction, valeur, chemin, type_base = description
+        if not regle.fonction_geom:
             print("regle:dbgeo !!!!! pas de fonction geometrique", regle)
         else:
             retour += DB.recup_donnees_req_geo(
                 regle,
-                base,
-                niveau,
-                classe,
-                fonction,
+                basesel,
+                # niveau,
+                # classe,
+                # fonction,
                 obj,
-                regle.params.cmp1.val,
-                regle.params.att_sortie.liste,
-                valeur,
-                type_base=type_base,
-                chemin=chemin,
+                # regle.params.cmp1.val,
+                # regle.params.att_sortie.liste,
+                # valeur,
+                # type_base=type_base,
+                # chemin=chemin,
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
@@ -318,7 +284,7 @@ def f_dbgeo(regle, obj):
 
 def h_dbrequest(regle):
     """passage direct de requetes"""
-    param_base(regle)
+    param_base(regle, mods=False)
     regle.chargeur = True  # c est une regle qui cree des objets
     attribut = regle.v_nommees.get("val_sel2", "")
     requete = regle.params.cmp1.val
@@ -361,7 +327,7 @@ def h_dbrequest(regle):
 
 def f_dbrequest(regle, obj):
     """#aide||recuperation d'objets depuis une requete sur la base de donnees
-  #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete
+  #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination
             ||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
             ||classe du selecteur en substituant les variables par la classe courante
             ||sinon elle est passee une fois pour chaque base du selecteur

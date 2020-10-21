@@ -336,8 +336,16 @@ def sortie_resultats(
     if type_geom == "indef":
         type_geom = schema_classe_travail.info["type_geom"]
     if type_geom != "0":
-        namelist.append(("#geom"))
-    # print (' attributs recuperes ', attlist)
+        nom_geometrie = schema_classe_travail.info["nom_geometrie"]
+        if nom_geometrie not in namelist:
+            namelist.append(("#geom"))
+        else:
+            for n, nom in enumerate(namelist):
+                if nom == nom_geometrie:
+                    namelist[n] = "#geom"
+                    break
+
+    # print("mdba: attributs recuperes ", namelist)
     # namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
@@ -352,7 +360,7 @@ def sortie_resultats(
     decile = curs.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-        # print("mdba: creation objet", niveau, classe, namelist, valeurs)
+
         obj = Objet(
             niveau,
             classe,
@@ -360,6 +368,11 @@ def sortie_resultats(
             conversion=geom_from_natif,
             attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
         )
+        if nbvals == 0:
+            print(
+                "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
+            )
+            print("objet:", obj)
         # if '#geom' in attlist:
         #     print ('attlist', attlist)
         #     print (valeurs,valeurs)
@@ -474,7 +487,8 @@ def recup_schema(
 
         return (connect, schema_base, schema_travail, liste_tables)
     else:
-        print("erreur de connection a la base", base, niveau, classe)
+        # print("erreur de connection a la base", base, niveau, classe)
+        LOGGER.error("erreur de connection a la base %s %s %s", base, niveau, classe)
     return (None, None, None, None)
 
 
@@ -484,7 +498,8 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     niveau, classe = ident
 
     if not classe:
-        print("lire_requete: attention pas de classe de sortie -> retour")
+        LOGGER.error("attention pas de classe de sortie -> retour")
+        # print("lire_requete: attention pas de classe de sortie -> retour")
         return 0
     if niveau is None:
         ident = ("tmp", classe)
@@ -510,11 +525,13 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
             ident, curs.infoschema, schema=schema
         )
         # print(
-        #     "creation schema",
+        #     "mdba: creation schema",
         #     schema.nom,
         #     ident,
         #     sorted(curs.infoschema, key=lambda x: x.num_attribut),
         # )
+        print("mdba:classe creee", schema_classe_travail)
+
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,
@@ -543,7 +560,8 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     connect = baseselector.connect
     # print ('recup liste tables', liste_tables)
     if connect is None:
-        print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
+        LOGGER.error("dbacces: pas de connection %s", repr(baseselector))
+        # print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
         return 0
 
     schema_travail = baseselector.schema_travail
@@ -567,15 +585,15 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-
-    print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
+    LOGGER.info("dbacces: selecteur %s", repr(baseselector))
+    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         treq = time.time()
         n += 1
         if ident is not None:
             schema_classe_base = schema_base.get_classe(ident)
-            print("mdba:recup_donnees_req_alpha ", ident, schema_base.nom)
+            # print("mdba:recup_donnees_req_alpha ", ident, schema_base.nom)
             # print("mdba: ", ident, ident2)
             schema_classe_travail = schema_travail.get_classe(ident)
             schema_classe_travail.info["type_geom"] = schema_classe_base.info[
@@ -816,34 +834,28 @@ def recup_maxval(regle, nombase, niveau, classe, clef, type_base=None):
     return retour
 
 
-def recup_donnees_req_geo(
-    regle_courante,
-    base,
-    niveau,
-    classe,
-    fonction,
-    obj,
-    mods,
-    sortie,
-    v_sortie,
-    type_base=None,
-    chemin="",
-):
+def recup_donnees_req_geo(regle_courante, baseselector, obj):
     """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
-    maxobj = regle_courante.getvar("lire_maxi", 0)
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
-    )
+    if obj.virtuel:
+        return True
+    connect = baseselector.connect
     if connect is None:
+        LOGGER.error("dbacces: pas de connection %s", repr(baseselector))
         return 0
-    buffer = regle_courante.params.cmp1.num
+
+    schema_travail = baseselector.schema_travail
+
+    schema_base = connect.schemabase
+    reqdict = dict()
+    stock_param = regle_courante.stock_param
+    maxobj = int(regle_courante.getvar("lire_maxi", 0))
+    mods = regle_courante.params.cmp1.liste
+    buffer = regle_courante.params.cmp2.liste
+    sortie = regle_courante.params.att_sortie.liste
+    v_sortie = [obj.attributs.get(i) for i in regle_courante.params.att_entree.liste]
+    fonction_geom = regle_courante.fonction_geom
+    res = 0
 
     if obj.format_natif == connect.format_natif:
         geometrie = obj.attributs["#geom"]
@@ -851,25 +863,38 @@ def recup_donnees_req_geo(
         if obj.initgeom():
             geometrie = connect.geom_to_natif(obj.geom_v, 0, 0, None)
         else:
-            print("objet non geometrique comme filtre de requete geometrique")
+            print(
+                "objet non geometrique comme filtre de requete geometrique",
+                obj.format_natif,
+                connect.format_natif,
+                obj,
+            )
             return False
-    res = 0
-    #    interm = time.time()
-    #    print('recup_req geom ', fonction, ': initialisation ', int(interm-debut), 's')
-    if not liste_tables:
-        return None
-    for ident in sorted(liste_tables):
 
-        niveau, classe = ident
-        schema_classe_postgis = schema_base.get_classe(ident)
-
-        schema_classe_travail = schema_travail.get_classe(ident)
+    # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
+    curs = None  #
+    n = 0
+    LOGGER.info("dbacces: selecteur %s", repr(baseselector))
+    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
+    for ident2, description in baseselector.classlist():
+        ident, attr, val, fonction = description
         treq = time.time()
+        n += 1
+        if ident is None:
+            continue
+        schema_classe_base = schema_base.get_classe(ident)
+        # print("mdba:recup_donnees_req_alpha ", ident, schema_base.nom)
+        # print("mdba: ", ident, ident2)
+        schema_classe_travail = schema_travail.get_classe(ident)
+        schema_classe_travail.info["type_geom"] = schema_classe_base.info["type_geom"]
+
         curs = connect.req_geom(
-            ident, schema_classe_travail, mods, fonction, geometrie, maxobj, buffer
+            ident, schema_classe_travail, mods, fonction_geom, geometrie, maxobj, buffer
         )
         connect.commit()
+        # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
         treq = time.time() - treq
+
         if curs.cursor is None:
             continue
         for nom_att, orig in (
@@ -883,9 +908,7 @@ def recup_donnees_req_geo(
                 schema_classe_travail.ajout_attribut_modele(def_att_sortie, nom=nom_att)
             else:
                 schema_classe_travail.stocke_attribut(nom_att, "T")
-        schema_classe_travail.info["type_geom"] = schema_classe_postgis.info[
-            "type_geom"
-        ]
+
         res += sortie_resultats(
             regle_courante,
             curs,
@@ -893,7 +916,7 @@ def recup_donnees_req_geo(
             connect,
             sortie,
             v_sortie,
-            schema_classe_postgis.info["type_geom"],
+            schema_classe_base.info["type_geom"],
             schema_classe_travail,
             treq=treq,
             cond=("geom", fonction),
@@ -901,6 +924,77 @@ def recup_donnees_req_geo(
 
     #    stock_param.dbread += res
     return res
+
+    # maxobj = regle_courante.getvar("lire_maxi", 0)
+    # connect, schema_base, schema_travail, liste_tables = recup_schema(
+    #     regle_courante,
+    #     base,
+    #     niveau,
+    #     classe,
+    #     type_base=type_base,
+    #     chemin=chemin,
+    #     mods=mods,
+    # )
+    # if connect is None:
+    #     return 0
+    # buffer = regle_courante.params.cmp1.num
+
+    # if obj.format_natif == connect.format_natif:
+    #     geometrie = obj.attributs["#geom"]
+    # else:
+    #     if obj.initgeom():
+    #         geometrie = connect.geom_to_natif(obj.geom_v, 0, 0, None)
+    #     else:
+    #         print("objet non geometrique comme filtre de requete geometrique")
+    #         return False
+    # res = 0
+    # #    interm = time.time()
+    # #    print('recup_req geom ', fonction, ': initialisation ', int(interm-debut), 's')
+    # if not liste_tables:
+    #     return None
+    # for ident in sorted(liste_tables):
+
+    #     niveau, classe = ident
+    #     schema_classe_postgis = schema_base.get_classe(ident)
+
+    #     schema_classe_travail = schema_travail.get_classe(ident)
+    #     treq = time.time()
+    #     curs = connect.req_geom(
+    #         ident, schema_classe_travail, mods, fonction, geometrie, maxobj, buffer
+    #     )
+    #     connect.commit()
+    #     treq = time.time() - treq
+    #     if curs.cursor is None:
+    #         continue
+    #     for nom_att, orig in (
+    #         (i, j)
+    #         for i, j in zip(sortie, regle_courante.params.att_entree.liste)
+    #         if i and i[0] != "#"
+    #     ):
+    #         #            print ('creation attribut',nom_att,orig)
+    #         if obj.schema and obj.schema.attributs.get(orig):
+    #             def_att_sortie = obj.schema.attributs.get(orig)
+    #             schema_classe_travail.ajout_attribut_modele(def_att_sortie, nom=nom_att)
+    #         else:
+    #             schema_classe_travail.stocke_attribut(nom_att, "T")
+    #     schema_classe_travail.info["type_geom"] = schema_classe_postgis.info[
+    #         "type_geom"
+    #     ]
+    #     res += sortie_resultats(
+    #         regle_courante,
+    #         curs,
+    #         ident,
+    #         connect,
+    #         sortie,
+    #         v_sortie,
+    #         schema_classe_postgis.info["type_geom"],
+    #         schema_classe_travail,
+    #         treq=treq,
+    #         cond=("geom", fonction),
+    #     )
+
+    # #    stock_param.dbread += res
+    # return res
 
 
 class DbWriter(object):

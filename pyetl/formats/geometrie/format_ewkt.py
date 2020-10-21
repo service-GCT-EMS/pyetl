@@ -9,6 +9,7 @@ import re
 try:
     from shapely import wkb, wkt
 except ImportError:
+    print("==========================attention shapely non disponible")
     wkb = None
 
 # from numba import jit
@@ -179,9 +180,14 @@ def geom_from_ewkt(obj):
     """convertit une geometrie ewkt en geometrie interne"""
     geom = obj.attributs["#geom"]
     if geom:
+
         geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
         #        print ('decodage geometrie ewkt ',obj.geom)
-        _parse_ewkt(obj.geom_v, geom)
+        if geom.startswith("0"):  # c est de l'ewkb
+            print("detection ewkb")
+            geom_from_ewkb(geom)
+        else:
+            _parse_ewkt(obj.geom_v, geom)
         obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         obj.finalise_geom(type_geom=geom_demandee)
     return obj.geom_v.valide
@@ -366,14 +372,28 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
         return 0
 
 
+def decode_ewkb(code):
+    shapelygeom = wkb.loads(code)
+
+
+def geom_from_shapely(obj):
+    pass
+
+
 def ecrire_geom_ewkb(
     geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
 ):
     return hex(wkb.dumps(geom)) if wkb else ""
 
 
-def geom_from_ewkb(obj):
-    pass
+def geom_from_ewkb(obj, code=None):
+    if code is None:
+        code = obj.attributs.get("#geom")
+    sgeom = wkb.loads(code)
+    obj.geom_v.setsgeom(sgeom)
+    obj.geomv.valide = False
+    obj.geomv.shapesync()
+
 
 def ecrire_geom_ewkt(
     geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
