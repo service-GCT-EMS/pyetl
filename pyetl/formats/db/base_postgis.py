@@ -113,14 +113,17 @@ class PgsConnect(PgrConnect):
     def get_geom(self, nom):
         return "ST_asEWKT(%s)" % nom
 
-    def set_geom(self, geom, srid):
-        return "ST_GeomFromText('%s',%s)" % (geom, srid)
+    # def set_geom(self, geom, srid):
+    #     return "ST_GeomFromText('%s',%s)" % (geom, srid)
 
-    def set_geom2(self, geom):
+    def set_geom(self, geom, srid):
         return "'%s'::geometry" % (geom)
 
+    # def set_geomb(self, geom, srid, buffer):
+    #     return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
+
     def set_geomb(self, geom, srid, buffer):
-        return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
+        return "ST_buffer(%s,%f))" % (self.setgeom(geom, srid), buffer)
 
     def set_limit(self, maxi, _):
         if maxi:

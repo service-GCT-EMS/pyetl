@@ -368,11 +368,11 @@ def sortie_resultats(
             conversion=geom_from_natif,
             attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
         )
-        if nbvals == 0:
-            print(
-                "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
-            )
-            print("objet:", obj)
+        # if nbvals == 0:
+        #     print(
+        #         "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
+        #     )
+        #     print("objet:", obj)
         # if '#geom' in attlist:
         #     print ('attlist', attlist)
         #     print (valeurs,valeurs)
@@ -585,7 +585,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-    LOGGER.info("dbacces: selecteur %s", repr(baseselector))
+    # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
@@ -874,7 +874,7 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-    LOGGER.info("dbacces: selecteur %s", repr(baseselector))
+    # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
