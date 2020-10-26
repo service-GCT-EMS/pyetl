@@ -814,7 +814,7 @@ def f_sleep(regle, obj):
     #pattern||;?C;?A;sleep;;
     """
     try:
-        flemme = float(regle.regle.getval_entree(obj))
+        flemme = float(regle.getval_entree(obj))
     except ValueError:
         flemme = 1
     # un peu de deco ....

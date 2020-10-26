@@ -88,6 +88,8 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     if separ is None:
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
+    nbwarn = 0
+
     try:
         with open(
             os.path.join(rep, chemin, fichier), "r", encoding=reader.encoding
@@ -110,7 +112,6 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             reader.prepare_attlist(noms_attributs)
             type_geom = "-1" if noms_attributs[-1] == "#geom" else "0"
             controle = len(noms_attributs)
-            nbwarn = 0
             nlignes = 0
             for i in fich:
                 # nlignes = nlignes + 1

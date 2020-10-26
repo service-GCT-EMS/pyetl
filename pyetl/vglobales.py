@@ -7,6 +7,7 @@ Created on Tue Jan 15 13:47:55 2019
 # import logging
 import platform
 
+
 VERSION = "0.8.3p"
 # version de production
 # LOGGER = logging.getLogger('pyetl') # un logger

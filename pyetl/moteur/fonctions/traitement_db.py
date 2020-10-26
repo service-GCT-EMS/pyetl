@@ -207,6 +207,54 @@ def f_dbalpha(regle, obj):
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
 
+def h_dbtmp(regle):
+    if param_base(regle):
+        #        print (" preparation lecture ",regle.cible_base)
+        #    raise
+        defaut = regle.v_nommees.get(
+            "defaut", ""
+        )  # on utilise in comme selecteur attributaire
+        if defaut[:3].lower() == "in:":
+            mode_multi, valeurs = prepare_mode_in(
+                regle.v_nommees["defaut"][3:], regle, taille=1
+            )
+            regle.params.val_entree = regle.params.st_val(
+                defaut, None, list(valeurs.keys()), False, ""
+            )
+        regle.chargeur = True  # c est une regle qui cree des objets
+        if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
+            regle.chargeur = False
+        #        regle.stock_param.gestion_parallel_load(regle)
+        if not valide_dbmods(regle.params.cmp1.liste):
+
+            regle.erreurs.append(
+                "dbtmp: modificateurs non autorises seulement:"
+                + str(regle.params.cmp1.liste)
+                + ":"
+                + str(DB.DBMODS)
+            )
+            return False
+        destbase = regle.params.cmp2.val
+        if not destbase:
+            print("erreur pas de base destination")
+        regle.valide = 'done"'
+
+    print("erreur regle", regle)
+    regle.erreurs.append("dbtmp: erreur base non definie")
+    return False
+    pass
+
+
+def f_dbtmp(regle, obj):
+    """#aide||creation de structures temporaires dans la base de donnees permets de preparer les requetes
+     #groupe||database
+    #pattern||?A;?;?;dbtmp;?;?
+    #req_test||testdb
+
+    """
+    pass
+
+
 def f_dblast(regle, obj):
     """#aide||recupere les derniers enregistrements d 'une couche (superieur a une valeur min)
     #groupe||database

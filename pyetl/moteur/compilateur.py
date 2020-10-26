@@ -202,7 +202,7 @@ def compile_regles(mapper, liste_regles, debug=0):
             ##                        setclink(regle, j)
             #                        regle.branchements.setclink(regles[j])
             #                        break
-            elif regles[i + 1].nonext:  # c est unbe suite d'acces
+            elif regles[i + 1].nonext:  # c est une suite d'acces
                 for j in range(i + 1, len(regles)):
                     if not regles[j].nonext:
                         regle.branchements.brch["next"] = regles[j]

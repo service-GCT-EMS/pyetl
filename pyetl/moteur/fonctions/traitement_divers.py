@@ -17,7 +17,8 @@ except ImportError:
 from .outils import renseigne_attributs_batch
 
 
-LOGGER = logging.getLogger("pyetl")
+# LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def store_traite_stock(regle):
@@ -698,8 +699,11 @@ def h_objgroup(regle):
     regle.store = True
     regle.objets = OrderedDict()
     regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
-    if len(regle.params.att_sortie.liste)==1 and len(regle.params.att_entree.liste)>1:
-        regle.params.pattern="2"
+    if (
+        len(regle.params.att_sortie.liste) == 1
+        and len(regle.params.att_entree.liste) > 1
+    ):
+        regle.params.pattern = "2"
         regle.record = namedtuple(
             regle.params.att_sortie.val, regle.params.att_entree.liste
         )
@@ -742,6 +746,36 @@ def f_objgroup(regle, obj):
             obj2.attributs[i].append(obj.attributs.get(j, regle.params.val_entree.val))
     elif regle.params.pattern == "2":
         obj2.attributs[regle.params.att_sortie.val].append(
-            regle.record._make(obj.attributs.get(i) for i in regle.params.att_entree.liste)
+            regle.record._make(
+                obj.attributs.get(i) for i in regle.params.att_entree.liste
+            )
         )
     return True
+
+
+def h_log(regle):
+    """messages uniques"""
+    if regle.params.att_entree.val == "":
+        if regle.params.pattern == "3":
+            LOGGER.info(regle.params.cmp1.val)
+        elif regle.params.pattern == "2":
+            LOGGER.error(regle.params.cmp1.val)
+        elif regle.params.pattern == "1":
+            LOGGER.warning(regle.params.cmp1.val)
+        regle.valide = "done"
+    return True
+
+
+def f_log(regle, obj):
+    """#aide||affichie un message dans le log
+    #pattern1||;?C;?L;log;C;=WARN;||cmp2
+    #pattern2||;?C;?L;log;C;=ERROR;||cmp2
+    #pattern3||;?C;?L;log;C;;||cmp2
+    #parametres1||defaut;attributs en entree;;message;niveau
+    """
+    if regle.params.pattern == "3":
+        LOGGER.info(regle.params.cmp1.val)
+    elif regle.params.pattern == "2":
+        LOGGER.error(regle.params.cmp1.val)
+    elif regle.params.pattern == "1":
+        LOGGER.warning(regle.params.cmp1.val)
