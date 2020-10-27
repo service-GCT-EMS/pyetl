@@ -585,8 +585,13 @@ def f_dbupdate(regle, obj):
 def h_dbmaxval(regle):
     """ stocke la valeur maxi """
     param_base(regle)
-    for base, (niveau, classe, attribut) in regle.cible_base.items():
-        retour = DB.recup_maxval(regle, base, niveau, classe, attribut)
+    selecteur=regle.cible_base
+    regle.dyndescriptors=False
+    for base, basesel in selecteur.baseselectors.items():
+        if basesel.dyndescriptor:
+            regle.dyndescriptors=True
+
+        retour = DB.recup_maxval(regle, base, basesel)
         print("retour maxval", retour)
         if retour and len(retour) == 1 and regle.params.att_sortie.val:
             # cas simple on stocke l' attribut dans le parametre
@@ -607,7 +612,8 @@ def h_dbmaxval(regle):
 def f_dbmaxval(regle, obj):
     """#aide||valeur maxi d une clef en base de donnees
      #groupe||database
-    #pattern||?P;;;dbmaxval;?C;
+    #pattern1||P;;;dbmaxval;?C;
+    #pattern2||A;;;dbmaxval;?C;
     #req_test||testdb
     #test||rien||$#testdb;;||$toto=1||db:testdb;testschema;tablealpha;col3;P:toto;;;dbmaxval
             ||ptv;toto;71
