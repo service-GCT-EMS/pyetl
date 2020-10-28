@@ -47,6 +47,7 @@ def setschema_typegeom(regle, obj, dyn=False):
 # creation de la geometrie vectorielle
 def h_initgeom(regle):
     """prepositionne un type geom"""
+    regle.type_geom = regle.params.cmp1.val
     if regle.params.cmp1.num:
         regle.setvar("type_geom", regle.params.cmp1.val)
     regle.use_shapely = regle.params.cmp2.val
@@ -61,6 +62,9 @@ def f_initgeom(regle, obj):
     """
     if obj.virtuel:
         return True
+    if regle.type_geom == "0":  # on force l'alpha
+        obj.setnogeom()
+
     geom_ok = obj.initgeom()
     if regle.use_shapely and geom_ok:
         obj.geom_v.__shapelygeom__

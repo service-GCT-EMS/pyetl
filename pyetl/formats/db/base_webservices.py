@@ -34,15 +34,24 @@ TYPES_A = {
     "date": "DS",
     "xsd:int": "E",
     "int": "E",
+    "short": "E",
     "long": "EL",
     "integer": "E",
     "xsd:dateTime": "D",
     "dateTime": "D",
     "xsd:double": "F",
+    "decimal": "F",
     "double": "F",
+    "boolean": "B",
 }
 
-TYPES_G = {"GeometryCollection": "-1", "Point": "1"}
+TYPES_G = {
+    "GeometryCollection": "-1",
+    "Point": "1",
+    "MultiPoint": "1",
+    "3D Polygon": "3",
+    "3D MultiPolygon": "3",
+}
 
 ALLTYPES = dict(TYPES_A)
 ALLTYPES.update(TYPES_G)

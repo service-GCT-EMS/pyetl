@@ -185,7 +185,7 @@ def geom_from_ewkt(obj):
         #        print ('decodage geometrie ewkt ',obj.geom)
         if geom.startswith("0"):  # c est de l'ewkb
             print("detection ewkb")
-            geom_from_ewkb(geom)
+            geom_from_ewkb(obj)
         else:
             _parse_ewkt(obj.geom_v, geom)
         obj.geom_v.angle = float(obj.attributs.get("#angle", 0))

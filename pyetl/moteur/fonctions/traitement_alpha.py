@@ -820,3 +820,64 @@ def f_vround(regle, obj):
     valeur = str(round(float(regle.getval_entree(obj)), regle.ndec))
     regle.setvar(regle.params.att_sortie.val, valeur)
     return True
+
+
+def h_format(regle):
+    """prepare le formattage"""
+    regle.params.att_entree.liste = regle.params.att_entree.val.split(",")
+    regle.params.val_entree.liste = regle.params.val_entree.val.split(",")
+    vlist = regle.params.att_entree.liste
+    # on gere le fait que le % est reserve pour les variable donc on peut mettre autre chose
+    holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
+    regle.params.cmp1.val = regle.params.cmp1.val.replace(holder, "%")
+    print("remplacement", holder, regle.params.cmp1.val)
+
+    flist = [None] * len(vlist)
+    for n, v in enumerate(vlist):
+        if v.startswith("N:"):
+            flist[n] = float
+        elif v.startswith("I:"):
+            flist[n] = int
+        elif v.startswith("C:"):
+            flist[n] = str
+        if flist[n]:
+            vlist[n] = v[2:]
+        elif v.startswith("#"):
+            flist[n] = str
+    regle.flist = flist
+    regle.incomplet = None in flist
+    return True
+
+
+def f_format(regle, obj):
+    """#aide||formatte un attribut
+    #pattern||S;?LC;?LC;format;C;?C
+    #paramatre||attribut de sortie;defaut;liste_entree;;format
+    #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
+    #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
+    """
+    if regle.incomplet:
+        for n, v in enumerate(regle.params.att_entree.liste):
+            if not regle.flist[n]:
+                if obj.schema and v in obj.schema.attributs:
+                    schematype = obj.schema.attributs[v].type_att
+                    if schematype in "E,EL,S,BS":
+                        regle.flist[n] = int
+                    elif schematype in "F,N":
+                        regle.flist[n] = float
+                if not regle.flist[n]:
+                    regle.flist[n] = str
+        regle.incomplet = False
+
+    vlist = regle.getlist_entree(obj)
+    vlist2 = tuple(i(j) for i, j in zip(regle.flist, vlist))
+    # print(
+    #     " formattage",
+    #     regle.params.cmp1.val,
+    #     vlist,
+    #     regle.flist,
+    #     vlist2,
+    #     regle.params.att_entree.liste,
+    #     regle.params.val_entree.liste,
+    # )
+    regle.setval_sortie(obj, regle.params.cmp1.val % tuple(vlist2))

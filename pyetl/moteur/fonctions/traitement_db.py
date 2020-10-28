@@ -291,6 +291,8 @@ def h_dbgeo(regle):
         regle.erreurs.append(
             "dbalpha: modificateurs non autorises seulement:" + ",".join(DB.DBMODS)
         )
+    if not regle.params.att_sortie.val:
+        regle.params.att_sortie.liste = regle.params.att_entree.liste
     return valide
 
 
@@ -585,11 +587,11 @@ def f_dbupdate(regle, obj):
 def h_dbmaxval(regle):
     """ stocke la valeur maxi """
     param_base(regle)
-    selecteur=regle.cible_base
-    regle.dyndescriptors=False
+    selecteur = regle.cible_base
+    regle.dyndescriptors = False
     for base, basesel in selecteur.baseselectors.items():
         if basesel.dyndescriptor:
-            regle.dyndescriptors=True
+            regle.dyndescriptors = True
 
         retour = DB.recup_maxval(regle, base, basesel)
         print("retour maxval", retour)

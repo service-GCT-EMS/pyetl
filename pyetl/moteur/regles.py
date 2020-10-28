@@ -693,7 +693,7 @@ class RegleTraitement(object):  # regle de mapping
     def getlist_entree(self, obj):
         """acces standadise a la liste d'entree valeur avec defaut en liste"""
         return [
-            obj.attributs.get(i, j)
+            obj.attributs.get(i, j) if obj.attributs.get(i, j) else j
             for i, j in zip_longest(
                 self.params.att_entree.liste, self.params.val_entree.liste
             )
