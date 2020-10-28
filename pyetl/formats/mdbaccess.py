@@ -86,6 +86,7 @@ def dbaccess(regle, codebase, type_base=None):
 
     LOGGER.error("connection invalide %s %s", base, type_base)
     # print("connection invalide", base, type_base)
+    # raise StopIteration(3)
     return None
 
 
@@ -924,7 +925,6 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
 
     #    stock_param.dbread += res
     return res
-
 
 
 class DbWriter(object):

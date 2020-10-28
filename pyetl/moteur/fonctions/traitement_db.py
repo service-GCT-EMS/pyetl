@@ -680,28 +680,17 @@ def h_recup_schema(regle):
     selecteur = regle.cible_base
     # print("h_recup_schema:selecteur", selecteur)
     LOGGER.debug("selecteur %s", repr(selecteur))
-    complet = selecteur.resolve()
-    LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
+    try:
+        complet = selecteur.resolve()
+        LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
 
-    # print("retour selecteur", complet, selecteur)
-    if complet:
-        regle.valide = "done"
-    # for nombase in regle.cible_base.baseselectors:
-
-    #     if not nombase:
-    #         continue
-    #     regle.type_base = regle.getvar("db_" + nombase)
-    #     nomschema = (
-    #         regle.params.val_entree.val if regle.params.val_entree.val else nombase
-    #     )
-    #     if regle.params.att_sortie.val == "schema_entree":
-    #         regle.setvar("schema_entree", nomschema)
-    #     if regle.params.att_sortie.val == "schema_sortie":
-    #         regle.setvar("schema_sortie", nomschema)
-    #     regle.valide = "done"
-    #     print("h_recup_schema", nomschema, "->", nombase, regle.valide)
-    #     DB.recup_schema(regle, nombase, niveau, classe, nomschema)
-    return True
+        # print("retour selecteur", complet, selecteur)
+        if complet:
+            regle.valide = "done"
+        return True
+    except ConnectionError:
+        regle.valide = False
+        return False
 
 
 def f_recup_schema(regle, obj):

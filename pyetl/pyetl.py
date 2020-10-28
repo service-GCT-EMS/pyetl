@@ -1321,7 +1321,8 @@ class Pyetl(object):
         connection = dbaccess(regle, nombase, type_base)
         if connection:
             self.dbconnect[nombase] = connection
-        return connection
+            return connection
+        raise ConnectionError
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""

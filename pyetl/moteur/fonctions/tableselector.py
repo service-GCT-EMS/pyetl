@@ -126,10 +126,13 @@ class TableBaseSelector(object):
             # print("connection ", self.nombase)
             if self.nombase != "__filedb":
                 self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
-                self.schemabase = self.connect.schemabase
-                prefix = self.connect.prefix
-                if set_prefix:
-                    self.reg_prefix(prefix)
+                if self.connect:
+                    self.schemabase = self.connect.schemabase
+                    prefix = self.connect.prefix
+                    if set_prefix:
+                        self.reg_prefix(prefix)
+                else:
+                    self.schemabase = None
             else:
                 return
         # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)

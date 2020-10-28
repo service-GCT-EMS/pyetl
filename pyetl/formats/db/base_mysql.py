@@ -14,12 +14,12 @@ necessite la librairie mysql-connector-python :
 
 il est necessaire de positionner les parametres suivant:
 
-
 """
+
 import os
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-from mysql.connector import mysqlconnect, Error as MysqlError
+from mysql.connector import connect as mysqlconnect, Error as MysqlError
 
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -63,6 +63,8 @@ class MysqlConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        self.DBError = MysqlError
+
         self.connect()
         #        self.errdef = errdef
         self.type_base = "mysql"
@@ -74,21 +76,25 @@ class MysqlConnect(DbConnect):
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
         }
-        self.DBError = MysqlError
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
             return
         print(
-            "info:oracle: connection ",
+            "info:mysql: connection ",
             self.serveur,
             self.base,
             self.user,
             "*" * len(self.passwd),
         )
+        host, port = self.serveur.split(" ")
+        host = host.split("=")[-1]
+        port = port.split("=")[-1]
         try:
-            connection = mysqlconnect(self.user, self.passwd, self.serveur)
+            connection = mysqlconnect(
+                user=self.user, passwd=self.passwd, host=host, port=port, db=self.base
+            )
             connection.autocommit = True
             self.connection = connection
         except self.DBError as err:
