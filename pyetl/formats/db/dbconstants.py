@@ -27,20 +27,15 @@ GTYPES_DISC = {"alpha": "", "ALPHA": ""}
 GTYPES_CURVE = {"alpha": "", "ALPHA": ""}
 
 
-def quote_table(ident):
-    """rajoute les cotes autour des noms"""
-    return '"%s"."%s"' % ident
+# def quote(att):
+#     """rajoute les quotes sur une liste de valeurs ou une valeur"""
+#     if att.startswith('"'):
+#         return att
+#     return '"%s"' % (att)
 
 
-def quote(att):
-    """rajoute les quotes sur une liste de valeurs ou une valeur"""
-    if att.startswith('"'):
-        return att
-    return '"%s"' % (att)
-
-
-def attqjoiner(attlist, sep):
-    """ join une liste d'attributs et ajoute les quotes"""
-    if isinstance(attlist, (list, tuple)):
-        return sep.join([quote(i) for i in attlist])
-    return quote(attlist)
+# def attqjoiner(attlist, sep):
+#     """ join une liste d'attributs et ajoute les quotes"""
+#     if isinstance(attlist, (list, tuple)):
+#         return sep.join([quote(i) for i in attlist])
+#     return quote(attlist)

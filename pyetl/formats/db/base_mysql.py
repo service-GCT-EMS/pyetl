@@ -28,24 +28,19 @@ from .database import DbConnect
 from .gensql import DbGenSql
 
 TYPES_A = {
-    "VARCHAR": "T",
-    "VARCHAR2": "T",
-    "CLOB": "T",
-    "CHAR": "T",
-    "NUMBER": "N",
+    "char": "T",
+    "varchar": "T",
+    "longtext": "T",
     "DOUBLE PRECISION": "F",
-    "NUMERIC": "N",
+    "decimal": "N",
     "FLOAT": "F",
     "HSTORE": "H",
     "BLOB": "X",
-    "SDO_GEOMETRY": "GEOMETRIE",
-    "TIMESTAMP(6)": "D",
-    "TIMESTAMP": "D",
-    "DATE": "DS",
-    "ROWID": "E",
-    "SMALLINT": "E",
-    "OID": "E",
-    "INTEGER": "E",
+    "datetime": "D",
+    "date": "DS",
+    "int": "E",
+    "tinyint": "E",
+    "bigint": "EL",
     "BOOLEEN": "B",
     "BOOLEAN": "B",
     "SEQUENCE": "S",
@@ -88,13 +83,18 @@ class MysqlConnect(DbConnect):
             self.user,
             "*" * len(self.passwd),
         )
-        host, port = self.serveur.split(" ")
+        port=None
+        if ' ' in self.serveur:
+            host, port = self.serveur.split(" ")
+        else:
+            host=self.serveur
         host = host.split("=")[-1]
-        port = port.split("=")[-1]
+        connectparams = {"user":self.user, "passwd":self.passwd, "host":host, "db":self.base, "charset":"utf8"}
+        if port:
+            port = port.split("=")[-1]
+            connectparams["port"]=port
         try:
-            connection = mysqlconnect(
-                user=self.user, passwd=self.passwd, host=host, port=port, db=self.base
-            )
+            connection = mysqlconnect(**connectparams)
             connection.autocommit = True
             self.connection = connection
         except self.DBError as err:
@@ -124,7 +124,9 @@ class MysqlConnect(DbConnect):
                             '' as clef_primaire,
                             '' as nindex,
                             '' as clef_etrangere
-                            WHERE TABLE_TYPE == 'BASE TABLE'
+                            FROM
+                            INFORMATION_SCHEMA.TABLES
+                            WHERE TABLE_SCHEMA <> 'information_schema'
                         """
 
         return requete_tables
@@ -138,7 +140,7 @@ class MysqlConnect(DbConnect):
 
         requete = """
                     SELECT
-                    SCHEMA_NAME as nomschema,
+                    TABLE_SCHEMA as nomschema,
                     TABLE_NAME as nomtable,
                     COLUMN_NAME as attribut,
                     COLUMN_COMMENT as alias,
@@ -148,92 +150,25 @@ class MysqlConnect(DbConnect):
                     COLUMN_DEFAULT as defaut,
                     not IS_NULLABLE as obligatoire,
                     '' as enum,
+                    CHARACTER_MAXIMUM_LENGTH as dimension,
+                    ORDINAL_POSITION as num_attribut,
+                    '' as indexes,
+                    CASE WHEN COLUMN_KEY = "UNI" THEN "1"
+                        ELSE ""
+                        END AS i_unique,
+                    CASE WHEN COLUMN_KEY = "PRI" THEN "1"
+                        ELSE ""
+                        END AS primary_key,
+                    "" as fkey,
+                    "" as cible,
+                    "" as parametres,
+                    NUMERIC_PRECISION as taille,
+                    NUMERIC_SCALE as decimales
+
                     FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA <> 'information_schema'
 
         """
-
-        requete = """
-        SELECT DISTINCT   col.owner as nomschema,
-                col.table_name as nomtable,
-                col.column_name as attribut,
-                CASE WHEN com.comments IS NOT NULL THEN com.comments
-                    ELSE ''
-                    END AS alias,
-                CASE WHEN col.data_type = 'NUMBER' AND col.data_scale = 0 THEN 'E'
-                     WHEN col.data_type = 'LONG' AND col.data_length = 0 THEN 'T'
-                     ELSE col.data_type
-                     END AS type_attribut,
-                'non' as graphique,
-                'non' as multiple,
---                 (CAST (col.data_default as VARCHAR2)),
-                '' as defaut,
-                CASE WHEN col.nullable ='Y' THEN 'oui' ELSE 'non' END AS obligatoire,
-                '' as enum,
-                col.data_length as dimension,
-                col.column_id as num_attribut,
-                ic.indexes as indexes,
-
-                --'' as index_pos,
-                CASE WHEN uniq_col.position IS NOT NULL THEN ''||uniq_col.position ELSE '' END AS i_unique,
-                CASE WHEN primkey_col.position IS NOT NULL THEN ''||primkey_col.position ELSE '' END AS primary_key,
-                CASE WHEN fkey_col.position IS NOT NULL THEN
-                    (select t.owner||'.'|| c.table_name from all_constraints c LEFT JOIN all_tables t ON t.table_name=c.table_name
-                    where c.owner=col.owner and c.constraint_name=fkey_col.r_constraint_name and rownum=1)
-                     ELSE '' END AS f_key,
-                CASE
-                    WHEN fkey_col.position IS NOT NULL THEN
-                        (select column_name from all_cons_columns cc where cc.owner=col.owner and cc.constraint_name = fkey_col.r_constraint_name and cc.position=fkey_col.position)
-                    ELSE '' END AS cible,
-                '' AS parametres,
-                col.data_length as taille,
-                col.data_scale as decimales
-
-                FROM all_tab_columns col
-                    LEFT JOIN all_col_comments com ON com.table_name=col.table_name AND com.column_name=col.column_name
-                    LEFT JOIN
-                        (SELECT LISTAGG(index_name||':'||column_position,' ')  WITHIN GROUP (order by index_name) as indexes,
-                         table_name,column_name,table_owner from all_ind_columns
-                         GROUP BY table_owner,table_name,column_name) ic
-                        on ic.table_name=col.table_name AND ic.column_name=col.column_name and ic.table_owner=col.owner
-                    LEFT JOIN
-                        (SELECT con.table_name, cons_col.column_name, cons_col.position
-                        FROM all_constraints con,all_cons_columns cons_col
-                        WHERE con.table_name = cons_col.table_name
-                            AND con.constraint_name = cons_col.constraint_name
-                            AND con.constraint_type = 'P' ) primkey_col
-                        ON  col.table_name = primkey_col.table_name AND col.column_name = primkey_col.column_name
-                    LEFT JOIN
-                        (SELECT con.table_name, cons_col.column_name, cons_col.position, con.constraint_name
-                        FROM all_constraints con,all_cons_columns cons_col
-                        WHERE con.table_name = cons_col.table_name
-                            AND con.constraint_name = cons_col.constraint_name
-                            AND con.constraint_type = 'U' ) uniq_col
-                        ON  col.table_name = uniq_col.table_name AND col.column_name = uniq_col.column_name
-                    LEFT JOIN
-                        (SELECT con.table_name,
-                             cons_col.column_name,
-                             cons_col.position,
-                             con.r_constraint_name
-                        FROM all_constraints con,all_cons_columns cons_col
-                        WHERE con.table_name = cons_col.table_name
-                            AND con.constraint_name = cons_col.constraint_name
-                            AND con.constraint_type = 'R'
-                             )
-                            fkey_col
-                        ON  col.table_name = fkey_col.table_name AND col.column_name = fkey_col.column_name
-
-                where col.owner<> 'SYS'
-                      AND col.owner<> 'CTXSYS'
-                      AND col.owner<> 'SYSTEM'
-                      AND col.owner<> 'XDB'
-                      AND col.owner<> 'WMSYS'
-                      AND col.owner<> 'MDSYS'
-                      AND col.owner<> 'EXFSYS'
-                      AND col.owner<> 'CUS_DBA'
-
-                ORDER BY col.owner,col.table_name,col.column_id
-                    """
-
         return requete
 
     def getdatatype(self, datatype):
@@ -247,6 +182,14 @@ class MysqlConnect(DbConnect):
 
     #        return 'TO_CHAR("'+nom+'")'
     #        return nom
+
+    def quote_table(self,ident):
+        '''identifiants tables'''
+        return '.'.join(ident)
+
+    def quote(self, att):
+        """rajoute les quotes sur une liste de valeurs ou une valeur"""
+        return att
 
     def datecast(self, nom):
         """forcage date"""
@@ -285,20 +228,17 @@ class MysqlConnect(DbConnect):
     def set_limit(self, maxi, whereclause):
         """limite le nombre de lignes"""
         if maxi:
-            if whereclause:
-                return " AND ROWNUM <= " + str(maxi)
-            return " WHERE ROWNUM <= " + str(maxi)
+            return " LIMIT " + str(maxi)
 
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        """definition d'ne condition geometrique"""
+        """definition d'une condition geometrique"""
         return ""
 
     def execrequest(self, requete, data, attlist=None):
         """passage de la requete sur la base"""
         cur = self.get_cursinfo()
-        #        print ('ora:execution_requet',requete)
         try:
             cur.execute(requete, data, attlist=attlist)
             return cur
@@ -317,6 +257,7 @@ class MysqlConnect(DbConnect):
             #            raise
             return None
 
+
     def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
@@ -324,41 +265,12 @@ class MysqlConnect(DbConnect):
         if cur is None:
             return iter(())
 
-        self.decile = int(cur.rowcount / 10) + 1
-        #        print('decile recup', self.decile)
-        if self.decile == 1:
-            self.decile = 100000
+        self.getdecile(cur)
+
 
         #        print('oracle:', requete, data)
-        if not has_geom:
-            return cur
-
-        def cursiter():
-            """iterateur sur le curseur oracle avec decodage de la geometrie """
-            while True:
-                try:
-                    elem = cur.cursor.fetchone()
-                #                raise
-                except self.DBError as err:
-                    print("erreur " + self.base, err)
-                    #                raise
-                    continue
-                if elem is None:
-                    break
-                #                yield i
-                tmp = list(elem)
-                if has_geom:
-                    try:  # lecture de la geometrie en clob
-                        var = tmp[-1].read()
-                        tmp[-1] = var
-                    except AttributeError:
-                        pass
-                yield tmp
-            cur.close()
-            return
-
-        cur.__iter__ = cursiter
         return cur
+
 
 
 class MysqlGenSql(DbGenSql):

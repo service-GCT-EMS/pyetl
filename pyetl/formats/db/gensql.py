@@ -93,9 +93,10 @@ class DbGenSql(object):
         nom = self.reserves.get(nom, nom)
         return nom
 
+
     def ajuste_nom_q(self, nom):
         """ sort les caracteres speciaux des noms et rajoute des quotes"""
-        return quote(self.ajuste_nom(nom))
+        return self.quote(self.ajuste_nom(nom))
 
     def valide_base(self, conf):
         """valide un schema en base"""
@@ -106,6 +107,17 @@ class DbGenSql(object):
         non defini pour une base generique """
 
         return False, ""
+
+    def quote_table(self, ident):
+        """rajoute les cotes autour des noms"""
+        return '"%s"."%s"' % ident
+
+    def quote(self, att):
+        """rajoute les quotes sur une liste de valeurs ou une valeur"""
+        if att.startswith('"'):
+            return att
+        return '"%s"' % (att)
+
 
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
@@ -141,7 +153,7 @@ class DbGenSql(object):
         #        raise
         schemaclasse = self.schema.classes[ident]
         groupe, nom = self.get_nom_base(ident)
-        table = quote_table((groupe, nom))
+        table = self.quote_table((groupe, nom))
         atts = schemaclasse.get_liste_attributs()
         type_geom = schemaclasse.info["type_geom"]
 
@@ -167,7 +179,7 @@ class DbGenSql(object):
             sql_conf = ""
             attribut = schemaclasse.attributs[j]
             attname = attribut.nom.lower()
-            attname = quote(self.reserves.get(attname, attname))
+            attname = self.quote(self.reserves.get(attname, attname))
             attype = attribut.type_att
             #            print ('lecture type_attribut',an,at)
             defaut = (
@@ -244,7 +256,7 @@ class DbGenSql(object):
         drop = []
         for ident in liste:
             groupe, nom = self.get_nom_base(ident)
-            table = quote_table((groupe, nom))
+            table = self.quote_table((groupe, nom))
             drop.append("DROP TABLE " + table + ";")
         return drop
 

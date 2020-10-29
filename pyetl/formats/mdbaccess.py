@@ -358,7 +358,7 @@ def sortie_resultats(
     if connect.sys_mod in namelist:
         sys_mod = connect.sys_mod
     tget = time.time()
-    decile = curs.decile
+    decile = connect.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
 
@@ -404,8 +404,12 @@ def sortie_resultats(
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
+        # print ('valeur de decile', decile)
+        # if decile==-1:
+        # decile = connect.getdecile(curs)
+            # decile = 100000 if decile==-1 else decile
         if nbvals > decile:
-            decile += curs.decile
+            decile += connect.getdecile(curs)
             nb_pts += 1
             print(".", end="", flush=True)
     tget = time.time() - tget
@@ -611,7 +615,6 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
             curs = connect.req_alpha(
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )
-            connect.commit()
             # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
             treq = time.time() - treq
             if curs:
@@ -627,6 +630,8 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
                     treq=treq,
                     cond=(attr, val),
                 )
+
+            connect.commit()
 
             if sortie:
                 for nom in sortie:

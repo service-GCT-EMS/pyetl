@@ -349,6 +349,36 @@ class DbConnect(object):
         """recupere le type interne associe a un type cx_oracle"""
         return "T"
 
+    def quote_table(self, ident):
+        """rajoute les cotes autour des noms"""
+        return '"%s"."%s"' % ident
+
+    def quote(self, att):
+        """rajoute les quotes sur une liste de valeurs ou une valeur"""
+        if att.startswith('"'):
+            return att
+        return '"%s"' % (att)
+
+    def attqjoiner(self, attlist, sep):
+        """ join une liste d'attributs et ajoute les quotes"""
+        if isinstance(attlist, (list, tuple)):
+            return sep.join([self.quote(i) for i in attlist])
+        return self.quote(attlist)
+
+
+    def getdecile(self, cur):
+        """ calcule les etapes pour l' affichage"""
+        # print ('nombre de valeurs', cur.rowcount)
+        if cur.rowcount == -1:
+            self.decile=100000
+        else:
+            self.decile = int(cur.rowcount / 10) + 1
+            if self.decile <= 1:
+                self.decile = 100000
+        return self.decile
+
+
+
     def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
         try:
@@ -777,14 +807,14 @@ class DbConnect(object):
             if att.type_att == "X":
                 attlist2.append("")
             if att.type_att == "D":
-                attlist2.append(self.get_dateformat(quote(i)))
+                attlist2.append(self.get_dateformat(self.quote(i)))
             else:
                 # attlist2.append('"' + i + '"::text')
-                attlist2.append(self.textcast(quote(i)))
+                attlist2.append(self.textcast(self.quote(i)))
 
         self.get_sys_fields(attlist, attlist2)
         if self.geographique:
-            nom_geometrie = quote(schema.info["nom_geometrie"])
+            nom_geometrie = self.quote(schema.info["nom_geometrie"])
             if schema.info["type_geom"] == "3":  # surfaces
                 if surf:  # calcul de la surface
                     attlist2.append(
@@ -864,7 +894,7 @@ class DbConnect(object):
 
         condition, data = self.prepare_condition(schema, attribut, valeur)
 
-        requete = " SELECT count(*) FROM " + quote_table(ident) + condition
+        requete = " SELECT count(*) FROM " + self.quote_table(ident) + condition
         resultat = self.request(requete, data)
         return resultat
 
@@ -874,7 +904,7 @@ class DbConnect(object):
         attlist = []
         atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)
         condition, data = self.prepare_condition(schema, attribut, valeur)
-        requete = " SELECT " + atttext + " FROM " + quote_table(ident) + condition
+        requete = " SELECT " + atttext + " FROM " + self.quote_table(ident) + condition
         if ordre:
             requete = requete + " ORDER BY " + attqjoiner(ordre, ",")
         requete = requete + self.set_limit(maxi, bool(data))
@@ -936,11 +966,11 @@ class DbConnect(object):
                 " SELECT "
                 + atttext
                 + " FROM "
-                + quote_table(ident)
+                + self.quote_table(ident)
                 + " WHERE "
                 + prefixe
                 + self.cond_geom(
-                    nom_fonction, quote(schema.info["nom_geometrie"]), geom2
+                    nom_fonction, self.quote(schema.info["nom_geometrie"]), geom2
                 )
                 + self.set_limit(maxi, True)
             )
@@ -1055,7 +1085,7 @@ class DbConnect(object):
         tablekey = self.schemabase.classes[ident].getpkey
         requete = (
             " UPDATE "
-            + quote_table(ident)
+            + self.quote_table(ident)
             + " SET "
             + attribut
             + " = "
