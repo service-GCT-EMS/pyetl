@@ -12,7 +12,7 @@ import logging
 
 from .outils import prepare_mode_in
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 # ------------selecteurs sur valeurs d'attributs---------------------
 

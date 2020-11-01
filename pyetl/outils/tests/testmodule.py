@@ -12,7 +12,7 @@ import logging
 from contextlib import redirect_stdout
 from pyetl.moteur.fonctions.outils import printexception
 
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 
 
 RETESTOK = {

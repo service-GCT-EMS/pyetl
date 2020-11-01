@@ -16,7 +16,7 @@ from .gensql import DbGenSql
 
 
 DEBUG = False
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 class DummyConnect(object):
@@ -365,19 +365,16 @@ class DbConnect(object):
             return sep.join([self.quote(i) for i in attlist])
         return self.quote(attlist)
 
-
     def getdecile(self, cur):
         """ calcule les etapes pour l' affichage"""
         # print ('nombre de valeurs', cur.rowcount)
         if cur.rowcount == -1:
-            self.decile=100000
+            self.decile = 100000
         else:
             self.decile = int(cur.rowcount / 10) + 1
             if self.decile <= 1:
                 self.decile = 100000
         return self.decile
-
-
 
     def schemarequest(self, nom, fallback=False):
         """passe la requete d acces au schema"""
@@ -405,7 +402,7 @@ class DbConnect(object):
     def get_type(self, nom_type):
         """ type en base d'un type interne """
         if nom_type not in self.types_base:
-            print(self.nombase, "db:type inconnu", nom_type, self.types_base)
+            print(self.nombase, "db:type inconnu", nom_type)
         return self.types_base.get(nom_type, "?")
 
     def dbclose(self):
@@ -416,6 +413,10 @@ class DbConnect(object):
     def get_enums(self):
         """ recupere la description de toutes les enums depuis la base de donnees """
         yield from self.schemarequest("info_enums")
+
+    def get_enums2(self):
+        """ recupere la description de toutes les enums depuis la base de donnees """
+        yield from self.schemarequest("info_enums2")
 
     def get_tablelist(self):
         """retourne la liste des tables a prendre en compte"""
@@ -630,6 +631,11 @@ class DbConnect(object):
             nom_enum, ordre, valeur, alias = i[:4]
             conf = self.schemabase.get_conf(nom_enum)
             conf.stocke_valeur(valeur, alias, ordre=ordre, mode_force=mode_force_enums)
+        for i in self.get_enums2():
+            nom_enum, valeurs = i[:2]
+            for ordre, valeur in enumerate(valeurs.split(",")):
+                conf = self.schemabase.get_conf(nom_enum)
+                conf.stocke_valeur(valeur, "", ordre=ordre, mode_force=mode_force_enums)
         self._recup_attributs()
         self._recup_tables()
 

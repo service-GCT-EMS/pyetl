@@ -13,7 +13,7 @@ from itertools import zip_longest, count
 import pyetl.schema.fonctions_schema as FSC
 import pyetl.formats.format_temporaire as T
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 class Branch(object):

@@ -21,7 +21,7 @@ except ImportError:
 from .outils import getfichs
 
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def commandrunner(regle, chaine):

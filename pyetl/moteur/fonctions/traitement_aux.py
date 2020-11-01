@@ -49,7 +49,7 @@ fonctions de sortie et de schema auxiliaires
 import logging
 from pyetl.formats.interne.stats import Stat, Statdef
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 # fonctions de remplacement
 def setajout(regle, liste):

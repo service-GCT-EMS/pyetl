@@ -35,7 +35,7 @@ import re
 import copy
 import logging
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def f_setliste(regle, obj):

@@ -14,7 +14,7 @@ from xml.etree.ElementTree import ParseError
 import xml.etree.cElementTree as ET
 from jinja2 import FileSystemLoader, Environment
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def h_xmlextract(regle):

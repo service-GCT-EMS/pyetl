@@ -11,7 +11,7 @@ import logging
 from .outils import expandfilename, charge_liste
 
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def prepare_elmap(mapping):

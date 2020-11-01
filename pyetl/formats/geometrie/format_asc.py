@@ -9,7 +9,7 @@ import logging
 # formats geometriques ######
 FC = 1000.0  # ajoute les elements d'entete a un objet
 FA = 10.0
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 # asc ###################################################################
@@ -44,7 +44,9 @@ def ecrire_geom_asc(geom):
     #    print ('asc: nblignes',len(geom.lignes))
     numeros = [1]
     return (
-        "".join((_ecrire_ligne_asc(p, numeros) for p in geom.lignes)) if geom.valide else ""
+        "".join((_ecrire_ligne_asc(p, numeros) for p in geom.lignes))
+        if geom.valide
+        else ""
     )
 
 
@@ -79,7 +81,7 @@ def geom_from_asc(obj):
     # s'il y a un schema : on force le type de geometrie demandees
     if obj.schema and obj.schema.schema.origine != "B":
         geom_demandee = obj.schema.info["type_geom"]
-        print('gfa: geom_demandee',geom_demandee,obj.schema.info)
+        print("gfa: geom_demandee", geom_demandee, obj.schema.info)
     geom_v = obj.geom_v
     dim = 2
     if "#geom" not in obj.attributs:

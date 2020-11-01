@@ -17,6 +17,7 @@ il est necessaire de positionner les parametres suivant:
 """
 
 import os
+import logging
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from mysql.connector import connect as mysqlconnect, Error as MysqlError
@@ -27,19 +28,33 @@ from mysql.connector import connect as mysqlconnect, Error as MysqlError
 from .database import DbConnect
 from .gensql import DbGenSql
 
+LOGGER = logging.getLogger(__name__)
+
+
 TYPES_A = {
     "char": "T",
     "varchar": "T",
+    "text": "T",
     "longtext": "T",
-    "DOUBLE PRECISION": "F",
+    "mediumtext": "T",
+    "enum": "T",
+    "ENUM": "T",
+    "set": "T",
+    "json": "J",
+    "double": "F",
     "decimal": "N",
-    "FLOAT": "F",
+    "float": "F",
     "HSTORE": "H",
     "BLOB": "X",
     "datetime": "D",
+    "timestamp": "D",
+    "time": "D",
     "date": "DS",
+    "year": "DS",
     "int": "E",
     "tinyint": "E",
+    "smallint": "E",
+    "mediumint": "E",
     "bigint": "EL",
     "BOOLEEN": "B",
     "BOOLEAN": "B",
@@ -47,7 +62,9 @@ TYPES_A = {
     "SEQ": "S",
     "SERIAL": "S",
     "INTERVALLE": "I",
-    "LONG": "EL",
+    "mediumblob": "X",
+    "longblob": "X",
+    "blob": "X",
 }
 
 
@@ -64,10 +81,10 @@ class MysqlConnect(DbConnect):
         #        self.errdef = errdef
         self.type_base = "mysql"
         self.types_base.update(TYPES_A)
-        self.accept_sql = "alpha"
+        self.accept_sql = "geo"
         self.dateformat = "YYYY/MM/DD HH24:MI:SS"
         self.requetes = {
-            "info_enums": self.req_enums,
+            "info_enums2": self.req_enums,
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
         }
@@ -76,23 +93,32 @@ class MysqlConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
             return
-        print(
-            "info:mysql: connection ",
-            self.serveur,
-            self.base,
-            self.user,
-            "*" * len(self.passwd),
+        LOGGER.info(
+            "connection %s %s en tant que %s", self.serveur, self.base, self.user
         )
-        port=None
-        if ' ' in self.serveur:
+        # print(
+        #     "info:mysql: connection ",
+        #     self.serveur,
+        #     self.base,
+        #     self.user,
+        #     "*" * len(self.passwd),
+        # )
+        port = None
+        if " " in self.serveur:
             host, port = self.serveur.split(" ")
         else:
-            host=self.serveur
+            host = self.serveur
         host = host.split("=")[-1]
-        connectparams = {"user":self.user, "passwd":self.passwd, "host":host, "db":self.base, "charset":"utf8"}
+        connectparams = {
+            "user": self.user,
+            "passwd": self.passwd,
+            "host": host,
+            "db": self.base,
+            "charset": "utf8",
+        }
         if port:
             port = port.split("=")[-1]
-            connectparams["port"]=port
+            connectparams["port"] = port
         try:
             connection = mysqlconnect(**connectparams)
             connection.autocommit = True
@@ -102,8 +128,14 @@ class MysqlConnect(DbConnect):
 
     @property
     def req_enums(self):
-        """recupere les enums (vide sous oracle)"""
-        return ""
+        """recupere les enums (lie aux colonnes sur mysql)"""
+        requete = """
+                SELECT
+                LOWER(CONCAT_WS("_",TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME)),
+                replace(substring(COLUMN_TYPE,6,char_length(COLUMN_TYPE)-6),"'",'')
+                FROM INFORMATION_SCHEMA.COLUMNS WHERE DATA_TYPE="enum"
+                """
+        return requete
 
     @property
     def req_tables(self):
@@ -144,12 +176,15 @@ class MysqlConnect(DbConnect):
                     TABLE_NAME as nomtable,
                     COLUMN_NAME as attribut,
                     COLUMN_COMMENT as alias,
-                    DATA_TYPE as type_attribut,
+                    DATA_TYPE AS type_attribut,
                     'non' as graphique,
                     'non' as multiple,
                     COLUMN_DEFAULT as defaut,
                     not IS_NULLABLE as obligatoire,
-                    '' as enum,
+                    CASE WHEN DATA_TYPE="enum" THEN
+                        LOWER(CONCAT_WS("_",TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME))
+                        ELSE ""
+                        END AS enum,
                     CHARACTER_MAXIMUM_LENGTH as dimension,
                     ORDINAL_POSITION as num_attribut,
                     '' as indexes,
@@ -171,6 +206,11 @@ class MysqlConnect(DbConnect):
         """
         return requete
 
+    def get_type(self, nom_type):
+        if "geometry" in nom_type:
+            return nom_type
+        return self.types_base.get(nom_type.lower(), "?")
+
     def getdatatype(self, datatype):
         """recupere le type interne associe a un type cx_oracle"""
         nom = datatype.__name__
@@ -183,9 +223,9 @@ class MysqlConnect(DbConnect):
     #        return 'TO_CHAR("'+nom+'")'
     #        return nom
 
-    def quote_table(self,ident):
-        '''identifiants tables'''
-        return '.'.join(ident)
+    def quote_table(self, ident):
+        """identifiants tables"""
+        return ".".join(ident)
 
     def quote(self, att):
         """rajoute les quotes sur une liste de valeurs ou une valeur"""
@@ -202,20 +242,16 @@ class MysqlConnect(DbConnect):
         return " " + operateur + " :val"
 
     def get_surf(self, nom):
-        """calcul de surface"""
-        return "0"
+        return "ST_area(%s)" % nom
 
     def get_perim(self, nom):
-        """calcul de perimetre"""
-        return "0"
+        return "ST_perimeter(%s)" % nom
 
     def get_long(self, nom):
-        """calcul de longueur"""
-        return "0"
+        return "ST_length(%s)" % nom
 
     def get_geom(self, nom):
-        """recup de la geometrie en WKT"""
-        return ""
+        return "ST_asEWKT(%s)" % nom
 
     def set_geom(self, geom, srid):
         """cree une geometrie"""
@@ -257,7 +293,6 @@ class MysqlConnect(DbConnect):
             #            raise
             return None
 
-
     def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
         """recup d'un iterateur sur les resultats"""
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
@@ -267,10 +302,8 @@ class MysqlConnect(DbConnect):
 
         self.getdecile(cur)
 
-
         #        print('oracle:', requete, data)
         return cur
-
 
 
 class MysqlGenSql(DbGenSql):
@@ -279,4 +312,4 @@ class MysqlGenSql(DbGenSql):
     pass
 
 
-DBDEF = {"mysql": (MysqlConnect, MysqlGenSql, "server", "", "", "base mysql")}
+DBDEF = {"mysql": (MysqlConnect, MysqlGenSql, "server", "", "#ewkt", "base mysql")}

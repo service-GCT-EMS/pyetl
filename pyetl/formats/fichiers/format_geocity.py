@@ -18,7 +18,7 @@ import os
 import logging
 from pyetl.schema.fonctions_schema import valide_dates
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def calculeangle(p1_x, p1_y, p2_x, p2_y):

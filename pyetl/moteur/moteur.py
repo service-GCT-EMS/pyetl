@@ -9,7 +9,7 @@ from .fonctions.outils import printexception
 # import pyetl.schema.schema_io as SC
 # import pyetl.schema.fonctions_schema as FSC
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 class Moteur(object):

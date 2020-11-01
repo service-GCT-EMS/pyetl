@@ -11,7 +11,7 @@ from copy import deepcopy
 from . import attribut as A
 from . import mapping as MP
 
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 
 # schemas : description de la structure des objets
 TYPES_G = {
@@ -752,11 +752,13 @@ class SchemaClasse(object):
             _gestion_types_simples(attr, type_attribut)
         if defaut:
             # print 'valeurs defaut',nom,defaut
-            if defaut.startswith("nextval("):
-                defaut = "S"
+            if isinstance(defaut, str):
+                if defaut.startswith("nextval("):
+                    defaut = "S"
+                if defaut[0] != "V":
+                    attr.conf = False
             attr.defaut = defaut
-            if defaut[0] != "V":
-                attr.conf = False
+
             # evite les conformites sur les sequences et autres attributs calcules
 
     def _gestion_ordre_insertion(self, attr, ordre, mode_ordre="r"):

@@ -11,7 +11,7 @@ from itertools import chain
 from .fichiers.format_asc import ajout_attribut_asc, att_to_text
 from .interne.objet import Objet
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def _ecrire_section_tmp(section):

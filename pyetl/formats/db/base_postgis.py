@@ -24,7 +24,7 @@ import logging
 from .base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
 
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 
 
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}

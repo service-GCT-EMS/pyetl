@@ -20,7 +20,7 @@ from pyetl.formats.mdbaccess import recup_table_parametres
 # from pyetl.moteur.selecteurs import Selecteur
 from .fonctions.outils import charge_fichier
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
 
 # quelques fonction générales

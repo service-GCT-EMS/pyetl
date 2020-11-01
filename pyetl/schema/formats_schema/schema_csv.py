@@ -135,7 +135,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
                     type_att,
                     "non",
                     multiple,
-                    defaut,
+                    str(defaut),
                     oblig,
                     conf,
                     dimension,

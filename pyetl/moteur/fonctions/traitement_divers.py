@@ -17,7 +17,7 @@ except ImportError:
 from .outils import renseigne_attributs_batch
 
 
-# LOGGER = logging.getLogger("pyetl")
+# LOGGER = logging.getLogger(__name__)
 LOGGER = logging.getLogger(__name__)
 
 

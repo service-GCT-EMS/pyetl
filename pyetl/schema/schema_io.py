@@ -16,7 +16,7 @@ from . import fonctions_schema as FSC
 from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def fusion_schema(nom, schema, schema_tmp):
@@ -342,20 +342,24 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         mode_sortie = (
             schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
         )
-        print(
-            "sortir schema ",
-            i,
-            mode_sortie,
-            len(schemas[i].classes),
-            FSC.analyse_interne(schemas[i], mode_sortie),
-        )
+        # print(
+        #     "sortir schema ",
+        #     i,
+        #     mode_sortie,
+        #     len(schemas[i].classes),
+        #     FSC.analyse_interne(schemas[i], mode_sortie),
+        # )
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
-        if not rep_sortie:
+        LOGGER.info("sortir schema %s %d %s", i, len(schemas[i].classes), mode_sortie)
 
-            print(
-                "sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params
+        if not rep_sortie:
+            LOGGER.warning(
+                "pas de repertoire de sortie :%s", ",".join(stock_param.liste_params)
             )
+            # print(
+            #     "sio:pas de repertoire de sortie ", rep_sortie, stock_param.liste_params
+            # )
             raise NotADirectoryError("repertoire de sortie non défini")
 
         if stock_param.schemas[i].origine == "G":

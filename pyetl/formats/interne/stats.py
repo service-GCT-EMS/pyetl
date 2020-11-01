@@ -9,7 +9,7 @@ import logging
 
 from .objet import Objet
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 # statistiques
 
 

@@ -18,7 +18,7 @@ from pyetl.vglobales import DEFCODEC
 from .outils import scandirs, hasbom, _extract
 
 DEBUG = False
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 # modificateurs de comportement reconnus
 DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
@@ -214,14 +214,14 @@ class TableBaseSelector(object):
         """transformation de descripteurs dynamiques en liste de classes
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
         mod = self.regle_ref.mods
-        print("resolve dyn :regleref mod", mod)
+        # print("resolve dyn :regleref mod", mod)
         mod = mod.upper()
         if obj is None and self.dyndescr:
             print("elements dynamiques", self.dyndescr)
             return False
         self.dynlist = dict()
-        if self.dyndescr:
-            print("resolution descripteur dynamique", self.dyndescr)
+        # if self.dyndescr:
+        #     print("resolution descripteur dynamique", self.dyndescr)
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
             print("descripteur dynamique", niveau, classes, attr, valeur, fonction)
             if attr.startswith("["):
@@ -239,7 +239,7 @@ class TableBaseSelector(object):
                         niveau, classe, attr, valeur, fonction, mod, nobase=self.nobase
                     )
                 )
-        print("dynlist:", self.dynlist)
+        # print("dynlist:", self.dynlist)
         return True
 
     def classlist(self):

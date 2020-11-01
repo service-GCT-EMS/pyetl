@@ -17,7 +17,7 @@ from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.interne.stats import ExtStat
 from .outils import renseigne_attributs_batch, getfichs, printexception
 
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 paralleldebug = 0
 
 

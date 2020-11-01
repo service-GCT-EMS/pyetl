@@ -4,7 +4,7 @@ import os
 import logging
 from . import transfo_coord3 as TC
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def init_proj(entree, sortie, repgrilles=None):

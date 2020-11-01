@@ -17,7 +17,7 @@ from .fileio import FileWriter
 # formats geometriques ######
 FC = 1000.0  # ajoute les elements d'entete a un objet
 FA = 10.0
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 # formats complets

@@ -20,7 +20,7 @@ import typing as T
 from pyetl.formats.generic_io import READERS
 from pyetl.vglobales import DEFCODEC
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def description_schema(regle, nom, schema):

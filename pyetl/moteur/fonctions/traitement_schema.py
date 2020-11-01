@@ -13,7 +13,7 @@ from pyetl.formats.interne.objet import Objet
 from pyetl.schema.formats_schema.schema_xml import lire_schema_xml
 from pyetl.schema.formats_schema.schema_csv import lire_schema_csv
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 # fonctions de manipulation de schemas
 
 

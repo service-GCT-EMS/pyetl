@@ -19,7 +19,7 @@ except ImportError:
     SFTP = False
 import time
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def geocode_traite_stock(regle, final=True):

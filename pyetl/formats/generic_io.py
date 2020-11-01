@@ -22,7 +22,7 @@ from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
 from .interne.objet import Objet
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 #
 # geomdef = namedtuple("geomdef", ("writer", "converter"))
 #

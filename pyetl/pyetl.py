@@ -792,7 +792,8 @@ class Pyetl(object):
             return
         configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
-            print("pas de parametres locaux", configfile)
+            LOGGER.warning("pas de parametres locaux %s", configfile)
+            # print("pas de parametres locaux", configfile)
             return
         nom = ""
         #        print('parametres locaux', configfile)
@@ -1136,10 +1137,11 @@ class Pyetl(object):
                         nb_lu = 0
                         break
             except NotADirectoryError as err:
-                print(
-                    "!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:",
-                    err,
-                )
+                LOGGER.exception("repertoire d entree inexistant", err)
+                # print(
+                #     "!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:",
+                #     err,
+                # )
                 print("type entree ", type(entree))
             # else:
             #     print("pas de fichiers en entree")

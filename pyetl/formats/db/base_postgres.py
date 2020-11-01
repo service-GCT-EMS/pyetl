@@ -30,7 +30,7 @@ from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
 
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 
 
 TYPES_A = {

@@ -13,7 +13,7 @@ import datetime as D
 from .elements.schemaclasse import SchemaClasse
 
 # import logging
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 # from . import schema_interne as SCI
 #
 # schemas : description de la structure des objets

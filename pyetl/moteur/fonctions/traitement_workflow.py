@@ -26,7 +26,7 @@ from pyetl.formats.interne.objet import Objet
 from .outils import renseigne_attributs_batch, objloader
 
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def h_pass(regle):

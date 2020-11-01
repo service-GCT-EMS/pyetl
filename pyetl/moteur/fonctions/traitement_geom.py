@@ -11,7 +11,7 @@ import math as M
 import logging
 from pyetl.projection import conversion as P
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def setschemainfo(regle, obj, multi=None, type=None, dyn=False):

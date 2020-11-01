@@ -15,7 +15,7 @@ from .elements import mapping as M
 from .abbrev import dic_abrev as abbr
 
 # schemas : description de la structure des objets
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 TYPES_G = C.TYPES_G
 CODES_G = C.CODES_G

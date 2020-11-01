@@ -14,7 +14,7 @@ import pyetl.formats.mdbaccess as DB
 from .outils import prepare_mode_in
 from .tableselector import getselector, select_in, adapt_qgs_datasource
 
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 
 
 def param_base(regle, nom="", geo=False, mods=True):
@@ -39,8 +39,8 @@ def param_base(regle, nom="", geo=False, mods=True):
         fonction = att
         att = ""
         vals = regle.params.att_entree.liste
-
-    print("param_base", regle, "-", nom, base, niv, cla, att, vals)
+    LOGGER.debug("info base %s ", repr(regle))
+    # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)

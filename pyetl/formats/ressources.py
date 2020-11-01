@@ -9,7 +9,7 @@ import os
 import logging
 
 DEBUG = 0
-LOGGER = logging.getLogger("pyetl")  # un logger
+LOGGER = logging.getLogger(__name__)  # un logger
 
 
 class RessourceDistante(object):

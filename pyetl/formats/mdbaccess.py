@@ -14,7 +14,7 @@ from .interne.objet import Objet
 
 
 DEBUG = False
-LOGGER = logging.getLogger("pyetl")
+LOGGER = logging.getLogger(__name__)
 # modificateurs de comportement reconnus
 DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
@@ -41,7 +41,10 @@ def dbaccess(regle, codebase, type_base=None):
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
         prefix = regle.getvar("prefix_" + codebase, "")
-        print("mdba:acces base", codebase, base, serveur, type_base, prefix)
+        LOGGER.info(
+            "acces base %s %s %s %s %s", codebase, base, serveur, type_base, prefix
+        )
+        # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
         print("type_base inconnu", type_base)
@@ -407,7 +410,7 @@ def sortie_resultats(
         # print ('valeur de decile', decile)
         # if decile==-1:
         # decile = connect.getdecile(curs)
-            # decile = 100000 if decile==-1 else decile
+        # decile = 100000 if decile==-1 else decile
         if nbvals > decile:
             decile += connect.getdecile(curs)
             nb_pts += 1
