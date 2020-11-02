@@ -7,21 +7,12 @@ import time
 # print ('pyetl start import ')
 import os
 
-# import sys
 import re
 
-# import platform
 import logging
 import itertools
 from queue import Empty
 
-# from collections import defaultdict
-# from types import MethodType
-# from pathlib import Path
-# from zipfile import ZipFile
-
-
-# print('base',time.time()-t1)
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales
@@ -137,7 +128,7 @@ def runpyetl(commandes, args):
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
     LOGGER.log(999, "demarrage pyetl %s", VERSION)
-    LOGGER.info("commande:   %s",str(commandes))
+    LOGGER.info("commande:   %s", str(commandes))
     LOGGER.info("parametres: %s", str(args))
     # print(
     #     "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
@@ -1164,15 +1155,12 @@ class Pyetl(object):
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
         LOGGER.info(
-            "::".join(
-                (
-                    "====== fin == ",
-                    self.nompyetl,
-                    str(self.idpyetl),
-                    str(self.getvar("_st_lu_objs", "0")),
-                )
-            )
+            "fin traitement %d: %s traites %s",
+            self.idpyetl,
+            self.nompyetl,
+            self.getvar("_st_lu_objs", "0"),
         )
+
         return
 
     def menage_final(self):
@@ -1261,7 +1249,7 @@ class Pyetl(object):
             return
         mode_schema = self.getvar("force_schema", "util")
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
-        LOGGER.info("ecriture schemas " + str(mode_schema))
+        # LOGGER.info("ecriture schemas " + str(mode_schema))
         if (
             mode_schema in {"all", "int", "fusion"}
             or self.getvar("force_virtuel") == "1"

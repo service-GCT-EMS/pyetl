@@ -533,6 +533,7 @@ class DbConnect(object):
                     atd.nom_attr,
                     type_ref,
                 )
+
                 type_attr = "T"
 
             if atd.enum:

@@ -5,10 +5,12 @@ gestion des entrees et sorties de schemas
 @author: 89965
 """
 import os
+import logging
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 from .. import schema_interne as SCI
 
+LOGGER = logging.getLogger("pyetl")  # un logger
 
 ESC_XML = lambda t: (
     str(t)
@@ -343,11 +345,12 @@ def ecrire_schema_xml(
 
     if xml:
         os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
-        print(
-            "schema: ecriture schema xml",
-            nomschema,
-            os.path.join(rep, nomschema) + ".xml",
-        )
+        LOGGER.info("%s en xml : dans %s.xml", nomschema, os.path.join(rep, nomschema))
+        # print(
+        #     "schema: ecriture schema xml",
+        #     nomschema,
+        #     os.path.join(rep, nomschema) + ".xml",
+        # )
         open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
     if not prefix:
         copier_xsl(rep)

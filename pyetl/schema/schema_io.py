@@ -317,7 +317,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
     #    rep_sortie = stock_param.getvar('_sortie')
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
-    LOGGER.info("repertoire sortie schema %s", rep_sortie)
+    # LOGGER.info("repertoire sortie schema %s", rep_sortie)
     # print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
     #        raise FileNotFoundError
 
@@ -373,7 +373,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
-                LOGGER.info("schema: %s %d classes", i, len(schemas[i].classes))
+                LOGGER.info("mode %s: %s %d classes",mode, i, len(schemas[i].classes))
                 # print("ecriture schema", i, len(schemas[i].classes))
                 # schemas[i].printelements_specifiques()
 

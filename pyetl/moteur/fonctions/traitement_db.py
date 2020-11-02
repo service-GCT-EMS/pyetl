@@ -363,13 +363,14 @@ def h_dbrequest(regle):
         )
     else:
         regle.ident = None
-    print(
-        "---------------------requete: ident sortie",
-        regle.ident,
-        regle.v_nommees.get("cmp2", ""),
-        regle.params.cmp2.val,
-        # regle.v_nommees,
-    )
+    LOGGER.info("req:%s --> %s", requete, str(regle.ident))
+    # print(
+    #     "---------------------requete: ident sortie",
+    #     regle.ident,
+    #     regle.v_nommees.get("cmp2", ""),
+    #     regle.params.cmp2.val,
+    #     # regle.v_nommees,
+    # )
     regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
     valide = True
     return valide
@@ -590,7 +591,7 @@ def h_dbmaxval(regle):
     selecteur = regle.cible_base
     regle.dyndescriptors = False
     for base, basesel in selecteur.baseselectors.items():
-        if basesel.dyndescriptor:
+        if basesel.dyndescr:
             regle.dyndescriptors = True
 
         retour = DB.recup_maxval(regle, base, basesel)

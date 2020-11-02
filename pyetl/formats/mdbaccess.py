@@ -537,7 +537,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
         #     ident,
         #     sorted(curs.infoschema, key=lambda x: x.num_attribut),
         # )
-        print("mdba:classe creee", schema_classe_travail)
+        # print("mdba:classe creee", schema_classe_travail)
 
         if schema_classe_travail:
             res = sortie_resultats(

@@ -677,15 +677,25 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
         chemref = os.path.join(str(rep), nomschema)
         if len(classes) > 1:
             # print (conf,'\n',schemas)
-            print("schema: ecriture schema csv", chemref + " en csv (" + cod + ")")
+            # print("schema: ecriture schema csv", chemref + " en csv (" + cod + ")")
+            LOGGER.info("ecriture %s en csv (%s)", chemref, cod)
             ecrire_fich_csv(chemref, "_classes.csv", classes, cod)
             ecrire_fich_csv(chemref, "_enumerations.csv", conf, cod)
             ecrire_fich_csv(chemref, "_mapping.csv", mapping, cod)
-
-            print(
-                "schema:traitement elements specifiques",
-                [(i, len(j)) for i, j in schema.elements_specifiques.items()],
-            )
+            if schema.elements_specifiques:
+                LOGGER.info(
+                    "elements specifiques %s",
+                    ",".join(
+                        [
+                            str((i, len(j)))
+                            for i, j in schema.elements_specifiques.items()
+                        ]
+                    ),
+                )
+            # print(
+            #     "schema:traitement elements specifiques",
+            #     [(i, len(j)) for i, j in schema.elements_specifiques.items()],
+            # )
             if deftrig:
                 ecrire_fich_csv(chemref, "_triggers.csv", deftrig, cod)
             for i in schema.elements_specifiques:

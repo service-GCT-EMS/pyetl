@@ -49,13 +49,15 @@ TYPES_A = {
     "HSTORE": "H",
     "BLOB": "X",
     "datetime": "D",
-    "DATE": "D",
+    "DATE": "DS",
     "timestamp": "D",
+    "TIMESTAMP": "D",
     "time": "D",
     "date": "DS",
     "year": "DS",
     "int": "E",
     "LONG": "EL",
+    "SHORT": "E",
     "TINY": "E",
     "tinyint": "E",
     "smallint": "E",
@@ -214,13 +216,17 @@ class MysqlConnect(DbConnect):
     def get_type(self, nom_type):
         if "geometry" in nom_type:
             return nom_type
-        return self.types_base.get(nom_type.lower(), "?")
+        infotype = self.types_base.get(nom_type, "?")
+        # if infotype == "?":
+
+        #     print(" mysql get type", nom_type, self.types_base.get(nom_type, "?"))
+        return infotype
 
     def getdatatype(self, datatype):
         """recupere le type interne associe a un type cx_oracle"""
         nom = FieldType.get_info(datatype)
-        print(" getdatatype", datatype, nom, TYPES_A.get(nom, "T"))
-        return TYPES_A.get(nom, "T")
+        # print(" getdatatype", datatype, nom, TYPES_A.get(nom, "T"))
+        return nom
 
     def get_dateformat(self, nom):
         """formattage dates"""
