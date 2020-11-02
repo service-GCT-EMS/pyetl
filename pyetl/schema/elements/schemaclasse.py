@@ -115,6 +115,8 @@ def _gestion_types_simples(attr, type_attribut):
 
 class SchemaClasse(object):
     """ description de la structure d'un objet"""
+    codes_g=CODES_G
+    types_g=TYPES_G
 
     types_stock = {
         "r": "table",

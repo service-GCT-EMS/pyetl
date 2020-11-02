@@ -13,6 +13,7 @@ from .elements import attribut as A
 from .elements import schemaclasse as C
 from .elements import mapping as M
 from .abbrev import dic_abrev as abbr
+from .fonctions_schema import analyse_interne, analyse_conformites, ajuste_schema
 
 # schemas : description de la structure des objets
 LOGGER = logging.getLogger(__name__)
@@ -138,6 +139,9 @@ class Schema(object):
 
     # types_G={0:"ALPHA",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
     dic_abrev = abbr
+    analyse_interne = analyse_interne
+    analyse_conformites = analyse_conformites
+    ajuste = ajuste_schema
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()

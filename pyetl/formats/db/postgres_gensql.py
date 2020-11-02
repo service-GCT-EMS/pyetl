@@ -6,6 +6,7 @@ Created on Fri Feb 16 10:00:04 2018
 """
 # import os
 import re
+import logging
 from time import strftime, time
 
 # import subprocess
@@ -14,6 +15,8 @@ from .gensql import DbGenSql
 # from .postgres import RESERVES, GTYPES_DISC, GTYPES_CURVE, TYPES_A
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}
 SCHEMA_CONF = "public"
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _nomsql(niveau, classe):
@@ -868,16 +871,26 @@ class PgrGenSql(DbGenSql):
             liste = sorted(
                 [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
             )
-            print(
-                "tables non sorties:",
-                list(
+            LOGGER.debug(
+                "tables non sorties %s",
+                ",".join(
                     [
-                        i
+                        str(i)
                         for i in self.schema.classes
                         if not self.schema.classes[i].a_sortir
                     ]
                 ),
             )
+            # print(
+            #     "tables non sorties:",
+            #     list(
+            #         [
+            #             i
+            #             for i in self.schema.classes
+            #             if not self.schema.classes[i].a_sortir
+            #         ]
+            #     ),
+            # )
         vues_base = self.get_vues_base(liste)
         def_speciales = set(vues_base)
         liste_ftables = [

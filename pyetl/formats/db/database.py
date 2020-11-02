@@ -174,23 +174,17 @@ class Cursinfo(object):
                     attlist = []
                     typelist = []
                     for num, colonne in enumerate(self.cursor.description):
-                        (
-                            name,
-                            datatype,
-                            display_size,
-                            internal_size,
-                            precision,
-                            scale,
-                            null_ok,
-                        ) = colonne
+                        # name=colonne[0]
+                        # datatype=colonne[1]
+                        name, datatype, *_ = colonne
                         nomtype = self.connecteur.getdatatype(datatype)
-                        # print("lecture requete", name, datatype, nomtype, internal_size)
+                        # print("lecture requete", name, datatype, nomtype)
                         attdef = self.connecteur.attdef(
                             nom_attr=name, type_attr=nomtype, num_attribut=num + 1
                         )
                         attlist.append(attdef)
                         # typelist.append(type.__name__)
-                    print("attlist", attlist)
+                    # print("attlist", attlist)
                     self.schema_req = attlist
                     return attlist
             except Exception as err:

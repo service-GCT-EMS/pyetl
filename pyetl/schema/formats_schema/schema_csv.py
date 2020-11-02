@@ -5,8 +5,9 @@ gestion des entrees et sorties de schemas
 @author: 89965
 """
 import os
-from .. import schema_interne as SCI
-from .. import fonctions_schema as FSC
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 
 def sortir_conformite_csv(conf, mode=-1, init=False):
@@ -45,7 +46,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
     groupe = sc_classe.groupe
     sc_classe.cree_noms_courts(longueur=10)
     complement = "oui" if sc_classe.multigeom else "non"
-    type_geom = SCI.TYPES_G[sc_classe.info["type_geom"]]
+    type_geom = sc_classe.types_g[sc_classe.info["type_geom"]]
     #    print('sio: sortir schema', sc_classe.info["type_geom"], type_geom)
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, "")
@@ -106,14 +107,21 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
         if att.type_att == "A":
             att.type_att = "T" if att.type_att_defaut == "A" else att.type_att_defaut
             att.type_att_base = att.type_att
-            print(
-                "sio: type attribut non defini ",
-                att.type_att,
-                " par defaut",
+            LOGGER.warning(
+                "%s.%s.%s type attribut par defaut %s",
                 groupe,
                 nom_compo,
                 nom,
+                att.type_att,
             )
+            # print(
+            #     "sio: type attribut non defini ",
+            #     att.type_att,
+            #     " par defaut",
+            #     groupe,
+            #     nom_compo,
+            #     nom,
+            # )
         type_att = att.get_type()
         #        print ('type_att lu',i,att.type_att,att.conformite,att.multiple)
 
@@ -330,9 +338,9 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
     if v_tmp[5] == "courbe":
         classe.info["courbe"] = "1"
 
-    if gref not in SCI.CODES_G:
+    if gref not in classe.codes_g:
         print("schema:", classe.nom, "erreur type", v_tmp[4], v_tmp)
-    classe.info["type_geom"] = SCI.CODES_G[gref]
+    classe.info["type_geom"] = classe.codes_g[gref]
     classe.alias = v_tmp[3]
     if "#" in v_tmp[5]:
         for val in v_tmp[5].split(","):
@@ -547,8 +555,8 @@ def decode_classes_csv(schema_courant, entree):
                 if v_tmp[9].isnumeric():
                     classe.srid = str(int(v_tmp[9]))
                 # cas particulier des classes alpha sans attribut geom
-                if v_tmp[4] in SCI.CODES_G:
-                    classe.info["type_geom"] = SCI.CODES_G[v_tmp[4]]
+                if v_tmp[4] in classe.codes_g:
+                    classe.info["type_geom"] = classe.codes_g[v_tmp[4]]
 
 
 def lire_classes_csv(schema_courant, fichier, cod):
@@ -617,7 +625,8 @@ def lire_schema_csv(
                 contenu = liste[1:]
                 schema.elements_specifiques.divers[i] = (entete, contenu)
 
-    FSC.analyse_interne(schema, "init")
+    schema.analyse_interne("init")
+
     # print(
     #     "schema: lecture_schema realisee --->",
     #     fichier,

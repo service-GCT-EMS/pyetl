@@ -169,7 +169,7 @@ def f_dbalpha(regle, obj):
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
     ordre = regle.params.cmp2.liste
-    print("dbalpha: acces base ", selecteur)
+    # print("dbalpha: acces base ", selecteur)
     retour = 0
     # print("dbalpha", basedict.keys())
     # selecteur.resolve(regle, obj)

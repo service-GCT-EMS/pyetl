@@ -11,7 +11,6 @@ import logging
 from pyetl.formats.db import DATABASES
 
 from . import schema_interne as SCI
-from . import fonctions_schema as FSC
 
 from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
@@ -319,7 +318,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    rep_sortie = stock_param.getvar('_sortie')
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
     LOGGER.info("repertoire sortie schema %s", rep_sortie)
-    print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
+    # print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
     #        raise FileNotFoundError
 
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
@@ -342,16 +341,10 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         mode_sortie = (
             schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
         )
-        # print(
-        #     "sortir schema ",
-        #     i,
-        #     mode_sortie,
-        #     len(schemas[i].classes),
-        #     FSC.analyse_interne(schemas[i], mode_sortie),
-        # )
+
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
-        LOGGER.info("sortir schema %s %d %s", i, len(schemas[i].classes), mode_sortie)
+        # LOGGER.info("avant analyse schema %s %d %s", i, len(schemas[i].classes), mode_sortie)
 
         if not rep_sortie:
             LOGGER.warning(
@@ -363,14 +356,9 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             raise NotADirectoryError("repertoire de sortie non défini")
 
         if stock_param.schemas[i].origine == "G":
-            FSC.analyse_conformites(schemas[i])
-        #        print('avant analyse ', i, len(schemas[i].classes),
-        #              len(schemas[i].conformites),mode_sortie)
-        #        print('choix', FSC.analyse_interne(schemas[i], mode_sortie,
-        #                                           type_schema=type_schemas_a_sortir))
-        if FSC.analyse_interne(
-            schemas[i], mode_sortie, type_schema=type_schemas_a_sortir
-        ):
+            schemas[i].analyse_conformites()
+
+        if schemas[i].analyse_interne(mode_sortie, type_schema=type_schemas_a_sortir):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == "sql":
@@ -385,7 +373,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
-                print("ecriture schema", i, len(schemas[i].classes))
+                LOGGER.info("schema: %s %d classes", i, len(schemas[i].classes))
+                # print("ecriture schema", i, len(schemas[i].classes))
                 # schemas[i].printelements_specifiques()
 
                 ecrire_au_format(
@@ -414,9 +403,8 @@ def retour_schemas(schemas, mode="util"):
         if nom.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
         if schema.origine == "G":
-            FSC.analyse_conformites(schema)
-        #        print ('avant analyse ', nom ,FSC.analyse_interne(schema, mode_sortie))
-        if FSC.analyse_interne(schema, mode_sortie):
+            schema.analyse_conformites()
+        if schema.analyse_interne(mode_sortie):
             #            print ('stockage', nom, len(schema.__dic_if__))
             retour[nom] = schema.__dic_if__
             # debug = ("elypu", "pos_app_emprise_er")

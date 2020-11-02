@@ -20,7 +20,7 @@ import os
 import logging
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-from mysql.connector import connect as mysqlconnect, Error as MysqlError
+from mysql.connector import connect as mysqlconnect, Error as MysqlError, FieldType
 
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -38,6 +38,8 @@ TYPES_A = {
     "longtext": "T",
     "mediumtext": "T",
     "enum": "T",
+    "STRING": "T",
+    "VAR_STRING": "T",
     "ENUM": "T",
     "set": "T",
     "json": "J",
@@ -47,11 +49,14 @@ TYPES_A = {
     "HSTORE": "H",
     "BLOB": "X",
     "datetime": "D",
+    "DATE": "D",
     "timestamp": "D",
     "time": "D",
     "date": "DS",
     "year": "DS",
     "int": "E",
+    "LONG": "EL",
+    "TINY": "E",
     "tinyint": "E",
     "smallint": "E",
     "mediumint": "E",
@@ -213,7 +218,8 @@ class MysqlConnect(DbConnect):
 
     def getdatatype(self, datatype):
         """recupere le type interne associe a un type cx_oracle"""
-        nom = datatype.__name__
+        nom = FieldType.get_info(datatype)
+        print(" getdatatype", datatype, nom, TYPES_A.get(nom, "T"))
         return TYPES_A.get(nom, "T")
 
     def get_dateformat(self, nom):

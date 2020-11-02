@@ -10,7 +10,6 @@ import logging
 from itertools import zip_longest, count
 
 # from collections import namedtuple
-import pyetl.schema.fonctions_schema as FSC
 import pyetl.formats.format_temporaire as T
 
 LOGGER = logging.getLogger(__name__)
@@ -796,7 +795,7 @@ class RegleTraitement(object):  # regle de mapping
                         + " -> creation"
                     )
                 #                    print('init schema de sortie ', nomschem, classe_ob)
-                FSC.ajuste_schema(schem, obj)
+                schem.ajuste(obj)
             #                print (obj.schema.nom)
 
             for nom_att, nature in obj.attributs_speciaux.items():

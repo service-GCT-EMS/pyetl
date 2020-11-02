@@ -133,10 +133,9 @@ def f_stock_schema(regle, obj):
         if regle.getvar("taux_conformite"):
             # print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
-    FSC.ajuste_schema(
-        regle.schema_courant,
-        obj,
-        regle.params.cmp2.num if regle.params.cmp2.num else 30,
+
+    regle.schema_courant.ajuste(
+        obj, regle.params.cmp2.num if regle.params.cmp2.num else 30
     )
     if regle.final:
         # on force la sortie du schema l' objet est mort il n'a plus besoin de schema

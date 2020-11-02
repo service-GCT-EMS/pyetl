@@ -527,7 +527,6 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     #        print ('mdba : ',ident)
     # print("-----------------------traitement curseur ", curs, type(curs))
     treq = time.time() - treq
-    connect.commit()
     if curs and classe:
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
@@ -557,6 +556,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
                 for nom in sortie:
                     if nom and nom[0] != "#":
                         schema_classe_travail.stocke_attribut(nom, "T")
+            connect.commit()
             return res
     return 0
 

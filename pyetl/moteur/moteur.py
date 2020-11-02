@@ -6,9 +6,6 @@ import typing as T
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion
 from .fonctions.outils import printexception
 
-# import pyetl.schema.schema_io as SC
-# import pyetl.schema.fonctions_schema as FSC
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -44,7 +41,7 @@ class Moteur(object):
 
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
-        LOGGER.info("traitement virtuel" + str(unique))
+        LOGGER.info("traitement virtuel :%s", "chargement" if unique else "virtuel")
         #        for i in self.regles:
         #            print (i.chargeur, i)
         if unique:  # on lance un virtuel unique pour les traitements sans entree

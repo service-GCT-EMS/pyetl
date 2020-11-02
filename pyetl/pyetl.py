@@ -136,7 +136,9 @@ def runpyetl(commandes, args):
 
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
-    LOGGER.log(999, "demarrage pyetl %s %s (%s)", VERSION, str(commandes), str(args))
+    LOGGER.log(999, "demarrage pyetl %s", VERSION)
+    LOGGER.info("commande:   %s",str(commandes))
+    LOGGER.info("parametres: %s", str(args))
     # print(
     #     "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
     # )
