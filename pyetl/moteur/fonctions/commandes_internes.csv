@@ -225,7 +225,7 @@ gid;;;;#gid;;gid;set;;;fin;
 ;;;;;LL;;reproj;CC48;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#2p;x;y;srid;;;;;;;
-#!help;convertit des coordonees x,y en attribut en point cc48;;;;;;;;;;
+#!help;convertit des coordonees x,y en attribut en point;;;;;;;;;;
 ;;;;;0;%x%,%y%;setpoint;%srid%;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#2d;;;;;;;;;

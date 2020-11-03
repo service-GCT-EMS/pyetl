@@ -469,9 +469,11 @@ def _lire_commandes(mapper, fichier_regles, niveau):
     return liste_regles
 
 
-def affecte_variable(commande, context):
+def affecte_variable(mapper, commande, context, regle_ref):
     """ affecte une variable avec gestion des valeurs par defaut"""
-    commande_orig = commande
+    niveau, texte, rvirt = getlevel(mapper, commande, regle_ref)
+    commande_orig = texte[1:]
+
     liste_vals = context.SPLITTER_PV.split(commande)
     commande = liste_vals[0][1:]
     if not "=" in commande:
@@ -649,26 +651,46 @@ def execute_macro(mapper, texte, context, fichier_regles):
     mapper.macrorunner(texte)
 
 
-def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
-    """ importe une macro et l 'interprete"""
-    match = re.match(r"(([\|\+\-]+)([a-z]*):)?(<.*)", texte)
-    #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
+def getlevel(mapper, texte_brut, regle_ref):
+    """recupere le niveau d une commande et gere les contextes"""
+    match = re.match(r"(([\|\+\-]+)([a-z]*):)?(.*)", texte_brut)
     niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
-    # print("niveau retenu", niveau)
     texte = match.group(4)
-    # print("importe macro", niveau, texte)
-    # on gere les niveaux
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
     else:
         prec = mapper.regles[-1] if mapper.regles else None
-    nivmacro = len(niveau)
+    nivelem = len(niveau)
     rvirt = ""
     if prec:
-        if nivmacro != prec.niveau:
+        if nivelem != prec.niveau:
             rvirt = (niveau + ":" if niveau else "") + ";;;;;;;pass;;;;;rv"
             # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
+    return niveau, texte, rvirt
+
+
+def importe_macro(mapper, texte_brut, context, fichier_regles, regle_ref=None):
+    """ importe une macro et l 'interprete"""
+    niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
+    # match = re.match(r"(([\|\+\-]+)([a-z]*):)?(<.*)", texte)
+    # #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
+    # niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
+    # # print("niveau retenu", niveau)
+    # texte = match.group(4)
+    # # print("importe macro", niveau, texte)
+    # # on gere les niveaux
+    # if regle_ref:
+    #     prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
+    # else:
+    #     prec = mapper.regles[-1] if mapper.regles else None
+    # nivmacro = len(niveau)
+    # rvirt = ""
+    # if prec:
+    #     if nivmacro != prec.niveau:
+    #         rvirt = (niveau + ":" if niveau else "") + ";;;;;;;pass;;;;;rv"
+    #         # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
+    #         traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
     if macroenv.getvar("debug", "0") != "0":
@@ -752,11 +774,15 @@ def lire_regles_csv(
         # lignes conditionelles (lignes incluses dans le code seulement si la condition est vraie)
         # sous la forme K:variable:valeur ou K:variable
         start = 0
-        while texte.startswith("K:") and not macro:
-            liste_val = texte.split(";", 1)
+        while re.match(r"(([\|\+-]+)[a-z_]*:)?(K:)", texte) and not macro:
+            # while texte.startswith("K:") and not macro:
+            pmatch = re.match(r"(([\|\+-]+)[a-z_]*:)?(K:.*)", texte)
+            t2 = pmatch.group(3)
+            texte = t2
+            liste_val = t2.split(";", 1)
             cond, _ = context.resolve(liste_val[0])
             condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
-            #            print( "lire: condmatch",condmatch, cond,liste_val[0])
+            print("lire: condmatch", condmatch, cond, liste_val[0])
             if condmatch:  # interpretation conditionelle
                 #                print( "lire: trouve condmatch",condmatch.groups(), liste_val[0])
                 texte = liste_val[1]
@@ -824,8 +850,9 @@ def lire_regles_csv(
             # print("apres chargement groupe", vgroup, ngroup)
             # print("variables", mapper.context.vlocales)
 
-        elif texte.startswith("$"):
-            affecte_variable(texte, context)
+        # elif texte.startswith("$"):
+        elif re.match(r"(([\|\+-]+)[a-z_]*:)?\$", texte):
+            affecte_variable(mapper, texte, context, regle_ref=regle_ref)
         elif texte.startswith("<<"):  # execution immediate d'une macro
             # print('avant execution, contexte:',context)
             # execute_macro(mapper,texte[1:],context,fichier_regles)

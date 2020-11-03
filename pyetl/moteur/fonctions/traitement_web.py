@@ -43,9 +43,16 @@ def geocode_traite_stock(regle, final=True):
             [
                 str(n)
                 + ";"
-                + " ".join([obj.attributs.get(i, "") for i in adlist])
+                + " ".join(
+                    [obj.attributs.get(i, "").replace("\n", " ") for i in adlist]
+                )
                 + (
-                    (";" + ";".join([obj.attributs.get(i, "") for i in flist]))
+                    (
+                        ";"
+                        + ";".join(
+                            [obj.attributs.get(i, "").replace("\n", " ") for i in flist]
+                        )
+                    )
                     if flist
                     else ""
                 )
@@ -68,10 +75,21 @@ def geocode_traite_stock(regle, final=True):
 
     #        print ('retour ',buf)
     for ligne in res.text.split("\n"):
-        # print ('traitement sortie',ligne)
+        # print("traitement sortie", ligne)
         if not ligne:
             continue
-        attributs = ligne[:-1].split(";")
+        if '"' in ligne:  # attention il y a des trucs louches
+            attributs = []
+            for elt in ligne[:-1].split(";"):
+                if elt.endswith('"'):
+                    if not elt.startswith('"'):
+                        attributs[-1] = (attributs[-1] + elt)[1:-1]
+                        continue
+                else:
+                    attributs.append(elt)
+
+        else:
+            attributs = ligne[:-1].split(";")
         # attributs = ligne.split(";")
         if attributs[0].isnumeric():
             numero = int(attributs[0])

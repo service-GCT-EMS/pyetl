@@ -381,6 +381,13 @@ class SqlWriter(CsvWriter):
                 str(obj.attributs.get(i, "")).translate(self.transtable)
                 for i in self.liste_att
             )
+        # retour = self.separ.join((i if i else self.null for i in atlist))
+        # if '"' in retour:
+        #     for i in self.liste_att:
+        #         if '"' in str(obj.attributs.get(i, "")):
+        #             print("detecte tab", i, str(obj.attributs.get(i, "")))
+
+        #     print(" alerte", retour)
         return self.separ.join((i if i else self.null for i in atlist))
 
         # atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
