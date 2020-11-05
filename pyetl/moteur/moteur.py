@@ -364,6 +364,12 @@ class MacroStore(object):
     def getmacro(self, nom):
         return self.macros.get(nom)
 
+    def rename(self, nom, nom2):
+        macro = self.getmacro(nom)
+        if macro:
+            self.macros[nom2] = macro
+            del self.macros[nom]
+
     def getmacrolist(self):
         return self.macros.keys()
 

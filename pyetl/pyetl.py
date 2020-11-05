@@ -427,6 +427,9 @@ class Pyetl(object):
         """recupere un iterateur sur les macros"""
         return self.macrostore.getmacrolist()
 
+    def renamemacro(self, nom1, nom2):
+        self.macrostore.rename(nom1, nom2)
+
     @property
     def macro(self):
         return self.macrostore.macros
@@ -1207,7 +1210,8 @@ class Pyetl(object):
         if not macrofinale:
             if not self.getmacro("#end"):
                 return
-            macrofinale = "#end"
+            self.renamemacro("#end", "#_end")  # une seule passe
+            macrofinale = "#_end"
         parametres = self.getvar("parametres_final")
         entree = self.getvar("entree_final", self.getvar("_sortie"))
         sortie = self.getvar("sortie_final", self.getvar("_sortie"))
