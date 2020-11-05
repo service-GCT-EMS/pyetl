@@ -279,8 +279,8 @@ def printvariable(regle):
 def f_printvar(regle, _):
     """#aide||affichage des parametres nommes
        #pattern||;;;printv;C?;=noms?||entree
-       #test||redirect||obj||$toto=ok||^;;;printv;toto||end
-       #!test2||redirect||obj||$toto=ok||^;;;printv;||end
+       #test||redirect||obj||$toto=ok||^;;;printv;toto||out
+       #!test2||redirect||obj||$toto=ok||^;;;printv;||out
     """
     #    print("variables:")
     print(printvariable(regle))
@@ -306,7 +306,7 @@ def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
        #pattern1||;C?;L?;print;C?;=noms?||entree
        #pattern2||;;*;print;C?;=noms?||entree
-       #test||redirect||obj||^X;ok;;set||^;;X;print||end
+       #test||redirect||obj||^X;ok;;set||^;;X;print||out
     """
     print(printfunc(regle, obj))
     return True
@@ -315,7 +315,7 @@ def f_print(regle, obj):
 def f_retour(regle, obj):
     """#aide||ramene les elements apres l execution
        #pattern||;C?;L?;retour;C?;=noms?
-       #test||obj||^;;C1;retour;test ok:;noms||end
+       #test||obj||^;;C1;retour;test ok:;noms||out
     """
     #    print ("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj))
     regle.stock_param.retour.append(printfunc(regle, obj))

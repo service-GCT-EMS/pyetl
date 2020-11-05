@@ -475,7 +475,7 @@ def affecte_variable(mapper, commande, context, regle_ref):
     commande_orig = texte[1:]
 
     liste_vals = context.SPLITTER_PV.split(commande)
-    commande = liste_vals[0][1:]
+    commande = liste_vals[0][1:].strip()
     if not "=" in commande:
         commande = commande + "=True"
     nom, valeur, binding, nolocal = context.traite_egalite(commande)
@@ -782,7 +782,7 @@ def lire_regles_csv(
             liste_val = t2.split(";", 1)
             cond, _ = context.resolve(liste_val[0])
             condmatch = re.match("K:(.*?)=(.*)", cond) or re.match("K:(.*)", cond)
-            print("lire: condmatch", condmatch, cond, liste_val[0])
+            # print("lire: condmatch", condmatch, cond, liste_val[0])
             if condmatch:  # interpretation conditionelle
                 #                print( "lire: trouve condmatch",condmatch.groups(), liste_val[0])
                 texte = liste_val[1]

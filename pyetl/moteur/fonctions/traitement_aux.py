@@ -275,7 +275,7 @@ def f_stat(regle, obj):
     #test2 somme||obj;;4||#classe;;;;T;1;;stat;somme||anstat;atv:T:4;
     #test3 min||obj;;4||#classe;;;;T;;V0;stat;min||anstat;atv:T:0;
     #test4 max||obj;;4||#classe;;;;T;;V0;stat;max||anstat;atv:T:3;
-    #!test2 ||obj;;4||#classe;;;;T;1;;stat;val||statprint;;||end;
+    #!test2 ||obj;;4||#classe;;;;T;1;;stat;val||statprint;;||out;
     """
     if obj.virtuel:
         return True

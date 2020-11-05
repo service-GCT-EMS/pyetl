@@ -471,7 +471,8 @@ class Reader(object):
                 raise SyntaxError("definition de filtre inconnue: " + filtertype)
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
-            print("filtrage entree:", readfilter, "->", filtertype)
+            LOGGER.info("filtrage entree: %s ", readfilter)
+            # print("filtrage entree:", readfilter, "->", filtertype)
 
     def valuefilter(self, attributs):
         try:

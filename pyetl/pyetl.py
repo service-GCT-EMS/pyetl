@@ -1088,7 +1088,7 @@ class Pyetl(object):
         # print ('debut_process avant macro',self.idpyetl)
         self.debug = debug
         abort = False
-        duree = 0
+        dt, _ = next(self.maintimer)
         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
         self.macro_entree()
         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
@@ -1101,10 +1101,12 @@ class Pyetl(object):
             nb_total = entree.to_obj(self)
             #            nb_total = self._lecture_stats(entree)
         elif entree and entree.strip() and entree != "!!vide":
-            print(
-                "mapper: debut traitement donnees:>" + entree + "-->",
+            LOGGER.info(
+                "debut traitement donnees:> %s --> %s",
+                entree,
                 self.regle_sortir.params.cmp1.val,
             )
+
             try:
                 self.aff.send(("init", 0, 0))
                 # for i in fichs:
@@ -1131,21 +1133,21 @@ class Pyetl(object):
                         break
             except NotADirectoryError as err:
                 LOGGER.exception("repertoire d entree inexistant", err)
-                # print(
-                #     "!!!!!!!!!!!!!!!!!!!!!attention repertoire d'entree inexistant:",
-                #     err,
-                # )
-                print("type entree ", type(entree))
-            # else:
-            #     print("pas de fichiers en entree")
-            print("mapper: ---------> fin traitement donnees:", int(duree))
-            print("mapper: ---------> finalisation:")
+
+                # print("type entree ", type(entree))
+
+            ft, _ = next(self.maintimer)
+
+            LOGGER.info("fin traitement donnees: %d s", int(ft - dt))
+
         else:
             try:
+                LOGGER.info("debut traitement sans entree --> %s")
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
-                abort = True
+                if arret.args[0] > "2":
+                    abort = True
         if abort:
             self._finalise_sorties()
         else:
@@ -1191,7 +1193,7 @@ class Pyetl(object):
         #                                                       for i in macro.vpos])
         if processor is not None:
             processor.process()
-            print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
+            # print("macro effectuee", texte, self.idpyetl, "->", processor.idpyetl)
             if retour:
                 return {i: processor.getvar(i) for i in retour}
         return ()
@@ -1203,7 +1205,9 @@ class Pyetl(object):
         else:
             macrofinale = self.context.getlocal("_end") or self.context.getlocal("#end")
         if not macrofinale:
-            return
+            if not self.getmacro("#end"):
+                return
+            macrofinale = "#end"
         parametres = self.getvar("parametres_final")
         entree = self.getvar("entree_final", self.getvar("_sortie"))
         sortie = self.getvar("sortie_final", self.getvar("_sortie"))

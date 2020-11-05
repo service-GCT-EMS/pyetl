@@ -830,7 +830,7 @@ def h_format(regle):
     # on gere le fait que le % est reserve pour les variable donc on peut mettre autre chose
     holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
     regle.params.cmp1.val = regle.params.cmp1.val.replace(holder, "%")
-    print("remplacement", holder, regle.params.cmp1.val)
+    # print("remplacement", holder, regle.params.cmp1.val)
 
     flist = [None] * len(vlist)
     for n, v in enumerate(vlist):
