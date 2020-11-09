@@ -31,7 +31,9 @@ def commandes_speciales(mapper):
         doc = autodoc(mapper)
         print("apres generation documentation ", doc.keys())
         build = mapper.getvar("_autobuild", "1") == "1"
-        sourcedir = os.path.join(mapper.getvar("_progdir"), "../doc_pyetl")
+        sourcedir = os.path.join(
+            mapper.getvar("_progdir"), "../pyetl_webapp/static/doc_pyetl"
+        )
         if nom:
             os.makedirs(nom, exist_ok=True)
             copy_tree(sourcedir, nom, update=1)
@@ -44,10 +46,13 @@ def commandes_speciales(mapper):
             with open(ref, "w", encoding="utf-8") as dest:
                 dest.write("\n".join(contenu))
         if build:
-            builder = os.path.join(sourcedir, "make") + " html "
+            builderhtml = os.path.join(sourcedir, "make") + " html "
+            # builderpdf = os.path.join(sourcedir, "make") + " pdf "
 
-            os.system(builder)
+            os.system(builderhtml)
             print("generation format html dans", os.path.join(sourcedir, "build/html"))
+            # os.system(builderpdf)
+            # print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
 
     elif commande == "#autotest" or commande == "autotest":
         #            print("detecte autotest ", self.fichier_regles, self.posparm)

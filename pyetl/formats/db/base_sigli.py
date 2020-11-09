@@ -12,6 +12,7 @@ commandes disponibles :
     * passage de requetes sql
     * insert et updates en base '(beta)'
     * cree des styles qgis pqs defaut pour les classes en sortie
+
 necessite la librairie psycopg2 et l acces au loader psql pour le chargement de donnees
 
 il est necessaire de positionner les parametres suivant:
@@ -33,6 +34,7 @@ class SglConnect(PgsConnect):
     """connecteur de la base de donnees postgres"""
 
     fallback = PgsConnect.requetes
+
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
@@ -185,7 +187,6 @@ class SglGenSql(PgsGenSql):
         # print ('cm:',ligne)
         # print ('cm:regle', regle_ref)
         return ligne
-
 
     def cree_triggers(self, classe, groupe, nom):
         """ cree les triggers """

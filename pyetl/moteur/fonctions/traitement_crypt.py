@@ -271,7 +271,7 @@ def decrypt(val, key=None, level=None, helper=None):
         key = descramble(key)
         if key not in CRYPTOCLASS:
             cryptinit(key, level, helper)
-        # print ('decryptage', key, CRYPTOCLASS[key].decrypt(val))
+        # print("decryptage", key, CRYPTOCLASS[key].decrypt(val))
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
             return decrypt
@@ -390,6 +390,7 @@ def f_decrypt(regle, obj):
     clef = regle.params.cmp1.getval(obj, regle.cryptokey)
     val = regle.getval_entree(obj)
     decrypte = decrypt(val, key=clef)
+    # print("decrypte", decrypte, val, clef)
     obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val
     return True
 

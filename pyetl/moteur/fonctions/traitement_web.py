@@ -137,8 +137,10 @@ def geocode_traite_stock(regle, final=True):
 def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
     if not regle.getvar("_testmode"):
-        print("geocodeur utilise ", regle.getvar("url_geocodeur"))
-        print("liste_filtres demandes", regle.params.cmp2.liste)
+        LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
+        # print("geocodeur utilise ", regle.getvar("url_geocodeur"))
+        LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
+        # print("liste_filtres demandes", regle.params.cmp2.liste)
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
     regle.nbstock = 0
@@ -443,8 +445,8 @@ def h_wfsdownload(regle):
 def f_wfsdownload(regle, obj):
     """aide||recupere une couche wfs
  #aide_spec||; classe;  attribut contenant la classe;wfs;url;format
-   #pattern1||F;?C;?A;wfs;C;?C
-   #pattern2||A;?C;?A;wfs;C;?C
+   #pattern1||F;?C;?A;wfsload;C;?C
+   #pattern2||A;?C;?A;wfsload;C;?C
       #test||notest
       """
     # https://data.strasbourg.eu/api/wfs?

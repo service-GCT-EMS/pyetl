@@ -208,6 +208,7 @@ def f_dbalpha(regle, obj):
 
 
 def h_dbtmp(regle):
+    """creation de structures temporaires"""
     if param_base(regle):
         #        print (" preparation lecture ",regle.cible_base)
         #    raise

@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-acces services wfs pour extraction de donnees
+Acces aux services web wfs
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles :
+
+    * requete getcapabilities et analyse des donnees disponibles
+
+
+necessite la librairie owslib
+
+il est necessaire de positionner les parametres suivant:
+
+
 """
 from copy import Error
-import sys
-import requests
 
 # version patchee de owslib pour eviter un crash sur data.strasbourg.eu
 from owslib.wfs import WebFeatureService

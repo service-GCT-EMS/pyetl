@@ -1145,7 +1145,7 @@ class Pyetl(object):
 
         else:
             try:
-                LOGGER.info("debut traitement sans entree --> %s")
+                LOGGER.info("debut traitement sans entree")
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:

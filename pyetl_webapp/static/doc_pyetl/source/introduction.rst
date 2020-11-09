@@ -9,7 +9,7 @@ et les bases de données les plus courants et certains formats rares voire obscu
  * il est capable de cloner et de generer directement la structure des bases de donnees
  * il essayera toujours de faire quelque chose à partir de donnés et de vos instructions
 
-.. image:: rt.gif
+.. image:: _static/rt.gif
 
 .. warning::
 

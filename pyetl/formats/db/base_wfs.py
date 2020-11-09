@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-acces services wfs pour extraction de donnees
+Acces aux services web wfs
 
-@author: 89965
-acces a la base de donnees
+commandes disponibles :
+
+    * requete getcapabilities et analyse des donnees disponibles
+
+
+necessite la librairie requests et l acces au loader psql pour le chargement de donnees
+
+il est necessaire de positionner les parametres suivant:
+
+
 """
 from copy import Error
 import sys

@@ -798,7 +798,6 @@ def f_filter(regle, obj):
 
 def h_idle(regle):
     """ne fait rien"""
-    #        print ('impression stats ')
     regle.valide = "done"
 
 
