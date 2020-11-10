@@ -274,7 +274,7 @@ class Macro(object):
         self.commandes_macro = dict()
         self.help = ""
         self.help_detaillee = []
-        self.parametres_pos = []
+        self.parametres_pos = dict()
         self.vars_utilisees = []
         self.vpos = []
         self.vdef = {}
@@ -290,16 +290,17 @@ class Macro(object):
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
         if ligne.startswith("#!help") or ligne.startswith("#!aide"):
-            self.help = ligne[6:]
+            self.help = ligne[7:].split(";", 1)[0]
             return
         if ligne.startswith("#!desc"):
-            self.help_detaillee.append(ligne[6:])
+            self.help_detaillee.append(ligne[7:])
             return
         if ligne.startswith("#!pars"):
-            self.parametres_pos.append(ligne[6:])
+            nomp, defp = ligne[7:].split(";", 1)
+            self.parametres_pos[nomp] = defp
             return
         if ligne.startswith("#!vars"):
-            self.vars_utilisees.append(ligne[6:])
+            self.vars_utilisees.append(ligne[7:])
             return
 
         self.commandes_macro[numero] = ligne

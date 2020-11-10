@@ -27,19 +27,20 @@ def print_help(mapper, nom):
         macro = mapper.getmacro(nom)
         debug = mapper.getvar("debug")
         if macro:
-            print("aide macro ", nom, "(", macro.file, ")")
-            print("%-15s: %s" % (nom, macro.help[:-1]))
+            print("%-15s: macro    (%s)" % (nom, macro.file))
+            print("                   %s" % (macro.help[:-1]))
+            if macro.help_detaillee:
+                print()
+                for i in macro.help_detaillee:
+                    print("%16s   %s" % ("", i[:-1]))
+                print()
+
             if macro.vpos:
-                print("parametres:", macro.vpos[0])
-                desc_pp = ";".join(macro.parametres_pos).split(";")
-                if desc_pp:
-                    for i, j in zip(macro.vpos[1:], desc_pp):
-                        print("            %10s :%s" % (i, j))
-                else:
-                    for i in zip(macro.vpos[1:], desc_pp):
-                        print("            %s" % (i))
-            for i in macro.help_detaillee:
-                print("%16s   %s" % ("", i[:-1]))
+                print("parametres: %s" % (";".join(macro.vpos)))
+                for i in macro.vpos:
+                    if i in macro.parametres_pos:
+                        print("%-15s :%s" % (i, macro.parametres_pos[i]))
+
             if macro.vars_utilisees:
                 print("variables utilisees")
                 for i in macro.vars_utilisees:

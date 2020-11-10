@@ -12,7 +12,7 @@ from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
 from pyetl_webapp.forms import LoginForm, BasicForm
 
-fichinfo = namedtuple("fichinfo", ("nom", "date_maj", "description"))
+fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
 
 
 class ScriptList(object):
@@ -43,7 +43,9 @@ class ScriptList(object):
             if os.path.isdir(fpath):
                 statinfo = os.stat(fpath)
                 modif = time.ctime(statinfo.st_mtime)
-                self.liste.append(fichinfo._make((fichier, modif, "repertoire")))
+                self.liste.append(
+                    fichinfo._make((fichier, fichier, modif, "repertoire"))
+                )
                 continue
             desc = self.refreshscript(fichier)
             self.liste.append(desc)
@@ -52,6 +54,8 @@ class ScriptList(object):
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
+        if nom_script.startswith("#"):
+            return fichinfo._make((nom_script, "_" + nom_script[1:], "", ""))
         fpath = os.path.join(self.scriptdir, nom_script)
         statinfo = os.stat(fpath)
         modif = time.ctime(statinfo.st_mtime)
@@ -68,7 +72,7 @@ class ScriptList(object):
                     desc = contenu.split(";", 1)[-1]
                 infos[clef] = contenu
         self.descriptif[nom_script] = infos
-        return fichinfo._make((nom_script, modif, desc))
+        return fichinfo._make((nom_script, nom_script, modif, desc))
 
 
 scriptlist = ScriptList()
@@ -92,7 +96,10 @@ def scripts():
 @app.route("/macros")
 def macros():
     macrolist = sorted(
-        [fichinfo._make((i, "", "")) for i in scriptlist.mapper.getmacrolist()]
+        [
+            fichinfo._make((i, i.replace("#", "_"), "", ""))
+            for i in scriptlist.mapper.getmacrolist()
+        ]
     )
     return render_template("scriptlist.html", liste=sorted(macrolist))
 
@@ -105,16 +112,19 @@ def refresh():
 
 @app.route("/scriptdesc/<script>")
 def scriptdesc(script):
-    scriptlist.refreshscript(script)
+    nomscript = "#" + script[1:] if script.startswith("_") else script
+    scriptlist.refreshscript(nomscript)
     return render_template(
-        "scriptdesc.html", descriptif=scriptlist.descriptif[script], nom=script
+        "scriptdesc.html", descriptif=scriptlist.descriptif[nomscript], nom=nomscript
     )
 
 
 @app.route("/scriptview/<script>")
 def scriptview(script):
-    scriptlist.refreshscript(script)
-    fich_script = os.path.join(scriptlist.scriptdir, script)
+    nomscript = "#" + script[1:] if script.startswith("_") else script
+
+    scriptlist.refreshscript(nomscript)
+    fich_script = os.path.join(scriptlist.scriptdir, nomscript)
     lignes = open(fich_script, "r").readlines()
     fill = [""] * 13
     code = []
@@ -139,13 +149,14 @@ def scriptview(script):
                 continue
         code.append((n, colspan, contenu))
     # print("scriptview,", code)
-    return render_template("scriptview.html", code=code, nom=script)
+    return render_template("scriptview.html", code=code, nom=nomscript)
 
 
 @app.route("/exec/<script>", methods=["GET", "POST"])
 def execscript(script):
-    scriptlist.refreshscript(script)
-    fich_script = os.path.join(scriptlist.scriptdir, script)
+    nomscript = "#" + script[1:] if script.startswith("_") else script
+    scriptlist.refreshscript(nomscript)
+    fich_script = os.path.join(scriptlist.scriptdir, nomscript)
     form = BasicForm()
     if form.validate_on_submit():
         entree = form.entree.data
@@ -156,11 +167,12 @@ def execscript(script):
         if processor:
             processor.process()
             wstats = processor.get_work_stats()
-            wstats["nom"] = script
+            wstats["nom"] = nomscript
             session["mapper"] = wstats
+            return redirect("/result")
+        return redirect("/execerror")
 
-        return redirect("/result")
-    return render_template("prep_exec.html", nom=script, form=form)
+    return render_template("prep_exec.html", nom=nomscript, form=form)
 
 
 @app.route("/result")

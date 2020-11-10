@@ -15,13 +15,13 @@
     <tbody>
         {% for item in liste %}
         <tr>
-            <td><a href=exec/{{ item.nom }}> {{ item.nom }}</a></td>
+            <td><a href=exec/{{ item.url }}> {{ item.nom }}</a></td>
             <td>
-                <a href=scriptdesc/{{ item.nom }}>
+                <a href=scriptdesc/{{ item.url }}>
                 <img src="{{url_for('static', filename='images/interrog.png')}}">
                 </a>
             </td>
-            <td><a href=scriptview/{{ item.nom }}>
+            <td><a href=scriptview/{{ item.url }}>
             <img src="{{url_for('static', filename='images/eye.png')}}">
             </a></td>
             <td>{{ item.date_maj }}</td>
