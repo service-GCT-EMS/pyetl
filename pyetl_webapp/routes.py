@@ -10,7 +10,7 @@ from flask import render_template, flash, redirect, session
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
-from pyetl_webapp.forms import LoginForm, BasicForm
+from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
 
@@ -68,7 +68,7 @@ class ScriptList(object):
                 if len(tmp) == 1:
                     continue
                 clef, contenu = tmp
-                if clef == "description":
+                if clef == "help":
                     desc = contenu.split(";", 1)[-1]
                 infos[clef] = contenu
         self.descriptif[nom_script] = infos
@@ -157,7 +157,9 @@ def execscript(script):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
-    form = BasicForm()
+    infos = scriptlist.descriptif[script]
+    formclass = formbuilder(infos)
+    form = formclass()
     if form.validate_on_submit():
         entree = form.entree.data
         rep_sortie = form.sortie.data

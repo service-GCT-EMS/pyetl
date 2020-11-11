@@ -19,6 +19,10 @@ class BasicForm(FlaskForm):
 
 def formbuilder(description):
     "construit un formulaire web a partir d'une description"
+
+    class CustomForm(FlaskForm):
+        pass
+
     fieldfunctions = {
         "B": F.BooleanField,
         "DS": F.DateField,
@@ -37,6 +41,16 @@ def formbuilder(description):
         "T": F.StringField,
         "OK": F.SubmitField,
     }
+    variables = description.get("vars", ())
+    es = description.get("e_s", ())
+    # if es and es[0]:
+    #     CustomForm.add
 
-    class dynform(FlaskForm):
+    for var in variables:
+        name, definition = var.split("(", 1)
+
+        setattr(CustomForm, name, StringField(name))
+
         pass
+
+    return CustomForm
