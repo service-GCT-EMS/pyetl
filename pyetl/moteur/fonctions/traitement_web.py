@@ -10,6 +10,7 @@ import os
 import io
 import requests
 import ftplib
+import csv
 
 try:
     import pysftp
@@ -44,13 +45,21 @@ def geocode_traite_stock(regle, final=True):
                 str(n)
                 + ";"
                 + " ".join(
-                    [obj.attributs.get(i, "").replace("\n", " ") for i in adlist]
+                    [
+                        obj.attributs.get(i, "").replace("\n", " ").replace('"', "")
+                        for i in adlist
+                    ]
                 )
                 + (
                     (
                         ";"
                         + ";".join(
-                            [obj.attributs.get(i, "").replace("\n", " ") for i in flist]
+                            [
+                                obj.attributs.get(i, "")
+                                .replace("\n", " ")
+                                .replace('"', "")
+                                for i in flist
+                            ]
                         )
                     )
                     if flist
@@ -74,23 +83,11 @@ def geocode_traite_stock(regle, final=True):
     # print ('retour', res.text)
 
     #        print ('retour ',buf)
-    for ligne in res.text.split("\n"):
-        # print("traitement sortie", ligne)
-        if not ligne:
+    for row in csv.reader(res.text.split("\n"), delimiter=";"):
+        attributs = row
+        if not attributs:
             continue
-        if '"' in ligne:  # attention il y a des trucs louches
-            attributs = []
-            for elt in ligne[:-1].split(";"):
-                if elt.endswith('"'):
-                    if not elt.startswith('"'):
-                        attributs[-1] = (attributs[-1] + elt)[1:-1]
-                        continue
-                else:
-                    attributs.append(elt)
 
-        else:
-            attributs = ligne[:-1].split(";")
-        # attributs = ligne.split(";")
         if attributs[0].isnumeric():
             numero = int(attributs[0])
             obj = regle.tmpstore[numero]
@@ -114,7 +111,7 @@ def geocode_traite_stock(regle, final=True):
                 # print ('schema :', obj.schema)
         else:
             if not final:
-                print("geocodeur: recu truc etrange ", ligne)
+                print("geocodeur: recu truc etrange ", attributs)
                 # print("retry")
                 # geocode_traite_stock(regle, final=True)
                 return

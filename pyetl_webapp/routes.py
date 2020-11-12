@@ -157,12 +157,13 @@ def execscript(script):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
-    infos = scriptlist.descriptif[script]
-    formclass = formbuilder(infos)
+    infos = scriptlist.descriptif[nomscript]
+    formclass, varlist = formbuilder(infos)
     form = formclass()
     if form.validate_on_submit():
         entree = form.entree.data
         rep_sortie = form.sortie.data
+        print("recup form", entree, rep_sortie)
         processor = scriptlist.mapper.getpyetl(
             fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
         )
@@ -174,7 +175,7 @@ def execscript(script):
             return redirect("/result")
         return redirect("/execerror")
 
-    return render_template("prep_exec.html", nom=nomscript, form=form)
+    return render_template("prep_exec.html", nom=nomscript, form=form, varlist=varlist)
 
 
 @app.route("/result")

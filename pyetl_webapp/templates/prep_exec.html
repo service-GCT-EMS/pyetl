@@ -4,14 +4,12 @@
     <h1>lancement script {{ nom }}</h1>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.entree.label }}<br>
-            {{ form.entree() }}
-        </p>
-        <p>
-            {{ form.sortie.label }}<br>
-            {{ form.sortie() }}
-        </p>
+        {% for item in varlist %}
+            <p>
+                {{ item[1] }}<br>
+                {{ form[item[0]]() }}
+            </p>
+        {% endfor %}
         <p>{{ form.submit() }}</p>
     </form>
 {% endblock %}

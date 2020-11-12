@@ -42,15 +42,35 @@ def formbuilder(description):
         "OK": F.SubmitField,
     }
     variables = description.get("vars", ())
+    varlist = []
     es = description.get("e_s", ())
-    # if es and es[0]:
-    #     CustomForm.add
+    if es:
+        def_es = es.split(";")
+        if def_es[0]:
+            setattr(
+                CustomForm,
+                "entree",
+                F.MultipleFileField("entree", validators=[DataRequired()]),
+            )
+            varlist.append(("entree", def_es[0]))
+        if def_es[1]:
+            setattr(
+                CustomForm, "sortie", F.FileField("sortie", validators=[DataRequired()])
+            )
+            varlist.append(("sortie", def_es[1]))
+
+    else:
+        setattr(CustomForm, "entree", F.MultipleFileField("entree"))
+        setattr(CustomForm, "sortie", F.FileField("sortie"))
+        varlist.append(("entree", "entree"))
+        varlist.append(("sortie", "sortie"))
 
     for var in variables:
         name, definition = var.split("(", 1)
 
         setattr(CustomForm, name, StringField(name))
+        varlist.append((name, name))
 
-        pass
-
-    return CustomForm
+    setattr(CustomForm, "submit", SubmitField("executer"))
+    print("cree customform", varlist)
+    return CustomForm, varlist

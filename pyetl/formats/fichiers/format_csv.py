@@ -628,6 +628,7 @@ def init_csv(writer):
     separ = writer.regle.getchain(("separ_csv_out", "separ_csv"), ";")
     if separ == r"\;":
         separ = ";"
+    print("initwriter csv separateur:", separ, writer.regle.getvar("separ_csv_out"))
     initwriter(writer, ".csv", "csv", (";" if separ == "#std" else separ), "")
     headerdef = writer.regle.getvar("csvheader")
     if "no!" in headerdef:
