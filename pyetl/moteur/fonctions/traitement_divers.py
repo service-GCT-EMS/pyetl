@@ -261,7 +261,8 @@ def h_sortir(regle):
             )
         else:
             regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
-            print("sortir: ", os.path.join(rep_base, regle.params.cmp2.val))
+        LOGGER.info("repertoire de sortie: %s", regle.getvar("_sortie", ""))
+        # print("sortir: ", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
     regle.calcule_schema = regle.f_sortie.calcule_schema

@@ -58,17 +58,18 @@ class Moteur(object):
             elif f_v == "1" or f_v == "all":
                 force_virtuel = True
             else:
-                LOGGER.warning("force_virtuel non conforme")
+                LOGGER.info("attention force_virtuel non conforme %s", f_v)
+                LOGGER.warning("att force_virtuel non conforme %s", f_v)
                 force_virtuel = False
             for sch in list(self.mapper.schemas.values()):
                 # print("traitement virtuel: schema a traiter", sch.nom, sch.origine)
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
-                    print(
-                        "moteur: traitement schema",
-                        sch.nom,
-                        sch.origine,
-                        len(sch.classes),
-                    )
+                    # print(
+                    #     "moteur: traitement schema",
+                    #     sch.nom,
+                    #     sch.origine,
+                    #     len(sch.classes),
+                    # )
                     LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')

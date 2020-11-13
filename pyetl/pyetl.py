@@ -632,7 +632,7 @@ class Pyetl(object):
                     int((nbobj) / duree),
                 )
                 if mode == "cmd":
-                    print(ligne)
+                    print("message recu", ligne)
                 elif mode == "web":
                     pass
             return (
@@ -1263,8 +1263,14 @@ class Pyetl(object):
             or self.getvar("force_virtuel") == "1"
             and not self.done
         ):
-            print(
-                "pyetl: traitement virtuel ",
+            # print(
+            #     "pyetl: traitement virtuel ",
+            #     mode_schema,
+            #     self.worker,
+            #     self.getvar("force_virtuel"),
+            # )
+            LOGGER.info(
+                "traitement virtuel %s worker:%s force:%s",
                 mode_schema,
                 self.worker,
                 self.getvar("force_virtuel"),

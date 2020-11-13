@@ -15,6 +15,9 @@ il est necessaire de positionner les parametres suivant:
 
 """
 import os
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from cx_Oracle import connect as oraconnect, Error as OraError
@@ -78,19 +81,26 @@ class OraConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
             return
-        print(
-            "info:oracle: connection ",
+        LOGGER.info(
+            "connection oracle sur %s %s en tant que %s",
             self.serveur,
             self.base,
             self.user,
-            "*" * len(self.passwd),
         )
+        # print(
+        #     "info:oracle: connection ",
+        #     self.serveur,
+        #     self.base,
+        #     self.user,
+        #     "*" * len(self.passwd),
+        # )
         try:
             connection = oraconnect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
         except OraError as err:
-            print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
+            LOGGER.exception("erreur connection oracle", exc_info=err)
+            # print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
 
     @property
     def req_enums(self):
@@ -327,13 +337,16 @@ class OraConnect(DbConnect):
         except OraError as errs:
             cursor = cur.cursor
             (error,) = errs.args
-            print("error: oracle: erreur acces base ", self.base, self.connection)
-            print("error: oracle: erreur acces base ", cursor.statement, "-->", data)
-            print("error: oracle: variables ", cursor.bindnames())
-            print("Oracle-Error-Code:", error.code)
-            print("Oracle-Error-Message:", error.message)
-            print("Oracle-offset:", error.offset)
-            print("Oracle-context:", error.context)
+            LOGGER.error("erreur requete sur %s", self.base)
+            LOGGER.error("requete: %s (%s)", cursor.statement, str(data))
+            LOGGER.exception("erreur oracle", exc_info=errs)
+            # print("error: oracle: erreur acces base ", self.base, self.connection)
+            # print("error: oracle: erreur acces base ", cursor.statement, "-->", data)
+            # print("error: oracle: variables ", cursor.bindnames())
+            # print("Oracle-Error-Code:", error.code)
+            # print("Oracle-Error-Message:", error.message)
+            # print("Oracle-offset:", error.offset)
+            # print("Oracle-context:", error.context)
             #            print("Oracle-complet:", errs)
             cur.close()
             #            raise
@@ -362,7 +375,10 @@ class OraConnect(DbConnect):
                     elem = cur.cursor.fetchone()
                 #                raise
                 except OraError as err:
-                    print("erreur " + self.base, err)
+                    LOGGER.error("erreur requete sur %s", self.base)
+                    LOGGER.error("requete: %s (%s)", cursor.statement, str(data))
+                    LOGGER.exception("erreur oracle", exc_info=err)
+                    # print("erreur " + self.base, err)
                     #                raise
                     continue
                 if elem is None:

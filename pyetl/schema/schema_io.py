@@ -373,7 +373,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
-                LOGGER.info("mode %s: %s %d classes",mode, i, len(schemas[i].classes))
+                LOGGER.info("mode %s: %s %d classes", mode, i, len(schemas[i].classes))
                 # print("ecriture schema", i, len(schemas[i].classes))
                 # schemas[i].printelements_specifiques()
 
@@ -436,11 +436,11 @@ def integre_schemas(schemas, nouveaux):
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
-    print(
-        "------------------------------------------schemas recus ",
-        nomschemas,
-        schemas.keys(),
-    )
+    # print(
+    #     "------------------------------------------schemas recus ",
+    #     nomschemas,
+    #     schemas.keys(),
+    # )
     LOGGER.info("schemas recus " + str(nomschemas))
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
