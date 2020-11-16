@@ -18,11 +18,12 @@
             <td><a href=exec/{{ item.url }}> {{ item.nom }}</a></td>
             <td>
                 <a href=scriptdesc/{{ item.url }}>
+                <img src="{{url_for('static', filename='images/interrog2.png')}}">
                 <img src="{{url_for('static', filename='images/interrog.png')}}">
                 </a>
             </td>
             <td><a href=scriptview/{{ item.url }}>
-            <img src="{{url_for('static', filename='images/eye.png')}}">
+            <img src="{{url_for('static', filename='images/look.png')}}">
             </a></td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>

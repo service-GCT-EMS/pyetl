@@ -4,6 +4,8 @@
 """
 
 import os
+from os import error
+import logging
 import time
 from collections import namedtuple
 from flask import render_template, flash, redirect, session
@@ -13,6 +15,8 @@ from pyetl.vglobales import getmainmapper
 from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ScriptList(object):
@@ -163,19 +167,28 @@ def execscript(script):
     if form.validate_on_submit():
         entree = form.entree.data
         rep_sortie = form.sortie.data
-        print("recup form", entree, rep_sortie)
+        print("recup form", entree, rep_sortie, form.entree)
         processor = scriptlist.mapper.getpyetl(
             fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
         )
         if processor:
-            processor.process()
-            wstats = processor.get_work_stats()
-            wstats["nom"] = nomscript
-            session["mapper"] = wstats
-            return redirect("/result")
+            try:
+                processor.process()
+                wstats = processor.get_work_stats()
+                wstats["nom"] = nomscript
+                session["mapper"] = wstats
+                return redirect("/result")
+            except error as err:
+                LOGGER.exception("erreur script", exc_info=err)
+                return redirect("/plantage")
         return redirect("/execerror")
 
     return render_template("prep_exec.html", nom=nomscript, form=form, varlist=varlist)
+
+
+@app.route("/plantage")
+def fail():
+    return render_template("plantage.html", text="erreur d'execution")
 
 
 @app.route("/result")

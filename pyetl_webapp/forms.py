@@ -67,8 +67,9 @@ def formbuilder(description):
 
     for var in variables:
         name, definition = var.split("(", 1)
-
-        setattr(CustomForm, name, StringField(name))
+        definition = definition([-1])
+        ftyp, fname = definition.split(",")
+        setattr(CustomForm, name, fieldfunctions.get(ftyp, F.StringField)(fname))
         varlist.append((name, name))
 
     setattr(CustomForm, "submit", SubmitField("executer"))
