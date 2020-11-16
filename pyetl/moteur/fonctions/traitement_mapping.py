@@ -160,7 +160,8 @@ def charge_mapping(regle, mapping=None):
     #
 
     if not regle.mapping:
-        print("h_map:mapping introuvable", regle.fichier)
+        LOGGER.warning("mapping introuvable %s", regle.fichier)
+        # print("h_map:mapping introuvable", regle.fichier)
 
 
 def map_struct(regle):

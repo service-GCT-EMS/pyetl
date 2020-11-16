@@ -3,6 +3,7 @@
 """ format xml en sortie """
 import os
 import re
+import logging
 import xml.etree.cElementTree as ET
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
@@ -10,6 +11,7 @@ from .fileio import FileWriter
 # raise ImportError
 # print ('osm start')
 # import pyetl.schema as SC
+LOGGER = logging.getLogger(__name__)
 
 
 def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
@@ -121,7 +123,8 @@ class XmlWriter(FileWriter):
                 print("chargement template", templatefile)
                 print("resultat ", self.templates)
         except FileNotFoundError:
-            print("fichier template  introuvable ", templatefile)
+            LOGGER.error("fichier template  introuvable %s", templatefile)
+            # print("fichier template  introuvable ", templatefile)
 
     #    print('prechargement csv', stock)
 

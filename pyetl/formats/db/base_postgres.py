@@ -359,10 +359,10 @@ class PgrConnect(DbConnect):
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
         schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
         schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
-        print(
-            "elements specifiques",
-            [(i, len(j[1])) for i, j in schema.elements_specifiques.items()],
-        )
+        # print(
+        #     "elements specifiques",
+        #     [(i, len(j[1])) for i, j in schema.elements_specifiques.items()],
+        # )
 
     def _def_vues(self):
         entete = "schema;nom;definition;materialise"
@@ -433,7 +433,7 @@ class PgrConnect(DbConnect):
         """ selectionne les elements specifiques pour coller a une restriction de schema"""
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
-        print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
+        # print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
         els["def_vues"] = self.elemrestrict(els["def_vues"], a_garder)
         els["def_triggers"] = self.elemrestrict(els["def_triggers"], a_garder)
         els["def_ftables"] = self.elemrestrict(els["def_ftables"], a_garder)
@@ -448,10 +448,10 @@ class PgrConnect(DbConnect):
                 fonction = re.sub(r"(.*)\(.*\)", r"\1", j[1])
                 fonctions_a_garder.add(tuple(fonction.split(".")))
         #        print('fonctions a garder', fonctions_a_garder)
-        if any(len(els[i][1]) for i in els):
-            print(
-                "elements specifiques gardes", dict([(i, len(els[i][1])) for i in els])
-            )
+        # if any(len(els[i][1]) for i in els):
+            # print(
+            #     "elements specifiques gardes", dict([(i, len(els[i][1])) for i in els])
+            # )
             # print ("def trigger", els["def_triggers"])
 
     @property

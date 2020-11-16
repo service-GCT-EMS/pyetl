@@ -251,7 +251,8 @@ def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False)
 def lire_mapping(schema_courant, fichier, codec):
     """ lit un fichier de mapping externe"""
     if not os.path.isfile(fichier):
-        print("schema io: ::: warning fichier mapping introuvable ", fichier)
+        LOGGER.info("fichier mapping introuvable %s", fichier)
+        # print("schema io: ::: warning fichier mapping introuvable ", fichier)
         return
     liste_mapping = []
     #    print("schema io: lire_mapping ", fichier)

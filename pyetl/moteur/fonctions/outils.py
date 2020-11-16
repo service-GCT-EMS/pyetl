@@ -238,12 +238,13 @@ def charge_liste_classes(fichier, codec=DEFCODEC, debug=False, taille=1):
     return retour
 
 
-def _charge_liste_csv(
+def charge_liste_csv(
     fichier, codec="", debug=False, taille=1, positions=None, type_cle="txt"
 ):
+    """prechargement d un fichier de liste csv"""
+
     if not codec:
         codec = DEFCODEC
-    """prechargement d un fichier de liste csv"""
     stock = dict()
     if taille > 0:  # taille = 0 veut dire illimite
         if not positions:
@@ -252,35 +253,40 @@ def _charge_liste_csv(
             positions = positions[:taille]
     try:
         codec = hasbom(fichier, codec)
-        with open(fichier, "r", encoding=codec) as fich:
-            for i in fich:
-                ligne = i.replace("\n", "")  # on degage le retour chariot
-                if ligne.startswith("!"):
-                    if ligne.startswith("!!"):
-                        ligne = ligne[1:]
-                    else:
-                        continue
-                liste = ligne.split(";")
-                if any([i.strip() for i in liste]):
-                    if taille <= 0:
-                        stock[ligne] = liste
-                    else:
-                        if type_cle != "txt":
-                            bdef = liste.pop(0)
-                            tmp = bdef.split(".", taille)
-                            tmp.extend(liste)
-                            liste = tmp
-                        if len(liste) < taille:
-                            liste = list(
-                                itertools.islice(itertools.cycle(liste), taille)
-                            )
-                        stock[tuple([liste[i] for i in positions])] = liste
-        if debug:
-            print("chargement liste", fichier)
     except FileNotFoundError:
-        # print("fichier liste introuvable ", fichier)
-        LOGGER.warning("fichier liste introuvable " + fichier)
-    # print("prechargement csv", stock)
+#     # print("fichier liste introuvable ", fichier)
+        LOGGER.info("fichier liste introuvable: %s",fichier)
+        return stock
+    with open(fichier, "r", encoding=codec) as fich:
+        for i in fich:
+            ligne = i.replace("\n", "")  # on degage le retour chariot
+            if ligne.startswith("!"):
+                if ligne.startswith("!!"):
+                    ligne = ligne[1:]
+                else:
+                    continue
+            liste = ligne.split(";")
+            if any([i.strip() for i in liste]):
+                if taille <= 0:
+                    stock[ligne] = liste
+                else:
+                    if type_cle != "txt":
+                        bdef = liste.pop(0)
+                        tmp = bdef.split(".", taille)
+                        tmp.extend(liste)
+                        liste = tmp
+                    if len(liste) < taille:
+                        liste = list(
+                            itertools.islice(itertools.cycle(liste), taille)
+                        )
+                    stock[tuple([liste[i] for i in positions])] = liste
+    if debug:
+        print("chargement liste", fichier)
+
+    # LOGGER.warning("fichier liste perdu: %s",fichier)
+#     LOGGER.warning("turlututu chapeau pointu")
+#     LOGGER.info("wtf")
+# print("prechargement csv", stock)
     return stock
 
 
@@ -302,42 +308,42 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
     stock = dict()
     try:
         codec = hasbom(fichier, codec)
-        with open(fichier, "r", encoding=codec) as fich:
-            print("lecture projet qgs", taille, fichier, type_cle)
-            for i in fich:
-
-                if "datasource" in i:
-                    table = _extract(i, "table=")
-                    database = _extract(i, "dbname=")
-                    host = _extract(i, "host=")
-                    port = _extract(i, "port=")
-                    # l_tmp = i.split("table=")
-                    # if len(l_tmp) > 1:
-
-                    #     liste = l_tmp[1].split(" ")
-                    #     valeur = liste[0].replace('"', "")
-                    if table:
-                        dbdef = (database, "host=" + host.lower(), "port=" + port)
-                        if taille == 1:
-                            clef = table
-                        elif taille == 2:
-                            clef = tuple(table.split(".", 1))
-                        else:
-
-                            niv, cla = table.split(".", 1)
-                            if type_cle == "txt":
-                                txt = ",".join(dbdef)
-                                clef = (txt, niv, cla)
-                            else:
-                                clef = (dbdef, niv, cla)
-                        stock[clef] = (table, dbdef)
-
-        if debug:
-            print("chargement liste", fichier)
     except FileNotFoundError:
-        # print("fichier liste introuvable ", fichier)
-        LOGGER.warning("fichier liste introuvable " + fichier)
-    # print ('lus fichier qgis ',fichier,list(stock))
+        LOGGER.warning("fichier qgis introuvable " + fichier)
+        return stock
+    with open(fichier, "r", encoding=codec) as fich:
+        print("lecture projet qgs", taille, fichier, type_cle)
+        for i in fich:
+
+            if "datasource" in i:
+                table = _extract(i, "table=")
+                database = _extract(i, "dbname=")
+                host = _extract(i, "host=")
+                port = _extract(i, "port=")
+                # l_tmp = i.split("table=")
+                # if len(l_tmp) > 1:
+
+                #     liste = l_tmp[1].split(" ")
+                #     valeur = liste[0].replace('"', "")
+                if table:
+                    dbdef = (database, "host=" + host.lower(), "port=" + port)
+                    if taille == 1:
+                        clef = table
+                    elif taille == 2:
+                        clef = tuple(table.split(".", 1))
+                    else:
+
+                        niv, cla = table.split(".", 1)
+                        if type_cle == "txt":
+                            txt = ",".join(dbdef)
+                            clef = (txt, niv, cla)
+                        else:
+                            clef = (dbdef, niv, cla)
+                    stock[clef] = (table, dbdef)
+
+            if debug:
+                print("chargement liste", fichier)
+
     return stock
 
 
@@ -377,7 +383,7 @@ def charge_liste(
                         )
                     elif os.path.splitext(i)[-1] == ".csv":
                         stock.update(
-                            _charge_liste_csv(
+                            charge_liste_csv(
                                 os.path.join(f_interm, i),
                                 taille=taille,
                                 codec=codec,
@@ -397,7 +403,7 @@ def charge_liste(
                 )
             elif os.path.splitext(f_interm)[-1] == ".csv":
                 stock.update(
-                    _charge_liste_csv(
+                    charge_liste_csv(
                         f_interm,
                         taille=taille,
                         codec=codec,

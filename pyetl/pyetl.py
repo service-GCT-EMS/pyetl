@@ -10,6 +10,8 @@ import os
 import re
 
 import logging
+LOGGER = logging.getLogger("pyetl")  # un logger
+
 import itertools
 from queue import Empty
 
@@ -43,7 +45,6 @@ from .schema.schema_io import ecrire_schemas, lire_schemas_multiples
 # integre_schemas # schemas
 from .moteur.fonctions.parallel import setparallel
 
-LOGGER = logging.getLogger("pyetl")  # un logger
 # MODULEDEBUG = False
 
 

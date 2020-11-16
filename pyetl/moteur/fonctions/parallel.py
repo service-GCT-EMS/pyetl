@@ -14,6 +14,7 @@ import logging
 import logging.handlers
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
+LOGGER = logging.getLogger("pyetl")  # un logger
 
 from pyetl.vglobales import getmainmapper
 
@@ -21,7 +22,6 @@ from pyetl.schema.schema_io import integre_schemas, retour_schemas
 from pyetl.formats.interne.stats import ExtStat
 from .outils import renseigne_attributs_batch, getfichs, printexception
 
-LOGGER = logging.getLogger(__name__)  # un logger
 paralleldebug = 0
 
 
@@ -65,7 +65,7 @@ def setqueuhandler(queue, wid=""):
             mapper.logqueue, *LOGGER.handlers, respect_handler_level=True
         )
         loglistener.start()
-        LOGGER.info("demarrage listener")
+        LOGGER.info("gestionnaire logs parallele : demarrage listener")
         # print("-------------------demarrage listener")
         mapper.loglistener = loglistener
     else:

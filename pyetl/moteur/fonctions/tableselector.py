@@ -504,8 +504,11 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     # print("qgs : descripteur", base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
     except FileNotFoundError:
-        print("fichier qgs introuvable ", fichier)
-    print("lus fichier qgis ", fichier, selecteur)
+        LOGGER.error("fichier qgs introuvable %s", fichier)
+        # print("fichier qgs introuvable ", fichier)
+
+    LOGGER.info("lus fichier qgis %s", fichier)
+    # print("lus fichier qgis ", fichier, selecteur)
     return True
 
 

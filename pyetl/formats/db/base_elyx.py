@@ -20,12 +20,14 @@ import os
 import subprocess
 import tempfile
 import time
+import logging
 from . import base_oraclespatial as ora
 
 # import base_oraclespatial as ora
 
 # from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
 # from ..xml import XmlWriter
+LOGGER = logging.getLogger(__name__)
 
 
 class ElyConnect(ora.OrwConnect):
@@ -55,7 +57,7 @@ class ElyConnect(ora.OrwConnect):
         self.modelschema = "ELYX_MODELE"
         self.types_base["REEL"] = "F"
         self.debuglog = ""
-        print("code de la base", code, params)
+        # print("code de la base", code, params)
         if params and code:
             self.adminschema = params.getvar(
                 "elyx_adminschema_" + code, defaut=self.adminschema
@@ -676,8 +678,8 @@ class ElyConnect(ora.OrwConnect):
                 "ECHELLE_DISPARITION",
             ],
         )
-
-        print("composants", len(self.confs))
+        LOGGER.info("%s: composants trouves %d",self.base, len(self.confs))
+        # print("composants", len(self.confs))
         compos = self.menage_version(self.request(requete, ()), 1, 0, 2)
         compos = self.menage_version(list(compos.values()), 1, 3, 2)
         compos_id = dict()
