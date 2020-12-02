@@ -210,3 +210,9 @@ def login():
         )
         return redirect("/index")
     return render_template("login.html", title="Sign In", form=form)
+
+
+@app.route("/view/<img>")
+def equirect(img):
+    """test equirectangulaire"""
+    return render_template("equirect.html", image=img)

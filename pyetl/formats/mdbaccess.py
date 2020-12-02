@@ -8,13 +8,11 @@ acces aux bases de donnees
 import re
 import time
 import os
-import logging
 from .db import DATABASES
 from .interne.objet import Objet
 
 
 DEBUG = False
-LOGGER = logging.getLogger(__name__)
 # modificateurs de comportement reconnus
 DBACMODS = {"A", "T", "V", "=", "NOCASE"}
 DBDATAMODS = {"S", "L"}
@@ -41,7 +39,7 @@ def dbaccess(regle, codebase, type_base=None):
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
         prefix = regle.getvar("prefix_" + codebase, "")
-        LOGGER.info(
+        stock_param.logger.info(
             "acces base %s %s %s %s %s", codebase, base, serveur, type_base, prefix
         )
         # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
@@ -87,7 +85,7 @@ def dbaccess(regle, codebase, type_base=None):
         connection.commit()  # on referme toutes les transactions
         return connection
 
-    LOGGER.error("connection invalide %s %s", base, type_base)
+    stock_param.logger.error("connection invalide %s %s", base, type_base)
     # print("connection invalide", base, type_base)
     # raise StopIteration(3)
     return None
@@ -269,7 +267,7 @@ def get_connect(
     connect = stock_param.getdbaccess(regle, nombase, type_base=type_base)
 
     if connect is None:
-        LOGGER.error("connection base invalide " + str(nombase))
+        stock_param.logger.error("connection base invalide " + str(nombase))
         return None
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
@@ -496,7 +494,9 @@ def recup_schema(
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         # print("erreur de connection a la base", base, niveau, classe)
-        LOGGER.error("erreur de connection a la base %s %s %s", base, niveau, classe)
+        regle_courante.stock_param.logger.error(
+            "erreur de connection a la base %s %s %s", base, niveau, classe
+        )
     return (None, None, None, None)
 
 
@@ -506,7 +506,9 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     niveau, classe = ident
 
     if not classe:
-        LOGGER.error("attention pas de classe de sortie -> retour")
+        regle_courante.stock_param.logger.error(
+            "attention pas de classe de sortie -> retour"
+        )
         # print("lire_requete: attention pas de classe de sortie -> retour")
         return 0
     if niveau is None:
@@ -568,7 +570,9 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     connect = baseselector.connect
     # print ('recup liste tables', liste_tables)
     if connect is None:
-        LOGGER.error("dbacces: pas de connection %s", repr(baseselector))
+        regle_courante.stock_param.logger.error(
+            "dbacces: pas de connection %s", repr(baseselector)
+        )
         # print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
         return 0
 
@@ -593,8 +597,6 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-    # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
-    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         treq = time.time()
@@ -796,7 +798,9 @@ def recup_table_parametres(
 ):
     """lit une table en base de donnees et retourne le tableau de valeurs """
     print("recup_table", nombase, niveau, classe)
-    LOGGER.info("recup table en base " + nombase + ":" + niveau + "." + classe)
+    regle.stock_param.logger.info(
+        "recup table en base " + nombase + ":" + niveau + "." + classe
+    )
     retour = get_connect(
         regle, nombase, [niveau], [classe], tables="A", multi=0, type_base=type_base
     )
@@ -850,7 +854,9 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
         return True
     connect = baseselector.connect
     if connect is None:
-        LOGGER.error("dbacces: pas de connection %s", repr(baseselector))
+        regle_courante.stock_param.logger.error(
+            "dbacces: pas de connection %s", repr(baseselector)
+        )
         return 0
 
     schema_travail = baseselector.schema_travail
@@ -883,7 +889,6 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-    # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description

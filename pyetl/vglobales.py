@@ -10,7 +10,6 @@ import platform
 
 VERSION = "0.8.3p"
 # version de production
-# LOGGER = logging.getLogger('pyetl') # un logger
 MAINMAPPER = [None]
 
 

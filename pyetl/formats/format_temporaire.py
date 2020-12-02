@@ -5,13 +5,10 @@ Created on Mon Dec 21 13:33:58 2015
 @author: 89965
 """
 # from . import csv as E
-import logging
 from collections import namedtuple
 from itertools import chain
 from .fichiers.format_asc import ajout_attribut_asc, att_to_text
 from .interne.objet import Objet
-
-LOGGER = logging.getLogger(__name__)
 
 
 def _ecrire_section_tmp(section):
@@ -177,7 +174,7 @@ def lire_objets(fichier, stock_param):
                     obj.attributs["#geom"] = []
                 continue
             if not obj:
-                LOGGER.error("erreur fichier temporaire %s", ligne)
+                stock_param.logger.error("erreur fichier temporaire %s", ligne)
                 # print("erreur fichier temporaire ", ligne)
                 continue
             if code == "2" or code == "4":
@@ -186,7 +183,7 @@ def lire_objets(fichier, stock_param):
                 obj.attributs["#geom"].append(ligne[1:-1])
             elif code == "5":
                 if obj.attributs["#geom"] and not obj.attributs_geom:
-                    LOGGER.error(
+                    stock_param.logger.error(
                         "geom_lue sans convertisseur %s : %", form, obj.attributs_geom
                     )
                     # print("geom_lue sans convertisseur", form, ":", obj.attributs_geom)

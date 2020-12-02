@@ -13,7 +13,6 @@ import os
 import codecs
 import re
 import io
-import logging
 from types import MethodType
 
 # from functools import partial
@@ -22,7 +21,6 @@ from .fichiers import READERS, WRITERS
 from .geometrie import GEOMDEF
 from .interne.objet import Objet
 
-LOGGER = logging.getLogger(__name__)
 #
 # geomdef = namedtuple("geomdef", ("writer", "converter"))
 #
@@ -172,7 +170,7 @@ class Reader(object):
                     self.schema = self.stock_param.init_schema(
                         self.nomschema, "L"
                     )  # et un schema pour les objets
-                LOGGER.info(
+                self.stock_param.logger.info(
                     "definition schema_entree %s -> %s",
                     nom_schema_entree,
                     repr(self.schema),
@@ -446,7 +444,7 @@ class Reader(object):
             ]
             unmapped = [i for i in attlist if i.startswith("#")]
             if unmapped:
-                LOGGER.warn("champs non mappés:" + ",".join(unmapped))
+                self.stock_param.logger.warn("champs non mappés:" + ",".join(unmapped))
                 print("-----warning----- champs non mappés:" + ",".join(unmapped))
         else:
             self.attlist = attlist
@@ -471,7 +469,7 @@ class Reader(object):
                 raise SyntaxError("definition de filtre inconnue: " + filtertype)
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
-            LOGGER.info("filtrage entree: %s ", readfilter)
+            self.stock_param.logger.info("filtrage entree: %s ", readfilter)
             # print("filtrage entree:", readfilter, "->", filtertype)
 
     def valuefilter(self, attributs):

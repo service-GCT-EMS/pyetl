@@ -6,15 +6,12 @@ import time
 # t1=time.time()
 # print ('pyetl start import ')
 import os
-
 import re
 
 import logging
-LOGGER = logging.getLogger("pyetl")  # un logger
 
 import itertools
 from queue import Empty
-
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales
@@ -48,7 +45,7 @@ from .moteur.fonctions.parallel import setparallel
 # MODULEDEBUG = False
 
 
-def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
+def initlogger(logger, fichier=None, log="DEBUG", affich="INFO", worker=False):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
     loglevels = {
@@ -63,12 +60,12 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
     niveau_p = loglevels.get(affich, logging.ERROR)
     # print ('niveaux de logging',niveau_f,niveau_p)
     if fichier:
-        LOGGER.setLevel(niveau_f)
+        logger.setLevel(niveau_f)
     else:
-        LOGGER.setLevel(niveau_p)
+        logger.setLevel(niveau_p)
     if not worker:
         # print("initialisation log", affich, log, "(", fichier, ")")
-        if not LOGGER.handlers:
+        if not logger.handlers:
             # création d'un handler qui va rediriger chaque écriture de log sur la console
 
             print_handler = logging.StreamHandler()
@@ -78,12 +75,12 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
             print_handler.setFormatter(printformatter)
             print_handler.addFilter(lambda x: x.levelno != 999)
             print_handler.setLevel(niveau_p)
-            LOGGER.addHandler(print_handler)
+            logger.addHandler(print_handler)
             aff_handler = logging.StreamHandler()
             aff_formatter = logging.Formatter("========================== %(message)s")
             aff_handler.setLevel(loglevels["AFFICH"])
             aff_handler.setFormatter(aff_formatter)
-            LOGGER.addHandler(aff_handler)
+            logger.addHandler(aff_handler)
         if fichier:
             # création d'un formateur qui va ajouter le temps, le niveau
             # de chaque message quand on écrira un message dans le log
@@ -98,11 +95,9 @@ def initlogger(fichier=None, log="DEBUG", affich="INFO", worker=False):
             # créé précédement et on ajoute ce handler au logger
             file_handler.setLevel(niveau_f)
             file_handler.setFormatter(fileformatter)
-            LOGGER.addHandler(file_handler)
+            logger.addHandler(file_handler)
     else:
         pass
-    # print("=====================================================start logger ")
-    # LOGGER.log(999, "demarrage pyetl:" + VERSION)
 
 
 def getlog(args):
@@ -128,51 +123,38 @@ def runpyetl(commandes, args):
 
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
-    LOGGER.log(999, "demarrage pyetl %s", VERSION)
-    LOGGER.info("commande:   %s", str(commandes))
-    LOGGER.info("parametres: %s", str(args))
-    # print(
-    #     "::".join(("====== demarrage pyetl == ", VERSION, repr(commandes), repr(args)))
-    # )
+    mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
+    mainmapper.logger.info("commande:   %s", str(commandes))
+    mainmapper.logger.info("parametres: %s", str(args))
     mapper = getmainmapper().getpyetl(commandes, liste_params=args)
     if mapper:
         mapper.process()
     else:
-        LOGGER.error("demarrage impossible")
-        # print("arret du traitement ")
+        mainmapper.logger.error("demarrage impossible")
         return
     wstats = mapper.get_work_stats()
-    # nb_total = wstats["obj_lus"]
-    # nb_fichs = wstats["fich_lus"]
-    # n_ecrits = wstats["obj_ecrits"]
     if wstats["obj_lus"]:
-        LOGGER.log(
+        mapper.logger.log(
             999, "%d objets lus dans %d fichiers", wstats["obj_lus"], wstats["fich_lus"]
         )
-        # print(nb_total, "objets lus dans", nb_fichs, "fichiers ")
     if wstats["obj_dupp"]:
-        LOGGER.log(999, "%d objets dupliques", wstats["obj_dupp"])
-    # print(wstats["obj_dupp"], "objets dupliques")
+        mapper.logger.log(999, "%d objets dupliques", wstats["obj_dupp"])
     if wstats["obj_ecrits"]:
-        LOGGER.log(
+        mapper.logger.log(
             999,
             "%d objets ecrits dans %d fichiers",
             wstats["obj_ecrits"],
             wstats["fich_ecrits"],
         )
-        # print(n_ecrits, "objets ecrits dans ", wstats["fich_ecrits"], "fichiers ")
     mapper.signale_fin()
-    LOGGER.log(
+    mapper.logger.log(
         999, "temps de traitement total: %d millisecondes", int(wstats["duree"] * 1000)
     )
 
     if wstats["obj_lus"]:
-        LOGGER.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
-        # print("perf lecture  :", wstats["perf_r"], "o/s")
+        mapper.logger.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
     if wstats["obj_ecrits"]:
-        LOGGER.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
-
-        # print("perf ecriture :", wstats["perf_w"], "o/s")
+        mapper.logger.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
     mapper.stoplistener()
 
 
@@ -224,6 +206,7 @@ class Pyetl(object):
         # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
+        self.logger = parent.logger if parent else logging.getLogger("pyetl")
         self.context = Context(
             parent=context, ident=str(self.idpyetl), type_c="P", root=True
         )
@@ -305,6 +288,7 @@ class Pyetl(object):
         log_level = loglevel or log_level
         log_print = logprint or log_print
         initlogger(
+            self.logger,
             fichier=self.getvar("log_file", log_file),
             log=self.getvar("log_level", log_level),
             affich=self.getvar("log_print", log_print),
@@ -321,36 +305,19 @@ class Pyetl(object):
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
-            # msg = " ".join(
-            #     (
-            #         "erreur script",
-            #         repr(commandes),
-            #         str(err),
-            #         "worker:",
-            #         str(self.worker),
-            #     )
-            # )
+
             if self.worker:
-                LOGGER.exception(
+                self.logger.exception(
                     "worker:%s erreur script %s",
                     os.getpid(),
                     repr(commandes),
                     exc_info=err,
                 )
             else:
-                LOGGER.exception("erreur script %s", repr(commandes), exc_info=err)
+                self.logger.exception("erreur script %s", repr(commandes), exc_info=err)
             result = False
-        # msg = "::".join(
-        #     (
-        #         "====== demarrage == ",
-        #         self.nompyetl,
-        #         str(self.idpyetl),
-        #         repr(commandes),
-        #         repr(args),
-        #     )
-        # )
 
-        LOGGER.debug(
+        self.logger.debug(
             "demarrage %s %s \n %s %s",
             self.nompyetl,
             str(self.idpyetl),
@@ -474,7 +441,7 @@ class Pyetl(object):
         )
         next(self.aff)
 
-        LOGGER.debug(
+        self.logger.debug(
             "prepare_module"
             + repr(regles)
             + "::"
@@ -492,7 +459,7 @@ class Pyetl(object):
                         self.fichier_regles, liste_regles=self.liste_regles
                     )
                 except KeyError as ker:
-                    LOGGER.critical(
+                    self.logger.critical(
                         "======erreur lecture " + repr(ker) + "(" + repr(regles) + ")"
                     )
                     erreurs = erreurs + 1 if erreurs else 1
@@ -501,7 +468,7 @@ class Pyetl(object):
             if erreurs:
                 #                print("logger ", self.idpyetl)
                 message = " erreur" if erreurs == 1 else " erreurs"
-                LOGGER.critical(
+                self.logger.critical(
                     "process "
                     + str(self.idpyetl)
                     + ": "
@@ -512,7 +479,7 @@ class Pyetl(object):
                 )
                 for i in self.regles:
                     if i.erreurs:
-                        LOGGER.error(
+                        self.logger.error(
                             "erreur interpretation %d: %s -> %s",
                             i.numero,
                             repr(i),
@@ -526,7 +493,7 @@ class Pyetl(object):
             #            print('pas de regles', self.done)
             if self.done:
                 return True
-            LOGGER.critical(
+            self.logger.critical(
                 "pas de regles arret du traitement " + str(self.fichier_regles)
             )
             return False
@@ -542,7 +509,7 @@ class Pyetl(object):
             return True
         # on refait si des choses ont change a l'initialisation
         except EOFError:
-            LOGGER.critical("pas de fichier de regles arret du traitement ")
+            self.logger.critical("pas de fichier de regles arret du traitement ")
             #            print("erreurs de compilation arret du traitement ")
             return False
 
@@ -589,41 +556,8 @@ class Pyetl(object):
                 " mapper   :--%s----> nombre d'objets lus %8d dans %4d %s en %5d "
                 + "secondes %5d o/s"
             )
-            # if self.worker:
-            #     msg = "worker%3s:" % wid + msg
-            # else:
-            #     msg = "mapper   :" + msg
-            # LOGGER.info(
-            #     msg,
-            #     str(cmp),
-            #     nbobj,
-            #     tabletotal,
-            #     str(ftype),
-            #     int(duree),
-            #     int(nbobj / duree),
-            #     int((nbobj - nop) / (interv + 0.001)),
-            # )
-            if not self.worker:
-                # if message == "interm":
-                #     tinterm = interm + interv
-                #     msg = " --int----> nombre d'objets lus %8d en %5d secondes: %5d o/s"
-                #     msg = "worker%3s:" % self.getvar("_wid") + msg
-                #     if interm > 1:
-                #         tinterm = interm + interv
-                #     else:  # on calcule un temps moyen pour pas afficher n'importe quoi
-                #         tinterm = nbval / (nbobj / duree)
-                #     ligne = msg % (nbval, int(tinterm), int((nbval) / tinterm))
-                #     if mode == "cmd":
-                #         # print("ecriture_queue", ligne)
-                #         # self.msgqueue.put(ligne)
-                #         pass
-                #         # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
-                #     elif mode == "web":
-                #         # self.msgqueue.put(ligne)
-                #         pass
-                #         # self.msgqueue.put((nbval, int(tinterm), int((nbval) / tinterm)))
 
-                # else:
+            if not self.worker:
                 ligne = msg % (
                     cmp,
                     nbobj,
@@ -651,10 +585,6 @@ class Pyetl(object):
                         try:
                             msg = mainmapper.msgqueue.get(block=False)
                             message, nbfic, w_nbval, wid = msg
-                            # if message == "log":
-                            #     logmessage = w_nbwal
-                            #     print("worker", wid, ":--->", logmessage)
-                            #     continue
                             if message == "interm":
                                 nbvals[wid] = w_nbval
                                 nbval = sum(nbvals.values())
@@ -679,28 +609,12 @@ class Pyetl(object):
                 # print(" worker : ecriture queue", ("interm", nbfic, mnbval, wid))
             elif nbval >= prochain:
                 prochain, interm = affiche(message, nbval)
-                # print(
-                #     "prochain",
-                #     self.getvar("_wid"),
-                #     self.idpyetl,
-                #     prochain,
-                #     nbtotal,
-                #     sorted(nbvals.items()),
-                # )
+
                 nop = nbval
 
             if message == "fich":
                 nbtotal += nbval
                 interm = 0.001
-                # print(
-                #     "actualisation nbtotal",
-                #     message,
-                #     nbtotal,
-                #     nbval,
-                #     "->",
-                #     nbtotal + nbval,
-                #     prochain,
-                # )
                 tabletotal += nbfic
 
     def getpyetl(
@@ -717,7 +631,7 @@ class Pyetl(object):
         #        print(" dans getpyetl",mode)
         if not regles:
             if mode is None:
-                LOGGER.critical("getpyetl:mode non defini")
+                self.logger.critical("getpyetl:mode non defini")
                 # print("getpyetl:mode non defini")
                 return None
         petl = Pyetl(parent=self)
@@ -737,7 +651,7 @@ class Pyetl(object):
         petl.mode = mode
         if petl.initpyetl(regles, liste_params):
             return petl
-        LOGGER.critical("erreur getpyetl %s", str(regles))
+        self.logger.critical("erreur getpyetl %s", str(regles))
         # print("erreur getpyetl", regles)
         return None
 
@@ -789,7 +703,7 @@ class Pyetl(object):
             return
         configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
-            LOGGER.warning("pas de parametres locaux %s", configfile)
+            self.logger.warning("pas de parametres locaux %s", configfile)
             # print("pas de parametres locaux", configfile)
             return
         nom = ""
@@ -1105,7 +1019,7 @@ class Pyetl(object):
             nb_total = entree.to_obj(self)
             #            nb_total = self._lecture_stats(entree)
         elif entree and entree.strip() and entree != "!!vide":
-            LOGGER.info(
+            self.logger.info(
                 "debut traitement donnees:> %s --> %s",
                 entree,
                 self.regle_sortir.params.cmp1.val,
@@ -1136,17 +1050,17 @@ class Pyetl(object):
                         nb_lu = 0
                         break
             except NotADirectoryError as err:
-                LOGGER.exception("repertoire d entree inexistant", err)
+                self.logger.exception("repertoire d entree inexistant", err)
 
                 # print("type entree ", type(entree))
 
             ft, _ = next(self.maintimer)
 
-            LOGGER.info("fin traitement donnees: %d s", int(ft - dt))
+            self.logger.info("fin traitement donnees: %d s", int(ft - dt))
 
         else:
             try:
-                LOGGER.info("debut traitement sans entree")
+                self.logger.info("debut traitement sans entree")
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
@@ -1160,7 +1074,7 @@ class Pyetl(object):
             except StopIteration:
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-        LOGGER.info(
+        self.logger.info(
             "fin traitement %d: %s traites %s",
             self.idpyetl,
             self.nompyetl,
@@ -1258,19 +1172,12 @@ class Pyetl(object):
             return
         mode_schema = self.getvar("force_schema", "util")
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
-        # LOGGER.info("ecriture schemas " + str(mode_schema))
         if (
             mode_schema in {"all", "int", "fusion"}
             or self.getvar("force_virtuel") == "1"
             and not self.done
         ):
-            # print(
-            #     "pyetl: traitement virtuel ",
-            #     mode_schema,
-            #     self.worker,
-            #     self.getvar("force_virtuel"),
-            # )
-            LOGGER.info(
+            self.logger.info(
                 "traitement virtuel %s worker:%s force:%s",
                 mode_schema,
                 self.worker,

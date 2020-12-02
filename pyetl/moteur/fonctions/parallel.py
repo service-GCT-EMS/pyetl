@@ -10,11 +10,9 @@ from logging import StreamHandler
 import os
 from queue import Empty
 import time
-import logging
-import logging.handlers
+
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
-LOGGER = logging.getLogger("pyetl")  # un logger
 
 from pyetl.vglobales import getmainmapper
 
@@ -59,31 +57,32 @@ def getqueue():
 
 def setqueuhandler(queue, wid=""):
     """ ajoute une gestion de file de messages pour le traitment en multiprocessing"""
+    import logging
+    import logging.handlers
+
     mapper = getmainmapper()
     if queue is None:
         loglistener = logging.handlers.QueueListener(
-            mapper.logqueue, *LOGGER.handlers, respect_handler_level=True
+            mapper.logqueue, *mapper.logger.handlers, respect_handler_level=True
         )
         loglistener.start()
-        LOGGER.info("gestionnaire logs parallele : demarrage listener")
+        mapper.logger.info("gestionnaire logs parallele : demarrage listener")
         # print("-------------------demarrage listener")
         mapper.loglistener = loglistener
     else:
         # on est sur le worker on ajoute un writer de file
-        # info = {"wid": str("wid")}
-        # adapter = logging.LoggerAdapter(LOGGER, info)
         mapper.logqueue = queue
         queueformatter = logging.Formatter("(W" + str(wid) + "):%(message)s")
         queuehandler = logging.handlers.QueueHandler(queue)
         queuehandler.setFormatter(queueformatter)
-        LOGGER.addHandler(queuehandler)
+        mapper.logger.addHandler(queuehandler)
 
 
 def stoplistener():
     mapper = getmainmapper()
     # print("arret listener", mapper.loglistener)
     if mapper.loglistener:
-        LOGGER.info("arret listener")
+        mapper.logger.info("arret listener")
         mapper.loglistener.enqueue_sentinel()
         # mapper.loglistener = None
     # print("listener arrete")
@@ -140,18 +139,9 @@ def setparallelid(parametres):
         return None
     wid = str(pidset[os.getpid()])
     mainmapper.setvar("_wid", wid)
-    # log, log_level, log_print = (
-    #     mainmapper.getvar("logfile"),
-    #     mainmapper.getvar("log_level"),
-    #     mainmapper.getvar("log_print"),
-    # )
-    # if log:
-    #     base, ext = os.path.splitext(mainmapper.getvar("logfile"))
-    #     log = str(base) + "_" + wid + "." + str(ext)
-    # loginfo = log, log_level, log_print
     init = mainmapper.initpyetl(commandes, args)
     setqueuhandler(mainmapper.logqueue, wid=wid)
-    LOGGER.info("pyetl initworker " + str(os.getpid()))
+    mainmapper.logger.info("pyetl initworker " + str(os.getpid()))
     if paralleldebug:
         print("setparallelid apres init", mainmapper.getvar("_wid"), commandes, args)
 
@@ -254,7 +244,7 @@ def endparallel(test=None):
 
     #    print("-----pyetl batchworker end", os.getpid(), succes, nb_total, nb_fichs)
     if succes:
-        LOGGER.info(
+        mainmapper.logger.info(
             "-----pyetl batchworker end "
             + str(os.getpid())
             + " succes "
@@ -263,7 +253,7 @@ def endparallel(test=None):
             + str(nb_fichs)
         )
     else:
-        LOGGER.error(
+        mainmapper.logger.error(
             "-----pyetl batchworker end "
             + str(os.getpid())
             + " echec "
@@ -426,7 +416,7 @@ def prepare_env_parallel(regle):
     env = mapper.env if isinstance(mapper.env, dict) else None
     def_regles = mapper.liste_regles if mapper.liste_regles else mapper.fichier_regles
     #        print("preparation exec parallele", def_regles, mapper.liste_params)
-    LOGGER.info(
+    mapper.logger.info(
         " ".join(
             ("preparation exec parallele", str(def_regles), str(mapper.liste_params))
         )
@@ -453,7 +443,7 @@ def traite_parallel(regle):
     setqueuhandler(None)
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
-        LOGGER.info("initialisation parallele")
+        mapper.logger.info("initialisation parallele")
         # print("initialisation parallele", schemas.keys())
         rinit = parallelexec(
             executor,
@@ -471,7 +461,7 @@ def traite_parallel(regle):
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
-        LOGGER.info(" ".join(("workids", str(workids))))
+        mapper.logger.info(" ".join(("workids", str(workids))))
         parallelexec(
             executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
         )
@@ -495,7 +485,9 @@ def traite_parallel(regle):
             )
             for param in retour["stats_generales"]:
                 mapper.padd(param, retour["stats_generales"][param])
-            LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
+            mapper.logger.info(
+                "retour stats" + str(sorted(retour["stats_generales"].items()))
+            )
             #            print ('traitement schemas ', retour["schemas"])
             integre_schemas(mapper.schemas, retour["schemas"])
 
@@ -547,7 +539,7 @@ def traite_parallel_load(regle):
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
         #        print ('workids',workids)
-        LOGGER.info(" ".join(("workids", str(workids))))
+        mapper.logger.info(" ".join(("workids", str(workids))))
         parallelexec(
             executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
         )
@@ -573,7 +565,9 @@ def traite_parallel_load(regle):
         )
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
-        LOGGER.info("retour stats" + str(sorted(retour["stats_generales"].items())))
+        mapper.logger.info(
+            "retour stats" + str(sorted(retour["stats_generales"].items()))
+        )
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
 
