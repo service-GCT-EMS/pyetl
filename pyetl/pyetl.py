@@ -162,9 +162,9 @@ def runpyetl(commandes, args):
 
 
 class Pyetl(object):
-    """ structure parent : instanciee une fois pour un traitement
+    """structure parent : instanciee une fois pour un traitement
     permet le stockage de tous les parametres globaux du traitement.
-    cette structrure est passee a l'ensemble des modules """
+    cette structrure est passee a l'ensemble des modules"""
 
     # constantes de travail
     modiffonc = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
@@ -626,7 +626,7 @@ class Pyetl(object):
         nom="",
         mode="cmd",
     ):
-        """ retourne une instance de pyetl sert pour les tests et le
+        """retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
         #        print(" dans getpyetl",mode)
         if not regles:
@@ -881,13 +881,13 @@ class Pyetl(object):
 
     def setvar(self, nom, valeur):
         """positionne une variable dans un contexte de base
-           dans ce cas on positionne en local"""
+        dans ce cas on positionne en local"""
         # print ('setvar:',self.context, nom,valeur)
         self.context.setlocal(nom, valeur)
 
     def setvar_parent(self, nom, valeur):
         """positionne une variable dans un contexte de base
-           dans ce cas on positionne dans le contexte parent"""
+        dans ce cas on positionne dans le contexte parent"""
         if self.parent:
             self.parent.setvar(nom, valeur)
         else:
@@ -1044,13 +1044,13 @@ class Pyetl(object):
                         nb_lu = self.lecture(fich, parms=parms)
                     except StopIteration as arret:
                         #            print("intercepte abort",abort.args[0])
-                        if arret.args[0] == "2":
+                        if arret.args[0] == 2:
                             continue
                         abort = True
                         nb_lu = 0
                         break
             except NotADirectoryError as err:
-                self.logger.exception("repertoire d entree inexistant", err)
+                self.logger.error("repertoire d entree inexistant: %s", err)
 
                 # print("type entree ", type(entree))
 
@@ -1064,7 +1064,7 @@ class Pyetl(object):
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
-                if arret.args[0] > "2":
+                if arret.args[0] > 2:
                     abort = True
         if abort:
             self._finalise_sorties()

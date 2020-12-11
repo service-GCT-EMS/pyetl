@@ -204,7 +204,7 @@ def f_abort(regle, obj):
         # print("abort: arret du traitement ", message, regle.ligne)
         LOGGER.info("arret %s", message)
     if niveau <= "4":
-        raise StopIteration(niveau)
+        raise StopIteration(int(niveau))
     LOGGER.critical("panic!!!! arret immediat de mapper")
     exit(0)
 
@@ -477,7 +477,7 @@ def f_creobj(regle, obj):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
-            if abort.args[0] == "2":
+            if abort.args[0] == 2:
                 break
             raise
     return True
@@ -740,7 +740,7 @@ def f_schema_liste_classes(regle, _):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
-            if abort.args[0] == "2":
+            if abort.args[0] == 2:
                 break
             raise
     return True

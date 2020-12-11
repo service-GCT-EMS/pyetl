@@ -336,14 +336,14 @@ class PgrConnect(DbConnect):
         """ selectionne les elements specifiques pour coller a une restriction de schema"""
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
-        print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
+        # print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
         els["def_vues"] = self.elemrestrict(els["def_vues"], a_garder)
         els["def_triggers"] = self.elemrestrict(els["def_triggers"], a_garder)
         els["def_ftables"] = self.elemrestrict(els["def_ftables"], a_garder)
         els["def_fonctions_trigger"] = self.elemrestrict(
             els["def_fonctions_trigger"], a_garder
         )
-        print("restriction elts spec apres", [(i, len(j[1])) for i, j in els.items()])
+        # print("restriction elts spec apres", [(i, len(j[1])) for i, j in els.items()])
 
         fonctions_a_garder = set()
         for i in els["def_triggers"][1].values():
@@ -386,11 +386,11 @@ class PgrConnect(DbConnect):
     def get_attributs(self):
         """produit les objets issus de la base de donnees
 
-                        ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
-                         'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
-                         'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
-                         'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
-    """
+        ('nom_groupe', 'nom_classe', 'nom_attr', 'alias', 'type_attr',
+         'graphique', 'multiple', 'defaut', 'obligatoire', 'enum',
+         'dimension', 'num_attribut', 'index', 'unique', 'clef_primaire',
+         'clef_etrangere', 'cible_clef', 'parametres_clef', 'taille', 'decimales'))
+        """
         requete, data = self.req_attributs
         # print('pgattributs', requete)
         attributs = self.request(requete, data)

@@ -24,22 +24,26 @@ class ScriptList(object):
 
     def __init__(self) -> None:
         self.liste = []
-        self.scriptdir = "scripts"
         self.descriptif = []
-        self.refresh()
         self.mapper = getmainmapper()
         print(
             "initialisation mainmapper",
             self.mapper,
             self.mapper.getvar("mode", "interactif"),
         )
+        self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
+        self.refresh()
 
     def refresh(self, script=None):
         """rafraichit la liste de scripts"""
         if script is None:
             self.liste = []
             self.descriptif = dict()
-        liste = os.listdir(self.scriptdir)
+        try:
+            liste = os.listdir(self.scriptdir)
+        except FileNotFoundError:
+            LOGGER.error("repertoire %s introuvable", self.scriptdir)
+            liste = []
         n = 0
         for fichier in liste:
             fpath = os.path.join(self.scriptdir, fichier)
@@ -90,6 +94,17 @@ def index():
         text="acces simplifie aux fonctions mapper",
         title="mapper interface web",
     )
+
+
+@app.route("/folderselect/<file>")
+def foldeselector(file):
+    current = session.get("folder", "S:/")
+    if file and os.path.isfile(os.path.join(current, file)):
+        session[entree] = os.path.join(current, file)
+    else:
+        filelist = os.listdir(current)
+        fdef = [(i, os.path.isdir(os.path.join(current, i))) for i in filelist]
+        return render_template("fileselect.html")
 
 
 @app.route("/scripts")
@@ -157,6 +172,7 @@ def scriptview(script):
 
 
 @app.route("/exec/<script>", methods=["GET", "POST"])
+# @app.route("/exec/<script>")
 def execscript(script):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
@@ -165,9 +181,9 @@ def execscript(script):
     formclass, varlist = formbuilder(infos)
     form = formclass()
     if form.validate_on_submit():
-        entree = form.entree.data
+        entree = form.entree.data[0]
         rep_sortie = form.sortie.data
-        print("recup form", entree, rep_sortie, form.entree)
+        print("recup form", form.entree.data, entree.filename, rep_sortie, form.entree)
         processor = scriptlist.mapper.getpyetl(
             fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
         )

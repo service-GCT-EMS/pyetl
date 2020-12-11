@@ -364,7 +364,7 @@ def h_dbrequest(regle):
         )
     else:
         regle.ident = None
-    LOGGER.info("req:%s --> %s", requete, str(regle.ident))
+    LOGGER.debug("req:%s --> %s", requete, str(regle.ident))
     # print(
     #     "---------------------requete: ident sortie",
     #     regle.ident,
@@ -379,15 +379,15 @@ def h_dbrequest(regle):
 
 def f_dbrequest(regle, obj):
     """#aide||recuperation d'objets depuis une requete sur la base de donnees
-  #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination
-            ||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
-            ||classe du selecteur en substituant les variables par la classe courante
-            ||sinon elle est passee une fois pour chaque base du selecteur
-            ||les variables %#base et %#attr sont egalement substituees
-     #groupe||database
-    #pattern||?A;?;?L;dbreq;C;?A.C
-    #pattern2||?A;?;?L;dbreq;C;?A
-   #req_test||testdb
+    #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination
+              ||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
+              ||classe du selecteur en substituant les variables par la classe courante
+              ||sinon elle est passee une fois pour chaque base du selecteur
+              ||les variables %#base et %#attr sont egalement substituees
+       #groupe||database
+      #pattern||?A;?;?L;dbreq;C;?A.C
+      #pattern2||?A;?;?L;dbreq;C;?A
+     #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
     # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
@@ -457,10 +457,10 @@ def h_dbrunsql(regle):
 
 def f_dbrunsql(regle, obj):
     """#aide||lancement d'un script sql via un loader externe
-  #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
-     #groupe||database
-    #pattern||;?C;?A;runsql;?C;?C
-    #req_test||testdb
+    #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
+       #groupe||database
+      #pattern||;?C;?A;runsql;?C;?C
+      #req_test||testdb
 
     """
     selecteur = setdb(regle, obj)
@@ -500,10 +500,10 @@ def h_dbrunproc(regle):
 
 def f_dbrunproc(regle, obj):
     """#aide||lancement d'un procedure stockeee
-  #aide_spec||parametres:base;;;;?arguments;?variable contenant les arguments;runsql;?log;?sortie
-     #groupe||database
-    #pattern||;?LC;?L;runproc;C;
-    #req_test||testdb
+    #aide_spec||parametres:base;;;;?arguments;?variable contenant les arguments;runsql;?log;?sortie
+       #groupe||database
+      #pattern||;?LC;?L;runproc;C;
+      #req_test||testdb
     """
     selecteur = setdb(regle, obj)
     for base in selecteur.baseselectors:
@@ -520,10 +520,10 @@ def h_dbextload(regle):
 
 def f_dbextload(regle, obj):
     """#aide||lancement d'un chargement de base par un loader externe
-  #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;dbextload;log;
-     #groupe||database
-    #pattern||;?C;?A;dbextload;C;;
-    #req_test||testdb
+    #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;dbextload;log;
+       #groupe||database
+      #pattern||;?C;?A;dbextload;C;;
+      #req_test||testdb
     """
     base = regle.cible_base.base
     datas = regle.getval_entree(obj)
@@ -547,10 +547,10 @@ def h_dbextdump(regle):
 
 def f_dbextdump(regle, obj):
     """#aide||lancement d'une extraction par une extracteur externe
-  #aide_spec||parametres:base;;;;;;dbextdump;dest;?log
-     #groupe||database
-    #pattern||;;;dbextdump;?C;?C
-    #req_test||testdb
+    #aide_spec||parametres:base;;;;;;dbextdump;dest;?log
+       #groupe||database
+      #pattern||;;;dbextdump;?C;?C
+      #req_test||testdb
     """
     # base, niveau, classe, _, _, chemin, type_base = setdb(regle, obj, att=False)
     selecteur = setdb(regle, obj)
@@ -566,9 +566,9 @@ def f_dbextdump(regle, obj):
 
 def f_dbwrite(regle, obj):
     """#aide||chargement en base de donnees
-     #groupe||database
-    #pattern||;;;dbwrite;;
-   #req_test||testdb
+      #groupe||database
+     #pattern||;;;dbwrite;;
+    #req_test||testdb
 
     """
     selecteur = setdb(regle, obj)
@@ -578,9 +578,9 @@ def f_dbwrite(regle, obj):
 
 def f_dbupdate(regle, obj):
     """#aide||chargement en base de donnees
-     #groupe||database
-    #pattern||;;;dbupdate;;
-   #req_test||testdb
+      #groupe||database
+     #pattern||;;;dbupdate;;
+    #req_test||testdb
     """
     for base, (niveau, classe, attribut) in regle.cible_base.items():
         DB.dbupdate(regle, base, niveau, classe, attribut, obj)
@@ -634,11 +634,11 @@ def h_dbcount(regle):
 
 def f_dbcount(regle, obj):
     """#aide||nombre d'objets dans un groupe de tables
-     #groupe||database
-    #pattern||S;;;dbcount;?C;
-   #req_test||testdb
-       #test||obj||$#testdb;;||db:testdb;testschema;tablealpha;;toto;;;dbcount;
-            ||atv;toto;3
+      #groupe||database
+     #pattern||S;;;dbcount;?C;
+    #req_test||testdb
+        #test||obj||$#testdb;;||db:testdb;testschema;tablealpha;;toto;;;dbcount;
+             ||atv;toto;3
     """
     # base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     #    print ('regles cnt: setdb',base, niveau, classe, attrs, valeur, chemin, type_base)
@@ -697,13 +697,13 @@ def h_recup_schema(regle):
 
 def f_recup_schema(regle, obj):
     """#aide||recupere les schemas des base de donnees
-  #aide_spec||db:base;niveau;classe;;destination;nom_schema;;dbschema;select_tables;
-     #groupe||database
-   #pattern1||=schema_entree;C?;;dbschema;?;||sortie
-   #pattern2||=schema_sortie;C?;;dbschema;?;||sortie
-   #pattern3||=#schema;C?;A?;dbschema;?;||sortie
-   #pattern4||;C?;A?;dbschema;?;
-   #req_test||testdb
+    #aide_spec||db:base;niveau;classe;;destination;nom_schema;;dbschema;select_tables;
+       #groupe||database
+     #pattern1||=schema_entree;C?;;dbschema;?;||sortie
+     #pattern2||=schema_sortie;C?;;dbschema;?;||sortie
+     #pattern3||=#schema;C?;A?;dbschema;?;||sortie
+     #pattern4||;C?;A?;dbschema;?;
+     #req_test||testdb
     """
     chemin = ""
     print("recup_schema---------------", obj)
@@ -748,11 +748,11 @@ def h_dbclean(regle):
 
 def f_dbclean(regle, obj):
     """#aide||vide un ensemble de tables
-     #groupe||database
-   #pattern1||;;;dbclean;?C;?C
-      #req_test||testdb
+      #groupe||database
+    #pattern1||;;;dbclean;?C;?C
+       #req_test||testdb
 
-   """
+    """
 
     pass
 
@@ -767,10 +767,10 @@ def h_dbselect(regle):
 
 def f_dbselect(regle, obj):
     """#aide||creation d un selecteur: ce selecteur peut etre reutilise pour des operations
-            ||sur les bases de donnees
-     #groupe||database
-    #pattern||A;?;?;dbselect;?;?
-   #req_test||testdb
+             ||sur les bases de donnees
+      #groupe||database
+     #pattern||A;?;?;dbselect;?;?
+    #req_test||testdb
     """
     pass
 

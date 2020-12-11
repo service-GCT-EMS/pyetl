@@ -61,18 +61,18 @@ def h_run(regle):
 
 def f_run(regle, obj):
     """#aide||execute une commande externe
-   #pattern1||?A;?C;?A;run;C;
-   #pattern2||?P;=^;;run;C;
-   #pattern3||?P;;;run;C;C;
- #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
- #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
-#parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres
-  #variables||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
-            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
-     #schema||ajout_attribut
-       #test||obj||^P:aaa;;;run;echo;tété;||ptv:aaa:tété
-      #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
-      #test2||obj||^X;toto;;run;echo;;||atv:X:toto
+       #pattern1||?A;?C;?A;run;C;
+       #pattern2||?P;=^;;run;C;
+       #pattern3||?P;;;run;C;C;
+     #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
+     #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
+    #parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres
+      #variables||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+                ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+         #schema||ajout_attribut
+           #test||obj||^P:aaa;;;run;echo;tété;||ptv:aaa:tété
+          #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
+          #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     if regle.runscope():  # on voit si on doit l'executer
         retour = commandrunner(regle, regle.getval_entree(obj))
@@ -131,20 +131,20 @@ def h_filerename(regle):
 
 def f_filerename(regle, obj):
     """#aide||renomme un fichier
-   #pattern1||;;;os_ren;C;C
-   #pattern2||A;?C;A;os_ren;?C;?C
- #aide_spec1||execution unique au demarrage
-#parametres1||nom destination;nom d origine
- #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
-            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
- #aide_spec2||execution pour chaque objet
-#parametres2||nom destination,nom d origine;chemin destination;chemin origine
-   #req_test||testwriterep
-       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
-            ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
-   """
+       #pattern1||;;;os_ren;C;C
+       #pattern2||A;?C;A;os_ren;?C;?C
+     #aide_spec1||execution unique au demarrage
+    #parametres1||nom destination;nom d origine
+     #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+                ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+     #aide_spec2||execution pour chaque objet
+    #parametres2||nom destination,nom d origine;chemin destination;chemin origine
+       #req_test||testwriterep
+           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
+                ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
+    """
     return fileop(regle, obj, os.rename)
 
 
@@ -155,20 +155,20 @@ def h_filecopy(regle):
 
 def f_filecopy(regle, obj):
     """#aide||copie un fichier
-  #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
-   #pattern1||;;;os_copy;C;C
-   #pattern2||A;?C;A;os_copy;?C;?C
- #aide_spec1||execution unique au demarrage
-#parametres1||nom destination;nom d origine
- #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
-            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
- #aide_spec2||execution pour chaque objet
-#parametres2||nom destination,nom d origine;chemin destination;chemin origine
-   #req_test||testwriterep
-       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
-            ||^;;;os_copy;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
+      #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
+       #pattern1||;;;os_copy;C;C
+       #pattern2||A;?C;A;os_copy;?C;?C
+     #aide_spec1||execution unique au demarrage
+    #parametres1||nom destination;nom d origine
+     #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+                ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+     #aide_spec2||execution pour chaque objet
+    #parametres2||nom destination,nom d origine;chemin destination;chemin origine
+       #req_test||testwriterep
+           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
+                ||^;;;os_copy;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
     return fileop(regle, obj, shutil.copy2)
 
@@ -180,20 +180,20 @@ def h_filemove(regle):
 
 def f_filemove(regle, obj):
     """#aide||deplace un fichier
-  #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
-   #pattern1||;;;os_move;C;C
-   #pattern2||A;?C;A;os_move;?C;?C
- #aide_spec1||execution unique au demarrage
-#parametres1||nom destination;nom d origine
- #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
-            ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
- #aide_spec2||execution pour chaque objet
-#parametres2||nom destination,defaut,nom d origine;chemin destination;chemin origine
-   #req_test||testwriterep
-       #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
-            ||^;;;os_move;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
-            ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
+      #aide_spec||attribut qui recupere le resultat, parametres , run , nom, parametres
+       #pattern1||;;;os_move;C;C
+       #pattern2||A;?C;A;os_move;?C;?C
+     #aide_spec1||execution unique au demarrage
+    #parametres1||nom destination;nom d origine
+     #variables1||process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
+                ||\t\t en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
+     #aide_spec2||execution pour chaque objet
+    #parametres2||nom destination,defaut,nom d origine;chemin destination;chemin origine
+       #req_test||testwriterep
+           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
+                ||^;;;os_move;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
+                ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
     """
     return fileop(regle, obj, shutil.move)
 
@@ -205,18 +205,18 @@ def h_filedel(regle):
 
 def f_filedel(regle, obj):
     """#aide||supprime un fichier
-  #aide_spec||suppression d'un fichier
-   #pattern1||;;;os_del;C;
-   #pattern2||;?C;A;os_del;?C;
- #aide_spec1||execution unique au demarrage
-#parametres1||;nom du fichier a supprimer
- #aide_spec2||execution pour chaque objet
-#parametres2||defaut;nom du fichier a supprimer;;chemin
-   #req_test||testwriterep
-       #test||obj||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
-            ||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
-            ||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
-            ||is:file;!%testwriterep%/liste.csv;;;X;1;;set||atv:X:1
+      #aide_spec||suppression d'un fichier
+       #pattern1||;;;os_del;C;
+       #pattern2||;?C;A;os_del;?C;
+     #aide_spec1||execution unique au demarrage
+    #parametres1||;nom du fichier a supprimer
+     #aide_spec2||execution pour chaque objet
+    #parametres2||defaut;nom du fichier a supprimer;;chemin
+       #req_test||testwriterep
+           #test||obj||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
+                ||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+                ||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
+                ||is:file;!%testwriterep%/liste.csv;;;X;1;;set||atv:X:1
     """
     try:
         os.remove(os.path.join(regle.chemin_orig, regle.params.att_entree.val))
@@ -287,13 +287,13 @@ def h_infofich(regle):
 
 def f_infofich(regle, obj):
     """#aide||ajoute les informations du fichier sur les objets
-  #aide_spec||usage prefix;defaut;attribut;infofich;;;
-            ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
-            ||cree les attributs: #chemin, #nom, #ext,
-            ||#domaine, #proprietaire, #creation, #modif, #acces
-     #schema||ajout_attribut
-    #pattern||?A;?C;?A;infofich;;
-       #test||obj||^;%testrep%/refdata/liste.csv;;infofich||atv:#ext:.csv
+    #aide_spec||usage prefix;defaut;attribut;infofich;;;
+              ||prefixe par defaut:#, si pas d'entree s'applique au fichier courant
+              ||cree les attributs: #chemin, #nom, #ext,
+              ||#domaine, #proprietaire, #creation, #modif, #acces
+       #schema||ajout_attribut
+      #pattern||?A;?C;?A;infofich;;
+         #test||obj||^;%testrep%/refdata/liste.csv;;infofich||atv:#ext:.csv
     """
     # print ('infofich',obj)
     if regle.nomexiste:
@@ -323,11 +323,11 @@ def h_abspath(regle):
 
 def f_abspath(regle, obj):
     """#aide||change un chemin relatif en chemin absolu
-  #aide_spec||le point de depart est le chemin ou cmp1
-    #pattern||S;C?;A?;abspath;C?;
-       #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||
-            ||^absp2;toto;;set;||^absp2;%_progdir%;;abspath||ata:absp:absp2
-       #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv2|absp|A:\\titi\\toto|
+    #aide_spec||le point de depart est le chemin ou cmp1
+      #pattern||S;C?;A?;abspath;C?;
+         #test||obj||^;%_progdir%;;namesplit;||^absp;;#s_nom;abspath;[#s_chemin]||
+              ||^absp2;toto;;set;||^absp2;%_progdir%;;abspath||ata:absp:absp2
+         #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv2|absp|A:\\titi\\toto|
     """
     candidat = regle.get_entree(obj)
     if os.path.isabs(candidat):
@@ -354,11 +354,11 @@ def h_namesplit(regle):
 
 def f_namesplit(regle, obj):
     """#aide||decoupe un nom de fichier en chemin,nom,extention
-  #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
- #parametres||prefixe;defaut;attr contenant le nom;namesplit
-     #schema||ajout_attribut
-    #pattern||?A;C?;A?;namesplit;;
-       #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
+     #aide_spec||genere les attributs prefix_chemin,prefix_nom,prefix_ext avec un prefixe
+    #parametres||prefixe;defaut;attr contenant le nom;namesplit
+        #schema||ajout_attribut
+       #pattern||?A;C?;A?;namesplit;;
+          #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
     """
     fichier = Path(regle.get_entree(obj))
     # print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
@@ -370,9 +370,9 @@ def f_namesplit(regle, obj):
 
 def f_namejoin(regle, obj):
     """#aide||combine des element en nom de fichier en chemin,nom,extention
-    #pattern||S;C?;L?;namejoin;;
- #parametres||sortie;defaut;liste d'attributs;namesjoin
-    #test||obj||^n1,n2;toto,titi;;set||^X;;n1,n2;namejoin||^;;X;namesplit||atv:#s_nom:titi
+       #pattern||S;C?;L?;namejoin;;
+    #parametres||sortie;defaut;liste d'attributs;namesjoin
+       #test||obj||^n1,n2;toto,titi;;set||^X;;n1,n2;namejoin||^;;X;namesplit||atv:#s_nom:titi
     """
     regle.setval_sortie(obj, os.path.join(*regle.getlist_entree(obj)))
     return True
@@ -382,7 +382,7 @@ def h_adquery(regle):
     """initialise l'acces active_directory"""
     from . import active_directory as ACD
 
-    print("acces LDAP", ACD.root())
+    # print("acces LDAP", ACD.root(), regle)
     regle.AD = ACD
     regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
     if regle.params.pattern == "1":
@@ -398,7 +398,7 @@ def f_adquery(regle, obj):
     #pattern1||S;?C;?A;adquery;=user;?C;
     #pattern2||S;?C;?A;adquery;=machine;?C;
     #pattern3||S;?C;?A;adquery;=groupe;?C;
-    # """
+    #"""
     if regle.get_entree(obj):
         try:
             item = regle.queryfonc(regle.get_entree(obj))
@@ -460,9 +460,9 @@ def f_listefich(regle, obj):
 
 def sel_isfile(selecteur, obj):
     """#aide||teste si un fichier existe
-       #pattern1||=is:file;[A]||1
-       #pattern2||=is:file;C||1
-       #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
+    #pattern1||=is:file;[A]||1
+    #pattern2||=is:file;C||1
+    #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
     """
     if selecteur.params.pattern == "2":
         # print ('isfile',selecteur.params.vals.val,os.path.isfile(selecteur.params.vals.val))
@@ -477,9 +477,9 @@ def sel_isfile(selecteur, obj):
 
 def sel_isdir(selecteur, obj):
     """#aide||tesste si un fichier existe
-       #pattern1||=is:dir;[A]||1
-       #pattern2||=is:dir;C||1
-       #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
+    #pattern1||=is:dir;[A]||1
+    #pattern2||=is:dir;C||1
+    #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
     """
     if selecteur.params.pattern == "2":
         return os.path.isdir(selecteur.params.vals.val)

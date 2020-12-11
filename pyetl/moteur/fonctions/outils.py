@@ -104,7 +104,7 @@ def scandirs(
                     # print ('match',pattern, chemin, element)
                     yield (str(os.path.basename(element)), str(chemin))
     else:
-        raise FileExistsError
+        raise NotADirectoryError(str(path))
         # else:
         #     pass
         # print ('not match',pattern, chemin, element)
@@ -166,7 +166,7 @@ def objloader(regle, obj):
             nb_lu += lecture(i, regle=regle, parms=parms)
             retour = True
         except StopIteration as abort:
-            if abort.args[0] == "2":
+            if abort.args[0] == 2:
                 continue
     #    print("lecture",nb_lu)
     if not retour:
@@ -254,8 +254,8 @@ def charge_liste_csv(
     try:
         codec = hasbom(fichier, codec)
     except FileNotFoundError:
-#     # print("fichier liste introuvable ", fichier)
-        LOGGER.info("fichier liste introuvable: %s",fichier)
+        #     # print("fichier liste introuvable ", fichier)
+        LOGGER.info("fichier liste introuvable: %s", fichier)
         return stock
     with open(fichier, "r", encoding=codec) as fich:
         for i in fich:
@@ -276,17 +276,15 @@ def charge_liste_csv(
                         tmp.extend(liste)
                         liste = tmp
                     if len(liste) < taille:
-                        liste = list(
-                            itertools.islice(itertools.cycle(liste), taille)
-                        )
+                        liste = list(itertools.islice(itertools.cycle(liste), taille))
                     stock[tuple([liste[i] for i in positions])] = liste
     if debug:
         print("chargement liste", fichier)
 
     # LOGGER.warning("fichier liste perdu: %s",fichier)
-#     LOGGER.warning("turlututu chapeau pointu")
-#     LOGGER.info("wtf")
-# print("prechargement csv", stock)
+    #     LOGGER.warning("turlututu chapeau pointu")
+    #     LOGGER.info("wtf")
+    # print("prechargement csv", stock)
     return stock
 
 

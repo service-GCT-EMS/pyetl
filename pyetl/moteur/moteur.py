@@ -200,7 +200,7 @@ class Moteur(object):
                 #     regle = regle.branchements.brch["ok"]
             except StopIteration as abort:
                 #                print ('stopiteration', ab.args)
-                if abort.args[0] == "1":  # arret de traitement de l'objet
+                if abort.args[0] == 1:  # arret de traitement de l'objet
                     return
                 raise  # on la passe au niveau au dessus
             except NotADirectoryError as exc:
