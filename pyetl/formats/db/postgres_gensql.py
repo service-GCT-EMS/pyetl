@@ -1112,8 +1112,8 @@ class PgrGenSql(DbGenSql):
 
     @staticmethod
     def _commande_sequence(niveau, classe):
-        """ cree une commande de reinitialisation des sequences
-            pour le moment necessite la fonction dans admin_sigli"""
+        """cree une commande de reinitialisation des sequences
+        pour le moment necessite la fonction dans admin_sigli"""
         # TODO remplacer la fonction qui fait le job par du SQL basique
         return (
             "SELECT admin_sigli.ajuste_sequence('"
@@ -1139,7 +1139,8 @@ class PgrGenSql(DbGenSql):
         return ""
 
     def prefix_charge(self, niveau, classe, reinit, gtyp="0", dim="2"):
-        """ grere toutes les reinitialisations eventuelles
+        """#aide||#tag:variables:reinit
+        #aide||gere toutes les reinitialisations eventuelles par table
         G: devalide les triggers T: Truncate D: delete S: ajuste les sequences
         I: gere les indices geometriques C: passe en courbe L: discretise"""
         prefix = ""

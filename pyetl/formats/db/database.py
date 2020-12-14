@@ -196,7 +196,7 @@ class Cursinfo(object):
 
 class DbConnect(object):
     """connecteur de base de donnees generique
-        tous les connecteurs sont des sousclasses de celui ci"""
+    tous les connecteurs sont des sousclasses de celui ci"""
 
     tabledef = namedtuple(
         "tabledef",
@@ -664,11 +664,12 @@ class DbConnect(object):
             # print("selection elements specifiques", liste2)
         # self.commit()
         LOGGER.info(
-            "getschematravail "
-            + str(len(self.schemabase.classes))
-            + "-->"
-            + str(len(schema_travail.classes))
-            + str(len(schema_travail.conformites))
+            "schema %s: %d -->%s: %d (%d) ",
+            self.schemabase.nom,
+            len(self.schemabase.classes),
+            schema_travail.nom,
+            len(schema_travail.classes),
+            len(schema_travail.conformites),
         )
         return schema_travail, liste2
 
@@ -995,8 +996,8 @@ class DbConnect(object):
             return iter(())
 
     def get_elements_specifiques(self, schema):
-        """ recupere des elements specifiques a un format et les stocke dans une
-        structure du schema """
+        """recupere des elements specifiques a un format et les stocke dans une
+        structure du schema"""
         schema.elements_specifiques = dict()
         return
 
@@ -1042,7 +1043,7 @@ class DbConnect(object):
 
     def db_cree_table(self, schema, ident):
         """creation d' une tables en direct
-           possible qu avec une connection"""
+        possible qu avec une connection"""
         if self.valide:
             req = self.gensql.cree_tables(schema, ident)
             return self.connection.request(req, ())
