@@ -382,7 +382,7 @@ def h_adquery(regle):
     """initialise l'acces active_directory"""
     from . import active_directory as ACD
 
-    # print("acces LDAP", ACD.root(), regle)
+    print("acces LDAP", ACD.root(), regle)
     regle.AD = ACD
     regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
     if regle.params.pattern == "1":

@@ -399,13 +399,14 @@ class ElyConnect(ora.OrwConnect):
             else:  # traitement standard
                 for retour in fileiter:
                     if retour is not None:
-                        print("elyx extalpha,recu", retour)
+                        # print("elyx extalpha,recu", retour)
                         nb, infos = retour
                         clef, pars = infos
                         rep, chemin, classe, ext = pars
                         # chemin, classe = idclasse
                         fichier = os.path.join(rep, chemin, classe)
-                        print("fichier a traiter :", fichier)
+                        LOGGER.debug("fichier a traiter : %s", str(fichier))
+                        # print("fichier a traiter :", fichier)
                         try:
                             self.params.lecture(
                                 classe,
@@ -656,8 +657,8 @@ class ElyConnect(ora.OrwConnect):
 
     def get_attributs(self):
         """recupere le schema complet
-            nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,defaut,obligatoire
-            enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,parametres_clef,cible_clef"""
+        nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,defaut,obligatoire
+        enum,dimension,num_attribut,index,uniq,clef_primaire,clef_etrangere,parametres_clef,cible_clef"""
         schema = self.adminschema
         if self.attributs:
             return self.attributs.values()
@@ -678,7 +679,7 @@ class ElyConnect(ora.OrwConnect):
                 "ECHELLE_DISPARITION",
             ],
         )
-        LOGGER.info("%s: composants trouves %d",self.base, len(self.confs))
+        LOGGER.info("%s: composants trouves %d", self.base, len(self.confs))
         # print("composants", len(self.confs))
         compos = self.menage_version(self.request(requete, ()), 1, 0, 2)
         compos = self.menage_version(list(compos.values()), 1, 3, 2)
@@ -1220,8 +1221,8 @@ class ElyConnect(ora.OrwConnect):
         self.select_elements_specifiques(schema)
 
     def select_elements_specifiques(self, schema, liste_tables=None):
-        """ recupere des elements specifiques a un format et les stocke
-        dans une structure du schema """
+        """recupere des elements specifiques a un format et les stocke
+        dans une structure du schema"""
 
         schema.elements_specifiques["roles"] = self.select_droits(liste_tables)
         # print("info schema elyx", schema.elements_specifiques["roles"])

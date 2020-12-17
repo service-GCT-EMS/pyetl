@@ -228,7 +228,6 @@ def login():
     return render_template("login.html", title="Sign In", form=form)
 
 
-@app.route("/view/<img>")
-def equirect(img):
-    """test equirectangulaire"""
-    return render_template("equirect.html", image=img)
+@app.route("/fm")
+def fileman():
+    return redirect("/fm/index.html")
