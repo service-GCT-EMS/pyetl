@@ -96,7 +96,9 @@ class FileWriter(object):
         elif self.nom == "#attw":
             self.fichier = io.StringIO()
         else:
-            self.fichier = open(self.nom, mode, encoding=self.encoding)
+            self.fichier = open(
+                self.nom, mode, encoding=self.encoding, errors="backslashreplace"
+            )
 
     def open(self):
         """ouverture de fichier"""
