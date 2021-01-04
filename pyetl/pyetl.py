@@ -858,6 +858,7 @@ class Pyetl(object):
                     "===================warning erreur d empilement de contexte",
                     self.cur_context,
                 )
+                raise
         else:
             print(
                 "=========================popcontext warning typecheck attendu",

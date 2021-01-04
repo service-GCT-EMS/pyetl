@@ -612,6 +612,7 @@ class Writer(object):
         #        self.destination = destination
         self.regle = regle
         self.debug = debug
+        self.liste_att = None
         self.writerparms = dict()  # parametres specifique au format
         # positionne un format de sortie
         nom = nom.replace(".", "").lower()
@@ -634,11 +635,13 @@ class Writer(object):
         else:
             self.writerparms["destination"] = destination
         self.dialecte = dialecte
+        self.encoding = "utf-8"
         self.ecrire_objets = MethodType(self.def_sortie.writer, self)
         self.ecrire_objets_stream = MethodType(self.def_sortie.streamer, self)
         self.geomwriter = self.def_sortie.geomwriter
         self.tmpgeomwriter = self.def_sortie.tmpgeomwriter
         self.calcule_schema = self.def_sortie.force_schema
+        # self.converter = self.def_sortie.converter
         self.minmaj = (
             self.def_sortie.casse
         )  # determine si les attributs passent en min ou en maj

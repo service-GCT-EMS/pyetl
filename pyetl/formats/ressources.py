@@ -42,14 +42,14 @@ class Ressource(object):
     """ stockage des infos d'une ressource
     une ressource peut etre un fichier ou une table"""
 
-    def __init__(self, nom, handler, idmapper, regle_ref=None):
+    def __init__(self, nom, handler, idmapper):
         self.nom = nom
         self.handler = handler
         self.idmapper = idmapper  # identifiant d'instance qui a cree la ressource
         self.lastid = None
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0
-        self.regle_ref = None  # regle qui cree la ressource
+        self.regle_ref = handler.regle  # regle qui cree la ressource
         self.regles = set()
 
     def __repr__(self):
@@ -176,14 +176,12 @@ class GestionSorties(object):
             return retour
         return None
 
-    def creres(self, regle, id_ressource, handler, usebuffer=False):
+    def creres(self, id_ressource, handler, usebuffer=False):
         """ verouille une recssource et la cree si necessaire"""
+        regle = handler.regle
         id_mapper = regle.stock_param.idpyetl
         if id_ressource not in self.ressources:
-            handler.regle_ref = regle
-            self.ressources[id_ressource] = Ressource(
-                id_ressource, handler, id_mapper, regle_ref=regle
-            )
+            self.ressources[id_ressource] = Ressource(id_ressource, handler, id_mapper)
             if not usebuffer:
                 self.lock(regle, id_ressource)
             return self.ressources[id_ressource]

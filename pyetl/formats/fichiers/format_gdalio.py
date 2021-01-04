@@ -10,8 +10,6 @@ import itertools
 import fiona
 from fiona.crs import from_epsg
 
-# from .fileio import FileWriter
-
 
 def formatte_entree(type_orig):
     """cree un formattage d'netree pour la gestion des decimales"""
@@ -434,7 +432,7 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
                 layer=classe,
                 srid=obj.geom_v.srid,
             )
-            ressource = sorties.creres(regle, nom, streamwriter, usebuffer)
+            ressource = sorties.creres(nom, streamwriter, usebuffer)
         regle.ressource = ressource
         regle.dident = obj.ident
     #    print ("fichier de sortie ",fich.nom)

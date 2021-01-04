@@ -3,11 +3,10 @@
 
 # import time
 # import pyetl.schema as SC
-#import sys
+# import sys
 import os
 import codecs
 from . import fileio
-
 
 
 class TextWriter(fileio.FileWriter):
@@ -27,10 +26,12 @@ def lire_textfile_ligne(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
     self.prepare_lecture_fichier(rep, chemin, fichier)
 
-    with open(self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace",) as ouvert:
+    with open(
+        self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
+    ) as ouvert:
         for ligne in ouvert:
             obj = self.getobj()
-            if obj is None: # gere le maxval
+            if obj is None:  # gere le maxval
                 return self.nb_lus
             obj.attributs["contenu"] = ligne
             self.process(obj)  # on traite l'objet precedent
@@ -41,13 +42,14 @@ def lire_textfile_bloc(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
     self.prepare_lecture_fichier(rep, chemin, fichier)
 
-    with open(self.fichier, "r", encoding=self.encoding, errors="backslashreplace",) as ouvert:
+    with open(
+        self.fichier, "r", encoding=self.encoding, errors="backslashreplace"
+    ) as ouvert:
         contenu = "".join(ouvert.readlines())
         obj = self.getobj()
         obj.attributs["contenu"] = contenu
         self.process(obj)  # on traite l'objet precedent
     return self.nb_lus
-
 
 
 def ecrire_objets_text(regle, _, attributs=None):
@@ -77,19 +79,18 @@ def ecrire_objets_text(regle, _, attributs=None):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
 
                     streamwriter = TextWriter(
-                        nom,
-                        encoding=regle.getvar("codec_sortie", "utf-8"),
+                        nom, encoding=regle.getvar("codec_sortie", "utf-8"), regle=regle
                     )
                     streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(regle, nom, streamwriter)
+                    ressource = sorties.creres(nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
             ressource.write(obj, regle.idregle)
 
 
 READERS = {
-            "ligne": (lire_textfile_ligne, "", False, (), None, None),
-            "text": (lire_textfile_bloc, "", False, (), None, None),
-            }
+    "ligne": (lire_textfile_ligne, "", False, (), None, None),
+    "text": (lire_textfile_bloc, "", False, (), None, None),
+}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "",None)}
+WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "", None)}

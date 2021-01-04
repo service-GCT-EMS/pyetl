@@ -142,8 +142,9 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
                         schema=schema_courant,
                         encoding=encoding,
                         liste_att=attributs,
+                        regle=regle,
                     )
-                    sorties.creres(regle, nom, str_w)
+                    sorties.creres(nom, str_w)
                     ressource = sorties.get_res(regle, nom)
                 dident = (groupe, classe)
             #                fich = ressource.handler
@@ -190,8 +191,9 @@ def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferi
                 schema_courant,
                 extention,
                 encoding=regle.getvar("codec_sortie", "utf-8"),
+                regle=regle,
             )
-            sorties.creres(regle, nom, str_w)
+            sorties.creres(nom, str_w)
             ressource = sorties.get_res(regle, nom)
         else:
             print("json:changeschema", obj, obj.schema)

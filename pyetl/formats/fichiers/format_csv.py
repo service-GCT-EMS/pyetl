@@ -44,13 +44,19 @@ def decode_entetes_csv(reader, entete, separ):
     return noms_attributs
 
 
-def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
+def _controle_nb_champs(val_attributs, controle, nbwarn, ligne, logger):
     """ ajuste le nombre de champs lus """
     if len(val_attributs) < controle:
         val_attributs.extend([""] * controle)
     else:
         nbwarn += 1
         if nbwarn < 10:
+            logger.warning(
+                "format csv : nombre de valeurs incorrect %d au lieu de %d",
+                len(val_attributs),
+                controle,
+            )
+
             print(
                 "warning: csv  : erreur format csv : nombre de valeurs incorrect",
                 len(val_attributs),
@@ -84,7 +90,7 @@ def decoupage_soigne(ligne):
 def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
     reader.prepare_lecture_fichier(rep, chemin, fichier)
-
+    logger = reader.regle_ref.stock_param.logger
     if separ is None:
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
@@ -100,12 +106,15 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
             if entete[0] == "!":
                 entete = entete[1:]
             elif reader.regle_ref.getvar("entete_csv", "") == "1":
+                logger.info(
+                    "entete csv forcee a la premiere ligne %s", ";".join(entete)
+                )
                 print("entete csv forcee a la premiere ligne", entete)
                 pass
             else:  # il faut l'inventer...
-                print("============attention fichier csv sans entete==============")
-                print("indice: pour utiliser la premiere ligne comme entete")
-                print("mettre entete_csv=1 ou demarrer la premiere ligne par !")
+                logger.warning("fichier csv sans entete")
+                logger.info("indice: pour utiliser la premiere ligne comme entete")
+                logger.info("mettre entete_csv=1 ou demarrer la premiere ligne par !")
                 entete = separ * len(fich.readline()[:-1].split(separ))
                 fich.seek(0)  # on remet le fichier au debut
             noms_attributs = decode_entetes_csv(reader, entete, separ)
@@ -124,7 +133,9 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 # print ('lecture_csv:',[i for i in liste_attributs])
                 if len(val_attributs) != controle:
 
-                    nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
+                    nbwarn = _controle_nb_champs(
+                        val_attributs, controle, nbwarn, i, logger
+                    )
                 obj = reader.getobj(valeurs=val_attributs)
                 if obj is None:
                     continue  # filtrage entree
@@ -138,16 +149,12 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
                 obj.attributs["#chemin"] = chemin
                 reader.process(obj)
 
-                # if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
-                #     break
-
-                # if nlignes % 100000 == 0:
-                #     regle_ref.stock_param.aff.send(("interm", 0, nlignes))
-                #     # gestion des affichages de patience
     except UnicodeError:
-        print("erreur encodage le fichier", fichier, "n'est pas en ", reader.encoding)
+        logger.error(
+            "erreur encodage le fichier %s n'est pas en %s", fichier, reader.encoding
+        )
     if nbwarn:
-        print(nbwarn, "lignes avec un nombre d'attributs incorrect")
+        logger.warning(" %d lignes avec un nombre d'attributs incorrect", nbwarn)
     return
 
 
@@ -158,30 +165,32 @@ class CsvWriter(FileWriter):
         self,
         nom,
         schema,
-        extension,
-        separ,
-        entete,
-        encoding="utf-8",
-        null="",
-        f_sortie=None,
-        geomwriter=None,
+        regle
+        # extension,
+        # separ,
+        # entete,
+        # encoding="utf-8",
+        # null="",
+        # writer=None,
+        # geomwriter=None,
     ):
 
         super().__init__(
             nom,
-            encoding=encoding,
+            # encoding=encoding,
             schema=schema,
-            f_sortie=f_sortie,
-            separ=separ,
-            geomwriter=geomwriter,
+            regle=regle
+            # writer=writer,
+            # separ=separ,
+            # geomwriter=geomwriter,
         )
 
-        self.extension = extension
-        self.nom = nom
-        self.schema = schema
+        # self.extension = regle.writer.extension
+        # self.nom = nom
+        # self.schema = schema
         self.headerfonc = str
-        self.entete = entete
-        self.null = null
+        # self.entete = regle.writer.entete
+        # self.null = regle.writer.null
         self.classes = set()
         self.errcnt = 0
         if schema:
@@ -195,9 +204,8 @@ class CsvWriter(FileWriter):
         else:
             print("attention csvwriter a besoin d'un schema", self.nom)
             raise ValueError("csvwriter: schema manquant")
-        self.escape = "\\" + separ
+        self.escape = "\\" + self.separ
         self.repl = "\\" + self.escape
-        self.encoding = encoding
         if len(self.separ) != 1:
             print("attention separateur non unique", self.separ)
             self.transtable = str.maketrans({"\n": "\\" + "n", "\r": "\\" + "n"})
@@ -314,27 +322,29 @@ class SqlWriter(CsvWriter):
         self,
         nom,
         schema,
-        extension,
-        separ,
-        entete,
-        encoding="utf-8",
-        null="",
-        f_sortie=None,
-        geomwriter=None,
+        regle
+        # extension,
+        # separ,
+        # entete,
+        # encoding="utf-8",
+        # null="",
+        # writer=None,
+        # geomwriter=None,
     ):
         super().__init__(
             nom,
             schema,
-            extension,
-            separ,
-            entete,
-            encoding,
-            null,
-            f_sortie,
-            geomwriter=geomwriter,
+            regle
+            # extension,
+            # separ,
+            # entete,
+            # encoding,
+            # null,
+            # writer,
+            # geomwriter=geomwriter,
         )
         if self.writerparms:
-            self.schema.setsortie(self.f_sortie)
+            self.schema.setsortie(self.writer)
         self.transtable = str.maketrans(
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )
@@ -369,33 +379,14 @@ class SqlWriter(CsvWriter):
                 else str(obj.attributs.get(nom, "")).translate(self.transtable)
                 for nom in self.liste_att
             )
-            # for nom in self.liste_att:
-            #     if nom in obj.hdict:
-            #         val = ", ".join(['"'+i+'" => "'+str(j).translate(self.htranstable)+'"' for i, j in sorted(obj.hdict[nom].items())])
-            #         atlist.append(val)
-            #         # print ('traitement hdict', nom, val)
-            #     else:
-            #         atlist.append(obj.attributs.get(nom, "").translate(self.transtable))
+
         else:
             atlist = (
                 str(obj.attributs.get(i, "")).translate(self.transtable)
                 for i in self.liste_att
             )
-        # retour = self.separ.join((i if i else self.null for i in atlist))
-        # if '"' in retour:
-        #     for i in self.liste_att:
-        #         if '"' in str(obj.attributs.get(i, "")):
-        #             print("detecte tab", i, str(obj.attributs.get(i, "")))
 
-        #     print(" alerte", retour)
         return self.separ.join((i if i else self.null for i in atlist))
-
-        # atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
-        # #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
-        # #                obj.geomnatif, obj.type_geom)
-        # #        print ('orig',obj.attributs)
-        # attributs = self.separ.join((i if i else self.null for i in atlist))
-        # return attributs
 
     def header(self, init=1):
         separ = ", "
@@ -509,8 +500,8 @@ def getfanout(regle, extention, ident, initial):
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar("_sortie")
     groupe, classe = ident
-    dest = regle.f_sortie.writerparms.get("destination")
-    #    print ('dans getfanout ', regle.fanout, regle.f_sortie.fanoutmax, ident,
+    dest = regle.writer.writerparms.get("destination")
+    #    print ('dans getfanout ', regle.fanout, regle.writer.fanoutmax, ident,
     #           initial,extention, dest)
 
     bfich = ""
@@ -521,12 +512,12 @@ def getfanout(regle, extention, ident, initial):
             ressource = sorties.get_res(regle, nom)
             return ressource, nom
 
-    if regle.fanout == "no" and regle.f_sortie.fanoutmax == "all":
+    if regle.fanout == "no" and regle.writer.fanoutmax == "all":
         bfich = dest if dest else "all"
         nom = sorties.get_id(rep_sortie, bfich, "", extention, nom=dest)
     #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
     elif regle.fanout == "groupe" and (
-        regle.f_sortie.fanoutmax == "all" or regle.f_sortie.fanoutmax == "groupe"
+        regle.writer.fanoutmax == "all" or regle.writer.fanoutmax == "groupe"
     ):
         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
         #            len(obj.schema.attributs))
@@ -544,31 +535,32 @@ def getfanout(regle, extention, ident, initial):
     return ressource, nom
 
 
-def change_ressource(regle, obj, writer, initial=False):
+def change_ressource(regle, obj, initial=False):
     """ change la definition de la ressource utilisee si necessaire"""
     # separ, extention, entete, null, initial=False, geomwriter=None
     ident = obj.ident
 
-    ressource, nom = getfanout(regle, writer.extension, ident, initial)
+    ressource, nom = getfanout(regle, regle.writer.extension, ident, initial)
     #    ressource = sorties.get_res(regle, nom)
 
-    #    print ('change_ressoures ', regle.f_sortie.writerparms)
+    #    print ('change_ressoures ', regle.writer.writerparms)
     if ressource is None:
         if not nom.startswith("#"):
             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
             os.makedirs(os.path.dirname(nom), exist_ok=True)
-        str_w = writer.writerclass(
+        str_w = regle.writer.writerclass(
             nom,
             obj.schema,
-            writer.extension,
-            writer.separ,
-            writer.header,
-            encoding=regle.getvar("codec_sortie", "utf-8"),
-            null=writer.null,
-            f_sortie=regle.f_sortie,
-            geomwriter=writer.geomwriter,
+            regle,
+            # writer.extension,
+            # writer.separ,
+            # writer.header,
+            # encoding=regle.getvar("codec_sortie", "utf-8"),
+            # null=writer.null,
+            # writer=regle.writer,
+            # geomwriter=writer.geomwriter,
         )
-        ressource = regle.stock_param.sorties.creres(regle, nom, str_w)
+        ressource = regle.stock_param.sorties.creres(nom, str_w)
     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
     regle.context.setroot("derniere_sortie", nom)
     regle.ressource = ressource
@@ -582,7 +574,7 @@ def csvstreamer(writer, obj, regle, _):
     if regle.dident == obj.ident:
         ressource = regle.ressource
     else:
-        ressource = change_ressource(regle, obj, writer, initial=True)
+        ressource = change_ressource(regle, obj, initial=True)
 
     ressource.write(obj, regle.idregle)
 
@@ -604,7 +596,7 @@ def ecrire_objets_csv(writer, regle, _):
             #            print( regle.stockage)
             #            groupe, classe = obj.ident
             if obj.ident != regle.dident:
-                ressource = change_ressource(regle, obj, writer, initial=False)
+                ressource = change_ressource(regle, obj, initial=False)
 
             ressource.write(obj, regle.idregle)
 
@@ -613,46 +605,49 @@ def ecrire_objets_csv(writer, regle, _):
     return
 
 
-def initwriter(writer, extension, header, separ, null, writerclass=CsvWriter):
+def initwriter(self, extension, header, separ, null, writerclass=CsvWriter):
     """positionne les parametres du writer csv (sql et txt)"""
     # print ('initialisation writer', extension, header,separ,null)
-    writer.separ = separ
-    writer.extension = extension
-    writer.header = header
-    writer.null = null
-    writer.writerclass = writerclass
+    self.separ = separ
+    self.extension = extension
+    self.entete = header
+    self.null = null
+    self.writerclass = writerclass
 
 
-def init_csv(writer):
+def init_csv(self):
     """writer csv"""
-    separ = writer.regle.getchain(("separ_csv_out", "separ_csv"), ";")
+    separ = self.regle.getchain(("separ_csv_out", "separ_csv"), ";")
     if separ == r"\;":
         separ = ";"
-    print("initwriter csv separateur:", separ, writer.regle.getvar("separ_csv_out"))
-    initwriter(writer, ".csv", "csv", (";" if separ == "#std" else separ), "")
-    headerdef = writer.regle.getvar("csvheader")
+    self.regle.stock_param.logger.info(
+        "initwriter csv separateur: %s (%s)", separ, self.regle.getvar("separ_csv_out")
+    )
+    # print("initwriter csv separateur:", separ, writer.regle.getvar("separ_csv_out"))
+    initwriter(self, ".csv", "csv", (";" if separ == "#std" else separ), "")
+    headerdef = self.regle.getvar("csvheader")
     if "no!" in headerdef:
-        writer.header = "csv_f"
+        self.header = "csv_f"
     if "up" in headerdef:
-        writer.headerfonc = str.upper
+        self.headerfonc = str.upper
     elif "low" in headerdef:
-        writer.headerfonc = str.lower
+        self.headerfonc = str.lower
 
 
-def init_txt(writer):
+def init_txt(self):
     """writer txt separateur tab pour le mode copy de postgres"""
-    separ = writer.regle.getchain(("separ_txt_out", "separ_txt"), "\t")
-    initwriter(writer, ".txt", False, ("\t" if separ == "#std" else separ), "")
+    separ = self.regle.getchain(("separ_txt_out", "separ_txt"), "\t")
+    initwriter(self, ".txt", False, ("\t" if separ == "#std" else separ), "")
 
 
-def init_geo(writer):
+def init_geo(self):
     """writer geo covadis"""
-    initwriter(writer, ".geo", False, "  ", "")
+    initwriter(self, ".geo", False, "  ", "")
 
 
-def init_sql(writer):
+def init_sql(self):
     """writer sql :  mode copy avec gestion des triggers et des sequences """
-    initwriter(writer, ".sql", "sql", "\t", r"\N", writerclass=SqlWriter)
+    initwriter(self, ".sql", "sql", "\t", r"\N", writerclass=SqlWriter)
 
 
 def lire_objets_txt(self, rep, chemin, fichier):

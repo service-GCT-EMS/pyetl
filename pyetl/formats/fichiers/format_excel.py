@@ -50,7 +50,9 @@ def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, regle, entete, separ)
     else:
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        noms_attributs = [i.lower().strip().replace(" ", "_") for i in entete.split(separ)]
+        noms_attributs = [
+            i.lower().strip().replace(" ", "_") for i in entete.split(separ)
+        ]
         # on verifie que les noms existent et sont uniques
         noms = set()
 
@@ -96,23 +98,22 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
 
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
     nom_schema, nom_groupe = getnoms(rep, chemin, fichier)
-    alire=os.path.join(rep,chemin,fichier)
-    print ('ouverture fichier', alire)
+    alire = os.path.join(rep, chemin, fichier)
+    print("ouverture fichier", alire)
 
-    wb = load_workbook(filename = alire)
-    print ('ouverture excel', wb, dir(wb))
+    wb = load_workbook(filename=alire)
+    print("ouverture excel", wb, dir(wb))
     for i in wb.worksheets:
-        print('lecture table', i)
+        print("lecture table", i)
         for j in i.iter_rows():
             ligne = list(c.value for c in j)
             if any(ligne):
-                print ('ligne',ligne)
-
-
-
+                print("ligne", ligne)
 
     if not entete:
-        entete = fich.readline()[:-1]  # si l'entete n'est pas fourni on le lit dans le fichier
+        entete = fich.readline()[
+            :-1
+        ]  # si l'entete n'est pas fourni on le lit dans le fichier
         if entete[0] == "!":
             entete = entete[1:]
         else:  # il faut l'inventer...
@@ -152,7 +153,9 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
             break
 
         if nlignes % 100000 == 0:
-            self.regle_ref.stock_param.aff.send(("interm", 0, nlignes))  # gestion des affichages de patience
+            self.regle_ref.stock_param.aff.send(
+                ("interm", 0, nlignes)
+            )  # gestion des affichages de patience
 
     if nbwarn:
         print(nbwarn, "lignes avec un nombre d'attributs incorrect")
@@ -172,10 +175,11 @@ class XlsxWriter(FileWriter):
         encoding="utf-8",
         null="",
         f_sortie=None,
+        regle=None,
     ):
 
         super().__init__(
-            nom, encoding=encoding, schema=schema, f_sortie=f_sortie
+            nom, encoding=encoding, schema=schema, f_sortie=f_sortie, regle=regle
         )
 
         self.extension = extension
@@ -209,7 +213,11 @@ class XlsxWriter(FileWriter):
         """ preparation de l'entete du fichiersr csv"""
         if not self.entete:
             return ""
-        geom = self.separ + "geometrie" + "\n" if self.schema.info["type_geom"] != "0" else "\n"
+        geom = (
+            self.separ + "geometrie" + "\n"
+            if self.schema.info["type_geom"] != "0"
+            else "\n"
+        )
         return "!" + self.separ.join(self.liste_att) + geom
 
     def write(self, obj):
@@ -217,7 +225,10 @@ class XlsxWriter(FileWriter):
         if obj.virtuel:
             return False  #  les objets virtuels ne sont pas sortis
 
-        atlist = (str(obj.attributs.get(i, "")).translate(self.transtable) for i in self.liste_att)
+        atlist = (
+            str(obj.attributs.get(i, "")).translate(self.transtable)
+            for i in self.liste_att
+        )
         #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
         #                obj.geomnatif, obj.type_geom)
         #        print ('orig',obj.attributs)
@@ -261,10 +272,14 @@ def getfanout(regle, extention, ident, initial):
     ):
         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
         #            len(obj.schema.attributs))
-        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest)
+        nom = sorties.get_id(
+            os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
+        )
 
     else:
-        nom = sorties.get_id(os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest)
+        nom = sorties.get_id(
+            os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
+        )
 
     ressource = sorties.get_res(regle, nom)
     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
@@ -295,8 +310,9 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
             encoding=regle.getvar("codec_sortie", "utf-8"),
             null=null,
             f_sortie=regle.f_sortie,
+            regle=regle,
         )
-        ressource = regle.stock_param.sorties.creres(regle, nom, str_w)
+        ressource = regle.stock_param.sorties.creres(nom, str_w)
     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat)
     regle.ressource = ressource
     regle.dident = ident
@@ -304,7 +320,14 @@ def change_ressource(regle, obj, writer, separ, extention, entete, null, initial
 
 
 def excel_streamer(
-    obj, regle, _, entete="csv", separ=None, extention=".csv", null="", writer=XlsxWriter
+    obj,
+    regle,
+    _,
+    entete="csv",
+    separ=None,
+    extention=".csv",
+    null="",
+    writer=XlsxWriter,
 ):  # ecritures non bufferisees
     """ ecrit des objets csv en streaming"""
     #    sorties = regle.stock_param.sorties
@@ -341,12 +364,25 @@ def ecrire_objets_excel(
                     regle, obj, writer, separ, extention, entete, null, initial=False
                 )
 
-            ressource.write(obj, regle.idregle)
+            ressource.write(obj, regle)
 
     #            if obj.geom_v.courbe:
     #                obj.schema.info['courbe'] = '1'
 
 
-READERS = {"xlsx": (lire_objets_excel, "", False, (), None,None)}
+READERS = {"xlsx": (lire_objets_excel, "", False, (), None, None)}
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom, initer)
-WRITERS = {"xlsx": (ecrire_objets_excel, excel_streamer, False, "", 0, "", "groupe", "", "",None)}
+WRITERS = {
+    "xlsx": (
+        ecrire_objets_excel,
+        excel_streamer,
+        False,
+        "",
+        0,
+        "",
+        "groupe",
+        "",
+        "",
+        None,
+    )
+}

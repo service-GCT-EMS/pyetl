@@ -179,15 +179,15 @@ def sortir_traite_stock(regle):
     """ecriture finale"""
     if regle.final:
         try:
-            #            print('ecriture finale', regle.f_sortie.ecrire_objets)
-            regle.f_sortie.ecrire_objets(regle, True)
+            #            print('ecriture finale', regle.writer.ecrire_objets)
+            regle.writer.ecrire_objets(regle, True)
         except IOError as err:
             LOGGER.error("erreur d'ecriture: " + repr(err))
         regle.nbstock = 0
         return
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recup_objets(groupe):
-            regle.f_sortie.ecrire_objets_stream(obj, regle, False)
+            regle.writer.ecrire_objets_stream(obj, regle, False)
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 
@@ -215,34 +215,34 @@ def h_sortir(regle):
         regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     if regle.params.cmp2.val == "#print":
-        regle.f_sortie = regle.stock_param.getwriter("#print", regle)
+        regle.writer = regle.stock_param.getwriter("#print", regle)
     elif regle.params.cmp2.val == "" and regle.getvar("_sortie") == "#print":
-        regle.f_sortie = regle.stock_param.getwriter("#print", regle)
+        regle.writer = regle.stock_param.getwriter("#print", regle)
     else:
-        regle.f_sortie = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
-    # print("positionnement writer ", regle, regle.f_sortie)
-    if regle.f_sortie.nom_format == "sql":
+        regle.writer = regle.stock_param.getwriter(regle.params.cmp1.val, regle)
+    # print("positionnement writer ", regle, regle.writer)
+    if regle.writer.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
-        destination = regle.f_sortie.writerparms.get("base_dest")
-        dialecte = regle.f_sortie.writerparms.get("dialecte")
-        regle.f_sortie.writerparms["reinit"] = regle.getvar("reinit")
-        regle.f_sortie.writerparms["nodata"] = regle.getvar("nodata")
+        destination = regle.writer.writerparms.get("base_dest")
+        dialecte = regle.writer.writerparms.get("dialecte")
+        regle.writer.writerparms["reinit"] = regle.getvar("reinit")
+        regle.writer.writerparms["nodata"] = regle.getvar("nodata")
         if destination:  # on va essayer de se connecter
             connection = regle.stock_param.getdbaccess(regle, destination)
             if connection and connection.valide:
-                regle.f_sortie.gensql = (
+                regle.writer.gensql = (
                     connection.gensql
                 )  # la on a une instance connectee
         elif dialecte:
-            regle.f_sortie.gensql = dialecte.gensql()
-    #        print ('sortie',regle.ligne,regle.f_sortie.writerparms)
-    elif regle.f_sortie.nom_format == "file":  # gestion de fichiers de texte generiques
-        dialecte = regle.f_sortie.writerparms.get("dialecte")
+            regle.writer.gensql = dialecte.gensql()
+    #        print ('sortie',regle.ligne,regle.writer.writerparms)
+    elif regle.writer.nom_format == "file":  # gestion de fichiers de texte generiques
+        dialecte = regle.writer.writerparms.get("dialecte")
         regle.ext = dialecte
 
     regle.fanout = (
         regle.context.getvar("fanout", "groupe")
-        if regle.f_sortie.multiclasse
+        if regle.writer.multiclasse
         else "classe"
     )
 
@@ -256,7 +256,7 @@ def h_sortir(regle):
                 "_sortie",
                 os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)),
             )
-            regle.f_sortie.writerparms["destination"] = os.path.basename(
+            regle.writer.writerparms["destination"] = os.path.basename(
                 regle.params.cmp2.val
             )
         else:
@@ -265,7 +265,7 @@ def h_sortir(regle):
         # print("sortir: ", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
-    regle.calcule_schema = regle.f_sortie.calcule_schema
+    regle.calcule_schema = regle.writer.calcule_schema
     regle.memlimit = int(regle.context.getvar("memlimit", 0))
     mode_sortie = regle.context.getvar("mode_sortie", "D")
     #    print("init stockage ", mode_sortie)
@@ -285,7 +285,7 @@ def h_sortir(regle):
     regle.valide = True
 
 
-#    print ('fin preparation sortie ',regle.f_sortie.writerparms)
+#    print ('fin preparation sortie ',regle.writer.writerparms)
 
 
 def setschemasortie(regle, obj):
@@ -299,9 +299,9 @@ def setschemasortie(regle, obj):
             rep_sortie = os.path.join(
                 regle.getvar("_sortie"), os.path.dirname(regle.params.cmp1.val)
             )
-        obj.schema.setsortie(regle.f_sortie, rep_sortie)
+        obj.schema.setsortie(regle.writer, rep_sortie)
 
-        obj.schema.setminmaj(regle.f_sortie.minmaj)
+        obj.schema.setminmaj(regle.writer.minmaj)
     if regle.params.att_entree.liste:
         obj.liste_atttributs = regle.params.att_entree.liste
 
@@ -312,7 +312,7 @@ def f_sortir(regle, obj):
     #pattern||?=#schema;?C;?L;sortir;?C;?C||sortie
        #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||out
     """
-    if regle.f_sortie is None:
+    if regle.writer is None:
         return False
     if obj.virtuel:  # on ne traite pas les virtuels
         # print("======================sortie objet virtuel", regle, obj)
@@ -322,9 +322,9 @@ def f_sortir(regle, obj):
     schemaclasse_ref = obj.schema
 
     setschemasortie(regle, obj)
-    #    print ('stockage ',regle.f_sortie.calcule_schema, regle.store)
+    #    print ('stockage ',regle.writer.calcule_schema, regle.store)
     if regle.store is None:  # on decide si la regle est stockante ou pas
-        regle.store = regle.f_sortie.calcule_schema and (
+        regle.store = regle.writer.calcule_schema and (
             not obj.schema or not obj.schema.stable
         )
         if regle.store:  # on ajuste les branchements
@@ -340,14 +340,14 @@ def f_sortir(regle, obj):
             # regle.stock_param.nb_obj+=1
             if regle.stock_param.stream:  # sortie classe par classe
                 if groupe not in regle.stockage:
-                    regle.f_sortie.ecrire_objets(
+                    regle.writer.ecrire_objets(
                         regle, False
                     )  # on sort le groupe precedent
                     regle.compt_stock = 0
             regle.endstore(nom_base, groupe, obj)
             return True
 
-    regle.f_sortie.ecrire_objets_stream(obj, regle, False)
+    regle.writer.ecrire_objets_stream(obj, regle, False)
     obj.schema = None
 
     if regle.final:

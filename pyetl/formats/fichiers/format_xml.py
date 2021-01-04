@@ -22,23 +22,11 @@ def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
 class XmlWriter(FileWriter):
     """ gestionnaire des fichiers xml en sortie """
 
-    def __init__(
-        self,
-        nom,
-        schema=None,
-        entete="",
-        encoding="utf-8",
-        null="",
-        writerparms=None,
-        liste_att=None,
-    ):
-        super().__init__(nom, encoding=encoding, schema=schema)
+    def __init__(self, nom, schema=None, liste_att=None, regle=None):
+        super().__init__(nom, schema=schema, regle=regle)
 
         self.nom = nom
         self.schema = schema
-        self.null = null
-        self.writerparms = writerparms
-        self.entete = entete
         self.liste_atts = liste_att
         template = self.writerparms.get("template") if self.writerparms else None
         self.templates = dict()
@@ -208,8 +196,9 @@ def get_ressource(obj, regle, attributs=None):
             encoding=regle.getvar("codec_sortie", "utf-8"),
             liste_att=attributs,
             schema=obj.schema,
+            regle=regle,
         )
-        ressource = sorties.creres(regle, nom, streamwriter)
+        ressource = sorties.creres(nom, streamwriter)
         ressource.handler.changeclasse(obj.schema, attributs)
     else:
         ressource.handler.changeclasse(obj.schema, attributs)

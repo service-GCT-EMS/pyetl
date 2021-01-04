@@ -306,6 +306,13 @@ class Macro(object):
 
         self.commandes_macro[numero] = ligne
 
+    def close(self):
+        """ ajoute une commande pass au cas ou la macro finit par un niveau"""
+        maxnum = max(self.commandes_macro.keys())
+        last = self.commandes_macro[maxnum]
+        if last.startswith("!") or last.startswith("+"):
+            self.commandes_macro[maxnum + 1] = ";;;;pass;;"
+
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
         macroenv = context.getmacroenv(self.nom)
@@ -362,6 +369,7 @@ class MacroStore(object):
                 macro = self.regmacro(nom, file=origine, vpos=vpos)
             elif macro:
                 macro.add_command(conf, num)
+        macro.close()
 
     def getmacro(self, nom):
         return self.macros.get(nom)

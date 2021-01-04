@@ -221,6 +221,7 @@ def setvloc(regle):
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
     # print("avant ajuste_context", regle, prec)
+    # print("avant ajuste_context", regle.niveau, prec.niveau)
     if regle.niveau > prec.niveau:
         cprec = regle.stock_param.pushcontext(prec.context)
         regle.context.setparent(cprec, ref=False)
@@ -673,24 +674,6 @@ def getlevel(mapper, texte_brut, regle_ref):
 def importe_macro(mapper, texte_brut, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
     niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
-    # match = re.match(r"(([\|\+\-]+)([a-z]*):)?(<.*)", texte)
-    # #            niveau = len(match.group(2)) if match.group(2) else 0 +(1 if match.group(3) else 0)
-    # niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
-    # # print("niveau retenu", niveau)
-    # texte = match.group(4)
-    # # print("importe macro", niveau, texte)
-    # # on gere les niveaux
-    # if regle_ref:
-    #     prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
-    # else:
-    #     prec = mapper.regles[-1] if mapper.regles else None
-    # nivmacro = len(niveau)
-    # rvirt = ""
-    # if prec:
-    #     if nivmacro != prec.niveau:
-    #         rvirt = (niveau + ":" if niveau else "") + ";;;;;;;pass;;;;;rv"
-    #         # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
-    #         traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
     if macroenv.getvar("debug", "0") != "0":
@@ -821,6 +804,7 @@ def lire_regles_csv(
                 texte = ";;;;;" + nom + ";;;batch;;"
                 macro = mapper.macrostore.regmacro(nom, file=fichier_regles)
             else:
+                macro.close()
                 macro = None
                 continue
         elif macro:

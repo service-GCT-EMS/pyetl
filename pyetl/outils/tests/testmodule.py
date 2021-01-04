@@ -352,7 +352,7 @@ def autotest_partiel(mapper, nom):
     test = mapper.getmacro("#start_test")
     if test:
         liste_regles.extend(test.get_commands())
-    #    print ("lu regles de test",liste_regles)
+        print("lu regles de test", liste_regles)
     return liste_regles
 
 
@@ -370,21 +370,17 @@ def full_autotest(mapper, nom):
         ]
         print("tests a passer", liste_tests)
         for i in liste_tests:
-            print("-------------------debut test", i, "-------------------")
             map2 = mapper.getpyetl("#autotest:" + i)
+            print("--------------------debut test " + i)
             if map2 is None:
                 print("autotest: erreur creation environnement", i)
                 continue
-            nl2, nfl2, _, _ = map2.process()
+            map2.process()
+            wstats = map2.get_work_stats()
             print(
-                "-------------------fin test",
-                i,
-                ":",
-                nl2,
-                "objets dans",
-                nfl2,
-                "fichiers",
+                "---------------------%d objets lus dans %d fichiers"
+                % (wstats["obj_lus"], wstats["fich_lus"])
             )
-            print("----------------------------------------------------------------")
+            print("--------------------fin test " + i)
         return []
     return autotest_partiel(mapper, nom)

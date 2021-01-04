@@ -51,26 +51,34 @@ class FileWriter(object):
     def __init__(
         self,
         nom,
-        liste_att=None,
-        converter=_defaultconverter,
-        geomwriter=None,
-        separ=None,
-        encoding="utf-8",
-        srid="3948",
+        # liste_att=None,
+        # converter=_defaultconverter,
+        # geomwriter=None,
+        # separ=None,
+        # encoding="utf-8",
+        # srid="3948",
         schema=None,
-        f_sortie=None,
+        regle=None
+        # f_sortie=None, # writer utilise
     ):
         self.nom = nom
-        self.f_sortie = f_sortie
-        if f_sortie:
-            self.writerparms = f_sortie.writerparms
-        self.liste_att = schema.get_liste_attributs(liste=liste_att) if schema else None
+        self.writer = regle.writer
+        self.regle = regle
+        self.writerparms = self.writer.writerparms
+        self.liste_att = (
+            schema.get_liste_attributs(liste=self.writer.liste_att)
+            if schema
+            else self.writer.liste_att
+        )
         self.fichier = None
-        self.encoding = encoding
-        self.converter = converter
-        self.geomwriter = geomwriter
-        self.srid = srid
-        self.separ = separ
+        self.encoding = self.writer.encoding or "utf-8"
+        # self.converter = self.writer.converter
+        self.geomwriter = self.writer.geomwriter
+        self.extension = self.writer.extension
+        self.entete = self.writer.entete
+        self.null = self.writer.null
+        self.srid = "3948"
+        self.separ = self.writer.separ
         self.schema = schema
         self.htext = ""
         self.hinit = ""

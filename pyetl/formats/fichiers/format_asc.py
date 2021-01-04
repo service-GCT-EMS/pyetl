@@ -498,7 +498,13 @@ class AscWriter(FileWriter):
     """ gestionnaire d'ecriture pour fichiers asc"""
 
     def __init__(
-        self, nom, liste_att=None, encoding="cp1252", schema=None, geomwriter=None
+        self,
+        nom,
+        liste_att=None,
+        encoding="cp1252",
+        schema=None,
+        geomwriter=None,
+        regle=None,
     ):
         super().__init__(
             nom,
@@ -507,6 +513,7 @@ class AscWriter(FileWriter):
             encoding=encoding,
             schema=schema,
             geomwriter=geomwriter,
+            writer=regle.writer,
         )
         self.htext = "*****\n** sortie_mapper\n*****\n"
         if schema and schema.schema.metas:
@@ -593,8 +600,9 @@ def asc_streamer(self, obj, regle, _, attributs=None):
                 liste_att=attributs,
                 geomwriter=self.geomwriter,
                 schema=obj.schema,
+                regle=regle,
             )
-            ressource = sorties.creres(regle, nom, streamwriter)
+            ressource = sorties.creres(nom, streamwriter)
         else:
             ressource.handler.changeclasse(obj.schema, attributs)
 
@@ -630,10 +638,10 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
 
                     streamwriter = AscWriter(
-                        nom, encoding="cp1252", geomwriter=self.geomwriter
+                        nom, encoding="cp1252", geomwriter=self.geomwriter, regle=regle
                     )
                     streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(regle, nom, streamwriter)
+                    ressource = sorties.creres(nom, streamwriter)
                 regle.ressource = ressource
                 dident = (groupe, classe)
             ressource.write(obj, regle.idregle)
