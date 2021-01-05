@@ -169,26 +169,26 @@ class XlsxWriter(FileWriter):
         self,
         nom,
         schema,
-        extension,
-        separ,
-        entete,
-        encoding="utf-8",
-        null="",
-        f_sortie=None,
+        # extension,
+        # separ,
+        # entete,
+        # encoding="utf-8",
+        # null="",
+        # f_sortie=None,
         regle=None,
     ):
 
         super().__init__(
-            nom, encoding=encoding, schema=schema, f_sortie=f_sortie, regle=regle
+            nom, schema=schema, regle=regle
         )
 
-        self.extension = extension
-        self.separ = separ
+        self.extension = regle.extension
+        self.separ = regle.separ
         self.nom = nom
         self.schema = schema
 
-        self.entete = entete
-        self.null = null
+        self.entete = regle.entete
+        self.null = regle.null
         self.classes = set()
         if schema:
             #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
@@ -201,10 +201,10 @@ class XlsxWriter(FileWriter):
         else:
             print("attention csvwriter a besoin d'un schema", self.nom)
             raise ValueError("csvwriter: schema manquant")
-        self.escape = "\\" + separ
+        self.escape = "\\" + self.separ
         self.repl = "\\" + self.escape
         self.fichier = None
-        self.encoding = encoding
+        self.encoding = self.encoding
         self.transtable = str.maketrans(
             {"\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )

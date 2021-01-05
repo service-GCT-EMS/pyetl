@@ -197,7 +197,8 @@ def f_dbalpha(regle, obj):
             regle.setvar("_entree", dest)
             log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
             os.makedirs(os.path.dirname(log), exist_ok=True)
-            print("traitement db: dump donnees de", base, "vers", dest)
+            LOGGER.info("dump donnees de %s vers %s", base, dest)
+            # print("traitement db: dump donnees de", base, "vers", dest)
             retour = DB.dbextalpha(regle, basesel, dest=dest, log=log)
         else:
             retour += DB.recup_donnees_req_alpha(regle, basesel)
@@ -557,8 +558,8 @@ def f_dbextdump(regle, obj):
     dest = regle.params.cmp1.val or regle.getvar("_sortie")
     os.makedirs(dest, exist_ok=True)
     log = regle.params.cmp2.val or "log"
-
-    print("traitement db: extraction donnees de vers", dest)
+    LOGGER.info("extraction donnees de vers %s", dest)
+    # print("traitement db: extraction donnees de vers", dest)
     for base, baseselector in selecteur.baseselectors.items():
         DB.dbextdump(regle, base, baseselector, dest=dest, log=log)
     return True

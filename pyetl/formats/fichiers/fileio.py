@@ -10,8 +10,7 @@ import io
 
 def _defaultconverter(obj, liste_att, transtable=None, separ=None):
     """convertisseur d'objets de base"""
-    obj.liste_attributs = liste_att
-    return obj.__json_if__()
+    return obj.__json_if__(liste_att)
 
 
 #########################################################################

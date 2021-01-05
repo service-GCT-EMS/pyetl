@@ -70,15 +70,15 @@ def h_stocke(regle):
 
 def f_stocke(regle, obj):
     """#aide||stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
-  #aide_spec||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
- #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
-   #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
-   #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
-   #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
-   #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
-   #pattern5||S;;?L;tmpstore;=cnt;?=clef||cmp1
-       #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
-      #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
+     #aide_spec||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
+    #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
+      #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
+      #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
+      #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
+      #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
+      #pattern5||S;;?L;tmpstore;=cnt;?=clef||cmp1
+          #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
+         #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
     #    regle.stock.append(obj)
     # if obj.virtuel:
@@ -303,14 +303,14 @@ def setschemasortie(regle, obj):
 
         obj.schema.setminmaj(regle.writer.minmaj)
     if regle.params.att_entree.liste:
-        obj.liste_atttributs = regle.params.att_entree.liste
+        regle.writer.liste_attributs = regle.params.att_entree.liste
 
 
 def f_sortir(regle, obj):
     """#aide||sortir dans differents formats
-  #aide_spec||parametres:?(#schema;nom_schema);?liste_attributs;sortir;format[fanout]?;?nom
-    #pattern||?=#schema;?C;?L;sortir;?C;?C||sortie
-       #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||out
+    #aide_spec||parametres:?(#schema;nom_schema);?liste_attributs;sortir;format[fanout]?;?nom
+      #pattern||?=#schema;?C;?L;sortir;?C;?C||sortie
+         #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||out
     """
     if regle.writer is None:
         return False
@@ -318,8 +318,6 @@ def f_sortir(regle, obj):
         # print("======================sortie objet virtuel", regle, obj)
         # raise
         return True
-    listeref = obj.liste_attributs
-    schemaclasse_ref = obj.schema
 
     setschemasortie(regle, obj)
     #    print ('stockage ',regle.writer.calcule_schema, regle.store)
@@ -345,23 +343,18 @@ def f_sortir(regle, obj):
                     )  # on sort le groupe precedent
                     regle.compt_stock = 0
             regle.endstore(nom_base, groupe, obj)
-            return True
+        return True
 
     regle.writer.ecrire_objets_stream(obj, regle, False)
-    obj.schema = None
 
     if regle.final:
-        return True
-    # la on regenere l'objet et on l'envoie dans le circuit poutr la suite
-    obj.setschema(schemaclasse_ref)
-    obj.liste_attributs = listeref
-    # on reattribue le schema pour la sortie en simulant une copie
+        obj.schema = None
     return True
 
 
 def valreplace(chaine, obj):
     """remplace les elements provenant de l objet,
-     cas particulier du parametre en [nom]"""
+    cas particulier du parametre en [nom]"""
     vdef = r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]"
     repl = lambda x: obj.attributs.get(x.group(1), "")
     return re.sub(vdef, repl, chaine)
@@ -480,12 +473,12 @@ def h_preload(regle):
 
 def f_preload(regle, obj):
     """#aide||precharge un fichier en appliquant une macro
-  #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
- #aide_spec1||les elements entre [] sont pris dans l objet courant
- #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
-    #pattern||A;?C;?A;preload;?C;C
-      #!test||rien||^clef;%testrep%/refdata/lecture/t1.csv;;preload;;test||
-            ||^;%testrep%/refdata/lecture/t1.csv;;charge;;;||
+     #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
+    #aide_spec1||les elements entre [] sont pris dans l objet courant
+    #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
+       #pattern||A;?C;?A;preload;?C;C
+         #!test||rien||^clef;%testrep%/refdata/lecture/t1.csv;;preload;;test||
+               ||^;%testrep%/refdata/lecture/t1.csv;;charge;;;||
     """
     fich = regle.fich
 
@@ -530,13 +523,13 @@ def h_compare(regle):
 
 def f_compare2(regle, obj):
     """#aide||compare a un element precharge
-  #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
- #aide_spec2||sort en si si egal en sinon si different
- #aide_spec3||si les elements entre [] sont pris dans l objet courant
-    #pattern||A;;?L;compare2;A;C
-     #helper||compare
-     #schema||ajout_attribut
-      #!test||
+     #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
+    #aide_spec2||sort en si si egal en sinon si different
+    #aide_spec3||si les elements entre [] sont pris dans l objet courant
+       #pattern||A;;?L;compare2;A;C
+        #helper||compare
+        #schema||ajout_attribut
+         #!test||
     """
     if regle.precedent != obj.ident:
         comp = regle.stock_param.store[regle.params.cmp2.val]
@@ -600,12 +593,12 @@ def f_compare2(regle, obj):
 
 def f_compare(regle, obj):
     """#aide||compare a un element precharge
-  #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
- #aide_spec2||sort en si si egal en sinon si different
- #aide_spec3||si les elements entre [] sont pris dans l objet courant
-    #pattern||A;;?L;compare;A;C
-     #schema||ajout_attribut
-      #!test||
+     #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
+    #aide_spec2||sort en si si egal en sinon si different
+    #aide_spec3||si les elements entre [] sont pris dans l objet courant
+       #pattern||A;;?L;compare;A;C
+        #schema||ajout_attribut
+         #!test||
     """
     if regle.precedent != obj.ident:  # on vient de changer de classe
         if regle.comp:
@@ -664,8 +657,8 @@ def h_getkey(regle):
 
 def f_getkey(regle, obj):
     """#aide||retourne une clef numerique incrementale correspondant a une valeur
-  #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
-  #pattern||S;?C;?A;getkey;?A;;;
+    #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
+    #pattern||S;?C;?A;getkey;?A;;;
     """
     ref = regle.get_entree(obj)
     if ref not in regle.keystore:
@@ -682,8 +675,8 @@ def h_loadconfig(regle):
 
 def f_loadconfig(regle, obj):
     """#aide||charge des definitions et/ou des macros
-  #aide_spec||repertoire des parametres et des macros
-    #pattern||;;;loadconfig;C;C
+    #aide_spec||repertoire des parametres et des macros
+      #pattern||;;;loadconfig;C;C
     """
     return True
 

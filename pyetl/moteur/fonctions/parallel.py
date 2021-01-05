@@ -434,7 +434,9 @@ def traite_parallel(regle):
     num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-    print("passage en mode parallel sur ", nprocs, "process", num_regle, regle)
+    logger=regle.stock_param.logger
+    logger.info("passage en mode parallel sur %d process", nprocs)
+    # print("passage en mode parallel sur ", nprocs, "process", num_regle, regle)
     if mapper.worker:
         print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError

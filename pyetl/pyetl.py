@@ -567,7 +567,8 @@ class Pyetl(object):
                     int((nbobj) / duree),
                 )
                 if mode == "cmd":
-                    print("message recu", ligne)
+                    self.logger.info(ligne)
+                    # print("message recu", ligne)
                 elif mode == "web":
                     pass
             return (
@@ -1226,7 +1227,7 @@ class Pyetl(object):
         return Reader(nom_format, regle, reglestart)
 
     def getwriter(self, nom_format, regle):
-        """retourne un reader"""
+        """retourne un writer"""
         return Writer(nom_format, regle, None)
 
     def getdbaccess(self, regle, nombase, type_base=None, chemin=""):

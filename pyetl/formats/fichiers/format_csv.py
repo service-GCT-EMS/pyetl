@@ -495,88 +495,77 @@ class SqlWriter(CsvWriter):
         self.fichier.write(self.header(init=0))
 
 
-def getfanout(regle, extention, ident, initial):
-    """determine le mode de fanout"""
-    sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar("_sortie")
-    groupe, classe = ident
-    dest = regle.writer.writerparms.get("destination")
-    #    print ('dans getfanout ', regle.fanout, regle.writer.fanoutmax, ident,
-    #           initial,extention, dest)
+# def getfanout(regle, extention, ident, initial):
+#     """determine le mode de fanout"""
+#     sorties = regle.stock_param.sorties
+#     rep_sortie = regle.getvar("_sortie")
+#     groupe, classe = ident
+#     dest = regle.writer.writerparms.get("destination")
+#     #    print ('dans getfanout ', regle.fanout, regle.writer.fanoutmax, ident,
+#     #           initial,extention, dest)
 
-    bfich = ""
-    if regle.params.cmp2.val:
-        nfich = regle.params.cmp2.val
-        if nfich == "#print":
-            nom = "#print"
-            ressource = sorties.get_res(regle, nom)
-            return ressource, nom
+#     bfich = ""
+#     if regle.params.cmp2.val:
+#         nfich = regle.params.cmp2.val
+#         if nfich == "#print":
+#             nom = "#print"
+#             ressource = sorties.get_res(regle, nom)
+#             return ressource, nom
 
-    if regle.fanout == "no" and regle.writer.fanoutmax == "all":
-        bfich = dest if dest else "all"
-        nom = sorties.get_id(rep_sortie, bfich, "", extention, nom=dest)
-    #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
-    elif regle.fanout == "groupe" and (
-        regle.writer.fanoutmax == "all" or regle.writer.fanoutmax == "groupe"
-    ):
-        #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
-        #            len(obj.schema.attributs))
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
-        )
+#     if regle.fanout == "no" and regle.writer.fanoutmax == "all":
+#         bfich = dest if dest else "all"
+#         nom = sorties.get_id(rep_sortie, bfich, "", extention, nom=dest)
+#     #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
+#     elif regle.fanout == "groupe" and (
+#         regle.writer.fanoutmax == "all" or regle.writer.fanoutmax == "groupe"
+#     ):
+#         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
+#         #            len(obj.schema.attributs))
+#         nom = sorties.get_id(
+#             os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
+#         )
 
-    else:
-        nom = sorties.get_id(
-            os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
-        )
+#     else:
+#         nom = sorties.get_id(
+#             os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
+#         )
 
-    ressource = sorties.get_res(regle, nom)
-    #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
-    return ressource, nom
+#     ressource = sorties.get_res(regle, nom)
+#     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
+#     return ressource, nom
 
 
-def change_ressource(regle, obj, initial=False):
-    """ change la definition de la ressource utilisee si necessaire"""
-    # separ, extention, entete, null, initial=False, geomwriter=None
-    ident = obj.ident
+# def change_ressource(regle, obj, initial=False):
+#     """ change la definition de la ressource utilisee si necessaire"""
+#     # separ, extention, entete, null, initial=False, geomwriter=None
 
-    ressource, nom = getfanout(regle, regle.writer.extension, ident, initial)
-    #    ressource = sorties.get_res(regle, nom)
+#     ressource, nom = getfanout(regle, regle.writer.extension, obj.ident, initial)
+#     #    ressource = sorties.get_res(regle, nom)
 
-    #    print ('change_ressoures ', regle.writer.writerparms)
-    if ressource is None:
-        if not nom.startswith("#"):
-            #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
-            os.makedirs(os.path.dirname(nom), exist_ok=True)
-        str_w = regle.writer.writerclass(
-            nom,
-            obj.schema,
-            regle,
-            # writer.extension,
-            # writer.separ,
-            # writer.header,
-            # encoding=regle.getvar("codec_sortie", "utf-8"),
-            # null=writer.null,
-            # writer=regle.writer,
-            # geomwriter=writer.geomwriter,
-        )
-        ressource = regle.stock_param.sorties.creres(nom, str_w)
-    #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
-    regle.context.setroot("derniere_sortie", nom)
-    regle.ressource = ressource
-    regle.dident = ident
-    return ressource
+#     #    print ('change_ressoures ', regle.writer.writerparms)
+#     if ressource is None:
+#         if not nom.startswith("#"):
+#             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
+#             os.makedirs(os.path.dirname(nom), exist_ok=True)
+#         str_w = regle.writer.writerclass(
+#             nom,
+#             schema=obj.schema,
+#             regle=regle,
+#         )
+#         ressource = regle.stock_param.sorties.creres(nom, str_w)
+#     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
+#     regle.context.setroot("derniere_sortie", nom)
+#     return ressource
 
 
 def csvstreamer(writer, obj, regle, _):
     """ ecrit des objets csv en streaming"""
     #    sorties = regle.stock_param.sorties
-    if regle.dident == obj.ident:
-        ressource = regle.ressource
-    else:
-        ressource = change_ressource(regle, obj, initial=True)
+    if regle.dident != obj.ident:
+        regle.ressource = writer.change_ressource(obj)
+        regle.dident = obj.ident
 
-    ressource.write(obj, regle.idregle)
+    regle.ressource.write(obj, regle.idregle)
 
 
 #    if obj.geom_v.courbe:
@@ -596,7 +585,8 @@ def ecrire_objets_csv(writer, regle, _):
             #            print( regle.stockage)
             #            groupe, classe = obj.ident
             if obj.ident != regle.dident:
-                ressource = change_ressource(regle, obj, initial=False)
+                ressource = writer.change_ressource(obj)
+                regle.dident = obj.ident
 
             ressource.write(obj, regle.idregle)
 

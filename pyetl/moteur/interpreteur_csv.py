@@ -90,7 +90,7 @@ def regles_liees(regle, param):
         while regle.niveau < len(param) and param[regle.niveau] in "|+-":
             regle.niveau += 1
         if param[regle.niveau - 1] == "-":
-            print("nonext", regle)
+            # print("nonext", regle)
             regle.nonext = True
         for i in regle.branchements.enchainements:
             cmp = i + ":"
@@ -221,7 +221,7 @@ def setvloc(regle):
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
     # print("avant ajuste_context", regle, prec)
-    # print("avant ajuste_context", regle.niveau, prec.niveau)
+    # print("avant ajuste_context", regle.niveau, prec.niveau, regle)
     if regle.niveau > prec.niveau:
         cprec = regle.stock_param.pushcontext(prec.context)
         regle.context.setparent(cprec, ref=False)
@@ -254,23 +254,22 @@ def prepare_regle(regle, prec=None):
     #    param = valeurs[0]
     # premier parametre : nom de la classe avec elements de structure
     # de la forme [\+*][sinon|fail]:nom_d'attribut
-    regles_liees(regle, v_nommees["sel1"])
-    # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
-    if prec:
-        ajuste_contexte(regle, prec)
-
-    if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
-        regle.selstd = None
-        regle.valide = True
-    #        print ("interp: acces base de donnees",regle.code_classe,regle.mode,regle)
-    else:
-        regle.prepare_selecteur(v_nommees)
-        regle.code_classe = regle.code_classe.split(":")[-1]
-        # on nettoie d'eventuels tests
-
     fonction = v_nommees["commande"]
-    #    regle.valide = "vide"
     if fonction:
+        regles_liees(regle, v_nommees["sel1"])
+        # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
+        if prec:
+            ajuste_contexte(regle, prec)
+
+        if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
+            regle.selstd = None
+            regle.valide = True
+        #        print ("interp: acces base de donnees",regle.code_classe,regle.mode,regle)
+        else:
+            regle.prepare_selecteur(v_nommees)
+            regle.code_classe = regle.code_classe.split(":")[-1]
+            # on nettoie d'eventuels tests
+    #    regle.valide = "vide"
         extraction_operation(regle, fonction)
         regle.identifie_operation()
         if regle.valide:

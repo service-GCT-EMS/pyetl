@@ -383,7 +383,13 @@ class ElyConnect(ora.OrwConnect):
             self.tmpdir = str(tmpdir)
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"), fanout)
+            LOGGER.info(
+                "calcule blocs %d (%s) %s",
+                len(blocks),
+                regle_courante.getvar("_wid"),
+                fanout,
+            )
+            # print("calcule blocs ", len(blocks), regle_courante.getvar("_wid"), fanout)
             fileiter = self.params.iterparallel_ext(
                 blocks, nbdump, self.fearunner, patience=self.export_statprint
             )

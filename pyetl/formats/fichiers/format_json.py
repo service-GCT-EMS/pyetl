@@ -30,14 +30,13 @@ class JsonWriter(FileWriter):
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
-        if schemaclasse:
-            self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
+        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs) if schemaclasse else attributs
 
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
             return False
-        chaine = obj.__json_if__
+        chaine = obj.__json_if__(self.liste_att)
         if self.start:
             self.start = False
         else:
@@ -45,7 +44,7 @@ class JsonWriter(FileWriter):
         try:
             self.fichier.write(chaine)
         except UnicodeEncodeError:
-            chaine = _convertir_objet(obj, ensure_ascii=True)
+            chaine = ascii(obj.__json_if__(self.liste_att))
             self.fichier.write(chaine)
             print("chaine illisible", chaine)
             if "source" in obj.attributs:
@@ -89,17 +88,6 @@ def objreader(self, ouvert):
             obj.from_geo_interface(i)
             obj.setorig(n_obj)
             self.traite_objet(obj, self.regle_start)
-
-
-def _convertir_objet(obj, ensure_ascii=False):
-    """sort un objet json en chaine """
-
-    return ascii(obj.__json_if__) if ensure_ascii else obj.__json_if__
-
-
-# def _set_liste_attributs(obj, attributs):
-#    '''positionne la liste d'attributs a sortir'''
-#    obj.liste_attributs = obj.schema.get_liste_attributs(liste=attributs)
 
 
 def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
@@ -149,7 +137,6 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
                 dident = (groupe, classe)
             #                fich = ressource.handler
             obj.classe_is_att = setclasse
-            obj.liste_attributs = ressource.handler.liste_att
 
             ressource.handler.write(obj)
     #            nb_cour += 1

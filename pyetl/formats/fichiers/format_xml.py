@@ -35,7 +35,7 @@ class XmlWriter(FileWriter):
         self.classes = set()
         self.blocs = []
 
-        self.encoding = encoding
+        self.encoding = regle.encoding
         self.curtemp = None
         self.curclasse = None
 

@@ -329,6 +329,10 @@ def init_format_asc(reader):
     reader.setvar("codec_asc", "cp1252")
 
 
+def init_ascwriter(writer):
+    writer.writerclass = AscWriter
+
+
 def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
     """finalise un objet et le traite"""
     # print("finalisation ", attributs)
@@ -500,20 +504,21 @@ class AscWriter(FileWriter):
     def __init__(
         self,
         nom,
-        liste_att=None,
-        encoding="cp1252",
+        # liste_att=None,
+        # encoding="cp1252",
         schema=None,
-        geomwriter=None,
+        # geomwriter=None,
         regle=None,
     ):
         super().__init__(
             nom,
-            liste_att=liste_att,
-            converter=self._convertir_objet_asc,
-            encoding=encoding,
+            # liste_att=liste_att,
+            # converter=self._convertir_objet_asc,
+            # encoding=encoding,
             schema=schema,
-            geomwriter=geomwriter,
-            writer=regle.writer,
+            regle=regle
+            # geomwriter=geomwriter,
+            # writer=regle.writer,
         )
         self.htext = "*****\n** sortie_mapper\n*****\n"
         if schema and schema.schema.metas:
@@ -565,51 +570,52 @@ class AscWriter(FileWriter):
         return entete + geometrie + attlist
 
 
-def asc_streamer(self, obj, regle, _, attributs=None):
+def asc_streamer(writer, obj, regle, _, attributs=None):
     """ecrit des objets asc au fil de l'eau.
-        dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
-        a la sortie du pipeline (mode streaming)
+    dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
+    a la sortie du pipeline (mode streaming)
     """
     if obj.virtuel:  # on ne traite pas les virtuels
         return
     # raise
-    rep_sortie = regle.getvar("_sortie")
-    if not rep_sortie:
-        raise NotADirectoryError("repertoire de sortie non défini")
-    #    print('asc:', obj.ident,regle.dident, 'sortie:', rep_sortie)
-
-    sorties = regle.stock_param.sorties
-    if obj.ident == regle.dident:
-        ressource = regle.ressource
-    else:
-        groupe, classe = obj.ident
-        if regle.fanout == "no":
-            nom = sorties.get_id(rep_sortie, "export", "", ".asc")
-        elif regle.fanout == "groupe":
-            nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
-        else:
-            nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
-
-        ressource = sorties.get_res(regle, nom)
-        if ressource is None:
-            if os.path.dirname(nom):
-                os.makedirs(os.path.dirname(nom), exist_ok=True)
-            streamwriter = AscWriter(
-                nom,
-                encoding="cp1252",
-                liste_att=attributs,
-                geomwriter=self.geomwriter,
-                schema=obj.schema,
-                regle=regle,
-            )
-            ressource = sorties.creres(nom, streamwriter)
-        else:
-            ressource.handler.changeclasse(obj.schema, attributs)
-
-        regle.ressource = ressource
+    if regle.dident != obj.ident:
+        regle.ressource = writer.change_ressource(obj)
         regle.dident = obj.ident
-    #    print ("fichier de sortie ",fich.nom)
-    ressource.write(obj, regle.idregle)
+
+    regle.ressource.write(obj, regle.idregle)
+
+    # rep_sortie = regle.getvar("_sortie")
+    # if not rep_sortie:
+    #     raise NotADirectoryError("repertoire de sortie non défini")
+    # #    print('asc:', obj.ident,regle.dident, 'sortie:', rep_sortie)
+
+    # sorties = regle.stock_param.sorties
+    # if obj.ident != regle.dident:
+    #     groupe, classe = obj.ident
+    #     if regle.fanout == "no":
+    #         nom = sorties.get_id(rep_sortie, "export", "", ".asc")
+    #     elif regle.fanout == "groupe":
+    #         nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
+    #     else:
+    #         nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
+
+    #     ressource = sorties.get_res(regle, nom)
+    #     if ressource is None:
+    #         if os.path.dirname(nom):
+    #             os.makedirs(os.path.dirname(nom), exist_ok=True)
+    #         streamwriter = AscWriter(
+    #             nom,
+    #             schema=obj.schema,
+    #             regle=regle,
+    #         )
+    #         ressource = sorties.creres(nom, streamwriter)
+    #     else:
+    #         ressource.handler.changeclasse(obj.schema, attributs)
+
+    #     regle.ressource = ressource
+    #     regle.dident = obj.ident
+    # #    print ("fichier de sortie ",fich.nom)
+    # regle.ressource.write(obj, regle)
 
 
 def ecrire_objets_asc(self, regle, _, attributs=None):
@@ -659,11 +665,11 @@ WRITERS = {
         False,
         "up",
         0,
-        "",
+        "asc",
         "groupe",
         "geom_asc",
         "geom_asc",
-        None,
+        init_ascwriter,
     )
 }
 DESCRIPTION = {

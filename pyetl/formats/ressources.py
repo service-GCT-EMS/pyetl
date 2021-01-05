@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)  # un logger
 
 class RessourceDistante(object):
     """une ressource distante est geree par un worker en traitement parallele
-        on simule son existance pour les stats"""
+    on simule son existance pour les stats"""
 
     def __init__(self, nom):
         self.nom = nom
@@ -39,7 +39,7 @@ class RessourceDistante(object):
 
 
 class Ressource(object):
-    """ stockage des infos d'une ressource
+    """stockage des infos d'une ressource
     une ressource peut etre un fichier ou une table"""
 
     def __init__(self, nom, handler, idmapper):
@@ -95,16 +95,7 @@ class Ressource(object):
 
     def bwrite(self, obj, id_regle):
         """ ecritures bufferisees"""
-        # ident = obj.ident
-        # buffer = self.handler.buffer
-        # chaine = self.handler.convert(obj)
-        # if ident in buffer:
-        #     buffer[ident].append(chaine)
-        #     if len(buffer[ident] > 5000):
-        #         self.handler.writebuffer(buffer[ident], obj.schema)
-        #         del buffer[ident]
-        # else:
-        #     buffer[ident] = [chaine]
+
         try:
             if self.handler.bwrite(obj):
                 self.nbo += 1

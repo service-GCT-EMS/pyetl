@@ -546,7 +546,6 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         obj.geom_v.fin_section(couleur, 0)
                 elif val == "FG":
                     obj.finalise_geom(type_geom=type_geom, desordre=mode == "P")
-                    #                    print ('erreur geometrique', obj.__geo_interface__)
 
                     if not obj.geom_v.valide:
                         print(

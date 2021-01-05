@@ -198,12 +198,17 @@ def dbextalpha(regle_courante, baseselector, dest="", log=""):
     helper = get_helper(base, [], "", helpername, regle_courante.stock_param)
     if helper:
         #        workers, extworkers = regle_courante.get_max_workers()
-        print(
-            "extalpha",
-            regle_courante,
-            regle_courante.get_max_workers(),
+        regle_courante.stock_param.logger.info(
+            "extraction %s, (%s)",
+            str(regle_courante.get_max_workers()),
             regle_courante.getvar("_wid"),
         )
+        # print(
+        #     "extalpha",
+        #     regle_courante,
+        #     regle_courante.get_max_workers(),
+        #     regle_courante.getvar("_wid"),
+        # )
         logfile = setpath(regle_courante, log)
         resultats = connect.extalpha(
             regle_courante,
@@ -1085,4 +1090,4 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
                 ressource.handler.set_liste_att(liste_att)
                 regle.dident = dest
                 regle.ressource = ressource
-    regle.ressource.handler.write(obj)
+    regle.ressource.write(obj)

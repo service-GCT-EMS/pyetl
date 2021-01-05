@@ -90,7 +90,6 @@ class Objet(object):
         self.redirect = None  # pour traitement de sorties calculees
         self.classe_is_att = False
         # self.atg = False
-        self.liste_attributs = None
         self.idorig = orig if orig is not None else (groupe, classe)
         groupe_orig, classe_orig = self.idorig
         self.attributs = dict(
@@ -255,12 +254,9 @@ class Objet(object):
             )
             self.setschema(schema_classe)
 
-    @property
-    def __json_if__(self):
+    def __json_if__(self,liste_attributs=None):
         """interface geojson en sortie"""
-        liste = (
-            self.liste_attributs
-            if self.liste_attributs
+        liste = (liste_attributs if liste_attributs
             else [i for i in self.attributs if i[0] != "#" and i != self.key]
         )
         if self.classe_is_att:
@@ -297,7 +293,7 @@ class Objet(object):
         self.geom_v.multi = True
 
     @property
-    def __geo_interface__(self):
+    def __geo_interface__(self, liste_attributs):
         """interface geo_interface en sortie"""
         #        print ('demande geoif geom:',self.geom_v.type)
         if not self.geom_v.valide:
@@ -323,9 +319,8 @@ class Objet(object):
                 else:
                     attributs[i] = self.attributs.get(i, "")
         else:
-            liste = (
-                self.liste_attributs
-                if self.liste_attributs
+            liste = (liste_attributs
+                if liste_attributs
                 else [i for i in self.attributs if not i.startswith("#")]
             )
             attributs = self.attributs

@@ -501,7 +501,7 @@ class Reader(object):
         orig=None,
     ):
         """retourne un objet neuf a envoyer dans le circuit
-           cree un objet si on a pas depasse la limite de lecture"""
+        cree un objet si on a pas depasse la limite de lecture"""
 
         errs = []
         if self.maxobj > 0 and self.lus_fich >= self.maxobj:
@@ -641,6 +641,7 @@ class Writer(object):
         self.geomwriter = self.def_sortie.geomwriter
         self.tmpgeomwriter = self.def_sortie.tmpgeomwriter
         self.calcule_schema = self.def_sortie.force_schema
+        self.extension = self.def_sortie.driver
         # self.converter = self.def_sortie.converter
         self.minmaj = (
             self.def_sortie.casse
@@ -653,6 +654,9 @@ class Writer(object):
         self.fanoutmax = self.def_sortie.fanout
         self.schema_sortie = self.regle.getvar("schema_sortie", None)
         self.initer = self.def_sortie.initer
+        self.sorties = self.regle.stock_param.sorties
+        self.entete = ""
+        self.null = ""
         if self.initer:
             self.initer(self)
             # print('writer : initialisation',nom, self.nom_format, self.def_sortie, self.__dict__)
@@ -674,3 +678,61 @@ class Writer(object):
 
     def __repr__(self):
         return "writer " + self.nom_format + " nom: " + self.nom
+
+    def getfanout(self, ident, initial=False):
+        """determine le mode de fanout"""
+        rep_sortie = self.regle.getvar("_sortie")
+        groupe, classe = ident
+        dest = self.writerparms.get("destination")
+        bfich = ""
+        if dest == "#print":
+            nom = "#print"
+            ressource = self.sorties.get_res(self.regle, nom)
+            return ressource, nom
+
+        if self.regle.fanout == "no" and self.fanoutmax == "all":
+            bfich = dest if dest else "all"
+            nom = self.sorties.get_id(rep_sortie, bfich, "", self.extension, nom=dest)
+        #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
+        elif self.regle.fanout == "groupe" and (
+            self.fanoutmax == "all" or self.fanoutmax == "groupe"
+        ):
+            #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
+            #            len(obj.schema.attributs))
+            nom = self.sorties.get_id(
+                os.path.join(rep_sortie, bfich), groupe, "", self.extension, nom=dest
+            )
+
+        else:
+            nom = self.sorties.get_id(
+                os.path.join(rep_sortie, bfich),
+                groupe,
+                classe,
+                self.extension,
+                nom=dest,
+            )
+
+        ressource = self.sorties.get_res(self.regle, nom)
+        #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
+        return ressource, nom
+
+    def change_ressource(self, obj, initial=False):
+        """ change la definition de la ressource utilisee si necessaire"""
+        # separ, extension, entete, null, initial=False, geomwriter=None
+        ressource, nom = self.getfanout(obj.ident)
+        if ressource is None:
+            if not nom.startswith("#"):
+                #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
+                os.makedirs(os.path.dirname(nom), exist_ok=True)
+            str_w = self.writerclass(
+                nom,
+                schema=obj.schema,
+                regle=self.regle,
+            )
+            ressource = self.sorties.creres(nom, str_w)
+        else:
+            ressource.handler.changeclasse(obj.schema)
+
+        #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
+        self.regle.context.setroot("derniere_sortie", nom)
+        return ressource

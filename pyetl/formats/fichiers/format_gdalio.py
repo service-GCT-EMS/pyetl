@@ -217,40 +217,43 @@ class GdalWriter(object):
     def __init__(
         self,
         nom,
-        liste_att=None,
-        encoding="utf-8",
-        converter=str,
-        schemaclasse=None,
-        f_sortie=None,
-        srid="3948",
-        layer=None,
+        schema=None,
+        regle=None,
+        # liste_att=None,
+        # encoding="utf-8",
+        # converter=str,
+        # schemaclasse=None,
+        # f_sortie=None,
+        # srid="3948",
+        # layer=None,
     ):
         self.nom = nom
-        self.f_sortie = f_sortie
-        if f_sortie:
-            self.writerparms = f_sortie.writerparms
-        self.liste_att = schemaclasse.get_liste_attributs(liste=liste_att)
+        self.f_sortie = regle.writer.f_sortie
+        self.schemaclasse = schema
+        self.schema = schema.schema
+        self.regle=regle
+        self.liste_att = self.schemaclasse.get_liste_attributs(liste=self.regle.writer.liste_att)
         self.fichier = None
-        self.encoding = encoding
-        self.converter = converter
-        self.srid = srid
-        self.schemaclasse = schemaclasse
-        self.schema = schemaclasse.schema
+        self.encoding = regle.writer.encoding
+        self.converter = regle.writer.converter
+        self.srid = regle.writer.srid
+
         self.transtable = None
         self.buffer = dict()
-        if f_sortie is not None:
-            self.driver = f_sortie.driver
-            self.l_max = f_sortie.l_max
-            if f_sortie.minmaj == "up":
+        if self.f_sortie:
+            self.writerparms = self.f_sortie.writerparms
+            self.driver = self.f_sortie.driver
+            self.l_max = self.f_sortie.l_max
+            if self.f_sortie.minmaj == "up":
                 self.minmajfunc = str.upper
-            elif f_sortie.minmaj == "low":
+            elif self.f_sortie.minmaj == "low":
                 self.minmajfunc = str.lower
             else:
                 self.minmajfunc = str
-            self.layer = layer
+            self.layer = self.layer
             #            print('convertisseur de casse ', f_sortie.minmaj, self.minmajfunc)
-            self.fanout = f_sortie.multiclasse
-            self.fanoutmax = f_sortie.fanoutmax
+            self.fanout = self.f_sortie.multiclasse
+            self.fanoutmax = self.f_sortie.fanoutmax
 
     def open(self):
         """ouvre  sur disque"""
@@ -334,7 +337,7 @@ class GdalWriter(object):
 
     def set_liste_att(self, liste_att):
         """stocke la liste des attributs a sortir"""
-        self.liste_att = liste_att
+        self.liste_att = self.schemaclasse.get_liste_attributs(liste=self.regle.writer.liste_att)
 
     def convert(self, obj):
         return self.converter(obj, self.liste_att, self.minmajfunc)
@@ -382,12 +385,10 @@ class GdalWriter(object):
 
 def gdalconverter(obj, liste_att, minmajfunc):
     """convertit un objet dans un format compatible avec la lib gdal"""
-    if liste_att:
-        obj.set_liste_att(liste_att)
     obj.casefold = minmajfunc
     if obj.geom_v.type_geom > "1" and obj.geom_v.type_geom != "indef":
         obj.set_multi()
-    a_sortir = obj.__geo_interface__
+    a_sortir = obj.__geo_interface__(liste_att)
     if not a_sortir["properties"]:
         a_sortir["properties"][obj.casefold("gid")] = a_sortir["id"]
     return a_sortir
@@ -442,14 +443,13 @@ def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=
         #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
         #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
         obj.geom_v.force_multi = True
-    #    print ('gdal: ecriture objet',obj)
-    #    print ('gdal: ecriture objet',obj.__geo_interface__)
+
     try:
         ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(
             obj, regle.idregle
         )
     except Exception as err:
-        print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__)
+        print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__(attributs))
         raise
 
     if final:
