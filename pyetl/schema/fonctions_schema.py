@@ -460,19 +460,28 @@ def _valide_type(classe, atdef, val):
     elif atdef.type_att == "B":  # test booleen
         err, val, changetype = _valide_bool(val)
         if changetype:
-            print("attention suppression type booleen", val, atdef)
+            LOGGER.warning(
+                "suppression type booleen val: %s attribut %s", str(val), repr(atdef)
+            )
+            # print("attention suppression type booleen", val, atdef)
             atdef.type_att = "T"
 
     else:
-        print(
-            "valide_type:",
-            atdef.nom,
-            atdef.nom,
-            "type non gere",
-            atdef.type_att,
+        LOGGER.warning(
+            "type non gere %s.%s : %s (%s)",
             classe.schema.nom,
+            atdef.nom,
+            atdef.type_att,
             val,
         )
+        # print(
+        #     "valide_type:",
+        #     atdef.nom,
+        #     "type non gere ",
+        #     atdef.type_att,
+        #     classe.schema.nom,
+        #     val,
+        # )
     return err, repl
 
 
@@ -524,7 +533,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
                 obj.geom_v.forceligne()
                 obj.infogeom()
             else:
-                LOGGER.info(
+                LOGGER.warning(
                     "%s type geometrie non conforme schema: %s , objet: %s",
                     str(obj.ident),
                     schemaclasse.info["type_geom"],
@@ -708,7 +717,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
 
 
 def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
-    """ mets a jour la definition du schema a partir de la structure d'un objet
+    """mets a jour la definition du schema a partir de la structure d'un objet
     le taux de conformite est le nombre maxi de valeurs distinctes
     autorisees pour une enumeration"""
     # print conf

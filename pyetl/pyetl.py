@@ -374,7 +374,7 @@ class Pyetl(object):
                 self.charge_cmd_internes(
                     direct=os.path.join(self.paramdir, "macros"), opt=1
                 )  # macros perso
-            self.sorties = GestionSorties()
+            self.sorties = GestionSorties(rep_sortie=self.getvar("_sortie"))
             self.debug = int(self.getvar("debug", 0))
 
         else:
@@ -859,7 +859,7 @@ class Pyetl(object):
                     "===================warning erreur d empilement de contexte",
                     self.cur_context,
                 )
-                raise
+                # raise
         else:
             print(
                 "=========================popcontext warning typecheck attendu",

@@ -269,7 +269,7 @@ def endparallel(test=None):
 
 def parallelexec(executor, nprocs, fonction, args):
     """gere les appels de fonction uniques d'un pool de process
-       et s'assure que chaque process du pool est appelé"""
+    et s'assure que chaque process du pool est appelé"""
 
     rfin = dict()
     # print('pexec', fonction)
@@ -347,8 +347,8 @@ def parallelmap_suivi(mapper, executor, fonction, arglist, work=None):
 
 def paralleliter_suivi(regle, executor, fonction, argiter):
     """gere les appels classique mais avec des retours d'infos en s'appuyant sur
-        un iterateur ce qui permet de lancer les traitements sans que toutes les
-        entree soient généréés"""
+    un iterateur ce qui permet de lancer les traitements sans que toutes les
+    entree soient généréés"""
     rfin = dict()
     mapper = regle.stock_param
     paralleldebug = 0
@@ -434,7 +434,7 @@ def traite_parallel(regle):
     num_regle = regle.index
     rdict = dict()
     schemas, env, def_regles = prepare_env_parallel(regle)
-    logger=regle.stock_param.logger
+    logger = regle.stock_param.logger
     logger.info("passage en mode parallel sur %d process", nprocs)
     # print("passage en mode parallel sur ", nprocs, "process", num_regle, regle)
     if mapper.worker:
@@ -477,18 +477,18 @@ def traite_parallel(regle):
     for i in rfin:
         retour = rfin[i][0]
         if retour:
-            print(
-                i,
-                "worker",
-                retour["wid"],
-                "traites",
-                retour["stats_generales"].get("_st_lu_objs", "0"),
-                list(sorted(retour["schemas"].keys())),
-            )
+            # print(
+            #     i,
+            #     "worker",
+            #     retour["wid"],
+            #     "traites",
+            #     retour["stats_generales"].get("_st_lu_objs", "0"),
+            #     list(sorted(retour["schemas"].keys())),
+            # )
             for param in retour["stats_generales"]:
                 mapper.padd(param, retour["stats_generales"][param])
             mapper.logger.info(
-                "retour stats" + str(sorted(retour["stats_generales"].items()))
+                "retour stats" + str(retour["stats_generales"].get("_st_lu_objs", "0"))
             )
             #            print ('traitement schemas ', retour["schemas"])
             integre_schemas(mapper.schemas, retour["schemas"])
@@ -555,20 +555,20 @@ def traite_parallel_load(regle):
     #        print ('retour')
     for i in rfin:
         retour = rfin[i][0]
-        print(
-            i,
-            "worker",
-            retour["wid"],
-            "traites",
-            retour["stats_generales"]["_st_lu_objs"],
-            list(
-                sorted([(a, len(b["classes"])) for a, b in retour["schemas"].items()])
-            ),
-        )
+        # print(
+        #     i,
+        #     "worker",
+        #     retour["wid"],
+        #     "traites",
+        #     retour["stats_generales"]["_st_lu_objs"],
+        #     list(
+        #         sorted([(a, len(b["classes"])) for a, b in retour["schemas"].items()])
+        #     ),
+        # )
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         mapper.logger.info(
-            "retour stats" + str(sorted(retour["stats_generales"].items()))
+            "retour stats" + str(retour["stats_generales"].get("_st_lu_objs", "0"))
         )
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])

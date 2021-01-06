@@ -49,18 +49,14 @@ class Moteur(object):
             self.traite_regles_chargement()
         else:
             f_v = self.mapper.getvar("force_virtuel")
-            if not f_v:
-                force_virtuel = False
+            force_virtuel = False
+            if f_v == "1" or f_v.lower() == "all" or f_v.lower() == "true":
+                force_virtuel = True
             elif self.mapper.worker and (f_v == "worker" or f_v == "w"):
                 force_virtuel = True
             elif not self.mapper.worker and (f_v == "master" or f_v == "m"):
                 force_virtuel = True
-            elif f_v == "1" or f_v == "all":
-                force_virtuel = True
-            else:
-                LOGGER.info("attention force_virtuel non conforme %s", f_v)
-                LOGGER.warning("att force_virtuel non conforme %s", f_v)
-                force_virtuel = False
+
             for sch in list(self.mapper.schemas.values()):
                 # print("traitement virtuel: schema a traiter", sch.nom, sch.origine)
                 if sch.origine in "LB" and not sch.nom.startswith("#"):
@@ -208,7 +204,7 @@ class Moteur(object):
                 print("====regle courante:", regle)
                 if regle.stock_param.worker:
                     print("====mode parallele: process :", regle.getvar("_wid"))
-                #                printexception()
+                printexception()
                 raise StopIteration(3)
 
             except NotImplementedError as exc:

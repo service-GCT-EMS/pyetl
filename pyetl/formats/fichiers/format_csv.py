@@ -598,10 +598,10 @@ def ecrire_objets_csv(writer, regle, _):
 def initwriter(self, extension, header, separ, null, writerclass=CsvWriter):
     """positionne les parametres du writer csv (sql et txt)"""
     # print ('initialisation writer', extension, header,separ,null)
-    self.separ = separ
-    self.extension = extension
-    self.entete = header
-    self.null = null
+    self.writerparms["separ"] = separ
+    self.writerparms["extension"] = extension
+    self.writerparms["entete"] = header
+    self.writerparms["null"] = null
     self.writerclass = writerclass
 
 

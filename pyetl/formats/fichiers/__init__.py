@@ -35,7 +35,7 @@ def loadmodules():
             "casse",
             "attlen",
             "driver",
-            "fanout",
+            "fanoutmin",
             "geom",
             "tmp_geom",
             "initer",

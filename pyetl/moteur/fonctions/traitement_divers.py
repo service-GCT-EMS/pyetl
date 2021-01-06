@@ -194,7 +194,8 @@ def sortir_traite_stock(regle):
 
 def h_sortir(regle):
     """preparation sortie"""
-
+    regle.writerparms = dict()
+    regle.writerparms["fanout"] = regle.context.getvar("fanout", "groupe")
     if (
         regle.params.att_sortie.val == "#schema"
     ):  # on force les noms de schema pour l'ecriture
@@ -211,8 +212,8 @@ def h_sortir(regle):
     if "[" in regle.params.cmp1.val:  # on a defini un fanout
         tmplist = regle.params.cmp1.val.find("[")
         # print("valeur ii ", regle.params.cmp1,ii)
-
-        regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
+        regle.writerparms["fanout"] = regle.params.cmp1.val[tmplist + 1 : -1]
+        # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     if regle.params.cmp2.val == "#print":
         regle.writer = regle.stock_param.getwriter("#print", regle)
@@ -240,32 +241,31 @@ def h_sortir(regle):
         dialecte = regle.writer.writerparms.get("dialecte")
         regle.ext = dialecte
 
-    regle.fanout = (
-        regle.context.getvar("fanout", "groupe")
-        if regle.writer.multiclasse
-        else "classe"
-    )
-
     if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
         rep_base = regle.getvar("_sortie")
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
         if os.path.isabs(regle.params.cmp2.val):  # si absolu on ignore le rep de sortie
             rep_base = ""
-        if regle.fanout == "no":  # sans fanout pas de sous repertoires
-            regle.setlocal(
-                "_sortie",
-                os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)),
-            )
-            regle.writer.writerparms["destination"] = os.path.basename(
-                regle.params.cmp2.val
-            )
-        else:
-            regle.setlocal("_sortie", os.path.join(rep_base, regle.params.cmp2.val))
-        LOGGER.info("repertoire de sortie: %s", regle.getvar("_sortie", ""))
+        regle.writer.writerparms["destination"] = os.path.join(
+            rep_base, regle.params.cmp2.val
+        )
+
+        # if regle.fanout == "no":  # sans fanout pas de sous repertoires
+        #     regle.setlocal(
+        #         "_sortie",
+        #         os.path.join(rep_base, os.path.dirname(regle.params.cmp2.val)),
+        #     )
+        #     regle.writer.writerparms["destination"] = os.path.basename(
+        #         regle.params.cmp2.val
+        #     )
+        # else:
+        LOGGER.info("repertoire de sortie: %s", regle.writer.writerparms["destination"])
+        regle.setlocal("_sortie", regle.writer.writerparms["destination"])
+
         # print("sortir: ", os.path.join(rep_base, regle.params.cmp2.val))
 
     #    print("fanout de sortie",regle.fanout)
-    regle.calcule_schema = regle.writer.calcule_schema
+    regle.calcule_schema = regle.writer.writerparms["force_schema"]
     regle.memlimit = int(regle.context.getvar("memlimit", 0))
     mode_sortie = regle.context.getvar("mode_sortie", "D")
     #    print("init stockage ", mode_sortie)
@@ -301,7 +301,7 @@ def setschemasortie(regle, obj):
             )
         obj.schema.setsortie(regle.writer, rep_sortie)
 
-        obj.schema.setminmaj(regle.writer.minmaj)
+        obj.schema.setminmaj(regle.writer.writerparms.get("casse", ""))
     if regle.params.att_entree.liste:
         regle.writer.liste_attributs = regle.params.att_entree.liste
 
@@ -322,9 +322,7 @@ def f_sortir(regle, obj):
     setschemasortie(regle, obj)
     #    print ('stockage ',regle.writer.calcule_schema, regle.store)
     if regle.store is None:  # on decide si la regle est stockante ou pas
-        regle.store = regle.writer.calcule_schema and (
-            not obj.schema or not obj.schema.stable
-        )
+        regle.store = regle.calcule_schema and (not obj.schema or not obj.schema.stable)
         if regle.store:  # on ajuste les branchements
             regle.setstore()
             print("f_sortir: passage en mode stockant")

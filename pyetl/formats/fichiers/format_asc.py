@@ -529,6 +529,7 @@ class AscWriter(FileWriter):
             )
         self.ttext = "FIN\n"
         self.transtable = str.maketrans({"\n": "\\" + "n", "\r": ""})
+        self.converter = self._convertir_objet_asc
         self.liste_graphique = None
         self.liste_ordinaire = None
 

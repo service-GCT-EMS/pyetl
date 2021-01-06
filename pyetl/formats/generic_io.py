@@ -26,7 +26,7 @@ from .interne.objet import Objet
 #
 # rdef = namedtuple("reader", ("reader", "geom", "has_schema", "auxfiles", "converter", initer))
 # wdef = namedtuple("writer", ("writer", "streamer",  "force_schema", "casse",
-#                                 "attlen", "driver", "fanout", "geom", "tmp_geom",
+#                                 "attlen", "driver", "fanoutmin", "geom", "tmp_geom",
 #                                 "geomwriter", tmpgeowriter))
 # "database", ("acces", "gensql", "svtyp", "fileext", 'description', "geom", 'converter',
 #             "geomwriter"))
@@ -613,16 +613,13 @@ class Writer(object):
         self.regle = regle
         self.debug = debug
         self.liste_att = None
-        self.writerparms = dict()  # parametres specifique au format
         # positionne un format de sortie
         nom = nom.replace(".", "").lower()
-        if nom in WRITERS:
-            self.def_sortie = WRITERS[nom]
-        else:
-            if nom:
-                print("format sortie inconnu '" + nom + "'", WRITERS.keys())
-            self.def_sortie = WRITERS["#poubelle"]
-
+        if nom not in WRITERS:
+            print("format sortie inconnu '" + nom + "'", WRITERS.keys())
+            nom = "#poubelle"
+        # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)
+        self.writerparms = WRITERS[nom]._asdict()  # parametres specifique au format
         if nom == "sql":
 
             if dialecte == "":
@@ -634,32 +631,28 @@ class Writer(object):
                 self.writerparms["destination"] = fich
         else:
             self.writerparms["destination"] = destination
+
+        initer = self.writerparms.get("initer")
+        if initer:
+            initer(self)
+        self.writerparms.update(self.regle.writerparms)
         self.dialecte = dialecte
-        self.encoding = "utf-8"
-        self.ecrire_objets = MethodType(self.def_sortie.writer, self)
-        self.ecrire_objets_stream = MethodType(self.def_sortie.streamer, self)
-        self.geomwriter = self.def_sortie.geomwriter
-        self.tmpgeomwriter = self.def_sortie.tmpgeomwriter
-        self.calcule_schema = self.def_sortie.force_schema
-        self.extension = self.def_sortie.driver
-        # self.converter = self.def_sortie.converter
-        self.minmaj = (
-            self.def_sortie.casse
-        )  # determine si les attributs passent en min ou en maj
-        self.driver = self.def_sortie.driver
+        self.encoding = self.writerparms.get("encoding", "utf-8")
+        self.ecrire_objets = MethodType(self.writerparms["writer"], self)
+        self.ecrire_objets_stream = MethodType(self.writerparms["streamer"], self)
         self.nom = nom
-        self.l_max = self.def_sortie.attlen
         self.ext = "." + nom
-        self.multiclasse = self.def_sortie.fanout != "classe"
-        self.fanoutmax = self.def_sortie.fanout
+        self.fanoutmin = self.writerparms["fanoutmin"]
+        fanout = self.writerparms.get("fanout", self.fanoutmin)
+        if fanout == "no" or fanout == "all":
+            self.fanout = self.fanoutmin
+        elif fanout == "groupe":
+            self.fanout = "classe" if self.fanoutmin == "classe" else "groupe"
+        else:
+            self.fanout = "classe"
+        self.multiclasse = self.fanout != "classe"
         self.schema_sortie = self.regle.getvar("schema_sortie", None)
-        self.initer = self.def_sortie.initer
         self.sorties = self.regle.stock_param.sorties
-        self.entete = ""
-        self.null = ""
-        if self.initer:
-            self.initer(self)
-            # print('writer : initialisation',nom, self.nom_format, self.def_sortie, self.__dict__)
 
     def get_info(self):
         """ affichage du format courant : debug """
@@ -681,39 +674,30 @@ class Writer(object):
 
     def getfanout(self, ident, initial=False):
         """determine le mode de fanout"""
-        rep_sortie = self.regle.getvar("_sortie")
-        groupe, classe = ident
         dest = self.writerparms.get("destination")
-        bfich = ""
         if dest == "#print":
             nom = "#print"
             ressource = self.sorties.get_res(self.regle, nom)
             return ressource, nom
+        rep_sortie = self.regle.getvar("_sortie")
+        groupe, classe = ident
 
-        if self.regle.fanout == "no" and self.fanoutmax == "all":
-            bfich = dest if dest else "all"
-            nom = self.sorties.get_id(rep_sortie, bfich, "", self.extension, nom=dest)
+        if self.fanout == "all":
+            bfich = dest or "all"
+            nom = self.sorties.get_id(rep_sortie, bfich, "", self.ext, nom=dest)
         #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
-        elif self.regle.fanout == "groupe" and (
-            self.fanoutmax == "all" or self.fanoutmax == "groupe"
-        ):
+        elif self.fanout == "groupe":
             #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
-            #            len(obj.schema.attributs))
-            nom = self.sorties.get_id(
-                os.path.join(rep_sortie, bfich), groupe, "", self.extension, nom=dest
-            )
-
+            nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
         else:
             nom = self.sorties.get_id(
-                os.path.join(rep_sortie, bfich),
+                rep_sortie,
                 groupe,
                 classe,
-                self.extension,
-                nom=dest,
+                self.ext,
             )
-
+        # print("getfanout", rep_sortie, self.fanout, groupe, classe, dest, "->", nom)
         ressource = self.sorties.get_res(self.regle, nom)
-        #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
         return ressource, nom
 
     def change_ressource(self, obj, initial=False):

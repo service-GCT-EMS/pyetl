@@ -70,14 +70,11 @@ class FileWriter(object):
             else self.writer.liste_att
         )
         self.fichier = None
-        self.encoding = self.writer.encoding or "utf-8"
-        # self.converter = self.writer.converter
-        self.geomwriter = self.writer.geomwriter
-        self.extension = self.writer.extension
-        self.entete = self.writer.entete
-        self.null = self.writer.null
+        self.geomwriter = self.writer.writerparms["geomwriter"]
+        self.null = self.writer.writerparms.get("null")
+        self.extension = self.writer.writerparms.get("extension", self.writer.ext)
         self.srid = "3948"
-        self.separ = self.writer.separ
+        self.separ = self.writer.writerparms.get("separ", ";")
         self.schema = schema
         self.htext = ""
         self.hinit = ""
@@ -104,7 +101,7 @@ class FileWriter(object):
             self.fichier = io.StringIO()
         else:
             self.fichier = open(
-                self.nom, mode, encoding=self.encoding, errors="backslashreplace"
+                self.nom, mode, encoding=self.writer.encoding, errors="backslashreplace"
             )
 
     def open(self):

@@ -336,7 +336,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             continue
         if a_sortir and i not in a_sortir:
             if not stock_param.worker:
-                print("schema non sorti", i, "(", a_sortir, ")")
+                LOGGER.debug("schema non sorti %s (%s)", i, str(a_sortir))
+                # print("schema non sorti", i, "(", a_sortir, ")")
             continue
         mode_sortie = (
             schemas[i].mode_sortie if schemas[i].mode_sortie is not None else mode
