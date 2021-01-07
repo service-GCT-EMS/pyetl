@@ -244,14 +244,17 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 role = None
             type_base = stock_param.getvar("dbgenmode")
             if type_base and type_base not in {"basic", "consult"}:
-                print("type base inconnu ", type_base, "passage en standard")
+                stock_param.logger.warning(
+                    "type base inconnu %s passage en standard", type_base
+                )
+                # print("type base inconnu ", type_base, "passage en standard")
                 type_base = None
             if type_base == "basic":
                 schema.setbasic(type_base)
                 autopk = "" if autopk == "no" else True
                 rep_s = rep
-
-            print("dialecte de sortie", dialecte)
+            stock_param.logger.info("dialecte de sortie %s", dialecte)
+            # print("dialecte de sortie", dialecte)
             # schema.printelements_specifiques()
 
             ecrire_schema_sql(
@@ -306,7 +309,8 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                     prefix=prefix,
                 )
             else:
-                print("header distant (xmlheader_dist) non defini")
+                stock_param.logger.warning("header distant (xmlheader_dist) non defini")
+                # print("header distant (xmlheader_dist) non defini")
 
 
 def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1):
@@ -336,7 +340,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             continue
         if a_sortir and i not in a_sortir:
             if not stock_param.worker:
-                LOGGER.debug("schema non sorti %s (%s)", i, str(a_sortir))
+                stock_param.logger.debug("schema non sorti %s (%s)", i, str(a_sortir))
                 # print("schema non sorti", i, "(", a_sortir, ")")
             continue
         mode_sortie = (
@@ -348,7 +352,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         # LOGGER.info("avant analyse schema %s %d %s", i, len(schemas[i].classes), mode_sortie)
 
         if not rep_sortie:
-            LOGGER.warning(
+            stock_param.logger.warning(
                 "pas de repertoire de sortie :%s", ",".join(stock_param.liste_params)
             )
             # print(
@@ -374,7 +378,9 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
-                LOGGER.info("mode %s: %s %d classes", mode, i, len(schemas[i].classes))
+                stock_param.logger.info(
+                    "mode %s: %s %d classes", mode, i, len(schemas[i].classes)
+                )
                 # print("ecriture schema", i, len(schemas[i].classes))
                 # schemas[i].printelements_specifiques()
 

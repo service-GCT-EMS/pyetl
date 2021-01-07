@@ -150,19 +150,25 @@ class PgrGenSql(DbGenSql):
             #                print(' mode 2', conf.stock)
             val = j[4].replace("'", "''")
             if len(val) > 62:
-                print(
-                    "postgres: valeur trop longue ",
-                    val,
-                    " : conformite ignoree",
-                    conf.nombase,
+                LOGGER.warning(
+                    "conformite %s ignoree: valeur trop longue %s", conf.nombase, val
                 )
+                # print(
+                #     "postgres: valeur trop longue ",
+                #     val,
+                #     " : conformite ignoree",
+                #     conf.nombase,
+                # )
                 del schema.conformites[nom_conf]
                 return False, ""
             if val not in ctrl:
                 conflist.append(val)
                 ctrl.add(val)
             else:
-                print("attention valeur ", val, "en double dans", conf.nombase)
+                LOGGER.warning(
+                    "attention valeur %s en double dans %s", val, conf.nombase
+                )
+                # print("attention valeur ", val, "en double dans", conf.nombase)
 
         valide, supp = self.valide_base(conf)
         req = ""
@@ -677,7 +683,8 @@ class PgrGenSql(DbGenSql):
                     if valide:
                         deftype = self.schema_conf + "." + nomconf
                     else:
-                        print("conformite non trouvee", attype)
+                        LOGGER.warning("conformite non trouvee %s", attype)
+                        # print("conformite non trouvee", attype)
                 else:
                     deftype = self.schema_conf + "." + nomconf
             #                    raise
@@ -712,13 +719,18 @@ class PgrGenSql(DbGenSql):
                     attype = "BS"
                     defaut = ""
             if attype not in self.types_db and not nomconf:
-                print(
-                    "type inconnu",
+                LOGGER.warning(
+                    "type inconnu %s defaut %s",
                     attype,
                     deftype,
-                    "defaut",
-                    attype in self.schema.conformites,
                 )
+                # print(
+                #     "type inconnu",
+                #     attype,
+                #     deftype,
+                #     "defaut",
+                #     attype in self.schema.conformites,
+                # )
             type_sortie = self.types_db.get(attype, deftype)
             if type_sortie == "numeric" and attribut.taille > 0:
                 type_sortie = (
@@ -768,16 +780,23 @@ class PgrGenSql(DbGenSql):
             vues_schema = self.schema.elements_specifiques["def_vues"][1]
             vues_utilisees = {i: vues_schema[i] for i in liste if i in vues_schema}
             #                    and self.schema.classes[i].type_table in 'mv'}
-            print(
-                "get_vues_base: ",
+            LOGGER.info(
+                "%d vues utilisees definies dans le schema %s sur %d",
                 len(vues_utilisees),
-                " definies dans le schema",
                 self.schema.nom,
                 len(vues_schema),
             )
+            # print(
+            #     "get_vues_base: ",
+            #     len(vues_utilisees),
+            #     " definies dans le schema",
+            #     self.schema.nom,
+            #     len(vues_schema),
+            # )
             return vues_utilisees
         except (AttributeError, KeyError):
-            print("get_vues_base: pas de vues definies dans le schema", self.schema.nom)
+            LOGGER.info("pas de vues definies dans le schema %s", self.schema.nom)
+            # print("get_vues_base: pas de vues definies dans le schema", self.schema.nom)
             pass
         try:
             vues_base = self.connection.schemabase.elements_specifiques["def_vues"]
@@ -903,12 +922,18 @@ class PgrGenSql(DbGenSql):
 
         #       for i in liste_tables:
         #            print('type :',i,self.schema.classes[i].type_table)
-        print(
-            "postgres definition de tables a sortir:",
+        LOGGER.info(
+            "%s definition de %d tables a sortir:(%s)",
             self.schema.nom,
             len(liste_tables),
             self.dialecte,
         )
+        # print(
+        #     "postgres definition de tables a sortir:",
+        #     self.schema.nom,
+        #     len(liste_tables),
+        #     self.dialecte,
+        # )
         cretables = [idschema, self._setrole()]
         if not self.basic:
             cretables.append(

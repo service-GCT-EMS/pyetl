@@ -8,7 +8,9 @@ acces a la base de donnees
 """
 import re
 import time
+import logging
 
+LOGGER = logging.getLogger(__name__)
 from collections import namedtuple
 from .dbconstants import *
 
@@ -93,7 +95,6 @@ class DbGenSql(object):
         nom = self.reserves.get(nom, nom)
         return nom
 
-
     def ajuste_nom_q(self, nom):
         """ sort les caracteres speciaux des noms et rajoute des quotes"""
         return self.quote(self.ajuste_nom(nom))
@@ -104,7 +105,7 @@ class DbGenSql(object):
 
     def prepare_conformites(self, nom_conf, schema=None):
         """prepare une conformite et verifie qu'elle fait partie de la base sinon la cree
-        non defini pour une base generique """
+        non defini pour une base generique"""
 
         return False, ""
 
@@ -117,7 +118,6 @@ class DbGenSql(object):
         if att.startswith('"'):
             return att
         return '"%s"' % (att)
-
 
     def cree_indexes(self, schemaclasse, groupe, nom):
         """creation des indexes"""
@@ -286,13 +286,16 @@ class DbGenSql(object):
 
         #       for i in liste_tables:
         #            print('type :',i,self.schema.classes[i].type_table)
-        print("definition de tables a sortir:", len(liste_tables), self.dialecte)
-        print(
-            "tables non sorties:",
-            list(
-                [i for i in self.schema.classes if not self.schema.classes[i].a_sortir]
-            ),
+        LOGGER.info(
+            "definition de %d tables a sortir:(%s)", len(liste_tables), self.dialecte
         )
+        # print("definition de tables a sortir:", len(liste_tables), self.dialecte)
+        # print(
+        #     "tables non sorties:",
+        #     list(
+        #         [i for i in self.schema.classes if not self.schema.classes[i].a_sortir]
+        #     ),
+        # )
         cretables = [
             codecinfo,
             "\n-- ########### definition des tables ###############\n",

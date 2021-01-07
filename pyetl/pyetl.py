@@ -10,6 +10,7 @@ import re
 
 import logging
 
+LOGGER = logging.getLogger("pyetl")
 import itertools
 from queue import Empty
 
@@ -45,6 +46,32 @@ from .moteur.fonctions.parallel import setparallel
 # MODULEDEBUG = False
 
 
+class DiffLogFilTer(logging.Filter):
+    def filter(self, record):
+        if record.levelname == "999":
+            return True
+        try:
+            precrecord = self.precrecord
+        except AttributeError:
+            self.precrecords = None
+            precrecord = None
+        # print("dans filtrage", dir(record), record)
+        if (
+            precrecord
+            and precrecord.funcName == record.funcName
+            and precrecord.msg == record.msg
+        ):
+            precrecord.msgcount += 1
+            # print(" filtrage negatif", precrecord.msgcount)
+            return False
+        else:
+            if precrecord and precrecord.msgcount > 1:
+                LOGGER.log(999, "message repete %d fois", precrecord.msgcount)
+        record.msgcount = 1
+        self.precrecord = record
+        return True
+
+
 def initlogger(logger, fichier=None, log="DEBUG", affich="INFO", worker=False):
     """ création de l'objet logger qui va nous servir à écrire dans les logs"""
     # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
@@ -73,7 +100,9 @@ def initlogger(logger, fichier=None, log="DEBUG", affich="INFO", worker=False):
                 "%(levelname)-8s %(funcName)-25s: %(message)s"
             )
             print_handler.setFormatter(printformatter)
+            print_handler.prec_record = ""
             print_handler.addFilter(lambda x: x.levelno != 999)
+            print_handler.addFilter(DiffLogFilTer())
             print_handler.setLevel(niveau_p)
             logger.addHandler(print_handler)
             aff_handler = logging.StreamHandler()
@@ -206,7 +235,7 @@ class Pyetl(object):
         # selecteurs nommes pour des selections multibases complexes
         if context is None:
             context = parent.context if parent else None
-        self.logger = parent.logger if parent else logging.getLogger("pyetl")
+        self.logger = parent.logger if parent else LOGGER
         self.context = Context(
             parent=context, ident=str(self.idpyetl), type_c="P", root=True
         )

@@ -55,10 +55,10 @@ def h_initgeom(regle):
 
 def f_initgeom(regle, obj):
     """#aide||force l'interpretation de la geometrie
-       #pattern||;;;geom;?N;?=S
-       #schema||set_geom
-       #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
-       #test2||obj;asc||^;;;geom;;S||;has:geomV;;;X;1;;set||atv;X;1
+    #pattern||;;;geom;?N;?=S
+    #schema||set_geom
+    #test||obj;asc||^;;;geom||;has:geomV;;;X;1;;set||atv;X;1
+    #test2||obj;asc||^;;;geom;;S||;has:geomV;;;X;1;;set||atv;X;1
     """
     if obj.virtuel:
         return True
@@ -103,9 +103,9 @@ def cregeompoint(obj, point, srid):
 
 def f_setpoint(regle, obj):
     """#aide||ajoute une geometrie point a partir des coordonnes en attribut
- #parametres||defauts;attribut contenant les coordonnees separees par des ,;numero de srid
-   #pattern1||;LC;?A;setpoint;?N;
-       #test||obj||^;1,2;;setpoint||atv;#type_geom;1
+    #parametres||defauts;attribut contenant les coordonnees separees par des ,;numero de srid
+      #pattern1||;LC;?A;setpoint;?N;
+          #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     """
     if obj.virtuel:
         return True
@@ -167,13 +167,13 @@ def f_setpoint_liste(regle, obj):
 
 def f_addgeom(regle, obj):
     """#aide||cree une geometrie pour l'objet
-  #aide_spec||N:type geometrique
- #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
- #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
-   #pattern1||;?C;?A;addgeom;N;||entree
-   #pattern2||;?C;?L;addgeom;N;||entree
-      #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
-      #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
+     #aide_spec||N:type geometrique
+    #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
+    #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
+      #pattern1||;?C;?A;addgeom;N;||entree
+      #pattern2||;?C;?L;addgeom;N;||entree
+         #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
+         #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
     """
     if obj.virtuel:
         return True
@@ -266,9 +266,9 @@ def f_force_pt(regle, obj):
 
 def f_forceligne(regle, obj):  # force la geometrie en ligne
     """#aide||force la geometrie en ligne
-       #pattern||;;;force_ligne;;
-       #test||obj;poly||^;;;force_ligne||atv;#type_geom;2
-       #
+    #pattern||;;;force_ligne;;
+    #test||obj;poly||^;;;force_ligne||atv;#type_geom;2
+    #
     """
     if obj.virtuel:
         return True
@@ -287,14 +287,14 @@ def f_forceligne(regle, obj):  # force la geometrie en ligne
 
 
 def f_forcepoly(regle, obj):
-    """ force la geometrie en polygone cmp1 peut prender les valeurs :
-        ferme : force la fermeture
-        si le mode n'est pas ferme des objets non fermes retournent une erreur
-       #aide||force la geometrie en polygone
-       #pattern||;;;forcepoly;?=force;
-       #schema||set_geom
-       #test||obj;ligne_fermee||^;;;forcepoly;||atv;#type_geom;3
-        """
+    """force la geometrie en polygone cmp1 peut prender les valeurs :
+     ferme : force la fermeture
+     si le mode n'est pas ferme des objets non fermes retournent une erreur
+    #aide||force la geometrie en polygone
+    #pattern||;;;forcepoly;?=force;
+    #schema||set_geom
+    #test||obj;ligne_fermee||^;;;forcepoly;||atv;#type_geom;3
+    """
     if obj.virtuel:
         return True
     if obj.initgeom():
@@ -323,8 +323,8 @@ def f_forcepoly(regle, obj):
 
 def f_force_couleur(regle, obj):
     """#aide||remplace une couleur par une autre
-       #pattern||;;;change_couleur;C;C
-       #test||obj;asc_c||^;;;change_couleur;2;3||^;;;extract_couleur;3||atv;#points;2
+    #pattern||;;;change_couleur;C;C
+    #test||obj;asc_c||^;;;change_couleur;2;3||^;;;extract_couleur;3||atv;#points;2
     """
     if obj.virtuel:
         return True
@@ -337,8 +337,8 @@ def f_force_couleur(regle, obj):
 
 def f_multigeom(regle, obj):
     """#aide||definit la geometrie comme multiple ou non
-       #pattern||;N;;multigeom;;
-       #test||obj;ligne||^;1;;multigeom;||^V4;multigeom;;info_schema;;||atv;V4;1
+    #pattern||;N;;multigeom;;
+    #test||obj;ligne||^;1;;multigeom;||^V4;multigeom;;info_schema;;||atv;V4;1
     """
     #        if obj.schema:
     if obj.virtuel:
@@ -354,8 +354,8 @@ def f_multigeom(regle, obj):
 
 def f_longueur(regle, obj):
     """#aide||calcule la longueur de l'objet
-        #pattern||S;;;longueur;;
-        #test||obj;ligne||^#len;;;longueur||atn;#len;1
+    #pattern||S;;;longueur;;
+    #test||obj;ligne||^#len;;;longueur||atn;#len;1
     """
     #    if True:
     if obj.virtuel:
@@ -368,8 +368,8 @@ def f_longueur(regle, obj):
 
 def f_aire(regle, obj):
     """#aide||calcule l'aire de l'objet
-        #pattern||S;;;aire;;
-        #test||obj;poly||^#aire;;;aire||atn;#aire;1
+    #pattern||S;;;aire;;
+    #test||obj;poly||^#aire;;;aire||atn;#aire;1
     """
     #    if True:
     if obj.virtuel:
@@ -382,12 +382,12 @@ def f_aire(regle, obj):
 
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
-  #aide_spec||les coordonnees sont sous #x,#y,#z
-    #pattern||?M;?N;?A;coordp;;
-     #helper||setval
-       #test||obj;ligne||^;1;;coordp||atn;#y;1
-       #test1||obj;point||^;0;;coordp||atn;#y;2
-       #test2||obj;point||^;;;coordp||atn;#y;2
+    #aide_spec||les coordonnees sont sous #x,#y,#z
+      #pattern||?M;?N;?A;coordp;;
+       #helper||setval
+         #test||obj;ligne||^;1;;coordp||atn;#y;1
+         #test1||obj;point||^;0;;coordp||atn;#y;2
+         #test2||obj;point||^;;;coordp||atn;#y;2
     """
     if obj.virtuel:
         return False
@@ -469,9 +469,9 @@ def h_grid(regle):
 
 def f_grid(regle, obj):
     """#aide||decoupage en grille
-   #aide_pat||code;;;grid;x,y orig;pas
-    #pattern||L;;;grid;LC;N
-    #test||obj;point;5||^;;V0,V0,V0;translate||^X,Y;;;grid;0.5,0.5;1||^;;;sample-;3;1||atv;X;3
+    #aide_pat||code;;;grid;x,y orig;pas
+     #pattern||L;;;grid;LC;N
+     #test||obj;point;5||^;;V0,V0,V0;translate||^X,Y;;;grid;0.5,0.5;1||^;;;sample-;3;1||atv;X;3
     """
     if obj.virtuel:
         return False
@@ -503,9 +503,9 @@ def fgrid(regle, obj, cases):
 
 def f_gridx(regle, obj):
     """#aide||decoupage grille en x
-   #aide_pat||code;;;gridx;origine;pas
-    #pattern||A;;;gridx;N;N
-    #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridx;0.5;1||^;;;sample-;3;1||atv;X;3
+    #aide_pat||code;;;gridx;origine;pas
+     #pattern||A;;;gridx;N;N
+     #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridx;0.5;1||^;;;sample-;3;1||atv;X;3
     """
     if obj.virtuel:
         return False
@@ -520,9 +520,9 @@ def f_gridx(regle, obj):
 
 def f_gridy(regle, obj):
     """#aide||decoupage grille en x
-       #aide_pat||,,,gridx,origine,pas
-       #pattern||A;;;gridy;N;N
-          #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridy;0.5;1||^;;;sample-;3;1||atv;X;4
+    #aide_pat||,,,gridx,origine,pas
+    #pattern||A;;;gridy;N;N
+       #test||obj;point;5||^;;V0,V0,V0;translate||^X;;;gridy;0.5;1||^;;;sample-;3;1||atv;X;4
 
     """
     if obj.virtuel:
@@ -541,8 +541,8 @@ def f_gridy(regle, obj):
 
 def f_geom_2d(regle, obj):
     """#aide||passe la geometrie en 2D
-       #pattern||;;;geom2D;;
-       #test||obj;point3D||^;;;geom2D;||atv;#dimension;2
+    #pattern||;;;geom2D;;
+    #test||obj;point3D||^;;;geom2D;||atv;#dimension;2
     """
     #        if obj.is_3d:
     if obj.virtuel:
@@ -559,9 +559,9 @@ def f_geom_2d(regle, obj):
 
 def f_geom_3d(regle, obj):
     """#aide||passe la geometrie en 2D
-       #pattern||;N;?A;geom3D;?C;
-       #helper||setval
-       #test||obj;point||^;1;;geom3D;||atv;#dimension;3
+    #pattern||;N;?A;geom3D;?C;
+    #helper||setval
+    #test||obj;point||^;1;;geom3D;||atv;#dimension;3
     """
     if obj.virtuel:
         return True
@@ -585,9 +585,9 @@ def h_mod_3d(regle):
 
 def f_mod_3d(regle, obj):
     """#aide||modifie la 3D  en fonction de criteres sur le Z
-        #aide_spec|| valeur de remplacement att/val cond cmp1
-       #pattern||;N;;mod3D;C;
-       #test||obj;point3D||^;5;;mod3D;z==3||^;;;coordp||atn;#z;5
+     #aide_spec|| valeur de remplacement att/val cond cmp1
+    #pattern||;N;;mod3D;C;
+    #test||obj;point3D||^;5;;mod3D;z==3||^;;;coordp||atn;#z;5
     """
     if obj.virtuel:
         return True
@@ -622,11 +622,11 @@ def h_splitcouleur(regle):
 
 
 def f_splitcouleur(regle, obj):
-    """ #aide||decoupe la geometrie selon la couleur
-        #aide_spec||  une liste de couleurs ou par couleur si aucune couleur n'est precisee
-        #aide_spec2||  ajoute des sorties par couleur si une liste est donnee
-        #pattern||A;;;split_couleur;?LC;
-        #test||obj;asc_c||^C;;;split_couleur||cnt;2;
+    """#aide||decoupe la geometrie selon la couleur
+    #aide_spec||  une liste de couleurs ou par couleur si aucune couleur n'est precisee
+    #aide_spec2||  ajoute des sorties par couleur si une liste est donnee
+    #pattern||A;;;split_couleur;?LC;
+    #test||obj;asc_c||^C;;;split_couleur||cnt;2;
     """
     #    print ('split_couleurs ', regle.params,obj)
     if obj.virtuel:
@@ -638,15 +638,21 @@ def f_splitcouleur(regle, obj):
     if obj.initgeom():
         geoms = obj.geom_v.split_couleur(couleurs)
     else:
-
-        print(
-            "split_couleur,geometrie invalide ",
-            obj.ident,
-            obj.numobj,
+        regle.stock_param.logger.warning(
+            "geometrie invalide %s %s %s <-> %s",
+            str(obj.ident),
+            str(obj.numobj),
             obj.geom_v.type,
-            " ->",
             obj.schema.info["type_geom"],
         )
+        # print(
+        #     "split_couleur,geometrie invalide ",
+        #     obj.ident,
+        #     obj.numobj,
+        #     obj.geom_v.type,
+        #     " ->",
+        #     obj.schema.info["type_geom"],
+        # )
         if obj.attributs.get("#erreurs"):
             print(obj.attributs.get("#erreurs"))
         return False
@@ -688,11 +694,11 @@ def h_extractcouleur(regle):
 
 
 def f_extractcouleur(regle, obj):
-    """ #aide||decoupe la geometrie selon la couleur
-        #aide_spec|| ne garde que les couleurs precisees
-        #schema||set_geom
-        #pattern||;;;extract_couleur;LC;
-        #test||obj;asc_c||^;;;extract_couleur;2||atv;#points;2;
+    """#aide||decoupe la geometrie selon la couleur
+    #aide_spec|| ne garde que les couleurs precisees
+    #schema||set_geom
+    #pattern||;;;extract_couleur;LC;
+    #test||obj;asc_c||^;;;extract_couleur;2||atv;#points;2;
     """
     if obj.virtuel:
         return True
@@ -738,11 +744,11 @@ def crepoint_copie(obj, point, dimension, numero, att_sortie=None):
 
 def f_csplit(regle, obj):
     """#aide||decoupage conditionnel de lignes en points
-       #aide_spec||extrait les points satisfaisant une condition sur les coordonnees
-       #aide_spec||expression sur les coordonnes : x y z
-       #pattern||?A;;;csplit;C;
-       #test||obj;poly||^;;;csplit>;y==1||cnt;2;
-       #test1||obj;poly||^;;;csplit;y==1||cnt;3;
+    #aide_spec||extrait les points satisfaisant une condition sur les coordonnees
+    #aide_spec||expression sur les coordonnes : x y z
+    #pattern||?A;;;csplit;C;
+    #test||obj;poly||^;;;csplit>;y==1||cnt;2;
+    #test1||obj;poly||^;;;csplit;y==1||cnt;3;
     """
     if obj.virtuel:
         return False
@@ -775,10 +781,10 @@ def f_csplit(regle, obj):
 
 def f_splitgeom(regle, obj):
     """#aide||decoupage inconditionnel des lignes en points
-       #pattern||?A;;;splitgeom;;
-       #test||obj;poly||^;;;splitgeom;;||cnt;6;
-       #test1||obj;poly||^;;;splitgeom>;;||cnt;5;
-       #test2||obj;poly||^np;;;splitgeom;;||#type_geom;3;;;;;;pass>||^;;;pass||cnt;5;
+    #pattern||?A;;;splitgeom;;
+    #test||obj;poly||^;;;splitgeom;;||cnt;6;
+    #test1||obj;poly||^;;;splitgeom>;;||cnt;5;
+    #test2||obj;poly||^np;;;splitgeom;;||#type_geom;3;;;;;;pass>||^;;;pass||cnt;5;
     """
     if obj.geom_v.type == "0":
         return True
@@ -854,7 +860,7 @@ def f_reproj(regle, obj):
        #pattern||?A;C;;reproj;C;?C
        #schema||ajout_attribut
        #test||obj;point||^;LL;;reproj;CC48;NG||^;;;coordp||^#x;;#x;round||atn;#x;1404842
-        """
+    """
     if obj.virtuel:
         return False
     proj = regle.projection
@@ -915,9 +921,9 @@ def h_translatel(regle):
 
 def f_translatel(regle, obj):
     """#aide translate un objet
-  #aide_spec||translation d un objet par une liste de coordonnees(liste d attributs)
-    #pattern||;?LN;L;translate;;
-      #test2||obj;ligne;||^;1,1;;translate||^;1;;coordp||atn;#x;2
+    #aide_spec||translation d un objet par une liste de coordonnees(liste d attributs)
+      #pattern||;?LN;L;translate;;
+        #test2||obj;ligne;||^;1,1;;translate||^;1;;coordp||atn;#x;2
     """
     if obj.virtuel:
         return True

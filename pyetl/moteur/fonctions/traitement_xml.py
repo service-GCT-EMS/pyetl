@@ -57,21 +57,21 @@ def writeback(regle, obj, tree, nomxml, changed=False):
 
 def f_xmlextract(regle, obj):
     """#aide||extraction de valeurs d un xml
-  #aide_spec||retourne le premier element trouve
-   #pattern1||H;?C;A;xmlextract;C;?C||sortie
-   #pattern2||D;?C;A;xmlextract;C;?C||sortie
-   #pattern3||S;?C;A;xmlextract;A.C;?C||sortie
-#parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
-      #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
-      #test3||obj||^V4;<g><pp p1="toto" p2="titi">text</pp></g>;;set||^XX;;V4;xmlextract;pp._T;||atv;XX;text
-       """
+      #aide_spec||retourne le premier element trouve
+       #pattern1||H;?C;A;xmlextract;C;?C||sortie
+       #pattern2||D;?C;A;xmlextract;C;?C||sortie
+       #pattern3||S;?C;A;xmlextract;A.C;?C||sortie
+    #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
+          #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
+          #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
+          #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto
+          #test3||obj||^V4;<g><pp p1="toto" p2="titi">text</pp></g>;;set||^XX;;V4;xmlextract;pp.#text;||atv;XX;text
+    """
     trouve = False
     tree, cadres = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
-            if regle.item == "_T":
+            if regle.item == "#text":
                 contenu = elem.text
             else:
                 contenu = elem.get(regle.item, "") if regle.item else dict(elem.items())
@@ -91,16 +91,16 @@ def h_xmlsplit(regle):
 
 def f_xmlsplit(regle, obj):
     """#aide||decoupage d'un attribut xml en objets
-  #aide_spec||on cree un objet pour chaque element
-   #pattern1||S;;A;xmlsplit;C;?C||sortie
-   #pattern2||H;;A;xmlsplit;C;?C||sortie
-   #pattern3||D;;A;xmlsplit;C;?C||sortie
-   #pattern4||M;;A;xmlsplit;C;?C||sortie
-   #pattern5||S;;A;xmlsplit;A.C;?C||sortie
-#parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
-     #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
-       """
+      #aide_spec||on cree un objet pour chaque element
+       #pattern1||S;;A;xmlsplit;C;?C||sortie
+       #pattern2||H;;A;xmlsplit;C;?C||sortie
+       #pattern3||D;;A;xmlsplit;C;?C||sortie
+       #pattern4||M;;A;xmlsplit;C;?C||sortie
+       #pattern5||S;;A;xmlsplit;A.C;?C||sortie
+    #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
+          #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||cnt;2
+         #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
+    """
     trouve = False
     tree, cadres = getcadre(regle, obj)
     groupe, oclasse = obj.ident
@@ -155,24 +155,24 @@ def h_xmledit(regle):
 
 def f_xmledit(regle, obj):
     """#aide||modification en place d elements xml
-   #pattern1||re;re;A;xmledit;C;?C||sortie
-   #pattern2||;C;A;xmledit;A.C;?C||cmp1
-   #pattern3||;[A];A;xmledit;A.C;?C||cmp1
-   #pattern4||?=\\*;H;A;xmledit;C;?C||defaut
-   #pattern5||;;A;xmledit;A.C;?C||defaut
- #aide_spec1||remplacement de texte
-#parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
- #aide_spec2||remplacement ou ajout d un tag
-#parametres2||;valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
- #aide_spec3||remplacement ou ajout d un tags
-#parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
- #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
- #aide_spec5||suppression d un ensemble de tags
-#parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
-      #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^xx;ss;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
-      #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
-      #test5||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;
-       """
+       #pattern1||re;re;A;xmledit;C;?C||sortie
+       #pattern2||;C;A;xmledit;A.C;?C||cmp1
+       #pattern3||;[A];A;xmledit;A.C;?C||cmp1
+       #pattern4||?=\\*;H;A;xmledit;C;?C||defaut
+       #pattern5||;;A;xmledit;A.C;?C||defaut
+     #aide_spec1||remplacement de texte
+    #parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
+     #aide_spec2||remplacement ou ajout d un tag
+    #parametres2||;valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
+     #aide_spec3||remplacement ou ajout d un tags
+    #parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
+     #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
+     #aide_spec5||suppression d un ensemble de tags
+    #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
+          #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^xx;ss;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
+          #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
+          #test5||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;
+    """
     tree, cadres = getcadre(regle, obj)
     groupe, oclasse = obj.ident
     nat = regle.params.att_entree.val
@@ -212,8 +212,8 @@ def f_xmledit(regle, obj):
 
 def f_xmlload(regle, obj):
     """#aide||lecture d un fichier xml dans un attribut
-   #pattern1||A;?;?A;xml_load;;;
-#parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
+       #pattern1||A;?;?A;xml_load;;;
+    #parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
     """
     nom = regle.getval_entree(obj)
     # print("xmlload traitement ", nom)
@@ -240,8 +240,8 @@ def h_xmlsave(regle):
 
 def f_xmlsave(regle, obj):
     """#aide||stockage dans un fichier d un xml contenu dans un attribut
-   #pattern1||A;?C;A;xml_save;?C;;
-#parametres1||nom fichier;;attribut contenant le xml;;nom du repertoire
+       #pattern1||A;?C;A;xml_save;?C;;
+    #parametres1||nom fichier;;attribut contenant le xml;;nom du repertoire
     """
     writeback(regle, obj, None, regle.params.att_entree.val, changed=False)
     sortie = obj.attributs.get(regle.params.att_sortie.val)
@@ -288,10 +288,10 @@ def h_formated_save(regle):
 
 def f_formated_save(regle, obj):
     """#aide||stockage de l objet dans un fichier en utilisant un template jinja2
-   #pattern1||A;;;formated_save;C;?C;
-   #pattern2||A;C?;A;formated_save;C;?C;
-#parametres1||nom fichier;;nom du template;nom du repertoire de sortie
-#parametres2||nom fichier;defaut;attribut nom du template;;nom du repertoire de template;nom du repertoire de sortie
+       #pattern1||A;;;formated_save;C;?C;
+       #pattern2||A;C?;A;formated_save;C;?C;
+    #parametres1||nom fichier;;nom du template;nom du repertoire de sortie
+    #parametres2||nom fichier;defaut;attribut nom du template;;nom du repertoire de template;nom du repertoire de sortie
     """
     templatename = (
         regle.getval_entree(obj) if regle.params.pattern == "2" else regle.templatename

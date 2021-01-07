@@ -619,7 +619,7 @@ def asc_streamer(writer, obj, regle, _, attributs=None):
     # regle.ressource.write(obj, regle)
 
 
-def ecrire_objets_asc(self, regle, _, attributs=None):
+def ecrire_objets_asc(writer, regle, _, attributs=None):
     """ecrit un ensemble de fichiers asc a partir d'un stockage memoire ou temporaire"""
     # ng, nf = 0, 0
     # memoire = defs.stockage
@@ -633,24 +633,26 @@ def ecrire_objets_asc(self, regle, _, attributs=None):
             if obj.virtuel:  # on ne traite pas les virtuels
                 continue
             if obj.ident != dident:
-                groupe, classe = obj.ident
-                if regle.fanout == "groupe":
-                    nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
-                else:
-                    nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
+                ressource = writer.change_ressource(obj)
+                dident = obj.ident
+                # groupe, classe = obj.ident
+                # if regle.fanout == "groupe":
+                #     nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
+                # else:
+                #     nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
 
-                ressource = sorties.get_res(regle, nom)
-                if ressource is None:
-                    if os.path.dirname(nom):
-                        os.makedirs(os.path.dirname(nom), exist_ok=True)
+                # ressource = sorties.get_res(regle, nom)
+                # if ressource is None:
+                #     if os.path.dirname(nom):
+                #         os.makedirs(os.path.dirname(nom), exist_ok=True)
 
-                    streamwriter = AscWriter(
-                        nom, encoding="cp1252", geomwriter=self.geomwriter, regle=regle
-                    )
-                    streamwriter.set_liste_att(attributs)
-                    ressource = sorties.creres(nom, streamwriter)
+                #     streamwriter = AscWriter(
+                #         nom, encoding="cp1252", geomwriter=self.geomwriter, regle=regle
+                #     )
+                #     streamwriter.set_liste_att(attributs)
+                #     ressource = sorties.creres(nom, streamwriter)
                 regle.ressource = ressource
-                dident = (groupe, classe)
+                # dident = (groupe, classe)
             ressource.write(obj, regle.idregle)
 
 

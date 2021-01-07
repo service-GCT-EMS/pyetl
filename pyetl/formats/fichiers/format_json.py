@@ -7,6 +7,10 @@ import json
 from .fileio import FileWriter
 
 
+def init_JsonWriter(writer):
+    writer.writerclass = JsonWriter
+
+
 class JsonWriter(FileWriter):
     """gestionnaire d ecriture au format json"""
 
@@ -30,7 +34,11 @@ class JsonWriter(FileWriter):
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
-        self.liste_att = schemaclasse.get_liste_attributs(liste=attributs) if schemaclasse else attributs
+        self.liste_att = (
+            schemaclasse.get_liste_attributs(liste=attributs)
+            if schemaclasse
+            else attributs
+        )
 
     def write(self, obj):
         """ecrit un objet"""
@@ -145,59 +153,68 @@ def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
     return
 
 
-def jsonstreamer(self, obj, regle, _, rep_sortie=None):  # ecritures non bufferisees
+def jsonstreamer(writer, obj, regle, _, rep_sortie=None):  # ecritures non bufferisees
     """ ecrit des objets json en streaming"""
-    sorties = regle.stock_param.sorties
-    rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    extention = "." + self.nom_format
-    groupe, classe = obj.ident
-    #    print ('json: ecriture ',groupe,classe,obj.schema)
-    setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
+    if obj.virtuel:  # on ne traite pas les virtuels
+        return
+    # raise
+    if regle.dident != obj.ident:
+        regle.ressource = writer.change_ressource(obj)
+        regle.dident = obj.ident
 
-    if obj.ident != regle.dident:
-        groupe, classe = obj.ident
-        schema_courant = obj.schema
-        if regle.fanout == "groupe":
-            nom = sorties.get_id(rep_sortie, groupe, "", extention)
-        else:
-            nom = sorties.get_id(rep_sortie, groupe, classe, extention)
-        if not nom:
-            print("jsonio erreur sortie", groupe, classe)
-            return
-        ressource = sorties.get_res(regle, nom)
-        if ressource is None:
-            #            print ('creation ressource stream csv' , nom,groupe,classe)
-            try:
-                os.makedirs(os.path.dirname(nom), exist_ok=True)
-            except FileNotFoundError:
-                print("jsonio erreur sortie", nom)
-                return
+    regle.ressource.write(obj, regle.idregle)
 
-            str_w = JsonWriter(
-                nom,
-                schema_courant,
-                extention,
-                encoding=regle.getvar("codec_sortie", "utf-8"),
-                regle=regle,
-            )
-            sorties.creres(nom, str_w)
-            ressource = sorties.get_res(regle, nom)
-        else:
-            print("json:changeschema", obj, obj.schema)
+    # sorties = regle.stock_param.sorties
+    # rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+    # extention = "." + self.nom_format
+    # groupe, classe = obj.ident
+    # #    print ('json: ecriture ',groupe,classe,obj.schema)
+    # setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
 
-            ressource.handler.changeclasse(obj.schema)
-        regle.ressource = ressource
-        regle.dident = (groupe, classe)
-    else:
-        schema_courant = obj.schema
-    ressource = regle.ressource
-    obj.classe_is_att = setclasse
+    # if obj.ident != regle.dident:
+    #     groupe, classe = obj.ident
+    #     schema_courant = obj.schema
+    #     if regle.fanout == "groupe":
+    #         nom = sorties.get_id(rep_sortie, groupe, "", extention)
+    #     else:
+    #         nom = sorties.get_id(rep_sortie, groupe, classe, extention)
+    #     if not nom:
+    #         print("jsonio erreur sortie", groupe, classe)
+    #         return
+    #     ressource = sorties.get_res(regle, nom)
+    #     if ressource is None:
+    #         #            print ('creation ressource stream csv' , nom,groupe,classe)
+    #         try:
+    #             os.makedirs(os.path.dirname(nom), exist_ok=True)
+    #         except FileNotFoundError:
+    #             print("jsonio erreur sortie", nom)
+    #             return
 
-    retour = ressource.handler.write(obj)
+    #         str_w = JsonWriter(
+    #             nom,
+    #             schema_courant,
+    #             extention,
+    #             encoding=regle.getvar("codec_sortie", "utf-8"),
+    #             regle=regle,
+    #         )
+    #         sorties.creres(nom, str_w)
+    #         ressource = sorties.get_res(regle, nom)
+    #     else:
+    #         print("json:changeschema", obj, obj.schema)
 
-    if retour and schema_courant:
-        if not schema_courant.info["courbe"] and obj.geom_v.courbe:
-            schema_courant.info["courbe"] = "1"
+    #         ressource.handler.changeclasse(obj.schema)
+    #     regle.ressource = ressource
+    #     regle.dident = (groupe, classe)
+    # else:
+    #     schema_courant = obj.schema
+    # ressource = regle.ressource
+    # obj.classe_is_att = setclasse
+
+    # retour = ressource.handler.write(obj)
+
+    # if retour and schema_courant:
+    if obj.schema and not obj.schema.info["courbe"] and obj.geom_v.courbe:
+        obj.schema.info["courbe"] = "1"
 
 
 #        ressource.compte(1)
@@ -221,7 +238,7 @@ WRITERS = {
         "classe",
         None,
         "#tmp",
-        None,
+        init_JsonWriter,
     ),
     "geojson": (
         ecrire_objets,
@@ -233,7 +250,7 @@ WRITERS = {
         "classe",
         None,
         "#tmp",
-        None,
+        init_JsonWriter,
     ),
 }
 

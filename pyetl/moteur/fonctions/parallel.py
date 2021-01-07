@@ -488,7 +488,9 @@ def traite_parallel(regle):
             for param in retour["stats_generales"]:
                 mapper.padd(param, retour["stats_generales"][param])
             mapper.logger.info(
-                "retour stats" + str(retour["stats_generales"].get("_st_lu_objs", "0"))
+                "retour stats (%s) : %s",
+                retour["wid"],
+                str(retour["stats_generales"].get("_st_lu_objs", "0")),
             )
             #            print ('traitement schemas ', retour["schemas"])
             integre_schemas(mapper.schemas, retour["schemas"])
@@ -568,7 +570,9 @@ def traite_parallel_load(regle):
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         mapper.logger.info(
-            "retour stats" + str(retour["stats_generales"].get("_st_lu_objs", "0"))
+            "retour stats (%s) : %s",
+            retour["wid"],
+            str(retour["stats_generales"].get("_st_lu_objs", "0")),
         )
         #            print ('traitement schemas ', retour["schemas"])
         integre_schemas(mapper.schemas, retour["schemas"])
@@ -587,7 +591,8 @@ def traite_parallel_load(regle):
         obj = regle.tmpstore[i]
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
-        print("fin traitement parallele", obj)
+        mapper.logger.info("fin traitement parallele")
+        # print("fin traitement parallele", obj)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
 

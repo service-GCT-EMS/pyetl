@@ -11,6 +11,7 @@ commencent par format_
 """
 import os
 import codecs
+from pyetl.pyetl import LOGGER
 import re
 import io
 from types import MethodType
@@ -424,12 +425,17 @@ class Reader(object):
                 # print ('------nouvelle classe ',self.schemaclasse._id, self.schemaclasse.attmap)
                 # print ('------controle', self.schema.get_classe(self.ident)._id)
                 return
-            print(
-                "mapping schema_entree impossible",
-                self.ident,
-                "->",
+            self.stock_param.logger.warning(
+                "mapping schema_entree  %s impossible %s",
                 self.schema_entree.nom,
+                str(self.ident),
             )
+            # print(
+            #     "mapping schema_entree impossible",
+            #     self.ident,
+            #     "->",
+            #     self.schema_entree.nom,
+            # )
         self.newschema = True
         if self.schema:
             self.schemaclasse = self.schema.setdefault_classe(self.ident)
@@ -616,7 +622,11 @@ class Writer(object):
         # positionne un format de sortie
         nom = nom.replace(".", "").lower()
         if nom not in WRITERS:
-            print("format sortie inconnu '" + nom + "'", WRITERS.keys())
+            if nom:
+                LOGGER.error("format sortie inconnu '%s'", nom)
+                LOGGER.info("formats existants :")
+                LOGGER.info("formats existants : %s", ",".join(WRITERS.keys()))
+            # print("format sortie inconnu '" + nom + "'", WRITERS.keys())
             nom = "#poubelle"
         # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)
         self.writerparms = WRITERS[nom]._asdict()  # parametres specifique au format
@@ -720,3 +730,17 @@ class Writer(object):
         #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
         self.regle.context.setroot("derniere_sortie", nom)
         return ressource
+
+    def gen_streamer(self, obj, regle, _, attributs=None):
+        """ecrit des objets asc au fil de l'eau.
+        dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
+        a la sortie du pipeline (mode streaming)
+        """
+        if obj.virtuel:  # on ne traite pas les virtuels
+            return
+        # raise
+        if regle.dident != obj.ident:
+            regle.ressource = self.change_ressource(obj)
+            regle.dident = obj.ident
+
+        regle.ressource.write(obj, regle.idregle)

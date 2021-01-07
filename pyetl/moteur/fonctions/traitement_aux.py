@@ -80,13 +80,14 @@ def sh_dyn(regle):
     regle.changeschema = True
     regle.changeclasse = True
     regle.dynschema = True
+    regle.action_schema = fschema_ajout_attribut_d
 
 
 def s_hstore(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
-       #pattern||H:A||H
-       #shelper||simple
-       """
+    #pattern||H:A||H
+    #shelper||simple
+    """
     # print("dans s_hstore")
     if isinstance(valeur, str):
         obj.attributs[sortie.val] = valeur
@@ -97,9 +98,9 @@ def s_hstore(sortie, obj, valeur):
 
 def s_hupdate(sortie, obj, valeur):
     """#aide||fonction de stockage d'un hstore
-       #pattern||+H:A||H
-       #shelper||simple
-       """
+    #pattern||+H:A||H
+    #shelper||simple
+    """
     # print("dans s_hstore")
     if isinstance(valeur, str):
         if sortie.val in obj.attributs and obj.attributs[sortie.val]:
@@ -113,21 +114,21 @@ def s_hupdate(sortie, obj, valeur):
 
 def s_simple(sortie, obj, valeur):
     """#aide||affectation cree l' attribut si necessaire
-        #pattern||A||S
-        #pattern1||AE||S
-        #pattern2||AN||S
-        #pattern3||AD||S
-        #shelper||simple
-        #test1||X:x||X?||X:x||S:X
+    #pattern||A||S
+    #pattern1||AE||S
+    #pattern2||AN||S
+    #pattern3||AD||S
+    #shelper||simple
+    #test1||X:x||X?||X:x||S:X
     """
     obj.attributs[sortie.val] = valeur
 
 
 def s_indirect(sortie, obj, valeur):
     """#aide||cree ou affecte une variable indirectement,cree l' attribut si necessaire
-       #pattern||[A]||S
-       #shelper||dyn
-       #test1||X:x||X:Z||Z:x||S:Z
+    #pattern||[A]||S
+    #shelper||dyn
+    #test1||X:x||X:Z||Z:x||S:Z
 
     """
     atts = obj.attributs.get(sortie.val)
@@ -139,8 +140,8 @@ def s_indirect(sortie, obj, valeur):
 
 def s_liste(sortie, obj, valeur):
     """#aide|| affecte un ensemble d'attributs, les cree si necessaire
-        #pattern||L||M
-        #shelper||liste
+    #pattern||L||M
+    #shelper||liste
     """
     if isinstance(valeur, dict):
         obj.attributs.update([(i, valeur.get(i)) for i in sortie.liste])
@@ -150,24 +151,24 @@ def s_liste(sortie, obj, valeur):
 
 def s_simple_pre(sortie, obj, valeur):
     """#aide|| ajoute la valeur devant  cree l' attribut si necessaire
-       #pattern||+A||S
-       #shelper||simple
+    #pattern||+A||S
+    #shelper||simple
     """
     obj.attributs[sortie.val] = valeur + obj.attributs.get(sortie.val, "")
 
 
 def s_simple_post(sortie, obj, valeur):
     """#aide|| cree l' attribut si necessaire
-       #pattern||A+||S
-       #shelper||simple
+    #pattern||A+||S
+    #shelper||simple
     """
     obj.attributs[sortie.val] = obj.attributs.get(sortie.val, "") + valeur
 
 
 def s_liste_pre(sortie, obj, valeur):
     """#aide|| affecte un ensemble d'attributs cree l' attribut si necessaire
-        #pattern||+L||M
-        #shelper||liste
+    #pattern||+L||M
+    #shelper||liste
     """
 
     refs = [obj.attributs.get(i, "") for i in sortie.liste]
@@ -187,8 +188,8 @@ def s_liste_post(sortie, obj, valeur):
 
 def s_indirect_pre(sortie, obj, valeur):
     """#aide|| cree l' attribut si necessaire
-       #pattern||+[A]||S
-       #shelper||dyn
+    #pattern||+[A]||S
+    #shelper||dyn
     """
     atts = obj.attributs.get(sortie.val)
     if atts:
@@ -199,8 +200,8 @@ def s_indirect_pre(sortie, obj, valeur):
 
 def s_indirect_post(sortie, obj, valeur):
     """#aide|| cree l' attribut si necessaire
-       #pattern||[A]+||S
-       #shelper||dyn
+    #pattern||[A]+||S
+    #shelper||dyn
     """
     atts = obj.attributs.get(sortie.val)
     if atts:
@@ -211,9 +212,9 @@ def s_indirect_post(sortie, obj, valeur):
 
 def s_dyn_pre(sortie, obj, valeur):
     """#aide|| cree les attributs dynamiquement en fonction des dictionaires avec prefixe
-       #pattern||A*||D
-       #shelper||dyn
-       """
+    #pattern||A*||D
+    #shelper||dyn
+    """
     pref = sortie.val
     #    print("stockage dynamique", pref, valeur)
     for i in valeur:
@@ -224,9 +225,9 @@ def s_dyn_pre(sortie, obj, valeur):
 
 def s_dyn_post(sortie, obj, valeur):
     """#aide|| cree les attributs dynamiquement en fonction des dictionaires avec suffixe
-       #pattern||*A||D
-       #shelper||dyn
-       """
+    #pattern||*A||D
+    #shelper||dyn
+    """
     pref = sortie.val
     for i in valeur:
         obj.attributs[i + pref] = valeur[i]
@@ -236,9 +237,9 @@ def s_dyn_post(sortie, obj, valeur):
 
 def s_dyn(sortie, obj, valeur):
     """#aide|| cree les attributs dynamiquement en fonction des dictionaires
-       #pattern||*||D
-       #shelper||dyn
-       """
+    #pattern||*||D
+    #shelper||dyn
+    """
     for i in valeur:
         obj.attributs[i] = valeur[i]
         if obj.schema:

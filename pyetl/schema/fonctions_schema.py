@@ -420,7 +420,7 @@ def _valide_bool(val):
     btypes = {"t", "f"}
     if val and val in btypes:
         return "", val, ""
-    print("erreur booleen", val)
+    # print("erreur booleen", val)
     return "booleen: " + val, val, "T"
 
 

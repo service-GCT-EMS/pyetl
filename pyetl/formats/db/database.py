@@ -1012,7 +1012,10 @@ class DbConnect(object):
             # print (nom,j[0])
             valeur = j[0].replace("'", "''")
             if len(j[0]) > self.conflen:
-                print("valeur trop longue ", valeur, " : conformite ignoree", nom)
+                LOGGER.warning(
+                    "conformite %s ignoree: valeur trop longue %s", nom, valeur
+                )
+                # print("valeur trop longue ", valeur, " : conformite ignoree", nom)
                 return False
             if valeur not in conf.ctrl:
                 conf.cc.append(valeur)
