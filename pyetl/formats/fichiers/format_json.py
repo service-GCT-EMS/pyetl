@@ -7,7 +7,7 @@ import json
 from .fileio import FileWriter
 
 
-def init_JsonWriter(writer):
+def init_json(writer):
     writer.writerclass = JsonWriter
 
 
@@ -228,30 +228,8 @@ READERS = {
     "geojson": (lire_objets, None, True, (), None, objreader),
 }
 WRITERS = {
-    "json": (
-        ecrire_objets,
-        jsonstreamer,
-        False,
-        "",
-        0,
-        "",
-        "classe",
-        None,
-        "#tmp",
-        init_JsonWriter,
-    ),
-    "geojson": (
-        ecrire_objets,
-        jsonstreamer,
-        False,
-        "",
-        0,
-        "",
-        "classe",
-        None,
-        "#tmp",
-        init_JsonWriter,
-    ),
+    "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),
+    "geojson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),
 }
 
 

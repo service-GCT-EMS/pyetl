@@ -329,7 +329,7 @@ def init_format_asc(reader):
     reader.setvar("codec_asc", "cp1252")
 
 
-def init_ascwriter(writer):
+def init_asc(writer):
     writer.writerclass = AscWriter
 
 
@@ -501,25 +501,8 @@ def _ecrire_entete_asc(obj) -> str:
 class AscWriter(FileWriter):
     """ gestionnaire d'ecriture pour fichiers asc"""
 
-    def __init__(
-        self,
-        nom,
-        # liste_att=None,
-        # encoding="cp1252",
-        schema=None,
-        # geomwriter=None,
-        regle=None,
-    ):
-        super().__init__(
-            nom,
-            # liste_att=liste_att,
-            # converter=self._convertir_objet_asc,
-            # encoding=encoding,
-            schema=schema,
-            regle=regle
-            # geomwriter=geomwriter,
-            # writer=regle.writer,
-        )
+    def __init__(self, nom, schema=None, regle=None):
+        super().__init__(nom, schema=schema, regle=regle)
         self.htext = "*****\n** sortie_mapper\n*****\n"
         if schema and schema.schema.metas:
             self.htext += (
@@ -578,45 +561,11 @@ def asc_streamer(writer, obj, regle, _, attributs=None):
     """
     if obj.virtuel:  # on ne traite pas les virtuels
         return
-    # raise
     if regle.dident != obj.ident:
         regle.ressource = writer.change_ressource(obj)
         regle.dident = obj.ident
 
     regle.ressource.write(obj, regle.idregle)
-
-    # rep_sortie = regle.getvar("_sortie")
-    # if not rep_sortie:
-    #     raise NotADirectoryError("repertoire de sortie non défini")
-    # #    print('asc:', obj.ident,regle.dident, 'sortie:', rep_sortie)
-
-    # sorties = regle.stock_param.sorties
-    # if obj.ident != regle.dident:
-    #     groupe, classe = obj.ident
-    #     if regle.fanout == "no":
-    #         nom = sorties.get_id(rep_sortie, "export", "", ".asc")
-    #     elif regle.fanout == "groupe":
-    #         nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
-    #     else:
-    #         nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
-
-    #     ressource = sorties.get_res(regle, nom)
-    #     if ressource is None:
-    #         if os.path.dirname(nom):
-    #             os.makedirs(os.path.dirname(nom), exist_ok=True)
-    #         streamwriter = AscWriter(
-    #             nom,
-    #             schema=obj.schema,
-    #             regle=regle,
-    #         )
-    #         ressource = sorties.creres(nom, streamwriter)
-    #     else:
-    #         ressource.handler.changeclasse(obj.schema, attributs)
-
-    #     regle.ressource = ressource
-    #     regle.dident = obj.ident
-    # #    print ("fichier de sortie ",fich.nom)
-    # regle.ressource.write(obj, regle)
 
 
 def ecrire_objets_asc(writer, regle, _, attributs=None):
@@ -635,22 +584,6 @@ def ecrire_objets_asc(writer, regle, _, attributs=None):
             if obj.ident != dident:
                 ressource = writer.change_ressource(obj)
                 dident = obj.ident
-                # groupe, classe = obj.ident
-                # if regle.fanout == "groupe":
-                #     nom = sorties.get_id(rep_sortie, groupe, "", ".asc")
-                # else:
-                #     nom = sorties.get_id(rep_sortie, groupe, classe, ".asc")
-
-                # ressource = sorties.get_res(regle, nom)
-                # if ressource is None:
-                #     if os.path.dirname(nom):
-                #         os.makedirs(os.path.dirname(nom), exist_ok=True)
-
-                #     streamwriter = AscWriter(
-                #         nom, encoding="cp1252", geomwriter=self.geomwriter, regle=regle
-                #     )
-                #     streamwriter.set_liste_att(attributs)
-                #     ressource = sorties.creres(nom, streamwriter)
                 regle.ressource = ressource
                 # dident = (groupe, classe)
             ressource.write(obj, regle.idregle)
@@ -662,18 +595,7 @@ READERS = {
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
-    "asc": (
-        ecrire_objets_asc,
-        asc_streamer,
-        False,
-        "up",
-        0,
-        "asc",
-        "groupe",
-        "geom_asc",
-        "geom_asc",
-        init_ascwriter,
-    )
+    "asc": ("", "", False, "up", 0, "asc", "groupe", "geom_asc", "geom_asc", init_asc)
 }
 DESCRIPTION = {
     "asc": ("le format asc est le format externe du logiciel ELYX de one spatial")

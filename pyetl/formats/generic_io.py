@@ -648,8 +648,16 @@ class Writer(object):
         self.writerparms.update(self.regle.writerparms)
         self.dialecte = dialecte
         self.encoding = self.writerparms.get("encoding", "utf-8")
-        self.ecrire_objets = MethodType(self.writerparms["writer"], self)
-        self.ecrire_objets_stream = MethodType(self.writerparms["streamer"], self)
+        self.ecrire_objets = (
+            MethodType(self.writerparms["writer"], self)
+            if self.writerparms["writer"]
+            else self.blocwriter
+        )
+        self.ecrire_objets_stream = (
+            MethodType(self.writerparms["streamer"], self)
+            if self.writerparms["streamer"]
+            else self.streamer
+        )
         self.nom = nom
         self.ext = "." + nom
         self.fanoutmin = self.writerparms["fanoutmin"]
@@ -700,12 +708,7 @@ class Writer(object):
             #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
             nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
         else:
-            nom = self.sorties.get_id(
-                rep_sortie,
-                groupe,
-                classe,
-                self.ext,
-            )
+            nom = self.sorties.get_id(rep_sortie, groupe, classe, self.ext)
         # print("getfanout", rep_sortie, self.fanout, groupe, classe, dest, "->", nom)
         ressource = self.sorties.get_res(self.regle, nom)
         return ressource, nom
@@ -718,11 +721,7 @@ class Writer(object):
             if not nom.startswith("#"):
                 #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
-            str_w = self.writerclass(
-                nom,
-                schema=obj.schema,
-                regle=self.regle,
-            )
+            str_w = self.writerclass(nom, schema=obj.schema, regle=self.regle)
             ressource = self.sorties.creres(nom, str_w)
         else:
             ressource.handler.changeclasse(obj.schema)
@@ -731,16 +730,32 @@ class Writer(object):
         self.regle.context.setroot("derniere_sortie", nom)
         return ressource
 
-    def gen_streamer(self, obj, regle, _, attributs=None):
-        """ecrit des objets asc au fil de l'eau.
+    def streamer(self, obj, regle, _, attributs=None):
+        """ecrit des objets au fil de l'eau.
         dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
         a la sortie du pipeline (mode streaming)
         """
         if obj.virtuel:  # on ne traite pas les virtuels
             return
-        # raise
         if regle.dident != obj.ident:
             regle.ressource = self.change_ressource(obj)
             regle.dident = obj.ident
-
         regle.ressource.write(obj, regle.idregle)
+        if obj.geom_v.courbe and obj.schema:
+            obj.schema.info["courbe"] = "1"
+
+    def blocwriter(self, regle, _, attributs=None):
+        """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
+
+        dident = None
+        for groupe in list(regle.stockage.keys()):
+            for obj in regle.recupobjets(groupe):  # on parcourt les objets
+                if obj.virtuel:  # on ne traite pas les virtuels
+                    continue
+                if obj.ident != dident:
+                    ressource = self.change_ressource(obj)
+                    dident = obj.ident
+                    regle.ressource = ressource
+                ressource.write(obj, regle.idregle)
+                # if obj.geom_v.courbe and obj.schema:
+                #     obj.schema.info["courbe"] = "1"

@@ -648,7 +648,7 @@ def f_dbcount(regle, obj):
 
     selecteur = setdb(regle, obj)
     retour = 0
-    for base, ident in selecteur.get_classses():
+    for base, ident in selecteur.get_classes():
         niveau, classe = ident
         LOGGER.debug("regles count:ligne  " + repr(regle) + repr(base) + repr(mods))
 

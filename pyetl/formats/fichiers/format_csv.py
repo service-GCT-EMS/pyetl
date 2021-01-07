@@ -318,31 +318,8 @@ class CsvWriter(FileWriter):
 class SqlWriter(CsvWriter):
     """getionnaire decriture sql en fichier"""
 
-    def __init__(
-        self,
-        nom,
-        schema,
-        regle
-        # extension,
-        # separ,
-        # entete,
-        # encoding="utf-8",
-        # null="",
-        # writer=None,
-        # geomwriter=None,
-    ):
-        super().__init__(
-            nom,
-            schema,
-            regle
-            # extension,
-            # separ,
-            # entete,
-            # encoding,
-            # null,
-            # writer,
-            # geomwriter=geomwriter,
-        )
+    def __init__(self, nom, schema, regle):
+        super().__init__(nom, schema, regle)
         if self.writerparms:
             self.schema.setsortie(self.writer)
         self.transtable = str.maketrans(
@@ -495,69 +472,6 @@ class SqlWriter(CsvWriter):
         self.fichier.write(self.header(init=0))
 
 
-# def getfanout(regle, extention, ident, initial):
-#     """determine le mode de fanout"""
-#     sorties = regle.stock_param.sorties
-#     rep_sortie = regle.getvar("_sortie")
-#     groupe, classe = ident
-#     dest = regle.writer.writerparms.get("destination")
-#     #    print ('dans getfanout ', regle.fanout, regle.writer.fanoutmax, ident,
-#     #           initial,extention, dest)
-
-#     bfich = ""
-#     if regle.params.cmp2.val:
-#         nfich = regle.params.cmp2.val
-#         if nfich == "#print":
-#             nom = "#print"
-#             ressource = sorties.get_res(regle, nom)
-#             return ressource, nom
-
-#     if regle.fanout == "no" and regle.writer.fanoutmax == "all":
-#         bfich = dest if dest else "all"
-#         nom = sorties.get_id(rep_sortie, bfich, "", extention, nom=dest)
-#     #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
-#     elif regle.fanout == "groupe" and (
-#         regle.writer.fanoutmax == "all" or regle.writer.fanoutmax == "groupe"
-#     ):
-#         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
-#         #            len(obj.schema.attributs))
-#         nom = sorties.get_id(
-#             os.path.join(rep_sortie, bfich), groupe, "", extention, nom=dest
-#         )
-
-#     else:
-#         nom = sorties.get_id(
-#             os.path.join(rep_sortie, bfich), groupe, classe, extention, nom=dest
-#         )
-
-#     ressource = sorties.get_res(regle, nom)
-#     #    print('csv:fichier', regle.getvar('_wid'), regle.fanout, rep_sortie, bfich, groupe,nom)
-#     return ressource, nom
-
-
-# def change_ressource(regle, obj, initial=False):
-#     """ change la definition de la ressource utilisee si necessaire"""
-#     # separ, extention, entete, null, initial=False, geomwriter=None
-
-#     ressource, nom = getfanout(regle, regle.writer.extension, obj.ident, initial)
-#     #    ressource = sorties.get_res(regle, nom)
-
-#     #    print ('change_ressoures ', regle.writer.writerparms)
-#     if ressource is None:
-#         if not nom.startswith("#"):
-#             #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
-#             os.makedirs(os.path.dirname(nom), exist_ok=True)
-#         str_w = regle.writer.writerclass(
-#             nom,
-#             schema=obj.schema,
-#             regle=regle,
-#         )
-#         ressource = regle.stock_param.sorties.creres(nom, str_w)
-#     #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
-#     regle.context.setroot("derniere_sortie", nom)
-#     return ressource
-
-
 def csvstreamer(writer, obj, regle, _):
     """ ecrit des objets csv en streaming"""
     #    sorties = regle.stock_param.sorties
@@ -578,7 +492,7 @@ def ecrire_objets_csv(writer, regle, _):
     ressource = None
     for groupe in list(regle.stockage.keys()):
         # on determine le schema
-        print("csv:ecrire groupe", groupe)
+        # print("csv:ecrire groupe", groupe)
 
         for obj in regle.recupobjets(groupe):
             #            print("csv:ecrire csv", obj)
@@ -661,54 +575,10 @@ def lire_objets_csv(self, rep, chemin, fichier):
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,initer)
 WRITERS = {
-    "csv": (
-        ecrire_objets_csv,
-        csvstreamer,
-        True,
-        "low",
-        0,
-        "csv",
-        "classe",
-        "#ewkt",
-        "#ewkt",
-        init_csv,
-    ),
-    "txt": (
-        ecrire_objets_csv,
-        csvstreamer,
-        True,
-        "low",
-        0,
-        "txt",
-        "classe",
-        "#ewkt",
-        "#ewkt",
-        init_txt,
-    ),
-    "sql": (
-        ecrire_objets_csv,
-        csvstreamer,
-        True,
-        "low",
-        0,
-        "txt",
-        "all",
-        "#ewkt",
-        "#ewkt",
-        init_sql,
-    ),
-    "geo": (
-        ecrire_objets_csv,
-        csvstreamer,
-        True,
-        "low",
-        0,
-        "txt",
-        "classe",
-        "#ewkt",
-        "#ewkt",
-        init_geo,
-    ),
+    "csv": ("", "", True, "low", 0, "csv", "classe", "#ewkt", "#ewkt", init_csv),
+    "txt": ("", "", True, "low", 0, "txt", "classe", "#ewkt", "#ewkt", init_txt),
+    "sql": ("", "", True, "low", 0, "txt", "all", "#ewkt", "#ewkt", init_sql),
+    "geo": ("", "", True, "low", 0, "txt", "classe", "#ewkt", "#ewkt", init_geo),
 }
 
 #                  reader,geom,hasschema,auxfiles,initer

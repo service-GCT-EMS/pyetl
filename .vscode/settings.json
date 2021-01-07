@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "c:\\Users\\89965\\Mes Documents (local)\\projet_mapper\\test_mapper\\env_mapper\\Scripts\\python.exe",
+    "python.pythonPath": "C:\\Users\\claude\\Anaconda3\\envs\\mapper\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": false,
     "python.linting.pylintEnabled": true,
