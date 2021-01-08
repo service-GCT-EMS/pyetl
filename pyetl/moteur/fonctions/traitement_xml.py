@@ -21,6 +21,10 @@ def h_xmlextract(regle):
     """extraction d'element xml"""
     regle.cadre = regle.params.cmp2.val
     regle.recherche = regle.params.cmp1.val
+    regle.partiel=None
+    if "*" in regle.params.cmp1.val:
+        regle.recherche=None
+        regle.partiel=regle.params.cmp1.val.replace("*","")
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
     regle.keepdata = regle.getvar("keepdata") == "1"
     regle.keeptree = regle.getvar("keeptree") == "1"
@@ -71,6 +75,8 @@ def f_xmlextract(regle, obj):
     tree, cadres = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
+            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+                continue
             if regle.item == "#text":
                 contenu = elem.text
             else:
@@ -103,11 +109,11 @@ def f_xmlsplit(regle, obj):
     """
     trouve = False
     tree, cadres = getcadre(regle, obj)
-    groupe, oclasse = obj.ident
-    nat = regle.params.att_entree.val
-    if nat.startswith("#"):
-        nat = nat[1:]
-    classe = oclasse + "_" + nat
+    # groupe, oclasse = obj.ident
+    # nat = regle.params.att_entree.val
+    # if nat.startswith("#"):
+    #     nat = nat[1:]
+    # classe = oclasse + "_" + nat
     # regle.reader.prepare_lecture_att(obj, "interne")
     if regle.keepdata:  # on actualise l xml
         writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
@@ -115,9 +121,12 @@ def f_xmlsplit(regle, obj):
         xml = obj.attributs.get(regle.params.att_entree.val, "")
         obj.attributs[regle.params.att_entree.val] = ""
     for cadre in cadres:
-        # print("traitement", cadre)
         cadretags = dict(cadre.items())
+        # print("traitement", cadre, regle.recherche)
         for elem in cadre.iter(regle.recherche):
+            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+                continue
+            # print ("trouve elem", elem)
             # obj2 = regle.reader.getobj(niveau=groupe, classe=classe)
             obj2 = obj.dupplique()
             obj2.virtuel = False
@@ -131,7 +140,7 @@ def f_xmlsplit(regle, obj):
                 contenu = ""
             regle.setval_sortie(obj2, contenu)
             regle.action_schema(regle, obj2)
-            obj2.attributs["#xmltag"] = regle.recherche
+            obj2.attributs["#xmltag"] = regle.recherche or regle.partiel or elem.tag
             obj2.attributs["#xmlgroup"] = regle.cadre
             obj2.sethtext(nom="#xmlgrouptags", dic=cadretags, upd=False)
             # obj2.attributs["#xmlgrouptags"] = cadretags
@@ -143,6 +152,24 @@ def f_xmlsplit(regle, obj):
     writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
     return trouve
 
+def f_xmlstruct(regle, obj):
+    """#aide||affiche la structure de tags d un xml
+       #pattern1||;?C;A;xmlstruct;?C;?C
+       #helper||xmlsplit
+    #parametres1||;defaut;attribut xml;;tag a extraire;groupe de recherche
+    """
+    trouve = False
+    tree, cadres = getcadre(regle, obj)
+    if regle.keepdata:  # on actualise l xml
+        writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
+    for cadre in cadres:
+
+        for elem in cadre.iter(None):
+            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+                continue
+            print ("trouve elem", elem.tag)
+            trouve = True
+    return True
 
 def h_xmledit(regle):
     """helper edition"""
@@ -185,6 +212,8 @@ def f_xmledit(regle, obj):
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
+            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+                continue
             trouve = 1
             if regle.params.pattern == "1":  # regex sur texte
                 contenu = elem.text
