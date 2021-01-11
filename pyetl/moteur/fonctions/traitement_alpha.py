@@ -742,13 +742,13 @@ def f_join(regle, obj):
         clef_jointure = obj.attributs.get(regle.params.att_entree.val)
         # print("clef jointure", clef_jointure)
         obj_joint = regle.tmpstore.get(clef_jointure)
-        # print(obj_joint)
+        # print("obj joint", obj_joint)
 
         if obj_joint:
             if regle.recup_geom:
                 obj.geom_v = copy.deepcopy(obj_joint.geom_v)
             if regle.champs and regle.champs != "*":
-                vnlist = [(i, obj_joint.attributs.get(i)) for i in regle.champs]
+                vnlist = [(i, obj_joint.attributs.get(i,"")) for i in regle.champs]
             else:
                 vnlist = [
                     (i, j)

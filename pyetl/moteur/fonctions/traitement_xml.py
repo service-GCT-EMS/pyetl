@@ -10,8 +10,9 @@ import os
 import io
 import time
 import re
-from xml.etree.ElementTree import ParseError
+from xml.etree.ElementTree import ParseError, XML
 import xml.etree.cElementTree as ET
+# from lxml import etree as ET
 from jinja2 import FileSystemLoader, Environment
 
 LOGGER = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ def h_xmlextract(regle):
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
     regle.keepdata = regle.getvar("keepdata") == "1"
     regle.keeptree = regle.getvar("keeptree") == "1"
+    regle.noprefix = regle.getvar("noprefix") == "1"
 
 
 def getcadre(regle, obj):
@@ -37,7 +39,11 @@ def getcadre(regle, obj):
 
     if not tree:
         try:
-            tree = ET.fromstring(regle.getval_entree(obj))
+            if regle.noprefix:
+                xml=re.sub("</?[A-Za-z0-9]*:","<",regle.getval_entree(obj))
+            else:
+                xml=regle.getval_entree(obj)
+            tree = ET.fromstring(xml)
         except ParseError as err:
             print("erreur xml mal formé", err, regle.getval_entree(obj))
             LOGGER.error("erreur xml mal formé" + repr(err))
@@ -126,20 +132,25 @@ def f_xmlsplit(regle, obj):
         for elem in cadre.iter(regle.recherche):
             if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
                 continue
-            # print ("trouve elem", elem)
             # obj2 = regle.reader.getobj(niveau=groupe, classe=classe)
             obj2 = obj.dupplique()
+            obj2.schema=obj.schema
             obj2.virtuel = False
             if regle.params.pattern == "1":
                 contenu = ET.tostring(elem)
             elif regle.params.pattern in "234":
                 contenu = dict(elem.items())
+                # print ("trouve elem", contenu)
+
             elif regle.item:
                 contenu = elem.get(regle.item, "")
+                if contenu is None:
+                    contenu=""
             else:
                 contenu = ""
             regle.setval_sortie(obj2, contenu)
-            regle.action_schema(regle, obj2)
+            if obj2.schema:
+                regle.action_schema(regle, obj2)
             obj2.attributs["#xmltag"] = regle.recherche or regle.partiel or elem.tag
             obj2.attributs["#xmlgroup"] = regle.cadre
             obj2.sethtext(nom="#xmlgrouptags", dic=cadretags, upd=False)

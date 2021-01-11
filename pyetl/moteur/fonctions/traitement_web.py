@@ -389,8 +389,8 @@ def f_httpdownload(regle, obj):
 
     if regle.params.pattern == "2":  # retour dans un attribut
         regle.setval_sortie(obj, retour.text)
-        if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        # if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
+        #     regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
         # print("apres", obj)
         return True
     if regle.fichier is None:

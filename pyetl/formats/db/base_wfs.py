@@ -232,12 +232,12 @@ class WfsConnect(DbConnect):
         nom = "inconnu"
         for elem in tree.iter(namespace + "element"):
             if elem.get("substitutionGroup") == "gml:_Feature":
-                nom = elem.get("name")
+                nom = elem.get("name","")
                 groupe = elem.get("type").split(":")[0]
                 continue
             else:
-                xmltype = elem.get("type")
-                nom_att = elem.get("name")
+                xmltype = elem.get("type","")
+                nom_att = elem.get("name","")
                 pyetltype = ALLTYPES.get(xmltype)
                 # if nom_att == "geo_shape":
                 #     print("wfs: stocke geom", nom, xmltype, pyetltype)

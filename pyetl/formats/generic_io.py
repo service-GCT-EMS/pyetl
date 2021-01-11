@@ -104,6 +104,7 @@ class Reader(object):
         self.maxobj = int(self.regle_ref.getvar("lire_maxi", 0))
         self.traite_objet = self.stock_param.moteur.traite_objet
         self.schema = None
+        self.schemaclasse = None
         self.schema_entree = None
         self.newschema = True
         self.set_format_entree(nom)
