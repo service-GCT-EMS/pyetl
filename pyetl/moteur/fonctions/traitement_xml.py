@@ -12,6 +12,7 @@ import time
 import re
 from xml.etree.ElementTree import ParseError, XML
 import xml.etree.cElementTree as ET
+
 # from lxml import etree as ET
 from jinja2 import FileSystemLoader, Environment
 
@@ -22,10 +23,10 @@ def h_xmlextract(regle):
     """extraction d'element xml"""
     regle.cadre = regle.params.cmp2.val
     regle.recherche = regle.params.cmp1.val
-    regle.partiel=None
+    regle.partiel = None
     if "*" in regle.params.cmp1.val:
-        regle.recherche=None
-        regle.partiel=regle.params.cmp1.val.replace("*","")
+        regle.recherche = None
+        regle.partiel = regle.params.cmp1.val.replace("*", "")
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
     regle.keepdata = regle.getvar("keepdata") == "1"
     regle.keeptree = regle.getvar("keeptree") == "1"
@@ -38,15 +39,15 @@ def getcadre(regle, obj):
     cadres = ()
 
     if not tree:
+        if regle.noprefix:
+            xml = re.sub("(</?)[A-Za-z0-9]*:", "\g<1>", regle.getval_entree(obj))
+        else:
+            xml = regle.getval_entree(obj)
         try:
-            if regle.noprefix:
-                xml=re.sub("</?[A-Za-z0-9]*:","<",regle.getval_entree(obj))
-            else:
-                xml=regle.getval_entree(obj)
             tree = ET.fromstring(xml)
         except ParseError as err:
-            print("erreur xml mal formé", err, regle.getval_entree(obj))
-            LOGGER.error("erreur xml mal formé" + repr(err))
+            # print("erreur xml mal formé", err, regle.getval_entree(obj))
+            LOGGER.error("erreur xml mal formé %s : %s", repr(err), xml)
             return None, ()
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
     return tree, cadres
@@ -81,7 +82,11 @@ def f_xmlextract(regle, obj):
     tree, cadres = getcadre(regle, obj)
     for cadre in cadres:
         for elem in cadre.iter(regle.recherche):
-            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+            if (
+                regle.recherche is None
+                and regle.partiel
+                and not regle.partiel in elem.tag
+            ):
                 continue
             if regle.item == "#text":
                 contenu = elem.text
@@ -130,14 +135,19 @@ def f_xmlsplit(regle, obj):
         cadretags = dict(cadre.items())
         # print("traitement", cadre, regle.recherche)
         for elem in cadre.iter(regle.recherche):
-            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+            if (
+                regle.recherche is None
+                and regle.partiel
+                and not regle.partiel in elem.tag
+            ):
                 continue
             # obj2 = regle.reader.getobj(niveau=groupe, classe=classe)
             obj2 = obj.dupplique()
-            obj2.schema=obj.schema
+            obj2.schema = obj.schema
             obj2.virtuel = False
             if regle.params.pattern == "1":
-                contenu = ET.tostring(elem)
+                contenu = ET.tostring(elem, encoding="unicode")
+                # print("creation ", contenu)
             elif regle.params.pattern in "234":
                 contenu = dict(elem.items())
                 # print ("trouve elem", contenu)
@@ -145,7 +155,7 @@ def f_xmlsplit(regle, obj):
             elif regle.item:
                 contenu = elem.get(regle.item, "")
                 if contenu is None:
-                    contenu=""
+                    contenu = ""
             else:
                 contenu = ""
             regle.setval_sortie(obj2, contenu)
@@ -163,6 +173,7 @@ def f_xmlsplit(regle, obj):
     writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
     return trouve
 
+
 def f_xmlstruct(regle, obj):
     """#aide||affiche la structure de tags d un xml
        #pattern1||;?C;A;xmlstruct;?C;?C
@@ -176,11 +187,16 @@ def f_xmlstruct(regle, obj):
     for cadre in cadres:
 
         for elem in cadre.iter(None):
-            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+            if (
+                regle.recherche is None
+                and regle.partiel
+                and not regle.partiel in elem.tag
+            ):
                 continue
-            print ("trouve elem", elem.tag)
+            print("trouve elem", elem.tag)
             trouve = True
     return True
+
 
 def h_xmledit(regle):
     """helper edition"""
@@ -207,7 +223,7 @@ def f_xmledit(regle, obj):
      #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
      #aide_spec5||suppression d un ensemble de tags
     #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
-          #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^xx;ss;V4;xmledit;pp;||^XX;;V4;xmlextract;pp._T;||atv;XX;exxai
+          #test1||obj||^V4;<g><pp p1="toto" p2="titi">essai</pp></g>;;set||^xx;ss;V4;xmledit;pp;||^XX;;V4;xmlextract;pp.#text;||atv;XX;exxai
           #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;tutu;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;tutu
           #test5||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^;;V4;xmledit;pp.p1;||^XX;;V4;xmlextract;pp.p1;||atv;XX;
     """
@@ -223,7 +239,11 @@ def f_xmledit(regle, obj):
     for cadre in cadres:
         # print("traitement", cadre)
         for elem in cadre.iter(regle.recherche):
-            if regle.recherche is None and regle.partiel and not regle.partiel in elem.tag:
+            if (
+                regle.recherche is None
+                and regle.partiel
+                and not regle.partiel in elem.tag
+            ):
                 continue
             trouve = 1
             if regle.params.pattern == "1":  # regex sur texte
@@ -268,7 +288,8 @@ def f_xmlload(regle, obj):
         # )
     except (FileNotFoundError, PermissionError):
         obj.attributs[regle.params.att_sortie.val] = ""
-        print("fichier non trouve", nom)
+        LOGGER.warning("fichier non trouve %s", nom)
+        # print("fichier non trouve", nom)
         return False
     return True
 
@@ -289,11 +310,12 @@ def f_xmlsave(regle, obj):
     if rep:
         sortie = os.path.join(rep, sortie)
     os.makedirs(os.path.dirname(sortie), exist_ok=True)
-    print("ecriture xml", sortie)
+    # print("ecriture xml", sortie)
     try:
         open(sortie, "w", encoding="utf-8").write(regle.getval_entree(obj))
     except (FileNotFoundError, PermissionError):
-        print("ecriture impossible", sortie)
+        LOGGER.error("ecriture impossible %s", sortie)
+        # print("ecriture impossible", sortie)
         return False
     return True
 

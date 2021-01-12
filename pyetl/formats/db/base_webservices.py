@@ -258,7 +258,7 @@ class WfsConnect(DbConnect):
             filter = F.PropertyIsLike(
                 propertyname=attribut, literal=valeur, wildCard="*"
             )
-            filterxml = etree.tostring(filter.toXML()).decode("utf-8")
+            filterxml = etree.tostring(filter.toXML(), encoding="unicode")
             params["filter"] = filterxml
         print("envoi requete", params)
         # reponse = self.connection.getfeature(**params)

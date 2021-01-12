@@ -165,6 +165,30 @@ def f_setpoint_liste(regle, obj):
     return True
 
 
+def decode_sep(sep):
+    """gere les separateurs exotiques"""
+    if sep == "#b":
+        sep = " "
+    elif sep == "#v":
+        sep = ","
+    elif sep == "#pv":
+        sep = ";"
+    return sep
+
+
+def h_addgeom(regle):
+    """positionne les elements de decodage de la geometrie"""
+    regle.psep = decode_sep(regle.getvar("sep_points", "),("))
+    ext = False
+    if regle.psep == "),(" or regle.psep == "],[":
+        ext = True
+    regle.csep = decode_sep(regle.getvar("sep_coords", ","))
+    regle.ext = regle.getvar("bouts") == 1 if regle.getvar("bouts") else ext
+    # print(
+    #     "addgeom separateurs :p >%s< c>%s< ext:%d" % (regle.psep, regle.csep, regle.ext)
+    # )
+
+
 def f_addgeom(regle, obj):
     """#aide||cree une geometrie pour l'objet
      #aide_spec||N:type geometrique
@@ -181,11 +205,11 @@ def f_addgeom(regle, obj):
     if type_geom == "1":
         try:
             if len(regle.params.att_entree.liste) > 1:
-                point = list(map(float, regle.getliste_entree(obj).split(",")))
+                point = list(map(float, regle.getliste_entree(obj).split(regle.csep)))
             #                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
             #                         for i in regle.params.att_entree.liste]
             else:
-                point = list(map(float, regle.getval_entree(obj).split(",")))
+                point = list(map(float, regle.getval_entree(obj).split(regle.csep)))
         #                point = [float(i) for i in
         #                         obj.attributs.get(regle.params.att_entree.val,
         #                                           regle.params.val_entree.val).split(',')]
@@ -202,10 +226,15 @@ def f_addgeom(regle, obj):
             #                                for i in regle.params.att_entree.liste])
             coordonnees = zip(*[i.split(",") for i in regle.getliste_entree(obj)])
         else:
-            coords = regle.getval_entree(obj).replace(" ", "").split("),(")
-            coords[0] = coords[0][1:]
-            coords[-1] = coords[-1][:-1]
-            coordonnees = [i.split(",") for i in coords]
+            if regle.psep == " " or regle.csep == " ":
+                cdef = regle.getval_entree(obj)
+            else:
+                cdef = regle.getval_entree(obj).replace(" ", "")
+            coords = cdef.split(regle.psep)
+            if regle.ext:
+                coords[0] = coords[0][1:]
+                coords[-1] = coords[-1][:-1]
+            coordonnees = [i.split(regle.csep) for i in coords]
         for vals in coordonnees:
             # print ("stockage point", point)
             try:
