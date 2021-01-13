@@ -118,6 +118,7 @@ class Reader(object):
         self.affich = 1000
         self.nextaff = self.affich
         self.aff = self.stock_param.aff
+        self.srid = "3948"
         if self.debug:
             print("debug:format: instance de reader ", nom, self.schema)
 
@@ -718,6 +719,7 @@ class Writer(object):
         """ change la definition de la ressource utilisee si necessaire"""
         # separ, extension, entete, null, initial=False, geomwriter=None
         ressource, nom = self.getfanout(obj.ident)
+        self.srid = obj.geom_v.srid
         if ressource is None:
             if not nom.startswith("#"):
                 #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))

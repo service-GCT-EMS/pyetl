@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """gestion des grilles de conversion"""
 import csv
+import logging
 
 # import pickle
 import math as M
 import os
 
+LOGGER = logging.getLogger(__name__)
 # def charge(nom): # retourne une grille chargee
 #    gril = grille()
 #    gril = pickle.load(open(nom, 'rb'))
@@ -138,12 +140,14 @@ class ListeGrilles:
                 print("dg3:grille incoherente", grille.nom, "<>", nom, ninc, dmax)
             grille.valide = 1  # on reenclenche la grille
         if inc:
-            print("dg3:ensemble de grilles incoherent")
+            LOGGER.warning("ensemble de grilles incoherent")
+            # print("dg3:ensemble de grilles incoherent")
             if correct:  # on force la coherence
                 for grille in self.grilles:
                     grille.valide_grille()  # on reporte les modifs dans les mailles precalculees
         else:
-            print("dg3:ensemble de grilles coherent")
+            LOGGER.info("ensemble de grilles coherent")
+            # print("dg3:ensemble de grilles coherent")
         return inc
 
     def ecrire_liste(self, repertoire, liste):

@@ -3896,3 +3896,29 @@ xmlsplit
    C :  
    ?C :  tag a extraire (optionnel)
 
+
+
+.. index::
+  double: .traitement_xml;xmlstruct
+
+xmlstruct
+.........
+
+   affiche la structure de tags d un xml
+
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|      |?C    |A     |xmlstruct|?C    |?C      |
++------+------+------+---------+------+--------+
+
+
+   ?C :   (optionnel)
+   A :  defaut
+   xmlstruct :  attribut xml
+   ?C :   (optionnel)
+   ?C :  tag a extraire (optionnel)
+

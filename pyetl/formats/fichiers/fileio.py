@@ -73,7 +73,7 @@ class FileWriter(object):
         self.geomwriter = self.writer.writerparms["geomwriter"]
         self.null = self.writer.writerparms.get("null")
         self.extension = self.writer.writerparms.get("extension", self.writer.ext)
-        self.srid = "3948"
+        self.srid = self.writer.srid
         self.separ = self.writer.writerparms.get("separ", ";")
         self.schema = schema
         self.htext = ""

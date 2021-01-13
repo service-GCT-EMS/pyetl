@@ -6,7 +6,14 @@ import os
 def commandes_speciales(mapper):
     """commandes speciales"""
     #        print("commandes speciales: ", self.fichier_regles)
-    commandes_speciales = {"help", "autodoc", "autotest", "unittest", "formattest"}
+    commandes_speciales = {
+        "help",
+        "autodoc",
+        "autotest",
+        "unittest",
+        "formattest",
+        "pack",
+    }
     # on ne lit pas de regles mais on prends les commandes predefinies
     if mapper.fichier_regles is None:
         return
@@ -54,7 +61,7 @@ def commandes_speciales(mapper):
             # os.system(builderpdf)
             # print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
 
-    elif commande == "#autotest" or commande == "autotest":
+    elif commande == "autotest":
         #            print("detecte autotest ", self.fichier_regles, self.posparm)
         from .tests.testmodule import full_autotest
 
@@ -64,7 +71,7 @@ def commandes_speciales(mapper):
             mapper.liste_regles = liste_regles
             # on a charge les commandes on neutralise l autotest
 
-    elif commande == "#unittest" or commande == "unittest":
+    elif commande == "unittest":
         from .tests.testmodule import unittests
 
         unittests(mapper, nom=nom, debug=mapper.getvar("debug"))
@@ -73,5 +80,12 @@ def commandes_speciales(mapper):
         from .tests.testmodule import formattests
 
         formattests(mapper, nom=nom, debug=mapper.getvar("debug"))
+
+    elif commande == "pack":
+        from . import pack
+
+        place = os.path.dirname(mapper.getvar("_progdir"))
+        print("preparation version", mapper.version, place)
+        pack.zipall(place)
 
     mapper.done = True
