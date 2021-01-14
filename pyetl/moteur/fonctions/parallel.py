@@ -185,15 +185,23 @@ def parallelbatch(id, parametres_batch, regle):
 
     processor.process()
     retour = set_parallelretour(processor, True)
-    print(
-        "pyetl batchworker",
+    processor.logger.info(
+        "retour batchworker (%d:%d) %s %s -> %s",
         os.getpid(),
         processor.idpyetl,
-        mapping,
-        args,
-        "->",
-        processor.retour,
+        str(mapping),
+        str(args),
+        str(processor.retour),
     )
+    # print(
+    #     "pyetl batchworker",
+    #     os.getpid(),
+    #     processor.idpyetl,
+    #     mapping,
+    #     args,
+    #     "->",
+    #     processor.retour,
+    # )
     processor.cleanschemas()
     return (numero, retour)
 
@@ -314,14 +322,24 @@ def suivi_job(mapper, work):
             if retour_process is not None:
                 num_obj, retour = retour_process
                 if isinstance(retour, dict):  # c'est un retour complet de type batch
-                    print(
-                        "retour batch",
-                        num_obj,
-                        retour["stats_generales"]["_st_lu_objs"],
-                        retour["timers"]["duree"],
-                        "s",
-                    )
                     rfin[num_obj] = 0
+                    try:
+                        mapper.logger.info(
+                            "retour batch %s : %s obj  en %s s",
+                            num_obj,
+                            retour["stats_generales"]["_st_lu_objs"],
+                            retour["timers"]["duree"],
+                        )
+                    except KeyError:
+                        mapper.logger.error("erreur batch %d ", num_obj)
+                    # print(
+                    #     "retour batch",
+                    #     num_obj,
+                    #     retour["stats_generales"]["_st_lu_objs"],
+                    #     retour["timers"]["duree"],
+                    #     "s",
+                    # )
+
                 else:
                     rfin[num_obj] = retour
                     # print("retour job", retour)
@@ -438,7 +456,10 @@ def traite_parallel(regle):
     logger.info("passage en mode parallel sur %d process", nprocs)
     # print("passage en mode parallel sur ", nprocs, "process", num_regle, regle)
     if mapper.worker:
-        print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
+        logger.error(
+            "un worker ne peut pas passer en parallele %s", mapper.getvar("_wid")
+        )
+        # print("un worker ne peut pas passer en parallele", mapper.getvar("_wid"))
         raise RuntimeError
     fonction = parallelprocess if regle.parallelmode == "process" else parallelbatch
     msgqueue, logqueue = getqueue()
@@ -699,11 +720,12 @@ def iter_boucle(regle):
         time.sleep(1)
         if time.localtime().tm_min == minute:
             # print("attente", time.localtime().tm_min, minute)
-            print(".", end="", flush=True)
+            # print(".", end="", flush=True)
             yield None
             continue
         minute = time.localtime().tm_min
-        print("traitement boucle", minute)
+        regle.stock_param.logger.info("traitement boucle %d", minute)
+        # print("traitement boucle", minute)
         blocs = dict()
         for obj in regle.tmpstore:
             regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])

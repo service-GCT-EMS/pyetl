@@ -33,7 +33,7 @@ descripteur = namedtuple(
 
 class TableBaseSelector(object):
     """conditions de selection de tables dans une base
-       il y a un Tablebaseselector par base concernee par une selection """
+    il y a un Tablebaseselector par base concernee par une selection"""
 
     def __init__(self, regle_ref, base=None, map_prefix="", schemaref=None):
         self.mapper = regle_ref.stock_param
@@ -72,7 +72,7 @@ class TableBaseSelector(object):
 
     def reg_prefix(self, map_prefix):
         """enregistre les prefixes a appliquesr aux noms des schemas et/ou de classe
-            en cas de conflit pour des selections multibases"""
+        en cas de conflit pour des selections multibases"""
         if "." in map_prefix:
             self.np, self.cp = map_prefix.split(".", 1)
         else:
@@ -81,9 +81,9 @@ class TableBaseSelector(object):
 
     def add_descripteur(self, descripteur):
         """stocke un descripteur de selection il y a un descripteur par niveau ou expression
-           de selection de niveau
-           un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
-           ou dynamique s il depend de l objet courant
+        de selection de niveau
+        un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
+        ou dynamique s il depend de l objet courant
         """
         # print("ajout descripteur", self.base, descripteur)
         # raise
@@ -103,7 +103,7 @@ class TableBaseSelector(object):
 
     def resolve_static(self):
         """transformation de la liste de descripteurs statiques en liste de classes
-           le selecteur gere la connection a la base se donnees"""
+        le selecteur gere la connection a la base se donnees"""
         if self.static:
             return
         mod = self.regle_ref.mods
@@ -181,7 +181,7 @@ class TableBaseSelector(object):
 
     def resolve(self, obj):
         """fonction de transformation de la liste de descripteurs en liste de classe
-            et preparation du schema de travail"""
+        et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
@@ -279,16 +279,16 @@ class TableBaseSelector(object):
 
 class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
-        generes par des condition in: complexes
-        le selecteur est un objet persistant qui peut etre reutilise par differentes commandes
-        notamment des commandes de mapping
-        un selecteur peut contenir de nombreux sous selecteurs lies a des bases
-        si les memes tables existent dans diverses bases il y a potentiellement conflit
-        3 modes de resolution existent:
-            priorite : une base est prioritaire sur l autre: seule la base prioritaire est retenue
-            mapping : les objets sont renommes en fonction d un prefixe devant le niveau
-            concatenation: les objets sont sortis dans la meme classe (c est l option par defaut)
-        """
+    generes par des condition in: complexes
+    le selecteur est un objet persistant qui peut etre reutilise par differentes commandes
+    notamment des commandes de mapping
+    un selecteur peut contenir de nombreux sous selecteurs lies a des bases
+    si les memes tables existent dans diverses bases il y a potentiellement conflit
+    3 modes de resolution existent:
+        priorite : une base est prioritaire sur l autre: seule la base prioritaire est retenue
+        mapping : les objets sont renommes en fonction d un prefixe devant le niveau
+        concatenation: les objets sont sortis dans la meme classe (c est l option par defaut)
+    """
 
     def __init__(self, regle, base=None):
         self.regle_ref = regle
@@ -304,6 +304,7 @@ class TableSelector(object):
         self.resolved = False
         self.nobase = False
         self.onconflict = "add"
+        self.nom = ""
 
     def __repr__(self):
         return repr([repr(bs) for bs in self.baseselectors.values()])
@@ -422,13 +423,13 @@ class TableSelector(object):
 
 def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     """precharge les elements des selecteurs:
-        in:{a,b,c}                  -> liste de valeurs dans la commande
-        in:#schema:nom_du_schema    -> liste des tables d'un schema
-        in:nom_de_fichier           -> contenu d'un fichier
-        in:[att1,att2,att3...]      -> attributs de l'objet courant
-        in:(attributs)              -> noms des attributs de l'objet courant
-        in:st:nom_du_stockage       -> valeurs des objets en memoire (la clef donne l'attribut)
-        in:db:nom_de_la_table       -> valeur des attributs de l'objet en base (la clef donne le nom du champs)
+    in:{a,b,c}                  -> liste de valeurs dans la commande
+    in:#schema:nom_du_schema    -> liste des tables d'un schema
+    in:nom_de_fichier           -> contenu d'un fichier
+    in:[att1,att2,att3...]      -> attributs de l'objet courant
+    in:(attributs)              -> noms des attributs de l'objet courant
+    in:st:nom_du_stockage       -> valeurs des objets en memoire (la clef donne l'attribut)
+    in:db:nom_de_la_table       -> valeur des attributs de l'objet en base (la clef donne le nom du champs)
     """
     stock_param = regle.stock_param
 
@@ -486,7 +487,8 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
-            print("----------------select projet qgs", fichier)
+            # LOGGER.info("projet %s", fichier)
+            # print("----------------select projet qgs", fichier)
             for i in fich:
                 if "datasource" in i:
                     table = _extract(i, "table=")
@@ -507,14 +509,13 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
         LOGGER.error("fichier qgs introuvable %s", fichier)
         # print("fichier qgs introuvable ", fichier)
 
-    LOGGER.info("lus fichier qgis %s", fichier)
+    LOGGER.info("lu fichier qgis " + fichier)
     # print("lus fichier qgis ", fichier, selecteur)
     return True
 
 
 def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFCODEC):
-    """ modifie un fichier qgs pour adapter les noms des bases et des niveaux
-    """
+    """modifie un fichier qgs pour adapter les noms des bases et des niveaux"""
     if not selecteur.resolved:
         selecteur.resolve(obj)
     destbase = regle.base
@@ -526,8 +527,9 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         fdest = os.path.join(destination, element)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
+        regle.stock_param.logger.info("traitement (%s) " + element, selecteur.nom)
         with open(element, "r", encoding=codec) as fich:
-            print("adapt projet qgs", element)
+            # print("adapt projet qgs", element)
             for i in fich:
                 if "datasource" in i:
                     table = _extract(i, "table=")
@@ -677,5 +679,6 @@ def getselector(regle, base=None, nom=""):
         selecteur = regle.stock_param.namedselectors[nom]
     else:
         selecteur = TableSelector(regle, base)
+        selecteur.nom = nom
         regle.stock_param.namedselectors[nom] = selecteur
     return selecteur

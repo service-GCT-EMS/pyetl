@@ -303,7 +303,7 @@ class Pyetl(object):
         return os.path.join(os.path.dirname(__file__), path)
 
     def initlog(self, loginfo=None, force=False):
-        """initialise le contexte (parametres de site environnement)"""
+        """initialise le contexte de logging (parametres de site environnement)"""
         if self.loginited and not force:
             return  # on a deja fait le boulot
         log_level = "DEBUG"
@@ -1091,7 +1091,9 @@ class Pyetl(object):
 
         else:
             try:
-                self.logger.info("debut traitement sans entree")
+                self.logger.info(
+                    "debut traitement sans entree %s", str(self.regles)[:20]
+                )
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:

@@ -908,7 +908,7 @@ class DbConnect(object):
         condition, data = self.prepare_condition(schema, attribut, valeur)
         requete = " SELECT " + atttext + " FROM " + self.quote_table(ident) + condition
         if ordre:
-            requete = requete + " ORDER BY " + attqjoiner(ordre, ",")
+            requete = requete + " ORDER BY " + self.attqjoiner(ordre, ",")
         requete = requete + self.set_limit(maxi, bool(data))
 
         #        print ('parametres',data,valeur)

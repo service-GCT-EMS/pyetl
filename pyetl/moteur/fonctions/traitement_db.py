@@ -780,7 +780,8 @@ def f_dbmap_qgs(regle, obj):
     """#aide||remappe des fichiers qgis pour un usage en local en prenant en comte un selecteur
     #pattern||;C;;dbmap_qgs;C;C
     """
-    print("====================dbmapqgs")
+    LOGGER.debug("dbmapqgs")
+    # print("====================dbmapqgs")
     regle.base = regle.code_classe[3:]
     nom_selecteur = regle.params.val_entree.val
     entree = regle.params.cmp1.val

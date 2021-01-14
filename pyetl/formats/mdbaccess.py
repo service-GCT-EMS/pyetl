@@ -332,7 +332,7 @@ def sortie_resultats(
         if schema_init:
             niveau, classe = schema_init.map_dest((niveau, classe))
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
-    if regle_courante.getvar("printpending"):
+    if regle_courante.getvar("_printpending"):
         print()
     print(
         "INFO     sortie_resultats         : %-50s"
@@ -341,7 +341,7 @@ def sortie_resultats(
         flush=True,
     )
 
-    regle_courante.setvar("printpending", 1)
+    regle_courante.setvar("_printpending", 1)
     nbvals = 0
     namelist = curs.namelist
     # print(" attributs recuperes avant", namelist)
@@ -428,7 +428,7 @@ def sortie_resultats(
         print("." * (10 - nb_pts), end="")
 
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
-    regle_courante.setvar("printpending", 0)
+    regle_courante.setvar("_printpending", 0)
     curs.close()
     return nbvals
 

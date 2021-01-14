@@ -28,9 +28,9 @@ def h_xmlextract(regle):
         regle.recherche = None
         regle.partiel = regle.params.cmp1.val.replace("*", "")
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
-    regle.keepdata = regle.getvar("keepdata") == "1"
-    regle.keeptree = regle.getvar("keeptree") == "1"
-    regle.noprefix = regle.getvar("noprefix") == "1"
+    regle.keepdata = regle.getvar("xml_keepdata") == "1"
+    regle.keeptree = regle.getvar("xml_keeptree") == "1"
+    regle.noprefix = regle.getvar("xml_noprefix") == "1"
 
 
 def getcadre(regle, obj):
