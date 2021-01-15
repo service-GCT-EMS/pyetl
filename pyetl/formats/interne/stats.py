@@ -15,17 +15,17 @@ LOGGER = logging.getLogger(__name__)
 
 class Statdef(object):  # definition d'une statistique
     """gestion des objets statistiques
-        les objets statistiques ne sont pas lies a un objet mais permettent
-        d'accumuler des informations attributaires sur un ensemble d'objets
-        les statistiques gérees sont actuellement :
-        cont : comptage
-        somme : somme des valeurs
-        min : minimum
-        max : maximum
-        moy: moyenne
-        val : ensemble des valeurs distinctes
-        une stat est associee a un ensemble d'objets remplissant une condition,
-        eventuellement eclatee en fonction d'un attribut.
+    les objets statistiques ne sont pas lies a un objet mais permettent
+    d'accumuler des informations attributaires sur un ensemble d'objets
+    les statistiques gérees sont actuellement :
+    cont : comptage
+    somme : somme des valeurs
+    min : minimum
+    max : maximum
+    moy: moyenne
+    val : ensemble des valeurs distinctes
+    une stat est associee a un ensemble d'objets remplissant une condition,
+    eventuellement eclatee en fonction d'un attribut.
 
     """
 
@@ -52,7 +52,7 @@ class Statdef(object):  # definition d'une statistique
 
     def ajout_colonne(self, colonne, vtype):
         """ajoute une colonne a une stat
-           une colonne correspond a l'accumulation d'un type d'information
+        une colonne correspond a l'accumulation d'un type d'information
         """
         if not colonne:
             print("stat: ajout_colonne:erreur definition colonne", vtype)
@@ -380,7 +380,7 @@ class Stat(object):
 
     def set_ordre(self, tri, sens):
         """definit le mode de tri pour la sortie
-            non utilise pour le moment
+        non utilise pour le moment
         """
         self.clef_tri = tri
         self.ordre = sens
@@ -630,11 +630,12 @@ class Statstore(object):
                 )
             else:
                 fstat = os.path.join(rep_sortie, self.parent.getvar("fstat") + ".csv")
-            print(
-                "ecriture_stat_fichiers : info ecriture stat fichier ",
-                fstat,
-                "\n".join(liste_fich),
-            )
+                LOGGER.info("stats fichier: %s", fstat)
+            # print(
+            #     "ecriture_stat_fichiers : info ecriture stat fichier ",
+            #     fstat,
+            #     "\n".join(liste_fich),
+            # )
             os.makedirs(os.path.dirname(fstat), exist_ok=True)
             fichier = open(
                 fstat, "w", encoding=self.parent.getvar("codec_sortie", "utf-8")

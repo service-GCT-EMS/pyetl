@@ -1082,7 +1082,7 @@ class DbConnect(object):
         valeur = curs[0][0]
         return valeur
 
-    def req_update_obj(self, ident, schema, attribut, valeur, clef):
+    def req_update_obj(self, regle, ident, attributs, obj, clef=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         if ident not in self.schemabase.classes:

@@ -217,7 +217,8 @@ class CsvWriter(FileWriter):
     def header(self, init=1):
         """ preparation de l'entete du fichiersr csv"""
         # print("csvheader ", self.entete)
-        if not self.entete:
+        entete = self.writerparms.get("entete")
+        if not entete:
             #            raise
             return ""
         geom = (
@@ -226,7 +227,7 @@ class CsvWriter(FileWriter):
             else "\n"
         )
         return (
-            ("" if self.entete == "csv_f" else "!")
+            ("" if entete == "csv_f" else "!")
             + self.separ.join([self.headerfonc(i) for i in self.liste_att])
             + geom
         )

@@ -970,13 +970,14 @@ class DbWriter(object):
             self.schema_base = connect.schemabase
 
     def dbtable(self, idtable):
-        """ cree une table """
+        """ selectionne une table """
         schematable = self.schema_base.get_classe(idtable)
-        return self.connect.valide_table(schematable)
+        return schematable
 
     def open(self, idtable):
         """ teste l existance de la table et la cree si necessaire"""
-        self.dbtable(idtable)
+        if self.dbtable(idtable):
+            self.connect.lock(idtable)
 
     def reopen(self, _):
         """ reouverture d'une table ferme (non utilise)"""
@@ -1003,9 +1004,9 @@ def dbload(regle, base, selecteur, obj):
     pass
 
 
-def dbupdate(regle, base, niveau, classe, attribut, obj):
-
-    requete = "UPDATE "
+def dbupdate(regle, base, niveau, classe, attributs, obj):
+    attlist = obj
+    requete = "UPDATE " + q
     pass
 
 

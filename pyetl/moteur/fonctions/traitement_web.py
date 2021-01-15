@@ -248,10 +248,10 @@ def ftpconnect(regle):
 
 def f_ftpupload(regle, obj):
     """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;chemin ftp
-    #pattern1||;?C;?A;ftp_upload;?C;?C
-    #pattern2||;=#att;A;ftp_upload;?C;C
-       #test||notest
+    #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;chemin ftp
+      #pattern1||;?C;?A;ftp_upload;?C;?C
+      #pattern2||;=#att;A;ftp_upload;?C;C
+         #test||notest
     """
     filename = regle.getval_entree(obj)
     destname = regle.destdir + "/" + str(os.path.basename(filename))
@@ -295,13 +295,13 @@ def f_ftpupload(regle, obj):
 
 def f_ftpdownload(regle, obj):
     """#aide||charge un fichier sur ftp
-  #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
-   #pattern1||;?C;?A;ftp_download;C;?C
-   #pattern2||;?C;?A;ftp_download;;
-   #pattern3||A;?C;?A;ftp_download;;
-   #pattern4||A;?C;?A;ftp_download;C;?C
-     #helper||ftpupload
-       #test||notest
+    #aide_spec||;nom fichier; (attribut contenant le nom);ftp_download;ident ftp;repertoire
+     #pattern1||;?C;?A;ftp_download;C;?C
+     #pattern2||;?C;?A;ftp_download;;
+     #pattern3||A;?C;?A;ftp_download;;
+     #pattern4||A;?C;?A;ftp_download;C;?C
+       #helper||ftpupload
+         #test||notest
     """
     filename = regle.getval_entree(obj)
     if regle.servertyp == "direct":
@@ -373,11 +373,11 @@ def h_httpdownload(regle):
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
- #aide_spec||; url; (attribut contenant le url);http_download;racine;nom
-   #pattern1||;?C;?A;download;?C;?C
-   #pattern2||A;?C;?A;download
-      #test||notest
-      """
+    #aide_spec||; url; (attribut contenant le url);http_download;racine;nom
+      #pattern1||;?C;?A;download;?C;?C
+      #pattern2||A;?C;?A;download
+         #test||notest
+    """
     url = regle.getval_entree(obj)
     retour = requests.get(url, stream=regle.params.pattern == "1")
 
@@ -388,10 +388,12 @@ def f_httpdownload(regle, obj):
     taille = int(retour.headers["Content-Length"])
 
     if regle.params.pattern == "2":  # retour dans un attribut
+        if regle.getvar("http_encoding"):
+            retour.encoding = regle.getvar("http_encoding")
         regle.setval_sortie(obj, retour.text)
         # if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
         #     regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
-        # print("apres", obj)
+        # print("retour requests", retour.encoding)
         return True
     if regle.fichier is None:
         fichier = os.path.join(regle.path, os.path.basename(url))
@@ -441,11 +443,11 @@ def h_wfsdownload(regle):
 
 def f_wfsdownload(regle, obj):
     """aide||recupere une couche wfs
- #aide_spec||; classe;  attribut contenant la classe;wfs;url;format
-   #pattern1||F;?C;?A;wfsload;C;?C
-   #pattern2||A;?C;?A;wfsload;C;?C
-      #test||notest
-      """
+    #aide_spec||; classe;  attribut contenant la classe;wfs;url;format
+      #pattern1||F;?C;?A;wfsload;C;?C
+      #pattern2||A;?C;?A;wfsload;C;?C
+         #test||notest
+    """
     # https://data.strasbourg.eu/api/wfs?
     # TYPENAME=ods%3Asections_cadastrales&REQUEST=GetFeature
     # &RESULTTYPE =RESULTS

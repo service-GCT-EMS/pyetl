@@ -583,8 +583,8 @@ def f_dbupdate(regle, obj):
      #pattern||;;;dbupdate;;
     #req_test||testdb
     """
-    for base, (niveau, classe, attribut) in regle.cible_base.items():
-        DB.dbupdate(regle, base, niveau, classe, attribut, obj)
+    for base, (niveau, classe, attributs) in regle.cible_base.items():
+        DB.dbupdate(regle, base, niveau, classe, attributs, obj)
 
 
 def h_dbmaxval(regle):
