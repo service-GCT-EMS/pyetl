@@ -18,7 +18,7 @@ from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales
 
 # print ('globales',time.time()-t1)
-from .formats.generic_io import Reader, Writer, READERS, WRITERS
+from .formats.generic_io import Reader, Output, READERS, WRITERS
 from .formats.mdbaccess import dbaccess
 
 # print('formats',time.time()-t1)
@@ -1257,9 +1257,9 @@ class Pyetl(object):
         """retourne un reader"""
         return Reader(nom_format, regle, reglestart)
 
-    def getwriter(self, nom_format, regle):
+    def getoutput(self, nom_format, regle):
         """retourne un writer"""
-        return Writer(nom_format, regle, None)
+        return Output(nom_format, regle, None)
 
     def getdbaccess(self, regle, nombase, type_base=None, chemin=""):
         """retourne une connection et la cache"""

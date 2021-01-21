@@ -1092,7 +1092,7 @@ class DbConnect(object):
             " UPDATE "
             + self.quote_table(ident)
             + " SET "
-            + attribut
+            + attributs
             + " = "
             + valeur
             + " WHERE "

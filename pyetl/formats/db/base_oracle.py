@@ -76,6 +76,22 @@ class OraConnect(DbConnect):
             "info_attributs": self.req_attributs,
         }
         self.DBError = OraError
+        self.oracle_env()
+
+    def oracle_env(self):
+        """positionne les variables d'environnement pour le connecteur """
+        if self.regle:
+            orahome = self.regle.getchain(("oracle_home_" + self.code, "oracle_home"))
+            lang = self.regle.getchain(
+                ("oracle_lang_" + self.code, "oracle_lang_"), "FRENCH_FRANCE.UTF8"
+            )
+            env = os.environ
+            #        print('modif_environnement ',env)
+            if orahome and orahome != env.get("ORACLE_HOME"):
+                # on manipule les variables d'environnement
+                env["ORACLE_HOME"] = orahome
+                env["PATH"] = orahome + ";" + env["PATH"]
+            env["NLS_LANG"] = lang
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
@@ -95,6 +111,8 @@ class OraConnect(DbConnect):
         #     "*" * len(self.passwd),
         # )
         try:
+            """positionne les variables d'environnement pour les programmes externes """
+
             connection = oraconnect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
@@ -181,9 +199,9 @@ class OraConnect(DbConnect):
     @property
     def req_attributs(self):
         """recupere le schema complet avec tous ses champs
-            nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
-            defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,parametres, taille,decimales"""
+        nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
+        defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
+        clef_primaire,clef_etrangere,cible_clef,parametres, taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,

@@ -19,7 +19,8 @@ il est necessaire de positionner les parametres suivant:
 
 """
 import os
-from pyetl.formats.mdbaccess import DbWriter
+
+# from pyetl.formats.mdbaccess import DbWriter
 
 # import re
 import subprocess
@@ -616,13 +617,11 @@ class PgrConnect(DbConnect):
         """ cree les structures standard"""
         pass
 
-class PostgresWriter(DbWriter):
-    """gestion des ecritures directes en base"""
-    def dbu
 
+# class PostgresWriter(DbWriter):
+#     """gestion des ecritures directes en base"""
 
-
-
+#     pass
 
 
 DBDEF = {

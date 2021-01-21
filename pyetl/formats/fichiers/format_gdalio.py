@@ -9,6 +9,7 @@ from collections import defaultdict, OrderedDict
 import itertools
 import fiona
 from fiona.crs import from_epsg
+from .fileio import FileWriter
 
 
 def formatte_entree(type_orig):
@@ -125,7 +126,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         type_geom = "0"
     if type_geom > "0":
         # nom_geom = nom_g_m[type_geom]
-        print("schema_fiona", type_geom, sc_classe.multigeom, sc_classe.info["courbe"])
+        # print("schema_fiona", type_geom, sc_classe.multigeom, sc_classe.info["courbe"])
         nom_geom = (
             nom_g_m[type_geom]
             if sc_classe.multigeom or sc_classe.info["courbe"]
@@ -205,7 +206,7 @@ def lire_objets(self, rep, chemin, fichier):
     return
 
 
-class GdalWriter(object):
+class GdalWriter(FileWriter):
     """ gestionnaire d'ecriture pour fichiers gdal"""
 
     INIT = 0
@@ -219,58 +220,46 @@ class GdalWriter(object):
         nom,
         schema=None,
         regle=None,
-        # liste_att=None,
-        # encoding="utf-8",
-        # converter=str,
-        # schemaclasse=None,
-        # f_sortie=None,
-        # srid="3948",
-        # layer=None,
     ):
+        super().__init__(nom, schema=schema, regle=regle)
         self.nom = nom
-        self.f_sortie = regle.writer.f_sortie
         self.schemaclasse = schema
         self.schema = schema.schema
-        self.regle=regle
-        self.liste_att = self.schemaclasse.get_liste_attributs(liste=self.regle.writer.liste_att)
+        self.regle = regle
+        self.liste_att = self.schemaclasse.get_liste_attributs(
+            liste=self.regle.output.liste_att
+        )
         self.fichier = None
-        self.encoding = regle.writer.encoding
-        self.converter = regle.writer.converter
-        self.srid = regle.writer.srid
-
+        self.encoding = regle.output.encoding
+        self.converter = gdalconverter
+        self.srid = regle.output.srid
+        self.layer = ""
         self.transtable = None
         self.buffer = dict()
-        if self.f_sortie:
-            self.writerparms = self.f_sortie.writerparms
-            self.driver = self.f_sortie.driver
-            self.l_max = self.f_sortie.l_max
-            if self.f_sortie.minmaj == "up":
-                self.minmajfunc = str.upper
-            elif self.f_sortie.minmaj == "low":
-                self.minmajfunc = str.lower
-            else:
-                self.minmajfunc = str
-            self.layer = self.layer
-            #            print('convertisseur de casse ', f_sortie.minmaj, self.minmajfunc)
-            self.fanout = self.f_sortie.multiclasse
-            self.fanoutmax = self.f_sortie.fanoutmax
+
+        self.write = (
+            self.bwrite if self.output.writerparms["usebuffer"] else self.swrite
+        )
 
     def open(self):
         """ouvre  sur disque"""
         crs = from_epsg(int(self.srid))
-        if self.l_max:
-            self.schemaclasse.cree_noms_courts(longueur=self.l_max)
-        self.schemaclasse.minmajfunc = self.minmajfunc
+        l_max = self.writerparms["attlen"]
+        if l_max:
+            self.schemaclasse.cree_noms_courts(longueur=l_max)
+        # self.schemaclasse.minmajfunc = self.minmajfunc
         schema = schema_fiona(
-            self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max
+            self.schemaclasse, liste_attributs=self.liste_att, l_nom=l_max
         )
-        print("fiona: ouverture", self.nom, self.layer)
+        self.layer = self.schemaclasse.nom
+        # print("fiona: ouverture", self.nom, self.layer, self.writerparms)
+
         self.fichier = fiona.open(
             self.nom,
             "w",
             crs=crs,
             encoding=self.encoding,
-            driver=self.driver,
+            driver=self.writerparms["driver"],
             schema=schema,
             layer=self.layer,
         )
@@ -282,7 +271,7 @@ class GdalWriter(object):
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
         self.close()
         _, classe = schemaclasse.identclasse
-        print("fiona: changeclasse depuis", self.nom, self.layer, "vers", classe)
+        # print("fiona: changeclasse depuis", self.nom, self.layer, "vers", classe)
 
         self.layer = classe
         # crs = from_epsg(int(self.srid))
@@ -293,21 +282,13 @@ class GdalWriter(object):
             self.reopen()
         else:
             self.open()
-        # self.fichier = fiona.open(
-        #     self.nom,
-        #     "w",
-        #     crs=crs,
-        #     encoding=self.encoding,
-        #     driver=self.driver,
-        #     schema=schema,
-        #     layer=self.layer,
-        # )
 
     def reopen(self):
-        """reouvre le fichier s'il aete ferme entre temps"""
+        """reouvre le fichier s'il a ete ferme entre temps"""
         crs = from_epsg(int(self.srid))
+        l_max = self.writerparms["attlen"]
         schema = schema_fiona(
-            self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max
+            self.schemaclasse, liste_attributs=self.liste_att, l_nom=l_max
         )
         self.fichier = fiona.open(
             self.nom,
@@ -324,12 +305,6 @@ class GdalWriter(object):
         #        print("fileeio fermeture", self.nom)
         if self.nom == "#print":
             return  # stdout
-        # if self.buffer:
-        #     for classe in self.buffer:
-        #         self.fichier.writerecords(self.buffer[classe])
-        #     # for i in self.buffer:
-        #     #     self.fichier.write(i)
-        #     self.buffer = dict()
         try:
             self.fichier.close()
         except AttributeError:
@@ -337,14 +312,16 @@ class GdalWriter(object):
 
     def set_liste_att(self, liste_att):
         """stocke la liste des attributs a sortir"""
-        self.liste_att = self.schemaclasse.get_liste_attributs(liste=self.regle.writer.liste_att)
+        self.liste_att = self.schemaclasse.get_liste_attributs(
+            liste=self.regle.output.liste_att
+        )
 
     def convert(self, obj):
         return self.converter(obj, self.liste_att, self.minmajfunc)
 
     def bwrite(self, obj):
         """ecriture bufferisee"""
-        chaine = self.converter(obj, self.liste_att, self.minmajfunc)
+        chaine = self.converter(obj, self.liste_att, self.output.minmajfunc)
         # print("gdal:bwrite", chaine)
         ident = obj.ident
         if ident in self.buffer:
@@ -353,10 +330,10 @@ class GdalWriter(object):
             self.buffer[ident] = [chaine]
         return True
 
-    def write(self, obj):
+    def swrite(self, obj):
         """ecrit un objet complet"""
-        chaine = self.converter(obj, self.liste_att, self.minmajfunc)
-        # print("gdal:write", chaine)
+        chaine = self.converter(obj, self.liste_att, self.output.minmajfunc)
+        print("gdal:write", chaine)
         try:
             self.fichier.write(chaine)
         except Exception as err:
@@ -376,7 +353,7 @@ class GdalWriter(object):
         if self.buffer:
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                print("ecriture buffer", ident, len(self.buffer[ident]))
+                # print("ecriture buffer", ident, len(self.buffer[ident]))
                 self.fichier.writerecords(self.buffer[ident])
         self.buffer = dict()
         self.close()
@@ -386,6 +363,7 @@ class GdalWriter(object):
 def gdalconverter(obj, liste_att, minmajfunc):
     """convertit un objet dans un format compatible avec la lib gdal"""
     obj.casefold = minmajfunc
+    obj.initgeom()
     if obj.geom_v.type_geom > "1" and obj.geom_v.type_geom != "indef":
         obj.set_multi()
     a_sortir = obj.__geo_interface__(liste_att)
@@ -394,119 +372,128 @@ def gdalconverter(obj, liste_att, minmajfunc):
     return a_sortir
 
 
-def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=False):
-    """ecrit des objets json au fil de l'eau.
-        dans ce cas les objets ne sont pas stockes,  l ecriture est effetuee
-        a la sortie du pipeline (mode streaming)
-    """
-    extension = regle.f_sortie.ext
-    sorties = regle.stock_param.sorties
-    #    print ('gdalio: ecriture stream', obj)
+# def _gdalstreamer(obj, regle, final, attributs=None, rep_sortie=None, usebuffer=False):
+#     """ecrit des objets json au fil de l'eau.
+#     dans ce cas les objets ne sont pas stockes,  l ecriture est effetuee
+#     a la sortie du pipeline (mode streaming)
+#     """
+#     extension = regle.output.f_sortie.ext
+#     sorties = regle.stock_param.sorties
+#     print("gdalio: ecriture stream", obj)
 
-    if obj.ident == regle.dident:
-        ressource = regle.ressource
-    else:
-        if obj.virtuel:
-            return
-        groupe, classe = obj.ident
-        rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-        if regle.fanout == "no":
-            nom = sorties.get_id(rep_sortie, "defaut", "", extension)
-        elif regle.fanout == "groupe":
-            nom = sorties.get_id(rep_sortie, groupe, "", extension)
-        else:
-            nom = sorties.get_id(rep_sortie, groupe, classe, extension)
-        ressource = sorties.get_res(regle, nom, usebuffer)
-        #        print ('gdal: recup ressource',ressource, nom, regle.fanout, groupe)
+#     if obj.ident == regle.dident:
+#         ressource = regle.ressource
+#     else:
+#         if obj.virtuel:
+#             return
+#         groupe, classe = obj.ident
+#         rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+#         if regle.fanout == "no":
+#             nom = sorties.get_id(rep_sortie, "defaut", "", extension)
+#         elif regle.fanout == "groupe":
+#             nom = sorties.get_id(rep_sortie, groupe, "", extension)
+#         else:
+#             nom = sorties.get_id(rep_sortie, groupe, classe, extension)
+#         ressource = sorties.get_res(regle, nom, usebuffer)
+#         #        print ('gdal: recup ressource',ressource, nom, regle.fanout, groupe)
 
-        if ressource is None:
-            if os.path.dirname(nom):
-                os.makedirs(os.path.dirname(nom), exist_ok=True)
-            #            print ('ascstr:creation liste',attributs)
-            streamwriter = GdalWriter(
-                nom,
-                converter=gdalconverter,
-                encoding=regle.getvar("codec_sortie", "utf-8"),
-                f_sortie=regle.f_sortie,
-                schemaclasse=obj.schema,
-                liste_att=attributs,
-                layer=classe,
-                srid=obj.geom_v.srid,
-            )
-            ressource = sorties.creres(nom, streamwriter, usebuffer)
-        regle.ressource = ressource
-        regle.dident = obj.ident
-    #    print ("fichier de sortie ",fich.nom)
-    obj.initgeom()
-    #    print ('geom objet initialisee', obj.geom_v)
-    if obj.geom_v.type in "23":
-        #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
-        #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
-        obj.geom_v.force_multi = True
+#         if ressource is None:
+#             if os.path.dirname(nom):
+#                 os.makedirs(os.path.dirname(nom), exist_ok=True)
+#             #            print ('ascstr:creation liste',attributs)
+#             streamwriter = GdalWriter(
+#                 nom,
+#                 converter=gdalconverter,
+#                 encoding=regle.getvar("codec_sortie", "utf-8"),
+#                 f_sortie=regle.output.f_sortie,
+#                 schemaclasse=obj.schema,
+#                 liste_att=attributs,
+#                 layer=classe,
+#                 srid=obj.geom_v.srid,
+#             )
+#             ressource = sorties.creres(nom, streamwriter, usebuffer)
+#         regle.ressource = ressource
+#         regle.dident = obj.ident
+#     #    print ("fichier de sortie ",fich.nom)
+#     obj.initgeom()
+#     #    print ('geom objet initialisee', obj.geom_v)
+#     if obj.geom_v.type in "23":
+#         #                    print (obj.schema.multigeom,obj.schema.info["type_geom"])
+#         #        obj.geom_v.force_multi = obj.schema.multigeom or obj.schema.info['courbe']
+#         obj.geom_v.force_multi = True
 
-    try:
-        ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(
-            obj, regle.idregle
-        )
-    except Exception as err:
-        print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__(attributs))
-        raise
+#     try:
+#         ressource.bwrite(obj, regle.idregle) if usebuffer else ressource.write(
+#             obj, regle.idregle
+#         )
+#     except Exception as err:
+#         print("erreur gdal:", err, " ecriture objet", obj.__geo_interface__(attributs))
+#         raise
 
-    if final:
-        print("gdal:final", ressource.nom)
-        ressource.finalise()
-
-
-def _ecrire_objets(self, regle, _, attributs=None, rep_sortie=None, usebuffer=False):
-    """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
-    # ng, nf = 0, 0
-    # memoire = defs.stockage
-    #    raise
-    rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    #    print("gdalio:ecriture_objets", rep_sortie)
-
-    #    extension = regle.f_sortie.ext
-    regle.fanout = regle.fanout if regle.f_sortie.multiclasse else "classe"
-    # groupes = memoire.keys()
-    for groupe in list(regle.stockage.keys()):
-        for obj in regle.recupobjets(groupe):
-            #            print ('gdalio: ecriture', obj)
-            _gdalstreamer(
-                obj,
-                regle,
-                None,
-                attributs=attributs,
-                rep_sortie=rep_sortie,
-                usebuffer=usebuffer,
-            )
+#     if final:
+#         print("gdal:final", ressource.nom)
+#         ressource.finalise()
 
 
-def ecrire_objets_b(self, regle, _, attributs=None, rep_sortie=None):
-    """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
-    # ng, nf = 0, 0
-    return _ecrire_objets(
-        self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
-    )
+# def _ecrire_objets(self, regle, _, attributs=None, rep_sortie=None, usebuffer=False):
+#     """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
+#     # ng, nf = 0, 0
+#     # memoire = defs.stockage
+#     #    raise
+#     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+#     #    print("gdalio:ecriture_objets", rep_sortie)
+#     usebuffer = self.writerparms.get("usebuffer", False)
+#     #    extension = regle.f_sortie.ext
+#     regle.fanout = regle.fanout if regle.output.f_sortie.multiclasse else "classe"
+#     # groupes = memoire.keys()
+#     for groupe in list(regle.stockage.keys()):
+#         for obj in regle.recupobjets(groupe):
+#             #            print ('gdalio: ecriture', obj)
+#             _gdalstreamer(
+#                 obj,
+#                 regle,
+#                 None,
+#                 attributs=attributs,
+#                 rep_sortie=rep_sortie,
+#                 usebuffer=usebuffer,
+#             )
 
 
-def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
-    """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
-    # ng, nf = 0, 0
-    return _ecrire_objets(
-        self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
-    )
+def init_gdal(output):
+    output.writerclass = GdalWriter
 
 
-def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
-    return _gdalstreamer(
-        obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
-    )
+def init_gdalb(output):
+    init_gdal(output)
+    output.writerparms["usebuffer"] = True
 
 
-def gdalstreamer_b(self, obj, regle, final, attributs=None, rep_sortie=None):
-    return _gdalstreamer(
-        obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
-    )
+# def ecrire_objets_b(self, regle, _, attributs=None, rep_sortie=None):
+#     """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
+#     # ng, nf = 0, 0
+#     return _ecrire_objets(
+#         self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
+#     )
+
+
+# def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
+#     """ecrit un ensemble de fichiers a partir d'un stockage memoire ou temporaire"""
+#     # ng, nf = 0, 0
+#     return _ecrire_objets(
+#         self, regle, _, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
+#     )
+
+
+# def gdalstreamer(self, obj, regle, final, attributs=None, rep_sortie=None):
+#     return _gdalstreamer(
+#         obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=False
+#     )
+
+
+# def gdalstreamer_b(self, obj, regle, final, attributs=None, rep_sortie=None):
+#     return _gdalstreamer(
+#         obj, regle, final, attributs=attributs, rep_sortie=rep_sortie, usebuffer=True
+#     )
 
 
 # def init_shape(reader):
@@ -525,8 +512,8 @@ READERS = {
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {
     "shp": (
-        ecrire_objets,
-        gdalstreamer,
+        "",
+        "",
         True,
         "up",
         10,
@@ -534,11 +521,11 @@ WRITERS = {
         "classe",
         None,
         "#tmp",
-        None,
+        init_gdal,
     ),
     "mif": (
-        ecrire_objets,
-        gdalstreamer,
+        "",
+        "",
         True,
         "",
         0,
@@ -546,11 +533,11 @@ WRITERS = {
         "classe",
         None,
         "#tmp",
-        None,
+        init_gdal,
     ),
     "dxf": (
-        ecrire_objets,
-        gdalstreamer,
+        "",
+        "",
         True,
         "",
         0,
@@ -558,11 +545,11 @@ WRITERS = {
         "classe",
         None,
         "#tmp",
-        None,
+        init_gdal,
     ),
     "gpkg": (
-        ecrire_objets_b,
-        gdalstreamer_b,
+        "",
+        "",
         True,
         "",
         0,
@@ -570,7 +557,7 @@ WRITERS = {
         "all",
         None,
         "#tmp",
-        None,
+        init_gdalb,
     ),
 }
 

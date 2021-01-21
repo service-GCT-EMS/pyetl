@@ -254,9 +254,11 @@ class Objet(object):
             )
             self.setschema(schema_classe)
 
-    def __json_if__(self,liste_attributs=None):
+    def __json_if__(self, liste_attributs=None):
         """interface geojson en sortie"""
-        liste = (liste_attributs if liste_attributs
+        liste = (
+            liste_attributs
+            if liste_attributs
             else [i for i in self.attributs if i[0] != "#" and i != self.key]
         )
         if self.classe_is_att:
@@ -292,7 +294,6 @@ class Objet(object):
             self.schema.setmulti()
         self.geom_v.multi = True
 
-    @property
     def __geo_interface__(self, liste_attributs):
         """interface geo_interface en sortie"""
         #        print ('demande geoif geom:',self.geom_v.type)
@@ -319,7 +320,8 @@ class Objet(object):
                 else:
                     attributs[i] = self.attributs.get(i, "")
         else:
-            liste = (liste_attributs
+            liste = (
+                liste_attributs
                 if liste_attributs
                 else [i for i in self.attributs if not i.startswith("#")]
             )
@@ -448,8 +450,8 @@ class Objet(object):
 
     def atget(self, nom, defaut=""):
         """conversion au mieux
-            tous les attributs sont stockes en texte pour certains calculs
-            il faut les convertir
+        tous les attributs sont stockes en texte pour certains calculs
+        il faut les convertir
         """
         val = self.attributs.get(nom, defaut)
         try:
@@ -563,7 +565,7 @@ class Objet(object):
         return res
 
     def gethdict(self, nom, force=False):
-        """ stocke un hstore en dictionnaire et cree le
+        """stocke un hstore en dictionnaire et cree le
         dictionnaires de hstore s'il n'existe pas"""
         #    print("conversion hstore en dict", nom, obj.attributs.get(nom))
         if self.hdict is None:
@@ -589,7 +591,7 @@ class Objet(object):
 
     def dupplique(self, schema=True):
         """retourne une copie de l'objet
-            sert dans toutes les fonctions avec dupplication d'objets"""
+        sert dans toutes les fonctions avec dupplication d'objets"""
         #        print ('dupplication objets',self.ident)
         old_sc = self.schema  # on traite le cas des schemas qui doivent rester un lien
         self.schema = None

@@ -40,10 +40,10 @@ def h_pass(regle):
 
 def f_pass(regle, obj):
     """#aide||ne fait rien et passe. permet un branchement distant
-        #pattern||;;;pass;?C;?C
-        #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
-        #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
-              ||X;1;;;X;%defaut%;;set||atv;X;3
+    #pattern||;;;pass;?C;?C
+    #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
+    #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
+          ||X;1;;;X;%defaut%;;set||atv;X;3
     """
     obj.redirect = regle.sortie
     return True
@@ -51,9 +51,9 @@ def f_pass(regle, obj):
 
 def f_fail(*_):
     """#aide||ne fait rien mais plante. permet un branchement distant
-        #pattern||;;;fail;?C;
-        #helper||pass
-        #test||obj||^;;;fail||+fail:;;;;C1;Y;;set||atv;C1;Y
+    #pattern||;;;fail;?C;
+    #helper||pass
+    #test||obj||^;;;fail||+fail:;;;;C1;Y;;set||atv;C1;Y
     """
     #    print ("fail:prochaine regle",regle.branchements.brch["sinon"])
     return False
@@ -61,8 +61,8 @@ def f_fail(*_):
 
 def f_next(regle, obj):
     """#aide||force la sortie next
-     #pattern||;;;next;;
-     """
+    #pattern||;;;next;;
+    """
     obj.redirect = "next"
     return True
 
@@ -182,17 +182,17 @@ def h_chargeur(regle):
 
 def f_abort(regle, obj):
     """#aide||arrete le traitement
-  #aide_spec||arrete l operation en cours et renvoie un message
-            ||
-            ||niveaux d arret
-            ||
-            ||* 1 arret du traitement de l'objet (defaut)
-            ||* 2 arret du traitment de la classe
-            ||* 3 arret du traitement pour le module
-            ||* 4 sortie en catastrophe du programme
-   #pattern1||;;;abort;?N;?C
-   #parametres1||;niveau;message
-       #test||obj;point;2;||V0;1;;;;;;abort;1;;;||^X;0;;set||cnt;1
+    #aide_spec||arrete l operation en cours et renvoie un message
+              ||
+              ||niveaux d arret
+              ||
+              ||* 1 arret du traitement de l'objet (defaut)
+              ||* 2 arret du traitment de la classe
+              ||* 3 arret du traitement pour le module
+              ||* 4 sortie en catastrophe du programme
+     #pattern1||;;;abort;?N;?C
+     #parametres1||;niveau;message
+         #test||obj;point;2;||V0;1;;;;;;abort;1;;;||^X;0;;set||cnt;1
 
     """
     niveau = regle.params.cmp1.val or "1"
@@ -278,9 +278,9 @@ def printvariable(regle):
 
 def f_printvar(regle, _):
     """#aide||affichage des parametres nommes
-       #pattern||;;;printv;C?;=noms?||entree
-       #test||redirect||obj||$toto=ok||^;;;printv;toto||out
-       #!test2||redirect||obj||$toto=ok||^;;;printv;||out
+    #pattern||;;;printv;C?;=noms?||entree
+    #test||redirect||obj||$toto=ok||^;;;printv;toto||out
+    #!test2||redirect||obj||$toto=ok||^;;;printv;||out
     """
     #    print("variables:")
     print(printvariable(regle))
@@ -297,16 +297,16 @@ def h_version(regle):
 
 def f_version(*_):
     """#aide||affiche la version du logiciel et les infos
-        #pattern||;;;version;?=full;;
-        #test||notest"""
+    #pattern||;;;version;?=full;;
+    #test||notest"""
     return True
 
 
 def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
-       #pattern1||;C?;L?;print;C?;=noms?||entree
-       #pattern2||;;*;print;C?;=noms?||entree
-       #test||redirect||obj||^X;ok;;set||^;;X;print||out
+    #pattern1||;C?;L?;print;C?;=noms?||entree
+    #pattern2||;;*;print;C?;=noms?||entree
+    #test||redirect||obj||^X;ok;;set||^;;X;print||out
     """
     print(printfunc(regle, obj))
     return True
@@ -314,8 +314,8 @@ def f_print(regle, obj):
 
 def f_retour(regle, obj):
     """#aide||ramene les elements apres l execution
-       #pattern||;C?;L?;retour;C?;=noms?
-       #test||obj||^;;C1;retour;test ok:;noms||out
+    #pattern||;C?;L?;retour;C?;=noms?
+    #test||obj||^;;C1;retour;test ok:;noms||out
     """
     #    print ("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj))
     regle.stock_param.retour.append(printfunc(regle, obj))
@@ -331,9 +331,9 @@ def h_bloc(regle):
 
 def f_bloc(*_):
     """#aide||definit un bloc d'instructions qui reagit comme une seule et genere un contexte
-       #pattern||;;;bloc;;
-       #test||obj||^X;1;;set;||C1;BCD;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
-       #test2||obj||^X;1;;set;||$vr=3||;;;;;;;bloc;;;;vr=2||^X;%vr%;;set;||;;;;;;;~fin_bloc;||atv;X;2;
+    #pattern||;;;bloc;;
+    #test||obj||^X;1;;set;||C1;BCD;;;;;;bloc;||^X;A;;set;||C1;B;;;;;;~fin_bloc;||atv;X;1;
+    #test2||obj||^X;1;;set;||$vr=3||;;;;;;;bloc;;;;vr=2||^X;%vr%;;set;||;;;;;;;~fin_bloc;||atv;X;2;
     """
 
     return True
@@ -346,9 +346,9 @@ def h_finbloc(regle):
 
 def f_finbloc(*_):
     """#aide||definit la fin d'un bloc d'instructions
-       #pattern||;;;fin_bloc;;
-       #test||obj||^X;1;;set;||C1;BCD;;;;;;~bloc;||^X;A;;set;||C1;B;;;;;;fin_bloc;||atv;X;1;
-       """
+    #pattern||;;;fin_bloc;;
+    #test||obj||^X;1;;set;||C1;BCD;;;;;;~bloc;||^X;A;;set;||C1;B;;;;;;fin_bloc;||atv;X;1;
+    """
     return True
 
 
@@ -381,13 +381,13 @@ def h_callmacro(regle):
 
 def f_callmacro(regle, obj):
     """#aide||appel de macro avec gestion de variables locales
-       #pattern||;;;call;C;?LC
-       #!test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
-       #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
-       #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
-             ||X;2;;;X;%defaut%;;set||atv;X;3
-       #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
-             ||X;2;;;X;%defaut%;;set||atv;X;3
+    #pattern||;;;call;C;?LC
+    #!test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
+    #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
+    #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+          ||X;2;;;X;%defaut%;;set||atv;X;3
+    #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
+          ||X;2;;;X;%defaut%;;set||atv;X;3
     """
     # la on ne fait rien parce que le compilateur a applati la macro
     return True
@@ -399,7 +399,7 @@ def f_geomprocess(regle, obj):
     #pattern||;;;geomprocess;C;?LC
     #helper||callmacro
     #
-    # """
+    #"""
     if obj.virtuel:
         return True
     geom = obj.geom_v
@@ -422,10 +422,10 @@ def h_testobj(regle):
 
 def f_testobj(regle, obj):
     """#aide||cree des objets de test pour les tests fonctionnels
-       #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
-       #pattern||L;LC;;testobj;C;?N||sortie
-       #pattern2||L;LC;;creobj;C;?N||sortie
-       #test||rien||^A;1;;testobj;essai;2||cnt;2
+    #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
+    #pattern||L;LC;;testobj;C;?N||sortie
+    #pattern2||L;LC;;creobj;C;?N||sortie
+    #test||rien||^A;1;;testobj;essai;2||cnt;2
     """
     #    if not obj.virtuel:
     #        return False
@@ -434,9 +434,9 @@ def f_testobj(regle, obj):
 
 def f_creobj(regle, obj):
     """#aide||cree des objets de test pour les tests fonctionnels
-       #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
-       #pattern||L;LC;?L;creobj;C;?N||sortie
-       #test||obj||^A;1;;creobj;essai;2||cnt;3
+    #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
+    #pattern||L;LC;?L;creobj;C;?N||sortie
+    #test||obj||^A;1;;creobj;essai;2||cnt;3
     """
 
     noms = regle.params.att_sortie.liste
@@ -490,10 +490,10 @@ def h_archive(regle):
 
 def f_archive(regle, obj):
     """#aide||zippe les fichiers ou les repertoires de sortie
-  #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
-    #pattern||;?C;?A;archive;C;
-       #test||notest
-       """
+    #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
+      #pattern||;?C;?A;archive;C;
+         #test||notest
+    """
     #    if not obj.virtuel:
     #        return False
     dest = regle.params.cmp1.val + ".zip"
@@ -600,23 +600,23 @@ def h_batch(regle):
 
 def f_batch(regle, obj):
     """#aide||execute un traitement batch a partir des parametres de l'objet
-            ||s'il n y a pas de commandes en parametres elle sont prises dans l objet
-            ||les attribut utilise sont: commandes,entree,sortie et parametres
- #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
- #aide_spec1||execute pour chaque objet, demarre toujours, meme sans objets
-   #pattern1||A;?C;?A;batch;?=run;||cmp1
- #aide_spec2||demarre a l'initialisation du script maitre
-   #pattern2||A;?C;?A;batch;=init;||cmp1
- #aide_spec3||demarre a l'initialisation de chaque process parallele
-   #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
- #aide_spec4||reprend le jeu de donnees en boucle
-   #pattern4||A;?C;?A;batch;=boucle;C||cmp1
- #aide_spec5||passe une fois le jeu de donnees
-   #pattern5||A;?C;?A;batch;=load;C||cmp1
-     #schema||ajout_attribut
-       #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
-      #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
-      #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;;;z=12||atv;X;12
+               ||s'il n y a pas de commandes en parametres elle sont prises dans l objet
+               ||les attribut utilise sont: commandes,entree,sortie et parametres
+    #parametres||attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+    #aide_spec1||execute pour chaque objet, demarre toujours, meme sans objets
+      #pattern1||A;?C;?A;batch;?=run;||cmp1
+    #aide_spec2||demarre a l'initialisation du script maitre
+      #pattern2||A;?C;?A;batch;=init;||cmp1
+    #aide_spec3||demarre a l'initialisation de chaque process parallele
+      #pattern3||A;?C;?A;batch;=parallel_init;||cmp1
+    #aide_spec4||reprend le jeu de donnees en boucle
+      #pattern4||A;?C;?A;batch;=boucle;C||cmp1
+    #aide_spec5||passe une fois le jeu de donnees
+      #pattern5||A;?C;?A;batch;=load;C||cmp1
+        #schema||ajout_attribut
+          #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
+         #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
+         #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;;;z=12||atv;X;12
     """
     if regle.store:
         regle.tmpstore.append(obj)
@@ -628,11 +628,11 @@ def f_batch(regle, obj):
 
 def f_boucle(regle, obj):
     """#aide||execute un traitement batch en boucle a partir des parametres de l'objet
-  #parametres||;attribut_resultat;commandes;attribut_commandes;batch;mode_batch
-  #aide_spec1|| en mode run le traitement s'autodeclenche sans objet
-    #pattern1||A;?C;?A;boucle;C;?C||cmp1
-     #schema||ajout_attribut
-      #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
+    #parametres||;attribut_resultat;commandes;attribut_commandes;batch;mode_batch
+    #aide_spec1|| en mode run le traitement s'autodeclenche sans objet
+      #pattern1||A;?C;?A;boucle;C;?C||cmp1
+       #schema||ajout_attribut
+        #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
     """
     regle.tmpstore.append(obj)
     regle.nbstock += 1
@@ -651,13 +651,13 @@ def h_fileloader(regle):
 
 def f_fileloader(regle, obj):
     """#aide||chargement d objets en fichier
-  #aide_spec||cette fonction est l' équivalent du chargement initial
-    #pattern||?A;?C;?A;charge;?C;?N
-   #pattern2||?A;?C;?A;charge;[A];?N
-     #schema||ajout_attribut
-       #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-      #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
-            ||atv;NB;8
+    #aide_spec||cette fonction est l' équivalent du chargement initial
+      #pattern||?A;?C;?A;charge;?C;?N
+     #pattern2||?A;?C;?A;charge;[A];?N
+       #schema||ajout_attribut
+         #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
+        #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
+              ||atv;NB;8
     """
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
@@ -768,10 +768,10 @@ def h_filter(regle):
 
 def f_filter(regle, obj):
     """#aide||filtre en fonction d un attribut
-  #aide_spec||sortie;defaut;attribut;filter;liste sorties;liste valeurs
-    #pattern||?S;?C;A;filter;LC;?LC
-       #test||obj||^WW;;C1;filter;AB,BB,C||+AB:;;;;X;1;;~set||+BB:;;;;X;2;;~set||atv;X;1
-      #test2||obj||^WW;;C1;filter;AB,BB,CD;1,2,3||+1:;;;;X;1;;~set||atv;X;1
+    #aide_spec||sortie;defaut;attribut;filter;liste sorties;liste valeurs
+      #pattern||?S;?C;A;filter;LC;?LC
+         #test||obj||^WW;;C1;filter;AB,BB,C||+AB:;;;;X;1;;~set||+BB:;;;;X;2;;~set||atv;X;1
+        #test2||obj||^WW;;C1;filter;AB,BB,CD;1,2,3||+1:;;;;X;1;;~set||atv;X;1
     """
     if regle.params.att_entree.val in obj.attributs:
         valeur = obj.attributs[regle.params.att_entree.val]
@@ -866,7 +866,7 @@ def h_attwriter(regle):
     format = regle.params.cmp1.val
     if format not in regle.stock_param.formats_connus_ecriture:
         raise SyntaxError("format d'ecriture inconnu:" + format)
-    regle.writer = regle.stock_param.getwriter(format, regle)
+    regle.output = regle.stock_param.getoutput(format, regle)
 
     regle.nom_att = regle.params.att_sortie.val
     regle.format = regle.params.cmp1.val
@@ -881,5 +881,5 @@ def f_attwriter(regle, obj):
     #pattern||A;;;attwriter;C;?C
     """
     # print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
-    regle.writer.attstore(obj)
+    regle.output.attstore(obj)
     regle.nbstock = 1

@@ -61,20 +61,20 @@ class FileWriter(object):
         # f_sortie=None, # writer utilise
     ):
         self.nom = nom
-        self.writer = regle.writer
+        self.output = regle.output
         self.regle = regle
-        self.writerparms = self.writer.writerparms
+        self.writerparms = self.output.writerparms
         self.liste_att = (
-            schema.get_liste_attributs(liste=self.writer.liste_att)
+            schema.get_liste_attributs(liste=self.output.liste_att)
             if schema
-            else self.writer.liste_att
+            else self.output.liste_att
         )
         self.fichier = None
-        self.geomwriter = self.writer.writerparms["geomwriter"]
-        self.null = self.writer.writerparms.get("null")
-        self.extension = self.writer.writerparms.get("extension", self.writer.ext)
-        self.srid = self.writer.srid
-        self.separ = self.writer.writerparms.get("separ", ";")
+        self.geomwriter = self.writerparms["geomwriter"]
+        self.null = self.writerparms.get("null")
+        self.extension = self.writerparms.get("extension", self.output.ext)
+        self.srid = self.output.srid
+        self.separ = self.writerparms.get("separ", ";")
         self.schema = schema
         self.htext = ""
         self.hinit = ""
@@ -129,6 +129,7 @@ class FileWriter(object):
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        self.layer = schemaclasse.identclasse
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
 
     def finalise(self):

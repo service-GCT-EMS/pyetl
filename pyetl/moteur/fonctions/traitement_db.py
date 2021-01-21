@@ -3,7 +3,6 @@
 #titre||accés aux bases de données
 fonctions de manipulation d'attributs
 """
-import itertools
 import os
 import logging
 import glob

@@ -175,22 +175,8 @@ class CsvWriter(FileWriter):
         # geomwriter=None,
     ):
 
-        super().__init__(
-            nom,
-            # encoding=encoding,
-            schema=schema,
-            regle=regle
-            # writer=writer,
-            # separ=separ,
-            # geomwriter=geomwriter,
-        )
-
-        # self.extension = regle.writer.extension
-        # self.nom = nom
-        # self.schema = schema
+        super().__init__(nom, schema=schema, regle=regle)
         self.headerfonc = str
-        # self.entete = regle.writer.entete
-        # self.null = regle.writer.null
         self.classes = set()
         self.errcnt = 0
         if schema:
@@ -322,7 +308,7 @@ class SqlWriter(CsvWriter):
     def __init__(self, nom, schema, regle):
         super().__init__(nom, schema, regle)
         if self.writerparms:
-            self.schema.setsortie(self.writer)
+            self.schema.setsortie(self.output)
         self.transtable = str.maketrans(
             {"\\": r"\\", "\n": "\\" + "n", "\r": "\\" + "n", self.separ: self.escape}
         )

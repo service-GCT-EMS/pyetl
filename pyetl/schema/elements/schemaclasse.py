@@ -115,8 +115,9 @@ def _gestion_types_simples(attr, type_attribut):
 
 class SchemaClasse(object):
     """ description de la structure d'un objet"""
-    codes_g=CODES_G
-    types_g=TYPES_G
+
+    codes_g = CODES_G
+    types_g = TYPES_G
 
     types_stock = {
         "r": "table",
@@ -316,7 +317,7 @@ class SchemaClasse(object):
     @property
     def fkeys(self):
         """genere le dictionnaire des clefs_etrangeres
-            fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut"""
+        fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut"""
         if self.basic == "basic":
             return dict()
         return {i: j.clef_etr for i, j in self.attributs.items() if j.clef_etr}
@@ -324,7 +325,7 @@ class SchemaClasse(object):
     @property
     def fkprops(self):
         """genere le dictionnaire des proprietes des clefs etrangeres
-            fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut"""
+        fkey stocke sous forme d'un dictionnaire attribut:groupe.classe.attribut"""
         if self.basic == "basic":
             return dict()
         return {i: j.parametres_clef for i, j in self.attributs.items() if j.clef_etr}
@@ -417,18 +418,19 @@ class SchemaClasse(object):
         self.changed = True
         self.type_table = "i"
 
-    def setsortie(self, f_sortie, rep_sortie=None):
+    def setsortie(self, output, rep_sortie=None):
         """positionne le format du schema pour l ecriture"""
-        self.schema.format_sortie = f_sortie.nom_format
+        self.schema.format_sortie = output.nom_format
         #        if rep_sortie is not None:
         #            self.schema.rep_sortie = rep_sortie
         #        print('setsortie:dialecte sql:',f_sortie.dialecte)
-        if f_sortie.dialecte and f_sortie.dialecte != "natif":
-            self.schema.dbsql = f_sortie.writerparms["dialecte"].gensql()
-        elif self.schema.dbsql:
-            f_sortie.writerparms["dialecte"] = f_sortie.get_formats("d").get(
-                self.schema.dbsql.dialecte, "sql"
-            )
+        if output.nom_format == "sql":
+            if output.dialecte and output.dialecte != "natif":
+                self.schema.dbsql = output.writerparms["dialecte"].gensql()
+            elif self.schema.dbsql:
+                output.writerparms["dialecte"] = output.get_formats("d").get(
+                    self.schema.dbsql.dialecte, "sql"
+                )
 
     def force_modif(self, regle):
         """force une modif de schema"""
@@ -437,7 +439,7 @@ class SchemaClasse(object):
             self.regles_modif.remove(idregle)
 
     def amodifier(self, regle, dyn=False):
-        """ determine si une modif de schema a deja ete faite
+        """determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
         idregle = regle.index
         # if idregle not in self.regles_modif:
@@ -621,7 +623,7 @@ class SchemaClasse(object):
                 )
 
     def adapte_attributs(self, fonction):
-        """ renommage en bloc des attributs avec une fonction
+        """renommage en bloc des attributs avec une fonction
         qui retourne les noms modifies par ex tout passer en minuscule"""
         self.changed = True
         self.type_table = "i"
@@ -900,7 +902,7 @@ class SchemaClasse(object):
         return self.attributs[nom]
 
     def ajout_attribut_tuple(self, definition):
-        """ ajoute un attribut a partir d'une requete base de donnnes
+        """ajoute un attribut a partir d'une requete base de donnnes
         ou d'un fichier descriptif csv ( en entree un namedtuple)"""
 
         self.type_table = "i"

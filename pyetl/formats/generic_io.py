@@ -589,7 +589,7 @@ class Reader(object):
         return obj
 
 
-class Writer(object):
+class Output(object):
     """wrappers de sortie génériques"""
 
     @classmethod
@@ -632,6 +632,7 @@ class Writer(object):
             nom = "#poubelle"
         # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)
         self.writerparms = WRITERS[nom]._asdict()  # parametres specifique au format
+        # print("definition output", nom, self.writerparms)
         if nom == "sql":
 
             if dialecte == "":
@@ -673,6 +674,7 @@ class Writer(object):
         self.multiclasse = self.fanout != "classe"
         self.schema_sortie = self.regle.getvar("schema_sortie", None)
         self.sorties = self.regle.stock_param.sorties
+        # print("fin definition output", nom, self.writerparms)
 
     def get_info(self):
         """ affichage du format courant : debug """
