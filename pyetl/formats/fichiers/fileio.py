@@ -47,20 +47,9 @@ class FileWriter(object):
     FINAL = 3
     FAIL = 4
 
-    def __init__(
-        self,
-        nom,
-        # liste_att=None,
-        # converter=_defaultconverter,
-        # geomwriter=None,
-        # separ=None,
-        # encoding="utf-8",
-        # srid="3948",
-        schema=None,
-        regle=None
-        # f_sortie=None, # writer utilise
-    ):
+    def __init__(self, nom, schema=None, regle=None):
         self.nom = nom
+        self.schemaclasse = schema
         self.output = regle.output
         self.regle = regle
         self.writerparms = self.output.writerparms
@@ -75,7 +64,8 @@ class FileWriter(object):
         self.extension = self.writerparms.get("extension", self.output.ext)
         self.srid = self.output.srid
         self.separ = self.writerparms.get("separ", ";")
-        self.schema = schema
+        self.encoding = regle.output.encoding
+        self.schema = schema.schema if schema else None
         self.htext = ""
         self.hinit = ""
         self.ttext = ""

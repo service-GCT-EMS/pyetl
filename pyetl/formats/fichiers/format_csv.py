@@ -473,27 +473,27 @@ def csvstreamer(writer, obj, regle, _):
 #        obj.schema.info['courbe'] = '1'
 
 
-def ecrire_objets_csv(writer, regle, _):
-    """ ecrit des objets csv a partir du stockage interne"""
-    print("csv:ecrire csv", regle.stockage.keys())
-    ressource = None
-    for groupe in list(regle.stockage.keys()):
-        # on determine le schema
-        # print("csv:ecrire groupe", groupe)
+# def ecrire_objets_csv(writer, regle, _):
+#     """ ecrit des objets csv a partir du stockage interne"""
+#     print("csv:ecrire csv", regle.stockage.keys())
+#     ressource = None
+#     for groupe in list(regle.stockage.keys()):
+#         # on determine le schema
+#         # print("csv:ecrire groupe", groupe)
 
-        for obj in regle.recupobjets(groupe):
-            #            print("csv:ecrire csv", obj)
-            #            print( regle.stockage)
-            #            groupe, classe = obj.ident
-            if obj.ident != regle.dident:
-                ressource = writer.change_ressource(obj)
-                regle.dident = obj.ident
+#         for obj in regle.recupobjets(groupe):
+#             #            print("csv:ecrire csv", obj)
+#             #            print( regle.stockage)
+#             #            groupe, classe = obj.ident
+#             if obj.ident != regle.dident:
+#                 ressource = writer.change_ressource(obj)
+#                 regle.dident = obj.ident
 
-            ressource.write(obj, regle.idregle)
+#             ressource.write(obj, regle.idregle)
 
-    #            if obj.geom_v.courbe:
-    #                obj.schema.info['courbe'] = '1'
-    return
+#     #            if obj.geom_v.courbe:
+#     #                obj.schema.info['courbe'] = '1'
+#     return
 
 
 def initwriter(self, extension, header, separ, null, writerclass=CsvWriter):

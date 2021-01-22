@@ -552,41 +552,6 @@ class AscWriter(FileWriter):
         return entete + geometrie + attlist
 
 
-# def asc_streamer(writer, obj, regle, _, attributs=None):
-#     """ecrit des objets asc au fil de l'eau.
-#     dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
-#     a la sortie du pipeline (mode streaming)
-#     """
-#     if obj.virtuel:  # on ne traite pas les virtuels
-#         return
-#     if regle.dident != obj.ident:
-#         regle.ressource = writer.change_ressource(obj)
-#         regle.dident = obj.ident
-
-#     regle.ressource.write(obj, regle.idregle)
-
-
-# def ecrire_objets_asc(writer, regle, _, attributs=None):
-#     """ecrit un ensemble de fichiers asc a partir d'un stockage memoire ou temporaire"""
-#     # ng, nf = 0, 0
-#     # memoire = defs.stockage
-#     #    print( "ecrire_objets asc")
-#     rep_sortie = regle.getvar("_sortie")
-#     sorties = regle.stock_param.sorties
-#     dident = None
-#     ressource = None
-#     for groupe in list(regle.stockage.keys()):
-#         for obj in regle.recupobjets(groupe):  # on parcourt les objets
-#             if obj.virtuel:  # on ne traite pas les virtuels
-#                 continue
-#             if obj.ident != dident:
-#                 ressource = writer.change_ressource(obj)
-#                 dident = obj.ident
-#                 regle.ressource = ressource
-#                 # dident = (groupe, classe)
-#             ressource.write(obj, regle.idregle)
-
-
 #                       reader,      geom,    hasschema,  auxfiles, initer
 READERS = {
     "asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"), init_format_asc, None)

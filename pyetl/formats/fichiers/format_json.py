@@ -98,123 +98,123 @@ def objreader(self, ouvert):
             self.traite_objet(obj, self.regle_start)
 
 
-def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
-    """ecrit un ensemble de fichiers json a partir d'un stockage memoire ou temporaire"""
+# def ecrire_objets(self, regle, _, attributs=None, rep_sortie=None):
+# """ecrit un ensemble de fichiers json a partir d'un stockage memoire ou temporaire"""
 
-    dident = None
-    sorties = regle.stock_param.sorties
-    extention = ".json"
-    rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    #    print("csv:ecrire csv", regle.stockage.keys())
-    ressource = None
-    for groupe in list(regle.stockage.keys()):
-        #        nb_cour = 0
-        setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
-        for obj in regle.recupobjets(groupe):
-            if obj.ident != dident:
+# dident = None
+# sorties = regle.stock_param.sorties
+# extention = ".json"
+# rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+# #    print("csv:ecrire csv", regle.stockage.keys())
+# ressource = None
+# for groupe in list(regle.stockage.keys()):
+#     #        nb_cour = 0
+#     setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
+#     for obj in regle.recupobjets(groupe):
+#         if obj.ident != dident:
 
-                groupe, classe = obj.ident
-                #                if ressource:
-                #                    ressource.compte(nb_cour)
-                #                    nb_cour = 0
-                #                if obj.schema:
-                schema_courant = obj.schema
-                #                print('schema_courant ', obj.ido, obj.copie, obj.ident, '->',
-                #                      obj.schema, obj.virtuel)
+#             groupe, classe = obj.ident
+#             #                if ressource:
+#             #                    ressource.compte(nb_cour)
+#             #                    nb_cour = 0
+#             #                if obj.schema:
+#             schema_courant = obj.schema
+#             #                print('schema_courant ', obj.ido, obj.copie, obj.ident, '->',
+#             #                      obj.schema, obj.virtuel)
 
-                if regle.fanout == "groupe":
-                    nom = sorties.get_id(rep_sortie, groupe, "", extention)
-                else:
-                    nom = sorties.get_id(rep_sortie, groupe, classe, extention)
+#             if regle.fanout == "groupe":
+#                 nom = sorties.get_id(rep_sortie, groupe, "", extention)
+#             else:
+#                 nom = sorties.get_id(rep_sortie, groupe, classe, extention)
 
-                #                nom = sorties.get_id(rep_sortie, groupe, classe, extention)
-                ressource = sorties.get_res(regle, nom)
-                if ressource is None:
-                    #                    print ('creation ressource csv' , nom)
-                    encoding = regle.getvar("codec_sortie", "utf-8")
-                    os.makedirs(os.path.dirname(nom), exist_ok=True)
-                    str_w = JsonWriter(
-                        nom,
-                        schema=schema_courant,
-                        encoding=encoding,
-                        liste_att=attributs,
-                        regle=regle,
-                    )
-                    sorties.creres(nom, str_w)
-                    ressource = sorties.get_res(regle, nom)
-                dident = (groupe, classe)
-            #                fich = ressource.handler
-            obj.classe_is_att = setclasse
+#             #                nom = sorties.get_id(rep_sortie, groupe, classe, extention)
+#             ressource = sorties.get_res(regle, nom)
+#             if ressource is None:
+#                 #                    print ('creation ressource csv' , nom)
+#                 encoding = regle.getvar("codec_sortie", "utf-8")
+#                 os.makedirs(os.path.dirname(nom), exist_ok=True)
+#                 str_w = JsonWriter(
+#                     nom,
+#                     schema=schema_courant,
+#                     encoding=encoding,
+#                     liste_att=attributs,
+#                     regle=regle,
+#                 )
+#                 sorties.creres(nom, str_w)
+#                 ressource = sorties.get_res(regle, nom)
+#             dident = (groupe, classe)
+#         #                fich = ressource.handler
+#         obj.classe_is_att = setclasse
 
-            ressource.handler.write(obj)
-    #            nb_cour += 1
-    #        if ressource and nb_cour:
-    #            ressource.compte(nb_cour)
-    return
+#         ressource.handler.write(obj)
+# #            nb_cour += 1
+# #        if ressource and nb_cour:
+# #            ressource.compte(nb_cour)
+# return
 
 
-def jsonstreamer(writer, obj, regle, _, rep_sortie=None):  # ecritures non bufferisees
-    """ ecrit des objets json en streaming"""
-    if obj.virtuel:  # on ne traite pas les virtuels
-        return
-    # raise
-    if regle.dident != obj.ident:
-        regle.ressource = writer.change_ressource(obj)
-        regle.dident = obj.ident
+# def jsonstreamer(writer, obj, regle, _, rep_sortie=None):  # ecritures non bufferisees
+#     """ ecrit des objets json en streaming"""
+#     if obj.virtuel:  # on ne traite pas les virtuels
+#         return
+#     # raise
+#     if regle.dident != obj.ident:
+#         regle.ressource = writer.change_ressource(obj)
+#         regle.dident = obj.ident
 
-    regle.ressource.write(obj, regle.idregle)
+#     regle.ressource.write(obj, regle.idregle)
 
-    # sorties = regle.stock_param.sorties
-    # rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
-    # extention = "." + self.nom_format
-    # groupe, classe = obj.ident
-    # #    print ('json: ecriture ',groupe,classe,obj.schema)
-    # setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
+# sorties = regle.stock_param.sorties
+# rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
+# extention = "." + self.nom_format
+# groupe, classe = obj.ident
+# #    print ('json: ecriture ',groupe,classe,obj.schema)
+# setclasse = regle.fanout != "classe"  # en cas de fanout on precise la classe
 
-    # if obj.ident != regle.dident:
-    #     groupe, classe = obj.ident
-    #     schema_courant = obj.schema
-    #     if regle.fanout == "groupe":
-    #         nom = sorties.get_id(rep_sortie, groupe, "", extention)
-    #     else:
-    #         nom = sorties.get_id(rep_sortie, groupe, classe, extention)
-    #     if not nom:
-    #         print("jsonio erreur sortie", groupe, classe)
-    #         return
-    #     ressource = sorties.get_res(regle, nom)
-    #     if ressource is None:
-    #         #            print ('creation ressource stream csv' , nom,groupe,classe)
-    #         try:
-    #             os.makedirs(os.path.dirname(nom), exist_ok=True)
-    #         except FileNotFoundError:
-    #             print("jsonio erreur sortie", nom)
-    #             return
+# if obj.ident != regle.dident:
+#     groupe, classe = obj.ident
+#     schema_courant = obj.schema
+#     if regle.fanout == "groupe":
+#         nom = sorties.get_id(rep_sortie, groupe, "", extention)
+#     else:
+#         nom = sorties.get_id(rep_sortie, groupe, classe, extention)
+#     if not nom:
+#         print("jsonio erreur sortie", groupe, classe)
+#         return
+#     ressource = sorties.get_res(regle, nom)
+#     if ressource is None:
+#         #            print ('creation ressource stream csv' , nom,groupe,classe)
+#         try:
+#             os.makedirs(os.path.dirname(nom), exist_ok=True)
+#         except FileNotFoundError:
+#             print("jsonio erreur sortie", nom)
+#             return
 
-    #         str_w = JsonWriter(
-    #             nom,
-    #             schema_courant,
-    #             extention,
-    #             encoding=regle.getvar("codec_sortie", "utf-8"),
-    #             regle=regle,
-    #         )
-    #         sorties.creres(nom, str_w)
-    #         ressource = sorties.get_res(regle, nom)
-    #     else:
-    #         print("json:changeschema", obj, obj.schema)
+#         str_w = JsonWriter(
+#             nom,
+#             schema_courant,
+#             extention,
+#             encoding=regle.getvar("codec_sortie", "utf-8"),
+#             regle=regle,
+#         )
+#         sorties.creres(nom, str_w)
+#         ressource = sorties.get_res(regle, nom)
+#     else:
+#         print("json:changeschema", obj, obj.schema)
 
-    #         ressource.handler.changeclasse(obj.schema)
-    #     regle.ressource = ressource
-    #     regle.dident = (groupe, classe)
-    # else:
-    #     schema_courant = obj.schema
-    # ressource = regle.ressource
-    # obj.classe_is_att = setclasse
+#         ressource.handler.changeclasse(obj.schema)
+#     regle.ressource = ressource
+#     regle.dident = (groupe, classe)
+# else:
+#     schema_courant = obj.schema
+# ressource = regle.ressource
+# obj.classe_is_att = setclasse
 
-    # retour = ressource.handler.write(obj)
+# retour = ressource.handler.write(obj)
 
-    # if retour and schema_courant:
-    if obj.schema and not obj.schema.info["courbe"] and obj.geom_v.courbe:
-        obj.schema.info["courbe"] = "1"
+# if retour and schema_courant:
+# if obj.schema and not obj.schema.info["courbe"] and obj.geom_v.courbe:
+#     obj.schema.info["courbe"] = "1"
 
 
 #        ressource.compte(1)
