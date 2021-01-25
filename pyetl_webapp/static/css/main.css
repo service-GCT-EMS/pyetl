@@ -3,14 +3,25 @@ table {
     width: 100%;
   }
 
-  table, th, td {
+table, th, td {
     border: 1px solid black;
-
   }
-  thead {
+
+tr {
+    height: 1pc;
+  }
+thead {
     background-image: url("planche.png");
     background-color: #4CAF50;
     text-align: center;
     color: white;
     height:40px
+  }
+h1 {
+    text-align: center;
+    color: white;
+    font: 2em Broadway;
+    background-image: url("planche.png");
+    background-repeat: no-repeat;
+    background-position: center;
   }

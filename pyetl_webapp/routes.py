@@ -24,7 +24,7 @@ class ScriptList(object):
 
     def __init__(self) -> None:
         self.liste = []
-        self.descriptif = []
+        self.descriptif = dict()
         self.mapper = getmainmapper()
         print(
             "initialisation mainmapper",
@@ -32,6 +32,7 @@ class ScriptList(object):
             self.mapper.getvar("mode", "interactif"),
         )
         self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
+        self.scripts = dict()
         self.refresh()
 
     def refresh(self, script=None):
@@ -60,17 +61,16 @@ class ScriptList(object):
             n += 1
         print("scripts analyses", n)
 
-    def refreshscript(self, nom_script):
-        """rafraichit un script"""
+    def getlignes(self, nom_script):
+        """recupere la description du script"""
         if nom_script.startswith("#"):
-            return fichinfo._make((nom_script, "_" + nom_script[1:], "", ""))
-        fpath = os.path.join(self.scriptdir, nom_script)
-        statinfo = os.stat(fpath)
-        modif = time.ctime(statinfo.st_mtime)
-        desc = ""
+            macro = self.mapper.getmacro(nom_script)
+            script = [i[1] for i in macro.get_commands()]
+        else:
+            fpath = os.path.join(self.scriptdir, nom_script)
+            script = open(fpath, "r").readlines()
         infos = dict()
-
-        for ligne in open(fpath, "r").readlines():
+        for ligne in script:
             if ligne.startswith("!#"):
                 tmp = ligne[2:].split(":", 1)
                 if len(tmp) == 1:
@@ -80,7 +80,24 @@ class ScriptList(object):
                     desc = contenu.split(";", 1)[-1]
                 infos[clef] = contenu
         self.descriptif[nom_script] = infos
-        return fichinfo._make((nom_script, nom_script, modif, desc))
+        self.scripts[nom_script] = script
+
+    def refreshscript(self, nom_script):
+        """rafraichit un script"""
+        self.getlignes(nom_script)
+        infos = dict()
+        ismacro = nom_script.startswith("#")
+        if ismacro:
+            url = "_" + nom_script[1:]
+            modif = ""
+        else:
+            url = nom_script
+            fpath = os.path.join(self.scriptdir, nom_script)
+            statinfo = os.stat(fpath)
+            modif = time.ctime(statinfo.st_mtime)
+        return fichinfo._make(
+            (nom_script, url, modif, self.descriptif[nom_script].get("help"))
+        )
 
 
 scriptlist = ScriptList()
@@ -96,11 +113,11 @@ def index():
     )
 
 
-@app.route("/folderselect/<file>")
-def foldeselector(file):
+@app.route("/folderselect/<fichier>")
+def foldeselector(fichier):
     current = session.get("folder", "S:/")
-    if file and os.path.isfile(os.path.join(current, file)):
-        session[entree] = os.path.join(current, file)
+    if fichier and os.path.isfile(os.path.join(current, fichier)):
+        session[entree] = os.path.join(current, fichier)
     else:
         filelist = os.listdir(current)
         fdef = [(i, os.path.isdir(os.path.join(current, i))) for i in filelist]
@@ -140,21 +157,19 @@ def scriptdesc(script):
 
 @app.route("/scriptview/<script>")
 def scriptview(script):
+
     nomscript = "#" + script[1:] if script.startswith("_") else script
 
     scriptlist.refreshscript(nomscript)
+
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
-    lignes = open(fich_script, "r").readlines()
+    lignes = scriptlist.scripts[nomscript]
     fill = [""] * 13
     code = []
     n = 0
     for i in lignes:
         n += 1
-        if i.startswith("!#"):
-            continue
-        elif i.startswith("!"):
-            if n == 1:
-                continue
+        if i.startswith("!#") or i.startswith("!"):
             colspan = 13
             contenu = [i.replace(";", " ")]
         elif i.startswith("$"):

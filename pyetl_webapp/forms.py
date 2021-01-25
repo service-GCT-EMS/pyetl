@@ -13,7 +13,7 @@ class LoginForm(FlaskForm):
 
 class BasicForm(FlaskForm):
     entree = F.MultipleFileField("entree", validators=[DataRequired()])
-    sortie = F.FileField("sortie", validators=[DataRequired()])
+    sortie = F.StringField("sortie", validators=[DataRequired()])
     submit = SubmitField("executer")
 
 
@@ -61,7 +61,7 @@ def formbuilder(description):
 
     else:
         setattr(CustomForm, "entree", F.MultipleFileField("entree"))
-        setattr(CustomForm, "sortie", F.FileField("sortie"))
+        setattr(CustomForm, "sortie", F.stringfield("sortie"))
         varlist.append(("entree", "entree"))
         varlist.append(("sortie", "sortie"))
 
