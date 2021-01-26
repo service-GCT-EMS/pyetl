@@ -215,7 +215,7 @@ def h_def_schema(regle):
 
     cod = regle.getvar("codec_entree", "cp1252")
     fusion = False
-    if regle.params.cmp1.dyn:
+    if regle.params.cmp1.dyn or regle.getvar("force_schema")=="fusion":
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace("*", "")  # nom du fichier
     nom = regle.params.val_entree.val

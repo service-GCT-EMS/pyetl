@@ -166,27 +166,20 @@ class CsvWriter(FileWriter):
         nom,
         schema,
         regle
-        # extension,
-        # separ,
-        # entete,
-        # encoding="utf-8",
-        # null="",
-        # writer=None,
-        # geomwriter=None,
     ):
 
         super().__init__(nom, schema=schema, regle=regle)
         self.headerfonc = str
         self.classes = set()
         self.errcnt = 0
-        if schema:
+        if self.schemaclasse:
             #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
-            if schema.info["type_geom"] == "indef":
-                schema.info["type_geom"] = "0"
-            self.type_geom = self.schema.info["type_geom"]
-            self.multi = self.schema.multigeom
-            self.liste_att = schema.get_liste_attributs()
-            self.force_courbe = self.schema.info["courbe"]
+            if self.schemaclasse.info["type_geom"] == "indef":
+                self.schemaclasse.info["type_geom"] = "0"
+            self.type_geom = self.schemaclasse.info["type_geom"]
+            self.multi = self.schemaclasse.multigeom
+            self.liste_att = self.schemaclasse.get_liste_attributs()
+            self.force_courbe = self.schemaclasse.info["courbe"]
         else:
             print("attention csvwriter a besoin d'un schema", self.nom)
             raise ValueError("csvwriter: schema manquant")
@@ -209,7 +202,7 @@ class CsvWriter(FileWriter):
             return ""
         geom = (
             self.separ + self.headerfonc("geometrie") + "\n"
-            if self.schema.info["type_geom"] != "0"
+            if self.schemaclasse.info["type_geom"] != "0"
             else "\n"
         )
         return (

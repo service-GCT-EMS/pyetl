@@ -91,7 +91,7 @@ class FileWriter(object):
             self.fichier = io.StringIO()
         else:
             self.fichier = open(
-                self.nom, mode, encoding=self.writer.encoding, errors="backslashreplace"
+                self.nom, mode, encoding=self.encoding, errors="backslashreplace"
             )
 
     def open(self):
