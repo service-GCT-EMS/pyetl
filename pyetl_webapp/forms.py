@@ -42,6 +42,7 @@ def formbuilder(description):
         "OK": F.SubmitField,
     }
     variables = description.get("vars", ())
+    print ("recup description", description)
     varlist = []
     es = description.get("e_s", ())
     if es:
@@ -61,14 +62,16 @@ def formbuilder(description):
 
     else:
         setattr(CustomForm, "entree", F.MultipleFileField("entree"))
-        setattr(CustomForm, "sortie", F.stringfield("sortie"))
+        setattr(CustomForm, "sortie", F.StringField("sortie"))
         varlist.append(("entree", "entree"))
         varlist.append(("sortie", "sortie"))
 
     for var in variables:
         name, definition = var.split("(", 1)
-        definition = definition([-1])
-        ftyp, fname = definition.split(",")
+        definition = definition[-1]
+        tmp=definition.split(",")
+        ftyp=tmp[0]
+        fname=tmp[1] if len(tmp)>1 else name
         setattr(CustomForm, name, fieldfunctions.get(ftyp, F.StringField)(fname))
         varlist.append((name, name))
 

@@ -76,9 +76,9 @@ class ScriptList(object):
                 if len(tmp) == 1:
                     continue
                 clef, contenu = tmp
-                if clef == "help":
-                    desc = contenu.split(";", 1)[-1]
-                infos[clef] = contenu
+                if clef not in infos:
+                    infos[clef]=[]
+                infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
 

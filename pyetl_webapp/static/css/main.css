@@ -25,3 +25,16 @@ h1 {
     background-repeat: no-repeat;
     background-position: center;
   }
+
+.centre {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 30%;
+  }
+
+.log {
+  display: block;
+  width: 100%;
+  scroll-behavior: auto;
+}
