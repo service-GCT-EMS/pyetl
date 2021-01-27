@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "venv\\Scripts\\python.exe",
+    "python.pythonPath": "C:/Users/89965/Mes Documents (local)/projet_mapper/test_mapper/env_mapper/scripts/python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": false,
     "python.linting.pylintEnabled": true,
@@ -7,7 +7,6 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    "python.condaPath": "C:\\Users\\claude\\Anaconda3\\Scripts",
     "spellright.language": [
         "fr"
     ],
@@ -17,5 +16,6 @@
         "latex",
         "plaintext",
         "rst"
-    ]
+    ],
+    "python.terminal.activateEnvInCurrentTerminal": true
 }

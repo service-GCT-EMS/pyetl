@@ -141,44 +141,7 @@ def _decode_dates_apic(chaine):
     return dat_cre, dat_mod
 
 
-def _point_apic(liste_elt, log_erreurs):
-    """positionne une geometrie de point et des parties d'entete """
-    types_geom = {"3": "1", "5": "0", "6": "1", "9": "2"}
-    type_geom = "0"
-    dim = "2"
-    angle = "0"
-    erreurs = ""
-
-    type_geom_asc = liste_elt[0][0]
-    classe = liste_elt[1].strip()
-    index = liste_elt[2].strip()
-
-    coords = []
-    try:
-        type_geom = types_geom[type_geom_asc]
-        # obj.geomnatif = False
-        if type_geom_asc == "3":
-            coords = [float(liste_elt[3]) / FC, float(liste_elt[4]) / FC, 0]
-            angle = 90 - round(float(liste_elt[5]) / FA, 1)
-            # obj.geom_v.setpoint([cd_x, cd_y, 0], angle, 2)
-
-        elif type_geom_asc == "6":
-            coords = [
-                float(liste_elt[3]) / FC,
-                float(liste_elt[4]) / FC,
-                float(liste_elt[5]) / FC,
-            ]
-            angle = 90 - round(float(liste_elt[6]) / FA, 1)  # point 3D
-            # obj.geom_v.setpoint([cd_x, cd_y, cd_z], angle, 3)
-            dim = "3"
-    except ValueError:
-        # obj.attributs["#erreurs"] = "erreur lecture entete"
-        # log_erreurs.send(obj.ident)
-        erreurs = "erreur lecture entete"
-    return index, type_geom, dim, angle, coords, erreurs
-
-
-def _decode_entete_asc(entete, log_erreurs):
+def decode_entete_asc(entete):
     """decode l'entete apic"""
     types_geom = {"3": "1", "5": "0", "6": "1", "9": "2"}
     type_geom = "0"
@@ -189,7 +152,8 @@ def _decode_entete_asc(entete, log_erreurs):
     liste_elt = liste1[1].split(",")
     gid = liste_elt[0][2:].strip()  # gid
     if len(liste_elt) < 3:
-        print("asc:erreur point ", liste1[0])
+        # print("asc:erreur point ", liste1[0])
+        LOGGER.error("erreurs point %s ", liste1[0])
     type_geom_asc = liste_elt[0][0]
     classe = liste_elt[1].strip()
     index = liste_elt[2].strip()
@@ -213,10 +177,9 @@ def _decode_entete_asc(entete, log_erreurs):
             dim = 3
     except ValueError:
         # obj.attributs["#erreurs"] = "erreur lecture entete"
-        log_erreurs.send(classe)
+        LOGGER.error("erreurs entete sur la classe %s", classe)
         erreurs = "erreur lecture entete"
 
-    # index, type_geom, dim, angle = _point_apic(obj, liste_elt, log_erreurs)
     dat_cre, dat_mod = _decode_dates_apic(liste1[2])
 
     attributs = {
@@ -231,29 +194,6 @@ def _decode_entete_asc(entete, log_erreurs):
         "#erreurs": erreurs,
     }
     return classe, attributs, coords, angle, dim
-
-
-def _erreurs_entete():
-    """cumul des erreurs d'entete et affichage"""
-    classe_courante = ""
-    #    classe='1'
-    nb_err = 0
-    while True:
-        classe = yield
-        if classe_courante and classe_courante != classe:
-            LOGGER.error(
-                "asc  : erreurs entetes : "
-                + str(nb_err)
-                + " sur la classe "
-                + classe_courante
-            )
-            #            print('error: asc  : erreurs entetes :', nb_err, 'sur la classe ', classe_courante)
-            nb_err = 0
-            classe_courante = classe
-        nb_err += 1
-    return
-
-    # print obj.attributs
 
 
 def traite_booleen(vatt):
@@ -323,13 +263,13 @@ def ajout_attribut_asc(attributs, attr, speciaux):
     # print 1/0
 
 
-def init_format_asc(reader):
+def init_reader_asc(reader):
     """positionnne des elements de lecture (traitement des booleens)"""
     reader.formatters["B"] = traite_booleen
     reader.setvar("codec_asc", "cp1252")
 
 
-def init_asc(writer):
+def init_ascw(writer):
     writer.writerclass = AscWriter
 
 
@@ -364,9 +304,6 @@ def lire_objets_asc(self, rep, chemin, fichier):
     groupe, dclasse = self.prepare_lecture_fichier(rep, chemin, fichier)
     #    print ('lire_asc ', schema, schema_init)
     #    print('asc:entree', fichier)
-    log_erreurs = _erreurs_entete()
-    next(log_erreurs)
-    # dclasse = classe
     with open(
         self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:
@@ -389,9 +326,7 @@ def lire_objets_asc(self, rep, chemin, fichier):
                 geom = []
                 speciaux = dict()
                 if code_1 in "9356":
-                    classe, attributs, coords, angle, dim = _decode_entete_asc(
-                        i, log_erreurs
-                    )
+                    classe, attributs, coords, angle, dim = decode_entete_asc(i)
                     if classe != dclasse:
                         groupe = chemin if basename == classe else basename
                         self.setidententree(groupe, classe)
@@ -406,11 +341,10 @@ def lire_objets_asc(self, rep, chemin, fichier):
             else:
                 geom.append(i)
         finalise_obj(self, attributs, coords, geom, angle, dim, speciaux)
-        log_erreurs.send("")
     return
 
 
-def _ecrire_point_asc(geom):
+def ecrire_point_asc(geom):
     """retourne un point pour l'entete"""
 
     dim = geom.dimension
@@ -452,7 +386,7 @@ def format_date(date, format_d="ISO"):
         return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else ""
 
 
-def _ecrire_entete_asc(obj) -> str:
+def ecrire_entete_asc(obj) -> str:
     """ genere le texte d'entete asc a partir d'un objet en memoire"""
     types_geom_asc = {"0": ";5 ", "1": "3", "2": ";9 ", "3": ";9 "}
     type_geom_sortie = ";5 "
@@ -491,7 +425,7 @@ def _ecrire_entete_asc(obj) -> str:
 
     if type_geom_sortie == "3":
 
-        code, chaine = _ecrire_point_asc(obj.geom_v)
+        code, chaine = ecrire_point_asc(obj.geom_v)
         entete = code + idobj + chaine + fin_ent + ";\n"
     else:
         entete = type_geom_sortie + idobj + fin_ent + ";\n"
@@ -535,7 +469,7 @@ class AscWriter(FileWriter):
 
     def convertir_objet_asc(self, obj, liste, transtable=None):
         """sort un objet asc en chaine """
-        entete = _ecrire_entete_asc(obj)
+        entete = ecrire_entete_asc(obj)
         #    attributs = obj.attributs[:]
         if (
             obj.format_natif == "asc" and obj.geomnatif
@@ -552,13 +486,13 @@ class AscWriter(FileWriter):
         return entete + geometrie + attlist
 
 
-#                       reader,      geom,    hasschema,  auxfiles, initer
+#                reader,      geom,    hasschema,  auxfiles,       initer
 READERS = {
-    "asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"), init_format_asc, None)
+    "asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"), init_reader_asc, None)
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom, init)
 WRITERS = {
-    "asc": ("", "", False, "up", 0, "asc", "groupe", "geom_asc", "geom_asc", init_asc)
+    "asc": ("", "", False, "up", 0, "asc", "groupe", "geom_asc", "geom_asc", init_ascw)
 }
 DESCRIPTION = {
     "asc": ("le format asc est le format externe du logiciel ELYX de one spatial")

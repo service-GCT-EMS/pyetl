@@ -1253,6 +1253,10 @@ class Pyetl(object):
         }
         return wstats
 
+    def get_results(self):
+        """retourne un tableau de resultats contenant les sortie de #print"""
+        return self.retour
+
     def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""
         return Reader(nom_format, regle, reglestart)

@@ -217,7 +217,11 @@ def h_sortir(regle):
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     outformat = (
         "#print"
-        if (regle.params.cmp2.val == "#print" or regle.getvar("_sortie") == "#print")
+        if (
+            regle.params.cmp2.val == "#print"
+            or regle.getvar("_sortie") == "#print"
+            or regle.getvar("_sortie") == ""
+        )
         else regle.params.cmp1.val
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
@@ -316,7 +320,7 @@ def f_sortir(regle, obj):
         # raise
         return True
     setschemasortie(regle, obj)
-
+    # print("======================sortie objet", regle.output)
     if regle.store is None:  # on decide si la regle est stockante ou pas
         regle.store = regle.calcule_schema and (not obj.schema or not obj.schema.stable)
         if regle.store:  # on ajuste les branchements

@@ -19,4 +19,21 @@
         {% endfor %}
     </tbody>
     </table>
+    {% if retour  %}
+    <title>resultats </title>
+    <table>
+    <thead>
+        <tr>
+            <td>valeurs</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for valeur in retour %}
+            <tr>
+                <td>{{ valeur }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% endif %}
 {% endblock %}

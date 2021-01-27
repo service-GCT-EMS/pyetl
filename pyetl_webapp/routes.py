@@ -77,7 +77,7 @@ class ScriptList(object):
                     continue
                 clef, contenu = tmp
                 if clef not in infos:
-                    infos[clef]=[]
+                    infos[clef] = []
                 infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
@@ -191,14 +191,18 @@ def scriptview(script):
 def execscript(script):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
-    fich_script = os.path.join(scriptlist.scriptdir, nomscript)
+    fich_script = (
+        nomscript
+        if nomscript.startswith("#")
+        else os.path.join(scriptlist.scriptdir, nomscript)
+    )
     infos = scriptlist.descriptif[nomscript]
     formclass, varlist = formbuilder(infos)
     form = formclass()
     if form.validate_on_submit():
         entree = form.entree.data[0]
         rep_sortie = form.sortie.data
-        print("recup form", form.entree.data, entree.filename, rep_sortie, form.entree)
+        print("recup form", entree, rep_sortie, infos)
         processor = scriptlist.mapper.getpyetl(
             fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
         )
@@ -206,8 +210,10 @@ def execscript(script):
             try:
                 processor.process()
                 wstats = processor.get_work_stats()
+                result = processor.get_results()
                 wstats["nom"] = nomscript
-                session["mapper"] = wstats
+                session["stats"] = wstats
+                session["retour"] = result
                 return redirect("/result")
             except error as err:
                 LOGGER.exception("erreur script", exc_info=err)
@@ -224,9 +230,10 @@ def fail():
 
 @app.route("/result")
 def showresult():
-    stats = session.get("mapper")
+    stats = session.get("stats")
+    retour = session.get("retour")
     if stats:
-        return render_template("script_result.html", stats=stats)
+        return render_template("script_result.html", stats=stats, retour=retour)
     return render_template("noresult.html")
 
 
