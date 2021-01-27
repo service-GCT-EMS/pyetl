@@ -52,12 +52,27 @@ def affiche_header(obj):
 
 def affiche_stream(self, obj, regle, *_, **__):
     """affichage"""
-    if obj.ident != regle.dident:
-        affiche_header(obj)
-        regle.dident = obj.ident
-    print(
-        ",".join((obj.attributs.get(i, "") for i in obj.schema.get_liste_attributs()))
-    )
+    stock_param = regle.stock_param
+    if stock_param.mode == "web":
+        # on stocke
+        if obj.ident in stock_param.webstore:
+            stock_param.webstore[obj.ident].append(
+                tuple(
+                    (obj.attributs.get(i, "") for i in obj.schema.get_liste_attributs())
+                )
+            )
+        else:
+            stock_param.webstore[obj.ident] = [tuple(obj.schema.get_liste_attributs())]
+    else:
+        if obj.ident != regle.dident:
+            affiche_header(obj)
+            regle.dident = obj.ident
+
+        print(
+            ",".join(
+                (obj.attributs.get(i, "") for i in obj.schema.get_liste_attributs())
+            )
+        )
     return 0, 0
 
 

@@ -117,7 +117,7 @@ def index():
 def foldeselector(fichier):
     current = session.get("folder", "S:/")
     if fichier and os.path.isfile(os.path.join(current, fichier)):
-        session[entree] = os.path.join(current, fichier)
+        session["entree"] = os.path.join(current, fichier)
     else:
         filelist = os.listdir(current)
         fdef = [(i, os.path.isdir(os.path.join(current, i))) for i in filelist]

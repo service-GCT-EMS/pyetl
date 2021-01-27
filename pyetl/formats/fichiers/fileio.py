@@ -17,25 +17,6 @@ def _defaultconverter(obj, liste_att, transtable=None, separ=None):
 # format csv et txt geo etc
 # tous les fichiers tabules avec ou sans entete
 #########################################################################
-# def getnoms(rep, chemin, fichier):
-#     """ determine les noms de groupe et de schema"""
-#     chem = chemin
-#     niveaux = []
-#     classe, ext = os.path.splitext(fichier)
-#     schema = "schema_"+str(ext)
-
-#     if rep and rep != ".":
-#         schema = os.path.basename(rep)
-#     while chem:
-#         chem, nom = os.path.split(chem)
-#         niveaux.append(nom)
-
-#     if not niveaux:
-#         groupe = ""
-#     else:
-#         groupe = "_".join(niveaux)
-#     #    print(rep, "<>", chemin, "<>", fichier, "traitement", schema, "<>", groupe, "<>", classe)
-#     return schema, groupe, classe
 
 
 class FileWriter(object):
@@ -87,6 +68,10 @@ class FileWriter(object):
 
         if self.nom == "#print":
             self.fichier = sys.stdout
+            if self.regle.stock_param.mode == "web":
+                self.fichier = io.StringIO()
+                if self.layer in self.regle.stock_param.webstore:
+                    self.regle.stock_param.webstore[self.layer].append(self.fichier)
         elif self.nom == "#attw":
             self.fichier = io.StringIO()
         else:

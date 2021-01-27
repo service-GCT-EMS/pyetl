@@ -289,7 +289,12 @@ def f_printvar(regle, _):
 
 def h_version(regle):
     """affiche la version"""
+    if regle.stock_param.mode == "web":
+        regle.stock_param.webstore["version"] = [
+            "pyetl version:" + regle.stock_param.version
+        ]
     LOGGER.log(999, "pyetl version:%s", regle.stock_param.version)
+
     # print("pyetl version: ", regle.stock_param.version)
     if regle.params.cmp1.val:
         print("version python", sys.version)

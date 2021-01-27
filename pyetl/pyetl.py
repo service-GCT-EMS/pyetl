@@ -228,6 +228,7 @@ class Pyetl(object):
         self.jointdef = dict()  # definition des champs
         self.posparm = list()
         self.store = dict()
+        self.webstore = dict()
         self.keystore = dict()
         self.dbconnect = dict()  # connections de base de donnees
         self.namedselectors = dict()
@@ -1255,7 +1256,7 @@ class Pyetl(object):
 
     def get_results(self):
         """retourne un tableau de resultats contenant les sortie de #print"""
-        return self.retour
+        return self.webstore
 
     def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""
