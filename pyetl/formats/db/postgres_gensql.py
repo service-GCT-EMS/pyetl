@@ -935,7 +935,8 @@ class PgrGenSql(DbGenSql):
         #     self.dialecte,
         # )
         cretables = [idschema, self._setrole()]
-        if not self.basic:
+        if not self.basic or self.regle_ref.getvar("sql_nofunc")=="1":
+            print ("sortie des fonctions",self.regle_ref.getvar("sql_nofunc"))
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
             )

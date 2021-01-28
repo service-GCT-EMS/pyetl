@@ -684,11 +684,12 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
             ecrire_fich_csv(chemref, "_enumerations.csv", conf, cod)
             ecrire_fich_csv(chemref, "_mapping.csv", mapping, cod)
             if schema.elements_specifiques:
+                # vues_utilisees = {i: vues_schema[i] for i in liste if i in vues_schema}
                 LOGGER.info(
                     "elements specifiques %s",
                     ",".join(
                         [
-                            str((i, len(j)))
+                            str((i, len(j[1])))
                             for i, j in schema.elements_specifiques.items()
                         ]
                     ),
@@ -705,16 +706,12 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
                         entete, infos = schema.elements_specifiques[i]
                         contenu = initmetaheader(schema, entete)
                         if isinstance(infos, dict):
-                            contenu.extend(
-                                [
-                                    i
-                                    if isinstance(i, str)
-                                    else ";".join(i) + ";" + j
-                                    if isinstance(j, str)
-                                    else ";".join(j)
-                                    for i, j in sorted(infos.items())
-                                ]
-                            )
+
+                            for n, v in sorted(infos.items()):
+                                # print ("e-s",n,v)
+                                nom=n if isinstance(n, str) else ";".join(n)
+                                valeurs = v if isinstance(v, str) else ";".join(v)
+                                contenu.append(nom+";"+valeurs)
                         else:
                             contenu.extend(infos)
                         ecrire_fich_csv(chemref, "_" + i + ".csv", contenu, cod)

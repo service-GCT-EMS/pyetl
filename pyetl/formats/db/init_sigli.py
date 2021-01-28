@@ -100,7 +100,7 @@ requetes_sigli[
 requetes_sigli[
     "info_tables_distantes"
 ] = """
-    SELECT ftrelid::regclass, srvname ,ftoptions
+    SELECT ftrelid::regclass, srvname ,array_to_string(ftoptions,',')
     FROM pg_foreign_table, pg_foreign_server fs
     WHERE ftserver =  fs.oid"""
 
