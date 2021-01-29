@@ -875,6 +875,7 @@ class PgrGenSql(DbGenSql):
         #        if self.connection:
         #            dbcod = self.connection.codecinfo.get(cod, cod)
         #        codecinfo = "--########### encodage fichier "+cod+'->'+dbcod+' ###(controle éèàç)####\n'
+        refcontext=self.regle_ref if self.regle_ref else self.stock_param
         idschema = (
             "-- ############ nom:"
             + self.schema.nom
@@ -900,16 +901,7 @@ class PgrGenSql(DbGenSql):
                     ]
                 ),
             )
-            # print(
-            #     "tables non sorties:",
-            #     list(
-            #         [
-            #             i
-            #             for i in self.schema.classes
-            #             if not self.schema.classes[i].a_sortir
-            #         ]
-            #     ),
-            # )
+
         vues_base = self.get_vues_base(liste)
         def_speciales = set(vues_base)
         liste_ftables = [
@@ -928,15 +920,10 @@ class PgrGenSql(DbGenSql):
             len(liste_tables),
             self.dialecte,
         )
-        # print(
-        #     "postgres definition de tables a sortir:",
-        #     self.schema.nom,
-        #     len(liste_tables),
-        #     self.dialecte,
-        # )
+
         cretables = [idschema, self._setrole()]
-        if not self.basic or self.regle_ref.getvar("sql_nofunc")=="1":
-            print ("sortie des fonctions",self.regle_ref.getvar("sql_nofunc"))
+        if not self.basic or refcontext.getvar("sql_nofunc")=="1":
+            # print ("pas de sortie des fonctions",refcontext.getvar("sql_nofunc"))
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
             )

@@ -67,6 +67,7 @@ class DbGenSql(object):
         self.basic = basic
         self.schema = None
         self.regle_ref = None
+        self.stock_param=None
 
     def setbasic(self, mode):
         """mode basic pour les bases de consultation"""

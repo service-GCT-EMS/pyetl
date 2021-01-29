@@ -734,6 +734,12 @@ class Geometrie(object):
             )
 
     @property
+    def __flatjson_if__(self):
+        return self.__json_if__.replace('\n','')
+
+
+
+    @property
     def __geo_interface__(self):
         if self.type == "0":
             return {}

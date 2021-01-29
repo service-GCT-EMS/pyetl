@@ -651,7 +651,7 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
         print("!" * 30 + "impossible d'ecrire le fichier ", chemin + nom)
 
 
-def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1):
+def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1,stock_param=None):
     """ ecrit un schema en csv """
     os.makedirs(rep, exist_ok=True)
     init = False

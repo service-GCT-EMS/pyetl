@@ -336,7 +336,7 @@ def lire_schema_xml(mapper, base, fichier, cod="utf-8"):
 
 
 def ecrire_schema_xml(
-    rep, schema, mode="util", cod="utf-8", header="", alias="", prefix=""
+    rep, schema, mode="util", cod="utf-8", header="", alias="", prefix="",stock_param=None
 ):
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)

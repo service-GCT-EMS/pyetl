@@ -464,9 +464,30 @@ def nowrite(obj):
     """ sans sortie"""
     return ""
 
+def ecrire_geom_geojson(
+    geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
+):
+    return geom.__flatjson_if__
+
+
+def geom_from_geojson(obj, code=None):
+    geom = obj.attributs["#geom"]
+    if geom:
+        geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
+        #        print ('decodage geometrie ewkt ',obj.geom)
+        obj.geom_v.from_geo_interface(geom)
+        obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
+        obj.finalise_geom(type_geom=geom_demandee)
+    return obj.geom_v.valide
+
+
+
+
+
 
 GEOMDEF = {
     "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt),
     "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb),
+    "#geojson": (ecrire_geom_geojson, geom_from_geojson),
     None: (nowrite, noconversion),
 }

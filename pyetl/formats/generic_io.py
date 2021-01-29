@@ -662,7 +662,7 @@ class Output(object):
             else self.streamer
         )
         self.nom = nom
-        self.ext = "." + nom
+        self.ext = "." + self.writerparms.get("extension",nom)
         self.fanoutmin = self.writerparms["fanoutmin"]
         fanout = self.writerparms.get("fanout", self.fanoutmin)
         if fanout == "no" or fanout == "all":

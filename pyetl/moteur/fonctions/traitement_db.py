@@ -345,8 +345,14 @@ def h_dbrequest(regle):
         nom_fich = requete[2:]
         regle.fich = os.path.basename(os.path.splitext(nom_fich)[0])
         regle.grp = os.path.basename(os.path.dirname(nom_fich))
-        with open(requete[2:], "r", encoding="utf-8-sig") as fich:
-            requete = "".join(fich.readlines())
+        try:
+            with open(requete[2:], "r", encoding="utf-8-sig") as fich:
+                requete = "".join(fich.readlines())
+        except FileNotFoundError:
+            # LOGGER.error("fichier de requetes introuvable %s",requete[2:])
+            regle.valide=False
+            regle.erreurs="fichier introuvable ->"+requete[2:]
+            return False
     maxi = regle.getvar("lire_maxi")
     if maxi and maxi != "0":
         try:

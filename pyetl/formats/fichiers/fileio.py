@@ -42,7 +42,7 @@ class FileWriter(object):
         self.fichier = None
         self.geomwriter = self.writerparms["geomwriter"]
         self.null = self.writerparms.get("null")
-        self.extension = self.writerparms.get("extension", self.output.ext)
+        self.extension = self.writerparms.get("extension", self.output.nom)
         self.srid = self.output.srid
         self.separ = self.writerparms.get("separ", ";")
         self.encoding = regle.output.encoding

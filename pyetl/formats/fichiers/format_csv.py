@@ -282,7 +282,7 @@ class CsvWriter(FileWriter):
         attributs = self.prepare_attributs(obj)
         if self.type_geom != "0":
             if (
-                obj.format_natif == "#ewkt" and obj.geomnatif
+                obj.format_natif == self.writerparms["geom"] and obj.geomnatif
             ):  # on a pas change la geometrie
                 geom = obj.attributs["#geom"]
                 if not geom:
@@ -532,31 +532,32 @@ def init_csv(self):
     self.regle.stock_param.logger.info(
         "initwriter csv separateur: %s (%s)", separ, self.regle.getvar("separ_csv_out")
     )
-    # print("initwriter csv separateur:", separ, writer.regle.getvar("separ_csv_out"))
-    initwriter(self, ".csv", "csv", (";" if separ == "#std" else separ), "")
     headerdef = self.regle.getvar("csvheader")
-    if "no!" in headerdef:
-        self.header = "csv_f"
+    header = "csv_f" if "no!" in headerdef else "csv"
+    initwriter(self, "csv", header, (";" if separ == "#std" else separ), "")
     if "up" in headerdef:
         self.headerfonc = str.upper
     elif "low" in headerdef:
         self.headerfonc = str.lower
+    else:
+        self.headerfonc = str
+    # print("initwriter csv separateur:", separ, headerdef, header,self.headerfonc)
 
 
 def init_txt(self):
     """writer txt separateur tab pour le mode copy de postgres"""
     separ = self.regle.getchain(("separ_txt_out", "separ_txt"), "\t")
-    initwriter(self, ".txt", False, ("\t" if separ == "#std" else separ), "")
+    initwriter(self, "txt", False, ("\t" if separ == "#std" else separ), "")
 
 
 def init_geo(self):
     """writer geo covadis"""
-    initwriter(self, ".geo", False, "  ", "")
+    initwriter(self, "geo", False, "  ", "")
 
 
 def init_sql(self):
     """writer sql :  mode copy avec gestion des triggers et des sequences """
-    initwriter(self, ".sql", "sql", "\t", r"\N", writerclass=SqlWriter)
+    initwriter(self, "sql", "sql", "\t", r"\N", writerclass=SqlWriter)
 
 
 def lire_objets_txt(self, rep, chemin, fichier):
@@ -580,6 +581,7 @@ def lire_objets_csv(self, rep, chemin, fichier):
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,initer)
 WRITERS = {
+    "csvj": ("", "", True, "low", 0, "csv", "classe", "#geojson", "#ewkt", init_csv),
     "csv": ("", "", True, "low", 0, "csv", "classe", "#ewkt", "#ewkt", init_csv),
     "txt": ("", "", True, "low", 0, "txt", "classe", "#ewkt", "#ewkt", init_txt),
     "sql": ("", "", True, "low", 0, "txt", "all", "#ewkt", "#ewkt", init_sql),

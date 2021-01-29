@@ -158,6 +158,7 @@ def ecrire_schema_sql(
     transact=False,
     autopk=False,
     role=None,
+    stock_param=None
 ):
     """ ecrit un schema en script sql """
     # on determine le dialacte sql a choisir
@@ -179,6 +180,8 @@ def ecrire_schema_sql(
         type_base = "basic"
         gsql = DATABASES[dialecte].gensql()
     #    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
+    if gsql.stock_param is None:
+        gsql.stock_param=stock_param
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace("#", "_")
@@ -267,10 +270,11 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 transact=stock_param.getvar("transact"),
                 autopk=autopk,
                 role=role,
+                stock_param=stock_param
             )
         if "csv" in form:
             cod_csv = stock_param.getvar("codec_csv", "utf-8")
-            ecrire_schema_csv(rep_s, schema, mode, cod=cod_csv, modeconf=confs)
+            ecrire_schema_csv(rep_s, schema, mode, cod=cod_csv, modeconf=confs,stock_param=stock_param)
         if form == "xml":
             #            header = stock_param.getvar('xmlheader', '')
             #            if header:
@@ -286,6 +290,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 cod="utf-8",
                 header=header,
                 alias=stock_param.getvar("xmlalias"),
+                stock_param=stock_param
             )
         #            copier_xsl(rep_s)
 
@@ -307,6 +312,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                     header=header,
                     alias=stock_param.getvar("xmlalias"),
                     prefix=prefix,
+                    stock_param=stock_param
                 )
             else:
                 stock_param.logger.warning("header distant (xmlheader_dist) non defini")

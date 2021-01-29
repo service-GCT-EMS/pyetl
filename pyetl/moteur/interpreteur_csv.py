@@ -580,10 +580,11 @@ def traite_regle_std(
         # print("regle:", r_cour)
     #                print ('regle valide ', r_cour.ligne, r_cour.val_entree, r_cour.valide)
     else:
-        print("interp: regle invalide -------------->", r_cour)
-        if r_cour.erreurs:
-            print("\t", r_cour.erreurs)
-        print(
+        # print("interp: regle invalide -------------->", r_cour)
+        LOGGER.error("regle invalide :%s",str(r_cour.erreurs))
+        if not r_cour.erreurs:
+            # print("\t", r_cour.erreurs)
+            print(
             "decodage champs",
             " ".join([i + "->" + j for i, j in r_cour.v_nommees.items()]),
         )
@@ -864,7 +865,8 @@ def lire_regles_csv(
                 regle_ref=regle_ref,
             )
             if errs:
-                print("====erreur traite_regles_std")
+                # LOGGER.error("erreur interpretation des regles : arret du traitement")
+                # print("====erreur traite_regles_std")
                 erreurs += errs
     #            print('apres,regles std', defligne, errs)
 

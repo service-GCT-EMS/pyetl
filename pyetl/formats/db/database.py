@@ -122,7 +122,7 @@ class Cursinfo(object):
                     cursor.execute(requete)
             except Exception as err:
                 if not fail_silent:
-                    print("erreur requete", err, requete)
+                    print(self.connecteur.base,"erreur requete", err, requete)
                 return None
             if not newcursor:
                 self.requete = requete
