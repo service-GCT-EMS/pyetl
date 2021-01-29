@@ -24,7 +24,7 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     nbwarn = 0
-    print(" lecture_csv, separ:", separ, "<>", reader.encoding)
+    # print(" lecture_csv, separ:", separ, "<>", reader.encoding)
     with open(
         os.path.join(rep, chemin, fichier), newline="", encoding=reader.encoding
     ) as csvfile:
@@ -154,7 +154,7 @@ def _lire_objets_csv(reader, rep, chemin, fichier, entete=None, separ=None):
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     nbwarn = 0
-    print(" lecture_csv, separ:", separ, "<>", reader.encoding)
+    # print(" lecture_csv, separ:", separ, "<>", reader.encoding)
     try:
         with open(
             os.path.join(rep, chemin, fichier), "r", encoding=reader.encoding

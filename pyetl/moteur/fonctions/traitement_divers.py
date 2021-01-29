@@ -646,17 +646,30 @@ def f_compare(regle, obj):
     return False
 
 
+def sortir_cles(regle):
+    """genere les clefs etrangers"""
+    #TODO: generer les clefs etrangeres
+    for clef, valeurs in regle.keystore.items():
+        pass
+    regle.store=False
+
+
+
 def h_getkey(regle):
     """prepare les stockages"""
     if regle.params.cmp1.val not in regle.stock_param.keystore:
         regle.stock_param.keystore[regle.params.cmp1.val] = dict()
     regle.keystore = regle.stock_param.keystore[regle.params.cmp1.val]
+    if regle.params.cmp2.val:
+        # on veut recuperer les cles sous forme d objets
+        regle.store=True
+        regle.traite_stock=sortir_cles
 
 
 def f_getkey(regle, obj):
     """#aide||retourne une clef numerique incrementale correspondant a une valeur
     #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
-    #pattern||S;?C;?A;getkey;?A;;;
+    #pattern||S;?C;?A;getkey;?A;?A;;
     """
     ref = regle.get_entree(obj)
     if ref not in regle.keystore:
