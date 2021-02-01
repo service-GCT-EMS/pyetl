@@ -356,6 +356,12 @@ def f_ftpdownload(regle, obj):
         )
         return False
 
+def _to_dict(parms):
+    """transforme un texte de type aa:yy,tt:vv en dictionnaire"""
+    if not parms:
+        return dict()
+    return dict([k.split(":",1)for k in parms.split(",")])
+
 
 def h_httpdownload(regle):
     """prepare les parametres http"""
@@ -370,6 +376,10 @@ def h_httpdownload(regle):
     else:
         regle.fichier = None
 
+    regle.httparams=_to_dict(regle.getvar("http_params"))
+    regle.httheaders=_to_dict(regle.getvar("http_header"))
+    print ("preparation parametres",regle.httparams, regle.httheaders)
+
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
@@ -379,8 +389,11 @@ def f_httpdownload(regle, obj):
          #test||notest
     """
     url = regle.getval_entree(obj)
-    retour = requests.get(url, stream=regle.params.pattern == "1")
 
+    # if regle.httparams:
+    retour = requests.get(url, stream=regle.params.pattern == "1", params=regle.httparams, headers=regle.httheaders)
+    # else:
+    #     retour = requests.get(url, stream=regle.params.pattern == "1")
     if regle.debug:
         print("telechargement", url)
         print("info", retour.headers)

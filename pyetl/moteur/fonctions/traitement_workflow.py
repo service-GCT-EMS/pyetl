@@ -289,15 +289,12 @@ def f_printvar(regle, _):
 
 def h_version(regle):
     """affiche la version"""
-    if regle.stock_param.mode == "web":
-        regle.stock_param.webstore["version"] = [
-            "pyetl version:" + regle.stock_param.version
-        ]
-    LOGGER.log(999, "pyetl version:%s", regle.stock_param.version)
+    regle.print("pyetl version:" + regle.stock_param.version)
+    # LOGGER.log(999, "pyetl version:%s", regle.stock_param.version)
 
     # print("pyetl version: ", regle.stock_param.version)
     if regle.params.cmp1.val:
-        print("version python", sys.version)
+        regle.print("version python", sys.version)
     regle.valide = "done"
 
 
@@ -306,13 +303,6 @@ def f_version(*_):
     #pattern||;;;version;?=full;;
     #test||notest"""
     return True
-
-
-# def h_print(regle):
-#     """prepare les retours web si neecessaire"""
-#     regle.web = regle.stock_param.mode == "web"
-#     if regle.web:
-#         regle.retour = regle.stock_param.webstore.setdefault("#print", [])
 
 
 def f_print(regle, obj):

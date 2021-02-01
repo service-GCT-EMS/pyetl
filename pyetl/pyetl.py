@@ -459,6 +459,7 @@ class Pyetl(object):
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
         # print("dans prepare_module", regles, liste_params)
+        self.appel=repr(regles)
         if isinstance(regles, list):
             self.nompyetl = "pyetl"
             self.liste_regles = regles
@@ -671,6 +672,7 @@ class Pyetl(object):
                 return None
         petl = Pyetl(parent=self)
         if rep_sortie is not None:
+            petl.setvar("sans_sortie","")
             if rep_sortie.startswith("#"):
                 petl.setvar("F_sortie", "#store")
                 petl.setvar("force_schema", "0")
@@ -1097,7 +1099,7 @@ class Pyetl(object):
         else:
             try:
                 self.logger.info(
-                    "debut traitement sans entree %s", str(self.regles)[:20]
+                    "debut traitement sans entree %s", self.appel[:40]
                 )
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)

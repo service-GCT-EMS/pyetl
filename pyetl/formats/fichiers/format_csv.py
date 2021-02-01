@@ -290,6 +290,7 @@ class CsvWriter(FileWriter):
             #                print("sortie ewkt geom0",len(geom))
             else:
                 if obj.initgeom():
+                    # print ("geomwriter",self.geomwriter)
                     geom = self.geomwriter(
                         obj.geom_v, self.type_geom, self.multi, obj.erreurs
                     )
@@ -530,7 +531,10 @@ def init_csv(self):
     if separ == r"\;":
         separ = ";"
     self.regle.stock_param.logger.info(
-        "initwriter csv separateur: %s (%s)", separ, self.regle.getvar("separ_csv_out")
+        "init writer csv separateur: %s (%s)", separ, self.regle.getvar("separ_csv_out")
+    )
+    self.regle.stock_param.logger.debug(
+        "init writer csv parametres: %s ", repr(self.writerparms)
     )
     headerdef = self.regle.getvar("csvheader")
     header = "csv_f" if "no!" in headerdef else "csv"

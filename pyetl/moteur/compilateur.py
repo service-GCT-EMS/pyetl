@@ -181,7 +181,7 @@ def compile_regles(mapper, liste_regles, debug=0):
 
         regle_sortir.index = len(regles)
         regles.append(regle_sortir)  # on mets la regle de sortie pour finir
-    #    print ('liste_regles',regles)
+        # print ('liste_regles',mapper.idpyetl,regles)
 
     bloc = 0
     for i in range(len(regles) - 1):
