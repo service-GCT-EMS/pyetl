@@ -308,13 +308,23 @@ def f_version(*_):
     return True
 
 
+# def h_print(regle):
+#     """prepare les retours web si neecessaire"""
+#     regle.web = regle.stock_param.mode == "web"
+#     if regle.web:
+#         regle.retour = regle.stock_param.webstore.setdefault("#print", [])
+
+
 def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
     #pattern1||;C?;L?;print;C?;=noms?||entree
     #pattern2||;;*;print;C?;=noms?||entree
     #test||redirect||obj||^X;ok;;set||^;;X;print||out
     """
-    print(printfunc(regle, obj))
+    # print("cmp1>" + regle.params.cmp1.val + "<")
+    # print("cmp1>" + regle.v_nommees["cmp1"] + "<")
+
+    regle.print(printfunc(regle, obj))
     return True
 
 

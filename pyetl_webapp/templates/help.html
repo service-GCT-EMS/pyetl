@@ -1,0 +1,10 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid py-5">
+       <object class="container-fluid row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" type="text/html" data={{url_for('static', filename='doc_pyetl/build/html/index.html')}}
+      >
+    </object>
+    </div>
+{% endblock %}

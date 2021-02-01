@@ -38,3 +38,7 @@ h1 {
   width: 100%;
   scroll-behavior: auto;
 }
+
+#submit {
+  background-image: url("run.gif");
+}

@@ -202,9 +202,18 @@ def execscript(script):
     if form.validate_on_submit():
         entree = form.entree.data[0]
         rep_sortie = form.sortie.data
-        print("recup form", entree, rep_sortie, infos)
+        scriptparams = dict()
+        for desc in varlist:
+            nom, definition = desc
+            scriptparams[nom] = form.__getattribute__(nom).data
+
+        print("recup form", entree, rep_sortie, infos, scriptparams)
         processor = scriptlist.mapper.getpyetl(
-            fich_script, entree=entree, rep_sortie=rep_sortie, mode="web"
+            fich_script,
+            entree=entree,
+            rep_sortie=rep_sortie,
+            liste_params=scriptparams,
+            mode="web",
         )
         if processor:
             try:
@@ -214,6 +223,7 @@ def execscript(script):
                 wstats["nom"] = nomscript
                 session["stats"] = wstats
                 session["retour"] = result
+                print("resultats traitement", result)
                 return redirect("/result")
             except error as err:
                 LOGGER.exception("erreur script", exc_info=err)
@@ -248,6 +258,11 @@ def login():
         )
         return redirect("/index")
     return render_template("login.html", title="Sign In", form=form)
+
+
+@app.route("/help")
+def show_help():
+    return render_template("help.html")
 
 
 @app.route("/fm")

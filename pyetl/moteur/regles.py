@@ -8,6 +8,7 @@ import re
 import os
 import logging
 from itertools import zip_longest, count
+from io import StringIO
 
 # from collections import namedtuple
 import pyetl.formats.format_temporaire as T
@@ -969,3 +970,13 @@ class RegleTraitement(object):  # regle de mapping
         if ext < 0:
             ext = -process * ext
         return process, ext
+
+    def print(self, *args, **kwargs):
+        """fonction d impression avec gestion des retours web"""
+        if self.stock_param.mode == "web":
+            sortie = self.stock_param.webstore.setdefault("#print", [])
+            buffer = StringIO()
+            print(*args, **kwargs, file=buffer)
+            sortie.extend(buffer.getvalue().split("\n"))
+        else:
+            print(*args, **kwargs)

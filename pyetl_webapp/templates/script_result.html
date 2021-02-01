@@ -22,20 +22,18 @@
     {% if retour  %}
     <div id="results">
     <title>resultats </title>
-    <table>
-    <thead>
-        <tr>
-            <td>valeurs</td>
-        </tr>
-    </thead>
-    <tbody>
-        {% for valeur in retour %}
-            <tr>
-                <td>{{ valeur }}</td>
-            </tr>
+    {% for valeur in retour %}
+        <h2>{{ valeur }}</h2>
+            <table>
+            <tbody>
+                {% for ligne in retour[valeur] %}
+                    <tr>
+                        <td>{{ ligne }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            </table>
         {% endfor %}
-    </tbody>
-    </table>
     </div>
     {% endif %}
 {% endblock %}

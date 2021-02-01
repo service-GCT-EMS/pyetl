@@ -1,31 +1,33 @@
-<html>
-    <head>
-      {% if title %}
-      <title>{{ title }} - Mapper</title>
-      {% else %}
-      <title>Mapper - Home</title>
-      {% endif %}
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-      <link rel="icon" href="{{url_for('static', filename='images/favicon.ico')}}">
-    </head>
-    <body>
-        <div>
-          <a href="/index">Home</a>
-          <a href="/login">login</a>
-          <a href="/scripts">traitements</a>
-          <a href="/macros">macros</a>
-          <a href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a>
-        </div>
-        <hr>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <ul>
-            {% for message in messages %}
-            <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </body>
-</html>
+{% extends "bootstrap/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/bootstrap.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='css/main.css')}}">
+{% endblock %}
+{% block scripts %}
+{{super()}}
+{% endblock %}
+
+
+{% if title %}
+    {% block title %}{{ title }} - Mapper{% endblock %}
+{% endif %}
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/index">pyetl</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" aria-current="page" href="/index">Home</a>
+        <a class="nav-link" href="/login">login</a>
+        <a class="nav-link" href="/scripts">scripts</a>
+        <a class="nav-link" href="/macros">macros</a>
+        <a class="nav-link" href="/help">test_help</a>
+        <a class="nav-link" href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a>
+      </div>
+    </div>
+  </div>
+</nav>
+{% endblock %}

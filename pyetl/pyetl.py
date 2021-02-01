@@ -442,6 +442,10 @@ class Pyetl(object):
     def _traite_params(self, liste_params):
         """gere la liste de parametres"""
         if liste_params is not None:
+            if isinstance(liste_params, dict):
+                for i, j in liste_params.items():
+                    self.setvar(i, j)
+                return
             self.liste_params = liste_params[:]
             for i in liste_params:
                 self._stocke_param(i)  # decodage parametres de lancement
@@ -1256,6 +1260,7 @@ class Pyetl(object):
 
     def get_results(self):
         """retourne un tableau de resultats contenant les sortie de #print"""
+        print("retour processeur", self.webstore, self.mode)
         return self.webstore
 
     def getreader(self, nom_format, regle, reglestart=None):

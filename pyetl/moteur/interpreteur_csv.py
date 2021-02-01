@@ -206,16 +206,17 @@ def setvloc(regle):
         listevlocs = regle.context.SPLITTER_V.split(valeurs[11])
         regle.context.affecte(listevlocs)
 
-    # print("decodage v nommees",valeurs)
+    # print("decodage v nommees", valeurs)
     for n, v in enumerate(valeurs):
         valeurs[n], _ = regle.context.resolve(v)
-    # ("apres decodage v nommees",valeurs)
+    # print("apres resolve v nommees", valeurs)
 
     if len(valeurs) <= 11:
         valeurs.extend([""] * (12 - len(valeurs)))
     if not any(valeurs):
         regle.valide = "vide"
     regle.v_nommees = dict(zip(regle.NOMS_CHAMPS, valeurs))
+    # print("apres decodage v nommees", regle.v_nommees)
 
 
 def ajuste_contexte(regle, prec):
@@ -269,7 +270,7 @@ def prepare_regle(regle, prec=None):
             regle.prepare_selecteur(v_nommees)
             regle.code_classe = regle.code_classe.split(":")[-1]
             # on nettoie d'eventuels tests
-    #    regle.valide = "vide"
+        #    regle.valide = "vide"
         extraction_operation(regle, fonction)
         regle.identifie_operation()
         if regle.valide:
@@ -581,13 +582,13 @@ def traite_regle_std(
     #                print ('regle valide ', r_cour.ligne, r_cour.val_entree, r_cour.valide)
     else:
         # print("interp: regle invalide -------------->", r_cour)
-        LOGGER.error("regle invalide :%s",str(r_cour.erreurs))
+        LOGGER.error("regle invalide :%s", str(r_cour.erreurs))
         if not r_cour.erreurs:
             # print("\t", r_cour.erreurs)
             print(
-            "decodage champs",
-            " ".join([i + "->" + j for i, j in r_cour.v_nommees.items()]),
-        )
+                "decodage champs",
+                " ".join([i + "->" + j for i, j in r_cour.v_nommees.items()]),
+            )
         erreurs = 1
     return bloc, erreurs
 

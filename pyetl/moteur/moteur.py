@@ -463,6 +463,7 @@ class Context(object):
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
         element = element.strip()  # on debarasse les blancs parasites
+
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]), element[2:-1]
         while self.PARAM_EXP.search(element):
@@ -480,10 +481,12 @@ class Context(object):
         # print('resolve ', element)
         # element = self.getfirst(element)
         element = element.strip()  # on enleve les blancs parasites
-        if element.startswith(r"\ "):  # mais on garde les blancs voulus
-            element = element[1:]
-        if element.endswith(" \\"):  # mais on garde les blancs voulus
-            element = element[:-1]
+        if element.startswith("'") and element.endswith("'"):
+            element = element[1:-1]
+        # if element.startswith(r"\ "):  # mais on garde les blancs voulus
+        #     element = element[1:]
+        # if element.endswith(" \\"):  # mais on garde les blancs voulus
+        #     element = element[:-1]
         return element, ""
 
     def getfirst(self, element):
