@@ -356,11 +356,12 @@ def f_ftpdownload(regle, obj):
         )
         return False
 
+
 def _to_dict(parms):
     """transforme un texte de type aa:yy,tt:vv en dictionnaire"""
     if not parms:
         return dict()
-    return dict([k.split(":",1)for k in parms.split(",")])
+    return dict([k.split(":", 1) for k in parms.split(",")])
 
 
 def h_httpdownload(regle):
@@ -376,9 +377,9 @@ def h_httpdownload(regle):
     else:
         regle.fichier = None
 
-    regle.httparams=_to_dict(regle.getvar("http_params"))
-    regle.httheaders=_to_dict(regle.getvar("http_header"))
-    print ("preparation parametres",regle.httparams, regle.httheaders)
+    regle.httparams = _to_dict(regle.getvar("http_params"))
+    regle.httheaders = _to_dict(regle.getvar("http_header"))
+    print("preparation parametres", regle.httparams, regle.httheaders)
 
 
 def f_httpdownload(regle, obj):
@@ -391,14 +392,25 @@ def f_httpdownload(regle, obj):
     url = regle.getval_entree(obj)
 
     # if regle.httparams:
-    retour = requests.get(url, stream=regle.params.pattern == "1", params=regle.httparams, headers=regle.httheaders)
+    retour = None
+    try:
+        retour = requests.get(
+            url,
+            stream=regle.params.pattern == "1",
+            params=regle.httparams,
+            headers=regle.httheaders,
+        )
+    except:
+        LOGGER.error("connection impossible %s", retour.url if retour else url)
+        return False
+
     # else:
     #     retour = requests.get(url, stream=regle.params.pattern == "1")
     if regle.debug:
         print("telechargement", url)
         print("info", retour.headers)
     obj.sethtext("#http_header", dic=retour.headers)
-    taille = int(retour.headers["Content-Length"])
+    taille = int(retour.headers.get("Content-Length", 0))
 
     if regle.params.pattern == "2":  # retour dans un attribut
         if regle.getvar("http_encoding"):
