@@ -1073,7 +1073,12 @@ class SchemaClasse(object):
 
     def get_liste_attributs(self, ordre="", liste=None, sys=False):
         """recupere la liste des attributs dans l'ordre d'origine ou par ordre alpha"""
-        #        print("schema_interne:nombre d'attributs ", liste,self.liste_attributs_cache)
+        # print(
+        #     "schema_interne:nombre d'attributs ",
+        #     liste,
+        #     self.liste_attributs_cache,
+        #     list(self.attributs.keys()),
+        # )
         # self.liste_attributs = list(self.attributs.keys())
         if self.liste_attributs_cache and self.ordrealpha == ordre:
             if liste:

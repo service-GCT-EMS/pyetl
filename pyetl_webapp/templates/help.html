@@ -2,8 +2,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container-fluid py-5">
-       <object class="container-fluid row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" type="text/html" data={{url_for('static', filename='doc_pyetl/build/html/index.html')}}
+    <div class="d-flex flex-row">
+       <object class="container h-100 w-100" type="text/html" data={{url_for('static', filename='doc_pyetl/build/html/index.html')}}
       >
     </object>
     </div>
