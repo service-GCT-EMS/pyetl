@@ -361,6 +361,22 @@ def _to_dict(parms):
     """transforme un texte de type aa:yy,tt:vv en dictionnaire"""
     if not parms:
         return dict()
+    if "'" in parms:
+        # il y a des cotes
+        cot=False
+        groups=[]
+        group=""
+        for i in parms:
+            if i=="'":
+                cot=not cot
+            elif i=="," and not cot:
+                groups.append(group)
+                group=""
+            else:
+                group+=i
+        if group:
+            groups.append(group)
+        return dict([k.split(":", 1) for k in groups  ] )
     return dict([k.split(":", 1) for k in parms.split(",")])
 
 
@@ -458,11 +474,15 @@ def f_httpdownload(regle, obj):
     LOGGER.error("headers %s", str(retour.request.headers) )
     # print ("==========erreur requete==========")
     # print ("request url", retour.url)
-    print ("request headers", retour.request.headers)
-    print ("============retour================")
-    print ("statuscode", retour.status_code)
-    print ("headers", retour.headers)
-    print ("text", retour.text)
+    # print ("request headers", retour.request.headers)
+    LOGGER.error("retour statut %s", retour.status_code )
+    LOGGER.error("headers %s", str(retour.headers) )
+    LOGGER.error("text %s", str(retour.text) )
+
+    # print ("============retour================")
+    # print ("statuscode", retour.status_code)
+    # print ("headers", retour.headers)
+    # print ("text", retour.text)
     return False
 
 

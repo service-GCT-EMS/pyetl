@@ -447,7 +447,7 @@ $#ftp_%acces%;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#httpdownload;url;dest;;;;;
 #!help;charge des elements par ftp;;;;;;;;;;
-;;;;;%url%;;download;%dest%;;;
+;;;;;%url%;;download;;%dest%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#geocode;adresse;filtres;;;;
 #!help;geocode des elements;commande;parametres;;;;;;;;
