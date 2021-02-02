@@ -379,14 +379,17 @@ def h_httpdownload(regle):
 
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
-    print("preparation parametres", regle.httparams, regle.httheaders)
+    # print("preparation parametres", regle.httparams, regle.httheaders)
+    regle.valide=True
+    return True
 
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
-    #aide_spec||; url; (attribut contenant le url);http_download;racine;nom
+    #aide_spec||; url; (attribut contenant l'url);http_download;racine;nom
       #pattern1||;?C;?A;download;?C;?C
       #pattern2||A;?C;?A;download
+      #pattern3||A;?C;?A;download;=B
          #test||notest
     """
     url = regle.getval_entree(obj)
@@ -407,7 +410,7 @@ def f_httpdownload(regle, obj):
     # else:
     #     retour = requests.get(url, stream=regle.params.pattern == "1")
     if regle.debug:
-        print("telechargement", url)
+        print("telechargement", url, retour.url if retour else url)
         print("info", retour.headers)
     obj.sethtext("#http_header", dic=retour.headers)
     taille = int(retour.headers.get("Content-Length", 0))
@@ -415,10 +418,14 @@ def f_httpdownload(regle, obj):
     if regle.params.pattern == "2":  # retour dans un attribut
         if regle.getvar("http_encoding"):
             retour.encoding = regle.getvar("http_encoding")
+
         regle.setval_sortie(obj, retour.text)
         # if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
         #     regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
         # print("retour requests", retour.encoding)
+        return True
+    elif regle.params.pattern=="3":
+        regle.setval_sortie(obj, retour.content)
         return True
     if regle.fichier is None:
         fichier = os.path.join(regle.path, os.path.basename(url))
@@ -447,6 +454,15 @@ def f_httpdownload(regle, obj):
             "secondes",
         )
         return True
+    LOGGER.error("erreur requete %s", retour.url )
+    LOGGER.error("headers %s", str(retour.request.headers) )
+    # print ("==========erreur requete==========")
+    # print ("request url", retour.url)
+    print ("request headers", retour.request.headers)
+    print ("============retour================")
+    print ("statuscode", retour.status_code)
+    print ("headers", retour.headers)
+    print ("text", retour.text)
     return False
 
 
