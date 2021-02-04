@@ -233,10 +233,12 @@ class Mapping(object):
     def init_mapping(self, classes, liste_mapping):
         """traitement des mappings initialisation des structures"""
         self.liste_mapping = liste_mapping
+        if liste_mapping:
+            self.existe = True
         for i in liste_mapping:
             # traitement des mappings : permet de definir des actions en
             # denominations elyx ou sans preciser les schemas
-            # print("valeur de i ", i)
+            # print("mapping :valeur de i ", i)
             if isinstance(i, tuple):
                 s_fin, c_fin, s_orig, c_orig = i
             else:
@@ -245,7 +247,7 @@ class Mapping(object):
                 except ValueError:
                     print("ligne incomplete", i)
                     continue
-            self.existe = True
+
             if "*" in s_orig or "*" in c_orig:
                 self.multiple = True
             orig = (s_orig, c_orig)

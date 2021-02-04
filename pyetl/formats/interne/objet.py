@@ -106,7 +106,7 @@ class Objet(object):
         if attributs is not None:
             self.attributs.update(attributs)
         self.hdict = None
-        self.multiples = None  # atributs multiples
+        self.multiples = dict()  # attributs multiples
         self.attributs_speciaux = dict()
         #        self.schema = schema # schema impose
         self.geomnatif = True
@@ -579,6 +579,14 @@ class Objet(object):
                 hddef = ()
             self.hdict[nom] = dict(hddef)
         return self.hdict[nom]
+
+    def setmultiple(self,nom,liste=[]):
+        """stocke un attribut multiple"""
+        self.multiples[nom]=liste
+        self.attributs[nom]=str(liste)
+
+
+
 
     def resetschema(self):
         """supprime la reference a un schema"""

@@ -394,11 +394,13 @@ class Schema(object):
         """ force les origines des classes"""
         return self.stock_mapping.map_classes(self.classes)
 
-    def map_dest(self, id_orig):
+    def map_dest(self, id_orig, virtuel=False):
         """ force les origines des classes"""
+
         id2 = self.stock_mapping.map_dest(id_orig)
         if id2 is None:
-            print(
+            if not virtuel:
+                print(
                 "attention mapping destination impossible",
                 self.nom,
                 id_orig,

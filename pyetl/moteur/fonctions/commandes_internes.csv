@@ -261,7 +261,7 @@ $codec_entree=%codec_csv%;;;;;
 $format_schema=sql:%dialecte%,csv;;;;;;;;;;;
 !;;;;;;;start;;;;
 !;;;;;;;reel;;;;
-;;;;#schema;;;lire_schema;%nom%;csv;debug;
+;;;;#schema;;;lire_schema;%nom%;csv;;
 !<#gid;;;;;;;;;;;
 P:modif;;;;;;;pass;;;
 |:<#att_sigli_modif;;;;;;

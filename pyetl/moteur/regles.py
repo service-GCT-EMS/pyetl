@@ -779,7 +779,7 @@ class RegleTraitement(object):  # regle de mapping
         classe_ob = obj.ident
         if obj.virtuel:
             return
-        if self.f_sortie.calcule_schema:
+        if self.calcule_schema:
             if not obj.schema:
                 nomschem = nom_base if nom_base else "defaut_auto"
                 schem = self.stock_param.init_schema(nomschem)
@@ -830,8 +830,8 @@ class RegleTraitement(object):  # regle de mapping
             #            raise
             self.tmpwrite(
                 groupe,
-                self.f_sortie.def_sortie.tmpgeomwriter,
-                self.f_sortie.def_sortie.tmp_geom,
+                self.output.writerparms["tmpgeomwriter"],
+                self.output.writerparms["tmp_geom"]
             )
         obj.stored = True
 

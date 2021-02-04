@@ -953,7 +953,8 @@ class PgrGenSql(DbGenSql):
                 cretables.extend(self.cre_vues(liste, vues_base))
 
             else:
-                print("pas de vues a sortir")
+                LOGGER.info("pas de vues a sortir %s", self.schema.nom)
+                # print("pas de vues a sortir")
             for ident in liste:
                 cretables.extend(self.cree_fks(ident))
             foncdefs = dict()

@@ -11,6 +11,7 @@ import io
 import requests
 import ftplib
 import csv
+import json
 
 try:
     import pysftp
@@ -399,13 +400,35 @@ def h_httpdownload(regle):
     regle.valide=True
     return True
 
+def _jsonsplitter(regle,obj,jsonbloc):
+    """decoupe une collection json en objets"""
+    struct=json.loads(jsonbloc)
+    for elem in struct:
+        if isinstance(elem,dict):
+            obj2=obj.dupplique()
+            obj2.virtuel=False
+            for att,val in elem.items():
+                if isinstance(val,str):
+                    obj2.attributs[att]=val
+                elif isinstance(val,dict):
+                    hdict={i:json.dumps(j,separators=(',', ':')) for i,j in val.items()}
+                    obj2.sethtext(att, dic=hdict)
+                elif isinstance(val,list):
+                    jlist=[json.dumps(j,separators=(',', ':')) for j in val]
+                    obj2.setmultiple(att,liste=jlist)
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        else:
+            print ("element incompatible", elem)
+
+
 
 def f_httpdownload(regle, obj):
     """aide||telecharge un fichier via http
     #aide_spec||; url; (attribut contenant l'url);http_download;racine;nom
       #pattern1||;?C;?A;download;?C;?C
       #pattern2||A;?C;?A;download
-      #pattern3||A;?C;?A;download;=B
+      #pattern3||;?C;?A;download;=#B||cmp1
+      #pattern4||;?C;?A;download;=#json||cmp1
          #test||notest
     """
     url = regle.getval_entree(obj)
@@ -443,25 +466,32 @@ def f_httpdownload(regle, obj):
     elif regle.params.pattern=="3":
         regle.setval_sortie(obj, retour.content)
         return True
+    elif regle.params.pattern=="4":
+        _jsonsplitter(regle,obj,retour.text)
+        return True
     if regle.fichier is None:
         fichier = os.path.join(regle.path, os.path.basename(url))
     else:
         fichier = regle.fichier
 
-    decile = taille / 10
+    decile = taille / 10 if taille else 100000
     recup = 0
     bloc = 4096
     nb_pts = 0
+    nblocs = 0
     debut = time.time()
     if retour.status_code == 200:
         with open(fichier, "wb") as fich:
             for chunk in retour.iter_content(bloc):
+                nblocs+=1
                 recup += bloc  # ca c'est la deco avec des petits points ....
                 if recup > decile:
                     recup = recup - decile
                     nb_pts += 1
                     print(".", end="", flush=True)
                 fich.write(chunk)
+        if nblocs*bloc>taille:
+            taille=nblocs*bloc
         print(
             "    ",
             taille,

@@ -79,7 +79,8 @@ def lire_schemas_multiples(
         if racine in element.lower():
             ext = os.path.splitext(element)[1]
             if "classes" in element and ext == ".csv":
-                print("schema:lecture ", element, racine, os.path.splitext(element))
+                LOGGER.info("lecture %s %s",racine,element)
+                # print("schema:lecture ", element, racine, os.path.splitext(element))
                 element_modif = "_".join(element.split("_")[:-1])
                 fichier = os.path.join(rep, element_modif)
                 fusion_schema(
@@ -100,9 +101,11 @@ def lire_schemas_multiples(
                 )
     schema.map_classes()
     if schema.classes:
-        print("schema:classes totales", len(schema.classes), cod)
+        LOGGER.info("classes totales %d",len(schema.classes))
+        # print("schema:classes totales", len(schema.classes), cod)
     else:
-        print("pas de definition de schema", rep, racine)
+        LOGGER.warning("pas de definition de schema %s %s",rep, racine)
+        # print("pas de definition de schema", rep, racine)
     return schema
 
 

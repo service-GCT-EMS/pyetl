@@ -212,13 +212,15 @@ def h_def_schema(regle):
     cmp1: nom du fichier
     cmp2: extension
     """
-
+    # print ("h_def_schema",regle.params)
     cod = regle.getvar("codec_entree", "cp1252")
     fusion = False
     if regle.params.cmp1.dyn or regle.getvar("force_schema")=="fusion":
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace("*", "")  # nom du fichier
     nom = regle.params.val_entree.val
+    # print ("h_def_schema",regle.fichier, nom)
+
     regle.differe = False
     if not regle.fichier:
         LOGGER.error("pas de schema a lire " + regle.ligne)
@@ -251,7 +253,7 @@ def h_def_schema(regle):
             else:
                 regle.differe = True
         regle.nomschema = nom
-        #        print ('demande schema interne',nomschema, '->', nom, 'differe',regle.differe)
+        # print ('demande schema interne',nomschema, '->', nom, 'differe',regle.differe)
         return
     ext = regle.params.cmp2.val
 
@@ -263,13 +265,14 @@ def h_def_schema(regle):
     if regle.stock_param.rdef:
         regle.fichier = regle.fichier.replace("D:", regle.stock_param.rdef + "/")
     # fichier de jointure dans le repertoire de regles
+    # print ("h_def_schema fichier",regle.fichier)
+
     if not nom:
         nom = os.path.basename(regle.fichier)
 
     if not nom:
-        LOGGER.error("regle incorrecte" + regle.ligne)
-        regle.valide = False
-        return
+        LOGGER.warning("pas de nom de projet nom fixe a 'defaut'")
+        nom="defaut"
 
     if regle.params.att_sortie.val == "schema_entree":
         regle.setvar("schema_entree", nom)
@@ -367,7 +370,7 @@ def f_def_schema(regle, obj):
             return False
 
     schema = regle.stock_param.schemas[nom_base]
-    ident2 = schema.map_dest(ident) if schema.stock_mapping.existe else ident
+    ident2 = schema.map_dest(ident, virtuel=obj.virtuel) if schema.stock_mapping.existe else ident
 
     schema_classe = schema.get_classe(ident2)
     if not schema_classe:
