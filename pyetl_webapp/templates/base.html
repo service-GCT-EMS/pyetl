@@ -2,6 +2,7 @@
 {% block styles %}
 <link rel="stylesheet" href="{{url_for('.static', filename='css/bootstrap.css')}}">
 <link rel="stylesheet" href="{{url_for('.static', filename='css/main.css')}}">
+<link rel="icon" href="{{url_for('static', filename='images/favicon.ico')}}">
 {% endblock %}
 {% block scripts %}
 {{super()}}

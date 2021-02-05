@@ -29,6 +29,24 @@ def scandirs(rep_depart, chemin):
     else:
         raise NotADirectoryError(str(path))
 
+def update_build(build="BUILD =", file="vglobales.py",orig=start):
+    for (fichier, chemin) in scandirs(orig, ""):
+            # print(fichier, chemin)
+        if file and fichier!=file:
+            # print ("ignore ",fichier)
+            continue
+        print ("analyse ",fichier)
+        with open(os.path.join(orig, chemin, fichier),"r") as vglob:
+            contenu=str(vglob.read())
+            if build in contenu:
+                print ("build trouve dans ", fichier)
+            else:
+                print ("recherche",build)
+                print (type(contenu), build in contenu)
+                pass
+
+
+
 
 def zipall(orig=start):
     with zipfile.ZipFile(

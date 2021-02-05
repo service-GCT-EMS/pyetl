@@ -12,6 +12,7 @@ format                    lecture      ecriture
 accdb                         oui           non
 asc                           oui           oui
 csv                           oui           oui
+csvj                          non           oui
 dbf                           oui           non
 dxf                           oui           oui
 geo                           non           oui

@@ -8,7 +8,9 @@ Created on Tue Jan 15 13:47:55 2019
 import platform
 
 
-VERSION = "0.8.3p"
+REVISION = "0.8.3p"
+BUILD = 1
+VERSION=REVISION+" (build:"+str(BUILD)+")"
 # version de production
 MAINMAPPER = [None]
 

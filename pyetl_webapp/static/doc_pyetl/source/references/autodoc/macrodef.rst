@@ -11,8 +11,10 @@ reference macros
 #att_sigli_modif           ajoute les attributs standard  date_maj / date_creatio
 #att_sigli_std             ajoute les attributs standard  date_maj / date_creatio
 #autoload                  charge les derniers resultats en base de donnee
+#batch_rt                  
 #bdiff                     sort un objet s il n existe pas en bas
 #cc2cus                    reprojette des donnees cus en rgf9
+#cc482ll                   reprojette des donnees cus en rgf9
 #charge_osm                
 #classe                    force la classe p:classe: nouvelle class
 #cmd                       
@@ -23,7 +25,7 @@ reference macros
 #crypt_site_params         prepare les acces personnalises aux base
 #cus2cc48                  reprojette des donnees cus en rgf9
 #db_batch                  passe les batchs actif
-#db_batch_rapid            lance le scheduler sur une liste de taches en base lecture uniqu
+#db_batch_rt               lance le scheduler sur une liste de taches en base lecture uniqu
 #db_batch_suivi            lance le scheduler sur une liste de taches modifiables en bas
 #db_list_batch             liste des batchs definis en base
 #dbaccess                  positionne des elements d'acces a une base de donnees en direc
@@ -69,6 +71,7 @@ reference macros
 #passage_prod              
 #passage_schema            scripts de passage en pro
 #prefix                    prefixe la classe p:prefix: prefixe a ajouter a la class
+#print                     
 #printparams               affichag
 #printvar                  affichage variabl
 #pwcrypt                   crypte les mots de pass
@@ -87,9 +90,9 @@ reference macros
 #sigli2elyx                passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifie
 #site_params               affichage des parametres de connection stocke
 #sleep                     
-#start_rt                  
 #stdvar                    variables de base appele par tous les autres elements
 #store                     
+#supp                      
 #test                      test des variable
 #testpourluc               aide speciale pour lu
 #timeselect                determine si un batch est executable en fonction de l'heur

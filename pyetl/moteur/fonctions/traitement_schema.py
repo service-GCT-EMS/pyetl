@@ -271,8 +271,8 @@ def h_def_schema(regle):
         nom = os.path.basename(regle.fichier)
 
     if not nom:
-        LOGGER.warning("pas de nom de projet nom fixe a 'defaut'")
-        nom="defaut"
+        LOGGER.warning("pas de nom schema -> nom fixe a 'schema'")
+        nom="schema"
 
     if regle.params.att_sortie.val == "schema_entree":
         regle.setvar("schema_entree", nom)

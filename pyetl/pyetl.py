@@ -15,7 +15,7 @@ import itertools
 from queue import Empty
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
-from .outils.commandes_speciales import commandes_speciales
+from .outils.commandes_speciales import commandes_speciales, is_special
 
 # print ('globales',time.time()-t1)
 from .formats.generic_io import Reader, Output, READERS, WRITERS
@@ -153,9 +153,13 @@ def runpyetl(commandes, args):
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
     mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
-    mainmapper.logger.info("commande:   %s", str(commandes))
-    mainmapper.logger.info("parametres: %s", str(args))
-    mapper = getmainmapper().getpyetl(commandes, liste_params=args)
+    if not is_special(commandes):
+        mainmapper.logger.info("commande:   %s", str(commandes))
+        mainmapper.logger.info("parametres: %s", str(args))
+    else:
+        commandes_speciales(mainmapper, commandes, args)
+        return
+    mapper=mainmapper.getpyetl(commandes, liste_params=args)
     if mapper:
         mapper.process()
     else:
@@ -252,6 +256,7 @@ class Pyetl(object):
 
         self.loginited = self.parent.loginited if self.parent else False
         self.ended = False
+        self.is_special = False
         self.worker = parent.worker if parent else False  # process esclave
         #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
         self.mode = "cmd"
@@ -486,7 +491,7 @@ class Pyetl(object):
         )
         erreurs = None
         if self.fichier_regles or self.liste_regles:
-            commandes_speciales(self)
+            # commandes_speciales(self)
             # self.commandes_speciales()
             if not self.done:
                 try:
@@ -1114,12 +1119,15 @@ class Pyetl(object):
             except StopIteration:
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-        self.logger.info(
-            "fin traitement %d: %s traites %s",
-            self.idpyetl,
-            self.nompyetl,
-            self.getvar("_st_lu_objs", "0"),
-        )
+
+        if not self.is_special:
+
+            self.logger.info(
+                "fin traitement %d: %s traites %s",
+                self.idpyetl,
+                self.nompyetl,
+                self.getvar("_st_lu_objs", "0"),
+            )
 
         return
 

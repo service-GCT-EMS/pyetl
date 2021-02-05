@@ -2,8 +2,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-       <h1>Mapper web interface</h1>
-       <img class="centre" src="{{url_for('static', filename='images/rantanplan.gif')}}">
-       <h1>{{ text }}</h1>
-
+       <div class="container-fluid">
+              <h1>Mapper web interface</h1>
+              <img class="centre" src="{{url_for('static', filename='images/rantanplan.gif')}}">
+              <h1>{{ text }}</h1>
+       </div>
 {% endblock %}

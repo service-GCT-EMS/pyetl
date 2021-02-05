@@ -1,12 +1,7 @@
 # commandes speciales
 # gestionnaire de commandes speciales tests doc aide etc
 import os
-
-
-def commandes_speciales(mapper):
-    """commandes speciales"""
-    #        print("commandes speciales: ", self.fichier_regles)
-    commandes_speciales = {
+COMMANDES_SPECIALES = {
         "help",
         "autodoc",
         "autotest",
@@ -14,15 +9,36 @@ def commandes_speciales(mapper):
         "formattest",
         "pack",
     }
-    # on ne lit pas de regles mais on prends les commandes predefinies
-    if mapper.fichier_regles is None:
-        return
-    liste_commandes = mapper.fichier_regles.split(",")
-    commande, *pars = liste_commandes[0].split(":")
+def is_special(commandes):
+    "determine si une commande est speciale"
+    if not commandes:
+        return False
+    c1=commandes.split(";")
+    commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
-    if commande not in commandes_speciales:
-        return
-    nom = mapper.getvar("_sortie")
+    return commande in COMMANDES_SPECIALES
+
+def commandes_speciales(mapper, commandes, args):
+    """commandes speciales"""
+    #        print("commandes speciales: ", self.fichier_regles)
+
+    # on ne lit pas de regles mais on prends les commandes predefinies
+    if not commandes:
+        return False
+    c1=commandes.split(";")
+    commande, *pars = c1[0].split(":")
+    commande = commande.replace("#", "")
+    # if mapper.fichier_regles is None:
+    #     return
+    # liste_commandes = mapper.fichier_regles.split(",")
+    # commande, *pars = liste_commandes[0].split(":")
+    # commande = commande.replace("#", "")
+    # if commande not in COMMANDES_SPECIALES:
+    #     return
+    mapper.is_special=True
+    # nom = mapper.getvar("_sortie")
+    nom=pars[0] if pars else (c1[1] if len(c1)>1 else (args[0] if args else ""))
+    # print ("commandes speciales",commandes, args)
     mapper.setvar("_sortie", "")
     mapper.setvar("_testmode", commande)
     if commande == "help":
@@ -82,9 +98,11 @@ def commandes_speciales(mapper):
         formattests(mapper, nom=nom, debug=mapper.getvar("debug"))
 
     elif commande == "pack":
+        # import magic
         from . import pack
 
         place = os.path.dirname(mapper.getvar("_progdir"))
+        pack.update_build(build=" BUILD =", file="vglobales.py", orig=place)
         print("preparation version", mapper.version, place)
         pack.zipall(place)
 
