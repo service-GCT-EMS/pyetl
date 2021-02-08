@@ -102,8 +102,10 @@ def commandes_speciales(mapper, commandes, args):
         from . import pack
 
         place = os.path.dirname(mapper.getvar("_progdir"))
-        pack.update_build(build=" BUILD =", file="vglobales.py", orig=place)
         print("preparation version", mapper.version, place)
-        pack.zipall(place)
+        nv="_"+mapper.version.replace(" (build:",".").replace(")","")
+        pack.zipall(place,nv)
+        newb= pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
+        print("modification build", mapper.version,"->(build",newb,")")
 
     mapper.done = True

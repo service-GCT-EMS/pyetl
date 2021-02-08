@@ -35,22 +35,42 @@ def update_build(build="BUILD =", file="vglobales.py",orig=start):
         if file and fichier!=file:
             # print ("ignore ",fichier)
             continue
-        print ("analyse ",fichier)
-        with open(os.path.join(orig, chemin, fichier),"r") as vglob:
-            contenu=str(vglob.read())
-            if build in contenu:
-                print ("build trouve dans ", fichier)
+        # print ("analyse ",fichier)
+        with open(os.path.join(orig, chemin, fichier),"r", encoding="utf8") as vglob:
+            for contenu in vglob:
+            # contenu=str(vglob.read())
+                if build in contenu:
+                    # print ("build trouve dans ", fichier)
+                    found=True
+                    break
             else:
-                print ("recherche",build)
-                print (type(contenu), build in contenu)
-                pass
+                print ("non trouve",build)
+                found=False
+        if found:
+            with open(os.path.join(orig, chemin, fichier),"r", encoding="utf8") as vglob:
+                fich_orig=vglob.readlines()
+            resultat=[]
+            for contenu in fich_orig:
+            # contenu=str(vglob.read())
+                if build in contenu:
+                    tmp,nv=contenu.split("=")
+                    nv1=" "+str(int(nv)+1)+"\n"
+                    resultat.append(contenu.replace(nv,nv1))
+                else:
+                    resultat.append(contenu)
+            with open(os.path.join(orig, chemin, fichier),"w", encoding="utf8") as vglob:
+                vglob.writelines(resultat)
+            return int(nv)+1
+    return None
 
 
 
 
-def zipall(orig=start):
+
+def zipall(orig=start,nv=""):
+    name="mapper"+nv+".zip"
     with zipfile.ZipFile(
-        os.path.join("mapper.zip"), "w", compression=zipfile.ZIP_BZIP2
+        name, "w", compression=zipfile.ZIP_BZIP2
     ) as zip:
         os.chdir(orig)
         for (fichier, chemin) in scandirs(".", ""):

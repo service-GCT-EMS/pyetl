@@ -8,7 +8,7 @@ from os import error
 import logging
 import time
 from collections import namedtuple
-from flask import render_template, flash, redirect, session
+from flask import render_template, flash, redirect, session, url_for
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
@@ -26,6 +26,7 @@ class ScriptList(object):
         self.liste = []
         self.descriptif = dict()
         self.mapper = getmainmapper()
+        self.mapper.url_for=url_for
         print(
             "initialisation mainmapper",
             self.mapper,

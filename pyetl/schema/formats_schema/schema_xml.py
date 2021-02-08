@@ -352,8 +352,18 @@ def ecrire_schema_xml(
         #     os.path.join(rep, nomschema) + ".xml",
         # )
         open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
-    if not prefix:
-        copier_xsl(rep)
+        if not prefix:
+            copier_xsl(rep)
+
+    if stock_param and stock_param.mode == "web":
+        url_for=stock_param.maimapper.url_for
+        header='<?xml-stylesheet href='+url_for("xsl/dico.xsl")+' type="text/xsl"?>'
+        xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
+        if xml:
+            if not "schemas" in stock_param.webstore:
+                stock_param.webstore["schemas"]=dict()
+            stock_param.webstore["schemas"][nomschema]=xml
+
 
 
 def copier_xsl(rep):
