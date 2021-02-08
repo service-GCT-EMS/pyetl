@@ -13,6 +13,7 @@ import logging
 LOGGER = logging.getLogger("pyetl")
 import itertools
 from queue import Empty
+from io import StringIO
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales, is_special
@@ -72,63 +73,6 @@ class DiffLogFilTer(logging.Filter):
         return True
 
 
-def initlogger(logger, fichier=None, log="DEBUG", affich="INFO", worker=False):
-    """ création de l'objet logger qui va nous servir à écrire dans les logs"""
-    # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
-    loglevels = {
-        "DEBUG": logging.DEBUG,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-        "INFO": logging.INFO,
-        "AFFICH": 999,
-    }
-    niveau_f = loglevels.get(log, logging.INFO)
-    niveau_p = loglevels.get(affich, logging.ERROR)
-    # print ('niveaux de logging',niveau_f,niveau_p)
-    if fichier:
-        logger.setLevel(niveau_f)
-    else:
-        logger.setLevel(niveau_p)
-    if not worker:
-        # print("initialisation log", affich, log, "(", fichier, ")")
-        if not logger.handlers:
-            # création d'un handler qui va rediriger chaque écriture de log sur la console
-
-            print_handler = logging.StreamHandler()
-            printformatter = logging.Formatter(
-                "%(levelname)-8s %(funcName)-25s: %(message)s"
-            )
-            print_handler.setFormatter(printformatter)
-            print_handler.prec_record = ""
-            print_handler.addFilter(lambda x: x.levelno != 999)
-            print_handler.addFilter(DiffLogFilTer())
-            print_handler.setLevel(niveau_p)
-            logger.addHandler(print_handler)
-            aff_handler = logging.StreamHandler()
-            aff_formatter = logging.Formatter("========================== %(message)s")
-            aff_handler.setLevel(loglevels["AFFICH"])
-            aff_handler.setFormatter(aff_formatter)
-            logger.addHandler(aff_handler)
-        if fichier:
-            # création d'un formateur qui va ajouter le temps, le niveau
-            # de chaque message quand on écrira un message dans le log
-            fileformatter = logging.Formatter(
-                "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s" + "::%(message)s"
-            )
-            #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
-            # création d'un handler qui va rediriger une écriture du log vers
-            # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
-            file_handler = logging.FileHandler(fichier)
-            # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-            # créé précédement et on ajoute ce handler au logger
-            file_handler.setLevel(niveau_f)
-            file_handler.setFormatter(fileformatter)
-            logger.addHandler(file_handler)
-    else:
-        pass
-
-
 def getlog(args):
     """recherche s il y a une demande de fichier log dans les arguments"""
     log = None
@@ -159,7 +103,7 @@ def runpyetl(commandes, args):
     else:
         commandes_speciales(mainmapper, commandes, args)
         return
-    mapper=mainmapper.getpyetl(commandes, liste_params=args)
+    mapper = mainmapper.getpyetl(commandes, liste_params=args)
     if mapper:
         mapper.process()
     else:
@@ -322,17 +266,80 @@ class Pyetl(object):
         log_file = logfile or log_file
         log_level = loglevel or log_level
         log_print = logprint or log_print
-        initlogger(
-            self.logger,
-            fichier=self.getvar("log_file", log_file),
-            log=self.getvar("log_level", log_level),
-            affich=self.getvar("log_print", log_print),
-            worker=self.worker,
-        )
+        fichier = self.getvar("log_file", log_file)
+        log = self.getvar("log_level", log_level)
+        affich = self.getvar("log_print", log_print)
         self.loginited = True
 
-    #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
-    #        next(self.aff)
+        #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
+        #        next(self.aff)
+
+        # def initlogger(self, fichier=None, log="DEBUG", affich="INFO"):
+        """ création de l'objet logger qui va nous servir à écrire dans les logs"""
+        # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
+        logger = self.logger
+        worker = self.worker
+        loglevels = {
+            "DEBUG": logging.DEBUG,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+            "INFO": logging.INFO,
+            "AFFICH": 999,
+        }
+        niveau_f = loglevels.get(log, logging.INFO)
+        niveau_p = loglevels.get(affich, logging.ERROR)
+        # print ('niveaux de logging',niveau_f,niveau_p)
+        if fichier:
+            logger.setLevel(niveau_f)
+        else:
+            logger.setLevel(niveau_p)
+        if not worker:
+            # print("initialisation log", affich, log, "(", fichier, ")")
+            if not logger.handlers:
+                # création d'un handler qui va rediriger chaque écriture de log sur la console
+                if self.mode == "web":
+                    store = StringIO()
+                    print_handler = logging.StreamHandler(store)
+                    aff_handler = logging.StreamHandler(store)
+                    self.webstore["log"] = store
+                else:
+                    print_handler = logging.StreamHandler()
+                    aff_handler = logging.StreamHandler()
+                printformatter = logging.Formatter(
+                    "%(levelname)-8s %(funcName)-25s: %(message)s"
+                )
+                print_handler.setFormatter(printformatter)
+                print_handler.prec_record = ""
+                print_handler.addFilter(lambda x: x.levelno != 999)
+                print_handler.addFilter(DiffLogFilTer())
+                print_handler.setLevel(niveau_p)
+                logger.addHandler(print_handler)
+                aff_handler = logging.StreamHandler()
+                aff_formatter = logging.Formatter(
+                    "========================== %(message)s"
+                )
+                aff_handler.setLevel(loglevels["AFFICH"])
+                aff_handler.setFormatter(aff_formatter)
+                logger.addHandler(aff_handler)
+            if fichier:
+                # création d'un formateur qui va ajouter le temps, le niveau
+                # de chaque message quand on écrira un message dans le log
+                fileformatter = logging.Formatter(
+                    "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s"
+                    + "::%(message)s"
+                )
+                #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
+                # création d'un handler qui va rediriger une écriture du log vers
+                # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
+                file_handler = logging.FileHandler(fichier)
+                # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
+                # créé précédement et on ajoute ce handler au logger
+                file_handler.setLevel(niveau_f)
+                file_handler.setFormatter(fileformatter)
+                logger.addHandler(file_handler)
+        else:
+            pass
 
     def initpyetl(self, commandes, args):
         """ initialisation standardisee: cree l'objet pyetl de base"""
@@ -464,7 +471,7 @@ class Pyetl(object):
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
         # print("dans prepare_module", regles, liste_params)
-        self.appel=repr(regles)
+        self.appel = repr(regles)
         if isinstance(regles, list):
             self.nompyetl = "pyetl"
             self.liste_regles = regles
@@ -610,6 +617,7 @@ class Pyetl(object):
                     self.logger.info(ligne)
                     # print("message recu", ligne)
                 elif mode == "web":
+
                     pass
             return (
                 (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
@@ -677,7 +685,7 @@ class Pyetl(object):
                 return None
         petl = Pyetl(parent=self)
         if rep_sortie is not None:
-            petl.setvar("sans_sortie","")
+            petl.setvar("sans_sortie", "")
             if rep_sortie.startswith("#"):
                 petl.setvar("F_sortie", "#store")
                 petl.setvar("force_schema", "0")
@@ -1103,9 +1111,7 @@ class Pyetl(object):
 
         else:
             try:
-                self.logger.info(
-                    "debut traitement sans entree %s", self.appel[:40]
-                )
+                self.logger.info("debut traitement sans entree %s", self.appel[:40])
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
             except StopIteration as arret:
@@ -1271,6 +1277,11 @@ class Pyetl(object):
     def get_results(self):
         """retourne un tableau de resultats contenant les sortie de #print"""
         print("retour processeur", self.webstore, self.mode)
+        # on reformate les logs qui sont des buffers
+        if "log" in self.webstore:
+            buffer = self.webstore["log"]
+            sortie = buffer.getvalue().split("\n")
+            self.webstore["log"] = sortie
         return self.webstore
 
     def getreader(self, nom_format, regle, reglestart=None):
