@@ -21,9 +21,13 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
-        <a class="nav-link active" aria-current="page" href="/index">Home</a>
+      <li class="nav_item">
+        <a class="nav-link" aria-current="page" href="/index">Home</a>
+      </li>
         <a class="nav-link" href="/login">login</a>
+      <li class="nav_item">
         <a class="nav-link" href="/scripts">scripts</a>
+      </li>
         <a class="nav-link" href="/macros">macros</a>
         <a class="nav-link" href="/help">test_help</a>
         <a class="nav-link" href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a>

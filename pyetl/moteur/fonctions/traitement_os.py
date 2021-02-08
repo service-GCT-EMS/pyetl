@@ -82,8 +82,9 @@ def f_run(regle, obj):
     return False
 
 
-def fileprep(regle, fonction):
+def fileprep(regle, fonction, dest=False):
     """prepare l'execution d'une fonction generique d'operation sur fichier"""
+    regle.dest = dest
     if regle.params.att_entree.val:
         regle.chemin_orig = (
             regle.params.cmp2.val if regle.params.cmp2.val else regle.params.cmp1.val
@@ -95,6 +96,12 @@ def fileprep(regle, fonction):
         if regle.runscope():  # on voit si on doit l'executer
             if regle.statictest():
                 try:
+                    if dest:
+                        regle.chemin_final = os.path.dirname(regle.params.cmp1.val)
+                        if regle.chemin_final and not os.path.exists(
+                            regle.chemin_final
+                        ):
+                            os.makedirs(regle.chemin_final)
                     if regle.params.cmp2.val:
                         fonction(regle.params.cmp2.val, regle.params.cmp1.val)
                     else:
@@ -112,8 +119,27 @@ def fileprep(regle, fonction):
 
 def fileop(regle, obj, fonction):
     """fonction generique d'operation sur fichier"""
+
     try:
+        if regle.dest:
+            os.makedirs(
+                os.path.dirname(
+                    os.path.join(
+                        regle.chemin_final,
+                        obj.attributs.get(regle.params.att_sortie.val, ""),
+                    )
+                ),
+                exist_ok=True,
+            )
         fonction(
+            os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
+            os.path.join(
+                regle.chemin_final, obj.attributs.get(regle.params.att_sortie.val, "")
+            ),
+        )
+        print(
+            "operation",
+            fonction.__name__,
             os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
             os.path.join(
                 regle.chemin_final, obj.attributs.get(regle.params.att_sortie.val, "")
@@ -121,12 +147,13 @@ def fileop(regle, obj, fonction):
         )
         return True
     except (FileNotFoundError, FileExistsError, OSError):
+        raise
         return False
 
 
 def h_filerename(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle, os.rename)
+    fileprep(regle, os.rename, dest=True)
 
 
 def f_filerename(regle, obj):
@@ -150,7 +177,7 @@ def f_filerename(regle, obj):
 
 def h_filecopy(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle, shutil.copy2)
+    fileprep(regle, shutil.copy2, dest=True)
 
 
 def f_filecopy(regle, obj):
@@ -175,7 +202,7 @@ def f_filecopy(regle, obj):
 
 def h_filemove(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
-    fileprep(regle, shutil.move)
+    fileprep(regle, shutil.move, dest=True)
 
 
 def f_filemove(regle, obj):
