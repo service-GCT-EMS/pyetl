@@ -112,7 +112,7 @@ class WfsConnect(DbConnect):
             tuple(i.split(":", 1) if ":" in i else ["", i])
             for i in self.connection.contents
         ]
-        print("retour getcap", len(self.tablelist))
+        # print("retour getcap", len(self.tablelist))
 
     def commit(self):
         pass

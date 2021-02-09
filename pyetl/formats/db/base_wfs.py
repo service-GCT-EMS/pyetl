@@ -105,13 +105,15 @@ class WfsConnect(DbConnect):
             )
 
         except Error as err:
-            print("erreur wfs", err)
+            self.params.logger.exception("erreur wfs",exc_info=err)
+            # print("erreur wfs", err)
             return False
         caps = retourcaps.text
         try:
             tree = ET.fromstring(caps)
         except ParseError as per:
-            print("capabilites mal formees", per)
+            self.params.logger.exception("capabilites mal formees", exc_info=per)
+            # print("capabilites mal formees", per)
             return False
         namespace = getnamespace(tree)
         nametag = namespace + "Name"
@@ -126,7 +128,7 @@ class WfsConnect(DbConnect):
                         groupe = ""
                     # print(" nom_table", nom)
                     self.tablelist.append((groupe, nom))
-        print("retour getcap", len(caps), "->", len(self.tablelist))
+        # print("retour getcap", len(caps), "->", len(self.tablelist))
 
         self.connection = True
 
@@ -140,6 +142,8 @@ class WfsConnect(DbConnect):
     @property
     def rowcount(self):
         return -1
+
+
 
     def get_attr_of_classe(self, schemaclasse):
         """recupere la description d une classe"""
@@ -363,18 +367,20 @@ class WfsConnect(DbConnect):
         reqparams = {
             "REQUEST": "GetFeature",
             "SERVICE": "WFS",
-            "version": "1.0.0",
-            "outputFormat": "application/json",
+            "version": "1.1.0",
             # "subtype": "gml/3.1.1",
             "typeName": classe,
         }
         if maxi:
-            reqparams["numberOfFeatures"] = str(maxi)
+            reqparams["maxFeatures"] = str(maxi)
+        if attribut:
+            reqparams["propertyName"]= str(valeur)
         self.attlist = attlist
 
         has_geom = schema.info["type_geom"] != "0"
         retourdesc = requests.get(self.serveur, params=reqparams)
-        print("retour", retourdesc.text)
+        print("retour descriptif", retourdesc.text)
+        print("retour valeurs", retourdesc)
         return
 
 

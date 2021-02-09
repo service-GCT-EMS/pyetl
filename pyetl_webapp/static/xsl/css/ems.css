@@ -1,0 +1,218 @@
+body {
+  font-family:arial;helvetica;sans-serif;
+  font-size:1em;
+}
+
+#conteneur{
+	width:930px;
+	margin-left: auto;
+	margin-right:auto;
+}
+
+#header {
+  background:url("../images/barre_cus_droite.png") no-repeat scroll right top;
+  height:90px;
+  width:93px;
+  float:right;
+}
+
+.bandeau_milieu {
+  background:url("../images/cus_LogoCus.png") no-repeat;
+  background-color:#97bf0d;
+  height:57px; 
+  width:837px;
+  float:left;
+}
+
+.titreappli {
+	color:#FFFFFF;
+	font-size:2.5em;
+	line-height:52px;
+	margin-left:200px;
+	padding-left: 20px;
+	vertical-align:middle;
+}
+
+#contenu {
+	background-color:#F8F8F8;
+	border: 1px #CCCCCC solid;
+	width:930px;
+	float:right;
+	padding-bottom:10px;
+}
+
+.cle_primaire {
+	background: url("../images/cle_primaire.png") no-repeat left;
+	width:16px;
+}
+
+h1 {
+	color:#97BF0D;
+	font-size:2em;
+	font-weight:bold;
+	margin:10px 20px 0px 20px; 
+	font-variant:small-caps;
+	float:left;
+}
+
+h2 {
+  	background: url("../images/puce.png") no-repeat left;
+	color:#303030;
+  	font-size:1.6em;
+	font-weight:bold;
+	margin:15px 20px 0px 20px; 
+	float:left;
+	clear:both;
+	text-indent: 15px;
+}
+
+h3 {
+	color:#303030;
+  	font-size:1.1em;
+	font-weight:bold;
+	margin:10px 20px 5px 20px; 
+	float:left;
+	clear:both;
+	text-indent: 5px;
+}
+
+.paragraphe {
+  color:#707070;
+  float:left;
+  clear:both;
+  text-align:justify;
+  margin:0px 20px 5px 20px;
+}
+
+#basdepage{
+  float:left;
+	padding-top:1em;
+	width:930px;
+	font-size: 10px;
+	color:#707070;
+	text-align:center;
+	bottom: 35px;;
+}
+
+ul {
+  list-style-type:circle;
+}
+
+a{
+	color:#97bf0d;
+}
+
+.gras {
+  font-weight:bold;
+}
+
+.italique {
+  font-style:italic;
+  font-size:0.9em;
+}
+
+table {
+  border-collapse: collapse; 
+  border:1px #000000 solid;
+  margin:10px 20px 0px 20px; 
+}
+
+th {
+  background-color:#CCDD82;
+  border:1px #707070 solid;
+  text-align:middle;
+  font-size:0.9em;
+  font-weight:bold;
+  padding:2px;
+  vertical-align:top;
+  color:#222222;
+  text-align:center;
+}
+
+td {
+  border:1px #707070 solid;
+  text-align:left;
+  font-size:0.8em;
+  padding:2px;
+  vertical-align:top;
+}
+
+.onglet
+{
+	float:left;
+	display:inline-block;
+	margin-left:0px;
+	margin-right:3px;
+	padding:3px;
+	border:1px solid black;
+	cursor:pointer;
+	-webkit-border-top-right-radius: 10px;
+	-moz-border-radius-topright: 10px;
+	border-top-right-radius: 10px;
+}
+.onglet_0
+{
+	background:#bbbbbb;
+	border-bottom:1px solid #000000;
+}
+.onglet_1
+{
+	background:#eeeeee;
+	border-bottom:0px solid #000000;
+	padding-bottom:4px;
+}
+.contenu_onglet
+{
+	background-color:#eeeeee;
+	border:1px solid black;
+	margin-top:-1px;
+	padding:5px;
+	display:none;
+	float:left;
+	margin-left: 20px;
+  	margin-right: auto;
+	width:880px;
+}
+
+.onglets {
+	position: relative;
+	margin-left: auto;
+  	margin-right: auto;
+	width:890px;
+}
+
+table {
+	width:840px;
+	margin-bottom:10px;
+}
+
+.pavegauche {
+	position:relative;
+	float:left;
+	width:1000px;
+	text-align:left;
+	color:#222222;
+}
+
+.texte {
+	position:relative;
+	float:left;
+	width:1000px;
+	text-align:left;
+	color:#222222;
+  	font-size:0.9em;
+ 	margin:0px 10px 10px 40px;
+}
+
+.pavedroit {
+	position:relative;
+	float:left;
+	text-align:right;
+	width:880px;
+	font-size:0.7em;
+}
+
+.imageLogo {
+  float:left;
+  margin: 0px 10px 0px 0px;
+}

@@ -252,6 +252,10 @@ class DbConnect(object):
 
     requetes = {"schemas": "", "tables": "", "enums": "", "attributs": "", "vues": ""}
 
+
+
+
+
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
@@ -282,7 +286,7 @@ class DbConnect(object):
         self.connection = None
         defmodeconf = self.regle.getvar("mode_enums", 1)
         self.schemabase = self.params.init_schema(
-            "#" + code, "B", defmodeconf=defmodeconf
+            "#" + str(code), "B", defmodeconf=defmodeconf
         )
         #        self.connect()
         self.gensql = DbGenSql()
@@ -338,6 +342,18 @@ class DbConnect(object):
     def connect(self):
 
         self.connection = DummyConnect()
+
+    def getbasicatt(self, nom_groupe,nom_classe,nom_att,type_att):
+        return self.attdef(
+            nom_groupe=nom_groupe,
+            nom_classe=nom_classe,
+            nom_att=nom_att,
+            type_att=type_att,
+            num_attribut=0,
+            dimension=2,
+            taille=0,
+            decimales=0
+        )
 
     def getdatatype(self, datatype):
         """recupere le type interne associe a un type cx_oracle"""
