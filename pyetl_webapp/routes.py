@@ -26,7 +26,7 @@ class ScriptList(object):
         self.liste = []
         self.descriptif = dict()
         self.mapper = getmainmapper()
-        self.mapper.url_for=url_for
+        self.mapper.url_for = url_for
         print(
             "initialisation mainmapper",
             self.mapper,
@@ -105,6 +105,7 @@ class ScriptList(object):
         self.refreshscript(nomscript)
         return nomscript
 
+
 scriptlist = ScriptList()
 
 
@@ -153,15 +154,18 @@ def refresh():
 
 @app.route("/scriptdesc/<script>")
 def scriptdesc(script):
-    nomscript=scriptlist.getnom(script)
+    nomscript = scriptlist.getnom(script)
     return render_template(
-        "scriptdesc.html", descriptif=scriptlist.descriptif[nomscript], nom=nomscript, url=script
+        "scriptdesc.html",
+        descriptif=scriptlist.descriptif[nomscript],
+        nom=nomscript,
+        url=script,
     )
 
 
 @app.route("/scriptview/<script>")
 def scriptview(script):
-    nomscript=scriptlist.getnom(script)
+    nomscript = scriptlist.getnom(script)
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
     lignes = scriptlist.scripts[nomscript]
     fill = [""] * 13
@@ -183,7 +187,7 @@ def scriptview(script):
                 continue
         code.append((n, colspan, contenu))
     # print("scriptview,", code)
-    return render_template("scriptview.html", code=code, nom=nomscript,url=script)
+    return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
 @app.route("/exec/<script>", methods=["GET", "POST"])
@@ -224,18 +228,20 @@ def execscript(script):
                 session["stats"] = wstats
                 session["retour"] = result
                 print("resultats traitement", result)
-                return redirect("/result/"+script)
+                return redirect("/result/" + script)
             except error as err:
                 LOGGER.exception("erreur script", exc_info=err)
-                return redirect("/plantage/"+script)
-        return redirect("/execerror/"+script)
+                return redirect("/plantage/" + script)
+        return redirect("/plantage/" + script)
 
-    return render_template("prep_exec.html", nom=nomscript, form=form, varlist=varlist,url=script)
+    return render_template(
+        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script
+    )
 
 
 @app.route("/plantage/<script>")
 def fail(script):
-    return render_template("plantage.html", text="erreur d'execution",url=script)
+    return render_template("plantage.html", text="erreur d'execution", url=script)
 
 
 @app.route("/result/<script>")
@@ -243,8 +249,10 @@ def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
     if stats:
-        return render_template("script_result.html", stats=stats, retour=retour,url=script)
-    return render_template("noresult.html",url=script)
+        return render_template(
+            "script_result.html", stats=stats, retour=retour, url=script
+        )
+    return render_template("noresult.html", url=script)
 
 
 @app.route("/login", methods=["GET", "POST"])

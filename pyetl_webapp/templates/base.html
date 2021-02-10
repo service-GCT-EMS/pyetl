@@ -16,7 +16,10 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   {#<nav class="navbar navbar-expand-lg navbar-light bg-light">#}
   <div class="container">
-    <a class="navbar-brand" href="/index">pyetl</a>
+    <a class="navbar-brand" href="/index">
+      <img src="{{url_for('static', filename='images/favicon.ico')}}" class="d-inline-block align-center" alt="">
+      pyetl
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -35,7 +38,7 @@
         <a class="nav-link" href="/macros">macros</a>
       </li>
       <li class="nav_item">
-        <a class="nav-link" href=/prep_exec/{{ url }}>exec</a>
+        <a class="nav-link" href=/exec/{{ url }}>exec</a>
       </li>
       <li class="nav_item">
         <a class="nav-link" href=/scriptdesc/{{ url }}>infos</a>
@@ -49,7 +52,12 @@
       <li class="nav_item">
         <a class="nav-link" href="{{url_for('static', filename='doc_pyetl/build/html/index.html')}}">Help</a>
       </li>
-      <li class="nav_item">
+    <form class="form-inline">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+    </form>
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">recherche</button>
+
+      <li class="navbar-brand">
         <a class="nav-link" href="#">{{ url }}</a>
       </li>
         </div>
