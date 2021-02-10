@@ -18,6 +18,8 @@ fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
 
 LOGGER = logging.getLogger(__name__)
 
+def url_to_nom(url):
+    return "#" + url[1:] if url.startswith("_") else url
 
 class ScriptList(object):
     """cache de la liste de scripts"""
@@ -101,9 +103,10 @@ class ScriptList(object):
         )
 
     def getnom(self, url):
-        nomscript = "#" + url[1:] if url.startswith("_") else url
+        nomscript = url_to_nom(url)
         self.refreshscript(nomscript)
         return nomscript
+
 
 
 scriptlist = ScriptList()
@@ -241,22 +244,25 @@ def execscript(script):
 
 @app.route("/plantage/<script>")
 def fail(script):
-    return render_template("plantage.html", text="erreur d'execution", url=script)
+    nom=url_to_nom(script)
+    return render_template("plantage.html", text="erreur d'execution", nom=nom, url=script)
 
 
 @app.route("/result/<script>")
 def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
+    nom=url_to_nom(script)
     if stats:
         return render_template(
-            "script_result.html", stats=stats, retour=retour, url=script
+            "script_result.html", stats=stats, retour=retour, url=script, nom=nom
         )
-    return render_template("noresult.html", url=script)
-
+    return render_template("noresult.html", url=script, nom=nom)
 
 @app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/login/<script>", methods=["GET", "POST"])
+def login(script=""):
+    nom=url_to_nom(script)
     form = LoginForm()
     if form.validate_on_submit():
         flash(
@@ -265,7 +271,7 @@ def login():
             )
         )
         return redirect("/index")
-    return render_template("login.html", title="Sign In", form=form)
+    return render_template("login.html", title="Sign In", form=form, nom=nom,url=script)
 
 
 @app.route("/help")

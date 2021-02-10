@@ -17,6 +17,10 @@ thead {
     color: white;
     height:40px
   }
+tbody {
+    height: 700px;
+    overflow-y: auto;
+}
 h1 {
     text-align: center;
     color: blue;

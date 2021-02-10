@@ -2,13 +2,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div classe="container">
+    <div>
     <table class="table table-bordered table-hover">
-    <thead>
+    <thead class="sticky-top">
         <tr>
             <td>Nom/run</td>
-            <td>infos</td>
-            <td>code</td>
             <td>Date de Mise a Jour</td>
             <td>Description</td>
         </tr>
@@ -17,20 +15,11 @@
         {% for item in liste %}
         <tr>
             <td><a href=exec/{{ item.url }}> {{ item.nom }}</a></td>
-            <td>
-                <a href=scriptdesc/{{ item.url }}>
-                <img src="{{url_for('static', filename='images/interrog2.png')}}">
-                <img src="{{url_for('static', filename='images/interrog.png')}}">
-                </a>
-            </td>
-            <td><a href=scriptview/{{ item.url }}>
-            <img src="{{url_for('static', filename='images/look.png')}}">
-            </a></td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>
         {% endfor %}
     </tbody>
     </table>
-
+    </div>
 {% endblock %}
