@@ -411,11 +411,15 @@ def f_dbrequest(regle, obj):
                 ident, att, *_ = definition
                 niveau, classe = ident
                 # parms = [regle.getv]
-                # print("execution requete", niveau, classe, definition)
+                print("execution requete", niveau, classe, definition)
 
                 requete = requete_ref.replace("%#niveau", niveau)
                 requete = requete.replace("%#classe", classe)
                 requete = requete.replace("%#attr", att)
+                if "%#type_table" in requete:
+                    # on cherche le type de table dans le schema
+                    type_table=basesel.schemabase.get_classe((niveau,classe)).type_table
+                    requete = requete.replace("%#type_table", type_table)
                 if regle.ident is not None:
                     ident = regle.ident
                     if ident[0] is None:

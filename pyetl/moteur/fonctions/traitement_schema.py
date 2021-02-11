@@ -80,6 +80,8 @@ def f_set_schema(regle, obj):
         || alias : commentaire de la table
         || dimension : dimension geometrique
         || no_multiple : transforme les attributs multiples en simple
+        || stable : declare un schema stable
+        || instable declare un schema instable
     #parametres||nom du parametre a positionner;valeur
        #test1||obj;poly||^type_geom;2;;set_schema;||^V4;type_geom;;info_schema;||atv;V4;2
     """
@@ -112,8 +114,8 @@ def f_set_schema_d(regle, obj):
 
 def f_stock_schema(regle, obj):
     """#aide||cree un schema par analyse des objets et l'associe a un objet
-       #aide_patt||schema,nom,nombre max de valeurs d enum
-       #aide_patt||la variable taux_conformite permet de definir me taux minimum d'objets renseignes
+       #parametres||applique le shema a l objet;schema;nom;nombre max de valeurs d enum (30)
+       #aide_spec||la variable taux_conformite permet de definir me taux minimum d'objets renseignes
        #pattern||=#schema?;;;schema;C?;?N
        #test||obj;point||^#schema;;;supp||^;;;schema;essai||^V4;type_geom;;info_schema;||atv;V4;1
     """
@@ -141,7 +143,7 @@ def f_stock_schema(regle, obj):
         # on force la sortie du schema l' objet est mort il n'a plus besoin de schema
         obj.schema = None
     if regle.params.att_sortie.val:
-        obj.schema = regle.schema_courant
+        obj.schema = regle.schema_courant.get_classe(obj.ident)
     return True
 
 

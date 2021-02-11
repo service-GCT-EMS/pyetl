@@ -313,6 +313,7 @@ def sortie_resultats(
     schema_classe_travail,
     treq=0,
     cond="",
+    obj=None
 ):
     """ recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["gen"]
@@ -372,14 +373,17 @@ def sortie_resultats(
     decile = connect.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-
-        obj = Objet(
-            niveau,
-            classe,
-            format_natif=format_natif,
-            conversion=geom_from_natif,
-            attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
-        )
+        if obj:
+            obj2=obj.dupplique()
+            obj2.attributs.update(zip(namelist, [str(i) if i is not None else "" for i in valeurs]))
+        else:
+            obj2 = Objet(
+                niveau,
+                classe,
+                format_natif=format_natif,
+                conversion=geom_from_natif,
+                attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
+            )
         # if nbvals == 0:
         #     print(
         #         "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
@@ -393,25 +397,25 @@ def sortie_resultats(
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj.attributs["#angle"] = obj.attributs.get("angle_g", "0")
 
-        obj.attributs["#type_geom"] = type_geom
-        obj.setschema(schema_classe_travail)
+        obj2.attributs["#type_geom"] = type_geom
+        obj2.setschema(schema_classe_travail)
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
         nbvals += 1
-        obj.attributs["#gid"] = obj.attributs.get("gid", str(nbvals))
+        obj2.attributs["#gid"] = obj2.attributs.get("gid", str(nbvals))
         if sys_cre:
-            obj.attributs["#_sys_date_cre"] = obj.attributs[sys_cre]
+            obj2.attributs["#_sys_date_cre"] = obj2.attributs[sys_cre]
         if sys_mod:
-            obj.attributs["#_sys_date_mod"] = obj.attributs[sys_mod]
+            obj2.attributs["#_sys_date_mod"] = obj2.attributs[sys_mod]
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
         if sortie:
             #            print ('mdba: renseignement attributs',sortie,v_sortie)
             for nom, val in zip(sortie, v_sortie):
-                obj.attributs[nom] = val
+                obj2.attributs[nom] = val
         #                print ('renseigne',obj.attributs)
         # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
-        obj.setorig(nbvals)
+        obj2.setorig(nbvals)
         # print("sortie_res", obj)
-        traite_objet(obj, regle_debut)
+        traite_objet(obj2, regle_debut)
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
@@ -508,7 +512,7 @@ def recup_schema(
     return (None, None, None, None)
 
 
-def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=None):
+def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None):
     """lecture directe"""
 
     niveau, classe = ident
@@ -539,13 +543,6 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
-        # print(
-        #     "mdba: creation schema",
-        #     schema.nom,
-        #     ident,
-        #     sorted(curs.infoschema, key=lambda x: x.num_attribut),
-        # )
-        # print("mdba:classe creee", schema_classe_travail)
 
         if schema_classe_travail:
             res = sortie_resultats(

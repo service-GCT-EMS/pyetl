@@ -292,6 +292,10 @@ def set_val_schema(schemaclasse, nom, valeur):
     elif nom == "no_multiple":
         for i in schemaclasse.attributs.values():
             i.multiple == False
+    elif nom == "stable":
+        schemaclasse.stable=True
+    elif nom == "instable":
+        schemaclasse.stable=False
     else:
         print("erreur mode schema non pris en compte", nom)
         return False
