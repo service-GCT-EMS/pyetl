@@ -16,7 +16,7 @@ from .tableselector import getselector, select_in, adapt_qgs_datasource
 LOGGER = logging.getLogger(__name__)
 
 
-def param_base(regle, nom="", geo=False, mods=True):
+def param_base(regle, nom="", geo=False, req=False, mods=True):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
@@ -38,6 +38,8 @@ def param_base(regle, nom="", geo=False, mods=True):
         fonction = att
         att = ""
         vals = regle.params.att_entree.liste
+    if req:
+        vals=""
     LOGGER.debug("info base %s ", repr(regle))
     # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
@@ -335,7 +337,7 @@ def f_dbgeo(regle, obj):
 
 def h_dbrequest(regle):
     """passage direct de requetes"""
-    param_base(regle, mods=False)
+    param_base(regle, mods=False, req=True)
     regle.chargeur = True  # c est une regle qui cree des objets
     attribut = regle.v_nommees.get("val_sel2", "")
     requete = regle.params.cmp1.val
@@ -378,21 +380,25 @@ def h_dbrequest(regle):
     #     regle.params.cmp2.val,
     #     # regle.v_nommees,
     # )
-    regle.dynrequete = "%#niveau" in requete or "%#classe" in requete
+    regle.dynrequete = "%#" in requete
+    regle.prefixe=regle.params.att_sortie.val
     valide = True
     return valide
 
 
 def f_dbrequest(regle, obj):
     """#aide||recuperation d'objets depuis une requete sur la base de donnees
-    #aide_spec||db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination
-              ||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
+    #parametres||att_sortie;valeurs;champ a integrer;dbreq;requete;destination
+     #dbparams||db:base;niveau;classe;attr
+    #aide_spec||si la requete contient %#niveau ou %#classe la requete est passee sur chaque
               ||classe du selecteur en substituant les variables par la classe courante
               ||sinon elle est passee une fois pour chaque base du selecteur
               ||les variables %#base et %#attr sont egalement substituees
        #groupe||database
-      #pattern||?A;?;?L;dbreq;C;?A.C
+      #pattern1||?A;?;?L;dbreq;C;?A.C
       #pattern2||?A;?;?L;dbreq;C;?A
+      #pattern3||;;=#;dbreq;C;?A
+      #pattern4||;;=#;dbreq;C;?A.C
      #req_test||testdb
     """
     # regle.stock_param.regle_courante=regle
@@ -404,6 +410,7 @@ def f_dbrequest(regle, obj):
     parms = None
     if regle.params.att_entree.liste:
         parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
+    refobj=obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
         if regle.dynrequete:
@@ -421,16 +428,21 @@ def f_dbrequest(regle, obj):
                     type_table=basesel.schemabase.get_classe((niveau,classe)).type_table
                     requete = requete.replace("%#type_table", type_table)
                 if regle.ident is not None:
-                    ident = regle.ident
+                    idsortie = regle.ident
                     if ident[0] is None:
-                        ident = (niveau, regle.ident)
+                        idsortie = (niveau, regle.ident)
+                elif refobj:
+                    idsortie=refobj.ident
+                else:
+                    idsortie=ident
                 # print("execution requete", niveau, classe, requete, "->", ident)
                 retour = DB.lire_requete(
                     regle,
                     base,
-                    regle.ident if regle.ident is not None else ident,
+                    idsortie,
                     requete=requete,
                     parms=parms,
+                    obj=refobj
                 )
         else:
             retour = DB.lire_requete(
@@ -439,6 +451,7 @@ def f_dbrequest(regle, obj):
                 regle.ident if regle.ident is not None else ("tmp", "tmp"),
                 requete=requete_ref,
                 parms=parms,
+                obj=refobj
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):

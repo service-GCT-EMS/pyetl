@@ -141,6 +141,8 @@ def print_help_detail (mapper, nom):
                             )
                         )
                     )
+            if variante.description.get("#dbparams"):
+                print ("parametres d acces base :",variante.description.get("#dbparams"))
             if variante.description.get("#parametres"):
                 print(
                     "\n".join(
@@ -153,7 +155,6 @@ def print_help_detail (mapper, nom):
             if variante.description.get("#variables"):
                 for i in variante.description.get("#variables", [""]):
                     print("%-20s: %s" % ("", i))
-                    # print("%s" % "\n".join(variante.description.get("#parametres")))
             if debug:
                 print("pattern", variante.pattern)
                 print("fonction", variante.work)

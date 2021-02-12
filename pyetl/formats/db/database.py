@@ -411,8 +411,6 @@ class DbConnect(object):
 
     def get_type(self, nom_type):
         """ type en base d'un type interne """
-        if nom_type not in self.types_base:
-            print(self.nombase, "db:type inconnu", nom_type)
         return self.types_base.get(nom_type, "?")
 
     def dbclose(self):

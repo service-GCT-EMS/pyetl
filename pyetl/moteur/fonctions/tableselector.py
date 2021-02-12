@@ -94,7 +94,7 @@ class TableBaseSelector(object):
         if attr and valeur:
             att, defaut = valeur
             if att:
-                print(" element dynamique", att, attr, defaut)
+                print(" element dynamique",  attr,valeur, "->",att, defaut)
                 dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
@@ -223,7 +223,7 @@ class TableBaseSelector(object):
         # if self.dyndescr:
         #     print("resolution descripteur dynamique", self.dyndescr)
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
-            print("descripteur dynamique", niveau, classes, attr, valeur, fonction)
+            # print("descripteur dynamique", niveau, classes, attr, valeur, fonction)
             if attr.startswith("["):
                 attr = obj.attributs.get(attr[1:-1])
             if niveau.startswith("["):
@@ -232,7 +232,7 @@ class TableBaseSelector(object):
                 print("dyn: traitement classe", classe)
                 if classe.startswith("["):
                     classe = obj.attributs.get(classe[1:-1])
-                valeur = obj.attributs.get(*valeur)
+                valeur = obj.attributs.get(*valeur) if valeur else ""
                 print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
                     self.add_classlist(

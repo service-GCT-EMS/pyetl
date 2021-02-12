@@ -313,7 +313,7 @@ def sortie_resultats(
     schema_classe_travail,
     treq=0,
     cond="",
-    obj=None
+    objet=None
 ):
     """ recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["gen"]
@@ -373,9 +373,12 @@ def sortie_resultats(
     decile = connect.decile
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
-        if obj:
-            obj2=obj.dupplique()
+        if objet:
+            obj2=objet.dupplique()
+            obj2.setidentobj(ident)
             obj2.attributs.update(zip(namelist, [str(i) if i is not None else "" for i in valeurs]))
+            if obj2.schema.amodifier(regle_courante):
+                obj2.mergeschema(schema_classe_travail, prefix=regle_courante.prefixe)
         else:
             obj2 = Objet(
                 niveau,
@@ -384,6 +387,8 @@ def sortie_resultats(
                 conversion=geom_from_natif,
                 attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
             )
+            obj2.setschema(schema_classe_travail)
+
         # if nbvals == 0:
         #     print(
         #         "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
@@ -395,10 +400,9 @@ def sortie_resultats(
         #     print ('zip ',zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
         #     raise
         if type_geom == "1":  # on prepare les angles s'il y en a
-            obj.attributs["#angle"] = obj.attributs.get("angle_g", "0")
+            obj2.attributs["#angle"] = obj2.attributs.get("angle_g", "0")
 
         obj2.attributs["#type_geom"] = type_geom
-        obj2.setschema(schema_classe_travail)
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
         nbvals += 1
         obj2.attributs["#gid"] = obj2.attributs.get("gid", str(nbvals))
@@ -414,7 +418,7 @@ def sortie_resultats(
         #                print ('renseigne',obj.attributs)
         # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
         obj2.setorig(nbvals)
-        # print("sortie_res", obj)
+        # print("sortie_res", obj2)
         traite_objet(obj2, regle_debut)
         if nbvals == maxobj:
             break
@@ -514,8 +518,13 @@ def recup_schema(
 
 def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None):
     """lecture directe"""
-
+    print ("---lire_requete dest:",ident)
+    print ("---lire_requete req:",requete)
+    print ("---lire_requete obj:",obj)
     niveau, classe = ident
+    if not classe and obj and obj.classe !="_declencheur":
+        ident=obj.ident
+        niveau, classe = ident
 
     if not classe:
         LOGGER.error("attention pas de classe de sortie -> retour")
@@ -525,6 +534,8 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
         ident = ("tmp", classe)
     # print("lire_requete", ident, "->", base, requete)
     nom_schema = regle_courante.getvar("#schema", "tmp")
+    if obj and obj.schema:
+        nom_schema=obj.schema.schema.nom
     v_sortie = parms
     sortie = attribut
     retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
@@ -543,7 +554,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
         schema_classe_travail = curs.connecteur.cree_schema_classe(
             ident, curs.infoschema, schema=schema
         )
-
+        print("schema travail requete",schema_classe_travail)
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,
@@ -555,6 +566,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
                 schema_classe_travail.info["type_geom"],
                 schema_classe_travail,
                 treq=treq,
+                objet=obj
             )
 
             if sortie:

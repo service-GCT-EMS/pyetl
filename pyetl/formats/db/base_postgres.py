@@ -93,6 +93,7 @@ TYPES_A = {
     "OID": "I",
     "JSON": "J",
     "XML": "XML",
+    "UNKNOWN":"T"
 }
 TYPES_PG = {
     "T": "text",

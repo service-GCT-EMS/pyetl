@@ -501,6 +501,19 @@ class Objet(object):
                     for i, j in self.attributs_speciaux.items()
                 }
 
+    def mergeschema(self,schemaclasse, prefix=None):
+        """ajoute des elements de schema"""
+        if self.schema is None:
+            self.setschema(schemaclasse)
+            return
+        for nom,att in schemaclasse.attributs.items():
+            nom=prefix+nom if prefix else nom
+            self.schema.ajout_attribut_modele(att,nom=nom, force=True)
+        print ("merge",self.schema)
+        print ("avec", schemaclasse)
+
+
+
     def initattr(self):
         """ initialise les attributs a leur valeur de defaut """
         if not self.schema:
