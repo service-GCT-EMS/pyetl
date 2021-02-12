@@ -8,7 +8,7 @@ from os import error
 import logging
 import time
 from collections import namedtuple
-from flask import render_template, flash, redirect, session, url_for
+from flask import render_template, flash, redirect, session, url_for, request
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
@@ -18,8 +18,10 @@ fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
 
 LOGGER = logging.getLogger(__name__)
 
+
 def url_to_nom(url):
     return "#" + url[1:] if url.startswith("_") else url
+
 
 class ScriptList(object):
     """cache de la liste de scripts"""
@@ -69,7 +71,7 @@ class ScriptList(object):
         if nom_script.startswith("#"):
             macro = self.mapper.getmacro(nom_script)
             script = [i[1] for i in macro.get_commands()]
-            params=
+            params = macro.posparams
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             script = open(fpath, "r").readlines()
@@ -109,8 +111,11 @@ class ScriptList(object):
         return nomscript
 
 
-
 scriptlist = ScriptList()
+# filemanager_link = url_for("flaskfilemanager.index")
+# file_download_link = url_for(
+#     "flaskfilemanager.userfile", filename="/my_folder/uploaded_file.txt"
+# )
 
 
 @app.route("/")
@@ -121,6 +126,11 @@ def index():
         text="acces simplifie aux fonctions mapper",
         title="mapper interface web",
     )
+
+
+@app.route("/fmgr")
+def fmgr():
+    return redirect(url_for("flaskfilemanager.index"))
 
 
 @app.route("/folderselect/<fichier>")
@@ -245,25 +255,28 @@ def execscript(script):
 
 @app.route("/plantage/<script>")
 def fail(script):
-    nom=url_to_nom(script)
-    return render_template("plantage.html", text="erreur d'execution", nom=nom, url=script)
+    nom = url_to_nom(script)
+    return render_template(
+        "plantage.html", text="erreur d'execution", nom=nom, url=script
+    )
 
 
 @app.route("/result/<script>")
 def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
-    nom=url_to_nom(script)
+    nom = url_to_nom(script)
     if stats:
         return render_template(
             "script_result.html", stats=stats, retour=retour, url=script, nom=nom
         )
     return render_template("noresult.html", url=script, nom=nom)
 
+
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<script>", methods=["GET", "POST"])
 def login(script=""):
-    nom=url_to_nom(script)
+    nom = url_to_nom(script)
     form = LoginForm()
     if form.validate_on_submit():
         flash(
@@ -272,7 +285,9 @@ def login(script=""):
             )
         )
         return redirect("/index")
-    return render_template("login.html", title="Sign In", form=form, nom=nom,url=script)
+    return render_template(
+        "login.html", title="Sign In", form=form, nom=nom, url=script
+    )
 
 
 @app.route("/help")
