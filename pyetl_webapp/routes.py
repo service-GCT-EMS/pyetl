@@ -130,6 +130,7 @@ def index():
 
 @app.route("/fmgr")
 def fmgr():
+    print("url ", url_for("flaskfilemanager.index"))
     return redirect(url_for("flaskfilemanager.index"))
 
 

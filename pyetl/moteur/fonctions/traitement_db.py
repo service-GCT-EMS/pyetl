@@ -22,6 +22,13 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     base = regle.code_classe[3:]
     if not base:
         base = "*"
+    if base.startswith("#"):  # c'est un selecteur nomme
+        nom = base[1:]
+        selecteur = regle.stock_param.namedselectors.get(nom)
+        if not selecteur:
+            raise KeyError("selecteur inconnu ", nom)
+        regle.cible_base = selecteur
+        return True
     niveau, classe, att = "", "", ""
     niv = regle.v_nommees["val_sel1"]
     cla = regle.v_nommees["sel2"]
@@ -39,7 +46,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
         att = ""
         vals = regle.params.att_entree.liste
     if req:
-        vals=""
+        vals = ""
     LOGGER.debug("info base %s ", repr(regle))
     # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
@@ -352,8 +359,8 @@ def h_dbrequest(regle):
                 requete = "".join(fich.readlines())
         except FileNotFoundError:
             # LOGGER.error("fichier de requetes introuvable %s",requete[2:])
-            regle.valide=False
-            regle.erreurs="fichier introuvable ->"+requete[2:]
+            regle.valide = False
+            regle.erreurs = "fichier introuvable ->" + requete[2:]
             return False
     maxi = regle.getvar("lire_maxi")
     if maxi and maxi != "0":
@@ -381,7 +388,7 @@ def h_dbrequest(regle):
     #     # regle.v_nommees,
     # )
     regle.dynrequete = "%#" in requete
-    regle.prefixe=regle.params.att_sortie.val
+    regle.prefixe = regle.params.att_sortie.val
     valide = True
     return valide
 
@@ -410,7 +417,7 @@ def f_dbrequest(regle, obj):
     parms = None
     if regle.params.att_entree.liste:
         parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
-    refobj=obj if regle.params.pattern in "34" else None
+    refobj = obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
         if regle.dynrequete:
@@ -425,24 +432,21 @@ def f_dbrequest(regle, obj):
                 requete = requete.replace("%#attr", att)
                 if "%#type_table" in requete:
                     # on cherche le type de table dans le schema
-                    type_table=basesel.schemabase.get_classe((niveau,classe)).type_table
+                    type_table = basesel.schemabase.get_classe(
+                        (niveau, classe)
+                    ).type_table
                     requete = requete.replace("%#type_table", type_table)
                 if regle.ident is not None:
                     idsortie = regle.ident
                     if ident[0] is None:
                         idsortie = (niveau, regle.ident)
                 elif refobj:
-                    idsortie=refobj.ident
+                    idsortie = refobj.ident
                 else:
-                    idsortie=ident
+                    idsortie = ident
                 # print("execution requete", niveau, classe, requete, "->", ident)
                 retour = DB.lire_requete(
-                    regle,
-                    base,
-                    idsortie,
-                    requete=requete,
-                    parms=parms,
-                    obj=refobj
+                    regle, base, idsortie, requete=requete, parms=parms, obj=refobj
                 )
         else:
             retour = DB.lire_requete(
@@ -451,7 +455,7 @@ def f_dbrequest(regle, obj):
                 regle.ident if regle.ident is not None else ("tmp", "tmp"),
                 requete=requete_ref,
                 parms=parms,
-                obj=refobj
+                obj=refobj,
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
@@ -784,7 +788,7 @@ def h_dbselect(regle):
     """preparation selecteur"""
     nom_selecteur = regle.params.att_sortie.val
     param_base(regle, nom=nom_selecteur)
-    selecteur = regle.cible_base
+    # selecteur = regle.cible_base
     regle.valide = "done"
 
 
@@ -796,6 +800,90 @@ def f_dbselect(regle, obj):
     #req_test||testdb
     """
     pass
+
+
+def h_liste_selecteur(regle):
+    """prepare la liste"""
+    regle.chargeur = True
+    regle.param_base(regle, nom=regle.params.cmp1.val)
+    if regle.cible_base:
+        return True
+    regle.valide = False
+    regle.erreurs = "selecteur invalide -"
+    regle.idclasse = None
+    if regle.params.pattern == "1":
+        regle.idclasse = tuple(regle.params.att_sortie.val.split("."))
+
+
+def f_liste_selecteur(regle, obj):
+    """#aide||cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
+    #aide_spec||liste_schema;nom;?reel
+    #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
+    #schema||change_schema
+    #pattern1||A.C;;;liste_sel;?C;?=reel
+    #pattern2||=#obj;;;liste_sel;?C;?=reel
+    #pattern3||;;;liste_sel;?C;?=reel
+    """
+    selecteur = regle.cible_base
+    virtuel = not regle.params.cmp2.val
+
+    idclasse = regle.idclasse
+    if regle.params.pattern == "2":
+        idclasse = obj.ident
+
+    for i in selecteur.getclasses():
+        idsel, att, val = i
+        niveau, classe = idclasse if iclasse else idsel
+        niveau, classe = i
+        obj2 = Objet(
+            niveau,
+            classe,
+            format_natif="interne",
+            conversion="virtuel" if virtuel else None,
+        )
+        obj2.initattr()
+        try:
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        except StopIteration as abort:
+            #            print("intercepte abort",abort.args[0])
+            if abort.args[0] == 2:
+                break
+            raise
+    return True
+
+
+def h_setquery(regle):
+    """prepare la liste"""
+    h_dbrequest(regle)
+    base = regle.code_classe[3:]
+    regle.connect = regle.stock_param.getdbaccess(regle, base)
+    regle.multiple = regle.params.cmp2.val
+    regle.valide = bool(regle.connect)
+
+
+def f_setquery(regle, obj):
+    """#aide||renseigne des champs par requete en base
+    #aide_spec||liste_schema;nom;?reel
+    #aide_spec2||cree des objets si le resultat de la requete est multiple
+    #schema||change_schema
+    #pattern1||S;;?A;dbset;C;?=multiple
+    """
+    requete = regle.requete
+    if regle.dynrequete:
+        niveau, classe = obj.ident
+        requete = requete.replace("%#niveau", niveau)
+        requete = requete.replace("%#classe", classe)
+    data = regle.getlist_entree(obj)
+    liste = regle.connect.request(requete, data)
+    if len(liste) > 1:
+        if regle.multiple:
+            for i in liste[1:]:
+                obj2 = obj.dupplique()
+                regle.setval_sortie(obj2, i)
+                regle.stock_param.moteur.traite_objet(
+                    obj2, regle.branchements.brch["gen"]
+                )
+    regle.setval_sortie(obj2, liste[1])
 
 
 def f_dbmap_qgs(regle, obj):

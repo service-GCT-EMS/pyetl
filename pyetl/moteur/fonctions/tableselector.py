@@ -17,6 +17,7 @@ from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
 from .outils import scandirs, hasbom, _extract
 
+
 DEBUG = False
 LOGGER = logging.getLogger(__name__)
 # modificateurs de comportement reconnus
@@ -94,7 +95,7 @@ class TableBaseSelector(object):
         if attr and valeur:
             att, defaut = valeur
             if att:
-                print(" element dynamique",  attr,valeur, "->",att, defaut)
+                print(" element dynamique", attr, valeur, "->", att, defaut)
                 dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
@@ -351,6 +352,14 @@ class TableSelector(object):
         # print("add descripteur", base, descripteur)
         self.baseselectors[base].add_descripteur(descripteur)
 
+    def merge(self, selecteur):
+        """fusionne 2 selecteurs"""
+        for base, bsel in selecteur.baseselectors.items():
+            for descripteur in bsel.descripteurs:
+                self.add_selector(base, descripteur)
+            for descripteur in bsel.dyndescr:
+                self.add_selector(base, descripteur)
+
     def idbase(self, base):
         """identifie une base de donnees"""
         if base in self.mapper.dbref:
@@ -425,6 +434,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     """precharge les elements des selecteurs:
     in:{a,b,c}                  -> liste de valeurs dans la commande
     in:#schema:nom_du_schema    -> liste des tables d'un schema
+    in:#sel:                    -> selecteur stocke
     in:nom_de_fichier           -> contenu d'un fichier
     in:[att1,att2,att3...]      -> attributs de l'objet courant
     in:(attributs)              -> noms des attributs de l'objet courant
@@ -442,18 +452,21 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
         if not selecteur:
-            print(
-                "selecteur inconnu",
-                regle,
-                fichier[5:],
-                stock_param.namedselectors.keys(),
-            )
+            LOGGER.error("selecteur inconnu %s,(%s)", fichier[5:], regle.ligne)
+            # print(
+            #     "selecteur inconnu",
+            #     regle,
+            #     fichier[5:],
+            #     stock_param.namedselectors.keys(),
+            # )
             raise StopIteration(2)
-        return selecteur
+        sel1 = getselector(regle, base=base, nom=nom)
+        sel1.merge(selecteur)
+        return sel1
     selecteur = getselector(regle, base=base, nom=nom)
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
-        nom = fichier[7:]
-        if nom in stock_param.schemas:
+        nomschema = fichier[7:]
+        if nomschema in stock_param.schemas:
             # print("lecture schema", nom)
             classes = stock_param.schemas.get(nom).classes.keys()
             selecteur.add_class_list(base, classes)
