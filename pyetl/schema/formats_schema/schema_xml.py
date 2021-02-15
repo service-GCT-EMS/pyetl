@@ -322,7 +322,7 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
 
         for j in i.getiterator("geometrie"):
             classe.info["type_geom"] = j.get("type")
-            classe.alias = j.get("alias")
+            classe.setalias(j.get("alias"))
             dimension = j.get("dimension", "2")
             classe.setdim(dimension)
 
@@ -336,7 +336,14 @@ def lire_schema_xml(mapper, base, fichier, cod="utf-8"):
 
 
 def ecrire_schema_xml(
-    rep, schema, mode="util", cod="utf-8", header="", alias="", prefix="",stock_param=None
+    rep,
+    schema,
+    mode="util",
+    cod="utf-8",
+    header="",
+    alias="",
+    prefix="",
+    stock_param=None,
 ):
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)
@@ -356,14 +363,15 @@ def ecrire_schema_xml(
             copier_xsl(rep)
 
     if stock_param and stock_param.mode == "web":
-        url_for=stock_param.maimapper.url_for
-        header='<?xml-stylesheet href='+url_for("xsl/dico.xsl")+' type="text/xsl"?>'
+        url_for = stock_param.maimapper.url_for
+        header = (
+            "<?xml-stylesheet href=" + url_for("xsl/dico.xsl") + ' type="text/xsl"?>'
+        )
         xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
         if xml:
             if not "schemas" in stock_param.webstore:
-                stock_param.webstore["schemas"]=dict()
-            stock_param.webstore["schemas"][nomschema]=xml
-
+                stock_param.webstore["schemas"] = dict()
+            stock_param.webstore["schemas"][nomschema] = xml
 
 
 def copier_xsl(rep):

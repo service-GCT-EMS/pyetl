@@ -122,7 +122,7 @@ class Cursinfo(object):
                     cursor.execute(requete)
             except Exception as err:
                 if not fail_silent:
-                    print(self.connecteur.base,"erreur requete", err, requete)
+                    print(self.connecteur.base, "erreur requete", err, requete)
                 return None
             if not newcursor:
                 self.requete = requete
@@ -252,10 +252,6 @@ class DbConnect(object):
 
     requetes = {"schemas": "", "tables": "", "enums": "", "attributs": "", "vues": ""}
 
-
-
-
-
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
@@ -343,7 +339,7 @@ class DbConnect(object):
 
         self.connection = DummyConnect()
 
-    def getbasicatt(self, nom_groupe,nom_classe,nom_att,type_att):
+    def getbasicatt(self, nom_groupe, nom_classe, nom_att, type_att):
         return self.attdef(
             nom_groupe=nom_groupe,
             nom_classe=nom_classe,
@@ -352,7 +348,7 @@ class DbConnect(object):
             num_attribut=0,
             dimension=2,
             taille=0,
-            decimales=0
+            decimales=0,
         )
 
     def getdatatype(self, datatype):
@@ -489,10 +485,9 @@ class DbConnect(object):
                     LOGGER.info("vue sans attributs %s", ".".join(ident))
 
                 schemaclasse = self.schemabase.setdefault_classe(ident)
-            schemaclasse.alias = alias_classe if alias_classe else ""
-            schemaclasse.setinfo(
-                "objcnt_init", str(nb_obj) if nb_obj is not None else "0"
-            )
+            schemaclasse.setinfo("type_table", type_table)
+            schemaclasse.setinfo("alias", alias_classe if alias_classe else "")
+            schemaclasse.setinfo("objcnt_init", str(nb_obj) if nb_obj else "0")
             schemaclasse.setinfo("dimension", str(dimension))
             schemaclasse.fichier = self.nombase
             #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
@@ -509,14 +504,29 @@ class DbConnect(object):
                     schemaclasse.info["type_geom"],
                 )
 
-            schemaclasse.type_table = type_table
+            schemaclasse.settype_table(type_table)
 
-    def cree_schema_classe(self, ident, attlist, schema=None):
+    def update_schema_classe(self, ident, attlist, schema, regle):
+        """adapte un schema en fonction d une requete"""
+        if attlist is None:
+            return None
+        schema = schema if schema is not None else self.schemabase
+        if ident not in schema.classes:
+            return self.cree_schema_classe(ident, attlist, schema=schema)
+        else:
+            schemaclasse = schema.classes[ident]
+            if schemaclasse.amodifier(regle):
+                return self.cree_schema_classe(
+                    ident, attlist, schema=schema, update=True
+                )
+            return schemaclasse
+
+    def cree_schema_classe(self, ident, attlist, schema=None, update=False):
         """cree un schema de classe a partir d une liste d attributs"""
         if attlist is None:
             return None
         schema = schema if schema is not None else self.schemabase
-        if ident in schema.classes:
+        if ident in schema.classes and not update:
             return schema.classes[ident]
         classe = schema.setdefault_classe(ident)
         classe.info["type_geom"] = "0"
@@ -677,7 +687,7 @@ class DbConnect(object):
             self.select_elements_specifiques(schema_travail, liste2)
             # print("selection elements specifiques", liste2)
         # self.commit()
-        LOGGER.info(
+        LOGGER.debug(
             "schema %s: %d -->%s: %d (%d) ",
             self.schemabase.nom,
             len(self.schemabase.classes),

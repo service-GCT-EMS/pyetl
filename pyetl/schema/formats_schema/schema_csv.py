@@ -342,7 +342,8 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
     if gref not in classe.codes_g:
         print("schema:", classe.nom, "erreur type", v_tmp[4], v_tmp)
     classe.info["type_geom"] = classe.codes_g[gref]
-    classe.alias = v_tmp[3]
+    classe.setalias(v_tmp[3])
+
     if "#" in v_tmp[5]:
         for val in v_tmp[5].split(","):
             if val:
@@ -549,7 +550,8 @@ def decode_classes_csv(schema_courant, entree):
             else:  # on ne fait que definir l'alias de la classe
                 if len(v_tmp) > 11 and v_tmp[11].isnumeric():
                     classe.poids = int(v_tmp[11])
-                classe.alias = v_tmp[3]
+                classe.setalias(v_tmp[3])
+
                 if v_tmp[5] == "courbe":
                     classe.courbe = True
                     classe.info["courbe"] = "1"
@@ -651,7 +653,7 @@ def ecrire_fich_csv(chemin, nom, contenu, cod):
         print("!" * 30 + "impossible d'ecrire le fichier ", chemin + nom)
 
 
-def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1,stock_param=None):
+def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1, stock_param=None):
     """ ecrit un schema en csv """
     os.makedirs(rep, exist_ok=True)
     init = False
@@ -709,9 +711,9 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1,stock_param=No
 
                             for n, v in sorted(infos.items()):
                                 # print ("e-s",n,v)
-                                nom=n if isinstance(n, str) else ";".join(n)
+                                nom = n if isinstance(n, str) else ";".join(n)
                                 valeurs = v if isinstance(v, str) else ";".join(v)
-                                contenu.append(nom+";"+valeurs)
+                                contenu.append(nom + ";" + valeurs)
                         else:
                             contenu.extend(infos)
                         ecrire_fich_csv(chemref, "_" + i + ".csv", contenu, cod)

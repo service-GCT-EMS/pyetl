@@ -230,11 +230,11 @@ class TableBaseSelector(object):
             if niveau.startswith("["):
                 niveau = obj.attributs.get(niveau[1:-1])
             for classe in classes:
-                print("dyn: traitement classe", classe)
+                # print("dyn: traitement classe", classe)
                 if classe.startswith("["):
                     classe = obj.attributs.get(classe[1:-1])
                 valeur = obj.attributs.get(*valeur) if valeur else ""
-                print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
+                # print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
                     self.add_classlist(
                         niveau, classe, attr, valeur, fonction, mod, nobase=self.nobase

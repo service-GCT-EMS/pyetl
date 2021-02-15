@@ -313,7 +313,7 @@ def sortie_resultats(
     schema_classe_travail,
     treq=0,
     cond="",
-    objet=None
+    objet=None,
 ):
     """ recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["gen"]
@@ -333,6 +333,10 @@ def sortie_resultats(
         if schema_init:
             niveau, classe = schema_init.map_dest((niveau, classe))
         schema_classe_travail = schema_init.setdefault_classe((niveau, classe))
+    nbvals = 0
+    # if getattr(regle_courante, "lastident", "") != ident:
+    # si c est la meme classe on ne reaffiche pas
+
     if regle_courante.getvar("_printpending"):
         print()
     print(
@@ -341,9 +345,11 @@ def sortie_resultats(
         end="",
         flush=True,
     )
+    regle_courante.lastident = ident
+    # else:
+    # nbvals = getattr(regle_courante, "nbvals", 0)
 
     regle_courante.setvar("_printpending", 1)
-    nbvals = 0
     namelist = curs.namelist
     # print(" attributs recuperes avant", namelist)
     if type_geom == "indef":
@@ -374,9 +380,11 @@ def sortie_resultats(
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
         if objet:
-            obj2=objet.dupplique()
+            obj2 = objet.dupplique()
             obj2.setidentobj(ident)
-            obj2.attributs.update(zip(namelist, [str(i) if i is not None else "" for i in valeurs]))
+            obj2.attributs.update(
+                zip(namelist, [str(i) if i is not None else "" for i in valeurs])
+            )
             if obj2.schema.amodifier(regle_courante):
                 obj2.mergeschema(schema_classe_travail, prefix=regle_courante.prefixe)
         else:
@@ -385,20 +393,12 @@ def sortie_resultats(
                 classe,
                 format_natif=format_natif,
                 conversion=geom_from_natif,
-                attributs=zip(namelist, [str(i) if i is not None else "" for i in valeurs]),
+                attributs=zip(
+                    namelist, [str(i) if i is not None else "" for i in valeurs]
+                ),
             )
             obj2.setschema(schema_classe_travail)
 
-        # if nbvals == 0:
-        #     print(
-        #         "mdba: creation objet", niveau, classe, format_natif, namelist, valeurs
-        #     )
-        #     print("objet:", obj)
-        # if '#geom' in attlist:
-        #     print ('attlist', attlist)
-        #     print (valeurs,valeurs)
-        #     print ('zip ',zip(attlist, [str(i) if i is not None else "" for i in valeurs]))
-        #     raise
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj2.attributs["#angle"] = obj2.attributs.get("angle_g", "0")
 
@@ -423,10 +423,7 @@ def sortie_resultats(
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
-        # print ('valeur de decile', decile)
-        # if decile==-1:
-        # decile = connect.getdecile(curs)
-        # decile = 100000 if decile==-1 else decile
+
         if nbvals > decile:
             decile += connect.getdecile(curs)
             nb_pts += 1
@@ -438,6 +435,7 @@ def sortie_resultats(
     print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
     regle_courante.setvar("_printpending", 0)
     curs.close()
+    # regle_courante.nbvals = nbvals
     return nbvals
 
 
@@ -516,14 +514,16 @@ def recup_schema(
     return (None, None, None, None)
 
 
-def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None):
+def lire_requete(
+    regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None
+):
     """lecture directe"""
-    print ("---lire_requete dest:",ident)
-    print ("---lire_requete req:",requete)
-    print ("---lire_requete obj:",obj)
+    # print ("---lire_requete dest:",ident)
+    # print ("---lire_requete req:",requete)
+    # print ("---lire_requete obj:",obj)
     niveau, classe = ident
-    if not classe and obj and obj.classe !="_declencheur":
-        ident=obj.ident
+    if not classe and obj and obj.classe != "_declencheur":
+        ident = obj.ident
         niveau, classe = ident
 
     if not classe:
@@ -535,7 +535,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     # print("lire_requete", ident, "->", base, requete)
     nom_schema = regle_courante.getvar("#schema", "tmp")
     if obj and obj.schema:
-        nom_schema=obj.schema.schema.nom
+        nom_schema = obj.schema.schema.nom
     v_sortie = parms
     sortie = attribut
     retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
@@ -551,10 +551,10 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
     # print("-----------------------traitement curseur ", curs, type(curs))
     treq = time.time() - treq
     if curs and classe:
-        schema_classe_travail = curs.connecteur.cree_schema_classe(
-            ident, curs.infoschema, schema=schema
+        schema_classe_travail = curs.connecteur.update_schema_classe(
+            ident, curs.infoschema, schema=schema, regle=regle_courante
         )
-        print("schema travail requete",schema_classe_travail)
+        # print("schema travail requete",schema_classe_travail)
         if schema_classe_travail:
             res = sortie_resultats(
                 regle_courante,
@@ -566,7 +566,7 @@ def lire_requete(regle_courante, base, ident, attribut=None, requete="", parms=N
                 schema_classe_travail.info["type_geom"],
                 schema_classe_travail,
                 treq=treq,
-                objet=obj
+                objet=obj,
             )
 
             if sortie:
@@ -610,6 +610,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
+    ident2 = None
     # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
@@ -900,6 +901,7 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
+    ident2 = None
     # LOGGER.info("dbacces: selecteur %s", repr(baseselector))
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():

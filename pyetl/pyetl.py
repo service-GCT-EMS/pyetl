@@ -67,7 +67,7 @@ class DiffLogFilTer(logging.Filter):
             return False
         else:
             if precrecord and precrecord.msgcount > 1:
-                LOGGER.log(999, "message repete %d fois", precrecord.msgcount)
+                LOGGER.log(999, "message repete %d fois :%", precrecord.msgcount,precrecord.msg)
         record.msgcount = 1
         self.precrecord = record
         return True

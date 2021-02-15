@@ -67,7 +67,7 @@ class DbGenSql(object):
         self.basic = basic
         self.schema = None
         self.regle_ref = None
-        self.stock_param=None
+        self.stock_param = None
 
     def setbasic(self, mode):
         """mode basic pour les bases de consultation"""
@@ -285,8 +285,6 @@ class DbGenSql(object):
 
         liste_tables = liste
 
-        #       for i in liste_tables:
-        #            print('type :',i,self.schema.classes[i].type_table)
         LOGGER.info(
             "definition de %d tables a sortir:(%s)", len(liste_tables), self.dialecte
         )

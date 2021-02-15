@@ -130,12 +130,12 @@ def compile_regex(regex):
 
 
 class Schema(object):
-    """ definition d'un schema : ensemble de classes et de conformites
-        code origine : L schema lu
-                       B base de donnees / fichier
-                       S schema de sortie
-                       G schema généré
-                       """
+    """definition d'un schema : ensemble de classes et de conformites
+    code origine : L schema lu
+                   B base de donnees / fichier
+                   S schema de sortie
+                   G schema généré
+    """
 
     # types_G={0:"ALPHA",1:"POINT",2:"LIGNE",3:"POLYGONE",4:""}
     dic_abrev = abbr
@@ -336,7 +336,7 @@ class Schema(object):
         nouvelle_classe.nom = nom
         nouvelle_classe.groupe = groupe
         nouvelle_classe.objcnt = 0
-        nouvelle_classe.type_table = "i"
+        nouvelle_classe.settype_table("i")
         modele.schema = old_schema
         modele.fils = old_fils
         modele.regles_modif = old_regles_modif
@@ -401,11 +401,11 @@ class Schema(object):
         if id2 is None:
             if not virtuel:
                 print(
-                "attention mapping destination impossible",
-                self.nom,
-                id_orig,
-                self.classes,
-            )
+                    "attention mapping destination impossible",
+                    self.nom,
+                    id_orig,
+                    self.classes,
+                )
             return id_orig
         return id2
 
@@ -658,7 +658,7 @@ class Schema(object):
             clas2 = classe.copy(ident, schema_travail)
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
             # on renseigne le nombre d'objets de la table
-            clas2.type_table = classe.type_table
+            clas2.settype_table(classe.type_table)
 
         return schema_travail, liste2
 

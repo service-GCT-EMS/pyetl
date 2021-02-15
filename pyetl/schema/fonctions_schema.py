@@ -269,7 +269,7 @@ def set_val_schema(schemaclasse, nom, valeur):
     attention l'ensemble des objets partageant un schema est affecte"""
 
     #    print('dans set_schema :', classe.nom, nom, valeur)
-    schemaclasse.type_table = "i"
+    schemaclasse.settype_table("i")
     nom = nom.lower()
     if nom in schemaclasse.info:
         schemaclasse.info[nom] = str(valeur)
@@ -282,7 +282,7 @@ def set_val_schema(schemaclasse, nom, valeur):
             print("dimension autorisee 0 2 3 et pas ->", valeur)
 
     elif nom == "alias":
-        schemaclasse.alias = bool(valeur)
+        schemaclasse.setalias(valeur)
 
     elif nom == "pk":
         keys = valeur.split(",")
@@ -293,9 +293,9 @@ def set_val_schema(schemaclasse, nom, valeur):
         for i in schemaclasse.attributs.values():
             i.multiple == False
     elif nom == "stable":
-        schemaclasse.stable=True
+        schemaclasse.stable = True
     elif nom == "instable":
-        schemaclasse.stable=False
+        schemaclasse.stable = False
     else:
         print("erreur mode schema non pris en compte", nom)
         return False
@@ -826,7 +826,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     if courbe:
         schemaclasse.info["courbe"] = "1"
     schemaclasse.info["dimension"] = max(dimension, schemaclasse.info["dimension"])
-    schemaclasse.type_table = "i"
+    schemaclasse.settype_table("i")
     obj.setschema(schemaclasse)
 
 

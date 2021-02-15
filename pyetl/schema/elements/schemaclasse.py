@@ -157,6 +157,8 @@ class SchemaClasse(object):
             "type_geom": "indef",
             "objcnt_init": "0",
             "courbe": "",
+            "alias": "",
+            "type_table": "i",
         }
         self.ident_origine = schema.map_orig(ident)
         # print ('recup ident origine ',self.ident_origine)
@@ -235,6 +237,14 @@ class SchemaClasse(object):
             + "\n\t\t"
             + ",".join(sorted(self.attributs.keys()))
         )
+
+    def setalias(self, alias):
+        self.alias = alias
+        self.info["alias"] = alias
+
+    def settype_table(self, type_table):
+        self.type_table = type_table
+        self.info["type_table"] = type_table
 
     @property
     def pending(self):
@@ -416,7 +426,7 @@ class SchemaClasse(object):
         #        self.is_3d = True if dim == 3 or dim =='3' else False
         self.info["dimension"] = dim
         self.changed = True
-        self.type_table = "i"
+        self.settype_table("i")
 
     def setsortie(self, output, rep_sortie=None):
         """positionne le format du schema pour l ecriture"""
@@ -481,7 +491,7 @@ class SchemaClasse(object):
     def setfkey(self, attribut, cible):
         """ ajoute une clef etrangere a la classe """
         self.attributs[attribut].clef_etr = cible
-        self.type_table = "i"
+        self.settype_table("i")
 
     def getfkey(self, attribut):
         """ recupere les infos de clef_etrangere """
@@ -509,7 +519,7 @@ class SchemaClasse(object):
         """ ajoute des definitions d'indexes"""
         self.indexes.update(index)
         self.changed = True
-        self.type_table = "i"
+        self.settype_table("i")
 
     def setminmaj(self, valeur):
         """ cree les fonctions de coversio min mahj pour les formats"""
@@ -543,7 +553,7 @@ class SchemaClasse(object):
 
     def supprime_attribut(self, nom):
         """enleve un attribut du schema"""
-        self.type_table = "i"
+        self.settype_table("i")
 
         if nom in self.attributs:
             del self.attributs[nom]
@@ -554,7 +564,7 @@ class SchemaClasse(object):
 
     def rename_attribut(self, nom, nouveau_nom, modele=None):
         """renomme un attribut en gerant les indexes et les clefs """
-        self.type_table = "i"
+        self.settype_table("i")
         self.changed = True
 
         if nouveau_nom in self.attributs:
@@ -581,7 +591,7 @@ class SchemaClasse(object):
     def garder_attributs(self, liste, ordre=False):
         """ ne conserve que les attributs de la liste, au besoin les cree..."""
         att = dict()
-        self.type_table = "i"
+        self.settype_table("i")
 
         for num, i in enumerate(liste):
             att[i] = self.attributs[i] if i in self.attributs else A.Attribut(i, 0)
@@ -626,7 +636,7 @@ class SchemaClasse(object):
         """renommage en bloc des attributs avec une fonction
         qui retourne les noms modifies par ex tout passer en minuscule"""
         self.changed = True
-        self.type_table = "i"
+        self.settype_table("i")
         for i in list(self.attributs.keys()):
             self.rename_attribut(i, fonction(i))
         self.liste_attributs_cache = []
@@ -634,7 +644,7 @@ class SchemaClasse(object):
     def remap_attribut(self, nom, mapnom):
         """ positionne les mappings d'entree et de sortie """
         self.changed = True
-        self.type_table = "i"
+        self.settype_table("i")
         if nom in self.attributs:
             attr = self.attributs[nom]
             if attr.nom_court:
@@ -652,7 +662,7 @@ class SchemaClasse(object):
         """adapte les schemas de destination pour pas faire des incoherences
         (supprime les attributs obligatoites non existant dans la source)"""
         self.adapte = True
-        self.type_table = "i"
+        self.settype_table("i")
         self.changed = True
 
         liste_att = set(liste_attributs)
@@ -883,7 +893,7 @@ class SchemaClasse(object):
             nom = modele.nom
         if not force and nom in self.attributs:
             return self.attributs[nom]
-        self.type_table = "i"
+        self.settype_table("i")
         self.changed = True
         attr = modele.copie(nom)
         ordre = attr.ordre
@@ -905,7 +915,7 @@ class SchemaClasse(object):
         """ajoute un attribut a partir d'une requete base de donnnes
         ou d'un fichier descriptif csv ( en entree un namedtuple)"""
 
-        self.type_table = "i"
+        self.settype_table("i")
         self.changed = True
         attr = None
         nom_attr = definition.nom_attr
@@ -993,7 +1003,7 @@ class SchemaClasse(object):
     ):
         """ stocke un attribut dans un schema """
         attr = None
-        self.type_table = "i"
+        self.settype_table("i")
         self.changed = True
         if nom.startswith("#"):
             print(
@@ -1196,7 +1206,7 @@ class SchemaClasse(object):
         groupe, nom = ident
         nouvelle_classe = deepcopy(self)
         nouvelle_classe.nom = nom
-        nouvelle_classe.type_table = "i"
+        nouvelle_classe.settype_table("i")
         nouvelle_classe.groupe = groupe
         nouvelle_classe.schema = schema2
         nouvelle_classe.objcnt = 0

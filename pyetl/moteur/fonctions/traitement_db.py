@@ -6,6 +6,7 @@ fonctions de manipulation d'attributs
 import os
 import logging
 import glob
+import re
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
@@ -425,17 +426,22 @@ def f_dbrequest(regle, obj):
                 ident, att, *_ = definition
                 niveau, classe = ident
                 # parms = [regle.getv]
-                print("execution requete", niveau, classe, definition)
+                # print("execution requete", niveau, classe, definition)
 
                 requete = requete_ref.replace("%#niveau", niveau)
                 requete = requete.replace("%#classe", classe)
                 requete = requete.replace("%#attr", att)
-                if "%#type_table" in requete:
-                    # on cherche le type de table dans le schema
-                    type_table = basesel.schemabase.get_classe(
-                        (niveau, classe)
-                    ).type_table
-                    requete = requete.replace("%#type_table", type_table)
+                schemaclasse = basesel.schemabase.get_classe(ident)
+                while "%#info" in requete:
+                    # acces a des infos schema
+                    match = re.search("%#info\[(.*)\]", requete)
+                    if match:
+                        nom_info = match.group(1)
+                        val_info = schemaclasse.getinfo(nom_info).replace("'", "''")
+                        requete = requete.replace(match.group(), val_info)
+                    else:
+                        LOGGER.error("chaine mal formee %s", requete)
+                        raise StopIteration(2)
                 if regle.ident is not None:
                     idsortie = regle.ident
                     if ident[0] is None:
