@@ -427,6 +427,7 @@ def f_dbrequest(regle, obj):
                 niveau, classe = ident
                 # parms = [regle.getv]
                 # print("execution requete", niveau, classe, definition)
+                # print("metas", basesel.schemabase.metas)
 
                 requete = requete_ref.replace("%#niveau", niveau)
                 requete = requete.replace("%#classe", classe)
@@ -442,6 +443,18 @@ def f_dbrequest(regle, obj):
                     else:
                         LOGGER.error("chaine mal formee %s", requete)
                         raise StopIteration(2)
+                metas = basesel.schemabase.metas
+                while "%#meta" in requete and metas:
+                    # acces a des infos schema
+                    match = re.search("%#meta\[(.*)\]", requete)
+                    if match:
+                        nom_info = match.group(1)
+                        val_info = metas.get(nom_info).replace("'", "''")
+                        requete = requete.replace(match.group(), val_info)
+                    else:
+                        LOGGER.error("chaine mal formee %s", requete)
+                        raise StopIteration(2)
+
                 if regle.ident is not None:
                     idsortie = regle.ident
                     if ident[0] is None:

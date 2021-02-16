@@ -336,20 +336,22 @@ def sortie_resultats(
     nbvals = 0
     # if getattr(regle_courante, "lastident", "") != ident:
     # si c est la meme classe on ne reaffiche pas
+    log = regle_courante.getvar("no_log", "") != "1"
+    if log:
+        if regle_courante.getvar("_printpending"):
+            print()
+        print(
+            "INFO     sortie_resultats         : %-50s"
+            % ("%s : %s.%s" % (connect.base, niveau, classe)),
+            end="",
+            flush=True,
+        )
+        regle_courante.setvar("_printpending", 1)
 
-    if regle_courante.getvar("_printpending"):
-        print()
-    print(
-        "INFO     sortie_resultats         : %-50s"
-        % ("%s : %s.%s" % (connect.base, niveau, classe)),
-        end="",
-        flush=True,
-    )
     regle_courante.lastident = ident
     # else:
     # nbvals = getattr(regle_courante, "nbvals", 0)
 
-    regle_courante.setvar("_printpending", 1)
     namelist = curs.namelist
     # print(" attributs recuperes avant", namelist)
     if type_geom == "indef":
@@ -424,16 +426,19 @@ def sortie_resultats(
             break
         # deco avec petits points por faire patienter
 
-        if nbvals > decile:
+        if log and nbvals > decile:
             decile += connect.getdecile(curs)
             nb_pts += 1
             print(".", end="", flush=True)
-    tget = time.time() - tget
-    if nb_pts < 10:
-        print("." * (10 - nb_pts), end="")
+    if log:
+        tget = time.time() - tget
+        if nb_pts < 10:
+            print("." * (10 - nb_pts), end="")
 
-    print("%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, ""))
-    regle_courante.setvar("_printpending", 0)
+        print(
+            "%8d en %8d ms (%8d) %s" % (nbvals, (tget + treq) * 1000, treq * 1000, "")
+        )
+        regle_courante.setvar("_printpending", 0)
     curs.close()
     # regle_courante.nbvals = nbvals
     return nbvals
@@ -556,6 +561,10 @@ def lire_requete(
         )
         # print("schema travail requete",schema_classe_travail)
         if schema_classe_travail:
+            if sortie:
+                for nom in sortie:
+                    if nom and nom[0] != "#":
+                        schema_classe_travail.stocke_attribut(nom, "T")
             res = sortie_resultats(
                 regle_courante,
                 curs,
@@ -569,10 +578,6 @@ def lire_requete(
                 objet=obj,
             )
 
-            if sortie:
-                for nom in sortie:
-                    if nom and nom[0] != "#":
-                        schema_classe_travail.stocke_attribut(nom, "T")
             connect.commit()
             return res
     return 0
@@ -638,6 +643,10 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
             )
             # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
             treq = time.time() - treq
+            if sortie:
+                for nom in sortie:
+                    if nom and nom[0] != "#":
+                        schema_classe_travail.stocke_attribut(nom, "T")
             if curs:
                 res += sortie_resultats(
                     regle_courante,
@@ -653,11 +662,6 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
                 )
 
             connect.commit()
-
-            if sortie:
-                for nom in sortie:
-                    if nom and nom[0] != "#":
-                        schema_classe_travail.stocke_attribut(nom, "T")
 
     if stock_param is not None:
         stock_param.padd("_st_lu_objs", res)

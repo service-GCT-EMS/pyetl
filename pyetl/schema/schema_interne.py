@@ -505,8 +505,8 @@ class Schema(object):
         #     return []
 
         tables_a_sortir = set()
-        exp_niv = niveau.strip()
-        exp_clas = classe.strip()
+        exp_niv = niveau.strip() if niveau else ""
+        exp_clas = classe.strip() if classe else ""
         convert = {"v": "vm", "t": "r", "r": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         lmulti = multi
