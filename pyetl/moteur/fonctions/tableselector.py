@@ -174,6 +174,7 @@ class TableBaseSelector(object):
                 niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
             )
         direct = dict()
+        # print("add_classlist: multi", multi)
         for i in classlist:
             mapped = self.set_prefix(i)
             direct[mapped] = (i, attr, valeur, fonction)
@@ -218,7 +219,7 @@ class TableBaseSelector(object):
         # print("resolve dyn :regleref mod", mod)
         mod = mod.upper()
         if obj is None and self.dyndescr:
-            print("elements dynamiques", self.dyndescr)
+            # print("elements dynamiques", self.dyndescr)
             return False
         self.dynlist = dict()
         # if self.dyndescr:
@@ -516,7 +517,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     base = (database, "host=" + host, "port=" + port)
                     if database:
                         selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    # print("qgs : descripteur", base, niveau, [classe])
+                    # print("qgs : descripteur", i, base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
     except FileNotFoundError:
         LOGGER.error("fichier qgs introuvable %s", fichier)

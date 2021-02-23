@@ -506,11 +506,12 @@ class DbConnect(object):
 
             schemaclasse.settype_table(type_table)
 
-    def update_schema_classe(self, ident, attlist, schema, regle):
+    def update_schema_classe(self, ident, attlist1, schema, regle):
         """adapte un schema en fonction d une requete"""
-        if attlist is None:
-            return None
         schema = schema if schema is not None else self.schemabase
+        if attlist1 is None:
+            return schema.classes.get(ident)
+        attlist = [i for i in attlist1 if not i.nom_attr.startswith("#")]
         if ident not in schema.classes:
             return self.cree_schema_classe(ident, attlist, schema=schema)
         else:
@@ -532,6 +533,10 @@ class DbConnect(object):
         classe.info["type_geom"] = "0"
         for atd in sorted(attlist, key=attrgetter("num_attribut")):
             # num_attribut = float(atd.num_attribut)
+            if atd.nom_attr.startswith("#"):  # attribut hors schema
+                print(" attribut hors schema", atd, classe)
+                raise
+                continue
             type_ref = atd.type_attr
             if not atd.type_attr:
                 LOGGER.error(
@@ -618,6 +623,7 @@ class DbConnect(object):
             )
         if classe.pending:
             schema.pending = True
+        # print("schema requete", classe)
         return classe
 
     def _recup_attributs(self):

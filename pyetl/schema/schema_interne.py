@@ -527,8 +527,14 @@ class Schema(object):
             lmulti = True
         if not exp_niv:
             lmulti = True
-        # print("select_niv_classes n:", exp_niv, "c:", exp_clas, attr, tables, multi)
+        # print("select_niv_classes n:", exp_niv, "c:", exp_clas, attr, tables, lmulti)
         if lmulti:
+            if exp_niv and not multi:
+                exp_niv = "^" + exp_niv if not exp_niv.startswith("^") else exp_niv
+                exp_niv = exp_niv + "$" if not exp_niv.endswith("$") else exp_niv
+            if exp_clas and not multi:
+                exp_clas = "^" + exp_clas if not exp_clas.startswith("^") else exp_clas
+                exp_clas = exp_clas + "$" if not exp_clas.endswith("$") else exp_clas
             ren = compile_regex(exp_niv)
             if ren is None:
                 print("erreur de description de niveau ", exp_niv)
@@ -545,6 +551,7 @@ class Schema(object):
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
                     if not attr or attr in self.classes[i].attributs:
                         tables_a_sortir.add(i)
+
         else:
             if nocase:
                 idclas = self.nocase.get((exp_niv.lower(), exp_clas.lower()))

@@ -409,7 +409,7 @@ def charge_liste(
                         positions=positions,
                     )
                 )
-    #    print ('charge liste',sorted(stock))
+    # print("charge liste", len(sorted(stock)))
     if not stock:  # on a rien trouve
         pass
         # print("---------attention aucune liste disponible sous ", fichier)

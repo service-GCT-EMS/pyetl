@@ -269,8 +269,8 @@ def init_reader_asc(reader):
     reader.setvar("codec_asc", "cp1252")
 
 
-def init_ascw(writer):
-    writer.writerclass = AscWriter
+def init_ascw(output):
+    output.writerclass = AscWriter
 
 
 def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):

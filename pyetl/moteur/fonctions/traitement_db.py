@@ -39,7 +39,6 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
         regle.mods = regle.params.cmp1.val
     else:
         regle.mods = regle.context.getlocal("mods")
-
     fonction = "=" if "=" in regle.mods else ""
 
     if geo:
@@ -346,7 +345,8 @@ def f_dbgeo(regle, obj):
 def h_dbrequest(regle):
     """passage direct de requetes"""
     param_base(regle, mods=False, req=True)
-    regle.chargeur = True  # c est une regle qui cree des objets
+    regle.chargeur = regle.params.pattern not in "34"
+    # c est une regle qui cree des objets si on est pas en mode completement
     attribut = regle.v_nommees.get("val_sel2", "")
     requete = regle.params.cmp1.val
     regle.fich = "tmp"
@@ -413,6 +413,9 @@ def f_dbrequest(regle, obj):
     # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
     #     regle, obj, att=False
     # )
+    # if regle.params.pattern in "34" and obj.virtuel:
+    # # on veut utiliser un objet on ne travaille pas avec les declencheurs virtuels
+    #     return True
     selecteur = setdb(regle, obj)
     retour = 0
     parms = None

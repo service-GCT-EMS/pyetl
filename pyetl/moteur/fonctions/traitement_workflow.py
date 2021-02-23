@@ -873,7 +873,6 @@ def h_attwriter(regle):
     if format not in regle.stock_param.formats_connus_ecriture:
         raise SyntaxError("format d'ecriture inconnu:" + format)
     regle.output = regle.stock_param.getoutput(format, regle)
-
     regle.nom_att = regle.params.att_sortie.val
     regle.format = regle.params.cmp1.val
     regle.store = True

@@ -298,8 +298,9 @@ def get_dbtype(connect, typecode):
 
 def schema_from_curs(schema, curs, nomclasse):
     """ cree un schema de classe a partir d'une requete generique"""
-    attlist = curs.infoschema
-    curs.connecteur.cree_schema_classe(nomclasse, curs.infoschema, schema=schema)
+    attlist = [i for i in curs.infoschema if not i.nom_attr.startswith("#")]
+    print("schema_from_curs", attlist)
+    curs.connecteur.cree_schema_classe(nomclasse, attlist, schema=schema)
 
 
 def sortie_resultats(
@@ -559,7 +560,7 @@ def lire_requete(
         schema_classe_travail = curs.connecteur.update_schema_classe(
             ident, curs.infoschema, schema=schema, regle=regle_courante
         )
-        # print("schema travail requete",schema_classe_travail)
+        # print("schema travail requete", schema_classe_travail)
         if schema_classe_travail:
             if sortie:
                 for nom in sortie:
