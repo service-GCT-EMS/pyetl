@@ -10,6 +10,7 @@ import re
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
+from pyetl.formats.interne.objet import Objet
 
 from .outils import prepare_mode_in
 from .tableselector import getselector, select_in, adapt_qgs_datasource
@@ -142,6 +143,7 @@ def h_dbalpha(regle):
             )
         regle.chargeur = True  # c est une regle qui cree des objets
         if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
+            regle.setlocal("noauto", regle.getvar("noauto"))  # on confine en local
             regle.chargeur = False
         #        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
@@ -827,12 +829,13 @@ def f_dbselect(regle, obj):
 def h_liste_selecteur(regle):
     """prepare la liste"""
     regle.chargeur = True
-    regle.param_base(regle, nom=regle.params.cmp1.val)
+    param_base(regle)
+    regle.idclasse = None
+
     if regle.cible_base:
         return True
     regle.valide = False
     regle.erreurs = "selecteur invalide -"
-    regle.idclasse = None
     if regle.params.pattern == "1":
         regle.idclasse = tuple(regle.params.att_sortie.val.split("."))
 
@@ -840,22 +843,22 @@ def h_liste_selecteur(regle):
 def f_liste_selecteur(regle, obj):
     """#aide||cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
     #aide_spec||liste_schema;nom;?reel
-    #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
+    #aide_spec||cree des objets reels par defaut sauf si on mets la variable virtuel a 1
     #schema||change_schema
-    #pattern1||A.C;;;liste_sel;?C;?=reel
-    #pattern2||=#obj;;;liste_sel;?C;?=reel
-    #pattern3||;;;liste_sel;?C;?=reel
+    #pattern1||A.C;;;dblist;?C;
+    #pattern2||=#obj;;;dblist;?C;
+    #pattern3||;;;dblist;?C;
     """
     selecteur = regle.cible_base
-    virtuel = not regle.params.cmp2.val
-
+    virtuel = regle.getlocal("virtuel") == "1"
     idclasse = regle.idclasse
     if regle.params.pattern == "2":
         idclasse = obj.ident
-
-    for i in selecteur.getclasses():
+    print("traitement liste selecteur", selecteur)
+    for i in selecteur.get_classes():
         idsel, att, val = i
-        niveau, classe = idclasse if iclasse else idsel
+        print(" lecture selecteur", i)
+        niveau, classe = idclasse if idclasse else idsel
         niveau, classe = i
         obj2 = Objet(
             niveau,
@@ -885,10 +888,10 @@ def h_setquery(regle):
 
 def f_setquery(regle, obj):
     """#aide||renseigne des champs par requete en base
-    #aide_spec||liste_schema;nom;?reel
-    #aide_spec2||cree des objets si le resultat de la requete est multiple
+    #aide_spec||cree des objets si multiple est specifie
     #schema||change_schema
-    #pattern1||S;;?A;dbset;C;?=multiple
+    #pattern1||S;;;dbset;C;?=multiple
+    #parametres||champs de sortie;dbset;requete;multiple
     """
     requete = regle.requete
     if regle.dynrequete:
@@ -897,15 +900,17 @@ def f_setquery(regle, obj):
         requete = requete.replace("%#classe", classe)
     data = regle.getlist_entree(obj)
     liste = regle.connect.request(requete, data)
-    if len(liste) > 1:
-        if regle.multiple:
-            for i in liste[1:]:
-                obj2 = obj.dupplique()
-                regle.setval_sortie(obj2, i)
-                regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["gen"]
-                )
-    regle.setval_sortie(obj2, liste[1])
+    if regle.multiple:
+        for i in liste:
+            obj2 = obj.dupplique()
+            regle.setval_sortie(obj2, i)
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        obj.attributs["#nb_lignes"] = len(liste)
+        return len(liste)
+    if liste:
+        regle.setval_sortie(obj, liste[0])
+        return True
+    return False
 
 
 def f_dbmap_qgs(regle, obj):

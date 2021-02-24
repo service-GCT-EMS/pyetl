@@ -195,6 +195,7 @@ def sortir_traite_stock(regle):
 def h_sortir(regle):
     """preparation sortie"""
     regle.writerparms = dict()
+    regle.ressource = None
     regle.writerparms["fanout"] = regle.context.getvar("fanout", "groupe")
     if (
         regle.params.att_sortie.val == "#schema"
@@ -648,11 +649,10 @@ def f_compare(regle, obj):
 
 def sortir_cles(regle):
     """genere les clefs etrangers"""
-    #TODO: generer les clefs etrangeres
+    # TODO: generer les clefs etrangeres
     for clef, valeurs in regle.keystore.items():
         pass
-    regle.store=False
-
+    regle.store = False
 
 
 def h_getkey(regle):
@@ -662,8 +662,8 @@ def h_getkey(regle):
     regle.keystore = regle.stock_param.keystore[regle.params.cmp1.val]
     if regle.params.cmp2.val:
         # on veut recuperer les cles sous forme d objets
-        regle.store=True
-        regle.traite_stock=sortir_cles
+        regle.store = True
+        regle.traite_stock = sortir_cles
 
 
 def f_getkey(regle, obj):

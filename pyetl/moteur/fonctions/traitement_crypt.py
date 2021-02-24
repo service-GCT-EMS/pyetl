@@ -146,9 +146,9 @@ class HcubeCrypter(Crypter):
 
     def crypt(self, val):
         """cryptage : le texte a crypter est decompose en modules de 3 lettres
-                      auquel on ajoute une lettre aleatoire
-                      ce qui donne les blocs de 4 en entree du transposeur
-                      le resultat est encode en base 64"""
+        auquel on ajoute une lettre aleatoire
+        ce qui donne les blocs de 4 en entree du transposeur
+        le resultat est encode en base 64"""
         if not self.key:
             return val
         binlist = bytes([i for i in val.encode("utf-8")])
@@ -308,7 +308,7 @@ def valide_ulist(val, user, master, grouplist):
 
 def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
     """decrypte d'eventuels parametres cryptes
-           gere 2 clefs une clef maitre et une clef utilisateur"""
+    gere 2 clefs une clef maitre et une clef utilisateur"""
     # print("decryptage parametres", cryptinfo)
     user, usergroup, masterkey, userkey, defaultkey, cr_lev, cr_help = cryptinfo
     localkey = "key_" + user  # clef par defaut
@@ -365,9 +365,9 @@ def h_crypt(regle):
 
 def f_crypt(regle, obj):
     """#aide||crypte des valeurs dans un fichier en utilisant une clef
-    #pattern||A;?;A;crypt;C?;
- #parametres||attribut resultat crypte;defaut;attribut d'entree;;clef de cryptage
-    #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
+       #pattern||A;?;A;crypt;C?;
+    #parametres||attribut resultat crypte;defaut;attribut d'entree;;clef de cryptage
+       #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
     vcrypte = crypt(
         regle.getval_entree(obj),
@@ -376,16 +376,15 @@ def f_crypt(regle, obj):
         helper=regle.cryptohelper,
     )
     obj.attributs[regle.params.att_sortie.val] = str(vcrypte)
-    # print("type crypt", vcrypte, regle.getvar("userkey"))
     return True
 
 
 def f_decrypt(regle, obj):
     """#aide||decrypte des valeurs dans un fichier en utilisant une clef
-    #pattern||A;?;A;decrypt;C?;
-    #helper||crypt
- #parametres||attribut resultat decrypte;defaut;attribut d'entree;;clef de cryptage
-    #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
+       #pattern||A;?;A;decrypt;C?;
+       #helper||crypt
+    #parametres||attribut resultat decrypte;defaut;attribut d'entree;;clef de cryptage
+       #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
     clef = regle.params.cmp1.getval(obj, regle.cryptokey)
     val = regle.getval_entree(obj)

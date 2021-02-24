@@ -514,13 +514,14 @@ class Context(object):
         # print("traite_egalite", defnom, nom, "=", defval, val)
         return nom, val, binding, local
 
+    # TODO a revoir la gestion des hstore dans les variables positionelles
     def traite_hstore(self, element, context):
         """ mappe un hstore sur l'environnement"""
         val, binding = self.resolve(element[1:])  # c'est un eclatement de hstore
         liste = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
         self.affecte(liste, context=context)
 
-    def affecte(self, liste, context=None, vpos=[]):
+    def affecte(self, liste, context=None, vpos=[], dloc=None):
         """gestion directe d'une affectation"""
         local = True
         # print("affecte_contexte", liste)
@@ -542,10 +543,17 @@ class Context(object):
                     val = ""
             if nom:
                 nom = nom.strip()
-                if local:
-                    context.setlocal(nom, val) if context else self.setlocal(nom, val)
-                if binding:
-                    context.setbinding(nom, binding)
+                if isinstance(dloc, dict):
+                    dloc[nom] = val
+                else:
+                    if local:
+                        context.setlocal(nom, val) if context else self.setlocal(
+                            nom, val
+                        )
+                    else:
+                        context.setroot(nom, val)
+                    if binding:
+                        context.setbinding(nom, binding)
 
     def getchain(self, noms, defaut=""):
         """fournit un parametre a partir d'une chaine de fallbacks"""
@@ -572,7 +580,11 @@ class Context(object):
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
         # print ('contexte setvar', self, nom, valeur)
-        if nom in self.vlocales or nom.startswith(".") or self.root == self:
+        local = False
+        if nom.startswith("."):
+            local = True
+            nom = nom[1:]
+        if nom in self.vlocales or local or self.root == self:
             self.vlocales[nom] = valeur
             if nom in self.binding and self.ref:
                 self.ref.setvar(self.binding[nom], valeur)

@@ -404,11 +404,12 @@ class RegleTraitement(object):  # regle de mapping
         self.tmp_store = list()
         self.compt_stock = 0
         self.dident = ""
+        self.vlocs = dict()
 
         self.schema_courant = None
         self.menage = False
         self.lecteurs = dict()
-        self.memlimit = self.getvar("memlimit", 0)
+        self.memlimit = int(self.getvar("memlimit", 0))
         self.erreurs = []
         self.v_nommees = dict()
 
@@ -651,6 +652,8 @@ class RegleTraitement(object):  # regle de mapping
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
+        if nom in self.vlocs:
+            return self.vlocs[nom]
         return self.context.getvar(nom, defaut)
 
     def getchain(self, noms, defaut=""):
@@ -771,8 +774,8 @@ class RegleTraitement(object):  # regle de mapping
         self.branchements.brch["ok"] = None
 
     def endstore(self, nom_base, groupe, obj):
-        """ fonction de stockage avant ecriture finale necessiare si le schema
-    doit etre determine a partir des donnees avant de les ecrire sur disque"""
+        """fonction de stockage avant ecriture finale necessiare si le schema
+        doit etre determine a partir des donnees avant de les ecrire sur disque"""
         #        print ('regle:dans endstore',self.numero,nom_base,groupe, obj.schema)
         #        raise
 
@@ -831,7 +834,7 @@ class RegleTraitement(object):  # regle de mapping
             self.tmpwrite(
                 groupe,
                 self.output.writerparms["tmpgeomwriter"],
-                self.output.writerparms["tmp_geom"]
+                self.output.writerparms["tmp_geom"],
             )
         obj.stored = True
 
@@ -895,8 +898,8 @@ class RegleTraitement(object):  # regle de mapping
         del self.stockage[groupe]
 
     def add_tmp_store(self, obj):
-        """ stockage temporaire au niveau de la regle pour les regles necessitant
-    l'ensemble des donnees pour faire le traitement"""
+        """stockage temporaire au niveau de la regle pour les regles necessitant
+        l'ensemble des donnees pour faire le traitement"""
         # TODO prevoir un stockage disque si la conso memeoire est trop forte
         self.tmp_store.append(obj)  # on stocke les objet pour l'execution de la regle
 
@@ -925,7 +928,7 @@ class RegleTraitement(object):  # regle de mapping
     #                 tache(self, obj)
 
     def statictest(self):
-        """determine si une regle peurt etre executee statiquement"""
+        """determine si une regle peut etre executee statiquement"""
         statictest = self.selstd is None or self.selstd(None)
         return statictest
 

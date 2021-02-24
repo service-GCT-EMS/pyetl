@@ -51,6 +51,7 @@ class Ressource(object):
         self.nbo = 0
         self.regle_ref = handler.regle  # regle qui cree la ressource
         self.regles = set()
+        self.sortie = None  # ressource effective ( fichier ou autre)
 
     def __repr__(self):
         return (
@@ -71,10 +72,10 @@ class Ressource(object):
                 return False
             self.regles.add(id_regle)
             if self.etat == 0:
-                self.handler.open()
+                self.sortie = self.handler.open()
                 self.etat = 1
             if self.etat == 2:
-                self.handler.reopen()
+                self.sortie = self.handler.reopen()
                 self.etat = 1
         except IOError as err:
             LOGGER.critical("erreur ouverture fichier " + self.nom + "->" + repr(err))
@@ -109,13 +110,13 @@ class Ressource(object):
         try:
             if self.etat != 1:
                 self.ouvrir(id_regle)
-            if self.lastid and self.lastid != obj.ident:
-                self.handler.changeclasse(obj.schema)
+            # if self.lastid and self.lastid != obj.ident:
+            #     self.handler.changeclasse(obj.schema)
             self.lastid = obj.ident
             if self.handler.write(obj):
                 self.nbo += 1
         except IOError as err:
-            LOGGER.critical("erreur ecriture fichier " + self.nom + "->" + repr(err))
+            LOGGER.critical("erreur ecriture ressource " + self.nom + "->" + repr(err))
             raise StopIteration(2)
 
     def compte(self, nbr):

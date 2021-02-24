@@ -199,10 +199,12 @@ def h_sub(regle):
         except SyntaxError as err:
             regle.valide = False
             regle.erreurs.append("erreur compilation des expressions" + err.msg)
+            return
     try:
-        regle.maxsub = int(regle.getvar(".maxsub"))
+        regle.maxsub = int(regle.getvar("maxsub", 0))
     except ValueError:
         regle.maxsub = 0
+        regle.setlocal("maxsub", str(regle.maxsub))  # on force la variable en local
 
 
 # fonctions de traitement alpha
@@ -211,11 +213,11 @@ def f_sub(regle, obj):  # fonction de substution
         #aide_spec||application d'une fonction de transformation par expression reguliere
         #pattern||S;?;A;sub;re;?re||sortie
     #parametres||resultat;defaut;entree;;expression de selection;expression de substitution
-    #variables||maxsub:nombre maxi de substitutions
+    #variables||maxsub: nombre maxi de substitutions (variable locale)
         #test1||obj||^V4;;C1;sub;A;B;||atv;V4;BB
         #test2||obj||^V4;;C1;sub;.*;f:f.group(0).lower();||atv;V4;ab
         #test3||obj||^V4;;C1;sub;A;B;||ats;V4
-        #test4||obj||^XX;AAA;;set||^V4;;XX;sub;A;B;;.maxsub=2||atv;V4;BBA
+        #test4||obj||^XX;AAA;;set||^V4;;XX;sub;A;B;;maxsub=2||atv;V4;BBA
 
     """
     # substitution
@@ -500,7 +502,6 @@ def f_vset(regle, obj):
             # print("reinterpretation regle", i)
             regle.stock_param.reconfig(regle.stock_param.regles[i], regle.stock_param)
         # print ('stocke ', regle.params.att_sortie.val,
-        #    regle.getvar(regle.params.att_sortie.val), regle.context.ref, regle.context)
     return True
 
 

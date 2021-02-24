@@ -662,7 +662,7 @@ class Output(object):
             else self.streamer
         )
         self.nom = nom
-        self.ext = "." + self.writerparms.get("extension",nom)
+        self.ext = "." + self.writerparms.get("extension", nom)
         self.fanoutmin = self.writerparms["fanoutmin"]
         fanout = self.writerparms.get("fanout", self.fanoutmin)
         if fanout == "no" or fanout == "all":
@@ -742,9 +742,10 @@ class Output(object):
         """
         if obj.virtuel:  # on ne traite pas les virtuels
             return
-        if regle.dident != obj.ident:
+        # print("ecriture streamer", regle.idregle)
+        if regle.ressource is None or regle.ressource.lastid != obj.ident:
             regle.ressource = self.change_ressource(obj)
-            regle.dident = obj.ident
+            # regle.dident = obj.ident
         regle.ressource.write(obj, regle.idregle)
         if obj.geom_v.courbe and obj.schema:
             obj.schema.info["courbe"] = "1"

@@ -203,8 +203,7 @@ def get_ressource(obj, regle, attributs=None):
     else:
         ressource.handler.changeclasse(obj.schema, attributs)
     regle.ressource = ressource
-    regle.dident = obj.ident
-
+    regle.ressource.lastid = obj.ident
     return ressource
 
 
@@ -245,9 +244,17 @@ def decode_config_xml(config_xml):
             if len(defs) < 9:
                 print("erreur description", defs)
                 continue
-            parent, groupe, classe, item, selecteur, vselect, nom_att, type_att, valeur = defs[
-                :9
-            ]
+            (
+                parent,
+                groupe,
+                classe,
+                item,
+                selecteur,
+                vselect,
+                nom_att,
+                type_att,
+                valeur,
+            ) = defs[:9]
             nom_att, type_att, valeur, typeval = decode_att(nom_att, type_att, valeur)
             valeurs = (nom_att, type_att, valeur, typeval)
             ident = (groupe, classe)
@@ -393,17 +400,15 @@ def init_qgs(reader):
 
 def xml_streamer(self, obj, regle, _, attributs=None):
     """ecrit des objets en xml au fil de l'eau.
-        dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
-        a la sortie du pipeline (mode streaming)
+    dans ce cas les objets ne sont pas stockes,  l'ecriture est effetuee
+    a la sortie du pipeline (mode streaming)
     """
     if obj.virtuel:  # on ne traite pas les virtuels
         return
     # raise
-    if obj.ident == regle.dident:
-        ressource = regle.ressource
-    else:
-        ressource = get_ressource(obj, regle, attributs=None)
-    ressource.write(obj, regle.idregle)
+    if regle.ressource is None or obj.ident != regle.ressource.lastid:
+        regle.ressource = get_ressource(obj, regle, attributs=None)
+    regle.ressource.write(obj, regle.idregle)
 
 
 def ecrire_objets_xml(self, regle, _, attributs=None):
