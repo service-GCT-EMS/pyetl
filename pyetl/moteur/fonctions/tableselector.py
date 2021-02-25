@@ -36,9 +36,10 @@ class TableBaseSelector(object):
     """conditions de selection de tables dans une base
     il y a un Tablebaseselector par base concernee par une selection"""
 
-    def __init__(self, regle_ref, base=None, map_prefix="", schemaref=None):
-        self.mapper = regle_ref.stock_param
-        self.regle_ref = regle_ref
+    def __init__(self, selecteur, base=None, map_prefix="", schemaref=None):
+        self.selecteur = selecteur
+        self.regle_ref = selecteur.regle_ref
+        self.mapper = self.regle_ref.stock_param
         self.base = base
         self.nombase = base if base != "*" else ""
         self.type_base = ""
@@ -89,6 +90,7 @@ class TableBaseSelector(object):
         # print("ajout descripteur", self.base, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
+
         dyn = any(["[" in i for i in classes])
         if "[" in attr:
             dyn = True
@@ -141,7 +143,6 @@ class TableBaseSelector(object):
         mod = mod.upper()
         # print("traitement descripteurs", self.descripteurs)
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
-
             if niveau == "#":
                 pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
@@ -210,6 +211,7 @@ class TableBaseSelector(object):
             liste_classes, liste_mapping = self.getmapping()
             # print("mapping", liste_mapping)
             self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
+        self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
         return complet
 
     def resolve_dyn(self, obj):
@@ -307,6 +309,7 @@ class TableSelector(object):
         self.nobase = False
         self.onconflict = "add"
         self.nom = ""
+        self.metainfos = ""
 
     def __repr__(self):
         return repr([repr(bs) for bs in self.baseselectors.values()])
@@ -349,7 +352,7 @@ class TableSelector(object):
             return
             base = "__filedb"
         if base not in self.baseselectors:
-            self.baseselectors[base] = TableBaseSelector(self.regle_ref, base, "")
+            self.baseselectors[base] = TableBaseSelector(self, base, "")
         # print("add descripteur", base, descripteur)
         self.baseselectors[base].add_descripteur(descripteur)
 
@@ -360,6 +363,7 @@ class TableSelector(object):
                 self.add_selector(base, descripteur)
             for descripteur in bsel.dyndescr:
                 self.add_selector(base, descripteur)
+        self.metainfos = self.metainfos + " " + selecteur.metainfos
 
     def idbase(self, base):
         """identifie une base de donnees"""
@@ -465,6 +469,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
         sel1.merge(selecteur)
         return sel1
     selecteur = getselector(regle, base=base, nom=nom)
+    selecteur.metainfos = fichier
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nomschema = fichier[7:]
         if nomschema in stock_param.schemas:
@@ -678,7 +683,7 @@ def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
             _select_from_qgs(element, selecteur, codec)
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec)
-
+    selecteur.metainfos = fichier
     # print("selecteur from fich", selecteur.baseselectors.keys())
     # for nom, sel in selecteur.baseselectors.items():
     #     print(nom, "====>", sel.descripteurs)

@@ -229,6 +229,18 @@ def _sortir_schema_classe_xml(sc_classe, mode="util"):
     return "\n".join(description)
 
 
+def initmetaheader(schema):
+    # prepare la ligne de metadonnees
+    retour = ""
+    if schema.metas:
+        retour = (
+            "<metas "
+            + " ".join(k + '="' + v + '"' for k, v in schema.metas.items())
+            + "/>"
+        )
+    return retour
+
+
 def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
     """ecrit un schema complet en xml"""
 
@@ -246,6 +258,9 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
     )
     conf = ""
     classes = ""
+    metaheader = initmetaheader(sch)
+    if metaheader:
+        entete = entete + "\n" + metaheader
     # print ("schema_io:sortir schema xml",sch.nom,sch.classes)
     nbclasses = 0
     if sch.conformites:

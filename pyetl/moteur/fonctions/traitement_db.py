@@ -56,6 +56,9 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
         # print("recup selecteur", selecteur)
     else:
         selecteur = getselector(regle, base, nom=nom)
+        selecteur.metainfos = ("niveau=" + niv if niv else "") + (
+            " classe=" + cla if cla else ""
+        )
         if cla.lower().startswith("in:"):  # mode in
             clef = 1 if "#schema" in cla else 0
             mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)

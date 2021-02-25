@@ -44,6 +44,7 @@ TYPES_A = {
     "NAME": "T",
     '"CHAR"': "T",
     "CHAR": "T",
+    "CHARACTER": "T",
     "XML": "T",
     "REGCLASS": "T",
     "CHARACTER VARYING": "T",
@@ -65,7 +66,9 @@ TYPES_A = {
     "DATE": "DS",
     "TIMESTAMP": "D",
     "TIMESTAMP WITHOUT TIME ZONE": "D",
+    "TIMESTAMP WITH TIME ZONE": "D",
     "TIME WITHOUT TIME ZONE": "D",
+    "TIME WITH TIME ZONE": "D",
     "F": "F",
     "FLOAT": "F",
     "FLOAT4": "F",
@@ -93,7 +96,7 @@ TYPES_A = {
     "OID": "I",
     "JSON": "J",
     "XML": "XML",
-    "UNKNOWN":"T"
+    "UNKNOWN": "T",
 }
 TYPES_PG = {
     "T": "text",

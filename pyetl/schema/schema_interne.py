@@ -655,6 +655,7 @@ class Schema(object):
         params = regle.stock_param
         nomschema = nomschema if nomschema else self.nom.replace("#", "")
         schema_travail = init_schema(params, nomschema, "B", modele=self)
+        schema_travail.metas.update(self.metas)
         complete = regle.getvar("gestion_coherence") == "1"
         liste2 = liste[:]
         niv = self.tablesorter(liste2, complete=complete)
@@ -666,22 +667,19 @@ class Schema(object):
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
             # on renseigne le nombre d'objets de la table
             clas2.settype_table(classe.type_table)
-
         return schema_travail, liste2
 
     def getschematravail(
         self, regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
     ):
         """recupere le schema de travail"""
-        params = regle.stock_param
         # print ( 'schema base ',connect.schemabase.classes.keys())
         liste = self.select_classes(niveau, classe, [], tables, multi, nocase)
         schema_travail, liste2 = self.creschematravail(regle, liste, nomschema)
-        schema_travail.metas = dict(self.metas)
         schema_travail.metas["tables"] = tables
         schema_travail.metas["filtre niveau"] = ",".join(niveau) if niveau else ""
         schema_travail.metas["filtre classe"] = ",".join(classe) if classe else ""
-
+        # print("recup schema travail", schema_travail.metas)
         return schema_travail, liste2
 
     def cleanrules(self):

@@ -689,6 +689,7 @@ class Pyetl(object):
                 # print("getpyetl:mode non defini")
                 return None
         petl = Pyetl(parent=self)
+        petl.setvar("pyetl_script_ref", str(regles))
         if rep_sortie is not None:
             petl.setvar("sans_sortie", "")
             if rep_sortie.startswith("#"):
