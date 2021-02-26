@@ -56,8 +56,8 @@ def selh_regex(selecteur):
 
 def sel_egal(selecteur, obj):
     """#aide||selection sur la valeur d un attribut egalite stricte
-       #pattern||A;=:||1
-       #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
+    #pattern||A;=:||1
+    #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
     """
     # print ("selecteur egal",selecteur.params.vals.val)
     return selecteur.params.vals.val == obj.attributs.get(selecteur.params.attr.val)
@@ -65,10 +65,10 @@ def sel_egal(selecteur, obj):
 
 def sel_regex(selecteur, obj):
     """#aide||selection sur la valeur d un attribut
-       #pattern||A;re||99
-       #pattern2||A;re:re||1
-       #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
-       #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
+    #pattern||A;re||99
+    #pattern2||A;re:re||1
+    #test||obj||^A;1;;set||^?A;0;;set||A;1;;;res;1;;set||atv;res;1
+    #test2||obj||^A;uv:xy;;set||^?A;0;;set||A;re:uv;;;res;1;;set||atv;res;1
     """
     # print ("------------------- test variable",obj.attributs.get(selecteur.params.attr.val, ""))
     result = selecteur.fselect(obj.attributs.get(selecteur.params.attr.val, ""))
@@ -94,9 +94,9 @@ def selh_calc(selecteur):
 
 def sel_calc(selecteur, obj):
     """#aide||evaluation d une expression avec un attribut
-       #pattern||A;NC2:||50
-       #test||obj||^A;5;;set||^?A;0;;set||A;N: >2;;;res;1;;set||atv;res;1
-       #test2||obj||^A;5;;set||^?A;0;;set||A;C: in "3456";;;res;1;;set||atv;res;1
+    #pattern||A;NC2:||50
+    #test||obj||^A;5;;set||^?A;0;;set||A;N: >2;;;res;1;;set||atv;res;1
+    #test2||obj||^A;5;;set||^?A;0;;set||A;C: in "3456";;;res;1;;set||atv;res;1
     """
     result = selecteur.fselect(obj)
     selecteur.regle.match = result if result else ""
@@ -113,8 +113,8 @@ def selh_calc2(selecteur):
 
 def sel_calc2(selecteur, obj):
     """#aide||evaluation d une expression libre
-       #pattern||;NC:||50
-       #test||obj||^A,B;5,2;;set||^?A;0;;set||;N:A>N:B;;;res;1;;set||atv;res;1
+    #pattern||;NC:||50
+    #test||obj||^A,B;5,2;;set||^?A;0;;set||;N:A>N:B;;;res;1;;set||atv;res;1
 
     """
     result = selecteur.fselect(obj)
@@ -123,17 +123,19 @@ def sel_calc2(selecteur, obj):
 
 
 def selh_infich(selecteur):
-    """precharge le fichier
-    """
+    """precharge le fichier"""
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     mode, valeurs = prepare_mode_in(
         selecteur.params.vals.val,
         selecteur.regle,
         taille=len(selecteur.params.attr.liste),
     )
+    # print("recup_selecteur", mode, valeurs)
+    taille_id = max([len(i[0].split(".")) for i in valeurs])
     if mode == "in_s":
         selecteur.info = set(i[0] for i in valeurs)
         selecteur.dyn = False
+        selecteur.taille = taille_id
     else:
         selecteur.dyn = True
 
@@ -143,12 +145,12 @@ def selh_infich(selecteur):
 
 def sel_vinfich(selecteur, obj):
     """#aide||valeur dans un fichier
-  #aide_spec||il est possible de preciser des positions a lire dans le ficher
-           +||en mettant les positions entre a,b;in:nom,1,3
-     #helper||infich
-    #pattern||A;in:fich||20
-       #test||obj;||^A;B;;set||^?A;xxx;;set||
-           +||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
+    #aide_spec||il est possible de preciser des positions a lire dans le ficher
+             +||en mettant les positions entre a,b;in:nom,1,3
+       #helper||infich
+      #pattern||A;in:fich||20
+         #test||obj;||^A;B;;set||^?A;xxx;;set||
+             +||A;in:%testrep%/refdata/liste.csv;;;res;1;;set||atv;res;1
     """
     if selecteur.dyn:  # mode dynamique
         pass
@@ -161,8 +163,7 @@ def sel_vinfich(selecteur, obj):
 
 
 def selh_infich_re(selecteur):
-    """precharge le fichier
-    """
+    """precharge le fichier"""
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     _, valeurs = prepare_mode_in(
         selecteur.params.vals.val,
@@ -191,14 +192,14 @@ def selh_infich_re(selecteur):
 
 def sel_infich_re(selecteur, obj):
     """#aide||valeur dans un fichier sous forme d'expressions regulieres
-  #aide_spec||il est possible de preciser des positions a lire dans le ficher
-           +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
-           +||il est possible d'ajouter des prefixes et des suffies aux expressions du fichier
-           +||en mettant (pref:F:suff) à la fin de l'expression
-           +||ex: ^:F:.* permet de matcher tout ce qui commence par une ligne du fichier
-    #pattern||L;in:fich(re)||20
-       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set
-            ||atv;res;1
+    #aide_spec||il est possible de preciser des positions a lire dans le ficher
+             +||en mettant les positions separees par des ,ex : a,b;in:nom,1,3
+             +||il est possible d'ajouter des prefixes et des suffies aux expressions du fichier
+             +||en mettant (pref:F:suff) à la fin de l'expression
+             +||ex: ^:F:.* permet de matcher tout ce qui commence par une ligne du fichier
+      #pattern||L;in:fich(re)||20
+         #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set
+              ||atv;res;1
     """
     if len(selecteur.params.attr.liste) > 1:
         vals = ";".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
@@ -224,8 +225,8 @@ def selh_inlist(selecteur):
 
 def sel_inlist(selecteur, obj):
     """#aide||valeur dans une liste
-       #pattern||A;in:list||10
-       #test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
+    #pattern||A;in:list||10
+    #test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
     """
     val = obj.attributs.get(selecteur.params.attr.val, "")
     if val in selecteur.info:
@@ -236,8 +237,7 @@ def sel_inlist(selecteur, obj):
 
 
 def selh_inlist_re(selecteur):
-    """precharge le fichier
-    """
+    """precharge le fichier"""
     #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
     valeurs = set(selecteur.params.vals.liste)
     pref, suf = selecteur.params.vals.definition[0].split(":F:")
@@ -250,11 +250,11 @@ def selh_inlist_re(selecteur):
 
 def sel_inlist_re(selecteur, obj):
     """#aide||valeur dans une liste sous forme d'expressions regulieres
-  #aide_spec||il est possible d'ajouter des prefixes et des suffies aux expressions de la liste
-           +||en mettant (pref:F:suff) à la fin de l'expression
-           +||ex: ^:F:.* permet de matcher tout ce qui commence par un element de la liste
-    #pattern||L;in:list(re)||20
-       #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:{A,y,z}(^:F:.);;;res;1;;set||atv;res;1
+    #aide_spec||il est possible d'ajouter des prefixes et des suffies aux expressions de la liste
+             +||en mettant (pref:F:suff) à la fin de l'expression
+             +||ex: ^:F:.* permet de matcher tout ce qui commence par un element de la liste
+      #pattern||L;in:list(re)||20
+         #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:{A,y,z}(^:F:.);;;res;1;;set||atv;res;1
     """
     if len(selecteur.params.attr.liste) > 1:
         vals = ";".join(obj.attributs.get(i, "") for i in selecteur.params.attr.liste)
@@ -285,8 +285,8 @@ def selh_inmem(selecteur):
 
 def sel_inmem(selecteur, obj):
     """#aide||valeur dans une liste en memoire (chargee par preload)
-       #pattern||A;in:mem||10
-       #!test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
+    #pattern||A;in:mem||10
+    #!test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
     """
     if selecteur.precedent != obj.ident:  # on vient de changer de classe
         selecteur.info = selecteur.regle.stock_param.store[selecteur.params.vals.val]
@@ -322,9 +322,9 @@ def sel_changed(selecteur, obj):
 
 def sel_ispk(selecteur, obj):
     """#aide||vrai si l'attribut est une clef primaire
-    #pattern||A;=is:pk||1
-   #pattern2||A;=is:PK||1
-       #test||obj||^Z(E,PK);1;;set||^?pk;;;set_schema||Z;is:pk;;;res;1;;set||atv;res;1
+     #pattern||A;=is:pk||1
+    #pattern2||A;=is:PK||1
+        #test||obj||^Z(E,PK);1;;set||^?pk;;;set_schema||Z;is:pk;;;res;1;;set||atv;res;1
     """
 
     #        le test est fait sur le premier objet de  la classe qui arrive
@@ -415,6 +415,10 @@ def sel_idinfich(selecteur, obj):
         #helper||infich
     !test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
     """
+    if selecteur.taille == 3:  # on a ajoute la base
+        return (
+            obj.attributs.get("#codebase") + "." + ".".join(obj.ident) in selecteur.info
+        )
     return ".".join(obj.ident) in selecteur.info
 
 
@@ -498,9 +502,9 @@ def sel_cexiste(selecteur, *_):
 
 def sel_hasschema(_, obj):
     """#aide||objet possedant un schema
-       #pattern||;=has:schema||1
-       #pattern1||=has:schema||1
-       #test||obj||^?#schema;;;supp;;;||;has:schema;;;res;1;;set||atv;res;1
+    #pattern||;=has:schema||1
+    #pattern1||=has:schema||1
+    #test||obj||^?#schema;;;supp;;;||;has:schema;;;res;1;;set||atv;res;1
     """
     return obj.schema
 
@@ -511,9 +515,9 @@ def selh_ininfoschema(selecteur):
 
 
 def sel_ininfoschema(selecteur, obj):
-    """ #aide||test sur un parametre de schema
-        #pattern||=schema:(.*);||1
-        """
+    """#aide||test sur un parametre de schema
+    #pattern||=schema:(.*);||1
+    """
     return obj.schema and selecteur.info in obj.schema.info
 
 
@@ -590,10 +594,10 @@ def sel_infoschema_is_type(selecteur, obj):
 
 
 def sel_infoschema_egal(selecteur, obj):
-    """ #aide||test sur un parametre de schema
-     #pattern||schema:A:;C||1
-       #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom=;3;;;X;1;;set;||atv;X;1;
-        """
+    """#aide||test sur un parametre de schema
+    #pattern||schema:A:;C||1
+      #test1||obj;poly||^X;0;;set;||^?;;;force_ligne;;||schema:type_geom=;3;;;X;1;;set;||atv;X;1;
+    """
     #    print('test ',selecteur.params.attr.val,'->',obj.schema.info.get(selecteur.params.attr.val),
     #          selecteur.params.vals.val)
     return obj.schema and (
@@ -606,9 +610,9 @@ def sel_infoschema_egal(selecteur, obj):
 
 def sel_isko(_, obj):
     """#aide||operation precedente en echec
-       #pattern||;=is:ko||1
-       #pattern2||;=is:KO||1
-       #test||obj||^;;;fail||^?;;;pass||;is:ko;;;res;1;;set||atv;res;1
+    #pattern||;=is:ko||1
+    #pattern2||;=is:KO||1
+    #test||obj||^;;;fail||^?;;;pass||;is:ko;;;res;1;;set||atv;res;1
     """
     #    print (" attributs",selecteur,obj)
     return not obj.is_ok
@@ -616,9 +620,9 @@ def sel_isko(_, obj):
 
 def sel_isok(_, obj):
     """#aide||operation precedente correcte
-       #pattern||;=is:ok||1
-       #pattern2||;=is:OK||1
-       #test||obj||^;;;pass||^?;;;fail||;is:ok;;;res;1;;set||atv;res;1
+    #pattern||;=is:ok||1
+    #pattern2||;=is:OK||1
+    #test||obj||^;;;pass||^?;;;fail||;is:ok;;;res;1;;set||atv;res;1
     """
     #    print (" attributs",selecteur,obj)
     return obj.is_ok
@@ -626,9 +630,9 @@ def sel_isok(_, obj):
 
 def sel_isvirtuel(_, obj):
     """#aide||objet virtuel
-       #pattern||;=is:virtuel||1
-       #pattern2||=is:virtuel;||1
-       #test||obj||^;;;virtuel||^?;;;reel||;is:virtuel;;;C1;1;;set||^;;;reel||atv;C1;1
+    #pattern||;=is:virtuel||1
+    #pattern2||=is:virtuel;||1
+    #test||obj||^;;;virtuel||^?;;;reel||;is:virtuel;;;C1;1;;set||^;;;reel||atv;C1;1
 
     """
     return obj.virtuel
@@ -636,9 +640,9 @@ def sel_isvirtuel(_, obj):
 
 def sel_isreel(_, obj):
     """#aide||objet virtuel
-       #pattern||;=is:reel||1
-       #pattern2||=is:reel;||1
-       #test||obj||^?;;;virtuel||;is:reel;;;C1;1;;set||^;;;reel||atv;C1;1
+    #pattern||;=is:reel||1
+    #pattern2||=is:reel;||1
+    #test||obj||^?;;;virtuel||;is:reel;;;C1;1;;set||^;;;reel||atv;C1;1
 
     """
     return not obj.virtuel
@@ -649,9 +653,9 @@ def sel_isreel(_, obj):
 
 def sel_hasgeomv(_, obj):
     """#aide||vrai si l'objet a une geometrique en format interne
-       #pattern||;=has:geomV||1
-       #pattern1||=has:geomV||1
-       #test||obj;point;1||^;;;geom||^?;;;resetgeom||;has:geomV;;;res;1;;set||atv;res;1
+    #pattern||;=has:geomV||1
+    #pattern1||=has:geomV||1
+    #test||obj;point;1||^;;;geom||^?;;;resetgeom||;has:geomV;;;res;1;;set||atv;res;1
     """
     #    print ("hasgeomv",selecteur,obj.geom_v)
     return obj.geom_v.valide or obj.geom_v.sgeom
@@ -659,18 +663,18 @@ def sel_hasgeomv(_, obj):
 
 def sel_hasgeom(_, obj):
     """#aide||vrai si l'objet a un attribut geometrique natif
-       #pattern||;=has:geom||1
-       #pattern1||=has:geom||1
-       #test||obj;asc;1||^;;;geom||^?#geom;;;supp||;has:geom;;;res;1;;set||atv;res;1
+    #pattern||;=has:geom||1
+    #pattern1||=has:geom||1
+    #test||obj;asc;1||^;;;geom||^?#geom;;;supp||;has:geom;;;res;1;;set||atv;res;1
     """
     return bool(obj.attributs.get("#geom"))
 
 
 def sel_hascouleur(selecteur, obj):
     """#aide||objet possedant un schema
-       #pattern||=has:couleur;C||1
-       #test||obj;asc_c;1||^;;;geom;||^?#geom;;;supp||has:couleur;2;;;res;1;;set;;||atv;res;1
-       #test2||obj;asc_c;1||^;;;geom;||^res;0;;set||?has:couleur;!3;;;res;1;;set;;||atv;res;0
+    #pattern||=has:couleur;C||1
+    #test||obj;asc_c;1||^;;;geom;||^?#geom;;;supp||has:couleur;2;;;res;1;;set;;||atv;res;1
+    #test2||obj;asc_c;1||^;;;geom;||^res;0;;set||?has:couleur;!3;;;res;1;;set;;||atv;res;0
     """
     return obj.geom_v.has_couleur(selecteur.params.vals.val)
 
@@ -710,20 +714,20 @@ def selh_is_date(selecteur):
 
 def sel_is_date(selecteur, obj):
     """#aide||vrai si la date est compatible avec la description ( sert dans les declecnheurs de batch)
-  #aide_spec||format de date: (liste de jours)/intervalle
-            ||ex:  rien : tous les jour
-            ||      /2J :  tous les 2 jours
-            ||   1,3/S  :  lundi et mercredi toutes les semaines
-            ||   1-5/S  :  lundi au vendredi toutes les semaines
-            ||     7/2S :  dimanche toutes les 2 semaines
-            ||     7/M  :  premier dimanche du mois
-            ||    07/M  :  jour 7 du mois
-    #pattern0||=is:valid_date;C||2
-    #pattern1||=is:valid_date;[A]||1
-    #pattern2||(is:valid_date:)A;C||2
-    #pattern3||(is:valid_date:)A;[A]||1
-    #test||obj;point;1||^X;2005-11-10;;set||^?X;2005-11-11;;set||^Y;2;;set;
-         ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
+    #aide_spec||format de date: (liste de jours)/intervalle
+              ||ex:  rien : tous les jour
+              ||      /2J :  tous les 2 jours
+              ||   1,3/S  :  lundi et mercredi toutes les semaines
+              ||   1-5/S  :  lundi au vendredi toutes les semaines
+              ||     7/2S :  dimanche toutes les 2 semaines
+              ||     7/M  :  premier dimanche du mois
+              ||    07/M  :  jour 7 du mois
+      #pattern0||=is:valid_date;C||2
+      #pattern1||=is:valid_date;[A]||1
+      #pattern2||(is:valid_date:)A;C||2
+      #pattern3||(is:valid_date:)A;[A]||1
+      #test||obj;point;1||^X;2005-11-10;;set||^?X;2005-11-11;;set||^Y;2;;set;
+           ||is:valid_date:X;/2J;;;Y;1;;set||atv;Y;1
     """
     # print ("comparaison temps", selecteur.params.pattern)
     if selecteur.params.pattern == "1" or selecteur.params.pattern == "3":
@@ -795,18 +799,18 @@ def selh_is_time(selecteur):
 
 def sel_is_time(selecteur, obj):
     """#aide||vrai si l'heure est compatible avec la description ( sert dans les declencheurs de batch)
-  #aide_spec||format de temps: (liste de jours)/intervalle
-            ||ex:  rien : tout le temps
-            ||      /2m :  tous les 2 minutes
-            ||   1,15/1H  :  minutes 1 et 15 toutes les heures
-            ||     7/2H :  minute 7 toutes les 2 heures
-            ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
-    #pattern0||=is:valid_time;C||2
-    #pattern1||=is:valid_time;[A]||1
-    #pattern2||(is:valid_time:)A;C||1
-    #pattern3||(is:valid_time:)A;[A]||2
-    #test||obj;point;1||^X;12:32:10;;set||^?X;12:31:10;;set||^Y;2;;set;
-         ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
+    #aide_spec||format de temps: (liste de jours)/intervalle
+              ||ex:  rien : tout le temps
+              ||      /2m :  tous les 2 minutes
+              ||   1,15/1H  :  minutes 1 et 15 toutes les heures
+              ||     7/2H :  minute 7 toutes les 2 heures
+              ||     7/2H[8-18] :  minute 7 toutes les 2 heures de 8h a 18h
+      #pattern0||=is:valid_time;C||2
+      #pattern1||=is:valid_time;[A]||1
+      #pattern2||(is:valid_time:)A;C||1
+      #pattern3||(is:valid_time:)A;[A]||2
+      #test||obj;point;1||^X;12:32:10;;set||^?X;12:31:10;;set||^Y;2;;set;
+           ||is:valid_time:X;/2m;;;Y;1;;set||atv;Y;1
     """
     # print ("================================patern ref",selecteur.pattern)
     if selecteur.params.pattern == "1" or selecteur.params.pattern == "3":

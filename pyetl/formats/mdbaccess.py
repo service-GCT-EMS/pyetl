@@ -380,6 +380,9 @@ def sortie_resultats(
         sys_mod = connect.sys_mod
     tget = time.time()
     decile = connect.decile
+    base = connect.base
+    code = connect.code
+    # print(" traitement base ", base, connect.code)
     for valeurs in curs.cursor:
         #        print ("geometrie valide",obj.geom_v.valide)
         if objet:
@@ -414,6 +417,8 @@ def sortie_resultats(
         if sys_mod:
             obj2.attributs["#_sys_date_mod"] = obj2.attributs[sys_mod]
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
+        obj2.attributs["#base"] = base
+        obj2.attributs["#codebase"] = code
         if sortie:
             #            print ('mdba: renseignement attributs',sortie,v_sortie)
             for nom, val in zip(sortie, v_sortie):

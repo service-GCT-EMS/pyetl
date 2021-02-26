@@ -79,12 +79,12 @@ def remap(element, elmap):
 
 def traite_mapping(elements):
     """decode une definition de mapping
-        elements est une liste de definitions de mapping
-        a ce stade une definition  se presente sous la forme suivante:
-        (groupe.classe, groupe.classe,[(attribut => attribut,...)])
-        ou
-        (groupe,classe, groupe,classe,[(attribut => attribut,...)])
-        """
+    elements est une liste de definitions de mapping
+    a ce stade une definition  se presente sous la forme suivante:
+    (groupe.classe, groupe.classe,[(attribut => attribut,...)])
+    ou
+    (groupe,classe, groupe,classe,[(attribut => attribut,...)])
+    """
     mapping = dict()
     mapping_attributs = dict()
     for els in elements:
@@ -244,8 +244,8 @@ def h_map2(regle):
 
 def f_map2(regle, obj):
     """#aide||mapping en fonction d'une creation dynamique de schema
-  #aide_spec||parametres: mappe les structures particulieres
-   #pattern2||;;;map;=#struct;;
+    #aide_spec||parametres: mappe les structures particulieres
+     #pattern2||;;;map;=#struct;;
     """
     regle.schema = obj.schema.schema
     regle.nbstock = 1
@@ -273,11 +273,11 @@ def h_map(regle):
 
 def f_map(regle, obj):
     """#aide||mapping en fonction d'un fichier
-  #aide_spec||parametres: map; nom du fichier de mapping
- #aide_spec2||si #schema est indique les objets changent de schema
-    #pattern||?=#schema;?C;;map;C;;
-  #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||^;;;pass;;;||atv;toto;AB
- #!test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||^;;;pass;;;debug||cnt;2
+     #aide_spec||parametres: map; nom du fichier de mapping
+    #aide_spec2||si #schema est indique les objets changent de schema
+       #pattern||?=#schema;?C;;map;C;;
+     #test||obj||^#schema;test;;map;%testrep%/refdata/map.csv;;||^;;;pass;;;||atv;toto;AB
+    #!test2||obj||^#schema;test;;map+-;%testrep%/refdata/map.csv;;||^;;;pass;;;debug||cnt;2
     """
     #    print ("dans map ===============",obj)
     if regle.dynlevel:  # attention la regle est dynamique
@@ -297,13 +297,17 @@ def f_map(regle, obj):
         obj.setidentobj(nouv, schema2=schema2)
         if clef in regle.mapping_attributs:
             for orig, dest in regle.mapping_attributs[clef].items():
+                # print("mapping", clef, nouv, orig, dest)
                 try:
-                    obj.attributs[dest] = obj.attributs[orig]
+                    obj.attributs[dest] = obj.attributs.get(orig, "")
                     del obj.attributs[orig]
+                    if obj.schema and obj.schema.amodifier(regle):
+                        # print
+                        obj.schema.rename_attribut(orig, dest)
                 except KeyError:
                     obj.attributs[dest] = ""
         return True
-    #    print ('====================== mapping non trouve', clef)
+    # print("====================== mapping non trouve", clef)
     #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
     #                                            for i in sorted(regle.mapping)]))
     return False

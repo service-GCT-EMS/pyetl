@@ -116,9 +116,20 @@ def runpyetl(commandes, args):
         return
     wstats = mapper.get_work_stats()
     if wstats["obj_lus"]:
-        mapper.logger.log(
-            999, "%d objets lus dans %d fichiers", wstats["obj_lus"], wstats["fich_lus"]
-        )
+        if wstats["fich_lus"]:
+            mapper.logger.log(
+                999,
+                "%d objets lus dans %d fichiers",
+                wstats["obj_lus"],
+                wstats["fich_lus"],
+            )
+        if wstats["tabl_lus"] != 0:
+            mapper.logger.log(
+                999,
+                "%d objets lus dans %d tables",
+                wstats["obj_lus"],
+                wstats["tabl_lus"],
+            )
     if wstats["obj_dupp"]:
         mapper.logger.log(999, "%d objets dupliques", wstats["obj_dupp"])
     if wstats["obj_ecrits"]:
@@ -1271,6 +1282,7 @@ class Pyetl(object):
         wstats = {
             "obj_lus": obj_lus,
             "fich_lus": self.getvar("_st_lu_fichs", 0),
+            "tabl_lus": self.getvar("_st_lu_tables", 0),
             "obj_ecrits": obj_ecrits,
             "obj_dupp": self.getvar("_st_obj_duppliques", 0),
             "fich_ecrits": self.getvar("_st_wr_fichs", 0),
