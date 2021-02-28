@@ -15,6 +15,7 @@ il est necessaire de positionner les parametres suivant:
 
 """
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
+import cx_Oracle
 from .base_oracle import OraConnect, OraGenSql
 
 TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}
@@ -234,6 +235,15 @@ class OrwConnect(OraConnect):
                 + "') = 'TRUE'"
             )
         return cond
+
+    def connect(self):
+        if self.connection:
+            return
+        super().connect()
+        def output_type_handler(cursor, name, default_type, size, precision, scale):
+            if default_type == cx_Oracle.BLOB:
+                return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)
+        self.connection.outputtypehandler = output_type_handler
 
 
 class OrwGenSql(OraGenSql):

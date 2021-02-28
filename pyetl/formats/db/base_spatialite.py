@@ -6,6 +6,7 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
+import os
 import sqlite3
 from .database import DbConnect
 from .gensql import DbGenSql
@@ -41,7 +42,7 @@ TYPES_G = {"POINT": "1", "MULTILINESTRING": "2", "MULTIPOLYGON": "3"}
 
 
 class SqltConnect(DbConnect):
-    """connecteur de la base de donnees oracle"""
+    """connecteur de la base de donnees sqlite"""
 
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
@@ -57,11 +58,16 @@ class SqltConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
+        spatialite_path = os.path.join(__file__,"extensions/mod_spatialite-5.0.1-win-amd64")
+        # e.g. spatialite_path  = 'C:/Users/pedro/Documents/mod_spatialite-NG-win-amd64
+        os.environ['PATH'] = spatialite_path + ';' + os.environ['PATH']
 
-        errs = sqlite3.DatabaseError
+        self.errs = sqlite3.DatabaseError
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
-            self.connection = sqlite3.Connection(self.base)
+            self.connection = sqlite3.Connect(self.base)
+            self.connection.enable_load_extension(True)
+            self.connection.load_extension("mod_spatialite")
         except self.errs as err:
             print(
                 "error: sqlite: utilisateur ou mot de passe errone sur la base sqlite",
@@ -337,6 +343,11 @@ class SqltConnect(DbConnect):
 
 class SqltGenSql(DbGenSql):
     """generateur sql"""
+
+    pass
+
+class SqltDbWriter(DbGenSql):
+    """writer direct sql"""
 
     pass
 

@@ -1133,7 +1133,7 @@ class SchemaClasse(object):
     def cree_noms_courts(self, longueur=10, abrev=None):
         """genere des noms courts pour les sorties shape """
         self.noms_courts = set()
-        a_supp = "YyUuOoIiAaEeBbCcDdFfGgHhJjKkLlMmNnPpQqRrSsTtVvWwXxYyZz0123456789"
+        a_supp = "_-YyUuOoIiAaEeBbCcDdFfGgHhJjKkLlMmNnPpQqRrSsTtVvWwXxYyZz0123456789"
         if not abrev:
             abrev = self.schema.dic_abrev
         for i in self.attributs:
@@ -1167,6 +1167,9 @@ class SchemaClasse(object):
             while len(nom) > longueur:
                 nom = nom.replace(a_supp[position], "")
                 position = position + 1
+                if position >= len(a_supp):
+                    print("erreur adaptation", nom)
+                    break
             nom = self.adapte_nom_court(nom, longueur)
             #            if nom1:
             #                print("raccourcissement force", att.nom, "->", nom1, "->", nom)

@@ -600,10 +600,10 @@ class PgrConnect(DbConnect):
                 cur.close()
                 return False
 
-    def dbload(self, schema, ident, source):
+    def dbload(self, schemaclasse, ident, source):
         """charge des objets en base de donnees par dbload"""
         cur = self.connection.cursor()
-        colonnes = tuple(schema.classes[ident].get_liste_attributs())
+        colonnes = tuple(schemaclasse.get_liste_attributs())
         nom = ".".join(ident)
         try:
             cur.copy_from(source, nom, columns=colonnes, sep="\t")

@@ -6,6 +6,7 @@ fonctions de manipulation d'attributs
 import os
 import logging
 import glob
+# from pyetl.formats.db.database import DbConnect
 import re
 
 from itertools import zip_longest
@@ -16,6 +17,13 @@ from .outils import prepare_mode_in
 from .tableselector import getselector, select_in, adapt_qgs_datasource
 
 LOGGER = logging.getLogger(__name__)
+
+
+def getbase(regle):
+    """recuper le code base our les ecritures"""
+    regle.base = regle.code_classe[3:]
+    return regle.base
+
 
 
 def param_base(regle, nom="", geo=False, req=False, mods=True):
@@ -617,17 +625,59 @@ def f_dbextdump(regle, obj):
         DB.dbextdump(regle, base, baseselector, dest=dest, log=log)
     return True
 
+def dbwritebloc(regle):
+    """ecrit un bloc en base"""
+    if not regle.connect:
+        connect = regle.stock_param.getdbaccess(regle, regle.base)
+        if connect is None:
+            LOGGER.error("connection impossible a la base %s", regle.base)
+            raise StopIteration(2)
+        schema=regle.schema
+    connect.dbload(schema, regle.dident, regle.tmpstore)
+    regle.nbstock=0
+    regle.traite+=len(regle.tmpstore)
+    regle.tmpstore=[]
+
+
+
+def h_dbwrite(regle):
+    """ preparation ecriture en base """
+    regle.blocksize = int(regle.getvar("transaction_size", 1000))
+    regle.store = True
+    regle.nbstock = 0
+    regle.traite = 0
+    regle.traite_stock = dbwritebloc
+    regle.tmpstore = []
+    regle.connect=None
+    regle.colonnes = None
+    regle.dident=None
+    if not getbase(regle):
+        LOGGER.error("base non definie")
+        return False
+    return True
+
+
 
 def f_dbwrite(regle, obj):
-    """#aide||chargement en base de donnees
+    """#aide||chargement en base de donnees en bloc
       #groupe||database
      #pattern||;;;dbwrite;;
     #req_test||testdb
-
     """
-    selecteur = setdb(regle, obj)
-    for base, baseselector in selecteur.baseselectors.items():
-        DB.dbload(regle, base, baseselector, obj)
+    ident = obj.ident
+    if regle.dident!=ident:
+        regle.traite_stock()
+        regle.dident=ident
+        regle.liste_att=tuple((i for i in obj.schema.get_liste_attributs()))
+        regle.colonnes=regle.liste_att+("geometrie",) if obj.schema.type_geom != "0" else regle.liste_att
+        regle.has_geom=obj.schema.type_geom != "0"
+    if regle.nbstock>=regle.blocksize:
+        regle.traite_stock()
+    ligne=tuple((obj.attributs[i]) for i in regle.liste_att)
+    if regle.has_geom:
+        ligne=ligne+obj.geometrie
+    regle.tmpstore.append(ligne)
+
 
 
 def f_dbupdate(regle, obj):

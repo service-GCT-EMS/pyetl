@@ -99,7 +99,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
             types_a[type_att],
             # dimension=dimension,
             force=True,
-            taille=int(taille) if taille else None,
+            taille=int(taille) if taille else 0,
             dec=int(dec) if dec else None,
             ordre=-1,
         )
