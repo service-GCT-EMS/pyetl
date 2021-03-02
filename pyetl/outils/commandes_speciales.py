@@ -8,6 +8,7 @@ COMMANDES_SPECIALES = {
         "unittest",
         "formattest",
         "pack",
+        "paramgroups",
     }
 def is_special(commandes):
     "determine si une commande est speciale"
@@ -36,6 +37,7 @@ def commandes_speciales(mapper, commandes, args):
     # if commande not in COMMANDES_SPECIALES:
     #     return
     mapper.is_special=True
+    mapper._traite_params(args)
     # nom = mapper.getvar("_sortie")
     nom=pars[0] if pars else (c1[1] if len(c1)>1 else (args[0] if args else ""))
     # print ("commandes speciales",commandes, args)
@@ -107,5 +109,23 @@ def commandes_speciales(mapper, commandes, args):
         pack.zipall(place,nv)
         newb= pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
         print("modification build", mapper.version,"->(build",newb,")")
+
+    elif commande == "paramgroups":
+        """ affichage des groupes de parametres connus"""
+        if nom:
+            key=mapper.getvar("key")
+            decode = key==mapper.getvar("masterkey")
+            if nom in mapper.site_params:
+                print ("groupe", nom)
+                for i,j in mapper.site_params.get(nom):
+                    if i=="passwd" and not decode:
+                        j="***"
+                    print (i,"->",j)
+            else:
+                print("groupe inconnu", nom)
+        else:
+            print ("groupes connus:")
+            print (sorted(mapper.site_params.keys()))
+
 
     mapper.done = True

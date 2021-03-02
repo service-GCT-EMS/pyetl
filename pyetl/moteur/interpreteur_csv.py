@@ -825,12 +825,15 @@ def lire_regles_csv(
                 2
             ].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
             #            print ("avt chargement groupe", vgroup, champs_var)
-            try:
-                mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
-            except KeyError:
-                print("====groupe de parametres inconnu", vgroup)
-                erreurs += 1
-                return erreurs
+            if vgroup.startswith("#"):
+                pass #c est un selecteur on ne le traite pas
+            else:
+                try:
+                    mapper.load_paramgroup(vgroup, nom=ngroup, check=check)
+                except KeyError:
+                    print("====groupe de parametres inconnu", vgroup)
+                    erreurs += 1
+                    return erreurs
             # genere des variables internes de la forme 'nomDefiniDansLeFichier_nomDuGroupe
             # print("apres chargement groupe", vgroup, ngroup)
             # print("variables", mapper.context.vlocales)

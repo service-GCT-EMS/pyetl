@@ -204,14 +204,15 @@ class TableBaseSelector(object):
                 return False
 
         self.resolve_static()
-        complet = self.resolve_dyn(obj)
-        if not self.nobase:
-            self.getschematravail(self.regle_ref)
-        else:
-            liste_classes, liste_mapping = self.getmapping()
-            # print("mapping", liste_mapping)
-            self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
-        self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
+        complet = self.resolve_dyn(obj) if self.dyndescr else True
+        if complet:
+            if not self.nobase:
+                self.getschematravail(self.regle_ref)
+            else:
+                liste_classes, liste_mapping = self.getmapping()
+                # print("mapping", liste_mapping)
+                self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
+            self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
         return complet
 
     def resolve_dyn(self, obj):
@@ -538,15 +539,15 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
     if not selecteur.resolved:
         selecteur.resolve(obj)
     destbase = regle.base
-    for fich, chemin in scandirs("", fichier, rec=True):
-        element = os.path.join(chemin, fich)
+    for fich, chemin in scandirs(fichier, "", rec=True):
+        element = os.path.join(fichier,chemin, fich)
         if not fich.endswith(".qgs"):
             continue
         codec = hasbom(element, codec)
-        fdest = os.path.join(destination, element)
+        fdest = os.path.join(destination, chemin,fich)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
-        regle.stock_param.logger.info("traitement (%s) " + element, selecteur.nom)
+        regle.stock_param.logger.info("traitement (%s) %s->"+fdest, selecteur.nom ,element)
         with open(element, "r", encoding=codec) as fich:
             # print("adapt projet qgs", element)
             for i in fich:

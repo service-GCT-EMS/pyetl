@@ -285,7 +285,7 @@ def set_test_config(mapper):
     rep = os.path.join(os.path.dirname(__file__), "fichiers/testscripts")
     # print("--------------repertoire de tests", rep)
     mapper.setvar("_test_path", rep)
-    mapper.setvar("log_print", "wARNING")
+    mapper.setvar("log_print", mapper.getvar("force_log","WARNING"))
 
     mapper.charge_cmd_internes(test="unittest")  # on charge les ressources
     try:

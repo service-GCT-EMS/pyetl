@@ -134,11 +134,8 @@ def geocode_traite_stock(regle, final=True):
 
 def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
-    if not regle.getvar("_testmode"):
-        LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
-        # print("geocodeur utilise ", regle.getvar("url_geocodeur"))
-        LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
-        # print("liste_filtres demandes", regle.params.cmp2.liste)
+    LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
+    LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
     regle.nbstock = 0
@@ -148,7 +145,6 @@ def h_geocode(regle):
     regle.liste_atts = []
     regle.scoremin = 0
     regle.filtres = dict(i.split(":") for i in regle.params.cmp2.liste)
-    #    regle.ageocoder = dict()
     regle.tinit = time.time()
     return True
 

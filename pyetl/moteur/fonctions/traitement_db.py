@@ -158,6 +158,7 @@ def h_dbalpha(regle):
             regle.chargeur = False
         #        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
+            regle.mods=regle.params.cmp1.liste
             return True
         regle.erreurs.append(
             "dbalpha: modificateurs non autorises seulement:"
@@ -857,16 +858,19 @@ def f_dbclean(regle, obj):
        #req_test||testdb
 
     """
-
     pass
 
 
 def h_dbselect(regle):
     """preparation selecteur"""
     nom_selecteur = regle.params.att_sortie.val
+    if nom_selecteur.startswith("#"):
+        nom_selecteur=nom_selecteur[1:]
     param_base(regle, nom=nom_selecteur)
-    # selecteur = regle.cible_base
+    selecteur=regle.cible_base
+        # selecteur = regle.cible_base
     regle.valide = "done"
+    return True
 
 
 def f_dbselect(regle, obj):
@@ -965,20 +969,34 @@ def f_setquery(regle, obj):
         return True
     return False
 
+def h_dbmap_qgs(regle):
+    """mapping statique de fichier qgis"""
+    regle.base = regle.code_classe[3:]
+    regle.nom_selecteur = regle.params.val_entree.val
+    if regle.nom_selecteur.startswith("#"):
+        regle.nom_selecteur=regle.nom_selecteur[1:]
+    regle.entree = regle.params.cmp1.val
+    regle.sortie = regle.params.cmp2.val
+    selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
+    # print ("mapping statique",selecteur,selecteur.resolve())
+    if selecteur and selecteur.resolve():
+        LOGGER.info("mapping qgis statique %s -> %s",selecteur.nom, regle.sortie)
+        adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
+        regle.valide="done"
+    return True
+
 
 def f_dbmap_qgs(regle, obj):
     """#aide||remappe des fichiers qgis pour un usage en local en prenant en comte un selecteur
+    #aide spec|| la base de destination est indiquee par db:defbasse en premiere colonne
+    #parametres||selecteur;;rep entree;rep sortie
     #pattern||;C;;dbmap_qgs;C;C
     """
     LOGGER.debug("dbmapqgs")
-    # print("====================dbmapqgs")
-    regle.base = regle.code_classe[3:]
-    nom_selecteur = regle.params.val_entree.val
-    entree = regle.params.cmp1.val
-    sortie = regle.params.cmp2.val
-    selecteur = regle.stock_param.namedselectors.get(nom_selecteur)
+    print("====================dbmapqgs")
+    selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
     if selecteur:
-        adapt_qgs_datasource(regle, obj, entree, selecteur, sortie)
+        adapt_qgs_datasource(regle, obj, regle.entree, selecteur, regle.sortie)
         return True
     else:
         return False
