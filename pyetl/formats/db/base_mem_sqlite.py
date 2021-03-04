@@ -231,11 +231,11 @@ class SqlmConnect(SqltConnect):
         print("fonction non definie", nom_fonction)
         return ""
 
-    def execrequest(self, requete, data, attlist=None):
+    def execrequest(self, requete, data, attlist=None, fail_silent=False):
         cur = self.get_cursinfo()
         #        print('sqlite:execution requete', requete)
         try:
-            cur.execute(requete, data, attlist=attlist)
+            cur.execute(requete, data, attlist=attlist, fail_silent=fail_silent)
             return cur
         except self.errs as err:
             #            err, =ee.args
@@ -248,7 +248,7 @@ class SqlmConnect(SqltConnect):
             return None
 
     def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
-        cur = self.execrequest(requete, data, attlist=attlist) if requete else None
+        cur = self.execrequest(requete, data, attlist=attlist, fail_silent=True) if requete else None
         if cur is None:
             return iter(())
 

@@ -888,13 +888,14 @@ def h_liste_selecteur(regle):
     regle.chargeur = True
     param_base(regle)
     regle.idclasse = None
-
+    if regle.params.pattern == "1":
+        regle.idclasse = tuple(regle.params.att_sortie.texte.split("."))
     if regle.cible_base:
+        print ("creation selecteur", regle.cible_base)
         return True
     regle.valide = False
     regle.erreurs = "selecteur invalide -"
-    if regle.params.pattern == "1":
-        regle.idclasse = tuple(regle.params.att_sortie.val.split("."))
+
 
 
 def f_liste_selecteur(regle, obj):
@@ -906,22 +907,26 @@ def f_liste_selecteur(regle, obj):
     #pattern2||=#obj;;;dblist;?C;
     #pattern3||;;;dblist;?C;
     """
-    selecteur = regle.cible_base
-    virtuel = regle.getlocal("virtuel") == "1"
+    selecteur = setdb(regle,obj)
+    virtuel = regle.getvar("virtuel") == "1"
     idclasse = regle.idclasse
     if regle.params.pattern == "2":
         idclasse = obj.ident
-    print("traitement liste selecteur", selecteur)
+    # print("traitement liste selecteur", selecteur)
     for i in selecteur.get_classes():
-        idsel, att, val = i
-        print(" lecture selecteur", i)
+        idbase, selinfo = i
+        idsel,description=selinfo
+        # print(" lecture selecteur",i,"->", idclasse,idsel)
+        nsel,csel= idsel
+        infos=(("#sel_base",idbase),("#sel_niveau",nsel),("#sel_classe",csel))
         niveau, classe = idclasse if idclasse else idsel
-        niveau, classe = i
+
         obj2 = Objet(
             niveau,
             classe,
             format_natif="interne",
             conversion="virtuel" if virtuel else None,
+            attributs=infos
         )
         obj2.initattr()
         try:
@@ -947,16 +952,33 @@ def f_setquery(regle, obj):
     """#aide||renseigne des champs par requete en base
     #aide_spec||cree des objets si multiple est specifie
     #schema||change_schema
-    #pattern1||S;;;dbset;C;?=multiple
+    #pattern1||S;?;?L;dbset;C;?=multiple
     #parametres||champs de sortie;dbset;requete;multiple
     """
     requete = regle.requete
+    if obj.virtuel:
+        return True
     if regle.dynrequete:
         niveau, classe = obj.ident
+        # print ("setquery:requetes dynamiques ", niveau,classe)
         requete = requete.replace("%#niveau", niveau)
         requete = requete.replace("%#classe", classe)
+        if "%#[" in requete:
+            findlist=re.findall(r"%#\[(.*?)\]",requete)
+            # print ("findlist", findlist, obj)
+            if findlist:
+                for i in findlist:
+                    valeur=obj.attributs.get(i.strip(),"")
+                    # print ("traitement",i,"->",valeur)
+                    requete=requete.replace("%#["+i+"]",valeur)
+            else:
+                LOGGER.warning(" no match %s", requete)
+
     data = regle.getlist_entree(obj)
-    liste = regle.connect.request(requete, data)
+    try:
+        liste = regle.connect.request(requete, data)
+    except regle.connect.errs:
+        return False
     if regle.multiple:
         for i in liste:
             obj2 = obj.dupplique()

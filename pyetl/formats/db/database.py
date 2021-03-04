@@ -123,6 +123,7 @@ class Cursinfo(object):
             except Exception as err:
                 if not fail_silent:
                     print(self.connecteur.base, "erreur requete", err, requete)
+                    raise
                 return None
             if not newcursor:
                 self.requete = requete
@@ -703,13 +704,13 @@ class DbConnect(object):
         )
         return schema_travail, liste2
 
-    def execrequest(self, requete, data=None, attlist=None, volume=0, nom=""):
+    def execrequest(self, requete, data=None, attlist=None, volume=0, nom="", fail_silent=True):
         """ lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom)
         #        cur.execute(requete, data=data, attlist=attlist)
 
         try:
-            retour = cur.execute(requete, data=data, attlist=attlist)
+            retour = cur.execute(requete, data=data, attlist=attlist, fail_silent=fail_silent)
             if retour is None:
                 return None
             return cur
@@ -724,7 +725,7 @@ class DbConnect(object):
 
     def request(self, requete, data=None, attlist=None):
         """ lancement requete et gestion retours"""
-        cur = self.execrequest(requete, data=data, attlist=attlist) if requete else None
+        cur = self.execrequest(requete, data=data, attlist=attlist, fail_silent=True) if requete else None
         if cur:
             liste = cur.fetchall()
             cur.close()

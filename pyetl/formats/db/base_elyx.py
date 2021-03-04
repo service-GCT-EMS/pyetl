@@ -685,7 +685,7 @@ class ElyConnect(ora.OrwConnect):
                 "ECHELLE_DISPARITION",
             ],
         )
-        LOGGER.info("%s: composants trouves %d", self.base, len(self.confs))
+        # LOGGER.info("%s: composants trouves %d", self.base, len(self.confs))
         # print("composants", len(self.confs))
         compos = self.menage_version(self.request(requete, ()), 1, 0, 2)
         compos = self.menage_version(list(compos.values()), 1, 3, 2)

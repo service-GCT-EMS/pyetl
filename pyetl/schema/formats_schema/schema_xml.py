@@ -367,7 +367,8 @@ def ecrire_schema_xml(
 
     if xml:
         os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
-        LOGGER.info("%s en xml : dans %s.xml", nomschema, os.path.join(rep, nomschema))
+        # taille=len(schema.classes)
+        LOGGER.info("%s en xml dans %s.xml", nomschema, os.path.join(rep, nomschema))
         # print(
         #     "schema: ecriture schema xml",
         #     nomschema,
