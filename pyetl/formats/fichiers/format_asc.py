@@ -409,10 +409,13 @@ def ecrire_entete_asc(obj) -> str:
         else:
             print(
                 "geometrie asc invalide ",
+                obj.ident,
                 id_num,
                 obj.attributs["#geom"],
                 obj.geom_v.erreurs,
-                obj,
+                obj.geom_v.type,
+                "<>",type_geom
+                # obj,
             )
             type_geom_sortie = ";5 "
 

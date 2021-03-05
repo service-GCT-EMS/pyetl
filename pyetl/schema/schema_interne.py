@@ -489,7 +489,7 @@ class Schema(object):
         return self.single_select(niveau, tables, 0, multi, nocase, neg)
 
     def select_niv_classe(
-        self, niveau, classe, attr, tables="A", multi=True, nocase=False
+        self, niveau, classe, attr, tables=None, multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
         # print("select_niv_classes", niveau, classe, attr, tables, multi)
@@ -503,7 +503,9 @@ class Schema(object):
         )
         # if niveau is None or classe is None:
         #     return []
-
+        if not tables:
+            tables={"A"}
+        tables="".join(tables)
         tables_a_sortir = set()
         exp_niv = niveau.strip() if niveau else ""
         exp_clas = classe.strip() if classe else ""
@@ -521,7 +523,7 @@ class Schema(object):
         if exp_clas and exp_clas[0] == "!":
             negclass = True
             exp_clas = exp_clas[1:]
-        if "*" in exp_clas:
+        if "*" in exp_clas or not exp_clas:
             lmulti = True
         if negniv or negclass:
             lmulti = True

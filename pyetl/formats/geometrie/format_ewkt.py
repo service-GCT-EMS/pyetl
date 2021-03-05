@@ -188,7 +188,11 @@ def geom_from_ewkt(obj):
             geom_from_ewkb(obj)
         else:
             _parse_ewkt(obj.geom_v, geom)
-        obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
+        try:
+            obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
+        except ValueError:
+            print ("conversion angle impossible",obj.attributs.get("#angle"))
+            obj.geom_v.angle = 0
         obj.finalise_geom(type_geom=geom_demandee)
     return obj.geom_v.valide
 

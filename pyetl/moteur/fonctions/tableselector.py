@@ -87,7 +87,7 @@ class TableBaseSelector(object):
         un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
         ou dynamique s il depend de l objet courant
         """
-        # print("ajout descripteur", self.base, descripteur)
+        print("ajout descripteur", self.base, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
 
@@ -110,7 +110,7 @@ class TableBaseSelector(object):
         if self.static:
             return
         mod = self.regle_ref.mods
-        # print("resolution statique", mod)
+        print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
         if self.base != "__filedb":
@@ -140,7 +140,7 @@ class TableBaseSelector(object):
                 return
         # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)
 
-        mod = mod.upper()
+        mod = [i.upper() for i in mod]
         # print("traitement descripteurs", self.descripteurs)
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
             if niveau == "#":
@@ -162,12 +162,13 @@ class TableBaseSelector(object):
 
     def add_classlist(self, niveau, classe, attr, valeur, fonction, mod, nobase=False):
         """transformation effective d un descripteur en liste de classes"""
+        mod = set(mod)
         multi = not ("=" in mod) and not "=" in fonction
-        mod = mod.replace("=", "")
+        mod = mod-{"="}
         nocase = "NOCASE" in mod
-        mod = mod.replace("NOCASE", "")
+        mod = mod-{"NOCASE"}
         if not mod:
-            mod = "A"
+            mod = {"A"}
         if nobase:
             classlist = [(niveau, classe)]
         else:

@@ -45,9 +45,9 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
     if mods:
-        regle.mods = regle.params.cmp1.val
+        regle.mods = regle.params.cmp1.liste
     else:
-        regle.mods = regle.context.getlocal("mods")
+        regle.mods = ",".split(regle.context.getlocal("mods"))
     fonction = "=" if "=" in regle.mods else ""
 
     if geo:
@@ -124,7 +124,7 @@ def setdb(regle, obj):
                 regle.setlocal("server", rep)
             # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
             baseselector.resolve(obj)
-            # print("selecteur", baseselector.schema_travail)
+            # print("setdb selecteur",regle, baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -438,6 +438,7 @@ def f_dbrequest(regle, obj):
     refobj = obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
+        print( "requete dynamique",regle.dynrequete,list(basesel.classlist()))
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
                 ident, att, *_ = definition
