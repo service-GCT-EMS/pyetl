@@ -55,10 +55,10 @@ def f_setliste(regle, obj):
 
 def f_setmatch_liste(regle, obj):
     """#aide||affectation d un attribut
-       #aide_spec||remplacement d'une valeur d'attribut par les valeurs retenues dans la selection
-       ||par expression regulieres (recupere les groupes de selections)
-       #pattern||M;;;set;=match;||sortie
-    #parametres||liste de sortie
+ #aide_spec1||remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection
+            ||par expression regulieres (recupere les groupes de selections)
+   #pattern1||M;;;set;=match;||sortie
+ #parametres||liste de sortie;=match;
        #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
        #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
     """
@@ -109,14 +109,14 @@ def h_setschema(regle):
 
 def f_setschema(regle, obj):
     """#aide||affectation d un schema en adaptant la casse des attributs du schema a l'objet
-     #aide_spec||change le schema de reference d'un objet
-    #parametres||#schema (mot clef);valeur par defaut;attribut d'entree;;
+    #parametres||;valeur par defaut;attribut d'entree;;
         #helper||setval
-      #pattern1||=#schema;?;?A;set;?=maj;||sortie
-    #aide_spec1||passe en majuscule
-      #pattern2||=#schema;?;?A;set;?=min;||sortie
-    #aide_spec2||passe en minuscule
-
+      #pattern1||=#schema;?;?A;set;=maj;||sortie
+    #aide_spec1||change le schema de reference d'un objet et passe en majuscule
+      #pattern2||=#schema;?;?A;set;=min;||sortie
+    #aide_spec2||change le schema de reference d'un objet et passe en minuscule
+      #pattern3||=#schema;?;?A;set;||sortie
+    #aide_spec3||change le schema de reference d'un objet
     """
     obj.attributs["#schema"] = regle.get_entree(obj)
     return True

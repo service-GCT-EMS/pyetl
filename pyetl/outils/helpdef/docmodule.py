@@ -88,6 +88,8 @@ def doc_pattern(pattern, description):
     patdesc = ";".join(description).split(";")
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
+        if i.startswith("="):
+            j=(j or i[1:]) + " (mot_clef)"
         val = " :  ".join((i, j + (" (optionnel)" if "?" in i else "")))
         retour.append(indent(val, 1))
         # retour.append(indent(i, 2))

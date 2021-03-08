@@ -266,54 +266,58 @@ set
 
 **syntaxes acceptees**
 
-+--------------+------------+------------+--------------+------------+--------------+
-|sortie        |defaut      |entree      |commande      |param1      |param2        |
-+==============+============+============+==============+============+==============+
-|=#geom        |?           |?A          |set           |C           |N             |
-+--------------+------------+------------+--------------+------------+--------------+
-| *cree une geometrie texte*                                                        |
-+--------------+------------+------------+--------------+------------+--------------+
-|S             |            |            |set           |=match      |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *remplacement d'une valeur d'attribut par les valeurs retenues dans la selection* |
-| *par expression regulieres (recupere toute la selection)*                         |
-+--------------+------------+------------+--------------+------------+--------------+
-|S             |?           |\|L         |set           |            |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *remplacement d'une valeur d'attribut par le premier non vide*                    |
-| *d'une liste avec defaut*                                                         |
-+--------------+------------+------------+--------------+------------+--------------+
-|S             |?           |?A          |set           |            |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *remplacement d'une valeur d'attribut avec defaut*                                |
-+--------------+------------+------------+--------------+------------+--------------+
-|P             |?           |?A          |set           |            |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *positionne une variable*                                                         |
-+--------------+------------+------------+--------------+------------+--------------+
-|M             |?LC         |?L          |set           |            |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *remplacement d'une liste de valeurs d'attribut avec defaut*                      |
-+--------------+------------+------------+--------------+------------+--------------+
-|M             |            |            |set           |=match      |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *remplacement d'une valeur d'attribut par les valeurs retenues dans la selection* |
-| *par expression regulieres (recupere les groupes de selections)*                  |
-+--------------+------------+------------+--------------+------------+--------------+
-|S             |            |NC:         |set           |            |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *fonction de calcul libre (attention injection de code)*                          |
-| * les attributs doivent etre précédes de N: pour un traitement numerique*         |
-| * ou C: pour un traitement alpha*                                                 |
-+--------------+------------+------------+--------------+------------+--------------+
-|=#schema      |?           |?A          |set           |?=maj       |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *passe en majuscule*                                                              |
-+--------------+------------+------------+--------------+------------+--------------+
-|=#schema      |?           |?A          |set           |?=min       |              |
-+--------------+------------+------------+--------------+------------+--------------+
-| *passe en minuscule*                                                              |
-+--------------+------------+------------+--------------+------------+--------------+
++----------------+--------------+--------------+----------------+--------------+----------------+
+|sortie          |defaut        |entree        |commande        |param1        |param2          |
++================+==============+==============+================+==============+================+
+|=#geom          |?             |?A            |set             |C             |N               |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *cree une geometrie texte*                                                                    |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|S               |              |              |set             |=match        |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *remplacement d'une valeur d'attribut par les valeurs retenues dans la selection*             |
+| *par expression regulieres (recupere toute la selection)*                                     |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|S               |?             |\|L           |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *remplacement d'une valeur d'attribut par le premier non vide*                                |
+| *d'une liste avec defaut*                                                                     |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|S               |?             |?A            |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *remplacement d'une valeur d'attribut avec defaut*                                            |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|P               |?             |?A            |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *positionne une variable*                                                                     |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|M               |?LC           |?L            |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *remplacement d'une liste de valeurs d'attribut avec defaut*                                  |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|S               |              |NC:           |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *fonction de calcul libre (attention injection de code)*                                      |
+| * les attributs doivent etre précédes de N: pour un traitement numerique*                     |
+| * ou C: pour un traitement alpha*                                                             |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|=#schema        |?             |?A            |set             |=maj          |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *change le schema de reference d'un objet et passe en majuscule*                              |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|M               |              |              |set             |=match        |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection*   |
+| *par expression regulieres (recupere les groupes de selections)*                              |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|=#schema        |?             |?A            |set             |=min          |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *change le schema de reference d'un objet et passe en minuscule*                              |
++----------------+--------------+--------------+----------------+--------------+----------------+
+|=#schema        |?             |?A            |set             |              |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *change le schema de reference d'un objet*                                                    |
++----------------+--------------+--------------+----------------+--------------+----------------+
 
 
    S :  attribut resultat
@@ -424,7 +428,7 @@ sub
    re :  expression de selection
    ?re :  expression de substitution (optionnel)
 
-maxsub:nombre maxi de substitutions
+maxsub: nombre maxi de substitutions (variable locale)
 
 
 .. index::
@@ -464,7 +468,7 @@ supp
 +--------+------+--------+--------+------+--------+
 
 
-   =#geom :  #geom (mot clef)
+   =#geom :  #geom (mot clef) (mot_clef)
 
 
 
@@ -777,6 +781,31 @@ dblast
 
 
 .. index::
+  double: .traitement_db;dblist
+
+dblist
+......
+
+   cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
+
+   cree des objets reels par defaut sauf si on mets la variable virtuel a 1
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A.C   |      |      |dblist  |?C    |        |
++------+------+------+--------+------+--------+
+|=#obj |      |      |dblist  |?C    |        |
++------+------+------+--------+------+--------+
+|      |      |      |dblist  |?C    |        |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_db;dbmap_qgs
 
 dbmap_qgs
@@ -793,6 +822,11 @@ dbmap_qgs
 |      |C     |      |dbmap_qgs|C     |C       |
 +------+------+------+---------+------+--------+
 
+
+   C :  selecteur
+   dbmap_qgs :  
+   C :  rep entree
+   C :  rep sortie
 
 
 
@@ -826,7 +860,6 @@ dbreq
 
    recuperation d'objets depuis une requete sur la base de donnees
 
-   db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination
    si la requete contient %#niveau ou %#classe la requete est passee sur chaque
    classe du selecteur en substituant les variables par la classe courante
    sinon elle est passee une fois pour chaque base du selecteur
@@ -834,20 +867,25 @@ dbreq
 
 **syntaxes acceptees**
 
-+--------------+--------------+--------------+----------------+--------------+----------------+
-|sortie        |defaut        |entree        |commande        |param1        |param2          |
-+==============+==============+==============+================+==============+================+
-|?A            |?             |?L            |dbreq           |C             |?A.C            |
-+--------------+--------------+--------------+----------------+--------------+----------------+
-| *db:base;niveau;classe;attr;att_sortie;valeurs;champ a integrer;dbreq;requete;destination*  |
-| *si la requete contient %#niveau ou %#classe la requete est passee sur chaque*              |
-| *classe du selecteur en substituant les variables par la classe courante*                   |
-| *sinon elle est passee une fois pour chaque base du selecteur*                              |
-| *les variables %#base et %#attr sont egalement substituees*                                 |
-+--------------+--------------+--------------+----------------+--------------+----------------+
-|?A            |?             |?L            |dbreq           |C             |?A              |
-+--------------+--------------+--------------+----------------+--------------+----------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |?     |?L    |dbreq   |C     |?A.C    |
++------+------+------+--------+------+--------+
+|?A    |?     |?L    |dbreq   |C     |?A      |
++------+------+------+--------+------+--------+
+|      |      |=#    |dbreq   |C     |?A      |
++------+------+------+--------+------+--------+
+|      |      |=#    |dbreq   |C     |?A.C    |
++------+------+------+--------+------+--------+
 
+
+   ?A :  att_sortie (optionnel)
+   ? :  valeurs (optionnel)
+   ?L :  champ a integrer (optionnel)
+   dbreq :  dbreq
+   C :  requete
+   ?A.C :  destination (optionnel)
 
 
 
@@ -900,6 +938,32 @@ dbselect
 
 
 .. index::
+  double: .traitement_db;dbset
+
+dbset
+.....
+
+   renseigne des champs par requete en base
+
+   cree des objets si multiple est specifie
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+----------+
+|sortie|defaut|entree|commande|param1|param2    |
++======+======+======+========+======+==========+
+|S     |?     |?L    |dbset   |C     |?=multiple|
++------+------+------+--------+------+----------+
+
+
+   S :  champs de sortie
+   ? :  dbset (optionnel)
+   ?L :  requete (optionnel)
+   dbset :  multiple
+
+
+
+.. index::
   double: .traitement_db;dbtmp
 
 dbtmp
@@ -945,7 +1009,7 @@ dbupdate
 dbwrite
 .......
 
-   chargement en base de donnees
+   chargement en base de donnees en bloc
 
 
 **syntaxes acceptees**
@@ -1127,7 +1191,7 @@ log
    ?L :  attributs en entree (optionnel)
    log :  
    C :  message
-   =WARN :  niveau
+   =WARN :  niveau (mot_clef)
 
 
 
@@ -2604,15 +2668,23 @@ schema
 
    cree un schema par analyse des objets et l'associe a un objet
 
+   la variable taux_conformite permet de definir me taux minimum d'objets renseignes
 
 **syntaxes acceptees**
 
-+---------+------+------+--------+------+--------+
-|sortie   |defaut|entree|commande|param1|param2  |
-+=========+======+======+========+======+========+
-|=#schema?|      |      |schema  |C?    |?N      |
-+---------+------+------+--------+------+--------+
++----------------+-------------+-------------+---------------+-------------+---------------+
+|sortie          |defaut       |entree       |commande       |param1       |param2         |
++================+=============+=============+===============+=============+===============+
+|=#schema?       |             |             |schema         |C?           |?N             |
++----------------+-------------+-------------+---------------+-------------+---------------+
+| *la variable taux_conformite permet de definir me taux minimum d'objets renseignes*      |
++----------------+-------------+-------------+---------------+-------------+---------------+
 
+
+   =#schema? :  applique le shema a l objet (mot_clef) (optionnel)
+   schema :  schema
+   C? :  nom (optionnel)
+   ?N :  nombre max de valeurs d enum (30) (optionnel)
 
 
 
@@ -2629,6 +2701,8 @@ set_schema
     alias : commentaire de la table
     dimension : dimension geometrique
     no_multiple : transforme les attributs multiples en simple
+    stable : declare un schema stable
+    instable declare un schema instable
 
 **syntaxes acceptees**
 
@@ -2642,6 +2716,8 @@ set_schema
 | * alias : commentaire de la table*                              |
 | * dimension : dimension geometrique*                            |
 | * no_multiple : transforme les attributs multiples en simple*   |
+| * stable : declare un schema stable*                            |
+| * instable declare un schema instable*                          |
 +---------+---------+---------+-------------+---------+-----------+
 |C        |?C       |A        |set_schema   |         |           |
 +---------+---------+---------+-------------+---------+-----------+
@@ -2751,7 +2827,7 @@ geoselect
    ?LC :  valeurs recuperees (optionnel)
    ?L :  attributs contenant (optionnel)
    geoselect :  
-   =in :  
+   =in :  in (mot_clef)
    C :  nom memoire
 
 

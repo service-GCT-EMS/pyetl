@@ -12,7 +12,7 @@ start = os.path.dirname(__file__)
 
 def scandirs(rep_depart, chemin):
     """parcours recursif d'un repertoire."""
-    exclude = {".git", ".vscode", "__pycache__"}
+    exclude = {".git", ".vscode", "__pycache__","venv"}
 
     path = os.path.join(rep_depart, chemin)
     # print("recherche", path)
@@ -70,7 +70,7 @@ def update_build(build="BUILD =", file="vglobales.py",orig=start):
 def zipall(orig=start,nv=""):
     name="mapper"+nv+".zip"
     with zipfile.ZipFile(
-        name, "w", compression=zipfile.ZIP_BZIP2
+        name, "w", compression=zipfile.ZIP_DEFLATED
     ) as zip:
         os.chdir(orig)
         for (fichier, chemin) in scandirs(".", ""):

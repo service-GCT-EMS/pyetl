@@ -13,10 +13,16 @@ def decription_pattern(pattern, description):
     """formatte la description des parametres d'entree"""
     patdef = pattern.split(";")
     patdesc = ";".join(description).split(";")
-    retour = [
-        "%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else ""))
-        for i, j in zip([i for i in patdef if i], patdesc)
-    ]
+    retour = []
+    for i, j in zip([i for i in patdef if i], patdesc):
+        if i.startswith("="):
+            j=(j or i[1:]) + " (mot_clef)"
+        retour.append("%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else "")))
+
+    # retour = [
+    #     "%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else ""))
+    #     for i, j in zip([i for i in patdef if i], patdesc)
+    # ]
     # print ('description',[i for i in patdef if i], patdesc,retour)
     return retour
 
