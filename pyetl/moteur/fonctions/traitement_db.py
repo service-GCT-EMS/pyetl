@@ -8,6 +8,7 @@ import logging
 import glob
 # from pyetl.formats.db.database import DbConnect
 import re
+import datetime
 
 from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
@@ -629,12 +630,13 @@ def f_dbextdump(regle, obj):
 
 def dbwritebloc(regle):
     """ecrit un bloc en base"""
-    if not regle.connect:
+    connect=regle.connect
+    if not connect:
         connect = regle.stock_param.getdbaccess(regle, regle.base)
         if connect is None:
             LOGGER.error("connection impossible a la base %s", regle.base)
             raise StopIteration(2)
-        schema=regle.schema
+    schema=regle.schema
     connect.dbload(schema, regle.dident, regle.tmpstore)
     regle.nbstock=0
     regle.traite+=len(regle.tmpstore)
@@ -889,10 +891,12 @@ def h_liste_selecteur(regle):
     regle.chargeur = True
     param_base(regle)
     regle.idclasse = None
+    regle.metas="#meta" in regle.params.cmp1.val
+    regle.infos="#infos" in regle.params.cmp1.val
     if regle.params.pattern == "1":
         regle.idclasse = tuple(regle.params.att_sortie.texte.split("."))
     if regle.cible_base:
-        print ("creation selecteur", regle.cible_base)
+        # print ("creation selecteur", regle.cible_base)
         return True
     regle.valide = False
     regle.erreurs = "selecteur invalide -"
@@ -901,8 +905,11 @@ def h_liste_selecteur(regle):
 
 def f_liste_selecteur(regle, obj):
     """#aide||cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
-    #aide_spec||liste_schema;nom;?reel
+    #parametres1||idclasse resultante;;#meta et/ou #infos pour inclure les elements dans l objet
+    #parametres2||;;#meta et/ou #infos pour inclure les elements dans l objet
+    #parametres3||;#meta et/ou #infos pour inclure les elements dans l objet
     #aide_spec||cree des objets reels par defaut sauf si on mets la variable virtuel a 1
+    #aide_spec3||creee un objet par classe
     #schema||change_schema
     #pattern1||A.C;;;dblist;?C;
     #pattern2||=#obj;;;dblist;?C;
@@ -919,7 +926,12 @@ def f_liste_selecteur(regle, obj):
         idsel,description=selinfo
         # print(" lecture selecteur",i,"->", idclasse,idsel)
         nsel,csel= idsel
-        infos=(("#sel_base",idbase),("#sel_niveau",nsel),("#sel_classe",csel))
+        infos={"#sel_base":idbase,"#sel_niveau":nsel,"#sel_classe":csel}
+        if regle.metas:
+            infos.update(selecteur.baseselectors[idbase].schemabase.metas)
+        if regle.infos:
+            infos.update(selecteur.baseselectors[idbase].schemabase.infos)
+
         niveau, classe = idclasse if idclasse else idsel
 
         obj2 = Objet(
@@ -948,12 +960,24 @@ def h_setquery(regle):
     regle.multiple = regle.params.cmp2.val
     regle.valide = bool(regle.connect)
 
+def dataconverter(liste):
+    """formatage de donnees"""
+    result=[]
+    for i in liste:
+        if isinstance(i,datetime.datetime):
+            val=i.isoformat()
+        elif i:
+            val=str(i)
+        else:
+            val=""
+        result.append(val)
+    return result
 
 def f_setquery(regle, obj):
     """#aide||renseigne des champs par requete en base
     #aide_spec||cree des objets si multiple est specifie
     #schema||change_schema
-    #pattern1||S;?;?L;dbset;C;?=multiple
+    #pattern1||M;?;?L;dbset;C;?=multiple
     #parametres||champs de sortie;dbset;requete;multiple
     """
     requete = regle.requete
@@ -983,12 +1007,15 @@ def f_setquery(regle, obj):
     if regle.multiple:
         for i in liste:
             obj2 = obj.dupplique()
-            regle.setval_sortie(obj2, i)
+            result=dataconverter(i)
+            regle.setval_sortie(obj2, result)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         obj.attributs["#nb_lignes"] = len(liste)
         return len(liste)
     if liste:
-        regle.setval_sortie(obj, liste[0])
+        result=dataconverter(liste[0] if liste else [])
+        regle.setval_sortie(obj, result)
+        print ("recup_requete", result)
         return True
     return False
 

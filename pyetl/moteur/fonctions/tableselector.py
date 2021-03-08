@@ -87,7 +87,7 @@ class TableBaseSelector(object):
         un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
         ou dynamique s il depend de l objet courant
         """
-        print("ajout descripteur", self.base, descripteur)
+        # print("ajout descripteur", self.base, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
 

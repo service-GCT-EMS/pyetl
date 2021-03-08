@@ -536,7 +536,6 @@ class DbConnect(object):
             # num_attribut = float(atd.num_attribut)
             if atd.nom_attr.startswith("#"):  # attribut hors schema
                 print(" attribut hors schema", atd, classe)
-                raise
                 continue
             type_ref = atd.type_attr
             if not atd.type_attr:
@@ -837,8 +836,8 @@ class DbConnect(object):
         attlist2 = []
         for i in attlist:
             att = schema.attributs[i]
-            if att.type_att == "X":
-                attlist2.append("")
+            # if att.type_att == "X":
+            #     attlist2.append("")
             if att.type_att == "D":
                 attlist2.append(self.get_dateformat(self.quote(i)))
             else:
