@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "venv\\Scripts\\python.exe",
+    "python.pythonPath": "c:\\dev\\mapper\\env_mapper\\Scripts\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.enabled": false,
     "python.linting.pylintEnabled": true,

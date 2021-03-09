@@ -71,7 +71,7 @@ class ScriptList(object):
         if nom_script.startswith("#"):
             macro = self.mapper.getmacro(nom_script)
             script = [i[1] for i in macro.get_commands()]
-            params = macro.posparams
+            params = macro.parametres_pos
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             script = open(fpath, "r").readlines()
