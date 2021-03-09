@@ -592,7 +592,7 @@ def fichs_schema(racine):
 
 
 def lire_schema_csv(
-    mapper, nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None
+    mapper, nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None, racine=None
 ):
     """lit un schema complet en csv"""
     if schema is None:
@@ -600,10 +600,17 @@ def lire_schema_csv(
         schema = mapper.init_schema(nom, origine="L")
 
     fichier_conf = "_".join((fichier, "enumerations.csv"))
+    if racine and not os.path.exists(fichier_conf):
+        # cas particulier d un seul fichier de conf pour plusieurs tables
+        fichier_conf = "_".join((racine, "enumerations.csv"))
+
     fichier_classes = "_".join((fichier, "classes.csv"))
     mapping = "_".join((fichier, "mapping.csv"))
     # modifications manuelles du schema
     complements_conf = "_".join((fichier, "complements_enumerations.csv"))
+    if racine and not os.path.exists(complements_conf):
+        # cas particulier d un seul fichier de conf pour plusieurs tables
+        complements_conf = "_".join((racine, "complements_enumerations.csv"))
     complements_classe = "_".join((fichier, "complements_classes.csv"))
     complements_mapping = "_".join((fichier, "complements_mapping.csv"))
     # on lit d'abord les mappings pour voir s'il faut rectifier les schemas en entree

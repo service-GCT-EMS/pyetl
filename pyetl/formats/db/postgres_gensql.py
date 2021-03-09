@@ -571,7 +571,10 @@ class PgrGenSql(DbGenSql):
         """ genere le sql de creation de table """
         schema = self.schema
         # contraintes de clef etrangeres : on les fait a la fin pour que toutes les tables existent
-
+        autoserial=True
+        refcontext=self.regle_ref if self.regle_ref else self.stock_param
+        if refcontext:
+            autoserial=not refcontext.getvar("autoserial")=="0"
         classe = schema.classes[ident]
         pkey = classe.getpkey
         groupe, nom = self.get_nom_base(ident)
@@ -630,7 +633,7 @@ class PgrGenSql(DbGenSql):
                     attype = "T"
             #            print ('conv type_attribut',attname,attype,schema.conformites.keys())
 
-            if re.search(r"^t[0-9]+$", attype):
+            if re.search(r"^t[0-9]+$", str(attype)):
                 attype = "T"
             if re.search(r"^e[1-6]s*$", attype):
                 attype = "E"
@@ -653,7 +656,7 @@ class PgrGenSql(DbGenSql):
                     ):
                         seq = True
 
-            if pkey == attname:
+            if pkey == attname and autoserial:
                 if (
                     self.types_db.get(attype) == "integer"
                     or self.types_db.get(attype) == "bigint"
@@ -711,11 +714,11 @@ class PgrGenSql(DbGenSql):
 
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
-                if seq or pkey == attribut.nom and not self.basic:
+                if seq and not self.basic:
                     attype = "S"
                     defaut = ""
             elif self.types_db.get(attype) == "bigint":
-                if seq or pkey == attribut.nom and not self.basic:
+                if seq and not self.basic:
                     attype = "BS"
                     defaut = ""
             if attype not in self.types_db and not nomconf:
@@ -922,7 +925,7 @@ class PgrGenSql(DbGenSql):
         )
 
         cretables = [idschema, self._setrole()]
-        if not self.basic or refcontext.getvar("sql_nofunc")=="1":
+        if not self.basic or (refcontext and refcontext.getvar("sql_nofunc")=="1"):
             # print ("pas de sortie des fonctions",refcontext.getvar("sql_nofunc"))
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"

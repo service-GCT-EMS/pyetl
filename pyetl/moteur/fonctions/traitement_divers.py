@@ -196,6 +196,9 @@ def h_sortir(regle):
     """preparation sortie"""
     regle.writerparms = dict()
     regle.ressource = None
+    regle.writerparms["newlines"]=None
+    if regle.getvar("newlines"):
+        regle.writerparms["newlines"] = regle.getvar("newlines")
     regle.writerparms["fanout"] = regle.context.getvar("fanout", "groupe")
     if (
         regle.params.att_sortie.val == "#schema"

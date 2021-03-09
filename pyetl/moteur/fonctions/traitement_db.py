@@ -48,7 +48,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     if mods:
         regle.mods = regle.params.cmp1.liste
     else:
-        regle.mods = ",".split(regle.context.getlocal("mods"))
+        regle.mods = regle.context.getlocal("mods").split(",")
     fonction = "=" if "=" in regle.mods else ""
 
     if geo:
@@ -439,7 +439,7 @@ def f_dbrequest(regle, obj):
     refobj = obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
-        print( "requete dynamique",regle.dynrequete,list(basesel.classlist()))
+        # print( "requete dynamique",regle.dynrequete,list(basesel.classlist()))
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
                 ident, att, *_ = definition

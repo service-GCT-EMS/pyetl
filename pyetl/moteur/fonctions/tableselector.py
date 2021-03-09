@@ -110,7 +110,7 @@ class TableBaseSelector(object):
         if self.static:
             return
         mod = self.regle_ref.mods
-        print("resolution statique", mod)
+        # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
         if self.base != "__filedb":

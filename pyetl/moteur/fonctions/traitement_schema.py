@@ -302,13 +302,11 @@ def h_def_schema(regle):
     else:
         lire_schema_xml(regle.stock_param, nom, regle.fichier, cod=cod)
     regle.nomschema = nom
-    LOGGER.info(
-        "lecture schema "
-        + nom
-        + ":"
-        + str(len(regle.stock_param.schemas[nom].classes))
-        + "classes"
-    )
+    taille_schema= len(regle.stock_param.schemas[nom].classes)
+    if taille_schema>0:
+        LOGGER.info("lecture schema %s:%d classes",nom,taille_schema)
+    else:
+        regle.valide=False
 
     regle.remap = regle.params.att_entree.val == "map"
 

@@ -74,32 +74,40 @@ def lire_schemas_multiples(
         if fusion is None:
             fusion = False
     rep = str(rep)
-    for element in os.listdir(rep):
-        #            print ('examen ',element ,racine)
-        if racine in element.lower():
-            ext = os.path.splitext(element)[1]
-            if "classes" in element and ext == ".csv":
-                LOGGER.info("lecture %s %s",racine,element)
-                # print("schema:lecture ", element, racine, os.path.splitext(element))
-                element_modif = "_".join(element.split("_")[:-1])
-                fichier = os.path.join(rep, element_modif)
-                fusion_schema(
-                    nom,
-                    schema,
-                    lire_schema_csv(
-                        mapper,
-                        "",
-                        fichier,
-                        mode_alias,
-                        cod=cod_csv,
-                        specifique=specifique,
-                    ),
-                )
-            elif ext == ".xml":
-                fusion_schema(
-                    nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv)
-                )
-    schema.map_classes()
+    try:
+        for element in os.listdir(rep):
+            # print ('examen ',element ,racine)
+            if racine in element.lower():
+                ext = os.path.splitext(element)[1]
+                if "classes" in element and ext == ".csv":
+                    LOGGER.info("lecture %s -> "+element,racine)
+                    # print("schema:lecture ", element, racine, os.path.splitext(element))
+                    element_modif = "_".join(element.split("_")[:-1])
+                    fichier = os.path.join(rep, element_modif)
+                    full_racine=os.path.join(rep,racine)
+                    fusion_schema(
+                        nom,
+                        schema,
+                        lire_schema_csv(
+                            mapper,
+                            "",
+                            fichier,
+                            mode_alias,
+                            cod=cod_csv,
+                            specifique=specifique,
+                            racine=full_racine
+                        ),
+                    )
+                elif ext == ".xml":
+                    fusion_schema(
+                        nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv)
+                    )
+        schema.map_classes()
+    except FileNotFoundError:
+        LOGGER.error("chemin introuvable %s",rep)
+    except PermissionError:
+        LOGGER.error("chemin non autorise %s",rep)
+
     if schema.classes:
         LOGGER.info("classes totales %d",len(schema.classes))
         # print("schema:classes totales", len(schema.classes), cod)
