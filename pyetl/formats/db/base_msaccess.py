@@ -184,7 +184,7 @@ class AccConnect(DbConnect):
             print("erreur requete geometrique impossible", requete)
             return iter(())
         try:
-            cur = self.execrequest(requete, data, attlist=attlist)
+            cur = self.execrequest(requete, data, attlist=attlist ,fail_silent=True)
             if cur:
                 return cur
         except OdbcError as err:

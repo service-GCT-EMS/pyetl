@@ -284,7 +284,7 @@ class MysqlConnect(DbConnect):
         """definition d'une condition geometrique"""
         return ""
 
-    def execrequest(self, requete, data, attlist=None):
+    def execrequest(self, requete, data, attlist=None, fail_silent=True):
         """passage de la requete sur la base"""
         cur = self.get_cursinfo()
         try:

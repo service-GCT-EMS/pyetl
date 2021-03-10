@@ -242,7 +242,7 @@ class SqltConnect(DbConnect):
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
+    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom="", fail_silent=True):
         cur = self.execrequest(requete, data, attlist=attlist) if requete else None
         cur.decile = 1
         if cur is None:

@@ -12,7 +12,7 @@ start = os.path.dirname(__file__)
 
 def scandirs(rep_depart, chemin):
     """parcours recursif d'un repertoire."""
-    exclude = {".git", ".vscode", "__pycache__","venv"}
+    exclude = {".git", ".vscode", "__pycache__","venv","install"}
 
     path = os.path.join(rep_depart, chemin)
     # print("recherche", path)

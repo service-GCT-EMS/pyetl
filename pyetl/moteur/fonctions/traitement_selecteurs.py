@@ -131,13 +131,18 @@ def selh_infich(selecteur):
         taille=len(selecteur.params.attr.liste),
     )
     # print("recup_selecteur", mode, valeurs)
-    taille_id = max([len(i[0].split(".")) for i in valeurs])
     if mode == "in_s":
-        selecteur.info = set(i[0] for i in valeurs)
         selecteur.dyn = False
-        selecteur.taille = taille_id
+        if valeurs:
+            taille_id = max([len(i[0].split(".")) for i in valeurs])
+            selecteur.info = set(i[0] for i in valeurs)
+            selecteur.taille = taille_id
+        else:
+            selecteur.info={}
+            selecteur.taille=0
     else:
         selecteur.dyn = True
+
 
 
 #    print ('selecteur liste fich charge ',selecteur.info)

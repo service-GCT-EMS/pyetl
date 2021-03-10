@@ -221,7 +221,7 @@ class TableBaseSelector(object):
         les elements dynamiques sont resolus a partir des champs de l objet courant"""
         mod = self.regle_ref.mods
         # print("resolve dyn :regleref mod", mod)
-        mod = mod.upper()
+        mod = [i.upper() for i in mod]
         if obj is None and self.dyndescr:
             # print("elements dynamiques", self.dyndescr)
             return False
