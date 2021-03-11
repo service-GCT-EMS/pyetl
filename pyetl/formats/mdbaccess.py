@@ -529,8 +529,9 @@ def lire_requete(
     regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None
 ):
     """lecture directe"""
-    # print ("---lire_requete dest:",ident)
-    # print ("---lire_requete req:",requete)
+    # print("---lire_requete dest:", ident, regle_courante.debug, regle_courante)
+    if regle_courante.debug:
+        print("-------lire_requete req:", requete)
     # print ("---lire_requete obj:",obj)
     niveau, classe = ident
     if not classe and obj and obj.classe != "_declencheur":

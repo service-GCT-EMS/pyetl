@@ -6,6 +6,7 @@ fonctions de manipulation d'attributs
 import os
 import logging
 import glob
+
 # from pyetl.formats.db.database import DbConnect
 import re
 import datetime
@@ -24,7 +25,6 @@ def getbase(regle):
     """recuper le code base our les ecritures"""
     regle.base = regle.code_classe[3:]
     return regle.base
-
 
 
 def param_base(regle, nom="", geo=False, req=False, mods=True):
@@ -46,11 +46,10 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     att = regle.v_nommees["val_sel2"]
     vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
     if mods:
-        regle.mods = regle.params.cmp1.liste
+        regle.mods = regle.params.cmp1.val
     else:
-        regle.mods = regle.context.getlocal("mods").split(",")
+        regle.mods = regle.context.getlocal("mods")
     fonction = "=" if "=" in regle.mods else ""
-
     if geo:
         fonction = att
         att = ""
@@ -104,28 +103,29 @@ def setdb(regle, obj):
     # print("acces base", regle.cible_base.keys())
     selecteur = regle.cible_base
     if selecteur:
-        for base in selecteur.baseselectors:
-            baseselector = selecteur.baseselectors[base]
-            if (
-                base == "*" and obj.attributs["#groupe"] == "__filedb"
-            ):  # acces a une base fichier
-                chemin = obj.attributs["#chemin"]
-                rep = obj.attributs["#racine"]
-                nombase = obj.attributs["#nombase"]
-                if not base:
-                    base = obj.attributs["#base"]
-                # base = nombase
-                type_base = obj.attributs["#type_base"]
-                baseselector.type_base = type_base
-                baseselector.chemin = chemin
-                baseselector.racine = rep
-                baseselector.nombase = nombase
-                regle.setlocal("base", nombase)
-                regle.setlocal("db", type_base)
-                regle.setlocal("server", rep)
-            # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
-            baseselector.resolve(obj)
-            # print("setdb selecteur",regle, baseselector.schema_travail)
+        selecteur.resolve(obj)
+        # for base in selecteur.baseselectors:
+        #     baseselector = selecteur.baseselectors[base]
+        #     if (
+        #         base == "*" and obj.attributs["#groupe"] == "__filedb"
+        #     ):  # acces a une base fichier
+        #         chemin = obj.attributs["#chemin"]
+        #         rep = obj.attributs["#racine"]
+        #         nombase = obj.attributs["#nombase"]
+        #         if not base:
+        #             base = obj.attributs["#base"]
+        #         # base = nombase
+        #         type_base = obj.attributs["#type_base"]
+        #         baseselector.type_base = type_base
+        #         baseselector.chemin = chemin
+        #         baseselector.racine = rep
+        #         baseselector.nombase = nombase
+        #         regle.setlocal("base", nombase)
+        #         regle.setlocal("db", type_base)
+        #         regle.setlocal("server", rep)
+        #     # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
+        #     baseselector.resolve(obj)
+        #     print("setdb selecteur", regle, baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -159,7 +159,7 @@ def h_dbalpha(regle):
             regle.chargeur = False
         #        regle.stock_param.gestion_parallel_load(regle)
         if valide_dbmods(regle.params.cmp1.liste):
-            regle.mods=regle.params.cmp1.liste
+            regle.mods = regle.params.cmp1.liste
             return True
         regle.erreurs.append(
             "dbalpha: modificateurs non autorises seulement:"
@@ -439,7 +439,7 @@ def f_dbrequest(regle, obj):
     refobj = obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
-        # print( "requete dynamique",regle.dynrequete,list(basesel.classlist()))
+        # print("requete dynamique", regle.dynrequete, list(basesel.classlist()))
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
                 ident, att, *_ = definition
@@ -628,20 +628,20 @@ def f_dbextdump(regle, obj):
         DB.dbextdump(regle, base, baseselector, dest=dest, log=log)
     return True
 
+
 def dbwritebloc(regle):
     """ecrit un bloc en base"""
-    connect=regle.connect
+    connect = regle.connect
     if not connect:
         connect = regle.stock_param.getdbaccess(regle, regle.base)
         if connect is None:
             LOGGER.error("connection impossible a la base %s", regle.base)
             raise StopIteration(2)
-    schema=regle.schema
+    schema = regle.schema
     connect.dbload(schema, regle.dident, regle.tmpstore)
-    regle.nbstock=0
-    regle.traite+=len(regle.tmpstore)
-    regle.tmpstore=[]
-
+    regle.nbstock = 0
+    regle.traite += len(regle.tmpstore)
+    regle.tmpstore = []
 
 
 def h_dbwrite(regle):
@@ -652,14 +652,13 @@ def h_dbwrite(regle):
     regle.traite = 0
     regle.traite_stock = dbwritebloc
     regle.tmpstore = []
-    regle.connect=None
+    regle.connect = None
     regle.colonnes = None
-    regle.dident=None
+    regle.dident = None
     if not getbase(regle):
         LOGGER.error("base non definie")
         return False
     return True
-
 
 
 def f_dbwrite(regle, obj):
@@ -669,19 +668,22 @@ def f_dbwrite(regle, obj):
     #req_test||testdb
     """
     ident = obj.ident
-    if regle.dident!=ident:
+    if regle.dident != ident:
         regle.traite_stock()
-        regle.dident=ident
-        regle.liste_att=tuple((i for i in obj.schema.get_liste_attributs()))
-        regle.colonnes=regle.liste_att+("geometrie",) if obj.schema.type_geom != "0" else regle.liste_att
-        regle.has_geom=obj.schema.type_geom != "0"
-    if regle.nbstock>=regle.blocksize:
+        regle.dident = ident
+        regle.liste_att = tuple((i for i in obj.schema.get_liste_attributs()))
+        regle.colonnes = (
+            regle.liste_att + ("geometrie",)
+            if obj.schema.type_geom != "0"
+            else regle.liste_att
+        )
+        regle.has_geom = obj.schema.type_geom != "0"
+    if regle.nbstock >= regle.blocksize:
         regle.traite_stock()
-    ligne=tuple((obj.attributs[i]) for i in regle.liste_att)
+    ligne = tuple((obj.attributs[i]) for i in regle.liste_att)
     if regle.has_geom:
-        ligne=ligne+obj.geometrie
+        ligne = ligne + obj.geometrie
     regle.tmpstore.append(ligne)
-
 
 
 def f_dbupdate(regle, obj):
@@ -868,10 +870,10 @@ def h_dbselect(regle):
     """preparation selecteur"""
     nom_selecteur = regle.params.att_sortie.val
     if nom_selecteur.startswith("#"):
-        nom_selecteur=nom_selecteur[1:]
+        nom_selecteur = nom_selecteur[1:]
     param_base(regle, nom=nom_selecteur)
-    selecteur=regle.cible_base
-        # selecteur = regle.cible_base
+    selecteur = regle.cible_base
+    # selecteur = regle.cible_base
     regle.valide = "done"
     return True
 
@@ -891,8 +893,8 @@ def h_liste_selecteur(regle):
     regle.chargeur = True
     param_base(regle)
     regle.idclasse = None
-    regle.metas="#meta" in regle.params.cmp1.val
-    regle.infos="#infos" in regle.params.cmp1.val
+    regle.metas = "#meta" in regle.params.cmp1.val
+    regle.infos = "#infos" in regle.params.cmp1.val
     if regle.params.pattern == "1":
         regle.idclasse = tuple(regle.params.att_sortie.texte.split("."))
     if regle.cible_base:
@@ -900,7 +902,6 @@ def h_liste_selecteur(regle):
         return True
     regle.valide = False
     regle.erreurs = "selecteur invalide -"
-
 
 
 def f_liste_selecteur(regle, obj):
@@ -915,7 +916,7 @@ def f_liste_selecteur(regle, obj):
     #pattern2||=#obj;;;dblist;?C;
     #pattern3||;;;dblist;?C;
     """
-    selecteur = setdb(regle,obj)
+    selecteur = setdb(regle, obj)
     virtuel = regle.getvar("virtuel") == "1"
     idclasse = regle.idclasse
     if regle.params.pattern == "2":
@@ -923,10 +924,10 @@ def f_liste_selecteur(regle, obj):
     # print("traitement liste selecteur", selecteur)
     for i in selecteur.get_classes():
         idbase, selinfo = i
-        idsel,description=selinfo
+        idsel, description = selinfo
         # print(" lecture selecteur",i,"->", idclasse,idsel)
-        nsel,csel= idsel
-        infos={"#sel_base":idbase,"#sel_niveau":nsel,"#sel_classe":csel}
+        nsel, csel = idsel
+        infos = {"#sel_base": idbase, "#sel_niveau": nsel, "#sel_classe": csel}
         if regle.metas:
             infos.update(selecteur.baseselectors[idbase].schemabase.metas)
         if regle.infos:
@@ -939,7 +940,7 @@ def f_liste_selecteur(regle, obj):
             classe,
             format_natif="interne",
             conversion="virtuel" if virtuel else None,
-            attributs=infos
+            attributs=infos,
         )
         obj2.initattr()
         try:
@@ -960,18 +961,20 @@ def h_setquery(regle):
     regle.multiple = regle.params.cmp2.val
     regle.valide = bool(regle.connect)
 
+
 def dataconverter(liste):
     """formatage de donnees"""
-    result=[]
+    result = []
     for i in liste:
-        if isinstance(i,datetime.datetime):
-            val=i.isoformat()
+        if isinstance(i, datetime.datetime):
+            val = i.isoformat()
         elif i:
-            val=str(i)
+            val = str(i)
         else:
-            val=""
+            val = ""
         result.append(val)
     return result
+
 
 def f_setquery(regle, obj):
     """#aide||renseigne des champs par requete en base
@@ -989,13 +992,13 @@ def f_setquery(regle, obj):
         requete = requete.replace("%#niveau", niveau)
         requete = requete.replace("%#classe", classe)
         if "%#[" in requete:
-            findlist=re.findall(r"%#\[(.*?)\]",requete)
+            findlist = re.findall(r"%#\[(.*?)\]", requete)
             # print ("findlist", findlist, obj)
             if findlist:
                 for i in findlist:
-                    valeur=obj.attributs.get(i.strip(),"")
+                    valeur = obj.attributs.get(i.strip(), "")
                     # print ("traitement",i,"->",valeur)
-                    requete=requete.replace("%#["+i+"]",valeur)
+                    requete = requete.replace("%#[" + i + "]", valeur)
             else:
                 LOGGER.warning(" no match %s", requete)
 
@@ -1007,32 +1010,33 @@ def f_setquery(regle, obj):
     if regle.multiple:
         for i in liste:
             obj2 = obj.dupplique()
-            result=dataconverter(i)
+            result = dataconverter(i)
             regle.setval_sortie(obj2, result)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         obj.attributs["#nb_lignes"] = len(liste)
         return len(liste)
     if liste:
-        result=dataconverter(liste[0] if liste else [])
+        result = dataconverter(liste[0] if liste else [])
         regle.setval_sortie(obj, result)
-        print ("recup_requete", result)
+        print("recup_requete", result)
         return True
     return False
+
 
 def h_dbmap_qgs(regle):
     """mapping statique de fichier qgis"""
     regle.base = regle.code_classe[3:]
     regle.nom_selecteur = regle.params.val_entree.val
     if regle.nom_selecteur.startswith("#"):
-        regle.nom_selecteur=regle.nom_selecteur[1:]
+        regle.nom_selecteur = regle.nom_selecteur[1:]
     regle.entree = regle.params.cmp1.val
     regle.sortie = regle.params.cmp2.val
     selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
     # print ("mapping statique",selecteur,selecteur.resolve())
     if selecteur and selecteur.resolve():
-        LOGGER.info("mapping qgis statique %s -> %s",selecteur.nom, regle.sortie)
+        LOGGER.info("mapping qgis statique %s -> %s", selecteur.nom, regle.sortie)
         adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
-        regle.valide="done"
+        regle.valide = "done"
     return True
 
 

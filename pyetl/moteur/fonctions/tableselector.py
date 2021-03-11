@@ -162,11 +162,12 @@ class TableBaseSelector(object):
 
     def add_classlist(self, niveau, classe, attr, valeur, fonction, mod, nobase=False):
         """transformation effective d un descripteur en liste de classes"""
-        mod = set(mod)
-        multi = not ("=" in mod) and not "=" in fonction
-        mod = mod-{"="}
+        mod = "".join(mod)
+        mod = mod.upper()
+        multi = not ("=" in mod or "=" in fonction)
         nocase = "NOCASE" in mod
-        mod = mod-{"NOCASE"}
+        mod = mod.replace("=", "")
+        mod = mod.replace("NOCASE", "")
         if not mod:
             mod = {"A"}
         if nobase:
@@ -176,7 +177,7 @@ class TableBaseSelector(object):
                 niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
             )
         direct = dict()
-        # print("add_classlist: multi", multi)
+        # print("add_classlist: multi", multi, classlist)
         for i in classlist:
             mapped = self.set_prefix(i)
             direct[mapped] = (i, attr, valeur, fonction)
@@ -205,8 +206,11 @@ class TableBaseSelector(object):
                 return False
 
         self.resolve_static()
-        complet = self.resolve_dyn(obj) if self.dyndescr else True
-        if complet:
+        if self.dyndescr:
+            solved = self.resolve_dyn(obj)
+        else:
+            solved = True
+        if solved:
             if not self.nobase:
                 self.getschematravail(self.regle_ref)
             else:
@@ -214,7 +218,7 @@ class TableBaseSelector(object):
                 # print("mapping", liste_mapping)
                 self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
             self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
-        return complet
+        return solved
 
     def resolve_dyn(self, obj):
         """transformation de descripteurs dynamiques en liste de classes
@@ -308,6 +312,7 @@ class TableSelector(object):
         self.inverse = dict()
         self.refbases = set()
         self.resolved = False
+        self.static = True
         self.nobase = False
         self.onconflict = "add"
         self.nom = ""
@@ -357,6 +362,8 @@ class TableSelector(object):
             self.baseselectors[base] = TableBaseSelector(self, base, "")
         # print("add descripteur", base, descripteur)
         self.baseselectors[base].add_descripteur(descripteur)
+        if self.static and self.baseselectors[base].dyndescr:
+            self.static = False
 
     def merge(self, selecteur):
         """fusionne 2 selecteurs"""
@@ -376,17 +383,24 @@ class TableSelector(object):
         return base
 
     def resolve(self, obj=None):
-        # print(" debut resolve", self.baseselectors.keys(), self.resolved)
-        if self.resolved:
+        # print(" debut resolve", self.baseselectors.keys(), self.resolved, self.static)
+        if self.resolved and self.static:
             return True
         complet = len(self.baseselectors)
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-
+        static = True
         for base in self.baseselectors:
             complet = complet and self.baseselectors[base].resolve(obj)
+            self.static = self.static and not bool(self.baseselectors[base].dyndescr)
         self.resolved = complet
-        # print(" fin resolve", self.baseselectors.keys(), self.resolved, complet)
-        return complet
+        # print(
+        #     " fin resolve",
+        #     self.baseselectors.keys(),
+        #     self.resolved,
+        #     self.static,
+        #     len(list(self.get_classes())),
+        # )
+        # return complet
 
     def get_classes(self):
         for base in self.baseselectors:
@@ -541,14 +555,16 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         selecteur.resolve(obj)
     destbase = regle.base
     for fich, chemin in scandirs(fichier, "", rec=True):
-        element = os.path.join(fichier,chemin, fich)
+        element = os.path.join(fichier, chemin, fich)
         if not fich.endswith(".qgs"):
             continue
         codec = hasbom(element, codec)
-        fdest = os.path.join(destination, chemin,fich)
+        fdest = os.path.join(destination, chemin, fich)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
-        regle.stock_param.logger.info("traitement (%s) %s->"+fdest, selecteur.nom ,element)
+        regle.stock_param.logger.info(
+            "traitement (%s) %s->" + fdest, selecteur.nom, element
+        )
         with open(element, "r", encoding=codec) as fich:
             # print("adapt projet qgs", element)
             for i in fich:
