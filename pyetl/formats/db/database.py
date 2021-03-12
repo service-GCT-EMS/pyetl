@@ -120,11 +120,13 @@ class Cursinfo(object):
                     cursor.execute(requete, data)
                 else:
                     cursor.execute(requete)
-            except Exception as err:
-                if not fail_silent:
+            except self.connecteur.DBError as err:
+                if fail_silent == True:
+                    return None
+                elif fail_silent != "pass":
                     print(self.connecteur.base, "erreur requete", err, requete)
-                    raise
-                return None
+                raise
+
             if not newcursor:
                 self.requete = requete
                 self.data = data
@@ -299,7 +301,7 @@ class DbConnect(object):
         self.dump_helper = None
         self.dialecte = "sql"
         self.fallback = {}
-        self.errs = KeyError
+        self.DBError = KeyError
         # print("====init connection", self.base, self.code)
 
     #        self.req_tables = ("", None)
@@ -703,28 +705,41 @@ class DbConnect(object):
         )
         return schema_travail, liste2
 
-    def execrequest(self, requete, data=None, attlist=None, volume=0, nom="", fail_silent=True):
+    def execrequest(
+        self, requete, data=None, attlist=None, volume=0, nom="", fail_silent=True
+    ):
         """ lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom)
         #        cur.execute(requete, data=data, attlist=attlist)
-
         try:
-            retour = cur.execute(requete, data=data, attlist=attlist, fail_silent=fail_silent)
+            retour = cur.execute(
+                requete, data=data, attlist=attlist, fail_silent=fail_silent
+            )
             if retour is None:
                 return None
             return cur
 
-        except self.errs as err:
-            LOGGER.error("erreur db %s : %s -> %s", self.type_base, requete, str(data))
-            LOGGER.info("requete finale %s", cur.cursor.mogrify(requete, data))
+        except self.DBError as err:
+            if fail_silent != "pass":
+                LOGGER.error(
+                    "erreur db %s : %s -> %s", self.type_base, requete, str(data)
+                )
+                LOGGER.info("requete finale %s", cur.cursor.mogrify(requete, data))
             cur.close()
-            raise StopIteration(2)
+            # print("erreur requete")
+            raise
 
     #        print ('exec:recup cursinfo', type(cur))
 
-    def request(self, requete, data=None, attlist=None):
+    def request(self, requete, data=None, attlist=None, fail_silent=True):
         """ lancement requete et gestion retours"""
-        cur = self.execrequest(requete, data=data, attlist=attlist, fail_silent=True) if requete else None
+        cur = (
+            self.execrequest(
+                requete, data=data, attlist=attlist, fail_silent=fail_silent
+            )
+            if requete
+            else None
+        )
         if cur:
             liste = cur.fetchall()
             cur.close()

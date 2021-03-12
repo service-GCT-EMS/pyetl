@@ -177,6 +177,10 @@ def f_dbalpha(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
      #groupe||database
     #pattern||?A;?;?;dbalpha;?;?
+    #parametres||;defaut;entree;dbalpha;precisions;ordre
+    #dbparams||base;schema;table;attribut;valeur
+    #variables||traitement_virtuel;se declenche pour un objet virtuel
+            ||dest;repertoire temporaire si extracteur externe
     #req_test||testdb
 
     """
@@ -357,12 +361,8 @@ def f_dbgeo(regle, obj):
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
 
-def h_dbrequest(regle):
-    """passage direct de requetes"""
-    param_base(regle, mods=False, req=True)
-    regle.chargeur = regle.params.pattern not in "34"
-    # c est une regle qui cree des objets si on est pas en mode completement
-    attribut = regle.v_nommees.get("val_sel2", "")
+def getrequest(regle):
+    "lit une requete sql et l analyse"
     requete = regle.params.cmp1.val
     regle.fich = "tmp"
     regle.grp = "tmp"
@@ -387,6 +387,21 @@ def h_dbrequest(regle):
         except ValueError:
             pass
     regle.requete = requete
+    regle.dynrequete = "%#" in requete
+    # la requete depends de elements du selecteur
+    return True
+
+
+def h_dbrequest(regle):
+    """passage direct de requetes"""
+    param_base(regle, mods=False, req=True)
+    regle.chargeur = regle.params.pattern not in "34"
+    # c est une regle qui cree des objets si on est pas en mode completement
+    attribut = regle.v_nommees.get("val_sel2", "")
+    requete = regle.params.cmp1.val
+    regle.fich = "tmp"
+    regle.grp = "tmp"
+    valide = getrequest(regle)
     if regle.params.cmp2.val:
         regle.ident = (
             (regle.params.cmp2.val, regle.params.cmp2.definition[0])
@@ -403,9 +418,7 @@ def h_dbrequest(regle):
     #     regle.params.cmp2.val,
     #     # regle.v_nommees,
     # )
-    regle.dynrequete = "%#" in requete
     regle.prefixe = regle.params.att_sortie.val
-    valide = True
     return valide
 
 
@@ -483,11 +496,11 @@ def f_dbrequest(regle, obj):
                 else:
                     idsortie = ident
                 # print("execution requete", niveau, classe, requete, "->", ident)
-                retour = DB.lire_requete(
+                retour += DB.lire_requete(
                     regle, base, idsortie, requete=requete, parms=parms, obj=refobj
                 )
         else:
-            retour = DB.lire_requete(
+            retour += DB.lire_requete(
                 regle,
                 base,
                 regle.ident if regle.ident is not None else ("tmp", "tmp"),
@@ -495,6 +508,7 @@ def f_dbrequest(regle, obj):
                 parms=parms,
                 obj=refobj,
             )
+    obj.attributs["#nb_results"] = str(retour)
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
@@ -953,10 +967,11 @@ def f_liste_selecteur(regle, obj):
     return True
 
 
-def h_setquery(regle):
+def h_dbset(regle):
     """prepare la liste"""
-    h_dbrequest(regle)
+    getrequest(regle)
     base = regle.code_classe[3:]
+    # print(" dbset ", base, regle.code_classe)
     regle.connect = regle.stock_param.getdbaccess(regle, base)
     regle.multiple = regle.params.cmp2.val
     regle.valide = bool(regle.connect)
@@ -976,19 +991,22 @@ def dataconverter(liste):
     return result
 
 
-def f_setquery(regle, obj):
+def f_dbset(regle, obj):
     """#aide||renseigne des champs par requete en base
     #aide_spec||cree des objets si multiple est specifie
-    #schema||change_schema
+        ||renseigne le champ #nb_lignes avec le nombre d'objets crees
+        ||les champs d'entree sont fournis a la requete et remplacent les %s
+        ||si les tables de la requete ou le nom des attributs dependent de l objet
+        ||il faut les ecrire sous la forme %#[nom_attribut]
     #pattern1||M;?;?L;dbset;C;?=multiple
-    #parametres||champs de sortie;dbset;requete;multiple
+    #parametres||sortie;defauts;entrees;dbset;requete;multiple
     """
     requete = regle.requete
     if obj.virtuel:
         return True
     if regle.dynrequete:
         niveau, classe = obj.ident
-        # print ("setquery:requetes dynamiques ", niveau,classe)
+        # print ("dbset:requetes dynamiques ", niveau,classe)
         requete = requete.replace("%#niveau", niveau)
         requete = requete.replace("%#classe", classe)
         if "%#[" in requete:
@@ -1003,9 +1021,12 @@ def f_setquery(regle, obj):
                 LOGGER.warning(" no match %s", requete)
 
     data = regle.getlist_entree(obj)
+    # print("dbset", requete, data)
     try:
-        liste = regle.connect.request(requete, data)
-    except regle.connect.errs:
+        liste = regle.connect.request(requete, data, fail_silent="pass")
+    except regle.connect.DBError as errs:
+        if regle.debug:
+            print("dbset: erreur requete", errs)
         return False
     if regle.multiple:
         for i in liste:
@@ -1018,7 +1039,7 @@ def f_setquery(regle, obj):
     if liste:
         result = dataconverter(liste[0] if liste else [])
         regle.setval_sortie(obj, result)
-        print("recup_requete", result)
+        # print("recup_requete", result)
         return True
     return False
 

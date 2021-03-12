@@ -16,7 +16,7 @@ def decription_pattern(pattern, description):
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
         if i.startswith("="):
-            j=(j or i[1:]) + " (mot_clef)"
+            j = (j or i[1:]) + " (mot_clef)"
         retour.append("%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else "")))
 
     # retour = [
@@ -31,9 +31,9 @@ def print_help(mapper, nom):
     """ affiche l'aide de base"""
     if nom:
         if nom in mapper.getmacrolist():
-            print_macrohelp_detail(mapper,nom)
+            print_macrohelp_detail(mapper, nom)
         elif nom in mapper.commandes:
-            print_help_detail(mapper,nom)
+            print_help_detail(mapper, nom)
         elif nom == "selecteurs":
             print_aide_selecteurs(mapper)
         elif nom == "macros":
@@ -44,10 +44,10 @@ def print_help(mapper, nom):
             print_aide_formats(mapper)
         else:
             # essais de noms partiels
-            recherche=nom.replace("*","")
+            recherche = nom.replace("*", "")
             trouve = False
-            macrolist=[]
-            commandlist=[]
+            macrolist = []
+            commandlist = []
             for n1 in mapper.getmacrolist():
                 if recherche in n1:
                     macrolist.append(n1)
@@ -55,15 +55,15 @@ def print_help(mapper, nom):
                 if recherche in n1:
                     commandlist.append(n1)
             if macrolist:
-                trouve=True
-                if len(macrolist)==1:
-                    print_macrohelp_detail(mapper,macrolist.pop())
+                trouve = True
+                if len(macrolist) == 1:
+                    print_macrohelp_detail(mapper, macrolist.pop())
                 else:
                     print_aide_macros(mapper, liste=macrolist)
             if commandlist:
-                trouve=True
-                if len(commandlist)==1:
-                    print_help_detail(mapper,commandlist.pop())
+                trouve = True
+                if len(commandlist) == 1:
+                    print_help_detail(mapper, commandlist.pop())
                 else:
                     print_aide_commandes(mapper, liste=commandlist)
             if not trouve:
@@ -82,12 +82,12 @@ def print_help(mapper, nom):
         print_aide_macros(mapper)
 
 
-def print_macrohelp_detail(mapper,nom):
+def print_macrohelp_detail(mapper, nom):
     """ affiche l aide detaillee d une macro"""
     macro = mapper.getmacro(nom)
     debug = mapper.getvar("debug")
     if not macro:
-        print( " macro introuvable", nom)
+        print(" macro introuvable", nom)
         return False
     print("%-15s: macro    (%s)" % (nom, macro.file))
     print("                   %s" % (macro.help[:-1]))
@@ -109,7 +109,8 @@ def print_macrohelp_detail(mapper,nom):
             print("%16s   %s" % ("", i[:-1]))
     return True
 
-def print_help_detail (mapper, nom):
+
+def print_help_detail(mapper, nom):
     """ affiche l'aide de base"""
     debug = mapper.getvar("debug")
     if nom not in mapper.commandes:
@@ -148,7 +149,9 @@ def print_help_detail (mapper, nom):
                         )
                     )
             if variante.description.get("#dbparams"):
-                print ("parametres d acces base :",variante.description.get("#dbparams"))
+                print(
+                    "parametres d acces base :", variante.description.get("#dbparams")
+                )
             if variante.description.get("#parametres"):
                 print(
                     "\n".join(
@@ -159,8 +162,10 @@ def print_help_detail (mapper, nom):
                     )
                 )
             if variante.description.get("#variables"):
+                print("-------variables-------")
                 for i in variante.description.get("#variables", [""]):
-                    print("%-20s: %s" % ("", i))
+                    nom, aide = (i.split(";") + [""])[:2]
+                    print("%-20s: %s" % (nom, aide))
             if debug:
                 print("pattern", variante.pattern)
                 print("fonction", variante.work)
@@ -197,7 +202,7 @@ def print_aide_selecteurs(mapper, liste=None):
         print("%-20s: %s" % (i, "\n".join(sel.description.get("#aide", []))))
 
 
-def print_aide_macros(mapper,liste=None):
+def print_aide_macros(mapper, liste=None):
     """affiche l'aide des macros """
     print("-----------------------------------------------------------------")
     print("---macros internes-----------------------------------------------")
