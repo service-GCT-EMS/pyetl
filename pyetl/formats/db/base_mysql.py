@@ -173,9 +173,9 @@ class MysqlConnect(DbConnect):
     @property
     def req_attributs(self):
         """recupere le schema complet avec tous ses champs
-            nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
-            defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,parametres, taille,decimales"""
+        nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
+        defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
+        clef_primaire,clef_etrangere,cible_clef,parametres, taille,decimales"""
 
         requete = """
                     SELECT
@@ -284,11 +284,11 @@ class MysqlConnect(DbConnect):
         """definition d'une condition geometrique"""
         return ""
 
-    def execrequest(self, requete, data, attlist=None, fail_silent=True):
+    def execrequest(self, requete, data, attlist=None, regle=None):
         """passage de la requete sur la base"""
         cur = self.get_cursinfo()
         try:
-            cur.execute(requete, data, attlist=attlist)
+            cur.execute(requete, data, attlist=attlist, regle=regle)
             return cur
         except self.DBError as errs:
             cursor = cur.cursor
@@ -305,9 +305,15 @@ class MysqlConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
+    def iterreq(
+        self, requete, data, attlist=None, has_geom=False, volume=0, nom="", regle=None
+    ):
         """recup d'un iterateur sur les resultats"""
-        cur = self.execrequest(requete, data, attlist=attlist) if requete else None
+        cur = (
+            self.execrequest(requete, data, attlist=attlist, regle=regle)
+            if requete
+            else None
+        )
         self.decile = 1
         if cur is None:
             return iter(())

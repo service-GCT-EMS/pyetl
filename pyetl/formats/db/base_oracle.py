@@ -345,12 +345,12 @@ class OraConnect(DbConnect):
         """definition d'ne condition geometrique"""
         return ""
 
-    def execrequest(self, requete, data, attlist=None, fail_silent=True):
+    def execrequest(self, requete, data, attlist=None, regle=None):
         """passage de la requete sur la base"""
         cur = self.get_cursinfo()
         #        print ('ora:execution_requet',requete)
         try:
-            cur.execute(requete, data, attlist=attlist)
+            cur.execute(requete, data, attlist=attlist, regle=regle)
             return cur
         except OraError as errs:
             cursor = cur.cursor
@@ -370,9 +370,15 @@ class OraConnect(DbConnect):
             #            raise
             return None
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
+    def iterreq(
+        self, requete, data, attlist=None, has_geom=False, volume=0, nom="", regle=None
+    ):
         """recup d'un iterateur sur les resultats"""
-        cur = self.execrequest(requete, data, attlist=attlist) if requete else None
+        cur = (
+            self.execrequest(requete, data, attlist=attlist, regle=regle)
+            if requete
+            else None
+        )
         self.decile = 1
         if cur is None:
             return iter(())

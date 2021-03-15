@@ -209,10 +209,14 @@ class WfsConnect(DbConnect):
             return nom_type
         return self.types_base.get(nom_type.upper(), "?")
 
-    def get_cursinfo(self, volume=0, nom=""):
+    def get_cursinfo(self, volume=0, nom="", regle=None):
         """recupere un curseur"""
         # print(" postgres get cursinfo")
-        return WfsCursinfo(self, volume=volume, nom=nom) if self.connection else None
+        return (
+            WfsCursinfo(self, volume=volume, nom=nom, regle=regle)
+            if self.connection
+            else None
+        )
 
     def get_surf(self, nom):
         return ""

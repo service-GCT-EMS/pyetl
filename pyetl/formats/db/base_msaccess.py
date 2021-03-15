@@ -178,13 +178,22 @@ class AccConnect(DbConnect):
                 tables.append(nouv_table)
         return tables
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom=""):
+    def iterreq(
+        self,
+        requete,
+        data,
+        attlist=None,
+        has_geom=False,
+        volume=0,
+        nom="",
+        regle=None,
+    ):
         """iteration sur le retour"""
         if has_geom:
             print("erreur requete geometrique impossible", requete)
             return iter(())
         try:
-            cur = self.execrequest(requete, data, attlist=attlist ,fail_silent=True)
+            cur = self.execrequest(requete, data, attlist=attlist, regle=regle)
             if cur:
                 return cur
         except OdbcError as err:
@@ -328,8 +337,8 @@ class AccConnect(DbConnect):
         return iter(())
 
     def get_elements_specifiques(self, _):
-        """ recupere des elements specifiques a un format et les stocke dans
-        une structure du schema """
+        """recupere des elements specifiques a un format et les stocke dans
+        une structure du schema"""
         return
 
 

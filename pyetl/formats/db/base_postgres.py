@@ -199,7 +199,7 @@ class PgCursinfo(Cursinfo):
                 + ") as x limit 0 "
             )
             attlist = None
-            if self.execute(req, self.data, newcursor=True, fail_silent=True):
+            if self.execute(req, self.data, newcursor=True):
                 # cursor = self.execute("select current_schemas('t')", newcursor=True)
                 # temp_schema = cursor.fetchall()[0][0][0]
                 # print("temp_schema", temp_schema)
@@ -258,10 +258,14 @@ class PgrConnect(DbConnect):
         cur.execute("select set_config('search_path','public',false)", ())
         cur.close()
 
-    def get_cursinfo(self, volume=0, nom=""):
+    def get_cursinfo(self, volume=0, nom="", regle=None):
         """recupere un curseur"""
         # print(" postgres get cursinfo")
-        return PgCursinfo(self, volume=volume, nom=nom) if self.connection else None
+        return (
+            PgCursinfo(self, volume=volume, nom=nom, regle=regle)
+            if self.connection
+            else None
+        )
 
     def datestyle(self):
         """recupere la config de formattage de dates"""

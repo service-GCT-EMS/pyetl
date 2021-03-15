@@ -56,7 +56,7 @@ class SpecDefs(object):
 class Cursinfo(object):
     """contient un curseur de base de donnees et des infos complementaires (requete,liste...)"""
 
-    def __init__(self, connecteur, volume=0, nom=""):
+    def __init__(self, connecteur, volume=0, nom="", regle=None):
         connection = connecteur.connection
         self.cursor = None
         if connection:
@@ -75,6 +75,7 @@ class Cursinfo(object):
                 self.ssc = False
                 # print ('creation curseur standard', volume, nom)
         self.connecteur = connecteur
+        self.regle = regle if regle else self.connecteur.regle
         self.requete = None
         self.schema_req = None
         self.data = None
@@ -106,21 +107,24 @@ class Cursinfo(object):
         """ferme le curseur"""
         if self.cursor:
             self.cursor.close()
+            self.cursor = None
 
-    def execute(
-        self, requete, data=None, attlist=None, newcursor=False, fail_silent=False
-    ):
+    def execute(self, requete, data=None, attlist=None, newcursor=False, regle=None):
         """execute une requete"""
 
         # print("dans execute ", requete, data)
-        cursor = self.connecteur.connection.cursor() if newcursor else self.cursor
-        if cursor:
+        cur = self.connecteur.connection.cursor() if newcursor else self.cursor
+        if cur:
             try:
                 if data is not None:
-                    cursor.execute(requete, data)
+                    cur.execute(requete, data)
                 else:
-                    cursor.execute(requete)
+                    cur.execute(requete)
             except self.connecteur.DBError as err:
+                regle_ref = regle if regle else self.connecteur.regle
+                fail_silent = (
+                    regle_ref.getvar("Fail_silent", False) if regle_ref else False
+                )
                 if fail_silent == True:
                     return None
                 elif fail_silent != "pass":
@@ -137,7 +141,7 @@ class Cursinfo(object):
                     self.decile = int(self.rowcount / 10 + 1)
                     if self.decile == 1:
                         self.decile = 100000
-        return cursor
+        return cur
         # if attlist is None:
         #     self.attlist=self.schemaclasse
         # print ('fin')
@@ -313,9 +317,13 @@ class DbConnect(object):
         if self.connection:
             self.connection.commit()
 
-    def get_cursinfo(self, volume=0, nom=""):
+    def get_cursinfo(self, volume=0, nom="", regle=None):
         """recupere un curseur"""
-        return Cursinfo(self, volume=volume, nom=nom) if self.connection else None
+        return (
+            Cursinfo(self, volume=volume, nom=nom, regle=regle)
+            if self.connection
+            else None
+        )
 
     @property
     def valide(self):
@@ -706,20 +714,23 @@ class DbConnect(object):
         return schema_travail, liste2
 
     def execrequest(
-        self, requete, data=None, attlist=None, volume=0, nom="", fail_silent=True
+        self, requete, data=None, attlist=None, volume=0, nom="", regle=None
     ):
         """ lancement requete specifique base"""
-        cur = self.get_cursinfo(volume=volume, nom=nom)
+        cur = self.get_cursinfo(volume=volume, nom=nom, regle=regle)
         #        cur.execute(requete, data=data, attlist=attlist)
         try:
-            retour = cur.execute(
-                requete, data=data, attlist=attlist, fail_silent=fail_silent
-            )
+            retour = cur.execute(requete, data=data, attlist=attlist)
             if retour is None:
                 return None
             return cur
 
         except self.DBError as err:
+            fail_silent = (
+                cur.regle.getvar("fail_silent", False) if cur and cur.regle else False
+            )
+            if fail_silent == True:
+                return None
             if fail_silent != "pass":
                 LOGGER.error(
                     "erreur db %s : %s -> %s", self.type_base, requete, str(data)
@@ -731,12 +742,10 @@ class DbConnect(object):
 
     #        print ('exec:recup cursinfo', type(cur))
 
-    def request(self, requete, data=None, attlist=None, fail_silent=True):
+    def request(self, requete, data=None, attlist=None, regle=None):
         """ lancement requete et gestion retours"""
         cur = (
-            self.execrequest(
-                requete, data=data, attlist=attlist, fail_silent=fail_silent
-            )
+            self.execrequest(requete, data=data, attlist=attlist, regle=regle)
             if requete
             else None
         )
@@ -747,12 +756,19 @@ class DbConnect(object):
         return []
 
     def iterreq(
-        self, requete, data=None, attlist=None, has_geom=False, volume=0, nom=""
+        self,
+        requete,
+        data=None,
+        attlist=None,
+        has_geom=False,
+        volume=0,
+        nom="",
+        regle=None,
     ):
         """ lancement requete et gestion retours en mode iterateur"""
         # print('appel iterreq database', volume,nom)
         cur = self.execrequest(
-            requete, data=data, attlist=attlist, volume=volume, nom=nom
+            requete, data=data, attlist=attlist, volume=volume, nom=nom, regle=regle
         )
         return cur
 

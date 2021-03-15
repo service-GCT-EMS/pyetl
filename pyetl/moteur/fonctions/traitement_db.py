@@ -1023,7 +1023,7 @@ def f_dbset(regle, obj):
     data = regle.getlist_entree(obj)
     # print("dbset", requete, data)
     try:
-        liste = regle.connect.request(requete, data, fail_silent="pass")
+        liste = regle.connect.request(requete, data, regle=regle)
     except regle.connect.DBError as errs:
         if regle.debug:
             print("dbset: erreur requete", errs)

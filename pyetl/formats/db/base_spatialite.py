@@ -58,9 +58,11 @@ class SqltConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-        spatialite_path = os.path.join(__file__,"extensions/mod_spatialite-5.0.1-win-amd64")
+        spatialite_path = os.path.join(
+            __file__, "extensions/mod_spatialite-5.0.1-win-amd64"
+        )
         # e.g. spatialite_path  = 'C:/Users/pedro/Documents/mod_spatialite-NG-win-amd64
-        os.environ['PATH'] = spatialite_path + ';' + os.environ['PATH']
+        os.environ["PATH"] = spatialite_path + ";" + os.environ["PATH"]
 
         self.errs = sqlite3.DatabaseError
         print("info : dbacces:connection sqlite", self.user, "****", self.base)
@@ -242,8 +244,14 @@ class SqltConnect(DbConnect):
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
         return cond
 
-    def iterreq(self, requete, data, attlist=None, has_geom=False, volume=0, nom="", fail_silent=True):
-        cur = self.execrequest(requete, data, attlist=attlist) if requete else None
+    def iterreq(
+        self, requete, data, attlist=None, has_geom=False, volume=0, nom="", regle=None
+    ):
+        cur = (
+            self.execrequest(requete, data, attlist=attlist, regle=regle)
+            if requete
+            else None
+        )
         cur.decile = 1
         if cur is None:
             return iter(())
@@ -296,7 +304,7 @@ class SqltConnect(DbConnect):
                 #                data = {'val':"{'"+"','".join(valeur)+"'}"}
                 cond = self.multival(len(data), cast=cast)
             else:
-                if isinstance(valeur, (set, list)):
+                if isinstance(valeur, (list)):
                     val = valeur[0]
                 oper = "="
                 val = valeur
@@ -345,6 +353,7 @@ class SqltGenSql(DbGenSql):
     """generateur sql"""
 
     pass
+
 
 class SqltDbWriter(DbGenSql):
     """writer direct sql"""
