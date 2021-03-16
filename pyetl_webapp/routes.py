@@ -23,6 +23,11 @@ def url_to_nom(url):
     return "#" + url[1:] if url.startswith("_") else url
 
 
+def url_to_fich(url):
+    nom = url_to_nom(url)
+    return nom if nom.startswith("#") else os.path.join(scriptlist.scriptdir, nom)
+
+
 class ScriptList(object):
     """cache de la liste de scripts"""
 
@@ -38,7 +43,8 @@ class ScriptList(object):
         )
         self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
         self.scripts = dict()
-        self.refresh()
+        self.is_api = dict()
+        # self.refresh()
 
     def refresh(self, script=None):
         """rafraichit la liste de scripts"""
@@ -87,6 +93,8 @@ class ScriptList(object):
                 infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
+        self.is_api[nom_script] = "api" in infos
+        print("infos", infos)
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -121,6 +129,7 @@ scriptlist = ScriptList()
 @app.route("/")
 @app.route("/index")
 def index():
+    scriptlist.refresh()
     return render_template(
         "index.html",
         text="acces simplifie aux fonctions mapper",
@@ -158,7 +167,14 @@ def macros():
             for i in scriptlist.mapper.getmacrolist()
         ]
     )
-    return render_template("scriptlist.html", liste=sorted(macrolist))
+    return render_template("scriptlist.html", liste=macrolist)
+
+
+@app.route("/apis")
+def apis():
+    apilist = [i for i in scriptlist.liste if scriptlist.is_api[i[0]]]
+    print("isapi", scriptlist.is_api, scriptlist.liste)
+    return render_template("scriptlist.html", liste=sorted(apilist))
 
 
 @app.route("/refresh")
@@ -203,6 +219,50 @@ def scriptview(script):
         code.append((n, colspan, contenu))
     # print("scriptview,", code)
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
+
+
+@app.route("/api/<script>")
+def execapi(script):
+    """interface webservice"""
+    parametres = request.args
+    print("parametres requete", parametres)
+    rep_sortie = "#webservice"
+    nom = url_to_nom(script)
+    fich = url_to_fich(script)
+    scriptparams = request.args
+    processor = scriptlist.mapper.getpyetl(
+        fich,
+        entree=None,
+        rep_sortie="#web",
+        liste_params=scriptparams,
+        mode="web",
+    )
+    if processor:
+        try:
+            processor.process()
+            wstats = processor.get_work_stats()
+            result = processor.get_results()
+            wstats["nom"] = nom
+            session["stats"] = wstats
+            session["retour"] = result
+            print("resultats traitement", result)
+            return redirect("/retour_api/" + script)
+        except error as err:
+            LOGGER.exception("erreur script", exc_info=err)
+            return redirect("/plantage/" + script)
+    return redirect("/plantage/" + script)
+
+
+@app.route("/retour_api/<script>")
+def retour_api(script):
+    stats = session.get("stats")
+    retour = session.get("retour")
+    nom = url_to_nom(script)
+    if stats:
+        return render_template(
+            "script_result.html", stats=stats, retour=retour, url=script, nom=nom
+        )
+    return render_template("noresult.html", url=script, nom=nom)
 
 
 @app.route("/exec/<script>", methods=["GET", "POST"])
