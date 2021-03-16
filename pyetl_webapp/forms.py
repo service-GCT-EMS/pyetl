@@ -41,8 +41,9 @@ def formbuilder(description):
         "T": F.StringField,
         "OK": F.SubmitField,
     }
-    variables = description.get("vars", ())
-    print ("recup description", description)
+    variables = description.get("variables", [])
+    params = description.get("parametres", [])
+    print("recup description", description)
     varlist = []
     es = description.get("e_s", ())
     if es:
@@ -66,12 +67,13 @@ def formbuilder(description):
         varlist.append(("entree", "entree"))
         varlist.append(("sortie", "sortie"))
 
-    for var in variables:
+    all_in = params + variables
+    for var in all_in:
         name, definition = var.split("(", 1)
         definition = definition[-1]
-        tmp=definition.split(",")
-        ftyp=tmp[0]
-        fname=tmp[1] if len(tmp)>1 else name
+        tmp = definition.split(",")
+        ftyp = tmp[0]
+        fname = tmp[1] if len(tmp) > 1 else name
         setattr(CustomForm, name, fieldfunctions.get(ftyp, F.StringField)(fname))
         varlist.append((name, name))
 

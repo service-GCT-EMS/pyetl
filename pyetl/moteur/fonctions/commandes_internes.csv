@@ -63,8 +63,10 @@ $#%dest%;%acces%;;;;;;;;;;
 ;;;;#groupe;%groupe%;;set;;;fin;
 ;;;;#schema;%groupe%;;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#version;full;affiche la version du logiciel ;;;;;;;;;
+&&#define;#version;full;;;;;;;;;;
 #!help;affiche la version de pyetl;;;;;;;;;;
+#!api;version;text
+#!parametres;full(B);version complete;
 ;;;;;;;version;%full%;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#set;atts;vals;defaut;;;;;;;

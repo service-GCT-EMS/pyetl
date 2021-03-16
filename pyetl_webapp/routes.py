@@ -38,7 +38,7 @@ class ScriptList(object):
         self.mapper.url_for = url_for
         print(
             "initialisation mainmapper",
-            self.mapper,
+            self.mapper.version,
             self.mapper.getvar("mode", "interactif"),
         )
         self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
@@ -52,25 +52,26 @@ class ScriptList(object):
             self.liste = []
             self.descriptif = dict()
         try:
-            liste = os.listdir(self.scriptdir)
+            filelist = os.listdir(self.scriptdir)
         except FileNotFoundError:
             LOGGER.error("repertoire %s introuvable", self.scriptdir)
-            liste = []
+            filelist = []
         n = 0
-        for fichier in liste:
+        for fichier in filelist:
             fpath = os.path.join(self.scriptdir, fichier)
 
             if os.path.isdir(fpath):
-                statinfo = os.stat(fpath)
-                modif = time.ctime(statinfo.st_mtime)
-                self.liste.append(
-                    fichinfo._make((fichier, fichier, modif, "repertoire"))
-                )
+                # statinfo = os.stat(fpath)
+                # modif = time.ctime(statinfo.st_mtime)
+                # self.liste.append(
+                #     fichinfo._make((fichier, fichier, modif, "repertoire"))
+                # )
                 continue
             desc = self.refreshscript(fichier)
             self.liste.append(desc)
             n += 1
         print("scripts analyses", n)
+        # print("liste fichiers", self.liste)
 
     def getlignes(self, nom_script):
         """recupere la description du script"""
@@ -93,7 +94,7 @@ class ScriptList(object):
                 infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
-        self.is_api[nom_script] = "api" in infos
+        self.is_api[nom_script] = infos.get("api", False)
         print("infos", infos)
 
     def refreshscript(self, nom_script):
@@ -172,8 +173,9 @@ def macros():
 
 @app.route("/apis")
 def apis():
-    apilist = [i for i in scriptlist.liste if scriptlist.is_api[i[0]]]
-    print("isapi", scriptlist.is_api, scriptlist.liste)
+    print("isapi", scriptlist.liste)
+    apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
+
     return render_template("scriptlist.html", liste=sorted(apilist))
 
 
