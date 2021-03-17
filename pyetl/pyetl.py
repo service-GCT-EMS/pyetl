@@ -1237,9 +1237,9 @@ class Pyetl(object):
         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
         if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
             if (
-                not self.getvar("_testmode") and self.mode != "web"
+                not self.getvar("_testmode") and self.mode != "web" and self.schemas
             ):  # en mode test ou web on rale pas
-                print("schema:pas de repertoire de sortie")
+                self.logger.warning("pas de repertoire de sortie")
             return
         mode_schema = self.getvar("force_schema", "util")
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)

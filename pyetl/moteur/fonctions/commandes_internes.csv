@@ -65,8 +65,9 @@ $#%dest%;%acces%;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#version;full;;;;;;;;;;
 #!help;affiche la version de pyetl;;;;;;;;;;
-#!api;version;text
-#!parametres;full(B);version complete;
+#!api;version;text;
+#!pars;full(B);version complete;
+$sans_sortie;1;
 ;;;;;;;version;%full%;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#set;atts;vals;defaut;;;;;;;
@@ -142,8 +143,14 @@ $#%acces%;%acces%;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbschema;acces;niveau;classe;nom;;;;;;
 #!help;analyse une base de donnees;;;;;;;;;;
-#!desc;parametres: acces : code de la base, niveau, classe : restriction de lecture nom: nom du schema
-#!desc;variables: etendue: mode de sortie, mod: modifieur de selection
+!#!desc;parametres: acces : code de la base, niveau, classe : restriction de lecture nom: nom du schema
+!#!desc;variables: etendue: mode de sortie, mod: modifieur de selection
+#!api;dbschema;xml
+#!pars;acces;base a analyser;
+#!pars;niveau;schema a analyser (exp reg);
+#!pars;classe;classe a analyser (exp reg);
+#!pars;nom;nom du fichier de sortie (exp reg);
+#!vars;mod;selection (V T M =)
 <#initdb;%acces%;%nom%;;;;
 $force_schema=%etendue%;dbschema;;;;;;;;;;;
 db:%acces%;%niveau%;%classe%;;;%nom%;#nombase;dbschema;%mod%;;;

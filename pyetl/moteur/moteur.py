@@ -267,12 +267,14 @@ class Macro(object):
 
     def __init__(self, nom, file="", vpos=None):
         self.nom = nom
+        self.apiname = None
+        self.retour = "text"
         self.file = file
         self.commandes_macro = dict()
         self.help = ""
         self.help_detaillee = []
         self.parametres_pos = dict()
-        self.vars_utilisees = []
+        self.vars_utilisees = dict()
         self.vpos = []
         self.vdef = {}
         if vpos is not None:
@@ -287,17 +289,22 @@ class Macro(object):
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
         if ligne.startswith("#!help") or ligne.startswith("#!aide"):
-            self.help = ligne[7:].split(";", 1)[0]
+            self.help = ligne[7:].split(";")[0]
             return
         if ligne.startswith("#!desc"):
             self.help_detaillee.append(ligne[7:])
             return
         if ligne.startswith("#!pars"):
-            nomp, defp = ligne[7:].split(";", 1)
+            nomp, defp = ligne[7:].split(";")[:2]
             self.parametres_pos[nomp] = defp
             return
         if ligne.startswith("#!vars"):
-            self.vars_utilisees.append(ligne[7:])
+            nomv, defv = ligne[7:].split(";")[:2]
+            self.vars_utilisees[nomv] = defv
+            return
+        if ligne.startswith("#!api"):
+            apidef = ligne[6:].split(";") if ligne[7:] else [self.nom[1:], "text"]
+            self.apiname, self.retour = apidef[:2]
             return
 
         self.commandes_macro[numero] = ligne

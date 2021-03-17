@@ -90,7 +90,7 @@ def print_macrohelp_detail(mapper, nom):
         print(" macro introuvable", nom)
         return False
     print("%-15s: macro    (%s)" % (nom, macro.file))
-    print("                   %s" % (macro.help[:-1]))
+    print("%-15s: %s" % ("", macro.help[:-1]))
     if macro.help_detaillee:
         print()
         for i in macro.help_detaillee:
@@ -98,15 +98,21 @@ def print_macrohelp_detail(mapper, nom):
         print()
 
     if macro.vpos:
-        print("parametres: %s" % (";".join(macro.vpos)))
+        print(
+            "    parametres : %s"
+            % (";".join(macro.vpos) if not macro.parametres_pos else "")
+        )
         for i in macro.vpos:
             if i in macro.parametres_pos:
-                print("%-15s :%s" % (i, macro.parametres_pos[i]))
+                print("%14s : %s" % (i, macro.parametres_pos[i]))
 
     if macro.vars_utilisees:
-        print("variables utilisees")
+        print("     variables :")
         for i in macro.vars_utilisees:
-            print("%16s   %s" % ("", i[:-1]))
+            print("%14s : %s" % (i, macro.vars_utilisees[i]))
+
+    if macro.apiname:
+        print("    webservice : %s -> retour %s" % (macro.apiname, macro.retour))
     return True
 
 

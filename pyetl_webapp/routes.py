@@ -95,7 +95,7 @@ class ScriptList(object):
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
         self.is_api[nom_script] = infos.get("api", False)
-        print("infos", infos)
+        # print("infos", infos)
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -173,9 +173,18 @@ def macros():
 
 @app.route("/apis")
 def apis():
-    print("isapi", scriptlist.liste)
+    # print("isapi", scriptlist.liste)
+    mapper = scriptlist.mapper
     apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
-
+    macroapilist = [
+        (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
+        for i in mapper.getmacrolist()
+        if mapper.getmacro(i).apiname
+    ]
+    apilist.extend(
+        [fichinfo._make((i[0], i[1].replace("#", "_"), "", "")) for i in macroapilist]
+    )
+    print("apilist", macroapilist)
     return render_template("scriptlist.html", liste=sorted(apilist))
 
 
