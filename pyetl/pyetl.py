@@ -1294,7 +1294,7 @@ class Pyetl(object):
 
     def get_results(self):
         """retourne un tableau de resultats contenant les sortie de #print"""
-        print("retour processeur", self.webstore, self.mode)
+        print("retour processeur", os.getpid(), self.idpyetl, self.webstore, self.mode)
         # on reformate les logs qui sont des buffers
         if "log" in self.webstore:
             buffer = self.webstore["log"]

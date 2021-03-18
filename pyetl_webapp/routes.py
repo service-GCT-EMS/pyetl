@@ -75,23 +75,27 @@ class ScriptList(object):
 
     def getlignes(self, nom_script):
         """recupere la description du script"""
+        infos = dict()
         if nom_script.startswith("#"):
             macro = self.mapper.getmacro(nom_script)
             script = [i[1] for i in macro.get_commands()]
             params = macro.parametres_pos
+            variables = macro.vars_utilisees
+            infos["variables"] = variables
+            infos["parametres"] = params
+            infos["no_in"] = macro.no_in
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             script = open(fpath, "r").readlines()
-        infos = dict()
-        for ligne in script:
-            if ligne.startswith("!#"):
-                tmp = ligne[2:].split(":", 1)
-                if len(tmp) == 1:
-                    continue
-                clef, contenu = tmp
-                if clef not in infos:
-                    infos[clef] = []
-                infos[clef].append(contenu)
+            for ligne in script:
+                if ligne.startswith("!#"):
+                    tmp = ligne[2:].split(":", 1)
+                    if len(tmp) == 1:
+                        continue
+                    clef, contenu = tmp
+                    if clef not in infos:
+                        infos[clef] = []
+                    infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
         self.is_api[nom_script] = infos.get("api", False)
@@ -287,6 +291,7 @@ def execscript(script):
         else os.path.join(scriptlist.scriptdir, nomscript)
     )
     infos = scriptlist.descriptif[nomscript]
+    print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
     if form.validate_on_submit():

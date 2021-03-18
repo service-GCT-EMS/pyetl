@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 import wtforms as F
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
+from itertools import chain
 
 
 class LoginForm(FlaskForm):
@@ -62,19 +63,19 @@ def formbuilder(description):
             varlist.append(("sortie", def_es[1]))
 
     else:
-        setattr(CustomForm, "entree", F.MultipleFileField("entree"))
+        if not description.get("no_in"):
+            setattr(CustomForm, "entree", F.MultipleFileField("entree"))
+            varlist.append(("entree", "entree"))
         setattr(CustomForm, "sortie", F.StringField("sortie"))
-        varlist.append(("entree", "entree"))
         varlist.append(("sortie", "sortie"))
-
-    all_in = params + variables
-    for var in all_in:
-        name, definition = var.split("(", 1)
-        definition = definition[-1]
-        tmp = definition.split(",")
-        ftyp = tmp[0]
+    print("variables", list(chain(params.items(), variables.items())))
+    for var in chain(params.items(), variables.items()):
+        tmp = var.split(",") if isinstance(var, str) else var
+        vardef = tmp[0]
+        name, definition = vardef.split("(", 1) if "(" in vardef else (vardef, "T)")
+        definition = definition[:-1]
         fname = tmp[1] if len(tmp) > 1 else name
-        setattr(CustomForm, name, fieldfunctions.get(ftyp, F.StringField)(fname))
+        setattr(CustomForm, name, fieldfunctions.get(definition, F.StringField)(fname))
         varlist.append((name, name))
 
     setattr(CustomForm, "submit", SubmitField("executer"))

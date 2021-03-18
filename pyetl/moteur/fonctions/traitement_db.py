@@ -830,7 +830,7 @@ def f_recup_schema(regle, obj):
      #req_test||testdb
     """
     chemin = ""
-    print("recup_schema---------------", obj)
+    # print("recup_schema---------------", obj)
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
     valide = True
@@ -840,7 +840,7 @@ def f_recup_schema(regle, obj):
 
     if valide:
         return True
-    print("recup_schema: base non definie ", regle, type_base, base, obj)
+    print("recup_schema: base non definie ", regle, selecteur, obj)
     return False
 
 
@@ -855,7 +855,7 @@ def h_dbclean(regle):
 
         regle.type_base = regle.getvar("db_" + base)
 
-        nom = regle.params.cmp2.val + ".sql"
+        nom = str(regle.params.cmp2.val) + ".sql"
         if len(regle.cible_base) > 1:
             nom = os.path.join(os.path.dirname(nom), base + "_" + os.path.basename(nom))
         script = DB.reset_liste_tables(regle, base, niveau, classe)

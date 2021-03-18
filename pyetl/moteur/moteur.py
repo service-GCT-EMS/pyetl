@@ -305,6 +305,7 @@ class Macro(object):
         if ligne.startswith("#!api"):
             apidef = ligne[6:].split(";") if ligne[7:] else [self.nom[1:], "text"]
             self.apiname, self.retour = apidef[:2]
+            self.no_in = "no_in" in self.apiname
             return
 
         self.commandes_macro[numero] = ligne
@@ -477,7 +478,7 @@ class Context(object):
             for i, j in self.PARAM_EXP.findall(element):
                 cible = "%" + j + i + "%"
                 # print ('recup getvar',cible,i)
-                element = element.replace(cible, self.getvar(i))
+                element = element.replace(cible, str(self.getvar(i)))
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement
             element = self.env.get(element.split(":")[1], "")

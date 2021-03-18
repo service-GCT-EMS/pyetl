@@ -6,6 +6,7 @@ gestion des entrees et sorties de schemas
 """
 import os
 import logging
+from pyetl.moteur.regles import ParametresFonction
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 from .. import schema_interne as SCI
@@ -362,6 +363,15 @@ def ecrire_schema_xml(
 ):
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)
+    if stock_param and stock_param.mode == "web":
+        print("##################### mode webstore", stock_param.idpyetl)
+        mapper = stock_param
+        while mapper.parent and not mapper.ismainmapper:
+            mapper = mapper.parent
+        url_for = mapper.url_for
+        header = (
+            "<?xml-stylesheet href=" + url_for("xsl/dico.xsl") + ' type="text/xsl"?>'
+        )
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
     nomschema = prefix + schema.nom.replace("#", "_")
 
@@ -377,14 +387,15 @@ def ecrire_schema_xml(
         open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
         if not prefix:
             copier_xsl(rep)
+        # mode webservice
+        if stock_param and stock_param.mode == "web":
 
-    if stock_param and stock_param.mode == "web":
-        url_for = stock_param.maimapper.url_for
-        header = (
-            "<?xml-stylesheet href=" + url_for("xsl/dico.xsl") + ' type="text/xsl"?>'
-        )
-        xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
-        if xml:
+            print(
+                "#####################mode webstore",
+                stock_param.idpyetl,
+                len(xml) if xml else 0,
+            )
+
             if not "schemas" in stock_param.webstore:
                 stock_param.webstore["schemas"] = dict()
             stock_param.webstore["schemas"][nomschema] = xml

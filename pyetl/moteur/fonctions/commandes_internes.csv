@@ -145,7 +145,7 @@ $#%acces%;%acces%;;;;;;;;;;
 #!help;analyse une base de donnees;;;;;;;;;;
 !#!desc;parametres: acces : code de la base, niveau, classe : restriction de lecture nom: nom du schema
 !#!desc;variables: etendue: mode de sortie, mod: modifieur de selection
-#!api;dbschema;xml
+#!api;dbschema;xml;no_in
 #!pars;acces;base a analyser;
 #!pars;niveau;schema a analyser (exp reg);
 #!pars;classe;classe a analyser (exp reg);

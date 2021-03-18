@@ -400,7 +400,7 @@ class TableSelector(object):
         #     self.static,
         #     len(list(self.get_classes())),
         # )
-        # return complet
+        return complet
 
     def get_classes(self):
         for base in self.baseselectors:
