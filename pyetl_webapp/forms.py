@@ -62,7 +62,7 @@ def formbuilder(description):
             )
             varlist.append(("sortie", def_es[1]))
 
-    else:
+    elif description["__mode__"] != "api":
         if not description.get("no_in"):
             setattr(CustomForm, "entree", F.MultipleFileField("entree"))
             varlist.append(("entree", "entree"))

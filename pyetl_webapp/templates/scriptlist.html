@@ -16,7 +16,7 @@
     <tbody>
         {% for item in liste %}
         <tr>
-            <td><a href=exec/{{ item.url }}> {{ item.nom }}</a></td>
+            <td><a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a></td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>

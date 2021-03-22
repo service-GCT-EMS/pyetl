@@ -161,7 +161,9 @@ def foldeselector(fichier):
 
 @app.route("/scripts")
 def scripts():
-    return render_template("scriptlist.html", liste=sorted(scriptlist.liste))
+    return render_template(
+        "scriptlist.html", liste=sorted(scriptlist.liste), mode="exec"
+    )
 
 
 @app.route("/macros")
@@ -172,7 +174,7 @@ def macros():
             for i in scriptlist.mapper.getmacrolist()
         ]
     )
-    return render_template("scriptlist.html", liste=macrolist)
+    return render_template("scriptlist.html", liste=macrolist, mode="exec")
 
 
 @app.route("/apis")
@@ -189,13 +191,13 @@ def apis():
         [fichinfo._make((i[0], i[1].replace("#", "_"), "", "")) for i in macroapilist]
     )
     print("apilist", macroapilist)
-    return render_template("scriptlist.html", liste=sorted(apilist))
+    return render_template("scriptlist.html", liste=sorted(apilist), mode="api")
 
 
-@app.route("/refresh")
-def refresh():
+@app.route("/refresh/<mode>")
+def refresh(mode):
     scriptlist.refresh()
-    return render_template("scriptlist.html", liste=sorted(scriptlist.liste))
+    return render_template("scriptlist.html", liste=sorted(scriptlist.liste), mode=mode)
 
 
 @app.route("/scriptdesc/<script>")
@@ -260,7 +262,7 @@ def execapi(script):
             wstats["nom"] = nom
             session["stats"] = wstats
             session["retour"] = result
-            print("resultats traitement", result)
+            print("resultats traitement api", result)
             return redirect("/retour_api/" + script)
         except error as err:
             LOGGER.exception("erreur script", exc_info=err)
@@ -280,9 +282,9 @@ def retour_api(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
-@app.route("/exec/<script>", methods=["GET", "POST"])
+@app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
-def execscript(script):
+def execscript(script, mode):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -291,12 +293,17 @@ def execscript(script):
         else os.path.join(scriptlist.scriptdir, nomscript)
     )
     infos = scriptlist.descriptif[nomscript]
+    infos["__mode__"] = mode
     print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
     if form.validate_on_submit():
-        entree = form.entree.data[0]
-        rep_sortie = form.sortie.data
+        if mode != "api":
+            entree = form.entree.data[0]
+            rep_sortie = form.sortie.data
+        else:
+            rep_sortie = "#web"
+            entree = ""
         scriptparams = dict()
         for desc in varlist:
             nom, definition = desc

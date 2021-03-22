@@ -693,7 +693,7 @@ class Pyetl(object):
     ):
         """retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
-        #        print(" dans getpyetl",mode)
+        print("---------------------------- dans getpyetl", mode, rep_sortie)
         if not regles:
             if mode is None:
                 self.logger.critical("getpyetl:mode non defini")
@@ -707,7 +707,7 @@ class Pyetl(object):
                 petl.setvar("F_sortie", "#store")
                 petl.setvar("force_schema", "0")
                 rep_sortie = rep_sortie[1:]
-                # print('getpyetl: format store',rep_sortie, regles)
+                print("----------------getpyetl: format store", rep_sortie, regles)
             petl.setvar("_sortie", rep_sortie)
         if entree is not None:
             #            print ("entree getpyetl",type(entree))
@@ -1235,6 +1235,12 @@ class Pyetl(object):
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
+        print(
+            "sortie schema:",
+            rep_sortie,
+            self.worker,
+            self.mode,
+        )
         if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
             if (
                 not self.getvar("_testmode") and self.mode != "web" and self.schemas

@@ -80,11 +80,11 @@ def lire_schemas_multiples(
             if racine in element.lower():
                 ext = os.path.splitext(element)[1]
                 if "classes" in element and ext == ".csv":
-                    LOGGER.info("lecture %s -> "+element,racine)
+                    LOGGER.info("lecture %s -> " + element, racine)
                     # print("schema:lecture ", element, racine, os.path.splitext(element))
                     element_modif = "_".join(element.split("_")[:-1])
                     fichier = os.path.join(rep, element_modif)
-                    full_racine=os.path.join(rep,racine)
+                    full_racine = os.path.join(rep, racine)
                     fusion_schema(
                         nom,
                         schema,
@@ -95,7 +95,7 @@ def lire_schemas_multiples(
                             mode_alias,
                             cod=cod_csv,
                             specifique=specifique,
-                            racine=full_racine
+                            racine=full_racine,
                         ),
                     )
                 elif ext == ".xml":
@@ -104,15 +104,15 @@ def lire_schemas_multiples(
                     )
         schema.map_classes()
     except FileNotFoundError:
-        LOGGER.error("chemin introuvable %s",rep)
+        LOGGER.error("chemin introuvable %s", rep)
     except PermissionError:
-        LOGGER.error("chemin non autorise %s",rep)
+        LOGGER.error("chemin non autorise %s", rep)
 
     if schema.classes:
-        LOGGER.info("classes totales %d",len(schema.classes))
+        LOGGER.info("classes totales %d", len(schema.classes))
         # print("schema:classes totales", len(schema.classes), cod)
     else:
-        LOGGER.warning("pas de definition de schema %s %s",rep, racine)
+        LOGGER.warning("pas de definition de schema %s %s", rep, racine)
         # print("pas de definition de schema", rep, racine)
     return schema
 
@@ -169,7 +169,7 @@ def ecrire_schema_sql(
     transact=False,
     autopk=False,
     role=None,
-    stock_param=None
+    stock_param=None,
 ):
     """ ecrit un schema en script sql """
     # on determine le dialacte sql a choisir
@@ -192,7 +192,7 @@ def ecrire_schema_sql(
         gsql = DATABASES[dialecte].gensql()
     #    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
     if gsql.stock_param is None:
-        gsql.stock_param=stock_param
+        gsql.stock_param = stock_param
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace("#", "_")
@@ -281,11 +281,18 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 transact=stock_param.getvar("transact"),
                 autopk=autopk,
                 role=role,
-                stock_param=stock_param
+                stock_param=stock_param,
             )
         if "csv" in form:
             cod_csv = stock_param.getvar("codec_csv", "utf-8")
-            ecrire_schema_csv(rep_s, schema, mode, cod=cod_csv, modeconf=confs,stock_param=stock_param)
+            ecrire_schema_csv(
+                rep_s,
+                schema,
+                mode,
+                cod=cod_csv,
+                modeconf=confs,
+                stock_param=stock_param,
+            )
         if form == "xml":
             #            header = stock_param.getvar('xmlheader', '')
             #            if header:
@@ -301,7 +308,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 cod="utf-8",
                 header=header,
                 alias=stock_param.getvar("xmlalias"),
-                stock_param=stock_param
+                stock_param=stock_param,
             )
         #            copier_xsl(rep_s)
 
@@ -323,7 +330,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                     header=header,
                     alias=stock_param.getvar("xmlalias"),
                     prefix=prefix,
-                    stock_param=stock_param
+                    stock_param=stock_param,
                 )
             else:
                 stock_param.logger.warning("header distant (xmlheader_dist) non defini")
@@ -339,7 +346,13 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    rep_sortie = stock_param.getvar('_sortie')
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
     # LOGGER.info("repertoire sortie schema %s", rep_sortie)
-    # print("sio:repertoire sortie schema", stock_param.idpyetl, rep_sortie)
+    print(
+        "sio:repertoire sortie schema",
+        stock_param.idpyetl,
+        stock_param.mode,
+        rep_sortie,
+    )
+    # raise
     #        raise FileNotFoundError
 
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
