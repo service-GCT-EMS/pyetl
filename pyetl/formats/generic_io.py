@@ -11,7 +11,6 @@ commencent par format_
 """
 import os
 import codecs
-from pyetl.pyetl import LOGGER
 import re
 import io
 from types import MethodType
@@ -625,9 +624,10 @@ class Output(object):
         nom = nom.replace(".", "").lower()
         if nom not in WRITERS:
             if nom:
-                LOGGER.error("format sortie inconnu '%s'", nom)
-                LOGGER.info("formats existants :")
-                LOGGER.info("formats existants : %s", ",".join(WRITERS.keys()))
+                logger = regle.stock_param.logger
+                logger.error("format sortie inconnu '%s'", nom)
+                logger.info("formats existants :")
+                logger.info("formats existants : %s", ",".join(WRITERS.keys()))
             # print("format sortie inconnu '" + nom + "'", WRITERS.keys())
             nom = "#poubelle"
         # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)

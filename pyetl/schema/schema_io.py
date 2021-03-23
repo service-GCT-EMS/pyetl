@@ -482,8 +482,3 @@ def integre_schemas(schemas, nouveaux):
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids
-
-
-#    print ('fin_recup_schema')
-#    print ('recup_schema_csv',ecrire_schema_csv(None, schemas['elyx_prod'],'all', modeconf=-1))
-#    print ('fin integration')

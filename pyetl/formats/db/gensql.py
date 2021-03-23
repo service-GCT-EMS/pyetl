@@ -10,7 +10,6 @@ import re
 import time
 import logging
 
-LOGGER = logging.getLogger(__name__)
 from collections import namedtuple
 from .dbconstants import *
 
@@ -284,10 +283,12 @@ class DbGenSql(object):
             )
 
         liste_tables = liste
-
-        LOGGER.info(
-            "definition de %d tables a sortir:(%s)", len(liste_tables), self.dialecte
-        )
+        if self.regle_ref:
+            self.regle_ref.stock_param.logger.info(
+                "definition de %d tables a sortir:(%s)",
+                len(liste_tables),
+                self.dialecte,
+            )
         # print("definition de tables a sortir:", len(liste_tables), self.dialecte)
         # print(
         #     "tables non sorties:",

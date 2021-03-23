@@ -324,9 +324,17 @@ def execscript(script, mode):
                 result = processor.get_results()
                 wstats["nom"] = nomscript
                 session["stats"] = wstats
-                session["retour"] = result
-                print("resultats traitement", result)
-                return redirect("/result/" + script)
+                # session["retour"] = result
+                print("resultats traitement", list(result.keys()))
+                if wstats:
+                    return render_template(
+                        "script_result.html",
+                        stats=wstats,
+                        retour=result,
+                        url=script,
+                        nom=nomscript,
+                    )
+                return render_template("noresult.html", url=script, nom=nomscript)
             except error as err:
                 LOGGER.exception("erreur script", exc_info=err)
                 return redirect("/plantage/" + script)

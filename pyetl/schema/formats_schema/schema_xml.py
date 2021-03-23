@@ -11,7 +11,6 @@ import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 from .. import schema_interne as SCI
 
-LOGGER = logging.getLogger("pyetl")  # un logger
 
 ESC_XML = lambda t: (
     str(t)
@@ -370,24 +369,30 @@ def ecrire_schema_xml(
             mapper = mapper.parent
         url_for = mapper.url_for
         header = (
-            "<?xml-stylesheet href=" + url_for("xsl/dico.xsl") + ' type="text/xsl"?>'
+            "<?xml-stylesheet href="
+            + url_for("static", filename="xsl/dico.xsl")
+            + ' type="text/xsl"?>'
         )
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
     nomschema = prefix + schema.nom.replace("#", "_")
 
     if xml:
-        os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
-        # taille=len(schema.classes)
-        LOGGER.info("%s en xml dans %s.xml", nomschema, os.path.join(rep, nomschema))
-        # print(
-        #     "schema: ecriture schema xml",
-        #     nomschema,
-        #     os.path.join(rep, nomschema) + ".xml",
-        # )
-        open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
-        if not prefix:
-            copier_xsl(rep)
-        # mode webservice
+        if rep:
+            os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
+            # taille=len(schema.classes)
+            if stock_param:
+                stock_param.logger.info(
+                    "%s en xml dans %s.xml", nomschema, os.path.join(rep, nomschema)
+                )
+            # print(
+            #     "schema: ecriture schema xml",
+            #     nomschema,
+            #     os.path.join(rep, nomschema) + ".xml",
+            # )
+            open(os.path.join(rep, nomschema + ".xml"), "w", encoding=cod).write(xml)
+            if not prefix:
+                copier_xsl(rep)
+            # mode webservice
         if stock_param and stock_param.mode == "web":
 
             print(

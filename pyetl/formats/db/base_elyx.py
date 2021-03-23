@@ -27,7 +27,6 @@ from . import base_oraclespatial as ora
 
 # from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
 # from ..xml import XmlWriter
-LOGGER = logging.getLogger(__name__)
 
 
 class ElyConnect(ora.OrwConnect):
@@ -383,7 +382,7 @@ class ElyConnect(ora.OrwConnect):
             self.tmpdir = str(tmpdir)
 
             blocks = self.get_blocks(helper, classes, dest, log, fanout, nbdump)
-            LOGGER.info(
+            regle_courante.stock_param.logger.info(
                 "calcule blocs %d (%s) %s",
                 len(blocks),
                 regle_courante.getvar("_wid"),
@@ -411,7 +410,9 @@ class ElyConnect(ora.OrwConnect):
                         rep, chemin, classe, ext = pars
                         # chemin, classe = idclasse
                         fichier = os.path.join(rep, chemin, classe)
-                        LOGGER.debug("fichier a traiter : %s", str(fichier))
+                        regle_courante.stock_param.logger.debug(
+                            "fichier a traiter : %s", str(fichier)
+                        )
                         # print("fichier a traiter :", fichier)
                         try:
                             self.params.lecture(
@@ -685,7 +686,6 @@ class ElyConnect(ora.OrwConnect):
                 "ECHELLE_DISPARITION",
             ],
         )
-        # LOGGER.info("%s: composants trouves %d", self.base, len(self.confs))
         # print("composants", len(self.confs))
         compos = self.menage_version(self.request(requete, ()), 1, 0, 2)
         compos = self.menage_version(list(compos.values()), 1, 3, 2)

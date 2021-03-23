@@ -9,7 +9,6 @@ acces a la base de donnees
 import logging
 
 DEBUG = False
-LOGGER = logging.getLogger(__name__)
 TYPES_A = {i: i for i in "TFHGDNSIEB0123"}
 TYPES_A.update({i: i for i in ("DS", "EL", "-1")})
 TYPENUM = {

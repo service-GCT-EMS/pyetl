@@ -203,7 +203,9 @@ def setmetas(schema, metas):
     schema.metas = metas
 
 
-def sortir_schema_csv(sch, mode="all", modeconf=-1, conf_used=False, init=False):
+def sortir_schema_csv(
+    sch, mode="all", modeconf=-1, conf_used=False, init=False, stock_param=None
+):
     """ecrit un schema complet en csv"""
     conf = initmetaheader(
         sch, "conformite;N°_ordre;VAL_CONF_NOM;VAL_CONF_TEXTE;mode;fin"
@@ -592,7 +594,14 @@ def fichs_schema(racine):
 
 
 def lire_schema_csv(
-    mapper, nom, fichier, mode_alias="num", cod="cp1252", schema=None, specifique=None, racine=None
+    mapper,
+    nom,
+    fichier,
+    mode_alias="num",
+    cod="cp1252",
+    schema=None,
+    specifique=None,
+    racine=None,
 ):
     """lit un schema complet en csv"""
     if schema is None:
@@ -666,7 +675,9 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1, stock_param=N
     init = False
     if schema.origine == "B" or schema.origine == "L":
         init = True
-    conf, classes = sortir_schema_csv(schema, mode=mode, modeconf=modeconf, init=init)
+    conf, classes = sortir_schema_csv(
+        schema, mode=mode, modeconf=modeconf, init=init, stock_param=stock_param
+    )
     mapping = initmetaheader(schema, "schema;classe;schema_orig;classe_orig;nombre")
     mapping.extend(schema.mapping_schema())
     nomschema = str(os.path.basename(schema.nom.replace("#", "_")))

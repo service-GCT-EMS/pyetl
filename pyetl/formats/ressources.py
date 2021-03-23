@@ -52,6 +52,7 @@ class Ressource(object):
         self.regle_ref = handler.regle  # regle qui cree la ressource
         self.regles = set()
         self.sortie = None  # ressource effective ( fichier ou autre)
+        self.logger = self.regle_ref.stock_param.logger
 
     def __repr__(self):
         return (
@@ -78,7 +79,9 @@ class Ressource(object):
                 self.sortie = self.handler.reopen()
                 self.etat = 1
         except IOError as err:
-            LOGGER.critical("erreur ouverture fichier " + self.nom + "->" + repr(err))
+            self.logger.critical(
+                "erreur ouverture fichier " + self.nom + "->" + repr(err)
+            )
             raise StopIteration(2)
 
     def fermer(self, id_regle):
@@ -101,7 +104,9 @@ class Ressource(object):
             if self.handler.bwrite(obj):
                 self.nbo += 1
         except IOError as err:
-            LOGGER.critical("erreur ecriture fichier " + self.nom + "->" + repr(err))
+            self.logger.critical(
+                "erreur ecriture fichier " + self.nom + "->" + repr(err)
+            )
             raise StopIteration(2)
 
     def write(self, obj, id_regle):
@@ -116,7 +121,9 @@ class Ressource(object):
             if self.handler.write(obj):
                 self.nbo += 1
         except IOError as err:
-            LOGGER.critical("erreur ecriture ressource " + self.nom + "->" + repr(err))
+            self.logger.critical(
+                "erreur ecriture ressource " + self.nom + "->" + repr(err)
+            )
             raise StopIteration(2)
 
     def compte(self, nbr):
@@ -129,7 +136,7 @@ class Ressource(object):
             self.handler.open()
             self.etat = 1
         if self.etat > 2:
-            LOGGER.warning("ressource deja finalisee " + self.nom)
+            self.logger.warning("ressource deja finalisee " + self.nom)
             return -1
         self.etat = self.handler.finalise()
         return self.nbo
@@ -159,7 +166,7 @@ class GestionSorties(object):
                     del self.ressources[id_ressource]
                     return None
                 else:
-                    LOGGER.error(
+                    regle.stock_param.logger.error(
                         "fichier deja utilise %s positionner overwrite",
                         str(id_ressource),
                     )
