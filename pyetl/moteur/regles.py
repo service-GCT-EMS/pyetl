@@ -585,16 +585,17 @@ class RegleTraitement(object):  # regle de mapping
 
     def afficher_erreurs(self, fonc, message):
         """donne des indications sur les erreurs de syntaxe"""
+        log=self.stock_param.logger.error
         motif = "------->"
-        print(motif + " erreur interpretation regle", self.fichier, self.numero)
-        print(motif, self.ligne.replace("\n", ""))
-        print(motif + " contexte d'execution:", self.context)
-        print(motif, ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]))
-        print(motif, message)
+        log(motif + " erreur interpretation regle %s %d", self.fichier, self.numero)
+        log(motif + " %s", self.ligne.replace("\n", ""))
+        log(motif + " contexte d'execution: %s", repr(self.context))
+        log(motif + " %s", ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]))
+        log(motif + message)
         if self.erreurs:
-            print(motif, "\n".join(self.erreurs))
+            log(motif + " %s", "\n".join(self.erreurs))
         if not self.mode:  # pas de mode en general un decalage
-            print(motif, "regle vide")
+            log(motif + " %s", "regle vide")
             morceaux = self.context.SPLITTER_PV.split(self.ligne.replace("\n", ""))
             morceaux[7] = "???"
             print(motif, ";".join(morceaux))

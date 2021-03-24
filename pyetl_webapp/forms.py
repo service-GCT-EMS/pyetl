@@ -42,8 +42,8 @@ def formbuilder(description):
         "T": F.StringField,
         "OK": F.SubmitField,
     }
-    variables = description.get("variables", [])
-    params = description.get("parametres", [])
+    variables = description.get("variables", dict())
+    params = description.get("parametres", dict())
     print("recup description", description)
     varlist = []
     es = description.get("e_s", ())

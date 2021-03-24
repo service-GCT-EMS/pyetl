@@ -94,8 +94,13 @@ class ScriptList(object):
                         continue
                     clef, contenu = tmp
                     if clef not in infos:
-                        infos[clef] = []
-                    infos[clef].append(contenu)
+                        infos[clef] = dict() if clef=="variables" else []
+                    if clef=="variables":
+                        tmp=contenu.split(";",1)
+                        nom,question = tmp if len(tmp)==2 else (contenu,contenu)
+                        infos[clef][nom]=question
+                    else:
+                        infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
         self.is_api[nom_script] = infos.get("api", False)
@@ -282,6 +287,14 @@ def retour_api(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
+
+
+
+
+
+
+
+
 @app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
 def execscript(script, mode):
@@ -323,6 +336,7 @@ def execscript(script, mode):
                 wstats = processor.get_work_stats()
                 result = processor.get_results()
                 wstats["nom"] = nomscript
+                wstats["result"] = result
                 session["stats"] = wstats
                 # session["retour"] = result
                 print("resultats traitement", list(result.keys()))
