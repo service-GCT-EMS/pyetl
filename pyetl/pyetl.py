@@ -10,13 +10,13 @@ import re
 
 import logging
 
-LOGGER = logging.getLogger("pyetl")
+
 import itertools
 from queue import Empty
-from io import StringIO
 
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales, is_special
+from .outils import gestion_logs as L
 
 # print ('globales',time.time()-t1)
 from .formats.generic_io import Reader, Output, READERS, WRITERS
@@ -47,57 +47,9 @@ from .moteur.fonctions.parallel import setparallel
 # MODULEDEBUG = False
 
 
-class DiffLogFilTer(logging.Filter):
-    def filter(self, record):
-        if record.levelname == "999":
-            return True
-        try:
-            precrecord = self.precrecord
-        except AttributeError:
-            self.precrecords = None
-            precrecord = None
-        # print("dans filtrage", dir(record), record)
-        if (
-            precrecord
-            and precrecord.funcName == record.funcName
-            and precrecord.msg == record.msg
-        ):
-            precrecord.msgcount += 1
-            # print(" filtrage negatif", precrecord.msgcount)
-            return False
-        else:
-            if precrecord and precrecord.msgcount > 1:
-                LOGGER.log(
-                    999,
-                    "message repete %d fois :%s",
-                    precrecord.msgcount,
-                    precrecord.msg,
-                )
-        record.msgcount = 1
-        self.precrecord = record
-        return True
-
-
-def getlog(args):
-    """recherche s il y a une demande de fichier log dans les arguments"""
-    log = None
-    log_level = None
-    log_print = None
-    if args:
-        for i in args:
-            if "log_file=" in i:
-                log = i.split("=")[1]
-            if "log_level=" in i:
-                log_level = i.split("=")[1]
-            if "log_print=" in i:
-                log_print = i.split("=")[1]
-    # print("dans getlog", log, log_level, log_print)
-    return log, log_level, log_print
-
-
 def runpyetl(commandes, args):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
-    loginfo = getlog(args)
+    loginfo = L.getlog(args)
 
     mainmapper = getmainmapper()
     mainmapper.initlog(loginfo)
@@ -182,6 +134,7 @@ class Pyetl(object):
         self.nompyetl = nom if nom else "pyetl"
         self.starttime = time.time()  # timer interne
         # variables d'instance (stockage des elements)
+        self.mode = mode
         self.maintimer = self._timer(init=True)
         self.statstore = Statstore(self)
         self.cntr = dict()  # stockage des compteurs
@@ -203,7 +156,7 @@ class Pyetl(object):
         # if mode =="web":
         #     name = "pyetl"+str(self.idpyetl)
         #     self.logger=logging.getLogger(name)
-        self.logger = parent.logger if parent else LOGGER
+
         self.context = Context(
             parent=context, ident=str(self.idpyetl), type_c="P", root=True
         )
@@ -216,17 +169,14 @@ class Pyetl(object):
         self.ismainmapper = False
         self.init_environ(env=env)
         setparallel(self)  # initialise la gestion du parallelisme
-
-        self.loginited = self.parent.loginited if self.parent else False
         self.ended = False
         self.is_special = False
         self.worker = parent.worker if parent else False  # process esclave
-        #        self.paramdir = os.path.join(env.get("USERPROFILE", "."), ".pyetl")
-        self.mode = mode
         self.stream = 0
         self.debug = 0
         #        self.stock = False # pas de stockage
-
+        self.gestion_log = parent.gestion_log if parent else L.GestionLogs(self)
+        self.logger = self.gestion_log.logger
         # parametres globaux ressources
         self.bindings = dict()
         self.moteur = Moteur(self)
@@ -262,6 +212,7 @@ class Pyetl(object):
 
         self.liens_variables = dict()
         self.duree = 0
+
         self._set_streammode()
         self.done = False
 
@@ -272,93 +223,8 @@ class Pyetl(object):
         return os.path.join(os.path.dirname(__file__), path)
 
     def initlog(self, loginfo=None, force=False):
+        self.gestion_log.initlog(self, loginfo, force)
         """initialise le contexte de logging (parametres de site environnement)"""
-        if self.loginited and not force:
-            return  # on a deja fait le boulot
-        log_level = "DEBUG"
-        log_print = "INFO"
-        log_file = ""
-        if loginfo:
-            logfile, loglevel, logprint = loginfo
-        else:
-            logfile, loglevel, logprint = (None, None, None)
-        log_file = logfile or log_file
-        log_level = loglevel or log_level
-        log_print = logprint or log_print
-        fichier = self.getvar("log_file", log_file)
-        log = self.getvar("log_level", log_level)
-        affich = self.getvar("log_print", log_print)
-        self.loginited = True
-
-        #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
-        #        next(self.aff)
-
-        # def initlogger(self, fichier=None, log="DEBUG", affich="INFO"):
-        """ création de l'objet logger qui va nous servir à écrire dans les logs"""
-        # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
-        logger = self.logger
-        worker = self.worker
-        loglevels = {
-            "DEBUG": logging.DEBUG,
-            "WARNING": logging.WARNING,
-            "ERROR": logging.ERROR,
-            "CRITICAL": logging.CRITICAL,
-            "INFO": logging.INFO,
-            "AFFICH": 999,
-        }
-        niveau_f = loglevels.get(log, logging.INFO)
-        niveau_p = loglevels.get(affich, logging.ERROR)
-        # print ('niveaux de logging',niveau_f,niveau_p)
-        if fichier:
-            logger.setLevel(niveau_f)
-        else:
-            logger.setLevel(niveau_p)
-        if not worker:
-            # print("initialisation log", affich, log, "(", fichier, ")")
-            if not logger.handlers:
-                # création d'un handler qui va rediriger chaque écriture de log sur la console
-                if self.mode == "web":
-                    store = StringIO()
-                    print_handler = logging.StreamHandler(store)
-                    aff_handler = logging.StreamHandler(store)
-                    self.webstore["log"] = store
-                else:
-                    print_handler = logging.StreamHandler()
-                    aff_handler = logging.StreamHandler()
-                printformatter = logging.Formatter(
-                    "%(levelname)-8s %(funcName)-25s: %(message)s"
-                )
-                print_handler.setFormatter(printformatter)
-                print_handler.prec_record = ""
-                print_handler.addFilter(lambda x: x.levelno != 999)
-                print_handler.addFilter(DiffLogFilTer())
-                print_handler.setLevel(niveau_p)
-                logger.addHandler(print_handler)
-                aff_handler = logging.StreamHandler()
-                aff_formatter = logging.Formatter(
-                    "========================== %(message)s"
-                )
-                aff_handler.setLevel(loglevels["AFFICH"])
-                aff_handler.setFormatter(aff_formatter)
-                logger.addHandler(aff_handler)
-            if fichier:
-                # création d'un formateur qui va ajouter le temps, le niveau
-                # de chaque message quand on écrira un message dans le log
-                fileformatter = logging.Formatter(
-                    "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s"
-                    + "::%(message)s"
-                )
-                #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
-                # création d'un handler qui va rediriger une écriture du log vers
-                # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
-                file_handler = logging.FileHandler(fichier)
-                # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-                # créé précédement et on ajoute ce handler au logger
-                file_handler.setLevel(niveau_f)
-                file_handler.setFormatter(fileformatter)
-                logger.addHandler(file_handler)
-        else:
-            pass
 
     def initpyetl(self, commandes, args):
         """ initialisation standardisee: cree l'objet pyetl de base"""
