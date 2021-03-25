@@ -11,8 +11,8 @@
 $F_sortie=%format%;%F_sortie%;csv;;;;;;;;;
 $mode_sortie=%mode_sortie%;D;;;;;;;;;;
 K:%F_sortie%=sql;$format_schema=%F_sortie%;
-$#%acces%;%acces%;;;;;;;;;;
-$#%dest%;%acces%;;;;;;;;;;
+$#%acces%;;;;;;;;;;;
+$#%dest%;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#gid;;;;;;;;;;
 #!help;ajout d un gid si necessaire;;;;;;;;;;

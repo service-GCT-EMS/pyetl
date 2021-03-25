@@ -8,8 +8,8 @@ import time
 import os
 import re
 
-import logging
-
+import tempfile
+import pickle
 
 import itertools
 from queue import Empty
@@ -167,7 +167,7 @@ class Pyetl(object):
         self.userdir = os.path.expanduser("~")
         self.paramdir = os.path.join(self.userdir, ".pyetl")
         self.ismainmapper = False
-        self.init_environ(env=env)
+
         setparallel(self)  # initialise la gestion du parallelisme
         self.ended = False
         self.is_special = False
@@ -178,6 +178,7 @@ class Pyetl(object):
         self.gestion_log = parent.gestion_log if parent else L.GestionLogs(self)
         self.logger = self.gestion_log.logger
         # parametres globaux ressources
+        self.init_environ(env=env)
         self.bindings = dict()
         self.moteur = Moteur(self)
         # parametres de lancement
@@ -1177,7 +1178,12 @@ class Pyetl(object):
             buffer = self.webstore["log"]
             sortie = buffer.getvalue().split("\n")
             self.webstore["log"] = sortie
-        return self.webstore
+
+        tmpdir=tempfile.TemporaryDirectory()
+        for i in self.webstore:
+            file = open(os.path.join(tmpdir.name,i),"bw")
+            pickle.dump(self.webstore[i], file)
+        return self.webstore,tmpdir.name
 
     def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""

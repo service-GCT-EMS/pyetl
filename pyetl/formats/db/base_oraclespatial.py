@@ -240,6 +240,8 @@ class OrwConnect(OraConnect):
         if self.connection:
             return
         super().connect()
+        if not self.connection:
+            raise StopIteration(3)
         def output_type_handler(cursor, name, default_type, size, precision, scale):
             if default_type == cx_Oracle.BLOB:
                 return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)

@@ -334,7 +334,8 @@ def execscript(script, mode):
             try:
                 processor.process()
                 wstats = processor.get_work_stats()
-                result = processor.get_results()
+                result, tmpdir = processor.get_results()
+                wstats["tmpdir"]=tmpdir
                 wstats["nom"] = nomscript
                 wstats["result"] = result
                 session["stats"] = wstats

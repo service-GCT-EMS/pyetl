@@ -98,7 +98,7 @@ def _gestion_types_simples(attr, type_attribut):
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
         attr.type_att = "T"
         LOGGER.warning(
-            "attention type inconnu %s passage en texte---> %s", type_attr, attr
+            "attention type inconnu "+type_attr+" passage en texte---> %s", attr
         )
         # print(
         #     "schemaclasse--------attention type inconnu passage en texte--->",

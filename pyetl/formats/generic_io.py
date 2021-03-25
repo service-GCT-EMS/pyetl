@@ -64,6 +64,15 @@ def get_read_encoding(regle, nom_format):
     ]
     return regle.getchain(defchain, "utf-8-sig")
 
+def get_write_encoding(regle,nom_format):
+    defchain = [
+        "encoding",
+        "codec_" + nom_format + "_out",
+        "codec_" + nom_format,
+        "codec_sortie",
+        "defcodec",
+    ]
+    return regle.getchain(defchain, "utf-8")
 
 def get_read_separ(regle, nom_format):
 
@@ -650,7 +659,9 @@ class Output(object):
             initer(self)
         self.writerparms.update(self.regle.writerparms)
         self.dialecte = dialecte
-        self.encoding = self.writerparms.get("encoding", "utf-8")
+        self.encoding = self.regle.getlocal("encoding",self.writerparms.get("encoding"))
+        if not self.encoding:
+            self.encoding=get_write_encoding(regle,nom)
         self.ecrire_objets = (
             MethodType(self.writerparms["writer"], self)
             if self.writerparms["writer"]

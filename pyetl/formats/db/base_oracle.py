@@ -20,7 +20,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-from cx_Oracle import connect as oraconnect, Error as OraError
+from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
 
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -64,6 +64,7 @@ class OraConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        self.oracle_env()
         self.connect()
         #        self.errdef = errdef
         self.type_base = "oracle"
@@ -76,7 +77,6 @@ class OraConnect(DbConnect):
             "info_attributs": self.req_attributs,
         }
         self.DBError = OraError
-        self.oracle_env()
 
     def oracle_env(self):
         """positionne les variables d'environnement pour le connecteur """
@@ -112,7 +112,10 @@ class OraConnect(DbConnect):
         # )
         try:
             """positionne les variables d'environnement pour les programmes externes """
-
+            # lib_oracle=r"C:\dev\mapper\autres\instantclient_19_9"
+            # init_oracle_client(lib_dir=lib_oracle)
+            # env = os.environ
+            # env["ORACLE_HOME"]=lib_oracle
             connection = oraconnect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
