@@ -657,6 +657,11 @@ class RegleTraitement(object):  # regle de mapping
             return self.vlocs[nom]
         return self.context.getvar(nom, defaut)
 
+    def getlocal(self,nom, defaut=""):
+        if nom in self.vlocs:
+            return self.vlocs[nom]
+        return self.context.getlocal(nom, defaut)
+
     def getchain(self, noms, defaut=""):
         """recupere une variable avec une chaine de fallbacks"""
         return self.context.getchain(noms, defaut)
