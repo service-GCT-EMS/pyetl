@@ -1,8 +1,10 @@
 
 {% extends "base.html" %}
-
+{% block title %}
+    <h1>retour {{ stats["nom"] }}</h1>
+{% endblock %}
 {% block content %}
-    <title>statistique d execution de {{ stats["nom"] }}</title>
+
     <table>
     <thead>
         <tr>
@@ -27,12 +29,12 @@
     <title>resultats </title>
     <nav class="nav nav-tabs">
         {% for valeur in retour %}
-            <a class="nav-item nav-link active" href="#{{ valeur }}" data-toggle="tab">{{ valeur }}</a>
+            <a class="nav-item nav-link" href="#{{ valeur }}" data-toggle="tab">{{ valeur }}</a>
         {% endfor %}
     </nav>
     <div class="tab-content">
         {% for valeur in retour %}
-            <div class="tab-pane active" id="{{ valeur }}">
+            <div class="tab-pane" id="{{ valeur }}">
             <table>
             <tbody>
                 {% for ligne in retour[valeur] %}
@@ -46,20 +48,6 @@
         {% endfor %}
     </div>
 
-
-
-    {% for valeur in retour %}
-        <h2>{{ valeur }}</h2>
-            <table>
-            <tbody>
-                {% for ligne in retour[valeur] %}
-                    <tr>
-                        <td>{{ ligne }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-            </table>
-        {% endfor %}
     </div>
     {% endif %}
 {% endblock %}

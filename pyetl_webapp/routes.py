@@ -243,36 +243,36 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
-@app.route("/api/<script>")
-def execapi(script):
-    """interface webservice"""
-    parametres = request.args
-    print("parametres requete", parametres)
-    rep_sortie = "#webservice"
-    nom = url_to_nom(script)
-    fich = url_to_fich(script)
-    scriptparams = request.args
-    processor = scriptlist.mapper.getpyetl(
-        fich,
-        entree=None,
-        rep_sortie="#web",
-        liste_params=scriptparams,
-        mode="web",
-    )
-    if processor:
-        try:
-            processor.process()
-            wstats = processor.get_work_stats()
-            result = processor.get_results()
-            wstats["nom"] = nom
-            session["stats"] = wstats
-            session["retour"] = result
-            print("resultats traitement api", result)
-            return redirect("/retour_api/" + script)
-        except error as err:
-            LOGGER.exception("erreur script", exc_info=err)
-            return redirect("/plantage/" + script)
-    return redirect("/plantage/" + script)
+# @app.route("/api/<script>")
+# def execapi(script):
+#     """interface webservice"""
+#     parametres = request.args
+#     print("parametres requete", parametres)
+#     rep_sortie = "#webservice"
+#     nom = url_to_nom(script)
+#     fich = url_to_fich(script)
+#     scriptparams = request.args
+#     processor = scriptlist.mapper.getpyetl(
+#         fich,
+#         entree=None,
+#         rep_sortie=rep_sortie,
+#         liste_params=scriptparams,
+#         mode="web",
+#     )
+#     if processor:
+#         try:
+#             processor.process()
+#             wstats = processor.get_work_stats()
+#             result = processor.get_results()
+#             wstats["nom"] = nom
+#             session["stats"] = wstats
+#             session["retour"] = result
+#             print("resultats traitement api", result)
+#             return redirect("/retour_api/" + script)
+#         except error as err:
+#             LOGGER.exception("erreur script", exc_info=err)
+#             return redirect("/plantage/" + script)
+#     return redirect("/plantage/" + script)
 
 
 @app.route("/retour_api/<script>")
@@ -315,7 +315,7 @@ def execscript(script, mode):
             entree = form.entree.data[0]
             rep_sortie = form.sortie.data
         else:
-            rep_sortie = "#web"
+            rep_sortie = "#webservice"
             entree = ""
         scriptparams = dict()
         for desc in varlist:
@@ -337,7 +337,7 @@ def execscript(script, mode):
                 result, tmpdir = processor.get_results()
                 wstats["tmpdir"]=tmpdir
                 wstats["nom"] = nomscript
-                wstats["result"] = result
+                wstats["result"] = list(result.keys())
                 session["stats"] = wstats
                 # session["retour"] = result
                 print("resultats traitement", list(result.keys()))
