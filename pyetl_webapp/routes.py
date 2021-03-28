@@ -243,37 +243,6 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
-# @app.route("/api/<script>")
-# def execapi(script):
-#     """interface webservice"""
-#     parametres = request.args
-#     print("parametres requete", parametres)
-#     rep_sortie = "#webservice"
-#     nom = url_to_nom(script)
-#     fich = url_to_fich(script)
-#     scriptparams = request.args
-#     processor = scriptlist.mapper.getpyetl(
-#         fich,
-#         entree=None,
-#         rep_sortie=rep_sortie,
-#         liste_params=scriptparams,
-#         mode="web",
-#     )
-#     if processor:
-#         try:
-#             processor.process()
-#             wstats = processor.get_work_stats()
-#             result = processor.get_results()
-#             wstats["nom"] = nom
-#             session["stats"] = wstats
-#             session["retour"] = result
-#             print("resultats traitement api", result)
-#             return redirect("/retour_api/" + script)
-#         except error as err:
-#             LOGGER.exception("erreur script", exc_info=err)
-#             return redirect("/plantage/" + script)
-#     return redirect("/plantage/" + script)
-
 
 @app.route("/retour_api/<script>")
 def retour_api(script):
@@ -396,10 +365,13 @@ def login(script=""):
         "login.html", title="Sign In", form=form, nom=nom, url=script
     )
 
-
 @app.route("/help")
 def show_help():
     return render_template("help.html")
+
+@app.route("/intro")
+def show_intro():
+    return render_template("intro.html")
 
 
 @app.route("/fm")

@@ -6,8 +6,8 @@
 {% block content %}
     <div>
     <table class="table table-bordered table-hover">
-    <nav class="sticky-top">
-    <thead class="sticky-top">
+    <nav class="position-absolute">
+    <thead class="position-sticky" style="top: 20%">
         <tr>
             <td>Nom/run</td>
             <td>Date de Mise a Jour</td>
@@ -18,7 +18,11 @@
     <tbody>
         {% for item in liste %}
         <tr>
-            <td><a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a></td>
+            <td>
+                <img src="{{url_for('static',filename='images/eye.png')}}" href=scriptview/{{ item.url }}></img>
+                <img src="{{url_for('static',filename='images/interrog.png')}}" href=scriptdesc/{{ item.url }}></img>
+                <a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a>
+            </td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>
