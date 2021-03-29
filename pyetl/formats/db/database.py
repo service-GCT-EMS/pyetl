@@ -115,21 +115,33 @@ class Cursinfo(object):
         # print("dans execute ", requete, data)
         cur = self.connecteur.connection.cursor() if newcursor else self.cursor
         if cur:
-            try:
-                if data is not None:
-                    cur.execute(requete, data)
-                else:
-                    cur.execute(requete)
-            except self.connecteur.DBError as err:
-                regle_ref = regle if regle else self.connecteur.regle
-                fail_silent = (
-                    regle_ref.getvar("Fail_silent", False) if regle_ref else False
-                )
-                if fail_silent == True:
-                    return None
-                elif fail_silent != "pass":
-                    print(self.connecteur.base, "erreur requete", err, requete)
-                raise
+            # try:
+            if data is not None:
+                cur.execute(requete, data)
+            else:
+                cur.execute(requete)
+            # except Exception as err:
+            #     regle_ref = regle if regle else self.connecteur.regle
+            #     fail_silent = (
+            #         regle_ref.getvar("Fail_silent", False) if regle_ref else False
+            #     )
+            #     if (
+            #         not fail_silent
+            #         or fail_silent == "0"
+            #         or fail_silent.lower() == "false"
+            #     ):
+            #         print(self.connecteur.base, "erreur requete", err, requete)
+            #         raise StopIteration(1)
+            #     if (
+            #         fail_silent == True
+            #         or fail_silent == "1"
+            #         or fail_silent.lower() == "true"
+            #     ):
+            #         raise StopIteration(1)
+            #     elif fail_silent != "pass":
+            #         print(self.connecteur.base, "erreur requete", err, requete)
+            #         raise StopIteration(1)
+            #     return None
 
             if not newcursor:
                 self.requete = requete
@@ -719,26 +731,10 @@ class DbConnect(object):
         """ lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom, regle=regle)
         #        cur.execute(requete, data=data, attlist=attlist)
-        try:
-            retour = cur.execute(requete, data=data, attlist=attlist)
-            if retour is None:
-                return None
-            return cur
-
-        except self.DBError as err:
-            fail_silent = (
-                cur.regle.getvar("fail_silent", False) if cur and cur.regle else False
-            )
-            if fail_silent == True:
-                return None
-            if fail_silent != "pass":
-                LOGGER.error(
-                    "erreur db %s : %s -> %s", self.type_base, requete, str(data)
-                )
-                LOGGER.info("requete finale %s", cur.cursor.mogrify(requete, data))
-            cur.close()
-            # print("erreur requete")
-            raise
+        retour = cur.execute(requete, data=data, attlist=attlist)
+        if retour is None:
+            return None
+        return cur
 
     #        print ('exec:recup cursinfo', type(cur))
 

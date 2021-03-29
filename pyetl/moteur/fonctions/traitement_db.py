@@ -403,14 +403,14 @@ def h_dbrequest(regle):
     regle.grp = "tmp"
     valide = getrequest(regle)
     if regle.params.cmp2.val:
-        regle.ident = (
+        regle.identclasse = (
             (regle.params.cmp2.val, regle.params.cmp2.definition[0])
             if regle.params.cmp2.definition
             else (None, regle.params.cmp2.val)
         )
     else:
-        regle.ident = None
-    LOGGER.debug("req:%s --> %s", requete, str(regle.ident))
+        regle.identclasse = None
+    LOGGER.debug("req:%s --> %s", requete, str(regle.identclasse))
     # print(
     #     "---------------------requete: ident sortie",
     #     regle.ident,
@@ -420,6 +420,13 @@ def h_dbrequest(regle):
     # )
     regle.prefixe = regle.params.att_sortie.val
     return valide
+
+
+def printexception(regle, err):
+    """ affiche ou pas une erreur"""
+    fail_silent = regle.getvar("Fail_silent", False)
+    if not fail_silent or fail_silent == "0" or fail_silent.lower() == "false":
+        print("erreur requete", err)
 
 
 def f_dbrequest(regle, obj):
@@ -452,11 +459,11 @@ def f_dbrequest(regle, obj):
     refobj = obj if regle.params.pattern in "34" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
-        # print("requete dynamique", regle.dynrequete, list(basesel.classlist()))
+        # print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
-                ident, att, *_ = definition
-                niveau, classe = ident
+                identclasse, att, *_ = definition
+                niveau, classe = identclasse
                 # parms = [regle.getv]
                 # print("execution requete", niveau, classe, definition)
                 # print("metas", basesel.schemabase.metas)
@@ -464,7 +471,7 @@ def f_dbrequest(regle, obj):
                 requete = requete_ref.replace("%#niveau", niveau)
                 requete = requete.replace("%#classe", classe)
                 requete = requete.replace("%#attr", att)
-                schemaclasse = basesel.schemabase.get_classe(ident)
+                schemaclasse = basesel.schemabase.get_classe(identclasse)
                 while "%#info" in requete:
                     # acces a des infos schema
                     match = re.search("%#info\[(.*)\]", requete)
@@ -486,28 +493,40 @@ def f_dbrequest(regle, obj):
                     else:
                         LOGGER.error("chaine mal formee %s", requete)
                         raise StopIteration(2)
-
-                if regle.ident is not None:
-                    idsortie = regle.ident
-                    if ident[0] is None:
-                        idsortie = (niveau, regle.ident)
+                if regle.identclasse is not None:
+                    idsortie = regle.identclasse
+                    if idsortie[0] is None:
+                        idsortie = (niveau, regle.identclasse[1])
                 elif refobj:
                     idsortie = refobj.ident
                 else:
-                    idsortie = ident
-                # print("execution requete", niveau, classe, requete, "->", ident)
-                retour += DB.lire_requete(
-                    regle, base, idsortie, requete=requete, parms=parms, obj=refobj
-                )
+                    idsortie = identclasse
+                # print("execution requete", niveau, classe, requete, "->", idsortie)
+                try:
+                    retour += DB.lire_requete(
+                        regle,
+                        base,
+                        idsortie,
+                        requete=requete,
+                        parms=parms,
+                        obj=refobj,
+                    )
+                except Exception as err:
+                    printexception(regle, err)
+                    continue
         else:
-            retour += DB.lire_requete(
-                regle,
-                base,
-                regle.ident if regle.ident is not None else ("tmp", "tmp"),
-                requete=requete_ref,
-                parms=parms,
-                obj=refobj,
-            )
+            try:
+                retour += DB.lire_requete(
+                    regle,
+                    base,
+                    regle.ident if regle.ident is not None else ("tmp", "tmp"),
+                    requete=requete_ref,
+                    parms=parms,
+                    obj=refobj,
+                )
+            except Exception as err:
+                printexception(regle, err)
+                continue
     obj.attributs["#nb_results"] = str(retour)
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):

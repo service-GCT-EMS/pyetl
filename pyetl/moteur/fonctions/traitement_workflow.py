@@ -483,9 +483,12 @@ def f_creobj(regle, obj):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
-            if abort.args[0] == 2:
+            if abort.args[0] == 1:
+                continue
+            elif abort.args[0] == 2:
                 break
-            raise
+            else:
+                raise
     return True
 
 

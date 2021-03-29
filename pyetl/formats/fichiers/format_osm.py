@@ -5,6 +5,7 @@
 import os
 import time
 import xml.etree.cElementTree as ET
+import esy.osm.pbf as PBF
 from collections import defaultdict
 
 # print ('osm start')
@@ -17,8 +18,8 @@ from collections import defaultdict
 # lecture de la configuration osm
 class DecodeConfigOsm(object):
     """stocke une config de classe
-        vals est la ligne de definition dans le fichier de config
-        setups est un dictionnaire contenent des config globales"""
+    vals est la ligne de definition dans le fichier de config
+    setups est un dictionnaire contenent des config globales"""
 
     def __init__(self, vals, setups):
         self.atts = []
@@ -553,7 +554,7 @@ def lire_objets_osm(self, rep, chemin, fichier):
     print("parties", len(parties))
     for ideelem in parties:
         if ideelem not in used:
-            print("element non  utilise", idelem, parties(idelem))
+            print("element non  utilise", ideelem, parties[ideelem])
 
     lostpt = set(points.keys()).difference(used)
     print("points_perdus", len(lostpt))
@@ -563,5 +564,143 @@ def lire_objets_osm(self, rep, chemin, fichier):
     return
 
 
-READERS = {"osm": (lire_objets_osm, "#osm", True, (), None, None)}
+def classif_elem_pbf(reader, elem, points, lignes, objets, used):
+    """ classifie un element """
+    ignore = {"tag", "nd", "member", "bounds", "osm"}
+    type_geom = "0"
+    manquants = 0
+    geoms = defaultdict(list)
+    # if elem.tags in ignore:
+    #     return -1, None, None, None, None
+    #        print ('osm:',event,elem.tag,elem.get('id'))
+    #    attributs = _gettags(elem)
+    attributs = elem.tags
+    ido = elem.id
+    if ido is None:
+        print("element non identifié", elem)
+        return -1, None, None, None, None
+    ido = int(ido)
+    if isinstance(elem, PBF.file.Node):
+        points[ido] = elem.lonlat
+        if attributs:
+            type_geom = "1"
+            geoms["node"] = [(points[ido], "node")]
+            used.add(ido)
+    elif isinstance(elem, PBF.file.Way):  # lignes
+        ldef = elem.refs
+        if attributs:
+            used.add(ido)
+            used.update(ldef)
+            ligne, manquants, ferme = _getgeom(points, ldef)
+
+            if manquants:
+                ferme = False
+            if ligne:
+                geoms["way"] = [(ligne, "outer")] if ferme else [(ligne, "way")]
+                type_geom = "3" if ferme else "2"
+            lignes[ido] = ldef
+    elif isinstance(elem, PBF.file.Relation):
+        geoms, manquants, ferme, rellist, type_geom = _getmembers(
+            reader, attributs, points, lignes, objets, elem, used
+        )
+        if type_geom == 2 and ferme:
+            type_geom = 3
+        if rellist:
+            print("detecte relation", rellist)
+
+    else:
+        print("tag inconnu", elem.tag)
+    return ido, attributs, geoms, type_geom, manquants
+
+
+def lire_objets_pbf(self, rep, chemin, fichier):
+    """lit des objets a partir d'un fichier xml osm"""
+    stock_param = self.regle_ref.stock_param
+    dd0 = time.time()
+    nlignes = 0
+    nobj = 0
+
+    self.lus_fich = 0
+    nomschema = os.path.splitext(fichier)[0]
+    schema = stock_param.init_schema(nomschema, origine="B")
+    if self.nb_lus == 0:  # initialisation lecteur
+        refrep = os.path.dirname(__file__)
+        config_osm_defaut = os.path.join(refrep, "config_osm.csv")
+        config_osm_spe = self.regle_ref.getvar("config_osm")
+        if config_osm_spe:
+            if config_osm_spe.endswith(".csv"):  # c'est un fichier absolu
+                config_osm = config_osm_spe
+            else:
+                config_osm = os.path.join(refrep, config_osm_spe + ".csv")
+        else:
+            config_osm = config_osm_defaut
+        self.gestion_doublons = self.regle_ref.getvar("doublons_osm", "1") == "1"
+        print(
+            "gestion des doublons osm",
+            "activee" if self.gestion_doublons else "desactivee",
+        )
+        minitaglist = (
+            self.regle_ref.getvar("tags_osm_minimal", "1") == "1"
+        )  # si 1 on ne stocke que les tags non traites
+        setups = {"minimal": minitaglist}
+        if not self.regle_ref.getvar(
+            "fanout"
+        ):  # on positionne un fanout approprie par defaut
+            self.regle_ref.stock_param.setvar("fanout", "classe")
+        self.decodage = init_osm(self, config_osm, schema, setups)
+    self.id_osm = set()  # on initialise une structure de stockage des identifiants
+
+    osm = PBF.File(os.path.join(rep, chemin, fichier))
+    points = dict()
+    lignes = dict()
+    objets = dict()
+    parties = dict()
+    used = set()
+
+    for elem in osm:
+        # if not isinstance(elem, PBF.file.Node):
+        #     print("type element", type(elem), elem)
+        ido, attributs, geoms, type_geom, manquants = classif_elem_pbf(
+            self, elem, points, lignes, objets, used
+        )
+        if ido == -1:
+            continue
+        if self.gestion_doublons:
+            if ido in self.id_osm:
+                continue
+            self.id_osm.add(ido)
+        if type_geom != "0":  # analyse des objets et mise en categorie
+            try:
+                objs = _classif_osm(
+                    self, attributs, geoms, type_geom, manquants, ido, parties
+                )
+            except StopIteration:
+                # print ('osm :stopIteration')
+                return
+            for obj in objs:
+                nobj += 1
+                obj.setorig(nobj)
+                obj.attributs["#chemin"] = chemin
+                if obj.ident == ("osm", "om_comm_restriction"):
+                    print("obj", obj)
+                stock_param.moteur.traite_objet(
+                    obj, self.regle_start
+                )  # on traite le dernier objet
+    print("parties", len(parties))
+    for ideelem in parties:
+        if ideelem not in used:
+            print("element non  utilise", ideelem, parties[ideelem])
+
+    lostpt = set(points.keys()).difference(used)
+    print("points_perdus", len(lostpt))
+    lostl = set(lignes.keys()).difference(used)
+    print("lignes_perdues", len(lostl))
+
+    return
+
+
+READERS = {
+    "osm": (lire_objets_osm, "#osm", True, (), None, None),
+    "pbf": (lire_objets_pbf, "#osm", True, (), None, None),
+}
 WRITERS = {}
