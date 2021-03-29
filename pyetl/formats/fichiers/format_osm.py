@@ -482,13 +482,9 @@ def classif_elem(reader, elem, points, lignes, objets, used):
     return ido, attributs, geoms, type_geom, manquants
 
 
-def lire_objets_osm(self, rep, chemin, fichier):
-    """lit des objets a partir d'un fichier xml osm"""
-    stock_param = self.regle_ref.stock_param
-    dd0 = time.time()
-    nlignes = 0
-    nobj = 0
 
+def init_lecteur(self, fichier):
+    stock_param = self.regle_ref.stock_param
     self.lus_fich = 0
     nomschema = os.path.splitext(fichier)[0]
     schema = stock_param.init_schema(nomschema, origine="B")
@@ -517,6 +513,20 @@ def lire_objets_osm(self, rep, chemin, fichier):
         ):  # on positionne un fanout approprie par defaut
             self.regle_ref.stock_param.setvar("fanout", "classe")
         self.decodage = init_osm(self, config_osm, schema, setups)
+
+
+
+
+
+def lire_objets_osm(self, rep, chemin, fichier):
+    """lit des objets a partir d'un fichier xml osm"""
+    init_lecteur(self,fichier)
+    stock_param = self.regle_ref.stock_param
+    dd0 = time.time()
+    nlignes = 0
+    nobj = 0
+
+
     self.id_osm = set()  # on initialise une structure de stockage des identifiants
     points = dict()
     lignes = dict()
@@ -564,6 +574,87 @@ def lire_objets_osm(self, rep, chemin, fichier):
     return
 
 
+def _getmembers_pbf(reader, attributs, points, lignes, objets, elem, used):
+    """ decodage des structures de type relation  """
+    geoms = defaultdict(list)
+    membres = defaultdict(list)
+    # nodelist = []
+    rellist = []
+    perdus = 0
+    ppt = None
+    ferme = False
+    type_geom = "0"
+    decodeurs = reader.decodage["4"]
+    # print ('getmembers: decodeurs',elem)
+    members=elem.members
+    for i in members:
+        # print ("member",i)
+        identifiant,type_membre,role=i
+        # type_membre = i.get("type")
+        # identifiant = int(i.get("ref"))
+        # role = i.get("role")
+        if type_membre == "RELATION":
+            if identifiant in objets:
+                rellist.append((identifiant, role))
+            else:
+                perdus += 100000
+        else:
+            membres[type_membre].append((identifiant, role))
+
+    # if len(membres)==1: # objet monotype
+    for type_membre in membres:
+        geomlist = membres[type_membre]
+        if type_membre == "NODE":
+            if type_geom == "0":
+                type_geom = "1"
+            if type_geom != "1":
+                type_geom = "4"
+            for identifiant, role in geomlist:
+                if identifiant in points:
+                    # nodelist.append((identifiant, role))
+                    used.add(identifiant)
+                    geoms[type_membre].append(
+                        (points[identifiant], role if role else "node")
+                    )
+                else:
+                    perdus += 1
+        elif type_membre == "WAY":
+            if type_geom == "0":
+                type_geom = "2"
+            if type_geom != "2":
+                type_geom = "4"
+            for identifiant, role in geomlist:
+                ligne = lignes.get(identifiant)
+                if ligne:
+                    used.add(identifiant)
+                    gligne, manquants, lferm = _getgeom(points, ligne)
+                    ferme = lferm or ferme
+                    ppt = ppt or ligne[0]
+                    used.update(ligne)
+                    geoms[type_membre].append((gligne, role if role else "outer"))
+                    ferme = ferme or ppt == ligne[-1]
+                    perdus += manquants
+                else:
+                    perdus += 10000
+        elif type_membre == "RELATION":
+            type_geom = 4
+            for identifiant, role in geomlist:
+                if identifiant in objets:
+                    rellist.append((identifiant, role, type_membre))
+                else:
+                    perdus += 100000
+        else:
+            print("type_membre inconnu", type_membre)
+            # return ([],0,False,[],0)
+    return (geoms, perdus, ferme, rellist, type_geom)
+    # else: # objet multi_type
+    #     pass
+    #     print ('objet non decode',membres.items(), attributs)
+    #     return ([],0,False,[])
+
+
+
+
 def classif_elem_pbf(reader, elem, points, lignes, objets, used):
     """ classifie un element """
     ignore = {"tag", "nd", "member", "bounds", "osm"}
@@ -600,7 +691,7 @@ def classif_elem_pbf(reader, elem, points, lignes, objets, used):
                 type_geom = "3" if ferme else "2"
             lignes[ido] = ldef
     elif isinstance(elem, PBF.file.Relation):
-        geoms, manquants, ferme, rellist, type_geom = _getmembers(
+        geoms, manquants, ferme, rellist, type_geom = _getmembers_pbf(
             reader, attributs, points, lignes, objets, elem, used
         )
         if type_geom == 2 and ferme:
@@ -615,39 +706,12 @@ def classif_elem_pbf(reader, elem, points, lignes, objets, used):
 
 def lire_objets_pbf(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier xml osm"""
+    init_lecteur(self,fichier)
     stock_param = self.regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0
     nobj = 0
 
-    self.lus_fich = 0
-    nomschema = os.path.splitext(fichier)[0]
-    schema = stock_param.init_schema(nomschema, origine="B")
-    if self.nb_lus == 0:  # initialisation lecteur
-        refrep = os.path.dirname(__file__)
-        config_osm_defaut = os.path.join(refrep, "config_osm.csv")
-        config_osm_spe = self.regle_ref.getvar("config_osm")
-        if config_osm_spe:
-            if config_osm_spe.endswith(".csv"):  # c'est un fichier absolu
-                config_osm = config_osm_spe
-            else:
-                config_osm = os.path.join(refrep, config_osm_spe + ".csv")
-        else:
-            config_osm = config_osm_defaut
-        self.gestion_doublons = self.regle_ref.getvar("doublons_osm", "1") == "1"
-        print(
-            "gestion des doublons osm",
-            "activee" if self.gestion_doublons else "desactivee",
-        )
-        minitaglist = (
-            self.regle_ref.getvar("tags_osm_minimal", "1") == "1"
-        )  # si 1 on ne stocke que les tags non traites
-        setups = {"minimal": minitaglist}
-        if not self.regle_ref.getvar(
-            "fanout"
-        ):  # on positionne un fanout approprie par defaut
-            self.regle_ref.stock_param.setvar("fanout", "classe")
-        self.decodage = init_osm(self, config_osm, schema, setups)
     self.id_osm = set()  # on initialise une structure de stockage des identifiants
 
     osm = PBF.File(os.path.join(rep, chemin, fichier))
