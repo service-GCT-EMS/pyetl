@@ -191,9 +191,9 @@ def geom_from_ewkt(obj):
         try:
             obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         except ValueError:
-            print ("conversion angle impossible",obj.attributs.get("#angle"))
+            print("conversion angle impossible", obj.attributs.get("#angle"))
             obj.geom_v.angle = 0
-        obj.finalise_geom(type_geom=geom_demandee)
+        obj.finalise_geom(type_geom=str(geom_demandee))
     return obj.geom_v.valide
 
 
@@ -468,6 +468,7 @@ def nowrite(obj):
     """ sans sortie"""
     return ""
 
+
 def ecrire_geom_geojson(
     geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
 ):
@@ -481,12 +482,8 @@ def geom_from_geojson(obj, code=None):
         #        print ('decodage geometrie ewkt ',obj.geom)
         obj.geom_v.from_geo_interface(geom)
         obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
-        obj.finalise_geom(type_geom=geom_demandee)
+        obj.finalise_geom(type_geom=str(geom_demandee))
     return obj.geom_v.valide
-
-
-
-
 
 
 GEOMDEF = {

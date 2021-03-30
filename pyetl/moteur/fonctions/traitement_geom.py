@@ -247,7 +247,7 @@ def f_addgeom(regle, obj):
                 point.append(0.0)
             obj.geom_v.addpoint(point, dim)
 
-    obj.finalise_geom(type_geom=type_geom)
+    obj.finalise_geom(type_geom=str(type_geom))
     setschemainfo(regle, obj)
     #        print ('addgeom ',obj.attributs['#type_geom'])
     obj.geomnatif = False

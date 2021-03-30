@@ -165,7 +165,7 @@ class DecodeConfigOsm(object):
             schemaclasse.stocke_attribut(nom, "T")
         schemaclasse.stocke_attribut("tags", "H")
         #        schemaclasse.stocke_attribut('#all_tags', 'H')
-        schemaclasse.info["type_geom"] = (
+        schemaclasse.info["type_geom"] = str(
             self.force_geom if self.force_geom else self.geom
         )
         if self.multigeom:
@@ -216,7 +216,7 @@ class DecodeConfigOsm(object):
         else:
             obj.attributs["#geom"] = next(iter(geoms.values())) if geoms else []
 
-        obj.attributs["#type_geom"] = (
+        obj.attributs["#type_geom"] = str(
             self.force_geom if self.force_geom is not None else type_geom
         )  # on force
         # print ('decodage tags mode minimal:',self.minimal, obj.attributs["#type_geom"], self.force_geom)
@@ -379,7 +379,7 @@ def _getmembers(reader, attributs, points, lignes, objets, elem, used):
                 else:
                     perdus += 10000
         elif type_membre == "relation":
-            type_geom = 4
+            type_geom = "4"
             for identifiant, role in geomlist:
                 if identifiant in objets:
                     rellist.append((identifiant, role, type_membre))
@@ -402,6 +402,8 @@ def _classif_osm(reader, tagdict, geoms, type_geom, manquants, ido, parties):
     objs = []
     valide = False
     multi = len(geoms) > 1
+    if multi and type_geom == "1":
+        print("attention multipoint", tagdict)
     for decodeur in reader.decodage[type_geom]:
         obj = decodeur.decode_objet(
             tagdict, geoms, type_geom, manquants, ido, parties, multi
@@ -472,15 +474,14 @@ def classif_elem(reader, elem, points, lignes, objets, used):
         geoms, manquants, ferme, rellist, type_geom = _getmembers(
             reader, attributs, points, lignes, objets, elem, used
         )
-        if type_geom == 2 and ferme:
-            type_geom = 3
+        if type_geom == "2" and ferme:
+            type_geom = "3"
         if rellist:
             print("detecte relation", rellist)
 
     else:
         print("tag inconnu", elem.tag)
     return ido, attributs, geoms, type_geom, manquants
-
 
 
 def init_lecteur(self, fichier):
@@ -515,17 +516,13 @@ def init_lecteur(self, fichier):
         self.decodage = init_osm(self, config_osm, schema, setups)
 
 
-
-
-
 def lire_objets_osm(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier xml osm"""
-    init_lecteur(self,fichier)
+    init_lecteur(self, fichier)
     stock_param = self.regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0
     nobj = 0
-
 
     self.id_osm = set()  # on initialise une structure de stockage des identifiants
     points = dict()
@@ -586,10 +583,10 @@ def _getmembers_pbf(reader, attributs, points, lignes, objets, elem, used):
     type_geom = "0"
     decodeurs = reader.decodage["4"]
     # print ('getmembers: decodeurs',elem)
-    members=elem.members
+    members = elem.members
     for i in members:
         # print ("member",i)
-        identifiant,type_membre,role=i
+        identifiant, type_membre, role = i
         # type_membre = i.get("type")
         # identifiant = int(i.get("ref"))
         # role = i.get("role")
@@ -637,7 +634,7 @@ def _getmembers_pbf(reader, attributs, points, lignes, objets, elem, used):
                 else:
                     perdus += 10000
         elif type_membre == "RELATION":
-            type_geom = 4
+            type_geom = "4"
             for identifiant, role in geomlist:
                 if identifiant in objets:
                     rellist.append((identifiant, role, type_membre))
@@ -651,8 +648,6 @@ def _getmembers_pbf(reader, attributs, points, lignes, objets, elem, used):
     #     pass
     #     print ('objet non decode',membres.items(), attributs)
     #     return ([],0,False,[])
-
-
 
 
 def classif_elem_pbf(reader, elem, points, lignes, objets, used):
@@ -694,8 +689,8 @@ def classif_elem_pbf(reader, elem, points, lignes, objets, used):
         geoms, manquants, ferme, rellist, type_geom = _getmembers_pbf(
             reader, attributs, points, lignes, objets, elem, used
         )
-        if type_geom == 2 and ferme:
-            type_geom = 3
+        if type_geom == "2" and ferme:
+            type_geom = "3"
         if rellist:
             print("detecte relation", rellist)
 
@@ -706,7 +701,7 @@ def classif_elem_pbf(reader, elem, points, lignes, objets, used):
 
 def lire_objets_pbf(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier xml osm"""
-    init_lecteur(self,fichier)
+    init_lecteur(self, fichier)
     stock_param = self.regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0

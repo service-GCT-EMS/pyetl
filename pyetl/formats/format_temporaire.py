@@ -11,6 +11,14 @@ from .fichiers.format_asc import ajout_attribut_asc, att_to_text
 from .interne.objet import Objet
 
 
+def _ecrire_point_tmp(point):
+    return "O" + ",".join((str(i) for i in point))
+
+
+def _ecrire_points_tmp(points):
+    return [_ecrire_point_tmp(p) for p in points]
+
+
 def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
@@ -53,7 +61,7 @@ def _ecrire_polygones_tmp(polygones):
 def ecrire_geometrie_tmp(geom):
     """ecrit une geometrie en format temporaire"""
     if geom.type == "1":
-        return ["O"] + geom.point.__list_if__
+        return _ecrire_points_tmp(geom.points)
     elif geom.type == "2":
         #        print("geom_tmp",geom,geom.type,len(geom.lignes) )
         if len(geom.lignes) > 1:
@@ -97,14 +105,18 @@ def geom_from_tmp(obj):
             poly = None
         elif code == "O":
             pnt = [float(j) for j in i[1:].split(" ")]
-            geom_v.setpoint(pnt, None, len(pnt))
+            if geom_v.type == "2":
+                geom_v.setpoint(pnt, None, len(pnt))
+            else:
+                geom_v.addpoint(pnt, None, len(pnt))
+
     return geom_v
 
 
 def tmp_entetes(obj, form):
-    """ retourne un entete en format interne
-        form permet de connaitre le format de stockage de la geometrie
-        en general de l'ewkt
+    """retourne un entete en format interne
+    form permet de connaitre le format de stockage de la geometrie
+    en general de l'ewkt
     """
     niveau, classe = obj.ident
     if not form:
@@ -125,7 +137,7 @@ def tmp_entetes(obj, form):
 
 def tmp_attributs(obj):
     """stockage des attributs.
-        c'est de l'asc
+    c'est de l'asc
     """
 
     attlist = att_to_text(obj, None, None)
@@ -205,7 +217,10 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
                 fichier.write(tmp_entetes(i, nom_format))
             else:
                 fichier.write(tmp_entetes(i, i.format_natif))
-            fichier.write(att_to_text(i, None, None))
+            try:
+                fichier.write(att_to_text(i, None, None))
+            except:
+                print("tmp: erreur objet:", i)
             fichier.write("\n")
             geom = tmp_geom(i, geomwriter)
             if geom:

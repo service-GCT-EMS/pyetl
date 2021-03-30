@@ -36,11 +36,16 @@ def att_to_text(obj, liste, transtable):
     else:
         a_sortir = [i for i in liste if i in obj.attributs and obj.attributs[i]]
 
-    aliste = (
-        (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
-        for i in a_sortir
-        if i not in obj.attributs_speciaux
-    )
+    # print("att_to_text a_sortir", a_sortir)
+    try:
+        aliste = (
+            (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+            for i in a_sortir
+            if i not in obj.attributs_speciaux
+        )
+    except:
+        aliste = ()
+        print("asc: erreur objet", obj, a_sortir)
     if obj.attributs_speciaux:
         for nom, nature in obj.attributs_speciaux.items():
             if nom in a_sortir:
@@ -414,7 +419,8 @@ def ecrire_entete_asc(obj) -> str:
                 obj.attributs["#geom"],
                 obj.geom_v.erreurs,
                 obj.geom_v.type,
-                "<>",type_geom
+                "<>",
+                type_geom
                 # obj,
             )
             type_geom_sortie = ";5 "

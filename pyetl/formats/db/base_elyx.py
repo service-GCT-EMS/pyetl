@@ -88,7 +88,7 @@ class ElyConnect(ora.OrwConnect):
         if fini.returncode:
             print("sortie en erreur ", fini.returncode, fini.args, fini.stderr)
 
-    def setenv(self):
+    def setenv(self, hdir=None):
         """positionne les variables d'environnement pour les programmes externes """
         orahome = self.regle.getvar("feaora_oracle_home_" + self.code)
         env = dict(os.environ)
@@ -96,21 +96,24 @@ class ElyConnect(ora.OrwConnect):
         if orahome:  # on manipule les variables d'environnement
             env["ORACLE_HOME"] = orahome
             env["PATH"] = orahome + "\\bin;" + env["PATH"]
+        if hdir:  # on positionne le path pour le chargeur
+            env["PATH"] = hdir + ";" + env["PATH"]
         return env
 
     def fearunner(self, parms):
         """ gere les programmes elyx externe """
         helper, paramfile, size, outfile = parms
+        helperdir = os.path.dirname(helper)
         chaine = helper + " -c " + paramfile
+        env = self.setenv(helperdir)
         if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
-            print("extrunner elyx: mode simulation -------->", chaine)
+            print("fearunner elyx: mode simulation -------->", chaine)
             print(
                 "extrunner elyx: param_file \n",
                 "".join(open(paramfile, "r", encoding="cp1252").readlines()),
             )
+            print("environnement", env)
             return None
-
-        env = self.setenv()
 
         outdesc = open(outfile, mode="w", encoding="cp1252")
         #        print('elyx: traitement externe', chaine)
@@ -126,13 +129,14 @@ class ElyConnect(ora.OrwConnect):
     def lanceur(self, helper, xml, paramfile, outfile, wait=True):
         """gere le programme externe """
         chaine = helper + " -c " + paramfile
+        helperdir = os.path.dirname(helper)
         encoding = "cp1252"
         if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
-            print("extrunner elyx: mode simulation -------->", chaine)
-            print("extrunner elyx: param_file \n", "\n".join(xml))
-            return True
+            print("lanceur elyx: mode simulation -------->", chaine)
+            print("lanceur elyx: param_file \n", "\n".join(xml))
+            return None
 
-        env = self.setenv()
+        env = self.setenv(helperdir)
         with open(paramfile, mode="w", encoding=encoding) as tmpf:
             tmpf.write("\n".join(xml))
         outdesc = open(outfile, mode="w", encoding="cp1252")

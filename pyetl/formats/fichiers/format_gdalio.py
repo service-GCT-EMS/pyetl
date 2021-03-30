@@ -126,7 +126,13 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         type_geom = "0"
     if type_geom > "0":
         # nom_geom = nom_g_m[type_geom]
-        # print("schema_fiona", type_geom, sc_classe.multigeom, sc_classe.info["courbe"])
+        # print(
+        #     "schema_fiona",
+        #     sc_classe.nom,
+        #     type_geom,
+        #     sc_classe.multigeom,
+        #     sc_classe.info["courbe"],
+        # )
         nom_geom = (
             nom_g_m[type_geom]
             if sc_classe.multigeom or sc_classe.info["courbe"] or type_geom > "1"
@@ -304,6 +310,7 @@ class GdalWriter(FileWriter):
         """ecriture bufferisee"""
         chaine = self.converter(obj, self.liste_att, self.output.minmajfunc)
         # print("gdal:bwrite", chaine)
+        # test multi
         ident = obj.ident
         if ident in self.buffer:
             self.buffer[ident].append(chaine)
@@ -345,7 +352,7 @@ def gdalconverter(obj, liste_att, minmajfunc):
     """convertit un objet dans un format compatible avec la lib gdal"""
     obj.casefold = minmajfunc
     obj.initgeom()
-    if obj.geom_v.type_geom > "1" and obj.geom_v.type_geom != "indef":
+    if str(obj.geom_v.type_geom) > "1" and obj.geom_v.type_geom != "indef":
         obj.set_multi()
     a_sortir = obj.__geo_interface__(liste_att)
     if not a_sortir["properties"]:

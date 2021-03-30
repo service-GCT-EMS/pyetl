@@ -735,9 +735,7 @@ class Geometrie(object):
 
     @property
     def __flatjson_if__(self):
-        return self.__json_if__.replace('\n','')
-
-
+        return self.__json_if__.replace("\n", "")
 
     @property
     def __geo_interface__(self):
@@ -746,7 +744,7 @@ class Geometrie(object):
         dim = self.dimension
         if self.type == "1":  # point
             if not self.points:
-                print("geo_interface : point inexistant", self.force_multi, self.multi)
+                # print("geo_interface : point inexistant", self.force_multi, self.multi)
                 if self.force_multi or self.multi:
                     return {"type": "MultiPoint", "coordinates": ()}
                 else:

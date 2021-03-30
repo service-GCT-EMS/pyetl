@@ -30,8 +30,8 @@ restriction;;;4;osm;om_comm_restriction;1;0;from:ref:{role=from,type=way};to:ref
 admin_centre;;;4;osm;om_adm_contour;3;1;G:ref:type=way;;niveau:level;TG:ref:type=node:nom:name
 public_transport;;;4+;osm;om_lignes_transport;2;1;G:ref:type=way;type_reseau:route;;
 public_transport;;;4+;osm;om_arrets_transport;1;1;G:ref:{type=node,role=stop};type_reseau:route;;
-*;;;1;osm;om_non_classe_divers_pt;1;0;;;;
-*;;;2,3;osm;om_non_classe_divers_l;2;1;;;;
+*;;;1;osm;om_non_classe_pt;1;1;;;;
+*;;;2,3;osm;om_non_classe_lignes;2;1;;;;
 *;;;4;osm;om_non_classe_poly;2;1;;;;
 ! Groupes;clef;;geom;niveau;classe;;;;;;
 {groupes_occupation};forest;;3;osm;om_occ_sol_zone_naturelle;;;;;;

@@ -864,15 +864,17 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 tache = blocks.pop()
                 # print ('recu tache',tache, len(blocks))
                 nom, params, dest, size = tache
-                pool[slot] = {
-                    "process": lanceur(params),
-                    "nom": nom,
-                    "end": None,
-                    "start": time.time(),
-                    "params": params,
-                    "fich": dest,
-                    "taille": size,
-                }
+                procid = lanceur(params)
+                if procid:
+                    pool[slot] = {
+                        "process": procid,
+                        "nom": nom,
+                        "end": None,
+                        "start": time.time(),
+                        "params": params,
+                        "fich": dest,
+                        "taille": size,
+                    }
 
                 time.sleep(1)  # on dort un peu pour pas surcharger
 

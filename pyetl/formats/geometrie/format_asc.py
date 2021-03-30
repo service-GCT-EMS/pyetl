@@ -34,13 +34,13 @@ def _ecrire_section_asc(sect, numero_courant):
 
 def _ecrire_ligne_asc(ligne, numero_courant):
     """ecrit une ligne en format asc.
-        : suite de sections"""
+    : suite de sections"""
     return "".join((_ecrire_section_asc(i, numero_courant) for i in ligne.sections))
 
 
 def ecrire_geom_asc(geom):
     """ecrit une geometrie en format asc.
-        : suite de lignes """
+    : suite de lignes"""
     #    print ('asc: nblignes',len(geom.lignes))
     numeros = [1]
     return (
@@ -123,7 +123,7 @@ def geom_from_asc(obj):
                     geom_v.erreurs.ajout_erreur("valeurs incompatibles " + str(pnt))
                     print("error: asc  : valeurs incompatibles ", lcrd)
                     geom_v.annule_section()
-    obj.finalise_geom(orientation="L", type_geom=geom_demandee)
+    obj.finalise_geom(orientation="L", type_geom=str(geom_demandee))
     # print("asc:finalisation geom", obj.attributs["#classe"], obj.dimension)
     # if obj.dimension == 0:
     #     raise
