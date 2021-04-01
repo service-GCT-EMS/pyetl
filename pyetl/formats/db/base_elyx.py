@@ -112,6 +112,7 @@ class ElyConnect(ora.OrwConnect):
                 "extrunner elyx: param_file \n",
                 "".join(open(paramfile, "r", encoding="cp1252").readlines()),
             )
+            print("oracle_home:", env["ORACLE_HOME"])
             print("environnement", env)
             return None
 
@@ -131,12 +132,14 @@ class ElyConnect(ora.OrwConnect):
         chaine = helper + " -c " + paramfile
         helperdir = os.path.dirname(helper)
         encoding = "cp1252"
+        env = self.setenv(helperdir)
         if self.regle.getvar("noload") == "1":  # simulation de chargement pour debug
             print("lanceur elyx: mode simulation -------->", chaine)
             print("lanceur elyx: param_file \n", "\n".join(xml))
+            print("oracle_home:", env["ORACLE_HOME"])
+            print("environnement", env)
             return None
 
-        env = self.setenv(helperdir)
         with open(paramfile, mode="w", encoding=encoding) as tmpf:
             tmpf.write("\n".join(xml))
         outdesc = open(outfile, mode="w", encoding="cp1252")

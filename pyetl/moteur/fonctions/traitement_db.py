@@ -91,10 +91,6 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
 
     regle.cible_base = selecteur
 
-    # gestion des selecteurs
-    # if regle.selecteur:
-    #     selecteur = regle.stock_param.selecteurs
-
     return True
 
 
@@ -104,28 +100,6 @@ def setdb(regle, obj):
     selecteur = regle.cible_base
     if selecteur:
         selecteur.resolve(obj)
-        # for base in selecteur.baseselectors:
-        #     baseselector = selecteur.baseselectors[base]
-        #     if (
-        #         base == "*" and obj.attributs["#groupe"] == "__filedb"
-        #     ):  # acces a une base fichier
-        #         chemin = obj.attributs["#chemin"]
-        #         rep = obj.attributs["#racine"]
-        #         nombase = obj.attributs["#nombase"]
-        #         if not base:
-        #             base = obj.attributs["#base"]
-        #         # base = nombase
-        #         type_base = obj.attributs["#type_base"]
-        #         baseselector.type_base = type_base
-        #         baseselector.chemin = chemin
-        #         baseselector.racine = rep
-        #         baseselector.nombase = nombase
-        #         regle.setlocal("base", nombase)
-        #         regle.setlocal("db", type_base)
-        #         regle.setlocal("server", rep)
-        #     # print("regles alpha: acces base ", base, niveau, classe, attribut, type_base)
-        #     baseselector.resolve(obj)
-        #     print("setdb selecteur", regle, baseselector.schema_travail)
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -182,7 +156,6 @@ def f_dbalpha(regle, obj):
     #variables||traitement_virtuel;se declenche pour un objet virtuel
             ||dest;repertoire temporaire si extracteur externe
     #req_test||testdb
-
     """
     if not regle.getvar("traitement_virtuel"):
         if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel":
@@ -202,19 +175,13 @@ def f_dbalpha(regle, obj):
     # selecteur.resolve(regle, obj)
     regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
-        # print("lecture base", base, basesel.base, basesel.map_prefix)
-        # for ident, description in basesel.classlist():
-        # ident, att_base, valeur, fonction = description
-        # niveau, classe = ident
 
         LOGGER.debug(
             "regles alpha:ligne " + repr(regle) + basesel.type_base + repr(regle.mods)
         )
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
-        # if connect is None:
-        #     print("erreur connection:", base)
-        #     continue
+
         if connect.accept_sql == "non":
             # pas de requetes directes on essaye le mode dump
             dest = regle.getvar("dest")
@@ -332,10 +299,7 @@ def f_dbgeo(regle, obj):
     #pattern||?L;?;?L;dbgeo;?C;?N
     #req_test||testdb
     """
-    # regle.stock_param.regle_courante=regle
-    # base, niveau, classe, fonction, valeur, chemin, type_base = setdb(
-    #     regle, obj, att=False
-    # )
+
     selecteur = setdb(regle, obj)
     retour = 0
     for base, basesel in selecteur.baseselectors.items():
@@ -347,15 +311,7 @@ def f_dbgeo(regle, obj):
             retour += DB.recup_donnees_req_geo(
                 regle,
                 basesel,
-                # niveau,
-                # classe,
-                # fonction,
                 obj,
-                # regle.params.cmp1.val,
-                # regle.params.att_sortie.liste,
-                # valeur,
-                # type_base=type_base,
-                # chemin=chemin,
             )
     return retour
     # recup_donnees(stock_param,niveau,classe,attribut,valeur):
@@ -411,13 +367,7 @@ def h_dbrequest(regle):
     else:
         regle.identclasse = None
     LOGGER.debug("req:%s --> %s", requete, str(regle.identclasse))
-    # print(
-    #     "---------------------requete: ident sortie",
-    #     regle.ident,
-    #     regle.v_nommees.get("cmp2", ""),
-    #     regle.params.cmp2.val,
-    #     # regle.v_nommees,
-    # )
+
     regle.prefixe = regle.params.att_sortie.val
     return valide
 
@@ -444,13 +394,7 @@ def f_dbrequest(regle, obj):
       #pattern4||;;=#;dbreq;C;?A.C
      #req_test||testdb
     """
-    # regle.stock_param.regle_courante=regle
-    # base, niveau, classe, attribut, valeur, chemin, type_base = setdb(
-    #     regle, obj, att=False
-    # )
-    # if regle.params.pattern in "34" and obj.virtuel:
-    # # on veut utiliser un objet on ne travaille pas avec les declencheurs virtuels
-    #     return True
+
     selecteur = setdb(regle, obj)
     retour = 0
     parms = None
@@ -529,7 +473,6 @@ def f_dbrequest(regle, obj):
                 continue
     obj.attributs["#nb_results"] = str(retour)
     return retour
-    # recup_donnees(stock_param,niveau,classe,attribut,valeur):
 
 
 def f_dbclose(regle, obj):
@@ -629,11 +572,6 @@ def f_dbextload(regle, obj):
     fichs = sorted(glob.glob(datas))
     retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
     print("retour chargement:", retour)
-
-
-#    for nom in fichs:
-##        print('chargement donnees', nom)
-#        DB.dbextload(regle, base, nom, log=regle.params.cmp1.val)
 
 
 def h_dbextdump(regle):
@@ -925,11 +863,21 @@ def h_liste_selecteur(regle):
     """prepare la liste"""
     regle.chargeur = True
     param_base(regle)
-    regle.idclasse = None
     regle.metas = "#meta" in regle.params.cmp1.val
     regle.infos = "#infos" in regle.params.cmp1.val
-    if regle.params.pattern == "1":
-        regle.idclasse = tuple(regle.params.att_sortie.texte.split("."))
+    regle.schema = (
+        regle.stock_param.init_schema(regle.params.cmp2.val)
+        if regle.params.cmp2.val
+        else None
+    )
+    regle.idclasse = (
+        tuple(regle.params.att_sortie.texte.split("."))
+        if regle.params.pattern == "1"
+        else None
+    )
+    if regle.idclasse and regle.schema:
+        classe = regle.schema.setdefault_classe(regle.idclasse)
+        classe.info["type_geom"] = "0"
     if regle.cible_base:
         # print ("creation selecteur", regle.cible_base)
         return True
@@ -939,43 +887,70 @@ def h_liste_selecteur(regle):
 
 def f_liste_selecteur(regle, obj):
     """#aide||cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
-    #parametres1||idclasse resultante;;#meta et/ou #infos pour inclure les elements dans l objet
-    #parametres2||;;#meta et/ou #infos pour inclure les elements dans l objet
-    #parametres3||;#meta et/ou #infos pour inclure les elements dans l objet
+    #parametres_c||#meta et/ou #infos pour inclure les elements dans l objet;nom du schema
+    #parametres1||idclasse resultante;;#1;#2
+    #parametres2||;;#1;#2
+    #parametres3||;#1;#2
     #aide_spec||cree des objets reels par defaut sauf si on mets la variable virtuel a 1
-    #aide_spec3||creee un objet par classe
+    #aide_spec3||cree un objet par classe
     #schema||change_schema
-    #pattern1||A.C;;;dblist;?C;
-    #pattern2||=#obj;;;dblist;?C;
-    #pattern3||;;;dblist;?C;
+    #pattern1||A.C;;;dblist;?C;?C
+    #pattern2||=#obj;;;dblist;?C;?C
+    #pattern3||;;;dblist;?C;?C
     """
     selecteur = setdb(regle, obj)
     virtuel = regle.getvar("virtuel") == "1"
-    idclasse = regle.idclasse
-    if regle.params.pattern == "2":
-        idclasse = obj.ident
+    if regle.idclasse:
+        niveau, classe = regle.idclasse
+        schemaclasse = regle.schema.get_classe(regle.idclasse) if regle.schema else None
     # print("traitement liste selecteur", selecteur)
     for i in selecteur.get_classes():
         idbase, selinfo = i
         idsel, description = selinfo
-        # print(" lecture selecteur",i,"->", idclasse,idsel)
+        # print(" lecture selecteur", i, "->", idbase, idsel, description)
         nsel, csel = idsel
-        infos = {"#sel_base": idbase, "#sel_niveau": nsel, "#sel_classe": csel}
+        server = ""
+        infos = {
+            "#sel_codebase": idbase,
+            "#sel_niveau": nsel,
+            "#sel_classe": csel,
+            "#sel_host": regle.getvar("server_" + idbase),
+            "#sel_user": regle.getvar("user_" + idbase),
+            "#sel_user": regle.getvar("user_" + idbase),
+            "#sel_base": regle.getvar("base_" + idbase),
+            "#sel_type_base": regle.getvar("db_" + idbase),
+        }
+        # print("infos selecteur", infos)
         if regle.metas:
             infos.update(selecteur.baseselectors[idbase].schemabase.metas)
         if regle.infos:
             infos.update(selecteur.baseselectors[idbase].schemabase.infos)
 
-        niveau, classe = idclasse if idclasse else idsel
+        if regle.params.pattern == "2":
+            obj2 = obj.dupplique()
+            obj2.attributs.update(infos)
+            if regle.idclasse:
+                obj2.setschema(schemaclasse)
+        else:
+            if not regle.idclasse:
+                niveau, classe = idsel
+                if regle.schema:
+                    schemaclasse = selecteur.schemabase.get_classe(idsel)
+                else:
+                    schemaclasse = None
 
-        obj2 = Objet(
-            niveau,
-            classe,
-            format_natif="interne",
-            conversion="virtuel" if virtuel else None,
-            attributs=infos,
-        )
-        obj2.initattr()
+            obj2 = Objet(
+                niveau,
+                classe,
+                format_natif="interne",
+                conversion="virtuel" if virtuel else None,
+                attributs=infos,
+                schema=schemaclasse,
+            )
+            obj2.initattr()
+        if regle.debug:
+            obj2.debug("cree", attlist=regle.champsdebug)
+            regle.debug -= 1
         try:
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         except StopIteration as abort:

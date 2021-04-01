@@ -226,7 +226,9 @@ class GdalWriter(FileWriter):
         self.layer = ""
         self.transtable = None
         self.buffer = dict()
-        self.write = self.bwrite if self.writerparms["usebuffer"] else self.swrite
+        self.usebuffer = self.writerparms["usebuffer"]
+        self.flush = not self.usebuffer
+        self.write = self.bwrite if self.usebuffer else self.swrite
 
     def open(self):
         """ouvre  sur disque"""
@@ -265,10 +267,11 @@ class GdalWriter(FileWriter):
         self.schemaclasse = schemaclasse
         # schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
         #        print ('fiona: reouverture' ,self.nom, self.layer)
-        if multilayer:
-            self.reopen()
-        else:
-            self.open()
+        if self.flush:
+            if multilayer:
+                self.reopen()
+            else:
+                self.open()
 
     def reopen(self):
         """reouvre le fichier s'il a ete ferme entre temps"""
@@ -306,6 +309,17 @@ class GdalWriter(FileWriter):
     def convert(self, obj):
         return self.converter(obj, self.liste_att, self.minmajfunc)
 
+    def flush_buffer(self, ident):
+        """ferme definitivement les fichiers"""
+        self.flush = True
+        self.changeclasse(self.schema.classes[ident])
+        # print("ecriture buffer", ident, len(self.buffer[ident]))
+        self.fichier.writerecords(self.buffer[ident])
+        del self.buffer[ident]
+        self.flush = False
+        self.close()
+        return
+
     def bwrite(self, obj):
         """ecriture bufferisee"""
         chaine = self.converter(obj, self.liste_att, self.output.minmajfunc)
@@ -314,6 +328,8 @@ class GdalWriter(FileWriter):
         ident = obj.ident
         if ident in self.buffer:
             self.buffer[ident].append(chaine)
+            if len(self.buffer[ident]) >= 10000:
+                self.flush_buffer(ident)
         else:
             self.buffer[ident] = [chaine]
         return True
@@ -339,11 +355,13 @@ class GdalWriter(FileWriter):
     def finalise(self):
         """ferme definitivement les fichiers"""
         if self.buffer:
+            self.flush = True
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                # print("ecriture buffer", ident, len(self.buffer[ident]))
+                print("ecriture buffer", ident, len(self.buffer[ident]))
                 self.fichier.writerecords(self.buffer[ident])
-        self.buffer = dict()
+            self.flush = False
+            self.buffer = dict()
         self.close()
         return 3
 

@@ -7,16 +7,22 @@ module d'aide
 # def get_help_texts(mapper):
 #    '''analyse du code pour sortir les textes d'aide'''
 #    return
+import re
 
 
-def decription_pattern(pattern, description):
+def decription_pattern(pattern, description, commun=None):
     """formatte la description des parametres d'entree"""
+    if commun:
+        communs = ";".join(commun).split(";")
     patdef = pattern.split(";")
     patdesc = ";".join(description).split(";")
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
         if i.startswith("="):
             j = (j or i[1:]) + " (mot_clef)"
+        if re.match("#[1-9]", str(j)) and commun:
+            n = int(j[1])
+            j = communs[n - 1]
         retour.append("%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else "")))
 
     # retour = [
@@ -151,6 +157,7 @@ def print_help_detail(mapper, nom):
                             decription_pattern(
                                 variante.pattern,
                                 variante.description.get("#parametres" + pnum),
+                                commun=variante.description.get("#parametres_c"),
                             )
                         )
                     )

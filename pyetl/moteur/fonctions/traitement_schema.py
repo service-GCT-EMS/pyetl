@@ -44,12 +44,12 @@ def getschemaclasse(regle, obj):
 
 def f_info_schema(regle, obj):
     """#aide||recupere des infos du schema de l'objet
-       #pattern1||A;C;;info_schema;?C;?C
-       #pattern2||A;=attribut;C;info_schema;?C;?C
-     #parametres||attribut qui recupere le resultat;parametre a recuperer;nom de l'attribut;commande,schema,classe
-       #test1||obj;ligne||^V4;dimension;;info_schema;||atv;V4;2
-       #test2||obj;ligne||^V4;type_geom;;info_schema;||atv;V4;2
-       #test3||obj;poly||^V4;type_geom;;info_schema;||atv;V4;3
+      #pattern1||A;C;;info_schema;?C;?C
+      #pattern2||A;=attribut;C;info_schema;?C;?C
+    #parametres||attribut qui recupere le resultat;parametre a recuperer;nom de l'attribut;commande,schema,classe
+      #test1||obj;ligne||^V4;dimension;;info_schema;||atv;V4;2
+      #test2||obj;ligne||^V4;type_geom;;info_schema;||atv;V4;2
+      #test3||obj;poly||^V4;type_geom;;info_schema;||atv;V4;3
 
     """
     # print ("regles:dans info schema ")
@@ -97,8 +97,8 @@ def f_set_schema(regle, obj):
 
 def f_set_schema_d(regle, obj):
     """#aide||positionne des valeurs de schema (dynamique)
-       #pattern||C;?C;A;set_schema;;
-       #test1||obj;poly||^A;2;;set||^type_geom;;A;set_schema;||^V4;type_geom;;info_schema;||atv;V4;2
+    #pattern||C;?C;A;set_schema;;
+    #test1||obj;poly||^A;2;;set||^type_geom;;A;set_schema;||^V4;type_geom;;info_schema;||atv;V4;2
 
     """
     schem = obj.schema
@@ -114,10 +114,10 @@ def f_set_schema_d(regle, obj):
 
 def f_stock_schema(regle, obj):
     """#aide||cree un schema par analyse des objets et l'associe a un objet
-       #parametres||applique le shema a l objet;schema;nom;nombre max de valeurs d enum (30)
-       #aide_spec||la variable taux_conformite permet de definir me taux minimum d'objets renseignes
-       #pattern||=#schema?;;;schema;C?;?N
-       #test||obj;point||^#schema;;;supp||^;;;schema;essai||^V4;type_geom;;info_schema;||atv;V4;1
+    #parametres||applique le shema a l objet;schema;nom;nombre max de valeurs d enum (30)
+    #aide_spec||la variable taux_conformite permet de definir me taux minimum d'objets renseignes
+    #pattern||=#schema?;;;schema;C?;?N
+    #test||obj;point||^#schema;;;supp||^;;;schema;essai||^V4;type_geom;;info_schema;||atv;V4;1
     """
     if obj.virtuel:
         return False
@@ -149,7 +149,7 @@ def f_stock_schema(regle, obj):
 
 def f_force_alias(regle, obj):
     """#aide||remplace les valeurs par les alias
-       #pattern||;;;force_alias;?C;
+    #pattern||;;;force_alias;?C;
     """
 
     # types_entiers = {'E':1, 'entier':1}
@@ -179,11 +179,11 @@ def f_force_alias(regle, obj):
 
 def f_valide_schema(regle, obj):
     """#aide||verifie si des objets sont compatibles avec un schema
-     #pattern||?=#schema;?C;;valide_schema;?=strict;
-     #pattern2||?=#schema;?C;;valide_schema;=supp_conf;
-     #variables||log_level;err ou warn par defaut no;
-     #test||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
-     #test2||obj;point||^type_geom;2;;set_schema||^;;;valide_schema||+fail:;;;;res;1;;set||atv;res;1
+    #pattern||?=#schema;?C;;valide_schema;?=strict;
+    #pattern2||?=#schema;?C;;valide_schema;=supp_conf;
+    #variables||log_level;err ou warn par defaut no;
+    #test||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
+    #test2||obj;point||^type_geom;2;;set_schema||^;;;valide_schema||+fail:;;;;res;1;;set||atv;res;1
 
     """
     #    print ('fonctions : valide_schema', obj.ident, obj.schema)
@@ -209,7 +209,7 @@ def f_valide_schema(regle, obj):
 
 
 def h_def_schema(regle):
-    """ lecture de schema : preparation
+    """lecture de schema : preparation
     format: nom du schema (entree ou sortie ou autre )
     cmp1: nom du fichier
     cmp2: extension
@@ -217,7 +217,7 @@ def h_def_schema(regle):
     # print ("h_def_schema",regle.params)
     cod = regle.getvar("codec_entree", "cp1252")
     fusion = False
-    if regle.params.cmp1.dyn or regle.getvar("force_schema")=="fusion":
+    if regle.params.cmp1.dyn or regle.getvar("force_schema") == "fusion":
         fusion = True
     regle.fichier = regle.params.cmp1.val.replace("*", "")  # nom du fichier
     nom = regle.params.val_entree.val
@@ -274,7 +274,7 @@ def h_def_schema(regle):
 
     if not nom:
         LOGGER.warning("pas de nom schema -> nom fixe a 'schema'")
-        nom="schema"
+        nom = "schema"
 
     if regle.params.att_sortie.val == "schema_entree":
         regle.setvar("schema_entree", nom)
@@ -302,11 +302,11 @@ def h_def_schema(regle):
     else:
         lire_schema_xml(regle.stock_param, nom, regle.fichier, cod=cod)
     regle.nomschema = nom
-    taille_schema= len(regle.stock_param.schemas[nom].classes)
-    if taille_schema>0:
-        LOGGER.info("lecture schema %s:%d classes",nom,taille_schema)
+    taille_schema = len(regle.stock_param.schemas[nom].classes)
+    if taille_schema > 0:
+        LOGGER.info("lecture schema %s:%d classes", nom, taille_schema)
     else:
-        regle.valide=False
+        regle.valide = False
 
     regle.remap = regle.params.att_entree.val == "map"
 
@@ -335,12 +335,12 @@ def fschema_change_classe(_, obj):
 
 def f_def_schema(regle, obj):
     """#aide||associe un schema lu dans un ficher a un objet
-  #aide_spec||type du schema (entree, sortie ou autre);nom;;lire_schema;nom du fichier;extension
-   #pattern1||?=schema_entree;?C;?=map;lire_schema;?C;?C
-   #pattern2||?=schema_sortie;?C;?=map;lire_schema;?C;?C
-   #pattern3||?=#schema;?C;?=map;lire_schema;?C;?C
-       #test||obj;batch||^#schema;;;lire_schema;%testrep%/schemas/pyetl;csv;||atv;#groupe;pyetl
-     """
+    #aide_spec||type du schema (entree, sortie ou autre);nom;;lire_schema;nom du fichier;extension
+     #pattern1||?=schema_entree;?C;?=map;lire_schema;?C;?C
+     #pattern2||?=schema_sortie;?C;?=map;lire_schema;?C;?C
+     #pattern3||?=#schema;?C;?=map;lire_schema;?C;?C
+         #test||obj;batch||^#schema;;;lire_schema;%testrep%/schemas/pyetl;csv;||atv;#groupe;pyetl
+    """
 
     nom_base = regle.nomschema
     ident = obj.ident
@@ -370,7 +370,11 @@ def f_def_schema(regle, obj):
             return False
 
     schema = regle.stock_param.schemas[nom_base]
-    ident2 = schema.map_dest(ident, virtuel=obj.virtuel) if schema.stock_mapping.existe else ident
+    ident2 = (
+        schema.map_dest(ident, virtuel=obj.virtuel)
+        if schema.stock_mapping.existe
+        else ident
+    )
 
     schema_classe = schema.get_classe(ident2)
     if not schema_classe:
@@ -441,8 +445,7 @@ def f_def_schema(regle, obj):
 
 def f_match_schema(regle, obj):
     """#aide||associe un schema en faisant un mapping au mieux
-    #pattern||;?C;;match_schema;C;?N
-"""
+    #pattern||;?C;;match_schema;C;?N"""
     schema_classe = obj.schema
     if schema_classe:
         if schema_classe.attmap is None:
@@ -505,8 +508,7 @@ def h_remap_schema(regle):
 
 def f_remap_schema(regle, obj):
     """#aide||effectue des modifications sur un schema en gerant les correspondances
-    #pattern||=#schema;C;;map_schema;C;;||sortie
-"""
+    #pattern||=#schema;C;;map_schema;C;;||sortie"""
     # pattern||;?C;;match_schema;C;?N
 
     pass
@@ -545,8 +547,8 @@ def h_schema_add_attribut(regle):
 
 def f_schema_add_attribut(regle, obj):
     """#aide||ajoute un attribut a un schema sans toucher aux objets
-       #pattern||A;;;sc_add_attr;C?;L?
-       #test||obj||^Z;;;sc_add_attr||^W;attribut;:Z;info_schema;||atv;W;1
+    #pattern||A;;;sc_add_attr;C?;L?
+    #test||obj||^Z;;;sc_add_attr||^W;attribut;:Z;info_schema;||atv;W;1
     """
 
     schemaclasse = obj.schema
@@ -580,8 +582,8 @@ def h_schema_supp_attribut(regle):
 
 def f_schema_supp_attribut(regle, obj):
     """#aide||supprime un attribut d un schema sans toucher aux objets
-       #pattern||A;;;sc_supp_attr;C?;L?
-       #test||obj||^C1;;;sc_supp_attr||^W;attribut;:C1;info_schema;||atv;W;0;
+    #pattern||A;;;sc_supp_attr;C?;L?
+    #test||obj||^C1;;;sc_supp_attr||^W;attribut;:C1;info_schema;||atv;W;0;
     """
 
     schemaclasse = obj.schema
@@ -596,7 +598,7 @@ def f_schema_supp_attribut(regle, obj):
 
 def f_schema_order(regle, obj):
     """#aide||ordonne les champs dans un schema
-       #pattern||L;;;ordre;;
+    #pattern||L;;;ordre;;
     """
     schemaclasse = obj.schema
     if not schemaclasse:

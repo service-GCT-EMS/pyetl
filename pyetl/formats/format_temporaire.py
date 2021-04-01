@@ -217,10 +217,10 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
                 fichier.write(tmp_entetes(i, nom_format))
             else:
                 fichier.write(tmp_entetes(i, i.format_natif))
-            try:
-                fichier.write(att_to_text(i, None, None))
-            except:
-                print("tmp: erreur objet:", i)
+            # try:
+            fichier.write(att_to_text(i, None, None))
+            # except:
+            #     print("tmp: erreur objet:", i)
             fichier.write("\n")
             geom = tmp_geom(i, geomwriter)
             if geom:
