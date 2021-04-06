@@ -44,7 +44,7 @@ def formbuilder(description):
     }
     variables = description.get("variables", dict())
     params = description.get("parametres", dict())
-    print("recup description", description)
+    # print("recup description", description)
     varlist = []
     es = description.get("e_s", ())
     if es:
@@ -68,7 +68,7 @@ def formbuilder(description):
             varlist.append(("entree", "entree"))
         setattr(CustomForm, "sortie", F.StringField("sortie"))
         varlist.append(("sortie", "sortie"))
-    print("variables", list(chain(params.items(), variables.items())))
+    # print("variables", list(chain(params.items(), variables.items())))
     for var in chain(params.items(), variables.items()):
         tmp = var.split(",") if isinstance(var, str) else var
         vardef = tmp[0]

@@ -916,7 +916,6 @@ def f_liste_selecteur(regle, obj):
             "#sel_classe": csel,
             "#sel_host": regle.getvar("server_" + idbase),
             "#sel_user": regle.getvar("user_" + idbase),
-            "#sel_user": regle.getvar("user_" + idbase),
             "#sel_base": regle.getvar("base_" + idbase),
             "#sel_type_base": regle.getvar("db_" + idbase),
         }

@@ -26,16 +26,17 @@ def message_help():
 
 
 def main():
-    """ appel de pyetl
+    """appel de pyetl
     traitement des parametres d'entree
     instanciation du moteur
-    et traitement des fichiers  """
+    et traitement des fichiers"""
     if len(sys.argv) == 1:
         message_help()
     else:
-
-        mapping = sys.argv[1]
-        runpyetl(mapping, sys.argv[2:])
+        # appels par powershell qui deteste les #
+        args = list([i[1:] if i.startswith("_") else i for i in sys.argv])
+        mapping = args[1]
+        runpyetl(mapping, args[2:])
     print(
         "=========== temps d'execution total %.2f secondes" % (time.time() - STARTTIME)
     )
