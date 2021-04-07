@@ -363,7 +363,7 @@ def ecrire_schema_xml(
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)
     if stock_param and stock_param.mode == "web":
-        print("schemas en # mode webstore: idpyetl", stock_param.idpyetl)
+        print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)
         mapper = stock_param
         while mapper.parent and not mapper.ismainmapper:
             mapper = mapper.parent
@@ -404,7 +404,9 @@ def ecrire_schema_xml(
 
             if not "schemas" in stock_param.webstore:
                 stock_param.webstore["schemas"] = dict()
+                stock_param.webstore["stored_schemas"] = dict()
             stock_param.webstore["schemas"][nomschema] = xml
+            stock_param.webstore["stored_schemas"][nomschema] = os.path.join(rep, nomschema + ".xml")
 
 
 def copier_xsl(rep):

@@ -1,24 +1,17 @@
-table {
-    border-collapse: collapse;
-    width: 100%;
-  }
+
 
 table, th, td {
     border: 1px solid black;
   }
 
-tr {
-    height: 1pc;
-  }
+
 thead {
     background-image: url("planche.png");
     background-color: #4CAF50;
     text-align: center;
     color: white;
-    height:40px
   }
 tbody {
-    height: 700px;
     overflow-y: auto;
 }
 h1 {

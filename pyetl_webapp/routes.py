@@ -284,7 +284,7 @@ def execscript(script, mode):
             entree = form.entree.data[0]
             rep_sortie = form.sortie.data
         else:
-            rep_sortie = "#webservice"
+            rep_sortie = "__webservice"
             entree = ""
         scriptparams = dict()
         for desc in varlist:
@@ -292,6 +292,7 @@ def execscript(script, mode):
             scriptparams[nom] = form.__getattribute__(nom).data
 
         print("recup form", entree, rep_sortie, infos, scriptparams)
+        print ("full url",request.base_url)
         processor = scriptlist.mapper.getpyetl(
             fich_script,
             entree=entree,

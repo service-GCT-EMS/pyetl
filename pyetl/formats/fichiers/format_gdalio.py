@@ -358,7 +358,7 @@ class GdalWriter(FileWriter):
             self.flush = True
             for ident in self.buffer:
                 self.changeclasse(self.schema.classes[ident])
-                print("ecriture buffer", ident, len(self.buffer[ident]))
+                print("final: ecriture buffer", ident, len(self.buffer[ident]))
                 self.fichier.writerecords(self.buffer[ident])
             self.flush = False
             self.buffer = dict()
