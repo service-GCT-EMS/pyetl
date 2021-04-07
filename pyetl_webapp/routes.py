@@ -289,7 +289,7 @@ def execscript(script, mode):
         scriptparams = dict()
         for desc in varlist:
             nom, definition = desc
-            scriptparams[nom] = form.__getattribute__(nom).data
+            scriptparams[nom] = str(form.__getattribute__(nom).data)
 
         print("recup form", entree, rep_sortie, infos, scriptparams)
         print ("full url",request.base_url)
@@ -310,7 +310,8 @@ def execscript(script, mode):
                 wstats["result"] = list(result.keys())
                 session["stats"] = wstats
                 # session["retour"] = result
-                print("resultats traitement", list(result.keys()))
+                print("sortes resultats traitement", list(result.keys()))
+                print("resultats complets traitement", result)
                 if wstats:
                     return render_template(
                         "script_result.html",

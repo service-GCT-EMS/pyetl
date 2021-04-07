@@ -4,15 +4,15 @@
     <h1>retour {{ stats["nom"] }}</h1>
 {% endblock %}
 {% block content %}
-
-    <table>
-    <thead>
+    <div class= "container-fluid">
+    <table class="table table-striped">
+    <thead class="d-block">
         <tr>
             <td>parametre</td>
             <td>valeur</td>
         </tr>
     </thead>
-    <tbody>
+    <tbody class="d-block">
         {% for key, value in stats.items() %}
             {%if value%}
                 <tr>
@@ -24,6 +24,7 @@
         {% endfor %}
     </tbody>
     </table>
+    </div>
     {% if retour  %}
     <div id="results">
     <title>resultats </title>

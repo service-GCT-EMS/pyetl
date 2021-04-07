@@ -74,6 +74,12 @@ def formbuilder(description):
         vardef = tmp[0]
         name, definition = vardef.split("(", 1) if "(" in vardef else (vardef, "T)")
         definition = definition[:-1]
+        vlist=[]
+        if ":" in definition:
+            tmp2=definition.split(":")
+            definition=tmp2[0]
+            vlist=tmp2[1:]
+
         fname = tmp[1] if len(tmp) > 1 else name
         setattr(CustomForm, name, fieldfunctions.get(definition, F.StringField)(fname))
         varlist.append((name, name))

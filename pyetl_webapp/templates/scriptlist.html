@@ -4,18 +4,16 @@
     <h1>listes </h1>
 {% endblock %}
 {% block content %}
-    <div>
+    <div class="position-fixed overflow-auto" style="top: 15%">
     <table class="table table-bordered table-hover">
-    <nav class="position-absolute">
-    <thead class="position-sticky" >
+    <thead class="d-block" >
         <tr>
             <td>Nom/run</td>
             <td>Date de Mise a Jour</td>
             <td>Description</td>
         </tr>
     </thead>
-    </nav>
-    <tbody>
+    <tbody class="container d-block overflow-auto">
         {% for item in liste %}
         <tr>
             <td>

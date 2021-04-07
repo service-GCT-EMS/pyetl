@@ -1184,12 +1184,17 @@ class Pyetl(object):
             buffer = self.webstore["log"]
             sortie = buffer.getvalue().split("\n")
             self.webstore["log"] = sortie
+        for i in self.webstore: # petit nettoyage les url en # ne passent pas
+            if i.startswith("#"):
+                nom=i[1:]
+                self.webstore[nom] = self.webstore[i]
+                del self.webstore[i]
 
         # tmpdir=tempfile.TemporaryDirectory()
         # for i in self.webstore:
         #     file = open(os.path.join(tmpdir.name,i),"bw")
         #     pickle.dump(self.webstore[i], file)
-        # name=tmpdir.name
+        print ("retour webstore",self.webstore)
         name = "noname"
         return self.webstore, name
 

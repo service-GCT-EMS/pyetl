@@ -293,14 +293,16 @@ def h_version(regle):
     # LOGGER.log(999, "pyetl version:%s", regle.stock_param.version)
 
     # print("pyetl version: ", regle.stock_param.version)
-    if regle.params.cmp1.val:
+    if regle.params.cmp1.val in {"full","True"}:
         regle.print("version python", sys.version)
     regle.valide = "done"
 
 
 def f_version(*_):
     """#aide||affiche la version du logiciel et les infos
-    #pattern||;;;version;?=full;;
+    #pattern1||;;;version;?=full;;
+    #pattern2||;;;version;?=True;;
+    #pattern3||;;;version;?=False;;
     #test||notest"""
     return True
 

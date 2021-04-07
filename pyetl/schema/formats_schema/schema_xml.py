@@ -402,11 +402,11 @@ def ecrire_schema_xml(
                 len(xml) if xml else 0,
             )
 
-            if not "schemas" in stock_param.webstore:
-                stock_param.webstore["schemas"] = dict()
-                stock_param.webstore["stored_schemas"] = dict()
-            stock_param.webstore["schemas"][nomschema] = xml
-            stock_param.webstore["stored_schemas"][nomschema] = os.path.join(rep, nomschema + ".xml")
+            # if not "schemas" in stock_param.webstore:
+                # stock_param.webstore["schemas"] = dict()
+                # stock_param.webstore["stored_schemas"] = dict()
+            stock_param.webstore["schema_"+nomschema] = xml.split("\n")
+            # stock_param.webstore["stored_schemas"][nomschema] = os.path.join(rep, nomschema + ".xml")
 
 
 def copier_xsl(rep):
