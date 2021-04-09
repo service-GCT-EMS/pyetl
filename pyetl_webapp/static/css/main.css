@@ -1,9 +1,5 @@
 
 
-table, th, td {
-    border: 1px solid black;
-  }
-
 
 thead {
     background-image: url("planche.png");
@@ -11,9 +7,7 @@ thead {
     text-align: center;
     color: white;
   }
-tbody {
-    overflow-y: auto;
-}
+
 h1 {
     text-align: center;
     color: blue;
@@ -23,19 +17,7 @@ h1 {
     background-position: center;
   }
 
-.centre {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 30%;
-  }
-
-.log {
-  display: block;
-  width: 100%;
-  scroll-behavior: auto;
-}
 
 #submit {
-  background-image: url("../images/run.gif");
+  background-image: url("run.gif");
 }
