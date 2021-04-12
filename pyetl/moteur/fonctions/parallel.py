@@ -102,7 +102,7 @@ def initparallel(parametres):
         print("erreur initialisation", os.getpid())
         return None
 
-    if mainmapper.loginited:
+    if mainmapper.gestion_log.loginited:
         #        print("pyetl double init", os.getpid())
         time.sleep(1)
         return None
