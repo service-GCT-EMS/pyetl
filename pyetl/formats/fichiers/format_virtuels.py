@@ -47,7 +47,9 @@ def compte_obj(self, regle, *_, **__):
 
 def affiche_header(obj):
     """affichage entete"""
-    print(",".join(obj.schema.get_liste_attributs()))
+    # raise
+    print("!----------affichage", obj.ident, "----------")
+    print("!" + ",".join(obj.schema.get_liste_attributs()))
 
 
 def affiche_stream(self, obj, regle, *_, **__):

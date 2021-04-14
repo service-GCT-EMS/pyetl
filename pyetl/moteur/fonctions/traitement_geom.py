@@ -683,7 +683,7 @@ def f_splitcouleur(regle, obj):
         #     obj.schema.info["type_geom"],
         # )
         if obj.attributs.get("#erreurs"):
-            print(obj.attributs.get("#erreurs"))
+            print("split_couleurs: erreurs", obj.attributs.get("#erreurs"))
         return False
 
     if obj.schema.info["type_geom"] == "3":
@@ -750,7 +750,7 @@ def f_extractcouleur(regle, obj):
         obj.schema.info["type_geom"],
     )
     if obj.attributs.get("#erreurs"):
-        print(obj.attributs.get("#erreurs"))
+        print("extract_couleurs: erreurs", obj.attributs.get("#erreurs"))
     return False
 
 

@@ -46,17 +46,17 @@ class FileWriter(object):
         self.srid = self.output.srid
         self.separ = self.writerparms.get("separ", ";")
         self.encoding = regle.output.encoding
-        newlines=self.writerparms.get("newlines", None)
-        if newlines=="unix":
-            newlines="\n"
-        elif newlines== "windows":
-            newlines="\r\n"
-        elif newlines=="auto" or not newlines:
-            newlines=None
+        newlines = self.writerparms.get("newlines", None)
+        if newlines == "unix":
+            newlines = "\n"
+        elif newlines == "windows":
+            newlines = "\r\n"
+        elif newlines == "auto" or not newlines:
+            newlines = None
         else:
-            print ("newlines inconnu -> defaut", newlines)
-            newlines=None
-        self.newlines=newlines
+            print("newlines inconnu -> defaut", newlines)
+            newlines = None
+        self.newlines = newlines
         self.schema = schema.schema if schema else None
         self.htext = ""
         self.hinit = ""
@@ -88,7 +88,11 @@ class FileWriter(object):
         else:
             # print ("filewriter: ouvrir", self.newlines)
             self.fichier = open(
-                self.nom, mode, encoding=self.encoding, errors="backslashreplace", newline=self.newlines
+                self.nom,
+                mode,
+                encoding=self.encoding,
+                errors="backslashreplace",
+                newline=self.newlines,
             )
 
     def open(self):

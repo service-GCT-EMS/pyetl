@@ -81,6 +81,7 @@ def setqueuhandler(queue, wid=""):
 def stoplistener():
     mapper = getmainmapper()
     # print("arret listener", mapper.loglistener)
+    return
     if mapper.loglistener:
         mapper.logger.info("arret listener")
         mapper.loglistener.enqueue_sentinel()
@@ -638,7 +639,13 @@ def gestion_parallel_batch(regle):
         regle.nbparallel = prep_parallel(regle, traite_parallel, reprog=True)
     else:
         regle.nbparallel = prep_parallel(regle, traite_parallel_batch)
-    # print("preparation parallel_batch", regle.nbparallel, regle.chargeur, 'st:',regle.store)
+    print(
+        "preparation parallel_batch",
+        regle.nbparallel,
+        regle.chargeur,
+        "st:",
+        regle.store,
+    )
 
 
 def traite_parallel_batch(regle):

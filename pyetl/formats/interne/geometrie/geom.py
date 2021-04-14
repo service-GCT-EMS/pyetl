@@ -557,8 +557,7 @@ class Geometrie(object):
                 ymin = min([i[1] for i in liste_coords])
                 ymax = max([i[1] for i in liste_coords])
         except:
-            print(liste_coords)
-            print("erreur emprise")
+            print("erreur emprise", liste_coords)
         return (xmin, ymin, xmax, ymax)
 
     def emprise_3d(self):
@@ -572,8 +571,7 @@ class Geometrie(object):
                 zmin = min([i[2] for i in liste_coords])
                 zmax = max([i[2] for i in liste_coords])
         except:
-            print(liste_coords)
-            print("erreur emprise 3D")
+            print("erreur emprise 3D", liste_coords)
         return (xmin, ymin, zmin, xmax, ymax, zmax)
 
     def getpoint(self, numero):

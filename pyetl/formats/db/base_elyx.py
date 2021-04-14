@@ -420,7 +420,11 @@ class ElyConnect(ora.OrwConnect):
                         regle_courante.stock_param.logger.debug(
                             "fichier a traiter : %s", str(fichier)
                         )
-                        # print("fichier a traiter :", fichier)
+                        print(
+                            "fichier a traiter :",
+                            fichier,
+                            regle_courante.getvar("_sortie"),
+                        )
                         try:
                             self.params.lecture(
                                 classe,

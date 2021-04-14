@@ -532,6 +532,9 @@ class Pyetl(object):
                         except Empty:
                             # print("queue vide")
                             break
+                        except BrokenPipeError:
+                            print("lecture : queue inexistante")
+                            break
 
             if message == "init":
                 temps = self._timer(init=not self.worker)
@@ -540,7 +543,11 @@ class Pyetl(object):
                 nbtotal = 0
                 prochain = nbaffich
             elif self.worker:
-                self.msgqueue.put((message, nbfic, nbval, wid))
+                try:
+                    self.msgqueue.put((message, nbfic, nbval, wid))
+                except (BrokenPipeError):
+                    print("ecriture: queue inexistante")
+
                 # print(" worker : ecriture queue", ("interm", nbfic, mnbval, wid))
             elif nbval >= prochain:
                 prochain, interm = affiche(message, nbval)
@@ -1185,8 +1192,10 @@ class Pyetl(object):
             sortie = buffer.getvalue().split("\n")
             self.webstore["log"] = sortie
         # petite manip pour nettoyer les #
-        tmp={i[1:] if i.startswith("#") else i:self.webstore[i] for i in self.webstore}
-        self.webstore=tmp
+        tmp = {
+            i[1:] if i.startswith("#") else i: self.webstore[i] for i in self.webstore
+        }
+        self.webstore = tmp
 
         # tmpdir=tempfile.TemporaryDirectory()
         # for i in self.webstore:

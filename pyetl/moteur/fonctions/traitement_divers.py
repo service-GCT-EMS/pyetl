@@ -196,7 +196,7 @@ def h_sortir(regle):
     """preparation sortie"""
     regle.writerparms = dict()
     regle.ressource = None
-    regle.writerparms["newlines"]=None
+    regle.writerparms["newlines"] = None
     if regle.getvar("newlines"):
         regle.writerparms["newlines"] = regle.getvar("newlines")
     regle.writerparms["fanout"] = regle.context.getvar("fanout", "groupe")
@@ -219,17 +219,28 @@ def h_sortir(regle):
         regle.writerparms["fanout"] = regle.params.cmp1.val[tmplist + 1 : -1]
         # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
+    fich_sortie = ""
+    if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
+        rep_base = regle.getvar("_sortie")
+        #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
+        if os.path.isabs(regle.params.cmp2.val):  # si absolu on ignore le rep de sortie
+            rep_base = ""
+        fich_sortie = os.path.join(rep_base, regle.params.cmp2.val)
+
     outformat = (
         "#print"
         if (
             regle.params.cmp2.val == "#print"
             or regle.getvar("_sortie") == "#print"
-            or regle.getvar("_sortie") == ""
+            or fich_sortie == ""
         )
         else regle.params.cmp1.val
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
-    # print("creation output", regle.output.writerparms)
+    if outformat != "#print":
+        regle.output.writerparms["destination"] = fich_sortie
+    if regle.debug:
+        print("creation output", regle.output.writerparms)
     # if regle.params.cmp2.val == "#print":
     #     regle.output = regle.stock_param.getoutput("#print", regle)
     # elif regle.params.cmp2.val == "" and regle.getvar("_sortie") == "#print":
@@ -256,17 +267,8 @@ def h_sortir(regle):
         dialecte = regle.output.writerparms.get("dialecte")
         regle.ext = dialecte
 
-    if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
-        rep_base = regle.getvar("_sortie")
-        #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        if os.path.isabs(regle.params.cmp2.val):  # si absolu on ignore le rep de sortie
-            rep_base = ""
-        regle.output.writerparms["destination"] = os.path.join(
-            rep_base, regle.params.cmp2.val
-        )
-
-        LOGGER.info("repertoire de sortie: %s", regle.output.writerparms["destination"])
-        regle.setlocal("_sortie", regle.output.writerparms["destination"])
+    LOGGER.info("repertoire de sortie: %s", regle.output.writerparms["destination"])
+    regle.setlocal("_sortie", regle.output.writerparms["destination"])
 
     regle.calcule_schema = regle.output.writerparms["force_schema"]
     regle.memlimit = int(regle.context.getvar("memlimit", 0))

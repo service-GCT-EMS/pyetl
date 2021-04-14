@@ -104,7 +104,10 @@ class Statdef(object):  # definition d'une statistique
                 for i in self.colonnes_sortie
             ]
         except KeyError:
-            print([(valeurs.get((categorie, i), 0)) for i in self.colonnes_sortie])
+            print(
+                "getvals erreur clef,",
+                [(valeurs.get((categorie, i), 0)) for i in self.colonnes_sortie],
+            )
             return []
 
     def ligne(self, categorie, valeurs):

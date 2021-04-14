@@ -196,7 +196,7 @@ def printelements(elements):
     #    print (elements)
     for i in elements:
         #        print(i,elements[i])
-        print(i, elements[i].groups(), elements[i].re)
+        print("->", i, elements[i].groups(), elements[i].re)
 
 
 def setvloc(regle):
@@ -826,7 +826,7 @@ def lire_regles_csv(
             ].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
             #            print ("avt chargement groupe", vgroup, champs_var)
             if vgroup.startswith("#"):
-                pass #c est un selecteur on ne le traite pas
+                pass  # c est un selecteur on ne le traite pas
             else:
                 try:
                     mapper.load_paramgroup(vgroup, nom=ngroup, check=check)

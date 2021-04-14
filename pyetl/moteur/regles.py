@@ -404,7 +404,6 @@ class RegleTraitement(object):  # regle de mapping
         self.tmp_store = list()
         self.compt_stock = 0
         self.dident = ""
-        self.vlocs = dict()
 
         self.schema_courant = None
         self.menage = False
@@ -430,6 +429,7 @@ class RegleTraitement(object):  # regle de mapping
                 + "("
                 + repr(self.context)
                 + ")"
+                + repr(self.context.vlocales)
             )
         return "regle vide"
 
@@ -585,7 +585,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def afficher_erreurs(self, fonc, message):
         """donne des indications sur les erreurs de syntaxe"""
-        log=self.stock_param.logger.error
+        log = self.stock_param.logger.error
         motif = "------->"
         log(motif + " erreur interpretation regle %s %d", self.fichier, self.numero)
         log(motif + " %s", self.ligne.replace("\n", ""))
@@ -653,13 +653,11 @@ class RegleTraitement(object):  # regle de mapping
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
-        if nom in self.vlocs:
-            return self.vlocs[nom]
+
         return self.context.getvar(nom, defaut)
 
-    def getlocal(self,nom, defaut=""):
-        if nom in self.vlocs:
-            return self.vlocs[nom]
+    def getlocal(self, nom, defaut=""):
+
         return self.context.getlocal(nom, defaut)
 
     def getchain(self, noms, defaut=""):
@@ -771,7 +769,7 @@ class RegleTraitement(object):  # regle de mapping
                 " filter" if self.filter else "",
             )
         )
-        print(msg)
+        # print(msg)
         LOGGER.debug(msg)
 
     def setstore(self):

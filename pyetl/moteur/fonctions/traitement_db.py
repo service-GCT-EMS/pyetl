@@ -6,6 +6,7 @@ fonctions de manipulation d'attributs
 import os
 import logging
 import glob
+import itertools
 
 # from pyetl.formats.db.database import DbConnect
 import re
@@ -862,9 +863,9 @@ def f_dbselect(regle, obj):
 def h_liste_selecteur(regle):
     """prepare la liste"""
     regle.chargeur = True
-    param_base(regle)
-    regle.metas = "#meta" in regle.params.cmp1.val
-    regle.infos = "#infos" in regle.params.cmp1.val
+    param_base(regle)  # pas de types de tables en cmp1
+    # regle.metas = "#meta" in regle.params.cmp1.val
+    # regle.infos = "#infos" in regle.params.cmp1.val
     regle.schema = (
         regle.stock_param.init_schema(regle.params.cmp2.val)
         if regle.params.cmp2.val
@@ -887,7 +888,7 @@ def h_liste_selecteur(regle):
 
 def f_liste_selecteur(regle, obj):
     """#aide||cree des objets virtuels ou reels a partir d un selecteur (1 objet par classe)
-    #parametres_c||#meta et/ou #infos pour inclure les elements dans l objet;nom du schema
+    #parametres_c||type tables;nom du schema
     #parametres1||idclasse resultante;;#1;#2
     #parametres2||;;#1;#2
     #parametres3||;#1;#2
@@ -920,11 +921,15 @@ def f_liste_selecteur(regle, obj):
             "#sel_type_base": regle.getvar("db_" + idbase),
         }
         # print("infos selecteur", infos)
-        if regle.metas:
-            infos.update(selecteur.baseselectors[idbase].schemabase.metas)
-        if regle.infos:
-            infos.update(selecteur.baseselectors[idbase].schemabase.infos)
-
+        schemabase = selecteur.baseselectors[idbase].schemabase
+        infoschema = {
+            i if i.startswith("#") else ("#" + i): j
+            for i, j in itertools.chain(
+                schemabase.metas.items(), schemabase.classes[idsel].info.items()
+            )
+        }
+        infos.update(infoschema)
+        infos["#alias_niveau"] = schemabase.alias_groupes.get(nsel, "")
         if regle.params.pattern == "2":
             obj2 = obj.dupplique()
             obj2.attributs.update(infos)

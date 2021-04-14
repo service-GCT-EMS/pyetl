@@ -104,7 +104,7 @@ class AccConnect(DbConnect):
                 "error: access pyodbc: utilisateur ou mot de passe errone sur la base access"
             )
             print("error: access:", serv, self.passwd)
-            print(exp)
+            print("->", exp)
             #        sys.exit(1)
             #        raise
             return None

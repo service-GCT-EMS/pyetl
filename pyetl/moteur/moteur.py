@@ -34,7 +34,7 @@ class Moteur(object):
     def debug_moteur(self):
         print("moteur: mode debug")
         for i in self.regles:
-            print(i)
+            print("regle:", i)
 
     def traitement_virtuel(self, unique=0):
         """ cree un objet virtuel et le traite pour toutes les classes non utilisees """

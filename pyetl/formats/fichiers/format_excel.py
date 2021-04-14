@@ -158,7 +158,7 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
             )  # gestion des affichages de patience
 
     if nbwarn:
-        print(nbwarn, "lignes avec un nombre d'attributs incorrect")
+        print("warning:", nbwarn, "lignes avec un nombre d'attributs incorrect")
     return
 
 
@@ -178,9 +178,7 @@ class XlsxWriter(FileWriter):
         regle=None,
     ):
 
-        super().__init__(
-            nom, schema=schema, regle=regle
-        )
+        super().__init__(nom, schema=schema, regle=regle)
 
         self.extension = regle.extension
         self.separ = regle.separ
