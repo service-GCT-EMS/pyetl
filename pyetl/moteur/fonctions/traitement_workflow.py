@@ -293,7 +293,7 @@ def h_version(regle):
     # LOGGER.log(999, "pyetl version:%s", regle.stock_param.version)
 
     # print("pyetl version: ", regle.stock_param.version)
-    if regle.params.cmp1.val in {"full","True"}:
+    if regle.params.cmp1.val in {"full", "True"}:
         regle.print("version python", sys.version)
     regle.valide = "done"
 
@@ -662,13 +662,15 @@ def h_fileloader(regle):
 
 def f_fileloader(regle, obj):
     """#aide||chargement d objets en fichier
-    #aide_spec||cette fonction est l' équivalent du chargement initial
-      #pattern||?A;?C;?A;charge;?C;?N
-     #pattern2||?A;?C;?A;charge;[A];?N
-       #schema||ajout_attribut
-         #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-        #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
-              ||atv;NB;8
+     #aide_spec||cette fonction est l' équivalent du chargement initial
+               ||peut fonctionner en parallele -1 pour un nobmre de process egal au nombre de processeurs
+       #pattern||?A;?C;?A;charge;?C;?N
+      #pattern2||?A;?C;?A;charge;[A];?N
+    #parametres||sortie:nb obj lus;
+        #schema||ajout_attribut
+          #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
+         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
+               ||atv;NB;8
     """
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True

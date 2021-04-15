@@ -81,9 +81,9 @@ def setqueuhandler(queue, wid=""):
 def stoplistener():
     mapper = getmainmapper()
     # print("arret listener", mapper.loglistener)
-    return
+
     if mapper.loglistener:
-        mapper.logger.info("arret listener")
+        # mapper.logger.info("arret listener")
         mapper.loglistener.enqueue_sentinel()
         # mapper.loglistener = None
     # print("listener arrete")
@@ -417,7 +417,7 @@ def prep_parallel(regle, fonction, reprog=False):
         regle.nbstock = 0
         regle.traite = 0
         regle.tmpstore = []
-        regle.reprog = reprog
+        regle.reprog = reprog  # pour le mode boucle
     return multi
 
 

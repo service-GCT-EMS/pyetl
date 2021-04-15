@@ -136,6 +136,7 @@ class GestionLogs(object):
         fichier = mapper.getvar("log_file", log_file)
         log = mapper.getvar("log_level", log_level)
         affich = mapper.getvar("log_print", log_print)
+        logmode = mapper.getvar("log_mode", "prod")
         self.loginited = True
 
         #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
@@ -145,6 +146,8 @@ class GestionLogs(object):
         """ création de l'objet logger qui va nous servir à écrire dans les logs"""
         # on met le niveau du logger à DEBUG, comme ça il écrit tout dans le fichier log s'il existe
         logger = self.logger
+        if logmode == "prod":
+            logging.raiseExceptions = False
         worker = mapper.worker
 
         niveau_f = self.loglevels.get(log, logging.INFO)

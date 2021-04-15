@@ -220,10 +220,11 @@ def h_sortir(regle):
         # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
     fich_sortie = ""
-    if regle.params.cmp2.val and regle.params.cmp2.val != "#print":
+    if regle.params.cmp2.val != "#print":
         rep_base = regle.getvar("_sortie")
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        if os.path.isabs(regle.params.cmp2.val):  # si absolu on ignore le rep de sortie
+        if regle.params.cmp2.val and os.path.isabs(regle.params.cmp2.val):
+            # si absolu on ignore le rep de sortie
             rep_base = ""
         fich_sortie = os.path.join(rep_base, regle.params.cmp2.val)
 
@@ -241,13 +242,7 @@ def h_sortir(regle):
         regle.output.writerparms["destination"] = fich_sortie
     if regle.debug:
         print("creation output", regle.output.writerparms)
-    # if regle.params.cmp2.val == "#print":
-    #     regle.output = regle.stock_param.getoutput("#print", regle)
-    # elif regle.params.cmp2.val == "" and regle.getvar("_sortie") == "#print":
-    #     regle.output = regle.stock_param.getoutput("#print", regle)
-    # else:
-    #     regle.output = regle.stock_param.getoutput(regle.params.cmp1.val, regle)
-    # print("positionnement output ", regle, regle.output)
+
     if regle.output.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
         destination = regle.output.writerparms.get("base_dest")
