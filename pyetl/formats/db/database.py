@@ -9,6 +9,7 @@ acces a la base de donnees
 import re
 import time
 import logging
+import os
 from operator import attrgetter
 from collections import namedtuple
 from .dbconstants import *
@@ -1128,6 +1129,12 @@ class DbConnect(object):
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """ charge des objets en base de donnees par dbload"""
         return False
+
+    def check_helper(self, helper):
+        """ verifie l existance d un programme auxiliaire"""
+        if not os.path.isfile(helper):
+            print("========= attention ", helper, "inexistant arret traitement")
+            raise StopIteration(3)
 
     def recup_maxval(self, niveau, classe, clef):
         """ recupere le max d 'un champs """

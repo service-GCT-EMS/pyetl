@@ -95,7 +95,12 @@ class ElyConnect(ora.OrwConnect):
         #        print('modif_environnement ',env)
         if orahome:  # on manipule les variables d'environnement
             env["ORACLE_HOME"] = orahome
-            env["PATH"] = orahome + "\\bin;" + env["PATH"]
+            if os.path.isdir(orahome + "\\bin"):
+                # full client
+                env["PATH"] = orahome + "\\bin;" + env["PATH"]
+            else:
+                # minimal client
+                env["PATH"] = orahome + ";" + env["PATH"]
         if hdir:  # on positionne le path pour le chargeur
             env["PATH"] = hdir + ";" + env["PATH"]
         return env
@@ -374,6 +379,8 @@ class ElyConnect(ora.OrwConnect):
 
     def extalpha(self, regle_courante, helper, classes, dest, log, nbworkers=(1, 1)):
         """extrait des donnees par ORA2FEA"""
+        self.check_helper(helper)
+
         # mise en place de l'environnement:
         #        print ('elyx extalpha',classes)
         #        tmpdirstore = tempfile.TemporaryDirectory()
@@ -444,6 +451,7 @@ class ElyConnect(ora.OrwConnect):
         """extrait des donnees par ORA2FEA"""
         # mise en place de l'environnement:
         print("dump elyx", log)
+        self.check_helper(helper)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             self.tmpdir = str(tmpdir)
@@ -456,6 +464,7 @@ class ElyConnect(ora.OrwConnect):
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
         """charge un fichier par FEA2ORA"""
+        self.check_helper(helper)
         retour = False
         if len(files) == 1:
             file = files[0]
