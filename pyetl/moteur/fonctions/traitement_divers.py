@@ -239,7 +239,7 @@ def h_sortir(regle):
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
     if outformat != "#print":
-        regle.output.writerparms["destination"] = fich_sortie
+        regle.output.writerparms["destination"] = regle.params.cmp2.val
     if regle.debug:
         print("creation output", regle.output.writerparms)
 

@@ -373,11 +373,11 @@ def h_dbrequest(regle):
     return valide
 
 
-def printexception(regle, err):
+def printexception(regle, requete, err):
     """ affiche ou pas une erreur"""
     fail_silent = regle.getvar("Fail_silent", False)
     if not fail_silent or fail_silent == "0" or fail_silent.lower() == "false":
-        print("erreur requete", err)
+        print("dbrequest:erreur requete", requete, "->", err)
 
 
 def f_dbrequest(regle, obj):
@@ -457,20 +457,22 @@ def f_dbrequest(regle, obj):
                         obj=refobj,
                     )
                 except Exception as err:
-                    printexception(regle, err)
+                    printexception(regle, requete, err)
                     continue
         else:
             try:
                 retour += DB.lire_requete(
                     regle,
                     base,
-                    regle.ident if regle.ident is not None else ("tmp", "tmp"),
+                    regle.identclasse
+                    if regle.identclasse is not None
+                    else ("tmp", "tmp"),
                     requete=requete_ref,
                     parms=parms,
                     obj=refobj,
                 )
             except Exception as err:
-                printexception(regle, err)
+                printexception(regle, requete_ref, err)
                 continue
     obj.attributs["#nb_results"] = str(retour)
     return retour

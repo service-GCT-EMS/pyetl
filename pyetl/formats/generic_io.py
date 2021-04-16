@@ -64,7 +64,8 @@ def get_read_encoding(regle, nom_format):
     ]
     return regle.getchain(defchain, "utf-8-sig")
 
-def get_write_encoding(regle,nom_format):
+
+def get_write_encoding(regle, nom_format):
     defchain = [
         "encoding",
         "codec_" + nom_format + "_out",
@@ -73,6 +74,7 @@ def get_write_encoding(regle,nom_format):
         "defcodec",
     ]
     return regle.getchain(defchain, "utf-8")
+
 
 def get_read_separ(regle, nom_format):
 
@@ -659,9 +661,11 @@ class Output(object):
             initer(self)
         self.writerparms.update(self.regle.writerparms)
         self.dialecte = dialecte
-        self.encoding = self.regle.getlocal("encoding",self.writerparms.get("encoding"))
+        self.encoding = self.regle.getlocal(
+            "encoding", self.writerparms.get("encoding")
+        )
         if not self.encoding:
-            self.encoding=get_write_encoding(regle,nom)
+            self.encoding = get_write_encoding(regle, nom)
         self.ecrire_objets = (
             MethodType(self.writerparms["writer"], self)
             if self.writerparms["writer"]
@@ -724,7 +728,17 @@ class Output(object):
             nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
         else:
             nom = self.sorties.get_id(rep_sortie, groupe, classe, self.ext)
-        # print("getfanout", rep_sortie, self.fanout, groupe, classe, dest, "->", nom)
+        # print(
+        #     "getfanout",
+        #     rep_sortie,
+        #     self.fanout,
+        #     groupe,
+        #     classe,
+        #     dest,
+        #     self.ext,
+        #     "->",
+        #     nom,
+        # )
         ressource = self.sorties.get_res(self.regle, nom)
         return ressource, nom
 
@@ -735,7 +749,13 @@ class Output(object):
         self.srid = obj.geom_v.srid
         if ressource is None:
             if not nom.startswith("#"):
-                #            print('creation ',nom,'rep',os.path.abspath(os.path.dirname(nom)))
+                # print(
+                #     "creation ",
+                #     obj.ident,
+                #     nom,
+                #     "rep",
+                #     os.path.abspath(os.path.dirname(nom)),
+                # )
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
             str_w = self.writerclass(nom, schema=obj.schema, regle=self.regle)
             ressource = self.sorties.creres(nom, str_w)

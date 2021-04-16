@@ -3,6 +3,7 @@
 
 # import time
 # import pyetl.schema as SC
+from pyetl.formats.db.database import LOGGER
 import sys
 import os
 import io
@@ -87,19 +88,24 @@ class FileWriter(object):
             self.fichier = io.StringIO()
         else:
             # print ("filewriter: ouvrir", self.newlines)
-            self.fichier = open(
-                self.nom,
-                mode,
-                encoding=self.encoding,
-                errors="backslashreplace",
-                newline=self.newlines,
-            )
+            try:
+                self.fichier = open(
+                    self.nom,
+                    mode,
+                    encoding=self.encoding,
+                    errors="backslashreplace",
+                    newline=self.newlines,
+                )
+            except FileNotFoundError as err:
+                LOGGER.error("fichier inexistant %s", self.nom)
+                self.fichier = None
 
     def open(self):
         """ouverture de fichier"""
         # print ("filewriter: open")
         self.ouvrir("w")
-        self.fichier.write(self.header())
+        if self.fichier:
+            self.fichier.write(self.header())
 
     def reopen(self):
         """reouverture"""

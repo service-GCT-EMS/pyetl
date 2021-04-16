@@ -578,9 +578,8 @@ def _execbatch(regle, obj):
     """execute un batch"""
     if obj is None:  # pas d'objet on en fabrique un sur mesure
         obj = Objet("_batch", "_batch", format_natif="interne")
-        obj.attributs["nom"] = regle.getvar(
-            "_nom_batch", "batch"
-        )  # on lui donne un nom
+        obj.attributs["nom"] = regle.getvar("_nom_batch", "batch")
+        # on lui donne un nom
     _, commande, entree, sortie, params = regle.prepare(regle, obj)
     processor = regle.stock_param.getpyetl(
         commande, liste_params=params, entree=entree, rep_sortie=sortie
