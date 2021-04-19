@@ -30,7 +30,7 @@ def compte_obj_stream(self, obj, regle, *_, **__):
     #    obj.setschema(None)
     sorties = regle.stock_param.sorties
     nom = "compt_" + groupe + "." + classe
-    sorties.setcnt(nom)
+    sorties.setcnt(nom, regle)
     return 0, 0
 
 

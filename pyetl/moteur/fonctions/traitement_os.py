@@ -6,7 +6,6 @@ Created on Fri Dec 11 14:34:04 2015
 fonctions de structurelles diverses
 """
 import os
-import logging
 import subprocess
 from pathlib import Path
 import shutil
@@ -19,9 +18,6 @@ except ImportError:
     print("module  win32security non disponible : pas d info utilisateurs")
     win32security = None
 from .outils import getfichs
-
-
-LOGGER = logging.getLogger(__name__)
 
 
 def commandrunner(regle, chaine):

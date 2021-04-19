@@ -5,7 +5,6 @@ gestion des entrees et sorties de schemas
 @author: 89965
 """
 import os
-import logging
 
 # import xml.etree.ElementTree as ET
 from pyetl.formats.db import DATABASES
@@ -15,14 +14,12 @@ from . import schema_interne as SCI
 from .formats_schema.schema_xml import ecrire_schema_xml, lire_schema_xml
 from .formats_schema.schema_csv import ecrire_schema_csv, lire_schema_csv
 
-LOGGER = logging.getLogger(__name__)
 
-
-def fusion_schema(nom, schema, schema_tmp):
+def fusion_schema(nom, schema, schema_tmp, stock_param):
     """fusionne 2 schemas en se basant sur les poids ou les maxobj pour garder le bon"""
     if not schema or not schema_tmp:
         # print("schema vide fusion impossible", nom, schema, schema_tmp)
-        LOGGER.warning(
+        stock_param.logger.warning(
             "schema vide fusion impossible" + nom + repr(schema) + repr(schema_tmp)
         )
         return
@@ -80,7 +77,7 @@ def lire_schemas_multiples(
             if racine in element.lower():
                 ext = os.path.splitext(element)[1]
                 if "classes" in element and ext == ".csv":
-                    LOGGER.info("lecture %s -> " + element, racine)
+                    mapper.logger.info("lecture %s -> " + element, racine)
                     # print("schema:lecture ", element, racine, os.path.splitext(element))
                     element_modif = "_".join(element.split("_")[:-1])
                     fichier = os.path.join(rep, element_modif)
@@ -97,22 +94,26 @@ def lire_schemas_multiples(
                             specifique=specifique,
                             racine=full_racine,
                         ),
+                        mapper,
                     )
                 elif ext == ".xml":
                     fusion_schema(
-                        nom, schema, lire_schema_xml(mapper, "", element, cod=cod_csv)
+                        nom,
+                        schema,
+                        lire_schema_xml(mapper, "", element, cod=cod_csv),
+                        mapper,
                     )
         schema.map_classes()
     except FileNotFoundError:
-        LOGGER.error("chemin introuvable %s", rep)
+        mapper.logger.error("chemin introuvable %s", rep)
     except PermissionError:
-        LOGGER.error("chemin non autorise %s", rep)
+        mapper.logger.error("chemin non autorise %s", rep)
 
     if schema.classes:
-        LOGGER.info("classes totales %d", len(schema.classes))
+        mapper.logger.info("classes totales %d", len(schema.classes))
         # print("schema:classes totales", len(schema.classes), cod)
     else:
-        LOGGER.warning("pas de definition de schema %s %s", rep, racine)
+        mapper.logger.warning("pas de definition de schema %s %s", rep, racine)
         # print("pas de definition de schema", rep, racine)
     return schema
 
@@ -345,14 +346,14 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
     #    rep_sortie = stock_param.getvar('_sortie')
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
-    # LOGGER.info("repertoire sortie schema %s", rep_sortie)
-    print(
-        "sio:repertoire sortie schema",
-        stock_param.idpyetl,
-        stock_param.mode,
-        rep_sortie,
-    )
-    # raise
+    stock_param.logger.info("repertoire sortie schema %s", rep_sortie)
+    # print(
+    #     "sio:repertoire sortie schema",
+    #     stock_param.idpyetl,
+    #     stock_param.mode,
+    #     rep_sortie,
+    # )
+    # # raise
     #        raise FileNotFoundError
 
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
@@ -379,7 +380,6 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
 
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
-        # LOGGER.info("avant analyse schema %s %d %s", i, len(schemas[i].classes), mode_sortie)
 
         if not rep_sortie:
             stock_param.logger.warning(
@@ -457,8 +457,9 @@ def retour_schemas(schemas, mode="util"):
     return retour
 
 
-def integre_schemas(schemas, nouveaux):
+def integre_schemas(stock_param, nouveaux):
     """ recree les schemas apres transmission"""
+    schemas = stock_param.schemas
     if not nouveaux:
         return
     nomschemas = set()
@@ -469,7 +470,7 @@ def integre_schemas(schemas, nouveaux):
 
         # print("recup schema transmis", nom, schemas.get(nom), nom in schemas)
         if nom in schemas:
-            fusion_schema(nom, schemas[nom], tmp)
+            fusion_schema(nom, schemas[nom], tmp, stock_param)
         else:
             schemas[nom] = tmp
     #            schemas[nom].origine=metas['origine']
@@ -478,7 +479,7 @@ def integre_schemas(schemas, nouveaux):
     #     nomschemas,
     #     schemas.keys(),
     # )
-    LOGGER.info("schemas recus " + str(nomschemas))
+    stock_param.logger.info("schemas recus " + str(nomschemas))
     for nom in nomschemas:  # on reporte les comptages d'objets
         for cla in schemas[nom].classes.values():
             cla.objcnt = cla.poids

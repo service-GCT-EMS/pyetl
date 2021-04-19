@@ -17,7 +17,6 @@ il est necessaire de positionner les parametres suivant:
 """
 
 import os
-import logging
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from mysql.connector import connect as mysqlconnect, Error as MysqlError, FieldType
@@ -27,8 +26,6 @@ from mysql.connector import connect as mysqlconnect, Error as MysqlError, FieldT
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
-
-LOGGER = logging.getLogger(__name__)
 
 
 TYPES_A = {
@@ -100,7 +97,7 @@ class MysqlConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
             return
-        LOGGER.info(
+        self.params.logger.info(
             "connection %s %s en tant que %s", self.serveur, self.base, self.user
         )
         # print(

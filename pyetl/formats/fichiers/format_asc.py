@@ -182,7 +182,8 @@ def decode_entete_asc(entete):
             dim = 3
     except ValueError:
         # obj.attributs["#erreurs"] = "erreur lecture entete"
-        LOGGER.error("erreurs entete sur la classe %s", classe)
+        LOGGER.error("erreurs entete %s", classe)
+        LOGGER.debug("erreurs entete %s -> %s", classe, entete)
         erreurs = "erreur lecture entete"
 
     dat_cre, dat_mod = _decode_dates_apic(liste1[2])

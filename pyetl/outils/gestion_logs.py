@@ -27,9 +27,9 @@ class DiffLogFilTer(logging.Filter):
         if record.levelname == "999":
             return True
         try:
-            precrecord = self.precrecord
+            precrecord = self.precrecords.get(record.funcName)
         except AttributeError:
-            self.precrecords = None
+            self.precrecords = dict()
             precrecord = None
         # print("dans filtrage", dir(record), record)
         if (
@@ -49,7 +49,7 @@ class DiffLogFilTer(logging.Filter):
                     precrecord.msg,
                 )
         record.msgcount = 1
-        self.precrecord = record
+        self.precrecords[record.funcName]=record
         return True
 
 

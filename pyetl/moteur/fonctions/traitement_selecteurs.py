@@ -8,11 +8,7 @@ fonctions s de selections : determine si une regle est eligible ou pas
 import re
 import itertools
 import time
-import logging
-
 from .outils import prepare_mode_in
-
-LOGGER = logging.getLogger(__name__)
 
 # ------------selecteurs sur valeurs d'attributs---------------------
 
@@ -48,7 +44,7 @@ def selh_regex(selecteur):
     try:
         selecteur.fselect = re.compile(selecteur.params.vals.val).search
     except re.error:
-        LOGGER.error(
+        selecteur.regle.stock_param.logger.error(
             "expression regulière erronée %s %s", repr(selecteur), repr(selecteur.regle)
         )
         # print("expression selecteur erronee", selecteur, selecteur.regle)
@@ -138,11 +134,10 @@ def selh_infich(selecteur):
             selecteur.info = set(i[0] for i in valeurs)
             selecteur.taille = taille_id
         else:
-            selecteur.info={}
-            selecteur.taille=0
+            selecteur.info = {}
+            selecteur.taille = 0
     else:
         selecteur.dyn = True
-
 
 
 #    print ('selecteur liste fich charge ',selecteur.info)

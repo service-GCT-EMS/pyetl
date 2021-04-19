@@ -124,7 +124,7 @@ def initparallel(parametres):
 
     # print("initparallel: recuperation parametres", loginfo)
     # print ('initparallel: valeur de import',params.get('import'))
-    integre_schemas(mainmapper.schemas, schemas)
+    integre_schemas(mainmapper, schemas)
     mainmapper.parametres_lancement = parametres
     time.sleep(1)
     return (os.getpid(), True)
@@ -515,7 +515,7 @@ def traite_parallel(regle):
                 str(retour["stats_generales"].get("_st_lu_objs", "0")),
             )
             #            print ('traitement schemas ', retour["schemas"])
-            integre_schemas(mapper.schemas, retour["schemas"])
+            integre_schemas(mapper, retour["schemas"])
 
             mapper.statstore.store_extstats(retour["stats"])
 
@@ -526,7 +526,7 @@ def traite_parallel(regle):
         else:
             print("erreur retour", rfin)
     regle.nbstock = 0
-    time.sleep(1) # on attend une seconde que tout se finisse
+    time.sleep(1)  # on attend une seconde que tout se finisse
 
 
 def traite_parallel_load(regle):
@@ -598,7 +598,7 @@ def traite_parallel_load(regle):
             str(retour["stats_generales"].get("_st_lu_objs", "0")),
         )
         #            print ('traitement schemas ', retour["schemas"])
-        integre_schemas(mapper.schemas, retour["schemas"])
+        integre_schemas(mapper, retour["schemas"])
 
         mapper.statstore.store_extstats(retour["stats"])
 

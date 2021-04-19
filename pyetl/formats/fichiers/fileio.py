@@ -3,7 +3,6 @@
 
 # import time
 # import pyetl.schema as SC
-from pyetl.formats.db.database import LOGGER
 import sys
 import os
 import io
@@ -97,7 +96,10 @@ class FileWriter(object):
                     newline=self.newlines,
                 )
             except FileNotFoundError as err:
-                LOGGER.error("fichier inexistant %s", self.nom)
+                if self.regle:
+                    self.regle.stock_param.logger.error("fichier inexistant %s", self.nom)
+                else:
+                    print ("fichier inexistant " +str(self.nom ))
                 self.fichier = None
 
     def open(self):

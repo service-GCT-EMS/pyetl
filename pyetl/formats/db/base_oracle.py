@@ -15,9 +15,7 @@ il est necessaire de positionner les parametres suivant:
 
 """
 import os
-import logging
 
-LOGGER = logging.getLogger(__name__)
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
@@ -97,7 +95,7 @@ class OraConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
             return
-        LOGGER.info(
+        self.params.logger.info(
             "connection oracle sur %s %s en tant que %s",
             self.serveur,
             self.base,
@@ -120,7 +118,7 @@ class OraConnect(DbConnect):
             connection.autocommit = True
             self.connection = connection
         except OraError as err:
-            LOGGER.exception("erreur connection oracle", exc_info=err)
+            self.params.logger.exception("erreur connection oracle", exc_info=err)
             # print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
 
     @property
@@ -358,9 +356,9 @@ class OraConnect(DbConnect):
         except OraError as errs:
             cursor = cur.cursor
             (error,) = errs.args
-            LOGGER.error("erreur requete sur %s", self.base)
-            LOGGER.error("requete: %s (%s)", cursor.statement, str(data))
-            LOGGER.exception("erreur oracle", exc_info=errs)
+            self.params.logger.error("erreur requete sur %s", self.base)
+            self.params.logger.error("requete: %s (%s)", cursor.statement, str(data))
+            self.params.logger.exception("erreur oracle", exc_info=errs)
             # print("error: oracle: erreur acces base ", self.base, self.connection)
             # print("error: oracle: erreur acces base ", cursor.statement, "-->", data)
             # print("error: oracle: variables ", cursor.bindnames())
@@ -402,9 +400,11 @@ class OraConnect(DbConnect):
                     elem = cur.cursor.fetchone()
                 #                raise
                 except OraError as err:
-                    LOGGER.error("erreur requete sur %s", self.base)
-                    LOGGER.error("requete: %s (%s)", cursor.statement, str(data))
-                    LOGGER.exception("erreur oracle", exc_info=err)
+                    self.params.logger.error("erreur requete sur %s", self.base)
+                    self.params.logger.error(
+                        "requete: %s (%s)", cursor.statement, str(data)
+                    )
+                    self.params.logger.exception("erreur oracle", exc_info=err)
                     # print("erreur " + self.base, err)
                     #                raise
                     continue

@@ -6,20 +6,19 @@ Created on Tue Sep 26 10:19:32 2017
 """
 import collections
 import os
-import logging
 
 DEBUG = 0
-LOGGER = logging.getLogger(__name__)  # un logger
 
 
 class RessourceDistante(object):
     """une ressource distante est geree par un worker en traitement parallele
     on simule son existance pour les stats"""
 
-    def __init__(self, nom):
+    def __init__(self, nom, regle):
         self.nom = nom
         self.etat = 0  # 0: non cree 1:ouvert 2:ferme 3:finalise
         self.nbo = 0
+        self.regle_ref = regle
 
     def __repr__(self):
         return "ressource distante:" + self.nom + " " + str(self.etat)
@@ -27,8 +26,10 @@ class RessourceDistante(object):
     def finalise(self):
         """ retourne le nombre d'objet"""
         if self.etat > 2:
-            LOGGER.warning("ressource deja finalisee %", repr(self))
-            # print("ressource deja finalisee", self)
+            self.regle_ref.stock_param.logger.warning(
+                "ressource deja finalisee %", repr(self)
+            )
+            #  print("ressource deja finalisee", self)
             return -1
         self.etat = 3
         return self.nbo
@@ -186,17 +187,17 @@ class GestionSorties(object):
             return self.ressources[id_ressource]
         return self.get_res(regle, id_ressource)
 
-    def creres_distante(self, nom, nbo):
+    def creres_distante(self, nom, nbo, regle):
         """cree une ressource virtuelle pour les traitements parraleles"""
         if nom not in self.ressources:
-            self.ressources[nom] = RessourceDistante(nom)
+            self.ressources[nom] = RessourceDistante(nom, regle)
         self.ressources[nom].nbo += nbo
         return self.ressources[nom]
 
-    def setcnt(self, nom):
+    def setcnt(self, nom, regle):
         """cree une ressource de comptage pour la sortie poubelle"""
         if nom not in self.ressources:
-            self.ressources[nom] = RessourceDistante(nom)
+            self.ressources[nom] = RessourceDistante(nom, regle)
         self.ressources[nom].cnt()
 
     def lock(self, regle, id_ressource):

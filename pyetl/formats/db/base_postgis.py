@@ -24,8 +24,6 @@ import logging
 from .base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
 
-LOGGER = logging.getLogger(__name__)  # un logger
-
 
 RESERVES = {"analyse": "analyse_pb", "type": "type_entite", "as": "ass"}
 
@@ -325,7 +323,9 @@ class PgsGenSql(PgrGenSql):
                 cur.close()
                 return True
             except Exception as erreur:
-                LOGGER.exception("erreur chargement %s", fichier, exc_info=erreur)
+                self.params.logger.exception(
+                    "erreur chargement %s", fichier, exc_info=erreur
+                )
                 # print("error: sigli: chargement ", fichier, "-->", erreur)
                 cur.close()
                 return False
@@ -340,7 +340,7 @@ class PgsGenSql(PgrGenSql):
             cur.close()
             return True
         except Exception as erreur:
-            LOGGER.exception("erreur chargement %s", ident, exc_info=erreur)
+            self.params.logger.exception("erreur chargement %s", ident, exc_info=erreur)
             # print("error: sigli: chargement ", ident, "-->", erreur)
             cur.close()
             return False

@@ -32,8 +32,6 @@ from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
 
-LOGGER = logging.getLogger(__name__)  # un logger
-
 
 TYPES_A = {
     "T": "T",
@@ -319,7 +317,7 @@ class PgrConnect(DbConnect):
                     chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT
                 )
         if fini.returncode:
-            LOGGER.error(
+            self.params.logger.error(
                 " ".join(("erreur pgsql", repr(fini.returncode), repr(fini.args)))
             )
             # print("postgres extsql:sortie en erreur ", fini.returncode, fini.args)
@@ -346,7 +344,7 @@ class PgrConnect(DbConnect):
             connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
-            LOGGER.error("postgres: connection impossible" + repr(err))
+            self.params.logger.error("postgres: connection impossible" + repr(err))
             # print("error: postgres: connection impossible ")
             print(
                 "info:  postgres: parametres ",

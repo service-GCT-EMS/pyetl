@@ -4,7 +4,8 @@ attributs et geometrie """
 
 import math as Ma
 import itertools
-
+import logging
+LOGGER=logging.getLogger("__name__")
 
 def points_egaux(point1, point2, dim):
     """teste l'egalite de deux points"""
@@ -536,10 +537,11 @@ class Ligne(object):
             if self.ferme:
                 aire = 0
                 if self.npt < 3:
-                    print(
-                        "error: compos: erreur geometrique 3 points minimum pour une boucle",
-                        [i for i in self.coords],
-                    )
+                    LOGGER.error("geometrie 3 points minimum pour une boucle")
+                    # print(
+                    #     "error: compos: erreur geometrique 3 points minimum pour une boucle",
+                    #     [i for i in self.coords],
+                    # )
                     return 0
                 itc = self.coords
 

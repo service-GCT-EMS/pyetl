@@ -8,7 +8,6 @@ acces a la base de donnees
 """
 import re
 import time
-import logging
 import os
 from operator import attrgetter
 from collections import namedtuple
@@ -17,7 +16,6 @@ from .gensql import DbGenSql
 
 
 DEBUG = False
-LOGGER = logging.getLogger(__name__)
 
 
 class DummyConnect(object):
@@ -504,9 +502,9 @@ class DbConnect(object):
             schemaclasse = self.schemabase.get_classe(ident)
             if not schemaclasse:
                 if type_table == "r":
-                    LOGGER.info("table sans attributs %s", ".".join(ident))
+                    self.params.logger.info("table sans attributs %s", ".".join(ident))
                 elif type_table == "v" or type_table == "m":
-                    LOGGER.info("vue sans attributs %s", ".".join(ident))
+                    self.params.logger.info("vue sans attributs %s", ".".join(ident))
 
                 schemaclasse = self.schemabase.setdefault_classe(ident)
             schemaclasse.setinfo("type_table", type_table)
@@ -562,7 +560,7 @@ class DbConnect(object):
                 continue
             type_ref = atd.type_attr
             if not atd.type_attr:
-                LOGGER.error(
+                self.params.logger.error(
                     "attribut sans type G:%s C:%s A:%s",
                     atd.nom_groupe,
                     atd.nom_classe,
@@ -577,7 +575,7 @@ class DbConnect(object):
                     taille_att = tmp[1][:-1]
             type_attr = self.get_type(type_ref)
             if type_attr == "?":
-                LOGGER.error(
+                self.params.logger.error(
                     "%s type non trouve G:%s C:%s A:%s ->%s",
                     self.type_base,
                     atd.nom_groupe,
@@ -693,7 +691,7 @@ class DbConnect(object):
         #        print ('recuperation alias',nom,alias)
         self.get_elements_specifiques(self.schemabase)
         self.schemabase.dialecte = self.dialecte
-        LOGGER.info(
+        self.params.logger.info(
             "lecture schema base %s: %d tables en %d s(%s)",
             self.schemabase.nom,
             len(self.schemabase.classes),
@@ -716,7 +714,7 @@ class DbConnect(object):
             self.select_elements_specifiques(schema_travail, liste2)
             # print("selection elements specifiques", liste2)
         # self.commit()
-        LOGGER.debug(
+        self.params.logger.debug(
             "schema %s: %d -->%s: %d (%d) ",
             self.schemabase.nom,
             len(self.schemabase.classes),
@@ -1070,7 +1068,7 @@ class DbConnect(object):
             # print (nom,j[0])
             valeur = j[0].replace("'", "''")
             if len(j[0]) > self.conflen:
-                LOGGER.warning(
+                self.params.logger.warning(
                     "conformite %s ignoree: valeur trop longue %s", nom, valeur
                 )
                 # print("valeur trop longue ", valeur, " : conformite ignoree", nom)
