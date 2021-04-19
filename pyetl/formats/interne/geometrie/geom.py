@@ -317,7 +317,7 @@ class Geometrie(object):
                 #                print( 'finalisation', len(self.lignes))
                 for i in self.lignes:
                     aire = i.aire_orientee()
-                    if aire == 0 and self.dimension == 2:
+                    if aire == 0 and self.dimension != 3:
                         self.erreurs.ajout_erreur("contour degénéré " + type_geom)
                         self.valide = False
                         return False

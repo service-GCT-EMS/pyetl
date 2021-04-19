@@ -152,7 +152,8 @@ class FileWriter(object):
     def write(self, obj):
         """ecrit un objet complet"""
         chaine = self.converter(obj, self.liste_att, transtable=self.transtable)
-        self.fichier.write(chaine)
-        if chaine[-1] != "\n":
-            self.fichier.write("\n")
+        if chaine:
+            self.fichier.write(chaine)
+            if chaine[-1] != "\n":
+                self.fichier.write("\n")
         return True

@@ -134,6 +134,19 @@ def _valide_blocs(regles, position, bloc):
         print("cmp:erreur structure de blocs:", regle.ligne, bloc)
         return False
 
+def _gestion_parallel(regles,position):
+    """ validation de la structure parrallel / join """
+    regle = regles[position]
+    if regle.stock_param.worker:
+        return
+    for regle_courante in regles[position + 1 :]:
+        if regle_courante.mode == "end_parallel":
+            regle.branchements.brch["ok"] = regles[regle_courante.index + 1]
+            break
+        if regle_courante.mode == "parallel":
+            print("cmp:impossible d imbriquer les appels parallele:", regle.ligne)
+        return False
+
 
 def propage_liens(regles, start):
     """propage les liens pour la gestion des indentations"""
@@ -217,6 +230,10 @@ def compile_regles(mapper, liste_regles, debug=0):
 
         if regle.mode == "fin_bloc":  # gestion de la structure
             bloc -= 1
+
+        if regle.mode=="parallel" and not regle.stock_param.worker:
+            _gestion_parallel(regles,i)
+
         _finalise(regle, debug)
     if liste_regles is None:  # applatissement des regles
         nliste = []

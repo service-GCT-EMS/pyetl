@@ -662,9 +662,10 @@ def h_fileloader(regle):
 def f_fileloader(regle, obj):
     """#aide||chargement d objets en fichier
      #aide_spec||cette fonction est l' équivalent du chargement initial
-               ||peut fonctionner en parallele -1 pour un nobmre de process egal au nombre de processeurs
-       #pattern||?A;?C;?A;charge;?C;?N
-      #pattern2||?A;?C;?A;charge;[A];?N
+               ||peut fonctionner en parallele positionner multi a -1
+               ||pour un nombre de process egal au nombre de processeurs
+       #pattern||?A;?C;?A;charge;?C;
+      #pattern2||?A;?C;?A;charge;[A];
     #parametres||sortie:nb obj lus;
         #schema||ajout_attribut
           #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
@@ -680,6 +681,7 @@ def f_fileloader(regle, obj):
         regle.tmpstore.append(obj)
         regle.nbstock += 1
         return True
+    # print ("appel objloader")
     return objloader(regle, obj)
 
 
@@ -894,3 +896,27 @@ def f_attwriter(regle, obj):
     # print("attwrite", regle.params.att_entree.val, regle.params.cmp1.val)
     regle.output.attstore(obj)
     regle.nbstock = 1
+
+def h_parallel(regle):
+    """ preparation parrallel """
+    pass
+
+def f_parallel(regle,obj):
+    """ passe en paralele
+    #aide||passe le traitement en parralele les objets sont dispatches sur les workers
+    #pattern||;;;parallel;?N;?N
+    """
+    pass
+
+def h_endpar(regle):
+    """fin parralele"""
+    if regle.stock_param.worker:
+        regle.final=True
+
+
+
+def f_endpar(regle,obj):
+    """finit un traitement parralele
+    #pattern||;;;end_parallel;;
+    # """
+    pass

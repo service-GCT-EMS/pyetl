@@ -424,6 +424,7 @@ def ecrire_entete_asc(obj) -> str:
                 # obj,
             )
             type_geom_sortie = ";5 "
+            return None
 
     dcre = format_date(attr.get("#_sys_date_cre"))
     dmod = format_date(attr.get("#_sys_date_mod"))
@@ -479,6 +480,8 @@ class AscWriter(FileWriter):
     def convertir_objet_asc(self, obj, liste, transtable=None):
         """sort un objet asc en chaine """
         entete = ecrire_entete_asc(obj)
+        if not entete: # ca na rien donne
+            return ""
         #    attributs = obj.attributs[:]
         if (
             obj.format_natif == "asc" and obj.geomnatif

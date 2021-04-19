@@ -526,6 +526,7 @@ def traite_parallel(regle):
         else:
             print("erreur retour", rfin)
     regle.nbstock = 0
+    time.sleep(1) # on attend une seconde que tout se finisse
 
 
 def traite_parallel_load(regle):
@@ -536,7 +537,7 @@ def traite_parallel_load(regle):
     mapper = regle.stock_param
 
     for num, obj in enumerate(regle.tmpstore):
-        fichs = list(getfichs(regle, obj))
+        fichs = list(getfichs(regle, obj, sort=True))
         idobj.extend([num] * len(fichs))
         entrees.extend(fichs)
     arglist = [(i, j, regle.index) for i, j in zip(idobj, entrees)]
@@ -617,6 +618,7 @@ def traite_parallel_load(regle):
         # print("fin traitement parallele", obj)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
+    time.sleep(1)
 
 
 def gestion_parallel_batch(regle):
@@ -715,6 +717,7 @@ def traite_parallel_batch(regle):
             renseigne_attributs_batch(regle, obj, parametres)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
+    time.sleep(1)
 
 
 def iter_boucle(regle):

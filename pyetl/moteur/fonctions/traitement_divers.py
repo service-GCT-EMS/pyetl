@@ -771,16 +771,15 @@ def h_log(regle):
     return True
 
 
-def f_log(regle, obj):
-    """#aide||affichie un message dans le log
-    #pattern1||;?C;?L;log;C;=WARN;||cmp2
-    #pattern2||;?C;?L;log;C;=ERROR;||cmp2
-    #pattern3||;?C;?L;log;C;;||cmp2
-    #parametres1||defaut;attributs en entree;;message;niveau
+def f_log(regle,obj):
+    """genere une entree de log
+    #pattern||;?C;?A;log;C;?C;
     """
-    if regle.params.pattern == "3":
-        LOGGER.info(regle.params.cmp1.val)
-    elif regle.params.pattern == "2":
-        LOGGER.error(regle.params.cmp1.val)
-    elif regle.params.pattern == "1":
-        LOGGER.warning(regle.params.cmp1.val)
+    if regle.params.cmp2.val=="debug":
+        regle.stock_param.logger.debug(regle.params.cmp1.val,regle.getval_entree(obj))
+    elif regle.params.cmp2.val=="warn":
+        regle.stock_param.logger.warning(regle.params.cmp1.val,regle.getval_entree(obj))
+    elif regle.params.cmp2.val=="err":
+        regle.stock_param.logger.error(regle.params.cmp1.val,regle.getval_entree(obj))
+    else:
+        regle.stock_param.logger.info(regle.params.cmp1.val,regle.getval_entree(obj))

@@ -110,7 +110,7 @@ def scandirs(
         # print ('not match',pattern, chemin, element)
 
 
-def getfichs(regle, obj):
+def getfichs(regle, obj, sort=False):
     """recupere une liste de fichiers"""
 
     #    mapper = regle.stock_param
@@ -119,13 +119,22 @@ def getfichs(regle, obj):
         racine = regle.getvar("_entree", ".")
     nom = regle.getval_entree(obj)
     # print("getfichs:", os.path.join(racine, nom) if nom else racine)
-    yield from scan_entree(
-        rep=os.path.join(racine, nom) if nom else racine,
-        force_format=regle.getvar("F_entree"),
-        fileselect=regle.getvar("fileselect"),
-        dirselect=regle.getvar("dirselect"),
-        filtre_entree=regle.getvar("filtre_entree"),
-    )
+    fichiter=scan_entree(
+            rep=os.path.join(racine, nom) if nom else racine,
+            force_format=regle.getvar("F_entree"),
+            fileselect=regle.getvar("fileselect"),
+            dirselect=regle.getvar("dirselect"),
+            filtre_entree=regle.getvar("filtre_entree"),
+        )
+    if sort:
+        #on trie par taille
+        size=lambda x: os.stat(x[0]).st_size
+        filelist=sorted(list(fichiter),key=size,reverse=True)
+
+        # print (" recup filelist",[(i,size(i)) for i in filelist])
+        yield from filelist
+    else:
+        yield from fichiter
 
 
 def printexception():
