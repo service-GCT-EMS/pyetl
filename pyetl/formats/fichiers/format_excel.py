@@ -12,6 +12,7 @@
 import os
 
 # from numba import jit
+from unidecode import unidecode
 from openpyxl import load_workbook
 from .fileio import FileWriter
 
@@ -29,9 +30,13 @@ def getnoms(rep, chemin, fichier):
     return schema, niveaux
 
 
-def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, regle, entete, separ):
-    """prepare l'entete et les noma d'un fichier csv"""
+def cleanname(nom):
+    return unidecode(str(nom).lower()).strip("!").strip().replace(" ", "_")
 
+
+def creschema_excel(nom_schema, nom_groupe, nom_classe, regle, entete):
+    """prepare le schema a partir d un fichier excel"""
+    exn = lambda n: (exn(n // 26) if n > 26 else "") + chr(63 + n % 26)
     geom = False
     stock_param = regle.stock_param
     schema_courant = stock_param.schemas.get(regle.getvar("schema_entree"))
@@ -50,115 +55,99 @@ def decode_entetes_csv(nom_schema, nom_groupe, nom_classe, regle, entete, separ)
     else:
         schemaclasse = schema_courant.setdefault_classe((nom_groupe, nom_classe))
 
-        noms_attributs = [
-            i.lower().strip().replace(" ", "_") for i in entete.split(separ)
-        ]
+        noms_attributs = [cleanname(i) for i in entete]
         # on verifie que les noms existent et sont uniques
         noms = set()
 
         for i, nom in enumerate(noms_attributs):
             if not nom:
-                noms_attributs[i] = "#champs_" + str(i)
+                noms_attributs[i] = "#" + exn(i)
             if nom in noms:
                 noms_attributs[i] = nom + "_" + str(i)
             noms.add(noms_attributs[i])
 
-        if noms_attributs[-1] == "tgeom" or noms_attributs[-1] == "geometrie":
-            geom = True
-            noms_attributs.pop(-1)  # on supprime la geom en attribut classique
         for i in noms_attributs:
             if i[0] != "#":
                 schemaclasse.stocke_attribut(i, "T")
     #    else: # on adapte le schema force pur eviter les incoherences
     #        schemaclasse.adapte_schema_classe(noms_attributs)
 
-    return nom_groupe, nom_classe, noms_attributs, geom, schemaclasse
+    return nom_groupe, nom_classe, noms_attributs, schemaclasse
 
 
-def _controle_nb_champs(val_attributs, controle, nbwarn, ligne):
-    """ ajuste le nombre de champs lus """
-    if len(val_attributs) < controle:
-        val_attributs.extend([""] * controle)
-    else:
-        nbwarn += 1
-        if nbwarn < 10:
-            print(
-                "warning: csv  : erreur format csv : nombre de valeurs incorrect",
-                len(val_attributs),
-                "au lieu de",
-                controle,
-                ligne[:-1],
-                val_attributs,
-            )
-    return nbwarn
+def isnovide(ligne):
+    """determine si une ligne est vide:
+    contient autre chose que blanc null ou !"""
+    return any((i.value for i in ligne if i.value != "!"))
+
+
+def maybheader(ligne):
+    """essaye de savoir s il y a un entete: commence par "!xxx" et pas de colonnes vides"""
+    start = 0
+    end = len(ligne)
+    header = False
+    for n, v in enumerate(ligne):
+        # print("analyse", n, v)
+        if not header:
+            if v == "!":
+                header = ligne[n + 1] if n + 1 < end else False
+                start = n + 1
+            elif v.startswith("!") and v[1:].strip():
+                header = True
+                start = n
+        else:
+            if v:
+                end = n
+    return header, start, end
 
 
 def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
-
+    exn = lambda n: (exn(n // 26) if n > 26 else "") + chr(64 + n % 26)
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
     nom_schema, nom_groupe = getnoms(rep, chemin, fichier)
     alire = os.path.join(rep, chemin, fichier)
-    print("ouverture fichier", alire)
-
-    wb = load_workbook(filename=alire)
-    print("ouverture excel", wb, dir(wb))
-    for i in wb.worksheets:
-        print("lecture table", i)
-        for j in i.iter_rows():
-            ligne = list(c.value for c in j)
-            if any(ligne):
-                print("ligne", ligne)
-
-    if not entete:
-        entete = fich.readline()[
-            :-1
-        ]  # si l'entete n'est pas fourni on le lit dans le fichier
-        if entete[0] == "!":
-            entete = entete[1:]
-        else:  # il faut l'inventer...
-            entete = separ * len(fich.readline()[:-1].split(separ))
-            fich.seek(0)  # on remet le fichier au debut
-
-    nom_groupe, nom_classe, noms_attributs, geom, schemaclasse = decode_entetes_csv(
-        nom_schema, nom_groupe, nom_classe, self.regle_ref, entete, separ
-    )
-    controle = len(noms_attributs)
-    nbwarn = 0
+    # print("ouverture fichier", alire)
     nlignes = 0
-    self.setidententree(nom_groupe, nom_classe)
-    for i in fich:
-        nlignes = nlignes + 1
-        obj = self.getobj()
-        obj.setschema(schemaclasse)
-        obj.setorig(nlignes)
-        val_attributs = [j.strip() for j in i[:-1].split(separ)]
-        # liste_attributs = zip(noms_attributs, val_attributs)
-        # print ('lecture_csv:',[i for i in liste_attributs])
-        if len(val_attributs) != controle:
-            nbwarn = _controle_nb_champs(val_attributs, controle, nbwarn, i)
+    wb = load_workbook(filename=alire, data_only=True)
+    # print("ouverture excel", wb, dir(wb))
+    for i in wb.worksheets:
+        # print("lecture table", i)
+        nom_classe = cleanname(i.title)
+        self.setidententree(nom_groupe, nom_classe)
+        lecteur = i.iter_rows()
+        for j in lecteur:
+            if isnovide(j):
+                ligne = [str(v.value) if v.value else "" for v in j]
+                header, start, end = maybheader(ligne)
+                # print("test_entete", header, start, end)
+                # print("candidat", ligne[start:end])
+                if header:
+                    entete = (str(v.value) if v.value else "" for v in j[start:end])
+                    (
+                        nom_groupe,
+                        nom_classe,
+                        noms_attributs,
+                        schemaclasse,
+                    ) = creschema_excel(
+                        nom_schema, nom_groupe, nom_classe, self.regle_ref, entete
+                    )
+                    # print("fin_entete", schemaclasse)
+                    break
+        # print("fin_entete", j)
+        for j in lecteur:
+            if isnovide(j):
+                ligne = [str(c.value) if c.value else "" for c in j[start:end]]
+                nlignes = nlignes + 1
+                obj = self.getobj()
+                obj.setschema(schemaclasse)
+                obj.setorig(nlignes)
+                obj.attributs.update(zip(noms_attributs, ligne))
 
-        obj.attributs.update(zip(noms_attributs, val_attributs))
-        # print ('attributs:',obj.attributs['nombre_de_servitudes'])
-        if geom:
-            obj.attributs["#geom"] = [val_attributs[-1]]
-            #                print ('geometrie',obj.geom)
-            obj.attributs["#type_geom"] = "-1"
-        else:
-            obj.attributs["#type_geom"] = "0"
-        obj.attributs["#chemin"] = chemin
-        self.regle_ref.stock_param.moteur.traite_objet(obj, self.regle_start)
-
-        if maxobj and nlignes >= maxobj:  # nombre maxi d'objets a lire par fichier
-            break
-
-        if nlignes % 100000 == 0:
-            self.regle_ref.stock_param.aff.send(
-                ("interm", 0, nlignes)
-            )  # gestion des affichages de patience
-
-    if nbwarn:
-        print("warning:", nbwarn, "lignes avec un nombre d'attributs incorrect")
+                # print("ligne", ligne)
+                obj.attributs["#type_geom"] = "0"
+                obj.attributs["#chemin"] = chemin
+                self.regle_ref.stock_param.moteur.traite_objet(obj, self.regle_start)
     return
 
 

@@ -422,9 +422,15 @@ def _gere_conformite_invalide(classe, atdef, val, mode):
 def _valide_bool(val):
     """convertit un booleen en format interne"""
     btypes = {"t", "f"}
+    accept_true = {"T", "True", "true", "TRUE", "1", "-1", True, 1, -1}
+    accept_false = {"F", "False", "false", "FALSE", "0", False, 0}
     if val and val in btypes:
         return "", val, ""
     # print("erreur booleen", val)
+    elif val in accept_true:
+        return "", "t", ""
+    elif val in accept_false:
+        return "", "f", ""
     return "booleen: " + val, val, "T"
 
 
@@ -432,13 +438,17 @@ def _valide_type(classe, atdef, val):
     """ gere le controle de type par rapport au schema"""
     repl = None
     err = ""
+    changetype = None
     if atdef.type_att == "D":  # test dates
         err, repl = valide_dates(val, "")
     elif atdef.type_att == "DS":  # test dates
-        err, date = _valide_jour(val, "")
+        err, repl = _valide_jour(val, "")
     elif atdef.type_att == "E" or atdef.type_att_base == "E":  # test numerique
         err, repl, changetype = _valide_entiers(val)
         if changetype:
+            if atdef.type_att == "E":
+                atdef.type_att = "EL"
+            atdef.type_att_base = "EL"
             if classe.debug:
                 print(
                     "modification type_entier ",
@@ -448,10 +458,7 @@ def _valide_type(classe, atdef, val):
                     atdef.nom,
                     val,
                 )
-                # w = 1
-            if atdef.type_att == "E":
-                atdef.type_att = "EL"
-            atdef.type_att_base = "EL"
+
     elif atdef.type_att == "EL" or atdef.type_att == "S":
         err, repl, changetype = _valide_entiers(val)
         if err:
@@ -503,10 +510,11 @@ def set_err(classe, obj, message, attendu, erreur, affich):
     return message % (idobj, attendu, erreur)
 
 
-def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
+def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
     """ verifie si un objet est conforme a son schema """
     # print 'dans valide_schema',obj.ident
     # validation des types geometriques
+    schemaclasse = obj.schema
     erreurs = list()
     warnings = list()
     nom_classe = str(obj.ident[1])
@@ -537,7 +545,7 @@ def valide_schema(schemaclasse, obj, mode="", repl="inconnu", log="no"):
                 obj.geom_v.forceligne()
                 obj.infogeom()
             else:
-                LOGGER.warning(
+                regle.stock_param.logger.warning(
                     "%s type geometrie non conforme schema: %s , objet: %s",
                     str(obj.ident),
                     schemaclasse.info["type_geom"],

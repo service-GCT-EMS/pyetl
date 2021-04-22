@@ -195,11 +195,10 @@ def f_valide_schema(regle, obj):
     if obj.virtuel:
         #        print('valide_schema : obj virtuel')
         return True
-    schem = obj.schema
-    if schem:
-        retour = FSC.valide_schema(
-            schem, obj, regle.params.cmp1.val, log=regle.getvar("log_level", "no")
-        )
+    if obj.schema:
+        modeconf = regle.params.cmp1.val
+        loglevel = regle.getvar("log_level", "no")
+        retour = FSC.valide_schema(regle, obj, modeconf, log=loglevel)
         #        print ('retour validation schema', retour, obj)
         return retour
     #            if not v :
@@ -331,6 +330,33 @@ def fschema_change_classe(_, obj):
     # )
 
     obj.setschema(schema_classe)
+
+
+def schema_from_objs(regle):
+    """transforme les objets stockes en schema"""
+    tables = []
+    enums = []
+    for obj in regle.store:
+        niveau, classe = obj.ident
+        if re.match(regle.params.cmp1.val, classe):
+            tables.append(obj.attributs)
+        elif re.match(regle.params.cmp2.val, classe):
+            enums.append(obj.attributs)
+
+
+def h_schema_from_classe(regle):
+    """creation schema regle stockante"""
+    regle.store = True
+    regle.traite_stock = schema_from_objs
+
+
+def f_schema_from_classe(regle, obj):
+    """#aide||cree un schema a partir d objets contenant la structure
+    #aide_spec||;nom;;cree_schema;classe table;classe enums
+     #pattern1||;?C;;cree_schema;C;C
+
+    """
+    pass
 
 
 def f_def_schema(regle, obj):

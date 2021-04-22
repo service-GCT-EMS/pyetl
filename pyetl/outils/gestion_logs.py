@@ -49,7 +49,7 @@ class DiffLogFilTer(logging.Filter):
                     precrecord.msg,
                 )
         record.msgcount = 1
-        self.precrecords[record.funcName]=record
+        self.precrecords[record.funcName] = record
         return True
 
 
@@ -137,6 +137,7 @@ class GestionLogs(object):
         log = mapper.getvar("log_level", log_level)
         affich = mapper.getvar("log_print", log_print)
         logmode = mapper.getvar("log_mode", "prod")
+        logging.captureWarnings(True)
         self.loginited = True
 
         #        self.aff = self._patience(0, 0) # on initialise le gestionnaire d'affichage
