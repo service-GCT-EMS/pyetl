@@ -59,6 +59,7 @@ def runpyetl(commandes, args):
         mainmapper.logger.info("parametres: %s", str(args))
     else:
         commandes_speciales(mainmapper, commandes, args)
+        mainmapper.gestion_log.shutdown()
         return
     mapper = mainmapper.getpyetl(commandes, liste_params=args)
     if mapper:
@@ -100,11 +101,8 @@ def runpyetl(commandes, args):
         mapper.logger.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
     if wstats["obj_ecrits"]:
         mapper.logger.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
-    # if mapper.manager:
-    #     mapper.stoplistener()
-    #     mapper.manager.shutdown()
-    mapper.gestion_log.shutdown()
-    print("arret log")
+
+    mainmapper.gestion_log.shutdown()
 
 
 # ---------------debut programme ---------------

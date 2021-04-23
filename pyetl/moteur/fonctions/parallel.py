@@ -87,6 +87,7 @@ def stoplistener():
     if mapper.loglistener:
         # mapper.logger.info("arret listener")
         mapper.loglistener.enqueue_sentinel()
+        mapper.loglistener.stop()
         # mapper.loglistener = None
     # print("listener arrete")
 
@@ -530,7 +531,7 @@ def traite_parallel(regle):
         else:
             print("erreur retour", rfin)
     regle.nbstock = 0
-    time.sleep(1)  # on attend une seconde que tout se finisse
+    # time.sleep(1)  # on attend une seconde que tout se finisse
 
 
 def traite_parallel_load(regle):
@@ -621,7 +622,6 @@ def traite_parallel_load(regle):
         # print("fin traitement parallele", obj, rdict)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
-    time.sleep(10)
 
 
 def gestion_parallel_batch(regle):
@@ -644,13 +644,13 @@ def gestion_parallel_batch(regle):
         regle.nbparallel = prep_parallel(regle, traite_parallel, reprog=True)
     else:
         regle.nbparallel = prep_parallel(regle, traite_parallel_batch)
-    print(
-        "preparation parallel_batch",
-        regle.nbparallel,
-        regle.chargeur,
-        "st:",
-        regle.store,
-    )
+    # print(
+    #     "preparation parallel_batch",
+    #     regle.nbparallel,
+    #     regle.chargeur,
+    #     "st:",
+    #     regle.store,
+    # )
 
 
 def traite_parallel_batch(regle):

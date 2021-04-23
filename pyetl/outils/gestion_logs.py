@@ -185,4 +185,8 @@ class GestionLogs(object):
             pass
 
     def shutdown(self):
+        self.mainmapper.logger.info("arret logs")
+        if self.mainmapper.parallelmanager:
+            self.mainmapper.stoplistener()
+            self.mainmapper.parallelmanager.shutdown()
         logging.shutdown()
