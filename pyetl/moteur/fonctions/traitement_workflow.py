@@ -669,14 +669,14 @@ def f_fileloader(regle, obj):
     #parametres||sortie:nb obj lus;
         #schema||ajout_attribut
           #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;2;||#classe;!test;;;;;;pass>;;;
+         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||#classe;!test;;;;;;pass>;;;
                ||atv;NB;8
     """
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
         # on est en mode virtuel pour completer les schemas  il suffit de laisser passer les objets
     if regle.store:
-        # print( 'mode parallele', os.getpid(), regle.stock_param.worker)
+        # print("mode parallele", os.getpid(), regle.stock_param.worker)
         # print ('regles', regle.stock_param.regles)
         regle.tmpstore.append(obj)
         regle.nbstock += 1
@@ -897,26 +897,28 @@ def f_attwriter(regle, obj):
     regle.output.attstore(obj)
     regle.nbstock = 1
 
+
 def h_parallel(regle):
     """ preparation parrallel """
     pass
 
-def f_parallel(regle,obj):
-    """ passe en paralele
+
+def f_parallel(regle, obj):
+    """passe en paralele
     #aide||passe le traitement en parralele les objets sont dispatches sur les workers
     #pattern||;;;parallel;?N;?N
     """
     pass
 
+
 def h_endpar(regle):
     """fin parralele"""
     if regle.stock_param.worker:
-        regle.final=True
+        regle.final = True
 
 
-
-def f_endpar(regle,obj):
+def f_endpar(regle, obj):
     """finit un traitement parralele
     #pattern||;;;end_parallel;;
-    # """
+    #"""
     pass

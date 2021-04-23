@@ -100,7 +100,11 @@ def runpyetl(commandes, args):
         mapper.logger.log(999, "perf lecture : %d o/s ", int(wstats["perf_r"]))
     if wstats["obj_ecrits"]:
         mapper.logger.log(999, "perf ecriture : %d o/s ", int(wstats["perf_w"]))
-    mapper.stoplistener()
+    # if mapper.manager:
+    #     mapper.stoplistener()
+    #     mapper.manager.shutdown()
+    mapper.gestion_log.shutdown()
+    print("arret log")
 
 
 # ---------------debut programme ---------------

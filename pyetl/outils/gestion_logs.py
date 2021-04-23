@@ -183,3 +183,6 @@ class GestionLogs(object):
                     logger.addHandler(self.file_handler)
         else:
             pass
+
+    def shutdown(self):
+        logging.shutdown()

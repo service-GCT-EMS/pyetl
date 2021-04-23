@@ -12,7 +12,7 @@ from queue import Empty
 import time
 
 from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import Manager
+from multiprocessing import Manager, Queue
 
 from pyetl.vglobales import getmainmapper
 
@@ -52,6 +52,8 @@ def getqueue():
         if manager:
             mapper.msgqueue = mapper.parallelmanager.Queue()
             mapper.logqueue = mapper.parallelmanager.Queue()
+    # mapper.msgqueue = Queue() # ne marche pas sous windows
+    # mapper.logqueue = Queue()
     return mapper.msgqueue, mapper.logqueue
 
 
@@ -342,7 +344,9 @@ def suivi_job(mapper, work):
                     # )
 
                 else:
-                    rfin[num_obj] = retour
+                    rfin[num_obj] = (
+                        retour + rfin[num_obj] if num_obj in rfin else retour
+                    )
                     # print("retour job", retour)
                     # mapper.aff.send(("interm", 1, retour))
                     mapper.aff.send(("fich", 1, retour))
@@ -548,6 +552,7 @@ def traite_parallel_load(regle):
     #    print('parallel load',entrees,idobj, type(mapper.env))
     msgqueue, logqueue = getqueue()
     setqueuhandler(None)
+    # print("passage en parallele sur ", nprocs)
     with ProcessPoolExecutor(max_workers=nprocs) as executor:
         # TODO en python 3.7 l'initialisation peut se faire dans le pool
         rinit = parallelexec(
@@ -565,7 +570,6 @@ def traite_parallel_load(regle):
             ),
         )
         workids = {pid: n + 1 for n, pid in enumerate(rinit)}
-        #        print ('workids',workids)
         mapper.logger.info(" ".join(("workids", str(workids))))
         parallelexec(
             executor, nprocs, setparallelid, (workids, def_regles, mapper.liste_params)
@@ -593,8 +597,7 @@ def traite_parallel_load(regle):
         for param in retour["stats_generales"]:
             mapper.padd(param, retour["stats_generales"][param])
         mapper.logger.info(
-            "retour stats (%s) : %s",
-            retour["wid"],
+            "retour stats (" + retour["wid"] + ") : %s",
             str(retour["stats_generales"].get("_st_lu_objs", "0")),
         )
         #            print ('traitement schemas ', retour["schemas"])
@@ -607,18 +610,18 @@ def traite_parallel_load(regle):
         #         mapper.statstore.stats[nom] = ExtStat(nom, entete)
         #     mapper.statstore.stats[nom].add(entete, contenu)
 
-    traite = regle.stock_param.moteur.traite_objet
-    #    print("retour multiprocessing ", results, retour)
+    traite = regle.stock_param.moteur.traite_objet  # fonction de traitement
+    # print("retour multiprocessing ", rdict.keys(), rfin.keys(), regle.tmpstore)
 
     for i in sorted(rdict):
         obj = regle.tmpstore[i]
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
         mapper.logger.info("fin traitement parallele")
-        # print("fin traitement parallele", obj)
+        # print("fin traitement parallele", obj, rdict)
         traite(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
-    time.sleep(1)
+    time.sleep(10)
 
 
 def gestion_parallel_batch(regle):
