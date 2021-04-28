@@ -352,14 +352,14 @@ def getrequest(regle):
 def h_dbrequest(regle):
     """passage direct de requetes"""
     param_base(regle, mods=False, req=True)
-    regle.chargeur = regle.params.pattern not in "34"
+    regle.chargeur = regle.params.pattern not in "345"
     # c est une regle qui cree des objets si on est pas en mode completement
     attribut = regle.v_nommees.get("val_sel2", "")
     requete = regle.params.cmp1.val
     regle.fich = "tmp"
     regle.grp = "tmp"
     valide = getrequest(regle)
-    if regle.params.cmp2.val:
+    if regle.params.cmp2.val and regle.params.cmp2.val != "#":
         regle.identclasse = (
             (regle.params.cmp2.val, regle.params.cmp2.definition[0])
             if regle.params.cmp2.definition
@@ -389,10 +389,12 @@ def f_dbrequest(regle, obj):
               ||sinon elle est passee une fois pour chaque base du selecteur
               ||les variables %#base et %#attr sont egalement substituees
        #groupe||database
-      #pattern1||?A;?;?L;dbreq;C;?A.C
-      #pattern2||?A;?;?L;dbreq;C;?A
+      #pattern1||?A;?;?L;dbreq;C;A.C
+      #pattern2||?A;?;?L;dbreq;C;A
       #pattern3||;;=#;dbreq;C;?A
       #pattern4||;;=#;dbreq;C;?A.C
+      #pattern5||;;=#;dbreq;C;=#
+      #pattern6||;;;dbreq;C;=#
      #req_test||testdb
     """
 
@@ -401,7 +403,7 @@ def f_dbrequest(regle, obj):
     parms = None
     if regle.params.att_entree.liste:
         parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
-    refobj = obj if regle.params.pattern in "34" else None
+    refobj = obj if regle.params.pattern in "345" else None
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
         # print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))

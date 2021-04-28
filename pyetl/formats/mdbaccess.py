@@ -530,9 +530,24 @@ def lire_requete(
     regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None
 ):
     """lecture directe"""
-    # print("---lire_requete dest:", ident, regle_courante.debug, regle_courante)
+    nom_schema = regle_courante.getvar("#schema", "tmp")
     if regle_courante.debug:
         print("-------lire_requete req:", requete)
+    if obj and obj.schema:
+        nom_schema = obj.schema.schema.nom
+    retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
+    if retour:
+        connect, schema, liste = retour
+    else:
+        return 0
+    # print("traitement requete ", regle_courante.params.pattern, "->", regle_courante)
+    if regle_courante.params.pattern in "56":  # requete sans retour
+        # print("requete sans sortie", requete)
+        connect.execrequest(requete, data=parms)
+        return 0
+
+    # print("---lire_requete dest:", ident, regle_courante.debug, regle_courante)
+
     # print ("---lire_requete obj:",obj)
     niveau, classe = ident
     if not classe and obj and obj.classe != "_declencheur":
@@ -548,16 +563,10 @@ def lire_requete(
     if niveau is None:
         ident = ("tmp", classe)
     # print("lire_requete", ident, "->", base, requete)
-    nom_schema = regle_courante.getvar("#schema", "tmp")
-    if obj and obj.schema:
-        nom_schema = obj.schema.schema.nom
+
     v_sortie = parms
     sortie = attribut
-    retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
-    if retour:
-        connect, schema, liste = retour
-    else:
-        return 0
+
     treq = time.time()
     curs = connect.iterreq(requete, data=parms)
 
