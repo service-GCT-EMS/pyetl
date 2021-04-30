@@ -492,6 +492,12 @@ K:perso;$fich=%_paramperso%;;
 &&#define;#sleep;duree;;;;;
 ;;;;;%duree%;;sleep;;;;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#aduser;nom;clef;;;;
+K:ADserver;$#%ADserver%;
+;;;;x;%nom%;;adquery;user;%clef%;;
+;;;;;;x;print;;noms;debug;
+
+!===========================================================================================;;;;;;;;;;;
 &&#define;#test;n1;n2;a;;;;
 #!help;test des variables;;;
 $#%a%;

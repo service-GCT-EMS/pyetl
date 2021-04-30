@@ -239,7 +239,7 @@ def h_sortir(regle):
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
     if outformat != "#print":
-        regle.output.writerparms["destination"] = regle.params.cmp2.val
+        regle.output.writerparms["destination"] = fich_sortie
     if regle.debug:
         print("creation output", regle.output.writerparms)
 
@@ -771,15 +771,17 @@ def h_log(regle):
     return True
 
 
-def f_log(regle,obj):
+def f_log(regle, obj):
     """genere une entree de log
     #pattern||;?C;?A;log;C;?C;
     """
-    if regle.params.cmp2.val=="debug":
-        regle.stock_param.logger.debug(regle.params.cmp1.val,regle.getval_entree(obj))
-    elif regle.params.cmp2.val=="warn":
-        regle.stock_param.logger.warning(regle.params.cmp1.val,regle.getval_entree(obj))
-    elif regle.params.cmp2.val=="err":
-        regle.stock_param.logger.error(regle.params.cmp1.val,regle.getval_entree(obj))
+    if regle.params.cmp2.val == "debug":
+        regle.stock_param.logger.debug(regle.params.cmp1.val, regle.getval_entree(obj))
+    elif regle.params.cmp2.val == "warn":
+        regle.stock_param.logger.warning(
+            regle.params.cmp1.val, regle.getval_entree(obj)
+        )
+    elif regle.params.cmp2.val == "err":
+        regle.stock_param.logger.error(regle.params.cmp1.val, regle.getval_entree(obj))
     else:
-        regle.stock_param.logger.info(regle.params.cmp1.val,regle.getval_entree(obj))
+        regle.stock_param.logger.info(regle.params.cmp1.val, regle.getval_entree(obj))

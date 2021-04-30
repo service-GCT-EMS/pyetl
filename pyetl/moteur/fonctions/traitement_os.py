@@ -8,8 +8,10 @@ fonctions de structurelles diverses
 import os
 import subprocess
 from pathlib import Path
+from collections import namedtuple
 import shutil
 import time
+from typing import NamedTuple
 
 # import win32con
 try:
@@ -401,19 +403,77 @@ def f_namejoin(regle, obj):
     return True
 
 
+def dict_decode(attdict, encoding="utf-8"):
+    """decode un dictionnaide byte vers str"""
+    for i in attdict:
+        if isinstance(attdict[i], list):
+            attdict[i] = ",".join(
+                (
+                    (j.decode(encoding) if isinstance(j, bytes) else j)
+                    for j in attdict[i]
+                )
+            )
+        elif isinstance(attdict[i], bytes):
+            attdict[i] = attdict[i].decode(encoding)
+
+
 def h_adquery(regle):
     """initialise l'acces active_directory"""
-    from . import active_directory as ACD
 
     # print("acces LDAP", ACD.root(), regle)
-    regle.AD = ACD
-    regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
-    if regle.params.pattern == "1":
-        regle.queryfonc = regle.AD.find_user
-    elif regle.params.pattern == "2":
-        regle.queryfonc = regle.AD.find_computer
-    elif regle.params.pattern == "3":
-        regle.queryfonc = regle.AD.find_group
+    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["cn"]
+    if regle.getvar("ADserver"):
+        # connection specifique a un autre serveur AD
+        import ldap
+
+        adcode = regle.getvar("ADserver")
+        server = regle.getvar("server_" + adcode)
+        user = regle.getvar("user_" + adcode)
+        passwd = regle.getvar("passwd_" + adcode)
+        base_dn = regle.getvar("base_dn_" + adcode)
+        # print("adconnect ", user, passwd, server)
+        connect = ldap.initialize("ldap://" + server)
+        connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
+        print("champs", ["clef"] + regle.a_recuperer)
+        sortie = namedtuple("ldapreturn", ["clef"] + [i for i in regle.a_recuperer])
+
+        def find_user(nom):
+            filter = "(|(CN=%s)(sAMAccountName=%s))" % (nom, nom)
+            attrs = regle.a_recuperer
+            print("adquery", base_dn, filter, attrs)
+            retour = connect.search_s(base_dn, ldap.SCOPE_SUBTREE, filter, attrs)
+            print("retour adquery", retour)
+            if len(retour):
+                result = list()
+                for ligne in retour:
+                    ref, attdict = ligne
+                    dict_decode(attdict)
+                    attdict["clef"] = ref
+                    print("stockage attdict", attdict)
+                    item = sortie(**attdict)
+                result.append(item)
+            return result
+
+        if regle.params.pattern == "1":
+            regle.queryfonc = find_user
+
+    else:
+        # connection serveur par defaut
+        from . import active_directory as ACD
+
+        try:
+            regle.AD = ACD
+        except ACD.pywintypes.com_error:
+            regle.stock_param.logger.error("connection LDAP impossible")
+            regle.valide = False
+            return False
+        # regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
+        if regle.params.pattern == "1":
+            regle.queryfonc = regle.AD.find_user
+        elif regle.params.pattern == "2":
+            regle.queryfonc = regle.AD.find_computer
+        elif regle.params.pattern == "3":
+            regle.queryfonc = regle.AD.find_group
 
 
 def f_adquery(regle, obj):
@@ -424,20 +484,34 @@ def f_adquery(regle, obj):
     #"""
     if regle.get_entree(obj):
         try:
-            item = regle.queryfonc(regle.get_entree(obj))
+            items = regle.queryfonc(regle.get_entree(obj))
         except TypeError as err:
             print("erreur adquery", err, regle.get_entree(obj))
-            item = ""
-        if item:
-            if regle.a_recuperer == "*":
-                print("infos:", item)
-                item.dump()
-                regle.setval_sortie(obj, "")
+            items = []
+
+        if items:
+            if isinstance(items, list):
+                if len(items) == 1:
+                    item = items[0]
+                else:
+                    for item in items:
+                        obj2 = obj.dupplique()
+                        val = getattr(item, regle.a_recuperer[0])
+                        regle.setval_sortie(obj2, val)
+                        regle.stock_param.moteur.traite_objet(obj2, regle.ok)
+                    return True
             else:
-                val = getattr(item, regle.a_recuperer)
-                regle.setval_sortie(obj, val)
-            return True
-    # print("pas d'entree adquery",regle.get_entree(obj) )
+                item = items
+        if regle.a_recuperer == ["*"]:
+            print("infos:", item)
+            item.dump()
+            regle.setval_sortie(obj, "")
+        else:
+            print("recup adquery", regle.a_recuperer[0])
+            val = getattr(item, regle.a_recuperer[0])
+            regle.setval_sortie(obj, val)
+        return True
+    # print("pas d'entree adquery", regle.get_entree(obj))
     return False
 
 
