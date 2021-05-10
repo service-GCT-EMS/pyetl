@@ -616,6 +616,7 @@ class Output(object):
         #        print ('dans writer', nom)
 
         self.dialecte = None
+        self.minmajfunc = None
         destination = ""
         dialecte = ""
         fich = ""
@@ -719,10 +720,11 @@ class Output(object):
         rep_sortie = self.regle.getvar("_sortie")
         groupe, classe = ident
 
-        if self.fanout == "all":
-            bfich = dest or "all"
-            nom = self.sorties.get_id(rep_sortie, bfich, "", self.ext, nom=dest)
-        #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
+        if self.fanout == "all" or self.fanout == "no":
+            if os.path.isabs(dest):
+                rep_sortie = ""
+            nom = self.sorties.get_id(rep_sortie, "", "", self.ext, nom=dest or "all")
+            # print('nom de fichier sans fanout ', rep_sortie, dest,"->",nom)
         elif self.fanout == "groupe":
             #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
             nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
@@ -774,8 +776,11 @@ class Output(object):
         if obj.virtuel:  # on ne traite pas les virtuels
             return
         # print("ecriture streamer", regle.idregle)
-        if regle.ressource is None or regle.ressource.lastid != obj.ident:
+        if regle.ressource is None:
             regle.ressource = self.change_ressource(obj)
+        elif regle.ressource.lastid != obj.ident:
+            if not self.writerparms.get("usebuffer"):  # buffer interne au writer
+                regle.ressource = self.change_ressource(obj)
             # regle.dident = obj.ident
         regle.ressource.write(obj, regle.idregle)
         if obj.geom_v.courbe and obj.schema:

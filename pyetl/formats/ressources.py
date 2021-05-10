@@ -75,10 +75,9 @@ class Ressource(object):
             self.regles.add(id_regle)
             if self.etat == 0:
                 self.sortie = self.handler.open()
-                self.etat = 1
             if self.etat == 2:
                 self.sortie = self.handler.reopen()
-                self.etat = 1
+            self.etat = 1
         except IOError as err:
             self.logger.critical(
                 "erreur ouverture fichier " + self.nom + "->" + repr(err)
@@ -181,7 +180,9 @@ class GestionSorties(object):
         regle = handler.regle
         id_mapper = regle.stock_param.idpyetl
         if id_ressource not in self.ressources:
-            self.ressources[id_ressource] = Ressource(id_ressource, handler, id_mapper)
+            ressource = Ressource(id_ressource, handler, id_mapper)
+            self.ressources[id_ressource] = ressource
+            handler.ressource = ressource
             if not usebuffer:
                 self.lock(regle, id_ressource)
             return self.ressources[id_ressource]
@@ -277,6 +278,7 @@ class GestionSorties(object):
             raise NotADirectoryError("repertoire de sortie non défini")
         if nom:
             #            print("-------------------nom forcé", os.path.join(rep_sortie, nom))
+            nom = nom + ext if not nom.endswith(ext) else nom
             if os.path.isabs(nom):
                 return nom
             return os.path.join(rep_sortie, nom)

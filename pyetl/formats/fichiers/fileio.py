@@ -61,7 +61,7 @@ class FileWriter(object):
         self.htext = ""
         self.hinit = ""
         self.ttext = ""
-        self.transtable = None
+        self.transtable = str.maketrans("", "")
         self.regle_ref = None  # regle de reference pour l'acces aux contextes
 
     def header(self, init=None):
@@ -97,21 +97,25 @@ class FileWriter(object):
                 )
             except FileNotFoundError as err:
                 if self.regle:
-                    self.regle.stock_param.logger.error("fichier inexistant %s", self.nom)
+                    self.regle.stock_param.logger.error(
+                        "fichier inexistant %s", self.nom
+                    )
                 else:
-                    print ("fichier inexistant " +str(self.nom ))
+                    print("fichier inexistant " + str(self.nom))
                 self.fichier = None
 
     def open(self):
         """ouverture de fichier"""
         # print ("filewriter: open")
         self.ouvrir("w")
+        self.ressource.etat = 1
         if self.fichier:
             self.fichier.write(self.header())
 
     def reopen(self):
         """reouverture"""
         self.ouvrir("a")
+        self.ressource.etat = 1
 
     def closed(self):
         return self.fichier.closed if self.fichier else True
@@ -123,8 +127,10 @@ class FileWriter(object):
             return  # stdout
         try:
             self.fichier.close()
+            self.ressource.etat = 2
         except AttributeError:
             print("error: fw  : writer close: fichier non defini", self.nom)
+            raise
 
     def changeclasse(self, schemaclasse, attributs=None):
         """ ecriture multiclasse on change de schema"""

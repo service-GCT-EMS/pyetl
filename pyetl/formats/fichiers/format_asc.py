@@ -39,13 +39,31 @@ def att_to_text(obj, liste, transtable):
     # print("att_to_text a_sortir", a_sortir)
     try:
         aliste = (
-            (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
-            for i in a_sortir
-            if i not in obj.attributs_speciaux
+            [
+                (attmap.get(i, i).upper(), str(obj.attributs[i]))
+                for i in a_sortir
+                if i not in obj.attributs_speciaux
+            ]
+            if transtable
+            else [
+                (attmap.get(i, i).upper(), str(obj.attributs[i]))
+                for i in a_sortir
+                if i not in obj.attributs_speciaux
+            ]
         )
-    except:
+    except Exception as err:
         aliste = ()
-        print("asc: erreur objet", obj, a_sortir)
+        # print("asc: erreur objet", obj, a_sortir)
+        # print("------------->", obj.attributs)
+        print(
+            "------------->",
+            [
+                (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+                for i in a_sortir
+            ],
+        )
+        print("erreur", err)
+        raise
     if obj.attributs_speciaux:
         for nom, nature in obj.attributs_speciaux.items():
             if nom in a_sortir:
@@ -481,7 +499,7 @@ class AscWriter(FileWriter):
     def convertir_objet_asc(self, obj, liste, transtable=None):
         """sort un objet asc en chaine """
         entete = ecrire_entete_asc(obj)
-        if not entete: # ca na rien donne
+        if not entete:  # ca na rien donne
             return ""
         #    attributs = obj.attributs[:]
         if (

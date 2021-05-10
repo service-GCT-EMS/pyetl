@@ -13,7 +13,12 @@ def _ecrire_section_tmp(section):
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
     return (
-        "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+        "S,"
+        + str(section.couleur)
+        + ","
+        + str(section.courbe)
+        + ","
+        + section.__list_if__
     )
 
 
@@ -110,7 +115,7 @@ def geom_from_osm(obj):
         return True
     if not obj.attributs["#geom"]:
         obj.attributs["#type_geom"] = "0"
-        geomv.type=0
+        geomv.type = 0
         return True
     exterieur = False
     interieur = []
@@ -132,17 +137,17 @@ def geom_from_osm(obj):
                     geomv.cree_section(element, 2, 1, 0, interieur=True)
                 else:
                     interieur.append(element)
-            elif role in {"way", 'forward', 'part', 'main_stream'}:
+            elif role in {"way", "forward", "part", "main_stream"}:
                 geomv.cree_section(element, 2, 1, 0)
             else:
                 # print("role inconnu", role, obj)
                 # print("role inconnu", role, obj.ident, obj.attributs['tags'])
                 pass
         except TypeError as err:
-            print ('erreur type ', err)
-            print ('    objet:', obj.ident)
-            print ('geometrie:', desc)
-            print ('  element:', element)
+            print("erreur type ", err)
+            print("    objet:", obj.ident)
+            print("geometrie:", desc)
+            print("  element:", element)
 
     # if obj.attributs["#type_geom"] == "1":
     #     geomv.type = "1"

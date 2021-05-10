@@ -18,7 +18,6 @@ from .outils import renseigne_attributs_batch
 
 
 # LOGGER = logging.getLogger(__name__)
-LOGGER = logging.getLogger(__name__)
 
 
 def store_traite_stock(regle):
@@ -179,14 +178,14 @@ def sortir_traite_stock(regle):
     """ecriture finale"""
     if regle.final:
         try:
-            #            print('ecriture finale', regle.output.ecrire_objets)
+            print("ecriture finale", regle.output.writerparms)
             regle.output.ecrire_objets(regle, True)
         except IOError as err:
-            LOGGER.error("erreur d'ecriture: " + repr(err))
+            regle.stock_param.logger.error("erreur d'ecriture: " + repr(err))
         regle.nbstock = 0
         return
     for groupe in list(regle.stockage.keys()):
-        for obj in regle.recup_objets(groupe):
+        for obj in regle.recupobjets(groupe):
             regle.output.ecrire_objets_stream(obj, regle, False)
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
     regle.nbstock = 0
@@ -219,27 +218,25 @@ def h_sortir(regle):
         regle.writerparms["fanout"] = regle.params.cmp1.val[tmplist + 1 : -1]
         # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    fich_sortie = ""
+
     if regle.params.cmp2.val != "#print":
-        rep_base = regle.getvar("_sortie")
+        fich = ""
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        if regle.params.cmp2.val and os.path.isabs(regle.params.cmp2.val):
-            # si absolu on ignore le rep de sortie
-            rep_base = ""
-        fich_sortie = os.path.join(rep_base, regle.params.cmp2.val)
+        if regle.params.cmp2.val:
+            fich = regle.params.cmp2.val
 
     outformat = (
         "#print"
         if (
             regle.params.cmp2.val == "#print"
             or regle.getvar("_sortie") == "#print"
-            or fich_sortie == ""
+            or (fich == "" and regle.getvar("_sortie") == "")
         )
         else regle.params.cmp1.val
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
     if outformat != "#print":
-        regle.output.writerparms["destination"] = fich_sortie
+        regle.output.writerparms["destination"] = fich
     if regle.debug:
         print("creation output", regle.output.writerparms)
 
@@ -262,7 +259,9 @@ def h_sortir(regle):
         dialecte = regle.output.writerparms.get("dialecte")
         regle.ext = dialecte
 
-    LOGGER.info("repertoire de sortie: %s", regle.output.writerparms["destination"])
+    regle.stock_param.logger.info(
+        "repertoire de sortie: %s", regle.output.writerparms["destination"]
+    )
     regle.setlocal("_sortie", regle.output.writerparms["destination"])
 
     regle.calcule_schema = regle.output.writerparms["force_schema"]
@@ -762,11 +761,11 @@ def h_log(regle):
     """messages uniques"""
     if regle.params.att_entree.val == "":
         if regle.params.pattern == "3":
-            LOGGER.info(regle.params.cmp1.val)
+            regle.stock_param.info(regle.params.cmp1.val)
         elif regle.params.pattern == "2":
-            LOGGER.error(regle.params.cmp1.val)
+            regle.stock_param.error(regle.params.cmp1.val)
         elif regle.params.pattern == "1":
-            LOGGER.warning(regle.params.cmp1.val)
+            regle.stock_param.warning(regle.params.cmp1.val)
         regle.valide = "done"
     return True
 

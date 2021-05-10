@@ -782,7 +782,6 @@ class RegleTraitement(object):  # regle de mapping
         doit etre determine a partir des donnees avant de les ecrire sur disque"""
         #        print ('regle:dans endstore',self.numero,nom_base,groupe, obj.schema)
         #        raise
-
         classe_ob = obj.ident
         if obj.virtuel:
             return
@@ -790,6 +789,7 @@ class RegleTraitement(object):  # regle de mapping
             if not obj.schema:
                 nomschem = nom_base if nom_base else "defaut_auto"
                 schem = self.stock_param.init_schema(nomschem)
+
                 # schem = self.getschema(nomschem)
                 # if not schem:
                 #     schem = SC.Schema(nomschem)
@@ -804,7 +804,10 @@ class RegleTraitement(object):  # regle de mapping
                     )
                 #                    print('init schema de sortie ', nomschem, classe_ob)
                 schem.ajuste(obj)
-            #                print (obj.schema.nom)
+                #                print (obj.schema.nom)
+                if not self.output.minmajfunc:
+                    obj.schema.setminmaj(self.output.writerparms.get("casse", ""))
+                    self.output.minmajfunc = obj.schema.minmajfunc
 
             for nom_att, nature in obj.attributs_speciaux.items():
                 if nature == "TG":

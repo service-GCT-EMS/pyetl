@@ -656,7 +656,7 @@ class Pyetl(object):
         nom = ""
         #        print('parametres locaux', configfile)
         #        init = False
-        for conf in open(configfile, "r").readlines():
+        for conf in open(configfile, "r", encoding="utf-8").readlines():
             liste = (conf[:-1] + ";;").split(";")
             if liste[0].startswith("!") or liste[0].strip() == "":
                 continue

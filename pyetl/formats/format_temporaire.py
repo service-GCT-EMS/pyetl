@@ -24,7 +24,12 @@ def _ecrire_section_tmp(section):
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
     return (
-        "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+        "S,"
+        + str(section.couleur)
+        + ","
+        + str(section.courbe)
+        + ","
+        + section.__list_if__
     )
 
 
@@ -169,6 +174,7 @@ def lire_objets(fichier, stock_param):
     """relit les objets du stockage temporaire"""
     obj = None
     form = None
+    speciaux = dict()
     for ligne in open(fichier, "r", encoding="utf-8"):
         if ligne:
             code = ligne[0]
@@ -190,7 +196,7 @@ def lire_objets(fichier, stock_param):
                 # print("erreur fichier temporaire ", ligne)
                 continue
             if code == "2" or code == "4":
-                ajout_attribut_asc(obj, ligne)
+                ajout_attribut_asc(obj.attributs, ligne, speciaux)
             elif code == "3":
                 obj.attributs["#geom"].append(ligne[1:-1])
             elif code == "5":
@@ -203,6 +209,7 @@ def lire_objets(fichier, stock_param):
                 obj.geomnatif = True
                 yield obj
                 obj = None
+                speciaux = dict()
 
 
 def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
@@ -213,6 +220,8 @@ def ecrire_objets(nom, mode, groupe, geomwriter, nom_format="#ewkt"):
         liste_obj = groupe[classe]
         #        print( "ecriture" , classe, len(liste_obj))
         for i in liste_obj:
+            if i.schema:
+                i.attributs["#schem"] = i.schema.schema.nom
             if i.geom_v.valide:
                 fichier.write(tmp_entetes(i, nom_format))
             else:

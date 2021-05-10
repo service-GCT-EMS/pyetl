@@ -228,10 +228,15 @@ class GdalWriter(FileWriter):
         self.buffer = dict()
         self.usebuffer = self.writerparms["usebuffer"]
         self.flush = not self.usebuffer
+        self.layerstate = dict()
         self.write = self.bwrite if self.usebuffer else self.swrite
+        print("gdalwriter", self.writerparms, self.write)
 
     def open(self):
         """ouvre  sur disque"""
+        print("open", self.layer, bool(self.layer))
+        if not self.layer:
+            return
         crs = from_epsg(int(self.srid))
         l_max = self.writerparms["attlen"]
         if l_max:
@@ -252,29 +257,37 @@ class GdalWriter(FileWriter):
             schema=schema,
             layer=self.layer,
         )
-        self.etat = self.OPEN
+        self.layerstate[self.layer] = 1
 
-    def changeclasse(self, schemaclasse, attributs=None, multilayer=False):
+    def changeclasse(self, schemaclasse, attributs=None):
         """ change de classe """
 
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
-        self.close()
+        if self.ressource.etat == 1:
+            self.close()
         _, classe = schemaclasse.identclasse
-        # print("fiona: changeclasse depuis", self.nom, self.layer, "vers", classe)
-
+        # print(
+        #     "fiona: changeclasse depuis",
+        #     self.nom,
+        #     self.layer,
+        #     "vers",
+        #     classe,
+        # )
         self.layer = classe
         # crs = from_epsg(int(self.srid))
         self.schemaclasse = schemaclasse
         # schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
         #        print ('fiona: reouverture' ,self.nom, self.layer)
-        if self.flush:
-            if multilayer:
-                self.reopen()
-            else:
-                self.open()
+        if self.layer not in self.layerstate:
+            self.open()
+        else:
+            self.reopen()
+        # else:
+        #     self.open()
 
     def reopen(self):
         """reouvre le fichier s'il a ete ferme entre temps"""
+        print("reopen", self.layer, self.ressource.etat)
         crs = from_epsg(int(self.srid))
         l_max = self.writerparms["attlen"]
         schema = schema_fiona(
@@ -285,20 +298,28 @@ class GdalWriter(FileWriter):
             "a",
             crs=crs,
             encoding=self.encoding,
-            driver=self.driver,
+            driver=self.writerparms["driver"],
             schema=schema,
             layer=self.layer,
         )
+        self.layerstate[self.layer] = 1
 
     def close(self):
         """fermeture"""
         #        print("fileeio fermeture", self.nom)
+
         if self.nom == "#print":
             return  # stdout
         try:
-            self.fichier.close()
+            if self.layer in self.layerstate and self.layerstate[self.layer] == 1:
+                self.fichier.close()
+                self.layerstate[self.layer] = 2
         except AttributeError:
-            print("error: fw  : writer close: fichier non defini", self.nom)
+            print(
+                "error: fw  : writer close: fichier non defini",
+                self.nom,
+                self.ressource.etat,
+            )
 
     def set_liste_att(self, liste_att):
         """stocke la liste des attributs a sortir"""
@@ -323,10 +344,13 @@ class GdalWriter(FileWriter):
     def bwrite(self, obj):
         """ecriture bufferisee"""
         chaine = self.converter(obj, self.liste_att, self.output.minmajfunc)
-        # print("gdal:bwrite", chaine)
+        if not chaine:
+            return False
         # test multi
         ident = obj.ident
+        # print("bwrite", ident)
         if ident in self.buffer:
+            # print("gdal:bwrite", len(self.buffer[ident]))
             self.buffer[ident].append(chaine)
             if len(self.buffer[ident]) >= 10000:
                 self.flush_buffer(ident)
@@ -357,9 +381,20 @@ class GdalWriter(FileWriter):
         if self.buffer:
             self.flush = True
             for ident in self.buffer:
-                self.changeclasse(self.schema.classes[ident])
-                print("final: ecriture buffer", ident, len(self.buffer[ident]))
-                self.fichier.writerecords(self.buffer[ident])
+                if self.buffer[ident]:
+                    self.changeclasse(self.schema.classes[ident])
+                    print("final: ecriture buffer", ident, len(self.buffer[ident]))
+                    try:
+                        self.fichier.writerecords(self.buffer[ident])
+                    except Exception as err:
+                        print("-------------------erreur ecriture", err)
+                        print(
+                            "erreur ecriture",
+                            ident,
+                            "->",
+                            self.schema.classes[ident].info["type_geom"],
+                            self.buffer[ident],
+                        )
             self.flush = False
             self.buffer = dict()
         self.close()
@@ -370,8 +405,23 @@ def gdalconverter(obj, liste_att, minmajfunc):
     """convertit un objet dans un format compatible avec la lib gdal"""
     obj.casefold = minmajfunc
     obj.initgeom()
+    type_geom = str(obj.geom_v.type_geom)
+    if type_geom != "0":
+        if obj.schema and type_geom < obj.schema.info["type_geom"]:
+            print(
+                "erreur type_geom",
+                obj.ident,
+                type_geom,
+                "schema:",
+                obj.schema.info["type_geom"],
+            )
+            return ""
+    else:
+        if obj.schema.info["type_geom"] != "0":
+            return ""
     if str(obj.geom_v.type_geom) > "1" and obj.geom_v.type_geom != "indef":
         obj.set_multi()
+
     a_sortir = obj.__geo_interface__(liste_att)
     if not a_sortir["properties"]:
         a_sortir["properties"][obj.casefold("gid")] = a_sortir["id"]

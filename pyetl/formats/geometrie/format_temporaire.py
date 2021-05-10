@@ -23,7 +23,14 @@ def _ecrire_section_tmp(section):
     """ecrit une section en format temporaire"""
     #    print     ("S,"+str(section.couleur) + "," + str(section.courbe) + ',' + section.__list_if__)
 
-    return "S," + section.couleur + "," + str(section.courbe) + "," + section.__list_if__
+    return (
+        "S,"
+        + str(section.couleur)
+        + ","
+        + str(section.courbe)
+        + ","
+        + section.__list_if__
+    )
 
 
 # def ecrire_ligne_tmp(ligne):
@@ -46,7 +53,11 @@ def _ecrire_polygone_tmp(poly):
     #    print("polygone", len(poly.lignes))
     #    print('longueur lignes',[len(j.sections) for j in poly.lignes])
     #    print('liste')
-    return ["P"] + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes])) + ["Q"]
+    return (
+        ["P"]
+        + list(chain.from_iterable([_ecrire_ligne_tmp(j) for j in poly.lignes]))
+        + ["Q"]
+    )
 
 
 def _ecrire_polygones_tmp(polygones):
@@ -79,7 +90,7 @@ def geom_from_tmp(obj):
     geom_v.type = "2"
     poly = None
     nouvelle_ligne = False
-    for i in obj.attributs['#geom']:
+    for i in obj.attributs["#geom"]:
         code = i[0]
         if code == "P":
             poly = geom_v.polygones
