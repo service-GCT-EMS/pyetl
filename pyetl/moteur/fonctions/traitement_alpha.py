@@ -55,12 +55,12 @@ def f_setliste(regle, obj):
 
 def f_setmatch_liste(regle, obj):
     """#aide||affectation d un attribut
- #aide_spec1||remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection
-            ||par expression regulieres (recupere les groupes de selections)
-   #pattern1||M;;;set;=match;||sortie
- #parametres||liste de sortie;=match;
-       #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
-       #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
+    #aide_spec1||remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection
+               ||par expression regulieres (recupere les groupes de selections)
+      #pattern1||M;;;set;=match;||sortie
+    #parametres||liste de sortie;=match;
+          #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
+          #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
     """
     # print ('regle.match',regle.match )
     regle.setval_sortie(obj, regle.matchlist)
@@ -71,12 +71,16 @@ def h_setval(regle):
     """helper de fonctiond'entree"""
     if not regle.params.att_entree.val:
         regle.get_entree = regle.get_defaut
+    if regle.params.pattern == 2:
+        regle.setvar(regle.params.pattern.att_sortie.val, regle.params.val_entree.val)
+        regle.valide = "done"
 
 
 def f_setval(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
        #pattern||S;?;?A;set;;||sortie
+       #pattern2||P;C;;set;;||sortie||1
     #parametres||attribut de sortie;defaut;attribut d'entree
        #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
@@ -232,9 +236,15 @@ def f_sub(regle, obj):  # fonction de substution
 
 def h_setcalc(regle):
     """ preparation de l'expression du calculateur de champs"""
-    #    print ('dans hcalc',regle.params)
+    print("dans hcalc", regle.params)
     try:
-        regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
+        if regle.params.pattern == 1:
+            regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
+        elif regle.params.pattern == 2:
+            regle.calcul = regle.params.compilefonc(
+                regle.params.val_entree.val, "obj", debug=regle.debug
+            )
+            regle.setvar(regle.params.att_sortie, str(regle.calcul(None)))
     except SyntaxError as err:
         LOGGER.exception(
             "erreur sur l'expression de calcul->%s<-",
@@ -254,7 +264,8 @@ def f_setcalc(regle, obj):
         || les attributs doivent etre précédes de N: pour un traitement numerique
         || ou C: pour un traitement alpha
     #parametres||attribut resultat;formule de calcul
-        #pattern||S;;NC:;set;;
+        #pattern1||S;;NC:;set;;
+        #pattern2||P;NC2:;;set;;||defaut||10
         #test1||obj||^V4;;N:V1+1;set||atn;V4;13
         #test2||obj||^V4;;N:V1+1;set||ats;V4
     """
@@ -422,6 +433,7 @@ def f_asplit(regle, obj):
        #pattern1||M;?;A;split;.;?N:N||sortie
     #parametres1||liste attributs sortie;defaut;attribut;;caractere decoupage;nombre de morceaux:debut
        #pattern2||;?;A;split;.;?N:N||sortie
+
     #parametres2||defaut;attribut;;caractere decoupage;nombre de morceaux:debut
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4

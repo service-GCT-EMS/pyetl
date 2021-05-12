@@ -277,7 +277,7 @@ class GestionSorties(object):
         if not rep_sortie:
             raise NotADirectoryError("repertoire de sortie non défini")
         if nom:
-            #            print("-------------------nom forcé", os.path.join(rep_sortie, nom))
+            # print("-------------------nom forcé", os.path.join(rep_sortie, nom))
             nom = nom + ext if not nom.endswith(ext) else nom
             if os.path.isabs(nom):
                 return nom

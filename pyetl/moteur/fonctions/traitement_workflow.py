@@ -268,12 +268,8 @@ def printvariable(regle):
         )
 
     if regle.params.cmp2.val:
-        return (
-            regle.params.cmp1.val
-            + "="
-            + str(regle.context.getvar(regle.params.cmp1.val))
-        )
-    return regle.context.getvar(regle.params.cmp1.val)
+        return regle.params.cmp1.val + "=" + str(regle.getvar(regle.params.cmp1.val))
+    return regle.getvar(regle.params.cmp1.val)
 
 
 def f_printvar(regle, _):

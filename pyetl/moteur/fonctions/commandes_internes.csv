@@ -494,9 +494,14 @@ K:perso;$fich=%_paramperso%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#aduser;nom;clef;;;;
 K:ADserver;$#%ADserver%;
-;;;;x;%nom%;;adquery;user;%clef%;;
-;;;;;;x;print;;noms;debug;
-
+;;;;P:x;%nom%;;adquery;user;%clef%;;
+;;;;;%x%;;print;;;debug;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#moi;;;;;
+K:ADserver;$#%ADserver%;
+;;;;P:_ident;;;run;whoami;;
+;;;;P:clef;C:P:_ident.split("/")[1];;set;;;debug
+;;;;P:nom;%clef%;;adquery;user;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#test;n1;n2;a;;;;
 #!help;test des variables;;;

@@ -5,7 +5,9 @@ attributs et geometrie """
 import math as Ma
 import itertools
 import logging
-LOGGER=logging.getLogger("__name__")
+
+LOGGER = logging.getLogger("__name__")
+
 
 def points_egaux(point1, point2, dim):
     """teste l'egalite de deux points"""
@@ -98,7 +100,7 @@ def cercle_3pts(pt1, pt2, pt3):
 
 class Section(object):
     """# definition d'une section
-        - la section est l'element fondamental d une geometrie """
+    - la section est l'element fondamental d une geometrie"""
 
     __slots__ = ["coords", "couleur", "courbe", "aire", "dimension", "encours"]
 
@@ -268,7 +270,7 @@ class Section(object):
     #        print ("section:apres trans", list(self.coords))
 
     def aire_orient(self):
-        """ calcule l'aire (positive ou negative selon l'orientation)
+        """calcule l'aire (positive ou negative selon l'orientation)
         : attention faux pour les courbes"""
         aire = 0
         ncoord = len(self.coords)
@@ -537,7 +539,8 @@ class Ligne(object):
             if self.ferme:
                 aire = 0
                 if self.npt < 3:
-                    LOGGER.error("geometrie 3 points minimum pour une boucle")
+                    if self.npt:
+                        LOGGER.error("geometrie 3 points minimum pour une boucle")
                     # print(
                     #     "error: compos: erreur geometrique 3 points minimum pour une boucle",
                     #     [i for i in self.coords],

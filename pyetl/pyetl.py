@@ -130,6 +130,7 @@ class Pyetl(object):
     reconfig = reinterprete_regle
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS
+    defautcsvencoding = "cp1252"
 
     def __init__(self, parent=None, nom=None, context=None, env=None, mode="cmd"):
 
@@ -656,7 +657,7 @@ class Pyetl(object):
         nom = ""
         #        print('parametres locaux', configfile)
         #        init = False
-        for conf in open(configfile, "r", encoding="utf-8").readlines():
+        for conf in open(configfile, "r", encoding=self.defautcsvencoding).readlines():
             liste = (conf[:-1] + ";;").split(";")
             if liste[0].startswith("!") or liste[0].strip() == "":
                 continue

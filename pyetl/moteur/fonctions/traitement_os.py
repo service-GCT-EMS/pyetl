@@ -60,8 +60,7 @@ def h_run(regle):
 def f_run(regle, obj):
     """#aide||execute une commande externe
        #pattern1||?A;?C;?A;run;C;
-       #pattern2||?P;=^;;run;C;
-       #pattern3||?P;;;run;C;C;
+       #pattern3||?P;;;run;C;?C;
      #aide_spec1||execution a chaque objet avec recuperation d'un resultat (l'attribut d'entree ou la valeur par defaut doivent etre remplis)
      #aide_spec3||execution en debut de process avec sans recuperation eventuelle d'un resultat dans une variable
     #parametres||attribut qui recupere le resultat;parametres par defaut;attribut contenant les parametres;commande,parametres
@@ -468,12 +467,28 @@ def h_adquery(regle):
             regle.valide = False
             return False
         # regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
+        print("----AD", regle.params.pattern, regle)
         if regle.params.pattern == "1":
             regle.queryfonc = regle.AD.find_user
         elif regle.params.pattern == "2":
             regle.queryfonc = regle.AD.find_computer
         elif regle.params.pattern == "3":
             regle.queryfonc = regle.AD.find_group
+        elif regle.params.pattern == "4":  # variable
+            regle.queryfonc = regle.AD.find_user
+            items = regle.queryfonc(regle.params.val_entree.val)
+            if isinstance(items, list):
+                item = items[0]
+            else:
+                item = items
+            regle.setvar(regle.params.att_sortie.val, item)
+            print(
+                "AD setvar",
+                regle.params.att_sortie.val,
+                regle.params.val_entree.val,
+                item,
+            )
+            regle.valide = "done"
 
 
 def f_adquery(regle, obj):
@@ -481,6 +496,7 @@ def f_adquery(regle, obj):
     #pattern1||S;?C;?A;adquery;=user;?C;
     #pattern2||S;?C;?A;adquery;=machine;?C;
     #pattern3||S;?C;?A;adquery;=groupe;?C;
+    #pattern4||P;C;;adquery;=user;;||sortie||1
     #"""
     if regle.get_entree(obj):
         try:
@@ -488,18 +504,20 @@ def f_adquery(regle, obj):
         except TypeError as err:
             print("erreur adquery", err, regle.get_entree(obj))
             items = []
-
+        item = ""
         if items:
             if isinstance(items, list):
                 if len(items) == 1:
                     item = items[0]
-                else:
+                elif len(items) > 1:
                     for item in items:
                         obj2 = obj.dupplique()
                         val = getattr(item, regle.a_recuperer[0])
                         regle.setval_sortie(obj2, val)
                         regle.stock_param.moteur.traite_objet(obj2, regle.ok)
                     return True
+                else:
+                    return False  # liste vide
             else:
                 item = items
         if regle.a_recuperer == ["*"]:

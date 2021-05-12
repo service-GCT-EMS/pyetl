@@ -230,11 +230,11 @@ class GdalWriter(FileWriter):
         self.flush = not self.usebuffer
         self.layerstate = dict()
         self.write = self.bwrite if self.usebuffer else self.swrite
-        print("gdalwriter", self.writerparms, self.write)
+        # print("gdalwriter", self.writerparms, self.write)
 
     def open(self):
         """ouvre  sur disque"""
-        print("open", self.layer, bool(self.layer))
+        # print("open", self.layer, bool(self.layer))
         if not self.layer:
             return
         crs = from_epsg(int(self.srid))
@@ -287,7 +287,7 @@ class GdalWriter(FileWriter):
 
     def reopen(self):
         """reouvre le fichier s'il a ete ferme entre temps"""
-        print("reopen", self.layer, self.ressource.etat)
+        # print("reopen", self.layer, self.ressource.etat)
         crs = from_epsg(int(self.srid))
         l_max = self.writerparms["attlen"]
         schema = schema_fiona(

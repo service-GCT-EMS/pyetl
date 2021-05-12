@@ -327,5 +327,13 @@ DBDEF = {
         ".sqlite",
         "#ewkt",
         "base sqlite basique",
-    )
+    ),
+    "gpkg2": (
+        SqltConnect,
+        SqltGenSql,
+        "file",
+        ".gpkg",
+        "#ewkt",
+        "base sqlite basique",
+    ),
 }

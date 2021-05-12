@@ -49,6 +49,7 @@ READERS = {
     "accdb": (lire_objets_fdb, "", True, (), None, None),
     "sqlite": (lire_objets_fdb, "", True, (), None, None),
     "spatialite": (lire_objets_fdb, "#ewkt", True, (), None, None),
+    "gpkg2": (lire_objets_fdb, "", True, (), None, None),
 }
 
 WRITERS = {}

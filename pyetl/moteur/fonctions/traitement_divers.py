@@ -238,7 +238,7 @@ def h_sortir(regle):
     if outformat != "#print":
         regle.output.writerparms["destination"] = fich
     if regle.debug:
-        print("creation output", regle.output.writerparms)
+        print("creation output", fich, sorted(regle.output.writerparms.items()))
 
     if regle.output.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
@@ -260,9 +260,11 @@ def h_sortir(regle):
         regle.ext = dialecte
 
     regle.stock_param.logger.info(
-        "repertoire de sortie: %s", regle.output.writerparms["destination"]
+        "repertoire de sortie: %s, %s",
+        regle.getvar("_sortie"),
+        regle.output.writerparms["destination"],
     )
-    regle.setlocal("_sortie", regle.output.writerparms["destination"])
+    # regle.setlocal("_sortie", regle.output.writerparms["destination"])
 
     regle.calcule_schema = regle.output.writerparms["force_schema"]
     regle.memlimit = int(regle.context.getvar("memlimit", 0))

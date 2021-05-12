@@ -376,10 +376,13 @@ class TableSelector(object):
 
     def idbase(self, base):
         """identifie une base de donnees"""
+        if not base:
+            raise
         if base in self.mapper.dbref:
             base = self.mapper.dbref[base]
             return base
-        print("base inconnue", base)
+        if base != "*":
+            print("base inconnue", base)
         return base
 
     def resolve(self, obj=None):
@@ -508,7 +511,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
         else:
             mode = "in_s"  # jointure statique
             try:
-                selecteur_from_fich(fichier, selecteur)
+                selecteur_from_fich(regle, fichier, selecteur)
             except FileExistsError:
                 LOGGER.error("fichier ou repertoire inexistant %s", fichier)
                 return None
@@ -631,7 +634,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     il est possible d ajouter une info de mapping derriere sous forme niveau.classe prefix:N.:C
     et un mapping attributaire sous forme att=>nouveau,... elle n est pas utilisee par le secleteur
     """
-    # print("select from csv")
+    # print("select from csv", fichier, codec)
     try:
         codec = hasbom(fichier, codec)
         with open(fichier, "r", encoding=codec) as fich:
@@ -688,19 +691,24 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     except FileNotFoundError:
         # print("fichier liste introuvable ", fichier)
         LOGGER.warning("fichier liste introuvable " + fichier)
+    except UnicodeDecodeError:
+        LOGGER.error("erreur encodage " + fichier + " n'est pas en " + codec)
+        raise StopIteration(4)
     # print("prechargement selecteur csv", selecteur)
 
 
-def selecteur_from_fich(fichier, selecteur, codec=DEFCODEC):
+def selecteur_from_fich(regle, fichier, selecteur):
     # print("sel_from_fich:scandirs", fichier)
     LOGGER.debug("scandirs %s", fichier)
+    codec_csv = regle.getvar("codec_csv", DEFCODEC)
+    codec_qgs = regle.getvar("codec_qgs", DEFCODEC)
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)
         if fich.endswith(".qgs"):
-            _select_from_qgs(element, selecteur, codec)
+            _select_from_qgs(element, selecteur, codec_qgs)
         elif fich.endswith(".csv"):
-            _select_from_csv(element, selecteur, codec)
+            _select_from_csv(element, selecteur, codec_csv)
     selecteur.metainfos = fichier
     # print("selecteur from fich", selecteur.baseselectors.keys())
     # for nom, sel in selecteur.baseselectors.items():

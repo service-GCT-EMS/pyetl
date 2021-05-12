@@ -23,7 +23,7 @@ import importlib
 
 
 class DefinitionAttribut(object):
-    """ decrit un attribut de fonction
+    """decrit un attribut de fonction
     clef:(regex,type,groupe)"""
 
     # non capturing groupe : (?: .....)
@@ -31,7 +31,7 @@ class DefinitionAttribut(object):
     asdef = r"#?[a-zA-Z_][a-zA-Z0-9_]*"  # description simple de nom de champs
     #    asdef = r'(#?[a-zA-Z_\-][a-zA-Z0-9_\-]*)' # description simple de nom de champs
     #    aldef = r'(?:'+asdef+')|&'
-    adef = r"(" + asdef + r")(?:\((.*)\))?"  # description champs avec details
+    adef = r"(" + asdef + r")(:\((.+)\))?"  # description champs avec details
     vdef = r"\[(" + asdef + r")\]"  # contenu champs
     ndef = r"-?[0-9]*.?[0-9]*|[0-9]+"
     # definition des expressions utilisables pour la description d un champs
