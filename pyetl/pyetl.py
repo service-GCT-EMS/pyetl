@@ -773,6 +773,7 @@ class Pyetl(object):
                 ("_paramdir", self.site_params_def),
                 ("_paramperso", self.paramdir),
                 ("_version", self.version),
+                ("_login", self.username),
                 ("_progdir", os.path.dirname(__file__)),
             ]
         )

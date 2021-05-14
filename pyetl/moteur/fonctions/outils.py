@@ -114,22 +114,27 @@ def getfichs(regle, obj, sort=False):
     """recupere une liste de fichiers"""
 
     #    mapper = regle.stock_param
-    racine = regle.params.cmp1.getval(obj)
+    if obj:
+        racine = regle.params.cmp1.getval(obj)
+        nom = regle.getval_entree(obj)
+    else:
+        nom = regle.refdir
+        racine = ""
     if not racine:
         racine = regle.getvar("_entree", ".")
-    nom = regle.getval_entree(obj)
+
     # print("getfichs:", os.path.join(racine, nom) if nom else racine)
-    fichiter=scan_entree(
-            rep=os.path.join(racine, nom) if nom else racine,
-            force_format=regle.getvar("F_entree"),
-            fileselect=regle.getvar("fileselect"),
-            dirselect=regle.getvar("dirselect"),
-            filtre_entree=regle.getvar("filtre_entree"),
-        )
+    fichiter = scan_entree(
+        rep=os.path.join(racine, nom) if nom else racine,
+        force_format=regle.getvar("F_entree"),
+        fileselect=regle.getvar("fileselect"),
+        dirselect=regle.getvar("dirselect"),
+        filtre_entree=regle.getvar("filtre_entree"),
+    )
     if sort:
-        #on trie par taille
-        size=lambda x: os.stat(x[0]).st_size
-        filelist=sorted(list(fichiter),key=size,reverse=True)
+        # on trie par taille
+        size = lambda x: os.stat(x[0]).st_size
+        filelist = sorted(list(fichiter), key=size, reverse=True)
 
         # print (" recup filelist",[(i,size(i)) for i in filelist])
         yield from filelist

@@ -71,16 +71,12 @@ def h_setval(regle):
     """helper de fonctiond'entree"""
     if not regle.params.att_entree.val:
         regle.get_entree = regle.get_defaut
-    if regle.params.pattern == 2:
-        regle.setvar(regle.params.pattern.att_sortie.val, regle.params.val_entree.val)
-        regle.valide = "done"
 
 
 def f_setval(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut avec defaut
        #pattern||S;?;?A;set;;||sortie
-       #pattern2||P;C;;set;;||sortie||1
     #parametres||attribut de sortie;defaut;attribut d'entree
        #test1||obj||^V4;;C1;set||atv;V4;AB
        #test2||obj||^V4;1;X;set||atv;V4;1
@@ -209,6 +205,14 @@ def h_sub(regle):
     except ValueError:
         regle.maxsub = 0
         regle.setlocal("maxsub", str(regle.maxsub))  # on force la variable en local
+    if regle.params.pattern == "2":
+        regle.setvar(
+            regle.att_sortie.val,
+            regle.exp_entree.sub(
+                regle.exp_sortie, regle.params.val_entree.val, count=regle.maxsub
+            ),
+        )
+        regle.valide = "done"
 
 
 # fonctions de traitement alpha
@@ -216,6 +220,7 @@ def f_sub(regle, obj):  # fonction de substution
     """#aide||remplacement d une valeur
         #aide_spec||application d'une fonction de transformation par expression reguliere
         #pattern||S;?;A;sub;re;?re||sortie
+        #pattern2||P;C;;sub;re;?re||sortie||10
     #parametres||resultat;defaut;entree;;expression de selection;expression de substitution
     #variables||maxsub: nombre maxi de substitutions (variable locale)
         #test1||obj||^V4;;C1;sub;A;B;||atv;V4;BB
@@ -238,9 +243,9 @@ def h_setcalc(regle):
     """ preparation de l'expression du calculateur de champs"""
     print("dans hcalc", regle.params)
     try:
-        if regle.params.pattern == 1:
+        if regle.params.pattern == "1":
             regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
-        elif regle.params.pattern == 2:
+        elif regle.params.pattern == "2":
             regle.calcul = regle.params.compilefonc(
                 regle.params.val_entree.val, "obj", debug=regle.debug
             )
@@ -494,6 +499,13 @@ def f_len(regle, obj):
     """
     regle.setval_sortie(obj, str(len(regle.getval_entree(obj))))
     return True
+
+
+def h_vset(regle):
+    """positionnement variable"""
+    if not regle.params.att_entree.val:
+        regle.setvar(regle.params.att_sortie.val, regle.params.val_entree.val)
+        regle.valide = "done"
 
 
 def f_vset(regle, obj):

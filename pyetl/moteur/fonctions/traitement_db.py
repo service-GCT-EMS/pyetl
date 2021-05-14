@@ -16,7 +16,7 @@ from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
 from pyetl.formats.interne.objet import Objet
 
-from .outils import prepare_mode_in
+from .outils import prepare_mode_in, getfichs
 from .tableselector import getselector, select_in, adapt_qgs_datasource
 
 LOGGER = logging.getLogger(__name__)
@@ -32,9 +32,15 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
+
     if not base:
         base = "*"
-    if base.startswith("#"):  # c'est un selecteur nomme
+    # elif os.path.isfile(base): #filedb
+    #     nom,ext = os.path.splitext(base)
+    # elif os.path.isdir(base):
+    #     regle.refdir=base
+    #     filelist=getfichs(regle,None)
+    elif base.startswith("#"):  # c'est un selecteur nomme
         nom = base[1:]
         selecteur = regle.stock_param.namedselectors.get(nom)
         if not selecteur:

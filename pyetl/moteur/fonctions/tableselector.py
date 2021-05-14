@@ -113,7 +113,7 @@ class TableBaseSelector(object):
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
-        if self.base != "__filedb":
+        if self.base != "__filedb" and not os.path.isfile(self.base):
             self.mapper.load_paramgroup(self.base, nom=self.base)
             prefix = self.regle_ref.getvar("prefix_" + self.base)
         # print(
