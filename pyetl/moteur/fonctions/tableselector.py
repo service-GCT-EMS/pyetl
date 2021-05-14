@@ -113,7 +113,9 @@ class TableBaseSelector(object):
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
-        if self.base != "__filedb" and not os.path.isfile(self.base):
+        if os.path.isfile(self.base):  # bases fichier
+            self.base = "__filedb"
+        if self.base != "__filedb":
             self.mapper.load_paramgroup(self.base, nom=self.base)
             prefix = self.regle_ref.getvar("prefix_" + self.base)
         # print(
@@ -126,18 +128,25 @@ class TableBaseSelector(object):
         # )
         # raise
         if not self.nobase:
-            # print("connection ", self.nombase)
-            if self.nombase != "__filedb":
+            print("connection ", self.nombase, self.base)
+            if self.base != "__filedb":
                 self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
-                if self.connect:
-                    self.schemabase = self.connect.schemabase
-                    prefix = self.connect.prefix
-                    if set_prefix:
-                        self.reg_prefix(prefix)
-                else:
-                    self.schemabase = None
             else:
-                return
+                type_base = os.path.splitext(self.nombase)[-1]
+                if type_base.startswith("."):
+                    type_base = type_base[1:]
+                self.connect = self.mapper.getdbaccess(
+                    self.regle_ref,
+                    self.nombase,
+                    type_base=type_base,
+                )
+            if self.connect:
+                self.schemabase = self.connect.schemabase
+                prefix = self.connect.prefix
+                if set_prefix:
+                    self.reg_prefix(prefix)
+            else:
+                self.schemabase = None
         # print("resolve", self.base, mod, set_prefix, prefix, self.nobase)
 
         mod = [i.upper() for i in mod]
@@ -188,6 +197,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
+        print("resolve", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.static = dict()

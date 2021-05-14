@@ -477,11 +477,9 @@ def h_adquery(regle):
         elif regle.params.pattern == "4":  # variable
             regle.queryfonc = regle.AD.find_user
             items = regle.queryfonc(regle.params.val_entree.val)
-            if isinstance(items, list):
-                item = items[0]
-            else:
-                item = items
-            regle.setvar(regle.params.att_sortie.val, item)
+            item = items[0] if isinstance(items, list) else items
+            val = getattr(item, regle.a_recuperer[0])
+            regle.setvar(regle.params.att_sortie.val, val)
             print(
                 "AD setvar",
                 regle.params.att_sortie.val,

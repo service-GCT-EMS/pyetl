@@ -32,7 +32,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     """ extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
-
+    print("param base ", base)
     if not base:
         base = "*"
     # elif os.path.isfile(base): #filedb
@@ -772,7 +772,7 @@ def h_recup_schema(regle):
 
     regle.setlocal("mode_schema", "dbschema")
     selecteur = regle.cible_base
-    # print("h_recup_schema:selecteur", selecteur)
+    print("h_recup_schema:selecteur", selecteur)
     LOGGER.debug("selecteur %s", repr(selecteur))
     try:
         complet = selecteur.resolve()
