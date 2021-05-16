@@ -99,7 +99,7 @@ class SqltConnect(DbConnect):
                 self.accept_sql = "geo"
             else:
                 tables.append(i)
-        # print ('recup tables ', tables)
+        # print("recup tables ", tables)
         return tables
 
     def get_tables(self):
@@ -140,7 +140,10 @@ class SqltConnect(DbConnect):
             table_geom = "ALPHA"
             table_dim = 2
             requete = 'select count(*) from "' + nomtable + '"'
-            nb = self.request(requete, None)[0][0]
+            try:
+                nb = self.request(requete, None)[0][0]
+            except sqlite3.OperationalError:
+                print("erreur comptage", nomtable)
             # print ('retour',nb)
             requete = 'pragma table_info("' + nomtable + '")'
             attributs = self.request(requete, None)
@@ -328,7 +331,7 @@ DBDEF = {
         "#ewkt",
         "base sqlite basique",
     ),
-    "gpkg2": (
+    "gpkg": (
         SqltConnect,
         SqltGenSql,
         "file",

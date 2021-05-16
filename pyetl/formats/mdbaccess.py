@@ -46,7 +46,7 @@ def dbaccess(regle, codebase, type_base=None):
         # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
-        print("type_base inconnu", type_base)
+        print("type_base inconnu", type_base, DATABASES.keys())
         return None
     # print(
     #     "--------acces base de donnees",
