@@ -3,13 +3,12 @@
 prise en charge des expressions regulieres"""
 import time
 
-# t1=time.time()
-# print ('pyetl start import ')
+printtime = False
+if printtime:
+    t1 = time.time()
+    print("pyetl start import ")
 import os
 import re
-
-import tempfile
-import pickle
 
 import itertools
 from queue import Empty
@@ -18,11 +17,16 @@ from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import commandes_speciales, is_special
 from .outils import gestion_logs as L
 
-# print ('globales',time.time()-t1)
+if printtime:
+    print("globales", time.time() - t1)
 from .formats.generic_io import Reader, Output, READERS, WRITERS
+
+if printtime:
+    print("formats", time.time() - t1)
 from .formats.mdbaccess import dbaccess
 
-# print('formats',time.time()-t1)
+if printtime:
+    print("databases", time.time() - t1)
 
 from .formats.ressources import GestionSorties  # formats entree et sortie
 from .formats.interne.stats import Statstore  # , Stat, ExtStat
@@ -37,6 +41,10 @@ from .moteur.moteur import Moteur, MacroStore, Context
 from .moteur.fonctions import COMMANDES, SELECTEURS, MODULES
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
+
+if printtime:
+    print("commandes", time.time() - t1)
+
 
 from .schema.schema_interne import init_schema  # schemas
 from .schema.schema_io import ecrire_schemas, lire_schemas_multiples

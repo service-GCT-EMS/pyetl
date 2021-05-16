@@ -24,6 +24,7 @@ def loadmodules():
             "initer",
             "objreader",
             "converter",
+            "module",
         ),
     )
     wdef = namedtuple(
@@ -41,6 +42,7 @@ def loadmodules():
             "initer",
             "geomwriter",
             "tmpgeomwriter",
+            "module",
         ),
     )
 
@@ -52,13 +54,13 @@ def loadmodules():
                 for nom, desc in getattr(format_def, "WRITERS").items():
                     if nom in writers:
                         print("attention : redefinition du format de sortie", nom)
-                    writers[nom] = wdef(*desc, None, None)
+                    writers[nom] = wdef(*desc, None, None, module)
                     # a ce stade les fonctions ne sont pas connues
                 for nom, desc in getattr(format_def, "READERS").items():
                     # print("definition du format d'entree", nom, desc)
                     if nom in readers:
                         print("attention : redefinition du format d'entree", nom)
-                    readers[nom] = rdef(*desc, None)
+                    readers[nom] = rdef(*desc, None, module)
                     # print ('lecture  READERS',nom,desc,'->', readers[nom])
             except (ImportError, AttributeError) as err:
                 print("module ", module[1:], "non disponible", err)

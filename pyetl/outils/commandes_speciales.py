@@ -1,23 +1,28 @@
 # commandes speciales
 # gestionnaire de commandes speciales tests doc aide etc
 import os
+
 COMMANDES_SPECIALES = {
-        "help",
-        "autodoc",
-        "autotest",
-        "unittest",
-        "formattest",
-        "pack",
-        "paramgroups",
-    }
+    "help",
+    "autodoc",
+    "autotest",
+    "unittest",
+    "formattest",
+    "pack",
+    "commandlist",
+    "paramgroups",
+}
+
+
 def is_special(commandes):
     "determine si une commande est speciale"
     if not commandes:
         return False
-    c1=commandes.split(";")
+    c1 = commandes.split(";")
     commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
     return commande in COMMANDES_SPECIALES
+
 
 def commandes_speciales(mapper, commandes, args):
     """commandes speciales"""
@@ -26,7 +31,7 @@ def commandes_speciales(mapper, commandes, args):
     # on ne lit pas de regles mais on prends les commandes predefinies
     if not commandes:
         return False
-    c1=commandes.split(";")
+    c1 = commandes.split(";")
     commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
     # if mapper.fichier_regles is None:
@@ -36,10 +41,10 @@ def commandes_speciales(mapper, commandes, args):
     # commande = commande.replace("#", "")
     # if commande not in COMMANDES_SPECIALES:
     #     return
-    mapper.is_special=True
+    mapper.is_special = True
     mapper._traite_params(args)
     # nom = mapper.getvar("_sortie")
-    nom=pars[0] if pars else (c1[1] if len(c1)>1 else (args[0] if args else ""))
+    nom = pars[0] if pars else (c1[1] if len(c1) > 1 else (args[0] if args else ""))
     # print ("commandes speciales",commandes, args)
     mapper.setvar("_sortie", "")
     mapper.setvar("_testmode", commande)
@@ -105,27 +110,31 @@ def commandes_speciales(mapper, commandes, args):
 
         place = os.path.dirname(mapper.getvar("_progdir"))
         print("preparation version", mapper.version, place)
-        nv="_"+mapper.version.replace(" (build:",".").replace(")","")
-        pack.zipall(place,nv)
-        newb= pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
-        print("modification build", mapper.version,"->(build",newb,")")
+        nv = "_" + mapper.version.replace(" (build:", ".").replace(")", "")
+        pack.zipall(place, nv)
+        newb = pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
+        print("modification build", mapper.version, "->(build", newb, ")")
+
+    elif commande == "commandlist":
+        from . import pack
+
+        pack.commandlist(mapper)
 
     elif commande == "paramgroups":
         """ affichage des groupes de parametres connus"""
         if nom:
-            key=mapper.getvar("key")
-            decode = key==mapper.getvar("masterkey")
+            key = mapper.getvar("key")
+            decode = key == mapper.getvar("masterkey")
             if nom in mapper.site_params:
-                print ("groupe", nom)
-                for i,j in mapper.site_params.get(nom):
-                    if i=="passwd" and not decode:
-                        j="***"
-                    print (i,"->",j)
+                print("groupe", nom)
+                for i, j in mapper.site_params.get(nom):
+                    if i == "passwd" and not decode:
+                        j = "***"
+                    print(i, "->", j)
             else:
                 print("groupe inconnu", nom)
         else:
-            print ("groupes connus:")
-            print (sorted(mapper.site_params.keys()))
-
+            print("groupes connus:")
+            print(sorted(mapper.site_params.keys()))
 
     mapper.done = True
