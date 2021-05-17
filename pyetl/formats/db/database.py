@@ -315,6 +315,7 @@ class DbConnect(object):
         self.load_ext = ""
         self.dump_helper = None
         self.dialecte = "sql"
+        self.explicitcommit = True
         self.fallback = {}
         self.DBError = KeyError
         # print("====init connection", self.base, self.code)
@@ -325,7 +326,7 @@ class DbConnect(object):
 
     def commit(self):
         """gere le commit"""
-        if self.connection:
+        if self.connection and self.explicitcommit:
             self.connection.commit()
 
     def get_cursinfo(self, volume=0, nom="", regle=None):

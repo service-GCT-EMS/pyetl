@@ -128,7 +128,7 @@ class TableBaseSelector(object):
         # )
         # raise
         if not self.nobase:
-            print("connection ", self.nombase, self.base)
+            # print("connection ", self.nombase, self.base)
             if self.base != "__filedb":
                 self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
             else:
@@ -197,7 +197,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        print("resolve", self.base)
+        # print("resolve", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.static = dict()

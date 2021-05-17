@@ -680,7 +680,7 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1, stock_param=N
     )
     mapping = initmetaheader(schema, "schema;classe;schema_orig;classe_orig;nombre")
     mapping.extend(schema.mapping_schema())
-    nomschema = str(os.path.basename(schema.nom.replace("#", "_")))
+    nomschema = str(os.path.splitext(os.path.basename(schema.nom.replace("#", "_")))[0])
     deftrig = None
     if "def_triggers" in schema.elements_specifiques:
         entete, contenu = schema.elements_specifiques["def_triggers"]

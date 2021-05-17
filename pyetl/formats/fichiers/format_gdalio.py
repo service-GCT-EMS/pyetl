@@ -13,7 +13,7 @@ from .fileio import FileWriter
 
 
 def formatte_entree(type_orig):
-    """cree un formattage d'netree pour la gestion des decimales"""
+    """cree un formattage d'entree pour la gestion des decimales"""
     format_entree = ""
     dec = None
     taille = None

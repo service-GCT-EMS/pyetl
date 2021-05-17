@@ -374,7 +374,10 @@ def ecrire_schema_xml(
             + ' type="text/xsl"?>'
         )
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)
-    nomschema = prefix + schema.nom.replace("#", "_")
+    nomschema = prefix + str(
+        os.path.splitext(os.path.basename(schema.nom.replace("#", "_")))[0]
+    )
+    # nomschema = prefix + schema.nom.replace("#", "_")
 
     if xml:
         if rep:
@@ -403,9 +406,9 @@ def ecrire_schema_xml(
             )
 
             # if not "schemas" in stock_param.webstore:
-                # stock_param.webstore["schemas"] = dict()
-                # stock_param.webstore["stored_schemas"] = dict()
-            stock_param.webstore["schema_"+nomschema] = xml.split("\n")
+            # stock_param.webstore["schemas"] = dict()
+            # stock_param.webstore["stored_schemas"] = dict()
+            stock_param.webstore["schema_" + nomschema] = xml.split("\n")
             # stock_param.webstore["stored_schemas"][nomschema] = os.path.join(rep, nomschema + ".xml")
 
 
