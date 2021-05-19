@@ -8,12 +8,20 @@ import os
 from collections import namedtuple
 from importlib import import_module
 
+printtime = False
+if printtime:
+    import time
+
+    t1 = time.time()
+
 
 def loadmodules():
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
-    geomdef = namedtuple("geomdef", ("writer", "converter"))
+    geomdef = namedtuple("geomdef", ("writer", "converter", "initer"))
     geomlist = dict()
+    if printtime:
+        t2 = t1
     for fich_module in os.listdir(os.path.dirname(__file__)):
         if fich_module.startswith("format_"):
             module = "." + os.path.splitext(fich_module)[0]
@@ -27,7 +35,9 @@ def loadmodules():
 
             except ImportError as err:
                 print("module", module, "non disponible", err)
-
+            if printtime:
+                print("     ", module, time.time() - t2)
+                t2 = time.time()
     return geomlist
 
 

@@ -117,4 +117,4 @@ def geom_from_tmp(obj):
     return geom_v
 
 
-GEOMDEF = {"#tmp": (ecrire_geometrie_tmp, geom_from_tmp)}
+GEOMDEF = {"#tmp": (ecrire_geometrie_tmp, geom_from_tmp, None)}

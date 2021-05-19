@@ -8,7 +8,7 @@ import os
 from collections import namedtuple
 import importlib
 
-printtime = True
+printtime = False
 if printtime:
     import time
 

@@ -22,11 +22,6 @@ import tempfile
 import time
 from . import base_oraclespatial as ora
 
-# import base_oraclespatial as ora
-
-# from pyetl.moteur.fonctions.parallel import get_pool, get_slot, wait_end
-# from ..xml import XmlWriter
-
 
 class ElyConnect(ora.OrwConnect):
     """connecteur de la base de donnees oracle"""
@@ -175,7 +170,6 @@ class ElyConnect(ora.OrwConnect):
 
     def singlerunner(self, helper, xml, nom, classes):
         """lance les exports ou les imports a partir du fichier xml"""
-        # print ('xml import', '\n'.join(xml))
         with tempfile.TemporaryDirectory() as tmpdir:
             paramfile = os.path.join(str(tmpdir), "param_FEA.xml")
             outfile = os.path.join(str(tmpdir), nom + "_out_FEA.txt")
@@ -194,7 +188,7 @@ class ElyConnect(ora.OrwConnect):
         logobject = os.path.join(logdir, "log_import.txt")
         rejectdir = os.path.join(logdir, "erreurs")
         os.makedirs(rejectdir, exist_ok=True)
-        print("generation import ", file, logdir, rejectdir)
+        print("generation import", file, logdir, rejectdir)
         loadxml = [
             "<Fea2OraConfig>",
             '<oraCnx cnx="'
@@ -1003,8 +997,6 @@ class ElyConnect(ora.OrwConnect):
             )
             attkey = "G" + str(n)
             self.attributs[attkey] = attdef
-
-    # import time
 
     def constructeur(self, schema, table, attributs):
         """constructeur de requetes de lecture de tables de donnees"""

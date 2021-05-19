@@ -25,13 +25,18 @@ import os
 # import re
 import subprocess
 import re
-import logging
 from collections import namedtuple
 
-# import psycopg2
+
+#
 from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
+
+
+def importer():
+    global psycopg2
+    import psycopg2
 
 
 TYPES_A = {
@@ -229,7 +234,7 @@ class PgrConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        import psycopg2
+        importer()
 
         try:
             self.connect()

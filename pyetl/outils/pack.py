@@ -93,6 +93,17 @@ def commandlist(mapper):
         print("writers", nom, desc.module)
 
 
+def cache(mapper):
+    """genere un cache dans les traitements"""
+    place = os.path.join(os.path.dirname(__file__), "..", "moteur", "fonctions")
+    fich1 = os.path.join(place, "cache_commandes.csv")
+    with open(fich1, "w") as f:
+        for nommodule in sorted(mapper.modules):
+            if mapper.modules[nommodule].commandes:
+                for nom in sorted(mapper.modules[nommodule].commandes):
+                    f.write(nom + ";" + nommodule + "\n")
+
+
 def zipall(orig=start, nv=""):
     name = "mapper" + nv + ".zip"
     with zipfile.ZipFile(name, "w", compression=zipfile.ZIP_DEFLATED) as zip:

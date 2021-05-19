@@ -469,7 +469,19 @@ def fschema_change_schema(regle, obj):
         schemaclasseold.schema.supp_classe(schemaclasseold.identclasse)
 
 
-def f_schema_nochange(regle, obj):
+def fschema_change_classe(_, obj):
+    """changement de classe """
+
+    schema2 = obj.schema.schema
+    ident = obj.ident
+    schema_classe = schema2.get_classe(
+        ident, cree=True, modele=obj.schema, filiation=True
+    )
+
+    obj.setschema(schema_classe)
+
+
+def fschema_nochange(regle, obj):
     """ inhibe les changements de schema si non utiles """
     regle.changeschema = None
 

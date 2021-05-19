@@ -15,7 +15,6 @@ if printtime:
     t1 = time.time()
     print("start_gdal")
 
-# from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from ..fichiers.format_gdalio import formatte_entree
 
 if printtime:
@@ -34,6 +33,7 @@ if printtime:
 
 
 def importer():
+    global fiona, from_epsg
     import fiona
     from fiona.crs import from_epsg
 
@@ -44,7 +44,6 @@ class GdalConnect(DbConnect):
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
-        # import fiona
 
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         importer()

@@ -16,14 +16,17 @@ il est necessaire de positionner les parametres suivant:
 from copy import Error
 import sys
 
-# import requests
-
-# from xml.etree.ElementTree import ParseError
-# import xml.etree.cElementTree as ET
-
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
+
+
+def importer():
+    global ET, requests, ParseError
+    import xml.etree.cElementTree as ET
+    from xml.etree.ElementTree import ParseError
+    import requests
+
 
 TYPES_A = {
     "T": "T",
@@ -81,8 +84,7 @@ class WfsConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        import xml.etree.cElementTree as ET
-        import requests
+        importer()
 
         self.types_base.update(TYPES_A)
         self.type_base = "wfs"

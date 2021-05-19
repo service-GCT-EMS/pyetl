@@ -26,6 +26,7 @@ if printtime:
 
 
 def importer():
+    global fiona, from_epsg
     import fiona
     from fiona.crs import from_epsg
 

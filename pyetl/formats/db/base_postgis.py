@@ -18,9 +18,6 @@ il est necessaire de positionner les parametres suivant:
 
 
 """
-# import re
-# from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
-import logging
 from .base_postgres import PgrConnect
 from .postgres_gensql import PgrGenSql
 

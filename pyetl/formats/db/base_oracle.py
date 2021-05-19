@@ -16,7 +16,6 @@ il est necessaire de positionner les parametres suivant:
 """
 import os
 
-
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 # from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
 
@@ -25,6 +24,12 @@ os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
+
+
+def importer():
+    global cx_Oracle
+    import cx_Oracle
+
 
 TYPES_A = {
     "VARCHAR": "T",
@@ -62,8 +67,7 @@ class OraConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        import cx_Oracle
-
+        importer()
         self.oracle_env()
         self.connect()
         #        self.errdef = errdef

@@ -10,17 +10,23 @@ import os
 import io
 import time
 import re
-from xml.etree.ElementTree import ParseError, XML
-import xml.etree.cElementTree as ET
+
+
+def importer():
+    global ET, ParseError
+    from xml.etree.ElementTree import ParseError
+    import xml.etree.cElementTree as ET
+
 
 # from lxml import etree as ET
-from jinja2 import FileSystemLoader, Environment
 
 LOGGER = logging.getLogger(__name__)
 
 
 def h_xmlextract(regle):
     """extraction d'element xml"""
+    importer()
+
     regle.cadre = regle.params.cmp2.val
     regle.recherche = regle.params.cmp1.val
     regle.partiel = None
@@ -322,6 +328,8 @@ def f_xmlsave(regle, obj):
 
 def load_templates(regle, templatedef):
     """precharge les templates"""
+    from jinja2 import FileSystemLoader, Environment
+
     if os.path.isdir(templatedef):
         templatedir = templatedef
         templatename = ""

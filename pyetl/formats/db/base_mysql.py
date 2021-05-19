@@ -28,6 +28,15 @@ from .database import DbConnect
 from .gensql import DbGenSql
 
 
+def importer():
+    global mysqlconnect, MysqlError, FieldType
+    from mysql.connector import (
+        connect as mysqlconnect,
+        Error as MysqlError,
+        FieldType,
+    )
+
+
 TYPES_A = {
     "char": "T",
     "varchar": "T",
@@ -79,11 +88,7 @@ class MysqlConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        from mysql.connector import (
-            connect as mysqlconnect,
-            Error as MysqlError,
-            FieldType,
-        )
+        importer()
 
         self.DBError = MysqlError
 

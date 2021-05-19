@@ -5,12 +5,18 @@ attributs et geometrie """
 import itertools
 from . import composants as C
 
-try:
-    from shapely import geometry as SG
-    from shapely import prepared as P
-except ImportError:
-    SG = None
-    P = None
+SG = -1
+P = -1
+
+
+def initsg():
+    global SG, P
+    try:
+        from shapely import geometry as SG
+        from shapely import prepared as P
+    except ImportError:
+        SG = None
+        P = None
 
 
 class Geometrie(object):
@@ -168,6 +174,8 @@ class Geometrie(object):
             self.sgeom = shape
             self.valide = False
         else:
+            if SG == -1:
+                initsg()
             self.sgeom = SG.shape(self) if SG else None
 
     def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
@@ -918,6 +926,8 @@ class Geometrie(object):
         """ retourne un format shapely de la geometrie"""
         # print("geom:",self)
         if not self.sgeom:
+            if SG == -1:
+                initsg()
             self.sgeom = SG.shape(self) if SG else None
         return self.sgeom
 
@@ -925,12 +935,16 @@ class Geometrie(object):
     def __shapelyprepared__(self):
         """stocke une geometrie pereparee de l'objet"""
         if not self.sgp:
+            if P == -1:
+                initsg()
             self.sgp = P.prep(self.__shapelygeom__) if P else None
         return self.sgp
 
     def shapesync(self):
         """recree la geometrie a partir d'un element shapely"""
         if not self.valide and self.sgeom:
+            if SG == -1:
+                initsg()
             self.from_geo_interface(SG.mapping(self.sgeom))
 
     @property

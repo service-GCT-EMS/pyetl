@@ -3,15 +3,9 @@
 """
 
 import os
-import re
-
-# import time
-# from numba import jit
 import logging
 
 from .fileio import FileWriter
-
-# import pyetl.schema as SC
 
 
 # formats geometriques ######

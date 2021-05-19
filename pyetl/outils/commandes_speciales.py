@@ -10,6 +10,7 @@ COMMANDES_SPECIALES = {
     "formattest",
     "pack",
     "commandlist",
+    "cache",
     "paramgroups",
 }
 
@@ -119,6 +120,11 @@ def commandes_speciales(mapper, commandes, args):
         from . import pack
 
         pack.commandlist(mapper)
+
+    elif commande == "cache":
+        from . import pack
+
+        pack.cache(mapper)
 
     elif commande == "paramgroups":
         """ affichage des groupes de parametres connus"""

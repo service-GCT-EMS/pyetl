@@ -502,7 +502,7 @@ def f_adquery(regle, obj):
         except TypeError as err:
             print("erreur adquery", err, regle.get_entree(obj))
             items = []
-        item = ""
+        item = None
         if items:
             if isinstance(items, list):
                 if len(items) == 1:
@@ -523,8 +523,8 @@ def f_adquery(regle, obj):
             item.dump()
             regle.setval_sortie(obj, "")
         else:
-            print("recup adquery", regle.a_recuperer[0])
-            val = getattr(item, regle.a_recuperer[0])
+            # print("recup adquery", regle.a_recuperer[0])
+            val = getattr(item, regle.a_recuperer[0]) if item else ""
             regle.setval_sortie(obj, val)
         return True
     # print("pas d'entree adquery", regle.get_entree(obj))
@@ -569,36 +569,3 @@ def f_listefich(regle, obj):
         traite_objet(nouveau, regle.branchements.brch["gen"])
         trouve = True
     return trouve
-
-
-def sel_isfile(selecteur, obj):
-    """#aide||teste si un fichier existe
-    #pattern1||=is:file;[A]||1
-    #pattern2||=is:file;C||1
-    #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
-    """
-    if selecteur.params.pattern == "2":
-        # print ('isfile',selecteur.params.vals.val,os.path.isfile(selecteur.params.vals.val))
-        return os.path.isfile(selecteur.params.vals.val)
-    else:
-        return (
-            os.path.isfile(obj.attributs.get(selecteur.params.vals.val))
-            if obj is not None
-            else None
-        )
-
-
-def sel_isdir(selecteur, obj):
-    """#aide||tesste si un fichier existe
-    #pattern1||=is:dir;[A]||1
-    #pattern2||=is:dir;C||1
-    #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
-    """
-    if selecteur.params.pattern == "2":
-        return os.path.isdir(selecteur.params.vals.val)
-    else:
-        return (
-            os.path.isdir(obj.attributs.get(selecteur.params.vals.val))
-            if obj is not None
-            else None
-        )

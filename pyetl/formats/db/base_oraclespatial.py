@@ -14,8 +14,7 @@ il est necessaire de positionner les parametres suivant:
 
 
 """
-# from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-# import cx_Oracle
+
 from .base_oracle import OraConnect, OraGenSql
 
 TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}

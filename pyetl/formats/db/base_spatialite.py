@@ -7,9 +7,10 @@ acces a la base de donnees
 """
 import sys
 import os
-import sqlite3
+
 from .database import DbConnect
 from .gensql import DbGenSql
+
 
 TYPES_A = {
     "T": "T",
@@ -58,6 +59,8 @@ class SqltConnect(DbConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
+        import sqlite3
+
         spatialite_path = os.path.join(
             __file__, "extensions/mod_spatialite-5.0.1-win-amd64"
         )

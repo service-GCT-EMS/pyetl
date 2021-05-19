@@ -6,11 +6,6 @@
 
 import re
 
-try:
-    from shapely import wkb, wkt
-except ImportError:
-    print("==========================attention shapely non disponible")
-    wkb = None
 
 # from numba import jit
 
@@ -376,6 +371,14 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
         return 0
 
 
+def init_ewkb():
+    try:
+        from shapely import wkb, wkt
+    except ImportError:
+        print("==========================attention shapely non disponible")
+        wkb = None
+
+
 def decode_ewkb(code):
     shapelygeom = wkb.loads(code)
 
@@ -487,8 +490,8 @@ def geom_from_geojson(obj, code=None):
 
 
 GEOMDEF = {
-    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt),
-    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb),
-    "#geojson": (ecrire_geom_geojson, geom_from_geojson),
-    None: (nowrite, noconversion),
+    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, None),
+    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewkb),
+    "#geojson": (ecrire_geom_geojson, geom_from_geojson, None),
+    None: (nowrite, noconversion, None),
 }

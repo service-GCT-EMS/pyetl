@@ -16,7 +16,7 @@ import io
 from types import MethodType
 
 # from functools import partial
-printtime = True
+printtime = False
 if printtime:
     import time
 
@@ -43,6 +43,9 @@ if printtime:
 
 from .interne.objet import Objet
 
+if printtime:
+    print("     objet      ", time.time() - t1)
+    t1 = time.time()
 #
 # geomdef = namedtuple("geomdef", ("writer", "converter"))
 #
@@ -74,6 +77,10 @@ for nom in DATABASES:
         DATABASES[nom] = tmp._replace(
             converter=GEOMDEF[tmp.geom].converter, geomwriter=GEOMDEF[tmp.geom].writer
         )
+
+if printtime:
+    print("     fin traitement formats  ", time.time() - t1)
+    t1 = time.time()
 
 
 def get_read_encoding(regle, nom_format):

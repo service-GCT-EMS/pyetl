@@ -15,11 +15,17 @@ commencent par traitement
 import os
 import re
 import importlib
+from itertools import chain
 
 
 # NOMS_MODULES = ['.traitement_alpha', '.traitement_geom', '.traitement_divers',
 #                '.traitement_schema', '.traitement_db']
 #
+printtime = False
+if printtime:
+    import time
+
+    t1 = time.time()
 
 
 class DefinitionAttribut(object):
@@ -214,6 +220,8 @@ class ModuleInfo(object):
         self.disponible = not self.initable
         self.fonction = fonction
         self.commandes = set()
+        self.selecteurs = set()
+        self.aux = set()
         self.help = ""
         self.titre = nom.split("_")[-1]
 
@@ -251,6 +259,7 @@ class FonctionTraitement(object):
         self.style = "N"
         # gestion des clefs secondaires :
         self.clef_sec = ""
+        self.subpatterns = set()
 
     #        if len(self.pattern.split(";")) > 1:
     #            self.clef_sec = pat[1] if len(pat) > 1 else ""
@@ -284,9 +293,10 @@ class FonctionTraitement(object):
             #            print("enregistrement",nom,clef_sec,priorite)
             tsubfonc.clef_sec = clef_sec
         pattern = tsubfonc.pattern
-        if pattern:
+        if pattern and pattern not in self.subpatterns:
             self.subfonctions.append(tsubfonc)
             tsubfonc.priorite = priorite
+            self.subpatterns.add(pattern)
         else:
             print("subfunction incompatible", description)
 
@@ -421,6 +431,7 @@ def reg_stockage(store, info_module, nom, fonction, description):
         fct.module = info_module
         #            print ('stockage fonction' ,fct.work,priorite)
         store[pattern[0]] = fct
+        info_module.aux.add(pattern[0])
 
 
 def reg_select(fonctions, info_module, nom, fonction, description_fonction):
@@ -452,6 +463,7 @@ def reg_select(fonctions, info_module, nom, fonction, description_fonction):
                 fct.module = info_module
                 fct.priorite = priorite
                 fonctions[clef] = fct
+                info_module.selecteurs.add(clef)
 
 
 def regwarnings(module, nom, store, storetype):
@@ -600,17 +612,43 @@ def complete_fonction(sbf, store):
     )
 
 
-def loadmodules():
+def moduleloader(modulename):
+    """charge un module"""
+    if printtime:
+        t2 = time.time()
+    try:
+        imported = importlib.import_module(modulename, package=__package__)
+    except ImportError as err:
+        print("module ", modulename, "non disponible:", err)
+        return None
+    if printtime:
+        print("     ", modulename, time.time() - t2)
+    return imported
+
+
+def loadmodules(module=None):
     """charge les modules et enregistre les fonctions"""
+    global COMMANDES, SELECTEURS, MODULES, store, prefixes
     modules = dict()
-    #    for module in NOMS_MODULES:
-    for fich_module in os.listdir(os.path.dirname(__file__)):
-        if fich_module.startswith("traitement"):
-            module = "." + os.path.splitext(fich_module)[0]
-            try:
-                modules[module] = importlib.import_module(module, package=__package__)
-            except ImportError as err:
-                print("module ", fich_module, "non disponible:", err)
+    commanddir = os.path.dirname(__file__)
+    if module is None:
+        cc = os.path.join(commanddir, "cache_commandes.csv")
+        if os.path.isfile(cc):
+            COMMANDES = dict((i[:-1].split(";") for i in open(cc, "r")))
+            loadmodules(module=".traitement_aux")
+            loadmodules(module=".traitement_selecteurs")
+            return
+        for fich_module in os.listdir(commanddir):
+            if fich_module.startswith("traitement"):
+                module = "." + os.path.splitext(fich_module)[0]
+                imported = moduleloader(module)
+                if imported:
+                    modules[module] = moduleloader(module)
+    else:
+        print("loadmodules", module)
+        imported = moduleloader(module)
+        if imported:
+            modules[module] = moduleloader(module)
 
     simple_prefix = {
         "h": "helper fonction",
@@ -618,33 +656,37 @@ def loadmodules():
         "selh": "helper selecteur",
         "fschema": "schemas",
     }
-    prefixes = {"f", "s", "sel", "selh", "fschema", "h", "sh"}
 
-    store = dict()
-    for i in prefixes:
-        store[i] = dict()
-
-    infomodules = dict()
     for nom in modules:
         infomodule = register(nom, modules[nom], store, prefixes, simple_prefix)
-        infomodules[nom] = infomodule
+        MODULES[nom] = infomodule
 
-    commandes = dict(store["f"])
-    selecteurs = dict(store["sel"])
+    COMMANDES.update(store["f"])
+    SELECTEURS.update(store["sel"])
     #    print(" selecteurs lus ",selecteurs.keys())
-    for i in sorted(commandes):
-        fct = commandes[i]
+    for i in sorted(COMMANDES):
+        fct = COMMANDES[i]
+        if isinstance(fct, str):
+            continue
         # complete_fonction(fct, store)
         for sbf in fct.subfonctions:
             complete_fonction(sbf, store)
         fct.subfonctions = sorted(fct.subfonctions, key=lambda i: i.priorite)
 
-    for i in selecteurs:
-        sel = selecteurs[i]
+    for i in SELECTEURS:
+        sel = SELECTEURS[i]
         set_helper(sel, store, "selh")
     #        print (" enregistrement selecteurs",sel.nom,sel.helper)
 
-    return commandes, selecteurs, infomodules
+    return
 
 
-COMMANDES, SELECTEURS, MODULES = loadmodules()
+COMMANDES = dict()
+SELECTEURS = dict()
+MODULES = dict()
+store = dict()
+prefixes = {"f", "s", "sel", "selh", "fschema", "h", "sh"}
+for i in prefixes:
+    store[i] = dict()
+
+loadmodules()

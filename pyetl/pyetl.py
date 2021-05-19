@@ -12,15 +12,14 @@ import re
 
 import itertools
 from queue import Empty
-
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
-from .outils.commandes_speciales import commandes_speciales, is_special
+from .outils.commandes_speciales import is_special, commandes_speciales
 from .outils import gestion_logs as L
 
 if printtime:
     print("globales", time.time() - t1)
     t1 = time.time()
-from .formats.generic_io import Reader, Output, READERS, WRITERS
+from .formats.generic_io import READERS, WRITERS, Reader, Output
 
 if printtime:
     print("formats    ", time.time() - t1)
@@ -41,7 +40,7 @@ from .moteur.interpreteur_csv import (
 from .moteur.regles import RegleTraitement
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, MacroStore, Context
-from .moteur.fonctions import COMMANDES, SELECTEURS, MODULES
+from .moteur.fonctions import COMMANDES, SELECTEURS, MODULES, loadmodules
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
 
@@ -138,6 +137,7 @@ class Pyetl(object):
     commandes = COMMANDES
     selecteurs = SELECTEURS
     modules = MODULES
+
     sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
     reconfig = reinterprete_regle
     formats_connus_lecture = READERS
@@ -231,6 +231,13 @@ class Pyetl(object):
 
         self._set_streammode()
         self.done = False
+
+    def getcommande(self, commande):
+        fonc = self.commandes.get(commande)
+        if isinstance(fonc, str):
+            loadmodules(fonc)
+            fonc = self.commandes.get(commande)
+        return fonc
 
     def _relpath(self, path):
         """cree un chemin relatif par rapport au fichier de programme"""

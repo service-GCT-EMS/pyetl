@@ -30,8 +30,9 @@ def retest(mapper):
     #    commande_test = next(iter(mapper.commandes.values()))
     erreurs = 0
     commande_test = None
-    for commande_test in mapper.commandes.values():
+    for commande_test in mapper.commandes:
         break
+    commande_test = mapper.getcommande(commande_test)
     relist = commande_test.subfonctions[0].definition["entree"].relist
     nbtests = 0
     for i in relist:
@@ -201,9 +202,10 @@ def fonctest(mapper, nom=None, debug=0):
     invalides = set()
     realises = set()
     for fonc_a_tester in sorted(mapper.commandes):
-        fonc = mapper.commandes[fonc_a_tester]
+        fonc = mapper.getcommande(fonc_a_tester)
+
         mapper.setvar("test_courant", fonc_a_tester)
-        # print ('test: ', fonc_a_tester)
+        print("test: ", fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
         # teslist = dict()

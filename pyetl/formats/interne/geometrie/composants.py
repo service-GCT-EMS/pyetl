@@ -48,56 +48,6 @@ def cercle_3pts(pt1, pt2, pt3):
     return pcentre, rayon
 
 
-# class Point(object):
-#     """# definition d'un point (oriente)"""
-
-#     def __init__(self, coords, angle=None, dim=2):
-#         if dim > 3:
-#             dim = 3
-#         self.coords = [list(coords)[:dim]] if coords is not None else []
-#         self.angle = angle
-#         self.dimension = dim
-#         self.type = "1"
-#         self.courbe = 0
-#         self.longueur = 0
-#         self.npt = 1
-
-#     @property
-#     def __json_if__(self):
-#         return ",".join(map(str, self.coords[: self.dimension]))
-
-#     @property
-#     def __list_if__(self):
-#         return [" ".join(map(str, self.coords[: self.dimension]))]
-
-#     @property
-#     def __ewkt__(self):
-#         return "(" + " ".join(map(str, self.coords[: self.dimension])) + ")"
-
-#     def setz(self, val_z):
-#         """ force le Z """
-#         try:
-#             self.coords[0][2] = val_z
-#         except IndexError:
-#             self.coords[0].append(val_z)
-#         self.dimension = 3
-
-#     def set_2d(self):
-#         """cache le z"""
-#         self.dimension = 2
-
-#     #    def coordlist(self):
-#     #        return iter([self.coords])
-
-#     def convert(self, fonction):
-#         self.coords = fonction(self.coords)
-
-
-#     @property
-#     def fold(self):
-#         return(tuple(self.coords),self.angle,self.longueur)
-
-
 class Section(object):
     """# definition d'une section
     - la section est l'element fondamental d une geometrie"""
@@ -424,12 +374,6 @@ class Ligne(object):
         for i in self.sections:
             i.inverse()
 
-    # def setz(self, val_z):
-    #     """force le z pour la ligne"""
-    #     self.dimension = 3
-    #     for i in self.sections:
-    #         i.set3d()
-
     def set_2d(self):
         """cache le z pour la ligne"""
         self.dimension = 2
@@ -511,11 +455,6 @@ class Ligne(object):
         #            self.l+ = i.longueur()
         return long
 
-    #    def coordlist(self):
-    #        '''iterateur sur les coordonnees'''
-    #        #return (x.coords for x in self.sections)
-    #        return itertools.chain(*[i.coordlist() for i in self.sections])
-    #
     @property
     def coords(self):
         """iterateur sur les coordonnees"""
@@ -589,33 +528,3 @@ class Polygone(object):
         if len(self.lignes) > 1:
             base -= sum((abs(i.aire_orientee()) for i in self.lignes[1:]))
         return base
-
-
-#
-#    @property
-#    def longueur(self):
-#        '''calcule la longueur et la stocke'''
-#        long = sum([i.longueur for i in self.lignes if i])
-#        return long
-#
-#    @property
-#    def coords(self):
-#        '''iterateur sur les coordonees'''
-#        return itertools.chain(*[i.coords for i in self.lignes])
-#
-##    def coordlist(self):
-##        '''iterateur sur les coordonees'''
-##        return itertools.chain(*[i.coordlist() for i in self.lignes])
-#
-#
-#    def emprise(self):
-#        '''emprise du polygone'''
-#        liste_coord = [i for i in self.coords]
-#        if liste_coord:
-#            xmin = min([i[0] for i in liste_coord])
-#            xmax = max([i[0] for i in liste_coord])
-#            ymin = min([i[1] for i in liste_coord])
-#            ymax = max([i[1] for i in liste_coord])
-#        else: xmin, ymin, xmax, ymax = 0, 0, 0, 0
-#        return (xmin, ymin, xmax, ymax)
-#

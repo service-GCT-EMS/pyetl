@@ -7,7 +7,7 @@ fonctions de manipulation de geometries shapely
 """
 # import re
 import math as M
-from shapely import geometry as SG
+
 
 from .traitement_geom import setschemainfo
 
@@ -39,6 +39,9 @@ def f_rectangle_oriente(regle, obj):
 
 def h_angle(regle):
     """preparation angle"""
+    global SG
+    from shapely import geometry as SG
+
     if regle.elements["cmp1"].group(0):
         tmp = regle.elements["cmp1"].group(0).split(":")
         regle.ip1 = int(tmp[0])
@@ -157,12 +160,12 @@ def optimise_buffer_aire(geom, regle, largeur):
 
 def f_buffer(regle, obj):
     """#aide||calcul d'un buffer
-#parametres1||largeur buffer;attribut contenant la largeur;buffer
-#parametres2||buffer;rapport de surface
-  #variables||resolution:16,cap_style:1,join_style:1,mitre_limit:5
-   #pattern1||?A;?N;?A;buffer;?C;
-      #test1||obj;point||^;1;;buffer;;||^X;;;aire||^X;;X;round;||atn;X;3
-      #test2||obj;poly||^;1;;buffer;2;||^X;;;aire;||^X;;X;round;||atn;X;2
+    #parametres1||largeur buffer;attribut contenant la largeur;buffer
+    #parametres2||buffer;rapport de surface
+      #variables||resolution:16,cap_style:1,join_style:1,mitre_limit:5
+       #pattern1||?A;?N;?A;buffer;?C;
+          #test1||obj;point||^;1;;buffer;;||^X;;;aire||^X;;X;round;||atn;X;3
+          #test2||obj;poly||^;1;;buffer;2;||^X;;;aire;||^X;;X;round;||atn;X;2
     """
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
@@ -211,11 +214,11 @@ def h_ingeom(regle):
 
 def f_ingeom(regle, obj):
     """#aide||intersection geometrique par reapport a une couche stockee
-    #aide_spec1||l 'objet contenu recupere une liste d attributs de l objet contenant
-   #parametres1||attributs recuperes;valeurs recuperees;attributs contenant;;;nom memoire
-      #pattern1||?L;?LC;?L;geoselect;=in;C
-        !#test||obj;poly||^;1;;buffer;;||;;;;;;;tmpstore||atv;X;1
-        """
+     #aide_spec1||l 'objet contenu recupere une liste d attributs de l objet contenant
+    #parametres1||attributs recuperes;valeurs recuperees;attributs contenant;;;nom memoire
+       #pattern1||?L;?LC;?L;geoselect;=in;C
+         !#test||obj;poly||^;1;;buffer;;||;;;;;;;tmpstore||atv;X;1
+    """
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
         if regle.multiple:

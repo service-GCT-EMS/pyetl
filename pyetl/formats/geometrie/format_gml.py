@@ -165,4 +165,7 @@ def geom_from_osm(obj):
     return True
 
 
-GEOMDEF = {"#gml": (ecrire_geometrie_gml, geom_from_gml), "#osm": (None, geom_from_osm)}
+GEOMDEF = {
+    "#gml": (ecrire_geometrie_gml, geom_from_gml, None),
+    "#osm": (None, geom_from_osm, None),
+}

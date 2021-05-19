@@ -14,7 +14,8 @@ import traceback
 import logging
 import glob
 import codecs
-import zipfile
+
+# import zipfile
 import typing as T
 
 from pyetl.formats.generic_io import READERS

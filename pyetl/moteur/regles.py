@@ -9,6 +9,8 @@ import os
 import logging
 from itertools import zip_longest, count
 from io import StringIO
+import string
+
 
 # from collections import namedtuple
 import pyetl.formats.format_temporaire as T
@@ -540,7 +542,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def identifie_operation(self):
         """ identifie la fonction a appliquer et recupere les parametres """
-        fonction = self.stock_param.commandes.get(self.mode)
+        fonction = self.stock_param.getcommande(self.mode)
         # print ('detecte commande',regle.mode, regle.ligne, fonction)
         #        printpattern (fonction)
         #        definitions=[i.definition for i in fonction.subfonctions.values()]
@@ -548,6 +550,7 @@ class RegleTraitement(object):  # regle de mapping
             self.afficher_erreurs(fonction, "fonction inconnue")
             # raise SyntaxError ('fonction inconnue'+ regle.mode)
             return False, None
+
         valide = False
         fonc = None
         erreurs = []

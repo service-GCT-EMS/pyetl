@@ -8,17 +8,28 @@ fonctions de chargement web up/download http et ftp + acces web services
 import logging
 import os
 import io
-import requests
-import ftplib
 import csv
 import json
 
-try:
-    import pysftp
 
-    SFTP = True
-except ImportError:
-    SFTP = False
+def importrequest():
+    """import requests """
+    global RQ
+    import requests as RQ
+
+
+def importftp():
+    """import ftp"""
+    global SFTP, FTP
+    import ftplib as FTP
+
+    try:
+        import pysftp as SFTP
+
+    except ImportError:
+        SFTP = None
+
+
 import time
 
 LOGGER = logging.getLogger(__name__)
@@ -75,8 +86,8 @@ def geocode_traite_stock(regle, final=True):
 
     files = {"data": io.BytesIO(buffer)}
     try:
-        res = requests.post(geocodeur, files=files, data=data)
-    except requests.RequestException as prob:
+        res = RQ.post(geocodeur, files=files, data=data)
+    except RQ.RequestException as prob:
         print("url geocodeur defectueuse", geocodeur)
         print("exception levee", prob)
 
@@ -136,6 +147,8 @@ def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
     LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
     LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
+    importrequest()
+
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
     regle.nbstock = 0
@@ -172,6 +185,7 @@ def f_geocode(regle, obj):
 
 def h_ftpupload(regle):
     """prepare les parametres ftp"""
+    importftp()
     if regle.params.pattern == "1":
         regle.chargeur = True
     codeftp = regle.params.cmp1.val
@@ -199,7 +213,7 @@ def getftpinfo(regle, fichier):
         fichier = fichier[7:]
     else:
         print("service FTP inconnu", fichier, regle)
-        raise ftplib.error_perm
+        raise FTP.error_perm
     acces, elem = fichier.split("@", 1)
     user, passwd = acces.split(":", 1)
     serveur, fich = elem.split("/", 1)
@@ -215,24 +229,24 @@ def ftpconnect(regle):
         print("ouverture acces ", regle.getvar("acces_ftp"))
     try:
         if servertyp == "tls":
-            regle.ftp = ftplib.FTP_TLS(host=serveur, user=user, passwd=passwd)
+            regle.ftp = FTP.FTP_TLS(host=serveur, user=user, passwd=passwd)
             return True
         elif servertyp == "ftp":
-            regle.ftp = ftplib.FTP(host=serveur, user=user, passwd=passwd)
+            regle.ftp = FTP.FTP(host=serveur, user=user, passwd=passwd)
             return True
-    except ftplib.error_perm as err:
+    except FTP.error_perm as err:
         print("!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd)
         print("retour_erreur", err)
         return False
     if servertyp == "sftp" and SFTP:
         try:
-            cno = pysftp.CnOpts()
+            cno = SFTP.CnOpts()
             cno.hostkeys = None
-            regle.ftp = pysftp.Connection(
+            regle.ftp = SFTP.Connection(
                 serveur, username=user, password=passwd, cnopts=cno
             )
             return True
-        except pysftp.ConnectionException as err:
+        except SFTP.ConnectionException as err:
             print(
                 "!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd
             )
@@ -282,7 +296,7 @@ def f_ftpupload(regle, obj):
                 print("transfert effectue", filename, "->", destname)
         return True
 
-    except ftplib.all_errors as err:
+    except FTP.all_errors as err:
         print("!!!!! erreur ftp:", err)
         LOGGER.error(
             "ftp upload error: Houston, we have a %s", "major problem", exc_info=True
@@ -346,7 +360,7 @@ def f_ftpdownload(regle, obj):
             print("transfert effectue", filename, "->", localname)
         return True
 
-    except ftplib.all_errors as err:
+    except FTP.all_errors as err:
         print("!!!!! erreur ftp:", err)
         LOGGER.error(
             "ftp download error: Houston, we have a %s", "major problem", exc_info=True
@@ -360,25 +374,27 @@ def _to_dict(parms):
         return dict()
     if "'" in parms:
         # il y a des cotes
-        cot=False
-        groups=[]
-        group=""
+        cot = False
+        groups = []
+        group = ""
         for i in parms:
-            if i=="'":
-                cot=not cot
-            elif i=="," and not cot:
+            if i == "'":
+                cot = not cot
+            elif i == "," and not cot:
                 groups.append(group)
-                group=""
+                group = ""
             else:
-                group+=i
+                group += i
         if group:
             groups.append(group)
-        return dict([k.split(":", 1) for k in groups  ] )
+        return dict([k.split(":", 1) for k in groups])
     return dict([k.split(":", 1) for k in parms.split(",")])
 
 
 def h_httpdownload(regle):
     """prepare les parametres http"""
+    importrequest()
+
     regle.chargeur = True
     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
     if path:
@@ -393,29 +409,31 @@ def h_httpdownload(regle):
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
     # print("preparation parametres", regle.httparams, regle.httheaders)
-    regle.valide=True
+    regle.valide = True
     return True
 
-def _jsonsplitter(regle,obj,jsonbloc):
+
+def _jsonsplitter(regle, obj, jsonbloc):
     """decoupe une collection json en objets"""
-    struct=json.loads(jsonbloc)
+    struct = json.loads(jsonbloc)
     for elem in struct:
-        if isinstance(elem,dict):
-            obj2=obj.dupplique()
-            obj2.virtuel=False
-            for att,val in elem.items():
-                if isinstance(val,str):
-                    obj2.attributs[att]=val
-                elif isinstance(val,dict):
-                    hdict={i:json.dumps(j,separators=(',', ':')) for i,j in val.items()}
+        if isinstance(elem, dict):
+            obj2 = obj.dupplique()
+            obj2.virtuel = False
+            for att, val in elem.items():
+                if isinstance(val, str):
+                    obj2.attributs[att] = val
+                elif isinstance(val, dict):
+                    hdict = {
+                        i: json.dumps(j, separators=(",", ":")) for i, j in val.items()
+                    }
                     obj2.sethtext(att, dic=hdict)
-                elif isinstance(val,list):
-                    jlist=[json.dumps(j,separators=(',', ':')) for j in val]
-                    obj2.setmultiple(att,liste=jlist)
+                elif isinstance(val, list):
+                    jlist = [json.dumps(j, separators=(",", ":")) for j in val]
+                    obj2.setmultiple(att, liste=jlist)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         else:
-            print ("element incompatible", elem)
-
+            print("element incompatible", elem)
 
 
 def f_httpdownload(regle, obj):
@@ -432,7 +450,7 @@ def f_httpdownload(regle, obj):
     # if regle.httparams:
     retour = None
     try:
-        retour = requests.get(
+        retour = RQ.get(
             url,
             stream=regle.params.pattern == "1",
             params=regle.httparams,
@@ -442,8 +460,6 @@ def f_httpdownload(regle, obj):
         LOGGER.error("connection impossible %s", retour.url if retour else url)
         return False
 
-    # else:
-    #     retour = requests.get(url, stream=regle.params.pattern == "1")
     if regle.debug:
         print("telechargement", url, retour.url if retour else url)
         print("info", retour.headers)
@@ -455,15 +471,13 @@ def f_httpdownload(regle, obj):
             retour.encoding = regle.getvar("http_encoding")
 
         regle.setval_sortie(obj, retour.text)
-        # if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
-        #     regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
-        # print("retour requests", retour.encoding)
+
         return True
-    elif regle.params.pattern=="3":
+    elif regle.params.pattern == "3":
         regle.setval_sortie(obj, retour.content)
         return True
-    elif regle.params.pattern=="4":
-        _jsonsplitter(regle,obj,retour.text)
+    elif regle.params.pattern == "4":
+        _jsonsplitter(regle, obj, retour.text)
         return True
     if regle.fichier is None:
         fichier = os.path.join(regle.path, os.path.basename(url))
@@ -479,15 +493,15 @@ def f_httpdownload(regle, obj):
     if retour.status_code == 200:
         with open(fichier, "wb") as fich:
             for chunk in retour.iter_content(bloc):
-                nblocs+=1
+                nblocs += 1
                 recup += bloc  # ca c'est la deco avec des petits points ....
                 if recup > decile:
                     recup = recup - decile
                     nb_pts += 1
                     print(".", end="", flush=True)
                 fich.write(chunk)
-        if nblocs*bloc>taille:
-            taille=nblocs*bloc
+        if nblocs * bloc > taille:
+            taille = nblocs * bloc
         print(
             "    ",
             taille,
@@ -496,14 +510,14 @@ def f_httpdownload(regle, obj):
             "secondes",
         )
         return True
-    LOGGER.error("erreur requete %s", retour.url )
-    LOGGER.error("headers %s", str(retour.request.headers) )
+    LOGGER.error("erreur requete %s", retour.url)
+    LOGGER.error("headers %s", str(retour.request.headers))
     # print ("==========erreur requete==========")
     # print ("request url", retour.url)
     # print ("request headers", retour.request.headers)
-    LOGGER.error("retour statut %s", retour.status_code )
-    LOGGER.error("headers %s", str(retour.headers) )
-    LOGGER.error("text %s", str(retour.text) )
+    LOGGER.error("retour statut %s", retour.status_code)
+    LOGGER.error("headers %s", str(retour.headers))
+    LOGGER.error("text %s", str(retour.text))
 
     # print ("============retour================")
     # print ("statuscode", retour.status_code)
@@ -514,6 +528,8 @@ def f_httpdownload(regle, obj):
 
 def h_wfsdownload(regle):
     """prepare les parametres http"""
+    importrequest()
+
     regle.chargeur = True
     regle.path = None
     if regle.params.pattern == "1":
@@ -544,7 +560,7 @@ def f_wfsdownload(regle, obj):
     params = regle.wfsparams
     params["TYPENAME"] = regle.getval_entree(obj)
     print("wfs", url, params)
-    retour = requests.get(url, params, stream=regle.params.pattern == "1")
+    retour = RQ.get(url, params, stream=regle.params.pattern == "1")
     print("info", retour.headers)
     obj.sethtext("#wfs_header", dic=retour.headers)
     taille = int(retour.headers["Content-Length"])
