@@ -237,6 +237,7 @@ def decode_att(nom, type_att, valeur):
 
 def decode_config_xml(config_xml):
     config = dict()
+    full = False
     for conf in open(config_xml, "r").readlines():
         chaine = conf.strip()
         if chaine and chaine[0] != "!":
@@ -258,6 +259,10 @@ def decode_config_xml(config_xml):
             nom_att, type_att, valeur, typeval = decode_att(nom_att, type_att, valeur)
             valeurs = (nom_att, type_att, valeur, typeval)
             ident = (groupe, classe)
+            if "." in parent:
+                full = True
+            parent = tuple(parent.split("."))
+            clef = (parent, ident)
             if parent in config:
                 if item in config[parent]:
                     config[parent][item]["attributs"].append(valeurs)
@@ -279,8 +284,8 @@ def decode_config_xml(config_xml):
                         "attributs": [valeurs],
                     }
                 }
-    # print ('lecture config',config)
-    return config
+    print("lecture config", config)
+    return config, full
 
 
 def qgs_datasourceparser(text):
@@ -293,7 +298,7 @@ def qgs_datasourceparser(text):
 
 
 def basickvlistparser(text):
-    """decode les testes formae d'une suite clef=valeur"""
+    """decode les testes formes d'une suite clef=valeur"""
     tmp = text.split(" ")
     return [tuple(([i.split("=") + [""]])[:2]) for i in tmp if i]
 
@@ -312,6 +317,10 @@ def decode_elem(elem, attributs, hdict, config, fixe):
             elif val == "#qgis_datasource":
                 txt = "" if elem.text is None else elem.text
                 hdict[attr] = dict(qgs_datasourceparser(txt))
+            elif val.startswith("#qgis_datasource:"):
+                extrait = val.split(":")[1]
+                txt = "" if elem.text is None else elem.text
+                attributs[attr] = dict(qgs_datasourceparser(txt)).get(extrait)
             else:
                 attributs[attr] = fixe[val]
         elif typeval == "prop":
@@ -349,9 +358,13 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
     self.prepare_lecture_fichier(rep, chemin, fichier)
     # nomschema = os.path.splitext(fichier)[0]
     # schema = stock_param.init_schema(nomschema, "F")
-    fixe = {"#chemin": os.path.join(rep, chemin), "#fichier": fichier}
+    fixe = {
+        "#chemin": os.path.join(rep, chemin),
+        "#fichier": fichier,
+        "#nom": os.path.splitext(fichier)[0],
+    }
     if self.nb_lus == 0:  # initialisation lecteur
-        self.config = decode_config_xml(self.configfile)
+        self.config, self.full_tree = decode_config_xml(self.configfile)
         schema = stock_param.init_schema("initial", "F")
         initschema(schema, self.config)
         self.schema = schema
@@ -365,23 +378,29 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
     except ET.ParseError as err:
         print("xml mal forme", err)
         return
+    if self.full_tree:
+        pmap = {c: p for p in base.iter() for c in p}
+        gp = lambda elem: [elem.tag] + gp(pmap[elem]) if elem in pmap else [elem.tag]
+
     for elem in base.iter():
-        if elem.tag in self.config:  # parent
+        tagtuple = tuple(reversed(gp(elem))) if self.full_tree else (elem.tag,)
+        # print("elem2", tagtuple)
+        if tagtuple in self.config:  # parent
             fixe["#parent"] = elem.tag
             # print ('parsing',elem.tag,elem.text)
-            config = self.config[elem.tag]
+            config = self.config[tagtuple]
             # print ('detecte parent',elem.tag)
             attributs = dict()
             hdict = dict()
             conf = None
             for tag, conf in config.items():
                 # groupe,classe,select,vselect,config_att = conf
-                # print ('recherche', tag)
+                print("recherche", tag, conf)
                 select = conf["select"]
                 vselect = conf["vselect"]
                 config_att = conf["attributs"]
                 for el2 in elem.iter(tag=tag):
-                    # print ('traitement',el2.tag,el2.text)
+                    print("traitement", el2.tag, el2.text)
                     if select and el2.get(select) != vselect:
                         continue
                     decode_elem(el2, attributs, hdict, config_att, fixe)
