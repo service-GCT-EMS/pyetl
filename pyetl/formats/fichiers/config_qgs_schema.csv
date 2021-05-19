@@ -1,0 +1,6 @@
+!parent;groupe;classe;element;prop;valeur;nom_attribut;type;valeur
+maplayer;schema;qgis_classe;datasource;;;schema;T;#nom
+maplayer;schema;qgis_classe;datasource;;;classe;H;#qgis_datasource:layername
+maplayer;schema;qgis_classe;layername;;;alias;T;#text
+maplayer;schema;qgis_classe;field;name;*;attribut;T;#text
+field;schema;qgis_classe;editWidget;type;valuemap;enum;T;#attribut
