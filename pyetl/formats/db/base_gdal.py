@@ -7,12 +7,35 @@ acces gdal en mode bas de donnees
 """
 import sys
 import os
-import fiona
+
+printtime = False
+if printtime:
+    import time
+
+    t1 = time.time()
+    print("start_gdal")
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from ..fichiers.format_gdalio import formatte_entree
+
+if printtime:
+    print(" format gdalio      ", time.time() - t1)
+    t1 = time.time()
 from .database import DbConnect
+
+if printtime:
+    print(" dbconnect      ", time.time() - t1)
+    t1 = time.time()
 from .gensql import DbGenSql
+
+if printtime:
+    print(" gensql      ", time.time() - t1)
+    t1 = time.time()
+
+
+def importer():
+    import fiona
+    from fiona.crs import from_epsg
 
 
 class GdalConnect(DbConnect):
@@ -21,7 +44,10 @@ class GdalConnect(DbConnect):
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
+        # import fiona
+
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        importer()
         self.type_base = "gpkg"
         self.connect()
         self.geographique = True

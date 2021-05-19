@@ -16,9 +16,9 @@ il est necessaire de positionner les parametres suivant:
 from copy import Error
 
 # version patchee de owslib pour eviter un crash sur data.strasbourg.eu
-from owslib.wfs import WebFeatureService
-import owslib.fes as F
-from owslib.etree import etree
+# from owslib.wfs import WebFeatureService
+# import owslib.fes as F
+# from owslib.etree import etree
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, Cursinfo
@@ -83,6 +83,10 @@ class WfsConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        from owslib.wfs import WebFeatureService
+        import owslib.fes as F
+        from owslib.etree import etree
+
         self.types_base.update(TYPES_A)
         self.type_base = "wfs"
         self.tablelist = []

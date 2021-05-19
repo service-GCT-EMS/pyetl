@@ -15,9 +15,11 @@ il est necessaire de positionner les parametres suivant:
 """
 from copy import Error
 import sys
-import requests
-from xml.etree.ElementTree import ParseError
-import xml.etree.cElementTree as ET
+
+# import requests
+
+# from xml.etree.ElementTree import ParseError
+# import xml.etree.cElementTree as ET
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
@@ -79,6 +81,9 @@ class WfsConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        import xml.etree.cElementTree as ET
+        import requests
+
         self.types_base.update(TYPES_A)
         self.type_base = "wfs"
         self.tablelist = []
@@ -105,7 +110,7 @@ class WfsConnect(DbConnect):
             )
 
         except Error as err:
-            self.params.logger.exception("erreur wfs",exc_info=err)
+            self.params.logger.exception("erreur wfs", exc_info=err)
             # print("erreur wfs", err)
             return False
         caps = retourcaps.text
@@ -142,8 +147,6 @@ class WfsConnect(DbConnect):
     @property
     def rowcount(self):
         return -1
-
-
 
     def get_attr_of_classe(self, schemaclasse):
         """recupere la description d une classe"""
@@ -236,12 +239,12 @@ class WfsConnect(DbConnect):
         nom = "inconnu"
         for elem in tree.iter(namespace + "element"):
             if elem.get("substitutionGroup") == "gml:_Feature":
-                nom = elem.get("name","")
+                nom = elem.get("name", "")
                 groupe = elem.get("type").split(":")[0]
                 continue
             else:
-                xmltype = elem.get("type","")
-                nom_att = elem.get("name","")
+                xmltype = elem.get("type", "")
+                nom_att = elem.get("name", "")
                 pyetltype = ALLTYPES.get(xmltype)
                 # if nom_att == "geo_shape":
                 #     print("wfs: stocke geom", nom, xmltype, pyetltype)
@@ -374,7 +377,7 @@ class WfsConnect(DbConnect):
         if maxi:
             reqparams["maxFeatures"] = str(maxi)
         if attribut:
-            reqparams["propertyName"]= str(valeur)
+            reqparams["propertyName"] = str(valeur)
         self.attlist = attlist
 
         has_geom = schema.info["type_geom"] != "0"

@@ -20,7 +20,6 @@ import os
 import subprocess
 import tempfile
 import time
-import logging
 from . import base_oraclespatial as ora
 
 # import base_oraclespatial as ora

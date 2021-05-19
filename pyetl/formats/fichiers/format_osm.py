@@ -4,8 +4,10 @@
 
 import os
 import time
-import xml.etree.cElementTree as ET
-import esy.osm.pbf as PBF
+
+# import xml.etree.cElementTree as ET
+
+# import esy.osm.pbf as PBF
 from collections import defaultdict
 
 # print ('osm start')
@@ -519,6 +521,8 @@ def init_lecteur(self, fichier):
 def lire_objets_osm(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier xml osm"""
     init_lecteur(self, fichier)
+    import xml.etree.cElementTree as ET
+
     stock_param = self.regle_ref.stock_param
     dd0 = time.time()
     nlignes = 0
@@ -701,6 +705,8 @@ def classif_elem_pbf(reader, elem, points, lignes, objets, used):
 
 def lire_objets_pbf(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier xml osm"""
+    import esy.osm.pbf as PBF
+
     init_lecteur(self, fichier)
     stock_param = self.regle_ref.stock_param
     dd0 = time.time()

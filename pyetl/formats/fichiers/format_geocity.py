@@ -323,6 +323,7 @@ def _cotation(iter_gy, obj):
 
 def lire_objets_geocity(self, rep, chemin, fichier):
     """boucle de lecture principale -> attention methode de reader"""
+
     n_obj = 0
     # ouv = None
     regle = self.regle_start

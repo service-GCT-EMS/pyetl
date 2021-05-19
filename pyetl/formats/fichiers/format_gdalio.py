@@ -3,13 +3,31 @@
 
 import os
 
-# import time
-from collections import defaultdict, OrderedDict
+printtime = False
+if printtime:
+    import time
 
+    t1 = time.time()
+    print("start gdalio")
+from collections import defaultdict, OrderedDict
 import itertools
-import fiona
-from fiona.crs import from_epsg
+
+# import fiona
+# from fiona.crs import from_epsg
+
+if printtime:
+    print("    fiona      ", time.time() - t1)
+    t1 = time.time()
 from .fileio import FileWriter
+
+if printtime:
+    print("    filewriter ", time.time() - t1)
+    t1 = time.time()
+
+
+def importer():
+    import fiona
+    from fiona.crs import from_epsg
 
 
 def formatte_entree(type_orig):
@@ -184,6 +202,7 @@ def lire_objets(self, rep, chemin, fichier):
     # print("lecture gdal", (rep, chemin, fichier), self.schemaclasse)
     #    raise
     # ouv = None
+    importer()
     groupe, classe = self.prepare_lecture_fichier(rep, chemin, fichier)
 
     layers = fiona.listlayers(self.fichier)
@@ -222,6 +241,7 @@ class GdalWriter(FileWriter):
         regle=None,
     ):
         super().__init__(nom, schema=schema, regle=regle)
+        importer()
         self.converter = gdalconverter
         self.layer = ""
         self.transtable = None
@@ -497,5 +517,8 @@ WRITERS = {
     ),
 }
 
+if printtime:
+    print("     end ", time.time() - t1)
+    t1 = time.time()
 
 #########################################################################

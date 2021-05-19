@@ -9,6 +9,12 @@ import os
 from collections import namedtuple
 import importlib
 
+printtime = True
+if printtime:
+    import time
+
+    t1 = time.time()
+
 DBDEF = namedtuple(
     "database",
     (
@@ -29,7 +35,8 @@ def loadmodules():
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
     databases = dict()
-
+    if printtime:
+        t2 = t1
     for fich_module in os.listdir(os.path.dirname(__file__)):
         if fich_module.startswith("base_"):
             module = "." + os.path.splitext(fich_module)[0]
@@ -43,6 +50,9 @@ def loadmodules():
                     # a ce stade les fonctions ne sont pas connues
             except (ImportError, AttributeError) as err:
                 print("module ", module[1:], "non disponible", err)
+            if printtime:
+                print("     ", module, time.time() - t2)
+                t2 = time.time()
 
     return databases
 

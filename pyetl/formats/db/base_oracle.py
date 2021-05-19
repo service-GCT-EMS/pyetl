@@ -18,7 +18,7 @@ import os
 
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
+# from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
 
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -62,6 +62,8 @@ class OraConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        import cx_Oracle
+
         self.oracle_env()
         self.connect()
         #        self.errdef = errdef
@@ -74,7 +76,7 @@ class OraConnect(DbConnect):
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
         }
-        self.DBError = OraError
+        self.DBError = cx_Oracle.Error
 
     def oracle_env(self):
         """positionne les variables d'environnement pour le connecteur """
@@ -114,10 +116,10 @@ class OraConnect(DbConnect):
             # init_oracle_client(lib_dir=lib_oracle)
             # env = os.environ
             # env["ORACLE_HOME"]=lib_oracle
-            connection = oraconnect(self.user, self.passwd, self.serveur)
+            connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection
-        except OraError as err:
+        except self.DBError as err:
             self.params.logger.exception("erreur connection oracle", exc_info=err)
             # print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
 
@@ -353,7 +355,7 @@ class OraConnect(DbConnect):
         try:
             cur.execute(requete, data, attlist=attlist, regle=regle)
             return cur
-        except OraError as errs:
+        except self.DBError as errs:
             cursor = cur.cursor
             (error,) = errs.args
             self.params.logger.error("erreur requete sur %s", self.base)
@@ -399,7 +401,7 @@ class OraConnect(DbConnect):
                 try:
                     elem = cur.cursor.fetchone()
                 #                raise
-                except OraError as err:
+                except self.DBError as err:
                     self.params.logger.error("erreur requete sur %s", self.base)
                     self.params.logger.error(
                         "requete: %s (%s)", cursor.statement, str(data)

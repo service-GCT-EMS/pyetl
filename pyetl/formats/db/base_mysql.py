@@ -19,7 +19,7 @@ il est necessaire de positionner les parametres suivant:
 import os
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-from mysql.connector import connect as mysqlconnect, Error as MysqlError, FieldType
+# from mysql.connector import connect as mysqlconnect, Error as MysqlError, FieldType
 
 # from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
 
@@ -79,6 +79,12 @@ class MysqlConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        from mysql.connector import (
+            connect as mysqlconnect,
+            Error as MysqlError,
+            FieldType,
+        )
+
         self.DBError = MysqlError
 
         self.connect()

@@ -8,10 +8,18 @@ import os
 from collections import namedtuple
 import importlib
 
+printtime = True
+if printtime:
+    import time
+
+    t1 = time.time()
+
 
 def loadmodules():
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
+    if printtime:
+        t2 = t1
     writers = dict()
     readers = dict()
     rdef = namedtuple(
@@ -64,7 +72,9 @@ def loadmodules():
                     # print ('lecture  READERS',nom,desc,'->', readers[nom])
             except (ImportError, AttributeError) as err:
                 print("module ", module[1:], "non disponible", err)
-
+            if printtime:
+                print("     ", module, time.time() - t2)
+                t2 = time.time()
     return readers, writers
 
 

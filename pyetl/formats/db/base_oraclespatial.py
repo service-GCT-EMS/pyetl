@@ -15,7 +15,7 @@ il est necessaire de positionner les parametres suivant:
 
 """
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
-import cx_Oracle
+# import cx_Oracle
 from .base_oracle import OraConnect, OraGenSql
 
 TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}
@@ -28,6 +28,8 @@ class OrwConnect(OraConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        import cx_Oracle
+
         self.types_base.update(TYPES_A)
         self.accept_sql = "geo"
         self.type_base = "oracle_spatial"
@@ -106,9 +108,9 @@ class OrwConnect(OraConnect):
     @property
     def req_attributs(self):
         """recupere le schema complet avec tous ses champs
-            nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
-            defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
-            clef_primaire,clef_etrangere,cible_clef,parametres,taille,decimales"""
+        nomschema,nomtable,attribut,alias,type_attribut,graphique,multiple,
+        defaut,obligatoire,enum,dimension,num_attribut,index,uniq,
+        clef_primaire,clef_etrangere,cible_clef,parametres,taille,decimales"""
         requete = """
         SELECT DISTINCT   col.owner as nomschema,
                 col.table_name as nomtable,
@@ -242,9 +244,11 @@ class OrwConnect(OraConnect):
         super().connect()
         if not self.connection:
             raise StopIteration(3)
+
         def output_type_handler(cursor, name, default_type, size, precision, scale):
             if default_type == cx_Oracle.BLOB:
                 return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)
+
         self.connection.outputtypehandler = output_type_handler
 
 

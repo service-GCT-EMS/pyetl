@@ -3,7 +3,7 @@
 prise en charge des expressions regulieres"""
 import time
 
-printtime = False
+printtime = True
 if printtime:
     t1 = time.time()
     print("pyetl start import ")
@@ -19,14 +19,17 @@ from .outils import gestion_logs as L
 
 if printtime:
     print("globales", time.time() - t1)
+    t1 = time.time()
 from .formats.generic_io import Reader, Output, READERS, WRITERS
 
 if printtime:
-    print("formats", time.time() - t1)
+    print("formats    ", time.time() - t1)
+    t1 = time.time()
 from .formats.mdbaccess import dbaccess
 
 if printtime:
     print("databases", time.time() - t1)
+    t1 = time.time()
 
 from .formats.ressources import GestionSorties  # formats entree et sortie
 from .formats.interne.stats import Statstore  # , Stat, ExtStat
@@ -44,6 +47,7 @@ from .moteur.fonctions.traitement_crypt import paramdecrypter
 
 if printtime:
     print("commandes", time.time() - t1)
+    t1 = time.time()
 
 
 from .schema.schema_interne import init_schema  # schemas

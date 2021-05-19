@@ -16,9 +16,31 @@ import io
 from types import MethodType
 
 # from functools import partial
+printtime = True
+if printtime:
+    import time
+
+    t1 = time.time()
+
+
 from .db import DATABASES
+
+if printtime:
+    print("     databases ", time.time() - t1)
+    t1 = time.time()
+
 from .fichiers import READERS, WRITERS
+
+if printtime:
+    print("     fichiers  ", time.time() - t1)
+    t1 = time.time()
+
 from .geometrie import GEOMDEF
+
+if printtime:
+    print("     geom      ", time.time() - t1)
+    t1 = time.time()
+
 from .interne.objet import Objet
 
 #

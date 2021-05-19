@@ -7,14 +7,28 @@
     csv entree et sortie
     shape entree et sortie
 """
+printtime = False
+if printtime:
+    import time
 
+    t1 = time.time()
 
 import os
 
 # from numba import jit
 from unidecode import unidecode
-from openpyxl import load_workbook
+
+# from openpyxl import load_workbook
+
+if printtime:
+    print(" excel      ", time.time() - t1)
+    t1 = time.time()
+
 from .fileio import FileWriter
+
+if printtime:
+    print(" filewriter      ", time.time() - t1)
+    t1 = time.time()
 
 
 #########################################################################
@@ -103,6 +117,8 @@ def maybheader(ligne):
 
 def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
+    from openpyxl import load_workbook
+
     exn = lambda n: (exn(n // 26) if n > 26 else "") + chr(64 + n % 26)
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
     nom_schema, nom_groupe = getnoms(rep, chemin, fichier)

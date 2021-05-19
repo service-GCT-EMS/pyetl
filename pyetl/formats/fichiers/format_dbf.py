@@ -5,7 +5,8 @@
 
 
 import os
-from dbfread import DBF
+
+# from dbfread import DBF
 
 # import dbf
 # from numba import jit
@@ -21,6 +22,8 @@ def decode_entetes_dbf(reader, noms_attributs):
 
 def lire_objets_dbf(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier csv"""
+    from dbfread import DBF
+
     self.prepare_lecture_fichier(rep, chemin, fichier)
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     try:
@@ -38,6 +41,6 @@ def lire_objets_dbf(self, rep, chemin, fichier):
 
 
 #                  reader,geom,hasschema,auxfiles,initer
-READERS = {"dbf": (lire_objets_dbf, None, True, ('!','shp'), None,None)}
+READERS = {"dbf": (lire_objets_dbf, None, True, ("!", "shp"), None, None)}
 # READERS={}
 WRITERS = {}
