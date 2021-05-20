@@ -3,7 +3,7 @@
 prise en charge des expressions regulieres"""
 import time
 
-printtime = True
+printtime = False
 if printtime:
     t1 = time.time()
     print("pyetl start import ")
@@ -725,7 +725,7 @@ class Pyetl(object):
             print("definition parametres de site >" + str(clef) + "< introuvable")
             print("aide:groupes connus: ")
             print("\n".join([str(i) for i in sorted(self.site_params)]))
-            raise KeyError
+            # raise KeyError
         return False
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
@@ -960,7 +960,7 @@ class Pyetl(object):
 
     def get_converter(self, geomnatif):
         """ retourne le bon convertisseur de format geometrique"""
-        return getreader(geomnatif,"interne").converter
+        return getreader(geomnatif, "interne").converter
 
     def _finalise_sorties(self):
         """ vide les tuyeaux et renseigne les stats"""

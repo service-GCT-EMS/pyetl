@@ -7,7 +7,7 @@ gestion des entrees et sorties de schemas
 import os
 
 # import xml.etree.ElementTree as ET
-from pyetl.formats.db import DATABASES
+from pyetl.formats.generic_io import DATABASES, getdb
 
 from . import schema_interne as SCI
 
@@ -182,15 +182,15 @@ def ecrire_schema_sql(
         else:
             print("attention pas de dialecte natif", schema.nom)
             dialecte = "postgis"
-            gsql = DATABASES[dialecte].gensql()
+            gsql = getdb(dialecte).gensql()
     elif schema.dbsql and schema.dbsql.dialecte == dialecte:
         gsql = schema.dbsql
     elif dialecte in DATABASES:
-        gsql = DATABASES[dialecte].gensql()
+        gsql = getdb(dialecte).gensql()
     else:
         dialecte = "postgis"
         type_base = "basic"
-        gsql = DATABASES[dialecte].gensql()
+        gsql = getdb(dialecte).gensql()
     #    print('ecriture schema sql', schema.nom, gsql.dialecte, len(schema.classes))
     if gsql.stock_param is None:
         gsql.stock_param = stock_param

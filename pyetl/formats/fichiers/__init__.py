@@ -46,8 +46,6 @@ printtime = False
 if printtime:
     import time
 
-    t1 = time.time()
-
 
 def loadmodule(module):
     if printtime:
@@ -55,14 +53,14 @@ def loadmodule(module):
     try:
         format_def = importlib.import_module(module, package=__package__)
         for nom, desc in getattr(format_def, "WRITERS").items():
-            if nom in WRITERS:
-                print("attention : redefinition du format de sortie", nom)
+            if nom in WRITERS and not isinstance(WRITERS[nom], str):
+                print("attention : redefinition du format de sortie", nom, module)
             WRITERS[nom] = wdef(*desc, None, None, module)
             # a ce stade les fonctions ne sont pas connues
         for nom, desc in getattr(format_def, "READERS").items():
             # print("definition du format d'entree", nom, desc)
-            if nom in READERS:
-                print("attention : redefinition du format d'entree", nom)
+            if nom in READERS and not isinstance(READERS[nom], str):
+                print("attention : redefinition du format d'entree", nom, module)
             READERS[nom] = rdef(*desc, None, module)
             # print ('lecture  READERS',nom,desc,'->', readers[nom])
     except (ImportError, AttributeError) as err:
@@ -75,8 +73,6 @@ def loadformats(module=None):
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
     global READERS, WRITERS
-    if printtime:
-        t2 = t1
 
     formatdir = os.path.dirname(__file__)
     if module is None:
@@ -87,7 +83,7 @@ def loadformats(module=None):
             WRITERS = dict((i[:-1].split(";") for i in open(cw, "r")))
             return
         else:
-            for fich_module in os.listdir(os.path.dirname(__file__)):
+            for fich_module in os.listdir(formatdir):
                 if fich_module.startswith("format_"):
                     module = "." + os.path.splitext(fich_module)[0]
                     loadmodule(module)

@@ -9,7 +9,7 @@ import re
 import time
 import os
 import logging
-from .db import DATABASES
+from .generic_io import DATABASES, getdb
 from .interne.objet import Objet
 
 
@@ -56,7 +56,7 @@ def dbaccess(regle, codebase, type_base=None):
     #     "en memoire:",
     #     codebase in stock_param.dbconnect,
     # )
-    dbdef = DATABASES[type_base]
+    dbdef = getdb(type_base)
     if dbdef.svtyp == "file":
         # c'est une base fichier elle porte le nom du fichier et le serveur c'est le chemin
         # serveur = ""
@@ -68,7 +68,7 @@ def dbaccess(regle, codebase, type_base=None):
     user = regle.getvar("user_" + codebase, "")
     passwd = regle.getvar("passwd_" + codebase, "")
 
-    dbdef = DATABASES[type_base]
+    # dbdef = DATABASES[type_base]
     connection = dbdef.acces(
         serveur, base, user, passwd, system=systables, params=regle, code=codebase
     )

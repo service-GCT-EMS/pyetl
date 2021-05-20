@@ -23,7 +23,7 @@ if printtime:
     t1 = time.time()
 
 
-from .db import DATABASES
+from .db import DATABASES, loaddbmodules
 
 if printtime:
     print("     databases ", time.time() - t1)
@@ -77,17 +77,38 @@ def setgeom():
             READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
 
 
-for nom in DATABASES:
-    tmp = DATABASES[nom]
-    if tmp.geom:
-        DATABASES[nom] = tmp._replace(
-            converter=GEOMDEF[tmp.geom].converter, geomwriter=GEOMDEF[tmp.geom].writer
-        )
+def setdbgeom():
+    for nom in DATABASES:
+        tmp = DATABASES[nom]
+        if isinstance(tmp, str):
+            continue
+        if tmp.geom and not tmp.converter:
+            DATABASES[nom] = tmp._replace(
+                converter=GEOMDEF[tmp.geom].converter,
+                geomwriter=GEOMDEF[tmp.geom].writer,
+            )
+
+
 setgeom()
+setdbgeom()
 
 if printtime:
     print("     fin traitement formats  ", time.time() - t1)
     t1 = time.time()
+
+
+def getdb(nom, defaut="postgis"):
+    desc = DATABASES.get(nom)
+    if desc is None and defaut:
+        desc = DATABASES.get(defaut)
+    if isinstance(desc, str):
+        # print("chargement ", nom, desc)
+        loaddbmodules(desc)
+        setdbgeom()
+        desc = DATABASES.get(nom)
+        if isinstance(desc, str):
+            print("erreur chargement", nom, desc, DATABASES)
+    return desc
 
 
 def getreader(ext, defaut=None):
@@ -713,8 +734,8 @@ class Output(object):
             if dialecte == "":
                 dialecte = "natif"
             else:
-                dialecte = dialecte if dialecte in DATABASES else "sql"
-                self.writerparms["dialecte"] = DATABASES[dialecte]
+                # dialecte = dialecte if dialecte in DATABASES else "sql"
+                self.writerparms["dialecte"] = getdb(dialecte)
                 self.writerparms["base_dest"] = destination
                 self.writerparms["destination"] = fich
         else:

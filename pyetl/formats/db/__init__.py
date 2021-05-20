@@ -13,7 +13,6 @@ printtime = False
 if printtime:
     import time
 
-    t1 = time.time()
 
 DBDEF = namedtuple(
     "database",
@@ -31,32 +30,50 @@ DBDEF = namedtuple(
     ),
 )
 # ("acces", "gensql", "svtyp", "fileext", 'description')
-def loadmodules():
+
+
+def loaddb(module):
+    """charge un module"""
+    if printtime:
+        t2 = time.time()
+    try:
+        # print("chargement db --------------------", module)
+        format_def = importlib.import_module(module, package=__package__)
+        doc = format_def.__doc__
+        for nom, desc in getattr(format_def, "DBDEF").items():
+            if nom in DATABASES and not isinstance(DATABASES[nom], str):
+                print("attention : redefinition du format de base", nom)
+            DATABASES[nom] = DBDEF(*desc, None, None, doc, module)
+            # print("chargement db --------------", nom)
+            # a ce stade les fonctions ne sont pas connues
+    except (ImportError, AttributeError) as err:
+        print("module ", module[1:], "non disponible", err)
+    if printtime:
+        print("     ", module, time.time() - t2)
+        t2 = time.time()
+
+
+def loaddbmodules(module=None):
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
-    databases = dict()
-    if printtime:
-        t2 = t1
-    for fich_module in os.listdir(os.path.dirname(__file__)):
-        if fich_module.startswith("base_"):
-            module = "." + os.path.splitext(fich_module)[0]
-            try:
-                format_def = importlib.import_module(module, package=__package__)
-                doc = format_def.__doc__
-                for nom, desc in getattr(format_def, "DBDEF").items():
-                    if nom in databases:
-                        print("attention : redefinition du format de base", nom)
-                    databases[nom] = DBDEF(*desc, None, None, doc, module)
-                    # a ce stade les fonctions ne sont pas connues
-            except (ImportError, AttributeError) as err:
-                print("module ", module[1:], "non disponible", err)
-            if printtime:
-                print("     ", module, time.time() - t2)
-                t2 = time.time()
-
-    return databases
+    global DATABASES
+    formatdir = os.path.dirname(__file__)
+    if module is None:
+        cr = os.path.join(formatdir, "cache_databases.csv")
+        if os.path.isfile(cr):
+            DATABASES = dict((i[:-1].split(";") for i in open(cr, "r")))
+        else:
+            for fich_module in os.listdir(formatdir):
+                if fich_module.startswith("base_"):
+                    module = "." + os.path.splitext(fich_module)[0]
+                    loaddb(module)
+    else:
+        loaddb(module)
+    if "postgis" in DATABASES:
+        DATABASES["sql"] = DATABASES["postgis"]
+    return
 
 
-DATABASES = loadmodules()
-if "postgis" in DATABASES:
-    DATABASES["sql"] = DATABASES["postgis"]  # generique
+DATABASES = dict()
+loaddbmodules()
+# generique

@@ -1,0 +1,16 @@
+elyx;.base_elyx
+gpkg;.base_gdal
+mem_sqlite;.base_mem_sqlite
+ms_access;.base_msaccess
+ms_access_old;.base_msaccess
+mysql;.base_mysql
+oracle;.base_oracle
+oracle_spatial_ewkt;.base_oraclespatial
+postgis;.base_postgis
+postgres;.base_postgres
+sigli;.base_sigli
+spatialite;.base_spatialite
+sql;.base_postgis
+sqlite;.base_sqlite
+wfs;.base_wfs
+wfs2;.base_webservices

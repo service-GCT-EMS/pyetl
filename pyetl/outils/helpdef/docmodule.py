@@ -9,7 +9,7 @@ module d'aide
 """
 
 
-from pyetl.formats.db import DATABASES
+from pyetl.formats.generic_io import DATABASES, getdb
 
 
 def souligne(doc, signe):
@@ -89,7 +89,7 @@ def doc_pattern(pattern, description):
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
         if i.startswith("="):
-            j=(j or i[1:]) + " (mot_clef)"
+            j = (j or i[1:]) + " (mot_clef)"
         val = " :  ".join((i, j + (" (optionnel)" if "?" in i else "")))
         retour.append(indent(val, 1))
         # retour.append(indent(i, 2))
@@ -235,7 +235,7 @@ def doc_formats(mapper):
     for nombase in sorted(DATABASES):
         doc.append(nombase)
         souligne(doc, ".")
-        doc.append(DATABASES[nombase].doc)
+        doc.append(getdb(nombase).doc)
     doc.append("")
 
     return doc
