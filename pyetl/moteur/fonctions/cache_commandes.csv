@@ -35,6 +35,7 @@ dbupdate;.traitement_db
 dbwrite;.traitement_db
 runproc;.traitement_db
 runsql;.traitement_db
+attwriter;.traitement_divers
 compare;.traitement_divers
 compare2;.traitement_divers
 getkey;.traitement_divers
@@ -115,7 +116,6 @@ wfsload;.traitement_web
 abort;.traitement_workflow
 archive;.traitement_workflow
 attreader;.traitement_workflow
-attwriter;.traitement_workflow
 batch;.traitement_workflow
 bloc;.traitement_workflow
 boucle;.traitement_workflow

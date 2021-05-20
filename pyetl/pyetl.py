@@ -19,7 +19,7 @@ from .outils import gestion_logs as L
 if printtime:
     print("globales", time.time() - t1)
     t1 = time.time()
-from .formats.generic_io import READERS, WRITERS, Reader, Output
+from .formats.generic_io import READERS, WRITERS, Reader, Output, getreader
 
 if printtime:
     print("formats    ", time.time() - t1)
@@ -237,6 +237,8 @@ class Pyetl(object):
         if isinstance(fonc, str):
             loadmodules(fonc)
             fonc = self.commandes.get(commande)
+            if isinstance(fonc, str):
+                print("erreur chargement", commande, fonc)
         return fonc
 
     def _relpath(self, path):
@@ -958,7 +960,7 @@ class Pyetl(object):
 
     def get_converter(self, geomnatif):
         """ retourne le bon convertisseur de format geometrique"""
-        return READERS.get(geomnatif, READERS["interne"]).converter
+        return getreader(geomnatif,"interne").converter
 
     def _finalise_sorties(self):
         """ vide les tuyeaux et renseigne les stats"""

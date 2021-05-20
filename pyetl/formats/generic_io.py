@@ -29,7 +29,7 @@ if printtime:
     print("     databases ", time.time() - t1)
     t1 = time.time()
 
-from .fichiers import READERS, WRITERS
+from .fichiers import READERS, WRITERS, loadformats
 
 if printtime:
     print("     fichiers  ", time.time() - t1)
@@ -57,19 +57,25 @@ if printtime:
 #             "geomwriter"))
 #
 # assemblage avec les geometries
-for nom in WRITERS:
-    tmp = WRITERS[nom]
-    if tmp.geom:
-        WRITERS[nom] = tmp._replace(
-            geomwriter=GEOMDEF[tmp.geom].writer,
-            tmpgeomwriter=GEOMDEF[tmp.tmp_geom].writer,
-        )
-#    print ('writer', nom , 'geom', WRITERS[nom].geom, WRITERS[nom].geomwriter)
+def setgeom():
+    for nom in WRITERS:
+        tmp = WRITERS[nom]
+        if isinstance(tmp, str):
+            continue
+        if tmp.geom and not tmp.geomwriter:
+            WRITERS[nom] = tmp._replace(
+                geomwriter=GEOMDEF[tmp.geom].writer,
+                tmpgeomwriter=GEOMDEF[tmp.tmp_geom].writer,
+            )
+    #    print ('writer', nom , 'geom', WRITERS[nom].geom, WRITERS[nom].geomwriter)
 
-for nom in READERS:
-    tmp = READERS[nom]
-    if tmp.geom:
-        READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
+    for nom in READERS:
+        tmp = READERS[nom]
+        if isinstance(tmp, str):
+            continue
+        if tmp.geom and not tmp.converter:
+            READERS[nom] = tmp._replace(converter=GEOMDEF[tmp.geom].converter)
+
 
 for nom in DATABASES:
     tmp = DATABASES[nom]
@@ -77,10 +83,37 @@ for nom in DATABASES:
         DATABASES[nom] = tmp._replace(
             converter=GEOMDEF[tmp.geom].converter, geomwriter=GEOMDEF[tmp.geom].writer
         )
+setgeom()
 
 if printtime:
     print("     fin traitement formats  ", time.time() - t1)
     t1 = time.time()
+
+
+def getreader(ext, defaut=None):
+    fonc = READERS.get(ext)
+    if fonc is None and defaut:
+        fonc = READERS.get(defaut)
+    if isinstance(fonc, str):
+        loadformats(fonc)
+        setgeom()
+        fonc = READERS.get(ext)
+        if isinstance(fonc, str):
+            print("erreur chargement", ext, fonc)
+    return fonc
+
+
+def getwriter(ext, defaut=None):
+    fonc = WRITERS.get(ext)
+    if fonc is None and defaut:
+        fonc = WRITERS.get(defaut)
+    if isinstance(fonc, str):
+        loadformats(fonc)
+        setgeom()
+        fonc = WRITERS.get(ext)
+        if isinstance(fonc, str):
+            print("erreur chargement", ext, fonc)
+    return fonc
 
 
 def get_read_encoding(regle, nom_format):
@@ -166,7 +199,7 @@ class Reader(object):
         nom = nom.replace(".", "").lower()
         if nom in READERS:
             #            lire, converter, cree_schema, auxiliaires = self.lecteurs[nom]
-            description = READERS[nom]
+            description = getreader(nom)
             # print ('---initialisation reader',nom ,self.regle_ref)
             self.description = description
             self.format_natif = description.geom
@@ -410,7 +443,8 @@ class Reader(object):
         """retourne la fonction de conversion geometrique"""
         if format_natif is None:
             return self.converter
-        fgeom = READERS.get(format_natif, READERS["interne"]).geom
+
+        fgeom = getreader(format_natif, "interne").geom
         return GEOMDEF[fgeom].converter
 
     def setattformatter(self):
@@ -672,7 +706,7 @@ class Output(object):
             # print("format sortie inconnu '" + nom + "'", WRITERS.keys())
             nom = "#poubelle"
         # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)
-        self.writerparms = WRITERS[nom]._asdict()  # parametres specifique au format
+        self.writerparms = getwriter(nom)._asdict()  # parametres specifique au format
         # print("definition output", nom, self.writerparms)
         if nom == "sql":
 
@@ -729,7 +763,7 @@ class Output(object):
         """retourne la fonction de conversion geometrique"""
         if format_natif is None:
             return GEOMDEF[self.nom].writer
-        fgeom = WRITERS.get(format_natif, WRITERS["interne"]).geom
+        fgeom = getwriter(format_natif, "interne").geom
         return GEOMDEF[fgeom].writer
 
     def setvar(self, nom, val):

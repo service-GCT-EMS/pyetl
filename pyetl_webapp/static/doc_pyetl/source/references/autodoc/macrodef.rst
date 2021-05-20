@@ -6,6 +6,7 @@ reference macros
 =========================  ========
 #2d                        convertit des coordonees 2
 #2p                        convertit des coordonees x,y en attribut en poin
+#aduser                    
 #analyse                   analyse d'un jeu de donnees p:format force
 #att_sigli_modif           ajoute les attributs standard  date_maj / date_creatio
 #att_sigli_std             ajoute les attributs standard  date_maj / date_creatio
@@ -36,7 +37,9 @@ reference macros
 #editparams                
 #extract                   extraction de niveaux ou de classe
 #extract+gid               lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau class
+#extractm                  extraction en mode multiprocesseu
 #fanout                    
+#fileschema                
 #filter                    mange tous les objets qui ne satisfont pas la condition
 #ftpdownload               charge des elements par ft
 #fusion_schema             fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a cree
@@ -56,6 +59,7 @@ reference macros
 #low                       
 #mkcrypt                   
 #mod                       
+#moi                       
 #ora2pg                    passage de oracle vers postgi
 #prefix                    prefixe la classe p:prefix: prefixe a ajouter a la class
 #print                     

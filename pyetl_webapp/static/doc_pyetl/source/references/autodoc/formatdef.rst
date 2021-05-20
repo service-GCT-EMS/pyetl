@@ -25,6 +25,7 @@ ligne                         oui           non
 mdb                           oui           non
 mif                           oui           oui
 osm                           oui           non
+pbf                           oui           non
 qgs                           oui           non
 shp                           oui           oui
 spatialite                    oui           non
@@ -62,6 +63,15 @@ l'utilisation des loaders et extracteurs necessite les programmes FEA2ORA et ORA
 il est necessaire de positionner les parametres suivant:
 
 
+
+gpkg
+....
+
+
+Created on Wed Sep  7 08:33:53 2016
+
+@author: 89965
+acces gdal en mode bas de donnees
 
 mem_sqlite
 ..........

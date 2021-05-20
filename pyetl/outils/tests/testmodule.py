@@ -205,7 +205,7 @@ def fonctest(mapper, nom=None, debug=0):
         fonc = mapper.getcommande(fonc_a_tester)
 
         mapper.setvar("test_courant", fonc_a_tester)
-        print("test: ", fonc_a_tester)
+        # print("test: ", fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
         # teslist = dict()

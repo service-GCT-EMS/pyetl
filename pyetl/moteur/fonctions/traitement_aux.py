@@ -489,3 +489,9 @@ def fschema_nochange(regle, obj):
 def fschema_map(regle, obj):
     """gere la fonction de mapping sur l'objet"""
     return
+
+
+def h_setval(regle):
+    """helper de fonctiond'entree"""
+    if not regle.params.att_entree.val:
+        regle.get_entree = regle.get_defaut

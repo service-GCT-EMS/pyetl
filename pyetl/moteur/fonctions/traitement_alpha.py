@@ -60,17 +60,17 @@ def f_setmatch_liste(regle, obj):
       #pattern1||M;;;set;=match;||sortie
     #parametres||liste de sortie;=match;
           #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
-          #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
+          #test2||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
     """
     # print ('regle.match',regle.match )
     regle.setval_sortie(obj, regle.matchlist)
     return True
 
 
-def h_setval(regle):
-    """helper de fonctiond'entree"""
-    if not regle.params.att_entree.val:
-        regle.get_entree = regle.get_defaut
+# def h_setval(regle):
+#     """helper de fonctiond'entree"""
+#     if not regle.params.att_entree.val:
+#         regle.get_entree = regle.get_defaut
 
 
 def f_setval(regle, obj):

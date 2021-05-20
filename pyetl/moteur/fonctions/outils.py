@@ -18,7 +18,7 @@ import codecs
 # import zipfile
 import typing as T
 
-from pyetl.formats.generic_io import READERS
+from pyetl.formats.generic_io import READERS, getreader
 from pyetl.vglobales import DEFCODEC
 
 LOGGER = logging.getLogger(__name__)
@@ -518,7 +518,9 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
 
 def valide_auxiliaires(identifies, non_identifies):
     """ valide que les fichiers trouves sont connus"""
-    auxiliaires = {a: defin[3] for a, defin in READERS.items()}
+    auxiliaires = {
+        a: defin[3] for a, defin in READERS.items() if not isinstance(defin, str)
+    }
     for chemin, nom, extinc in non_identifies:
         if (chemin, nom) in identifies:
             extref = identifies[(chemin, nom)]
@@ -592,7 +594,7 @@ def scan_entree(
             if force_format:
                 ext = str(force_format)
             try:
-                aux = READERS[ext][3]
+                aux = getreader(ext)[3]
                 if "!" in aux:  # attention il y a des incompatibilites
                     nom = os.path.splitext(fichier)[0]
                     for ex2 in aux:

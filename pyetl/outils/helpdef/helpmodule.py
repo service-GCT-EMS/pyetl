@@ -129,7 +129,7 @@ def print_help_detail(mapper, nom):
         return False
 
     print("aide commande :", nom, debug, "\n")
-    commande = mapper.commandes[nom]
+    commande = mapper.getcommande(nom)
     print("  %s" % (commande.description.get("#aide", [""])[0]))
     for i in commande.description.get("#aide_spec", []):
         print("   %s" % (i))
@@ -196,11 +196,8 @@ def print_aide_commandes(mapper, liste=None):
     for i in sorted(mapper.commandes):
         if liste and i not in liste:
             continue
-        commande = mapper.commandes[i]
-        print(
-            "%-20s: %s"
-            % (commande.nom, "\n".join(commande.description.get("#aide", [])))
-        )
+        commande = mapper.getcommande(i)
+        print("%-20s: %s" % (i, "\n".join(commande.description.get("#aide", []))))
 
 
 def print_aide_selecteurs(mapper, liste=None):

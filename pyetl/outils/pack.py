@@ -87,21 +87,41 @@ def commandlist(mapper):
     from pyetl.formats.generic_io import READERS, WRITERS
 
     for nom, desc in sorted(READERS.items()):
-        print("readers", nom, desc.module)
+        print("readers", nom, desc.module, desc)
 
     for nom, desc in sorted(WRITERS.items()):
-        print("writers", nom, desc.module)
+        print("writers", nom, desc.module, desc)
 
 
 def cache(mapper):
     """genere un cache dans les traitements"""
     place = os.path.join(os.path.dirname(__file__), "..", "moteur", "fonctions")
     fich1 = os.path.join(place, "cache_commandes.csv")
-    with open(fich1, "w") as f:
-        for nommodule in sorted(mapper.modules):
-            if mapper.modules[nommodule].commandes:
-                for nom in sorted(mapper.modules[nommodule].commandes):
-                    f.write(nom + ";" + nommodule + "\n")
+    place2 = os.path.join(os.path.dirname(__file__), "..", "formats", "fichiers")
+
+    fich2 = os.path.join(place2, "cache_readers.csv")
+    fich3 = os.path.join(place2, "cache_writers.csv")
+    if os.path.isfile(fich1):
+        os.remove(fich1)
+        os.remove(fich2)
+        os.remove(fich3)
+    else:
+        with open(fich1, "w") as f:
+            for nommodule in sorted(mapper.modules):
+                if mapper.modules[nommodule].commandes:
+                    for nom in sorted(mapper.modules[nommodule].commandes):
+                        f.write(nom + ";" + nommodule + "\n")
+
+        from pyetl.formats.generic_io import READERS, WRITERS
+
+        with open(fich2, "w") as f:
+            for nom, desc in sorted(READERS.items()):
+                # print("readers", nom, desc.module, desc)
+                f.write(nom + ";" + desc.module + "\n")
+        with open(fich3, "w") as f:
+            for nom, desc in sorted(WRITERS.items()):
+                # print("readers", nom, desc.module, desc)
+                f.write(nom + ";" + desc.module + "\n")
 
 
 def zipall(orig=start, nv=""):

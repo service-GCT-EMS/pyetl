@@ -293,10 +293,15 @@ class FonctionTraitement(object):
             #            print("enregistrement",nom,clef_sec,priorite)
             tsubfonc.clef_sec = clef_sec
         pattern = tsubfonc.pattern
-        if pattern and pattern not in self.subpatterns:
-            self.subfonctions.append(tsubfonc)
-            tsubfonc.priorite = priorite
-            self.subpatterns.add(pattern)
+        if pattern:
+            if pattern not in self.subpatterns:
+                self.subfonctions.append(tsubfonc)
+                tsubfonc.priorite = priorite
+                self.subpatterns.add(pattern)
+                # print("pattern nouveau", pattern, nom, self.nom)
+
+            else:
+                print("pattern existant", pattern)
         else:
             print("subfunction incompatible", description)
 
@@ -380,7 +385,7 @@ def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
             else:
                 if clef not in stockage:  # la clef existe
                     fct = FonctionTraitement(
-                        clef, fonction, description, definition_champs
+                        nom, fonction, description, definition_champs
                     )
                     fct.module = info_module
                     fct.style = style
@@ -645,7 +650,7 @@ def loadmodules(module=None):
                 if imported:
                     modules[module] = moduleloader(module)
     else:
-        print("loadmodules", module)
+        # print("loadmodules", module)
         imported = moduleloader(module)
         if imported:
             modules[module] = moduleloader(module)
