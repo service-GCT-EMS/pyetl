@@ -310,21 +310,19 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
     """decrypte d'eventuels parametres cryptes
     gere 2 clefs une clef maitre et une clef utilisateur"""
     # print("decryptage parametres", cryptinfo)
-    user, usergroup, masterkey, userkey_c, defaultkey, cr_lev, cr_help = cryptinfo
+    user, usergroup, masterkey, userkey_c, cr_lev, cr_help = cryptinfo
     localkey = "key_" + user  # clef par defaut
     grouplist = []
+    userkey = ""
     master = False
     if masterkey:
-        masterkey = decrypt(
-            masterkey, key=[localkey, defaultkey, ""], level=cr_lev, helper=cr_help
-        )
-        userkey = decrypt(userkey_c, key=[masterkey], level=cr_lev, helper=cr_help)
-        if userkey_c != userkey:
-            master = True
-        # print("decodage master m", masterkey, "u", userkey, master)
-    elif userkey_c:
-        userkey = decrypt(userkey_c, key=[masterkey, localkey])
-        #            print ('decodege user', userkey)
+        masterkey = decrypt(masterkey, key=[localkey], level=cr_lev, helper=cr_help)
+    if userkey_c:
+        if masterkey:
+            userkey = decrypt(userkey_c, key=[masterkey], level=cr_lev, helper=cr_help)
+            master = bool(userkey and userkey != userkey_c)
+        else:
+            userkey = decrypt(userkey_c, key=localkey, level=cr_lev, helper=cr_help)
 
         grouplist = decrypt(usergroup, key=[localkey])
         if not grouplist:
@@ -332,6 +330,7 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
         else:
             grouplist = grouplist.split(",")
     #        print ('clef', masterkey, 'master', master, 'user',userkey)
+    # print("decodage cles m", masterkey, "u", userkey, master)
     supr = set()
 
     for nom in site_params:

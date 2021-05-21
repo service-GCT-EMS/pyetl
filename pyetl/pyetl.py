@@ -314,7 +314,6 @@ class Pyetl(object):
                 self.getvar("usergroup"),
                 self.getvar("masterkey"),
                 self.getvar("userkey"),
-                self.getvar("defaultkey"),
                 self.getvar("cryptolevel"),
                 self.getvar("cryptohelper"),
             )
@@ -670,7 +669,13 @@ class Pyetl(object):
         """ charge des definitions de variables liees au site """
         if not origine:  # localisation non definie
             return
-        configfile = os.path.join(origine, "site_params.csv")
+        configfile = (
+            origine
+            if origine.endswith(".csv")
+            else os.path.join(origine, "site_params.csv")
+        )
+        # c est un fichier:
+        # configfile = os.path.join(origine, "site_params.csv")
         if not os.path.isfile(configfile):
             self.logger.warning("pas de parametres locaux %s", configfile)
             # print("pas de parametres locaux", configfile)
@@ -691,6 +696,9 @@ class Pyetl(object):
                 if nom not in self.site_params:
                     self.site_params[nom] = list()
             #                print ('chargement complement parametres de site ',nom)
+            elif liste and liste[0].strip() == "&&#load":  # on charge un fichier
+                nom = liste[1]
+                self._charge_site_params(nom)
             else:
                 if nom:
                     nom_p, val = liste[0], liste[1]
