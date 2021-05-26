@@ -696,7 +696,7 @@ class Pyetl(object):
                 if nom not in self.site_params:
                     self.site_params[nom] = list()
             #                print ('chargement complement parametres de site ',nom)
-            elif liste and liste[0].strip() == "&&#load":  # on charge un fichier
+            elif liste and liste[0].strip() == "&&#include":  # on charge un fichier
                 nom = liste[1]
                 self._charge_site_params(nom)
             else:
@@ -1157,6 +1157,8 @@ class Pyetl(object):
             if (
                 not self.getvar("_testmode") and self.mode != "web" and self.schemas
             ):  # en mode test ou web on rale pas
+                if self.getvar("sans_sortie") in ("True", "true", "1", "T", "t"):
+                    return " on rale pas c est voulu"
                 self.logger.warning("pas de repertoire de sortie")
             return
         mode_schema = self.getvar("force_schema", "util")

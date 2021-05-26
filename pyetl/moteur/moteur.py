@@ -2,6 +2,7 @@
 """moteur de traitement principal : gere l'enchainement des regles """
 import logging
 import re
+import os
 import typing as T
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion
 from .fonctions.outils import printexception
@@ -165,6 +166,7 @@ class Moteur(object):
                             regle.changeschema(regle, obj)
                         if regle.debugvalid:
                             obj.debug("apres", attlist=regle.champsdebug)
+                            regle.stock_param.gestion_log.stopdebug()
                     obj.is_ok = resultat
 
                     if regle.mode_chargeur:  # la on fait des
@@ -368,10 +370,19 @@ class MacroStore(object):
             if not conf or conf.startswith("!"):
                 continue
             if conf.startswith("&&#define"):
+                if macro:
+                    macro.close()
                 liste = conf.split(";")
                 nom = liste[1]
                 vpos = [i for i in liste[2:] if i]
                 macro = self.regmacro(nom, file=origine, vpos=vpos)
+            elif conf.startswith("&&#include;"):
+                if macro:
+                    macro.close()
+                configfile = conf.split(";")[1]
+                if os.path.isfile(configfile):
+                    description2 = enumerate(open(configfile, "r").readlines())
+                    self.stocke_macro(description2, configfile)
             elif macro:
                 macro.add_command(conf, num)
         macro.close()

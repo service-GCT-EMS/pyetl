@@ -481,8 +481,8 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     valeurs = {i: i for i in liste_valeurs}
-    LOGGER.info("fichier a lire %s", fichier)
-    # print("fichier a lire ", fichier, valeurs)
+    LOGGER.info("fichier a lire: %s", fichier)
+
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
         if not selecteur:
@@ -497,7 +497,9 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
         sel1 = getselector(regle, base=base, nom=nom)
         sel1.merge(selecteur)
         return sel1
+
     selecteur = getselector(regle, base=base, nom=nom)
+
     selecteur.metainfos = fichier
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nomschema = fichier[7:]
@@ -519,13 +521,14 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
         if re.search(r"\[[CF]\]", fichier):
             mode = "in_d"  # dynamique en fonction du repertoire de lecture
         else:
+            # LOGGER.info("lecture statique %s", fichier)
             mode = "in_s"  # jointure statique
             try:
                 selecteur_from_fich(regle, fichier, selecteur)
             except FileExistsError:
                 LOGGER.error("fichier ou repertoire inexistant %s", fichier)
                 return None
-
+        # LOGGER.info("selecteur lu  %s", repr(selecteur))
         return selecteur
 
 
@@ -720,7 +723,7 @@ def selecteur_from_fich(regle, fichier, selecteur):
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec_csv)
     selecteur.metainfos = fichier
-    # print("selecteur from fich", selecteur.baseselectors.keys())
+    # LOGGER.info("selecteur from fich %s", str(selecteur.baseselectors.keys()))
     # for nom, sel in selecteur.baseselectors.items():
     #     print(nom, "====>", sel.descripteurs)
     # raise

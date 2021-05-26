@@ -772,7 +772,7 @@ class RegleTraitement(object):  # regle de mapping
             )
         )
         # print(msg)
-        LOGGER.debug(msg)
+        LOGGER.info(msg)
 
     def setstore(self):
         """definit une regle comme stockante et ajuste les sorties"""

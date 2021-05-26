@@ -341,11 +341,11 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
                 val2 = decrypt(
                     val, key=[masterkey, userkey], level=cr_lev, helper=cr_help
                 )
-                #                    print ('decryptage ', nom, nom_p, val2)
+                # print("decryptage ", nom, nom_p, val2)
                 val = valide_ulist(val2, user, master, grouplist)
                 #                    print ("valide", val)
                 #                    val = val2
-                if val is None:
+                if not val:
                     supr.add(nom)
                 else:
                     site_params[nom][numero] = (nom_p, val)

@@ -5,9 +5,12 @@ attributs et geometrie """
 import copy
 import itertools
 import collections
+import logging
+
+# from pyetl.formats.interne.stats import LOGGER
 from .geometrie.geom import Geometrie, Erreurs
 
-
+LOGGER = logging.getLogger(__name__)
 # class AttributsSpeciaux(object):
 #     """gere les attibuts speciaux a certains formats """
 
@@ -419,9 +422,8 @@ class Objet(object):
         schema = "\t" + repr(self.schema)
         # print ('attributs',self.attributs)
         aliste = sorted(self.attributs.keys()) if attlist is None else attlist
-        print(
-            invariant + "\n",
-            (schema + "\n\t") if not attlist else "",
+
+        attributs = str(
             [
                 (
                     i,
@@ -432,8 +434,28 @@ class Objet(object):
                 for i in aliste
             ]
             if limit
-            else [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
+            else [(i, self.attributs.get(i, "<non defini>")) for i in aliste]
         )
+        # LOGGER.debug("mode debug")
+        LOGGER.debug("%s", invariant)
+        LOGGER.debug("   schema:%s", schema)
+        LOGGER.debug("   obj   :%s", attributs)
+
+        # print(
+        #     invariant + "\n",
+        #     (schema + "\n\t") if not attlist else "",
+        #     [
+        #         (
+        #             i,
+        #             (str(self.attributs[i])[:50] + "...")
+        #             if len(str(self.attributs.get(i, ""))) > 50
+        #             else self.attributs.get(i, "<non defini>"),
+        #         )
+        #         for i in aliste
+        #     ]
+        #     if limit
+        #     else [(i, self.attributs.get(i, "<non defini>")) for i in aliste],
+        # )
 
     @property
     def attdict(self):
@@ -501,18 +523,16 @@ class Objet(object):
                     for i, j in self.attributs_speciaux.items()
                 }
 
-    def mergeschema(self,schemaclasse, prefix=None):
+    def mergeschema(self, schemaclasse, prefix=None):
         """ajoute des elements de schema"""
         if self.schema is None:
             self.setschema(schemaclasse)
             return
-        for nom,att in schemaclasse.attributs.items():
-            nom=prefix+nom if prefix else nom
-            self.schema.ajout_attribut_modele(att,nom=nom, force=True)
-        print ("merge",self.schema)
-        print ("avec", schemaclasse)
-
-
+        for nom, att in schemaclasse.attributs.items():
+            nom = prefix + nom if prefix else nom
+            self.schema.ajout_attribut_modele(att, nom=nom, force=True)
+        print("merge", self.schema)
+        print("avec", schemaclasse)
 
     def initattr(self):
         """ initialise les attributs a leur valeur de defaut """
@@ -593,13 +613,10 @@ class Objet(object):
             self.hdict[nom] = dict(hddef)
         return self.hdict[nom]
 
-    def setmultiple(self,nom,liste=[]):
+    def setmultiple(self, nom, liste=[]):
         """stocke un attribut multiple"""
-        self.multiples[nom]=liste
-        self.attributs[nom]=str(liste)
-
-
-
+        self.multiples[nom] = liste
+        self.attributs[nom] = str(liste)
 
     def resetschema(self):
         """supprime la reference a un schema"""

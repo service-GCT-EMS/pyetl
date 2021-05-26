@@ -151,13 +151,12 @@ class GestionLogs(object):
             logging.raiseExceptions = False
         worker = mapper.worker
 
-        niveau_f = self.loglevels.get(log, logging.INFO)
-        niveau_p = self.loglevels.get(affich, logging.ERROR)
+        self.niveau_f = self.loglevels.get(log, logging.INFO)
+        self.niveau_p = self.loglevels.get(affich, logging.ERROR)
+        self.loglevel = min(self.niveau_f, self.niveau_p)
         # print ('niveaux de logging',niveau_f,niveau_p)
-        if fichier:
-            logger.setLevel(niveau_f)
-        else:
-            logger.setLevel(niveau_p)
+        logger.setLevel(self.loglevel)
+
         if not worker:
             # print("initialisation log", affich, log, "(", fichier, ")")
             self.configure_print_handlers()
@@ -178,11 +177,24 @@ class GestionLogs(object):
                     self.file_handler = logging.FileHandler(fichier)
                     # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
                     # créé précédement et on ajoute ce handler au logger
-                    self.file_handler.setLevel(niveau_f)
+                    self.file_handler.setLevel(self.niveau_f)
                     self.file_handler.setFormatter(fileformatter)
                     logger.addHandler(self.file_handler)
         else:
             pass
+
+    def setdebug(self):
+        """positionne le logger en mode debug pour l affichage d objets"""
+        self.logger.setLevel(min(self.loglevel, self.loglevels["DEBUG"]))
+        self.print_handler.setLevel(min(self.niveau_p, self.loglevels["DEBUG"]))
+        if self.file_handler:
+            self.file_handler.setLevel(min(self.niveau_f, self.loglevels["DEBUG"]))
+
+    def stopdebug(self):
+        self.logger.setLevel(self.loglevel)
+        self.print_handler.setLevel(self.niveau_p)
+        if self.file_handler:
+            self.file_handler.setLevel(self.niveau_f)
 
     def shutdown(self):
         self.mainmapper.logger.info("arret logs")

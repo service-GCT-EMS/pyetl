@@ -237,7 +237,8 @@ def dbrunproc(regle, base, commande, data):
 
 def dbextsql(regle, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
-    # print("mdba execution sql via un programme externe", base, file)
+    logger = regle.stock_param.logger
+    logger.debug("mdba execution sql sur %s via un programme externe -> %s", base, file)
     connect = regle.stock_param.getdbaccess(regle, base)
     if connect is None:
         return False
@@ -320,6 +321,7 @@ def sortie_resultats(
     stock_param = regle_courante.stock_param
     traite_objet = stock_param.moteur.traite_objet
     niveau, classe = ident
+    logger = regle_courante.stock_param.logger
     # print ('mdba:sortie_resultat ',type_geom,type(curs),niveau,classe)
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
@@ -381,9 +383,9 @@ def sortie_resultats(
     decile = connect.decile
     base = connect.base
     code = connect.code
-    # print(" traitement base ", base, connect.code)
+    logger.debug(" traitement base %s %s", base, code)
     for valeurs in curs.cursor:
-        #        print ("geometrie valide",obj.geom_v.valide)
+        # logger.debug("lu " + str(valeurs))
         if objet:
             obj2 = objet.dupplique()
             obj2.setidentobj(ident)
@@ -607,7 +609,8 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     #    debut = time.time()
     # print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, classe)
     connect = baseselector.connect
-    # print ('recup liste tables', liste_tables)
+    logger = regle_courante.stock_param.logger
+    logger.debug("recup liste tables %s", repr(list(baseselector.classlist())))
     if connect is None:
         regle_courante.stock_param.logger.error(
             "dbacces: pas de connection %s", repr(baseselector)
@@ -662,7 +665,9 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
             curs = connect.req_alpha(
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )
-            # print ('-----------------------traitement curseur ', ident, curs,type(curs) )
+            logger.debug(
+                "traitement curseur " + str(ident) + " %s ", curs.cursor is not None
+            )
             treq = time.time() - treq
             if sortie:
                 for nom in sortie:
@@ -687,6 +692,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     if stock_param is not None:
         stock_param.padd("_st_lu_objs", res)
         stock_param.padd("_st_lu_tables", n)
+    logger.debug("lu %d objets dans %d tables", res, n)
     return res
 
 

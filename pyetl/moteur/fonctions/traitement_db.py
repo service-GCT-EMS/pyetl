@@ -107,6 +107,8 @@ def setdb(regle, obj):
     selecteur = regle.cible_base
     if selecteur:
         selecteur.resolve(obj)
+    else:
+        print("setdb: pas de selecteur")
     return selecteur
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
@@ -183,9 +185,7 @@ def f_dbalpha(regle, obj):
     regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
 
-        LOGGER.debug(
-            "regles alpha:ligne " + repr(regle) + basesel.type_base + repr(regle.mods)
-        )
+        LOGGER.debug("select base %s %s", base, repr(regle.mods))
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
 
@@ -504,18 +504,21 @@ def f_dbclose(regle, obj):
 def h_dbrunsql(regle):
     """execution de commandes"""
     regle.chargeur = True  # c est une regle qui cree des objets
+    LOGGER.debug("runsql: %s", repr(regle))
     param_base(regle)
 
 
 def f_dbrunsql(regle, obj):
     """#aide||lancement d'un script sql via un loader externe
     #aide_spec||parametres:base;;;;?nom;?variable contenant le nom;runsql;?log;?sortie
+              ||si le nom du script commence par # c'est un script interne predefini
        #groupe||database
       #pattern||;?C;?A;runsql;?C;?C
       #req_test||testdb
 
     """
     selecteur = setdb(regle, obj)
+    LOGGER.debug("runsql: %s", repr(selecteur))
     for base in selecteur.baseselectors:
         script = regle.getval_entree(obj)
         print(
@@ -537,7 +540,7 @@ def f_dbrunsql(regle, obj):
                 nom = os.path.join(regle.getvar("_progdir"), "formats/db/sql", nom[1:])
             if not nom.endswith(".sql"):
                 nom = nom + ".sql"
-            # print("traitement sql ", nom)
+            LOGGER.debug("traitement sql %s", nom)
             DB.dbextsql(
                 regle, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
             )

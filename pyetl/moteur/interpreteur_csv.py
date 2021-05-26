@@ -35,6 +35,7 @@ def fdebug(regle, obj):
             regle.debugvalid = obj.attributs.get(att) == val
 
     if regle.debugvalid:
+        regle.stock_param.gestion_log.setdebug()
         wid = regle.getvar("_wid")
         debugmode = regle.v_nommees["debug"]
         regle.debug = regle.debug - 1
@@ -389,7 +390,7 @@ def get_macro_from_db(regle, nom_inclus):
         regles = recup_table_parametres(
             regle, serv, nomschema, nomtable, clef="nom", valeur=nom_inclus
         )
-        regle.stock_param.stocke_macro(description)
+        regle.stock_param.stocke_macro(description, "database")
 
 
 def lire_commandes_en_base(mapper, fichier_regles):

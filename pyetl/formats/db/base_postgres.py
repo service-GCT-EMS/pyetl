@@ -310,24 +310,29 @@ class PgrConnect(DbConnect):
             if "host" in serveur
             else ""
         )
-        print("postgres: traitement sql", host, self.base, os.path.basename(file))
+        logger = self.params.logger
+        logger.info(
+            "postgres: traitement sql %s %s %s", host, self.base, os.path.basename(file)
+        )
         env = dict(os.environ)
         env["PGCLIENTENCODING"] = "UTF8"
         if self.passwd:
             env["PGPASSWORD"] = self.passwd
         if not logfile:
-            print("pas de fichier log : affichage console")
-            fini = subprocess.run(chaine, env=env, stderr=subprocess.STDOUT)
+            logger.info("pas de fichier log : affichage console ")
+            logger.debug("traitement %s", chaine)
+            fini = subprocess.run(chaine, env=env)
         else:
-            print("Le fichier de log se trouve la:", logfile)
+            logger.info("Le fichier de log se trouve la: %s", logfile)
             with open(logfile, "a") as sortie:
                 fini = subprocess.run(
                     chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT
                 )
         if fini.returncode:
-            self.params.logger.error(
-                " ".join(("erreur pgsql", repr(fini.returncode), repr(fini.args)))
+            logger.error(
+                "erreur pgsql: %s , %s", repr(fini.returncode), repr(fini.args)
             )
+
             # print("postgres extsql:sortie en erreur ", fini.returncode, fini.args)
 
     def connect(self):

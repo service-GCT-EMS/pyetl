@@ -571,10 +571,10 @@ class PgrGenSql(DbGenSql):
         """ genere le sql de creation de table """
         schema = self.schema
         # contraintes de clef etrangeres : on les fait a la fin pour que toutes les tables existent
-        autoserial=True
-        refcontext=self.regle_ref if self.regle_ref else self.stock_param
+        autoserial = True
+        refcontext = self.regle_ref if self.regle_ref else self.stock_param
         if refcontext:
-            autoserial=not refcontext.getvar("autoserial")=="0"
+            autoserial = not refcontext.getvar("autoserial") == "0"
         classe = schema.classes[ident]
         pkey = classe.getpkey
         groupe, nom = self.get_nom_base(ident)
@@ -878,7 +878,7 @@ class PgrGenSql(DbGenSql):
         #        if self.connection:
         #            dbcod = self.connection.codecinfo.get(cod, cod)
         #        codecinfo = "--########### encodage fichier "+cod+'->'+dbcod+' ###(controle éèàç)####\n'
-        refcontext=self.regle_ref if self.regle_ref else self.stock_param
+        refcontext = self.regle_ref if self.regle_ref else self.stock_param
         idschema = (
             "-- ############ nom:"
             + self.schema.nom
@@ -925,7 +925,9 @@ class PgrGenSql(DbGenSql):
         )
 
         cretables = [idschema, self._setrole()]
-        if not self.basic or (refcontext and refcontext.getvar("sql_nofunc")=="1"):
+        if self.basic or (refcontext and refcontext.getvar("sql_nofunc") == "1"):
+            pass
+        else:
             # print ("pas de sortie des fonctions",refcontext.getvar("sql_nofunc"))
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
