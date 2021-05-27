@@ -1,6 +1,7 @@
 # commandes speciales
 # gestionnaire de commandes speciales tests doc aide etc
 import os
+from pyetl.ihm.lancements.ihm_ps import creihm
 
 COMMANDES_SPECIALES = {
     "help",
@@ -12,6 +13,7 @@ COMMANDES_SPECIALES = {
     "commandlist",
     "cache",
     "paramgroups",
+    "genihm",
 }
 
 
@@ -142,5 +144,11 @@ def commandes_speciales(mapper, commandes, args):
         else:
             print("groupes connus:")
             print(sorted(mapper.site_params.keys()))
+
+    elif commande == "genihm":
+        """generation d ihm"""
+        from ..ihm.lancements.ihm_ps import creihm
+
+        creihm(nom)
 
     mapper.done = True
