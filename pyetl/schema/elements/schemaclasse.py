@@ -98,7 +98,7 @@ def _gestion_types_simples(attr, type_attribut):
         #                      attr.nom+'->'+type_attribut, type_attribut in CODES_G)
         attr.type_att = "T"
         LOGGER.warning(
-            "attention type inconnu "+type_attr+" passage en texte---> %s", attr
+            "attention type inconnu " + type_attr + " passage en texte---> %s", attr
         )
         # print(
         #     "schemaclasse--------attention type inconnu passage en texte--->",
@@ -1049,7 +1049,16 @@ class SchemaClasse(object):
             attr.type_att_base = type_attr_base
             attr.alias = alias if str(alias) != "None" else ""
             #            if self.identclasse[1]=='vl_sig_ems_doschant':
-            taille = int(taille)
+            try:
+                taille = int(taille)
+            except ValueError:
+                print(
+                    " description attribut incorrecte",
+                    self.identclasse,
+                    self.nom,
+                    taille,
+                )
+                taille = 0
             attr.taille = taille if taille >= 0 else 0
             attr.oblig = obligatoire
             #            print ('stockage champ',self.identclasse, nom,ordre,position,

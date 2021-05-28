@@ -20,17 +20,30 @@ class Ihm(object):
 
     def genps(self):
         """genere le code ps pour l´ihm"""
+        nbcols = self.colonnes
+        nblignes = self.lignes
+        self.lcols = int((self.main.largeur - 40) / nbcols)
+
         code = [
             "# genere automatiquement par le generateur d ihm de mapper",
             "",
             "",
             "Add-Type -AssemblyName System.Windows.Forms",
+            "[System.Windows.Forms.Application]::EnableVisualStyles()",
             "$font=New-Object System.Drawing.Font('Microsoft Sans Serif',10)",
             "$startx=20",
         ]
+        code.extend(self.main.genps())
         for el in self.elements:
             code.extend(el.genps())
         return code
+
+    def struct(self):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("ihm ", self.nom)
+        self.main.struct(1)
+        for el in self.elements:
+            el.struct(1)
 
 
 class Fenetre(object):
@@ -56,12 +69,15 @@ class Fenetre(object):
         for i in self.elements:
             if i.ligne == "+":
                 cour += 1
-            elif i.ligne.isnumeric():
+                i.ligne = cour
+            elif isinstance(i.ligne, int) or i.ligne.isnumeric():
                 cour = int(i.ligne)
+                i.ligne = cour
         maxlin = max(maxlin, cour)
         return maxlin
 
     def genps(self):
+        self.lcols = int((self.largeur - 40) / self.colonnes)
         vref = "$" + self.id
         code = [
             vref + " = New-Object system.Windows.Forms.Form",
@@ -79,8 +95,14 @@ class Fenetre(object):
             vlist.extend(vslist)
 
         code.append(vref + ".controls.AddRange(@(" + ",".join(vlist) + "))")
-        code.append(vref + ".ShowDialog())")
+        code.append(vref + ".ShowDialog()")
         return code
+
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, "fenetre ", self.titre)
+        for el in self.elements:
+            el.struct(niveau + 1)
 
 
 class Fileselect(object):
@@ -100,7 +122,7 @@ class Fileselect(object):
         tb = "$" + self.id + "TB"
         fbr = "$" + self.id + "FBR"
         fbt = "$" + self.id + "FBT"
-        px = self.colonne * self.parent.lcol
+        px = self.colonne * self.parent.lcols
         py = self.ligne * 50
         code = [
             lab + " = New-Object system.Windows.Forms.Label",
@@ -145,6 +167,10 @@ class Fileselect(object):
         ]
         return [lab, tb, fbr, fbt], code
 
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, "fileselect ", self.titre)
+
 
 class Droplist(object):
     _ido = itertools.count(1)
@@ -159,12 +185,17 @@ class Droplist(object):
         self.variable = variable
 
     def genps(self):
-        dl = "$Dlist" + self.id
+        dl = "$" + self.id
+        seldef = '"' + '","'.join(self.selecteur.split(",")) + '"'
         code = [
             dl + " = New-Object system.Windows.Forms.ComboBox",
-            dl + ".Items.AddRange(@(%s)" % (selecteur,),
+            dl + ".Items.AddRange(@(%s))" % (seldef,),
         ]
-        return [], code
+        return [dl], code
+
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, "droplist ", self.titre)
 
 
 class Bouton(object):
@@ -179,8 +210,37 @@ class Bouton(object):
         self.elements = []
 
     def genps(self):
-        code = []
-        return [], code
+        bt = "$" + self.id
+        lcols = self.parent.lcols
+        code = [
+            bt + " = New-Object system.Windows.Forms.Button",
+            bt + '.text = "%s"' % ((self.titre,)),
+            bt + ".width =" + str(lcols),
+            bt + ".height = 40",
+            bt
+            + ".location = New-Object System.Drawing.Point(%d,%d)"
+            % (self.ligne, self.colonne * lcols),
+            bt + ".Font = $font",
+            bt + ".UseWaitCursor = $true",
+            "#---------onclick----------",
+            bt + ".Add_Click(",
+            "   {",
+        ]
+        for el in self.elements:
+            se, sc = el.genps()
+            code.extend(sc)
+        code.extend(["   }", ")"])
+        return [bt], code
+
+    @property
+    def lcols(self):
+        return self.parent.lcols
+
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, "bouton ", self.titre)
+        for el in self.elements:
+            el.struct(niveau + 1)
 
 
 class Commande(object):
@@ -192,6 +252,10 @@ class Commande(object):
     def genps(self):
         code = [self.commande]
         return [], code
+
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, "commande ", self.commande)
 
 
 def creihm(nom):
@@ -218,7 +282,7 @@ def creihm(nom):
                     ihm = Ihm(nom_ihm, interpreteur)
             elif code == "!fenetre":
                 largeur = int(position)
-                titre = commande
+                titre = commande[:-1] if commande.endswith("\n") else commande
                 if not ihm:
                     "print erreur cadre ihm non defini"
                     raise StopIteration
@@ -249,17 +313,15 @@ def creihm(nom):
 
             elif code == "!button":
                 lin, col = position.split(",")
-                titre = commande
+                titre = commande[:-1] if commande.endswith("\n") else commande
                 elem = Bouton(courant, lin, col, titre)
                 if isinstance(courant, Bouton):
                     courant = ihm.elements[-1] if ihm.elements else ihm.main
                 courant.elements.append(elem)
                 courant = elem
 
-    nbcols = ihm.colonnes
-    nblignes = ihm.lignes
-    lcols = int((largeur - 40) / nbcols)
-    hauteur = lcols * 50
+    ihm.struct()
+
     sortie = ihm.nom + ".ps1"
     with open(sortie, "w") as f:
-        f.writelines(ihm.genps())
+        f.write("\n".join(ihm.genps()))
