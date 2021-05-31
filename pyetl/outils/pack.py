@@ -95,6 +95,10 @@ def commandlist(mapper):
 
 def cache(mapper):
     """genere un cache dans les traitements"""
+    from pyetl.moteur.fonctions import loadmodules as load_commands
+    from pyetl.formats.fichiers import loadformats
+    from pyetl.formats.db import loaddbmodules
+
     place = os.path.join(os.path.dirname(__file__), "..", "moteur", "fonctions")
     fich1 = os.path.join(place, "cache_commandes.csv")
     place2 = os.path.join(os.path.dirname(__file__), "..", "formats", "fichiers")
@@ -106,33 +110,41 @@ def cache(mapper):
     fich4 = os.path.join(place4, "cache_databases.csv")
     if os.path.isfile(fich1):
         os.remove(fich1)
-        if os.path.isfile(fich2):
-            os.remove(fich2)
-        if os.path.isfile(fich3):
-            os.remove(fich3)
-        if os.path.isfile(fich4):
-            os.remove(fich4)
-    else:
-        with open(fich1, "w") as f:
-            for nommodule in sorted(mapper.modules):
-                if mapper.modules[nommodule].commandes:
-                    for nom in sorted(mapper.modules[nommodule].commandes):
-                        f.write(nom + ";" + nommodule + "\n")
+    if os.path.isfile(fich2):
+        os.remove(fich2)
+    if os.path.isfile(fich3):
+        os.remove(fich3)
+    if os.path.isfile(fich4):
+        os.remove(fich4)
 
-        from pyetl.formats.generic_io import READERS, WRITERS, DATABASES
+    load_commands(force=True)
+    with open(fich1, "w") as f:
+        for nommodule in sorted(mapper.modules):
+            if mapper.modules[nommodule].commandes:
+                for nom in sorted(mapper.modules[nommodule].commandes):
+                    f.write(nom + ";" + nommodule + "\n")
+    print("ecriture cache commandes", len(mapper.commandes))
+    loadformats(force=True)
+    loaddbmodules(force=True)
 
-        with open(fich2, "w") as f:
-            for nom, desc in sorted(READERS.items()):
-                # print("readers", nom, desc.module, desc)
-                f.write(nom + ";" + desc.module + "\n")
-        with open(fich3, "w") as f:
-            for nom, desc in sorted(WRITERS.items()):
-                # print("readers", nom, desc.module, desc)
-                f.write(nom + ";" + desc.module + "\n")
-        with open(fich4, "w") as f:
-            for nom, desc in sorted(DATABASES.items()):
-                # print("readers", nom, desc.module, desc)
-                f.write(nom + ";" + desc.module + "\n")
+    from pyetl.formats.generic_io import READERS, WRITERS, DATABASES
+
+    with open(fich2, "w") as f:
+        for nom, desc in sorted(READERS.items()):
+            # print("readers", nom, desc.module, desc)
+            f.write(nom + ";" + desc.module + "\n")
+        print("ecriture cache READERS", len(READERS))
+
+    with open(fich3, "w") as f:
+        for nom, desc in sorted(WRITERS.items()):
+            # print("readers", nom, desc.module, desc)
+            f.write(nom + ";" + desc.module + "\n")
+        print("ecriture cache WRITERS", len(WRITERS))
+    with open(fich4, "w") as f:
+        for nom, desc in sorted(DATABASES.items()):
+            # print("readers", nom, desc.module, desc)
+            f.write(nom + ";" + desc.module + "\n")
+        print("ecriture cache DATABASES", len(DATABASES))
 
 
 def zipall(orig=start, nv=""):

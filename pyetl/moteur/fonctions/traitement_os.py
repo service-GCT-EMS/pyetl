@@ -431,8 +431,13 @@ def h_adquery(regle):
         passwd = regle.getvar("passwd_" + adcode)
         base_dn = regle.getvar("base_dn_" + adcode)
         # print("adconnect ", user, passwd, server)
-        connect = ldap.initialize("ldap://" + server)
-        connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
+        try:
+            connect = ldap.initialize("ldap://" + server)
+            connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
+        except Exception as err:
+            print("erreur connection LDAP", adcode, "->", server, err)
+            regle.valide = False
+            return False
         print("champs", ["clef"] + regle.a_recuperer)
         sortie = namedtuple("ldapreturn", ["clef"] + [i for i in regle.a_recuperer])
 
@@ -453,7 +458,7 @@ def h_adquery(regle):
                 result.append(item)
             return result
 
-        if regle.params.pattern == "1":
+        if regle.params.pattern == "1" or regle.params.pattern == "4":
             regle.queryfonc = find_user
 
     else:
@@ -468,25 +473,26 @@ def h_adquery(regle):
             return False
         # regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
         print("----AD", regle.params.pattern, regle)
-        if regle.params.pattern == "1":
+        if regle.params.pattern == "1" or regle.params.pattern == "4":
             regle.queryfonc = regle.AD.find_user
         elif regle.params.pattern == "2":
             regle.queryfonc = regle.AD.find_computer
         elif regle.params.pattern == "3":
             regle.queryfonc = regle.AD.find_group
-        elif regle.params.pattern == "4":  # variable
-            regle.queryfonc = regle.AD.find_user
-            items = regle.queryfonc(regle.params.val_entree.val)
-            item = items[0] if isinstance(items, list) else items
-            val = getattr(item, regle.a_recuperer[0])
-            regle.setvar(regle.params.att_sortie.val, val)
-            print(
-                "AD setvar",
-                regle.params.att_sortie.val,
-                regle.params.val_entree.val,
-                item,
-            )
-            regle.valide = "done"
+
+    if regle.params.pattern == "4":  # variable
+
+        items = regle.queryfonc(regle.params.val_entree.val)
+        item = items[0] if isinstance(items, list) else items
+        val = getattr(item, regle.a_recuperer[0])
+        regle.setvar(regle.params.att_sortie.val, val)
+        print(
+            "AD setvar",
+            regle.params.att_sortie.val,
+            regle.params.val_entree.val,
+            item,
+        )
+        regle.valide = "done"
 
 
 def f_adquery(regle, obj):

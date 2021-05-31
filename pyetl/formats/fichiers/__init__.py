@@ -69,7 +69,7 @@ def loadmodule(module):
         print("     ", module, time.time() - t2)
 
 
-def loadformats(module=None):
+def loadformats(module=None, force=False):
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
     global READERS, WRITERS
@@ -78,11 +78,12 @@ def loadformats(module=None):
     if module is None:
         cr = os.path.join(formatdir, "cache_readers.csv")
         cw = os.path.join(formatdir, "cache_writers.csv")
-        if os.path.isfile(cr):
+        if os.path.isfile(cr) and not force:
             READERS = dict((i[:-1].split(";") for i in open(cr, "r")))
             WRITERS = dict((i[:-1].split(";") for i in open(cw, "r")))
             return
         else:
+
             for fich_module in os.listdir(formatdir):
                 if fich_module.startswith("format_"):
                     module = "." + os.path.splitext(fich_module)[0]

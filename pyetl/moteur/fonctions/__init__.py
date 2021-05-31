@@ -631,14 +631,17 @@ def moduleloader(modulename):
     return imported
 
 
-def loadmodules(module=None):
+def loadmodules(module=None, force=False):
     """charge les modules et enregistre les fonctions"""
     global COMMANDES, SELECTEURS, MODULES, store, prefixes
     modules = dict()
     commanddir = os.path.dirname(__file__)
+    if force:
+        for i in prefixes:
+            store[i] = dict()
     if module is None:
         cc = os.path.join(commanddir, "cache_commandes.csv")
-        if os.path.isfile(cc):
+        if os.path.isfile(cc) and not force:
             COMMANDES = dict((i[:-1].split(";") for i in open(cc, "r")))
             loadmodules(module=".traitement_aux")
             loadmodules(module=".traitement_selecteurs")

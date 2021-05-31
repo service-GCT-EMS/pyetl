@@ -53,14 +53,14 @@ def loaddb(module):
         t2 = time.time()
 
 
-def loaddbmodules(module=None):
+def loaddbmodules(module=None, force=False):
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
     global DATABASES
     formatdir = os.path.dirname(__file__)
     if module is None:
         cr = os.path.join(formatdir, "cache_databases.csv")
-        if os.path.isfile(cr):
+        if os.path.isfile(cr) and not force:
             DATABASES = dict((i[:-1].split(";") for i in open(cr, "r")))
         else:
             for fich_module in os.listdir(formatdir):

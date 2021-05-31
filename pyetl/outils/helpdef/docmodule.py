@@ -10,6 +10,9 @@ module d'aide
 
 
 from pyetl.formats.generic_io import DATABASES, getdb
+from pyetl.moteur.fonctions import loadmodules as load_commands
+from pyetl.formats.fichiers import loadformats
+from pyetl.formats.db import loaddbmodules
 
 
 def souligne(doc, signe):
@@ -163,6 +166,7 @@ def docgen(mapper, nom, nommodule):
 
 def doc_commandes(mapper):
     """genere la doc sphinx des commandes"""
+    load_commands(force=True)
     doc = ["reference des commandes"]
     souligne(doc, "=")
     # print(" modules de commande", mapper.modules)
@@ -211,6 +215,7 @@ def doc_macros(mapper):
 
 def doc_formats(mapper):
     """genere la doc sphinx des commandes"""
+    loadformats(force=True)
     doc = ["reference formats"]
     souligne(doc, "-")
     doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
@@ -232,6 +237,7 @@ def doc_formats(mapper):
     doc.append("%-20s   %10s    %10s" % ("format", "lecture", "ecriture"))
     doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
     doc.append("")
+    loaddbmodules(force=True)
     for nombase in sorted(DATABASES):
         doc.append(nombase)
         souligne(doc, ".")
