@@ -2,20 +2,23 @@
 !==titre largeur
 !fenetre;300;transfert prod vers dev
 !fileselect;1,1;fichier de definition de couches;fichiers csv|*.csv|Projets QGIS|*.qgs;$def_couche();
-!ps;;$sortie_res=Split-Path -Path $listeclasse
+!ps;c1;$listeclasse=[].text
+!ps;c1;$sortie_res=Split-Path -Path $listeclasse
 !droplist;+,1;origine;sigli_prod,siglc_prod,sigli_usag1;$orig;
 !droplist;=,3;destination;sigli_usag1;$dest;
 !button;+,1;export;
-!status;;$message='export en cours';
+!status;;'export en cours';
+!ps;c1;
 !ps;;mapper -#dbextract acces=$orig niveau=in:$listeclasse $sortie_res/export format=sql:sigli format_schema=sql
-!status;;$message='fin export';
+!status;;'fin export';
 !button;=,2;schema;
-!status;;$message='creation schema en cours';
+!status;;'creation schema en cours';
+!ps;c1;
 !ps;;mapper -#runsql dest=$dest nom=$sortie_res/export/schemas/0*
-!status;;$message='fin creation schema';
+!status;;'fin creation schema';
 !button;=,3;donnees;
-!status;;$message='import en cours';
+!status;;'import en cours';
+!ps;c1;
 !ps;;mapper -#runsql dest=$dest nom=$sortie_res/export/schemas/0*
-!status;;$message='fin import'
-!label;+,1;$message
+!status;;'fin import'
 !#ihm;end

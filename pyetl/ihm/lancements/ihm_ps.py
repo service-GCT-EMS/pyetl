@@ -7,6 +7,7 @@ import os
 class Ihm(object):
     def __init__(self, nom=None, interpreteur=None):
         self.nom = nom if nom else "ihm"
+        self.id = "ihm"
         self.main = None
         self.elements = []
 
@@ -57,6 +58,7 @@ class Fenetre(object):
         self.messages = None
         self.titre = titre
         self.elements = []
+        self.statusbar = None
 
     @property
     def colonnes(self):
@@ -73,7 +75,11 @@ class Fenetre(object):
             elif isinstance(i.ligne, int) or i.ligne.isnumeric():
                 cour = int(i.ligne)
                 i.ligne = cour
+            elif i.ligne == "=":
+                i.ligne = cour
         maxlin = max(maxlin, cour)
+        if self.statusbar:
+            maxlin += 1
         return maxlin
 
     def genps(self):
@@ -94,13 +100,21 @@ class Fenetre(object):
             code.extend(vbcode)
             vlist.extend(vslist)
 
+        if self.statusbar:
+            statusbar = Label(self, self.lignes, 1, "", id="statusbar")
+            vslist, scode = statusbar.genps()
+            code.extend(scode)
+            vlist.extend(vslist)
+
         code.append(vref + ".controls.AddRange(@(" + ",".join(vlist) + "))")
         code.append(vref + ".ShowDialog()")
         return code
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, "fenetre ", self.titre)
+        print(
+            "    " * niveau, self.id, "fenetre ", self.titre, "(", self.parent.id, ")"
+        )
         for el in self.elements:
             el.struct(niveau + 1)
 
@@ -124,6 +138,7 @@ class Fileselect(object):
         fbt = "$" + self.id + "FBT"
         px = self.colonne * self.parent.lcols
         py = self.ligne * 50
+        self.ref = tb
         code = [
             lab + " = New-Object system.Windows.Forms.Label",
             lab + '.text = "%s"' % (self.titre,),
@@ -169,7 +184,15 @@ class Fileselect(object):
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, "fileselect ", self.titre)
+        print(
+            "    " * niveau,
+            self.id,
+            "fileselect ",
+            self.titre,
+            "(",
+            self.parent.id,
+            ")",
+        )
 
 
 class Droplist(object):
@@ -195,7 +218,7 @@ class Droplist(object):
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, "droplist ", self.titre)
+        print("    " * niveau, "droplist ", self.titre, "(", self.parent.id, ")")
 
 
 class Bouton(object):
@@ -238,15 +261,41 @@ class Bouton(object):
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, "bouton ", self.titre)
+        print("    " * niveau, self.id, "bouton ", self.titre, "(", self.parent.id, ")")
         for el in self.elements:
             el.struct(niveau + 1)
+
+
+class Label(object):
+    def __init__(self, parent, lin, col, text, id=None):
+        self.id = "Lbl" + str(next(self._ido)) if id is None else id
+        self.parent = parent
+        self.ligne = lin
+        self.colonne = int(col)
+        self.titre = text
+
+    def struct(self, niveau):
+        """affiche la structure de l ihm avec les imbrications"""
+        print("    " * niveau, self.id, "label ", self.titre, "(", self.parent.id, ")")
+
+    def genps(self):
+        px = self.colonne * self.parent.lcols
+        py = self.ligne * 50
+        lab = self.ref
+        code = [
+            lab + " = New-Object system.Windows.Forms.Label",
+            lab + '.text = "%s"' % (self.titre,),
+            lab + ".AutoSize = $true",
+            lab + ".Font = $font",
+            lab + ".location = New-Object System.Drawing.Point(%d,%d)" % (px, py),
+        ]
+        return [lab], code
 
 
 class Commande(object):
     def __init__(self, texte):
         self.commande = texte
-        self.ligne = "="
+        self.ligne = 0
         self.colonne = 0
 
     def genps(self):
@@ -263,6 +312,7 @@ def creihm(nom):
     elem = None
     ihm = None
     courant = None
+    sniplets = dict()
     with open(nom, "r") as f:
         for ligne in f:
             if not ligne or ligne.startswith("!#"):
@@ -302,7 +352,18 @@ def creihm(nom):
                 )
 
             elif code == "!ps":
-                courant.elements.append(Commande(commande))
+                if commande and "[]" in commande:
+                    commande = commande.replace(elem.ref)
+                if position:
+                    if commande:
+                        if position in sniplets:
+                            sniplets[position].append(commande)
+                        else:
+                            sniplets[position].append(commande)
+                    else:
+                        courant.elements.extend(sniplets[position])
+                else:
+                    courant.elements.append(Commande(commande))
 
             elif code == "!droplist":
                 lin, col = position.split(",")
@@ -314,11 +375,19 @@ def creihm(nom):
             elif code == "!button":
                 lin, col = position.split(",")
                 titre = commande[:-1] if commande.endswith("\n") else commande
-                elem = Bouton(courant, lin, col, titre)
+
+                # print("bouton", type(courant), isinstance(courant, Bouton))
                 if isinstance(courant, Bouton):
                     courant = ihm.elements[-1] if ihm.elements else ihm.main
+                    # print(" courant apres", type(courant))
+                elem = Bouton(courant, lin, col, titre)
                 courant.elements.append(elem)
                 courant = elem
+
+            elif code == "status":
+                courant.parent.statusbar = True
+                courant.elements.append(Commande("$statusbar.text=" + commande))
+                courant.elements.append(Commande("$statusbar.Refresh()"))
 
     ihm.struct()
 
