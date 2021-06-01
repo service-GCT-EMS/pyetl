@@ -52,9 +52,26 @@ def commandes_speciales(mapper, commandes, args):
     mapper.setvar("_sortie", "")
     mapper.setvar("_testmode", commande)
     if commande == "help":
-        from .helpdef.helpmodule import print_help
+        if not nom:
+            import subprocess
 
-        print_help(mapper, nom)
+            start = (
+                'start /D "'
+                + os.path.join(
+                    mapper.getvar("_progdir"),
+                    r"..\pyetl_webapp\static\doc_pyetl\build\html",
+                )
+                + '" index.html'
+            )
+
+            print("lancement ", start)
+            fini = subprocess.run(start, shell=True)
+        else:
+            from .helpdef.helpmodule import print_help
+
+            if nom == "*":
+                nom = ""
+            print_help(mapper, nom)
 
     elif commande == "autodoc":
         from .helpdef.docmodule import autodoc

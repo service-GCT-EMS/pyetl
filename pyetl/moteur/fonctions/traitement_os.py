@@ -421,11 +421,14 @@ def h_adquery(regle):
 
     # print("acces LDAP", ACD.root(), regle)
     regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["cn"]
-    if regle.getvar("ADserver"):
+    adcode = regle.getvar("ADserver")
+    if adcode:
         # connection specifique a un autre serveur AD
+        # on charge le groupe de parametres
         import ldap
 
-        adcode = regle.getvar("ADserver")
+        regle.stock_param.load_paramgroup(adcode, nom=adcode)
+
         server = regle.getvar("server_" + adcode)
         user = regle.getvar("user_" + adcode)
         passwd = regle.getvar("passwd_" + adcode)
@@ -438,22 +441,24 @@ def h_adquery(regle):
             print("erreur connection LDAP", adcode, "->", server, err)
             regle.valide = False
             return False
-        print("champs", ["clef"] + regle.a_recuperer)
+        # print("connecteur LDAP sur ", server)
+        # print("champs", ["clef"] + regle.a_recuperer)
         sortie = namedtuple("ldapreturn", ["clef"] + [i for i in regle.a_recuperer])
 
         def find_user(nom):
             filter = "(|(CN=%s)(sAMAccountName=%s))" % (nom, nom)
             attrs = regle.a_recuperer
-            print("adquery", base_dn, filter, attrs)
             retour = connect.search_s(base_dn, ldap.SCOPE_SUBTREE, filter, attrs)
-            print("retour adquery", retour)
-            if len(retour):
-                result = list()
+            if regle.debug:
+                print("adquery", base_dn, filter, attrs)
+                print("retour adquery", retour)
+            result = list()
+            if retour:
                 for ligne in retour:
                     ref, attdict = ligne
                     dict_decode(attdict)
                     attdict["clef"] = ref
-                    print("stockage attdict", attdict)
+                    # print("stockage attdict", attdict)
                     item = sortie(**attdict)
                 result.append(item)
             return result
@@ -486,12 +491,13 @@ def h_adquery(regle):
         item = items[0] if isinstance(items, list) else items
         val = getattr(item, regle.a_recuperer[0])
         regle.setvar(regle.params.att_sortie.val, val)
-        print(
-            "AD setvar",
-            regle.params.att_sortie.val,
-            regle.params.val_entree.val,
-            item,
-        )
+        if regle.debug:
+            print(
+                "AD setvar",
+                regle.params.att_sortie.val,
+                regle.params.val_entree.val,
+                item,
+            )
         regle.valide = "done"
 
 
