@@ -53,7 +53,7 @@ class BasicCrypter(Crypter):
                 )
             )
         )
-        return "".join(chr(i) for i in crypted)
+        return str("".join(chr(i) for i in crypted))
 
     def decrypt(self, val):
         """la decrypte de nouveau"""
@@ -174,8 +174,8 @@ class HcubeCrypter(Crypter):
         # cryptstr = "".join(chr(i) for i in crypted)
         if not cryptstr.endswith("="):
             cryptstr = cryptstr + "="
-        #        print('retour cryptage', val,'->', cryptstr)
-        return cryptstr
+        # print("retour cryptage", val, "->", cryptstr, type(cryptstr))
+        return str(cryptstr)
 
     def decrypt(self, valentree):
         """decryptage"""
@@ -226,7 +226,7 @@ def scramble(key):
     if key and key.endswith("="):
         return key
     binlist = bytes([i for i in key.encode("utf-8")])
-    return base64.b32encode(binlist)
+    return str(base64.b32encode(binlist), encoding="utf-8")
 
 
 def cryptinit(key, level, helper=None):
@@ -262,7 +262,9 @@ def decrypt(val, key=None, level=None, helper=None):
         #        print('non crypté', val)
         return val
     if not key:
-        return ""
+        decrypt = descramble(val)
+        # print(" decryptage clef", decrypt)
+        return decrypt
     if isinstance(key, str):  # on en fait une liste
         keylist = [key]
     else:
@@ -275,7 +277,8 @@ def decrypt(val, key=None, level=None, helper=None):
         decrypt = CRYPTOCLASS[key].decrypt(val)
         if decrypt != val:
             return decrypt
-    return ""
+
+    return descramble(val)
 
 
 def crypt(val, key=None, level=None, helper=None):
@@ -359,6 +362,9 @@ def h_crypt(regle):
     regle.cryptolevel = regle.getvar("cryptolevel")
     regle.cryptohelper = regle.getvar("cryptohelper")
     regle.cryptokey = regle.getvar("defaultkey")
+    # print(
+    #     "preparation cryptage", regle.cryptolevel, regle.cryptohelper, regle.cryptokey
+    # )
     return True
 
 
@@ -375,6 +381,7 @@ def f_crypt(regle, obj):
         helper=regle.cryptohelper,
     )
     obj.attributs[regle.params.att_sortie.val] = str(vcrypte)
+    # print("cryptage", regle.cryptolevel, regle.params.cmp1.getval(obj, regle.cryptokey))
     return True
 
 

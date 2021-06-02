@@ -293,6 +293,7 @@ def prepare_regle(regle, prec=None):
             if len(morceaux) < 8:
                 morceaux = morceaux + [""] * 8
             morceaux[7] = "???"
+            print(regle)
             print("                ------>", ";".join(morceaux))
             #            print('decodage champs', ' '.join([i+'->'+j for i, j in regle.v_nommees.items()]))
             raise SyntaxError("regle sans fonction")

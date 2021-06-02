@@ -308,7 +308,8 @@ class Pyetl(object):
             self.dbref = dict()
             # charge les parametres de site (fichier ini)
             self._charge_site_params(self.site_params_def)
-            self._charge_site_params(self.paramdir)
+            if self.getvar("_paramperso") != "noparam":
+                self._charge_site_params(self.paramdir)
             cryptinfo = (
                 os.getlogin(),
                 self.getvar("usergroup"),
@@ -804,6 +805,7 @@ class Pyetl(object):
                 ("_version", self.version),
                 ("_login", self.username),
                 ("_progdir", os.path.dirname(__file__)),
+                ("cryptolevel", 2),
             ]
         )
 

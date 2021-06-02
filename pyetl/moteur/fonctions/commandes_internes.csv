@@ -308,12 +308,12 @@ $F_sortie=csv;;;;;;;;;;;
 $mode_sortie=A;;;;;;;;
 $separ_csv_out=#std;;;;;;;;;;;
 $force_schema=0;;;;;;;;;;;
-$key=%clef%;;;;;;;;
+$key=%clef%;%masterkey%;;;;;;;
 ;;;;#classe;site_params_c;;set;;;;
 clef;^passwd;;;valeur;;valeur;crypt;%key%;;;
 +:;;;;+clef;**;;set;;;fin;
-clef;!'';;;;;clef,valeur;print;;;fin;
-;;;;;;;;;;;
+clef;masterkey;;;valeur;;valeur;crypt;;;;cryptolevel=0
+!clef;!'';;;;;clef,valeur;print;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#mastercrypt;val;;
 #!help crypte un element avec la masterkey

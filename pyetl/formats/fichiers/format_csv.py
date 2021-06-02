@@ -29,7 +29,25 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
         os.path.join(rep, chemin, fichier), newline="", encoding=reader.encoding
     ) as csvfile:
         sample = csvfile.read(4094)
-        dialect = csv.Sniffer().sniff(sample, delimiters=separ)
+        try:
+            dialect = csv.Sniffer().sniff(sample, delimiters=separ)
+        except csv.Error:
+            logger.warning("erreur determination dialecte csv, parametres par defaut")
+            dref = csv.get_dialect("excel")
+            linesep = "\r\n" if "\r\n" in sample else "\n"
+            has_header = False
+            if sample.startswith("!"):
+                hline = sample.split(linesep, 1)[0]
+                entete = hline[1:].split(separ)
+                csvfile.seek(0)
+                has_header = True
+            csv.register_dialect(
+                "special", dref, delimiter=separ, lineterminator=linesep
+            )
+            dialect = csv.get_dialect("special")
+            lecteur = csv.DictReader(csvfile, dialect=dialect)
+            if has_header:
+                lecteur.__next__()
 
         if entete is None:
             has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
@@ -48,7 +66,7 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
         lecteur = csv.DictReader(
             csvfile, fieldnames=entete, dialect=dialect, restval="", restkey="#reste"
         )
-        # print("entete csv", entete)
+        # print("entete csv", entete, dialect.delimiter)
         if reader.newschema:
             for i in entete:
                 if i[0] != "#":

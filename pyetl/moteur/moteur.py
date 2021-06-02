@@ -318,7 +318,7 @@ class Macro(object):
         maxnum = max(self.commandes_macro.keys())
         last = self.commandes_macro[maxnum]
         if last.startswith("!") or last.startswith("+"):
-            self.commandes_macro[maxnum + 1] = ";;;;pass;;"
+            self.commandes_macro[maxnum + 1] = ";;;;;;;pass;;"
 
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
