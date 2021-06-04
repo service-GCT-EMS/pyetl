@@ -48,6 +48,7 @@ if printtime:
 
 
 def loadmodule(module):
+    global READERS, WRITERS
     if printtime:
         t2 = time.time()
     try:
@@ -62,7 +63,7 @@ def loadmodule(module):
             if nom in READERS and not isinstance(READERS[nom], str):
                 print("attention : redefinition du format d'entree", nom, module)
             READERS[nom] = rdef(*desc, None, module)
-            # print ('lecture  READERS',nom,desc,'->', readers[nom])
+            # print ('lecture  READERS',nom,desc,'->', READERS[nom])
     except (ImportError, AttributeError) as err:
         print("module ", module[1:], "non disponible", err)
     if printtime:
@@ -78,16 +79,18 @@ def loadformats(module=None, force=False):
     if module is None:
         cr = os.path.join(formatdir, "cache_readers.csv")
         cw = os.path.join(formatdir, "cache_writers.csv")
-        if os.path.isfile(cr) and not force:
-            READERS = dict((i[:-1].split(";") for i in open(cr, "r")))
-            WRITERS = dict((i[:-1].split(";") for i in open(cw, "r")))
-            return
-        else:
+        try:
+            if os.path.isfile(cr) and not force:
+                READERS = dict((i[:-1].split(";", 1) for i in open(cr, "r")))
+                WRITERS = dict((i[:-1].split(";") for i in open(cw, "r")))
+                return
+        except:
+            print("erreur lecture cache fichier")
 
-            for fich_module in os.listdir(formatdir):
-                if fich_module.startswith("format_"):
-                    module = "." + os.path.splitext(fich_module)[0]
-                    loadmodule(module)
+        for fich_module in os.listdir(formatdir):
+            if fich_module.startswith("format_"):
+                module = "." + os.path.splitext(fich_module)[0]
+                loadmodule(module)
     else:
         loadmodule(module)
 

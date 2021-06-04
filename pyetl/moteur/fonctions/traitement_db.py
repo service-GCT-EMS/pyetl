@@ -192,7 +192,12 @@ def f_dbalpha(regle, obj):
         if connect.accept_sql == "non":
             # pas de requetes directes on essaye le mode dump
             dest = regle.getvar("dest")
-            if not dest:
+            if dest:
+                if os.path.isabs(dest) or dest.startswith("."):
+                    pass
+                else:
+                    dest = os.path.join(regle.getvar("_sortie"), dest)
+            else:
                 dest = os.path.join(regle.getvar("_sortie"), "tmp")
             os.makedirs(dest, exist_ok=True)
             regle.setvar("_entree", dest)

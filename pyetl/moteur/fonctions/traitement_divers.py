@@ -311,8 +311,10 @@ def setschemasortie(regle, obj):
 
 def f_sortir(regle, obj):
     """#aide||sortir dans differents formats
-    #aide_spec||parametres:?(#schema;nom_schema);?liste_attributs;sortir;format[fanout]?;?nom
-      #pattern||?=#schema;?C;?L;sortir;?C;?C||sortie
+    #aide_spec1||parametres:#schema;nom_schema;?liste_attributs;sortir;format[fanout]?;?nom
+    #aide_spec2||parametres:?liste_attributs;sortir;format[fanout]?;?nom
+      #pattern1||=#schema;C;?L;sortir;?C;?C||sortie
+      #pattern2||;;?L;sortir;?C;?C||sortie
          #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||out
     """
     if regle.output is None:

@@ -317,7 +317,7 @@ class Macro(object):
         """ ajoute une commande pass au cas ou la macro finit par un niveau"""
         maxnum = max(self.commandes_macro.keys())
         last = self.commandes_macro[maxnum]
-        if last.startswith("!") or last.startswith("+"):
+        if last.startswith("|") or last.startswith("+"):
             self.commandes_macro[maxnum + 1] = ";;;;;;;pass;;"
 
     def bind(self, liste, context):

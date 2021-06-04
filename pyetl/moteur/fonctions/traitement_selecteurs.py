@@ -121,7 +121,7 @@ def sel_calc2(selecteur, obj):
 
 def selh_infich(selecteur):
     """precharge le fichier"""
-    #    print ('infich', len(selecteur.params.attr.liste),selecteur.params)
+    # ("infich", selecteur.regle, len(selecteur.params.attr.liste), selecteur.params)
     mode, valeurs = prepare_mode_in(
         selecteur.params.vals.val,
         selecteur.regle,

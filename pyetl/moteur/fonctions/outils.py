@@ -590,7 +590,7 @@ def scan_entree(
         if force_format == "*":
             yield f_courant, (racine, chemin, nom, ext)
         else:
-            nom = os.path.splitext(fichier)[0].lower()
+            # nom = os.path.splitext(fichier)[0].lower()
             if force_format:
                 ext = str(force_format)
             try:

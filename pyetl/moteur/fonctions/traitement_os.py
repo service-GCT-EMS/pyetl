@@ -477,7 +477,7 @@ def h_adquery(regle):
             regle.valide = False
             return False
         # regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
-        print("----AD", regle.params.pattern, regle)
+        # print("----AD", regle.params.pattern, regle)
         if regle.params.pattern == "1" or regle.params.pattern == "4":
             regle.queryfonc = regle.AD.find_user
         elif regle.params.pattern == "2":

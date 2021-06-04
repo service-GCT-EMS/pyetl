@@ -116,11 +116,15 @@ def getreader(ext, defaut=None):
     if fonc is None and defaut:
         fonc = READERS.get(defaut)
     if isinstance(fonc, str):
-        loadformats(fonc)
+        module, aux = fonc.split(";", 1)
+        loadformats(module)
         setgeom()
         fonc = READERS.get(ext)
-        if isinstance(fonc, str):
-            print("erreur chargement", ext, fonc)
+    if not fonc:
+        raise KeyError
+    # if isinstance(fonc, str) or not fonc:
+    #     print("erreur chargement", ext, fonc)
+    #     raise StopIteration(3)
     return fonc
 
 
@@ -132,8 +136,9 @@ def getwriter(ext, defaut=None):
         loadformats(fonc)
         setgeom()
         fonc = WRITERS.get(ext)
-        if isinstance(fonc, str):
+        if not fonc:
             print("erreur chargement", ext, fonc)
+            raise KeyError
     return fonc
 
 
@@ -794,6 +799,14 @@ class Output(object):
     def __repr__(self):
         return "writer " + self.nom_format + " nom: " + self.nom
 
+    def getrepsortie(self, dest):
+        rep_sortie = self.regle.getvar("_sortie")
+        if os.path.isabs(dest) or dest.startswith("."):
+            rep_sortie = dest
+        else:
+            rep_sortie = os.path.join(rep_sortie, dest)
+        return rep_sortie
+
     def getfanout(self, ident, initial=False):
         """determine le mode de fanout"""
         dest = self.writerparms.get("destination")
@@ -805,15 +818,21 @@ class Output(object):
         groupe, classe = ident
 
         if self.fanout == "all" or self.fanout == "no":
-            if os.path.isabs(dest):
-                rep_sortie = ""
-            nom = self.sorties.get_id(rep_sortie, "", "", self.ext, nom=dest or "all")
+            if os.path.isabs(dest) or dest.startswith("."):
+                rep_sortie = os.path.dirname(dest)
+                nom = os.path.basename(dest)
+            else:
+                nom = dest
+            nom = self.sorties.get_id(rep_sortie, "", "", self.ext, nom=nom or "all")
             # print('nom de fichier sans fanout ', rep_sortie, dest,"->",nom)
         elif self.fanout == "groupe":
+            rep_sortie = self.getrepsortie(dest)
             #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
             nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
         else:
+            rep_sortie = self.getrepsortie(dest)
             nom = self.sorties.get_id(rep_sortie, groupe, classe, self.ext)
+
         # print(
         #     "getfanout",
         #     rep_sortie,

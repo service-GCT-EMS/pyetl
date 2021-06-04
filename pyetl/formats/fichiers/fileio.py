@@ -86,7 +86,7 @@ class FileWriter(object):
         elif self.nom == "#attw":
             self.fichier = io.StringIO()
         else:
-            # print ("filewriter: ouvrir", self.newlines)
+            # print("filewriter: ouvrir", self.nom)
             try:
                 self.fichier = open(
                     self.nom,

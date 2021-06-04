@@ -555,16 +555,23 @@ def get_fonction(nom, store, clef):
     return fonctions.get(nom)
 
 
+def add_helper(sbf, nom, store, clef):
+    """ ajoute un helper s il n est pas deja la"""
+    if nom in store[clef]:
+        helper = get_fonction(nom, store, clef)
+        if helper not in sbf.helper:
+            sbf.helper.append(helper)
+
+
 def set_helper(sbf, store, clef):
     """complete la fonction acec les sorties et les assitants"""
-    if sbf.nom in store[clef]:
-        #        print ("trouve helper ",sbf.nom)
-        sbf.helper.append(get_fonction(sbf.nom, store, clef))
+    add_helper(sbf, sbf.nom, store, clef)
     #    else:
     #        print("non trouve ",sbf.nom)
     #    if sbf.description.get("#helper"):
     if sbf.prepare:
-        sbf.helper.extend([get_fonction(i, store, clef) for i in sbf.prepare])
+        for i in sbf.prepare:
+            add_helper(sbf, i, store, clef)
 
 
 def complete_fonction(sbf, store):
@@ -634,6 +641,8 @@ def moduleloader(modulename):
 def loadmodules(module=None, force=False):
     """charge les modules et enregistre les fonctions"""
     global COMMANDES, SELECTEURS, MODULES, store, prefixes
+    if module in MODULES:
+        return  # on a deja fait le job
     modules = dict()
     commanddir = os.path.dirname(__file__)
     if force:
@@ -653,7 +662,7 @@ def loadmodules(module=None, force=False):
                 if imported:
                     modules[module] = moduleloader(module)
     else:
-        # print("loadmodules", module)
+        # print("loadmodules", module, MODULES)
         imported = moduleloader(module)
         if imported:
             modules[module] = moduleloader(module)

@@ -268,6 +268,7 @@ def prepare_regle(regle, prec=None):
             regle.valide = True
         #        print ("interp: acces base de donnees",regle.code_classe,regle.mode,regle)
         else:
+            # print("appelle prepare")
             regle.prepare_selecteur(v_nommees)
             regle.code_classe = regle.code_classe.split(":")[-1]
             # on nettoie d'eventuels tests

@@ -274,12 +274,13 @@ class GestionSorties(object):
     def get_id(self, rep_sortie, groupe, classe, ext, nom=None):
         """retourne un nom de fichier standardise"""
         rep_sortie = rep_sortie if rep_sortie else self.rep_sortie
+
         if not rep_sortie:
             raise NotADirectoryError("repertoire de sortie non défini")
         if nom:
             # print("-------------------nom forcé", os.path.join(rep_sortie, nom))
             nom = nom + ext if not nom.endswith(ext) else nom
-            if os.path.isabs(nom):
+            if os.path.isabs(nom) or nom.startswith("."):
                 return nom
             return os.path.join(rep_sortie, nom)
         if groupe == "#nogroup":

@@ -288,7 +288,9 @@ class Selecteur(object):
                 self.params = ParametresSelecteur(
                     elements, candidat.definition, candidat.patternnum
                 )
+
                 for fhelp in candidat.helper:
+                    # print("appel helper", fhelp, candidat.helper)
                     fhelp(self)
                 self.fonction = candidat.work
                 self.nom = candidat.nom
@@ -640,7 +642,7 @@ class RegleTraitement(object):  # regle de mapping
         sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
         if not sel1.valide:
             sel1, sel2 = sel2, sel1
-        # print ('-------------selecteurs',sel1,sel2)
+        # print("-------------selecteurs", self, sel1, sel2)
         if not sel1.valide:  # pas de conditions
             select = None
             self.nocond = True
