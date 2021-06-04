@@ -116,7 +116,7 @@ def getreader(ext, defaut=None):
     if fonc is None and defaut:
         fonc = READERS.get(defaut)
     if isinstance(fonc, str):
-        module, aux = fonc.split(";", 1)
+        module = fonc
         loadformats(module)
         setgeom()
         fonc = READERS.get(ext)
