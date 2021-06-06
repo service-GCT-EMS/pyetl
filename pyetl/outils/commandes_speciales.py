@@ -24,6 +24,7 @@ def is_special(commandes):
     c1 = commandes.split(";")
     commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
+    # print("is_special", commande, commande in COMMANDES_SPECIALES)
     return commande in COMMANDES_SPECIALES
 
 

@@ -24,6 +24,7 @@ class Ihm(object):
         nbcols = self.colonnes
         nblignes = self.lignes
         self.lcols = int((self.main.largeur - 40) / nbcols)
+        self.hlin = 60
 
         code = [
             "# genere automatiquement par le generateur d ihm de mapper",
@@ -69,8 +70,9 @@ class Fenetre(object):
         maxlin = 0
         cour = 0
         for i in self.elements:
+            print(type(i), "ligne", i.ligne)
             if i.ligne == "+":
-                cour += 1
+                cour += i.hauteur
                 i.ligne = cour
             elif isinstance(i.ligne, int) or i.ligne.isnumeric():
                 cour = int(i.ligne)
@@ -80,16 +82,18 @@ class Fenetre(object):
         maxlin = max(maxlin, cour)
         if self.statusbar:
             maxlin += 1
+        print("lignes de l ihm", len(self.elements), maxlin)
         return maxlin
 
     def genps(self):
-        self.lcols = int((self.largeur - 40) / self.colonnes)
+        self.lcols = int((self.largeur - 40) / (self.colonnes))
+        self.hlin = 60
         vref = "$" + self.id
         code = [
             vref + " = New-Object system.Windows.Forms.Form",
             vref
             + ".ClientSize  = New-Object System.Drawing.Point(%d,%d)"
-            % (self.largeur, self.lignes * 40),
+            % (self.largeur, (self.lignes + 2) * self.hlin),
             vref + '.text  = "%s"' % (self.titre,),
             vref + ".TopMost  = $false",
             "",
@@ -119,130 +123,165 @@ class Fenetre(object):
             el.struct(niveau + 1)
 
 
-class Fileselect(object):
-    _ido = itertools.count(1)
+class Element(object):
+    """element generique d ihm"""
 
-    def __init__(self, parent, lin, col, titre, selecteur, variable):
-        self.id = "Fsel" + str(next(self._ido))
+    def __init__(self, parent, lin, col, titre):
         self.parent = parent
         self.ligne = lin
         self.colonne = int(col)
         self.titre = titre
-        self.selecteur = selecteur
-        self.variable = variable
+        self.hauteur = 1
+        self.elements = []
+        self.nature = "Element"
 
-    def genps(self):
-        lab = "$" + self.id + "L"
-        tb = "$" + self.id + "TB"
-        fbr = "$" + self.id + "FBR"
-        fbt = "$" + self.id + "FBT"
-        px = self.colonne * self.parent.lcols
-        py = self.ligne * 50
-        self.ref = tb
-        code = [
+    def mkheader(self):
+        return ["", "#============" + self.nature + "=============", ""]
+
+    @property
+    def px(self):
+        return (self.colonne - 1) * self.parent.lcols + 20
+
+    @property
+    def py(self):
+        return (self.ligne - 1) * self.parent.hlin + 40
+
+    def position(self, dx=0, dy=0):
+        return "New-Object System.Drawing.Point(%d,%d)" % (self.px + dx, self.py + dy)
+
+    def mklab(self, lab, titre, dx=0, dy=0):
+        return [
             lab + " = New-Object system.Windows.Forms.Label",
-            lab + '.text = "%s"' % (self.titre,),
+            lab + '.text = "%s"' % (titre,),
             lab + ".AutoSize = $true",
             lab + ".Font = $font",
-            lab + ".location = New-Object System.Drawing.Point(%d,%d)" % (px, py),
+            lab + ".location = " + self.position(dx, dy),
             "",
-            "",
-            tb + " = New-Object system.Windows.Forms.TextBox",
-            tb + ".multiline = $false",
-            tb + ".width = 300",
-            tb + ".height = 20",
-            tb + ".location = New-Object System.Drawing.Point(%d,%d)" % (px, py + 40),
-            tb + ".Font = $font",
-            tb + ".AllowDrop = $true",
-            "",
-            "",
-            fbr + " = New-Object System.Windows.Forms.OpenFileDialog",
-            fbr + '.Title = "%s"' % (self.titre,),
-            fbr + '.Filter = "%s"' % (self.selecteur,),
-            "",
-            "",
-            fbt + " = New-Object system.Windows.Forms.Button",
-            fbt + '.text = "f"',
-            fbt + ".width = 24",
-            fbt + ".height = 24",
-            fbt
-            + ".location = New-Object System.Drawing.Point(%d,%d)"
-            % (px + 300, py + 40),
-            fbt + ".Font = $font",
-            "#onclick",
-            fbt + ".Add_Click(",
-            "   {",
-            '       $sd="."',
-            "       if (%s.Text -ne '') { $sd=Split-Path -Path %s.Text }" % (tb, tb),
-            "       %s.InitialDirectory=$sd" % (fbr,),
-            "       $null = %s.ShowDialog()" % (fbr,),
-            "       %s.Update()" % (tb,),
-            "   }",
-            "   )",
         ]
-        return [lab, tb, fbr, fbt], code
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
         print(
             "    " * niveau,
             self.id,
-            "fileselect ",
+            self.nature,
             self.titre,
             "(",
             self.parent.id,
             ")",
         )
+        for el in self.elements:
+            el.struct(niveau + 1)
 
 
-class Droplist(object):
+class Fileselect(Element):
+
     _ido = itertools.count(1)
 
     def __init__(self, parent, lin, col, titre, selecteur, variable):
-        self.id = "Dlist" + str(next(self._ido))
-        self.parent = parent
-        self.ligne = lin
-        self.colonne = int(col)
-        self.titre = titre
+        super().__init__(parent, lin, col, titre)
+        self.id = "Fsel" + str(next(self._ido))
+        self.nature = "Fileselect"
         self.selecteur = selecteur
         self.variable = variable
+        self.hauteur = 2
+
+    def genps(self):
+        lab = "$" + self.id + "L"
+        tb = "$" + self.id + "TB"
+        fbr = "$" + self.id + "FBR"
+        fbt = "$" + self.id + "FBT"
+        self.ref = tb
+        code = (
+            self.mkheader()
+            + self.mklab(lab, self.titre)
+            + [
+                "",
+                tb + " = New-Object system.Windows.Forms.TextBox",
+                tb + ".multiline = $false",
+                tb + ".width = 300",
+                tb + ".height = 20",
+                tb + ".location = " + self.position(dy=40),
+                tb + ".Font = $font",
+                tb + ".AllowDrop = $true",
+                "",
+                "",
+                fbr + " = New-Object System.Windows.Forms.OpenFileDialog",
+                fbr + '.Title = "%s"' % (self.titre,),
+                fbr + '.Filter = "%s"' % (self.selecteur,),
+                "",
+                "",
+                fbt + " = New-Object system.Windows.Forms.Button",
+                fbt + '.text = "f"',
+                fbt + ".width = 24",
+                fbt + ".height = 24",
+                fbt + ".location = " + self.position(dx=300, dy=40),
+                fbt + ".Font = $font",
+                "#===onclick====",
+                fbt + ".Add_Click(",
+                "   {",
+                '       $sd="."',
+                "       if (%s.Text -ne '') { $sd=Split-Path -Path %s.Text }"
+                % (tb, tb),
+                "       %s.InitialDirectory=$sd" % (fbr,),
+                "       $null = %s.ShowDialog()" % (fbr,),
+                "       %s.Text = %s.FileName" % (tb, fbr),
+                "       %s.Update()" % (tb,),
+                "   }",
+                "   )",
+            ]
+        )
+        return [lab, tb, fbt], code
+
+
+class Droplist(Element):
+    _ido = itertools.count(1)
+
+    def __init__(self, parent, lin, col, titre, selecteur, variable):
+        super().__init__(parent, lin, col, titre)
+        self.id = "Dlist" + str(next(self._ido))
+        self.selecteur = selecteur
+        self.variable = variable
+        self.nature = "Droplist"
+        self.hauteur = 2
 
     def genps(self):
         dl = "$" + self.id
+        dlb = dl + "L"
         seldef = '"' + '","'.join(self.selecteur.split(",")) + '"'
-        code = [
-            dl + " = New-Object system.Windows.Forms.ComboBox",
-            dl + ".Items.AddRange(@(%s))" % (seldef,),
-        ]
-        return [dl], code
+        code = (
+            self.mkheader()
+            + self.mklab(dlb, self.titre)
+            + [
+                dl + " = New-Object system.Windows.Forms.ComboBox",
+                dl + ".Items.AddRange(@(%s))" % (seldef,),
+                dl + ".location =" + self.position(dy=30),
+                dl + ".width = 100",
+                dl + ".height = 40",
+                dl + ".Font = $font",
+            ]
+        )
+        return [dl, dlb], code
 
-    def struct(self, niveau):
-        """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, "droplist ", self.titre, "(", self.parent.id, ")")
 
+class Bouton(Element):
 
-class Bouton(object):
     _ido = itertools.count(1)
 
     def __init__(self, parent, lin, col, titre):
+        super().__init__(parent, lin, col, titre)
         self.id = "Btn" + str(next(self._ido))
-        self.parent = parent
-        self.ligne = lin
-        self.colonne = int(col)
-        self.titre = titre
-        self.elements = []
+        self.nature = "Bouton"
 
     def genps(self):
         bt = "$" + self.id
         lcols = self.parent.lcols
-        code = [
+        code = self.mkheader() + [
             bt + " = New-Object system.Windows.Forms.Button",
             bt + '.text = "%s"' % ((self.titre,)),
             bt + ".width =" + str(lcols),
             bt + ".height = 40",
-            bt
-            + ".location = New-Object System.Drawing.Point(%d,%d)"
-            % (self.ligne, self.colonne * lcols),
+            bt + ".location = " + self.position(),
             bt + ".Font = $font",
             bt + ".UseWaitCursor = $true",
             "#---------onclick----------",
@@ -259,44 +298,28 @@ class Bouton(object):
     def lcols(self):
         return self.parent.lcols
 
-    def struct(self, niveau):
-        """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, self.id, "bouton ", self.titre, "(", self.parent.id, ")")
-        for el in self.elements:
-            el.struct(niveau + 1)
 
+class Label(Element):
+    _ido = itertools.count(1)
 
-class Label(object):
-    def __init__(self, parent, lin, col, text, id=None):
-        self.id = "Lbl" + str(next(self._ido)) if id is None else id
-        self.parent = parent
-        self.ligne = lin
-        self.colonne = int(col)
-        self.titre = text
-
-    def struct(self, niveau):
-        """affiche la structure de l ihm avec les imbrications"""
-        print("    " * niveau, self.id, "label ", self.titre, "(", self.parent.id, ")")
+    def __init__(self, parent, lin, col, titre):
+        super().__init__(parent, lin, col, titre)
+        self.id = "Lbl" + str(next(self._ido))
+        self.nature = "label"
 
     def genps(self):
-        px = self.colonne * self.parent.lcols
-        py = self.ligne * 50
-        lab = self.ref
-        code = [
-            lab + " = New-Object system.Windows.Forms.Label",
-            lab + '.text = "%s"' % (self.titre,),
-            lab + ".AutoSize = $true",
-            lab + ".Font = $font",
-            lab + ".location = New-Object System.Drawing.Point(%d,%d)" % (px, py),
-        ]
+        lab = self.id
+        code = self.header() + self.mklab(lab, self.titre)
         return [lab], code
 
 
-class Commande(object):
-    def __init__(self, texte):
+class Commande(Element):
+    def __init__(self, parent, texte):
+        super().__init__(parent, "=", 1, "")
         self.commande = texte
-        self.ligne = 0
-        self.colonne = 0
+        self.nature = "commande"
+        self.ligne = "="
+        self.colonne = 1
 
     def genps(self):
         code = [self.commande]
@@ -363,7 +386,7 @@ def creihm(nom):
                     else:
                         courant.elements.extend(sniplets[position])
                 else:
-                    courant.elements.append(Commande(commande))
+                    courant.elements.append(Commande(courant, commande))
 
             elif code == "!droplist":
                 lin, col = position.split(",")
