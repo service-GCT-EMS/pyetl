@@ -357,6 +357,10 @@ def decoupe_liste_commandes(fichier_regles):
         liste_commandes = fichier_regles.split(",#")
         for i in range(1, len(liste_commandes)):
             liste_commandes[i] = "#" + liste_commandes[i]
+    elif fichier_regles.startswith("-#"):
+        liste_commandes = fichier_regles.split(",-#")
+        for i in range(1, len(liste_commandes)):
+            liste_commandes[i] = "#" + liste_commandes[i]
     else:
         liste_commandes = fichier_regles.split(",")
     # print ('decoupage_macros',fichier_regles,'->',[(n,"<"+i) for n,i in enumerate(liste_commandes)])
@@ -459,7 +463,11 @@ def _lire_commandes(mapper, fichier_regles, niveau):
     if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
         liste_regles = lire_commandes_en_base(mapper, fichier_regles)
 
-    elif fichier_regles.startswith("#") or fichier_regles.startswith("['"):
+    elif (
+        fichier_regles.startswith("#")
+        or fichier_regles.startswith("['")
+        or fichier_regles.startswith("-#")
+    ):
         #       assemblage complexe de macros
         #        print ('a lire', fichier_regles)
         liste_regles = decoupe_liste_commandes(fichier_regles)
@@ -598,6 +606,8 @@ def traite_regle_std(
 
 def get_macro(mapper, nom_inclus, parametres):
     """inclut une macro en la lisant en base si necessaire"""
+    if nom_inclus.startswith("-"):
+        nom_inclus = nom_inclus[1:]
     macro = mapper.getmacro(nom_inclus)
     if macro is None and nom_inclus.startswith("#db:"):
         get_macro_from_db(mapper.regle_ref, nom_inclus)  # on mets en cache
@@ -630,7 +640,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
         parametres = pars + parametres
     nom_inclus, _ = context.resolve(nom_inclus)
     macro = None
-    if nom_inclus.startswith("#"):
+    if nom_inclus.startswith("#") or nom_inclus.startswith("-#"):
         macro, context = get_macro(mapper, nom_inclus, parametres)
     else:
         context.affecte(parametres)

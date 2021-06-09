@@ -62,7 +62,8 @@ def dbaccess(regle, codebase, type_base=None):
         # serveur = ""
         #        servertyp = type_base
         base = codebase
-        print("filedb", type_base, "-->", codebase)
+        stock_param.logger.info("filedb %s --> %s", type_base, codebase)
+        # print("filedb", type_base, "-->", codebase)
         serveur = regle.getvar("server_" + codebase, "")
 
     user = regle.getvar("user_" + codebase, "")

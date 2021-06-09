@@ -507,6 +507,8 @@ def f_adquery(regle, obj):
     #pattern2||S;?C;?A;adquery;=machine;?C;
     #pattern3||S;?C;?A;adquery;=groupe;?C;
     #pattern4||P;C;;adquery;=user;;||sortie||1
+    #req_test||adserver
+    #test||obj||X;89965;adquery;user;||atv;X;UNGER Claude;
     #"""
     if regle.get_entree(obj):
         try:

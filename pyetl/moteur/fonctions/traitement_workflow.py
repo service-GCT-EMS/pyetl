@@ -85,18 +85,45 @@ def f_return(regle, obj):
 def h_start(regle):
     """helper start"""
     regle.chargeur = True
+    schema = regle.params.cmp1.val
+    if schema == "#schemas":
+        regle.schemas = [
+            regle.stock_param.schemas[i]
+            for i in regle.stock_param.schemas
+            if not i.startswith("#")
+        ]
+    else:
+        regle.schemas = [regle.stock_param.schemas.get(schema)]
     return True
 
 
 def f_start(regle, obj):
-    """#aide||ne fait rien mais envoie un objet virtuel dans le circuit
-    #pattern||;;;start;;
+    """#aide||ne fait rien mais envoie un objet virtuel dans le circuit avec un schema si defini
+    #pattern||;;;start;?C
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
     #    print ('start',obj)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
-    obj2 = Objet("_declencheur", "_start", format_natif="interne", conversion="virtuel")
+    if regle.schemas:
+        for schema in regle.schemas:
+            for ident, sc in schema.classes.items():
+                niveau, classe = ident
+                obj2 = Objet(
+                    niveau,
+                    classe,
+                    format_natif="interne",
+                    conversion="virtuel",
+                    schema=sc,
+                )
+                regle.stock_param.moteur.traite_objet(
+                    obj2, regle.branchements.brch["next"]
+                )
+        return True
+    else:
+        obj2 = Objet(
+            "_declencheur", "_start", format_natif="interne", conversion="virtuel"
+        )
     #    print('commande start: declenchement ', obj2)
     regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
     return True

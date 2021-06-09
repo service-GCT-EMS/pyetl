@@ -197,7 +197,7 @@ def ecrire_schema_sql(
     gsql.initschema(schema)
     nomschema = schema.nom
     nomschema = nomschema.replace("#", "_")
-    nomschema = str(os.path.basename(nomschema))
+    nomschema = str(os.path.splitext(os.path.basename(nomschema))[0])
 
     #    print('sio:ecriture schema sql pour ', gsql.dialecte, nomschema)
     if type_base == "basic" or type_base == "consult":
@@ -340,7 +340,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
 
 def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1):
     """prepare les schemas pour la sortie """
-    #    print('ecriture_schemas', mode, stock_param.schemas.keys())
+    # print("ecriture_schemas", mode, stock_param.schemas.keys())
     if mode == "no":
         return
     #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
@@ -365,6 +365,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
 
     a_sortir = stock_param.getvar("schemas_a_sortir")
     a_sortir = a_sortir.split(",") if a_sortir else None
+    if rep_sortie:
+        os.makedirs(rep_sortie, exist_ok=True)
     for i in schemas:
 
         if not i:

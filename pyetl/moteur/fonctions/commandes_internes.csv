@@ -266,6 +266,11 @@ $force_schema=fusion;;;;;;;;;;;
 $nom=%nom%;fusion;;;;;;;;;;
 ;;;;#schema;%nom%;;lire_schema;%schema%;csv;fin;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#schema_sigli;nom_schema=#schemas;;;;;;;;;
+#!help;ajoute les attributs standard a un schema
+;;;;;;;start;%nom_schema%;;fin
+<#att_sigli_modif;;;;;;;;;;
+!===========================================================================================;;;;;;;;;;;
 &&#define;#cree_sql;nom;dialecte;;;;;;;
 #!help;conversion de schemas en sql
 #!desc;schema: racine des schemas a lire (*) lecture multiple

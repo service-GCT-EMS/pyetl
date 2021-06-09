@@ -10,6 +10,7 @@ class Ihm(object):
         self.id = "ihm"
         self.main = None
         self.elements = []
+        self.variables = dict()
 
     @property
     def colonnes(self):
@@ -19,8 +20,9 @@ class Ihm(object):
     def lignes(self):
         return self.main.lignes
 
-    def genps(self):
+    def genps(self, variables):
         """genere le code ps pour l´ihm"""
+        self.variables = variables
         nbcols = self.colonnes
         nblignes = self.lignes
         self.lcols = int((self.main.largeur - 40) / nbcols)
@@ -60,6 +62,7 @@ class Fenetre(object):
         self.titre = titre
         self.elements = []
         self.statusbar = None
+        self.variables = parent.variables
 
     @property
     def colonnes(self):
@@ -134,6 +137,7 @@ class Element(object):
         self.hauteur = 1
         self.elements = []
         self.nature = "Element"
+        self.variables = parent.variables
 
     def mkheader(self):
         return ["", "#============" + self.nature + "=============", ""]
@@ -185,13 +189,14 @@ class Fileselect(Element):
         self.selecteur = selecteur
         self.variable = variable
         self.hauteur = 2
+        self.ref = self.id + "TB.Text"
+        self.variables = parent.variables
 
     def genps(self):
         lab = "$" + self.id + "L"
         tb = "$" + self.id + "TB"
         fbr = "$" + self.id + "FBR"
         fbt = "$" + self.id + "FBT"
-        self.ref = tb
         code = (
             self.mkheader()
             + self.mklab(lab, self.titre)
@@ -205,6 +210,18 @@ class Fileselect(Element):
                 tb + ".Font = $font",
                 tb + ".AllowDrop = $true",
                 "",
+                tb + ".add_DragDrop(",
+                "   {",
+                "       $files = [string[]]$_.Data.GetData([Windows.Forms.DataFormats]::FileDrop)",
+                "       if ($files){$textbox1.Text = $files[0]}",
+                "   }",
+                ")",
+                tb + ".add_DragOver(",
+                "   {",
+                "       if ($_.Data.GetDataPresent([Windows.Forms.DataFormats]::FileDrop))",
+                "       {$_.Effect = 'Copy'} else {$_.Effect = 'None'}",
+                "   }",
+                ")",
                 "",
                 fbr + " = New-Object System.Windows.Forms.OpenFileDialog",
                 fbr + '.Title = "%s"' % (self.titre,),
@@ -244,6 +261,7 @@ class Droplist(Element):
         self.variable = variable
         self.nature = "Droplist"
         self.hauteur = 2
+        self.ref = self.id + ".Text"
 
     def genps(self):
         dl = "$" + self.id
@@ -262,6 +280,31 @@ class Droplist(Element):
             ]
         )
         return [dl, dlb], code
+
+
+class Checkbox(Element):
+    _ido = itertools.count(1)
+
+    def __init__(self, parent, lin, col, titre, etat, variable):
+        super().__init__(parent, lin, col, titre)
+        self.id = "Cbox" + str(next(self._ido))
+        self.etat = etat
+        self.variable = variable
+        self.nature = "Checkbox"
+        self.hauteur = 1
+        self.ref = self.id + ".Checked"
+
+    def genps(self):
+        cb = "$" + self.id
+        code = self.mkheader() + [
+            cb + "= New-Object system.Windows.Forms.CheckBox",
+            cb + '.text = "%s"' % (self.titre,),
+            cb + ".AutoSize = $true",
+            cb + ".Checked = %s" % (self.etat,),
+            cb + ".location =" + self.position(),
+            cb + ".Font = $font",
+        ]
+        return [cb], code
 
 
 class Bouton(Element):
@@ -322,12 +365,29 @@ class Commande(Element):
         self.colonne = 1
 
     def genps(self):
-        code = [self.commande]
+        commande = self.commande
+        while "$[" in commande:
+            variable = commande.split("$[")[1].split("]$")[0]
+            if variable in self.variables:
+                commande = commande.replace(
+                    "$[" + variable + "]$", "$($" + self.variables[variable].ref + ")"
+                )
+            else:
+                print("variable introuvable", variable, self.variables)
+                break
+        code = [commande]
         return [], code
 
     def struct(self, niveau):
         """affiche la structure de l ihm avec les imbrications"""
         print("    " * niveau, "commande ", self.commande)
+
+
+# def getvariable(code):
+#     """extrait la ou les variables de references"""
+#     if '['in code:
+#         variables=code.strip()[:-1].split('[')[1]
+#     return variables
 
 
 def creihm(nom):
@@ -341,11 +401,11 @@ def creihm(nom):
             if not ligne or ligne.startswith("!#"):
                 continue
             try:
-                code, position, commande = ligne.split(";", 2)
+                code, position, commande = ligne[:-1].split(";", 2)
             except ValueError:
                 print(" ligne mal formee", ligne)
                 continue
-            if code == "!ihm":
+            if code.startswith("!ihm"):
                 if position == "init":
                     interpreteur = commande
                     nom_ihm = os.path.splitext(nom)[0]
@@ -353,6 +413,7 @@ def creihm(nom):
                         "print erreur redefinition ihm "
                         raise StopIteration
                     ihm = Ihm(nom_ihm, interpreteur)
+                    variables = ihm.variables
             elif code == "!fenetre":
                 largeur = int(position)
                 titre = commande[:-1] if commande.endswith("\n") else commande
@@ -370,19 +431,20 @@ def creihm(nom):
             elif code == "!fileselect":
                 lin, col = position.split(",", 1)
                 titre, selecteur, variable = commande.split(";", 2)
-                courant.elements.append(
-                    Fileselect(courant, lin, col, titre, selecteur, variable)
-                )
+                fsel = Fileselect(courant, lin, col, titre, selecteur, variable)
+                courant.elements.append(fsel)
+                if variable:
+                    variables[variable] = fsel
 
             elif code == "!ps":
-                if commande and "[]" in commande:
-                    commande = commande.replace(elem.ref)
+                if commande and "$[]$" in commande:
+                    commande = commande.replace("$[]$", "$($" + elem.ref + ")")
                 if position:
                     if commande:
                         if position in sniplets:
                             sniplets[position].append(commande)
                         else:
-                            sniplets[position].append(commande)
+                            sniplets[position] = [commande]
                     else:
                         courant.elements.extend(sniplets[position])
                 else:
@@ -391,9 +453,10 @@ def creihm(nom):
             elif code == "!droplist":
                 lin, col = position.split(",")
                 titre, liste, variable = commande.split(";", 2)
-                courant.elements.append(
-                    Droplist(courant, lin, col, titre, liste, variable)
-                )
+                dlist = Droplist(courant, lin, col, titre, liste, variable)
+                courant.elements.append(dlist)
+                if variable:
+                    variables[variable] = dlist
 
             elif code == "!button":
                 lin, col = position.split(",")
@@ -407,6 +470,14 @@ def creihm(nom):
                 courant.elements.append(elem)
                 courant = elem
 
+            elif code == "!case":
+                lin, col = position.split(",")
+                titre, init, variable = commande.split(";", 2)
+                dlist = Checkbox(courant, lin, col, titre, init, variable)
+                courant.elements.append(dlist)
+                if variable:
+                    variables[variable] = dlist
+
             elif code == "status":
                 courant.parent.statusbar = True
                 courant.elements.append(Commande("$statusbar.text=" + commande))
@@ -416,4 +487,4 @@ def creihm(nom):
 
     sortie = ihm.nom + ".ps1"
     with open(sortie, "w") as f:
-        f.write("\n".join(ihm.genps()))
+        f.write("\n".join(ihm.genps(variables)))

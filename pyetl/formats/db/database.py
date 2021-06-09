@@ -302,7 +302,7 @@ class DbConnect(object):
         self.schemabase = self.params.init_schema(
             "#" + str(code), "B", defmodeconf=defmodeconf
         )
-        #        self.connect()
+        # print("init schemabase", self.schemabase)
         self.gensql = DbGenSql()
         self.decile = 100000
         self.attlist = []
@@ -498,7 +498,7 @@ class DbConnect(object):
 
             #        nom_groupe, nom_classe, alias_classe, type_geometrique, dimension, nb_obj, type_table,\
             #        index_geometrique, clef_primaire, index, clef_etrangere = i
-            #        print ('mdba:select tables' ,i)
+            # print("_______________mdba:select tables", i, "->", alias_classe)
             ident = (str(nom_groupe), str(nom_classe))
             schemaclasse = self.schemabase.get_classe(ident)
             if not schemaclasse:
@@ -509,7 +509,7 @@ class DbConnect(object):
 
                 schemaclasse = self.schemabase.setdefault_classe(ident)
             schemaclasse.setinfo("type_table", type_table)
-            schemaclasse.setinfo("alias", alias_classe if alias_classe else "")
+            schemaclasse.setalias(alias_classe if alias_classe else "")
             schemaclasse.setinfo("objcnt_init", str(nb_obj) if nb_obj else "0")
             schemaclasse.setinfo("dimension", str(dimension))
             schemaclasse.fichier = self.nombase
@@ -709,7 +709,7 @@ class DbConnect(object):
     ):
         """recupere le schema de travail"""
         schema_travail, liste2 = self.schemabase.getschematravail(
-            regle, niveau, classe, tables="A", multi=True, nocase=False, nomschema=""
+            regle, niveau, classe, tables, multi, nocase, nomschema
         )
         if schema_travail.elements_specifiques:
             self.select_elements_specifiques(schema_travail, liste2)

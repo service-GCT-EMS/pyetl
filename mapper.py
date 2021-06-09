@@ -34,9 +34,10 @@ def main():
         message_help()
     else:
         # appels par powershell qui deteste les #
-        args = list(
-            [i[1:] if i.startswith("_") or i.startswith("-") else i for i in sys.argv]
-        )
+        args = sys.argv
+
+        #     [i[1:] if i.startswith("-") else i for i in sys.argv]
+        # )
         mapping = args[1]
         runpyetl(mapping, args[2:])
     print(

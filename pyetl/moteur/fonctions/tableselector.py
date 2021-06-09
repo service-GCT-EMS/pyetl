@@ -412,6 +412,7 @@ class TableSelector(object):
         #     self.resolved,
         #     self.static,
         #     len(list(self.get_classes())),
+        #     self.schema_travail,
         # )
         return complet
 

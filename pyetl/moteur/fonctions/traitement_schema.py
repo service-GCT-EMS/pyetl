@@ -336,7 +336,7 @@ def schema_from_objs(regle):
     """transforme les objets stockes en schema"""
     tables = []
     enums = []
-    for obj in regle.store:
+    for obj in regle.tmpstore:
         niveau, classe = obj.ident
         if re.match(regle.params.cmp1.val, classe):
             tables.append(obj.attributs)
@@ -348,6 +348,7 @@ def h_schema_from_classe(regle):
     """creation schema regle stockante"""
     regle.store = True
     regle.traite_stock = schema_from_objs
+    regle.tmpstore = list()
 
 
 def f_schema_from_classe(regle, obj):
@@ -356,7 +357,13 @@ def f_schema_from_classe(regle, obj):
      #pattern1||;?C;;cree_schema;C;C
 
     """
-    pass
+    niveau, classe = obj.ident
+    if re.match(regle.params.cmp1.val, classe) or re.match(
+        regle.params.cmp2.val, classe
+    ):
+        regle.tmpstore.append(obj)
+        return True
+    return False
 
 
 def f_def_schema(regle, obj):

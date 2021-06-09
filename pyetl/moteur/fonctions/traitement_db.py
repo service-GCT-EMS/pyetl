@@ -780,7 +780,7 @@ def h_recup_schema(regle):
 
     regle.setlocal("mode_schema", "dbschema")
     selecteur = regle.cible_base
-    print("h_recup_schema:selecteur", selecteur)
+    # ("h_recup_schema:selecteur", selecteur)
     LOGGER.debug("selecteur %s", repr(selecteur))
     try:
         complet = selecteur.resolve()

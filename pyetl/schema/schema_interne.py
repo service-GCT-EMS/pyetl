@@ -40,7 +40,13 @@ def init_schema(
     """ retourne le schemas qui va bien et les cree si necsssaire """
     if not nom_schema:  # on demande un schema temporaire
         return Schema("##tmp", origine=origine, fich=fich, defmodeconf=defmodeconf)
-    #    print ('demande schema ',nom_schema, 'creation', nom_schema not in mapper.schemas, modele)
+    # print(
+    #     "demande schema ",
+    #     nom_schema,
+    #     "creation",
+    #     nom_schema not in mapper.schemas,
+    #     modele,
+    # )
     if not mapper:  # on demande un schema temporaire nomme
         return Schema(nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf)
     if isinstance(modele, str):
@@ -504,8 +510,8 @@ class Schema(object):
         # if niveau is None or classe is None:
         #     return []
         if not tables:
-            tables={"A"}
-        tables="".join(tables)
+            tables = {"A"}
+        tables = "".join(tables)
         tables_a_sortir = set()
         exp_niv = niveau.strip() if niveau else ""
         exp_clas = classe.strip() if classe else ""
