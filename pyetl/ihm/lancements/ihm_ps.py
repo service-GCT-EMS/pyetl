@@ -58,11 +58,16 @@ class Fenetre(object):
         self.parent = parent
         self.largeur = largeur
         self.hauteur = 0
+        self.hlines = dict()
         self.messages = None
         self.titre = titre
         self.elements = []
         self.statusbar = None
         self.variables = parent.variables
+
+    def sethline(self, ligne, hauteur):
+        self.hlines[ligne] = max(self.hlines.get(ligne, 1), hauteur)
+        return self.hlines[ligne]
 
     @property
     def colonnes(self):
@@ -72,25 +77,31 @@ class Fenetre(object):
     def lignes(self):
         maxlin = 0
         cour = 0
+        next = 1
         for i in self.elements:
             print(type(i), "ligne", i.ligne)
             if i.ligne == "+":
-                cour += i.hauteur
+                cour += next
                 i.ligne = cour
+                next = self.sethline(cour, i.hauteur)
             elif isinstance(i.ligne, int) or i.ligne.isnumeric():
                 cour = int(i.ligne)
+                next = self.sethline(cour, i.hauteur)
                 i.ligne = cour
             elif i.ligne == "=":
+                cour = cour if cour else 1
                 i.ligne = cour
         maxlin = max(maxlin, cour)
+        next = self.sethline(cour, i.hauteur)
         if self.statusbar:
             maxlin += 1
+        maxlin += next - 1
         print("lignes de l ihm", len(self.elements), maxlin)
         return maxlin
 
     def genps(self):
         self.lcols = int((self.largeur - 40) / (self.colonnes))
-        self.hlin = 60
+        self.hlin = 40
         vref = "$" + self.id
         code = [
             vref + " = New-Object system.Windows.Forms.Form",
@@ -148,7 +159,7 @@ class Element(object):
 
     @property
     def py(self):
-        return (self.ligne - 1) * self.parent.hlin + 40
+        return (self.ligne - 1) * self.parent.hlin + 30
 
     def position(self, dx=0, dy=0):
         return "New-Object System.Drawing.Point(%d,%d)" % (self.px + dx, self.py + dy)
@@ -206,7 +217,7 @@ class Fileselect(Element):
                 tb + ".multiline = $false",
                 tb + ".width = 300",
                 tb + ".height = 20",
-                tb + ".location = " + self.position(dy=40),
+                tb + ".location = " + self.position(dy=30),
                 tb + ".Font = $font",
                 tb + ".AllowDrop = $true",
                 "",
@@ -232,7 +243,7 @@ class Fileselect(Element):
                 fbt + '.text = "f"',
                 fbt + ".width = 24",
                 fbt + ".height = 24",
-                fbt + ".location = " + self.position(dx=300, dy=40),
+                fbt + ".location = " + self.position(dx=300, dy=30),
                 fbt + ".Font = $font",
                 "#===onclick====",
                 fbt + ".Add_Click(",
@@ -366,6 +377,10 @@ class Commande(Element):
 
     def genps(self):
         commande = self.commande
+        if "#" in commande:
+            # on gere les # que powershell n aime pas
+            tmp = commande.split(" ")
+            commande = " ".join(["'" + i + "'" if "#" in i else i for i in tmp])
         while "$[" in commande:
             variable = commande.split("$[")[1].split("]$")[0]
             if variable in self.variables:
