@@ -810,6 +810,7 @@ class Output(object):
     def getfanout(self, ident, initial=False):
         """determine le mode de fanout"""
         dest = self.writerparms.get("destination")
+        print("---------------------getfanout", dest, self.getrepsortie(dest))
         if dest == "#print":
             nom = "#print"
             ressource = self.sorties.get_res(self.regle, nom)

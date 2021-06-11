@@ -230,15 +230,22 @@ def h_sortir(regle):
         if (
             regle.params.cmp2.val == "#print"
             or regle.getvar("_sortie") == "#print"
+            or regle.getvar("_sortie").startswith("__webservice")
             or (fich == "" and regle.getvar("_sortie") == "")
         )
         else regle.params.cmp1.val
     )
     regle.output = regle.stock_param.getoutput(outformat, regle)
-    if outformat != "#print":
+    if outformat == "#print":
+        regle.output.writerparms["destination"] = "#print"
+    else:
         regle.output.writerparms["destination"] = fich
+
     if regle.debug:
-        print("creation output", fich, sorted(regle.output.writerparms.items()))
+        print(
+            "creation output", fich, outformat, sorted(regle.output.writerparms.items())
+        )
+    print("creation output", fich, outformat)
 
     if regle.output.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté
@@ -264,8 +271,6 @@ def h_sortir(regle):
         regle.getvar("_sortie"),
         regle.output.writerparms["destination"],
     )
-    # regle.setlocal("_sortie", regle.output.writerparms["destination"])
-
     regle.calcule_schema = regle.output.writerparms["force_schema"]
     regle.memlimit = int(regle.context.getvar("memlimit", 0))
     mode_sortie = regle.context.getvar("mode_sortie", "D")

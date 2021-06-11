@@ -493,7 +493,7 @@ def creihm(nom):
                 if variable:
                     variables[variable] = dlist
 
-            elif code == "status":
+            elif code == "!status":
                 courant.parent.statusbar = True
                 courant.elements.append(Commande("$statusbar.text=" + commande))
                 courant.elements.append(Commande("$statusbar.Refresh()"))

@@ -1155,7 +1155,9 @@ class Pyetl(object):
                 self.worker,
                 self.mode,
             )
-        if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
+        if (
+            rep_sortie == "-" or not rep_sortie or rep_sortie == "__webservice"
+        ):  # pas de sortie on ecrit pas
             if (
                 not self.getvar("_testmode") and self.mode != "web" and self.schemas
             ):  # en mode test ou web on rale pas
@@ -1230,7 +1232,8 @@ class Pyetl(object):
             self.webstore["log"] = sortie
         # petite manip pour nettoyer les #
         tmp = {
-            i[1:] if i.startswith("#") else i: self.webstore[i] for i in self.webstore
+            i[1:] if str(i).startswith("#") else i: self.webstore[i]
+            for i in self.webstore
         }
         self.webstore = tmp
 

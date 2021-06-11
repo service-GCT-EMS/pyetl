@@ -259,7 +259,7 @@ def retour_api(script):
 def webservice(script):
     print("dans webservice", script)
     nomscript = "#" + script[1:] if script.startswith("_") else script
-    scriptparams = ["i" + "=" + "J" for i, j in request.args.items()]
+    scriptparams = [i + "=" + j for i, j in request.args.items()]
     scriptlist.refreshscript(nomscript)
     fich_script = (
         nomscript
@@ -267,6 +267,7 @@ def webservice(script):
         else os.path.join(scriptlist.scriptdir, nomscript)
     )
     print("appel webservice", nomscript, scriptparams)
+    stime = time.time()
     rep_sortie = "__webservice"
     entree = ""
     processor = scriptlist.mapper.getpyetl(
@@ -280,10 +281,21 @@ def webservice(script):
         try:
             processor.process()
             wstats = processor.get_work_stats()
+            print("appel resultats")
             result, tmpdir = processor.get_results()
             print("retour", result)
-            return tuple(result["print"])
-        except:
+            print("duree traitement", time.time() - stime)
+            if not "print" in result:
+                return "reponse vide"
+            ret = tuple([i for i in result["print"] if i])
+            if len(ret) == 0:
+                ret = "no result"
+            elif len(ret) == 1:
+                ret = ret[0]
+            print("recup ", ret)
+            return ret
+        except KeyError as ex:
+            print("erreur ", ex)
             return "erreur"
 
 
