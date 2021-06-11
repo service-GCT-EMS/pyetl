@@ -94,11 +94,11 @@ class ScriptList(object):
                         continue
                     clef, contenu = tmp
                     if clef not in infos:
-                        infos[clef] = dict() if clef=="variables" else []
-                    if clef=="variables":
-                        tmp=contenu.split(";",1)
-                        nom,question = tmp if len(tmp)==2 else (contenu,contenu)
-                        infos[clef][nom]=question
+                        infos[clef] = dict() if clef == "variables" else []
+                    if clef == "variables":
+                        tmp = contenu.split(";", 1)
+                        nom, question = tmp if len(tmp) == 2 else (contenu, contenu)
+                        infos[clef][nom] = question
                     else:
                         infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
@@ -243,7 +243,6 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
-
 @app.route("/retour_api/<script>")
 def retour_api(script):
     stats = session.get("stats")
@@ -256,17 +255,42 @@ def retour_api(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
-
-
-
-
-
-
+@app.route("/ws/<script>", methods=["GET", "POST"])
+def webservice(script):
+    print("dans webservice", script)
+    nomscript = "#" + script[1:] if script.startswith("_") else script
+    scriptparams = ["i" + "=" + "J" for i, j in request.args.items()]
+    scriptlist.refreshscript(nomscript)
+    fich_script = (
+        nomscript
+        if nomscript.startswith("#")
+        else os.path.join(scriptlist.scriptdir, nomscript)
+    )
+    print("appel webservice", nomscript, scriptparams)
+    rep_sortie = "__webservice"
+    entree = ""
+    processor = scriptlist.mapper.getpyetl(
+        fich_script,
+        liste_params=scriptparams,
+        entree=entree,
+        rep_sortie=rep_sortie,
+        mode="web",
+    )
+    if processor:
+        try:
+            processor.process()
+            wstats = processor.get_work_stats()
+            result, tmpdir = processor.get_results()
+            print("retour", result)
+            return tuple(result["print"])
+        except:
+            return "erreur"
 
 
 @app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
 def execscript(script, mode):
+    print("dans exec", script)
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -292,7 +316,7 @@ def execscript(script, mode):
             scriptparams[nom] = str(form.__getattribute__(nom).data)
 
         print("recup form", entree, rep_sortie, infos, scriptparams)
-        print ("full url",request.base_url)
+        print("full url", request.base_url)
         processor = scriptlist.mapper.getpyetl(
             fich_script,
             entree=entree,
@@ -305,7 +329,7 @@ def execscript(script, mode):
                 processor.process()
                 wstats = processor.get_work_stats()
                 result, tmpdir = processor.get_results()
-                wstats["tmpdir"]=tmpdir
+                wstats["tmpdir"] = tmpdir
                 wstats["nom"] = nomscript
                 wstats["result"] = list(result.keys())
                 session["stats"] = wstats
@@ -367,9 +391,11 @@ def login(script=""):
         "login.html", title="Sign In", form=form, nom=nom, url=script
     )
 
+
 @app.route("/help")
 def show_help():
     return render_template("help.html")
+
 
 @app.route("/intro")
 def show_intro():
