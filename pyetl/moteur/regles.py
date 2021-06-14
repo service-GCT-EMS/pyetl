@@ -987,7 +987,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def print(self, *args, **kwargs):
         """fonction d impression avec gestion des retours web"""
-        if self.stock_param.mode == "web":
+        if self.stock_param.mode.startswith("web"):
             sortie = self.stock_param.webstore.setdefault("#print", [])
             buffer = StringIO()
             print(*args, **kwargs, file=buffer)

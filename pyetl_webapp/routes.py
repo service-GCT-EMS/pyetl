@@ -8,7 +8,7 @@ from os import error
 import logging
 import time
 from collections import namedtuple
-from flask import render_template, flash, redirect, session, url_for, request
+from flask import render_template, flash, redirect, session, jsonify, url_for, request
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
@@ -275,7 +275,7 @@ def webservice(script):
         liste_params=scriptparams,
         entree=entree,
         rep_sortie=rep_sortie,
-        mode="web",
+        mode="webservice",
     )
     if processor:
         try:
@@ -287,13 +287,15 @@ def webservice(script):
             print("duree traitement", time.time() - stime)
             if not "print" in result:
                 return "reponse vide"
-            ret = tuple([i for i in result["print"] if i])
+            ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
+            print("recup ", ret)
             if len(ret) == 0:
                 ret = "no result"
             elif len(ret) == 1:
                 ret = ret[0]
-            print("recup ", ret)
-            return ret
+
+            print("json", jsonify(ret))
+            return jsonify(ret)
         except KeyError as ex:
             print("erreur ", ex)
             return "erreur"

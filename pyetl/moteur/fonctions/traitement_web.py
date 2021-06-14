@@ -88,8 +88,10 @@ def geocode_traite_stock(regle, final=True):
     try:
         res = RQ.post(geocodeur, files=files, data=data)
     except RQ.RequestException as prob:
-        print("url geocodeur defectueuse", geocodeur)
-        print("exception levee", prob)
+        regle.stock_param.logger.error("geocodeur non accessible %s", geocodeur)
+        regle.stock_param.logger.exception("erreur", exc_info=prob)
+        # print("url geocodeur defectueuse", geocodeur)
+        # print("exception levee", prob)
 
         raise StopIteration(2)
     # print ('retour', res.text)
@@ -109,7 +111,10 @@ def geocode_traite_stock(regle, final=True):
             # print ('retour',obj)
             score = obj.attributs.get("result_score", "")
             if not score:
-                print("erreur geocodage", attributs)
+                regle.stock_param.logger.error(
+                    "erreur geocodage %s", ",".join(attributs)
+                )
+                # print("erreur geocodage", attributs)
             traite(obj, suite if score else fail)
         elif not header:
             header = [prefix + i for i in attributs[outcols:]]
@@ -123,7 +128,10 @@ def geocode_traite_stock(regle, final=True):
                 # print ('schema :', obj.schema)
         else:
             if not final:
-                print("geocodeur: recu truc etrange ", attributs)
+                regle.stock_param.logger.warning(
+                    "recu truc etrange %s", ",".join(attributs)
+                )
+                # print("geocodeur: recu truc etrange ", attributs)
                 # print("retry")
                 # geocode_traite_stock(regle, final=True)
                 return
@@ -212,7 +220,8 @@ def getftpinfo(regle, fichier):
         servertyp = "sftp"
         fichier = fichier[7:]
     else:
-        print("service FTP inconnu", fichier, regle)
+        regle.stock_param.logger.error("service FTP inconnu %s", fichier)
+        # print("service FTP inconnu", fichier, regle)
         raise FTP.error_perm
     acces, elem = fichier.split("@", 1)
     user, passwd = acces.split(":", 1)
@@ -226,7 +235,8 @@ def ftpconnect(regle):
     """connection ftp"""
     _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
     if regle.debug:
-        print("ouverture acces ", regle.getvar("acces_ftp"))
+        regle.stock_param.logger.info("ouverture acces %s", regle.getvar("acces_ftp"))
+        # print("ouverture acces ", regle.getvar("acces_ftp"))
     try:
         if servertyp == "tls":
             regle.ftp = FTP.FTP_TLS(host=serveur, user=user, passwd=passwd)
@@ -235,8 +245,12 @@ def ftpconnect(regle):
             regle.ftp = FTP.FTP(host=serveur, user=user, passwd=passwd)
             return True
     except FTP.error_perm as err:
-        print("!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd)
-        print("retour_erreur", err)
+        regle.stock_param.logger.error(
+            "erreur ftp: acces non autorisé %s %s %s", serveur, servertyp, user
+        )
+        # print("!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd)
+        regle.stock_param.logger.exception("retour_erreur", exc_info=err)
+        # print("retour_erreur", err)
         return False
     if servertyp == "sftp" and SFTP:
         try:
@@ -247,6 +261,7 @@ def ftpconnect(regle):
             )
             return True
         except SFTP.ConnectionException as err:
+
             print(
                 "!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd
             )

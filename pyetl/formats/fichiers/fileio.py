@@ -79,7 +79,7 @@ class FileWriter(object):
 
         if self.nom == "#print":
             self.fichier = sys.stdout
-            if self.regle.stock_param.mode == "web":
+            if self.regle.stock_param.mode.startswith("web"):
                 self.fichier = io.StringIO()
                 if self.layer in self.regle.stock_param.webstore:
                     self.regle.stock_param.webstore[self.layer].append(self.fichier)

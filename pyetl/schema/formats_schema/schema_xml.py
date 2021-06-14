@@ -362,7 +362,7 @@ def ecrire_schema_xml(
 ):
     """ecrit un schema en xml"""
     alias = ESC_XML(alias)
-    if stock_param and stock_param.mode == "web":
+    if stock_param and stock_param.mode.startswith("web"):
         print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)
         mapper = stock_param
         while mapper.parent and not mapper.ismainmapper:
@@ -396,7 +396,7 @@ def ecrire_schema_xml(
             if not prefix:
                 copier_xsl(rep)
             # mode webservice
-        if stock_param and stock_param.mode == "web":
+        if stock_param and stock_param.mode.startswith("web"):
 
             print(
                 "##################### mode webstore schemas :",

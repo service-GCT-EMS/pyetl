@@ -289,14 +289,19 @@ def f_sample(regle, obj):
 
 def printvariable(regle):
     """ affichage de variables"""
-    if not regle.params.cmp1.val:
+    nomv = regle.params.cmp1.val
+    if not nomv:
         return "\n".join(
             [i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())]
         )
 
     if regle.params.cmp2.val:
-        return regle.params.cmp1.val + "=" + str(regle.getvar(regle.params.cmp1.val))
-    return regle.getvar(regle.params.cmp1.val)
+        return nomv + "=" + str(regle.getvar(regle.params.cmp1.val))
+    return (
+        regle.context.getvar_b(nomv, "")
+        if regle.stock_param.mode.startswith("web")
+        else regle.getvar(nomv)
+    )
 
 
 def f_printvar(regle, _):
@@ -306,7 +311,7 @@ def f_printvar(regle, _):
     #!test2||redirect||obj||$toto=ok||^;;;printv;||out
     """
     #    print("variables:")
-    print(printvariable(regle))
+    regle.print(printvariable(regle))
     return True
 
 

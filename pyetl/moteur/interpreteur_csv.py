@@ -552,7 +552,7 @@ def traite_regle_std(
         )
     #                print ('interp regle',i,erreurs)
     except SyntaxError:
-        #        print( 'syntaxerror ',r_cour)
+        print("syntaxerror ", texte_brut)
         return bloc, 1
     #        raise
     #            print ('icsv:traitement ligne ',i[:-1], r_cour)
@@ -859,7 +859,7 @@ def lire_regles_csv(
             # execute_macro(mapper,texte[1:],context,fichier_regles)
             mapper.macrorunner(texte[2:])
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
-            # print ('avant macro',texte, context, context.getvar('atts'))
+            # print("avant macro", texte, context, context.getvar("atts"))
             # on transforme ca en appel call
             # ligne,_ = context.resolve(texte)
             errs = importe_macro(
@@ -867,7 +867,7 @@ def lire_regles_csv(
             )
             if errs:
                 LOGGER.error("erreur chargement macro %s", texte)
-                # print("====erreur chargement macro", texte)
+                # print("====erreur chargement macro", texte, errs)
                 erreurs = erreurs + errs
                 return erreurs
         else:
@@ -883,7 +883,7 @@ def lire_regles_csv(
             )
             if errs:
                 # LOGGER.error("erreur interpretation des regles : arret du traitement")
-                # print("====erreur traite_regles_std")
+                print("====erreur traite_regles_std")
                 erreurs += errs
     #            print('apres,regles std', defligne, errs)
 

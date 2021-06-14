@@ -526,7 +526,7 @@ class Pyetl(object):
                 if mode == "cmd":
                     self.logger.info(ligne)
                     # print("message recu", ligne)
-                elif mode == "web":
+                elif mode.startswith("web"):
 
                     pass
             return (
@@ -594,7 +594,7 @@ class Pyetl(object):
     ):
         """retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
-        if mode == "web":
+        if mode.startswith("web"):
             print("---------------------------- dans getpyetl", mode, rep_sortie)
         if not regles:
             if mode is None:
@@ -1148,7 +1148,7 @@ class Pyetl(object):
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
-        if self.mode == "web":
+        if self.mode.startswith("web"):
             print(
                 "sortie schema:",
                 rep_sortie,
@@ -1159,7 +1159,9 @@ class Pyetl(object):
             rep_sortie == "-" or not rep_sortie or rep_sortie == "__webservice"
         ):  # pas de sortie on ecrit pas
             if (
-                not self.getvar("_testmode") and self.mode != "web" and self.schemas
+                not self.getvar("_testmode")
+                and not self.mode.startswith("web")
+                and self.schemas
             ):  # en mode test ou web on rale pas
                 if self.getvar("sans_sortie") in ("True", "true", "1", "T", "t"):
                     return " on rale pas c est voulu"

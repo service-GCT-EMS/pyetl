@@ -370,6 +370,29 @@ def h_dbrequest(regle):
     regle.fich = "tmp"
     regle.grp = "tmp"
     valide = getrequest(regle)
+    if regle.params.pattern == "7":
+        # lecture dans une variable
+        if regle.dynrequete:
+            return False
+        regle.valide = "done"
+        retour = ""
+        try:
+            selecteur = regle.cible_base
+            base = selecteur.base
+            retour = DB.fastrequest(
+                regle,
+                base,
+                requete=regle.requete,
+                parms=[regle.getvar[i] for i in regle.params.cmp2.liste],
+            )
+            regle.setvar(regle.params.att_sortie.val, retour)
+        except Exception as err:
+            printexception(regle, requete, err)
+            # raise
+            return False
+
+        return True
+
     if regle.params.cmp2.val and regle.params.cmp2.val != "#":
         regle.identclasse = (
             (regle.params.cmp2.val, regle.params.cmp2.definition[0])
@@ -406,6 +429,7 @@ def f_dbrequest(regle, obj):
       #pattern4||;;=#;dbreq;C;?A.C
       #pattern5||;;=#;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
+      #pattern7||P;;;dbreq;C;?L
      #req_test||testdb
     """
 

@@ -266,6 +266,7 @@ def get_connect(
     type_base=None,
     chemin="",
     description=None,
+    mode="none",
 ):
     """ recupere la connection a la base et les schemas qui vont bien"""
     # print("get_connect", regle, base, type_base)
@@ -279,6 +280,8 @@ def get_connect(
         return None
 
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
+    if mode == "fast":
+        return connect
     schema_travail, liste2 = connect.getschematravail(
         regle,
         niveau,
@@ -529,6 +532,17 @@ def recup_schema(
     return (None, None, None, None)
 
 
+def fastrequest(regle_courante, base, requete, parms):
+    """execute une reauete en mode rapide (pas de gestion de schemas)"""
+
+    # retour dans une variable
+    connect = get_connect(regle_courante, base, None, None, mode="fast")
+    result = connect.request(requete, data=parms)
+    retour = [i[0] if len(i) == 1 else i for i in result]
+    print("retour requete", retour)
+    return retour if retour else ""
+
+
 def lire_requete(
     regle_courante, base, ident, attribut=None, requete="", parms=None, obj=None
 ):
@@ -552,20 +566,21 @@ def lire_requete(
     # print("---lire_requete dest:", ident, regle_courante.debug, regle_courante)
 
     # print ("---lire_requete obj:",obj)
-    niveau, classe = ident
-    if not classe and obj and obj.classe != "_declencheur":
-        ident = obj.ident
+    if ident:
         niveau, classe = ident
+        if not classe and obj and obj.classe != "_declencheur":
+            ident = obj.ident
+            niveau, classe = ident
 
-    if not classe:
-        regle_courante.stock_param.logger.error(
-            "attention pas de classe de sortie -> retour"
-        )
-        # print("lire_requete: attention pas de classe de sortie -> retour")
-        return 0
-    if niveau is None:
-        ident = ("tmp", classe)
-    # print("lire_requete", ident, "->", base, requete)
+        if not classe:
+            regle_courante.stock_param.logger.error(
+                "attention pas de classe de sortie -> retour"
+            )
+            # print("lire_requete: attention pas de classe de sortie -> retour")
+            return 0
+        if niveau is None:
+            ident = ("tmp", classe)
+        # print("lire_requete", ident, "->", base, requete)
 
     v_sortie = parms
     sortie = attribut

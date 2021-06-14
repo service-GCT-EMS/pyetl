@@ -469,16 +469,32 @@ class Context(object):
             self.affecte(liste, context=context)
         return context
 
+    def getvar_b(self, nom, defaut):
+        for ctx in self.search:
+            if nom in ctx:
+                return ctx[nom]
+        return defaut
+
     def getvar(self, nom, defaut=""):
         """fournit la valeur d'un parametre selon des contextes standardises"""
         #        if nom == 'nbaffich':
         #            print ('chemin de recherche ',self.search)
-        for ctx in self.search:
-            #            print ('getvar recherche', nom,' dans ', c)
-            if nom in ctx:
-                #                print ('contexte getvar', nom, c[nom])
-                return ctx[nom]
-        return defaut
+        return self.getvar_b(nom, defaut)
+        ret = self.getvar_b(nom, defaut)
+
+        print(
+            "retour getvar",
+            (
+                ret
+                if not isinstance(ret, (list, tuple))
+                else ",".join([str(i) for i in ret])
+            ),
+        )
+        return (
+            ret
+            if not isinstance(ret, (list, tuple))
+            else ",".join([str(i) for i in ret])
+        )
 
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
