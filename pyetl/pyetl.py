@@ -146,7 +146,6 @@ class Pyetl(object):
 
     def __init__(self, parent=None, nom=None, context=None, env=None, mode="cmd"):
 
-        self.nompyetl = nom if nom else "pyetl"
         self.starttime = time.time()  # timer interne
         # variables d'instance (stockage des elements)
         self.mode = mode
@@ -155,6 +154,7 @@ class Pyetl(object):
         self.cntr = dict()  # stockage des compteurs
         self.idpyetl = next(self._ido)
         # jointures
+        self.nompyetl = nom if nom else "pyetl_" + str(self.idpyetl)
         self.jointabs = dict()  # clefs de jointure
         self.joint_fich = dict()  # fichier externes de jointure
         self.jointdef = dict()  # definition des champs
@@ -165,19 +165,10 @@ class Pyetl(object):
         self.dbconnect = dict()  # connections de base de donnees
         self.namedselectors = dict()
         self.msgqueue = None
-        # selecteurs nommes pour des selections multibases complexes
-        if context is None:
-            context = parent.context if parent else None
-        # if mode =="web":
-        #     name = "pyetl"+str(self.idpyetl)
-        #     self.logger=logging.getLogger(name)
-
-        self.context = Context(
-            parent=context, ident=str(self.idpyetl), type_c="P", root=True
-        )
-        self.context.root = self.context  # on romp la chaine racine
-        self.contextstack = [self.context]
         self.parent = parent  # permet un appel en cascade
+        # selecteurs nommes pour des selections multibases complexes
+        self.initcontext(context)
+
         self.username = os.getlogin()
         self.userdir = os.path.expanduser("~")
         self.paramdir = os.path.join(self.userdir, ".pyetl")
@@ -231,6 +222,8 @@ class Pyetl(object):
 
         self._set_streammode()
         self.done = False
+        self.inited = False
+        self.webworkers = dict()
 
     def getcommande(self, commande):
         fonc = self.commandes.get(commande)
@@ -251,9 +244,20 @@ class Pyetl(object):
         self.gestion_log.initlog(self, loginfo, force)
         """initialise le contexte de logging (parametres de site environnement)"""
 
+    def initcontext(self, context=None):
+        """initialise les contextes"""
+        if context is None:
+            context = self.parent.context if self.parent else None
+        self.context = Context(
+            parent=context, ident=str(self.idpyetl), type_c="P", root=True
+        )
+        self.context.root = self.context  # on romp la chaine racine
+        self.contextstack = [self.context]
+
     def initpyetl(self, commandes, args):
         """ initialisation standardisee: cree l'objet pyetl de base"""
-        self.initlog()
+        if not self.inited:
+            self.initlog()
         try:
             result = self.prepare_module(commandes, args)
         except SyntaxError as err:
@@ -381,49 +385,53 @@ class Pyetl(object):
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
         # print("dans prepare_module", regles, liste_params)
+        if self.inited:
+            # on nettoie
+            self.liste_regles = None
+            self.fichier_regles = None
+            self.done = False
+            self.regles = []
+            self.moteur.regles = []
+            self.initcontext()
+            self.initlog()
+            for i in self.schemas.keys():
+                if not i.startswith("#"):
+                    del self.schemas[i]
+        else:
+            # on initialise le gestionnaire d'affichage
+            self.aff = self._patience(
+                self.getvar("_st_lu_objs", 0),
+                self.getvar("_st_lu_fichs", 0),
+                mode=self.mode,
+            )
+            next(self.aff)
         self.appel = repr(regles)
         if isinstance(regles, list):
-            self.nompyetl = "pyetl"
             self.liste_regles = regles
         else:
             self.fichier_regles = regles
-            self.nompyetl = regles
             self.rdef = os.path.dirname(regles)  # nom de repertoire des regles
         self._traite_params(liste_params)
-        # on initialise le gestionnaire d'affichage
-        self.aff = self._patience(
-            self.getvar("_st_lu_objs", 0),
-            self.getvar("_st_lu_fichs", 0),
-            mode=self.mode,
-        )
-        next(self.aff)
 
         self.logger.debug(
-            "prepare_module"
-            + repr(regles)
-            + "::"
-            + repr(liste_params)
-            + "::"
-            + self.getvar("_sortie", "pas_de_sortie")
+            "prepare_module %s :: %s :: %s",
+            (repr(regles), repr(liste_params), self.getvar("_sortie", "pas_de_sortie")),
         )
         erreurs = None
         if self.fichier_regles or self.liste_regles:
-            # commandes_speciales(self)
-            # self.commandes_speciales()
-            if not self.done:
-                try:
-                    erreurs = self.lecteur_regles(
-                        self.fichier_regles, liste_regles=self.liste_regles
-                    )
-                except KeyError as ker:
-                    self.logger.critical(
-                        "======erreur lecture " + repr(ker) + "(" + repr(regles) + ")"
-                    )
-                    erreurs = erreurs + 1 if erreurs else 1
-                    raise
+            # if not self.done:
+            try:
+                erreurs = self.lecteur_regles(
+                    self.fichier_regles, liste_regles=self.liste_regles
+                )
+            except KeyError as ker:
+                self.logger.critical(
+                    "====erreur lecture %s (%s)", (repr(ker), repr(regles))
+                )
+                erreurs = erreurs + 1 if erreurs else 1
+                # raise
 
             if erreurs:
-                #                print("logger ", self.idpyetl)
                 message = " erreur" if erreurs == 1 else " erreurs"
                 self.logger.critical(
                     "process "
@@ -594,14 +602,29 @@ class Pyetl(object):
     ):
         """retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
-        if mode.startswith("web"):
-            print("---------------------------- dans getpyetl", mode, rep_sortie)
+        # print(
+        #     "---------------------------- dans getpyetl",
+        #     nom,
+        #     mode,
+        #     rep_sortie,
+        #     self.webworkers.keys(),
+        # )
+
         if not regles:
             if mode is None:
                 self.logger.critical("getpyetl:mode non defini")
                 # print("getpyetl:mode non defini")
                 return None
-        petl = Pyetl(parent=self)
+        if mode.startswith("web"):
+
+            if nom in self.webworkers:
+                petl = self.webworkers[nom]
+            else:
+                petl = Pyetl(parent=self, nom=nom)
+                self.webworkers[petl.nompyetl] = petl
+        else:
+            petl = Pyetl(parent=self)
+
         petl.setvar("pyetl_script_ref", str(regles))
         if rep_sortie is not None:
             petl.setvar("sans_sortie", "")
@@ -769,14 +792,6 @@ class Pyetl(object):
                 ("nbaffich", 100000),
                 ("filtre_entree", ""),
                 ("sans_sortie", ""),
-                ("_st_lu_objs", 0),
-                ("_st_lu_fichs", 0),
-                ("_st_lu_tables", 0),
-                ("_st_wr_objs", 0),
-                ("_st_wr_fichs", 0),
-                ("_st_wr_tables", 0),
-                ("_st_obj_duppliques", 0),
-                ("_st_obj_supprimes", 0),
                 ("tmpdir", "./tmp"),
                 ("F_entree", ""),
                 ("racine", "."),
@@ -806,6 +821,21 @@ class Pyetl(object):
                 ("_login", self.username),
                 ("_progdir", os.path.dirname(__file__)),
                 ("cryptolevel", 2),
+            ]
+        )
+        self.initstats()
+
+    def initstats(self):
+        self.context.update(
+            [
+                ("_st_lu_objs", 0),
+                ("_st_lu_fichs", 0),
+                ("_st_lu_tables", 0),
+                ("_st_wr_objs", 0),
+                ("_st_wr_fichs", 0),
+                ("_st_wr_tables", 0),
+                ("_st_obj_duppliques", 0),
+                ("_st_obj_supprimes", 0),
             ]
         )
 
@@ -995,6 +1025,7 @@ class Pyetl(object):
             entree = ",".join(entree)
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
         if self.done:
+            self.logger.info("rien a faire")
             pass
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
@@ -1148,13 +1179,13 @@ class Pyetl(object):
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
         # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
-        if self.mode.startswith("web"):
-            print(
-                "sortie schema:",
-                rep_sortie,
-                self.worker,
-                self.mode,
-            )
+        # if self.mode.startswith("web"):
+        #     print(
+        #         "sortie schema:",
+        #         rep_sortie,
+        #         self.worker,
+        #         self.mode,
+        #     )
         if (
             rep_sortie == "-" or not rep_sortie or rep_sortie == "__webservice"
         ):  # pas de sortie on ecrit pas
@@ -1216,17 +1247,18 @@ class Pyetl(object):
             "perf_r": int(obj_lus / duree),
             "perf_w": int(obj_ecrits / duree),
         }
+        self.initstats()
         return wstats
 
     def get_results(self):
         """retourne un tableau de resultats contenant les sortie de #print"""
-        print(
-            "retour processeur",
-            os.getpid(),
-            self.idpyetl,
-            self.webstore.keys(),
-            self.mode,
-        )
+        # print(
+        #     "retour processeur",
+        #     os.getpid(),
+        #     self.idpyetl,
+        #     self.webstore.keys(),
+        #     self.mode,
+        # )
         # on reformate les logs qui sont des buffers
         if "log" in self.webstore:
             buffer = self.webstore["log"]
@@ -1237,15 +1269,9 @@ class Pyetl(object):
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
             for i in self.webstore
         }
-        self.webstore = tmp
-
-        # tmpdir=tempfile.TemporaryDirectory()
-        # for i in self.webstore:
-        #     file = open(os.path.join(tmpdir.name,i),"bw")
-        #     pickle.dump(self.webstore[i], file)
-        # print ("retour webstore",self.webstore)
+        self.webstore = dict()
         name = "noname"
-        return self.webstore, name
+        return tmp, name
 
     def getreader(self, nom_format, regle, reglestart=None):
         """retourne un reader"""

@@ -539,7 +539,7 @@ def fastrequest(regle_courante, base, requete, parms):
     connect = get_connect(regle_courante, base, None, None, mode="fast")
     result = connect.request(requete, data=parms)
     retour = [i[0] if len(i) == 1 else i for i in result]
-    print("retour requete", retour)
+    # print("retour fast request", retour)
     return retour if retour else ""
 
 

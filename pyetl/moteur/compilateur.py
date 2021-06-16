@@ -7,7 +7,6 @@ Created on Fri Dec 11 14:20:44 2015
 compilateur de regles : cree les enchainements de regles
 
 """
-# from .interpreteur_csv import interprete_ligne_csv as interpreteur
 
 
 def _affiche_debug(regles, debug):
@@ -134,7 +133,8 @@ def _valide_blocs(regles, position, bloc):
         print("cmp:erreur structure de blocs:", regle.ligne, bloc)
         return False
 
-def _gestion_parallel(regles,position):
+
+def _gestion_parallel(regles, position):
     """ validation de la structure parrallel / join """
     regle = regles[position]
     if regle.stock_param.worker:
@@ -231,8 +231,8 @@ def compile_regles(mapper, liste_regles, debug=0):
         if regle.mode == "fin_bloc":  # gestion de la structure
             bloc -= 1
 
-        if regle.mode=="parallel" and not regle.stock_param.worker:
-            _gestion_parallel(regles,i)
+        if regle.mode == "parallel" and not regle.stock_param.worker:
+            _gestion_parallel(regles, i)
 
         _finalise(regle, debug)
     if liste_regles is None:  # applatissement des regles

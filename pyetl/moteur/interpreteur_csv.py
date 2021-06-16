@@ -754,7 +754,7 @@ def lire_regles_csv(
     numero = numero_ext
     # if regle_ref:
     #     print('regle_ref:',regle_ref)
-    #     print('dans lire_regles', context, fichier_regles, liste_regles)
+    # print("dans lire_regles", fichier_regles, liste_regles)
 
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau)

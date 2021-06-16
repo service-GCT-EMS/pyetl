@@ -44,6 +44,7 @@ class ScriptList(object):
         self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
         self.scripts = dict()
         self.is_api = dict()
+        self.worker = ""
         # self.refresh()
 
     def refresh(self, script=None):
@@ -257,7 +258,9 @@ def retour_api(script):
 
 @app.route("/ws/<script>", methods=["GET", "POST"])
 def webservice(script):
-    print("dans webservice", script)
+    local = request.host.startswith("127.0.0.1:")
+    # print("dans webservice", script, session, request.host, local, scriptlist.worker)
+
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptparams = [i + "=" + j for i, j in request.args.items()]
     scriptlist.refreshscript(nomscript)
@@ -266,35 +269,49 @@ def webservice(script):
         if nomscript.startswith("#")
         else os.path.join(scriptlist.scriptdir, nomscript)
     )
-    print("appel webservice", nomscript, scriptparams)
+
     stime = time.time()
     rep_sortie = "__webservice"
     entree = ""
+    nom = session.get("nompyetl", scriptlist.worker if local else "")
+
     processor = scriptlist.mapper.getpyetl(
         fich_script,
         liste_params=scriptparams,
         entree=entree,
         rep_sortie=rep_sortie,
         mode="webservice",
+        nom=nom,
     )
     if processor:
+        # print(
+        #     "_______________________________appel webservice",
+        #     nom,
+        #     nomscript,
+        #     scriptparams,
+        #     processor.idpyetl,
+        #     processor.nompyetl,
+        # )
+        session["nompyetl"] = processor.nompyetl
+        if local:
+            scriptlist.worker = processor.nompyetl
         try:
             processor.process()
             wstats = processor.get_work_stats()
-            print("appel resultats")
+            # print("appel resultats")
             result, tmpdir = processor.get_results()
-            print("retour", result)
+            # print("retour", result)
             print("duree traitement", time.time() - stime)
             if not "print" in result:
                 return "reponse vide"
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
-            print("recup ", ret)
+            # print("recup ", ret)
             if len(ret) == 0:
                 ret = "no result"
             elif len(ret) == 1:
                 ret = ret[0]
 
-            print("json", jsonify(ret))
+            # print("json", jsonify(ret))
             return jsonify(ret)
         except KeyError as ex:
             print("erreur ", ex)
@@ -304,7 +321,7 @@ def webservice(script):
 @app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
 def execscript(script, mode):
-    print("dans exec", script)
+    # print("dans exec", script)
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (

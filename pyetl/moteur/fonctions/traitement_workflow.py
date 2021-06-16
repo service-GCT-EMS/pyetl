@@ -304,6 +304,18 @@ def printvariable(regle):
     )
 
 
+def h_printvar(regle):
+    """#aide||affichage des parametres nommes
+    #pattern||;;;printv;C?;=noms?||entree
+    #test||redirect||obj||$toto=ok||^;;;printv;toto||out
+    #!test2||redirect||obj||$toto=ok||^;;;printv;||out
+    """
+    #    print("variables:")
+    regle.print(printvariable(regle))
+    regle.valide = "done"
+    return True
+
+
 def f_printvar(regle, _):
     """#aide||affichage des parametres nommes
     #pattern||;;;printv;C?;=noms?||entree

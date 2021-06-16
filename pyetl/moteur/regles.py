@@ -992,5 +992,8 @@ class RegleTraitement(object):  # regle de mapping
             buffer = StringIO()
             print(*args, **kwargs, file=buffer)
             sortie.extend(buffer.getvalue().split("\n"))
+            # print("sortie webstore")
+            # print(*args, **kwargs)
+            # raise
         else:
             print(*args, **kwargs)
