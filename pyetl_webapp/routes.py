@@ -323,6 +323,7 @@ def webservice(script):
             print("duree traitement", time.time() - stime)
             if not "print" in result:
                 return "reponse vide"
+            # print("retour ws", type(result["print"]), result["print"])
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
             # print("recup ", ret)
             if len(ret) == 0:

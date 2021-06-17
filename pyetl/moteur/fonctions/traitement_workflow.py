@@ -255,7 +255,9 @@ def printfunc(regle, obj):
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:
         return str(cmp1) + ",".join(liste)
-    return cmp1 + regle.getval_entree(obj)
+    return (
+        str(cmp1) + str(regle.getval_entree(obj)) if cmp1 else regle.getval_entree(obj)
+    )
 
 
 def h_sample(regle):
@@ -297,11 +299,9 @@ def printvariable(regle):
 
     if regle.params.cmp2.val:
         return nomv + "=" + str(regle.getvar(regle.params.cmp1.val))
-    return (
-        regle.context.getvar_b(nomv, "")
-        if regle.stock_param.mode.startswith("web")
-        else regle.getvar(nomv)
-    )
+    v = regle.context.getvar_b(nomv, "")
+    print("printvariable", type(v), v)
+    return regle.context.getvar_b(nomv, "")
 
 
 def h_printvar(regle):

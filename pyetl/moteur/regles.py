@@ -990,8 +990,11 @@ class RegleTraitement(object):  # regle de mapping
         if self.stock_param.mode.startswith("web"):
             sortie = self.stock_param.webstore.setdefault("#print", [])
             buffer = StringIO()
-            print(*args, **kwargs, file=buffer)
-            sortie.extend(buffer.getvalue().split("\n"))
+            if args and len(args) == 1 and isinstance(args[0], list):
+                sortie.extend(args[0])
+            else:
+                print(*args, **kwargs, file=buffer)
+                sortie.extend(buffer.getvalue().split("\n"))
             # print("sortie webstore")
             # print(*args, **kwargs)
             # raise

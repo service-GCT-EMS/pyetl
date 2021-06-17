@@ -260,6 +260,7 @@ class Pyetl(object):
             self.initlog()
         try:
             result = self.prepare_module(commandes, args)
+            self.inited = True
         except SyntaxError as err:
 
             if self.worker:
@@ -384,7 +385,6 @@ class Pyetl(object):
 
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
-        # print("dans prepare_module", regles, liste_params)
         if self.inited:
             # on nettoie
             self.liste_regles = None
@@ -394,7 +394,7 @@ class Pyetl(object):
             self.moteur = Moteur(self)
             self.initcontext()
             self.initlog()
-            for i in self.schemas.keys():
+            for i in list(self.schemas.keys()):
                 if not i.startswith("#"):
                     del self.schemas[i]
         else:
@@ -405,6 +405,7 @@ class Pyetl(object):
                 mode=self.mode,
             )
             next(self.aff)
+        # print("dans prepare_module", len(regles), regles)
         self.appel = repr(regles)
         if isinstance(regles, list):
             self.liste_regles = regles
@@ -418,6 +419,7 @@ class Pyetl(object):
             (repr(regles), repr(liste_params), self.getvar("_sortie", "pas_de_sortie")),
         )
         erreurs = None
+        # print("dans prepare_module2", len(self.regles), self.regles)
         if self.fichier_regles or self.liste_regles:
             # if not self.done:
             try:
@@ -470,7 +472,7 @@ class Pyetl(object):
             self.regle_sortir.declenchee = True
             self.moteur.setregles(self.regles, self.debug)
             self.moteur.regle_debut = self.regles[0].numero
-            #            print('preparation module',self.getvar('_entree'), '->', self.getvar('_sortie'))
+            # print("fin prepare", len(self.regles), len(self.moteur.regles))
             return True
         # on refait si des choses ont change a l'initialisation
         except EOFError:
@@ -534,9 +536,6 @@ class Pyetl(object):
                 if mode == "cmd":
                     self.logger.info(ligne)
                     # print("message recu", ligne)
-                elif mode.startswith("web"):
-
-                    pass
             return (
                 (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
                 tinterm,
@@ -1178,14 +1177,6 @@ class Pyetl(object):
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
-        # print("sortie schema:contexte",self.context, self.worker,self.getvar("_testmode"), self.getvar('test_courant'))
-        # if self.mode.startswith("web"):
-        #     print(
-        #         "sortie schema:",
-        #         rep_sortie,
-        #         self.worker,
-        #         self.mode,
-        #     )
         if (
             rep_sortie == "-" or not rep_sortie or rep_sortie == "__webservice"
         ):  # pas de sortie on ecrit pas
