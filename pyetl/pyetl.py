@@ -391,7 +391,7 @@ class Pyetl(object):
             self.fichier_regles = None
             self.done = False
             self.regles = []
-            self.moteur.regles = []
+            self.moteur = Moteur(self)
             self.initcontext()
             self.initlog()
             for i in self.schemas.keys():

@@ -8,7 +8,16 @@ from os import error
 import logging
 import time
 from collections import namedtuple
-from flask import render_template, flash, redirect, session, jsonify, url_for, request
+from flask import (
+    render_template,
+    flash,
+    redirect,
+    session,
+    jsonify,
+    url_for,
+    request,
+    abort,
+)
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
@@ -79,6 +88,8 @@ class ScriptList(object):
         infos = dict()
         if nom_script.startswith("#"):
             macro = self.mapper.getmacro(nom_script)
+            if not macro:
+                raise KeyError
             script = [i[1] for i in macro.get_commands()]
             params = macro.parametres_pos
             variables = macro.vars_utilisees
@@ -87,7 +98,10 @@ class ScriptList(object):
             infos["no_in"] = macro.no_in
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
-            script = open(fpath, "r").readlines()
+            try:
+                script = open(fpath, "r").readlines()
+            except FileNotFoundError:
+                raise KeyError
             for ligne in script:
                 if ligne.startswith("!#"):
                     tmp = ligne[2:].split(":", 1)
@@ -109,7 +123,10 @@ class ScriptList(object):
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
-        self.getlignes(nom_script)
+        try:
+            self.getlignes(nom_script)
+        except KeyError:
+            abort(404)
         infos = dict()
         ismacro = nom_script.startswith("#")
         if ismacro:
@@ -263,7 +280,8 @@ def webservice(script):
 
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptparams = [i + "=" + j for i, j in request.args.items()]
-    scriptlist.refreshscript(nomscript)
+    if not scriptlist.refreshscript(nomscript):
+        abort(404)
     fich_script = (
         nomscript
         if nomscript.startswith("#")
@@ -292,6 +310,7 @@ def webservice(script):
         #     processor.idpyetl,
         #     processor.nompyetl,
         # )
+        print("regles", len(processor.regles))
         session["nompyetl"] = processor.nompyetl
         if local:
             scriptlist.worker = processor.nompyetl
