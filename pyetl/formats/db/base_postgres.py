@@ -256,6 +256,7 @@ class PgrConnect(DbConnect):
             self.regle.setroot("datestyle", style)
         self.type_base = "postgres"
         self.dialecte = "postgres"
+        self.logfile = ""
         self.DBError = psycopg2.Error
 
     def set_searchpath(self):
@@ -312,7 +313,7 @@ class PgrConnect(DbConnect):
         )
         logger = self.params.logger
         logger.info(
-            "postgres: traitement sql %s %s %s", host, self.base, os.path.basename(file)
+            "postgres: traitement sql %s %s " + os.path.basename(file), host, self.base
         )
         env = dict(os.environ)
         env["PGCLIENTENCODING"] = "UTF8"
@@ -323,7 +324,11 @@ class PgrConnect(DbConnect):
             logger.debug("traitement %s", chaine)
             fini = subprocess.run(chaine, env=env)
         else:
-            logger.info("Le fichier de log se trouve la: %s", logfile)
+            if self.logfile != logfile:
+                # print("pas  sorti")
+                self.logfile = logfile
+                logger.info("Le fichier de log se trouve la: %s", logfile)
+
             with open(logfile, "a") as sortie:
                 fini = subprocess.run(
                     chaine, env=env, stdout=sortie, stderr=subprocess.STDOUT

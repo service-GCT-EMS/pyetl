@@ -245,7 +245,7 @@ def h_sortir(regle):
         print(
             "creation output", fich, outformat, sorted(regle.output.writerparms.items())
         )
-    print("creation output", fich, outformat)
+    # print("creation output", fich, outformat)
 
     if regle.output.nom_format == "sql":
         # gestion des dialectes sql et du mode connecté

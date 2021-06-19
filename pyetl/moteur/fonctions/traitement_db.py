@@ -550,14 +550,14 @@ def f_dbrunsql(regle, obj):
     LOGGER.debug("runsql: %s", repr(selecteur))
     for base in selecteur.baseselectors:
         script = regle.getval_entree(obj)
-        print(
-            "traitement db: execution sql ",
-            base,
-            "->",
-            script,
-            regle.params.cmp1.val,
-            regle.params.cmp2.val,
-        )
+        # print(
+        #     "traitement db: execution sql ",
+        #     base,
+        #     "->",
+        #     script,
+        #     regle.params.cmp1.val,
+        #     regle.params.cmp2.val,
+        # )
         if "*" in script or "?" in script:
             scripts = sorted(glob.glob(script))
         else:
