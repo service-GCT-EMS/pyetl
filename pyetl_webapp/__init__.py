@@ -2,9 +2,11 @@
 
 
 from flask import Flask
+
 # from flask_bootstrap import Bootstrap
 import flaskfilemanager
 from .config import config
+
 
 app = Flask(__name__.split(".")[0])
 # Bootstrap(app)

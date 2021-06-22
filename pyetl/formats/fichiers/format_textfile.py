@@ -25,7 +25,7 @@ class TextWriter(fileio.FileWriter):
 def lire_textfile_ligne(self, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
     self.prepare_lecture_fichier(rep, chemin, fichier)
-
+    nlin = 0
     with open(
         self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:
@@ -33,7 +33,9 @@ def lire_textfile_ligne(self, rep, chemin, fichier):
             obj = self.getobj()
             if obj is None:  # gere le maxval
                 return self.nb_lus
-            obj.attributs["contenu"] = ligne
+            obj.attributs["contenu"] = ligne[:-1]
+            nlin += 1
+            obj.attributs["#num_ligne"] = str(nlin)
             self.process(obj)  # on traite l'objet precedent
     return self.nb_lus
 

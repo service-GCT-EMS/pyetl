@@ -438,13 +438,17 @@ def f_asplit(regle, obj):
        #pattern1||M;?;A;split;.;?N:N||sortie
     #parametres1||liste attributs sortie;defaut;attribut;;caractere decoupage;nombre de morceaux:debut
        #pattern2||;?;A;split;.;?N:N||sortie
-
     #parametres2||defaut;attribut;;caractere decoupage;nombre de morceaux:debut
+       #pattern3||;?;A;split;;?N:N||sortie
+    #parametres3||liste attributs sortie;defaut;attribut;;;nombre de morceaux:debut
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
     """
     if regle.multi:
-        elems = regle.getval_entree(obj).split(regle.sep)[regle.defcible]
+        if regle.sep:
+            elems = regle.getval_entree(obj).split(regle.sep)[regle.defcible]
+        else:
+            elems = regle.getval_entree(obj)[regle.defcible]
         obj.attributs[regle.params.att_entree.val] = elems[0]
         for i in elems[1:]:
             obj2 = obj.dupplique()
@@ -453,7 +457,9 @@ def f_asplit(regle, obj):
     else:
         regle.setval_sortie(
             obj,
-            regle.getval_entree(obj).split(regle.sep, regle.nbdecoup)[regle.defcible],
+            regle.getval_entree(obj).split(regle.sep, regle.nbdecoup)[regle.defcible]
+            if regle.sep
+            else regle.getval_entree(obj)[regle.defcible],
         )
     return True
 

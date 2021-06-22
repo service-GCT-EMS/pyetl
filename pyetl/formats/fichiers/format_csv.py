@@ -20,6 +20,7 @@ from .fileio import FileWriter
 def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
     reader.prepare_lecture_fichier(rep, chemin, fichier)
     logger = reader.regle_ref.stock_param.logger
+    # print("dertermination separ", separ, reader.separ)
     if separ is None:
         separ = reader.separ
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
@@ -31,47 +32,48 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
         sample = csvfile.read(4094)
         try:
             dialect = csv.Sniffer().sniff(sample, delimiters=separ)
+            has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
         except csv.Error:
             logger.warning("erreur determination dialecte csv, parametres par defaut")
             dref = csv.get_dialect("excel")
             linesep = "\r\n" if "\r\n" in sample else "\n"
-            has_header = False
-            if sample.startswith("!"):
+            has_header = sample.startswith("!")
+            if has_header:
                 hline = sample.split(linesep, 1)[0]
                 entete = hline[1:].split(separ)
-                csvfile.seek(0)
-                has_header = True
+            csvfile.seek(0)
             csv.register_dialect(
                 "special", dref, delimiter=separ, lineterminator=linesep
             )
             dialect = csv.get_dialect("special")
-            lecteur = csv.DictReader(csvfile, dialect=dialect)
-            if has_header:
-                lecteur.__next__()
+            # print("dialect special", dialect, "->", dialect.delimiter, "(", separ, ")")
 
         if entete is None:
-            has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
-            csvfile.seek(0)
             lecteur = csv.DictReader(csvfile, dialect=dialect)
             if has_header:
                 entete = [
                     i.replace(" ", "_").replace("!", "") for i in lecteur.fieldnames
                 ]
             else:
-                entete = ["champ_" + str(i) for i in range(len(lecteur.fieldnames))]
+                nfields = int(reader.regle_ref.getvar("csvfields", 0))
+                nfields = nfields if nfields else len(lecteur.fieldnames)
+                entete = ["champ_" + str(i) for i in range(nfields)]
 
         if entete[-1] == "tgeom" or entete[-1] == "geometrie":
             entete[-1] = "#geom"
-
+        reste = reader.regle_ref.getvar("restfields", "#reste")
         lecteur = csv.DictReader(
-            csvfile, fieldnames=entete, dialect=dialect, restval="", restkey="#reste"
+            csvfile, fieldnames=entete, dialect=dialect, restval="", restkey=reste
         )
-        # print("entete csv", entete, dialect.delimiter)
+        csvfile.seek(0)
+        if has_header:
+            lecteur.__next__()
+        # print("entete csv", entete, dialect.delimiter, separ, dialect)
         if reader.newschema:
-            for i in entete:
+            for i in entete + [reste]:
                 if i[0] != "#":
                     reader.schemaclasse.stocke_attribut(i, "T")
-        reader.prepare_attlist(entete)
+        reader.prepare_attlist(entete + [reste])
         # print("attlist", reader.attlist)
         type_geom = "-1" if entete[-1] == "#geom" else "0"
         reader.fixe["#type_geom"] = type_geom
@@ -398,16 +400,18 @@ def initwriter(self, extension, header, separ, null, writerclass=CsvWriter):
 
 def init_csv(self):
     """writer csv"""
-    separ = self.regle.getchain(("separ_csv_out", "separ_csv"), ";")
+    separ = self.regle_ref.getchain(("separ_csv_out", "separ_csv", "sep"), ";")
     if separ == r"\;":
         separ = ";"
-    self.regle.stock_param.logger.info(
-        "init writer csv separateur: %s (%s)", separ, self.regle.getvar("separ_csv_out")
+    self.regle_ref.stock_param.logger.info(
+        "init writer csv separateur: %s (%s)",
+        separ,
+        self.regle_ref.getvar("separ_csv_out"),
     )
-    self.regle.stock_param.logger.debug(
+    self.regle_ref.stock_param.logger.debug(
         "init writer csv parametres: %s ", repr(self.writerparms)
     )
-    headerdef = self.regle.getvar("csvheader")
+    headerdef = self.regle_ref.getvar("csvheader")
     header = "csv_f" if "no!" in headerdef else "csv"
     initwriter(self, "csv", header, (";" if separ == "#std" else separ), "")
     if "up" in headerdef:
@@ -421,7 +425,7 @@ def init_csv(self):
 
 def init_txt(self):
     """writer txt separateur tab pour le mode copy de postgres"""
-    separ = self.regle.getchain(("separ_txt_out", "separ_txt"), "\t")
+    separ = self.regle_ref.getchain(("separ_txt_out", "separ_txt", "sep"), "\t")
     initwriter(self, "txt", False, ("\t" if separ == "#std" else separ), "")
 
 
@@ -437,7 +441,7 @@ def init_sql(self):
 
 def lire_objets_txt(self, rep, chemin, fichier):
     """format sans entete le schema doit etre fourni par ailleurs"""
-    separ = self.regle_ref.getchain(("separ_txt_in", "separ_txt", "separ"), "\t")
+    separ = self.regle_ref.getchain(("separ_txt_in", "separ_txt", "sep"), "\t")
     schema = self.regle_ref.stock_param.schemas.get(
         self.regle_ref.getvar("schema_entree")
     )

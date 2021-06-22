@@ -18,13 +18,20 @@ from flask import (
     request,
     abort,
 )
+
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
 from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
+# try:
+#     from flask_gssapi import GSSAPI
 
+#     gssapi = GSSAPI(app)
+# except (ImportError, OSError):
+#     gssapi = None
+#     pass
 LOGGER = logging.getLogger(__name__)
 
 
@@ -428,7 +435,9 @@ def showresult(script):
 
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<script>", methods=["GET", "POST"])
-def login(script=""):
+def login(script="", username=""):
+    if username:
+        print("utilisateur identifie", username)
     nom = url_to_nom(script)
     form = LoginForm()
     if form.validate_on_submit():

@@ -167,7 +167,9 @@ def get_write_encoding(regle, nom_format):
 def get_read_separ(regle, nom_format):
 
     sep_chain = ["sep", "separ_" + nom_format + "_in", "separ_" + nom_format]
-    return regle.getchain(sep_chain, ";")
+    separ = regle.getchain(sep_chain, ";")
+    # print("positionnement separateur", separ)
+    return separ
 
 
 class Reader(object):
@@ -193,6 +195,8 @@ class Reader(object):
             "=": self.valuefilter,
             "re": self.regexfilter,
         }
+        self.separ = get_read_separ(regle, self.nom_format)
+        self.encoding = get_read_encoding(regle, self.nom_format)
         self.filter = None
         self.debug = debug
         self.regle = regle  # on separe la regle de lecture de la regle de demarrage
@@ -359,12 +363,11 @@ class Reader(object):
         if not self.nomschema and self.cree_schema:
             # les objets ont un schema issu du fichier (le format a un schema)
             self.nomschema = "schema"
-        self.encoding = get_read_encoding(regle, self.nom_format)
-        self.separ = get_read_separ(regle, self.nom_format)
         self.fichier = ""
 
     def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True, classe=None):
         """prepare les parametres de lecture"""
+        # print("preparation lecteur", self.separ)
         regle = self.regle_ref
         self.chemin = chemin
         chem = chemin
@@ -719,6 +722,7 @@ class Output(object):
         self.nom_format = nom
         #        self.destination = destination
         self.regle = regle
+        self.regle_ref = regle
         self.debug = debug
         self.liste_att = None
         # positionne un format de sortie

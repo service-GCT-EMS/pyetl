@@ -444,9 +444,11 @@ class SchemaClasse(object):
 
     def force_modif(self, regle):
         """force une modif de schema"""
-        idregle = regle.index
-        if idregle in self.regles_modif:
-            self.regles_modif.remove(idregle)
+        self.regles_modif = set()
+        # on annulle toutes les optimisatins de modif...
+        # idregle = regle.index
+        # if idregle in self.regles_modif:
+        #     self.regles_modif.remove(idregle)
 
     def amodifier(self, regle, dyn=False):
         """determine si une modif de schema a deja ete faite

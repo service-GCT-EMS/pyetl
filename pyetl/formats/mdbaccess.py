@@ -526,7 +526,7 @@ def recup_schema(
         return (connect, schema_base, schema_travail, liste_tables)
     else:
         # print("erreur de connection a la base", base, niveau, classe)
-        stock_param.logger.error(
+        regle_courante.stock_param.logger.error(
             "erreur de connection a la base %s %s %s", base, niveau, classe
         )
     return (None, None, None, None)

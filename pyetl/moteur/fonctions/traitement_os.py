@@ -488,6 +488,12 @@ def h_adquery(regle):
     if regle.params.pattern == "4":  # variable
 
         items = regle.queryfonc(regle.params.val_entree.val)
+        if items is None:
+            regle.stock_param.logger.error(
+                "element introuvable: %s", regle.params.val_entree.val
+            )
+            regle.valide = "done"
+            return True
         item = items[0] if isinstance(items, list) else items
         val = getattr(item, regle.a_recuperer[0])
         regle.setvar(regle.params.att_sortie.val, val)
