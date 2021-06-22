@@ -528,3 +528,9 @@ $test_v1=%n1%;;;;;
 $test_v2=%n2%;;;;;
 ;;;;;;;printv>;%test_v1%;;;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#fakelist;n1;n2;;;
+#!help:genere une liste d'items numerotes
+#!api;version;text;
+;;;;xx;%n1%;;creobj;tmp;%n2%;;
+;;;;xx+;;#gid;set;;;
+;;;;;;xx;print>;;;
