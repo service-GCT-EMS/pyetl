@@ -5,6 +5,8 @@
 
 import os
 from os import error
+from io import StringIO
+from types import MethodType
 import logging
 import time
 from collections import namedtuple
@@ -286,7 +288,12 @@ def webservice(script):
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
 
     nomscript = "#" + script[1:] if script.startswith("_") else script
-    scriptparams = [i + "=" + j for i, j in request.args.items()]
+    tmp = dict(request.args.items())
+    pp = tmp.pop("_pp", "")
+    if pp:
+        nomscript = nomscript + ";" + pp
+    scriptparams = [i + "=" + j for i, j in tmp.items()]
+
     if not scriptlist.refreshscript(nomscript):
         abort(404)
     fich_script = (

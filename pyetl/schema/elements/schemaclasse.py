@@ -187,6 +187,7 @@ class SchemaClasse(object):
         self.maxobj = 0
         self.verrouille = False
         self.conversion_noms = False
+        self.deleted = False
         #        self.version = 0
         self.schema = schema  # schema d'appartenance
         self.errpr = ""

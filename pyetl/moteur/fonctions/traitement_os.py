@@ -34,6 +34,8 @@ def commandrunner(regle, chaine):
         retour = fini.stdout + fini.stderr
         if retour.endswith("\n"):
             retour = retour[:-1]
+        if regle.debug:
+            print("commandrunner", chaine, "->", retour)
         return retour
     else:
         fini = subprocess.run(
@@ -50,9 +52,14 @@ def h_run(regle):
     if regle.params.pattern == "1":
         return
     if regle.runscope():  # on voit si on doit l'executer
+
         retour = commandrunner(regle, regle.params.cmp2.val)
+        if regle.debug:
+            print("commandrunner ", retour)
         if regle.params.att_sortie.val:
             regle.setvar(regle.params.att_sortie.val, retour)
+    # else:
+    #     print("non executee", regle.getvar("process"), regle.runscope())
     # print ('retour run : done',retour)
     regle.valide = "done"
 

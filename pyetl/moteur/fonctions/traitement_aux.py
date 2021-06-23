@@ -486,6 +486,11 @@ def fschema_nochange(regle, obj):
     regle.changeschema = None
 
 
+def fschema_supp_classe(regle, obj):
+    """ marque une classe pour suppression dans un schema """
+    obj.schema.deleted = True
+
+
 def fschema_map(regle, obj):
     """gere la fonction de mapping sur l'objet"""
     return

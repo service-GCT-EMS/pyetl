@@ -398,6 +398,7 @@ class RegleTraitement(object):  # regle de mapping
         #        self.nom_base = 'defaut'
         self.changeclasse = None
         self.changeschema = None
+        self.supp_classe = False
         self.ajout_attributs = []
         self.elements = dict()
         self.f_sortie = None

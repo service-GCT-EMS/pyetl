@@ -643,6 +643,20 @@ def f_suppobj(_, __):
     return True
 
 
+def h_suppclasse(regle):
+    """evite la transmission d'un objet et supprime la classe du schema"""
+    h_suppobj(regle)
+    regle.supp_classe = True
+
+
+def f_suppclasse(_, __):
+    """#aide||suppression d'elements
+    #aide_spec||suppression de la classe d objets avec tous ses objets et son schema
+      #pattern||;;;supp_classe;;
+    """
+    return True
+
+
 def f_keep2(regle, obj):
     """#aide||suppression de tous les attributs sauf ceux de la liste
       #pattern1||;;L;garder;;

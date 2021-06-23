@@ -149,19 +149,18 @@ class Moteur(object):
                     resultat = regle.fonc(regle, obj)
                     #                print ('params:action schema',regle.params.att_sortie.liste,
                     #                           resultat,obj.schema,regle.action_schema)
-                    if obj.schema is not None:
-                        if regle.action_schema:
-                            # print("action schema", regle, regle.action_schema)
-                            # print("schema avant", obj.schema)
-                            regle.action_schema(regle, obj)
-                        if resultat:
+                    if resultat:
+                        if obj.schema is not None:
+                            # if regle.action_schema:
+                            #     # print("action schema", regle, regle.action_schema)
+                            #     # print("schema avant", obj.schema)
+                            #     regle.action_schema(regle, obj)
                             if regle.action_schema:
                                 # print("action schema", regle, regle.action_schema)
                                 # print("schema avant", obj.schema)
                                 regle.action_schema(regle, obj)
                             if regle.changeclasse:
                                 regle.changeclasse(regle, obj)
-                    if resultat:
                         if regle.changeschema:
                             regle.changeschema(regle, obj)
                         if regle.debugvalid:
@@ -247,6 +246,8 @@ class Moteur(object):
         if last and not last.store:
             if last.filter or last.supobj:
                 self.suppcnt += 1
+                if last.supp_classe and obj.schema:
+                    obj.schema.deleted = True
             if obj.schema:  # c est un objet qui a ete jete par une regle filtrante
                 obj.schema.objcnt -= 1
 

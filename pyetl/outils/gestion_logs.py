@@ -104,6 +104,7 @@ class GestionLogs(object):
     def configure_print_handlers(self):
         """ genere les configs d affichage """
         self.resetlog()
+        # self.set_logs()
         self.set_weblog() if self.cur_mapper.mode.startswith("web") else self.set_log()
         printformatter = logging.Formatter(
             "%(levelname)-8s %(funcName)-25s: %(message)s"

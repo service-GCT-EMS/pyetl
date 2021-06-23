@@ -910,8 +910,8 @@ def analyse_interne(schema, mode="util", type_schema=None):
             return False
         if max([cl.objcnt for cl in schema.classes.values()]) >= 1:
             retour = True
-            for schema_classe in schema.classes.values():
-                schema_classe.a_sortir = True
+            for cl in schema.classes.values():
+                cl.a_sortir = (not cl.deleted) or cl.objcnt > 0
         else:
             return False
     elif mode == "util":
@@ -934,7 +934,9 @@ def analyse_interne(schema, mode="util", type_schema=None):
         retour = True
     else:
         for schema_classe in schema.classes.values():
-            schema_classe.a_sortir = True
+            schema_classe.a_sortir = (
+                not schema_classe.deleted
+            ) or schema_classe.objcnt > 0
         retour = True
     if retour:
         for conf in schema.conformites.values():
