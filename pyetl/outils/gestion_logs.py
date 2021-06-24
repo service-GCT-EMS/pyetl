@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
 from io import StringIO
 
 LOGGER = logging.getLogger("pyetl")
@@ -168,6 +169,7 @@ class GestionLogs(object):
                 # de chaque message quand on écrira un message dans le log
                 self.fichier = fichier
                 if fichier:
+                    os.makedirs(os.path.dirname(fichier), exist_ok=True)
                     fileformatter = logging.Formatter(
                         "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s"
                         + "::%(message)s"

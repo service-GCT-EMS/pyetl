@@ -516,6 +516,8 @@ def affecte_variable(mapper, commande, context, regle_ref):
         setter = context.setretour_env
 
     setter(nom, valeur)
+    if nom in mapper.variables_speciales:
+        mapper.traite_variables_speciales(nom)
     # print ('affectation variable',commande, setter, nom,"=", valeur)
 
 

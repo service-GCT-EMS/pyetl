@@ -60,17 +60,16 @@ from .moteur.fonctions.parallel import setparallel
 
 def runpyetl(commandes, args):
     """ lancement standardise c'est la fonction appelee au debut du programme"""
-    loginfo = L.getlog(args)
-
     mainmapper = getmainmapper()
-    mainmapper.initlog(loginfo)
-    mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
     if not is_special(commandes):
+        loginfo = L.getlog(args)
+        mainmapper.initlog(loginfo)
+        mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
         mainmapper.logger.info("commande:   %s", str(commandes))
         mainmapper.logger.info("parametres: %s", str(args))
     else:
         commandes_speciales(mainmapper, commandes, args)
-        mainmapper.gestion_log.shutdown()
+        # mainmapper.gestion_log.shutdown()
         return
     mapper = mainmapper.getpyetl(commandes, liste_params=args)
     if mapper:
@@ -224,6 +223,7 @@ class Pyetl(object):
         self.done = False
         self.inited = False
         self.webworkers = dict()
+        self.variables_speciales = {"log_file", "log_level"}
 
     def getcommande(self, commande):
         fonc = self.commandes.get(commande)
@@ -340,6 +340,11 @@ class Pyetl(object):
             self.site_params = self.parent.site_params
             self.dbref = self.parent.dbref
             self.sorties = self.parent.sorties
+
+    def traite_variables_speciales(self, nom):
+        if nom == "log_file" or nom == "log_level":
+            print("-------------------initlog")
+            self.initlog(force=True)
 
     def getmacro(self, nom):
         """recupere une macro par son nom"""
