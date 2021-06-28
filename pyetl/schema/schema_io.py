@@ -33,14 +33,18 @@ def fusion_schema(nom, schema, schema_tmp, stock_param):
 
         schema.conformites[i] = schema_tmp.conformites[i]
     for i in schema_tmp.classes:
-        # print ('fusion schema' , i)
+        if schema_tmp.classes[i].deleted:
+            print("fusion schema suppression", i, schema_tmp.classes[i].deleted)
         if i in schema.classes:
+            if not schema_tmp.classes[i].a_sortir:
+                continue
             if schema.classes[i].poids > schema_tmp.classes[i].poids:
                 continue
             if schema.classes[i].poids == schema_tmp.classes[i].poids:
                 if schema.classes[i].maxobj >= schema_tmp.classes[i].maxobj:
                     continue
-        schema.ajout_classe(schema_tmp.classes[i])
+        if schema_tmp.classes[i].a_sortir:
+            schema.ajout_classe(schema_tmp.classes[i])
     schema_tmp.map_classes()
     liste_mapping = schema_tmp.mapping_schema(fusion=True)
     # print ('mapping_fusion','\n'.join(liste_mapping[:10]))
@@ -446,7 +450,7 @@ def retour_schemas(schemas, mode="util"):
         if schema.analyse_interne(mode_sortie):
             #            print ('stockage', nom, len(schema.__dic_if__))
             retour[nom] = schema.__dic_if__
-            # debug = ("elypu", "pos_app_emprise_er")
+            # debug = ("elyre", "ima_2017_psmv")
             # if debug in schema.classes:
             #     print(
             #         "retour schema",
@@ -455,6 +459,8 @@ def retour_schemas(schemas, mode="util"):
             #         schema.classes[debug].poids,
             #         schema.classes[debug].objcnt,
             #         schema.classes[debug].maxobj,
+            #         schema.classes[debug].a_sortir,
+            #         schema.classes[debug].deleted,
             #     )
     return retour
 

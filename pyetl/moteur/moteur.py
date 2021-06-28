@@ -42,7 +42,7 @@ class Moteur(object):
 
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
-        LOGGER.info("traitement virtuel :%s", "chargement" if unique else "virtuel")
+        LOGGER.info("traitement virtuel :%s", "chargement" if unique else "classes")
         #        for i in self.regles:
         #            print (i.chargeur, i)
         if unique:  # on lance un virtuel unique pour les traitements sans entree
@@ -246,9 +246,9 @@ class Moteur(object):
         if last and not last.store:
             if last.filter or last.supobj:
                 self.suppcnt += 1
-                if last.supp_classe and obj.schema:
-                    obj.schema.deleted = True
-            if obj.schema:  # c est un objet qui a ete jete par une regle filtrante
+
+            if obj.schema and not obj.virtuel:
+                # c est un objet qui a ete jete par une regle filtrante
                 obj.schema.objcnt -= 1
 
         # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)

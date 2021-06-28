@@ -218,7 +218,9 @@ class Schema(object):
 
         d_if = {i: getattr(self, i) for i in infos}
         d_if["__infos__"] = infos
-        d_if["classes"] = {nom: cl.__dic_if__ for nom, cl in self.classes.items()}
+        d_if["classes"] = {
+            nom: cl.__dic_if__ for nom, cl in self.classes.items() if cl.a_sortir
+        }
         d_if["conformites"] = {
             nom: conf.__dic_if__ for nom, conf in self.conformites.items()
         }
@@ -343,6 +345,7 @@ class Schema(object):
         nouvelle_classe.groupe = groupe
         nouvelle_classe.objcnt = 0
         nouvelle_classe.settype_table("i")
+        nouvelle_classe.deleted = modele.deleted
         modele.schema = old_schema
         modele.fils = old_fils
         modele.regles_modif = old_regles_modif

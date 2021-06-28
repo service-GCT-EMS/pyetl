@@ -895,7 +895,10 @@ def mapping(mapp, classes, id_cl):
 
 def analyse_interne(schema, mode="util", type_schema=None):
     """verifie la coherence interne d'un schema et cree les listes croisees de conformites"""
-    #    print ("analyse interne" , schema.nom,mode,type_schema)
+    # print("analyse interne", schema.nom, mode, type_schema)
+    # print(
+    #     "deleted", list((i.identclasse for i in schema.classes.values() if i.deleted))
+    # )
     retour = False
     if type_schema and schema.origine not in type_schema:
         return False
@@ -937,6 +940,8 @@ def analyse_interne(schema, mode="util", type_schema=None):
             schema_classe.a_sortir = (
                 not schema_classe.deleted
             ) or schema_classe.objcnt > 0
+            # if not schema_classe.a_sortir:
+            #     print(mode, "pas sorti", schema_classe.identclasse)
         retour = True
     if retour:
         for conf in schema.conformites.values():

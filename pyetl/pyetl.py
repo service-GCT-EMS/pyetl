@@ -343,7 +343,7 @@ class Pyetl(object):
 
     def traite_variables_speciales(self, nom):
         if nom == "log_file" or nom == "log_level":
-            print("-------------------initlog")
+            # print("-------------------initlog")
             self.initlog(force=True)
 
     def getmacro(self, nom):
@@ -1201,7 +1201,7 @@ class Pyetl(object):
             or self.getvar("force_virtuel") == "1"
             and not self.done
         ):
-            self.logger.info(
+            self.logger.debug(
                 "traitement virtuel %s worker:%s force:%s",
                 mode_schema,
                 self.worker,

@@ -147,6 +147,8 @@ class SchemaClasse(object):
         "maxobj",
         "specifique",
         "utilise",
+        "a_sortir",
+        "deleted",
     )
 
     def __init__(self, ident, schema, debug=0):
@@ -1226,8 +1228,8 @@ class SchemaClasse(object):
         nouvelle_classe.schema = schema2
         nouvelle_classe.objcnt = 0
         self.schema = old_schema
-        self.fils = old_fils
-        self.regles_modif = old_regles_modif
+        self.fils = [i for i in old_fils]
+        self.regles_modif = {i for i in old_regles_modif}
         if filiation:
             old_fils.append(nouvelle_classe)  # gestion des filiations de classes
         # n = 0

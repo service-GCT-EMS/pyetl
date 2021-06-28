@@ -25,7 +25,7 @@ def getlog(args):
 
 class DiffLogFilTer(logging.Filter):
     def filter(self, record):
-        if record.levelname == "999":
+        if record.levelno >= logging.DEBUG:
             return True
         try:
             precrecord = self.precrecords.get(record.funcName)
@@ -93,8 +93,8 @@ class GestionLogs(object):
             self.logger.removeHandler(self.print_handler)
         if self.aff_handler:
             self.logger.removeHandler(self.aff_handler)
-        self.print_handler = None
-        self.aff_handler = None
+        self.print_handler = logging.StreamHandler()
+        self.aff_handler = logging.StreamHandler()
 
     def add_handlers(self):
         if self.print_handler:
@@ -189,13 +189,15 @@ class GestionLogs(object):
     def setdebug(self):
         """positionne le logger en mode debug pour l affichage d objets"""
         self.logger.setLevel(min(self.loglevel, self.loglevels["DEBUG"]))
-        self.print_handler.setLevel(min(self.niveau_p, self.loglevels["DEBUG"]))
+        if self.print_handler:
+            self.print_handler.setLevel(min(self.niveau_p, self.loglevels["DEBUG"]))
         if self.file_handler:
             self.file_handler.setLevel(min(self.niveau_f, self.loglevels["DEBUG"]))
 
     def stopdebug(self):
         self.logger.setLevel(self.loglevel)
-        self.print_handler.setLevel(self.niveau_p)
+        if self.print_handler:
+            self.print_handler.setLevel(self.niveau_p)
         if self.file_handler:
             self.file_handler.setLevel(self.niveau_f)
 

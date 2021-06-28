@@ -477,7 +477,21 @@ def fschema_change_classe(_, obj):
     schema_classe = schema2.get_classe(
         ident, cree=True, modele=obj.schema, filiation=True
     )
-
+    # debug = ("elyre", "ima_2017_psmv")
+    # if debug == schema_classe.identclasse:
+    #     print(
+    #         "change classe",
+    #         schema2.nom,
+    #         obj.schema.nom,
+    #         schema2.classes[debug].nom,
+    #         schema2.classes[debug].poids,
+    #         schema2.classes[debug].objcnt,
+    #         schema2.classes[debug].maxobj,
+    #         schema2.classes[debug].a_sortir,
+    #         schema2.classes[debug].deleted,
+    #         obj.schema.deleted,
+    #         obj,
+    #     )
     obj.setschema(schema_classe)
 
 
