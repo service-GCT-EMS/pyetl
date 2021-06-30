@@ -11,7 +11,11 @@ import logging
 import pyetl.schema.fonctions_schema as FSC
 from pyetl.formats.interne.objet import Objet
 from pyetl.schema.formats_schema.schema_xml import lire_schema_xml
-from pyetl.schema.formats_schema.schema_csv import lire_schema_csv
+from pyetl.schema.formats_schema.schema_csv import (
+    lire_schema_csv,
+    decode_classes_csv,
+    decode_conf_csv,
+)
 
 LOGGER = logging.getLogger(__name__)
 # fonctions de manipulation de schemas
@@ -310,45 +314,40 @@ def h_def_schema(regle):
     regle.remap = regle.params.att_entree.val == "map"
 
 
-#   print('definition schema entree:', regle.nomschema, len(regle.stock_param.schemas[nom].classes))
-
-
-# def fschema_change_classe(_, obj):
-#     """changement de classe """
-
-#     schema2 = obj.schema.schema
-#     ident = obj.ident
-#     schema_classe = schema2.get_classe(
-#         ident, cree=True, modele=obj.schema, filiation=True
-#     )
-#     # print(
-#     #     "regles : changement de classe",
-#     #     obj.schema.identclasse,
-#     #     "--->",
-#     #     ident,
-#     #     schema_classe.identclasse,
-#     # )
-
-#     obj.setschema(schema_classe)
-
-
 def schema_from_objs(regle):
     """transforme les objets stockes en schema"""
     tables = []
     enums = []
+    defclasse = regle.params.cmp1.val
+    defenum = regle.params.cmp2.val
     for obj in regle.tmpstore:
         niveau, classe = obj.ident
-        if re.match(regle.params.cmp1.val, classe):
-            tables.append(obj.attributs)
-        elif re.match(regle.params.cmp2.val, classe):
-            enums.append(obj.attributs)
+        if regle.params.cmp1.origine:
+            defclasse = obj.attributs.get(regle.params.cmp1.origine)
+        # print("traitement ligne", obj.ident, defclasse)
+        description = {i: j for i, j in obj.attributs.items() if not i.startswith("#")}
+        ligne = ";".join([j for j in description.values()])
+        if re.match(defenum, classe):
+            if description.get("nom"):
+                enums.append(ligne)
+        elif re.match(defclasse, classe):
+            if description.get("table"):
+                tables.append(ligne)
+    schema_courant = regle.stock_param.init_schema(regle.nom, origine="L")
+    decode_conf_csv(schema_courant, enums)
+    decode_classes_csv(schema_courant, tables)
+
+    print(" decodage schema", regle.nom, schema_courant)
+    regle.nbstock = 0
 
 
 def h_schema_from_classe(regle):
     """creation schema regle stockante"""
     regle.store = True
     regle.traite_stock = schema_from_objs
+    regle.nbstock = 0
     regle.tmpstore = list()
+    regle.nom = regle.params.val_entree.val if regle.params.val_entree.val else "schema"
 
 
 def f_schema_from_classe(regle, obj):
@@ -358,12 +357,9 @@ def f_schema_from_classe(regle, obj):
 
     """
     niveau, classe = obj.ident
-    if re.match(regle.params.cmp1.val, classe) or re.match(
-        regle.params.cmp2.val, classe
-    ):
-        regle.tmpstore.append(obj)
-        return True
-    return False
+    regle.tmpstore.append(obj)
+    regle.nbstock += 1
+    return True
 
 
 def f_def_schema(regle, obj):

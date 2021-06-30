@@ -403,12 +403,12 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
             conf = None
             for tag, conf in config.items():
                 # groupe,classe,select,vselect,config_att = conf
-                print("recherche", tag, conf)
+                # print("recherche", tag, conf)
                 select = conf["select"]
                 vselect = conf["vselect"]
                 config_att = conf["attributs"]
                 for el2 in elem.iter(tag=tag):
-                    print("traitement", el2.tag, el2.text)
+                    # print("traitement", el2.tag, el2.text)
                     if select and el2.get(select) != vselect:
                         continue
                     decode_elem(el2, attributs, hdict, config_att, fixe)

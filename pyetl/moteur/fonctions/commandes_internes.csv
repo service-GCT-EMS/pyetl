@@ -299,6 +299,24 @@ $format_schema=sql:%dialecte%,csv;;;;;;;;;;;
 P:modif;;;;;;;pass;;;
 |:<#att_sigli_modif;;;;;;
 |sinon:<#gid;;;;;;;;;;;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#cree_schema;nom,dialecte;modif;;;;;;
+#!help;conversion de fichiers de structure en schema sql
+#!desc;schema: racine des fichiers de structure
+#!desc;dialecte: type de sql a creer;;;;;
+$nom=%nom%;schema;;;;
+$dialecte=%dialecte%;sigli;;;;;;;;;;
+$force_schema=fusion;;;;;;;;;;;
+$format_schema=sql:%dialecte%,csv;;;;;;;
+$enums=%enums%;enumerations;;;;
+$schemas_a_sortir=%nom%
+;;;;;%nom%;;cree_schema>;[#classe];%enums%;debug
+;;;;;;;pass;;;debug;
+<#gid;;;;;;;;;;;
+K:modif;<#att_sigli_modif;;;;;;
+
+
+
 !============================= manipulation des parametres =================================;;;;;;;;;;fin;
 !===========================================================================================;;;;;;;;;;fin;
 &&#define;#site_params;key;;;;;;;;fin;

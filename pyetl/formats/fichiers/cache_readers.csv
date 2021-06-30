@@ -20,5 +20,6 @@ spatialite;.format_filedb
 sqlite;.format_filedb
 text;.format_textfile
 txt;.format_csv
+xlsm;.format_excel
 xlsx;.format_excel
 xml;.format_xml

@@ -137,6 +137,7 @@ class FileWriter(object):
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
         self.layer = schemaclasse.identclasse
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
+        self.schemaclasse = schemaclasse
 
     def finalise(self):
         """fermeture definitive (ecrit la fin de fichier)"""

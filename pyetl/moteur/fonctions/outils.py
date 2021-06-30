@@ -581,7 +581,7 @@ def scan_entree(
     for fichier, chemin, racine in getfilelist(
         rep=rep, fileselect=fileselect, dirselect=dirselect
     ):
-        # print("scan2",fichier,chemin,racine)
+        # print("scan2", fichier, chemin, racine)
         if not select.search(fichier):
             continue
         f_courant = str(os.path.join(racine, chemin, fichier))
@@ -605,5 +605,6 @@ def scan_entree(
                 identifies[racine, chemin, nom] = ext
                 yield f_courant, (racine, chemin, fichier, ext)
             except KeyError:
+                # print(" non identifie", nom)
                 non_identifies.add((chemin, nom, ext))
         valide_auxiliaires(identifies, non_identifies)

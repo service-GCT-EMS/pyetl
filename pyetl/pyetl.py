@@ -1051,7 +1051,7 @@ class Pyetl(object):
                     dirselect=self.getvar("dirselect"),
                     filtre_entree=self.getvar("filtre_entree"),
                 ):
-                    # print ('mapper:traitement fichier',i)
+                    # print("mapper:traitement fichier", fich)
                     # traitement.racine_fich = os.path.dirname(i)
                     if self.worker:
                         self.aff.send(("init", 0, 0))

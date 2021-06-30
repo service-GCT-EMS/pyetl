@@ -370,7 +370,10 @@ def f_abspath(regle, obj):
             else regle.ref
         )
         final = os.path.normpath(os.path.join(ref, candidat))
-    final = os.path.realpath(final)
+    try:
+        final = os.path.realpath(final)
+    except FileNotFoundError:
+        regle.stock_param.logger.error("fichier introuvable %s", final)
     # print("chemin final", candidat, os.path.isabs(candidat), "->", final)
     regle.setval_sortie(obj, final)
     return True

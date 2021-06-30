@@ -366,6 +366,8 @@ class SqlWriter(CsvWriter):
         """ ecriture de sql multiclasse on cree des entetes intermediaires"""
         #        print( 'dans changeclasse')
         # raise
+        if schemaclasse == self.schemaclasse:
+            return
         self.fin_classe()
         self.schemaclasse = schemaclasse
         if schemaclasse.info["type_geom"] == "indef":  # pas de geometrie
@@ -373,7 +375,6 @@ class SqlWriter(CsvWriter):
         self.type_geom = schemaclasse.info["type_geom"]
         self.multi = schemaclasse.multigeom
         self.liste_att = schemaclasse.get_liste_attributs(attributs)
-
         self.fichier.write(self.header(init=0))
 
 
