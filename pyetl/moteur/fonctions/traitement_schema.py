@@ -324,20 +324,24 @@ def schema_from_objs(regle):
         niveau, classe = obj.ident
         if regle.params.cmp1.origine:
             defclasse = obj.attributs.get(regle.params.cmp1.origine)
-        # print("traitement ligne", obj.ident, defclasse)
+        # print("traitement ligne", obj.ident, defclasse, defenum)
         description = {i: j for i, j in obj.attributs.items() if not i.startswith("#")}
         ligne = ";".join([j for j in description.values()])
         if re.match(defenum, classe):
-            if description.get("nom"):
+            # print("defenum", description, ligne)
+            if description.get("nom_enumeration"):
                 enums.append(ligne)
         elif re.match(defclasse, classe):
             if description.get("table"):
                 tables.append(ligne)
     schema_courant = regle.stock_param.init_schema(regle.nom, origine="L")
+    # print("decodage confs", "\n".join(enums))
     decode_conf_csv(schema_courant, enums)
     decode_classes_csv(schema_courant, tables)
 
-    print(" decodage schema", regle.nom, schema_courant)
+    # print(" decodage schema", regle.nom, schema_courant)
+    # on envoie un objet virtuel dans le circuit
+    regle.stock_param.moteur.traitement_virtuel(schema=schema_courant.nom)
     regle.nbstock = 0
 
 

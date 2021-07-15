@@ -33,6 +33,7 @@ sql                           non           oui
 sqlite                        oui           non
 text                          oui           oui
 txt                           oui           oui
+xlsm                          oui           non
 xlsx                          oui           oui
 xml                           oui           oui
 ============           ==========    ===========
@@ -71,7 +72,7 @@ gpkg
 Created on Wed Sep  7 08:33:53 2016
 
 @author: 89965
-acces gdal en mode bas de donnees
+acces gdal en mode base de donnees
 
 mem_sqlite
 ..........

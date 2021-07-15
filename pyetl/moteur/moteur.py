@@ -37,12 +37,12 @@ class Moteur(object):
         for i in self.regles:
             print("regle:", i)
 
-    def traitement_virtuel(self, unique=0):
+    def traitement_virtuel(self, unique=0, schema=None):
         """ cree un objet virtuel et le traite pour toutes les classes non utilisees """
 
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
-        LOGGER.info("traitement virtuel :%s", "chargement" if unique else "classes")
+        LOGGER.info("traitement virtuel: %s", "chargement" if unique else "classes")
         #        for i in self.regles:
         #            print (i.chargeur, i)
         if unique:  # on lance un virtuel unique pour les traitements sans entree
@@ -60,14 +60,13 @@ class Moteur(object):
 
             for sch in list(self.mapper.schemas.values()):
                 # print("traitement virtuel: schema a traiter", sch.nom, sch.origine)
-                if sch.origine in "LB" and not sch.nom.startswith("#"):
-                    # print(
-                    #     "moteur: traitement schema",
-                    #     sch.nom,
-                    #     sch.origine,
-                    #     len(sch.classes),
-                    # )
-                    LOGGER.info("traitement schema" + sch.nom + " " + sch.origine)
+                if schema and sch.nom != schema:
+                    continue
+                if (
+                    sch.origine in "LB" and not sch.nom.startswith("#")
+                ) or sch.nom == schema:
+
+                    LOGGER.info("traitement schema " + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
 

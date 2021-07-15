@@ -670,9 +670,16 @@ def execute_macro(mapper, texte, context, fichier_regles):
 
 def getlevel(mapper, texte_brut, regle_ref):
     """recupere le niveau d une commande et gere les contextes"""
-    match = re.match(r"(([\|\+\-]+)([a-z]*):)?(.*)", texte_brut)
-    niveau = match.group(2) if match.group(2) else "" + ("+" if match.group(3) else "")
+    match = re.match(r"(([\|\+\-]+)([a-z]*):)?((<?)(.*))", texte_brut)
+    niveau = (match.group(2) if match.group(2) else "") + (
+        "+" if match.group(3) else ""
+    )
     texte = match.group(4)
+    if match.group(5) and match.group(3):
+        # appel de macro dans un sinon ou autre_branchement
+        rvirt = (niveau[:-1] + match.group(3) + ":") + ";;;;;;;pass;;;;;rv"
+        # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
+        traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
     if regle_ref:
         prec = regle_ref.liste_regles[-1] if regle_ref.liste_regles else None
     else:
@@ -684,6 +691,16 @@ def getlevel(mapper, texte_brut, regle_ref):
             rvirt = (niveau + ":" if niveau else "") + ";;;;;;;pass;;;;;rv"
             # print("on ajoute une regle virtuelle pour ajuster les niveaux", rvirt)
             traite_regle_std(mapper, 0, rvirt, rvirt, "", 0, regle_ref=regle_ref)
+    # print(
+    #     "getlevel:",
+    #     niveau,
+    #     texte_brut,
+    #     match.group(1),
+    #     match.group(2),
+    #     match.group(3),
+    #     match.group(4),
+    #     match.group(5),
+    # )
     return niveau, texte, rvirt
 
 

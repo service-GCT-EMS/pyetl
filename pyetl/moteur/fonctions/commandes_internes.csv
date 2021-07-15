@@ -22,14 +22,21 @@ $#%dest%;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli_std;;;;;;;;;;
 #!help;ajoute les attributs standard  date_maj / date_creation;;;;;;;;;;
-;;;;date_maj(D,D:A);;#_date_sys_mod;set;;;fin;
-;;;;date_creation(D,D:I);;#_date_sys_cre;set;;;fin;
+;;;;date_creation(D,D:I);;#_date_sys_cre;set;;;;
 <#gid
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli_modif;;;;;;;;;;
-#!help;ajoute les attributs standard  date_maj / date_creation;;;;;;;;;;
-;;;;auteur(T,D:A);;auteur;set;;;fin;
+#!help;ajoute les attributs standard  date_maj / date_creation et auteur ;;;;;;;;;;
 <#att_sigli_std
+;;;;date_maj(D,D:A);;#_date_sys_mod;set;;;fin;
+;;;;auteur(T,D:A);;auteur;set;;;fin;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#att_sigli;modif;;;;;;;;;
+#!help;ajoute les attributs standard a un schema
+!;;;;;;;print;valeur de modif:%modif%;;
+P:modif;;;;;;;pass;;;
+|:<#att_sigli_modif;;;;;;
+|sinon:<#att_sigli_std;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cmin;passe les noms de classe en minuscules ;;;;;;;;;
 #!help;passe les noms de classe en minuscules ;;;;;;;;;;
@@ -280,6 +287,7 @@ $nom=%nom%;fusion;;;;;;;;;;
 #!help;ajoute les attributs standard a un schema
 ;;;;;;;start;%nom_schema%;;fin
 <#att_sigli_modif;;;;;;;;;;
+
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cree_sql;nom;dialecte;;;;;;;
 #!help;conversion de schemas en sql
@@ -295,10 +303,7 @@ $format_schema=sql:%dialecte%,csv;;;;;;;;;;;
 !;;;;;;;start;;;;
 !;;;;;;;reel;;;;
 ;;;;#schema;;;lire_schema;%nom%;csv;;
-!<#gid;;;;;;;;;;;
-P:modif;;;;;;;pass;;;
-|:<#att_sigli_modif;;;;;;
-|sinon:<#gid;;;;;;;;;;;
+<#att_sigli;%modif%
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cree_schema;nom,dialecte;modif;;;;;;
 #!help;conversion de fichiers de structure en schema sql
@@ -310,13 +315,8 @@ $force_schema=fusion;;;;;;;;;;;
 $format_schema=sql:%dialecte%,csv;;;;;;;
 $enums=%enums%;enumerations;;;;
 $schemas_a_sortir=%nom%
-;;;;;%nom%;;cree_schema>;[#classe];%enums%;debug
-;;;;;;;pass;;;debug;
-<#gid;;;;;;;;;;;
-K:modif;<#att_sigli_modif;;;;;;
-
-
-
+;;;;;%nom%;;cree_schema>;[#classe];%enums%;
+<#att_sigli;%modif%
 !============================= manipulation des parametres =================================;;;;;;;;;;fin;
 !===========================================================================================;;;;;;;;;;fin;
 &&#define;#site_params;key;;;;;;;;fin;

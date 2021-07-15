@@ -447,13 +447,14 @@ def sel_haspk(selecteur, obj):
 def sel_pexiste(selecteur, _):
     """#aide||teste si un parametre est non vide
     #pattern||P;||50
-      #test1||obj||^?P:AA;0;;set||P:AA;!;;;res;1;;set||atv;res;1
+      #test1||obj||^?P:AA;1;;set||P:AA;!;;;res;1;;set||atv;res;1
     """
     # print ('---------------------------test Pexiste',
     #         selecteur.params.attr.val,'->',
     #         selecteur.regle.getvar(selecteur.params.attr.val),'<-',
     #         bool(selecteur.regle.getvar(selecteur.params.attr.val)))
-    return selecteur.regle.getvar(selecteur.params.attr.val)
+    var = selecteur.regle.getvar(selecteur.params.attr.val)
+    return var and var.lower() not in {"0", "f", "false"}
 
 
 def sel_pregex(selecteur, _):

@@ -26,27 +26,36 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     nbwarn = 0
     # print(" lecture_csv, separ:", len(separ), separ, "<>", reader.encoding)
+
+    dialect = None
     with open(
         os.path.join(rep, chemin, fichier), newline="", encoding=reader.encoding
     ) as csvfile:
         sample = csvfile.read(4094)
-        try:
-            dialect = csv.Sniffer().sniff(sample, delimiters=separ)
-            has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
-        except csv.Error:
-            logger.warning("erreur determination dialecte csv, parametres par defaut")
+        if not (separ and entete):
+            try:
+                dialect = csv.Sniffer().sniff(sample, delimiters=separ)
+                has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
+            except csv.Error:
+                logger.warning(
+                    "erreur determination dialecte csv, parametres par defaut"
+                )
+                linesep = "\r\n" if "\r\n" in sample else "\n"
+                has_header = sample.startswith("!")
+                if has_header:
+                    hline = sample.split(linesep, 1)[0]
+                    entete = hline[1:].split(separ)
+                csvfile.seek(0)
+                # print("dialect special", dialect, "->", dialect.delimiter, "(", separ, ")")
+        if not dialect:
             dref = csv.get_dialect("excel")
             linesep = "\r\n" if "\r\n" in sample else "\n"
-            has_header = sample.startswith("!")
-            if has_header:
-                hline = sample.split(linesep, 1)[0]
-                entete = hline[1:].split(separ)
-            csvfile.seek(0)
             csv.register_dialect(
                 "special", dref, delimiter=separ, lineterminator=linesep
             )
             dialect = csv.get_dialect("special")
-            # print("dialect special", dialect, "->", dialect.delimiter, "(", separ, ")")
+            has_header = sample.startswith("!")
+            csvfile.seek(0)
 
         if entete is None:
             lecteur = csv.DictReader(csvfile, dialect=dialect)
@@ -461,7 +470,9 @@ def lire_objets_txt(self, rep, chemin, fichier):
 
 def lire_objets_csv(self, rep, chemin, fichier):
     """format csv en lecture"""
-    return csvreader(self, rep, chemin, fichier)
+    headerdef = self.regle_ref.getvar("csvheader")
+    header = headerdef.split(",") if headerdef else None
+    return csvreader(self, rep, chemin, fichier, entete=header)
 
 
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom,initer)

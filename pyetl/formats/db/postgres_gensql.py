@@ -143,6 +143,7 @@ class PgrGenSql(DbGenSql):
         conf.nombase = self.ajuste_nom(conf.nom)
         conflist = []
         ctrl = set()
+
         for j in sorted(list(conf.stock.values()), key=lambda v: v[2]):
             #            if conf.nom=='sig_ident_auteur':
             #                print (conf.nom,j[0],j[3])
@@ -178,6 +179,7 @@ class PgrGenSql(DbGenSql):
 
         req = (
             req
+            + ("--" if len(conflist) == 1 and conflist[0] == "" else "")
             + "CREATE TYPE "
             + self.schema_conf
             + "."

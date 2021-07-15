@@ -127,13 +127,14 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
     nom_schema, nom_groupe = getnoms(rep, chemin, fichier)
     alire = os.path.join(rep, chemin, fichier)
-    print("ouverture fichier", alire)
+    # print("ouverture fichier", alire)
     nlignes = 0
     wb = XL.load_workbook(filename=alire, data_only=True)
     # print("ouverture excel", wb, dir(wb))
     for i in wb.worksheets:
-        # print("lecture table", i)
         nom_classe = cleanname(i.title)
+        # print("lecture table", i.title, "->", nom_classe)
+
         self.setidententree(nom_groupe, nom_classe)
         lecteur = i.iter_rows()
         for j in lecteur:

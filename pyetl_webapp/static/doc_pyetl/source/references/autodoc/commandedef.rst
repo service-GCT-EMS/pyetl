@@ -342,6 +342,8 @@ split
 +------+------+------+--------+------+--------+
 |      |?     |A     |split   |.     |?N:N    |
 +------+------+------+--------+------+--------+
+|      |?     |A     |split   |      |?N:N    |
++------+------+------+--------+------+--------+
 
 
    M :  liste attributs sortie
@@ -356,6 +358,11 @@ split
    split :  
    . :  caractere decoupage
    ?N:N :  nombre de morceaux:debut (optionnel)
+
+   ? :  liste attributs sortie (optionnel)
+   A :  defaut
+   split :  attribut
+   ?N:N :   (optionnel)
 
 
 
@@ -469,6 +476,29 @@ supp
 
 
    =#geom :  #geom (mot clef) (mot_clef)
+
+
+
+.. index::
+  double: .traitement_alpha;supp_classe
+
+supp_classe
+...........
+
+   suppression d'elements
+
+   suppression de la classe d objets avec tous ses objets et son schema
+
+**syntaxes acceptees**
+
++----------+----------+----------+---------------+----------+------------+
+|sortie    |defaut    |entree    |commande       |param1    |param2      |
++==========+==========+==========+===============+==========+============+
+|          |          |          |supp_classe    |          |            |
++----------+----------+----------+---------------+----------+------------+
+| *suppression de la classe d objets avec tous ses objets et son schema* |
++----------+----------+----------+---------------+----------+------------+
+
 
 
 
@@ -907,6 +937,8 @@ dbreq
 +------+------+------+--------+------+--------+
 |      |      |      |dbreq   |C     |=#      |
 +------+------+------+--------+------+--------+
+|P     |      |      |dbreq   |C     |?L      |
++------+------+------+--------+------+--------+
 
 
    ?A :  att_sortie (optionnel)
@@ -1308,17 +1340,20 @@ sortir
 
    sortir dans differents formats
 
-   parametres:?(#schema;nom_schema);?liste_attributs;sortir;format[fanout]?;?nom
 
 **syntaxes acceptees**
 
-+---------------+------------+------------+--------------+------------+--------------+
-|sortie         |defaut      |entree      |commande      |param1      |param2        |
-+===============+============+============+==============+============+==============+
-|?=#schema      |?C          |?L          |sortir        |?C          |?C            |
-+---------------+------------+------------+--------------+------------+--------------+
-| *parametres:?(#schema;nom_schema);?liste_attributs;sortir;format[fanout]?;?nom*    |
-+---------------+------------+------------+--------------+------------+--------------+
++--------------+------------+------------+--------------+------------+--------------+
+|sortie        |defaut      |entree      |commande      |param1      |param2        |
++==============+============+============+==============+============+==============+
+|=#schema      |C           |?L          |sortir        |?C          |?C            |
++--------------+------------+------------+--------------+------------+--------------+
+| *parametres:#schema;nom_schema;?liste_attributs;sortir;format[fanout]?;?nom*      |
++--------------+------------+------------+--------------+------------+--------------+
+|              |            |?L          |sortir        |?C          |?C            |
++--------------+------------+------------+--------------+------------+--------------+
+| *parametres:?liste_attributs;sortir;format[fanout]?;?nom*                         |
++--------------+------------+------------+--------------+------------+--------------+
 
 
 
@@ -3716,7 +3751,7 @@ sleep
 start
 .....
 
-   ne fait rien mais envoie un objet virtuel dans le circuit
+   ne fait rien mais envoie un objet virtuel dans le circuit avec un schema si defini
 
 
 **syntaxes acceptees**
@@ -3724,7 +3759,7 @@ start
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |start   |      |        |
+|      |      |      |start   |?C    |        |
 +------+------+------+--------+------+--------+
 
 

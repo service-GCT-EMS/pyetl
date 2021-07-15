@@ -9,7 +9,8 @@ reference macros
 #aduser                    
 #analyse                   analyse d'un jeu de donnees p:format force
 #asc_upload                chargement vers ely
-#att_sigli_modif           ajoute les attributs standard  date_maj / date_creatio
+#att_sigli                 ajoute les attributs standard a un schema
+#att_sigli_modif           ajoute les attributs standard  date_maj / date_creation et auteur
 #att_sigli_std             ajoute les attributs standard  date_maj / date_creatio
 #autoload                  charge les derniers resultats en base de donnee
 #batch_rt                  
@@ -22,6 +23,7 @@ reference macros
 #cmin                      passe les noms de classe en minuscules
 #convert_sigli             
 #creclef                   
+#cree_schema               conversion de fichiers de structure en schema sql
 #cree_sql                  conversion de schemas en sql
 #crypt_site_params         prepare les acces personnalises aux base
 #cus2cc48                  reprojette des donnees cus en rgf9
@@ -34,6 +36,7 @@ reference macros
 #dbdump                    extraction d'un jeu de donnees d'une base de donnees avec un programme extern
 #dbextract                 extraction d'un jeu de donnees d'une base de donnÃ©e
 #dbextract+gid             lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau class
+#dblist                    recuperation d'un jeu de donnees par requete directe dans une variabl
 #dbrequest                 recuperation d'un jeu de donnees par requete direct
 #dbschema                  analyse une base de donnee
 #debug                     
@@ -42,9 +45,11 @@ reference macros
 #extract+gid               lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau class
 #extract_donnees           scripts de passage en pro
 #extractm                  extraction en mode multiprocesseu
+#fakelist                  genere une liste d'items numerotes
 #fanout                    
 #fileschema                
 #filter                    mange tous les objets qui ne satisfont pas la condition
+#filtre                    filtrage d un fichier text
 #ftpdownload               charge des elements par ft
 #fusion_schema             fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a cree
 #g2p                       convertit des coordonees lat long en attribut en point cc4
@@ -90,6 +95,7 @@ reference macros
 #run                       execute une commande extern
 #runproc                   lancement fonction_sq
 #runsql                    lancement script_sq
+#schema_sigli              ajoute les attributs standard a un schema
 #scriptodb                 charge un script en bas
 #set                       
 #sigli2elyx                passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifie

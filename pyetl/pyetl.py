@@ -1069,7 +1069,7 @@ class Pyetl(object):
                 self.logger.error("repertoire d entree inexistant: %s", err)
 
                 # print("type entree ", type(entree))
-
+            self.moteur.vide_stock()
             ft, _ = next(self.maintimer)
 
             self.logger.info("fin traitement donnees: %d s", int(ft - dt))
@@ -1079,6 +1079,7 @@ class Pyetl(object):
                 self.logger.info("debut traitement sans entree %s", self.appel[:40])
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
+                self.moteur.vide_stock()
             except StopIteration as arret:
                 if arret.args[0] > 2:
                     abort = True

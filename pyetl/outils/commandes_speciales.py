@@ -24,8 +24,41 @@ def is_special(commandes):
     c1 = commandes.split(";")
     commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
+    commande = commande.replace("-", "")
     # print("is_special", commande, commande in COMMANDES_SPECIALES)
     return commande in COMMANDES_SPECIALES
+
+
+def autodoc(mapper, nom):
+    from .helpdef.docmodule import autodoc
+    from distutils.dir_util import copy_tree
+
+    print(" generation documentation ", nom)
+    doc = autodoc(mapper)
+    print("apres generation documentation ", doc.keys())
+    build = mapper.getvar("_autobuild", "1") == "1"
+    sourcedir = os.path.join(
+        mapper.getvar("_progdir"), "../pyetl_webapp/static/doc_pyetl"
+    )
+    if nom:
+        os.makedirs(nom, exist_ok=True)
+        copy_tree(sourcedir, nom, update=1)
+        sourcedir = nom
+    autodocdir = os.path.join(sourcedir, "source/references/autodoc")
+    os.makedirs(autodocdir, exist_ok=True)
+    for nomdoc, contenu in doc.items():
+        ref = os.path.join(autodocdir, nomdoc + "def.rst")
+        print("ecriture doc", nomdoc, ref)
+        with open(ref, "w", encoding="utf-8") as dest:
+            dest.write("\n".join(contenu))
+    if build:
+        builderhtml = os.path.join(sourcedir, "make") + " html "
+        # builderpdf = os.path.join(sourcedir, "make") + " pdf "
+
+        os.system(builderhtml)
+        print("generation format html dans", os.path.join(sourcedir, "build/html"))
+        # os.system(builderpdf)
+        # print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
 
 
 def commandes_speciales(mapper, commandes, args):
@@ -38,6 +71,7 @@ def commandes_speciales(mapper, commandes, args):
     c1 = commandes.split(";")
     commande, *pars = c1[0].split(":")
     commande = commande.replace("#", "")
+    commande = commande.replace("-", "")
     # if mapper.fichier_regles is None:
     #     return
     # liste_commandes = mapper.fichier_regles.split(",")
@@ -75,35 +109,7 @@ def commandes_speciales(mapper, commandes, args):
             print_help(mapper, nom)
 
     elif commande == "autodoc":
-        from .helpdef.docmodule import autodoc
-        from distutils.dir_util import copy_tree
-
-        print(" generation documentation ", nom)
-        doc = autodoc(mapper)
-        print("apres generation documentation ", doc.keys())
-        build = mapper.getvar("_autobuild", "1") == "1"
-        sourcedir = os.path.join(
-            mapper.getvar("_progdir"), "../pyetl_webapp/static/doc_pyetl"
-        )
-        if nom:
-            os.makedirs(nom, exist_ok=True)
-            copy_tree(sourcedir, nom, update=1)
-            sourcedir = nom
-        autodocdir = os.path.join(sourcedir, "source/references/autodoc")
-        os.makedirs(autodocdir, exist_ok=True)
-        for nomdoc, contenu in doc.items():
-            ref = os.path.join(autodocdir, nomdoc + "def.rst")
-            print("ecriture doc", nomdoc, ref)
-            with open(ref, "w", encoding="utf-8") as dest:
-                dest.write("\n".join(contenu))
-        if build:
-            builderhtml = os.path.join(sourcedir, "make") + " html "
-            # builderpdf = os.path.join(sourcedir, "make") + " pdf "
-
-            os.system(builderhtml)
-            print("generation format html dans", os.path.join(sourcedir, "build/html"))
-            # os.system(builderpdf)
-            # print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
+        autodoc(mapper, nom)
 
     elif commande == "autotest":
         #            print("detecte autotest ", self.fichier_regles, self.posparm)
@@ -132,6 +138,9 @@ def commandes_speciales(mapper, commandes, args):
         place = os.path.dirname(mapper.getvar("_progdir"))
         print("preparation version", mapper.version, place)
         nv = "_" + mapper.version.replace(" (build:", ".").replace(")", "")
+        pack.cache(mapper)
+        commandes_speciales(mapper, "autodoc", "")
+
         pack.zipall(place, nv)
         newb = pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
         print("modification build", mapper.version, "->(build", newb, ")")
