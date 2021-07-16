@@ -29,7 +29,7 @@ def is_special(commandes):
     return commande in COMMANDES_SPECIALES
 
 
-def autodoc(mapper, nom):
+def gendoc(mapper, nom):
     from .helpdef.docmodule import autodoc
     from distutils.dir_util import copy_tree
 
@@ -109,7 +109,7 @@ def commandes_speciales(mapper, commandes, args):
             print_help(mapper, nom)
 
     elif commande == "autodoc":
-        autodoc(mapper, nom)
+        gendoc(mapper, nom)
 
     elif commande == "autotest":
         #            print("detecte autotest ", self.fichier_regles, self.posparm)
@@ -138,9 +138,7 @@ def commandes_speciales(mapper, commandes, args):
         place = os.path.dirname(mapper.getvar("_progdir"))
         print("preparation version", mapper.version, place)
         nv = "_" + mapper.version.replace(" (build:", ".").replace(")", "")
-        pack.cache(mapper)
-        commandes_speciales(mapper, "autodoc", "")
-
+        gendoc(mapper, "")
         pack.zipall(place, nv)
         newb = pack.update_build(build="BUILD =", file="vglobales.py", orig=place)
         print("modification build", mapper.version, "->(build", newb, ")")

@@ -74,7 +74,9 @@ def loadformats(module=None, force=False):
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
     global READERS, WRITERS
-
+    # if force:
+    #     READERS = dict()
+    #     WRITERS = dict()
     formatdir = os.path.dirname(__file__)
     if module is None:
         cr = os.path.join(formatdir, "cache_readers.csv")

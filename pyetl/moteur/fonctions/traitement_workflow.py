@@ -93,7 +93,9 @@ def h_start(regle):
             if not i.startswith("#")
         ]
     else:
-        regle.schemas = [regle.stock_param.schemas.get(schema)]
+        schemaref = regle.stock_param.schemas.get(schema)
+        regle.schemas = [schemaref] if schemaref else []
+    # print("trouve schemas", regle.schemas)
     return True
 
 

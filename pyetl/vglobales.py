@@ -9,8 +9,8 @@ import platform
 
 
 REVISION = "0.8.3p"
-BUILD = 41
-VERSION=REVISION+" (build:"+str(BUILD)+")"
+BUILD = 39
+VERSION = REVISION + " (build:" + str(BUILD) + ")"
 # version de production
 MAINMAPPER = [None]
 
