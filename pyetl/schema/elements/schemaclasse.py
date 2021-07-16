@@ -458,7 +458,16 @@ class SchemaClasse(object):
         ( on garde en memoire le numero de regle)"""
         idregle = regle.index
         # if idregle not in self.regles_modif:
-        #     print ('amodifier', self.schema.nom, idregle,  regle)
+        # print(
+        #     "amodifier",
+        #     self.schema.nom,
+        #     idregle,
+        #     regle,
+        #     "regles_modif",
+        #     self.regles_modif,
+        #     "->",
+        #     idregle in self.regles_modif,
+        # )
         if dyn:
             return True
         if idregle in self.regles_modif:

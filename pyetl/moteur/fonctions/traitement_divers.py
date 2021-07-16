@@ -174,6 +174,59 @@ def f_uniqcnt(regle, obj):
     return True
 
 
+def merge_traite_stock(regle):
+    """traite les objets stockes dans la regle"""
+    if regle.nbstock == 0:
+        return
+    if regle.params.pattern == "1":
+        objref = regle.liste[0]
+        for obj in regle.liste[1:]:
+            for i in (
+                a for a in obj.attributs if not (a.startswith("#") or a in regle.keydef)
+            ):
+                # print("merge", i, objref.attributs[i], "+", obj.attributs[i])
+                v = obj.attributs[i]
+                vref = objref.attributs.get(i)
+                if v:
+                    objref.attributs[i] = (vref + v) if vref else v
+
+            regle.stock_param.moteur.traite_objet(
+                objref, regle.branchements.brch["gen"]
+            )
+        regle.nbstock = 0
+        regle.liste = []
+
+
+def h_merge(regle):
+    """fusionne des objets"""
+    regle.store = True
+    regle.traite_stock = merge_traite_stock
+    regle.final = True
+    regle.nbstock = 0
+    regle.tmpstore = dict()
+    regle.clef = None
+    regle.liste = []
+    regle.keydef = set(regle.params.att_entree.liste)
+
+
+def f_merge(regle, obj):
+    """#aide||fusionne des objets adjacents de la meme classe en fonction de champs communs
+    #pattern1||?A;;L;merge;=seq;
+    #pattern2||?A;;L;merge;;
+    """
+    clef = tuple((obj.attributs.get(i, "") for i in regle.params.att_entree.liste))
+    if regle.params.pattern == "1":
+        if regle.clef == clef:
+            regle.liste.append(obj)
+            regle.nbstock += 1
+        else:
+            if regle.nbstock:
+                merge_traite_stock(regle)
+            regle.liste.append(obj)
+            regle.clef = clef
+    return True
+
+
 def sortir_traite_stock(regle):
     """ecriture finale"""
     if regle.final:

@@ -151,7 +151,7 @@ class Moteur(object):
                     if resultat:
                         if obj.schema is not None:
                             # if regle.action_schema:
-                            #     # print("action schema", regle, regle.action_schema)
+                            # print("action schema", regle, regle.action_schema)
                             #     # print("schema avant", obj.schema)
                             #     regle.action_schema(regle, obj)
                             if regle.action_schema:

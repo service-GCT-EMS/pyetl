@@ -369,7 +369,7 @@ def fschema_ajout_attribut(regle, obj, typedefaut="T"):
     """ajoute un attribut au schema"""
     # print("ajout attribut", regle, regle.params.def_sortie, obj.schema.regles_modif)
     if obj.schema.amodifier(regle):
-        #        print('ajout 1',regle.params.att_sortie,obj.schema.schema.nom)
+        # print("ajout 1", regle.params.att_sortie, obj.schema.schema.nom)
         fschema_ajout_attribut_d(regle, obj)
 
 

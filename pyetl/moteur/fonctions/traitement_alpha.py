@@ -427,7 +427,13 @@ def h_asplit(regle):
         int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
     )
     nbdecoup = nbres + (int(f_debut) if f_debut else 0)
-    #    print ('cible decoupage',regle.defcible, nbdecoup,regle.params.att_sortie.liste, regle.multi)
+    # print(
+    #     "cible decoupage",
+    #     regle.defcible,
+    #     nbdecoup,
+    #     regle.params.att_sortie.liste,
+    #     regle.multi,
+    # )
     regle.sep = sep
     regle.nbdecoup = nbdecoup
 
@@ -439,17 +445,20 @@ def f_asplit(regle, obj):
     #parametres1||liste attributs sortie;defaut;attribut;;caractere decoupage;nombre de morceaux:debut
        #pattern2||;?;A;split;.;?N:N||sortie
     #parametres2||defaut;attribut;;caractere decoupage;nombre de morceaux:debut
-       #pattern3||;?;A;split;;?N:N||sortie
-    #parametres3||liste attributs sortie;defaut;attribut;;;nombre de morceaux:debut
+       #pattern3||;?;A;split;;?N:N||cmp1
+    #parametres3||defaut;attribut;;;nombre de morceaux:debut
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
     """
     if regle.multi:
         if regle.sep:
             elems = regle.getval_entree(obj).split(regle.sep)[regle.defcible]
-        else:
+        elif isinstance(regle.getval_entree(obj), (list, tuple)):
             elems = regle.getval_entree(obj)[regle.defcible]
-        obj.attributs[regle.params.att_entree.val] = elems[0]
+        else:
+            elems = [regle.getval_entree(obj)]
+        obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
+        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
         for i in elems[1:]:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i

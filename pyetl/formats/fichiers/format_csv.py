@@ -56,7 +56,10 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
             dialect = csv.get_dialect("special")
             has_header = sample.startswith("!")
             csvfile.seek(0)
-
+        if not entete:
+            entete = reader.regle_ref.getvar("csvheader", "")
+            if entete:
+                entete = entete.split(",")
         if entete is None:
             lecteur = csv.DictReader(csvfile, dialect=dialect)
             if has_header:

@@ -42,6 +42,7 @@ compare2;.traitement_divers
 getkey;.traitement_divers
 loadconfig;.traitement_divers
 log;.traitement_divers
+merge;.traitement_divers
 objgroup;.traitement_divers
 preload;.traitement_divers
 sortir;.traitement_divers

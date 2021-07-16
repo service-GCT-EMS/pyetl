@@ -95,7 +95,7 @@ def h_start(regle):
     else:
         schemaref = regle.stock_param.schemas.get(schema)
         regle.schemas = [schemaref] if schemaref else []
-    # print("trouve schemas", regle.schemas)
+    # import osprint("trouve schemas", regle.schemas)
     return True
 
 
