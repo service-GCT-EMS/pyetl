@@ -9,7 +9,7 @@ module d'aide
 """
 
 
-from pyetl.formats.generic_io import DATABASES, getdb
+from pyetl.formats.generic_io import DATABASES, READERS, WRITERS, getdb
 
 # from pyetl.moteur.fonctions import loadmodules as load_commands
 # from pyetl.formats.fichiers import loadformats
@@ -215,14 +215,24 @@ def doc_macros(mapper):
     return doc
 
 
+def rwheader(doc, titre):
+    """genere les entetes du tableau"""
+    doc.append(titre)
+    souligne(doc, "-")
+    doc.append(
+        "%-25s   %10s    %10s" % ("====================", "==========", "===========")
+    )
+    doc.append("%-25s   %10s    %10s" % ("format", "lecture", "ecriture"))
+    doc.append(
+        "%-25s   %10s    %10s" % ("====================", "==========", "===========")
+    )
+
+
 def doc_formats(mapper):
     """genere la doc sphinx des commandes"""
     # loadformats(force=True)
-    doc = ["reference formats"]
-    souligne(doc, "-")
-    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
-    doc.append("%-20s   %10s    %10s" % ("format", "lecture", "ecriture"))
-    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    doc = []
+    rwheader(doc, "reference formats")
 
     formats_connus = set(mapper.formats_connus_lecture.keys()) | set(
         mapper.formats_connus_ecriture.keys()
@@ -230,21 +240,43 @@ def doc_formats(mapper):
     for nom_format in sorted(formats_connus):
         lect = "oui" if nom_format in mapper.formats_connus_lecture else "non"
         ecrit = "oui" if nom_format in mapper.formats_connus_ecriture else "non"
-        doc.append("%-20s   %10s    %10s" % (nom_format, lect, ecrit))
-    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+        doc.append("%-25s   %10s    %10s" % (nom_format, lect, ecrit))
+    doc.append(
+        "%-25s   %10s    %10s" % ("====================", "==========", "===========")
+    )
     doc.append("")
-    doc.append("reference bases de donnees")
-    souligne(doc, "-")
-    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
-    doc.append("%-20s   %10s    %10s" % ("format", "lecture", "ecriture"))
-    doc.append("%-20s   %10s    %10s" % ("============", "==========", "==========="))
+    rwheader(doc, "reference bases de donnees")
+    for nombase in sorted(DATABASES):
+        doc.append("%-25s   %10s    %10s" % (nombase, "oui", "oui"))
+    doc.append(
+        "%-25s   %10s    %10s" % ("====================", "==========", "===========")
+    )
     doc.append("")
+
     # loaddbmodules(force=True)
     for nombase in sorted(DATABASES):
         doc.append(nombase)
         souligne(doc, ".")
         doc.append(getdb(nombase).doc)
     doc.append("")
+
+    # doc detaillee des formats
+    for nom_format in sorted(formats_connus):
+        doc.append("")
+        doc.append("format %s" % (nom_format,))
+        souligne(doc, ".")
+        doc.append("")
+        if nom_format in mapper.formats_connus_lecture:
+            readfunc = READERS[nom_format].reader
+            if readfunc.__doc__:
+                doc.append(readfunc.__doc__)
+        doc.append("")
+        if nom_format in mapper.formats_connus_ecriture:
+            wfunc = WRITERS[nom_format].writer
+            if not wfunc:
+                continue
+            if wfunc.__doc__:
+                doc.append(wfunc.__doc__)
 
     return doc
 

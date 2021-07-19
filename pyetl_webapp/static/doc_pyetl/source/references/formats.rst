@@ -2,10 +2,10 @@
 formats d'entrée et de sortie
 =============================
 
-Pyetl permet de lire et d ecrire de nombreux formats de fichiers
+Pyetl permet de lire et d écrire de nombreux formats de fichiers
 
 
-formats geres par Pyetl
+formats gérés par Pyetl
 -----------------------
 
 formats d'entrée

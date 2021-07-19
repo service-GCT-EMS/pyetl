@@ -359,9 +359,9 @@ split
    . :  caractere decoupage
    ?N:N :  nombre de morceaux:debut (optionnel)
 
-   ? :  liste attributs sortie (optionnel)
-   A :  defaut
-   split :  attribut
+   ? :  defaut (optionnel)
+   A :  attribut
+   split :  
    ?N:N :   (optionnel)
 
 
@@ -1274,6 +1274,28 @@ log
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |      |?C    |?A    |log     |C     |?C      |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
+  double: .traitement_divers;merge
+
+merge
+.....
+
+   fusionne des objets adjacents de la meme classe en fonction de champs communs
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |      |L     |merge   |=seq  |        |
++------+------+------+--------+------+--------+
+|?A    |      |L     |merge   |      |        |
 +------+------+------+--------+------+--------+
 
 
