@@ -25,10 +25,16 @@ os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 from .database import DbConnect
 from .gensql import DbGenSql
 
-
-def importer():
-    global cx_Oracle
+try:
     import cx_Oracle
+except ImportError:
+    cx_Oracle = None
+# global cx_Oracle
+
+
+# def importer():
+
+#     import cx_Oracle
 
 
 TYPES_A = {
@@ -67,7 +73,7 @@ class OraConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
         self.oracle_env()
         self.connect()
         #        self.errdef = errdef
@@ -80,7 +86,8 @@ class OraConnect(DbConnect):
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
         }
-        self.DBError = cx_Oracle.Error
+        if cx_Oracle:
+            self.DBError = cx_Oracle.Error
 
     def oracle_env(self):
         """positionne les variables d'environnement pour le connecteur """
@@ -114,12 +121,15 @@ class OraConnect(DbConnect):
         #     self.user,
         #     "*" * len(self.passwd),
         # )
+        if not cx_Oracle:
+            raise NotImplemented("Cx_oracle non disponible")
         try:
             """positionne les variables d'environnement pour les programmes externes """
             # lib_oracle=r"C:\dev\mapper\autres\instantclient_19_9"
             # init_oracle_client(lib_dir=lib_oracle)
             # env = os.environ
             # env["ORACLE_HOME"]=lib_oracle
+
             connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             self.connection = connection

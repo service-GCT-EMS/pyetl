@@ -286,13 +286,13 @@ def selh_inmem(selecteur):
 
 def sel_inmem(selecteur, obj):
     """#aide||valeur dans une liste en memoire (chargee par preload)
-    #pattern||A;in:mem||10
+    #pattern||L;in:mem||10
     #!test||obj||^A;3;;set||^?A;0;;set||A;in:{1,2,3,4};;;res;1;;set;;;||atv;res;1
     """
     if selecteur.precedent != obj.ident:  # on vient de changer de classe
         selecteur.info = selecteur.regle.stock_param.store[selecteur.params.vals.val]
         selecteur.precedent = obj.ident
-    #    print ('comparaison ', len(regle.comp), regle.comp)
+        # print("comparaison ", selecteur.params.vals.val, len(selecteur.info))
     if selecteur.info is None:
         selecteur.regle.match = ""
         return False

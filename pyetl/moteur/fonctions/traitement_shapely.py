@@ -7,11 +7,13 @@ fonctions de manipulation de geometries shapely
 """
 # import re
 import math as M
-
+from shapely import geometry as SG
 
 from .traitement_geom import setschemainfo
 
+# print("demarrage module shapely")
 # ===============================================fonctions du module shapely============================================
+# global SG
 
 
 def r_orient(geom):
@@ -39,8 +41,7 @@ def f_rectangle_oriente(regle, obj):
 
 def h_angle(regle):
     """preparation angle"""
-    global SG
-    from shapely import geometry as SG
+    # from shapely import geometry as SG
 
     if regle.elements["cmp1"].group(0):
         tmp = regle.elements["cmp1"].group(0).split(":")

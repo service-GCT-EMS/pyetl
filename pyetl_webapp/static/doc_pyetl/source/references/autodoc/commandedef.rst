@@ -1196,7 +1196,7 @@ compare2
 
    compare a un element precharge
 
-   parametres clef;fichier;attribut;preload;macro;nom
+   parametres clef;fichier;attribut;compare;macro;nom
 
 **syntaxes acceptees**
 
@@ -1205,7 +1205,7 @@ compare2
 +========+========+========+==========+========+==========+
 |A       |        |?L      |compare2  |A       |C         |
 +--------+--------+--------+----------+--------+----------+
-| *parametres clef;fichier;attribut;preload;macro;nom*    |
+| *parametres clef;fichier;attribut;compare;macro;nom*    |
 +--------+--------+--------+----------+--------+----------+
 
 
@@ -1346,7 +1346,7 @@ preload
 +--------+--------+--------+----------+--------+----------+
 |sortie  |defaut  |entree  |commande  |param1  |param2    |
 +========+========+========+==========+========+==========+
-|A       |?C      |?A      |preload   |?C      |C         |
+|L       |?C      |?A      |preload   |?C      |C         |
 +--------+--------+--------+----------+--------+----------+
 | *parametres clef;fichier;attribut;preload;macro;nom*    |
 +--------+--------+--------+----------+--------+----------+
@@ -1388,25 +1388,28 @@ tmpstore
 
    stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
 
-   liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
 
 **syntaxes acceptees**
 
-+----------+----------+----------+------------+----------+------------+
-|sortie    |defaut    |entree    |commande    |param1    |param2      |
-+==========+==========+==========+============+==========+============+
-|          |          |?L        |tmpstore    |?=uniq    |?=sort      |
-+----------+----------+----------+------------+----------+------------+
-|          |          |?L        |tmpstore    |?=uniq    |?=rsort     |
-+----------+----------+----------+------------+----------+------------+
-| *liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons* |
-+----------+----------+----------+------------+----------+------------+
-|          |          |?L        |tmpstore    |=cmp      |#C          |
-+----------+----------+----------+------------+----------+------------+
-|          |          |?L        |tmpstore    |=cmpf     |#C          |
-+----------+----------+----------+------------+----------+------------+
-|S         |          |?L        |tmpstore    |=cnt      |?=clef      |
-+----------+----------+----------+------------+----------+------------+
++-----------+-----------+-----------+-------------+-----------+-------------+
+|sortie     |defaut     |entree     |commande     |param1     |param2       |
++===========+===========+===========+=============+===========+=============+
+|           |           |?L         |tmpstore     |?=uniq     |?=sort       |
++-----------+-----------+-----------+-------------+-----------+-------------+
+| *liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri*   |
++-----------+-----------+-----------+-------------+-----------+-------------+
+|           |           |?L         |tmpstore     |?=uniq     |?=rsort      |
++-----------+-----------+-----------+-------------+-----------+-------------+
+|           |           |?L         |tmpstore     |=cmp       |#C           |
++-----------+-----------+-----------+-------------+-----------+-------------+
+| *liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons*       |
++-----------+-----------+-----------+-------------+-----------+-------------+
+|           |           |?L         |tmpstore     |=cmpf      |#C           |
++-----------+-----------+-----------+-------------+-----------+-------------+
+|           |           |?L         |tmpstore     |=clef      |#C           |
++-----------+-----------+-----------+-------------+-----------+-------------+
+|S          |           |?L         |tmpstore     |=cnt       |?=clef       |
++-----------+-----------+-----------+-------------+-----------+-------------+
 
 
 

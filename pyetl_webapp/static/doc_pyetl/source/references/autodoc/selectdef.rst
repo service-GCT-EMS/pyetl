@@ -84,7 +84,7 @@ reference sélecteurs
    * L;in:list(re)
        - valeur dans une liste sous forme d'expressions regulieres
 
-   * A;in:mem
+   * L;in:mem
        - valeur dans une liste en memoire (chargee par preload)
 
    * A;=in:schema

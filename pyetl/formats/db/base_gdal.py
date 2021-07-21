@@ -9,6 +9,10 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 
+# global fiona, from_epsg
+import fiona
+from fiona.crs import from_epsg
+
 printtime = False
 if printtime:
     import time
@@ -33,10 +37,10 @@ if printtime:
     t1 = time.time()
 
 
-def importer():
-    global fiona, from_epsg
-    import fiona
-    from fiona.crs import from_epsg
+# def importer():
+#     global fiona, from_epsg
+#     import fiona
+#     from fiona.crs import from_epsg
 
 
 def qgisparser(file):
@@ -53,7 +57,7 @@ class GdalConnect(DbConnect):
         #     code = os.path.splitext(os.path.basename(base))[0]
         #     print("code base", code)
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
         self.type_base = "gpkg"
         self.connect()
         self.geographique = True

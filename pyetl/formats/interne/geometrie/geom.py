@@ -5,6 +5,7 @@ attributs et geometrie """
 import itertools
 from . import composants as C
 
+global SG, P
 SG = -1
 P = -1
 

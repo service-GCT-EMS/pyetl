@@ -224,6 +224,7 @@ class Pyetl(object):
         self.inited = False
         self.webworkers = dict()
         self.variables_speciales = {"log_file", "log_level"}
+        self.scan_entree = scan_entree
 
     def getcommande(self, commande):
         fonc = self.commandes.get(commande)
@@ -636,7 +637,7 @@ class Pyetl(object):
                 petl.setvar("F_sortie", "#store")
                 petl.setvar("force_schema", "0")
                 rep_sortie = rep_sortie[1:]
-                print("----------------getpyetl: format store", rep_sortie, regles)
+                # print("----------------getpyetl: format store", rep_sortie, regles)
             petl.setvar("_sortie", rep_sortie)
         if entree is not None:
             #            print ("entree getpyetl",type(entree))

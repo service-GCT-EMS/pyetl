@@ -225,7 +225,7 @@ def charge_fichier(fichier, rdef, codec=None, debug=False, defext=""):
         if debug:
             print("chargement", fichier)
     except FileNotFoundError:
-        print("chargement:fichier introuvable", fichier)
+        print("charge_fichier:fichier introuvable", fichier)
     return stock
 
 

@@ -224,7 +224,7 @@ class Fileselect(Element):
                 tb + ".add_DragDrop(",
                 "   {",
                 "       $files = [string[]]$_.Data.GetData([Windows.Forms.DataFormats]::FileDrop)",
-                "       if ($files){$textbox1.Text = $files[0]}",
+                "       if ($files){" + tb + ".Text = $files[0]}",
                 "   }",
                 ")",
                 tb + ".add_DragOver(",
@@ -377,10 +377,10 @@ class Commande(Element):
 
     def genps(self):
         commande = self.commande
-        if "#" in commande:
-            # on gere les # que powershell n aime pas
-            tmp = commande.split(" ")
-            commande = " ".join(["'" + i + "'" if "#" in i else i for i in tmp])
+        # if "#" in commande:
+        #     # on gere les # que powershell n aime pas
+        #     tmp = commande.split(" ")
+        #     commande = " ".join(["'" + i + "'" if "#" in i else i for i in tmp])
         while "$[" in commande:
             variable = commande.split("$[")[1].split("]$")[0]
             if variable in self.variables:
@@ -411,6 +411,9 @@ def creihm(nom):
     ihm = None
     courant = None
     sniplets = dict()
+    if not nom:
+        print("usage mapper -genihm nom_fichier_ihm")
+        return
     with open(nom, "r") as f:
         for ligne in f:
             if not ligne or ligne.startswith("!#"):

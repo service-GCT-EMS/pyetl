@@ -371,7 +371,8 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
         return 0
 
 
-def init_ewkb():
+def init_ewk():
+    global wkb, wkt
     try:
         from shapely import wkb, wkt
     except ImportError:
@@ -490,8 +491,8 @@ def geom_from_geojson(obj, code=None):
 
 
 GEOMDEF = {
-    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, None),
-    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewkb),
+    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, init_ewk),
+    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewk),
     "#geojson": (ecrire_geom_geojson, geom_from_geojson, None),
     None: (nowrite, noconversion, None),
 }

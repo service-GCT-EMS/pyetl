@@ -12,9 +12,11 @@ import sys
 from .database import DbConnect
 from .gensql import DbGenSql
 
+global sqlite3
+
 
 def importer():
-    global sqlite3
+
     import sqlite3
 
 

@@ -567,7 +567,7 @@ class Reader(object):
         """definit un filtre de lecture sur un champs"""
         readfilter = self.regle_ref.getvar("readfilter")
         if readfilter:
-            filterdef = readfilter.split(":", 3)
+            filterdef = readfilter.split(":", 2)
             field, filtertype, vals = filterdef
             if filtertype == "re":
                 self.matchfilter = re.compile(vals)
@@ -579,8 +579,10 @@ class Reader(object):
                 raise SyntaxError("definition de filtre inconnue: " + filtertype)
             self.filter = self.filters.get(filtertype)
             self.filterfield = field
-            self.stock_param.logger.info("filtrage entree: %s ", readfilter)
-            # print("filtrage entree:", readfilter, "->", filtertype)
+            self.stock_param.logger.info(
+                "filtrage entree: %s -> %s", readfilter, filtertype
+            )
+            # print("filtrage entree:", readfilter, "->", filtertype, self.inlist)
 
     def valuefilter(self, attributs):
         try:

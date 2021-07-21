@@ -19,13 +19,18 @@ import sys
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
+import xml.etree.cElementTree as ET
+from xml.etree.ElementTree import ParseError
+import requests
+
+# global ET, requests, ParseError
 
 
-def importer():
-    global ET, requests, ParseError
-    import xml.etree.cElementTree as ET
-    from xml.etree.ElementTree import ParseError
-    import requests
+# def importer():
+
+#     import xml.etree.cElementTree as ET
+#     from xml.etree.ElementTree import ParseError
+#     import requests
 
 
 TYPES_A = {
@@ -84,7 +89,7 @@ class WfsConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
 
         self.types_base.update(TYPES_A)
         self.type_base = "wfs"

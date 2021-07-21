@@ -16,13 +16,15 @@ il est necessaire de positionner les parametres suivant:
 """
 
 from .base_oracle import OraConnect, OraGenSql
+import cx_Oracle
 
 TYPES_A = {"SDO_GEOMETRY": "GEOMETRIE"}
+# global cx_Oracle
 
 
-def importer():
-    global cx_Oracle
-    import cx_Oracle
+# def importer():
+
+#     import cx_Oracle
 
 
 class OrwConnect(OraConnect):
@@ -32,7 +34,7 @@ class OrwConnect(OraConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
 
         self.types_base.update(TYPES_A)
         self.accept_sql = "geo"

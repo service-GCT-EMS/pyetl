@@ -33,11 +33,9 @@ def main():
     if len(sys.argv) == 1:
         message_help()
     else:
-        # appels par powershell qui deteste les #
         args = sys.argv
 
-        #     [i[1:] if i.startswith("-") else i for i in sys.argv]
-        # )
+        # print("args", list((n, i) for n, i in enumerate(args)))
         mapping = args[1]
         runpyetl(mapping, args[2:])
     print(

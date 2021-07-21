@@ -26,6 +26,7 @@ def store_traite_stock(regle):
 
     reverse = regle.params.cmp2.val == "rsort"
     #    print ("tri inverse ",reverse)
+
     if isinstance(store, list):
         if regle.params.cmp2.val:
             keyval = lambda obj: "|".join(
@@ -35,6 +36,9 @@ def store_traite_stock(regle):
         for obj in store:
             # print("store: relecture objet ", obj)
             regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+    elif isinstance(store, set):
+        print("traitement set", len(store))
+        print("store", len(regle.stock_param.store))
     else:
         for clef in (
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
@@ -53,29 +57,34 @@ def h_stocke(regle):
     regle.traite_stock = store_traite_stock
     regle.tmpstore = dict() if regle.params.cmp1.val else list()
     # mode comparaison : le stock est reutilise ailleurs (direct_reuse)=False
-    regle.direct_reuse = not "cmp" in regle.params.cmp1.val
+    regle.direct_reuse = regle.params.pattern in "126"
     if regle.direct_reuse:
         regle.tmpstore = dict() if regle.params.cmp1.val else list()
     else:
         if regle.params.cmp2.val not in regle.stock_param.store:
-            regle.stock_param.store[regle.params.cmp2.val] = dict()
+            if regle.params.cmp1.val == "clef":
+                regle.stocke_obj = False
+                regle.stock_param.store[regle.params.cmp2.val] = set()
+            else:
+                regle.stock_param.store[regle.params.cmp2.val] = dict()
         regle.tmpstore = regle.stock_param.store[regle.params.cmp2.val]
     regle.fold = regle.params.cmp1.val == "cmpf"
     regle.cnt = regle.params.cmp1.val == "cnt"
-    if regle.params.cmp2.val == "clef":
-        regle.stocke_obj = False
-        regle.tmpstore = set()
+
+    if regle.params.pattern in "3456":
+        regle.final = True
 
 
 def f_stocke(regle, obj):
     """#aide||stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
-     #aide_spec||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
-    #aide_spec2||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
+    #aide_spec1||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
+    #aide_spec3||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
       #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
       #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
       #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
       #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
-      #pattern5||S;;?L;tmpstore;=cnt;?=clef||cmp1
+      #pattern5||;;?L;tmpstore;=clef;#C||cmp1
+      #pattern6||S;;?L;tmpstore;=cnt;?=clef||cmp1
           #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
          #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
     """
@@ -296,7 +305,10 @@ def h_sortir(regle):
 
     if regle.debug:
         print(
-            "creation output", fich, outformat, sorted(regle.output.writerparms.items())
+            "creation output",
+            fich,
+            outformat,
+            sorted(regle.output.writerparms.items()),
         )
     # print("creation output", fich, outformat)
 
@@ -434,6 +446,8 @@ def preload(regle, obj):
         entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
     else:
         entree = regle.entree if regle.entree else regle.fich
+    # if not os.path.isabs(entree):
+    #     entree = os.path.join(regle.getvar("_entree"), entree)
     print(
         "------- preload commandes:(",
         chaine_comm,
@@ -442,57 +456,58 @@ def preload(regle, obj):
         "clef",
         regle.params.att_sortie.val,
     )
-    if chaine_comm:  # on precharge via une macro
-        nomdest = (
-            regle.params.cmp2.val
-            if regle.params.cmp2.val.startswith("#")
-            else "#" + regle.params.cmp2.val
+    # on precharge via une macro
+    nomdest = (
+        regle.params.cmp2.val
+        if regle.params.cmp2.val.startswith("#")
+        else "#" + regle.params.cmp2.val
+    )
+    if not chaine_comm:  # on stocke directement
+        storemode = regle.getvar("storemode", "cmp")
+        chaine = (
+            ";;;;;;"
+            + regle.params.att_sortie.val
+            + ";tmpstore;"
+            + storemode
+            + ";"
+            + nomdest
         )
-        processor = regle.stock_param.getpyetl(
-            chaine_comm, entree=entree, rep_sortie=nomdest, context=regle.context
-        )
-        if not processor:
-            return False
-        processor.process()
-        if obj:
-            renseigne_attributs_batch(regle, obj, processor.retour)
+        chaine_comm = [(0, chaine)]
+        # chaine_comm = "#pass"
+    processor = regle.stock_param.getpyetl(
+        chaine_comm, entree=entree, rep_sortie=nomdest
+    )
+    if not processor:
+        return False
+    processor.process()
+    if obj:
+        renseigne_attributs_batch(regle, obj, processor.retour)
+    # print(
+    #     "------- preload objets",
+    #     len(processor.store),
+    #     processor.store.keys(),
+    #     list([(i, len(j)) for i, j in processor.store.items()]),
+    # )
+    nb_total = processor.getvar("_st_lu_objs", "0")
+    regle.stock_param.store.update(
+        processor.store
+    )  # on rappatrie les dictionnaires de stockage
+    regle.setvar("storekey", processor.retour)  # on stocke la clef
 
-        print("------- preload objets", processor.store)
-        nb_total = processor.getvar("_st_lu_objs", "0")
-        regle.stock_param.store.update(
-            processor.store
-        )  # on rappatrie les dictionnaires de stockage
-        regle.setvar("storekey", processor.retour)  # on stocke la clef
-
-    else:
-        #        racine = regle.stock_param.racine
-        chemin = os.path.dirname(entree)
-        fichier = os.path.basename(entree)
-        ext = os.path.splitext(fichier)[1]
-        lecteur = regle.stock_param.reader(ext)
-        regle.reglestore.tmpstore = dict()
-        try:
-            regle.stock_param.store[regle.params.cmp2.val] = regle.reglestore.tmpstore
-            lecteur.lire_objets(
-                "", chemin, fichier, regle.stock_param, regle.reglestore
-            )
-        except FileNotFoundError:
-            regle.stock_param.store[regle.params.cmp2.val] = None
-            print("fichier inconnu", os.path.join(chemin, fichier))
-        except StopIteration:
-            pass
-        nb_total = lecteur.lus_fich
     # =================surveillance de la consommation mémoire================
     if psutil:
         mem2 = process.memory_info()[0]
-        mem = mem2 - mem1
-        print(
-            "------- preload info memoire ",
-            nb_total,
-            mem,
-            "--------",
-            int(mem / (nb_total + 1)),
+        mem = int(mem2 - mem1) / 1000
+        regle.stock_param.logger.info(
+            "usage memoire %d k pour %d objets", mem, nb_total
         )
+        # print(
+        #     "------- preload info memoire ",
+        #     nb_total,
+        #     mem,
+        #     "--------",
+        #     int(mem / (nb_total + 1)),
+        # )
     # =============================
     return True
 
@@ -500,15 +515,6 @@ def preload(regle, obj):
 def h_preload(regle):
     """prechargement"""
     obj = None
-    mapper = regle.stock_param
-    tstor = (
-        ";;;;;;"
-        + regle.params.att_sortie.val
-        + ";tmpstore;cmp;"
-        + regle.params.cmp2.val
-    )
-    reglestore = mapper.interpreteur(tstor, "", 99999)
-    regle.reglestore = reglestore
     regle.repl = lambda x: obj.attributs.get(x.group(1), "")
     regle.resub = re.compile(r"\[(#?[a-zA-Z_][a-zA-Z0-9_]*)\]")
     fich = regle.params.val_entree.val
@@ -528,7 +534,12 @@ def h_preload(regle):
         regle.fich = regle.entree
         regle.valide = "done" if preload(regle, None) else False
 
-    print("==================h_preload===", regle.dynlevel, regle.valide)
+    # print(
+    #     "==================h_preload===",
+    #     regle.dynlevel,
+    #     regle.valide,
+    #     len(regle.stock_param.store),
+    # )
 
 
 def f_preload(regle, obj):
@@ -536,7 +547,7 @@ def f_preload(regle, obj):
      #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
     #aide_spec1||les elements entre [] sont pris dans l objet courant
     #aide_spec2||sont reconnus[G] pour #groupe et [F] pour #classe pour le nom de fichier
-       #pattern||A;?C;?A;preload;?C;C
+       #pattern||L;?C;?A;preload;?C;C
          #!test||rien||^clef;%testrep%/refdata/lecture/t1.csv;;preload;;test||
                ||^;%testrep%/refdata/lecture/t1.csv;;charge;;;||
     """
@@ -548,7 +559,9 @@ def f_preload(regle, obj):
         if fich != regle.entree:
             regle.entree = fich
             print(
-                "==================f_preload===", regle.stock_param.racine, regle.entree
+                "==================f_preload===",
+                regle.stock_param.racine,
+                regle.entree,
             )
 
             regle.loaded = preload(regle, obj)
@@ -583,7 +596,7 @@ def h_compare(regle):
 
 def f_compare2(regle, obj):
     """#aide||compare a un element precharge
-     #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
+     #aide_spec||parametres clef;fichier;attribut;compare;macro;nom
     #aide_spec2||sort en si si egal en sinon si different
     #aide_spec3||si les elements entre [] sont pris dans l objet courant
        #pattern||A;;?L;compare2;A;C

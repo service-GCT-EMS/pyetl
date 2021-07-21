@@ -20,13 +20,17 @@ from copy import Error
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, Cursinfo
 from .gensql import DbGenSql
+from owslib.wfs import WebFeatureService
+import owslib.fes as F
+from owslib.etree import etree
 
+# global F, etree, WebFeatureService
 
-def importer():
-    global F, etree, WebFeatureService
-    from owslib.wfs import WebFeatureService
-    import owslib.fes as F
-    from owslib.etree import etree
+# def importer():
+
+#     from owslib.wfs import WebFeatureService
+#     import owslib.fes as F
+#     from owslib.etree import etree
 
 
 TYPES_A = {
@@ -88,7 +92,7 @@ class WfsConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
 
         self.types_base.update(TYPES_A)
         self.type_base = "wfs"

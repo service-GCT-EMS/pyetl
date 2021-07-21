@@ -11,23 +11,26 @@ import io
 import csv
 import json
 
+import requests as RQ
+import ftplib as FTP
 
-def importrequest():
-    """import requests """
-    global RQ
-    import requests as RQ
+try:
+    import pysftp as SFTP
+
+except ImportError:
+    SFTP = None
 
 
-def importftp():
-    """import ftp"""
-    global SFTP, FTP
-    import ftplib as FTP
+# def importftp():
+#     """import ftp"""
+#     global SFTP, FTP
+#     import ftplib as FTP
 
-    try:
-        import pysftp as SFTP
+#     try:
+#         import pysftp as SFTP
 
-    except ImportError:
-        SFTP = None
+#     except ImportError:
+#         SFTP = None
 
 
 import time
@@ -37,6 +40,7 @@ LOGGER = logging.getLogger(__name__)
 
 def geocode_traite_stock(regle, final=True):
     """libere les objets geocodes """
+    # global RQ
     if regle.nbstock == 0:
         return
     flist = list(regle.filtres.values())
@@ -155,7 +159,7 @@ def h_geocode(regle):
     """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
     LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
     LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
-    importrequest()
+    # importrequest()
 
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
     regle.store = True
@@ -193,7 +197,7 @@ def f_geocode(regle, obj):
 
 def h_ftpupload(regle):
     """prepare les parametres ftp"""
-    importftp()
+    # importftp()
     if regle.params.pattern == "1":
         regle.chargeur = True
     codeftp = regle.params.cmp1.val
@@ -233,6 +237,7 @@ def getftpinfo(regle, fichier):
 
 def ftpconnect(regle):
     """connection ftp"""
+    # global FTP,SFTP
     _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
     if regle.debug:
         regle.stock_param.logger.info("ouverture acces %s", regle.getvar("acces_ftp"))
@@ -279,6 +284,7 @@ def f_ftpupload(regle, obj):
       #pattern2||;=#att;A;ftp_upload;?C;C
          #test||notest
     """
+
     filename = regle.getval_entree(obj)
     destname = regle.destdir + "/" + str(os.path.basename(filename))
 
@@ -408,7 +414,7 @@ def _to_dict(parms):
 
 def h_httpdownload(regle):
     """prepare les parametres http"""
-    importrequest()
+    # importrequest()
 
     regle.chargeur = True
     path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
@@ -543,7 +549,7 @@ def f_httpdownload(regle, obj):
 
 def h_wfsdownload(regle):
     """prepare les parametres http"""
-    importrequest()
+    # importrequest()
 
     regle.chargeur = True
     regle.path = None

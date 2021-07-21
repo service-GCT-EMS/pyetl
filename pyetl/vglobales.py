@@ -5,12 +5,16 @@ Created on Tue Jan 15 13:47:55 2019
 @author: 89965
 """
 # import logging
+import os
 import platform
 
 
 REVISION = "0.8.3p"
 BUILD = 39
-VERSION = REVISION + " (build:" + str(BUILD) + ")"
+isdev = (
+    "_dev" if os.path.isdir(os.path.join(os.path.dirname(__file__), "devenv")) else ""
+)
+VERSION = REVISION + " (build:" + str(BUILD) + isdev + ")"
 # version de production
 MAINMAPPER = [None]
 

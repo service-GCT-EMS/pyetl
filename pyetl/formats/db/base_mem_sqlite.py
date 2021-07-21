@@ -15,9 +15,18 @@ commandes disponibles :
 pas de dependances externes
 
 """
+import sqlite3
 import sys
 
+try:
+    import sqlite3
+
+#        import pyodbc as odbc
+except ImportError:
+    print("error: sqlite: erreur import: module sqlite non accessible")
+    sqlite3 = None
 from .base_sqlite import SqltConnect, SqltGenSql
+
 
 TYPES_A = {
     "T": "T",
@@ -63,13 +72,9 @@ class SqlmConnect(SqltConnect):
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-        try:
-            import sqlite3
-
+        if sqlite3:
             self.errs = sqlite3.DatabaseError
-        #        import pyodbc as odbc
-        except ImportError:
-            print("error: sqlite: erreur import: module sqlite non accessible")
+        else:
             return None
 
         print("info : dbacces:connection sqlite memoire", self.base)

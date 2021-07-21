@@ -328,6 +328,9 @@ class Macro(object):
                 i, self.vdef[i] if self.vdef.get(i) else context.getvar(i)
             )
         # print ('macro bind', self.nom, self.vpos,macroenv, macroenv.vlocales)
+        if not liste:
+            args = context.getvar("_args")
+            liste = args.split(",")
         context.affecte(liste, context=macroenv, vpos=self.vpos)
         return macroenv
 

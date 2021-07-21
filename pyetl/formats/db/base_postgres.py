@@ -32,11 +32,14 @@ from collections import namedtuple
 from .database import Cursinfo, DbConnect
 from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
+import psycopg2
+
+# global psycopg2
 
 
-def importer():
-    global psycopg2
-    import psycopg2
+# def importer():
+
+#     import psycopg2
 
 
 TYPES_A = {

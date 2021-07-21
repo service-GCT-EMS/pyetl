@@ -26,15 +26,22 @@ os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
+from mysql.connector import (
+    connect as mysqlconnect,
+    Error as MysqlError,
+    FieldType,
+)
+
+# global mysqlconnect, MysqlError, FieldType
 
 
-def importer():
-    global mysqlconnect, MysqlError, FieldType
-    from mysql.connector import (
-        connect as mysqlconnect,
-        Error as MysqlError,
-        FieldType,
-    )
+# def importer():
+
+#     from mysql.connector import (
+#         connect as mysqlconnect,
+#         Error as MysqlError,
+#         FieldType,
+#     )
 
 
 TYPES_A = {
@@ -88,7 +95,7 @@ class MysqlConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
 
         self.DBError = MysqlError
 

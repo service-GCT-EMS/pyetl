@@ -5,6 +5,10 @@
 #!help;initialise un module en mode multiprocessing (ne fait rien et attends)
 ;;;;;;;idle;;;fin;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#pass;;;;;;;;;;
+#!help;placeholdermacro: s il faut une macro qui ne fait rien(ne fait rien et passe les objets)
+;;;;;;;pass;;;fin;
+!===========================================================================================;;;;;;;;;;;
 &&#define;#stdvar;;;;;;;;;;
 #!help;variables de base appele par tous les autres elements
 #!vars:format: format de sortie>acces: acces base de donnees si necessaire;;;;;;;;;;
