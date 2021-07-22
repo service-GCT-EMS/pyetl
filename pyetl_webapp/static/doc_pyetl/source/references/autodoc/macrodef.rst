@@ -77,6 +77,7 @@ reference macros
 #moi                       
 #ora2pg                    passage de oracle vers postgi
 #ora2pg2                   passage de oracle vers postgis version local
+#pass                      placeholdermacro: s il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 #passage_dev               
 #passage_prod              
 #passage_schema            scripts de passage en pro
