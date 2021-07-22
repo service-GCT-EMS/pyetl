@@ -359,16 +359,20 @@ def decoupe_liste_commandes(fichier_regles):
             liste_commandes[i] = "#" + liste_commandes[i]
     elif fichier_regles.startswith("-"):
         liste_commandes = fichier_regles.split(",-")
-        # for i in range(1, len(liste_commandes)):
-        #     liste_commandes[i] = "#" + liste_commandes[i]
+        for i in range(1, len(liste_commandes)):
+            liste_commandes[i] = (
+                liste_commandes[i]
+                if liste_commandes[i].startswith("#")
+                else "#" + liste_commandes[i]
+            )
     else:
         liste_commandes = fichier_regles.split(",")
-    print(
-        "decoupage_macros",
-        fichier_regles,
-        "->",
-        [(n, "<" + i) for n, i in enumerate(liste_commandes)],
-    )
+    # print(
+    #     "decoupage_macros",
+    #     fichier_regles,
+    #     "->",
+    #     [(n, "<" + i) for n, i in enumerate(liste_commandes)],
+    # )
     return [(n, "<" + i) for n, i in enumerate(liste_commandes)]
 
 
@@ -523,7 +527,7 @@ def affecte_variable(mapper, commande, context, regle_ref):
     setter(nom, valeur)
     if nom in mapper.variables_speciales:
         mapper.traite_variables_speciales(nom)
-    # print ('affectation variable',commande, setter, nom,"=", valeur)
+    # print("affectation variable", commande, setter, nom, "=", valeur)
 
 
 def prepare_texte(defligne, niveau):

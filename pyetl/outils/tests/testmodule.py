@@ -204,10 +204,11 @@ def fonctest(mapper, nom=None, debug=0):
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.getcommande(fonc_a_tester)
 
-        mapper.setvar("test_courant", fonc_a_tester)
         # print("test: ", fonc_a_tester)
         if nom and fonc.nom != nom:
             continue
+        mapper.setvar("test_courant", fonc_a_tester)
+
         # teslist = dict()
         # for subfonc in fonc.subfonctions:
         #     if not untestable(mapper,subfonc):

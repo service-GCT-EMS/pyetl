@@ -302,7 +302,7 @@ def printvariable(regle):
     if regle.params.cmp2.val:
         return nomv + "=" + str(regle.getvar(regle.params.cmp1.val))
     v = regle.context.getvar_b(nomv, "")
-    print("printvariable", type(v), v)
+    print("printvariable", nomv, type(v), v)
     return regle.context.getvar_b(nomv, "")
 
 
@@ -606,11 +606,12 @@ def _prepare_batch_from_object(regle, obj):
     nom = obj.attributs.get("nom", "batch")
     #    chaine_comm = ':'.join([i.strip(" '") for i in commande.strip('[] ').split(',')])
     parametres = obj.attributs.get("parametres")  # parametres en format hstore
-    params = ["_nom_batch=" + nom]
+
+    params = {"_nom_batch=": nom}
     if parametres:
-        params = params + [
-            "=".join(re.split('"=>"', i)) for i in re.split('" *, *"', parametres[1:-1])
-        ]
+        params.update(i.split('"=>"', 1) for i in re.split('" *, *"', parametres[1:-1]))
+
+        # print("recuperation parametres hstore", parametres, params)
     # print("commande batch", numero, commande, entree, sortie, params)
 
     return (numero, commande, entree, sortie, params)
@@ -623,6 +624,7 @@ def _execbatch(regle, obj):
         obj.attributs["nom"] = regle.getvar("_nom_batch", "batch")
         # on lui donne un nom
     _, commande, entree, sortie, params = regle.prepare(regle, obj)
+    # print("------------------------- appel batch", commande, "\n", params)
     processor = regle.stock_param.getpyetl(
         commande, liste_params=params, entree=entree, rep_sortie=sortie
     )
@@ -666,9 +668,10 @@ def f_batch(regle, obj):
     #aide_spec5||passe une fois le jeu de donnees
       #pattern5||A;?C;?A;batch;=load;C||cmp1
         #schema||ajout_attribut
-          #test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set||^X;#obj,#atv;;batch||atv;X;12
-         #test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
-         #test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;;;z=12||atv;X;12
+          #!test||obj||^parametres;"nom"=>"V1", "valeur"=>"12";;set;;;||^X;#obj,#atv;;batch||atv;X;12
+          #test1||obj||^parametres;"valeur"=>"12", "nom"=>"V1";;set;;;||^X;#obj,#atv;;batch||atv;X;12
+         #!test2||obj||^X;#obj,#atv:V1:12;;batch||atv;X;12
+         #!test3||obj;;10||^X;#obj,#atv:V1:%z%;;batch;;;;z=12||atv;X;12
     """
     if regle.store:
         regle.tmpstore.append(obj)

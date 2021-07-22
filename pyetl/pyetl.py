@@ -381,6 +381,7 @@ class Pyetl(object):
                 return
             self.liste_params = liste_params[:]
             for i in liste_params:
+                print("stocke_param", i)
                 self._stocke_param(i)  # decodage parametres de lancement
             #            print ('traite_param',len(self.posparm))
             if len(self.posparm) >= 2:
@@ -391,6 +392,7 @@ class Pyetl(object):
 
     def prepare_module(self, regles, liste_params):
         """ prepare le module pyetl pour l'execution"""
+        # print("dans prepare_module", regles, liste_params)
         if self.inited:
             # on nettoie
             self.liste_regles = None
@@ -607,6 +609,7 @@ class Pyetl(object):
     ):
         """retourne une instance de pyetl sert pour les tests et le
         fonctionnement en fcgi et en mode batch ou parallele"""
+        # print("getpyetl ", regles, liste_params)
         # print(
         #     "---------------------------- dans getpyetl",
         #     nom,
@@ -932,7 +935,14 @@ class Pyetl(object):
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
             self.setvar(*valeur)
-            # print("stockage parametre:",parametre,valeur[0])
+            print(
+                "stockage parametre:",
+                parametre,
+                valeur[0],
+                "->",
+                valeur[1],
+                self.context,
+            )
         else:
             self.posparm.append(parametre)
             #            self.parms["#P_"+str(len(self.posparm))] = parametre

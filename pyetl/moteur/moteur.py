@@ -330,7 +330,9 @@ class Macro(object):
         # print ('macro bind', self.nom, self.vpos,macroenv, macroenv.vlocales)
         if not liste:
             args = context.getvar("_args")
-            liste = args.split(",")
+            # permet d affecter les variables positinelles a partir d un texte avec ,
+            if args:
+                liste = args.split(",")
         context.affecte(liste, context=macroenv, vpos=self.vpos)
         return macroenv
 
@@ -618,7 +620,7 @@ class Context(object):
 
     def setvar(self, nom, valeur):
         """positionne une variable du contexte de reference"""
-        # print ('contexte setvar', self, nom, valeur)
+        # print("contexte setvar", self, nom, valeur)
         local = False
         if nom.startswith("."):
             local = True
@@ -630,10 +632,13 @@ class Context(object):
                 # print ("binding",nom,"->",self.binding[nom],':',valeur, self.parent)
         else:
             self.ref.setvar(nom, valeur) if self.ref else self.setlocal(nom, valeur)
+        # print("--- verif", print("contexte setvar", self, nom, self.getvar(nom)))
 
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
-        # print ('contexte setlocal', self, nom, valeur)
+        # print("----contexte setlocal", self, nom, "->", valeur)
+        # if nom == "nom" and not valeur:
+        #     raise
 
         self.vlocales[nom] = valeur
 

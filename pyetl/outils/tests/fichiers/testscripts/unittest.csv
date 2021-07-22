@@ -18,17 +18,23 @@ K:%tg%=batch;;;;;#classe;batch;;set;;;fin;;# objet pour les tests de schema
 ;is:ko;;;;;;abort;3;%tg% erreur choix parametre;;; # on teste l'indicateur s'il s'est passe qque chose
 is:reel;;;;;;;next;;;;;#on sort les objets sur la sortie next
 !===========================================================================================;;;;;;;;;;
-&&#define;#atv;nom;valeur;;;;;;;;# teste la valeur d un attribut
+&&#define;#atv;nom;valeur;;;;;;;;
+!help;teste la valeur d un attribut
+!<#test;nom1
+!<#test;valeur
+!<#test;_nom_batch
 %nom%;^%valeur%$;;;;;;retour;test ok:;noms;fin
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#ath;nom;tag;valeur;;;;;;;# teste la valeur d un hstore
+&&#define;#ath;nom;tag;valeur;;;;;;;
+!help;teste la valeur d un hstore
 H:%nom%;%tag%:%valeur%;;;;;;retour;test ok:;noms;fin
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atvs;nom;valeur;;;;;;;;# teste la valeur d un attribut avec verif schema
+&&#define;#atvs;nom;valeur;;;;;;;;
+!help;teste la valeur d un attribut avec verif schema
 %nom%;^%valeur%$;%nom%;in:schema;;;;retour;test ok:;noms;fin
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
@@ -38,56 +44,66 @@ H:%nom%;%tag%:%valeur%;;;;;;retour;test ok:;noms;fin
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atv2;nom;valeur;;;;;;;;# teste la valeur d un attribut
+&&#define;#atv2;nom;valeur;;;;;;;;
+!help;teste la valeur d un attribut
 !;;;;;;;pass;;;print;
 %nom%;=:%valeur%;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atn;nom;valeur;;;;;;;;# teste la valeur numerique d un attribut
+&&#define;#atn;nom;valeur;;;;;;;;
+!help;teste la valeur numerique d un attribut
 %nom%;N: ==%valeur%;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atn2;nom;valeur;dec;;;;;;;# teste la valeur numerique d un attribut avec arrondi
+&&#define;#atn2;nom;valeur;dec;;;;;;;
+!help;teste la valeur numerique d un attribut avec arrondi
 ;;;;P:nom;%nom%;;round;%dec%;;
 %nom%;N: ==%valeur%;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#ate;nom;;;;;;;;;# teste l existance d un attribut
+&&#define;#ate;nom;;;;;;;;;
+!help;teste l existance d un attribut
 %nom%;;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#atne;nom;;;;;;;;;# teste l inexistance d un attribut
+&&#define;#atne;nom;;;;;;;;;
+!help;teste l inexistance d un attribut
 %nom%;;;;;;;retour;test ko:;noms;
 +sinon:;;;;;;%nom%;retour;test ok:;noms;
 ;;;;;;;pass>;;;fin;;# on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#ats;nom;;;;;;;;;# teste l existance d un attribut dans le schema
+&&#define;#ats;nom;;;;;;;;;
+!help;teste l existance d un attribut dans le schema
 %nom%;in:schema;;;;;;retour;test ok:;noms;
 +sinon:;;;;;;%nom%;retour;test ko:;noms;
-;;;;;;;pass>;;;fin;;# on jette tout!===========================================================================================;;;;;;;;;;
-&&#define;#ptv;nom;valeur;;;;;;;;# teste l'existance d'un parametre
+;;;;;;;pass>;;;fin;;!on jette tout
+!===========================================================================================;;;;;;;;;;
+&&#define;#ptv;nom;valeur;;;;;;;;
+!help;teste l'existance d'un parametre
 P:%nom%;^%valeur%$;;;;;;retour;test ok:;noms;
 +sinon:;;;;;%%nom%%;;retour;test ko:;noms;
-;;;;;;;pass>;;;fin;;# on jette tout
+;;;;;;;pass>;;;fin;;!on jette tout
 !===========================================================================================;;;;;;;;;;
 &&#define;#out;;;;;;;;;;
-;;;;;;;pass>;;;fin;;#on jette tout
+;;;;;;;pass>;;;fin;;!on jette tout
 !===========================================================================================;;;;;;;;;;
 &&#define;#begin;;;;;;;;;;
-;is:virtuel;;;;;;pass>;;;fin;;# on jette les objets virtuels
+;is:virtuel;;;;;;pass>;;;fin;;!on jette les objets virtuels
 !===========================================================================================;;;;;;;;;;
-&&#define;#anstat;filtre;dest;;;;;;;;;# analyse des stats
+&&#define;#anstat;filtre;dest;;;;;;;;;
+!help;analyse des stats
 ;;;;;;;statprocess;#%filtre%;%dest%;;;
-;;;;;;;pass>;;;fin;;# on jette tout
+;;;;;;;pass>;;;fin;;!on jette tout
 !===========================================================================================;;;;;;;;;;
-&&#define;#cnt;valeur;;;;;;;;;;# comptage simple
+&&#define;#cnt;valeur;;;;;;;;;;
+!help;comptage simple
 ;;;;nb;1;;stat;cnt;1;;
 <#anstat;atv:nb:%valeur%;
 !===========================================================================================;;;;;;;;;;
 &&#define;#rien;;;;;;;;;;
-;;;;;;;pass;;;;;# ne fait rien
+;;;;;;;pass;;;;;!ne fait rien
 !===========================================================================================;;;;;;;;;;

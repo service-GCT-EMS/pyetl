@@ -13,7 +13,7 @@ try:
     import pdal
 except ImportError as err:
     print("fonctions pointcloud non disponibles", err)
-
+# raise
 # global pdal
 # ==================constructeurs de pipeline=================
 # initialiseur de module : gere les imports couteux
