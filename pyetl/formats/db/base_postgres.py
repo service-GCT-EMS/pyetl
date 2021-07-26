@@ -237,7 +237,7 @@ class PgrConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
 
         try:
             self.connect()

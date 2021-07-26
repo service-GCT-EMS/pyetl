@@ -66,7 +66,8 @@ def runpyetl(commandes, args):
         mainmapper.initlog(loginfo)
         mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
         mainmapper.logger.info("commande:   %s", str(commandes))
-        mainmapper.logger.info("parametres: %s", str(args))
+        if args:
+            mainmapper.logger.info("parametres: %s", str(args))
     else:
         commandes_speciales(mainmapper, commandes, args)
         # mainmapper.gestion_log.shutdown()
@@ -1040,8 +1041,7 @@ class Pyetl(object):
             entree = ",".join(entree)
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
         if self.done:
-            self.logger.info("rien a faire")
-            pass
+            self.logger.debug("rien a faire")
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
             #            nb_total = self._lecture_stats(entree)
@@ -1103,7 +1103,7 @@ class Pyetl(object):
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
 
-        if not self.is_special:
+        if not self.is_special and not self.done:
 
             self.logger.info(
                 "fin traitement %d: %s traites %s",

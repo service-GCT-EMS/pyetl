@@ -5,11 +5,11 @@
 
 
 import os
+from dbfread import DBF
 
-
-def importer():
-    global DBF
-    from dbfread import DBF
+# def importer():
+#     global DBF
+#     from dbfread import DBF
 
 
 def decode_entetes_dbf(reader, noms_attributs):
@@ -22,7 +22,7 @@ def decode_entetes_dbf(reader, noms_attributs):
 
 def lire_objets_dbf(self, rep, chemin, fichier):
     """lit des objets a partir d'un fichier csv"""
-    importer()
+    # importer()
     self.prepare_lecture_fichier(rep, chemin, fichier)
     # nom_schema, nom_groupe, nom_classe = getnoms(rep, chemin, fichier)
     try:

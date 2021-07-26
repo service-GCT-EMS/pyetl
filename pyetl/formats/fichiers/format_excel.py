@@ -14,14 +14,16 @@ if printtime:
     t1 = time.time()
 
 import os
+import openpyxl as XL
+from unidecode import unidecode
 
 # from numba import jit
 
 
-def importer():
-    global XL, unidecode
-    import openpyxl as XL
-    from unidecode import unidecode
+# def importer():
+#     global XL, unidecode
+#     import openpyxl as XL
+#     from unidecode import unidecode
 
 
 if printtime:
@@ -121,7 +123,7 @@ def maybheader(ligne):
 
 def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
     """lit des objets a partir d'un fichier csv"""
-    importer()
+    # importer()
 
     exn = lambda n: (exn(n // 26) if n > 26 else "") + chr(64 + n % 26)
     maxobj = self.regle_ref.getvar("lire_maxi", 0)

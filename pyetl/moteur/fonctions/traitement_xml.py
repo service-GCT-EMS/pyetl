@@ -10,12 +10,13 @@ import os
 import io
 import time
 import re
+from xml.etree.ElementTree import ParseError
+import xml.etree.cElementTree as ET
 
-
-def importer():
-    global ET, ParseError
-    from xml.etree.ElementTree import ParseError
-    import xml.etree.cElementTree as ET
+# def importer():
+#     global ET, ParseError
+#     from xml.etree.ElementTree import ParseError
+#     import xml.etree.cElementTree as ET
 
 
 # from lxml import etree as ET
@@ -25,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 
 def h_xmlextract(regle):
     """extraction d'element xml"""
-    importer()
+    # importer()
 
     regle.cadre = regle.params.cmp2.val
     regle.recherche = regle.params.cmp1.val

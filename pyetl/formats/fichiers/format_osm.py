@@ -5,12 +5,13 @@
 import os
 import time
 from collections import defaultdict
+import xml.etree.cElementTree as ET
+import esy.osm.pbf as PBF
 
-
-def importer():
-    global ET, PBF
-    import xml.etree.cElementTree as ET
-    import esy.osm.pbf as PBF
+# def importer():
+#     global ET, PBF
+#     import xml.etree.cElementTree as ET
+#     import esy.osm.pbf as PBF
 
 
 # lecture de la configuration osm
@@ -483,7 +484,7 @@ def classif_elem(reader, elem, points, lignes, objets, used):
 
 
 def init_lecteur(self, fichier):
-    importer()
+    # importer()
     stock_param = self.regle_ref.stock_param
     self.lus_fich = 0
     nomschema = os.path.splitext(fichier)[0]

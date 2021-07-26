@@ -309,7 +309,7 @@ $format_schema=sql:%dialecte%,csv;;;;;;;;;;;
 ;;;;#schema;;;lire_schema;%nom%;csv;;
 <#att_sigli;%modif%
 !===========================================================================================;;;;;;;;;;;
-&&#define;#cree_schema;nom,dialecte;modif;;;;;;
+&&#define;#cree_schema;nom;dialecte;modif;;;;;;
 #!help;conversion de fichiers de structure en schema sql
 #!desc;schema: racine des fichiers de structure
 #!desc;dialecte: type de sql a creer;;;;;

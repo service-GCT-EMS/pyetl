@@ -6,18 +6,16 @@ Created on Wed Sep  7 08:33:53 2016
 acces a la base de donnees
 """
 import sys
-
+import sqlite3
 
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
 
-global sqlite3
+# global sqlite3
 
 
-def importer():
-
-    import sqlite3
+# def importer():
 
 
 TYPES_A = {
@@ -63,7 +61,7 @@ class SqltConnect(DbConnect):
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
     ):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
-        importer()
+        # importer()
         self.types_base.update(TYPES_A)
         self.type_base = "sqlite"
         self.connect()

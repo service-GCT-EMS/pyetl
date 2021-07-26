@@ -4,7 +4,7 @@
 import os
 import re
 import logging
-
+import xml.etree.cElementTree as ET
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
 
@@ -16,9 +16,9 @@ from .fileio import FileWriter
 LOGGER = logging.getLogger(__name__)
 
 
-def importer():
-    global ET
-    import xml.etree.cElementTree as ET
+# def importer():
+#     global ET
+#     import xml.etree.cElementTree as ET
 
 
 def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
@@ -361,7 +361,7 @@ def initschema(schema, config):
 
 def lire_objets_xml_simple(self, rep, chemin, fichier):
     """ lit les datasources des fichiers qgis"""
-    importer()
+    # importer()
     stock_param = self.regle_ref.stock_param
     self.prepare_lecture_fichier(rep, chemin, fichier)
     # nomschema = os.path.splitext(fichier)[0]
