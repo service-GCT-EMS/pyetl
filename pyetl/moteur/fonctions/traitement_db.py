@@ -718,7 +718,7 @@ def h_dbmaxval(regle):
     for base, basesel in selecteur.baseselectors.items():
         if basesel.dyndescr:
             regle.dyndescriptors = True
-
+            return True
         retour = DB.recup_maxval(regle, base, basesel)
         print("retour maxval", retour)
         if retour and len(retour) == 1 and regle.params.att_sortie.val:
@@ -740,10 +740,11 @@ def h_dbmaxval(regle):
 def f_dbmaxval(regle, obj):
     """#aide||valeur maxi d une clef en base de donnees
      #groupe||database
+     #parametres||variable de sortie;nom
     #pattern1||P;;;dbmaxval;?C;
     #pattern2||A;;;dbmaxval;?C;
     #req_test||testdb
-    #test||rien||$#testdb;;||$toto=1||db:testdb;testschema;tablealpha;col3;P:toto;;;dbmaxval
+    #test||rien||$#%testdb%;;||$toto=1||db:%testdb%;testschema;tablealpha;col3;P:toto;;;dbmaxval
             ||ptv;toto;71
     """
     pass
@@ -761,7 +762,7 @@ def f_dbcount(regle, obj):
       #groupe||database
      #pattern||S;;;dbcount;?C;
     #req_test||testdb
-        #test||obj||$#testdb;;||db:testdb;testschema;tablealpha;;toto;;;dbcount;
+        #test||obj||$#%testdb%;;||db:%testdb%;testschema;tablealpha;;toto;;;dbcount;
              ||atv;toto;3
     """
     # base, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
@@ -935,7 +936,8 @@ def f_liste_selecteur(regle, obj):
     #parametres2||;;#1;#2
     #parametres3||;#1;#2
     #aide_spec||cree des objets reels par defaut sauf si on mets la variable virtuel a 1
-    #aide_spec3||cree un objet par classe
+    #aide_spec2||cree un objet par classe avec l identifiant de l objet d entree
+    #aide_spec3||cree un objet par classe avec l'identifiant de la classe
     #schema||change_schema
     #pattern1||A.C;;;dblist;?C;?C
     #pattern2||=#obj;;;dblist;?C;?C
@@ -947,7 +949,7 @@ def f_liste_selecteur(regle, obj):
         niveau, classe = regle.idclasse
         schemaclasse = regle.schema.get_classe(regle.idclasse) if regle.schema else None
     # print("traitement liste selecteur", selecteur)
-    for i in selecteur.get_classes():
+    for i in selecteur.classlist():
         idbase, selinfo = i
         idsel, description = selinfo
         # print(" lecture selecteur", i, "->", idbase, idsel, description)
@@ -993,7 +995,7 @@ def f_liste_selecteur(regle, obj):
                 attributs=infos,
                 schema=schemaclasse,
             )
-            obj2.initattr()
+            obj2.initattr()  # on initialise les attributs aux valeurs par defaut
         if regle.debug:
             obj2.debug("cree", attlist=regle.champsdebug)
             regle.debug -= 1

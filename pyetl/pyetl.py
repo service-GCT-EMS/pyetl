@@ -382,7 +382,7 @@ class Pyetl(object):
                 return
             self.liste_params = liste_params[:]
             for i in liste_params:
-                print("stocke_param", i)
+                # print("stocke_param", i)
                 self._stocke_param(i)  # decodage parametres de lancement
             #            print ('traite_param',len(self.posparm))
             if len(self.posparm) >= 2:
@@ -936,14 +936,14 @@ class Pyetl(object):
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
             self.setvar(*valeur)
-            print(
-                "stockage parametre:",
-                parametre,
-                valeur[0],
-                "->",
-                valeur[1],
-                self.context,
-            )
+            # print(
+            #     "stockage parametre:",
+            #     parametre,
+            #     valeur[0],
+            #     "->",
+            #     valeur[1],
+            #     self.context,
+            # )
         else:
             self.posparm.append(parametre)
             #            self.parms["#P_"+str(len(self.posparm))] = parametre

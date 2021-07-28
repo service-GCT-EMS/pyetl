@@ -139,6 +139,7 @@ print;.traitement_workflow
 printv;.traitement_workflow
 quitter;.traitement_workflow
 reel;.traitement_workflow
+resetlog;.traitement_workflow
 retour;.traitement_workflow
 retry;.traitement_workflow
 sample;.traitement_workflow

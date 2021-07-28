@@ -533,7 +533,7 @@ def recup_schema(
 
 
 def fastrequest(regle_courante, base, requete, parms):
-    """execute une reauete en mode rapide (pas de gestion de schemas)"""
+    """execute une requete en mode rapide (pas de gestion de schemas)"""
 
     # retour dans une variable
     connect = get_connect(regle_courante, base, None, None, mode="fast")
@@ -882,31 +882,29 @@ def recup_table_parametres(
     return resultat
 
 
-def recup_maxval(regle, nombase, niveau, classe, clef, type_base=None):
+def recup_maxval(regle, base, selecteur):
     """ recupere la valeur maxi d'un champ en base """
     #    print('recup_table', nombase, niveau, classe, type_base)
-    retour = get_connect(
-        regle, nombase, niveau, classe, "A", False, type_base=type_base
-    )
+    retour = get_connect(regle, base, None, None, mode="Fast")
     if retour:
         connect, schema_travail, _ = retour
     else:
         return None
-    if connect is None:
-        return None
-    retour = dict()
-    for ident in schema_travail.classes:
-        niveau, classe = ident
-        champ = clef if clef else schema_travail.classes[ident].getpkey
-        mval = (
-            connect.recup_maxval(niveau, classe, champ)
-            if champ in schema_travail.classes[ident].attributs
-            else ""
-        )
-        if mval:
-            retour[ident] = str(mval)
-        #            print('maxval:', ident, retour[ident], champ)
-        connect.commit()
+
+    for niveau, classe, att in selecteur.get_classes:
+        retour = dict()
+        for ident in schema_travail.classes:
+            niveau, classe = ident
+            champ = att if att else schema_travail.classes[ident].getpkey
+            mval = (
+                connect.recup_maxval(niveau, classe, champ)
+                if champ in schema_travail.classes[ident].attributs
+                else ""
+            )
+            if mval:
+                retour[ident] = str(mval)
+            #            print('maxval:', ident, retour[ident], champ)
+            connect.commit()
     return retour
 
 

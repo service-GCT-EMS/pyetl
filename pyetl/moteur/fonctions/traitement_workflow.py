@@ -937,10 +937,26 @@ def h_endpar(regle):
     """fin parralele"""
     if regle.stock_param.worker:
         regle.final = True
+    regle.valide = "done"
+    return True
 
 
 def f_endpar(regle, obj):
     """finit un traitement parralele
     #pattern||;;;end_parallel;;
+    #"""
+    pass
+
+
+def h_resetlog(regle):
+    "reinitialise le log"
+    regle.stock_param.gestion_log.resetlogfile(regle.params.cmp1.val)
+    regle.valide = "done"
+    return True
+
+
+def f_resetlog(regle, obj):
+    """reinitialise les fichiers log
+    #pattern||;;;resetlog;=del;
     #"""
     pass

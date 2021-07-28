@@ -2,6 +2,7 @@
 import logging
 import os
 from io import StringIO
+import time
 
 LOGGER = logging.getLogger("pyetl")
 
@@ -72,6 +73,8 @@ class GestionLogs(object):
             "AFFICH": 999,
         }
         self.niveau_p = "INFO"
+        self.log_level = "DEBUG"
+        self.niveau_f = self.log_level
         self.cur_mapper = mapper
         self.fichier = None
 
@@ -120,21 +123,59 @@ class GestionLogs(object):
         self.aff_handler.setFormatter(aff_formatter)
         self.add_handlers()
 
+    def resetlogfile(self, mode):
+        if self.file_handler:
+            self.file_handler.close()
+            self.logger.removeHandler(self.file_handler)
+            if mode == "del":
+                os.remove(self.fichier)
+                print("resetlog", self.fichier)
+                self.setlogfile()
+            elif mode == "rotate_w":
+                jour = time.strftime("%w")
+                fich, ext = os.path.splitext(self.fichier)
+                fich = fich + "_" + jour
+                self.fichier = fich + "." + ext
+                os.remove(self.fichier)
+                self.setlogfile()
+
+    def setlogfile(self):
+        fichier = self.fichier
+        os.makedirs(os.path.dirname(fichier), exist_ok=True)
+        fileformatter = logging.Formatter(
+            "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s" + "::%(message)s"
+        )
+        #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
+        # création d'un handler qui va rediriger une écriture du log vers
+        # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
+        self.file_handler = logging.FileHandler(fichier)
+        # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
+        # créé précédement et on ajoute ce handler au logger
+        self.file_handler.setLevel(self.niveau_f)
+        self.file_handler.setFormatter(fileformatter)
+        print("ajout filehandler", self.fichier, self.niveau_f)
+        self.logger.addHandler(self.file_handler)
+        self.logger.log(999, "demarrage pyetl %s", self.cur_mapper.getvar("VERSION"))
+        self.logger.info("commande:   %s", self.cur_mapper.getvar("pyetl_script_ref"))
+        args = self.cur_mapper.getvar("pyetl_script_args")
+        if args:
+            self.logger.info("parametres: %s", args)
+
     def initlog(self, mapper, loginfo=None, force=False):
         """initialise le contexte de logging (parametres de site environnement)"""
-        if self.loginited and not force and mapper == self.cur_mapper:
+        # if self.loginited and not force and mapper == self.cur_mapper:
+        if self.loginited and not force:
             return  # on a deja fait le boulot
+        print("initlog", mapper.idpyetl, loginfo)
         self.cur_mapper = mapper
-        log_level = "DEBUG"
-        log_print = "INFO"
-        log_file = ""
+        log_file = self.fichier
+        log_print = self.niveau_p
+        log_level = self.log_level
         if loginfo:
             logfile, loglevel, logprint = loginfo
-        else:
-            logfile, loglevel, logprint = (None, None, None)
-        log_file = logfile or log_file
-        log_level = loglevel or log_level
-        log_print = logprint or log_print
+            log_file = logfile or log_file
+            log_level = loglevel or log_level
+            log_print = logprint or log_print
         fichier = mapper.getvar("log_file", log_file)
         log = mapper.getvar("log_level", log_level)
         affich = mapper.getvar("log_print", log_print)
@@ -160,29 +201,13 @@ class GestionLogs(object):
         logger.setLevel(self.loglevel)
 
         if not worker:
-            # print("initialisation log", affich, log, "(", fichier, ")")
+            print("initialisation log", affich, log, "(", fichier, ")")
             self.configure_print_handlers()
             if fichier != self.fichier:
-                if self.file_handler:
-                    self.logger.removeHandler(self.file_handler)
-                # création d'un formateur qui va ajouter le temps, le niveau
-                # de chaque message quand on écrira un message dans le log
+                self.resetlogfile("stop")
                 self.fichier = fichier
-                if fichier:
-                    os.makedirs(os.path.dirname(fichier), exist_ok=True)
-                    fileformatter = logging.Formatter(
-                        "%(asctime)s::%(levelname)s::%(module)s.%(funcName)s"
-                        + "::%(message)s"
-                    )
-                    #        infoformatter = logging.Formatter('%(asctime)s::%(levelname)s::%(message)s')
-                    # création d'un handler qui va rediriger une écriture du log vers
-                    # un fichier en mode 'append', avec 1 backup et une taille max de 1Mo
-                    self.file_handler = logging.FileHandler(fichier)
-                    # on lui met le niveau sur DEBUG, on lui dit qu'il doit utiliser le formateur
-                    # créé précédement et on ajoute ce handler au logger
-                    self.file_handler.setLevel(self.niveau_f)
-                    self.file_handler.setFormatter(fileformatter)
-                    logger.addHandler(self.file_handler)
+                if self.fichier:
+                    self.setlogfile()
         else:
             pass
 
