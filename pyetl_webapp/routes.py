@@ -155,6 +155,23 @@ class ScriptList(object):
         self.refreshscript(nomscript)
         return nomscript
 
+    def getapilist(self):
+        # genere la liste des apis
+        mapper = scriptlist.mapper
+        apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
+        macroapilist = [
+            (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
+            for i in mapper.getmacrolist()
+            if mapper.getmacro(i).apiname
+        ]
+        apilist.extend(
+            [
+                fichinfo._make((i[0], i[1].replace("#", "_"), "", ""))
+                for i in macroapilist
+            ]
+        )
+        return apilist
+
 
 scriptlist = ScriptList()
 # filemanager_link = url_for("flaskfilemanager.index")
@@ -212,17 +229,18 @@ def macros():
 @app.route("/apis")
 def apis():
     # print("isapi", scriptlist.liste)
-    mapper = scriptlist.mapper
-    apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
-    macroapilist = [
-        (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
-        for i in mapper.getmacrolist()
-        if mapper.getmacro(i).apiname
-    ]
-    apilist.extend(
-        [fichinfo._make((i[0], i[1].replace("#", "_"), "", "")) for i in macroapilist]
-    )
-    print("apilist", macroapilist)
+    apilist = scriptlist.getapilist()
+    # mapper = scriptlist.mapper
+    # apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
+    # macroapilist = [
+    #     (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
+    #     for i in mapper.getmacrolist()
+    #     if mapper.getmacro(i).apiname
+    # ]
+    # apilist.extend(
+    #     [fichinfo._make((i[0], i[1].replace("#", "_"), "", "")) for i in macroapilist]
+    # )
+    # print("apilist", macroapilist)
     return render_template("scriptlist.html", liste=sorted(apilist), mode="api")
 
 
@@ -280,6 +298,12 @@ def retour_api(script):
             "script_result.html", stats=stats, retour=retour, url=script, nom=nom
         )
     return render_template("noresult.html", url=script, nom=nom)
+
+
+@app.route("/ws")
+def webservicelist():
+    apilist = scriptlist.getapilist()
+    return jsonify(apilist)
 
 
 @app.route("/ws/<script>", methods=["GET", "POST"])
