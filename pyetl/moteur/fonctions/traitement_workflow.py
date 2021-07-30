@@ -950,13 +950,16 @@ def f_endpar(regle, obj):
 
 def h_resetlog(regle):
     "reinitialise le log"
-    regle.stock_param.gestion_log.resetlogfile(regle.params.cmp1.val)
+    if not regle.stock_param.worker:  # ne marche que sur le process maitre
+        regle.stock_param.gestion_log.resetlogfile(
+            regle.params.cmp1.val, regle.params.cmp2.val
+        )
     regle.valide = "done"
     return True
 
 
 def f_resetlog(regle, obj):
     """reinitialise les fichiers log
-    #pattern||;;;resetlog;=del;
+    #pattern||;;;resetlog;=del;C
     #"""
     pass

@@ -108,6 +108,7 @@ set_schema;.traitement_schema
 valide_schema;.traitement_schema
 angle;.traitement_shapely
 buffer;.traitement_shapely
+centre;.traitement_shapely
 geoselect;.traitement_shapely
 r_min;.traitement_shapely
 download;.traitement_web

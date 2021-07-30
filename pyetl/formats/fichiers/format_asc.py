@@ -194,9 +194,9 @@ def decode_entete_asc(entete):
             dim = 3
     except ValueError:
         # obj.attributs["#erreurs"] = "erreur lecture entete"
-        LOGGER.error("erreurs entete %s", classe)
-        LOGGER.debug("erreurs entete %s -> %s", classe, entete)
-        erreurs = "erreur lecture entete"
+        LOGGER.error("erreurs entete " + classe + " -> %s", entete)
+        # LOGGER.debug("erreurs entete %s -> %s", classe, entete)
+        erreurs = "erreur lecture entete: " + entete
 
     dat_cre, dat_mod = _decode_dates_apic(liste1[2])
 
@@ -500,8 +500,8 @@ class AscWriter(FileWriter):
             obj.format_natif == "asc" and obj.geomnatif
         ):  # on a pas touche a la geometrie
             #        print ('natif asc')
-            if obj.geom:
-                geometrie = "".join(obj.geom)
+            if "#geom" in obj.attributs:
+                geometrie = "".join(obj.attributs["#geom"])
             else:
                 geometrie = ""
         else:

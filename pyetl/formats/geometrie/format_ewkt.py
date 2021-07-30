@@ -6,6 +6,11 @@
 
 import re
 
+try:
+    from shapely import wkb, wkt
+except ImportError:
+    print("==========================attention shapely non disponible")
+    wkb = None
 
 # from numba import jit
 
@@ -372,12 +377,13 @@ def _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
 
 
 def init_ewk():
-    global wkb, wkt
+    global wkb, wkt, inited
     try:
         from shapely import wkb, wkt
     except ImportError:
         print("==========================attention shapely non disponible")
         wkb = None
+    inited = True
 
 
 def decode_ewkb(code):
@@ -397,10 +403,11 @@ def ecrire_geom_ewkb(
 def geom_from_ewkb(obj, code=None):
     if code is None:
         code = obj.attributs.get("#geom")
-    sgeom = wkb.loads(code)
+    sgeom = wkb.loads(bytes.fromhex(code))
+    print("detecte wkb", sgeom.wkt)
     obj.geom_v.setsgeom(sgeom)
-    obj.geomv.valide = False
-    obj.geomv.shapesync()
+    obj.geom_v.valide = False
+    obj.geom_v.shapesync()
 
 
 def ecrire_geom_ewkt(

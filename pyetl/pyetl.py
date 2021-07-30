@@ -63,7 +63,9 @@ def runpyetl(commandes, args):
     mainmapper = getmainmapper()
     if not is_special(commandes):
         loginfo = L.getlog(args)
-        mainmapper.initlog(loginfo)
+        for i, v in loginfo.items():
+            mainmapper.setvar(i, v)
+        mainmapper.initlog()
         mainmapper.logger.log(999, "demarrage pyetl %s", VERSION)
         mainmapper.logger.info("commande:   %s", str(commandes))
         if args:
@@ -242,8 +244,8 @@ class Pyetl(object):
             return None
         return os.path.join(os.path.dirname(__file__), path)
 
-    def initlog(self, loginfo=None, force=False):
-        self.gestion_log.initlog(self, loginfo, force)
+    def initlog(self, force=False):
+        self.gestion_log.initlog(self, force)
         """initialise le contexte de logging (parametres de site environnement)"""
 
     def initcontext(self, context=None):

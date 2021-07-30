@@ -799,11 +799,24 @@ def f_join(regle, obj):
         clef_jointure = obj.attributs.get(regle.params.att_entree.val)
         # print("clef jointure", clef_jointure)
         obj_joint = regle.tmpstore.get(clef_jointure)
-        # print("obj joint", obj_joint)
+        # print("obj joint", obj_joint, regle.recup_geom)
 
         if obj_joint:
             if regle.recup_geom:
-                obj.geom_v = copy.deepcopy(obj_joint.geom_v)
+                if obj_joint.geom_v.valide:
+                    print(" detecte geom_v", obj_joint.geom_v)
+                    obj.geom_v = copy.deepcopy(obj_joint.geom_v)
+                else:
+                    geom = obj_joint.attributs.get("#geom")
+                    print("recup #geom")
+                    obj.attributs["#geom"] = (
+                        geom if isinstance(geom, str) else list(geom)
+                    )
+
+                    # obj.format_natif = obj_joint.format_natif
+                    # obj.geompending()
+                    # obj.attributs_geom = obj_joint.attributs_geom
+
             if regle.champs and regle.champs != "*":
                 vnlist = [(i, obj_joint.attributs.get(i, "")) for i in regle.champs]
             else:
@@ -886,9 +899,9 @@ def h_format(regle):
     vlist = regle.params.att_entree.liste
     # on gere le fait que le % est reserve pour les variable donc on peut mettre autre chose
     holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
-    regle.params.cmp1.val = regle.params.cmp1.val.replace(holder, "%")
+    regle.format = regle.params.cmp1.val.replace(holder, "%")
     # print("remplacement", holder, regle.params.cmp1.val)
-
+    regle.espace = regle.getvar("espace", " ")
     flist = [None] * len(vlist)
     for n, v in enumerate(vlist):
         if v.startswith("N:"):
@@ -903,6 +916,7 @@ def h_format(regle):
             flist[n] = str
     regle.flist = flist
     regle.incomplet = None in flist
+    regle.espace = regle.getvar("espace")
     return True
 
 
@@ -937,4 +951,9 @@ def f_format(regle, obj):
     #     regle.params.att_entree.liste,
     #     regle.params.val_entree.liste,
     # )
-    regle.setval_sortie(obj, regle.params.cmp1.val % tuple(vlist2))
+    if regle.espace:
+        result = (regle.format % tuple(vlist2)).replace(" ", regle.espace)
+        regle.setval_sortie(obj, result)
+    else:
+        regle.setval_sortie(obj, regle.format % tuple(vlist2))
+    return True

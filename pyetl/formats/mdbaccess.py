@@ -891,7 +891,7 @@ def recup_maxval(regle, base, selecteur):
     else:
         return None
 
-    for niveau, classe, att in selecteur.get_classes:
+    for niveau, classe, att in selecteur.get_classes():
         retour = dict()
         for ident in schema_travail.classes:
             niveau, classe = ident

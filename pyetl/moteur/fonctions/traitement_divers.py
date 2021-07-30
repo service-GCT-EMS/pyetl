@@ -64,26 +64,30 @@ def h_stocke(regle):
         if regle.params.cmp2.val not in regle.stock_param.store:
             if regle.params.cmp1.val == "clef":
                 regle.stocke_obj = False
-                regle.stock_param.store[regle.params.cmp2.val] = set()
+                regle.stock_param.store[regle.params.cmp2.val] = (
+                    set() if regle.params.att_sortie.liste else dict()
+                )
             else:
                 regle.stock_param.store[regle.params.cmp2.val] = dict()
         regle.tmpstore = regle.stock_param.store[regle.params.cmp2.val]
     regle.fold = regle.params.cmp1.val == "cmpf"
     regle.cnt = regle.params.cmp1.val == "cnt"
-
+    regle.flist = [i for i in regle.params.att_sortie.liste if i != "#geom"]
+    regle.recup_geom = "#geom" in regle.params.att_sortie.liste
     if regle.params.pattern in "3456":
         regle.final = True
 
 
 def f_stocke(regle, obj):
     """#aide||stockage temporaire d'objets pour assurer l'ordre dans les fichiers de sortie
-    #aide_spec1||liste de clefs,tmpstore;uniq;sort|rsort : stockage avec option de tri
-    #aide_spec3||liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons
+    #aide_spec1||liste de clefs;tmpstore;uniq;sort|rsort : stockage avec option de tri
+    #aide_spec3||liste de clefs;tmpstore;cmp;nom : prechargement pour comparaisons
+    #aide_spec5||champs a stocker;liste de clefs,tmpstore;cmp;nom : prechargement pour comparaisons ou jointures
       #pattern1||;;?L;tmpstore;?=uniq;?=sort;||cmp1
       #pattern2||;;?L;tmpstore;?=uniq;?=rsort;||cmp1
       #pattern3||;;?L;tmpstore;=cmp;#C||cmp1
       #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
-      #pattern5||;;?L;tmpstore;=clef;#C||cmp1
+      #pattern5||?L;;?L;tmpstore;=clef;#C||cmp1
       #pattern6||S;;?L;tmpstore;=cnt;?=clef||cmp1
           #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
          #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
@@ -111,6 +115,11 @@ def f_stocke(regle, obj):
                     cnt += int(obj.attributs[regle.params.att_sortie.val])
                 obj.attributs[regle.params.att_sortie.val] = str(cnt)
             regle.tmpstore[clef] = obj
+        elif regle.flist or regle.recup_geom:
+            atts = [obj.attibuts.get(i, "") for i in regle.flist]
+            if regle.recup_geom:
+                atts.append(obj.geom)
+            regle.tmpstore[clef] = atts
         else:
             regle.tmpstore.add(clef)
         return True

@@ -237,3 +237,16 @@ def f_ingeom(regle, obj):
         else:
             return regle.geomref.intersects(sgeom)
     return False
+
+
+def f_centre(regle, obj):
+    """#aide calcule le centroide d un objet
+    #pattern1||;;;centre;?=in;;"""
+    if obj.geom_v.sgeom or obj.initgeom():
+        sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
+        point = (
+            sgeom.representative_point() if regle.params.cmp1.val else sgeom.centroid
+        )
+        obj.geom_v.setsgeom = point
+        setschemainfo(regle, obj, multi=False, type="1")
+    return True
