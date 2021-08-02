@@ -57,6 +57,7 @@ class Geometrie(object):
         "dim",
         "multi",
         "srid",
+        "unsync",
         "force_multi",
         "erreurs",
     ]
@@ -77,6 +78,7 @@ class Geometrie(object):
         self.angle = 0
         self.sgeom = None
         self.sgp = None
+        self.unsync = 1  # shapely non synchronise
         # self.epsg = 'SRID=3948;'
         self.erreurs = Erreurs()
 
@@ -141,10 +143,9 @@ class Geometrie(object):
     @property
     def ferme(self):
         """ retourne True si la geometrie est fermee"""
-        if self.sgeom:
-            return self.sgeom.is_ring
         if self.lignes:
             return all(i.ferme for i in self.lignes)
+        print("ferme:pas de lignes")
         return False
 
     @property
@@ -173,11 +174,29 @@ class Geometrie(object):
         """positionne l'element shapely"""
         if shape:
             self.sgeom = shape
-            self.valide = False
+            self.unsync = -1  # c est la geom shapely qui gagne
+            self.valide = 1
         else:
             if SG == -1:
                 initsg()
-            self.sgeom = SG.shape(self) if SG else None
+                print("charge SG", SG)
+            if not SG:
+                return None
+            if self.unsync == -1:
+                return self.sgeom
+            elif not self.valide:
+                return None
+            if self.valide:
+                gf = self.__geo_interface__
+                if gf:
+                    sgeom = SG.shape(self.__geo_interface__)
+                else:
+                    sgeom = SG.Point()
+            else:
+                print("setsgeom :geometrie invalide")
+                sgeom = SG.Point()
+            self.sgeom = sgeom
+            self.unsync = 0
 
     def setpoint(self, coords, angle=None, dim=2, longueur=0, srid="3948"):
         """cree une geometrie de point"""
@@ -186,7 +205,6 @@ class Geometrie(object):
         self.multi = False
         self.srid = str(int(srid))
         self.valide = True
-        self.sgeom = None
         self.dim = dim
         self.angle = angle
         if coords is None:
@@ -195,13 +213,15 @@ class Geometrie(object):
         else:
             self.points = [list(coords[:dim])]
         self.longueur_point = longueur
-        self.sgeom = None
+        self.unsync = 1
 
     #        print ('creation point ',coords, self.point.coords)
 
     def addpoint(self, coords, dim):
         """ajoute un point a une geometrie"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
+        self.unsync = 1
         if self.type == "1":
             if coords is None:
                 self.null = True
@@ -220,7 +240,6 @@ class Geometrie(object):
                 # on ajoute un point a une nouvelle ligne
         else:
             self.lignes = [C.Ligne(C.Section(coords, dim))]
-        self.sgeom = None
 
     #
 
@@ -295,13 +314,13 @@ class Geometrie(object):
     def finalise_geom(self, type_geom="0", orientation="L", desordre=False):
         """termine une geometrie et finalise la structure"""
         self.valide = True
-        self.sgeom = None
         self.multi = False
         self.courbe = False
-
+        self.unsync = 1
         self.null = (len(self.points) + len(self.lignes)) == 0
-        # print ("finalise:",type_geom, len(self.points)+len(self.lignes))
+        # print("finalise_geom:", type_geom, self.type)
         if type_geom == "0":
+            raise
             self.type = "0"
             self.lignes = []
             self.polygones = []
@@ -370,13 +389,14 @@ class Geometrie(object):
                 + str(self.type)
             )
         #            self.valide = 0
-        #        print ('fin_geom2:type_geom ', self.type, type_geom)
+        # print("fin_geom2:type_geom ", self.type, type_geom)
         return self.valide
 
     def split_couleur(self, couleurs):
         """decoupe une ligne selon la couleur des sections"""
         geoms = dict()
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         for i in self.lignes:
             for j in i.sections:
                 coul_sect = j.couleur
@@ -393,7 +413,8 @@ class Geometrie(object):
 
     def extract_couleur(self, couleurs):
         """ recupere les sections d'une couleur"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         geom = Geometrie()
         for i in self.lignes:
             for j in i.sections:
@@ -403,7 +424,8 @@ class Geometrie(object):
 
     def has_couleur(self, couleur):
         """retourne True si la couleur existe dans l'objet"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         liste_couleurs = {
             j.couleur
             for j in itertools.chain.from_iterable([i.sections for i in self.lignes])
@@ -413,38 +435,38 @@ class Geometrie(object):
 
     def forcecouleur(self, couleur1, couleur2):
         """remplace une couleur par une autre"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         for i in self.lignes:
             for j in i.sections:
                 if j.couleur == couleur1:
                     j.couleur = couleur2
-        self.sgeom = None
 
     def forceligne(self):
         """force la geometrie en ligne pour des polygones"""
-        self.shapesync()
-
+        if self.unsync == -1:
+            self.shapesync()
         if self.type == "3":
             self.type = "2"
         self.multi = len(self.lignes) - 1
-        self.sgeom = None
+        self.unsync = 1
 
     def translate(self, dx, dy, dz):
         """decale une geometrie"""
-        self.shapesync()
+
         #        print ("translate geom avant :", list(self.coords))
         fonction = lambda coords: list(i + j for i, j in zip(coords, (dx, dy, dz)))
-        self.convert(fonction)
-        self.sgeom = None
+        self.convert(fonction)  # convert verifie la synchro shapely
         return True
 
     #        print ("translate geom aprest :", list(self.coords))
 
     def prolonge(self, longueur, mode):
-        self.shapesync()
-
         """prolonge une multiligne"""
         #        print("dans prolonge", longueur, mode)
+        if self.unsync == -1:
+            self.shapesync()
+        self.unsync = 1
         if self.type != "2":
             return False
         if mode > 10:
@@ -464,7 +486,9 @@ class Geometrie(object):
 
     def forcepoly(self, force=False):
         """convertit la geometrie des lignes en polygones en fermant de force"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
+        self.unsync = 1
         if self.type == "2":
             valide = True
             for i in self.lignes:
@@ -490,7 +514,8 @@ class Geometrie(object):
     @property
     def coords(self):
         """ iterateur sur les coordonnees"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         if self.points:
             return self.points
         if self.lignes:
@@ -499,32 +524,37 @@ class Geometrie(object):
 
     def convert(self, fonction, srid=None):
         """ applique une fonction aux points """
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
+        self.unsync = 1
         for crd in self.coords:
             for i, val in enumerate(fonction(crd)):
                 crd[i] = val
         if srid:
             self.srid = str(int(srid))
-        self.sgeom = None
 
     def set_2d(self):
         """transforme la geometrie en 2d"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         if self.dimension == 2:
             return
+        self.unsync = 1
         self.dim = 2
         for i in self.lignes:
             i.set_2d()
-        self.sgeom = None
 
         # if self.point:
         #     self.point.set_2d()
 
     def set_3d(self):
         """transforme la geometrie en 2d"""
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
+
         if self.dimension == 3:
             return
+        self.unsync = 1
         self.dim = 3
         for i in self.coords:
             if len(i) < 3:
@@ -537,10 +567,12 @@ class Geometrie(object):
 
     def setz(self, val_z, force=False):
         """force le z """
-        self.shapesync()
+        if self.unsync == -1:
+            self.shapesync()
         if self.dimension == 3:
             if not force:
                 return
+        self.unsync = 1
         self.dim = 3
         for i in self.coords:
             i[2] = val_z if len(i) == 3 else i.append(val_z)
@@ -552,25 +584,26 @@ class Geometrie(object):
 
     def emprise(self, coords=None):
         """calcule l'emprise"""
-        if self.sgeom:
-            return self.sgeom.bounds
-        else:
-            self.shapesync()
 
-        liste_coords = list(self.coords) if coords is None else coords
-        xmin, xmax, ymin, ymax = 0, 0, 0, 0
-        try:
-            if liste_coords:
-                xmin = min([i[0] for i in liste_coords])
-                xmax = max([i[0] for i in liste_coords])
-                ymin = min([i[1] for i in liste_coords])
-                ymax = max([i[1] for i in liste_coords])
-        except:
-            print("erreur emprise", liste_coords)
-        return (xmin, ymin, xmax, ymax)
+        if self.unsync == 1 or coords:
+            liste_coords = list(self.coords) if coords is None else coords
+            xmin, xmax, ymin, ymax = 0, 0, 0, 0
+            try:
+                if liste_coords:
+                    xmin = min([i[0] for i in liste_coords])
+                    xmax = max([i[0] for i in liste_coords])
+                    ymin = min([i[1] for i in liste_coords])
+                    ymax = max([i[1] for i in liste_coords])
+            except:
+                print("erreur emprise", liste_coords)
+            return (xmin, ymin, xmax, ymax)
+        else:
+            return self.sgeom.bounds
 
     def emprise_3d(self):
         """calcule l'emprise"""
+        if self.unsync == -1:
+            self.shapesync()
         liste_coords = list(self.coords)
         zmin = 0
         zmax = 0
@@ -586,6 +619,8 @@ class Geometrie(object):
     def getpoint(self, numero):
         """retourne le n ieme point"""
         #        print ('coordlist',self.type,list(self.coordlist()))
+        if self.unsync == -1:
+            self.shapesync()
         if numero < 0:
             return list(self.coords)[numero]
         return next(itertools.islice(self.coords, numero, None), ())
@@ -824,10 +859,9 @@ class Geometrie(object):
                 polys.append(tuple(rings))
             return {"type": "PolyhedralSurface", "coordinates": tuple(polys)}
 
-    def from_geo_interface(
-        self, geo_if
-    ):  # cree une geometrie a partir de la geo_interface
-        #        print ('geom from geo_if',geo_if)
+    def from_geo_interface(self, geo_if):
+        """cree une geometrie a partir de la geo_interface"""
+        # print("geom from geo_if", geo_if["type"])
         if not geo_if:
             self.finalise_geom(type_geom="0")
             return
@@ -889,6 +923,7 @@ class Geometrie(object):
             #                    for pt in ligne:
             #                        self.addpoint(pt,dim)
             #                    self.fin_section(1,0)
+            # print("appel finalise geo_if,multipol")
             self.finalise_geom(type_geom="3")
             self.multi = True
 
@@ -926,10 +961,18 @@ class Geometrie(object):
     def __shapelygeom__(self):
         """ retourne un format shapely de la geometrie"""
         # print("geom:",self)
-        if not self.sgeom:
+        if self.unsync != 1:
+            return self.sgeom
+        geom = self.__geo_interface__
+        if geom:
             if SG == -1:
                 initsg()
-            self.sgeom = SG.shape(self) if SG else None
+                if not SG:
+                    return None
+            self.sgeom = SG.shape(geom) if SG else None
+        else:
+            self.sgeom = SG.Point()
+        self.unsync = 0
         return self.sgeom
 
     @property
@@ -943,10 +986,12 @@ class Geometrie(object):
 
     def shapesync(self):
         """recree la geometrie a partir d'un element shapely"""
-        if not self.valide and self.sgeom:
-            if SG == -1:
-                initsg()
-            self.from_geo_interface(SG.mapping(self.sgeom))
+        if SG == -1:
+            initsg()
+        if SG:
+            geo_if = SG.mapping(self.sgeom)
+            self.from_geo_interface(geo_if)
+            # print("-------->shapesync", self, geo_if, self.sgeom)
 
     @property
     def fold(self):

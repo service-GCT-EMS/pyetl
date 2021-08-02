@@ -36,6 +36,7 @@ def f_rectangle_oriente(regle, obj):
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = r_orient(obj.geom_v)
         obj.geom_v.setsgeom(sgeom)
+        obj.geomnatif = False
         setschemainfo(regle, obj, multi=False, type="3")
 
 
@@ -185,6 +186,7 @@ def f_buffer(regle, obj):
                 buffer, largeur = optimise_buffer_aire(sgeom, regle, largeur)
         # print ("buffer calcule",buffer)
         obj.geom_v.setsgeom(buffer)
+        obj.geomnatif = False
         if regle.params.att_sortie.val:
             setschemainfo(regle, obj, multi=True, type="3", dyn=True)
             regle.setval_sortie(obj, str(largeur))
@@ -242,11 +244,19 @@ def f_ingeom(regle, obj):
 def f_centre(regle, obj):
     """#aide calcule le centroide d un objet
     #pattern1||;;;centre;?=in;;"""
-    if obj.geom_v.sgeom or obj.initgeom():
-        sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
-        point = (
-            sgeom.representative_point() if regle.params.cmp1.val else sgeom.centroid
-        )
-        obj.geom_v.setsgeom = point
+    # print("traitement centre,", obj.geom_v.valide, obj.geom_v)
+    if obj.geom_v.valide or obj.initgeom():
+        sgeom = obj.geom_v.__shapelygeom__
+        if sgeom:
+            point = (
+                sgeom.representative_point()
+                if regle.params.cmp1.val
+                else sgeom.centroid
+            )
+        else:
+            point = SG.Point()
+        # print("point centre", sgeom, "->", point)
+        obj.geom_v.setsgeom(point)
+        obj.geomnatif = False
         setschemainfo(regle, obj, multi=False, type="1")
     return True

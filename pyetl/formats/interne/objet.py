@@ -45,7 +45,6 @@ class Objet(object):
         "numobj",
         "copie",
         "geom_v",
-        "geom_shape",
         "forcegeom",
         "stored",
         "is_ok",
@@ -80,7 +79,6 @@ class Objet(object):
     ):
         self.geom_v = Geometrie()
         #        self.valide = False
-        self.geom_shape = None
         self.forcegeom = False  # force une geometrie de ligne
         self.ido = next(self._ido)
         self.numobj = self.ido if numero is None else numero
@@ -155,10 +153,11 @@ class Objet(object):
         """convertit la geometrie du format natif en interne"""
         #        print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
         if force or not self.geom_v.valide:
-            if self.geom_v.sgeom:
+            if self.geom_v.unsync == -1:
                 self.geom_v.shapesync()
             else:
                 self.attributs_geom(self)
+        # print("initgeom", self.geom_v)
         self.infogeom()
         return self.geom_v.valide
 

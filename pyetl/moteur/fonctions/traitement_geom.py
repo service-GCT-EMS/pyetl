@@ -118,7 +118,7 @@ def f_setpoint(regle, obj):
         #                 regle.params.val_entree.val).split(',')]
         point = None
         obj.geom_v.setpoint(None, None, 2)
-        obj.finalise_geom()
+        obj.finalise_geom(type_geom="1")
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
         # print("set point : erreur valeurs entree ", regle.getval_entree(obj))
@@ -152,7 +152,7 @@ def f_setpoint_liste(regle, obj):
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
         obj.geom_v.setpoint(None, None, len(regle.params.att_entree.liste))
-        obj.finalise_geom()
+        obj.finalise_geom(type_geom="1")
         setschemainfo(regle, obj, multi=False, type="1")
 
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
@@ -281,7 +281,7 @@ def f_force_pt(regle, obj):
                     None,
                     int(obj.attributs["#dimension"]),
                 )
-                obj.finalise_geom()
+                obj.finalise_geom(type_geom="1")
             #                print('point :', position, list(obj.geom_v.coords),obj.attributs['#type_geom'])
             except ValueError:
                 return False
@@ -764,7 +764,7 @@ def crepoint_copie(obj, point, dimension, numero, att_sortie=None):
     obj2 = obj.dupplique()
     obj2.setnogeom(tmp=True)
     obj2.geom_v.setpoint(point, None, dimension)
-    obj2.finalise_geom()
+    obj2.finalise_geom(type_geom="1")
     obj2.infogeom()
     if att_sortie:
         obj2.attributs[att_sortie] = str(numero)
@@ -795,7 +795,7 @@ def f_csplit(regle, obj):
                 obj2 = obj.dupplique()
                 obj2.setnogeom(tmp=True)
                 obj2.geom_v.setpoint(point, None, geom.dimension)
-                obj2.finalise_geom()
+                obj2.finalise_geom(type_geom="1")
                 obj2.infogeom()
                 if att_sortie:
                     obj2.attributs[att_sortie] = str(npt)
@@ -825,7 +825,7 @@ def f_splitgeom(regle, obj):
             obj2 = obj.dupplique()
             obj2.setnogeom(tmp=True)
             obj2.geom_v.setpoint(point, None, geom.dimension)
-            obj2.finalise_geom()
+            obj2.finalise_geom(type_geom="-1")
             obj2.infogeom()
             if att_sortie:
                 obj2.attributs[att_sortie] = str(npt)

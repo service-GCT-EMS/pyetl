@@ -758,9 +758,9 @@ def h_join(regle):
         regle.jointtype = "obj"
         regle.champs = list((i for i in regle.params.cmp2.liste if i != "#geom"))
         regle.recup_geom = "#geom" in regle.params.cmp2.liste
-
-        regle.tmpstore = regle.stock_param.store.get(regle.params.cmp1.val)
-        if regle.tmpstore is None:
+        regle.ajuste_geom = regle.recup_geom
+        regle.jstore = regle.stock_param.store.get(regle.params.cmp1.val)
+        if regle.jstore is None:
             # print("element de comparaison non defini " + regle.params.cmp1.val)
             raise SyntaxError(
                 "join: element de comparaison non defini " + regle.params.cmp1.val
@@ -772,6 +772,7 @@ def h_join(regle):
         regle.champ = definition_jointure.index(regle.params.att_sortie.val)
         regle.stock_param.jointdef[regle.fichier] = regle.clef
         regle.stock_param.joint_fich[regle.fichier] = ""
+
         if re.search(r"\[[CDF]\]", regle.fichier):
             regle.joint_statique = False
         else:
@@ -798,24 +799,35 @@ def f_join(regle, obj):
     if regle.jointtype == "obj":
         clef_jointure = obj.attributs.get(regle.params.att_entree.val)
         # print("clef jointure", clef_jointure)
-        obj_joint = regle.tmpstore.get(clef_jointure)
+        obj_joint = regle.jstore.get(clef_jointure)
         # print("obj joint", obj_joint, regle.recup_geom)
 
         if obj_joint:
             if regle.recup_geom:
                 if obj_joint.geom_v.valide:
-                    print(" detecte geom_v", obj_joint.geom_v)
+                    # print(" detecte geom_v", obj_joint.geom_v)
                     obj.geom_v = copy.deepcopy(obj_joint.geom_v)
+                    if regle.ajuste_geom:
+                        regle.ajuste_geom = False
+                        if obj.schema and obj_joint.schema:
+                            obj.schema.info["type_geom"] = obj_joint.schema.info[
+                                "type_geom"
+                            ]
                 else:
                     geom = obj_joint.attributs.get("#geom")
-                    print("recup #geom")
+                    # obj.attributs_geom = obj_joint.attributs_geom
+                    if regle.ajuste_geom:
+                        regle.ajuste_geom = False
+                        if obj.schema:
+                            obj.schema.info["type_geom"] = "-1"
+                    # print("recup #geom")
                     obj.attributs["#geom"] = (
                         geom if isinstance(geom, str) else list(geom)
                     )
 
-                    # obj.format_natif = obj_joint.format_natif
-                    # obj.geompending()
-                    # obj.attributs_geom = obj_joint.attributs_geom
+                    obj.format_natif = obj_joint.format_natif
+                    obj.geompending()
+                    obj.attributs_geom = obj_joint.attributs_geom
 
             if regle.champs and regle.champs != "*":
                 vnlist = [(i, obj_joint.attributs.get(i, "")) for i in regle.champs]
@@ -826,6 +838,7 @@ def f_join(regle, obj):
                     if not i.startswith("#")
                 ]
         else:
+            # print("non trouve", clef_jointure)
             return False
         # print("list", vnlist)
         if regle.params.att_sortie.liste:
@@ -840,6 +853,7 @@ def f_join(regle, obj):
             obj.attributs.get(regle.params.att_entree.val, regle.params.val_entree.val),
             regle.champ,
         )
+    # print("jointure", obj, obj.schema)
     return True
 
 

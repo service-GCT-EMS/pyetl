@@ -181,10 +181,10 @@ def geom_from_ewkt(obj):
     geom = obj.attributs["#geom"]
     if geom:
 
-        geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
-        #        print ('decodage geometrie ewkt ',obj.geom)
+        geom_demandee = obj.schema.info["type_geom"] if obj.schema else "-1"
+        # print("decodage geometrie ewkt/ewkb ", obj.schema.info["type_geom"])
         if geom.startswith("0"):  # c est de l'ewkb
-            print("detection ewkb")
+            # print("detection ewkb")
             geom_from_ewkb(obj)
         else:
             _parse_ewkt(obj.geom_v, geom)
@@ -404,9 +404,8 @@ def geom_from_ewkb(obj, code=None):
     if code is None:
         code = obj.attributs.get("#geom")
     sgeom = wkb.loads(bytes.fromhex(code))
-    print("detecte wkb", sgeom.wkt)
+    # print("detecte wkb", sgeom.wkt)
     obj.geom_v.setsgeom(sgeom)
-    obj.geom_v.valide = False
     obj.geom_v.shapesync()
 
 

@@ -161,7 +161,7 @@ def geom_from_osm(obj):
 
     #         geomv.cree_section(sect, 2, 1, 0, interieur=role == "inner")
 
-    obj.finalise_geom()
+    obj.finalise_geom(type_geom="-1")
     return True
 
 

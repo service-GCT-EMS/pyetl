@@ -425,7 +425,10 @@ def f_sortir(regle, obj):
                     regle.compt_stock = 0
             regle.endstore(nom_base, groupe, obj)
         return True
-
+    if obj.geom_v.valide and obj.geom_v.unsync == -1:
+        obj.geomnatif = False
+        obj.geom_v.shapesync()
+        # print("geomv", obj.geom_v)
     regle.output.ecrire_objets_stream(obj, regle, False)
 
     if regle.final:
