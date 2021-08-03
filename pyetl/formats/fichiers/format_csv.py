@@ -32,21 +32,22 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
         os.path.join(rep, chemin, fichier), newline="", encoding=reader.encoding
     ) as csvfile:
         sample = csvfile.read(4094)
+        csvfile.seek(0)
         if not (separ and entete):
             try:
                 dialect = csv.Sniffer().sniff(sample, delimiters=separ)
                 has_header = csv.Sniffer().has_header(sample) or sample.startswith("!")
             except csv.Error:
                 logger.warning(
-                    "erreur determination dialecte csv, parametres par defaut"
+                    "erreur determination dialecte csv, parametres par defaut (%s)",
+                    separ,
                 )
                 linesep = "\r\n" if "\r\n" in sample else "\n"
                 has_header = sample.startswith("!")
                 if has_header:
                     hline = sample.split(linesep, 1)[0]
                     entete = hline[1:].split(separ)
-                csvfile.seek(0)
-                # print("dialect special", dialect, "->", dialect.delimiter, "(", separ, ")")
+        # print("dialect trouve", dialect, "->", dialect.delimiter, "(", separ, ")")
         if not dialect:
             dref = csv.get_dialect("excel")
             linesep = "\r\n" if "\r\n" in sample else "\n"
@@ -55,24 +56,26 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
             )
             dialect = csv.get_dialect("special")
             has_header = sample.startswith("!")
-            csvfile.seek(0)
         if not entete:
             entete = reader.regle_ref.getvar("csvheader", "")
             if entete:
                 entete = entete.split(",")
-        if entete is None:
-            lecteur = csv.DictReader(csvfile, dialect=dialect)
-            if has_header:
-                entete = [
-                    i.replace(" ", "_").replace("!", "") for i in lecteur.fieldnames
-                ]
             else:
-                nfields = int(reader.regle_ref.getvar("csvfields", 0))
-                nfields = nfields if nfields else len(lecteur.fieldnames)
-                entete = ["champ_" + str(i) for i in range(nfields)]
-
-        if entete[-1] == "tgeom" or entete[-1] == "geometrie":
-            entete[-1] = "#geom"
+                lecteur = csv.DictReader(csvfile, dialect=dialect)
+                # print("lecteur , ", lecteur.fieldnames)
+                if has_header:
+                    entete = [
+                        i.replace(" ", "_").replace("!", "") for i in lecteur.fieldnames
+                    ]
+                else:
+                    nfields = int(reader.regle_ref.getvar("csvfields", 0))
+                    nfields = nfields if nfields else len(lecteur.fieldnames)
+                    entete = ["champ_" + str(i) for i in range(nfields)]
+        try:
+            if entete[-1] == "tgeom" or entete[-1] == "geometrie":
+                entete[-1] = "#geom"
+        except IndexError:
+            logger.error("entete incorrect (%s)", entete)
         reste = reader.regle_ref.getvar("restfields", "#reste")
         lecteur = csv.DictReader(
             csvfile, fieldnames=entete, dialect=dialect, restval="", restkey=reste
