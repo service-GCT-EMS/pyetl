@@ -36,14 +36,15 @@ $#%dest%;;;;;;;;;;;
 ;;;;auteur(T,D:A);;auteur;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli;modif;;;;;;;;;
-#!help;ajoute les attributs standard a un schema
+#!help;ajoute les attributs standard a un schema;
+#!pars;modif;0/1 indique si la classe doit etre modifiee;
 !;;;;;;;print;valeur de modif:%modif%;;
 P:modif;;;;;;;pass;;;
 |:<#att_sigli_modif;;;;;;
 |sinon:<#att_sigli_std;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#cmin;passe les noms de classe en minuscules ;;;;;;;;;
-#!help;passe les noms de classe en minuscules ;;;;;;;;;;
+&&#define;#cmin;;;;;;;;;;
+#!help;passe les noms de classe et de groupe en minuscule;;
 ;;;;#classe;;#classe;lower;;;fin;
 ;;;;#groupe;;#groupe;lower;;;fin;
 !===========================================================================================;;;;;;;;;;;
@@ -69,7 +70,9 @@ P:modif;;;;;;;pass;;;
 ;;;;#classe;;#classe;sub;%old%;%new%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#regroupe;groupe;stocke_groupe;;;;;;;;
-#!help;force le groupe et le transfere sur un attribut p:groupe: nom du nouveau groupe>attribut: nom de l'attribut contenant l'ancien;;;;;;;;;;
+#!help;force le groupe et le transfere sur un attribut
+#!pars;groupe;nom du nouveau groupe
+#!pars;stocke_groupe;nom de l'attribut contenant l'ancien groupe;;;;;;;;;;
 ;;;;%stocke_groupe%;;#groupe;set;;;fin;
 ;;;;#groupe;%groupe%;;set;;;fin;
 ;;;;#schema;%groupe%;;set;;;fin;
@@ -237,7 +240,7 @@ $F_sortie=sql:sigli;;;;;;;;;;;
 <#cmin;;;;;;;;;;;
 p:groupe;;;;#groupe;%groupe%;;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#sigli2elyx;passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifies;;;;;;;;;
+&&#define;#sigli2elyx;;;;;;;;;;
 #!help;passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifies;;;;;;;;;;
 $codec_sortie=cp1252;;;;;;;;;;;
 <#dbextract;;;;;;;;;;;
@@ -291,13 +294,12 @@ $nom=%nom%;fusion;;;;;;;;;;
 #!help;ajoute les attributs standard a un schema
 ;;;;;;;start;%nom_schema%;;fin
 <#att_sigli_modif;;;;;;;;;;
-
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cree_sql;nom;dialecte;;;;;;;
-#!help;conversion de schemas en sql
-#!desc;schema: racine des schemas a lire (*) lecture multiple
-#!desc;nom: nom du schema a creer;;;;;;;;;;
-#!desc;dialecte: type de sql a creer;;;;;
+#!help;conversion de schemas en sql;
+#!desc;schema: racine des schemas a lire (*) lecture multiple;
+#!pars;nom: nom du schema a creer;;;;;;;;;;
+#!pars;dialecte: type de sql a creer;;;;;
 $sans_entree=True;;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
 $dialecte=%dialecte%;sigli;;;;;;;;;;
@@ -310,9 +312,10 @@ $format_schema=sql:%dialecte%,csv;;;;;;;;;;;
 <#att_sigli;%modif%
 !===========================================================================================;;;;;;;;;;;
 &&#define;#cree_schema;nom;dialecte;modif;;;;;;
-#!help;conversion de fichiers de structure en schema sql
-#!desc;schema: racine des fichiers de structure
-#!desc;dialecte: type de sql a creer;;;;;
+#!help;conversion de fichiers de structure en schema sql;
+#!pars;nom;racine des fichiers de structure;
+#!pars;dialecte;type de sql a creer;;;;;
+#!pars;modif; 0/1 indique si la classe doit etre modifiee;;;;;
 $nom=%nom%;schema;;;;
 $dialecte=%dialecte%;sigli;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
@@ -375,7 +378,8 @@ $force_schema=0;;;;;;;;;;;
 ;;;;%var%;%%var%%;;set;;;
 ;;;;;%var%;;print>;#classe;noms;fin;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#pyetl_init_db;initialise le schema pyetl pour travailler en base de donnees;;;;;;;;;
+&&#define;#pyetl_init_db;;;;;
+#!help;initialise le schema pyetl pour travailler en base de donnees;;;;;;;;;
 $sans_entree=True;;;;;;;;;;;
 $format_schema=sql,csv;;;;;;;;;;;
 $force_schema=fusion;;;;;;;;;;;
@@ -546,6 +550,9 @@ K:perso;$fich=%_paramperso%;;
 ;;;;;%duree%;;sleep;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#aduser;nom;clef;;;;
+#!help;recupere un nom d utilisateur sur active directory ou LDAP;
+#!pars;nom;nom de l utilisateur;
+#!pars;clef;;
 K:ADserver;$#%ADserver%;
 ;;;;P:x;%nom%;;adquery;user;%clef%;;
 ;;;;;%x%;;print;;;;
@@ -561,9 +568,11 @@ $test_v1=%n1%;;;;;
 $test_v2=%n2%;;;;;
 ;;;;;;;printv>;%test_v1%;;;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#fakelist;n1;n2;;;
-#!help:genere une liste d'items numerotes
-#!api;version;text;
+&&#define;#fakelist;valeur;n;;;
+#!help;genere une liste d'items numerotes pour les tests;
+#!pars;valeur;texte a reproduire
+#!pars;n;nombre de lignes
+#!api;fakelist;json;
 ;;;;xx;%n1%;;creobj;tmp;%n2%;;
 ;;;;xx+;;#gid;set;;;
 ;;;;;;xx;print>;;;

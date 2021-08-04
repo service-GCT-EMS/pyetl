@@ -1,0 +1,14 @@
+!ihm;init;ps,weblink,.5000
+!==titre largeur
+!fenetre;300;extraction infos
+!droplist,+,1;base;@infos,databases;$base
+!droplist,+,1;base;@schemas,$base;$schema
+!droplist,+,1;base;@tables,$base,$schema,$table
+
+!dirselect;1,1;destination;$destination;
+!droplist,=,1;@infos,formats;$format
+!button;+,3;extraire
+!status;;'export en cours';
+!ps;@dbextract,$base,$schema,$table,sortie=$destination,format=$format
+!status;;'fin export'
+!#ihm;end

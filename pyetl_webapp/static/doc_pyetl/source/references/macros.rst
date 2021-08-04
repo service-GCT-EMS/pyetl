@@ -2,8 +2,8 @@
 macros
 ======
 
-Pyetl dispose de nmbreuses macros preinstallees qui etendent les capacites de commandes de base
-il est possible de definir des macros au niveau d un groupe d utilisateurs ou au niveau personnel
+Pyetl dispose de nombreuses macros préinstallées qui étendent les capacités de commandes de base
+il est possible de définir des macros au niveau d un groupe d utilisateurs ou au niveau personnel
 les macros peuvent aussi etre définies localement dans un script
 
 definition d'une macros
@@ -19,13 +19,13 @@ import d une macros
 
 <#nom;valeur;...
 
-import d une macro avec execution immediate
+import d une macro avec execution immédiate
 
 <<#nom;valeur...
 
 une macro peut importer d autres macros
 
-macros integrees:
+macros intégrées:
 -----------------
 
 .. toctree::

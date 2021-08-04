@@ -189,29 +189,76 @@ def doc_macros(mapper):
     """genere la doc sphinx des commandes"""
     doc = ["reference macros"]
     souligne(doc, "-")
-
-    doc.append("%-25s  %s" % ("=========================", "========"))
-    doc.append("%-25s  %s" % ("     nom de la macro     ", "fonction"))
-    doc.append("%-25s  %s" % ("=========================", "========"))
+    ftab = "%-55s  %s"
+    doc.append(ftab % ("=" * 53, "========"))
+    doc.append(
+        ftab % ("                           macro                       ", "fonction")
+    )
+    doc.append(ftab % ("=" * 53, "========"))
     for nom_macro in sorted(mapper.getmacrolist()):
+        macro = mapper.getmacro(nom_macro)
+        appel = nom_macro + " " + ";".join(macro.vpos)
         doc.append(
-            "%-25s  %s"
+            ftab
             % (
-                nom_macro,
-                "\n".join(
-                    [
-                        i
-                        for i in mapper.getmacro(nom_macro).help[:-1].split(";")
-                        if i.strip()
-                    ]
-                ),
-            )
+                appel,
+                macro.help,
+            ),
         )
-    doc.append("%-25s  %s" % ("=========================", "========"))
+
+    doc.append(ftab % ("=" * 53, "========"))
 
     doc.append("")
     doc.append("")
     doc.append("")
+    return doc
+
+
+def detail_macro(mapper):
+    """genere les detail de description de macro"""
+    doc = ["detail macros"]
+    souligne(doc, "-")
+
+    for nom_macro in sorted(mapper.getmacrolist()):
+        macro = mapper.getmacro(nom_macro)
+        help = macro.help
+        help_detaillee = macro.help_detaillee
+        parametres = macro.vpos
+        defpars = macro.parametres_pos
+        variables = macro.vars_utilisees
+        api = macro.apiname
+        apiformat = macro.retour
+        doc.append("")
+        doc.append(nom_macro)
+        souligne(doc, ".")
+        doc.append("")
+        if help:
+            doc.append(help)
+            doc.append("")
+        if help_detaillee:
+            doc.extend([" * " + i for i in help_detaillee])
+            doc.append("")
+        if parametres:
+            doc.append("parametres positionnels")
+            doc.append("")
+            for nom in parametres:
+                defp = defpars.get(nom, "")
+                doc.append("* " + nom + ":" + defp)
+            doc.append("")
+        if variables:
+            doc.append("variables utilisées")
+            doc.append("")
+            for nomp, defp in variables.items():
+                doc.append("* " + nomp + ":" + defp)
+            doc.append("")
+        if api:
+            doc.append("macro utilisabe en service web")
+            doc.append("")
+            doc.append("* url          : ws/" + api)
+            doc.append("* format retour:" + apiformat)
+            doc.append("")
+        doc.append("")
+    # print("detail macros", doc)
     return doc
 
 
@@ -308,7 +355,7 @@ def autodoc(mapper):
     cache(mapper)
     doc = dict()
     doc["commande"] = doc_commandes(mapper)
-    doc["macro"] = doc_macros(mapper)
+    doc["macro"] = doc_macros(mapper) + detail_macro(mapper)
     doc["format"] = doc_formats(mapper)
     doc["select"] = doc_select(mapper)
     return doc

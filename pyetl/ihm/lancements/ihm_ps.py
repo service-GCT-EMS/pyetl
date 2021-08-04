@@ -10,6 +10,7 @@ class Ihm(object):
         self.id = "ihm"
         self.main = None
         self.elements = []
+        self.weblink = False
         self.variables = dict()
 
     @property
@@ -37,6 +38,12 @@ class Ihm(object):
             "$font=New-Object System.Drawing.Font('Microsoft Sans Serif',10)",
             "$startx=20",
         ]
+        if self.weblink and self.localhost:
+            # on verifie si le serveur existe
+            code.append('$jobs=get_job -Command "mapper_web*"')
+            code.append("if (!$jobs) {start-job -ScriptBlock {mapper_web}}")
+            # on demarre le serveur web
+
         code.extend(self.main.genps())
         for el in self.elements:
             code.extend(el.genps())
@@ -112,6 +119,7 @@ class Fenetre(object):
             vref + ".TopMost  = $false",
             "",
         ]
+
         vlist = []
         for el in self.elements:
             vslist, vbcode = el.genps()
@@ -425,12 +433,29 @@ def creihm(nom):
                 continue
             if code.startswith("!ihm"):
                 if position == "init":
-                    interpreteur = commande
+                    tmp = commande.splt(",")
+                    interpreteur = tmp[0]
+                    weblink = False
+                    if len(tmp) > 1:
+                        if tmp[1] == "weblink":
+                            weblink = True
+                            localhost = True
+                            url = "127.0.0.1:5000"
+                    if len(tmp) > 2:
+                        urldef = tmp[2]
+                        if urldef.startswith("http"):
+                            localhost = False
+                            url = urldef
+                        elif urldef.startswith(":"):
+                            url = "127.0.0.1" + urldef
                     nom_ihm = os.path.splitext(nom)[0]
                     if ihm:
                         "print erreur redefinition ihm "
                         raise StopIteration
                     ihm = Ihm(nom_ihm, interpreteur)
+                    if weblink:
+                        ihm.weblink = url
+                        ihm.localhost = localhost
                     variables = ihm.variables
             elif code == "!fenetre":
                 largeur = int(position)
