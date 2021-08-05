@@ -658,11 +658,13 @@ class RegleTraitement(object):  # regle de mapping
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
-
         return self.context.getvar(nom, defaut)
 
-    def getlocal(self, nom, defaut=""):
+    def istrue(self, nom, defaut=False):
+        """recupere la valeur booleenne d une variable"""
+        return self.context.istrue(nom, defaut)
 
+    def getlocal(self, nom, defaut=""):
         return self.context.getlocal(nom, defaut)
 
     def getchain(self, noms, defaut=""):

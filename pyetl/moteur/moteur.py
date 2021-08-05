@@ -501,6 +501,20 @@ class Context(object):
             else ",".join([str(i) for i in ret])
         )
 
+    def istrue(self, nom, defaut=False):
+        """retourne vrai si la valeur de la variable est un booleen"""
+        val = self.getvar_b(nom, None)
+        if val is None:
+            return defaut
+        if isinstance(val, str):
+            if not val:
+                return defaut
+            if val.lower() in ("0", "f", "false", "non", "faux"):
+                return False
+            return True
+        else:
+            return bool(val)
+
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
         element = element.strip()  # on debarasse les blancs parasites

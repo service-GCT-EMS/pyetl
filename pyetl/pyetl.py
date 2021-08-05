@@ -901,6 +901,10 @@ class Pyetl(object):
         """recupere la valeur d une varible depuis le contexte"""
         return self.context.getvar(nom, defaut)
 
+    def istrue(self, nom, defaut=False):
+        """recupere la valeur booleenne d une variable"""
+        return self.context.istrue(nom, defaut)
+
     def setvar(self, nom, valeur):
         """positionne une variable dans un contexte de base
         dans ce cas on positionne en local"""

@@ -8,6 +8,8 @@ fonctions de structurelles diverses
 import os
 import re
 import logging
+from operator import add
+from functools import reduce
 from collections import defaultdict, OrderedDict, namedtuple
 
 try:
@@ -65,7 +67,7 @@ def h_stocke(regle):
             if regle.params.cmp1.val == "clef":
                 regle.stocke_obj = False
                 regle.stock_param.store[regle.params.cmp2.val] = (
-                    set() if regle.params.att_sortie.liste else dict()
+                    dict() if regle.params.att_sortie.liste else set()
                 )
             else:
                 regle.stock_param.store[regle.params.cmp2.val] = dict()
@@ -192,31 +194,77 @@ def f_uniqcnt(regle, obj):
     return True
 
 
+def attmerger(liste, regle):
+    if not liste:
+        return
+    if regle.ordre:
+        liste.sort(key=lambda x: x.attributs.get(regle.ordre), reverse=regle.reverse)
+    alist = [set(obj.attributs.keys()) for obj in liste]
+    alist2 = set().union(*alist)
+    alistf = (a for a in alist2 if not (a.startswith("#") or a in regle.keydef))
+    objref = liste[0]
+    if regle.gardevide:
+        attrs = {i: [obj.attributs.get(i, "") for obj in liste] for i in alistf}
+    else:
+        attrs = {
+            i: [
+                obj.attributs.get(i)
+                for obj in liste
+                if obj.attributs.get(i) is not None
+            ]
+            for i in alistf
+        }
+    # print("attrs", attrs)
+    objref.attributs.update([(i, regle.attmerge(j)) for i, j in attrs.items()])
+    return objref
+
+
 def merge_traite_stock(regle):
     """traite les objets stockes dans la regle"""
     if regle.nbstock == 0:
         return
-    if regle.params.pattern == "1":
-        objref = regle.liste[0]
-        for obj in regle.liste[1:]:
-            for i in (
-                a for a in obj.attributs if not (a.startswith("#") or a in regle.keydef)
-            ):
-                # print("merge", i, objref.attributs[i], "+", obj.attributs[i])
-                v = obj.attributs[i]
-                vref = objref.attributs.get(i)
-                if v:
-                    objref.attributs[i] = (vref + v) if vref else v
-
+    if regle.seq:
+        liste = regle.liste
+        # print("merge_", len(liste))
+        objref = attmerger(liste, regle)
+        regle.liste = []
+        regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+    else:
+        for clef in regle.tmpstore:
+            liste = regle.tmpstore[clef]
+            objref = attmerger(liste, regle)
             regle.stock_param.moteur.traite_objet(
                 objref, regle.branchements.brch["gen"]
             )
-        regle.nbstock = 0
-        regle.liste = []
+    regle.nbstock = 0
 
 
 def h_merge(regle):
     """fusionne des objets"""
+    attmerge = {
+        "add": lambda x: reduce(add, x),
+        "set": set,
+        "list": lambda x: x,
+        "min": min,
+        "max": max,
+        "first": lambda x: x[0],
+        "last": lambda x: x[-1],
+    }
+    regle.gardevide = regle.params.cmp1.val == "list"
+    regle.setsgeom = False
+    if regle.params.cmp2.val == "union":
+        from shapely.ops import unary_union
+
+        regle.setsgeom = True
+        regle.gmerge = unary_union
+    elif regle.params.cmp2.val == "intersect":
+        regle.setsgeom = True
+        regle.gmerge = lambda x: reduce(lambda a, b: a.intersection(b), x)
+    elif regle.params.cmp2.val == "first":
+        regle.gmerge = lambda x: x[0]
+    elif regle.params.cmp2.val == "last":
+        regle.gmerge = lambda x: x[-1]
+
     regle.store = True
     regle.traite_stock = merge_traite_stock
     regle.final = True
@@ -225,15 +273,21 @@ def h_merge(regle):
     regle.clef = None
     regle.liste = []
     regle.keydef = set(regle.params.att_entree.liste)
+    regle.alist = regle.params.att_sortie.liste
+    regle.attmerge = attmerge["add"]
+    if regle.params.cmp1.val in attmerge:
+        regle.attmerge = attmerge[regle.params.cmp1.val]
+
+    regle.seq = regle.istrue("seq")
+    regle.ordre = regle.getvar("order")
 
 
 def f_merge(regle, obj):
     """#aide||fusionne des objets adjacents de la meme classe en fonction de champs communs
-    #pattern1||?A;;L;merge;=seq;
-    #pattern2||?A;;L;merge;;
+    #pattern1||?A;;L;merge;?C;
     """
     clef = tuple((obj.attributs.get(i, "") for i in regle.params.att_entree.liste))
-    if regle.params.pattern == "1":
+    if regle.seq:
         if regle.clef == clef:
             regle.liste.append(obj)
             regle.nbstock += 1
@@ -242,6 +296,13 @@ def f_merge(regle, obj):
                 merge_traite_stock(regle)
             regle.liste.append(obj)
             regle.clef = clef
+            regle.nbstock = 1
+    else:
+        if clef in regle.tmpstore:
+            regle.tmpstore[clef].append(obj)
+        else:
+            regle.tmpstore[clef] = [obj]
+        regle.nbstock += 1
     return True
 
 

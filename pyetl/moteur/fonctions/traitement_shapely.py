@@ -8,7 +8,8 @@ fonctions de manipulation de geometries shapely
 # import re
 import math as M
 from shapely import geometry as SG
-
+from operator import add
+from functools import reduce
 from .traitement_geom import setschemainfo
 
 # print("demarrage module shapely")
@@ -259,4 +260,90 @@ def f_centre(regle, obj):
         obj.geom_v.setsgeom(point)
         obj.geomnatif = False
         setschemainfo(regle, obj, multi=False, type="1")
+    return True
+
+
+def geomerge_traite_stock(regle):
+    """traite les objets stockes dans la regle"""
+    if regle.nbstock == 0:
+        return
+    if regle.seq:
+        objref = regle.liste[0]
+        for obj in regle.liste[1:]:
+            for i in (
+                a for a in obj.attributs if not (a.startswith("#") or a in regle.keydef)
+            ):
+                # print("merge", i, objref.attributs[i], "+", obj.attributs[i])
+                v = obj.attributs[i]
+                vref = objref.attributs.get(i)
+                if v:
+                    objref.attributs[i] = (vref + v) if vref else v
+
+        regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+        regle.nbstock = 0
+        regle.liste = []
+
+
+def h_geomerge(regle):
+    """fusionne des objets"""
+    attmerge = {
+        "add": lambda x: reduce(add, x),
+        "set": set,
+        "list": lambda x: x,
+        "min": min,
+        "max": max,
+        "first": lambda x: x[0],
+        "last": lambda x: x[-1],
+    }
+    regle.setsgeom = False
+    if regle.params.cmp2.val == "union":
+        from shapely.ops import unary_union
+
+        regle.setsgeom = True
+        regle.gmerge = unary_union
+    elif regle.params.cmp2.val == "intersect":
+        regle.setsgeom = True
+        regle.gmerge = lambda x: reduce(lambda a, b: a.intersection(b), x)
+    elif regle.params.cmp2.val == "first":
+        regle.gmerge = lambda x: x[0]
+    elif regle.params.cmp2.val == "last":
+        regle.gmerge = lambda x: x[-1]
+
+    regle.store = True
+    regle.traite_stock = geomerge_traite_stock
+    regle.final = True
+    regle.nbstock = 0
+    regle.tmpstore = dict()
+    regle.clef = None
+    regle.liste = []
+    regle.keydef = set(regle.params.att_entree.liste)
+    regle.alist = regle.params.att_sortie.liste
+    regle.attmerge = attmerge["add"]
+    if regle.params.cmp1.val in attmerge:
+        regle.attmerge = attmerge[regle.params.cmp1.val]
+
+    regle.seq = regle.istrue("seq")
+    regle.ordre = regle.getvar("order")
+
+
+def f_geomerge(regle, obj):
+    """#aide||fusionne des objets adjacents de la meme classe en fonction de champs communs
+    #pattern1||?A;;L;merge;?C;C
+    """
+    clef = tuple((obj.attributs.get(i, "") for i in regle.params.att_entree.liste))
+    if regle.seq:
+        if regle.clef == clef:
+            regle.liste.append(obj)
+            regle.nbstock += 1
+        else:
+            if regle.nbstock:
+                geomerge_traite_stock(regle)
+            regle.liste.append(obj)
+            regle.clef = clef
+    else:
+        if clef in regle.tmpstore:
+            regle.tmpstore[clef].append(obj)
+        else:
+            regle.tmpstore[clef] = [obj]
+        regle.nbstock += 1
     return True
