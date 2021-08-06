@@ -77,25 +77,47 @@ def lire_objets(self, rep, chemin, fichier):
         return self.objreader(ouvert)
 
 
+def readobjs(reader, jsonlist):
+
+    n_obj = 0
+    for i in jsonlist:
+        if reader.maxobj and n_obj > reader.maxobj:
+            break
+        if not i:
+            continue  # ligne vide
+        n_obj += 1
+        obj = reader.getobj()
+        if n_obj % 100000 == 0:
+            print("formats :", reader.fichier, "lecture_objets_json ", n_obj)
+        # print("traitement json", i)
+        obj.attributs.update([(nom, str(val)) for nom, val in i.items()])
+        obj.setorig(n_obj)
+        reader.traite_objet(obj, reader.regle_start)
+
+
 def objreader(self, ouvert):
     n_obj = 0
     obj = None
     contenu = json.load(ouvert)
-    if contenu.get("type") == "FeatureCollection":
-        # c'est des objets
-        for i in contenu["features"]:
-            if self.maxobj and n_obj > self.maxobj:
-                break
-            if not i:
-                continue  # ligne vide
-            n_obj += 1
-            obj = self.getobj()
-            if n_obj % 100000 == 0:
-                print("formats :", self.fichier, "lecture_objets_json ", n_obj)
-            # print("traitement json", i)
-            obj.from_geo_interface(i)
-            obj.setorig(n_obj)
-            self.traite_objet(obj, self.regle_start)
+    if isinstance(contenu, list):
+        readobjs(self, contenu)
+
+    elif isinstance(contenu, dict):
+        if contenu.get("type") == "FeatureCollection":
+            # c'est des objets
+            for i in contenu["features"]:
+                if self.maxobj and n_obj > self.maxobj:
+                    break
+                if not i:
+                    continue  # ligne vide
+                n_obj += 1
+                obj = self.getobj()
+                if n_obj % 100000 == 0:
+                    print("formats :", self.fichier, "lecture_objets_json ", n_obj)
+                # print("traitement json", i)
+                obj.from_geo_interface(i)
+                obj.setorig(n_obj)
+                self.traite_objet(obj, self.regle_start)
 
 
 READERS = {

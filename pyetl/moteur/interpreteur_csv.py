@@ -38,7 +38,7 @@ def fdebug(regle, obj):
         regle.stock_param.gestion_log.setdebug()
         wid = regle.getvar("_wid")
         debugmode = regle.v_nommees["debug"]
-        regle.debug = regle.debug - 1
+
         if debugmode == "print":
             regle.affiche(wid + "------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
@@ -58,7 +58,7 @@ def fdebug(regle, obj):
             obj.debug("avant", attlist=regle.champsdebug)
 
         succes = regle.f_init(regle, obj)
-
+        regle.debug = regle.debug - 1
         liens_num = regle.branchements.liens_num()
         redirect = obj.redirect if obj.redirect else "ok"
         #        if obj.redirect and obj.redirect not in regle.branchements.brch:
@@ -505,6 +505,8 @@ def affecte_variable(mapper, commande, context, regle_ref):
             if not i:
                 break
             valeur, binding = context.resolve(i)
+            if valeur:
+                break
 
     if not nom:
         raise SyntaxError(
@@ -641,6 +643,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     champs = context.SPLITTER_PV.split(texte)
     nom_inclus = champs[0][1:].strip()
     parametres = champs[1:]
+    # print("prepare_env", nom_inclus, parametres)
     listevlocs = []
     if len(parametres) > 10:
         parametres = parametres[:10]
@@ -657,6 +660,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     nom_inclus, _ = context.resolve(nom_inclus)
     macro = None
     if nom_inclus.startswith("#") or nom_inclus.startswith("-"):
+        # print("getmacro", nom_inclus, parametres)
         macro, context = get_macro(mapper, nom_inclus, parametres)
     else:
         context.affecte(parametres)
@@ -674,12 +678,6 @@ def prepare_env(mapper, texte: str, fichier_regles):
     #     listevlocs,
     # )
     return nom_inclus, context, macro
-
-
-def execute_macro(mapper, texte, context, fichier_regles):
-    """lance une macro en one shot"""
-    print("preparation macro direct", texte, context)
-    mapper.macrorunner(texte)
 
 
 def getlevel(mapper, texte_brut, regle_ref):
@@ -722,8 +720,9 @@ def importe_macro(mapper, texte_brut, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
     niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
     # on cree un contexte avec ses propres valeurs locales
+    # print("importe_macro", texte)
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
-    if macroenv.getvar("debug", "0") != "0":
+    if macroenv.istrue("debug"):
         print(
             "debug macro:",
             context,
@@ -888,9 +887,10 @@ def lire_regles_csv(
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?\$", texte):
             affecte_variable(mapper, texte, context, regle_ref=regle_ref)
         elif texte.startswith("<<"):  # execution immediate d'une macro
-            # print('avant execution, contexte:',context)
-            # execute_macro(mapper,texte[1:],context,fichier_regles)
-            mapper.macrorunner(texte[2:])
+            print("=============interp:avant execution, contexte:", context)
+            entree = None if context.istrue("entree") else ""
+            mapper.macrorunner(texte[2:], entree=entree)
+            print("=============interp:retour macro")
         elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
             # print("avant macro", texte, context, context.getvar("atts"))
             # on transforme ca en appel call

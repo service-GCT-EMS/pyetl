@@ -431,6 +431,8 @@ def h_httpdownload(regle):
     regle.httheaders = _to_dict(regle.getvar("http_header"))
     # print("preparation parametres", regle.httparams, regle.httheaders)
     regle.valide = True
+    regle.debug = regle.istrue("debug")
+    # print("h_httpdownload valeur de debug", regle.debug)
     return True
 
 
@@ -467,7 +469,8 @@ def f_httpdownload(regle, obj):
          #test||notest
     """
     url = regle.getval_entree(obj)
-
+    # if regle.debug:
+    print("---------------preparation telechargement", url, regle.debug)
     # if regle.httparams:
     retour = None
     try:
@@ -477,8 +480,9 @@ def f_httpdownload(regle, obj):
             params=regle.httparams,
             headers=regle.httheaders,
         )
-    except:
-        LOGGER.error("connection impossible %s", retour.url if retour else url)
+    except Exception as err:
+        print(err)
+        LOGGER.error("connection impossible:->%s<-", retour.url if retour else url)
         return False
 
     if regle.debug:

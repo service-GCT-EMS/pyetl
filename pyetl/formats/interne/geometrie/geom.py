@@ -320,7 +320,6 @@ class Geometrie(object):
         self.null = (len(self.points) + len(self.lignes)) == 0
         # print("finalise_geom:", type_geom, self.type)
         if type_geom == "0":
-            raise
             self.type = "0"
             self.lignes = []
             self.polygones = []

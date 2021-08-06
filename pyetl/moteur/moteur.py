@@ -322,6 +322,7 @@ class Macro(object):
 
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
+        # print("bind", liste)
         macroenv = context.getmacroenv(self.nom)
         for i in self.vpos:  # on initialise le contexte local
             macroenv.setlocal(
@@ -566,7 +567,7 @@ class Context(object):
         nom, _ = self.resolve(defnom)
         local = not nom.startswith("*")
         val, binding = self.resolve(defval)
-        # print("traite_egalite", defnom, nom, "=", defval, val)
+        print("traite_egalite", defnom, nom, "=", defval, val)
         return nom, val, binding, local
 
     # TODO a revoir la gestion des hstore dans les variables positionelles
@@ -581,21 +582,22 @@ class Context(object):
         local = True
         # print("affecte_contexte", liste)
         for num, element in enumerate(liste):
-            if "=" in element:  # c'est une affectation
+            if element.startswith("'") and element.endswith("'"):
+                val = element[1:-1]
+                binding = ""
+                nom = vpos[num] if num < len(vpos) else "v_" + str(num)
+            elif "=" in element:  # c'est une affectation
                 nom, val, binding, local = self.traite_egalite(element)
             elif element.startswith("*%"):
                 self.traite_hstore(element, context)
                 continue
             else:
                 val, binding = self.resolve(element)
-                if num < len(vpos):
-                    nom = vpos[num]
-                    if nom.startswith("*"):
-                        local = False
-                        nom = nom[1:]
-                else:
-                    nom = val
-                    val = ""
+                nom = vpos[num] if num < len(vpos) else "v_" + str(num)
+                if nom.startswith("*"):
+                    local = False
+                    nom = nom[1:]
+
             if nom:
                 nom = nom.strip()
                 if isinstance(dloc, dict):

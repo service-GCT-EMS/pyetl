@@ -430,7 +430,7 @@ class Pyetl(object):
             (repr(regles), repr(liste_params), self.getvar("_sortie", "pas_de_sortie")),
         )
         erreurs = None
-        # print("dans prepare_module2", len(self.regles), self.regles)
+        # print("dans prepare_module2", self.fichier_regles)
         if self.fichier_regles or self.liste_regles:
             # if not self.done:
             try:
@@ -1093,7 +1093,7 @@ class Pyetl(object):
 
         else:
             try:
-                self.logger.info("debut traitement sans entree %s", self.appel[:40])
+                self.logger.info("debut traitement sans entree %s...", self.appel[:40])
                 # print ('debut_process sans entree apres macro',self.idpyetl)
                 self.moteur.traitement_virtuel(unique=1)
                 self.moteur.vide_stock()
