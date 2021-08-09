@@ -110,6 +110,7 @@ angle;.traitement_shapely
 buffer;.traitement_shapely
 centre;.traitement_shapely
 geoselect;.traitement_shapely
+merge;.traitement_shapely
 r_min;.traitement_shapely
 download;.traitement_web
 ftp_download;.traitement_web

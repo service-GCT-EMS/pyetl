@@ -188,16 +188,17 @@ def doc_commandes(mapper):
 def doc_macros(mapper):
     """genere la doc sphinx des commandes"""
     doc = ["reference macros"]
+    larg = 59
     souligne(doc, "-")
-    ftab = "%-55s  %s"
-    doc.append(ftab % ("=" * 53, "========"))
+    ftab = "%-60s  %s"
+    doc.append(ftab % ("=" * larg, "========"))
     doc.append(
         ftab % ("                           macro                       ", "fonction")
     )
-    doc.append(ftab % ("=" * 53, "========"))
+    doc.append(ftab % ("=" * larg, "========"))
     for nom_macro in sorted(mapper.getmacrolist()):
         macro = mapper.getmacro(nom_macro)
-        appel = nom_macro + " " + ";".join(macro.vpos)
+        appel = ":ref:`" + nom_macro + "` " + ";".join(macro.vpos)
         doc.append(
             ftab
             % (
@@ -206,7 +207,7 @@ def doc_macros(mapper):
             ),
         )
 
-    doc.append(ftab % ("=" * 53, "========"))
+    doc.append(ftab % ("=" * larg, "========"))
 
     doc.append("")
     doc.append("")

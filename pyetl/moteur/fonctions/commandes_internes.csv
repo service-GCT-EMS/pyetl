@@ -6,12 +6,14 @@
 ;;;;;;;idle;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#pass;;;;;;;;;;
-#!help;placeholdermacro: s il faut une macro qui ne fait rien(ne fait rien et passe les objets)
+#!help;placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 ;;;;;;;pass;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#stdvar;;;;;;;;;;
 #!help;variables de base appele par tous les autres elements
-#!vars:format: format de sortie>acces: acces base de donnees si necessaire;;;;;;;;;;
+#!vars;format; format de sortie
+#!vars;acces; acces base de donnees si necessaire;;;;;;;;;;
+#!vars;dest; acces base de donnees en sortie si necessaire;;;;;;;;;;
 $F_sortie=%format%;%F_sortie%;csv;;;;;;;;;
 $mode_sortie=%mode_sortie%;D;;;;;;;;;;
 K:%F_sortie%=sql;$format_schema=%F_sortie%;
@@ -20,6 +22,7 @@ $#%dest%;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#gid;;;;;;;;;;
 #!help;ajout d un gid si necessaire;;;;;;;;;;
+#!desc;le gid n est ajoute que si la classe n a pas de clef primaire;;;
 ;has:PK;;;;;;pass;;;fin;
 |sinon:gid;;;;gid_orig;;gid;ren;;;fin;
 |:;;;;gid(0:S,P);;#classe;cnt;1;1;fin;
@@ -49,15 +52,19 @@ P:modif;;;;;;;pass;;;
 ;;;;#groupe;;#groupe;lower;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#groupe;groupe;;;;;;;;;
-#!help;force le groupe p:groupe: nouveau groupe;;;;;;;;;;
+#!help;force le groupe;;;;;
+#!pars;groupe;nouveau groupe;;;;;;;;;;
 ;;;;#groupe;%groupe%;;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#classe;classe;;;;;;;;;
-#!help;force la classe p:classe: nouvelle classe;;;;;;;;;;
+#!help;force la classe;;;;
+#!pars;classe;nouvelle classe;;;;;;;;;;
 ;;;;#classe;%classe%;;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#ident;groupe;classe;;;;;;;;
-#!help;force le groupe et la classe p:groupe: nouveau groupe, classe:nouvelle classe;;;;;;;;;;
+#!help;force le groupe et la classe;;;;;
+#!pars;groupe;nouveau groupe;;;;;;;;;;
+#!pars;classe;nouvelle classe;;;;;;;;;;
 <#groupe:%groupe%;;;;
 <#classe:%classe%;;;;
 !===========================================================================================;;;;;;;;;;;

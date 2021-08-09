@@ -16,7 +16,7 @@ un traitement consiste a appliquer des commandes à un ensemble d entrées pour 
 
 un script Pyetl corresponds a un traitement
 
-les scripts se présentent sous forme d'un fichier csv comprenant un ensemble de :ref:commandes
+les scripts se présentent sous forme d'un fichier csv comprenant un ensemble de :ref:`commandes`
 
 
 entrées

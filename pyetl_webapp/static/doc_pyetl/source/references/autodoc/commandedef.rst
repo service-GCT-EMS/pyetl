@@ -1298,9 +1298,9 @@ merge
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|?A    |      |L     |merge   |=seq  |        |
+|?A    |      |L     |merge   |?C    |        |
 +------+------+------+--------+------+--------+
-|?A    |      |L     |merge   |      |        |
+|?A    |      |L     |merge   |?C    |C       |
 +------+------+------+--------+------+--------+
 
 
@@ -2991,6 +2991,28 @@ geoselect
    geoselect :  
    =in :  in (mot_clef)
    C :  nom memoire
+
+
+
+.. index::
+  double: .traitement_shapely;merge
+
+merge
+.....
+
+   fusionne des objets adjacents de la meme classe en fonction de champs communs
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |      |L     |merge   |?C    |        |
++------+------+------+--------+------+--------+
+|?A    |      |L     |merge   |?C    |C       |
++------+------+------+--------+------+--------+
+
 
 
 
