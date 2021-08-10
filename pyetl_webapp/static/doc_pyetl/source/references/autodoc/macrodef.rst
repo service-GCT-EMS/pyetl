@@ -8,24 +8,21 @@ reference macros
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees p:format force 
-:ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
-:ref:`#att_sigli_modif`                                       ajoute les attributs standard  date_maj / date_creation et auteur 
-:ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation
+:ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
+:ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation et le gid
 :ref:`#autoload` dest                                         charge les derniers resultats en base de donnees
 :ref:`#batch_rt`                                              
 :ref:`#bdiff` acces                                           sort un objet s il n existe pas en base
 :ref:`#cc2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#cc482ll`                                               reprojette des donnees cus en rgf93
-:ref:`#charge_osm`                                            
 :ref:`#classe` classe                                         force la classe
-:ref:`#cmd` cmd;v1;v2;v3;v4;v5                                
+:ref:`#cmd` cmd;v1;v2;v3;v4;v5                                passe une commande a la sauvage
 :ref:`#cmin`                                                  passe les noms de classe et de groupe en minuscule
-:ref:`#convert_sigli` rep                                     
 :ref:`#creclef`                                               
 :ref:`#cree_schema` nom;dialecte;modif                        conversion de fichiers de structure en schema sql
 :ref:`#cree_sql` nom;dialecte                                 conversion de schemas en sql
-:ref:`#crypt_site_params`                                     prepare les acces personnalises aux bases
+:ref:`#crypt_site_params` ref                                 
 :ref:`#cus2cc48`                                              reprojette des donnees cus en rgf93
 :ref:`#db_batch` nom_batch;famille_batch;force                passe les batchs actifs
 :ref:`#db_batch_rt` bdef                                      lance le scheduler sur une liste de taches en base lecture unique
@@ -41,12 +38,13 @@ reference macros
 :ref:`#dbschema` acces;niveau;classe;nom                      analyse une base de donnees
 :ref:`#debug`                                                 
 :ref:`#editparams` perso                                      
-:ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes
-:ref:`#extract+gid` niveau;classe                             lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe
-:ref:`#extract_donnees` schema                                scripts de passage en prod
+:ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes a partir de fichiers
+:ref:`#extract+gid` niveau;classe                             lecture d'un jeu de donnees d un repertoire avec ajout d un gid si necessaire
+
 :ref:`#extractm`                                              extraction en mode multiprocesseur
 :ref:`#fakelist` valeur;n                                     genere une liste d'items numerotes pour les tests
-:ref:`#fanout`                                                
+:ref:`#fanout`                                                positionne le fanout a classe avec un mode de traitement par classe
+
 :ref:`#fileschema` acces                                      
 :ref:`#filter` champ;filtre                                   mange tous les objets qui ne satisfont pas la condition 
 :ref:`#filtre` exp                                            filtrage d un fichier texte
@@ -55,15 +53,10 @@ reference macros
 :ref:`#g2p` lon;lat                                           convertit des coordonees lat long en attribut en point cc48
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
-:ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
 :ref:`#geoextract` acces;niveau;classe;mode_geo;buffer        extraction d'un jeu de donnees d' une base par emprise p:format parametres serveur base chaine_connection niveau classe
-:ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
-:ref:`#grantsitr` schema                                      generation des scripts de grant
 :ref:`#grid` x_orig;y_orig;pas;cases                          repartit les objets selon une grille
 :ref:`#groupe` groupe                                         force le groupe
-:ref:`#histo_cmp` rep_histo;traitement                        
-:ref:`#histor` rep;date;workers                               convertit des bases en format historique
 :ref:`#httpdownload` url;dest;rep                             charge des elements par ftp
 :ref:`#ident` groupe;classe                                   force le groupe et la classe
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
@@ -72,48 +65,42 @@ reference macros
 :ref:`#initdb` acces;nomfich                                  positionne des elements d'acces a une base de donnees
 :ref:`#ll2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#log` message;level                                     
-:ref:`#low` al                                                
+:ref:`#low` al                                                passe une liste d attributs en minuscule
 :ref:`#mastercrypt` val                                       crypte un element avec la masterkey
 
 :ref:`#mkcrypt` user                                          
-:ref:`#mod` att;val;repl                                      
+:ref:`#mod` att;val;repl                                      modif conditionelle de valeurs dans un champs
 :ref:`#moi`                                                   
 :ref:`#ora2pg`                                                passage de oracle vers postgis
-:ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 
-:ref:`#passage_dev` schema                                    
-:ref:`#passage_prod` schema                                   
-:ref:`#passage_schema` schema                                 scripts de passage en prod
-:ref:`#prefix` prefix                                         prefixe la classe p:prefix: prefixe a ajouter a la classe
+:ref:`#prefix` prefix                                         prefixe la classe
 :ref:`#print`                                                 
 :ref:`#printparams`                                           affichage
 :ref:`#printvar` var                                          affichage variable
 :ref:`#pwcrypt` clef                                          crypte les mots de passe
-:ref:`#pwdecrypt` key                                         decrypte les mots de passe
+:ref:`#pwdecrypt` key                                         
 :ref:`#pwprepare` ref                                         
 :ref:`#pyetl_init_db`                                         initialise le schema pyetl pour travailler en base de donnees
 :ref:`#regroupe` groupe;stocke_groupe                         force le groupe et le transfere sur un attribut
+:ref:`#rename` old;new                                        
 
-:ref:`#rename` old;new                                        modifie la classe p:old: partie a remplacer >new: partie de remplacement
 :ref:`#reproj` orig;dest;grille                               convertit des coordonees du systeme orig vers dest
-:ref:`#retour_elyx` dest;clef;orig                            retour des donnees vers elyx pour toutes les classes definires dans ELYPG
 :ref:`#run` prog;params                                       execute une commande externe
 :ref:`#runproc` nom;dest;params                               lancement fonction_sql
 :ref:`#runsql` nom;dest                                       lancement script_sql
 :ref:`#schema_sigli` nom_schema                               ajoute les attributs standard a un schema
 
 :ref:`#scriptodb` nom;dest                                    charge un script en base
-:ref:`#set` atts;vals;defaut                                  
+:ref:`#set` atts;vals;defaut                                  affectation  absolue de champs
 :ref:`#sigli2elyx`                                            passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifies
 :ref:`#site_params` key;fin                                   affichage des parametres de connection stockes
 :ref:`#sleep` duree                                           
 :ref:`#stdvar`                                                variables de base appele par tous les autres elements
 
-:ref:`#store` clef;code                                       
-:ref:`#supp` atts                                             
+:ref:`#supp` atts                                             suppression de champs
 :ref:`#test` n1;n2;a                                          test des variables
-:ref:`#testpourluc`                                           aide speciale pour luc
+:ref:`#testpourluc`                                           
 :ref:`#timeselect` var                                        determine si un batch est executable en fonction de l'heure
 :ref:`#to_sigli`                                              preparation d'un jeu de donnees formatage standard sigli p:format parametres serveur base chaine_connection niveau classe
 :ref:`#ukcrypt`                                               
@@ -177,21 +164,6 @@ parametres positionnels
 
 
 
-#asc_upload
-...........
-
-
-chargement vers elyx
-
-parametres positionnels
-
-* nom:
-* dest_final:
-* reinit:
-* vgeom:
-
-
-
 #att_sigli
 ..........
 
@@ -200,7 +172,7 @@ ajoute les attributs standard a un schema
 
 parametres positionnels
 
-* modif:0/1 indique si la classe doit etre modifiee
+* modif:0/1 ou f/t indique si la classe doit etre modifiee
 
 
 
@@ -208,7 +180,7 @@ parametres positionnels
 ................
 
 
-ajoute les attributs standard  date_maj / date_creation et auteur 
+ajoute les attributs standard + date_maj et auteur 
 
 
 
@@ -216,7 +188,7 @@ ajoute les attributs standard  date_maj / date_creation et auteur
 ..............
 
 
-ajoute les attributs standard  date_maj / date_creation
+ajoute les attributs standard  date_maj / date_creation et le gid
 
 
 
@@ -266,12 +238,6 @@ reprojette des donnees cus en rgf93
 
 
 
-#charge_osm
-...........
-
-
-
-
 #classe
 .......
 
@@ -287,6 +253,8 @@ parametres positionnels
 #cmd
 ....
 
+
+passe une commande a la sauvage
 
 parametres positionnels
 
@@ -304,16 +272,6 @@ parametres positionnels
 
 
 passe les noms de classe et de groupe en minuscule
-
-
-
-#convert_sigli
-..............
-
-
-parametres positionnels
-
-* rep:
 
 
 
@@ -343,8 +301,7 @@ parametres positionnels
 
 conversion de schemas en sql
 
- * schema: racine des schemas a lire (*) lecture multiple;
-
+ * schema: racine des schemas a lire (*) lecture multiple
 
 parametres positionnels
 
@@ -357,22 +314,9 @@ parametres positionnels
 ..................
 
 
-prepare les acces personnalises aux bases
+parametres positionnels
 
- * permet de gerer les acces specifiques par utilisateurs
-
- * le point de depart est le fichier site_params commun
-
- * les utilisateurs sont definis avec le mot de passe sous la forme
-
- *    passwd;motdepasse#(user1,user2...,#groupe1,#groupe2)#
-
- * chaque utilisateur defini sur une base recoit une clef userkey personnelle
-
- * et eventuellement une liste de groupes
-
- * en sortie il y a 2 fichiers: le fichier site_patrams crypte et le fichier des cles
-
+* ref:
 
 
 
@@ -589,12 +533,22 @@ parametres positionnels
 ........
 
 
-extraction de niveaux ou de classes
+extraction de niveaux ou de classes a partir de fichiers
+
+ * effectue un filtrage apres lecture : peu efficace preferer les filtres de fichier si possible
+
 
 parametres positionnels
 
-* niveau:
-* classe:
+* niveau:groupe a selectionner si vide pas de filtrage
+* classe:classe a selectionner si vide pas de filtrage
+
+variables utilisées
+
+* schema:schema d entree sous forme de ficher de description csv
+
+* multigeom:force les geometries en multiple si vrai(1 ou t)
+
 
 
 
@@ -602,24 +556,20 @@ parametres positionnels
 ............
 
 
-lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe
+lecture d'un jeu de donnees d un repertoire avec ajout d un gid si necessaire
+
 
 parametres positionnels
 
-* niveau:
-* classe:
+* niveau:groupe a selectionner si vide pas de filtrage
+* classe:classe a selectionner si vide pas de filtrage
 
+variables utilisées
 
+* schema:schema d entree sous forme de ficher de description csv
 
-#extract_donnees
-................
+* multigeom:force les geometries en multiple si vrai(1 ou t)
 
-
-scripts de passage en prod
-
-parametres positionnels
-
-* schema:
 
 
 
@@ -653,6 +603,14 @@ macro utilisabe en service web
 
 #fanout
 .......
+
+
+positionne le fanout a classe avec un mode de traitement par classe
+
+
+variables utilisées
+
+* format:format de sortie (asc par defaut)
 
 
 
@@ -757,28 +715,6 @@ parametres positionnels
 
 
 
-#geocode_csv
-............
-
-
-geocodage d'un fichier csv
-
- * adresse:liste des champs adresse;;;;;;;;;;;
-
- * scoremin : limite de l'echec;;;;;;;;;;;
-
- * filtre : liste des champs filtres;;;;;;;;;;;
-
-
-parametres positionnels
-
-* adresse:
-* scoremin:
-* filtre:
-* prefix:
-
-
-
 #geoextract
 ...........
 
@@ -795,38 +731,13 @@ parametres positionnels
 
 
 
-#getosm
-.......
-
-
-telecharge le fichier osm de l'alsace
-
-parametres positionnels
-
-* dest:
-
-
-
 #gid
 ....
 
 
 ajout d un gid si necessaire
 
- * le gid n est ajoute que si la classe n a pas de clef primaire;;;
-
-
-
-
-#grantsitr
-..........
-
-
-generation des scripts de grant
-
-parametres positionnels
-
-* schema:
+ * le gid n est ajoute que si la classe n'a pas de clef primaire
 
 
 
@@ -854,31 +765,6 @@ force le groupe
 parametres positionnels
 
 * groupe:nouveau groupe
-
-
-
-#histo_cmp
-..........
-
-
-parametres positionnels
-
-* rep_histo:
-* traitement:
-
-
-
-#histor
-.......
-
-
-convertit des bases en format historique
-
-parametres positionnels
-
-* rep:
-* date:
-* workers:
 
 
 
@@ -966,9 +852,11 @@ parametres positionnels
 ....
 
 
+passe une liste d attributs en minuscule
+
 parametres positionnels
 
-* al:
+* al:param1liste de champs a passer en minuscule
 
 
 
@@ -999,6 +887,8 @@ parametres positionnels
 ....
 
 
+modif conditionelle de valeurs dans un champs
+
 parametres positionnels
 
 * att:
@@ -1021,20 +911,6 @@ passage de oracle vers postgis
 
 
 
-#ora2pg2
-........
-
-
-passage de oracle vers postgis version locale
-
-parametres positionnels
-
-* base:
-* schema:
-* classe:
-
-
-
 #pass
 .....
 
@@ -1044,47 +920,15 @@ placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les
 
 
 
-#passage_dev
-............
-
-
-parametres positionnels
-
-* schema:
-
-
-
-#passage_prod
-.............
-
-
-parametres positionnels
-
-* schema:
-
-
-
-#passage_schema
-...............
-
-
-scripts de passage en prod
-
-parametres positionnels
-
-* schema:
-
-
-
 #prefix
 .......
 
 
-prefixe la classe p:prefix: prefixe a ajouter a la classe
+prefixe la classe
 
 parametres positionnels
 
-* prefix:
+* prefix: prefixe a ajouter a la classe
 
 
 
@@ -1130,8 +974,6 @@ parametres positionnels
 ..........
 
 
-decrypte les mots de passe
-
 parametres positionnels
 
 * key:
@@ -1162,11 +1004,9 @@ initialise le schema pyetl pour travailler en base de donnees
 
 force le groupe et le transfere sur un attribut
 
-
 parametres positionnels
 
 * groupe:nom du nouveau groupe
-
 * stocke_groupe:nom de l'attribut contenant l'ancien groupe
 
 
@@ -1175,12 +1015,13 @@ parametres positionnels
 .......
 
 
-modifie la classe p:old: partie a remplacer >new: partie de remplacement
+
+
 
 parametres positionnels
 
-* old:
-* new:
+* old:chaine a remplacer
+* new:chaine de remplacement
 
 
 
@@ -1195,20 +1036,6 @@ parametres positionnels
 * orig:
 * dest:
 * grille:
-
-
-
-#retour_elyx
-............
-
-
-retour des donnees vers elyx pour toutes les classes definires dans ELYPG
-
-parametres positionnels
-
-* dest:
-* clef:
-* orig:
 
 
 
@@ -1282,6 +1109,8 @@ parametres positionnels
 ....
 
 
+affectation  absolue de champs
+
 parametres positionnels
 
 * atts:
@@ -1330,21 +1159,10 @@ variables de base appele par tous les autres elements
 
 variables utilisées
 
-* format: format de sortie
+* format: format de sortie defaut csv
 
 * acces: acces base de donnees si necessaire
 * dest: acces base de donnees en sortie si necessaire
-
-
-
-#store
-......
-
-
-parametres positionnels
-
-* clef:
-* code:
 
 
 
@@ -1352,9 +1170,11 @@ parametres positionnels
 .....
 
 
+suppression de champs
+
 parametres positionnels
 
-* atts:
+* atts:liste d'attributs a supprimer
 
 
 
@@ -1375,8 +1195,6 @@ parametres positionnels
 #testpourluc
 ............
 
-
-aide speciale pour luc
 
 
 

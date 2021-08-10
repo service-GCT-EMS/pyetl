@@ -291,26 +291,31 @@ class Macro(object):
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
-        if ligne.startswith("#!help") or ligne.startswith("#!aide"):
-            self.help = ligne[7:].split(";")[0]
-            return
-        if ligne.startswith("#!desc"):
-            self.help_detaillee.append(ligne[7:])
-            return
-        if ligne.startswith("#!pars"):
-            nomp, defp = ligne[7:].split(";")[:2]
-            self.parametres_pos[nomp] = defp
-            return
-        if ligne.startswith("#!vars"):
-            nomv, defv = ligne[7:].split(";")[:2]
-            self.vars_utilisees[nomv] = defv
-            return
-        if ligne.startswith("#!api"):
-            apidef = ligne[6:].split(";") if ligne[7:] else [self.nom[1:], "text"]
-            self.apiname, self.retour = apidef[:2]
-            self.no_in = "no_in" in self.apiname
-            return
-
+        try:
+            if ligne.startswith("!#help") or ligne.startswith("!#aide"):
+                self.help = ligne.split(";")[1]
+                return
+            if ligne.startswith("!#description"):
+                self.help_detaillee.append(ligne.split(";")[1])
+                return
+            if ligne.startswith("!#parametres"):
+                nomp, defp = ligne.split(";")[1:3]
+                self.parametres_pos[nomp] = defp
+                return
+            if ligne.startswith("!#variables"):
+                nomv, defv = ligne.split(";")[1:3]
+                self.vars_utilisees[nomv] = defv
+                return
+            if ligne.startswith("!#api"):
+                apidef = ligne.split(";")
+                self.apiname = apidef[1] if apidef[1] else self.nom[1:]
+                self.retour = apidef[2] if apidef[2] else "text"
+                self.no_in = "no_in" in ligne
+                return
+            if ligne.startswith("!"):  # commentaire on jette
+                return
+        except (ValueError, IndexError):
+            print("ligne mal formee", ligne)
         self.commandes_macro[numero] = ligne
 
     def close(self):
@@ -373,8 +378,8 @@ class MacroStore(object):
         """stocke une description de macro"""
         macro = None
         for num, conf in description:
-            if not conf or conf.startswith("!"):
-                continue
+            # if not conf or conf.startswith("!"):
+            #     continue
             if conf.startswith("&&#define"):
                 if macro:
                     macro.close()

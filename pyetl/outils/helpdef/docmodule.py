@@ -215,6 +215,36 @@ def doc_macros(mapper):
     return doc
 
 
+def detail_params(mapper, macro):
+    """genere le detail des parametres avec resolution des references"""
+    if not macro:
+        return []
+    defpars = macro.parametres_pos
+    defp = dict()
+    for nom in defpars:
+        if nom.startswith("#"):  # c est une reference
+            complement = detail_params(mapper, mapper.getmacro(nom))
+            defp.update(complement)
+        else:
+            defp[nom] = defpars[nom]
+    return defp
+
+
+def detail_variables(mapper, macro):
+    """genere le detail des parametres avec resolution des references"""
+    if not macro:
+        return []
+    defvars = macro.vars_utilisees
+    defv = dict()
+    for nom in defvars:
+        if nom.startswith("#"):  # c est une reference
+            complement = detail_variables(mapper, mapper.getmacro(nom))
+            defv.update(complement)
+        else:
+            defv[nom] = defvars[nom]
+    return defv
+
+
 def detail_macro(mapper):
     """genere les detail de description de macro"""
     doc = ["detail macros"]
@@ -225,7 +255,7 @@ def detail_macro(mapper):
         help = macro.help
         help_detaillee = macro.help_detaillee
         parametres = macro.vpos
-        defpars = macro.parametres_pos
+
         variables = macro.vars_utilisees
         api = macro.apiname
         apiformat = macro.retour
@@ -239,9 +269,11 @@ def detail_macro(mapper):
         if help_detaillee:
             doc.extend([" * " + i for i in help_detaillee])
             doc.append("")
+
         if parametres:
             doc.append("parametres positionnels")
             doc.append("")
+            defpars = detail_params(mapper, macro)
             for nom in parametres:
                 defp = defpars.get(nom, "")
                 doc.append("* " + nom + ":" + defp)
@@ -249,6 +281,7 @@ def detail_macro(mapper):
         if variables:
             doc.append("variables utilisées")
             doc.append("")
+            variables = detail_variables(mapper, macro)
             for nomp, defp in variables.items():
                 doc.append("* " + nomp + ":" + defp)
             doc.append("")
