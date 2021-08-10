@@ -3677,6 +3677,12 @@ print
 +------+------+------+--------+------+--------+
 
 
+   C? :  valeur defaut (optionnel)
+   L? :  liste de champs (optionnel)
+   print :  
+   C? :  texte fixe (optionnel)
+   =noms? :  affichage noms de champs (mot_clef) (optionnel)
+
 
 
 .. index::

@@ -513,6 +513,8 @@ class Pyetl(object):
         tabletotal = 0
         interm = 0.001
         duree = 0
+        nbexp = 0
+        expfics = 0
         wid = self.getvar("_wid")
         mainmapper = getmainmapper()
         nbvals = dict()
@@ -534,7 +536,8 @@ class Pyetl(object):
                 " mapper   :--%s----> nombre d'objets lus %8d dans %4d %s en %5d "
                 + "secondes %5d o/s"
             )
-
+            if nbexp:
+                msg = msg + " (exportes:" + str(nbexp) + ":" + str(expfics) + ")"
             if not self.worker:
                 ligne = msg % (
                     cmp,
@@ -546,6 +549,8 @@ class Pyetl(object):
                 )
                 if mode == "cmd":
                     self.logger.info(ligne)
+                    # if nbexp:
+                    #     print("exporte:", nbexp)
                     # print("message recu", ligne)
             return (
                 (max(int(prochain / nbaffich), int(nbobj / nbaffich)) + 1) * nbaffich,
@@ -571,6 +576,9 @@ class Pyetl(object):
                             elif message == "fich":
                                 nbtotal += nbfic
                                 nbfic = 0
+                            elif message == "exp":
+                                nbexp = sum(nbvals.values())
+                                # print("patience: recu exp", nbfic, nbval, nbexp)
                         except Empty:
                             # print("queue vide")
                             break
@@ -600,6 +608,10 @@ class Pyetl(object):
                 nbtotal += nbval
                 interm = 0.001
                 tabletotal += nbfic
+
+            if message == "exp":
+                nbexp += nbval
+                expfics += nbfic
 
     def getpyetl(
         self,

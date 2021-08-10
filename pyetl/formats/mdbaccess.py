@@ -123,7 +123,7 @@ def get_helper(base, files, loadext, helpername, stock_param):
 def setpath(regle, nom):
     """prepare les fichiers de log pour les programmes externes"""
     if nom:
-        nom = os.path.join(regle.getvar("_sortie"), nom)
+        # nom = os.path.join(regle.getvar("_sortie"), nom)
         rep = os.path.dirname(nom)
         if rep:
             os.makedirs(rep, exist_ok=True)

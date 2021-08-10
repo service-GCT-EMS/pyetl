@@ -861,7 +861,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
         #     time.sleep(0.1)
         for slot in get_slots(pool):
             if pool[slot]:
-                #                print ('trouve element a traiter',pool[slot])
+                # print("trouve element a traiter", pool[slot])
                 retour = pool[slot]
                 nom_r = retour["nom"]
                 if paralleldebug:
@@ -872,7 +872,7 @@ def iterparallel_ext(blocks, maxworkers, lanceur, patience=None):
                 if patience:
                     patience(nom_r, retour["params"], retour["end"] - retour["start"])
                     if paralleldebug:
-                        print("iterparallelext : retour patience")
+                        print("iterparallelext : retour patience", patience)
             if blocks:
                 tache = blocks.pop()
                 # print ('recu tache',tache, len(blocks))

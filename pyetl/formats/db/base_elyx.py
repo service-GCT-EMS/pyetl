@@ -251,43 +251,65 @@ class ElyConnect(ora.OrwConnect):
     def log_decoder(self, idexport, params, runtime):
         """decode un fichier log de ORA2FEA"""
 
-        # print('analyse log', params)
         outfile = params[1]
         resultats = params[3]
         size = params[2]
+        nbobjs = dict()
+        # print("analyse log", idexport, outfile, size, resultats)
+        fich = os.path.basename(resultats)
+        nbfichs = 0
         try:
             for i in open(
-                outfile, "r", encoding="cp1252", errors="backslashreplace"
+                resultats, "r", encoding="cp1252", errors="backslashreplace"
             ).readlines():
-                #            print('lu:', ascii(i[:-1]))
+                # print("lu:", ascii(i[:-1]))
                 if "Nombre d'objets export" in i:
                     tmp = i.split(":")
                     nomclasse = tmp[-2].split(" ")[-1]
                     classe = self.schemabase.get_classe(("", nomclasse))
                     idclasse = classe.identclasse
-                    exportes = int(tmp[-1][:-1])
+                    exportes = int(tmp[-1])
                     theoriques = int(classe.getinfo("objcnt_init", "0"))
-                    resultats[idclasse] = exportes
-                    if len(idexport) == 1:
-                        print(
-                            "%-45s objets exportes: %10d / %10d en %.2f s"
-                            % (".".join(idclasse), exportes, theoriques, runtime)
-                        )
+                    nbobjs[idclasse] = (exportes, theoriques, runtime)
+                    nbfichs = 0
+
+                    # if len(idexport) == 1:
+                    #     print(
+                    #         "%-45s objets exportes: %10d / %10d en %.2f s"
+                    #         % (".".join(idclasse), exportes, theoriques, runtime)
+                    #     )
                 if "Nombre total d'objets export" in i:
                     #                print ('analyse log',idexport,ascii(i))
-                    print(
-                        "%-45s objets exportes: %10d / %10d en %.2f s"
-                        % (
-                            ".".join(idexport),
-                            size[idexport],
-                            int(i.split(":")[-1][:-1]),
-                            runtime,
-                        )
+                    theoriques = int(i.split(":")[-1])
+                    exportes = size
+                    # print(
+                    #     "%-45s objets exportes: %10d / %10d en %.2f s"
+                    #     % (
+                    #         ".".join(idexport),
+                    #         theoriques,
+                    #         exportes,
+                    #         runtime,
+                    #     )
+                    # )
+
+                    nbobjs["total"] = (size, theoriques, runtime)
+                if ": error :" in i:
+                    self.regle.stock_param.logger.error(
+                        " export elyx %s : %s", fich, i[:-1]
                     )
-            # print ('fin anlalyse log')
+                    # print("detection erreur", i)
+                if ": warning :" in i:
+                    self.regle.stock_param.logger.warning(
+                        " export elyx %s : %s", fich, i[:-1]
+                    )
+                    # print("detection warning", i)
+            # print("fin anlalyse log:", exportes)
+            nbfichs = len(nbobjs)
+            self.regle.stock_param.aff.send(("exp", nbfichs, exportes))
             return 0
         except Exception as err:
             print("fichier non pret", err)
+            # raise
             time.sleep(0.1)  # on est alle trop vite le fichier n'est pas pret
             return 1
 
@@ -341,6 +363,7 @@ class ElyConnect(ora.OrwConnect):
             os.makedirs(os.path.dirname(destination), exist_ok=True)
             logdir = os.path.join(log, nom[0], str(subcode % nbworkers))
             os.makedirs(logdir, exist_ok=True)
+            # print("get_blocks preparation xml", destination, logdir)
             xml = self.genexportxml(destination, logdir, blocks[nom])
             paramfile = os.path.join(self.tmpdir, "_".join(nom) + "_param_FEA.xml")
             if self.debuglog:
@@ -349,7 +372,7 @@ class ElyConnect(ora.OrwConnect):
                     logf.write("\n".join(xml))
             with open(paramfile, mode="w", encoding="cp1252") as tmpf:
                 tmpf.write("\n".join(xml))
-            outfile = os.path.join(self.tmpdir, "_".join(nom) + "_out_FEA.txt")
+            outfile = os.path.join(logdir, "_".join(nom) + "_out_FEA.txt")
             retour.append(
                 (
                     nom,
@@ -359,7 +382,7 @@ class ElyConnect(ora.OrwConnect):
                 )
             )
 
-        # optimiseur de blocks : on sait qu'il faut commencer par les plus longs
+        # optimiseur de blocks : on sait qu'il faut commencer par les plus longs mais pas tout de suite
         tmp = sorted(retour, reverse=True, key=lambda x: x[3])
         if len(tmp) > nbworkers * 2:
             retour = (
@@ -420,11 +443,11 @@ class ElyConnect(ora.OrwConnect):
                         regle_courante.stock_param.logger.debug(
                             "fichier a traiter : %s", str(fichier)
                         )
-                        print(
-                            "fichier a traiter :",
-                            fichier,
-                            regle_courante.getvar("_sortie"),
-                        )
+                        # print(
+                        #     "fichier a traiter :",
+                        #     fichier,
+                        #     regle_courante.getvar("_sortie"),
+                        # )
                         try:
                             self.params.lecture(
                                 classe,

@@ -351,6 +351,8 @@ def f_version(*_):
 
 def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
+    #parametres||valeur defaut;liste de champs;;texte fixe;affichage noms de champs
+
     #pattern1||;C?;L?;print;C?;=noms?||entree
     #pattern2||;;*;print;C?;=noms?||entree
     #test||redirect||obj||^X;ok;;set||^;;X;print||out

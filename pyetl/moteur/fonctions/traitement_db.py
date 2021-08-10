@@ -203,7 +203,7 @@ def f_dbalpha(regle, obj):
             regle.setvar("_entree", dest)
             log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
             os.makedirs(os.path.dirname(log), exist_ok=True)
-            LOGGER.info("dump donnees de %s vers %s", base, dest)
+            LOGGER.info("dump donnees de %s vers %s, log:%s", base, dest, log)
             # print("traitement db: dump donnees de", base, "vers", dest)
             retour = DB.dbextalpha(regle, basesel, dest=dest, log=log)
         else:

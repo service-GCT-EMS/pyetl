@@ -716,7 +716,11 @@ def sel_isfile(selecteur, obj):
     #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
     """
     if selecteur.params.pattern == "2":
-        # print ('isfile',selecteur.params.vals.val,os.path.isfile(selecteur.params.vals.val))
+        print(
+            "isfile",
+            selecteur.params.vals.val,
+            os.path.isfile(selecteur.params.vals.val),
+        )
         return os.path.isfile(selecteur.params.vals.val)
     else:
         return (

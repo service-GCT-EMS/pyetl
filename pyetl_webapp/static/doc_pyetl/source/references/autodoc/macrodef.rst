@@ -8,6 +8,7 @@ reference macros
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees p:format force 
+:ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard  date_maj / date_creation et auteur 
 :ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation
@@ -16,13 +17,15 @@ reference macros
 :ref:`#bdiff` acces                                           sort un objet s il n existe pas en base
 :ref:`#cc2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#cc482ll`                                               reprojette des donnees cus en rgf93
+:ref:`#charge_osm`                                            
 :ref:`#classe` classe                                         force la classe
 :ref:`#cmd` cmd;v1;v2;v3;v4;v5                                
 :ref:`#cmin`                                                  passe les noms de classe et de groupe en minuscule
+:ref:`#convert_sigli` rep                                     
 :ref:`#creclef`                                               
 :ref:`#cree_schema` nom;dialecte;modif                        conversion de fichiers de structure en schema sql
 :ref:`#cree_sql` nom;dialecte                                 conversion de schemas en sql
-:ref:`#crypt_site_params` ref                                 prepare les acces personnalises aux bases
+:ref:`#crypt_site_params`                                     prepare les acces personnalises aux bases
 :ref:`#cus2cc48`                                              reprojette des donnees cus en rgf93
 :ref:`#db_batch` nom_batch;famille_batch;force                passe les batchs actifs
 :ref:`#db_batch_rt` bdef                                      lance le scheduler sur une liste de taches en base lecture unique
@@ -40,6 +43,7 @@ reference macros
 :ref:`#editparams` perso                                      
 :ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes
 :ref:`#extract+gid` niveau;classe                             lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe
+:ref:`#extract_donnees` schema                                scripts de passage en prod
 :ref:`#extractm`                                              extraction en mode multiprocesseur
 :ref:`#fakelist` valeur;n                                     genere une liste d'items numerotes pour les tests
 :ref:`#fanout`                                                
@@ -51,10 +55,15 @@ reference macros
 :ref:`#g2p` lon;lat                                           convertit des coordonees lat long en attribut en point cc48
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
+:ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
 :ref:`#geoextract` acces;niveau;classe;mode_geo;buffer        extraction d'un jeu de donnees d' une base par emprise p:format parametres serveur base chaine_connection niveau classe
+:ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
+:ref:`#grantsitr` schema                                      generation des scripts de grant
 :ref:`#grid` x_orig;y_orig;pas;cases                          repartit les objets selon une grille
 :ref:`#groupe` groupe                                         force le groupe
+:ref:`#histo_cmp` rep_histo;traitement                        
+:ref:`#histor` rep;date;workers                               convertit des bases en format historique
 :ref:`#httpdownload` url;dest;rep                             charge des elements par ftp
 :ref:`#ident` groupe;classe                                   force le groupe et la classe
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
@@ -70,8 +79,12 @@ reference macros
 :ref:`#mod` att;val;repl                                      
 :ref:`#moi`                                                   
 :ref:`#ora2pg`                                                passage de oracle vers postgis
+:ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 
+:ref:`#passage_dev` schema                                    
+:ref:`#passage_prod` schema                                   
+:ref:`#passage_schema` schema                                 scripts de passage en prod
 :ref:`#prefix` prefix                                         prefixe la classe p:prefix: prefixe a ajouter a la classe
 :ref:`#print`                                                 
 :ref:`#printparams`                                           affichage
@@ -84,6 +97,7 @@ reference macros
 
 :ref:`#rename` old;new                                        modifie la classe p:old: partie a remplacer >new: partie de remplacement
 :ref:`#reproj` orig;dest;grille                               convertit des coordonees du systeme orig vers dest
+:ref:`#retour_elyx` dest;clef;orig                            retour des donnees vers elyx pour toutes les classes definires dans ELYPG
 :ref:`#run` prog;params                                       execute une commande externe
 :ref:`#runproc` nom;dest;params                               lancement fonction_sql
 :ref:`#runsql` nom;dest                                       lancement script_sql
@@ -96,6 +110,7 @@ reference macros
 :ref:`#sleep` duree                                           
 :ref:`#stdvar`                                                variables de base appele par tous les autres elements
 
+:ref:`#store` clef;code                                       
 :ref:`#supp` atts                                             
 :ref:`#test` n1;n2;a                                          test des variables
 :ref:`#testpourluc`                                           aide speciale pour luc
@@ -159,6 +174,21 @@ analyse d'un jeu de donnees p:format force
 parametres positionnels
 
 * force:
+
+
+
+#asc_upload
+...........
+
+
+chargement vers elyx
+
+parametres positionnels
+
+* nom:
+* dest_final:
+* reinit:
+* vgeom:
 
 
 
@@ -236,6 +266,12 @@ reprojette des donnees cus en rgf93
 
 
 
+#charge_osm
+...........
+
+
+
+
 #classe
 .......
 
@@ -268,6 +304,16 @@ parametres positionnels
 
 
 passe les noms de classe et de groupe en minuscule
+
+
+
+#convert_sigli
+..............
+
+
+parametres positionnels
+
+* rep:
 
 
 
@@ -326,11 +372,6 @@ prepare les acces personnalises aux bases
  * et eventuellement une liste de groupes
 
  * en sortie il y a 2 fichiers: le fichier site_patrams crypte et le fichier des cles
-
-
-parametres positionnels
-
-* ref:fichier de parametres de sites commun a traiter
 
 
 
@@ -570,6 +611,18 @@ parametres positionnels
 
 
 
+#extract_donnees
+................
+
+
+scripts de passage en prod
+
+parametres positionnels
+
+* schema:
+
+
+
 #extractm
 .........
 
@@ -704,6 +757,28 @@ parametres positionnels
 
 
 
+#geocode_csv
+............
+
+
+geocodage d'un fichier csv
+
+ * adresse:liste des champs adresse;;;;;;;;;;;
+
+ * scoremin : limite de l'echec;;;;;;;;;;;
+
+ * filtre : liste des champs filtres;;;;;;;;;;;
+
+
+parametres positionnels
+
+* adresse:
+* scoremin:
+* filtre:
+* prefix:
+
+
+
 #geoextract
 ...........
 
@@ -720,6 +795,18 @@ parametres positionnels
 
 
 
+#getosm
+.......
+
+
+telecharge le fichier osm de l'alsace
+
+parametres positionnels
+
+* dest:
+
+
+
 #gid
 ....
 
@@ -728,6 +815,18 @@ ajout d un gid si necessaire
 
  * le gid n est ajoute que si la classe n a pas de clef primaire;;;
 
+
+
+
+#grantsitr
+..........
+
+
+generation des scripts de grant
+
+parametres positionnels
+
+* schema:
 
 
 
@@ -755,6 +854,31 @@ force le groupe
 parametres positionnels
 
 * groupe:nouveau groupe
+
+
+
+#histo_cmp
+..........
+
+
+parametres positionnels
+
+* rep_histo:
+* traitement:
+
+
+
+#histor
+.......
+
+
+convertit des bases en format historique
+
+parametres positionnels
+
+* rep:
+* date:
+* workers:
 
 
 
@@ -897,12 +1021,58 @@ passage de oracle vers postgis
 
 
 
+#ora2pg2
+........
+
+
+passage de oracle vers postgis version locale
+
+parametres positionnels
+
+* base:
+* schema:
+* classe:
+
+
+
 #pass
 .....
 
 
 placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 
+
+
+
+#passage_dev
+............
+
+
+parametres positionnels
+
+* schema:
+
+
+
+#passage_prod
+.............
+
+
+parametres positionnels
+
+* schema:
+
+
+
+#passage_schema
+...............
+
+
+scripts de passage en prod
+
+parametres positionnels
+
+* schema:
 
 
 
@@ -1028,6 +1198,20 @@ parametres positionnels
 
 
 
+#retour_elyx
+............
+
+
+retour des donnees vers elyx pour toutes les classes definires dans ELYPG
+
+parametres positionnels
+
+* dest:
+* clef:
+* orig:
+
+
+
 #run
 ....
 
@@ -1150,6 +1334,17 @@ variables utilisées
 
 * acces: acces base de donnees si necessaire
 * dest: acces base de donnees en sortie si necessaire
+
+
+
+#store
+......
+
+
+parametres positionnels
+
+* clef:
+* code:
 
 
 

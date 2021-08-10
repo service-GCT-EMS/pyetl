@@ -567,7 +567,7 @@ class Context(object):
         nom, _ = self.resolve(defnom)
         local = not nom.startswith("*")
         val, binding = self.resolve(defval)
-        print("traite_egalite", defnom, nom, "=", defval, val)
+        # print("traite_egalite", defnom, nom, "=", defval, val)
         return nom, val, binding, local
 
     # TODO a revoir la gestion des hstore dans les variables positionelles
