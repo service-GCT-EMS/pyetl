@@ -470,7 +470,7 @@ def f_httpdownload(regle, obj):
     """
     url = regle.getval_entree(obj)
     # if regle.debug:
-    print("---------------preparation telechargement", url, regle.debug)
+    print("telechargement", url, "-->", regle.fichier)
     # if regle.httparams:
     retour = None
     try:
@@ -532,7 +532,8 @@ def f_httpdownload(regle, obj):
             taille,
             "octets télecharges en ",
             int(time.time() - debut),
-            "secondes",
+            "secondes vers ",
+            fichier,
         )
         return True
     LOGGER.error("erreur requete %s", retour.url)

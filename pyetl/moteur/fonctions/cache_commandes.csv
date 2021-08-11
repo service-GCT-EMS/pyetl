@@ -118,7 +118,6 @@ ftp_upload;.traitement_web
 geocode;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
-archive;.traitement_workflow
 attreader;.traitement_workflow
 batch;.traitement_workflow
 bloc;.traitement_workflow
@@ -160,3 +159,6 @@ xmledit;.traitement_xml
 xmlextract;.traitement_xml
 xmlsplit;.traitement_xml
 xmlstruct;.traitement_xml
+archive;.traitement_zip
+zipdir;.traitement_zip
+zipextract;.traitement_zip

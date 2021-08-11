@@ -406,7 +406,7 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = regle.mode in {"call"}
+    regle.call = regle.mode in {"call"} and regle.selstd is None
     # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
     if regle.mode == "geomprocess":
@@ -418,16 +418,18 @@ def h_callmacro(regle):
     # print("regle.context.atts:",regle.context.getvar('atts'))
     mapper.pushcontext(regle.context)
     # print ('contexte macro', mapper.cur_context)
-    erreurs = mapper.lecteur_regles(commande, regle_ref=regle)
+    erreurs = mapper.lecteur_regles(commande, regle_ref=regle)  # cree liste_regles
     if regle.liste_regles:
         if regle.call:  # la on applatit
             regle.liste_regles[-1]._return = True
         else:
+            print("appel call en mode sous programme", erreurs)
             mapper.compilateur(
                 regle.liste_regles, regle.debug
             )  # la on appelle en mode sous programme
     # print ('contexte apres macro', mapper.cur_context)
     mapper.popcontext(typecheck="C")
+    # print("call:", regle)
     return erreurs
 
 
@@ -441,6 +443,10 @@ def f_callmacro(regle, obj):
     #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
           ||X;2;;;X;%defaut%;;set||atv;X;3
     """
+    # print("appel macro", regle.call)
+    if not regle.call:
+        # print("appel macro", regle.liste_regles)
+        return regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
     # la on ne fait rien parce que le compilateur a applati la macro
     return True
 
@@ -535,64 +541,6 @@ def f_creobj(regle, obj):
                 break
             else:
                 raise
-    return True
-
-
-def h_archive(regle):
-    """definit la regle comme declenchable"""
-    regle.chargeur = True
-
-
-def f_archive(regle, obj):
-    """#aide||zippe les fichiers ou les repertoires de sortie
-    #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
-      #pattern||;?C;?A;archive;C;
-         #test||notest
-    """
-    #    if not obj.virtuel:
-    #        return False
-    dest = regle.params.cmp1.val + ".zip"
-    os.makedirs(os.path.dirname(dest), exist_ok=True)
-    stock = dict()
-    print(
-        "archive",
-        time.ctime(),
-        regle.params.val_entree.liste,
-        dest,
-        regle.getvar("_sortie"),
-    )
-    if regle.params.att_entree.val:
-        fich = obj.attributs.get(regle.params.att_entree.val)
-        if fich:
-            stock[fich] = fich
-        mode = "a"
-    else:
-        mode = "w"
-        LOGGER.info(
-            "archive : ecriture zip:"
-            + ",".join(regle.params.val_entree.liste)
-            + " -> "
-            + dest
-        )
-        for f_interm in regle.params.val_entree.liste:
-            clefs = []
-            if "*" in os.path.basename(f_interm):
-                clefs = [i for i in os.path.basename(f_interm).split("*") if i]
-                #                print( 'clefs de fichier zip',clefs)
-                f_interm = os.path.dirname(f_interm)
-            if os.path.isdir(f_interm):
-                for fich in os.listdir(f_interm):
-                    #                    print(' test fich ',fich, [i in fich for i in clefs])
-                    if all([i in fich for i in clefs]):
-                        stock[os.path.join(f_interm, fich)] = fich
-            else:
-                stock[f_interm] = f_interm
-
-    with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
-        for i in stock:
-            file.write(i, arcname=stock[i])
-    print("fin_archive", dest, time.ctime())
-    LOGGER.info("fin_archive " + dest)
     return True
 
 

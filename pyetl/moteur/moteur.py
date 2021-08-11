@@ -106,24 +106,36 @@ class Moteur(object):
         """ declenche les regles de chargement pour les traitements sans entree"""
         #        if self.debug:
         #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
-        self.regles[0].chargeur = True  # on force la premiere
+        if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
+            pass
+        else:
+            obj = Objet(
+                "_declencheur",
+                "_chargement",
+                format_natif="interne",
+                conversion="virtuel",
+            )
+            self.traite_objet(obj, self.regles[0])
         #        if self.regles[0].mode == "start": #on prends la main dans le script
         #            self.regles[0].fonc(self.regles[0], None)
         #            return
         for i in self.regles:
             #            print ('-------------------------------traite_charge ', i.declenchee ,i.chargeur,i )
-            if not i.declenchee and i.chargeur:
+            # on ne traite pas les regles de chargement si elles sont dans des conditions
+            if not i.declenchee and i.chargeur and i.niveau == 0:
                 if i.mode == "start":  # on prends la main dans le script
                     i.fonc(i, None)
-                obj = Objet(
-                    "_declencheur",
-                    "_chargement",
-                    format_natif="interne",
-                    conversion="virtuel",
-                )
-                i.mode_chargeur = True
-                self.traite_objet(obj, i)
-                i.mode_chargeur = False
+                else:
+                    obj = Objet(
+                        "_declencheur",
+                        "_chargement",
+                        format_natif="interne",
+                        conversion="virtuel",
+                    )
+                    i.mode_chargeur = True
+                    print("mode chargeur", i)
+                    self.traite_objet(obj, i)
+                    i.mode_chargeur = False
 
     def traite_objet(self, obj, regle):
         """traitement basique toutes les regles sont testees """

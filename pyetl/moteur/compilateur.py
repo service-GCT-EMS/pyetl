@@ -158,12 +158,14 @@ def propage_liens(regles, start):
             break
 
 
-def nextregle(regles):
+def nextregle(regles, niveau):
     """applatissage recursif de la liste de regles"""
     for regle in regles:
+        regle.niveau = niveau + regle.niveau
         yield regle
         if regle.call:
-            yield from nextregle(regle.liste_regles)
+            # print("appel nextregle", niveau, regle)
+            yield from nextregle(regle.liste_regles, regle.niveau)
 
 
 def compile_regles(mapper, liste_regles, debug=0):
@@ -236,12 +238,14 @@ def compile_regles(mapper, liste_regles, debug=0):
 
         _finalise(regle, debug)
     if liste_regles is None:  # applatissement des regles
+        # print("applatissemeent")
         nliste = []
-        for i in nextregle(regles):
+        for i in nextregle(regles, 0):
             i.index = len(nliste)
             nliste.append(i)
+            # print("ajout regle", i.niveau, i)
         regles.clear()
         regles.extend(list(nliste))
-    #        print ('fin compil','\n'.join(map(repr, regles)))
+    # print("fin compil\n", "\n".join(map(repr, regles)))
     _affiche_debug(regles, debug)
     return True
