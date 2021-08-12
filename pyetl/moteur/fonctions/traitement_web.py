@@ -454,6 +454,11 @@ def _jsonsplitter(regle, obj, jsonbloc):
                 elif isinstance(val, list):
                     jlist = [json.dumps(j, separators=(",", ":")) for j in val]
                     obj2.setmultiple(att, liste=jlist)
+                if obj2.schema:
+                    if att not in obj2.schema.attributs:
+                        type_att = "H" if isinstance(val, dict) else "T"
+                        obj.schema.stocke_attribut(att, type_att)
+
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         else:
             print("element incompatible", elem)

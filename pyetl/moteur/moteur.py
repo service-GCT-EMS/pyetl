@@ -133,7 +133,7 @@ class Moteur(object):
                         conversion="virtuel",
                     )
                     i.mode_chargeur = True
-                    print("mode chargeur", i)
+                    # print("mode chargeur", i)
                     self.traite_objet(obj, i)
                     i.mode_chargeur = False
 
@@ -345,13 +345,14 @@ class Macro(object):
             macroenv.setlocal(
                 i, self.vdef[i] if self.vdef.get(i) else context.getvar(i)
             )
-        # print ('macro bind', self.nom, self.vpos,macroenv, macroenv.vlocales)
+        # print("macro bind", self.nom, self.vpos, macroenv, macroenv.vlocales, liste)
         if not liste:
             args = context.getvar("_args")
             # permet d affecter les variables positinelles a partir d un texte avec ,
             if args:
                 liste = args.split(",")
         context.affecte(liste, context=macroenv, vpos=self.vpos)
+        # print("variables locales", macroenv.vlocales)
         return macroenv
 
     def get_commands(self):
@@ -621,6 +622,7 @@ class Context(object):
                     dloc[nom] = val
                 else:
                     if local:
+                        # print("setlocal", nom, val)
                         context.setlocal(nom, val) if context else self.setlocal(
                             nom, val
                         )

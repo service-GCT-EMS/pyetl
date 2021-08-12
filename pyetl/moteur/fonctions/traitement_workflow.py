@@ -299,7 +299,7 @@ def printvariable(regle):
             [i + "=" + str(j) for i, j in sorted(regle.context.getvars().items())]
         )
 
-    if regle.params.cmp2.val:
+    if regle.params.cmp2.val:  # affichage de noms
         return nomv + "=" + str(regle.getvar(regle.params.cmp1.val))
     v = regle.context.getvar_b(nomv, "")
     print("printvariable", nomv, type(v), v)

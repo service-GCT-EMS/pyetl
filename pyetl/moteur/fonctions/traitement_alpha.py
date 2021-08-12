@@ -200,6 +200,11 @@ def h_sub(regle):
             regle.valide = False
             regle.erreurs.append("erreur compilation des expressions" + err.msg)
             return
+    regle.statique = not regle.params.cmp2.origine
+    # # remplacement dynamique
+    print("dynval", regle.statique)
+    if not regle.statique:
+        regle.exp_sortie = regle.params.cmp2.val[1:-1]
     try:
         regle.maxsub = int(regle.getvar("maxsub", 0))
     except ValueError:
@@ -230,11 +235,14 @@ def f_sub(regle, obj):  # fonction de substution
 
     """
     # substitution
+
+    exp_sortie = (
+        regle.exp_sortie if regle.statique else obj.attributs.get(regle.exp_sortie, "")
+    )
+
     regle.setval_sortie(
         obj,
-        regle.exp_entree.sub(
-            regle.exp_sortie, regle.getval_entree(obj), count=regle.maxsub
-        ),
+        regle.exp_entree.sub(exp_sortie, regle.getval_entree(obj), count=regle.maxsub),
     )
     return True
 
@@ -458,7 +466,8 @@ def f_asplit(regle, obj):
         else:
             elems = [regle.getval_entree(obj)]
         obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        obj.redirect = "gen"
         for i in elems[1:]:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
