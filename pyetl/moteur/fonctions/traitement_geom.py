@@ -49,7 +49,8 @@ def h_initgeom(regle):
     """prepositionne un type geom"""
     regle.type_geom = regle.params.cmp1.val
     if regle.params.cmp1.num:
-        regle.setvar("type_geom", regle.params.cmp1.val)
+        regle.setlocal("type_geom", regle.params.cmp1.val)
+    print("h initgeom", regle.type_geom, regle.getvar("type_geom"))
     regle.use_shapely = regle.params.cmp2.val
 
 
@@ -64,8 +65,16 @@ def f_initgeom(regle, obj):
         return True
     if regle.type_geom == "0":  # on force l'alpha
         obj.setnogeom()
-
+    # print("trouve geom", obj.attributs["#geom"], obj.attributs_geom)
     geom_ok = obj.initgeom()
+    print(
+        "init geom",
+        geom_ok,
+        regle.getvar("type_geom"),
+        obj.type_geom,
+        obj.schema.info.get("type_geom"),
+        regle,
+    )
     if regle.use_shapely and geom_ok:
         obj.geom_v.__shapelygeom__
     return geom_ok
@@ -686,7 +695,7 @@ def f_splitcouleur(regle, obj):
             print("split_couleurs: erreurs", obj.attributs.get("#erreurs"))
         return False
 
-    if obj.schema.info["type_geom"] == "3":
+    if obj.schema.info["type_geom"] == "3" and obj.schema.amodifier(regle):
         obj.schema.info["type_geom"] = "2"
     obj.geom_v = None
     obj.geomnatif = False

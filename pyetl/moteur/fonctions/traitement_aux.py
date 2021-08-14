@@ -375,10 +375,15 @@ def fschema_ajout_attribut(regle, obj, typedefaut="T"):
 
 def fschema_set_geom(regle, obj):
     """positionne la geometrie du schema"""
-    #    print ('------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])
+    print("-----demande modif schema geom", regle.getvar("macromode"), regle)
     if obj.schema.amodifier(regle):
         #        print('modif schema geom', obj.schema.nom, obj.schema.info["type_geom"],
         #        '->', obj.attributs['#type_geom'])
+        print("-----modif schema geom", regle.getvar("macromode"), regle)
+        if regle.getvar("macromode") == "geomprocess":
+            print("detecte geomprocess", regle)
+            return
+            # on est dans un traitement geometrique virtuel on ne touche a rien
         if regle.getvar("type_geom"):
             obj.schema.info["type_geom"] = regle.getvar("type_geom")
         elif obj.geom_v.valide:

@@ -417,15 +417,18 @@ def h_httpdownload(regle):
     # importrequest()
 
     regle.chargeur = True
-    path = regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
-    if path:
-        os.makedirs(path, exist_ok=True)
-    regle.path = path
-    if regle.params.cmp2.val:
-        name = os.path.join(path, regle.params.cmp2.val)
-        regle.fichier = name
-    else:
-        regle.fichier = None
+    if regle.params.pattern == "1":
+        path = (
+            regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
+        )
+        if path:
+            os.makedirs(path, exist_ok=True)
+        regle.path = path
+        if regle.params.cmp2.val:
+            name = os.path.join(path, regle.params.cmp2.val)
+            regle.fichier = name
+        else:
+            regle.fichier = None
 
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
@@ -465,11 +468,18 @@ def _jsonsplitter(regle, obj, jsonbloc):
 
 
 def f_httpdownload(regle, obj):
-    """aide||telecharge un fichier via http
-    #aide_spec||; url; (attribut contenant l'url);http_download;racine;nom
+    """#aide||telecharge un fichier via http
+    #parametres1||url;attribut contenant l'url;;repertoire;nom
+    #aide_spec1||telecharge un element vers un fichier ou un repertoire
       #pattern1||;?C;?A;download;?C;?C
-      #pattern2||A;?C;?A;download
-      #pattern3||;?C;?A;download;=#B||cmp1
+    #aide_spec2||telecharge un element vers un attribut
+    #parametres2||attribut de sortie;url;attribut contenant l'url;;
+      #pattern2||A;?C;?A;download;
+    #aide_spec3||telecharge un element vers un attribut en mode binaire
+    #parametres3||attribut de sortie;url;attribut contenant l'url;;
+      #pattern3||A;?C;?A;download;=#B||cmp1
+    #aide_spec4||telecharge un element json et genere un objet par element
+    #parametres4||url;attribut contenant l'url;;;
       #pattern4||;?C;?A;download;=#json||cmp1
          #test||notest
     """

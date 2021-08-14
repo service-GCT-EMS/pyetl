@@ -19,7 +19,7 @@ from .outils import gestion_logs as L
 if printtime:
     print("globales", time.time() - t1)
     t1 = time.time()
-from .formats.generic_io import READERS, WRITERS, Reader, Output, getreader
+from .formats.generic_io import READERS, WRITERS, Reader, Output, get_converter
 
 if printtime:
     print("formats    ", time.time() - t1)
@@ -1032,9 +1032,11 @@ class Pyetl(object):
 
     #        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ+1)])[champ]
 
-    def get_converter(self, geomnatif):
+    def get_converter(self, geomnatif, debug=None):
         """ retourne le bon convertisseur de format geometrique"""
-        return getreader(geomnatif, "interne").converter
+        debug = debug or self.debug
+        # print("get_converter:niveau de debug", debug)
+        return get_converter(geomnatif, debug=debug)
 
     def _finalise_sorties(self):
         """ vide les tuyeaux et renseigne les stats"""
@@ -1049,7 +1051,7 @@ class Pyetl(object):
     def process(self, debug=0):
         """traite les entrees """
         # print ('debut_process avant macro',self.idpyetl)
-        self.debug = debug
+        self.debug = self.debug or debug
         abort = False
         dt, _ = next(self.maintimer)
         entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)

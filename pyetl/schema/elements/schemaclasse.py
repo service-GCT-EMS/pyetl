@@ -456,7 +456,9 @@ class SchemaClasse(object):
     def amodifier(self, regle, dyn=False):
         """determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
-        idregle = regle.index
+        idregle = regle.numero
+        # idregle = regle.index
+        # print("amodifier ", regle.index, regle.numero, regle)
         # if idregle not in self.regles_modif:
         # print(
         #     "amodifier",

@@ -15,14 +15,19 @@ def decription_pattern(pattern, description, commun=None):
     if commun:
         communs = ";".join(commun).split(";")
     patdef = pattern.split(";")
+    commande = patdef[3]
     patdesc = ";".join(description).split(";")
     retour = []
     for i, j in zip([i for i in patdef if i], patdesc):
-        if i.startswith("="):
-            j = (j or i[1:]) + " (mot_clef)"
+        if i.startswith("=") or i.startswith("?="):
+            # j = (j or i[1:]) + " (mot clef)"
+            j = "(mot clef)"
+            i = i[1:] if i.startswith("=") else i[2:]
         if re.match("#[1-9]", str(j)) and commun:
             n = int(j[1])
             j = communs[n - 1]
+        if i == commande:
+            j = "(commande)"
         retour.append("%+20s: %s" % (i, j + (" (optionnel)" if "?" in i else "")))
 
     # retour = [

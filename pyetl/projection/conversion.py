@@ -11,6 +11,8 @@ def init_proj(entree, sortie, repgrilles=None):
     """initialise la projection
     systemes disponibles : L1,L2,CC48,CC49,LL"""
     sens = 0
+    entree = entree.upper()
+    sortie = sortie.upper()
     connus = ["L1", "L2", "CC48", "CC49", "LL", "L93"]
     if entree not in connus or sortie not in connus:
         print("conversion non implementee ", entree, "->", sortie)

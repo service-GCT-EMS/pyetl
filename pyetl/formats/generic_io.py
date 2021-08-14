@@ -142,6 +142,21 @@ def getwriter(ext, defaut=None):
     return fonc
 
 
+def get_converter(nom, defaut=None, debug=False):
+    """renvoie un convertisseur de geometrie"""
+    if nom in GEOMDEF:
+        if GEOMDEF[nom]:
+            return GEOMDEF[nom].converter
+        else:
+            print(nom, "n'est pas un format geometrique")
+    if defaut and defaut in GEOMDEF:
+        return GEOMDEF[defaut].converter
+    print("format geometrique inconnu", nom)
+    if debug:
+        print("formats geometriques connus", GEOMDEF.keys())
+    return None
+
+
 def get_read_encoding(regle, nom_format):
     defchain = [
         "encoding",
@@ -468,10 +483,10 @@ class Reader(object):
         """ affichage du format courant : debug """
         # print("info :format: format courant :", self.nom_format)
 
-    def get_converter(self, format_natif=None):
-        """retourne la fonction de conversion geometrique"""
-        if format_natif is None:
-            return self.converter
+        # def get_converter(self, format_natif=None):
+        #     """retourne la fonction de conversion geometrique"""
+        #     if format_natif is None:
+        #         return self.converter
 
         fgeom = getreader(format_natif, "interne").geom
         return GEOMDEF[fgeom].converter

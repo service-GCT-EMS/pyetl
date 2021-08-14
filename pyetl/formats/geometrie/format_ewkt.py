@@ -5,6 +5,7 @@
 
 
 import re
+import json
 
 try:
     from shapely import wkb, wkt
@@ -486,13 +487,19 @@ def ecrire_geom_geojson(
 
 
 def geom_from_geojson(obj, code=None):
-    geom = obj.attributs["#geom"]
+    geomdef = obj.attributs["#geom"]
+    if isinstance(geomdef, list):
+        geomdef = "\n".join(geomdef)
+    # print("decodage geojson", geomdef)
+    geom = json.loads(geomdef) if geomdef else None
+    geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
     if geom:
-        geom_demandee = obj.schema.info["type_geom"] if obj.schema else "0"
         #        print ('decodage geometrie ewkt ',obj.geom)
         obj.geom_v.from_geo_interface(geom)
         obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         obj.finalise_geom(type_geom=str(geom_demandee))
+    else:
+        obj.geom_v.finalise_geom(type_geom="0")
     return obj.geom_v.valide
 
 

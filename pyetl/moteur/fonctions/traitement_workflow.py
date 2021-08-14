@@ -410,7 +410,7 @@ def h_callmacro(regle):
     # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
     if regle.mode == "geomprocess":
-        regle.context.setvar("macromode", "geomprocess")
+        regle.setlocal("macromode", "geomprocess")
     mapper = regle.stock_param
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
@@ -509,7 +509,8 @@ def f_creobj(regle, obj):
         schema = regle.stock_param.init_schema("schema_test", origine="B", stable=False)
     gen_schema = ident not in schema.classes
     schemaclasse = schema.setdefault_classe(ident)
-    if gen_schema:
+    modifschema= gen_schema and schemaclasse.amodifier(regle):
+    if modifschema:
         schemaclasse.info["type_geom"] = "0"
     # TODO gérer les dates
     for nom, val in zip(noms, vals):
@@ -522,7 +523,7 @@ def f_creobj(regle, obj):
                 type_attribut = "F"
             except (ValueError, TypeError):
                 type_attribut = "T"
-        if gen_schema:
+        if modifschema:
             schemaclasse.stocke_attribut(nom, type_attribut=type_attribut)
     nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num is not None else 1
     for i in range(nombre):
