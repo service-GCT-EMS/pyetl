@@ -509,7 +509,7 @@ def f_creobj(regle, obj):
         schema = regle.stock_param.init_schema("schema_test", origine="B", stable=False)
     gen_schema = ident not in schema.classes
     schemaclasse = schema.setdefault_classe(ident)
-    modifschema= gen_schema and schemaclasse.amodifier(regle):
+    modifschema = gen_schema and schemaclasse.amodifier(regle)
     if modifschema:
         schemaclasse.info["type_geom"] = "0"
     # TODO gérer les dates
