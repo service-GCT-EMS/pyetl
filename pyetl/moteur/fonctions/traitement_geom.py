@@ -67,14 +67,14 @@ def f_initgeom(regle, obj):
         obj.setnogeom()
     # print("trouve geom", obj.attributs["#geom"], obj.attributs_geom)
     geom_ok = obj.initgeom()
-    print(
-        "init geom",
-        geom_ok,
-        regle.getvar("type_geom"),
-        obj.type_geom,
-        obj.schema.info.get("type_geom"),
-        regle,
-    )
+    # print(
+    #     "init geom",
+    #     geom_ok,
+    #     regle.getvar("type_geom"),
+    #     obj.type_geom,
+    #     obj.schema.info.get("type_geom"),
+    #     regle,
+    # )
     if regle.use_shapely and geom_ok:
         obj.geom_v.__shapelygeom__
     return geom_ok

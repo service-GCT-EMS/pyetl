@@ -429,7 +429,7 @@ def h_httpdownload(regle):
             regle.fichier = name
         else:
             regle.fichier = None
-
+    regle.checkssl = not regle.istrue("trust")
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
     # print("preparation parametres", regle.httparams, regle.httheaders)
@@ -469,6 +469,7 @@ def _jsonsplitter(regle, obj, jsonbloc):
 
 def f_httpdownload(regle, obj):
     """#aide||telecharge un fichier via http
+    #aide_spec||l'entete du retour est stocke dans l'attribut #http_header
     #parametres1||url;attribut contenant l'url;;repertoire;nom
     #aide_spec1||telecharge un element vers un fichier ou un repertoire
       #pattern1||;?C;?A;download;?C;?C
@@ -481,6 +482,8 @@ def f_httpdownload(regle, obj):
     #aide_spec4||telecharge un element json et genere un objet par element
     #parametres4||url;attribut contenant l'url;;;
       #pattern4||;?C;?A;download;=#json||cmp1
+    #variables||trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
+              ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
     """
     url = regle.getval_entree(obj)
@@ -494,6 +497,7 @@ def f_httpdownload(regle, obj):
             stream=regle.params.pattern == "1",
             params=regle.httparams,
             headers=regle.httheaders,
+            verify=regle.checkssl,
         )
     except Exception as err:
         print(err)

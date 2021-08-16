@@ -7,7 +7,8 @@ reference macros
 :ref:`#2d`                                                    convertit des coordonees 2d
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
-:ref:`#analyse` force                                         analyse d'un jeu de donnees p:format force 
+:ref:`#analyse` force                                         analyse d'un jeu de donnees
+
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
 :ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation et le gid
@@ -47,7 +48,7 @@ reference macros
 
 :ref:`#fileschema` acces                                      
 :ref:`#filter` champ;filtre                                   mange tous les objets qui ne satisfont pas la condition 
-:ref:`#filtre` exp                                            filtrage d un fichier texte
+:ref:`#filtre` exp                                            filtrage d un fichier texte avec une regex
 :ref:`#ftpdownload` fich;acces;accdir                         charge des elements par ftp
 :ref:`#fusion_schema` nom                                     fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a creer
 :ref:`#g2p` lon;lat                                           convertit des coordonees lat long en attribut en point cc48
@@ -70,7 +71,8 @@ reference macros
 
 :ref:`#mkcrypt` user                                          
 :ref:`#mod` att;val;repl                                      modif conditionelle de valeurs dans un champs
-:ref:`#moi`                                                   
+:ref:`#moi`                                                   affiche le nom de l utilisateur courant
+
 :ref:`#ora2pg`                                                passage de oracle vers postgis
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 
@@ -106,7 +108,7 @@ reference macros
 :ref:`#ukcrypt`                                               
 :ref:`#ukdecrypt`                                             
 :ref:`#upload` fich;dest;destdir                              charge des elements par ftp
-:ref:`#valide` niveau;classe                                  validation de niveaux ou de classes
+:ref:`#valide` niveau;classe                                  validation de niveaux ou de classes par rapport a un schema
 :ref:`#version` full                                          affiche la version de pyetl
 :ref:`#zip` source;destination                                zippe les resultats
 ===========================================================   ========
@@ -156,11 +158,16 @@ parametres positionnels
 ........
 
 
-analyse d'un jeu de donnees p:format force 
+analyse d'un jeu de donnees
+
 
 parametres positionnels
 
 * force:
+
+variables utilisées
+
+* max_conf:nombre de classes maxi d une enum
 
 
 
@@ -385,14 +392,18 @@ parametres positionnels
 
 positionne des elements d'acces a une base de donnees en direct
 
+ * cree un l equivalent d une entree site_params a la volee
+ * non stocke dans site_params
+ * cette macro s utilise en complement d une autre
+
 parametres positionnels
 
-* acces:
-* base:
-* serveur:
-* type:
-* user:
-* pass:
+* acces:nom du groupe
+* base:nom de la base de donnees
+* serveur:serveur et port
+* type:type de la base de donnees
+* user:utilisateur de connection
+* pass:mot de passe
 
 
 
@@ -596,8 +607,8 @@ parametres positionnels
 
 macro utilisabe en service web
 
-* url          : ws/fakelist
-* format retour:json
+* url          : ws/fakelist3
+* format retour:txt
 
 
 
@@ -642,11 +653,11 @@ parametres positionnels
 .......
 
 
-filtrage d un fichier texte
+filtrage d un fichier texte avec une regex
 
 parametres positionnels
 
-* exp:
+* exp:regex de filtrage
 
 
 
@@ -899,6 +910,14 @@ parametres positionnels
 
 #moi
 ....
+
+
+affiche le nom de l utilisateur courant
+
+
+variables utilisées
+
+* ADserver:identification du serveur AD/LDAP a utiliser si pas de defaut systeme
 
 
 
@@ -1248,12 +1267,22 @@ parametres positionnels
 .......
 
 
-validation de niveaux ou de classes
+validation de niveaux ou de classes par rapport a un schema
+
+ * si le niveau et la classe ne sont pas renseignes tout est traite
 
 parametres positionnels
 
-* niveau:
-* classe:
+* niveau:niveau a traiter
+* classe:classe a traiter
+
+variables utilisées
+
+* schema:schema a charger pour validation
+* format: format de sortie defaut csv
+
+* acces: acces base de donnees si necessaire
+* dest: acces base de donnees en sortie si necessaire
 
 
 

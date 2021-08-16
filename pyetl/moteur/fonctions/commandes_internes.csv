@@ -163,28 +163,45 @@ K:%multigeom%;;;;;;%multigeom%;;multigeom;;;fin;
 <#gid;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#valide;niveau;classe;;;;;;;;
-!#help;validation de niveaux ou de classes;;;;;;;;;;
+!#help;validation de niveaux ou de classes par rapport a un schema;;;;;;;;;;
+!#description;si le niveau et la classe ne sont pas renseignes tout est traite;;;
+!#parametres;niveau;niveau a traiter;
+!#parametres;classe;classe a traiter;
+!#variables;schema;schema a charger pour validation;
+!#variables;#stdvar;
 <#stdvar;txt;;;;;;;;;;
 K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;fin;
 #groupe;%niveau%;#classe;%classe%;;;;valide_schema;;;fin;10,date_creation
 !===========================================================================================;;;;;;;;;;;
 &&#define;#analyse;force;;;;;;;;;
-!#help;analyse d'un jeu de donnees p:format force ;;;;;;;;;;
+!#help;analyse d'un jeu de donnees
+!#parametres,force; 1 force la generation du schema (ignore le schema du format);;;;
+!#variables;max_conf;nombre de classes maxi d une enum;
 $format_schema=csv,xml,sql;;;;;;;;;;;
 $max_conf=%max_conf%;40;;;;;;;;;;
 $mode_sortie=D;;;;;;;;;;;
 !$F_sortie=#poubelle
-K:force;;;;;;;#schema;supp;;;;
+K:%force%;;;;;;;#schema;supp;;;;
 ;;;;;;;schema>;%nom%;%max_conf%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#filtre;exp;;;;;;;;;
-!#help;filtrage d un fichier texte;;;;;;;;;;
+!#help;filtrage d un fichier texte avec une regex;;;;;;;;;;
+!#parametres;exp;regex de filtrage;
 $F_entree=ligne;;;;
 contenu;%exp%;;;;;#num_ligne,contenu;print;;;;
 !=================================== acces bases de donnees ================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbaccess;acces;base;serveur;type;user;pass;;;;
 !#help;positionne des elements d'acces a une base de donnees en direct;;;;;;;;;;
+!#description;cree un l equivalent d une entree site_params a la volee;;;
+!#description;non stocke dans site_params;
+!#description;cette macro s utilise en complement d une autre;
+!#parametres;acces;nom du groupe;
+!#parametres;base;nom de la base de donnees;
+!#parametres;serveur;serveur et port;
+!#parametres;type;type de la base de donnees;
+!#parametres;user;utilisateur de connection;
+!#parametres;pass;mot de passe;
 $base_%acces%=%base%;;;;;;;;;;;
 $server_%acces%=%serveur%;;;;;;;;;;;
 $db_%acces%=%type%;;;;;;;;;;;
@@ -592,6 +609,8 @@ K:ADserver;$#%ADserver%;
 ;;;;;%x%;;print;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#moi;;;;;
+!#help;affiche le nom de l utilisateur courant
+!#variables;ADserver;identification du serveur AD/LDAP a utiliser si pas de defaut systeme
 K:ADserver;$#%ADserver%;
 ;;;;P:_username;%_login%;;adquery;user;;
 !===========================================================================================;;;;;;;;;;;
@@ -606,7 +625,9 @@ $test_v2=%n2%;;;;;
 !#help;genere une liste d'items numerotes pour les tests;
 !#parametres;valeur;texte a reproduire
 !#parametres;n;nombre de lignes
-!#api;fakelist;json;
-;;;;xx;%n1%;;creobj;tmp;%n2%;;
+!#api;fakelist1;json;
+!#api;fakelist2;xml;
+!#api;fakelist3;txt;
+;;;;xx;%valeur%;;creobj;tmp;%n%;;
 ;;;;xx+;;#gid;set;;;
 ;;;;;;xx;print>;;;

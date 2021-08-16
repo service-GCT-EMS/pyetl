@@ -328,7 +328,7 @@ def h_geomerge(regle):
 
 def f_geomerge(regle, obj):
     """#aide||fusionne des objets adjacents de la meme classe en fonction de champs communs
-    #pattern1||?A;;L;merge;?C;C
+    #pattern2||?A;;L;geomerge;?C;C
     """
     clef = tuple((obj.attributs.get(i, "") for i in regle.params.att_entree.liste))
     if regle.seq:
