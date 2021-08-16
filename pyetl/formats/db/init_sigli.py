@@ -374,10 +374,12 @@ requetes_sigli[
                FROM pg_type
               WHERE t4.atttypid = pg_type.oid)) = 'e'::"char" THEN 'text'::text
             WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'integer'
-		        AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
+		        AND ( select pg_get_serial_sequence(quote_ident(t4.nomschema)||'.'||quote_ident(t4.nomtable),quote_ident(t4.attname))
+                 IS NOT Null))
 		    THEN 'serial'
 	        WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'bigint'
-		        AND ( select pg_get_serial_sequence(t4.nomschema||'.'||t4.nomtable,t4.attname) IS NOT Null))
+		        AND ( select pg_get_serial_sequence(quote_ident(t4.nomschema)||'.'||quote_ident(t4.nomtable),quote_ident(t4.attname))
+                 IS NOT Null))
 		    THEN 'bigserial'
             ELSE format_type(t4.atttypid, t4.atttypmod)
         END AS type_attribut,

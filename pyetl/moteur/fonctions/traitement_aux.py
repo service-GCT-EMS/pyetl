@@ -381,7 +381,7 @@ def fschema_set_geom(regle, obj):
         #        '->', obj.attributs['#type_geom'])
         print("-----modif schema geom", regle.getvar("macromode"), regle)
         if regle.getvar("macromode") == "geomprocess":
-            print("detecte geomprocess", regle)
+            print("detecte geomprocess ---> retour", obj.schema.info["type_geom"])
             return
             # on est dans un traitement geometrique virtuel on ne touche a rien
         if regle.getvar("type_geom"):
