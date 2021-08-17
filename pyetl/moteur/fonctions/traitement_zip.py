@@ -20,8 +20,9 @@ def h_archive(regle):
 
 def f_archive(regle, obj):
     """#aide||zippe les fichiers ou les repertoires de sortie
-    #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
+    #parametres||liste de noms de fichiers(avec *...);attribut contenant le nom;;nom du fichier zip
       #pattern||;?C;?A;archive;C;
+      #pattern||;?C;?A;zip;C;
          #test||notest
     """
     #    if not obj.virtuel:
@@ -73,8 +74,10 @@ def f_archive(regle, obj):
 
 def f_zipdir(regle, obj):
     """#aide||liste les fichiers d un zip
-    #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
-      #pattern1||?A;?C;?A;zipdir;;
+    #parametres||attribut de sortie;nom du fichier;attribut contenant le nom;;
+    #aide_spec1||cree la liste de contenus dans l'attribut de sortie
+      #pattern1||?A;?C;?A;zipdir;
+    #aide_spec2||cree un objet par element du fichier zip
       #pattern2||?A;?C;?A;zipdir;=split;
           #test||notest
     """
@@ -96,9 +99,9 @@ def f_zipdir(regle, obj):
 
 def f_zipextract(regle, obj):
     """#aide||extrait des fichiers d'un zip
-    #aide_spec|| parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom
-      #pattern1||?C;?C;?A;zipextract;C;?=all
-          #test||notest
+    #parametres||destination;fichier a extraire;attribut contenant le nom;zipextract;nom du zip;
+     #pattern1||?C;?C;?A;zipextract;C;?=all
+         #test||notest
     """
     name = regle.params.cmp1.getval(obj)
     if not os.path.isabs(name) and not name.startswith("."):

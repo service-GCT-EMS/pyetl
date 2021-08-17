@@ -40,7 +40,8 @@ def h_pass(regle):
 
 def f_pass(regle, obj):
     """#aide||ne fait rien et passe. permet un branchement distant
-    #pattern||;;;pass;?C;?C
+    #parametres||;;point de branchement si defini les objets seront sortis sur ce pt
+    #pattern||;;;pass;?C;
     #test||obj||C1;X;;;C1;Z;;set||+sinon:;;;;;;;pass||+:;;;;C1;Y;;set||atv;C1;Y
     #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
           ||X;1;;;X;%defaut%;;set||atv;X;3
@@ -49,13 +50,15 @@ def f_pass(regle, obj):
     return True
 
 
-def f_fail(*_):
+def f_fail(regle, obj):
     """#aide||ne fait rien mais plante. permet un branchement distant
-    #pattern||;;;fail;?C;
-    #helper||pass
-    #test||obj||^;;;fail||+fail:;;;;C1;Y;;set||atv;C1;Y
+    #parametres||;;point de branchement si defini les objets seront sortis sur ce pt
+       #pattern||;;;fail;?C;
+       #helper||pass
+       #test||obj||^;;;fail||+fail:;;;;C1;Y;;set||atv;C1;Y
     """
     #    print ("fail:prochaine regle",regle.branchements.brch["sinon"])
+    obj.redirect = regle.sortie
     return False
 
 
@@ -472,28 +475,18 @@ def f_geomprocess(regle, obj):
     return retour
 
 
-def h_testobj(regle):
+def h_creobj(regle):
     """ definit la regle comme createur"""
     regle.chargeur = True  # c est une regle qui cree des objets
     return True
 
 
-def f_testobj(regle, obj):
-    """#aide||cree des objets de test pour les tests fonctionnels
-    #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
-    #pattern||L;LC;;testobj;C;?N||sortie
-    #pattern2||L;LC;;creobj;C;?N||sortie
-    #test||rien||^A;1;;testobj;essai;2||cnt;2
-    """
-    #    if not obj.virtuel:
-    #        return False
-    return f_creobj(regle, obj)
-
-
 def f_creobj(regle, obj):
     """#aide||cree des objets de test pour les tests fonctionnels
-    #aide_spec||parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
-    #pattern||L;LC;?L;creobj;C;?N||sortie
+    #parametres1||liste d'attributs;liste valeurs;liste att valeurs;;nom(niv,classe);nombre d'objets a creer
+    #pattern1||L;LC;?L;creobj;C;?N||sortie
+    #parametres2||liste d'attributs;liste valeurs;;nom(niv,classe);nombre d'objets a creer
+    #pattern2||L;LC;;testobj;C;?N||sortie
     #test||obj||^A;1;;creobj;essai;2||cnt;3
     """
 

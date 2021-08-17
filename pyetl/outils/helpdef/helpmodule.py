@@ -139,6 +139,11 @@ def print_help_detail(mapper, nom):
     for i in commande.description.get("#aide_spec", []):
         print("   %s" % (i))
     print("")
+    if commande.description.get("#variables"):
+        print("-------variables-------")
+        for i in commande.description.get("#variables", [""]):
+            nom, aide = (i.split(";") + [""])[:2]
+            print("%-20s: %s" % (nom, aide))
     print("------- syntaxes acceptees ----------")
     print("")
     for variante in commande.subfonctions:
@@ -179,9 +184,9 @@ def print_help_detail(mapper, nom):
                         )
                     )
                 )
-            if variante.description.get("#variables"):
-                print("-------variables-------")
-                for i in variante.description.get("#variables", [""]):
+            if variante.description.get("#variables" + pnum):
+                print("-------variables specifiques------")
+                for i in variante.description.get("#variables" + pnum, [""]):
                     nom, aide = (i.split(";") + [""])[:2]
                     print("%-20s: %s" % (nom, aide))
             if debug:
@@ -190,6 +195,7 @@ def print_help_detail(mapper, nom):
                 print("helper", variante.helper)
                 print("shelper", variante.shelper)
                 print("fsorties", tuple(i for i in variante.fonctions_sortie))
+            print()
     return True
 
 
