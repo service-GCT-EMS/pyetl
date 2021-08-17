@@ -488,7 +488,7 @@ def f_httpdownload(regle, obj):
     """
     url = regle.getval_entree(obj)
     # if regle.debug:
-    print("telechargement", url, "-->", regle.fichier)
+    # print("telechargement", url, "-->", regle.fichier)
     # if regle.httparams:
     retour = None
     try:

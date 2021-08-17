@@ -426,7 +426,7 @@ def h_callmacro(regle):
         if regle.call:  # la on applatit
             regle.liste_regles[-1]._return = True
         else:
-            print("appel call en mode sous programme", erreurs)
+            # print("appel call en mode sous programme", erreurs)
             mapper.compilateur(
                 regle.liste_regles, regle.debug
             )  # la on appelle en mode sous programme
@@ -465,11 +465,23 @@ def f_geomprocess(regle, obj):
         return True
     geom = obj.geom_v
     obj.geom_v = copy.deepcopy(geom)
-    multi = obj.schema.multigeom if obj.schema else None
+    sauveschema = bool(obj.schema)
+    if sauveschema:
+        multi = obj.schema.multigeom
+        # sauvegarde infos schema geometriques"
+        nom_geometrie = obj.schema.info["nom_geometrie"]
+        dimension = obj.schema.info["dimension"]
+        type_geom = obj.schema.info["type_geom"]
+        courbe = obj.schema.info["courbe"]
     retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
     # print ('retour geomprocess', retour)
     obj.geom_v = geom
-    setschemainfo(regle, obj, multi=multi)
+    if sauveschema:
+        setschemainfo(regle, obj, multi=multi, dyn=True)
+        obj.schema.info["nom_geometrie"] = nom_geometrie
+        obj.schema.info["dimension"] = dimension
+        obj.schema.info["type_geom"] = type_geom
+        obj.schema.info["courbe"] = courbe
 
     # print ('retour geomprocess')
     return retour

@@ -513,12 +513,10 @@ class AscWriter(FileWriter):
 
 #                reader,      geom,    hasschema,  auxfiles,       initer
 READERS = {
-    "asc": (lire_objets_asc, "geom_asc", False, ("rlt", "seq"), init_reader_asc, None)
+    "asc": (lire_objets_asc, "#asc", False, ("rlt", "seq"), init_reader_asc, None)
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom, init)
-WRITERS = {
-    "asc": ("", "", False, "up", 0, "asc", "groupe", "geom_asc", "geom_asc", init_ascw)
-}
+WRITERS = {"asc": ("", "", False, "up", 0, "asc", "groupe", "#asc", "#asc", init_ascw)}
 DESCRIPTION = {
     "asc": ("le format asc est le format externe du logiciel ELYX de one spatial")
 }

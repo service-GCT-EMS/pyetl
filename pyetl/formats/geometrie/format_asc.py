@@ -131,4 +131,4 @@ def geom_from_asc(obj):
     return geom_v.valide
 
 
-GEOMDEF = {"geom_asc": (ecrire_geom_asc, geom_from_asc, None)}
+GEOMDEF = {"#asc": (ecrire_geom_asc, geom_from_asc, None)}

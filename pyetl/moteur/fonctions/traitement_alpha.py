@@ -202,7 +202,7 @@ def h_sub(regle):
             return
     regle.statique = not regle.params.cmp2.origine
     # # remplacement dynamique
-    print("dynval", regle.statique)
+    # print("dynval", regle.statique)
     if not regle.statique:
         regle.exp_sortie = regle.params.cmp2.val[1:-1]
     try:

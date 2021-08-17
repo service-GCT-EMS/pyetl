@@ -7,8 +7,9 @@ fonctions s de selections : determine si une regle est eligible ou pas
 import os
 import sys
 import re
-
+import glob
 import zipfile
+import gzip
 import time
 import logging
 
@@ -103,20 +104,41 @@ def f_zipextract(regle, obj):
      #pattern1||?C;?C;?A;zipextract;C;?=all
          #test||notest
     """
+
     name = regle.params.cmp1.getval(obj)
+    # print("preparation zipextract", name)
     if not os.path.isabs(name) and not name.startswith("."):
         name = os.path.join(regle.getvar("_entree", "."), name)
-    if not zipfile.is_zipfile(name):
-        return False
+
+    namelist = glob.glob(name) if "*" in name else [name]
+    found = False
     sortie = regle.params.att_sortie.getval(obj)
     if not os.path.isabs(sortie) and not sortie.startswith("."):
         sortie = os.path.join(regle.getvar("_sortie", "."), sortie)
-    if not zipfile.is_zipfile(name):
-        return False
-    with zipfile.ZipFile(name, "r") as archive:
-        if regle.params.cmp2.val == "all":
-            archive.extractall(path=sortie)
-            return True
-        files = regle.getlist_entree(obj)
-        archive.extractall(path=sortie, members=files)
-        return True
+    for name in namelist:
+        if not zipfile.is_zipfile(name):
+            regle.stock_param.logger.warning(
+                "le fichier %s n est pas un fichier zip", name
+            )
+            regle.stock_param.logger.info("tentative d'extreaction en gzip")
+            destfich = os.path.splitext(os.path.basename(name))[0]
+            dest = os.path.join(sortie, destfich)
+            try:
+                with gzip.open(name) as archive:
+                    with open(dest, "wb") as f:
+                        f.write(archive.read())
+                found = True
+            except:
+                raise
+        else:
+            found = True
+
+            # print("zipextract", name, regle.params.cmp2.val, "vers", sortie)
+
+            with zipfile.ZipFile(name, "r") as archive:
+                if regle.params.cmp2.val == "all":
+                    archive.extractall(path=sortie)
+                else:
+                    files = regle.getlist_entree(obj)
+                    archive.extractall(path=sortie, members=files)
+    return found

@@ -390,7 +390,7 @@ def fschema_set_geom(regle, obj):
             obj.schema.info["type_geom"] = obj.geom_v.type
         else:
             obj.schema.info["type_geom"] = obj.attributs["#type_geom"]
-        print("set type geom", obj.schema.info["type_geom"], regle)
+        # print("set type geom", obj.schema.info["type_geom"], regle)
 
 
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])

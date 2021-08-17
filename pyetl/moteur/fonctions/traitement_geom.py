@@ -50,7 +50,7 @@ def h_initgeom(regle):
     regle.type_geom = regle.params.cmp1.val
     if regle.params.cmp1.num:
         regle.setlocal("type_geom", regle.params.cmp1.val)
-    print("h initgeom", regle.type_geom, regle.getvar("type_geom"))
+    # print("h initgeom", regle.type_geom, regle.getvar("type_geom"))
     regle.use_shapely = regle.params.cmp2.val
 
 
