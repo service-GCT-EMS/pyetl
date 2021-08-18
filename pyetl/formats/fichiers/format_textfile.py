@@ -22,22 +22,26 @@ class TextWriter(fileio.FileWriter):
         return True
 
 
-def lire_textfile_ligne(self, rep, chemin, fichier):
+def lire_textfile_ligne(reader, rep, chemin, fichier):
     """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
-    self.prepare_lecture_fichier(rep, chemin, fichier)
+    reader.prepare_lecture_fichier(rep, chemin, fichier)
     nlin = 0
+    if reader.newschema:
+        reader.schemaclasse.stocke_attribut("contenu", "T")
+        reader.prepare_attlist(["contenu"])
     with open(
-        self.fichier, "r", 65536, encoding=self.encoding, errors="backslashreplace"
+        reader.fichier, "r", 65536, encoding=reader.encoding, errors="backslashreplace"
     ) as ouvert:
         for ligne in ouvert:
-            obj = self.getobj()
+            attrs = {"contenu": ligne[:-1]}
+            obj = reader.getobj(attrs)
             if obj is None:  # gere le maxval
-                return self.nb_lus
-            obj.attributs["contenu"] = ligne[:-1]
+                continue
+            # obj.attributs["contenu"] = ligne[:-1]
             nlin += 1
             obj.attributs["#num_ligne"] = str(nlin)
-            self.process(obj)  # on traite l'objet precedent
-    return self.nb_lus
+            reader.process(obj)  # on traite l'objet precedent
+    return reader.nb_lus
 
 
 def lire_textfile_bloc(self, rep, chemin, fichier):
@@ -48,8 +52,9 @@ def lire_textfile_bloc(self, rep, chemin, fichier):
         self.fichier, "r", encoding=self.encoding, errors="backslashreplace"
     ) as ouvert:
         contenu = "".join(ouvert.readlines())
-        obj = self.getobj()
-        obj.attributs["contenu"] = contenu
+        attrs = {"contenu": contenu}
+        obj = self.getobj(attrs)
+        # obj.attributs["contenu"] = contenu
         self.process(obj)  # on traite l'objet precedent
     return self.nb_lus
 
@@ -91,8 +96,8 @@ def ecrire_objets_text(regle, _, attributs=None):
 
 
 READERS = {
-    "ligne": (lire_textfile_ligne, "", False, (), None, None),
-    "text": (lire_textfile_bloc, "", False, (), None, None),
+    "ligne": (lire_textfile_ligne, "", True, (), None, None),
+    "text": (lire_textfile_bloc, "", True, (), None, None),
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "", None)}

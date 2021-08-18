@@ -671,7 +671,6 @@ class Reader(object):
                         )
                         # print ('erreur de formattage attribut', self.ident, nom, attributs[nom])
         if self.filter and attributs:
-            # print ('filter ',self.filter(dict(attributs)))
             if isinstance(attributs, dict):
                 if not self.filter(attributs):
                     return None
@@ -683,6 +682,7 @@ class Reader(object):
         # if self.filter:
         #     if not self.filter(attributs):
         #         return None
+        # print("------------------filter ", self.filter, attributs)
 
         obj = Objet(
             niveau or self.groupe,

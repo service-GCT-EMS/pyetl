@@ -1300,8 +1300,6 @@ merge
 +======+======+======+========+======+========+
 |?A    |      |L     |merge   |?C    |        |
 +------+------+------+--------+------+--------+
-|?A    |      |L     |merge   |?C    |C       |
-+------+------+------+--------+------+--------+
 
 
 
@@ -2966,6 +2964,26 @@ centre
 
 
 .. index::
+  double: .traitement_shapely;geomerge
+
+geomerge
+........
+
+   fusionne des objets adjacents de la meme classe en fonction de champs communs
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |      |L     |geomerge|?C    |C       |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_shapely;geoselect
 
 geoselect
@@ -2991,28 +3009,6 @@ geoselect
    geoselect :  
    =in :  in (mot_clef)
    C :  nom memoire
-
-
-
-.. index::
-  double: .traitement_shapely;merge
-
-merge
-.....
-
-   fusionne des objets adjacents de la meme classe en fonction de champs communs
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|?A    |      |L     |merge   |?C    |        |
-+------+------+------+--------+------+--------+
-|?A    |      |L     |merge   |?C    |C       |
-+------+------+------+--------+------+--------+
-
 
 
 
@@ -3046,27 +3042,57 @@ web
 download
 ........
 
- 
- 
- 
+   telecharge un fichier via http
 
-   ; url; (attribut contenant l'url);http_download;racine;nom
+   l'entete du retour est stocke dans l'attribut #http_header
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|      |?C    |?A    |download|?C    |?C      |
-+------+------+------+--------+------+--------+
-|A     |?C    |?A    |download|      |        |
-+------+------+------+--------+------+--------+
-|      |?C    |?A    |download|=#B   |        |
-+------+------+------+--------+------+--------+
-|      |?C    |?A    |download|=#json|        |
-+------+------+------+--------+------+--------+
++---------+---------+---------+-----------+---------+-----------+
+|sortie   |defaut   |entree   |commande   |param1   |param2     |
++=========+=========+=========+===========+=========+===========+
+|         |?C       |?A       |download   |?C       |?C         |
++---------+---------+---------+-----------+---------+-----------+
+| *telecharge un element vers un fichier ou un repertoire*      |
++---------+---------+---------+-----------+---------+-----------+
+|A        |?C       |?A       |download   |         |           |
++---------+---------+---------+-----------+---------+-----------+
+| *telecharge un element vers un attribut*                      |
++---------+---------+---------+-----------+---------+-----------+
+|A        |?C       |?A       |download   |=#B      |           |
++---------+---------+---------+-----------+---------+-----------+
+| *telecharge un element vers un attribut en mode binaire*      |
++---------+---------+---------+-----------+---------+-----------+
+|         |?C       |?A       |download   |=#json   |           |
++---------+---------+---------+-----------+---------+-----------+
+| *telecharge un element json et genere un objet par element*   |
++---------+---------+---------+-----------+---------+-----------+
 
 
+   A :  attribut de sortie
+   ?C :  url (optionnel)
+   ?A :  attribut contenant l'url (optionnel)
+   download :  
+   =#B :  #B (mot_clef)
+
+   ?C :  url (optionnel)
+   ?A :  attribut contenant l'url (optionnel)
+   download :  
+   =#json :  #json (mot_clef)
+
+   ?C :  url (optionnel)
+   ?A :  attribut contenant l'url (optionnel)
+   download :  
+   ?C :  repertoire (optionnel)
+   ?C :  nom (optionnel)
+
+   A :  attribut de sortie
+   ?C :  url (optionnel)
+   ?A :  attribut contenant l'url (optionnel)
+   download :  
+
+trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
+http_encoding;force l encoding du rettour par defaut c est celui de l entete http
 
 
 .. index::
@@ -3205,29 +3231,6 @@ abort
    abort :  
    ?N :  niveau (optionnel)
    ?C :  message (optionnel)
-
-
-
-.. index::
-  double: .traitement_workflow;archive
-
-archive
-.......
-
-   zippe les fichiers ou les repertoires de sortie
-
-    parametres:liste de noms de fichiers(avec \*...);attribut contenant le nom;archive;nom
-
-**syntaxes acceptees**
-
-+--------------+--------------+--------------+----------------+--------------+----------------+
-|sortie        |defaut        |entree        |commande        |param1        |param2          |
-+==============+==============+==============+================+==============+================+
-|              |?C            |?A            |archive         |C             |                |
-+--------------+--------------+--------------+----------------+--------------+----------------+
-| * parametres:liste de noms de fichiers(avec *...);attribut contenant le nom;archive;nom*    |
-+--------------+--------------+--------------+----------------+--------------+----------------+
-
 
 
 
@@ -3409,20 +3412,22 @@ creobj
 
    cree des objets de test pour les tests fonctionnels
 
-   parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
 
 **syntaxes acceptees**
 
-+----------+----------+----------+------------+----------+------------+
-|sortie    |defaut    |entree    |commande    |param1    |param2      |
-+==========+==========+==========+============+==========+============+
-|L         |LC        |?L        |creobj      |C         |?N          |
-+----------+----------+----------+------------+----------+------------+
-| *parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre* |
-+----------+----------+----------+------------+----------+------------+
-|L         |LC        |          |creobj      |C         |?N          |
-+----------+----------+----------+------------+----------+------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|L     |LC    |?L    |creobj  |C     |?N      |
++------+------+------+--------+------+--------+
 
+
+   L :  liste d'attributs
+   LC :  liste valeurs
+   ?L :  liste att valeurs (optionnel)
+   creobj :  
+   C :  nom(niv,classe)
+   ?N :  nombre d'objets a creer (optionnel)
 
 
 
@@ -3485,6 +3490,9 @@ fail
 |      |      |      |fail    |?C    |        |
 +------+------+------+--------+------+--------+
 
+
+   fail :  
+   ?C :   (optionnel)
 
 
 
@@ -3651,9 +3659,12 @@ pass
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |pass    |?C    |?C      |
+|      |      |      |pass    |?C    |        |
 +------+------+------+--------+------+--------+
 
+
+   pass :  
+   ?C :   (optionnel)
 
 
 
@@ -3943,18 +3954,21 @@ testobj
 
    cree des objets de test pour les tests fonctionnels
 
-   parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre
 
 **syntaxes acceptees**
 
-+----------+----------+----------+------------+----------+------------+
-|sortie    |defaut    |entree    |commande    |param1    |param2      |
-+==========+==========+==========+============+==========+============+
-|L         |LC        |          |testobj     |C         |?N          |
-+----------+----------+----------+------------+----------+------------+
-| *parametres:liste d'attributs,liste valeurs,nom(niv,classe),nombre* |
-+----------+----------+----------+------------+----------+------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|L     |LC    |      |testobj |C     |?N      |
++------+------+------+--------+------+--------+
 
+
+   L :  liste d'attributs
+   LC :  liste valeurs
+   testobj :  
+   C :  nom(niv,classe)
+   ?N :  nombre d'objets a creer (optionnel)
 
 
 
@@ -4243,4 +4257,91 @@ xmlstruct
    xmlstruct :  attribut xml
    ?C :   (optionnel)
    ?C :  tag a extraire (optionnel)
+
+
+zip
+---
+
+zip
+
+.. index::
+  double: .traitement_zip;zip
+
+zip
+...
+
+   zippe les fichiers ou les repertoires de sortie
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |?C    |?A    |zip     |C     |        |
++------+------+------+--------+------+--------+
+
+
+   ?C :  liste de noms de fichiers(avec *...) (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zip :  
+   C :  nom du fichier zip
+
+
+
+.. index::
+  double: .traitement_zip;zipdir
+
+zipdir
+......
+
+   liste les fichiers d un zip
+
+
+**syntaxes acceptees**
+
++--------+--------+--------+----------+--------+----------+
+|sortie  |defaut  |entree  |commande  |param1  |param2    |
++========+========+========+==========+========+==========+
+|?A      |?C      |?A      |zipdir    |        |          |
++--------+--------+--------+----------+--------+----------+
+| *cree la liste de contenus dans l'attribut de sortie*   |
++--------+--------+--------+----------+--------+----------+
+|?A      |?C      |?A      |zipdir    |=split  |          |
++--------+--------+--------+----------+--------+----------+
+| *cree un objet par element du fichier zip*              |
++--------+--------+--------+----------+--------+----------+
+
+
+   ?A :  attribut de sortie (optionnel)
+   ?C :  nom du fichier (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zipdir :  
+
+
+
+.. index::
+  double: .traitement_zip;zipextract
+
+zipextract
+..........
+
+   extrait des fichiers d'un zip
+
+
+**syntaxes acceptees**
+
++------+------+------+----------+------+--------+
+|sortie|defaut|entree|commande  |param1|param2  |
++======+======+======+==========+======+========+
+|?C    |?C    |?A    |zipextract|C     |?=all   |
++------+------+------+----------+------+--------+
+
+
+   ?C :  destination (optionnel)
+   ?C :  fichier a extraire (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zipextract :  zipextract
+   C :  nom du zip
+   ?=all :   (optionnel)
 

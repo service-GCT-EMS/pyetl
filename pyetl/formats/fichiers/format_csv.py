@@ -442,7 +442,8 @@ def init_csv(self):
 def init_txt(self):
     """writer txt separateur tab pour le mode copy de postgres"""
     separ = self.regle_ref.getchain(("separ_txt_out", "separ_txt", "sep"), "\t")
-    initwriter(self, "txt", False, ("\t" if separ == "#std" else separ), "")
+    ext = self.regle_ref.getvar("ext", "txt")
+    initwriter(self, ext, False, ("\t" if separ == "#std" else separ), "")
 
 
 def init_geo(self):

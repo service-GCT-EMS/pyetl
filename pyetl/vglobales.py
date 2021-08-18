@@ -10,7 +10,7 @@ import platform
 
 
 REVISION = "0.8.3p"
-BUILD = 43
+BUILD = 44
 isdev = (
     "_dev" if os.path.isdir(os.path.join(os.path.dirname(__file__), "devenv")) else ""
 )
