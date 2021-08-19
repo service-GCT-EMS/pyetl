@@ -9,7 +9,7 @@ if printtime:
     print("pyetl start import ")
 import os
 import re
-
+import io
 import itertools
 from queue import Empty
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
@@ -1214,9 +1214,7 @@ class Pyetl(object):
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
-        if (
-            rep_sortie == "-" or not rep_sortie or rep_sortie == "__webservice"
-        ):  # pas de sortie on ecrit pas
+        if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
             if (
                 not self.getvar("_testmode")
                 and not self.mode.startswith("web")
@@ -1226,6 +1224,7 @@ class Pyetl(object):
                     return " on rale pas c est voulu"
                 self.logger.warning("pas de repertoire de sortie")
             return
+
         mode_schema = self.getvar("force_schema", "util")
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         if (

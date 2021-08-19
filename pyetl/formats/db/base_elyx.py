@@ -176,9 +176,10 @@ class ElyConnect(ora.OrwConnect):
             resultats, size, _ = self.stat_classes(classes, "no")
             dinit = time.time()
             if self.lanceur(helper, xml, paramfile, outfile):
-                self.export_statprint(
-                    None, ((nom,), outfile, size, resultats), time.time() - dinit
-                )
+                pass
+                # self.export_statprint(
+                #     None, ((nom,), outfile, size, resultats), time.time() - dinit
+                # )
             print("traitement externe %10.1f secondes" % (time.time() - dinit))
             return resultats
 

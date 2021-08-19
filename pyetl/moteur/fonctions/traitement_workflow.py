@@ -9,8 +9,6 @@ import os
 import sys
 import re
 
-# import re
-import zipfile
 import time
 import logging
 import copy

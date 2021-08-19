@@ -380,7 +380,7 @@ def ecrire_schema_xml(
     # nomschema = prefix + schema.nom.replace("#", "_")
 
     if xml:
-        if rep:
+        if rep and rep != "__webservice":
             os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
             # taille=len(schema.classes)
             if stock_param:

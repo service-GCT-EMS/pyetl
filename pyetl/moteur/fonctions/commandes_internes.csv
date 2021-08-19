@@ -219,8 +219,6 @@ $mode_sortie=D;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbschema;acces;niveau;classe;nom;;;;;;
 !#help;analyse une base de donnees;;;;;;;;;;
-!!#description;parametres: acces : code de la base, niveau, classe : restriction de lecture nom: nom du schema
-!!#description;variables: etendue: mode de sortie, mod: modifieur de selection
 !#api;dbschema;xml;no_in
 !#parametres;acces;base a analyser;
 !#parametres;niveau;schema a analyser (exp reg);

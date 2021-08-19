@@ -359,7 +359,8 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     # )
     # # raise
     #        raise FileNotFoundError
-
+    if rep_sortie == "__webservice":
+        formats = "xml"
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
         if i not in ["csv", "xml"] and "sql" not in i:
             formats = formats + ",csv"
