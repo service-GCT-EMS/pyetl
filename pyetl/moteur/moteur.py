@@ -414,6 +414,9 @@ class MacroStore(object):
     def getmacro(self, nom):
         return self.macros.get(nom)
 
+    def getmacros(self):
+        return self.macros.items()
+
     def rename(self, nom, nom2):
         macro = self.getmacro(nom)
         if macro:

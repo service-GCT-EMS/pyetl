@@ -370,7 +370,7 @@ def h_dbrequest(regle):
     regle.fich = "tmp"
     regle.grp = "tmp"
     valide = getrequest(regle)
-    if regle.params.pattern == "7":
+    if regle.params.pattern in "78":
         # lecture dans une variable
         if regle.dynrequete:
             return False
@@ -385,7 +385,11 @@ def h_dbrequest(regle):
                 requete=regle.requete,
                 parms=[regle.getvar[i] for i in regle.params.cmp2.liste],
             )
-            regle.setvar(regle.params.att_sortie.val, retour)
+            if regle.params.pattern == "7":
+                regle.setvar(regle.params.att_sortie.val, retour)
+            else:
+                sortie = regle.stock_param.webstore.setdefault("#print", [])
+                sortie.exend(retour if isinstance(retour, list) else [retour])
         except Exception as err:
             printexception(regle, requete, err)
             # raise
@@ -430,6 +434,9 @@ def f_dbrequest(regle, obj):
       #pattern5||;;=#;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
       #pattern7||P;;;dbreq;C;?L
+      #aide_spec8||mode webservice:
+      # renvoie le resultat brut de la requete
+      #pattern8||=:mws;;;dbreq;C;?L
      #req_test||testdb
     """
 

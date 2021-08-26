@@ -354,6 +354,10 @@ class Pyetl(object):
         """recupere une macro par son nom"""
         return self.macrostore.getmacro(nom)
 
+    def getmacros(self):
+        """recupere les macros"""
+        return self.macrostore.getmacros()
+
     def stocke_macro(self, description, origine):
         return self.macrostore.stocke_macro(description, origine)
 

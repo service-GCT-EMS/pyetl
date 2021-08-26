@@ -625,7 +625,7 @@ $test_v2=%n2%;;;;;
 !#parametres;n;nombre de lignes
 !#api;fakelist1;json;
 !#api;fakelist2;xml;
-!#api;fakelist3;txt;
+!#api;fakelist3;text;
 ;;;;xx;%valeur%;;creobj;tmp;%n%;;
 ;;;;xx+;;#gid;set;;;
 ;;;;;;xx;print>;;;

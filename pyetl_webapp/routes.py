@@ -159,17 +159,15 @@ class ScriptList(object):
         # genere la liste des apis
         mapper = scriptlist.mapper
         apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
-        macroapilist = [
-            (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
-            for i in mapper.getmacrolist()
-            if mapper.getmacro(i).apiname
-        ]
-        apilist.extend(
+
+        macroapilist = sorted(
             [
-                fichinfo._make((i[0], i[1].replace("#", "_"), "", ""))
-                for i in macroapilist
+                fichinfo._make((m.apiname, "_" + i[1:], m.retour, m.help))
+                for i, m in mapper.getmacros()
+                if m.apiname
             ]
         )
+        apilist.extend(macroapilist)
         return apilist
 
 
@@ -211,7 +209,10 @@ def foldeselector(fichier):
 @app.route("/scripts")
 def scripts():
     return render_template(
-        "scriptlist.html", liste=sorted(scriptlist.liste), mode="exec"
+        "scriptlist.html",
+        liste=sorted(scriptlist.liste),
+        mode="exec",
+        c2="Date de Mise a Jour",
     )
 
 
@@ -219,35 +220,29 @@ def scripts():
 def macros():
     macrolist = sorted(
         [
-            fichinfo._make((i, i.replace("#", "_"), "", ""))
-            for i in scriptlist.mapper.getmacrolist()
+            fichinfo._make((i, i.replace("#", "_"), "*" if m.apiname else "", m.help))
+            for i, m in scriptlist.mapper.getmacros()
         ]
     )
-    return render_template("scriptlist.html", liste=macrolist, mode="exec")
+    return render_template("scriptlist.html", liste=macrolist, mode="exec", c2="api")
 
 
 @app.route("/apis")
 def apis():
     # print("isapi", scriptlist.liste)
     apilist = scriptlist.getapilist()
-    # mapper = scriptlist.mapper
-    # apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
-    # macroapilist = [
-    #     (mapper.getmacro(i).apiname, i, mapper.getmacro(i).retour)
-    #     for i in mapper.getmacrolist()
-    #     if mapper.getmacro(i).apiname
-    # ]
-    # apilist.extend(
-    #     [fichinfo._make((i[0], i[1].replace("#", "_"), "", "")) for i in macroapilist]
-    # )
-    # print("apilist", macroapilist)
-    return render_template("scriptlist.html", liste=sorted(apilist), mode="api")
+    return render_template("scriptlist.html", liste=sorted(apilist), mode="api", c2="")
 
 
 @app.route("/refresh/<mode>")
 def refresh(mode):
     scriptlist.refresh()
-    return render_template("scriptlist.html", liste=sorted(scriptlist.liste), mode=mode)
+    return render_template(
+        "scriptlist.html",
+        liste=sorted(scriptlist.liste),
+        mode=mode,
+        c2="Date de Mise a Jour",
+    )
 
 
 @app.route("/scriptdesc/<script>")
