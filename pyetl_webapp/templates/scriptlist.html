@@ -4,21 +4,21 @@
     <h1>listes </h1>
 {% endblock %}
 {% block content %}
-    <div class="container position-fixed overflow-auto" style="top: 15%">
-    <table class="table table-bordered table-hover">
-    <thead class="d-block" >
+
+    <table class="table table-bordered table-hover owerflow-auto">
+    <thead class="sticky-top">
         <tr>
-            <td>Nom(run)</td>
-            <td>{{c2}}</td>
-            <td>Description</td>
+            <th>Nom(run)</th>
+            <th>{{c2}}</th>
+            <th>Description</th>
         </tr>
     </thead>
-    <tbody class="container d-block overflow-auto">
+    <tbody>
         {% for item in liste %}
-        <tr>
+        <tr class="table-info">
             <td>
-                <img src="{{url_for('static',filename='images/eye.png')}}" href=scriptview/{{ item.url }}></img>
-                <img src="{{url_for('static',filename='images/interrog.png')}}" href=scriptdesc/{{ item.url }}></img>
+                <a href=scriptview/{{ item.url }}><img src="{{url_for('static',filename='images/eye.png')}}" ></img></a>
+                <a href=scriptdesc/{{ item.url }}><img src="{{url_for('static',filename='images/interrog.png')}}"></img></a>
                 <a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a>
             </td>
             <td>{{ item.date_maj }}</td>
@@ -27,5 +27,5 @@
         {% endfor %}
     </tbody>
     </table>
-    </div>
+
 {% endblock %}

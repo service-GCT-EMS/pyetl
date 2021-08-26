@@ -104,7 +104,7 @@ class ScriptList(object):
             variables = macro.vars_utilisees
             infos["variables"] = variables
             infos["parametres"] = params
-            infos["no_in"] = macro.no_in
+            infos["no_in"] = {macro.no_in: "pas d entree"}
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
@@ -418,8 +418,8 @@ def execscript(script, mode):
                 wstats["result"] = list(result.keys())
                 session["stats"] = wstats
                 # session["retour"] = result
-                print("sortes resultats traitement", list(result.keys()))
-                print("resultats complets traitement", result)
+                print("sorties resultats traitement", list(result.keys()))
+                # print("resultats complets traitement", result)
                 if wstats:
                     return render_template(
                         "script_result.html",

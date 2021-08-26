@@ -4,6 +4,8 @@
 thead {
     background-image: url("planche.png");
     background-color: #4CAF50;
+    background-repeat: no-repeat;
+    background-size: cover;
     text-align: center;
     color: white;
   }
@@ -14,6 +16,7 @@ h1 {
     font: 2em Broadway;
     background-image: url("planche.png");
     background-repeat: no-repeat;
+    background-size: auto;
     background-position: center;
   }
 

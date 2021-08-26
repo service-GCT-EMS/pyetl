@@ -23,7 +23,7 @@ class TextWriter(fileio.FileWriter):
 
 
 def lire_textfile_ligne(reader, rep, chemin, fichier):
-    """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
+    """ lecture d'un fichier et creation d un objet par ligne"""
     reader.prepare_lecture_fichier(rep, chemin, fichier)
     nlin = 0
     if reader.newschema:
@@ -44,19 +44,65 @@ def lire_textfile_ligne(reader, rep, chemin, fichier):
     return reader.nb_lus
 
 
-def lire_textfile_bloc(self, rep, chemin, fichier):
-    """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
-    self.prepare_lecture_fichier(rep, chemin, fichier)
-
+def lire_textfile_pos(reader, rep, chemin, fichier):
+    """ lecture d'un fichier decodage positionnel"""
+    reader.prepare_lecture_fichier(rep, chemin, fichier)
+    nlin = 0
+    positions = []
+    debut = 0
+    fin = 0
+    if reader.newschema:
+        champs = reader.regle_ref.getvar("champs")
+        if champs:
+            for champ in champs.split(","):
+                nom, d, f = champ.split(":")
+                d = int(d)
+                f = int(f)
+                fin = max(fin, f)
+                positions.append(nom, d, f)
+                reader.schemaclasse.stocke_attribut(nom, "T", taille=f - d)
+        else:
+            reader.regle_ref.stock_param.logger.warning(
+                "pas de schema defini lecture impossible"
+            )
+            raise GeneratorExit
+    else:
+        for att in reader.schemaclasse.attributs:
+            fin = debut + att.taille
+            positions.append((att, debut, fin))
+            debut = fin
     with open(
-        self.fichier, "r", encoding=self.encoding, errors="backslashreplace"
+        reader.fichier, "r", 65536, encoding=reader.encoding, errors="backslashreplace"
+    ) as ouvert:
+        for ligne in ouvert:
+            if len(ligne) < fin:
+                ligne = ligne + " " * (fin - len(ligne))
+            attrs = {i: ligne[d:f] for i, d, f in positions}
+            obj = reader.getobj(attrs)
+            if obj is None:  # gere le maxval
+                continue
+            # obj.attributs["contenu"] = ligne[:-1]
+            nlin += 1
+            obj.attributs["#num_ligne"] = str(nlin)
+            reader.process(obj)  # on traite l'objet precedent
+    return reader.nb_lus
+
+
+def lire_textfile_bloc(reader, rep, chemin, fichier):
+    """ lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire"""
+    reader.prepare_lecture_fichier(rep, chemin, fichier)
+    if reader.newschema:
+        reader.schemaclasse.stocke_attribut("contenu", "T")
+        reader.prepare_attlist(["contenu"])
+    with open(
+        reader.fichier, "r", encoding=reader.encoding, errors="backslashreplace"
     ) as ouvert:
         contenu = "".join(ouvert.readlines())
         attrs = {"contenu": contenu}
-        obj = self.getobj(attrs)
+        obj = reader.getobj(attrs)
         # obj.attributs["contenu"] = contenu
-        self.process(obj)  # on traite l'objet precedent
-    return self.nb_lus
+        reader.process(obj)  # on traite l'objet precedent
+    return reader.nb_lus
 
 
 def ecrire_objets_text(regle, _, attributs=None):
@@ -98,6 +144,7 @@ def ecrire_objets_text(regle, _, attributs=None):
 READERS = {
     "ligne": (lire_textfile_ligne, "", True, (), None, None),
     "text": (lire_textfile_bloc, "", True, (), None, None),
+    "fixed": (lire_textfile_pos, "", True, (), None, None),
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "", None)}
