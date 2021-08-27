@@ -264,21 +264,44 @@ def scriptview(script):
     fill = [""] * 13
     code = []
     n = 0
+    typem = ""
     for i in lignes:
+        type_ligne = "ltype_inst"
         n += 1
+        if n == 1 and i.startswith("!"):
+            continue
         if i.startswith("!#") or i.startswith("!"):
+            type_ligne = "ltype_comment"
             colspan = 13
             contenu = [i.replace(";", " ")]
         elif i.startswith("$"):
+            type_ligne = "ltype_group" if i.startswith("$#") else "ltype_affect"
             tmp = (i.split(";") + fill)[:13]
             contenu = [" ".join(tmp[:12]), tmp[12]]
             colspan = 12
         else:
+            type_ligne = "ltype_inst"
+            if i.startswith("&&#"):
+                type_ligne = "ltype_macro"
+                typem = " levelm"
+            if i.startswith("&&#end"):
+                type_ligne = "ltype_macro"
+                typem = ""
+            if "<#" in i:
+                type_ligne = "ltype_charge"
             contenu = (i.split(";") + fill)[:13]
             colspan = 1
             if not any(contenu):
                 continue
-        code.append((n, colspan, contenu))
+        type_ligne = type_ligne + typem
+        if i.startswith("|||"):
+            type_ligne = type_ligne + " level3"
+        elif i.startswith("||"):
+            type_ligne = type_ligne + " level2"
+        elif i.startswith("|"):
+            type_ligne = type_ligne + " level1"
+
+        code.append((n, colspan, contenu, type_ligne))
     # print("scriptview,", code)
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 

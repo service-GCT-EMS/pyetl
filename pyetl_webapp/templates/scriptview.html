@@ -1,37 +1,40 @@
 
 {% extends "base.html" %}
-
-{% block content %}
+{% block title %}
     <h1>{{ nom }}</h1>
-    <table>
-    <thead>
-        <tr>
-            <td>num</td>
-            <td>att_tri1</td>
-            <td>valeur_tri1</td>
-            <td>att_tri2</td>
-            <td>valeur_tri2</td>
-            <td>att_sortie</td>
-            <td>defaut</td>
-            <td>att_entree</td>
-            <td>mode</td>
-            <td>param1</td>
-            <td>param2</td>
-            <td>debug</td>
-            <td>variables</td>
-            <td>commentaires</td>
-        </tr>
-    </thead>
-    <tbody>
-        {% for n,span,ligne in code %}
-            <tr>
-                <td>{{ n }}</td>
-                <td colspan={{ span }}>{{ ligne[0] }}</td>
-                {% for item in ligne[1:] %}
-                    <td>{{ item }}</td>
+{% endblock %}
+{% block content %}
+    <div class="table-responsive" style="height:80vh">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>num</th>
+                    <th>att_tri1</th>
+                    <th>valeur_tri1</th>
+                    <th>att_tri2</th>
+                    <th>valeur_tri2</th>
+                    <th>att_sortie</th>
+                    <th>defaut</th>
+                    <th>att_entree</th>
+                    <th>mode</th>
+                    <th>param1</th>
+                    <th>param2</th>
+                    <th>debug</th>
+                    <th>variables</th>
+                    <th>commentaires</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n,span,ligne,type_ligne in code %}
+                    <tr class="{{type_ligne}}">
+                        <td>{{ n }}</td>
+                        <td colspan={{ span }}>{{ ligne[0] }}</td>
+                        {% for item in ligne[1:] %}
+                            <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
                 {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

@@ -1,11 +1,39 @@
 
 
 
+.table-responsive{
+  height:90vh;
+  overflow:scroll;
+  width:max-content;
+  --mws-macrocolor:0,0,0;
+}
+
+.ltype_comment{ background-color: #45e299; line-height:0.8;}
+.ltype_affect{  background-color: #e9d18a; line-height:0.8;}
+.ltype_group{  background-color: #ebb71b;}
+.ltype_inst{  background-color:#cff4fc; line-height:0.8;}
+.ltype_macro{  background-color:#0c7891;}
+.ltype_charge{  background-color:#547d86;}
+
+.levelm{
+  --mws-macrocolor:0,0,1;
+  background-image:linear-gradient(rgba(var(--mws-macrocolor), 0.3),rgba(var(--mws-macrocolor), 0.3));
+ }
+
+.level1{background-image:linear-gradient(rgba(var(--mws-macrocolor), 0.1),rgba(var(--mws-macrocolor), 0.1)); }
+.level2{background-image:linear-gradient(rgba(var(--mws-macrocolor), 0.2),rgba(var(--mws-macrocolor), 0.2)); }
+.level3{background-image:linear-gradient(rgba(var(--mws-macrocolor), 0.3),rgba(var(--mws-macrocolor), 0.3)); }
+
+
+
 thead {
     background-image: url("planche.png");
-    background-color: #4CAF50;
-    background-repeat: no-repeat;
-    background-size: cover;
+
+
+
+    position:sticky;
+    top:0;
+    z-index:10;
     text-align: center;
     color: white;
   }

@@ -1,13 +1,14 @@
 
 {% extends "base.html" %}
 {% block title %}
-    <h1>listes </h1>
+
 {% endblock %}
 {% block content %}
-
-    <table class="table table-bordered table-hover owerflow-auto">
-    <thead class="sticky-top">
+<div class="table-responsive">
+    <table class="table table-bordered">
+    <thead>
         <tr>
+            <th colspan=2></th>
             <th>Nom(run)</th>
             <th>{{c2}}</th>
             <th>Description</th>
@@ -18,14 +19,16 @@
         <tr class="table-info">
             <td>
                 <a href=scriptview/{{ item.url }}><img src="{{url_for('static',filename='images/eye.png')}}" ></img></a>
-                <a href=scriptdesc/{{ item.url }}><img src="{{url_for('static',filename='images/interrog.png')}}"></img></a>
-                <a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a>
             </td>
+            <td>
+                <a href=scriptdesc/{{ item.url }}><img src="{{url_for('static',filename='images/interrog.png')}}"></img></a>
+            </td>
+            <td><a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a></td>
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>
         {% endfor %}
     </tbody>
     </table>
-
+</div>
 {% endblock %}
