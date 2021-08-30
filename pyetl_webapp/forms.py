@@ -62,19 +62,16 @@ def formbuilder(description):
             )
             varlist.append(("sortie", def_es[1]))
 
-    elif description["__mode__"] != "api":
+    elif description["__mode__"] == "api":
         if not description.get("no_in"):
             setattr(CustomForm, "entree", F.MultipleFileField("entree"))
             varlist.append(("entree", "entree"))
-        else:
-            setattr(
-                CustomForm,
-                "pure_ws",
-                F.BooleanField("voir resultast en mode webservice"),
-            )
-            varlist.append(("pure_ws", "pure_ws"))
-        setattr(CustomForm, "sortie", F.StringField("sortie"))
-        varlist.append(("sortie", "sortie"))
+        setattr(
+            CustomForm,
+            "pure_ws",
+            F.BooleanField("voir resultast en mode webservice"),
+        )
+        varlist.append(("pure_ws", "pure_ws"))
     # print("variables", list(chain(params.items(), variables.items())))
     for var in chain(params.items(), variables.items()):
         tmp = var.split(",") if isinstance(var, str) else var

@@ -324,80 +324,83 @@ def webservicelist():
     return jsonify(apilist)
 
 
+def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
+    """execute un traitement"""
+    stime = time.time()
+    fich_script = (
+        nomscript
+        if nomscript.startswith("#")
+        else os.path.join(scriptlist.scriptdir, nomscript)
+    )
+    nom = session.get("nompyetl", scriptlist.worker if local else "")
+
+    processor = scriptlist.mapper.getpyetl(
+        fich_script,
+        entree=entree,
+        rep_sortie=rep_sortie,
+        liste_params=scriptparams,
+        mode=mode,
+        nom=nom,
+    )
+    wstats = None
+    if processor:
+        try:
+            processor.process()
+            wstats = processor.get_work_stats()
+            result, tmpdir = processor.get_results()
+            wstats["tmpdir"] = tmpdir
+            wstats["result"] = list(result.keys())
+            wstats["nom"] = nomscript
+            session["stats"] = wstats
+            session["nompyetl"] = processor.nompyetl
+            if local:
+                scriptlist.worker = processor.nompyetl
+        except error as err:
+            LOGGER.exception("erreur script", exc_info=err)
+    return (wstats, result, tmpdir) if wstats else None
+
+
 @app.route("/ws/<script>", methods=["GET", "POST"])
 def webservice(script):
     local = request.host.startswith("127.0.0.1:")
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
 
     nomscript = "#" + script[1:] if script.startswith("_") else script
+    if not scriptlist.refreshscript(nomscript):
+        abort(404)
     tmp = dict(request.args.items())
+    # on recupere les parametres positionnels s il y en a
     pp = tmp.pop("_pp", "")
     if pp:
         nomscript = nomscript + ";" + pp
     scriptparams = [i + "=" + j for i, j in tmp.items()]
 
-    if not scriptlist.refreshscript(nomscript):
-        abort(404)
-    fich_script = (
-        nomscript
-        if nomscript.startswith("#")
-        else os.path.join(scriptlist.scriptdir, nomscript)
-    )
-
-    stime = time.time()
     rep_sortie = "__webservice"
     entree = ""
-    nom = session.get("nompyetl", scriptlist.worker if local else "")
-
-    processor = scriptlist.mapper.getpyetl(
-        fich_script,
-        liste_params=scriptparams,
-        entree=entree,
-        rep_sortie=rep_sortie,
-        mode="webservice",
-        nom=nom,
+    retour = process_script(
+        nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
-    if processor:
-        # print(
-        #     "_______________________________appel webservice",
-        #     nom,
-        #     nomscript,
-        #     scriptparams,
-        #     processor.idpyetl,
-        #     processor.nompyetl,
-        # )
-        print("regles", len(processor.regles))
-        session["nompyetl"] = processor.nompyetl
-        if local:
-            scriptlist.worker = processor.nompyetl
-        try:
-            processor.process()
-            wstats = processor.get_work_stats()
-            # print("appel resultats")
-            result, tmpdir = processor.get_results()
-            # print("retour", result)
-            print("duree traitement", time.time() - stime)
-            if not "print" in result:
-                return "reponse vide"
-            # print("retour ws", type(result["print"]), result["print"])
-            ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
-            # print("recup ", ret)
-            if len(ret) == 0:
-                ret = "no result"
-            elif len(ret) == 1:
-                ret = ret[0]
+    if retour:
+        wstats, result, tmpdir = retour
 
-            # print("json", jsonify(ret))
-            return jsonify(ret)
-        except KeyError as ex:
-            print("erreur ", ex)
-            return "erreur"
+        ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
+        # print("recup ", ret)
+        if len(ret) == 0:
+            ret = "no result"
+        elif len(ret) == 1:
+            ret = ret[0]
+
+        # print("json", jsonify(ret))
+        return jsonify(ret)
+    else:
+        return "erreur"
 
 
 @app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
 def execscript(script, mode):
     # print("dans exec", script)
+    local = request.host.startswith("127.0.0.1:")
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -424,38 +427,23 @@ def execscript(script, mode):
 
         print("recup form", entree, rep_sortie, infos, scriptparams)
         print("full url", request.base_url)
-        processor = scriptlist.mapper.getpyetl(
-            fich_script,
-            entree=entree,
-            rep_sortie=rep_sortie,
-            liste_params=scriptparams,
-            mode="web",
+        retour = process_script(
+            nomscript, entree, rep_sortie, scriptparams, "web", local
         )
-        if processor:
-            try:
-                processor.process()
-                wstats = processor.get_work_stats()
-                result, tmpdir = processor.get_results()
-                wstats["tmpdir"] = tmpdir
-                wstats["nom"] = nomscript
-                wstats["result"] = list(result.keys())
-                session["stats"] = wstats
-                # session["retour"] = result
-                print("sorties resultats traitement", list(result.keys()))
-                # print("resultats complets traitement", result)
-                if wstats:
-                    return render_template(
-                        "script_result.html",
-                        stats=wstats,
-                        retour=result,
-                        url=script,
-                        nom=nomscript,
-                    )
-                return render_template("noresult.html", url=script, nom=nomscript)
-            except error as err:
-                LOGGER.exception("erreur script", exc_info=err)
-                return redirect("/plantage/" + script)
-        return redirect("/plantage/" + script)
+        if retour:
+            wstats, result, tmpdir = retour
+
+            return render_template(
+                "script_result.html",
+                stats=wstats,
+                retour=result,
+                url=script,
+                nom=nomscript,
+            )
+        else:
+            # return render_template("noresult.html", url=script, nom=nomscript)
+
+            return redirect("/plantage/" + script)
 
     return render_template(
         "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script
