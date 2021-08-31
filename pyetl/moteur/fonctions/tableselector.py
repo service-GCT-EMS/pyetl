@@ -416,7 +416,7 @@ class TableSelector(object):
         # )
         return complet
 
-    def get_classes(self):
+    def classlist(self):
         for base in self.baseselectors:
             for item in self.baseselectors[base].classlist():
                 yield base, item

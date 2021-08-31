@@ -224,7 +224,9 @@ def macros():
             for i, m in scriptlist.mapper.getmacros()
         ]
     )
-    return render_template("scriptlist.html", liste=macrolist, mode="exec", c2="api")
+    return render_template(
+        "scriptlist.html", liste=macrolist, mode="exec", c2="mode api"
+    )
 
 
 @app.route("/apis")

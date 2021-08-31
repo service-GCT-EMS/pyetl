@@ -434,9 +434,8 @@ def f_dbrequest(regle, obj):
       #pattern5||;;=#;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
       #pattern7||P;;;dbreq;C;?L
-      #aide_spec8||mode webservice:
-      # renvoie le resultat brut de la requete
-      #pattern8||=:mws;;;dbreq;C;?L
+      #aide_spec8||mode webservice: renvoie le resultat brut de la requete
+      #pattern8||=mws:;;;dbreq;C;?L
      #req_test||testdb
     """
 
@@ -779,7 +778,7 @@ def f_dbcount(regle, obj):
 
     selecteur = setdb(regle, obj)
     retour = 0
-    for base, ident in selecteur.get_classes():
+    for base, ident in selecteur.classlist():
         niveau, classe = ident
         LOGGER.debug("regles count:ligne  " + repr(regle) + repr(base) + repr(mods))
 

@@ -13,7 +13,7 @@ def getlog(args):
     if args:
         for i in args:
             if "log_file=" in i or "log_level=" in i or "log_print=" in i:
-                loginfo.update(i.split("=")[1])
+                loginfo.update([tuple(i.split("="))])
     # print("dans getlog", log, log_level, log_print)
     return loginfo
 

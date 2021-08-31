@@ -15,6 +15,7 @@ csv                                oui           oui
 csvj                               non           oui
 dbf                                oui           non
 dxf                                oui           oui
+fixed                              oui           non
 geo                                non           oui
 geojson                            oui           oui
 gpkg                               oui           oui
@@ -415,6 +416,13 @@ format dxf
  lecture d'un fichier reconnu et stockage des objets en memoire
 
 
+format fixed
+............
+
+
+ lecture d'un fichier decodage positionnel
+
+
 format geo
 ..........
 
@@ -459,7 +467,7 @@ format ligne
 ............
 
 
- lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire
+ lecture d'un fichier et creation d un objet par ligne
 
 
 format mdb

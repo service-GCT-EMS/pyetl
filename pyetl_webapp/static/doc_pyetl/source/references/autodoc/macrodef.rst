@@ -663,7 +663,7 @@ parametres positionnels
 macro utilisabe en service web
 
 * url          : ws/fakelist3
-* format retour:txt
+* format retour:text
 
 
 
