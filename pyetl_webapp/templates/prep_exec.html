@@ -2,17 +2,24 @@
 {% block title %}<h1>lancement script {{ nom }}</h1>{% endblock %}
 
 {% block content %}
-
+    <div class="container">
+    <img class="centre" src="{{url_for('static', filename='images/waitform.gif')}}">
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         {% for item in varlist %}
-            <p>
-                {{ item[1] }}<br>
-                {{ form[item[0]]() }}
-            </p>
+            <div class="row">
+                <div class="col-sm">
+                    <p style="text-align:right"> {{ item[1] }}</p>
+                </div>
+                <div class="col-sm">
+                    {{ form[item[0]]() }}
+                </div>
+            </div>
         {% endfor %}
         <p>{{ form.submit() }}</p>
     </form>
+    </div>
     <div class="log">
-    <h1>LOGS</h1>
+        <h1>LOGS</h1>
+    </div>
 {% endblock %}

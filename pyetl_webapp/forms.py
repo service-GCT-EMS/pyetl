@@ -66,30 +66,29 @@ def formbuilder(description):
         if not description.get("no_in"):
             setattr(CustomForm, "entree", F.MultipleFileField("entree"))
             varlist.append(("entree", "entree"))
-        else:
-            setattr(
-                CustomForm,
-                "sortie webservice",
-                F.BooleanField("voir resultast en mode webservice"),
-            )
-            varlist.append(("pure_ws", "pure_ws"))
         setattr(CustomForm, "sortie", F.StringField("sortie"))
         varlist.append(("sortie", "sortie"))
     # print("variables", list(chain(params.items(), variables.items())))
-    for var in chain(params.items(), variables.items()):
-        tmp = var.split(",") if isinstance(var, str) else var
-        vardef = tmp[0]
-        name, definition = vardef.split("(", 1) if "(" in vardef else (vardef, "T)")
-        definition = definition[:-1]
+    for name, definition in chain(params.items(), variables.items()):
+
+        nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")
+        typevar = typevar[:-1]
         vlist = []
-        if ":" in definition:
-            tmp2 = definition.split(":")
-            definition = tmp2[0]
+        if ":" in typevar:
+            tmp2 = typevar.split(":")
+            typevar = tmp2[0]
             vlist = tmp2[1:]
 
-        fname = tmp[1] if len(tmp) > 1 else name
-        setattr(CustomForm, name, fieldfunctions.get(definition, F.StringField)(fname))
-        varlist.append((name, name))
+        setattr(CustomForm, nom, fieldfunctions.get(typevar, F.StringField)(definition))
+        varlist.append((name, definition))
+
+    if description["__mode__"] == "api":
+        setattr(
+            CustomForm,
+            "x_ws",
+            F.BooleanField("voir resultats en mode webservice"),
+        )
+        varlist.append(("x_ws", "voir resultats en mode webservice"))
 
     setattr(CustomForm, "submit", SubmitField("executer"))
     print("cree customform", varlist)

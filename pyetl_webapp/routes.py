@@ -10,6 +10,9 @@ from types import MethodType
 import logging
 import time
 from collections import namedtuple
+from requests import Request
+from urllib.parse import urlencode
+
 from flask import (
     render_template,
     flash,
@@ -18,6 +21,7 @@ from flask import (
     jsonify,
     url_for,
     request,
+    Response,
     abort,
 )
 
@@ -384,16 +388,22 @@ def webservice(script):
     )
     if retour:
         wstats, result, tmpdir = retour
+        if "print" in result:
+            ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
+            # print("recup ", ret)
+            if len(ret) == 0:
+                ret = "no result"
+            elif len(ret) == 1:
+                ret = ret[0]
 
-        ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
-        # print("recup ", ret)
-        if len(ret) == 0:
-            ret = "no result"
-        elif len(ret) == 1:
-            ret = ret[0]
-
-        # print("json", jsonify(ret))
-        return jsonify(ret)
+            # print("json", jsonify(ret))
+            return jsonify(ret)
+        for elem in result:
+            if elem.startswith("schema"):
+                xml = result[elem]
+                print("xml", xml[0:10])
+                return Response(result[elem], mimetype="text/xml")
+        return "erreur"
     else:
         return "erreur"
 
@@ -429,6 +439,14 @@ def execscript(script, mode):
 
         print("recup form", entree, rep_sortie, infos, scriptparams)
         print("full url", request.base_url)
+        x_ws = scriptparams.get("x_ws")
+        print("valeur xws", x_ws)
+        if x_ws == "True":  # on appelle en mode webservice
+            qstr = urlencode(scriptparams)
+            # url = "http://ws/" + script
+            wsurl = "/ws/" + script + "?" + qstr
+            # print("mode webservice ", url + "?" + qstr)
+            return redirect(wsurl)
         retour = process_script(
             nomscript, entree, rep_sortie, scriptparams, "web", local
         )
