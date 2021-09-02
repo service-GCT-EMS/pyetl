@@ -362,7 +362,10 @@ def h_sortir(regle):
         if (
             regle.params.cmp2.val == "#print"
             or regle.getvar("_sortie") == "#print"
-            or regle.getvar("_sortie").startswith("__webservice")
+            or (
+                regle.stock_param.mode.startswith("web")
+                and regle.getvar("_sortie") == ""
+            )
             or (fich == "" and regle.getvar("_sortie") == "")
         )
         else regle.params.cmp1.val

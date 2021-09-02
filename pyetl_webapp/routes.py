@@ -349,6 +349,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
         nom=nom,
     )
     wstats = None
+    print("recup processeur", processor.idpyetl if processor else None, fich_script)
     if processor:
         try:
             processor.process()
@@ -379,10 +380,10 @@ def webservice(script):
     pp = tmp.pop("_pp", "")
     if pp:
         nomscript = nomscript + ";" + pp
+    entree = ""
+    rep_sortie = ""
     scriptparams = [i + "=" + j for i, j in tmp.items()]
 
-    rep_sortie = "__webservice"
-    entree = ""
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
@@ -403,9 +404,11 @@ def webservice(script):
                 xml = result[elem]
                 print("xml", xml[0:10])
                 return Response(result[elem], mimetype="text/xml")
-        return "erreur"
+        if "log" in result:
+            return jsonify(result["log"])
+        return "erreur rien a retourner"
     else:
-        return "erreur"
+        return "erreur pas de retour"
 
 
 @app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
@@ -425,13 +428,17 @@ def execscript(script, mode):
     print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
+    rep_sortie = ""
+    entree = ""
     if form.validate_on_submit():
-        if mode != "api":
-            entree = form.entree.data[0]
+        try:
+            entree = form.entree.data
+        except AttributeError:
+            pass
+        try:
             rep_sortie = form.sortie.data
-        else:
-            rep_sortie = "__webservice"
-            entree = ""
+        except AttributeError:
+            pass
         scriptparams = dict()
         for desc in varlist:
             nom, definition = desc

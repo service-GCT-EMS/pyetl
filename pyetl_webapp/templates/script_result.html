@@ -36,15 +36,25 @@
     <div class="tab-content">
         {% for valeur in retour %}
             <div class="tab-pane" id="{{ valeur }}">
-            <table>
-            <tbody>
-                {% for ligne in retour[valeur] %}
-                    <tr>
-                        <td>{{ ligne }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-            </table>
+            {%if retour[valeur][0].startswith("<?xml") %}
+                <table>
+                    <tbody>
+                    {% for ligne in retour[valeur] %}
+                        <tr><td>{{ ligne }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {%else%}
+                <table>
+                <tbody>
+                    {% for ligne in retour[valeur] %}
+                        <tr>
+                            <td>{{ ligne }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+            {%endif%}
             </div>
         {% endfor %}
     </div>

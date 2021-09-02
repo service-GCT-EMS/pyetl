@@ -285,6 +285,7 @@ class Pyetl(object):
             repr(commandes),
             repr(args),
         )
+        print("result initialisation", result)
         return result
 
     def init_environ(self, env=None):
@@ -408,7 +409,7 @@ class Pyetl(object):
             self.regles = []
             self.moteur = Moteur(self)
             self.initcontext()
-            self.initlog()
+            # self.initlog()
             for i in list(self.schemas.keys()):
                 if not i.startswith("#"):
                     del self.schemas[i]
@@ -434,7 +435,7 @@ class Pyetl(object):
             (repr(regles), repr(liste_params), self.getvar("_sortie", "pas_de_sortie")),
         )
         erreurs = None
-        # print("dans prepare_module2", self.fichier_regles)
+        print("dans prepare_module2", self.fichier_regles, self.done)
         if self.fichier_regles or self.liste_regles:
             # if not self.done:
             try:
@@ -472,7 +473,7 @@ class Pyetl(object):
                 return False
         self.sorties.set_sortie(self.getvar("_sortie"))
         if not self.regles:
-            #            print('pas de regles', self.done)
+            print("prepare_module pas de regles", self.done, list(self.schemas.keys()))
             if self.done:
                 return True
             self.logger.critical(
@@ -668,7 +669,10 @@ class Pyetl(object):
         if nom:
             petl.nompyetl = nom
         petl.mode = mode
+        print("appel initpyetl", petl.inited, petl.mode, petl.done)
         if petl.initpyetl(regles, liste_params):
+            print("apres initpyetl:", petl.inited, petl.mode, petl.done, petl.regles)
+
             return petl
         self.logger.critical("erreur getpyetl %s", str(regles))
         # print("erreur getpyetl", regles)
@@ -1064,7 +1068,9 @@ class Pyetl(object):
         if isinstance(entree, list):
             entree = ",".join(entree)
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
+
         if self.done:
+            print("process: done : rien a faire")
             self.logger.debug("rien a faire")
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
@@ -1106,7 +1112,7 @@ class Pyetl(object):
                 # print("type entree ", type(entree))
             self.moteur.vide_stock()
             ft, _ = next(self.maintimer)
-
+            self.setvar("_st_duree", (ft - dt))
             self.logger.info("fin traitement donnees: %d s", int(ft - dt))
 
         else:
@@ -1126,7 +1132,8 @@ class Pyetl(object):
             except StopIteration:
                 self._finalise_sorties()
         #        print('mapper: fin traitement donnees:>', entree, '-->', self.regle_sortir.params.cmp1.val)
-
+        ft, _ = next(self.maintimer)
+        self.setvar("_st_duree", (ft - dt))
         if not self.is_special and not self.done:
 
             self.logger.info(
@@ -1140,6 +1147,7 @@ class Pyetl(object):
 
     def menage_final(self):
         """vidage de tous les tuyaux et stats finales"""
+        print("menage-final", self.schemas.keys(), self.mode)
         self.moteur.vide_stock()
         self.debug = 0
         # self._finalise_sorties()
@@ -1218,11 +1226,15 @@ class Pyetl(object):
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
-        if rep_sortie == "-" or not rep_sortie:  # pas de sortie on ecrit pas
+        print(
+            "rep sortie schema",
+            self.getvar("sortie_schema", "rien"),
+            self.getvar("_sortie", "rien"),
+        )
+        if rep_sortie == "-" or not rep_sortie and not self.mode.startswith("web"):
+            # pas de sortie on ecrit pas
             if (
-                not self.getvar("_testmode")
-                and not self.mode.startswith("web")
-                and self.schemas
+                not self.getvar("_testmode") and self.schemas
             ):  # en mode test ou web on rale pas
                 if self.getvar("sans_sortie") in ("True", "true", "1", "T", "t"):
                     return " on rale pas c est voulu"
@@ -1263,7 +1275,8 @@ class Pyetl(object):
 
     def get_work_stats(self):
         """retourne un dictionnaire avec les stats d execution générales"""
-        duree, _ = next(self.maintimer)
+        duree = self.getvar("_st_duree", 0.001)
+
         duree = 0.001 if duree == 0 else duree
         obj_lus = self.getvar("_st_lu_objs", 0)
         obj_ecrits = self.getvar("_st_wr_objs", 0)
@@ -1300,7 +1313,8 @@ class Pyetl(object):
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
             for i in self.webstore
         }
-        self.webstore = dict()
+        buffer.truncate(0)
+        self.webstore = {"log": buffer}
         name = "noname"
         return tmp, name
 

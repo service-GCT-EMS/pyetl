@@ -8,7 +8,7 @@
     <!ENTITY trade  "&#8482;">
     <!ENTITY mdash  "&#8212;">
     <!ENTITY ldquo  "&#8220;">
-    <!ENTITY rdquo  "&#8221;"> 
+    <!ENTITY rdquo  "&#8221;">
     <!ENTITY pound  "&#163;">
     <!ENTITY yen    "&#165;">
     <!ENTITY euro   "&#8364;">
@@ -24,7 +24,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9;IE=10;IE=EDGE"/>
 <title>Dictionnaire de données</title>
-<link rel="stylesheet" href="xsl/css/ems.css" type="text/css"/>
+<link rel="stylesheet" href="/static/xsl/css/ems.css" type="text/css"/>
 </head>
 <body class="general">
 	<div id="conteneur">
@@ -32,7 +32,7 @@
 			<span class="bandeau_milieu">
 				<div class="titreappli">Dictionnaire de données</div>
 			</span>
-			<span id="header"></span>           
+			<span id="header"></span>
 		</div>
 
 		<div id="contenu">
@@ -44,7 +44,7 @@
 				<span  class="pavegauche">
 					<h1 id="sommaire">Sommaire  </h1>
 				</span>
-				
+
 				<span  class="pavegauche">
 					<h2>
 					<xsl:choose>
@@ -58,7 +58,7 @@
 					<ul>
 					<xsl:for-each select="structure/schemas/schema">
 						<span class="pavegauche">
-							
+
 								<a href="#{@nom}">
 									<xsl:value-of select="@nom"/>
 								</a>
@@ -67,7 +67,7 @@
 						</span>
 					</xsl:for-each>
 					</ul>
-				</span>	
+				</span>
 				<span  class="pavegauche">
 					<h2>Tables</h2>
 				</span>
@@ -75,7 +75,7 @@
 						<ul>
 						<xsl:for-each select="structure/schemas/schema">
 							<span class="pavegauche">
-								
+
 									<i id="{@nom}">
 										<h3><xsl:value-of select="@nom"/>
 										&nbsp;
@@ -86,7 +86,7 @@
 							<xsl:for-each select="classes/classe">
 								<li>
 										<a href="#{@groupe}_{@nom}">
-											
+
 											<xsl:value-of select="@nom"/>
 										</a>
 										<i class="italique">
@@ -124,12 +124,12 @@
 					</span>
 			</div>
 
-					
-			
+
+
 				<span  class="pavegauche">
 					<h1>Tables</h1>
 				</span>
-								
+
 								<xsl:for-each select="structure/schemas/schema/classes/classe">
 									<span  class="pavegauche">
 									<h2 id="{@groupe}_{@nom}">
@@ -147,7 +147,7 @@
 											<p>
 												<h3>Description</h3><br />
 												<ul>
-													<li class="texte">Alias : 
+													<li class="texte">Alias :
 															<xsl:choose>
     															<xsl:when test="contains(@alias, '|')">
     																<xsl:value-of select='substring-before(@alias, "|")'/>
@@ -236,14 +236,14 @@
 									  <a href="#null" onclick="javascript:history.back();">Retour</a> - <a href="#sommaire">Sommaire</a>
 									</span>
 								</xsl:for-each>
-							
-					
-			
-			
+
+
+
+
 				<span  class="pavegauche">
 					<h1>Enumérations</h1>
 				</span>
-							
+
 									<xsl:for-each select="structure/conformites/conformite">
 										<span  class="pavegauche">
 											<h2 id="{@nom}"><xsl:value-of select="@nom"/></h2>
@@ -274,10 +274,10 @@
 									  		<a href="#null" onclick="javascript:history.back();">Retour</a> - <a href="#sommaire">Sommaire</a>
 										</span>
 									</xsl:for-each>
-				
-					
-								
-		
+
+
+
+
 		</div>
 	</div>
 

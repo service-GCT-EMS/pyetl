@@ -361,6 +361,7 @@ def ecrire_schema_xml(
     stock_param=None,
 ):
     """ecrit un schema en xml"""
+    print("ecrire schema xml")
     alias = ESC_XML(alias)
     if stock_param and stock_param.mode.startswith("web"):
         print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)
@@ -380,7 +381,7 @@ def ecrire_schema_xml(
     # nomschema = prefix + schema.nom.replace("#", "_")
 
     if xml:
-        if rep and rep != "__webservice":
+        if rep:
             os.makedirs(os.path.dirname(os.path.join(rep, nomschema)), exist_ok=True)
             # taille=len(schema.classes)
             if stock_param:

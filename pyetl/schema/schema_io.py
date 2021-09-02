@@ -347,19 +347,12 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     # print("ecriture_schemas", mode, stock_param.schemas.keys())
     if mode == "no":
         return
-    #    rep_sortie = stock_param.getvar('sortie_schema', stock_param.getvar('_sortie'))
-    #    rep_sortie = stock_param.getvar('_sortie')
+
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
-    stock_param.logger.info("repertoire sortie schema %s", rep_sortie)
-    # print(
-    #     "sio:repertoire sortie schema",
-    #     stock_param.idpyetl,
-    #     stock_param.mode,
-    #     rep_sortie,
-    # )
-    # # raise
-    #        raise FileNotFoundError
-    if rep_sortie == "__webservice":
+    if rep_sortie:
+        stock_param.logger.info("repertoire de sortie des schemas %s", rep_sortie)
+
+    if stock_param.mode.startswith("web") and not rep_sortie:
         formats = "xml"
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
         if i not in ["csv", "xml"] and "sql" not in i:
@@ -388,7 +381,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         if i.startswith("#") and mode_sortie != "int":
             continue  # on affiche pas les schemas de travail
 
-        if not rep_sortie:
+        if not rep_sortie and not stock_param.mode.startswith("web"):
             stock_param.logger.warning(
                 "pas de repertoire de sortie :%s", ",".join(stock_param.liste_params)
             )
