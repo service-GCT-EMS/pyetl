@@ -1,26 +1,43 @@
 
 {% extends "base.html" %}
-
 {% block content %}
-    <title>nom</title>
-    <table>
-    <thead>
-        <tr>
-            <th>famille</th>
-            <th>nom</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for key, value in descriptif.items() %}
-            {%for nom, def in value.items()%}
-                <tr>
-                    <td>{{ key }}</td>
-                    <td>{{ nom }}</td>
-                    <td>{{ def }}</td>
-                </tr>
-            {% endfor %}
+    <title<>nom</title>
+    <p></p>
+    {%for ligne in descriptif.get("help",[])%}
+        <p>{{ligne}}<p>
+    {% endfor %}
+    {%if descriptif.get("parametres")%}
+        <h2>parametres</h2>
+        <table>
+            <thead>
+            <tr><th>nom</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+        {%for nom,definition in descriptif.get("parametres").items()%}
+            <td>{{ nom }}</td><td>{{ definition }}</td>
         {% endfor %}
-    </tbody>
-    </table>
+        </tbody>
+    {%endif%}
+    {%if descriptif.get("variables")%}
+        <h2>variables</h2>
+        <table>
+            <thead>
+            <tr><th>nom</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+        {%for nom,definition in descriptif.get("variables".items())%}
+            <td>{{ nom }}</td><td>{{ definition }}</td>
+        {% endfor %}
+        </tbody>
+    {%endif%}
+    {%if descriptif.get("entree")%}
+        <h2>entree:{{descriptif.get("entree")}}</h2>
+    {%endif%}
+    {%if descriptif.get("sortie")%}
+        <h2>entree:{{descriptif.get("sortie")}}</h2>
+    {%endif%}
+    {%if descriptif.get("api")%}
+        <h2>disponible en tant que service web:{{descriptif.get("api")}}</h2>
+    {%endif%}
+
 {% endblock %}
