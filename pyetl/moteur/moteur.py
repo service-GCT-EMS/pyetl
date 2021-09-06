@@ -300,6 +300,7 @@ class Macro(object):
                     self.vdef[nom.strip()] = defaut
                 else:
                     self.vdef[i] = ""
+                self.parametres_pos[i] = i
 
     def add_command(self, ligne, numero):
         """ ajoute une commande a la liste"""
@@ -393,10 +394,12 @@ class MacroStore(object):
         for num, conf in description:
             # if not conf or conf.startswith("!"):
             #     continue
+            if conf.endswith("\n"):
+                conf = conf[:-1].strip()
             if conf.startswith("&&#define"):
                 if macro:
                     macro.close()
-                liste = conf.split(";")
+                liste = [i for i in conf.split(";")]
                 nom = liste[1]
                 vpos = [i for i in liste[2:] if i]
                 macro = self.regmacro(nom, file=origine, vpos=vpos)

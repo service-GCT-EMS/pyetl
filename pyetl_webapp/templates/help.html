@@ -1,12 +1,9 @@
 
 {% extends "base.html" %}
 {% block title %}
-    <h1>aide mapper </h1>
 {% endblock %}
 {% block content %}
-    <div class=" container-fluid vh-100 embed-responsive-item ">
-       <iframe class="h-75 w-100" src={{url_for('static', filename='doc_pyetl/build/html/index.html')}}
-      >
-    </object>
+    <div class="container-fluid" style="height: 85vh">
+       <iframe class="h-100 w-100" src={{url_for('static', filename='doc_pyetl/build/html/index.html')}}>
     </div>
 {% endblock %}

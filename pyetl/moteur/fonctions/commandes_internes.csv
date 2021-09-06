@@ -630,3 +630,11 @@ $test_v2=%n2%;;;;;
 ;;;;xx;%valeur%;;creobj;tmp;%n%;;
 ;;;;xx+;;#gid;set;;;
 ;;;;;;xx;print>;;;
+&&#define;#dd;base;table;result;p1;p2;p3;
+!#help;outil d'interrogation rapide de base de donnees (select conditionnel)
+!#api;dd;json;
+p3;;;;;;pass;;;
+|:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%
+|sinon:p2;;;;;;;pass;;
+||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%
+||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%
