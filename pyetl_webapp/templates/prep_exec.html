@@ -3,23 +3,33 @@
 
 {% block content %}
     <div class="container">
-    <img class="centre" src="{{url_for('static', filename='images/waitform.gif')}}">
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        {% for item in varlist %}
-            <div class="row">
-                <div class="col-sm">
-                    <p style="text-align:right"> {{ item[1] }}</p>
-                </div>
-                <div class="col-sm">
-                    {{ form[item[0]]() }}
-                </div>
+        <div class="row align-items-center">
+            <div class="col">
+                <img src="{{url_for('static', filename='images/waitform.gif')}}">
             </div>
+            {%if ws%}
+                <div class="col">
+                    <p style="text-align:right">voir resultat en mode webservice</p>
+                </div>
+                <div class="col">{{ form["x_ws"]() }}</div>
+                {%endif%}
+            <div class="col">
+            <p>{{ form.submit() }}</p>
+            </div>
+        </div>
+
+        {% for item in varlist %}
+                <div class="row">
+                    <div class="col-sm">
+                        <p style="text-align:right"> {{ item[1] }}</p>
+                    </div>
+                    <div class="col-sm">
+                        {{ form[item[0]]() }}
+                    </div>
+                </div>
         {% endfor %}
-        <p>{{ form.submit() }}</p>
     </form>
-    </div>
-    <div class="log">
-        <h1>LOGS</h1>
     </div>
 {% endblock %}

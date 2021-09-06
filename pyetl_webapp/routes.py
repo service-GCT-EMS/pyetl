@@ -425,6 +425,7 @@ def execscript(script, mode):
     )
     infos = scriptlist.descriptif[nomscript]
     infos["__mode__"] = mode
+    ws = mode == "api"
     print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
@@ -473,7 +474,7 @@ def execscript(script, mode):
             return redirect("/plantage/" + script)
 
     return render_template(
-        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script
+        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script, ws=ws
     )
 
 

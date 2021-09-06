@@ -88,7 +88,6 @@ def formbuilder(description):
             "x_ws",
             F.BooleanField("voir resultats en mode webservice"),
         )
-        varlist.append(("x_ws", "voir resultats en mode webservice"))
 
     setattr(CustomForm, "submit", SubmitField("executer"))
     print("cree customform", varlist)
