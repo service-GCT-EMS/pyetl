@@ -192,7 +192,7 @@
 									  <xsl:for-each select="attribut">
 										  <tr>
 										    <td>
-										    	<xsl:if test="@clef_primaire = 'oui'"><img src="xsl/images/cle_primaire.svg" width="16px" height="16px"/></xsl:if>
+										    	<xsl:if test="@clef_primaire = 'oui'"><img src="xsl/images/cle_primaire_16px.png" width="16px" height="16px"/></xsl:if>
 										    	<xsl:if test="@clef_etrangere != ''">#</xsl:if>
 										    </td>
 										    <td>

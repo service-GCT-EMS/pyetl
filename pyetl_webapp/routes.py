@@ -108,7 +108,10 @@ class ScriptList(object):
             variables = macro.vars_utilisees
             infos["variables"] = variables
             infos["parametres"] = params
+            infos["defauts"] = macro.vdef
             infos["no_in"] = {macro.no_in: "pas d entree"}
+            infos["help"] = macro.help
+            infos["help_detaillee"] = macro.help_detaillee
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
@@ -254,6 +257,7 @@ def refresh(mode):
 @app.route("/scriptdesc/<script>")
 def scriptdesc(script):
     nomscript = scriptlist.getnom(script)
+    print("appel scriptdesc", scriptlist.descriptif[nomscript])
     return render_template(
         "scriptdesc.html",
         descriptif=scriptlist.descriptif[nomscript],
@@ -350,6 +354,8 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     )
     wstats = None
     print("recup processeur", processor.idpyetl if processor else None, fich_script)
+    result = None
+    tmpdir = ""
     if processor:
         try:
             processor.process()
@@ -364,7 +370,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
                 scriptlist.worker = processor.nompyetl
         except error as err:
             LOGGER.exception("erreur script", exc_info=err)
-    return (wstats, result, tmpdir) if wstats else None
+    return (wstats, result, tmpdir)
 
 
 @app.route("/ws/<script>", methods=["GET", "POST"])
@@ -426,7 +432,7 @@ def execscript(script, mode):
     infos = scriptlist.descriptif[nomscript]
     infos["__mode__"] = mode
     ws = mode == "api"
-    print("appel formbuilder", nomscript, infos)
+    # print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
     rep_sortie = ""
@@ -453,14 +459,13 @@ def execscript(script, mode):
             qstr = urlencode(scriptparams)
             # url = "http://ws/" + script
             wsurl = "/ws/" + script + "?" + qstr
-            # print("mode webservice ", url + "?" + qstr)
+            print("mode webservice ", "/ws/" + script + "?" + qstr)
             return redirect(wsurl)
         retour = process_script(
             nomscript, entree, rep_sortie, scriptparams, "web", local
         )
-        if retour:
-            wstats, result, tmpdir = retour
-
+        wstats, result, tmpdir = retour
+        if wstats:
             return render_template(
                 "script_result.html",
                 stats=wstats,
@@ -471,19 +476,25 @@ def execscript(script, mode):
         else:
             # return render_template("noresult.html", url=script, nom=nomscript)
 
-            return redirect("/plantage/" + script)
+            return render_template(
+                "plantage.html",
+                text="erreur d'execution",
+                nom=nom,
+                url=script,
+                retour=result,
+            )
 
     return render_template(
         "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script, ws=ws
     )
 
 
-@app.route("/plantage/<script>")
-def fail(script):
-    nom = url_to_nom(script)
-    return render_template(
-        "plantage.html", text="erreur d'execution", nom=nom, url=script
-    )
+# @app.route("/plantage/<script>")
+# def fail(script):
+#     nom = url_to_nom(script)
+#     return render_template(
+#         "plantage.html", text="erreur d'execution", nom=nom, url=script
+#     )
 
 
 @app.route("/result/<script>")
@@ -520,6 +531,11 @@ def login(script="", username=""):
 @app.route("/help")
 def show_help():
     return render_template("help.html")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return url_for("static", filename="images/favicon.ico")
 
 
 @app.route("/intro")

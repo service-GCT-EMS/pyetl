@@ -1,0 +1,33 @@
+<div id="results">
+    <title>resultats </title>
+    <nav class="nav nav-tabs">
+        {% for valeur in retour %}
+            <a class="nav-item nav-link" href="#{{ valeur }}" data-toggle="tab">{{ valeur }}</a>
+        {% endfor %}
+    </nav>
+    <div class="tab-content">
+        {% for valeur in retour %}
+            <div class="tab-pane" id="{{ valeur }}">
+            {%if retour[valeur][0].startswith("<?xml") %}
+                <table>
+                    <tbody>
+                    {% for ligne in retour[valeur] %}
+                        <tr><td>{{ ligne }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {%else%}
+                <table>
+                <tbody>
+                    {% for ligne in retour[valeur] %}
+                        <tr>
+                            <td>{{ ligne }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+            {%endif%}
+            </div>
+        {% endfor %}
+    </div>
+</div>

@@ -5,10 +5,15 @@
 {% block content %}
        <h1>{{ text }} {{nom}}</h1>
        <div class="container">
-       <div class="row">
-       <div class="col align-self-center">
-       <img src="{{url_for('static', filename='images/fail.gif')}}">
+              <div class="row">
+                     <div class="col"></div>
+                     <div class="col">
+                     <img src="{{url_for('static', filename='images/fail.gif')}}">
+                     </div>
+                     <div class="col"></div>
+              </div>
        </div>
-       </div>
-       </div>
+       {% if retour  %}
+              {%include "show_results.html"%}
+       {% endif %}
 {% endblock %}

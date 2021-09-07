@@ -435,7 +435,7 @@ def f_dbrequest(regle, obj):
       #pattern6||;;;dbreq;C;=#
       #pattern7||P;;;dbreq;C;?L
       #aide_spec8||mode webservice: renvoie le resultat brut de la requete
-      #pattern8||=mws:;;;dbreq;C;?L
+      #pattern8||=mws:;;;dbreq;C;?L||sortie
      #req_test||testdb
     """
 

@@ -1,22 +1,30 @@
 
 {% extends "base.html" %}
+{% block title %}
+    <h1>{{nom}}</h1>
+{% endblock %}
 {% block content %}
-    <title<>nom</title>
-    <p></p>
-    {%for ligne in descriptif.get("help",[])%}
+<div class=container>
+    <p>{{descriptif.get("help",[])}}<p>
+    {%for ligne in descriptif.get("help_detaillee",[])%}
         <p>{{ligne}}<p>
     {% endfor %}
     {%if descriptif.get("parametres")%}
         <h2>parametres</h2>
-        <table>
-            <thead>
-            <tr><th>nom</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-        {%for nom,definition in descriptif.get("parametres").items()%}
-            <td>{{ nom }}</td><td>{{ definition }}</td>
-        {% endfor %}
-        </tbody>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>nom</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                {%for nom,definition in descriptif.get("parametres").items()%}
+                    <tr class="table-info">
+                        <td>{{ nom }}</td><td>{{ definition }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {%endif%}
     {%if descriptif.get("variables")%}
         <h2>variables</h2>
@@ -39,5 +47,5 @@
     {%if descriptif.get("api")%}
         <h2>disponible en tant que service web:{{descriptif.get("api")}}</h2>
     {%endif%}
-
+</div>
 {% endblock %}

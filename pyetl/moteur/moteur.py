@@ -291,7 +291,7 @@ class Macro(object):
         self.vars_utilisees = dict()
         self.vpos = []
         self.vdef = dict()
-        self.no_in = False
+        self.no_in = True
         if vpos is not None:
             self.vpos = [i.split("=")[0].strip() for i in vpos if i and i != "\n"]
             for i in vpos:

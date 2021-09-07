@@ -251,13 +251,17 @@ db:%acces%;%niveau%;%classe%;%attribut%;;%valeur%;;dbalpha;%mod%;%ordre%;;
 <#stdvar;;;;;;;;
 db:%acces%;%niveau%;%classe%;;;;;dbextdump;%rep_sortie%;%log%;fin;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#geoextract;acces;niveau;classe;mode_geo;buffer;;;;;
-!#help;extraction d'un jeu de donnees d' une base par emprise p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;
+&&#define;#geoextract;acces;niveau;classe;mode_geo;buffer;champ;;;;
+!#help;extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
+!#parametres;accces;base de donnees a acceder ( doit etr definie dans site_params)
+!#parametres;niveau;schema des classes a extraire (exp reg ou in:nom de fichier)
+!#parametres;classe;classes a extraire (exp reg)
+!#parametres;mode_geo;relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
+!#parametres;buffer;taille du buffer
 $mode_sortie=D;;;;;;;;;;;
 <#initdb;%acces%;;;;;
 $mode_geo=dans_emprise;;;;;;;;;;;
-$#%dest%;dest;;;;;;;;;;
-db:%acces%;%niveau%;%classe%;dans_emprise;;buffer;;dbgeo;%mod%;%ordre%;fin;
+db:%acces%;%niveau%;%classe%;dans_emprise;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract+gid;acces;niveau;classe;attribut;valeur;;;;;
 !#help;lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;
@@ -633,7 +637,7 @@ $test_v2=%n2%;;;;;
 &&#define;#dd;base;table;result;p1;p2;p3;
 !#help;outil d'interrogation rapide de base de donnees (select conditionnel)
 !#api;dd;json;
-p3;;;;;;pass;;;
+p3;;;;;;;pass;;;debug
 |:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%
 |sinon:p2;;;;;;;pass;;
 ||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%

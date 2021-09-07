@@ -20,15 +20,15 @@
             </div>
         </div>
 
-        {% for item in varlist %}
-                <div class="row">
-                    <div class="col-sm">
-                        <p style="text-align:right"> {{ item[1] }}</p>
-                    </div>
-                    <div class="col-sm">
-                        {{ form[item[0]]() }}
-                    </div>
+        {% for item in varlist if item[0]!="x_ws"%}
+            <div class="row">
+                <div class="col-sm">
+                    <p style="text-align:right"> {{ item[1] }}</p>
                 </div>
+                <div class="col-sm">
+                    {{ form[item[0]]() }}
+                </div>
+            </div>
         {% endfor %}
     </form>
     </div>

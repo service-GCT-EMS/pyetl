@@ -61,14 +61,18 @@ def formbuilder(description):
                 CustomForm, "sortie", F.FileField("sortie", validators=[DataRequired()])
             )
             varlist.append(("sortie", def_es[1]))
+    else:
 
-    elif description["__mode__"] == "api":
         if not description.get("no_in"):
             setattr(CustomForm, "entree", F.MultipleFileField("entree"))
             varlist.append(("entree", "entree"))
-        setattr(CustomForm, "sortie", F.StringField("sortie"))
-        varlist.append(("sortie", "sortie"))
-    print("formbuilder: variables", list(chain(params.items(), variables.items())))
+        if description["__mode__"] == "api":
+            setattr(CustomForm, "x_ws", F.BooleanField("x_ws"))
+            varlist.append(("x_ws", "voir resultat en mode webservice"))
+        else:
+            setattr(CustomForm, "sortie", F.StringField("sortie"))
+            varlist.append(("sortie", "sortie"))
+    # print("formbuilder: variables", list(chain(params.items(), variables.items())))
     for name, definition in chain(params.items(), variables.items()):
 
         nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")
