@@ -285,7 +285,7 @@ class Pyetl(object):
             repr(commandes),
             repr(args),
         )
-        print("result initialisation", result)
+        # print("result initialisation", result)
         return result
 
     def init_environ(self, env=None):
@@ -435,7 +435,7 @@ class Pyetl(object):
             (repr(regles), repr(liste_params), self.getvar("_sortie", "pas_de_sortie")),
         )
         erreurs = None
-        print("dans prepare_module2", self.fichier_regles, self.done)
+        # print("dans prepare_module2", self.fichier_regles, self.done)
         if self.fichier_regles or self.liste_regles:
             # if not self.done:
             try:
@@ -473,7 +473,7 @@ class Pyetl(object):
                 return False
         self.sorties.set_sortie(self.getvar("_sortie"))
         if not self.regles:
-            print("prepare_module pas de regles", self.done, list(self.schemas.keys()))
+            # print("prepare_module pas de regles", self.done, list(self.schemas.keys()))
             if self.done:
                 return True
             self.logger.critical(
@@ -669,9 +669,9 @@ class Pyetl(object):
         if nom:
             petl.nompyetl = nom
         petl.mode = mode
-        print("appel initpyetl", petl.inited, petl.mode, petl.done)
+        # print("appel initpyetl", petl.inited, petl.mode, petl.done)
         if petl.initpyetl(regles, liste_params):
-            print("apres initpyetl:", petl.inited, petl.mode, petl.done, petl.regles)
+            # print("apres initpyetl:", petl.inited, petl.mode, petl.done, petl.regles)
 
             return petl
         self.logger.critical("erreur getpyetl %s", str(regles))
@@ -1070,7 +1070,7 @@ class Pyetl(object):
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
 
         if self.done:
-            print("process: done : rien a faire")
+            # print("process: done : rien a faire")
             self.logger.debug("rien a faire")
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
@@ -1208,7 +1208,7 @@ class Pyetl(object):
         if not macroinit:
             # print ('pas de macro initiale')
             return
-        print("macro initiale", macroinit)
+        # print("macro initiale", macroinit)
         parametres = self.getvar("parametres_initial")
         entree = self.getvar("entree_initial", self.getvar("_entree"))
         sortie = self.getvar("sortie_initial", self.getvar("_entree"))

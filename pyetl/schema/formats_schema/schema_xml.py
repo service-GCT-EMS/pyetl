@@ -344,7 +344,8 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
 
 def lire_schema_xml(mapper, base, fichier, cod="utf-8"):
     """lit un ensemble de fichiers schema en xml"""
-    print("lecture xml")
+    # print("lecture xml")
+    mapper.logger.info("lecture xml %s", fichier)
     schema = mapper.init_schema(base, origine="L")
     fusion_schema_xml(schema, fichier, cod=cod)
     return schema
@@ -361,10 +362,10 @@ def ecrire_schema_xml(
     stock_param=None,
 ):
     """ecrit un schema en xml"""
-    print("ecrire schema xml")
+    # print("ecrire schema xml")
     alias = ESC_XML(alias)
     if stock_param and stock_param.mode.startswith("web"):
-        print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)
+        # print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)
         mapper = stock_param
         while mapper.parent and not mapper.ismainmapper:
             mapper = mapper.parent
@@ -399,12 +400,12 @@ def ecrire_schema_xml(
             # mode webservice
         if stock_param and stock_param.mode.startswith("web"):
 
-            print(
-                "##################### mode webstore schemas :",
-                stock_param.idpyetl,
-                nomschema,
-                len(xml) if xml else 0,
-            )
+            # print(
+            #     "##################### mode webstore schemas :",
+            #     stock_param.idpyetl,
+            #     nomschema,
+            #     len(xml) if xml else 0,
+            # )
             stock_param.webstore["schema_" + nomschema] = xml.split("\n")
 
 

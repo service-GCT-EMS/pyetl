@@ -35,7 +35,8 @@ def dbaccess(regle, codebase, type_base=None):
             if stock_param.load_paramgroup(codebase, nom=codebase, fin=False):
                 base = regle.getvar("base_" + codebase, "")
             else:
-                print("mdba: base non definie", codebase)
+                # print("mdba: base non definie", codebase)
+                stock_param.logger.error("base non definie %s", codebase)
                 return None
         serveur = regle.getvar("server_" + codebase, "")
         type_base = regle.getvar("db_" + codebase, "")
@@ -480,7 +481,7 @@ def recup_schema(
     #    tables = [i for i in cmp1 if i in DBACMODS]
     if not tables:
         tables = "A"
-    print("mdba:recup_schema", nom_schema, tables)
+    # print("mdba:recup_schema", nom_schema, tables)
     retour = get_connect(
         regle_courante,
         base,
@@ -549,7 +550,8 @@ def lire_requete(
     """lecture directe"""
     nom_schema = regle_courante.getvar("#schema", "tmp")
     if regle_courante.debug:
-        print("-------lire_requete req:", requete)
+        regle_courante.stock_param.logger.info("req:%s", requete)
+        # print("-------lire_requete req:", requete)
     if obj and obj.schema:
         nom_schema = obj.schema.schema.nom
     retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)
@@ -860,7 +862,7 @@ def recup_table_parametres(
     regle, nombase, niveau, classe, clef=None, valeur=None, ordre=None, type_base=None
 ):
     """lit une table en base de donnees et retourne le tableau de valeurs """
-    print("recup_table", nombase, niveau, classe)
+    # print("recup_table", nombase, niveau, classe)
     regle.stock_param.logger.info(
         "recup table en base " + nombase + ":" + niveau + "." + classe
     )
@@ -873,7 +875,7 @@ def recup_table_parametres(
         return []
 
     ident = (niveau, classe)
-    print("recup_table schema:", schema_travail)
+    # print("recup_table schema:", schema_travail)
     curs = connect.req_alpha(
         ident, schema_travail.get_classe(ident), clef, valeur, "", 0, ordre=ordre
     )

@@ -94,5 +94,5 @@ def formbuilder(description):
         )
 
     setattr(CustomForm, "submit", SubmitField("executer"))
-    print("cree customform", varlist)
+    # print("cree customform", varlist)
     return CustomForm, varlist

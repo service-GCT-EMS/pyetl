@@ -451,15 +451,15 @@ def execscript(script, mode):
             nom, definition = desc
             scriptparams[nom] = str(form.__getattribute__(nom).data)
 
-        print("recup form", entree, rep_sortie, infos, scriptparams)
-        print("full url", request.base_url)
+        # print("recup form", entree, rep_sortie, infos, scriptparams)
+        # print("full url", request.base_url)
         x_ws = scriptparams.get("x_ws")
-        print("valeur xws", x_ws)
+        # print("valeur xws", x_ws)
         if x_ws == "True":  # on appelle en mode webservice
             qstr = urlencode(scriptparams)
             # url = "http://ws/" + script
             wsurl = "/ws/" + script + "?" + qstr
-            print("mode webservice ", "/ws/" + script + "?" + qstr)
+            # print("mode webservice ", "/ws/" + script + "?" + qstr)
             return redirect(wsurl)
         retour = process_script(
             nomscript, entree, rep_sortie, scriptparams, "web", local
