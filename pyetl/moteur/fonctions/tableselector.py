@@ -654,6 +654,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
         with open(fichier, "r", encoding=codec) as fich:
             for i in fich:
                 ligne = i.replace("\n", "")  # on degage le retour chariot
+                ligne = ligne.strip()
                 if ligne.startswith("!"):
                     if ligne.startswith("!!"):
                         ligne = ligne[1:]

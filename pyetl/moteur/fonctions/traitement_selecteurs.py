@@ -442,6 +442,11 @@ def sel_haspk(selecteur, obj):
 
 
 # ------------------------selecteurs sur parametres--------------------------
+def selh_pexiste(selecteur):
+    """precalcule le selecteur statique"""
+    var = selecteur.regle.getvar(selecteur.params.attr.val)
+    selecteur.static = True
+    selecteur.initval = var and var.lower() not in {"", "0", "f", "false"}
 
 
 def sel_pexiste(selecteur, _):
@@ -453,8 +458,10 @@ def sel_pexiste(selecteur, _):
     #         selecteur.params.attr.val,'->',
     #         selecteur.regle.getvar(selecteur.params.attr.val),'<-',
     #         bool(selecteur.regle.getvar(selecteur.params.attr.val)))
+    if selecteur.static:
+        return selecteur.initval
     var = selecteur.regle.getvar(selecteur.params.attr.val)
-    return var and var.lower() not in {"0", "f", "false"}
+    return var and var.lower() not in {"", "0", "f", "false"}
 
 
 def sel_pregex(selecteur, _):
@@ -469,10 +476,8 @@ def sel_pregex(selecteur, _):
 
 def selh_constante(selecteur):
     """ mets en place le selecteur de constante """
-    if selecteur.params.attr.val == selecteur.params.vals.val:
-        selecteur.fselect = selecteur.true
-    else:
-        selecteur.fselect = selecteur.false
+    selecteur.static = True
+    selecteur.initval = selecteur.params.attr.val == selecteur.params.vals.val
 
 
 def sel_constante(selecteur, *_):
@@ -480,15 +485,13 @@ def sel_constante(selecteur, *_):
     #pattern||C:C;C||50
     #test||obj||C:1;1;;;res;1;;set||?C:1;!2;;;res;0;;set||atv;res;1
     """
-    return selecteur.fselect()
+    return selecteur.initval
 
 
 def selh_cexiste(selecteur):
     """ mets en place le selecteur de constante """
-    if selecteur.params.attr.val:
-        selecteur.fselect = selecteur.true
-    else:
-        selecteur.fselect = selecteur.false
+    selecteur.static = True
+    selecteur.initval = bool(selecteur.params.attr.val)
 
 
 def sel_cexiste(selecteur, *_):
@@ -496,7 +499,7 @@ def sel_cexiste(selecteur, *_):
     #pattern||C:C;||50
     #test||obj||C:1;;;;res;1;;set||?C:;!;;;res;0;;set||atv;res;1
     """
-    return selecteur.fselect()
+    return selecteur.initval
 
 
 # -----------selecteurs sur schema-------------------------
@@ -731,7 +734,7 @@ def sel_isfile(selecteur, obj):
 
 
 def sel_isdir(selecteur, obj):
-    """#aide||tesste si un fichier existe
+    """#aide||teste si un repertoire existe
     #pattern1||=is:dir;[A]||1
     #pattern2||=is:dir;C||1
     #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1

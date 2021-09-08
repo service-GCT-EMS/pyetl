@@ -83,7 +83,7 @@ def fdebug(regle, obj):
     return succes
 
 
-def regles_liees(regle, param):
+def regles_liees(regle, param, refs):
     """ decode le systeme de regles liees """
     if param and param[0] in "|+-":  # mode de regles liees
         regle.niveau = 0
@@ -110,6 +110,26 @@ def regles_liees(regle, param):
 
         if regle.getvar("debug") == "1":
             print("regle liee", param[regle.niveau :], regle.niveau, regle.ligne[:-1])
+        # la on determine si la regle est statiquement selectable
+        prec = None
+        if refs:
+            if len(refs) < regle.niveau:
+                print("erreur d impbrication", regle)
+                return
+            prec = refs[regle.niveau - 1]
+        if prec:
+            if prec.valide == "unselected":
+                if regle.enchainement == "ok":
+                    regle.valide = "skip"
+                    return
+            if prec.selstd == None:  # toujours valide
+                if regle.enchainement == "sinon":
+                    regle.valide = "skip"
+                    return
+        if prec and prec.niveau == regle.niveau:
+            if prec.valide == "skip":
+                if regle.enchainement == "ok":
+                    regle.valide = "skip"
         return None
 
 
@@ -235,7 +255,7 @@ def ajuste_contexte(regle, prec):
     # print("apres ajuste_context", regle.context)
 
 
-def prepare_regle(regle, prec=None):
+def prepare_regle(regle, refs=None):
     """ positionne les elements standard de la regle"""
 
     setvloc(regle)
@@ -258,11 +278,18 @@ def prepare_regle(regle, prec=None):
     # de la forme [\+*][sinon|fail]:nom_d'attribut
     fonction = v_nommees["commande"]
     if fonction:
-        regles_liees(regle, v_nommees["sel1"])
+        regles_liees(regle, v_nommees["sel1"], refs)
         # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
+        # refs[regle.niveau] = regle
+        if regle.valide == "skip":
+            return regle.valide
+        prec = refs[regle.niveau - 1] if regle.niveau else None
         if prec:
             ajuste_contexte(regle, prec)
-
+        if len(refs) > regle.niveau:
+            refs[regle.niveau] = regle
+        else:
+            refs.append(regle)
         if regle.code_classe[:3] == "db:":  # mode d'acces a la base de donnees
             regle.selstd = None
             regle.valide = True
@@ -270,6 +297,13 @@ def prepare_regle(regle, prec=None):
         else:
             # print("appelle prepare")
             regle.prepare_selecteur(v_nommees)
+            regle.selected = True
+            if regle.valide == "unselected":
+                # regle non selectionnable en mode statique
+
+                regle.selected = False
+                return regle.valide
+
             regle.code_classe = regle.code_classe.split(":")[-1]
             # on nettoie d'eventuels tests
         #    regle.valide = "vide"
@@ -307,7 +341,7 @@ def reinterprete_regle(regle, mapper, context=None):
     prepare_regle(regle)
 
 
-def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
+def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None, refs=[]):
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
 
@@ -316,7 +350,14 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
     # print ('context creation1',regle.context)
     regle = mapper.regleref.getregle(ligne, fichier, numero)
     # print("creation regle", regle, ligne)
-    prepare_regle(regle, prec=prec)
+    if prec:
+        if prec.niveau < len(refs):
+            refs[prec.niveau] = prec
+        else:
+            refs.append(prec)
+    else:
+        refs.append(None)
+    prepare_regle(regle, refs=refs)
 
     # print("retour prepare", regle.valide, regle)
     if regle.valide == "vide":
@@ -339,7 +380,8 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None):
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
         return None
-
+    if regle.valide in {"skip", "unselected"}:
+        return None
     return regle
 
 

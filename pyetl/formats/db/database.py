@@ -1034,8 +1034,8 @@ class DbConnect(object):
                 + self.set_limit(maxi, True)
             )
 
-            if self.debug > 2:
-                print("debug: database: requete de selection geo", requete, data)
+            # if self.debug > 2:
+            print("debug: database: requete de selection geo", requete, data)
             # curs.execute(requete,data)
             self.attlist = attlist
             volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])

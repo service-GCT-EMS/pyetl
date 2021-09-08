@@ -389,7 +389,7 @@ def h_dbrequest(regle):
                 regle.setvar(regle.params.att_sortie.val, retour)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
-                sortie.exend(retour if isinstance(retour, list) else [retour])
+                sortie.extend(retour if isinstance(retour, list) else [retour])
         except Exception as err:
             printexception(regle, requete, err)
             # raise

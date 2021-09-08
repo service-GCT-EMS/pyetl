@@ -137,6 +137,8 @@ class PgsConnect(PgrConnect):
                 fonction = "ST_Contains("
             if fonction:
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
+
+        print("cond geom", cond, nom_fonction, fonction)
         return cond
 
 

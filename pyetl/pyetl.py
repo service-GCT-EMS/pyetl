@@ -1147,7 +1147,7 @@ class Pyetl(object):
 
     def menage_final(self):
         """vidage de tous les tuyaux et stats finales"""
-        print("menage-final", self.schemas.keys(), self.mode)
+        # print("menage-final", self.schemas.keys(), self.mode)
         self.moteur.vide_stock()
         self.debug = 0
         # self._finalise_sorties()

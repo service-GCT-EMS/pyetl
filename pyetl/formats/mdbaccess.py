@@ -939,7 +939,7 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
         geometrie = obj.attributs["#geom"]
     else:
         if obj.initgeom():
-            geometrie = connect.geom_to_natif(obj.geom_v, 0, 0, None)
+            geometrie = connect.geom_to_natif(obj.geom_v)
         else:
             print(
                 "objet non geometrique comme filtre de requete geometrique",

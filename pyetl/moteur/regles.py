@@ -241,6 +241,8 @@ class Selecteur(object):
         self.params = None
         self.nom = ""
         self.valide = False
+        self.initval = True
+        self.static = False
         self.choix_fonction(attribut, valeur)
 
     def __repr__(self):
@@ -408,7 +410,7 @@ class RegleTraitement(object):  # regle de mapping
         self.tmp_store = list()
         self.compt_stock = 0
         self.dident = ""
-
+        self.selected = None
         self.schema_courant = None
         self.menage = False
         self.lecteurs = dict()
@@ -637,24 +639,39 @@ class RegleTraitement(object):  # regle de mapping
         """retourne une regle pour des operations particulieres"""
         return RegleTraitement(ligne, self.stock_param, fichier, numero)
 
+    def test_static(self, selecteur):
+        """ verifie si la condition est statique et realisee"""
+        if not selecteur.valide:
+            return False
+        if selecteur.static:
+            if selecteur.initval:
+                selecteur.valide = False  # c est comme si le test n existait pas
+            else:
+                self.valide = "unselected"  # rien a faire on a fini le boulot
+                return True
+
     def prepare_selecteur(self, v_nommees):
         """prepare la fonction de selection de la regle"""
         sel1 = Selecteur(self, self.code_classe, v_nommees["val_sel1"])
         sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
-        if not sel1.valide:
-            sel1, sel2 = sel2, sel1
-        # print("-------------selecteurs", self, sel1, sel2)
-        if not sel1.valide:  # pas de conditions
-            select = None
-            self.nocond = True
-        elif not sel2.valide:
-            select = sel1.select
-        else:
-            select = lambda x: sel1.select(x) and sel2.select(x)
-
-        self.selstd = select
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
+        if self.test_static(sel1):
+            return
+        if not sel1.valide:
+            sel1 = sel2
+            if self.test_static(sel1):
+                return
+            if sel1.valide:
+                self.selstd = sel1.select
+            return
+        # print("-------------selecteurs", self, sel1, sel2)
+        if self.test_static(sel2):
+            return
+        if sel2.valide:
+            self.selstd = lambda x: sel1.select(x) and sel2.select(x)
+        else:
+            self.selstd = sel1.select
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
