@@ -98,7 +98,7 @@ def fileprep(regle, fonction, dest=False):
     else:
         regle.valide = "done"
         if regle.runscope():  # on voit si on doit l'executer
-            if regle.statictest():
+            if regle.test_static():
                 try:
                     if dest:
                         regle.chemin_final = os.path.dirname(regle.params.cmp1.val)

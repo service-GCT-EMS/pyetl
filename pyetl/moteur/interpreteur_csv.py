@@ -107,29 +107,46 @@ def regles_liees(regle, param, refs):
             print("autorises", regle.branchements.enchainements)
             print("trouve", param)
             raise SyntaxError("liaison non valide")
-
-        if regle.getvar("debug") == "1":
-            print("regle liee", param[regle.niveau :], regle.niveau, regle.ligne[:-1])
+        debug = 0
+        if regle.getvar("debug") == "1" or regle.debug:
+            debug = 1
+            print(
+                "     regle liee",
+                regle.enchainement,
+                param[regle.niveau :],
+                regle.niveau,
+            )
         # la on determine si la regle est statiquement selectable
         prec = None
         if refs:
             if len(refs) < regle.niveau:
-                print("erreur d impbrication", regle)
+                print("erreur d imbrication", regle)
                 return
             prec = refs[regle.niveau - 1]
         if prec:
+            if debug:
+                print(
+                    "    etat prec",
+                    prec.valide,
+                    prec.selstd,
+                    regle.enchainement,
+                    "valide avant:",
+                    regle.valide,
+                )
             if prec.valide == "unselected":
                 if regle.enchainement == "ok":
                     regle.valide = "skip"
                     return
-            if prec.selstd == None:  # toujours valide
+                if regle.enchainement == "sinon":
+                    regle.valide = "selected"
+                    return
+            if prec.selstd == None or prec.valide == "selected":  # toujours valide
                 if regle.enchainement == "sinon":
                     regle.valide = "skip"
                     return
-        if prec and prec.niveau == regle.niveau:
-            if prec.valide == "skip":
                 if regle.enchainement == "ok":
-                    regle.valide = "skip"
+                    regle.valide = "selected"
+                    return
         return None
 
 
@@ -262,6 +279,7 @@ def prepare_regle(regle, refs=None):
     v_nommees = regle.v_nommees
     # print('vnommees',regle.v_nommees)
     ndebug = 10
+
     if any(i in v_nommees["debug"] for i in ("debug", "print", "step")):
         vdebug = v_nommees["debug"].split(",")
         if vdebug[-1].strip().isnumeric():
@@ -270,6 +288,13 @@ def prepare_regle(regle, refs=None):
         if len(vdebug) > 1:
             regle.champsdebug = vdebug[1:]
         print("debug regle ::::", regle.ligne)
+
+    if not regle.runscope():
+        regle.valide = "out_of_scope"
+        if regle.debug:
+            print("regle non eligible ->", regle.getvar("process"))
+        return regle.valide
+
     regle.code_classe = v_nommees["sel1"]
     # print ('interpreteur: ',regle,'->',regle.v_nommees)
     # decodage des liens entre regles (structure de blocs)
@@ -282,6 +307,9 @@ def prepare_regle(regle, refs=None):
         # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
         # refs[regle.niveau] = regle
         if regle.valide == "skip":
+            if regle.debug:
+                print("     mode statique : skip", regle)
+                print("     refs", refs)
             return regle.valide
         prec = refs[regle.niveau - 1] if regle.niveau else None
         if prec:
@@ -300,7 +328,8 @@ def prepare_regle(regle, refs=None):
             regle.selected = True
             if regle.valide == "unselected":
                 # regle non selectionnable en mode statique
-
+                if regle.debug:
+                    print("     mode statique : unselected", regle)
                 regle.selected = False
                 return regle.valide
 

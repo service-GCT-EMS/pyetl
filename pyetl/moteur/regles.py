@@ -646,6 +646,7 @@ class RegleTraitement(object):  # regle de mapping
         if selecteur.static:
             if selecteur.initval:
                 selecteur.valide = False  # c est comme si le test n existait pas
+                self.valide = "selected"
             else:
                 self.valide = "unselected"  # rien a faire on a fini le boulot
                 return True
@@ -656,6 +657,9 @@ class RegleTraitement(object):  # regle de mapping
         sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
+        if not self.runscope():
+            self.valide = "out_of_scope"
+            return
         if self.test_static(sel1):
             return
         if not sel1.valide:
@@ -957,11 +961,6 @@ class RegleTraitement(object):  # regle de mapping
     #         if self.dynschema or obj.schema.amodifier():
     #             for tache in self.fonctions_schema:
     #                 tache(self, obj)
-
-    def statictest(self):
-        """determine si une regle peut etre executee statiquement"""
-        statictest = self.selstd is None or self.selstd(None)
-        return statictest
 
     def runscope(self):
         """determine si une regle peut tourner"""
