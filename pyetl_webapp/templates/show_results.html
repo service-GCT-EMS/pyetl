@@ -8,7 +8,7 @@
     <div class="tab-content">
         {% for valeur in retour %}
             <div class="tab-pane" id="{{ valeur }}">
-            {%if retour[valeur][0].startswith("<?xml") %}
+            {%if retour[valeur][0] is string  and retour[valeur][0].startswith("<?xml") %}
                 <table>
                     <tbody>
                     {% for ligne in retour[valeur] %}

@@ -287,6 +287,7 @@ def h_dbgeo(regle):
         "!dans_emprise",
     ]
     regle.fonction_geom = regle.v_nommees.get("val_sel2", "")
+    # print(" fonction geom", regle.fonction_geom, regle)
     valide = True
     if regle.fonction_geom not in fonctions:
         regle.erreurs.append(
@@ -389,7 +390,10 @@ def h_dbrequest(regle):
                 regle.setvar(regle.params.att_sortie.val, retour)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
-                sortie.extend(retour if isinstance(retour, list) else [retour])
+                # sortie.extend(retour if isinstance(retour, list) else [retour])
+                if isinstance(retour, list):
+                    r2 = [",".join(i) for i in retour]
+                sortie.append(r2)
         except Exception as err:
             printexception(regle, requete, err)
             # raise

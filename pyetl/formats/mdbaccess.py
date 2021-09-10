@@ -939,7 +939,8 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
         geometrie = obj.attributs["#geom"]
     else:
         if obj.initgeom():
-            geometrie = connect.geom_to_natif(obj.geom_v)
+            geometrie = connect.geom_to_natif(obj.geom_v, multiple=1)
+            # print("recup_geometrie", obj.geom_v.srid, geometrie)
         else:
             print(
                 "objet non geometrique comme filtre de requete geometrique",

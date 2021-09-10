@@ -260,8 +260,8 @@ db:%acces%;%niveau%;%classe%;;;;;dbextdump;%rep_sortie%;%log%;fin;
 !#parametres;buffer;taille du buffer
 $mode_sortie=D;;;;;;;;;;;
 <#initdb;%acces%;;;;;
-$mode_geo=dans_emprise;;;;;;;;;;;
-db:%acces%;%niveau%;%classe%;dans_emprise;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
+$mode_geo=%mode_geo%;dans_emprise;;;;;;;;;;;
+db:%acces%;%niveau%;%classe%;%mode_geo%;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract+gid;acces;niveau;classe;attribut;valeur;;;;;
 !#help;lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;
@@ -639,6 +639,6 @@ $test_v2=%n2%;;;;;
 !#api;dd;json;
 P:p3;;;;;;;pass;;;debug
 |:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%
-|sinon:P:p2;;;;;;;pass;;
+|sinon:P:p2;;;;;;;pass;;;debug
 ||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%
 ||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%

@@ -903,26 +903,20 @@ class Geometrie(object):
 
                 interieur = True
 
-            #                self.nouvelle_ligne_s(C.Section(list(ligne),dim))
-
-            #            for pt in geo_if["coordinates"][0]:
-            #                self.addpoint(pt,dim)
             self.finalise_geom(type_geom="3")
-            self.multi = True
+            self.multi = False
 
         #            print ('creation polygone',len(self.polygones), self.multi)
         elif geo_if["type"] == "MultiPolygon":
             dim = len(geo_if["coordinates"][0][0][0])
-            interieur = False
             for poly in geo_if["coordinates"]:
+                interieur = False
+                # print("polygone", interieur)
                 for ligne in poly:
-                    self.cree_section(ligne, dim, 1, 0)
+                    self.cree_section(ligne, dim, 1, 0, interieur=interieur)
+                    # print("    contour", interieur)
                     interieur = True
-            #                    self.nouvelle_ligne_s(C.Section(list(ligne),dim))
-            #                    for pt in ligne:
-            #                        self.addpoint(pt,dim)
-            #                    self.fin_section(1,0)
-            # print("appel finalise geo_if,multipol")
+
             self.finalise_geom(type_geom="3")
             self.multi = True
 

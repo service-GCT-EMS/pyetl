@@ -1226,11 +1226,11 @@ class Pyetl(object):
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
         rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
-        print(
-            "rep sortie schema",
-            self.getvar("sortie_schema", "rien"),
-            self.getvar("_sortie", "rien"),
-        )
+        # print(
+        #     "rep sortie schema",
+        #     self.getvar("sortie_schema", "rien"),
+        #     self.getvar("_sortie", "rien"),
+        # )
         if rep_sortie == "-" or not rep_sortie and not self.mode.startswith("web"):
             # pas de sortie on ecrit pas
             if (

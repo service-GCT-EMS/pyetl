@@ -229,6 +229,7 @@ def lire_objets(self, rep, chemin, fichier):
             driver = source.driver
 
             for i in source:
+                # print("lecture gdal", i)
                 obj = self.getobj()
                 obj.from_geo_interface(i)
                 obj.attributs["#chemin"] = chemin
@@ -516,7 +517,7 @@ WRITERS = {
         "",
         0,
         "GPKG",
-        "all",
+        "groupe",
         None,
         "#tmp",
         init_gdalb,

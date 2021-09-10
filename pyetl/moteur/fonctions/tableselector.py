@@ -660,6 +660,8 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         ligne = ligne[1:]
                     else:
                         continue
+                if not ligne:
+                    continue
                 liste = [i.strip() for i in ligne.split(";")]
                 # supprime les elements vides a la fin
                 while liste:
@@ -668,6 +670,8 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                     else:
                         break
                 base, niveau, classe, attribut, valeur = [""] * 5
+                if not liste:
+                    continue
                 if "." in liste[0]:
                     l2 = liste[0].split(".")
                     if len(l2) == 2:

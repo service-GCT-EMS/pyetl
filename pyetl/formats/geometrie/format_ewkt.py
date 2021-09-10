@@ -411,7 +411,7 @@ def geom_from_ewkb(obj, code=None):
 
 
 def ecrire_geom_ewkt(
-    geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
+    geom, geometrie_demandee="-1", multiple=-1, erreurs=None, force_courbe=False
 ):
     """ecrit une geometrie en ewkt"""
 
@@ -421,6 +421,7 @@ def ecrire_geom_ewkt(
     geomt = ""
     type_geom = geom.type
     geometrie_demandee = geometrie_demandee if geometrie_demandee != "-1" else geom.type
+    multiple = multiple if multiple != "-1" else geom.multi
 
     if _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
         return None
@@ -462,7 +463,8 @@ def ecrire_geom_ewkt(
 
     else:
         print("ecrire ewkt geometrie inconnue", geometrie_demandee)
-    return geom.epsg + geomt if geomt else None
+    print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple)
+    return (geom.epsg + geomt) if geomt else None
 
     # nom:(multiwriter,           streamer,         tmpgeomwriter,
 

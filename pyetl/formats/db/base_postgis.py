@@ -90,6 +90,7 @@ class PgsConnect(PgrConnect):
         self.geographique = True
         self.dialecte = "postgis"
         self.type_base = "postgis"
+        self.defsrid = "3948"
 
     def get_type(self, nom_type):
         if "geometry" in nom_type:
@@ -112,7 +113,9 @@ class PgsConnect(PgrConnect):
     #     return "ST_GeomFromText('%s',%s)" % (geom, srid)
 
     def set_geom(self, geom, srid):
-        return "'%s'::geometry" % (geom)
+        if not srid:
+            srid = self.defsrid
+        return "ST_SetSrid(ST_MakeValid('%s'::geometry),%s)" % (geom, srid)
 
     # def set_geomb(self, geom, srid, buffer):
     #     return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
@@ -127,18 +130,23 @@ class PgsConnect(PgrConnect):
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
         cond = ""
+        fonction = ""
+        if not geom2:
+            self.params.logger.error("pas de geometrie")
+            raise StopIteration(1)
         if nom_fonction == "dans_emprise":
             cond = geom2 + " && " + nom_geometrie
         else:
-            fonction = ""
             if nom_fonction == "intersect":
                 fonction = "ST_Intersects("
             elif nom_fonction == "dans":
                 fonction = "ST_Contains("
             if fonction:
                 cond = fonction + geom2 + "," + nom_geometrie + ")"
-
-        print("cond geom", cond, nom_fonction, fonction)
+        if not cond:
+            self.params.logger.error("pas de condition geometrique %s ", nom_fonction)
+            raise StopIteration(1)
+        # print("cond geom", nom_fonction, fonction, geom2)
         return cond
 
 

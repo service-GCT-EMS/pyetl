@@ -836,7 +836,7 @@ class DbConnect(object):
 
     def set_geom(self, geom, srid):
         """cree la geometrie"""
-        return geom, srid
+        return geom
 
     def set_geomb(self, geom, srid, buffer):
         """cree la geometrie avec un buffer"""
@@ -844,6 +844,7 @@ class DbConnect(object):
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
         """ sql pour une condition geometrique"""
+        print("cond_geom:___________si on est la ce nest pas normal ______________")
         return ""
 
     def set_limit(self, maxi, whereclause):
@@ -1006,7 +1007,7 @@ class DbConnect(object):
             else:
                 geom = geometrie
                 srid = "3948"
-
+            # print("setgeom", srid)
             #            geom2="SDO_GEOMETRY('%s',%s)" % (geom,srid)
             geom2 = self.set_geom(geom, srid)
             # geom2 = self.set_geom2(geom)
@@ -1020,6 +1021,15 @@ class DbConnect(object):
             if nom_fonction and nom_fonction[0] == "!":
                 prefixe = "NOT "
                 nom_fonction = nom_fonction[1:]
+
+            # print(
+            #     "debug: database: requete de selection geo",
+            #     geom2,
+            #     self.cond_geom,
+            #     self.cond_geom(
+            #         nom_fonction, self.quote(schema.info["nom_geometrie"]), geom2
+            #     ),
+            # )
 
             requete = (
                 " SELECT "
@@ -1035,7 +1045,8 @@ class DbConnect(object):
             )
 
             # if self.debug > 2:
-            print("debug: database: requete de selection geo", requete, data)
+
+            # print("debug: database: requete de selection geo", requete, data)
             # curs.execute(requete,data)
             self.attlist = attlist
             volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
