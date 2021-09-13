@@ -281,7 +281,7 @@ class Macro(object):
 
     def __init__(self, nom, file="", vpos=None):
         self.nom = nom
-        self.apiname = None
+        self.apis = dict()
         self.retour = "text"
         self.file = file
         self.commandes_macro = dict()
@@ -320,10 +320,12 @@ class Macro(object):
                 self.vars_utilisees[nomv] = defv
                 return
             if ligne.startswith("!#api"):
-                apidef = ligne.split(";")
-                self.apiname = apidef[1] if apidef[1] else self.nom[1:]
-                self.retour = apidef[2] if apidef[2] else "text"
-                self.no_in = "no_in" in ligne
+                apidef = ligne.split(";") + ["", "", ""]
+                apiname = apidef[1] if apidef[1] else self.nom[1:]
+                retour = apidef[2] if apidef[2] else "text"
+                no_in = "no_in" in ligne
+                template = apidef[3] if apidef[3] else "no"
+                self.apis[apiname] = (self.nom, retour, template, no_in)
                 return
             if ligne.startswith("!"):  # commentaire on jette
                 return

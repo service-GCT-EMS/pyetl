@@ -66,8 +66,10 @@ class ScriptList(object):
         self.scriptdir = os.path.join(self.mapper.getvar("workdir", "."), "scripts")
         self.scripts = dict()
         self.is_api = dict()
+        self.apis = dict()
         self.worker = ""
-        # self.refresh()
+        # self.inited = "False"
+        self.refresh()
 
     def refresh(self, script=None):
         """rafraichit la liste de scripts"""
@@ -93,8 +95,17 @@ class ScriptList(object):
             desc = self.refreshscript(fichier)
             self.liste.append(desc)
             n += 1
+        self.macroapis()
+
         print("scripts analyses", n)
         # print("liste fichiers", self.liste)
+
+    def macroapis(self):
+        """ stocke les definitions des apis"""
+        for i, m in self.mapper.getmacros():
+            if m.apis:
+                for nom, contenu in m.apis.items():
+                    self.apis[nom] = contenu
 
     def getlignes(self, nom_script):
         """recupere la description du script"""
@@ -112,6 +123,7 @@ class ScriptList(object):
             infos["no_in"] = {macro.no_in: "pas d entree"}
             infos["help"] = macro.help
             infos["help_detaillee"] = macro.help_detaillee
+            infos["api"] = macro.apis
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
@@ -120,6 +132,8 @@ class ScriptList(object):
                 raise KeyError
             for ligne in script:
                 if ligne.startswith("!#"):
+                    if ligne.endswith("\n"):
+                        ligne = ligne[:-1]
                     tmp = ligne[2:].split(":", 1)
                     if len(tmp) == 1:
                         continue
@@ -134,8 +148,13 @@ class ScriptList(object):
                         infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
-        self.is_api[nom_script] = infos.get("api", False)
-        # print("infos", infos)
+        apidef = infos.get("api", False)
+        self.is_api[nom_script] = bool(apidef)
+        if apidef:
+            for i in apidef:
+                nom, retour, template, *_ = i.split(";") + ["", "", ""]
+                self.apis[nom] = (nom_script, retour, template)
+            # print("apidef apis", self.apis, apidef)
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -164,17 +183,19 @@ class ScriptList(object):
 
     def getapilist(self):
         # genere la liste des apis
-        mapper = scriptlist.mapper
-        apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
-
-        macroapilist = sorted(
-            [
-                fichinfo._make((m.apiname, "_" + i[1:], m.retour, m.help))
-                for i, m in mapper.getmacros()
-                if m.apiname
-            ]
-        )
-        apilist.extend(macroapilist)
+        # apilist = [i for i in scriptlist.liste if scriptlist.is_api.get(i[0])]
+        # print("getapilist", self.apis)
+        apilist = [
+            fichinfo._make(
+                (
+                    nom,
+                    contenu[0].replace("#", "_"),
+                    contenu[1],
+                    scriptlist.descriptif.get(contenu[0], {}).get("help"),
+                )
+            )
+            for nom, contenu in self.apis.items()
+        ]
         return apilist
 
 
@@ -227,7 +248,7 @@ def scripts():
 def macros():
     macrolist = sorted(
         [
-            fichinfo._make((i, i.replace("#", "_"), "*" if m.apiname else "", m.help))
+            fichinfo._make((i, i.replace("#", "_"), "****" if m.apis else "", m.help))
             for i, m in scriptlist.mapper.getmacros()
         ]
     )
@@ -328,7 +349,7 @@ def retour_api(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
-@app.route("/ws")
+@app.route("/mws")
 def webservicelist():
     apilist = scriptlist.getapilist()
     return jsonify(apilist)
@@ -373,11 +394,14 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     return (wstats, result, tmpdir)
 
 
-@app.route("/ws/<script>", methods=["GET", "POST"])
-def webservice(script):
+@app.route("/mws/<api>", methods=["GET", "POST"])
+def webservice(api):
     local = request.host.startswith("127.0.0.1:")
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
-
+    infoscript = scriptlist.apis.get(api)
+    if not infoscript:
+        return "erreur script non trouve %s" % (api,)
+    script = infoscript[0]
     nomscript = "#" + script[1:] if script.startswith("_") else script
     if not scriptlist.refreshscript(nomscript):
         abort(404)
@@ -393,8 +417,8 @@ def webservice(script):
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
-    if retour:
-        wstats, result, tmpdir = retour
+    wstats, result, tmpdir = retour
+    if result:
         if "print" in result:
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
             # print("recup ", ret)
@@ -417,11 +441,22 @@ def webservice(script):
         return "erreur pas de retour"
 
 
-@app.route("/exec/<script>/<mode>", methods=["GET", "POST"])
+@app.route("/exec/<appel>/<mode>", methods=["GET", "POST"])
 # @app.route("/exec/<script>")
-def execscript(script, mode):
+def execscript(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
+    ws = mode == "api"
+    if ws:
+        infoscript = scriptlist.apis.get(appel)
+        if not infoscript:
+            return "erreur script non trouve %s (%s)" % (
+                appel,
+                str(list(scriptlist.apis.keys())),
+            )
+        script = infoscript[0]
+    else:
+        script = appel
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -431,7 +466,6 @@ def execscript(script, mode):
     )
     infos = scriptlist.descriptif[nomscript]
     infos["__mode__"] = mode
-    ws = mode == "api"
     # print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
@@ -457,9 +491,9 @@ def execscript(script, mode):
         # print("valeur xws", x_ws)
         if x_ws == "True":  # on appelle en mode webservice
             qstr = urlencode(scriptparams)
-            # url = "http://ws/" + script
-            wsurl = "/ws/" + script + "?" + qstr
-            # print("mode webservice ", "/ws/" + script + "?" + qstr)
+            # url = "http://mws/" + script
+            wsurl = "/mws/" + appel + "?" + qstr
+            # print("mode webservice ", "/mws/" + script + "?" + qstr)
             return redirect(wsurl)
         retour = process_script(
             nomscript, entree, rep_sortie, scriptparams, "web", local

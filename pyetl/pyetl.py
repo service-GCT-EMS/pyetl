@@ -338,6 +338,7 @@ class Pyetl(object):
                 )  # macros perso
             self.sorties = GestionSorties(rep_sortie=self.getvar("_sortie"))
             self.debug = int(self.getvar("debug", 0))
+            self.setvar("paramgroups", list(self.site_params.keys()))
 
         else:
             self.macrostore = MacroStore(self.parent.macrostore)
@@ -1304,6 +1305,7 @@ class Pyetl(object):
         #     self.mode,
         # )
         # on reformate les logs qui sont des buffers
+        buffer = None
         if "log" in self.webstore:
             buffer = self.webstore["log"]
             sortie = buffer.getvalue().split("\n")
@@ -1313,8 +1315,11 @@ class Pyetl(object):
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
             for i in self.webstore
         }
-        buffer.truncate(0)
-        self.webstore = {"log": buffer}
+        if buffer:
+            buffer.truncate(0)
+            self.webstore = {"log": buffer}
+        else:
+            self.webstore = dict()
         name = "noname"
         return tmp, name
 

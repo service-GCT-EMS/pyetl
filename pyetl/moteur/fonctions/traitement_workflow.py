@@ -308,14 +308,9 @@ def printvariable(regle):
 
 
 def h_printvar(regle):
-    """#aide||affichage des parametres nommes
-    #pattern||;;;printv;C?;=noms?||entree
-    #test||redirect||obj||$toto=ok||^;;;printv;toto||out
-    #!test2||redirect||obj||$toto=ok||^;;;printv;||out
-    """
+    """#aide||affichage des parametres nommes"""
     #    print("variables:")
-    regle.print(printvariable(regle))
-    regle.valide = "done"
+
     return True
 
 
@@ -350,12 +345,30 @@ def f_version(*_):
     return True
 
 
+def h_print(regle):
+    """"affichage direct en webservice"""
+    if regle.params.pattern == "3":
+        # print(
+        #     "affichage variable ws",
+        #     regle.params.att_entree.liste,
+        #     ",".join((repr(regle.getvar(i)) for i in regle.params.att_entree.liste)),
+        # )
+        if len(regle.params.att_entree.liste) > 1:
+            regle.print([regle.getvar(i) for i in regle.params.att_entree.liste])
+        else:
+            regle.print(regle.getvar(regle.params.att_entree.val))
+
+        regle.valide = "done"
+    return True
+
+
 def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
     #parametres||valeur defaut;liste de champs;;texte fixe;affichage noms de champs
 
     #pattern1||;C?;L?;print;C?;=noms?||entree
     #pattern2||;;*;print;C?;=noms?||entree
+    #pattern3||=mws:;=P;?L;print;C?;=noms?||sortie
     #test||redirect||obj||^X;ok;;set||^;;X;print||out
     """
     # print("cmp1>" + regle.params.cmp1.val + "<")

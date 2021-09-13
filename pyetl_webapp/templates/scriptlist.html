@@ -24,7 +24,11 @@
             <td>
                 <a href=scriptdesc/{{ item.url }}><img src="{{url_for('static',filename='images/interrog.png')}}"></img></a>
             </td>
-            <td><a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a></td>
+            {%if mode=="api"%}
+                <td><a href=exec/{{ item.nom }}/{{mode}}> {{ item.nom }}</a></td>
+            {%else%}
+                <td><a href=exec/{{ item.url }}/{{mode}}> {{ item.nom }}</a></td>
+            {%endif%}
             <td>{{ item.date_maj }}</td>
             <td>{{ item.description }}</td>
         </tr>

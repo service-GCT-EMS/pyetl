@@ -104,7 +104,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
             dimension = 3
             nom_geom = nom_geom.split(" ")[1]
             type_geom = code_g.get(nom_geom, "-1")
-        if "Multi" in nom_geom:
+        if "Multi" in nom_geom or (driver == "ESRI Shapefile" and type_geom > "1"):
             multigeom = True
     else:
         nom_geom = ""

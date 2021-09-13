@@ -4,13 +4,26 @@ import itertools
 import os
 
 
+def usewebservice(ihm, ligne):
+    if "@@" in ligne:  # appel serviceweb
+        tmp = ligne.split("@@")
+        wdef = tmp[1]
+        nom_service, *_ = wdef.split("/")
+        uri = ihm.weblinks[nom_service] + wdef
+        tmp[1] = "(invoke-WebRequest -Uri '" + uri + "'|convertfrom-Json)"
+        retour = "".join(tmp)
+        return retour
+    return ligne
+
+
 class Ihm(object):
     def __init__(self, nom=None, interpreteur=None):
         self.nom = nom if nom else "ihm"
         self.id = "ihm"
         self.main = None
         self.elements = []
-        self.weblink = False
+        self.weblinks = dict()
+        self.startserver = False
         self.variables = dict()
 
     @property
@@ -38,15 +51,15 @@ class Ihm(object):
             "$font=New-Object System.Drawing.Font('Microsoft Sans Serif',10)",
             "$startx=20",
         ]
-        if self.weblink and self.localhost:
+        if self.startserver:
             # on verifie si le serveur existe
-            code.append('$jobs=get_job -Command "mapper_web*"')
+            code.append('$jobs=get-job -Command "mapper_web*"')
             code.append("if (!$jobs) {start-job -ScriptBlock {mapper_web}}")
             # on demarre le serveur web
 
-        code.extend(self.main.genps())
+        code.extend(self.main.genps(self))
         for el in self.elements:
-            code.extend(el.genps())
+            code.extend(el.genps(self))
         return code
 
     def struct(self):
@@ -106,7 +119,7 @@ class Fenetre(object):
         print("lignes de l ihm", len(self.elements), maxlin)
         return maxlin
 
-    def genps(self):
+    def genps(self, ihm):
         self.lcols = int((self.largeur - 40) / (self.colonnes))
         self.hlin = 40
         vref = "$" + self.id
@@ -122,13 +135,13 @@ class Fenetre(object):
 
         vlist = []
         for el in self.elements:
-            vslist, vbcode = el.genps()
+            vslist, vbcode = el.genps(ihm)
             code.extend(vbcode)
             vlist.extend(vslist)
 
         if self.statusbar:
             statusbar = Label(self, self.lignes, 1, "", id="statusbar")
-            vslist, scode = statusbar.genps()
+            vslist, scode = statusbar.genps(ihm)
             code.extend(scode)
             vlist.extend(vslist)
 
@@ -157,6 +170,7 @@ class Element(object):
         self.elements = []
         self.nature = "Element"
         self.variables = parent.variables
+        self.wsroot = None
 
     def mkheader(self):
         return ["", "#============" + self.nature + "=============", ""]
@@ -211,7 +225,7 @@ class Fileselect(Element):
         self.ref = self.id + "TB.Text"
         self.variables = parent.variables
 
-    def genps(self):
+    def genps(self, ihm):
         lab = "$" + self.id + "L"
         tb = "$" + self.id + "TB"
         fbr = "$" + self.id + "FBR"
@@ -282,10 +296,13 @@ class Droplist(Element):
         self.hauteur = 2
         self.ref = self.id + ".Text"
 
-    def genps(self):
+    def genps(self, ihm):
         dl = "$" + self.id
         dlb = dl + "L"
-        seldef = '"' + '","'.join(self.selecteur.split(",")) + '"'
+        if self.selecteur.startswith("@@"):  # appel serviceweb
+            seldef = usewebservice(ihm, self.selecteur)
+        else:
+            seldef = '"' + '","'.join(self.selecteur.split(",")) + '"'
         code = (
             self.mkheader()
             + self.mklab(dlb, self.titre)
@@ -313,7 +330,7 @@ class Checkbox(Element):
         self.hauteur = 1
         self.ref = self.id + ".Checked"
 
-    def genps(self):
+    def genps(self, ihm):
         cb = "$" + self.id
         code = self.mkheader() + [
             cb + "= New-Object system.Windows.Forms.CheckBox",
@@ -335,7 +352,7 @@ class Bouton(Element):
         self.id = "Btn" + str(next(self._ido))
         self.nature = "Bouton"
 
-    def genps(self):
+    def genps(self, ihm):
         bt = "$" + self.id
         lcols = self.parent.lcols
         code = self.mkheader() + [
@@ -351,7 +368,7 @@ class Bouton(Element):
             "   {",
         ]
         for el in self.elements:
-            se, sc = el.genps()
+            se, sc = el.genps(ihm)
             code.extend(sc)
         code.extend(["   }", ")"])
         return [bt], code
@@ -369,7 +386,7 @@ class Label(Element):
         self.id = "Lbl" + str(next(self._ido))
         self.nature = "label"
 
-    def genps(self):
+    def genps(self, ihm):
         lab = self.id
         code = self.header() + self.mklab(lab, self.titre)
         return [lab], code
@@ -383,8 +400,9 @@ class Commande(Element):
         self.ligne = "="
         self.colonne = 1
 
-    def genps(self):
+    def genps(self, ihm):
         commande = self.commande
+        commande = usewebservice(ihm, commande)
         # if "#" in commande:
         #     # on gere les # que powershell n aime pas
         #     tmp = commande.split(" ")
@@ -433,30 +451,21 @@ def creihm(nom):
                 continue
             if code.startswith("!ihm"):
                 if position == "init":
-                    tmp = commande.splt(",")
+                    tmp = commande.split(",")
                     interpreteur = tmp[0]
-                    weblink = False
-                    if len(tmp) > 1:
-                        if tmp[1] == "weblink":
-                            weblink = True
-                            localhost = True
-                            url = "127.0.0.1:5000"
-                    if len(tmp) > 2:
-                        urldef = tmp[2]
-                        if urldef.startswith("http"):
-                            localhost = False
-                            url = urldef
-                        elif urldef.startswith(":"):
-                            url = "127.0.0.1" + urldef
                     nom_ihm = os.path.splitext(nom)[0]
                     if ihm:
                         "print erreur redefinition ihm "
                         raise StopIteration
                     ihm = Ihm(nom_ihm, interpreteur)
-                    if weblink:
-                        ihm.weblink = url
-                        ihm.localhost = localhost
                     variables = ihm.variables
+            elif code == "!weblink":
+                nom_service = position
+                url, start, *_ = commande.split(",") + ["", ""]
+                ihm.weblinks[nom_service] = url
+                print("enregistrement weblink", nom_service, url)
+                if start:
+                    ihm.startserver = True
             elif code == "!fenetre":
                 largeur = int(position)
                 titre = commande[:-1] if commande.endswith("\n") else commande

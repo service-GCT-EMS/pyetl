@@ -642,3 +642,7 @@ P:p3;;;;;;;pass;;;debug
 |sinon:P:p2;;;;;;;pass;;;debug
 ||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;debug
 ||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;debug
+&&#define;#var;nom;
+!#help;affiche une variable
+!#api;var;
+;;;;mws:;P;%nom%;print;;;

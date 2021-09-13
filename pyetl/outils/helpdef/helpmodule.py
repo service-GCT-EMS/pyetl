@@ -122,8 +122,9 @@ def print_macrohelp_detail(mapper, nom):
         for i in macro.vars_utilisees:
             print("%14s : %s" % (i, macro.vars_utilisees[i]))
 
-    if macro.apiname:
-        print("    webservice : %s -> retour %s" % (macro.apiname, macro.retour))
+    if macro.apis:
+        for nom, contenu in macro.apis.items():
+            print("    webservice : %s -> retour %s" % (nom, contenu[1]))
     return True
 
 

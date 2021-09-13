@@ -257,7 +257,7 @@ def detail_macro(mapper):
         parametres = macro.vpos
 
         variables = macro.vars_utilisees
-        api = macro.apiname
+        apis = macro.apis
         apiformat = macro.retour
         doc.append("")
         doc.append(nom_macro)
@@ -285,12 +285,13 @@ def detail_macro(mapper):
             for nomp, defp in variables.items():
                 doc.append("* " + nomp + ":" + defp)
             doc.append("")
-        if api:
+        if apis:
             doc.append("macro utilisabe en service web")
-            doc.append("")
-            doc.append("* url          : ws/" + api)
-            doc.append("* format retour:" + apiformat)
-            doc.append("")
+            for nom, contenu in apis.items():
+                doc.append("")
+                doc.append("* url          : mws/" + nom)
+                doc.append("* format retour:" + contenu[1])
+                doc.append("")
         doc.append("")
     # print("detail macros", doc)
     return doc
