@@ -318,6 +318,42 @@ class Droplist(Element):
         return [dl, dlb], code
 
 
+class ListView(Element):
+    """liste de cases a cocher"""
+
+    _ido = itertools.count(1)
+
+    def __init__(self, parent, lin, col, titre, selecteur, variable):
+        super().__init__(parent, lin, col, titre)
+        self.id = "Clist" + str(next(self._ido))
+        self.selecteur = selecteur
+        self.variable = variable
+        self.nature = "Checklist"
+        self.hauteur = 2
+        self.ref = self.id + ".Text"
+
+    def genps(self, ihm):
+        dl = "$" + self.id
+        dlb = dl + "Cl"
+        if self.selecteur.startswith("@@"):  # appel serviceweb
+            seldef = usewebservice(ihm, self.selecteur)
+        else:
+            seldef = '"' + '","'.join(self.selecteur.split(",")) + '"'
+        code = (
+            self.mkheader()
+            + self.mklab(dlb, self.titre)
+            + [
+                dl + " = New-Object system.Windows.Forms.ListView",
+                dl + ".Items.AddRange(@(%s))" % (seldef,),
+                dl + ".location =" + self.position(dy=30),
+                dl + ".width = 200",
+                dl + ".height = 100",
+                dl + ".Font = $font",
+            ]
+        )
+        return [dl, dlb], code
+
+
 class Checkbox(Element):
     _ido = itertools.count(1)
 
@@ -510,6 +546,14 @@ def creihm(nom):
                 if variable:
                     variables[variable] = dlist
 
+            elif code == "!checklist":
+                lin, col = position.split(",")
+                titre, liste, variable = commande.split(";", 2)
+                dlist = ListView(courant, lin, col, titre, liste, variable)
+                courant.elements.append(dlist)
+                if variable:
+                    variables[variable] = dlist
+
             elif code == "!button":
                 lin, col = position.split(",")
                 titre = commande[:-1] if commande.endswith("\n") else commande
@@ -534,7 +578,8 @@ def creihm(nom):
                 courant.parent.statusbar = True
                 courant.elements.append(Commande("$statusbar.text=" + commande))
                 courant.elements.append(Commande("$statusbar.Refresh()"))
-
+            else:
+                print("code inconnu", code)
     ihm.struct()
 
     sortie = ihm.nom + ".ps1"

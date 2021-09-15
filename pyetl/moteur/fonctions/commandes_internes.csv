@@ -622,27 +622,3 @@ $#%a%;
 $test_v1=%n1%;;;;;
 $test_v2=%n2%;;;;;
 ;;;;;;;printv>;%test_v1%;;;
-!===========================================================================================;;;;;;;;;;;
-&&#define;#fakelist;valeur;n;;;
-!#help;genere une liste d'items numerotes pour les tests;
-!#parametres;valeur;texte a reproduire
-!#parametres;n;nombre de lignes
-!#api;fakelist1;json;
-!#api;fakelist2;xml;temp1
-!#api;fakelist3;text;
-!#api;fakelist4;html;temp2
-;;;;xx;%valeur%;;creobj;tmp;%n%;;
-;;;;xx+;;#gid;set;;;
-;;;;;;xx;print>;;;
-&&#define;#dd;base;table;result;p1;p2;p3;
-!#help;outil d'interrogation rapide de base de donnees (select conditionnel)
-!#api;dd;json;
-P:p3;;;;;;;pass;;;debug
-|:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%;;debug
-|sinon:P:p2;;;;;;;pass;;;debug
-||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;debug
-||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;debug
-&&#define;#var;nom;
-!#help;affiche une variable
-!#api;var;
-;;;;mws:;P;%nom%;print;;;

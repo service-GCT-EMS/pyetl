@@ -739,13 +739,27 @@ def f_statprocess(*_):
     return True
 
 
+def h_schema_liste_classes(regle):
+    """liste des classes d un schema"""
+
+    if regle.params.pattern == "2":
+        schema = regle.getschema(regle.params.cmp1.val)
+        sortie = regle.stock_param.webstore.setdefault("#print", [])
+        if regle.params.val_entree == "schemas":
+            sortie.extend(list(schema.groupes.keys()))
+        elif regle.params.val_entree == "classes":
+            sortie.extend(list(schema.classes))
+    regle.valide = "done"
+
+
 def f_schema_liste_classes(regle, _):
     """#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
     #aide_spec||liste_schema;nom;?reel
     #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
     #helper||chargeur
     #schema||change_schema
-    #pattern||?=#schema;?C;?A;liste_schema;C;?=reel
+    #pattern1||?=#schema;?C;?A;liste_schema;C;?=reel
+    #pattern2||?=mws:;?C;?A;liste_schema;C;
     """
     schema = regle.getschema(regle.params.cmp1.val)
     if schema is None:

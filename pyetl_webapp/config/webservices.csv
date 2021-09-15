@@ -1,0 +1,47 @@
+!att_tri1;valeur_tri1;att_tri2;valeur_tri2;att_sortie;defaut;att_entree;mode;param1;param2;debug;variables;
+!============================== bloc webservices ===========================================;;;;;;;;;;;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#fakelist;valeur;n;;;
+!#help;genere une liste d'items numerotes pour les tests;
+!#parametres;valeur;texte a reproduire
+!#parametres;n;nombre de lignes
+!#api;fakelist1;json;
+!#api;fakelist2;xml;temp1
+!#api;fakelist3;text;
+!#api;fakelist4;html;temp2
+;;;;xx;%valeur%;;creobj;tmp;%n%;;
+;;;;xx+;;#gid;set;;;
+;;;;;;xx;print>;;;
+!==============================selections en cascade sur une table===========================;;;;;;;;;;;
+&&#define;#dd;base;table;result;p1;p2;p3;
+!#help;outil d'interrogation rapide de base de donnees (select conditionnel)
+!#api;dd;json;
+P:p3;;;;;;;pass;;;debug
+|:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%;;debug
+|sinon:P:p2;;;;;;;pass;;;debug
+||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;debug
+||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;debug
+!==================================affichage d une variable==================================;;;;;;;;;;;
+&&#define;#var;nom;
+!#help;affiche une variable
+!#api;var;
+!#api;var2;xml;
+;;;;mws:;P;%nom%;print;;;
+!==================================extraction d un schema==================================;;;;;;;;;;;
+!========================================groupes===========================================;;;;;;;;;;;
+&&#define;#listegroupes;base;
+!#help;liste les groupes d une base;
+!#api;listegroupes;json;
+<#dbschema;%base%;
+;;;;;;;liste_schema;;;
+;;;;#groupe;;;garder;;;
+;;;;;;;uniq;;;
+;;;;mws:;;#groupe;print;;
+!========================================classes===========================================;;;;;;;;;;;
+&&#define;#listeclasses;base;niveau;
+!#help;liste les groupes d une base;
+!#api;listeclasses;json;
+<#dbschema;%base%;%niveau%
+;;;;;;;liste_schema;;;
+;;;;#classe;;;garder;;;
+;;;;mws:;;;print;;

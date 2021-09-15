@@ -69,6 +69,9 @@ class ScriptList(object):
         self.apis = dict()
         self.worker = ""
         # self.inited = "False"
+        self.mapper.charge_cmd_internes(
+            direct=os.path.join(os.path.dirname(__file__), "config\webservices")
+        )
         self.refresh()
 
     def refresh(self, script=None):

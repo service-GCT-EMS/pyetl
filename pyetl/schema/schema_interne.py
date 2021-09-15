@@ -36,6 +36,7 @@ def init_schema(
     stable=True,
     modele=None,
     copie=False,
+    force=False,
 ):
     """ retourne le schemas qui va bien et les cree si necsssaire """
     if not nom_schema:  # on demande un schema temporaire
@@ -55,7 +56,7 @@ def init_schema(
         else:
             print("schema introuvable", modele, "dans", mapper.schemas.keys())
             modele = None
-    if nom_schema not in mapper.schemas:
+    if nom_schema not in mapper.schemas or force:
         nouveau = Schema(
             nom_schema, origine=origine, fich=fich, defmodeconf=defmodeconf
         )
