@@ -27,21 +27,24 @@ P:p3;;;;;;;pass;;;debug
 !#api;var;
 !#api;var2;xml;
 ;;;;mws:;P;%nom%;print;;;
+!==================================groupes de parametres==================================;;;;;;;;;;;
+&&#define;#params;clef;val;
+!#help;liste les parametres d acces aux bases;
+!#api;params;json;
+;;;;mws:;%val%;;paramgroups;%clef%
 !==================================extraction d un schema==================================;;;;;;;;;;;
 !========================================groupes===========================================;;;;;;;;;;;
 &&#define;#listegroupes;base;
 !#help;liste les groupes d une base;
 !#api;listegroupes;json;
 <#dbschema;%base%;
-;;;;;;;liste_schema;;;
-;;;;#groupe;;;garder;;;
-;;;;;;;uniq;;;
-;;;;mws:;;#groupe;print;;
+;;;;mws:;groupes;;liste_schema>;%base%;
+!;;;;;;#groupe;unique-;;;debug
+!|:;;;;;;#groupe;print>;;
 !========================================classes===========================================;;;;;;;;;;;
 &&#define;#listeclasses;base;niveau;
 !#help;liste les groupes d une base;
 !#api;listeclasses;json;
 <#dbschema;%base%;%niveau%
-;;;;;;;liste_schema;;;
-;;;;#classe;;;garder;;;
-;;;;mws:;;;print;;
+;;;;;;;liste_schema>;%base%;;
+;;;;;;#classe;print;;

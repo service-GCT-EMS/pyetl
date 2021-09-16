@@ -135,6 +135,7 @@ idle;.traitement_workflow
 liste_schema;.traitement_workflow
 next;.traitement_workflow
 parallel;.traitement_workflow
+paramgroups;.traitement_workflow
 pass;.traitement_workflow
 print;.traitement_workflow
 printv;.traitement_workflow

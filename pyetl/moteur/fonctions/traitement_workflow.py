@@ -347,6 +347,7 @@ def f_version(*_):
 
 def h_print(regle):
     """"affichage direct en webservice"""
+    regle.printvirtuel = regle.istrue("virtuel")
     if regle.params.pattern == "3":
         # print(
         #     "affichage variable ws",
@@ -373,7 +374,8 @@ def f_print(regle, obj):
     """
     # print("cmp1>" + regle.params.cmp1.val + "<")
     # print("cmp1>" + regle.v_nommees["cmp1"] + "<")
-
+    if obj.virtuel and not regle.printvirtuel:
+        return False
     regle.print(printfunc(regle, obj))
     return True
 
@@ -739,17 +741,57 @@ def f_statprocess(*_):
     return True
 
 
+def h_liste_paramgroups(regle):
+    """liste les groupes de parametres selon un critere"""
+    if regle.params.pattern == "2":
+        paramlist = []
+        if regle.params.cmp1.val:
+            clef = regle.params.cmp1.val
+            val = regle.params.val_entree.liste
+            for nom, vals in regle.stock_param.site_params.items():
+                # print("params", nom, vals)
+                v2 = dict(vals)
+                if clef in v2 and (v2[clef] in val or not val):
+                    paramlist.append(nom)
+        else:
+            paramlist = list(regle.stock_param.site_params.keys())
+        sortie = regle.stock_param.webstore.setdefault("#print", [])
+        sortie.extend(paramlist)
+        regle.valide = "done"
+    return True
+
+
+def f_liste_paramgroups(regle, obj):
+    """#aide||liste les groupes de parametres selon un critere
+    #pattern1||;?C;?A;paramgroups;?C;;
+    #pattern2||=mws:;?L;;paramgroups;?C;;
+    """
+    pass
+
+
+# TODO: generer les objets sur les listes de parametres
+
+
 def h_schema_liste_classes(regle):
     """liste des classes d un schema"""
-
+    # print(
+    #     "h liste classes",
+    #     regle.params.pattern,
+    #     regle.params.cmp1.val,
+    #     regle.params.val_entree,
+    # )
     if regle.params.pattern == "2":
         schema = regle.getschema(regle.params.cmp1.val)
         sortie = regle.stock_param.webstore.setdefault("#print", [])
-        if regle.params.val_entree == "schemas":
+        if regle.params.val_entree.val in ("schemas", "groupes"):
             sortie.extend(list(schema.groupes.keys()))
-        elif regle.params.val_entree == "classes":
+        elif regle.params.val_entree.val == "classes":
             sortie.extend(list(schema.classes))
-    regle.valide = "done"
+        else:
+            return False
+        regle.valide = "done"
+    print("h liste classes", regle.valide)
+    return True
 
 
 def f_schema_liste_classes(regle, _):
@@ -759,9 +801,12 @@ def f_schema_liste_classes(regle, _):
     #helper||chargeur
     #schema||change_schema
     #pattern1||?=#schema;?C;?A;liste_schema;C;?=reel
-    #pattern2||?=mws:;?C;?A;liste_schema;C;
+    #pattern2||=mws:;?C;;liste_schema;C;||sortie
     """
     schema = regle.getschema(regle.params.cmp1.val)
+    print(
+        "recup schema", regle.params.cmp1.val, regle.stock_param.schemas.keys(), schema
+    )
     if schema is None:
         return False
     virtuel = not regle.params.cmp2.val

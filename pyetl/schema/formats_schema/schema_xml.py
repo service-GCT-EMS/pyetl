@@ -398,15 +398,18 @@ def ecrire_schema_xml(
             if not prefix:
                 copier_xsl(rep)
             # mode webservice
-        if stock_param and stock_param.mode.startswith("web"):
+    if stock_param and stock_param.mode.startswith("web"):
 
-            # print(
-            #     "##################### mode webstore schemas :",
-            #     stock_param.idpyetl,
-            #     nomschema,
-            #     len(xml) if xml else 0,
-            # )
+        # print(
+        #     "##################### mode webstore schemas :",
+        #     stock_param.idpyetl,
+        #     nomschema,
+        #     len(xml) if xml else 0,
+        # )
+        if xml:
             stock_param.webstore["schema_" + nomschema] = xml.split("\n")
+        else:
+            stock_param.webstore["schema_" + nomschema] = "<vide/>"
 
 
 def copier_xsl(rep):

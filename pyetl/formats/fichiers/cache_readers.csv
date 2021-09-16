@@ -4,6 +4,7 @@ asc;.format_asc
 csv;.format_csv
 dbf;.format_dbf
 dxf;.format_gdalio
+fixed;.format_textfile
 geojson;.format_json
 gpkg;.format_gdalio
 gy;.format_geocity

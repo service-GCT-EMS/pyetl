@@ -640,10 +640,13 @@ class Pyetl(object):
         # )
 
         if not regles:
+            if mode == "web" and nom in self.webworkers:
+                return self.webworkers[nom]
             if mode is None:
                 self.logger.critical("getpyetl:mode non defini")
                 # print("getpyetl:mode non defini")
                 return None
+
         if mode.startswith("web"):
 
             if nom in self.webworkers:

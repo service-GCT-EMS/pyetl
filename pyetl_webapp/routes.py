@@ -69,12 +69,9 @@ class ScriptList(object):
         self.apis = dict()
         self.worker = ""
         # self.inited = "False"
-        self.mapper.charge_cmd_internes(
-            direct=os.path.join(os.path.dirname(__file__), "config\webservices")
-        )
-        self.refresh()
+        self.refresh(False)
 
-    def refresh(self, script=None):
+    def refresh(self, local, script=None):
         """rafraichit la liste de scripts"""
         if script is None:
             self.liste = []
@@ -98,10 +95,20 @@ class ScriptList(object):
             desc = self.refreshscript(fichier)
             self.liste.append(desc)
             n += 1
+        self.mapper.charge_cmd_internes(
+            direct=os.path.join(os.path.dirname(__file__), "config\webservices")
+        )
         self.macroapis()
 
         print("scripts analyses", n)
         # print("liste fichiers", self.liste)
+        if local:  # on raffraichit aussi le webworker
+            nom = session.get("nompyetl", scriptlist.worker if local else "")
+            webworker = self.mapper.getpyetl([], mode="web", nom=nom)
+            if webworker:
+                webworker.charge_cmd_internes(
+                    direct=os.path.join(os.path.dirname(__file__), "config\webservices")
+                )
 
     def macroapis(self):
         """ stocke les definitions des apis"""
@@ -212,7 +219,8 @@ scriptlist = ScriptList()
 @app.route("/")
 @app.route("/index")
 def index():
-    scriptlist.refresh()
+    local = request.host.startswith("127.0.0.1:")
+    scriptlist.refresh(local)
     return render_template(
         "index.html",
         text="acces simplifie aux fonctions mapper",
@@ -269,7 +277,8 @@ def apis():
 
 @app.route("/refresh/<mode>")
 def refresh(mode):
-    scriptlist.refresh()
+    local = request.host.startswith("127.0.0.1:")
+    scriptlist.refresh(local)
     return render_template(
         "scriptlist.html",
         liste=sorted(scriptlist.liste),

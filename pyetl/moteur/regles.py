@@ -707,6 +707,9 @@ class RegleTraitement(object):  # regle de mapping
     # =========================acces aux schemas=============================
     def getschema(self, nom):
         """recupere un schema"""
+        if nom not in self.stock_param.schemas:
+            print("schema introuvable", nom, self.stock_param.schemas.keys())
+            return None
         return self.stock_param.schemas.get(nom)
 
     # =========================acces standardises aux objets==================
