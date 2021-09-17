@@ -14,8 +14,6 @@ from io import StringIO
 # from collections import namedtuple
 import pyetl.formats.format_temporaire as T
 
-LOGGER = logging.getLogger(__name__)
-
 
 class Branch(object):
     """gestion des liens avec possibilite de creer de nouvelles sorties"""
@@ -323,6 +321,7 @@ def validepattern(v_nommees, definition, ligne):
         for i in elements
         if elements[i] is None
     ]
+    # print("validepattern", valide, elements, explication)
     return valide, elements, explication
 
 
@@ -566,7 +565,6 @@ class RegleTraitement(object):  # regle de mapping
                 valide, self.elements, erreurs = validepattern(
                     self.v_nommees, fonc.definition, self.ligne
                 )
-                # print( 'recherche pattern',valide, fonc.nom, erreurs, fonc.definition)
                 if valide:
                     break
         if not valide:
@@ -593,7 +591,7 @@ class RegleTraitement(object):  # regle de mapping
     def afficher_erreurs(self, fonc, message):
         """donne des indications sur les erreurs de syntaxe"""
         log = self.stock_param.logger.error
-        motif = "------->"
+        motif = ""
         log(motif + " erreur interpretation regle %s %d", self.fichier, self.numero)
         log(motif + " %s", self.ligne.replace("\n", ""))
         log(motif + " contexte d'execution: %s", repr(self.context))
@@ -618,6 +616,16 @@ class RegleTraitement(object):  # regle de mapping
                         fonc.nom if fonc else "",
                         fonc.definition[i].pattern if fonc else "",
                         "<-//->",
+                        self.v_nommees[i],
+                    )
+                    log(
+                        motif
+                        + "erreur commande >"
+                        + self.mode
+                        + "< (%s) %s:       %s <-//-> %s",
+                        fonc.nom if fonc else "",
+                        i,
+                        fonc.definition[i].pattern if fonc else "",
                         self.v_nommees[i],
                     )
         else:
@@ -801,7 +809,7 @@ class RegleTraitement(object):  # regle de mapping
             )
         )
         # print(msg)
-        LOGGER.info(msg)
+        self.stock_param.logger.info(msg)
 
     def setstore(self):
         """definit une regle comme stockante et ajuste les sorties"""
@@ -826,7 +834,7 @@ class RegleTraitement(object):  # regle de mapping
                 #     schem = SC.Schema(nomschem)
                 #     self.stock_param.schemas[nomschem] = schem
                 if classe_ob not in schem.classes:
-                    LOGGER.warning(
+                    self.stock_param.logger.warning(
                         "schema de sortie non trouve "
                         + nomschem
                         + " "

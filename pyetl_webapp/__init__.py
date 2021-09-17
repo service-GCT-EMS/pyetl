@@ -12,7 +12,6 @@ app = Flask(__name__.split(".")[0])
 # Bootstrap(app)
 app.config.from_object(config.appconfig)
 
-
 # You'll obviously do some more Flask stuff here!
 
 # Initialise the filemanager

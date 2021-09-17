@@ -386,7 +386,9 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
         nom=nom,
     )
     wstats = None
-    print("recup processeur", processor.idpyetl if processor else None, fich_script)
+    # print(
+    #     "recup processeur", mode, processor.idpyetl if processor else None, fich_script
+    # )
     result = None
     tmpdir = ""
     if processor:
@@ -403,6 +405,10 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
                 scriptlist.worker = processor.nompyetl
         except error as err:
             LOGGER.exception("erreur script", exc_info=err)
+    else:
+        failedworker = scriptlist.mapper.getpyetl([], mode="web", nom=nom)
+        if failedworker:
+            result, tmpdir = failedworker.get_results()
     return (wstats, result, tmpdir)
 
 
@@ -500,6 +506,8 @@ def execscript(appel, mode):
         # print("recup form", entree, rep_sortie, infos, scriptparams)
         # print("full url", request.base_url)
         x_ws = scriptparams.get("x_ws")
+        if "x_ws" in scriptparams:
+            del scriptparams["x_ws"]
         # print("valeur xws", x_ws)
         if x_ws == "True":  # on appelle en mode webservice
             qstr = urlencode(scriptparams)

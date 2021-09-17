@@ -764,7 +764,7 @@ def h_liste_paramgroups(regle):
 def f_liste_paramgroups(regle, obj):
     """#aide||liste les groupes de parametres selon un critere
     #pattern1||;?C;?A;paramgroups;?C;;
-    #pattern2||=mws:;?L;;paramgroups;?C;;
+    #pattern2||=mws:;?LC;;paramgroups;?C;;
     """
     pass
 

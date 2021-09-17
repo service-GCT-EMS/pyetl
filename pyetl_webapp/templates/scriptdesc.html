@@ -11,7 +11,7 @@
     {% endfor %}
     {%if descriptif.get("parametres")%}
         <h2>parametres</h2>
-        <div class="table-responsive">
+        <div >
             <table class="table table-bordered">
                 <thead>
                     <tr><th>nom</th><th>Description</th></tr>
@@ -28,15 +28,20 @@
     {%endif%}
     {%if descriptif.get("variables")%}
         <h2>variables</h2>
-        <table>
-            <thead>
-            <tr><th>nom</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-        {%for nom,definition in descriptif.get("variables".items())%}
-            <td>{{ nom }}</td><td>{{ definition }}</td>
-        {% endfor %}
-        </tbody>
+        <div >
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>nom</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                {%for nom,definition in descriptif.get("variables").items()%}
+                    <tr class="table-info">
+                        <td>{{ nom }}</td><td>{{ definition }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {%endif%}
     {%if descriptif.get("entree")%}
         <h2>entree:{{descriptif.get("entree")}}</h2>
@@ -45,7 +50,8 @@
         <h2>entree:{{descriptif.get("sortie")}}</h2>
     {%endif%}
     {%if descriptif.get("api")%}
-        <h2>disponible en tant que service web:{{descriptif.get("api")}}</h2>
+        <h2>disponible en tant que service web:</h2>
+        <p>{{descriptif.get("api")}}</p>
     {%endif%}
 </div>
 {% endblock %}

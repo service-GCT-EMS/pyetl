@@ -31,7 +31,7 @@ P:p3;;;;;;;pass;;;debug
 &&#define;#params;clef;val;
 !#help;liste les parametres d acces aux bases;
 !#api;params;json;
-;;;;mws:;%val%;;paramgroups;%clef%
+;;;;mws:;%val%;;paramgroups;%clef%;
 !==================================extraction d un schema==================================;;;;;;;;;;;
 !========================================groupes===========================================;;;;;;;;;;;
 &&#define;#listegroupes;base;
@@ -44,7 +44,16 @@ P:p3;;;;;;;pass;;;debug
 !========================================classes===========================================;;;;;;;;;;;
 &&#define;#listeclasses;base;niveau;
 !#help;liste les groupes d une base;
+!#parametres;base;base de donnees;@params;server;*@
+!#parametres;niveau;schema a consulter;@@listegroupes;%base%@@
 !#api;listeclasses;json;
 <#dbschema;%base%;%niveau%
-;;;;;;;liste_schema>;%base%;;
+;;;;mws:;classes;;liste_schema>;%base%;;
 ;;;;;;#classe;print;;
+!====================================sortie de donnees======================================;;;;;;;;;;;
+&&#define;#get;base;niveau;classe;
+!#help;extrait des donnees d une table;
+!#api;get;json;
+!#variables;lire_maxi;enregistrements a lire
+<#dbextract;%base%;%niveau%;%classe%;
+;;;;;;;sortir;#print;
