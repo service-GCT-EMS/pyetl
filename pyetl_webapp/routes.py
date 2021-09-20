@@ -50,6 +50,26 @@ def url_to_fich(url):
     return nom if nom.startswith("#") else os.path.join(scriptlist.scriptdir, nom)
 
 
+def init_vue(vars):
+    """initialise l objet vue """
+    vuedict = {
+        "el": "'#vm'",
+        "delimiters": "['[[', ']]']",
+        "data": {"message": "'Vue OK'", "x_ws": true},
+    }
+    vue = [
+        "<script>",
+        "const vm = new Vue({",
+        "el: '#vm'",
+        "delimiters: ['[[', ']]']",
+        "data: {",
+    ]
+    vue = vue + ["message: 'Vue OK'", "x_ws: true", "}"]
+    vue = vue + ["})", "</script>"]
+
+    return "\n".join(vue)
+
+
 class ScriptList(object):
     """cache de la liste de scripts"""
 

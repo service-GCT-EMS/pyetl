@@ -18,6 +18,10 @@ class BasicForm(FlaskForm):
     submit = SubmitField("executer")
 
 
+class DynSelectfield(F.Selectfield):
+    pass
+
+
 def formbuilder(description):
     "construit un formulaire web a partir d'une description"
 
