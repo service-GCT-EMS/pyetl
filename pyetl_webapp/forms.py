@@ -72,7 +72,7 @@ def formbuilder(description):
         else:
             setattr(CustomForm, "sortie", F.StringField("sortie"))
             varlist.append(("sortie", "sortie"))
-    # print("formbuilder: variables", list(chain(params.items(), variables.items())))
+    print("formbuilder: variables", list(chain(params.items(), variables.items())))
     for name, definition in chain(params.items(), variables.items()):
 
         nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")
@@ -82,8 +82,14 @@ def formbuilder(description):
             tmp2 = typevar.split(":")
             typevar = tmp2[0]
             vlist = tmp2[1:]
-
-        setattr(CustomForm, nom, fieldfunctions.get(typevar, F.StringField)(definition))
+        if vlist and typevar:
+            setattr(
+                CustomForm, nom, fieldfunctions.get(typevar)(definition, choices=vlist)
+            )
+        else:
+            setattr(
+                CustomForm, nom, fieldfunctions.get(typevar, F.StringField)(definition)
+            )
         varlist.append((nom, definition))
 
     if description["__mode__"] == "api":

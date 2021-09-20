@@ -13,12 +13,18 @@
                 <div class="col">
                     <p style="text-align:right">voir resultat en mode webservice</p>
                 </div>
-                <div class="col">{{ form["x_ws"]() }}</div>
-                {%endif%}
+                <div class="col">{{ form["x_ws"](**{"v-model":"x_ws", "class":"toto"}) }}</div>
+            {%endif%}
             <div class="col">
             <p>{{ form.submit() }}</p>
             </div>
         </div>
+        <div class="row align-items-center">
+        <div class="col"><h2>.</h2></div>
+        <div class="col"><p v-if="x_ws">url webservice : mws/{{nom}}</p></div>
+        </div>
+
+
 
         {% for item in varlist if item[0]!="x_ws"%}
             <div class="row">

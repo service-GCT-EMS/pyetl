@@ -44,7 +44,7 @@ P:p3;;;;;;;pass;;;debug
 !========================================classes===========================================;;;;;;;;;;;
 &&#define;#listeclasses;base;niveau;
 !#help;liste les groupes d une base;
-!#parametres;base;base de donnees;@params;server;*@
+!#parametres;base(S:@params,server,*@);base de donnees
 !#parametres;niveau;schema a consulter;@@listegroupes;%base%@@
 !#api;listeclasses;json;
 <#dbschema;%base%;%niveau%

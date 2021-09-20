@@ -62,24 +62,23 @@
   <div class="position-sticky" >
   {% block title %}Mapper{% endblock %}
   </div>
-  <div class="position-sticky"  id = "content">
+  <div class="position-sticky"  id = "vm">
   {% block content %}
 
   {% endblock %}
   </div>
 
 {% block scripts %}
-<script src="{{url_for('.static', filename='js/jquery-3.5.1.slim.min.js')}}"</script>
-<script src="{{url_for('.static', filename='js/popper.min.js')}}"</script>
-<script src="{{url_for('.static', filename='js/bootstrap/bootstrap.min.js')}}"</script>
-<script src="{{url_for('.static', filename='js/vue.js')}}"</script>
-
-</script>
-
+<script src="{{url_for('.static', filename='js/vue.js')}}"></script>
+<script src="{{url_for('.static', filename='js/axios.js')}}"></script>
+<script src="{{url_for('.static', filename='js/jquery-3.5.1.slim.min.js')}}"></script>
+<script src="{{url_for('.static', filename='js/popper.min.js')}}"></script>
+<script src="{{url_for('.static', filename='js/bootstrap/bootstrap.min.js')}}"></script>
 {% endblock %}
 
 
 {% endblock %}
 </div>
+<script src="{{url_for('.static', filename='js/specific/start_vue.js')}}"></script>
 </body>
 </html>
