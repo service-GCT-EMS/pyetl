@@ -241,6 +241,7 @@ class Selecteur(object):
         self.valide = False
         self.initval = True
         self.static = False
+        self.neg = False
         self.choix_fonction(attribut, valeur)
 
     def __repr__(self):
@@ -278,6 +279,7 @@ class Selecteur(object):
         self.select = self._selpos
         if valeur.startswith("!"):
             self.select = self._selneg
+            self.neg = True
             self.v_nommees["vals"] = valeur[1:]
         for candidat in self.regle.stock_param.sortedsels:
             # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
@@ -647,17 +649,18 @@ class RegleTraitement(object):  # regle de mapping
         """retourne une regle pour des operations particulieres"""
         return RegleTraitement(ligne, self.stock_param, fichier, numero)
 
-    def test_static(self, selecteur):
+    def test_static_false(self, selecteur):
         """ verifie si la condition est statique et realisee"""
-        if not selecteur.valide:
+        if not selecteur.valide:  # y a pas de selecteur
             return False
         if selecteur.static:
             if selecteur.initval:
                 selecteur.valide = False  # c est comme si le test n existait pas
                 self.valide = "selected"
-            else:
-                self.valide = "unselected"  # rien a faire on a fini le boulot
-                return True
+                return False
+            self.valide = "unselected"  # rien a faire on a fini le boulot
+            return True
+        return False
 
     def prepare_selecteur(self, v_nommees):
         """prepare la fonction de selection de la regle"""
@@ -665,25 +668,33 @@ class RegleTraitement(object):  # regle de mapping
         sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
-        if not self.runscope():
+        if (
+            not self.runscope()
+        ):  # la regle ne doit pas s executer dans ce cas (traitement parallele worker/master)
             self.valide = "out_of_scope"
             return
-        if self.test_static(sel1):
+        if self.test_static_false(
+            sel1
+        ):  # le test est statique et devalide de fait la regle
             return
-        if not sel1.valide:
+        if (
+            not sel1.valide
+        ):  # le sel1 a ete elimine on passe au sel2 et on le mets en premiere position
             sel1 = sel2
-            if self.test_static(sel1):
+            if self.test_static_false(
+                sel1
+            ):  # le test est statique et devalide de fait la regle
                 return
-            if sel1.valide:
+            if sel1.valide:  # une vraie fonction de selection
                 self.selstd = sel1.select
             return
         # print("-------------selecteurs", self, sel1, sel2)
-        if self.test_static(sel2):
-            return
+        if self.test_static_false(sel2):  # le test1 est valide on verifie le test2
+            return  # statique et faux: ca devalide la regle
         if sel2.valide:
-            self.selstd = lambda x: sel1.select(x) and sel2.select(x)
+            self.selstd = lambda x: sel1.select(x) and sel2.select(x)  # test double
         else:
-            self.selstd = sel1.select
+            self.selstd = sel1.select  # test simple
 
     def getvar(self, nom, defaut=""):
         """recupere une variable dans le contexte"""
@@ -716,7 +727,7 @@ class RegleTraitement(object):  # regle de mapping
     def getschema(self, nom):
         """recupere un schema"""
         if nom not in self.stock_param.schemas:
-            print("schema introuvable", nom, self.stock_param.schemas.keys())
+            # print("schema introuvable", nom, self.stock_param.schemas.keys())
             return None
         return self.stock_param.schemas.get(nom)
 

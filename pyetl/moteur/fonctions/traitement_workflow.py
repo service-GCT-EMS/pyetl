@@ -763,13 +763,39 @@ def h_liste_paramgroups(regle):
 
 def f_liste_paramgroups(regle, obj):
     """#aide||liste les groupes de parametres selon un critere
-    #pattern1||;?C;?A;paramgroups;?C;;
+    #pattern1||A;?C;?A;paramgroups;?C;;
     #pattern2||=mws:;?LC;;paramgroups;?C;;
     """
-    pass
-
-
-# TODO: generer les objets sur les listes de parametres
+    paramlist = []
+    if regle.params.cmp1.val:
+        clef = regle.params.cmp1.val
+        val = regle.getlist_entree(obj)
+        for nom, vals in regle.stock_param.site_params.items():
+            # print("params", nom, vals, clef, val)
+            v2 = dict(vals)
+            if clef in v2 and (v2[clef] in val or not val):
+                paramlist.append(nom)
+    else:
+        paramlist = list(regle.stock_param.site_params.keys())
+    groupe = obj.ident[0]
+    classe = "paramgroups"
+    virtuel = regle.istrue("virtuel")
+    for i in paramlist:
+        obj2 = Objet(
+            groupe,
+            classe,
+            format_natif="interne",
+            conversion="virtuel" if virtuel else None,
+            attributs={regle.params.att_sortie.val: i},
+        )
+        try:
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        except StopIteration as abort:
+            #            print("intercepte abort",abort.args[0])
+            if abort.args[0] == 2:
+                break
+            raise
+    return True
 
 
 def h_schema_liste_classes(regle):

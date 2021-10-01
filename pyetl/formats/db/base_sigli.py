@@ -41,6 +41,7 @@ class SglConnect(PgsConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         self.sys_cre = "date_creation"
         self.sys_mod = "date_maj"
+        self.sys_gid = "gid"
         self.dialecte = "sigli"
         self.type_base = "sigli"
         self.schema_conf = SCHEMA_ADM
@@ -48,7 +49,7 @@ class SglConnect(PgsConnect):
 
     def spec_def_vues(self):
         """recupere des informations sur la structure des vues
-           (pour la reproduction des schemas en sql"""
+        (pour la reproduction des schemas en sql"""
         requete = (
             """SELECT nomschema,nomtable,definition,materialise
                      from """
@@ -212,11 +213,16 @@ class SglGenSql(PgsGenSql):
                 trig.append("\tEXECUTE PROCEDURE " + SCHEMA_ADM + ".auteur();")
         liste_triggers = classe.triggers
         for i in liste_triggers:
-            type_trigger, action, declencheur, timing, event, colonnes, condition, sql = liste_triggers[
-                i
-            ].split(
-                ","
-            )
+            (
+                type_trigger,
+                action,
+                declencheur,
+                timing,
+                event,
+                colonnes,
+                condition,
+                sql,
+            ) = liste_triggers[i].split(",")
             trigdef = (
                 ttype[type_trigger],
                 action,

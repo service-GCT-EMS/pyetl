@@ -8,7 +8,7 @@ import requests
 
 
 def wscaller(command, args, port=5000):
-    url = "http://127.0.0.1:" + str(port) + "/mws" + ("/" + command)
+    url = "http://127.0.0.1:" + str(port) + "/mws" + "/" + command
     try:
         retour = requests.get(url, params=args)
     except requests.RequestException as err:

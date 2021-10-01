@@ -558,7 +558,8 @@ def f_dbrunsql(regle, obj):
     """
     selecteur = setdb(regle, obj)
     LOGGER.debug("runsql: %s", repr(selecteur))
-    for base in selecteur.baseselectors:
+    for id in selecteur.baseselectors:
+        base = selecteur.baseselectors[id].base
         script = regle.getval_entree(obj)
         # print(
         #     "traitement db: execution sql ",
@@ -579,7 +580,7 @@ def f_dbrunsql(regle, obj):
                 nom = os.path.join(regle.getvar("_progdir"), "formats/db/sql", nom[1:])
             if not nom.endswith(".sql"):
                 nom = nom + ".sql"
-            LOGGER.debug("traitement sql %s", nom)
+            LOGGER.debug("traitement sql %s sur %s", nom, base)
             DB.dbextsql(
                 regle, base, nom, log=regle.params.cmp1.val, out=regle.params.cmp2.val
             )

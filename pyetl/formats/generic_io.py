@@ -383,6 +383,7 @@ class Reader(object):
     def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True, classe=None):
         """prepare les parametres de lecture"""
         # print("preparation lecteur", self.separ)
+        self.aff.send(("fich", 1, self.lus_fich))
         regle = self.regle_ref
         self.chemin = chemin
         chem = chemin

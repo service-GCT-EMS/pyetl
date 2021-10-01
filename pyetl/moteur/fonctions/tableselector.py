@@ -42,6 +42,7 @@ class TableBaseSelector(object):
         self.mapper = self.regle_ref.stock_param
         self.base = base
         self.nombase = base if base != "*" else ""
+        self.dynbase = self.base[1:-1] if self.base.startswith("[") else ""
         self.type_base = ""
         self.chemin = ""
         self.racine = ""
@@ -104,11 +105,18 @@ class TableBaseSelector(object):
         else:
             self.descripteurs.append(descripteur)
 
-    def resolve_static(self):
+    def resolve_static(self, obj):
         """transformation de la liste de descripteurs statiques en liste de classes
         le selecteur gere la connection a la base se donnees"""
+        if self.dynbase and obj.attributs.get(self.dynbase) != self.base:
+            self.static = dict()
+            self.base = obj.attributs.get(self.dynbase)
+            self.nombase = self.base if self.base != "*" else ""
+            if not self.base:
+                return False
         if self.static:
             return
+
         mod = self.regle_ref.mods
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
@@ -118,6 +126,7 @@ class TableBaseSelector(object):
         if self.base != "__filedb":
             self.mapper.load_paramgroup(self.base, nom=self.base)
             prefix = self.regle_ref.getvar("prefix_" + self.base)
+            # print("acces base", self.base)
         # print(
         #     "variables",
         #     self.regle_ref.getvar("set_prefix"),
@@ -215,7 +224,7 @@ class TableBaseSelector(object):
             else:
                 return False
 
-        self.resolve_static()
+        self.resolve_static(obj)
         if self.dyndescr:
             solved = self.resolve_dyn(obj)
         else:
@@ -317,6 +326,7 @@ class TableSelector(object):
         self.base = base if base != "*" else ""
         self.schema_travail = None
         self.defaultbase = "*"
+        self.dynbase = self.base[1:-1] if self.base.startswith("[") else ""
         self.baseselectors = dict()
         self.classes = dict()
         self.inverse = dict()
@@ -404,7 +414,11 @@ class TableSelector(object):
         static = True
         for base in self.baseselectors:
             complet = complet and self.baseselectors[base].resolve(obj)
-            self.static = self.static and not bool(self.baseselectors[base].dyndescr)
+            self.static = (
+                self.static
+                and not bool(self.baseselectors[base].dyndescr)
+                and not bool(self.baseselectors[base].dynbase)
+            )
         self.resolved = complet
         # print(
         #     " fin resolve",

@@ -214,7 +214,7 @@ def f_addgeom(regle, obj):
     if type_geom == "1":
         try:
             if len(regle.params.att_entree.liste) > 1:
-                point = list(map(float, regle.getliste_entree(obj).split(regle.csep)))
+                point = list(map(float, regle.getlist_entree(obj).split(regle.csep)))
             #                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
             #                         for i in regle.params.att_entree.liste]
             else:
@@ -233,7 +233,7 @@ def f_addgeom(regle, obj):
         if len(regle.params.att_entree.liste) > 1:
             #            coordonnees = zip(*[obj.attributs.get(i, regle.params.val_entree.val).split(',')
             #                                for i in regle.params.att_entree.liste])
-            coordonnees = zip(*[i.split(",") for i in regle.getliste_entree(obj)])
+            coordonnees = zip(*[i.split(",") for i in regle.getlist_entree(obj)])
         else:
             if regle.psep == " " or regle.csep == " ":
                 cdef = regle.getval_entree(obj)

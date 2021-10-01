@@ -335,8 +335,10 @@ def h_sortir(regle):
         regle.params.att_sortie.val == "#schema"
     ):  # on force les noms de schema pour l'ecriture
         regle.nom_fich_schema = regle.params.val_entree.val
-    else:
+    elif regle.params.cmp2.val:
         regle.nom_fich_schema = regle.params.cmp2.val
+    else:
+        regle.nom_fich_schema = "#auto"
     regle.nom_base = os.path.basename(
         regle.params.cmp2.val if regle.params.cmp2.val else regle.nom_fich_schema
     )
@@ -434,9 +436,12 @@ def h_sortir(regle):
 
 def setschemasortie(regle, obj):
     """positionne le schema de sortie pour l objet """
-    if regle.nom_fich_schema:
+    if regle.nom_fich_schema == "#auto":
+        nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
+    else:
+        nom_fich_schema = regle.nom_fich_schema
         # on copie le schema pour ne plus le modifier apres ecriture
-        regle.change_schema_nom(obj, regle.nom_fich_schema)
+    regle.change_schema_nom(obj, nom_fich_schema)
 
     if obj.schema and obj.schema.amodifier(regle):
         rep_sortie = regle.getvar("sortie_schema")

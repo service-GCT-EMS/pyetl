@@ -143,6 +143,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
         "date": "date",
         "horodatage sans zone": "date",
         "hstore": "str",
+        "booleen": "bool",
     }
     description = dict()
     type_geom = sc_classe.info["type_geom"]
@@ -257,7 +258,7 @@ class GdalWriter(FileWriter):
         self.flush = not self.usebuffer
         self.layerstate = dict()
         self.write = self.bwrite if self.usebuffer else self.swrite
-        # print("gdalwriter", self.writerparms, self.write)
+        print("----------------------------gdalwriter", self.schema)
 
     def open(self):
         """ouvre  sur disque"""
@@ -360,13 +361,16 @@ class GdalWriter(FileWriter):
     def flush_buffer(self, ident):
         """ferme definitivement les fichiers"""
         self.flush = True
-        self.changeclasse(self.schema.classes[ident])
-        # print("ecriture buffer", ident, len(self.buffer[ident]))
-        self.fichier.writerecords(self.buffer[ident])
-        del self.buffer[ident]
-        self.flush = False
-        self.close()
-        return
+        if ident in self.schema.classes:
+            self.changeclasse(self.schema.classes[ident])
+            # print("ecriture buffer", ident, len(self.buffer[ident]))
+            self.fichier.writerecords(self.buffer[ident])
+            del self.buffer[ident]
+            self.flush = False
+            self.close()
+            return
+        print("erreur changeclasse ", ident, self.schema, self.schema.classes.keys())
+        raise StopIteration(2)
 
     def bwrite(self, obj):
         """ecriture bufferisee"""

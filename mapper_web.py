@@ -15,6 +15,10 @@ from pyetl_webapp import app
 
 if __name__ == "__main__":
     # execute only if run as a script
+    from waitress import serve
+
     args = dict((i.split("=", 1) for i in sys.argv if "=" in i))
     port = int(args.get("port", 5000))
-    app.run(port=port)
+    print("essai serveur port:", port)
+    # app.run(port=port)
+    serve(app, host="127.0.0.1", port=5000)

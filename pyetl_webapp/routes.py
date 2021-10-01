@@ -91,6 +91,18 @@ class ScriptList(object):
         # self.inited = "False"
         self.refresh(False)
 
+    def loadws(self, worker=None):
+        if worker is None:
+            worker = self.mapper
+        worker.charge_cmd_internes(
+            direct=os.path.join(os.path.dirname(__file__), "config\webservices")
+        )
+        worker.charge_cmd_internes(site="webservices", opt=1)  # macros de site
+        if worker.paramdir is not None:
+            worker.charge_cmd_internes(
+                direct=os.path.join(worker.paramdir, "webservices"), opt=1
+            )  # macros perso
+
     def refresh(self, local, script=None):
         """rafraichit la liste de scripts"""
         if script is None:
@@ -115,9 +127,7 @@ class ScriptList(object):
             desc = self.refreshscript(fichier)
             self.liste.append(desc)
             n += 1
-        self.mapper.charge_cmd_internes(
-            direct=os.path.join(os.path.dirname(__file__), "config\webservices")
-        )
+        self.loadws()
         self.macroapis()
 
         print("scripts analyses", n)
@@ -126,9 +136,7 @@ class ScriptList(object):
             nom = session.get("nompyetl", scriptlist.worker if local else "")
             webworker = self.mapper.getpyetl([], mode="web", nom=nom)
             if webworker:
-                webworker.charge_cmd_internes(
-                    direct=os.path.join(os.path.dirname(__file__), "config\webservices")
-                )
+                self.loadws(webworker)
 
     def macroapis(self):
         """ stocke les definitions des apis"""

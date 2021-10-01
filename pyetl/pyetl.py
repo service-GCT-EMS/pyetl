@@ -467,7 +467,7 @@ class Pyetl(object):
                             "erreur interpretation %d: %s -> %s",
                             i.numero,
                             repr(i),
-                            str(i.erreur),
+                            str(i.erreurs),
                         )
                         # print("erreur interpretation", i.numero, i, i.erreur)
                 #                print("sortie en erreur", self.idpyetl)
@@ -580,7 +580,8 @@ class Pyetl(object):
                                     prochain, interm = affiche(message, nbval)
                                 # print("-main:------------------retour queue", msg, nbvals)
                             elif message == "fich":
-                                nbtotal += nbfic
+                                print("message fich", nbfic, w_nbval, wid, nbtotal)
+                                tabletotal += nbfic
                                 nbfic = 0
                             elif message == "exp":
                                 nbexp = sum(nbvals.values())
@@ -597,6 +598,7 @@ class Pyetl(object):
                 duree, interv = next(temps)
                 interm = 0.001
                 nbtotal = 0
+                # print("message init", wid)
                 prochain = nbaffich
             elif self.worker:
                 try:
@@ -604,7 +606,7 @@ class Pyetl(object):
                 except (BrokenPipeError):
                     print("ecriture: queue inexistante")
 
-                # print(" worker : ecriture queue", ("interm", nbfic, mnbval, wid))
+                # print(" worker : ecriture queue", (message, nbfic, nbval, wid))
             elif nbval >= prochain:
                 prochain, interm = affiche(message, nbval)
 
@@ -792,7 +794,7 @@ class Pyetl(object):
             print("definition parametres de site >" + str(clef) + "< introuvable")
             print("aide:groupes connus: ")
             print("\n".join([str(i) for i in sorted(self.site_params)]))
-            # raise KeyError
+            raise KeyError
         return False
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
@@ -958,7 +960,10 @@ class Pyetl(object):
 
     def _stocke_param(self, parametre):
         """stockage d'un parametre"""
-        if "=" in parametre:
+        # print("stockage", parametre)
+        if parametre.startswith("'") and parametre.endswith("'"):
+            parametre = parametre[1:-1]
+        elif "=" in parametre:
             valeur = parametre.split("=", 1)
             if len(valeur) < 2:
                 valeur.append("")
@@ -966,6 +971,7 @@ class Pyetl(object):
                 valeur[1] = ""
             #            self.parms[valeur[0]] = valeur[1]
             self.setvar(*valeur)
+            return
             # print(
             #     "stockage parametre:",
             #     parametre,
@@ -974,10 +980,9 @@ class Pyetl(object):
             #     valeur[1],
             #     self.context,
             # )
-        else:
-            self.posparm.append(parametre)
-            #            self.parms["#P_"+str(len(self.posparm))] = parametre
-            self.setvar("#P_" + str(len(self.posparm)), parametre)
+        self.posparm.append(parametre)
+        #            self.parms["#P_"+str(len(self.posparm))] = parametre
+        self.setvar("#P_" + str(len(self.posparm)), parametre)
 
     def set_abrev(self, nom_schema, dic_abrev=None):
         """cree les abreviations pour la definition automatique de snoms courts"""
@@ -1342,6 +1347,8 @@ class Pyetl(object):
         if connection:
             self.dbconnect[nombase] = connection
             return connection
+        print("erreur connection base", nombase)
+        # return None
         raise ConnectionError
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):

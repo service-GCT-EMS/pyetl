@@ -154,7 +154,7 @@ def _decode_dates_apic(chaine):
     else:
         dat_cre = ""
         dat_mod = ""
-
+    # print("decode_dates apic", dates, "->", dat_cre, dat_mod)
     return dat_cre, dat_mod
 
 
@@ -294,8 +294,8 @@ def init_ascw(output):
 def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
     """finalise un objet et le traite"""
     # print("finalisation ", attributs)
-    if attributs and not "GID" in attributs:
-        attributs["GID"] = attributs["#gid"]
+    # if attributs and not "GID" in attributs:
+    #     attributs["gid"] = attributs["#gid"]
     obj = reader.getobj(attributs=attributs, geom=geom) if attributs or geom else None
     if obj is None:  # filtrage en entree
         return
