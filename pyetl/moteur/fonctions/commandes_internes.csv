@@ -25,17 +25,18 @@ $#%dest%;;;;;;;;;;;
 !#description;le gid n est ajoute que si la classe n'a pas de clef primaire;;;
 ;has:PK;;;;;;pass;;;fin;
 |sinon:gid;;;;gid_orig;;gid;ren;;;fin;
-|:;;;;gid(0:S,P);;#classe;cnt;1;1;fin;
+|:#gid;;;;gid(0:S,P);;#gid;set
+||sinon:;;;;gid(0:S,P);;#classe;cnt;1;1;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli_std;;;;;;;;;;
 !#help;ajoute les attributs standard  date_maj / date_creation et le gid;;;;;;;;;;
-;;;;date_creation(D,D:I);;#_date_sys_cre;set;;;;
+;;;;date_creation(D,D:I);;#_sys_date_cre;set;;;;
 <#gid
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli_modif;;;;;;;;;;
 !#help;ajoute les attributs standard + date_maj et auteur ;;;;;;;;;;
 <#att_sigli_std
-;;;;date_maj(D,D:A);;#_date_sys_mod;set;;;fin;
+;;;;date_maj(D,D:A);;#_sys_date_mod;set;;;fin;
 ;;;;auteur(T,D:A);;auteur;set;;;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#att_sigli;modif;;;;;;;;;
@@ -423,6 +424,10 @@ $sans_entree=1;;;
 $sans_sortie=True;;;;;;;;;;;
 $force_schema=0;;;;;;;;;;;
 ;;;;;;*;print>;#classe;noms;fin;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#liste_params;clef;val;
+!#help;liste les parametres d acces aux bases;
+;;;;pgroup;%val%;;paramgroups;%clef%;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#printvar;var;;;;;;;;;
 !#help;affichage variable;;;;;;;;;

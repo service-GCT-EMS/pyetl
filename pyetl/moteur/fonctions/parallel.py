@@ -68,7 +68,7 @@ def setqueuhandler(queue, wid=""):
             mapper.logqueue, *mapper.logger.handlers, respect_handler_level=True
         )
         loglistener.start()
-        mapper.logger.info("gestionnaire logs parallele : demarrage listener")
+        mapper.logger.info("gestionnaire logs parallele : demarrage listener:", wid)
         # print("-------------------demarrage listener")
         mapper.loglistener = loglistener
     else:

@@ -176,9 +176,9 @@ def objloader(regle, obj):
     lecture = regle.stock_param.lecture
     retour = False
     for i, parms in getfichs(regle, obj):
-        # print ('lecture', i, parms)
+        print("lecture", i, parms)
         try:
-            nb_lu += lecture(i, regle=regle, parms=parms)
+            nb_lu += lecture(i, regle=regle.branchements.brch["gen"], parms=parms)
             retour = True
         except StopIteration as abort:
             if abort.args[0] == 2:

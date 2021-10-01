@@ -463,7 +463,7 @@ def ecrire_geom_ewkt(
 
     else:
         print("ecrire ewkt geometrie inconnue", geometrie_demandee)
-    print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple)
+    # print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple)
     return (geom.epsg + geomt) if geomt else None
 
     # nom:(multiwriter,           streamer,         tmpgeomwriter,

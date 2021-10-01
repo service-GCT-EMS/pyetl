@@ -299,6 +299,18 @@ class Objet(object):
     def __geo_interface__(self, liste_attributs):
         """interface geo_interface en sortie"""
         #        print ('demande geoif geom:',self.geom_v.type)
+        blist = {
+            0: False,
+            "0": False,
+            "false": False,
+            False: False,
+            "False": False,
+            1: True,
+            "1": True,
+            "true": True,
+            True: True,
+            "True": True,
+        }
         if not self.geom_v.valide:
             self.attributs_geom(self)
         use_noms_courts = False
@@ -312,12 +324,17 @@ class Objet(object):
             # print ('obj:geo_interface',sch.identclasse,self.geom_v.type,self.geom_v.multi, len(self.geom_v.points))
             # print (self)
             for i in liste:
-                if i in sch.attributs and sch.attributs[i].type_att.startswith("D"):
-                    attributs[i] = (
-                        self.attributs[i].replace("/", "-")
-                        if self.attributs.get(i)
-                        else None
-                    )
+                if i in sch.attributs:
+                    if sch.attributs[i].type_att.startswith("D"):
+                        attributs[i] = (
+                            self.attributs[i].replace("/", "-")
+                            if self.attributs.get(i)
+                            else None
+                        )
+                    elif sch.attributs[i].type_att == "B":
+                        attributs[i] = blist.get(self.attributs.get(i))
+                    else:
+                        attributs[i] = self.attributs.get(i, "")
                 #                    .replace(' ', 'T')'Z' if self.attributs.get(i) else None
                 else:
                     attributs[i] = self.attributs.get(i, "")

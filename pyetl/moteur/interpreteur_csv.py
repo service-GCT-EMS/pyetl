@@ -987,7 +987,7 @@ def lire_regles_csv(
             )
             if errs:
                 # LOGGER.error("erreur interpretation des regles : arret du traitement")
-                print("====erreur traite_regles_std")
+                # print("====erreur traite_regles_std")
                 erreurs += errs
     #            print('apres,regles std', defligne, errs)
 

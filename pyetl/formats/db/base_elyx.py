@@ -44,8 +44,11 @@ class ElyConnect(ora.OrwConnect):
             "#_sys_date_cre": ("APIC_CDATE", "D"),
             "#_sys_date_mod": ("APIC_MDATE", "D"),
             "#_sys_etat": ("APIC_STATE", "T"),
-            "#gid": ("GID", "E"),
+            "#gid": ("gid", "E"),
         }
+        self.sys_cre = "#_sys_date_cre"
+        self.sys_mod = "#_sys_date_mod"
+        self.sys_gid = "#gid"
         self.adminschema = "ELYX_ADMIN_P"
         self.modelschema = "ELYX_MODELE"
         self.types_base["REEL"] = "F"
@@ -256,6 +259,9 @@ class ElyConnect(ora.OrwConnect):
         resultats = params[3]
         size = params[2]
         nbobjs = dict()
+        exportes = 0
+        nbfichs = 0
+
         # print("analyse log", idexport, outfile, size, resultats)
         fich = os.path.basename(resultats)
         nbfichs = 0
@@ -263,6 +269,7 @@ class ElyConnect(ora.OrwConnect):
             for i in open(
                 resultats, "r", encoding="cp1252", errors="backslashreplace"
             ).readlines():
+                exportes = 0
                 # print("lu:", ascii(i[:-1]))
                 if "Nombre d'objets export" in i:
                     tmp = i.split(":")
@@ -1002,7 +1009,7 @@ class ElyConnect(ora.OrwConnect):
             attdef = self.attdef(
                 nom_groupe=nomschema,
                 nom_classe=nomtable,
-                nom_attr="GID",
+                nom_attr="gid",
                 alias="identifiant interne",
                 type_attr="S",
                 clef_primaire="1",

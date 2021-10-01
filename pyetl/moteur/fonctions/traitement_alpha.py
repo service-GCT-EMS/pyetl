@@ -212,7 +212,7 @@ def h_sub(regle):
         regle.setlocal("maxsub", str(regle.maxsub))  # on force la variable en local
     if regle.params.pattern == "2":
         regle.setvar(
-            regle.att_sortie.val,
+            regle.params.att_sortie.val,
             regle.exp_entree.sub(
                 regle.exp_sortie, regle.params.val_entree.val, count=regle.maxsub
             ),

@@ -308,6 +308,7 @@ class DbConnect(object):
         self.attlist = []
         self.sys_cre = None  # champs contenant les dates de creation et modif auto
         self.sys_mod = None
+        self.sys_gid = None
         self.tables = dict()
         self.sys_fields = dict()
         self.sql_helper = None

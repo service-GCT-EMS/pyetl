@@ -447,6 +447,15 @@ def selh_pexiste(selecteur):
     var = selecteur.regle.getvar(selecteur.params.attr.val)
     selecteur.static = True
     selecteur.initval = var and var.lower() not in {"", "0", "f", "false"}
+    if selecteur.neg:
+        selecteur.initval = not selecteur.initval
+    # print(
+    #     "pexiste selecteur statique",
+    #     bool(selecteur.initval),
+    #     selecteur.regle.getvar(selecteur.params.attr.val),
+    #     selecteur.params.vals.val,
+    #     selecteur.neg,
+    # )
 
 
 def sel_pexiste(selecteur, _):
@@ -460,7 +469,7 @@ def sel_pexiste(selecteur, _):
     #         bool(selecteur.regle.getvar(selecteur.params.attr.val)))
     if selecteur.static:
         return selecteur.initval
-    var = selecteur.regle.getvar(selecteur.params.attr.val)
+    var = str(selecteur.regle.getvar(selecteur.params.attr.val))
     return var and var.lower() not in {"", "0", "f", "false"}
 
 
@@ -477,7 +486,10 @@ def sel_pregex(selecteur, _):
 def selh_constante(selecteur):
     """ mets en place le selecteur de constante """
     selecteur.static = True
-    selecteur.initval = selecteur.params.attr.val == selecteur.params.vals.val
+    if selecteur.neg:
+        selecteur.initval = selecteur.params.attr.val != selecteur.params.vals.val[1:]
+    else:
+        selecteur.initval = selecteur.params.attr.val == selecteur.params.vals.val
 
 
 def sel_constante(selecteur, *_):
@@ -491,7 +503,10 @@ def sel_constante(selecteur, *_):
 def selh_cexiste(selecteur):
     """ mets en place le selecteur de constante """
     selecteur.static = True
-    selecteur.initval = bool(selecteur.params.attr.val)
+    if selecteur.neg:
+        selecteur.initval = not bool(selecteur.params.attr.val)
+    else:
+        selecteur.initval = bool(selecteur.params.attr.val)
 
 
 def sel_cexiste(selecteur, *_):

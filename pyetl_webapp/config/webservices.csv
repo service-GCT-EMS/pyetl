@@ -15,12 +15,19 @@
 !==============================selections en cascade sur une table===========================;;;;;;;;;;;
 &&#define;#dd;base;table;result;p1;p2;p3;
 !#help;outil d'interrogation rapide de base de donnees (select conditionnel)
+!#help_detaillee;condition = sous la forme champ:valeur -> rajoute les "
+!#help_detaillee;condition = sous la forme champ::valeur -> ne rajoute pas les "
 !#api;dd;json;
-P:p3;;;;;;;pass;;;debug
-|:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%;;debug
-|sinon:P:p2;;;;;;;pass;;;debug
-||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;debug
-||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;debug
+P:p1;;;;P:p1;%p1%;;sub;::;=;
+|:;;;;P:p1;%p1%;;sub;:(.*);='\1';
+P:p2;;;;P:p2;%p2%;;sub;::;=;
+|:;;;;P:p2;%p2%;;sub;:(.*);='\1';
+P:p3;;;;P:p3;%p3%;;sub;::;=;
+|;;;;P:p3;%p3%;;sub;:(.*);='\1';
+|:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2% and %p3%;;
+|sinon:P:p2;;;;;;;pass;;;
+||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;
+||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;
 !==================================affichage d une variable==================================;;;;;;;;;;;
 &&#define;#var;nom;
 !#help;affiche une variable

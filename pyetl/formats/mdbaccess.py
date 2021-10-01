@@ -239,6 +239,8 @@ def dbrunproc(regle, base, commande, data):
 
 def dbextsql(regle, base, file, log=None, out=None):
     """charge un fichier sql a travers un client sql externe"""
+    if not base:
+        return False
     logger = regle.stock_param.logger
     logger.debug("mdba execution sql sur %s via un programme externe -> %s", base, file)
     connect = regle.stock_param.getdbaccess(regle, base)
@@ -379,11 +381,13 @@ def sortie_resultats(
     format_natif = connect.format_natif
     maxobj = regle_courante.getvar("lire_maxi", 0)
     nb_pts = 0
-    sys_cre, sys_mod = None, None
+    sys_cre, sys_mod, sys_gid = None, None, None
     if connect.sys_cre in namelist:
         sys_cre = connect.sys_cre
     if connect.sys_mod in namelist:
         sys_mod = connect.sys_mod
+    if connect.sys_gid in namelist:
+        sys_mod = connect.sys_gid
     tget = time.time()
     decile = connect.decile
     base = connect.base
@@ -417,7 +421,8 @@ def sortie_resultats(
         obj2.attributs["#type_geom"] = type_geom
         #        print ('type_geom',obj.attributs['#type_geom'], obj.schema.info["type_geom"])
         nbvals += 1
-        obj2.attributs["#gid"] = obj2.attributs.get("gid", str(nbvals))
+        if sys_gid:
+            obj2.attributs["#gid"] = obj2.attributs.get(sys_gid, str(nbvals))
         if sys_cre:
             obj2.attributs["#_sys_date_cre"] = obj2.attributs[sys_cre]
         if sys_mod:
