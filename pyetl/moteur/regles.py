@@ -79,6 +79,10 @@ class Valdef(object):
         self.val = val
         self.num = num
         self.liste = liste
+        if liste and all(":" in i for i in liste):  # liste de type clef:valeur
+            self.vdict = {[i.split(":", 1) for i in liste]}
+        else:
+            self.vdict = dict()
         self.dyn = dyn
         self.definition = definition
         #        self.besoin = None

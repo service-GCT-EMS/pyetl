@@ -16,6 +16,10 @@ upper;.traitement_alpha
 stat;.traitement_aux
 crypt;.traitement_crypt
 decrypt;.traitement_crypt
+dfgraph;.traitement_dataviz
+dfload;.traitement_dataviz
+dfset;.traitement_dataviz
+dfwrite;.traitement_dataviz
 dbalpha;.traitement_db
 dbclean;.traitement_db
 dbclose;.traitement_db

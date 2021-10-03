@@ -783,7 +783,10 @@ def f_dbcount(regle, obj):
 
     selecteur = setdb(regle, obj)
     retour = 0
-    for base, ident in selecteur.classlist():
+    for base, definition in selecteur.classlist():
+        print("recup", base, definition)
+        ident, description = definition
+        id, attrs, valeur, _ = description
         niveau, classe = ident
         LOGGER.debug("regles count:ligne  " + repr(regle) + repr(base) + repr(mods))
 
@@ -795,8 +798,6 @@ def f_dbcount(regle, obj):
             attrs,
             valeur,
             mods=mods,
-            type_base=type_base,
-            chemin=chemin,
         )
         #        print ('regles cnt: valeur retour',retour,obj)
         obj.attributs[regle.params.att_sortie.val] = str(retour)

@@ -689,7 +689,8 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )
             logger.debug(
-                "traitement curseur " + str(ident) + " %s ", curs.cursor is not None
+                "traitement curseur " + str(ident) + " %s ",
+                curs is not None and curs.cursor is not None,
             )
             treq = time.time() - treq
             if sortie:
