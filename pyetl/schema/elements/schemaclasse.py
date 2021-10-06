@@ -235,9 +235,10 @@ class SchemaClasse(object):
             + self.schema.nom
             + ":"
             + self.dbident
-            + " "
+            + " info: "
             + repr(self.info)
             + "\n\t\t"
+            + "atts: "
             + ",".join(sorted(self.attributs.keys()))
         )
 

@@ -375,7 +375,13 @@ def fschema_ajout_attribut(regle, obj, typedefaut="T"):
 
 def fschema_set_geom(regle, obj):
     """positionne la geometrie du schema"""
-    # print("-----demande modif schema geom", regle.getvar("macromode"), regle)
+    # print(
+    #     "-----demande modif schema geom",
+    #     obj.schema.info["type_geom"],
+    #     regle.getvar("macromode"),
+    #     regle,
+    # )
+    setsc = 0
     if obj.schema.amodifier(regle):
         #        print('modif schema geom', obj.schema.nom, obj.schema.info["type_geom"],
         #        '->', obj.attributs['#type_geom'])
@@ -390,7 +396,11 @@ def fschema_set_geom(regle, obj):
             obj.schema.info["type_geom"] = obj.geom_v.type
         else:
             obj.schema.info["type_geom"] = obj.attributs["#type_geom"]
-        # print("set type geom", obj.schema.info["type_geom"], regle)
+        setsc = 1
+    # test = 1
+    # test = test + 1
+    # print("toto", test)
+    # print("set type geom", setsc, obj.schema.info["type_geom"], regle, obj.schema)
 
 
 #        print ('--------------------modif schema ',obj.schema.nom,obj.schema.info["type_geom"])

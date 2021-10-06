@@ -203,7 +203,9 @@ def fonctest(mapper, nom=None, debug=0):
     realises = set()
     for fonc_a_tester in sorted(mapper.commandes):
         fonc = mapper.getcommande(fonc_a_tester)
-
+        if not fonc:
+            print("fonction indisponible", fonc_a_tester)
+            continue
         # print("test: ", fonc_a_tester)
         if nom and fonc.nom != nom:
             continue

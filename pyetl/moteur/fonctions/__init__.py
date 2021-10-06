@@ -631,7 +631,7 @@ def moduleloader(modulename):
     try:
         imported = importlib.import_module(modulename, package=__package__)
     except ImportError as err:
-        print("module ", modulename, "non disponible:", err)
+        print("fonctions: module ", modulename, "non disponible:", err)
         return None
     if printtime:
         print("     ", modulename, time.time() - t2)
@@ -642,7 +642,9 @@ def loadmodules(module=None, force=False):
     """charge les modules et enregistre les fonctions"""
     global COMMANDES, SELECTEURS, MODULES, store, prefixes
     if module in MODULES:
-        return  # on a deja fait le job
+        return (
+            False if MODULES[module] == "indisponible" else True
+        )  # on a deja fait le job
     modules = dict()
     commanddir = os.path.dirname(__file__)
     if force:
@@ -661,11 +663,15 @@ def loadmodules(module=None, force=False):
                 imported = moduleloader(module)
                 if imported:
                     modules[module] = moduleloader(module)
+                else:  # module non disponible
+                    modules[module] = "indisponible"
     else:
         # print("loadmodules", module, MODULES)
         imported = moduleloader(module)
         if imported:
             modules[module] = moduleloader(module)
+        else:  # module non disponible
+            modules[module] = "indisponible"
 
     simple_prefix = {
         "h": "helper fonction",
@@ -695,7 +701,7 @@ def loadmodules(module=None, force=False):
         set_helper(sel, store, "selh")
     #        print (" enregistrement selecteurs",sel.nom,sel.helper)
 
-    return
+    return True
 
 
 COMMANDES = dict()

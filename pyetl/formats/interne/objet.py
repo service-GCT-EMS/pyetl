@@ -176,15 +176,15 @@ class Objet(object):
         if geom_v.valide:
             self.attributs.update(
                 [
-                    ("#points", str(geom_v.npt)),
-                    ("#type_geom", geom_v.type),
-                    ("#dimension", str(geom_v.dimension)),
+                    ("#points", str(int(geom_v.npt))),
+                    ("#type_geom", str(int(geom_v.type))),
+                    ("#dimension", str(int(geom_v.dimension))),
                     ("#erreurs_geom", ""),
                 ]
             )
 
         else:
-            erreurs_geom = geom_v.erreurs.getvals() if geom_v else ""
+            erreurs_geom = geom_v.erreurs.getvals() if geom_v else "geometrie invalide"
             self.attributs.update(
                 [
                     # ("#longueur", ""),
@@ -224,7 +224,7 @@ class Objet(object):
     def dimension(self):
         """ recupere le type de geometrie de l'objet"""
         if self.geom_v.valide:
-            return self.geom_v.dimension
+            return int(self.geom_v.dimension)
         return int(self.attributs.get("#dimension", 0))
 
     def __repr__(self):
@@ -421,8 +421,9 @@ class Objet(object):
     def debug(self, code, attlist=None, limit=True):
         """affichage de debug"""
         virtuel = "_v" if self.virtuel else ""
+        fleche = "----------------------> obj" if code == "avant" else "            obj"
         invariant = (
-            "obj"
+            fleche
             + virtuel
             + " "
             + str(self.ido)
@@ -456,7 +457,9 @@ class Objet(object):
         LOGGER.debug("%s", invariant)
         LOGGER.debug("   schema:%s", schema)
         LOGGER.debug("   obj   :%s", attributs)
-
+        if code == "apres":
+            LOGGER.debug(" ==================================================== ")
+        # print("schema", schema)
         # print(
         #     invariant + "\n",
         #     (schema + "\n\t") if not attlist else "",

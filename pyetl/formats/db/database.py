@@ -533,6 +533,7 @@ class DbConnect(object):
     def update_schema_classe(self, ident, attlist1, schema, regle):
         """adapte un schema en fonction d une requete"""
         schema = schema if schema is not None else self.schemabase
+        # print("update schemaclasse", ident, schema.classes.get(ident))
         if attlist1 is None:
             return schema.classes.get(ident)
         attlist = [i for i in attlist1 if not i.nom_attr.startswith("#")]
@@ -551,14 +552,17 @@ class DbConnect(object):
         if attlist is None:
             return None
         schema = schema if schema is not None else self.schemabase
-        if ident in schema.classes and not update:
-            return schema.classes[ident]
-        classe = schema.setdefault_classe(ident)
-        classe.info["type_geom"] = "0"
+        if ident in schema.classes:
+            schemaclasse = schema.classes[ident]
+            if not update:
+                return schemaclasse
+        else:
+            schemaclasse = schema.setdefault_classe(ident)
+            # schemaclasse.info["type_geom"] = "indef"
         for atd in sorted(attlist, key=attrgetter("num_attribut")):
             # num_attribut = float(atd.num_attribut)
             if atd.nom_attr.startswith("#"):  # attribut hors schema
-                print(" attribut hors schema", atd, classe)
+                print(" attribut hors schema", atd, schemaclasse)
                 continue
             type_ref = atd.type_attr
             if not atd.type_attr:
@@ -626,7 +630,7 @@ class DbConnect(object):
             )
             # if atd.multiple=='oui':
             #     print ('attribut',atd)
-            classe.stocke_attribut(
+            schemaclasse.stocke_attribut(
                 atd.nom_attr,
                 type_attr,
                 defaut=atd.defaut,
@@ -644,10 +648,10 @@ class DbConnect(object):
                 obligatoire=obligatoire,
                 multiple=atd.multiple,
             )
-        if classe.pending:
+        if schemaclasse.pending:
             schema.pending = True
         # print("schema requete", classe)
-        return classe
+        return schemaclasse
 
     def _recup_attributs(self):
         """recupere les attributs"""

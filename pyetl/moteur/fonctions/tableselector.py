@@ -61,6 +61,7 @@ class TableBaseSelector(object):
         # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.static = dict()
         self.dynlist = dict()
+        self.maxsel = 0
 
     def __repr__(self):
         return (
@@ -273,7 +274,14 @@ class TableBaseSelector(object):
 
     def classlist(self):
         """retourne un iterateur sur la liste de classes resolue"""
-        yield from itertools.chain(self.static.items(), self.dynlist.items())
+        n = 0
+        maxsel = self.selecteur.maxsel
+        for i in itertools.chain(self.static.items(), self.dynlist.items()):
+            # print("dans classlist", maxsel, n)
+            yield i
+            n += 1
+            if maxsel and n > maxsel:
+                break
 
     def getmapping(self):
         liste_mapping = []

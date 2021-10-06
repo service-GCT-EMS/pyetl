@@ -19,7 +19,14 @@ from .outils import gestion_logs as L
 if printtime:
     print("globales", time.time() - t1)
     t1 = time.time()
-from .formats.generic_io import READERS, WRITERS, Reader, Output, get_converter
+from .formats.generic_io import (
+    READERS,
+    WRITERS,
+    Reader,
+    Output,
+    get_converter,
+    get_geomstructure,
+)
 
 if printtime:
     print("formats    ", time.time() - t1)
@@ -232,10 +239,14 @@ class Pyetl(object):
     def getcommande(self, commande):
         fonc = self.commandes.get(commande)
         if isinstance(fonc, str):
-            loadmodules(fonc)
+            result = loadmodules(fonc)
+            if not result:
+                print("module de commandes non disponible ", commande, fonc)
+                return None
             fonc = self.commandes.get(commande)
             if isinstance(fonc, str):
-                print("erreur chargement", commande, fonc)
+                print("erreur chargement commande", commande, fonc)
+                return None
         return fonc
 
     def _relpath(self, path):
@@ -1054,6 +1065,12 @@ class Pyetl(object):
         debug = debug or self.debug
         # print("get_converter:niveau de debug", debug)
         return get_converter(geomnatif, debug=debug)
+
+    def get_geomstructure(self, geomnatif, debug=None):
+        """ retourne la structure du champs geom de format geometrique"""
+        debug = debug or self.debug
+        # print("get_geomstructure:niveau de debug", debug)
+        return get_geomstructure(geomnatif, debug=debug)
 
     def _finalise_sorties(self):
         """ vide les tuyeaux et renseigne les stats"""

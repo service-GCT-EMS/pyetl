@@ -142,7 +142,7 @@ def getwriter(ext, defaut=None):
     return fonc
 
 
-def get_converter(nom, defaut=None, debug=False):
+def get_converter(nom, defaut=None, debug=False, structure=False):
     """renvoie un convertisseur de geometrie"""
     if nom in GEOMDEF:
         if GEOMDEF[nom]:
@@ -151,6 +151,21 @@ def get_converter(nom, defaut=None, debug=False):
             print(nom, "n'est pas un format geometrique")
     if defaut and defaut in GEOMDEF:
         return GEOMDEF[defaut].converter
+    print("format geometrique inconnu", nom)
+    if debug:
+        print("formats geometriques connus", GEOMDEF.keys())
+    return None
+
+
+def get_geomstructure(nom, defaut=None, debug=False):
+    """renvoie la structure du champ geom"""
+    if nom in GEOMDEF:
+        if GEOMDEF[nom]:
+            return GEOMDEF[nom].structure
+        else:
+            print(nom, "n'est pas un format geometrique")
+    if defaut and defaut in GEOMDEF:
+        return GEOMDEF[defaut].structure
     print("format geometrique inconnu", nom)
     if debug:
         print("formats geometriques connus", GEOMDEF.keys())
@@ -489,7 +504,7 @@ class Reader(object):
         #     if format_natif is None:
         #         return self.converter
 
-        fgeom = getreader(format_natif, "interne").geom
+        fgeom = getreader(self.format_natif, "interne").geom
         return GEOMDEF[fgeom].converter
 
     def setattformatter(self):

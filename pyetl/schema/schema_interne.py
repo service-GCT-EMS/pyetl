@@ -563,7 +563,8 @@ class Schema(object):
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
                     if not attr or attr in self.classes[i].attributs:
                         tables_a_sortir.add(i)
-
+                    elif attr == "#geom" and self.classes[i].info["type_geom"] > "0":
+                        tables_a_sortir.add(i)
         else:
             if nocase:
                 idclas = self.nocase.get((exp_niv.lower(), exp_clas.lower()))
@@ -575,10 +576,15 @@ class Schema(object):
                 if tables == "a" or self.classes[idclas].type_table in tables:
                     if not attr or attr in self.classes[idclas].attributs:
                         tables_a_sortir.add(idclas)
+                    elif (
+                        attr == "#geom" and self.classes[idclas].info["type_geom"] > "0"
+                    ):
+                        tables_a_sortir.add(idclas)
 
+        # print(
+        #     "db: Nombre de tables a sortir:", len(tables_a_sortir), niveau, classe, attr
+        # )
         return tables_a_sortir
-
-    #    print('db: Nombre de tables a sortir:', len(tables_a_sortir))
 
     def select_classes(
         self, niveau, classe, attr, tables="A", multi=True, nocase=False
@@ -689,8 +695,8 @@ class Schema(object):
         liste = self.select_classes(niveau, classe, [], tables, multi, nocase)
         schema_travail, liste2 = self.creschematravail(regle, liste, nomschema)
         schema_travail.metas["tables"] = tables
-        schema_travail.metas["filtre niveau"] = ",".join(niveau) if niveau else ""
-        schema_travail.metas["filtre classe"] = ",".join(classe) if classe else ""
+        schema_travail.metas["filtre_niveau"] = ",".join(niveau) if niveau else ""
+        schema_travail.metas["filtre_classe"] = ",".join(classe) if classe else ""
         # print("recup schema travail", schema_travail.metas)
         return schema_travail, liste2
 

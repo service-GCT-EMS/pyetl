@@ -805,7 +805,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     #          schemaclasse.info["type_geom"], schemaclasse.objcnt, schemaclasse)
 
     courbe = obj.geom_v.courbe
-    dimension = str(obj.geom_v.dimension)
+    dimension = str(int(obj.geom_v.dimension))
     if schemaclasse.objcnt == 0:  # on vient de le ceer
         if obj.geom_v.valide:
             schemaclasse.srid = obj.geom_v.srid

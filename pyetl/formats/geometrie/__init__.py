@@ -18,7 +18,7 @@ if printtime:
 def loadmodules():
     """lit toutes les descriptions de format depuis le repertoire courant
     et enregistre les readers et writers"""
-    geomdef = namedtuple("geomdef", ("writer", "converter", "initer"))
+    geomdef = namedtuple("geomdef", ("writer", "converter", "initer", "structure"))
     geomlist = dict()
     if printtime:
         t2 = t1

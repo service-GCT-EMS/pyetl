@@ -40,7 +40,8 @@ class Geometrie(object):
         "LinearRing": "2",
         "MultiLineString": "2",
         "Polygon": "3",
-        "MultiPolygon": '3"',
+        "MultiPolygon": "3",
+        "box2d:": "3",
     }
     __slots__ = [
         "polygones",

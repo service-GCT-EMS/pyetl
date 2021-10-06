@@ -90,11 +90,8 @@ class Section(object):
 
     @property
     def __list_if__(self):
-        return ",".join(
-            [" ".join([str(j) for j in i[: self.dimension]]) for i in self.coords]
-        )
-
-    #        return '('+','.join(map(lambda i: map(str,i[:self.dimension]) , self.coords) )+')'
+        dim = self.dimension
+        return ",".join([" ".join([str(j) for j in i[:dim]]) for i in self.coords])
 
     def dupplique(self):
         """retourne un double """
@@ -171,11 +168,6 @@ class Section(object):
         #            self.ferme = True
         return self
 
-    # def setz(self, val_z):
-    #     """ force le Z """
-    #     # self.coords = [[i[0], i[1], val_z] for i in self.coords]
-    #     self.dimension = 3
-
     def set_2d(self):
         """ cache le Z """
         self.dimension = 2
@@ -213,11 +205,8 @@ class Section(object):
         return long
 
     def convert(self, fonction):
-        #        print ("section avant:", self.coords)
-
+        """applique une fonction aux coordonnees"""
         self.coords = list(map(fonction, self.coords))
-
-    #        print ("section:apres trans", list(self.coords))
 
     def aire_orient(self):
         """calcule l'aire (positive ou negative selon l'orientation)
@@ -381,7 +370,7 @@ class Ligne(object):
             i.set_2d()
 
     def set_3d(self):
-        """cache le z pour la ligne"""
+        """ouvre le z pour la ligne"""
         self.dimension = 3
         for i in self.sections:
             i.set_3d()

@@ -51,7 +51,12 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     niv = regle.v_nommees["val_sel1"]
     cla = regle.v_nommees["sel2"]
     att = regle.v_nommees["val_sel2"]
-    vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
+    if ":" in att:
+        tmp = att.split(":") + ["", ""]
+        att = tmp[0]
+        vals = (tmp[1], tmp[2])
+    else:
+        vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
     if mods:
         regle.mods = regle.params.cmp1.val
     else:
@@ -105,11 +110,14 @@ def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
     # print("acces base", regle.cible_base.keys())
     selecteur = regle.cible_base
+    maxsel = int(regle.getvar("maxsel", 0))
+    selecteur.maxsel = maxsel
     if selecteur:
         selecteur.resolve(obj)
-    else:
-        print("setdb: pas de selecteur")
-    return selecteur
+        return selecteur
+    print("setdb: pas de selecteur")
+    raise StopIteration(3)
+
     # return (base, niveau, classe, attrs, valeur, chemin, type_base)
 
 
@@ -366,6 +374,7 @@ def h_dbrequest(regle):
     param_base(regle, mods=False, req=True)
     regle.chargeur = regle.params.pattern not in "345"
     # c est une regle qui cree des objets si on est pas en mode completement
+    # print("dbrequest  mode chargeur", regle.chargeur)
     attribut = regle.v_nommees.get("val_sel2", "")
     requete = regle.params.cmp1.val
     regle.fich = "tmp"
@@ -430,6 +439,10 @@ def f_dbrequest(regle, obj):
               ||classe du selecteur en substituant les variables par la classe courante
               ||sinon elle est passee une fois pour chaque base du selecteur
               ||les variables %#base et %#attr sont egalement substituees
+              ||autres variables: %#info : acces a des informations sur la classe
+              ||(nom_geometrie,dimension,type_geom,objcnt_init,courbe,alias,type_table)
+              ||                  %#metas : acces a des informations sur la requete
+              ||(script_ref,filtre_niveau,filtre_classe,origine,restrictions,tables)
        #groupe||database
       #pattern1||?A;?;?L;dbreq;C;A.C
       #pattern2||?A;?;?L;dbreq;C;A
@@ -449,6 +462,7 @@ def f_dbrequest(regle, obj):
     if regle.params.att_entree.liste:
         parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
     refobj = obj if regle.params.pattern in "345" else None
+
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
         # print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))

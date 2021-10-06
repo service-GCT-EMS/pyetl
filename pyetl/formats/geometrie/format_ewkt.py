@@ -506,8 +506,8 @@ def geom_from_geojson(obj, code=None):
 
 
 GEOMDEF = {
-    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, init_ewk),
-    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewk),
-    "#geojson": (ecrire_geom_geojson, geom_from_geojson, None),
-    None: (nowrite, noconversion, None),
+    "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, init_ewk, str),
+    "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewk, str),
+    "#geojson": (ecrire_geom_geojson, geom_from_geojson, None, list),
+    None: (nowrite, noconversion, None, None),
 }

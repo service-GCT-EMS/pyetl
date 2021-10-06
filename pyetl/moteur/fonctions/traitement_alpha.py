@@ -128,19 +128,25 @@ def f_setgeom(regle, obj):
      #helper||setval
     #pattern||=#geom;?;?A;set;C;N||sortie
  #parametres||#geom (mot clef);valeur par defaut;attribut d'entree;;format;dimension
-      #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;asc;2;
+      #test1||obj||^#geom;1SEC 1,2,|1,0,|0,0,1,0;;set;#asc;2;
             ||^;;;geom||atv;#type_geom;2
-      #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;asc;2;\
+      #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;#asc;2;\
             ||^;;;geom||atv;#type_geom;2
     """
     geom = regle.get_entree(obj)
-    # print ("recup geom:",geom)
-    obj.attributs["#geom"] = geom.split("|")
+    # print("recup geom:", geom, obj)
+
     obj.format_natif = regle.params.cmp1.val
+
     obj.geompending(dimension=regle.params.cmp2.num if regle.params.cmp2.num else 2)
     converter = regle.stock_param.get_converter(obj.format_natif, debug=regle.debug)
+    structure = regle.stock_param.get_geomstructure(obj.format_natif, debug=regle.debug)
     if converter:
         obj.attributs_geom = converter
+        if structure == list and not isinstance(obj.attributs["#geom"], list):
+            obj.attributs["#geom"] = geom.split("|")
+        else:
+            obj.attributs["#geom"] = geom
     return True
 
 

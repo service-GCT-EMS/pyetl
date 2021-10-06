@@ -91,7 +91,6 @@ def regles_liees(regle, param, refs):
         while regle.niveau < len(param) and param[regle.niveau] in "|+-":
             regle.niveau += 1
         if param[regle.niveau - 1] == "-":
-            # print("nonext", regle)
             regle.nonext = True
         for i in regle.branchements.enchainements:
             cmp = i + ":"

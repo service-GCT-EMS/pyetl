@@ -445,6 +445,7 @@ def gdalconverter(obj, liste_att, minmajfunc):
                 type_geom,
                 "schema:",
                 obj.schema.info["type_geom"],
+                obj,
             )
             return ""
     else:

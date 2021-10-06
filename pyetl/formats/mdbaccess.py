@@ -600,6 +600,7 @@ def lire_requete(
     # print("-----------------------traitement curseur ", curs, type(curs))
     treq = time.time() - treq
     if curs and classe:
+        # print("avant update:", schema.classes.get(ident))
         schema_classe_travail = curs.connecteur.update_schema_classe(
             ident, curs.infoschema, schema=schema, regle=regle_courante
         )
