@@ -291,6 +291,7 @@ class Macro(object):
         self.vars_utilisees = dict()
         self.vpos = []
         self.vdef = dict()
+        self.e_s = dict()
         self.no_in = True
         if vpos is not None:
             self.vpos = [i.split("=")[0].strip() for i in vpos if i and i != "\n"]
@@ -314,6 +315,10 @@ class Macro(object):
             if ligne.startswith("!#parametres"):
                 nomp, defp = ligne.split(";")[1:3]
                 self.parametres_pos[nomp] = defp
+                return
+            if ligne.startswith("!#e_s"):
+                nomp, defp = ligne.split(";")[1:3]
+                self.e_s[nomp] = defp
                 return
             if ligne.startswith("!#variables"):
                 nomv, defv = ligne.split(";")[1:3]

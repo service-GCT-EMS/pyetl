@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 import wtforms as F
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, widgets
 from wtforms.validators import DataRequired
 from wtforms.widgets import Select, html_params
 from itertools import chain
@@ -19,8 +19,47 @@ class BasicForm(FlaskForm):
     submit = SubmitField("executer")
 
 
-class Dynmultiselect(Select):
+class Dynselect(Select):
     """genere le code html pour une liste dynamique avec VueJS"""
+
+    """
+    Renders a select field.
+
+    If `multiple` is True, then the `size` property should be specified on
+    rendering to make the field useful.
+
+    The field must provide an `iter_choices()` method which the widget will
+    call on rendering; this method must yield tuples of
+    `(value, label, selected)`.
+    """
+
+    def __init__(self, multiple=False):
+        self.multiple = multiple
+
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault("id", field.id)
+        if self.multiple:
+            kwargs["multiple"] = True
+        if "required" not in kwargs and "required" in getattr(field, "flags", []):
+            kwargs["required"] = True
+        html = ["<select %s>" % html_params(name=field.name, **kwargs)]
+        for val, label, selected in field.iter_choices():
+            html.append(self.render_option(val, label, selected))
+        html.append("</select>")
+        return Markup("".join(html))
+
+    @classmethod
+    def render_option(cls, value, label, selected, **kwargs):
+        if value is True:
+            # Handle the special case of a 'True' value.
+            value = text_type(value)
+
+        options = dict(kwargs, value=value)
+        if selected:
+            options["selected"] = True
+        return Markup(
+            "<option %s>%s</option>" % (html_params(**options), escape(label))
+        )
 
     pass
 
@@ -43,8 +82,10 @@ def select_multi_checkbox(field, ul_class="", **kwargs):
 class DynSelectfieldwidget(F.SelectMultipleField):
     """restitue un champ multiple dynamique avec vueJs"""
 
-    def __init__(self, vmodel=None):
-        super(MyTextInput, self).__init__()
+    def __init__(self, definition, vmodel=None, **kwargs):
+        cdef = kwargs.get("choices")  # choix dynamiques
+        kwargs["choices"] = ""
+        super(F.SelectMultipleField, self).__init__(**kwargs)
 
 
 def formbuilder(description):
@@ -67,17 +108,18 @@ def formbuilder(description):
         "P": F.PasswordField,
         "R": F.RadioField,
         "S": F.SelectField,
+        "DS": F.SelectField,
         "SS": F.SelectMultipleField,
+        "DSS": DynSelectfieldwidget,
         "T": F.StringField,
         "OK": F.SubmitField,
     }
     variables = description.get("variables", dict())
     params = description.get("parametres", dict())
-    # print("recup description", description)
+    print("recup description", description)
     varlist = []
-    es = description.get("e_s", ())
-    if es:
-        def_es = es.split(";")
+    def_es = description.get("e_s", ())
+    if def_es:
         if def_es[0]:
             setattr(
                 CustomForm,
@@ -111,6 +153,8 @@ def formbuilder(description):
             tmp2 = typevar.split(":")
             typevar = tmp2[0]
             vlist = tmp2[1:]
+        if vlist.startswith("@") and not typevar.startswith("D"):
+            typevar = "D" + typevar
         if vlist and typevar:
             setattr(
                 CustomForm, nom, fieldfunctions.get(typevar)(definition, choices=vlist)

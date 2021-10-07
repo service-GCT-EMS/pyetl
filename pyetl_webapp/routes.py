@@ -10,6 +10,7 @@ from types import MethodType
 import logging
 import time
 from collections import namedtuple
+from typing_extensions import TypeVarTuple
 from requests import Request
 from urllib.parse import urlencode
 
@@ -55,7 +56,7 @@ def init_vue(vars):
     vuedict = {
         "el": "'#vm'",
         "delimiters": "['[[', ']]']",
-        "data": {"message": "'Vue OK'", "x_ws": true},
+        "data": {"message": "'Vue OK'", "x_ws": True},
     }
     vue = [
         "<script>",
@@ -159,6 +160,7 @@ class ScriptList(object):
             infos["parametres"] = params
             infos["defauts"] = macro.vdef
             infos["no_in"] = {macro.no_in: "pas d entree"}
+            infos["e_s"] = (macro.e_s.get("entree", ""), macro.e_s.get("sortie", ""))
             infos["help"] = macro.help
             infos["help_detaillee"] = macro.help_detaillee
             infos["api"] = macro.apis

@@ -147,6 +147,8 @@ K:%schema%;;;;;schema_entree;;;lire_schema;%schema%;csv;;
 &&#define;#extract;niveau;classe;;;;;;;;
 !#help;extraction de niveaux ou de classes a partir de fichiers;;;;;;;;;;
 !#description;effectue un filtrage apres lecture : peu efficace preferer les filtres de fichier si possible
+!#e_s;entree;fichier a lire;
+!#e_s;sortie;repertoire destination;
 !#parametres;niveau;groupe a selectionner si vide pas de filtrage;
 !#parametres;classe;classe a selectionner si vide pas de filtrage;
 !#variables;schema;schema d entree sous forme de ficher de description csv
