@@ -61,7 +61,6 @@ class TableBaseSelector(object):
         # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.static = dict()
         self.dynlist = dict()
-        self.maxsel = 0
 
     def __repr__(self):
         return (
@@ -345,6 +344,7 @@ class TableSelector(object):
         self.onconflict = "add"
         self.nom = ""
         self.metainfos = ""
+        self.maxsel = 0
 
     def __repr__(self):
         return repr([repr(bs) for bs in self.baseselectors.values()])

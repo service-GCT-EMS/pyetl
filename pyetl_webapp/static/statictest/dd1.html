@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang=en>
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/css/bootstrap.css">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="icon" href="/static/images/favicon.ico">
+
+</head>
+<body>
+
+
+
+
+<div id="app">
+  <h2>Drop-down list in Vue.js:</h2>
+  <select class="form-control" @change="changeJobTitle($event)">
+    <option value="" selected disabled>Choose</option>
+    <option v-for="jobTitle in jobTitles" :value="jobTitle.id" :key="jobTitle.id">{{ jobTitle.name }}</option>
+  </select>
+  <br><br>
+  <p><span>Selected job title: {{ selectedJobTitle  }}</span></p>
+</div>
+
+<script src="/static/js/vue.js"></script>
+<script src="/static/js/axios.js"></script>
+<script src="/static/js/jquery-3.5.1.slim.min.js"></script>
+<script src="/static/js/popper.min.js"></script>
+<script src="/static/js/bootstrap/bootstrap.min.js"></script>
+
+
+
+
+</div>
+<script src="/static/statictest/vuejs1.js"></script>
+</body>
+</html>

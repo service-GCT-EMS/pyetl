@@ -501,6 +501,9 @@ class Pyetl(object):
             self.moteur.setregles(self.regles, self.debug)
             self.moteur.regle_debut = self.regles[0].numero
             # print("fin prepare", len(self.regles), len(self.moteur.regles))
+            if self.getvar("showrules"):
+                for r in self.regles:
+                    print(r)
             return True
         # on refait si des choses ont change a l'initialisation
         except EOFError:

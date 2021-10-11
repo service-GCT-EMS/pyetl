@@ -153,7 +153,7 @@ def formbuilder(description):
             tmp2 = typevar.split(":")
             typevar = tmp2[0]
             vlist = tmp2[1:]
-        if vlist.startswith("@") and not typevar.startswith("D"):
+        if vlist and vlist[0].startswith("@") and not typevar.startswith("D"):
             typevar = "D" + typevar
         if vlist and typevar:
             setattr(

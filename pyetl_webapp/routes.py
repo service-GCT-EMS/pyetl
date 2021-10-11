@@ -10,7 +10,6 @@ from types import MethodType
 import logging
 import time
 from collections import namedtuple
-from typing_extensions import TypeVarTuple
 from requests import Request
 from urllib.parse import urlencode
 
@@ -315,6 +314,11 @@ def refresh(mode):
         mode=mode,
         c2="Date de Mise a Jour",
     )
+
+
+# @app.route("/statictest/<script>")
+# def statictest(script):
+#     return url_for("static", filename="statictest/" + script)
 
 
 @app.route("/scriptdesc/<script>")
