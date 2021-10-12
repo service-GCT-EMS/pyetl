@@ -399,7 +399,6 @@ class RegleTraitement(object):  # regle de mapping
         self.copy = False
         self.call = False
         self._return = False
-        self.liste_regles = []
 
         self.nom_fich_schema = ""
         #        self.nom_base = 'defaut'
@@ -672,11 +671,6 @@ class RegleTraitement(object):  # regle de mapping
         sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
-        if (
-            not self.runscope()
-        ):  # la regle ne doit pas s executer dans ce cas (traitement parallele worker/master)
-            self.valide = "out_of_scope"
-            return
         if self.test_static_false(
             sel1
         ):  # le test est statique et devalide de fait la regle
@@ -810,7 +804,7 @@ class RegleTraitement(object):  # regle de mapping
     #        obj.attributs.update(zip(self.params.att_ref.liste,
     #                                 map(fonction, self.getlist_ref(obj))))
 
-    def affiche(self, origine=""):
+    def affiche_debug(self, origine=""):
         """fonction d'affichage de debug"""
         msg = " ".join(
             (

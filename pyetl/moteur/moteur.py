@@ -198,7 +198,7 @@ class Moteur(object):
 
                 else:
                     if regle.debug and "+" in regle.v_nommees["debug"]:
-                        regle.affiche("--non executee--->")
+                        regle.affiche_debug("--non executee--->")
                         print("suite", regle.branchements.liens_num()["sinon"])
                     regle = regle.branchements.brch["sinon"]
 
@@ -556,8 +556,11 @@ class Context(object):
         while self.PARAM_EXP.search(element):
             for i, j in self.PARAM_EXP.findall(element):
                 cible = "%" + j + i + "%"
-                # print ('recup getvar',cible,i)
+                # print(
+                #     "recup getvar", self, element, cible, i, "->", self.getvar(i)
+                # ), element.replace(cible, str(self.getvar(i)))
                 element = element.replace(cible, str(self.getvar(i)))
+
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement
             element = self.env.get(element.split(":")[1], "")

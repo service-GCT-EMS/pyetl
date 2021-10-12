@@ -77,7 +77,7 @@ def h_return(regle):
 
 def f_return(regle, obj):
     """#aide||sort d une macro
-    #pattern||;;;quitter;?C;
+    #pattern||;;;return;?C;
     """
     obj.redirect = regle.params.cmp1.val
     return True
@@ -422,28 +422,29 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.call = regle.mode in {"call"} and regle.selstd is None
+    regle.liste_regles = []  # si la regle est une regle call
+    regle.refs = []
+    mapper = regle.stock_param
+    regle.moteur = mapper.getmoteur()
     # print ("callmacro contexte", regle.context)
     # print ("callmacro variables", (context.getvars()))
     if regle.mode == "geomprocess":
         regle.setlocal("macromode", "geomprocess")
-    mapper = regle.stock_param
+
     vpos = "|".join(regle.params.cmp2.liste)
     commande = regle.params.cmp1.val + "|" + vpos if vpos else regle.params.cmp1.val
-    # print("callmacro commande:", commande,regle.params.cmp2.val)
+    if regle.params.pattern == "2":
+        commande = regle.getlocal("_commande")
+    # print("callmacro commande:", commande, regle)
+
     # print("regle.context.atts:",regle.context.getvar('atts'))
     mapper.pushcontext(regle.context)
-    # print ('contexte macro', mapper.cur_context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)  # cree liste_regles
     if regle.liste_regles:
-        if regle.call:  # la on applatit
-            regle.liste_regles[-1]._return = True
-        else:
-            # print("appel call en mode sous programme", erreurs)
-            mapper.compilateur(
-                regle.liste_regles, regle.debug
-            )  # la on appelle en mode sous programme
-    # print ('contexte apres macro', mapper.cur_context)
+        mapper.compilateur(regle.liste_regles, regle.debug)
+        regle.moteur.setregles(regle.liste_regles)
+    else:
+        regle.valide = "done"
     mapper.popcontext(typecheck="C")
     # print("call:", regle)
     return erreurs
@@ -451,7 +452,8 @@ def h_callmacro(regle):
 
 def f_callmacro(regle, obj):
     """#aide||appel de macro avec gestion de variables locales
-    #pattern||;;;call;C;?LC
+    #pattern1||;;;call;C;?LC
+    #pattern2||;;;call;;
     #!test1||obj||^X;1;;set;||^;;;call;#set;X,,2||atv;X;2
     #test2||obj||^X;1;;set;||^;;;call;#set;;;atts=X,defaut=2||atv;X;2
     #test3||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
@@ -459,12 +461,8 @@ def f_callmacro(regle, obj):
     #test4||obj||^X;1;;set;||$defaut=3||^;;;call;#set;;;atts=X,defaut=2||
           ||X;2;;;X;%defaut%;;set||atv;X;3
     """
-    # print("appel macro", regle.call)
-    if not regle.call:
-        # print("appel macro", regle.liste_regles)
-        return regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
-    # la on ne fait rien parce que le compilateur a applati la macro
-    return True
+    # print("appel macro", regle.liste_regles)
+    return regle.moteur.traite_objet(obj, regle.liste_regles[0])
 
 
 def f_geomprocess(regle, obj):

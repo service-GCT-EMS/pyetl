@@ -27,40 +27,41 @@ def commandrunner(regle, chaine):
     # print ("commandrunner",regle)
     # print ("commandrunner",regle.params.cmp1.val,regle.params.cmp2.val)
     chaine = regle.params.cmp1.val + " " + chaine
-    if regle.params.att_sortie.val:
-        fini = subprocess.run(
-            chaine, capture_output=True, shell=True, encoding=regle.consoleencoding
-        )
-        retour = fini.stdout + fini.stderr
-        if retour.endswith("\n"):
-            retour = retour[:-1]
-        if regle.debug:
-            print("commandrunner", chaine, "->", retour)
-        return retour
-    else:
-        fini = subprocess.run(
-            chaine, stderr=subprocess.STDOUT, shell=True, encoding=regle.consoleencoding
-        )
-        return None
+    try:
+        if regle.params.att_sortie.val:
+            fini = subprocess.run(
+                chaine, capture_output=True, shell=True, encoding=regle.consoleencoding
+            )
+            retour = fini.stdout + fini.stderr
+            if retour.endswith("\n"):
+                retour = retour[:-1]
+            if regle.debug:
+                print("commandrunner", chaine, "->", retour)
+            return retour
+        else:
+            fini = subprocess.run(
+                chaine,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                encoding=regle.consoleencoding,
+            )
+            return None
+    except OSError as err:
+        regle.stock_param.logger.error("erreur d execution %s -> %s", chaine, err)
+        raise StopIteration(1)
 
 
 def h_run(regle):
     """execution unique si pas d'objet dans la definition"""
     regle.consoleencoding = regle.getvar("console_encoding", "CP850")
-    # pri:nt("---------hrun", regle.runscope(), regle, regle.params.pattern)
     # print('valeurs parametres', regle.getvar('import'))
     if regle.params.pattern == "1":
         return
-    if regle.runscope():  # on voit si on doit l'executer
-
-        retour = commandrunner(regle, regle.params.cmp2.val)
-        if regle.debug:
-            print("commandrunner ", retour)
-        if regle.params.att_sortie.val:
-            regle.setvar(regle.params.att_sortie.val, retour)
-    # else:
-    #     print("non executee", regle.getvar("process"), regle.runscope())
-    # print ('retour run : done',retour)
+    retour = commandrunner(regle, regle.params.cmp2.val)
+    if regle.debug:
+        print("commandrunner ", retour)
+    if regle.params.att_sortie.val:
+        regle.setvar(regle.params.att_sortie.val, retour)
     regle.valide = "done"
 
 
@@ -78,12 +79,13 @@ def f_run(regle, obj):
           #test1||obj||$xx=toto;||^P:aaa;;;run;echo;%xx%;||ptv:aaa:toto
           #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
-    if regle.runscope():  # on voit si on doit l'executer
+    try:
         retour = commandrunner(regle, regle.getval_entree(obj))
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = retour
         return True
-    return False
+    except StopIteration:
+        return False
 
 
 def fileprep(regle, fonction, dest=False):
@@ -96,29 +98,26 @@ def fileprep(regle, fonction, dest=False):
         regle.chemin_final = regle.params.cmp1.val
         regle.valide = True
     else:
-        regle.valide = "done"
-        if regle.runscope():  # on voit si on doit l'executer
-            if regle.test_static():
-                try:
-                    if dest:
-                        regle.chemin_final = os.path.dirname(regle.params.cmp1.val)
-                        if regle.chemin_final and not os.path.exists(
-                            regle.chemin_final
-                        ):
-                            os.makedirs(regle.chemin_final)
-                    if regle.params.cmp2.val:
-                        fonction(regle.params.cmp2.val, regle.params.cmp1.val)
-                    else:
-                        fonction(regle.params.cmp1.val)
-                except (FileNotFoundError, FileExistsError, OSError) as err:
-                    print(
-                        "erreur ",
-                        regle.mode,
-                        regle.params.cmp2.val,
-                        "->",
-                        regle.params.cmp1.val,
-                        err,
-                    )
+        try:
+            if dest:
+                regle.chemin_final = os.path.dirname(regle.params.cmp1.val)
+                if regle.chemin_final and not os.path.exists(regle.chemin_final):
+                    os.makedirs(regle.chemin_final)
+            if regle.params.cmp2.val:
+                fonction(regle.params.cmp2.val, regle.params.cmp1.val)
+            else:
+                fonction(regle.params.cmp1.val)
+            regle.valide = "done"
+        except (FileNotFoundError, FileExistsError, OSError) as err:
+            print(
+                "erreur ",
+                regle.mode,
+                regle.params.cmp2.val,
+                "->",
+                regle.params.cmp1.val,
+                err,
+            )
+            regle.valide = "fail"
 
 
 def fileop(regle, obj, fonction):
@@ -158,6 +157,7 @@ def fileop(regle, obj, fonction):
 def h_filerename(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
     fileprep(regle, os.rename, dest=True)
+    return True
 
 
 def f_filerename(regle, obj):
@@ -182,6 +182,7 @@ def f_filerename(regle, obj):
 def h_filecopy(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
     fileprep(regle, shutil.copy2, dest=True)
+    return True
 
 
 def f_filecopy(regle, obj):
@@ -207,6 +208,7 @@ def f_filecopy(regle, obj):
 def h_filemove(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
     fileprep(regle, shutil.move, dest=True)
+    return True
 
 
 def f_filemove(regle, obj):
@@ -232,6 +234,7 @@ def f_filemove(regle, obj):
 def h_filedel(regle):
     """renomme un fichier execution unique si pas d'objet dans la definition"""
     fileprep(regle, os.remove)
+    return True
 
 
 def f_filedel(regle, obj):
@@ -256,9 +259,10 @@ def f_filedel(regle, obj):
         return False
 
 
-def fileinfo(fichier, ajout_attributs):
+def fileinfo(fichier, regle):
     """recupere les infos detaillees d'un fichier"""
     # print ('infos', fichier)
+    ajout_attributs = regle.ajout_attributs
     tmp = Path(fichier)
     definition = [str(tmp), str(tmp.parent), tmp.stem, tmp.suffix]
     infos = [0, "inexistant", "inexistant"]
@@ -338,7 +342,7 @@ def f_infofich(regle, obj):
         # print("infofich sans entree", fichier)
     if fichier:
         if fichier not in regle.infofich:
-            regle.infofich[fichier] = fileinfo(fichier, regle.ajout_attributs)
+            regle.infofich[fichier] = fileinfo(fichier, regle)
         obj.attributs.update(regle.infofich[fichier])
         return True
     return False

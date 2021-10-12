@@ -291,7 +291,7 @@ def decode_config_xml(config_xml):
                         "attributs": [valeurs],
                     }
                 }
-    print("lecture config", config)
+    print("lecture config", config_xml, repr(config)[:40], "....")
     return config, full
 
 

@@ -40,12 +40,12 @@ def fdebug(regle, obj):
         debugmode = regle.v_nommees["debug"]
 
         if debugmode == "print":
-            regle.affiche(wid + "------affiche------>")
+            regle.affiche_debug(wid + "------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
             regle.debugvalid = False
             return regle.f_init(regle, obj)
         if debugmode == "step":
-            regle.affiche(wid + "------step------>")
+            regle.affiche_debug(wid + "------step------>")
             succes = regle.f_init(regle, obj)
             redirect = obj.redirect if obj.redirect else "ok"
             suite = redirect if succes else "fail"
@@ -54,7 +54,7 @@ def fdebug(regle, obj):
                 regle2.v_nommees["debug"] = "step"
             regle2.debug = 1
         else:
-            regle.affiche(wid + "------debug------>")
+            regle.affiche_debug(wid + "------debug------>")
             obj.debug("avant", attlist=regle.champsdebug)
 
         succes = regle.f_init(regle, obj)
@@ -83,20 +83,22 @@ def fdebug(regle, obj):
     return succes
 
 
-def regles_liees(regle, param, refs):
+def regles_liees(regle, liaison, prec, refs):
     """ decode le systeme de regles liees """
-    if param and param[0] in "|+-":  # mode de regles liees
+    nivprec = prec.niveau if prec else 0
+    nivref = refs[-1].niveau if refs else 0
+    if liaison and liaison[0] in "|+-":  # mode de regles liees
         regle.niveau = 0
 
-        while regle.niveau < len(param) and param[regle.niveau] in "|+-":
+        while regle.niveau < len(liaison) and liaison[regle.niveau] in "|+-":
             regle.niveau += 1
-        if param[regle.niveau - 1] == "-":
+        if liaison[regle.niveau - 1] == "-":
             regle.nonext = True
         for i in regle.branchements.enchainements:
             cmp = i + ":"
-            if param[regle.niveau : regle.niveau + len(cmp)] == cmp:
+            if liaison[regle.niveau : regle.niveau + len(cmp)] == cmp:
                 regle.enchainement = i
-                regle.code_classe = param[regle.niveau + len(cmp) :]
+                regle.code_classe = liaison[regle.niveau + len(cmp) :]
         if regle.enchainement == "":
             regle.enchainement = "ok"
             # petite magouille pour coller aux branchements sans alourdir la syntaxe
@@ -104,7 +106,7 @@ def regles_liees(regle, param, refs):
             err = "erreur de syntaxe " + regle.ligne[:-1]
             print("liaison:", err)
             print("autorises", regle.branchements.enchainements)
-            print("trouve", param)
+            print("trouve", liaison)
             raise SyntaxError("liaison non valide")
         debug = 0
         if regle.getvar("debug") == "1" or regle.debug:
@@ -112,7 +114,7 @@ def regles_liees(regle, param, refs):
             print(
                 "     regle liee",
                 regle.enchainement,
-                param[regle.niveau :],
+                liaison[regle.niveau :],
                 regle.niveau,
             )
         # la on determine si la regle est statiquement selectable
@@ -258,8 +260,7 @@ def setvloc(regle):
 
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
-    # print("avant ajuste_context", regle, prec)
-    # print("avant ajuste_context", regle.niveau, prec.niveau, regle)
+    # print("avant ajuste_context", regle.niveau, prec.niveau, regle, prec)
     if regle.niveau > prec.niveau:
         cprec = regle.stock_param.pushcontext(prec.context)
         regle.context.setparent(cprec, ref=False)
@@ -271,12 +272,16 @@ def ajuste_contexte(regle, prec):
     # print("apres ajuste_context", regle.context)
 
 
-def prepare_regle(regle, refs=None):
-    """ positionne les elements standard de la regle"""
-
+def prepare_regle(regle, prec=None, refs=None):
+    """positionne les elements standard de la regle
+    decodage des liens entre regles (structure de blocs)
+    premier parametre : contient les elements de structure
+            de la forme [|+-][sinon|fail]:[element de selecteur]
+    """
+    # print("vnommees1", regle.v_nommees)
     setvloc(regle)
     v_nommees = regle.v_nommees
-    # print('vnommees',regle.v_nommees)
+    # print("vnommees2", regle.v_nommees)
     ndebug = 10
 
     if any(i in v_nommees["debug"] for i in ("debug", "print", "step")):
@@ -290,19 +295,17 @@ def prepare_regle(regle, refs=None):
 
     if not regle.runscope():
         regle.valide = "out_of_scope"
+        regle.selected = False
         if regle.debug:
             print("regle non eligible ->", regle.getvar("process"))
         return regle.valide
 
     regle.code_classe = v_nommees["sel1"]
     # print ('interpreteur: ',regle,'->',regle.v_nommees)
-    # decodage des liens entre regles (structure de blocs)
-    #    param = valeurs[0]
-    # premier parametre : nom de la classe avec elements de structure
-    # de la forme [\+*][sinon|fail]:nom_d'attribut
+
     fonction = v_nommees["commande"]
     if fonction:
-        regles_liees(regle, v_nommees["sel1"], refs)
+        regles_liees(regle, v_nommees["sel1"], prec, refs)
         # print ("avant ajuste",prec.niveau if prec else None,regle.niveau,regle)
         # refs[regle.niveau] = regle
         if regle.valide == "skip":
@@ -369,24 +372,20 @@ def reinterprete_regle(regle, mapper, context=None):
     prepare_regle(regle)
 
 
-def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None, refs=[]):
+def interprete_ligne_csv(
+    mapper, ligne, fichier, numero, prec=None, regle_ref=None, macrodef=None
+):
     """decode une ligne du fichier cs v de regles
     et la stocke en structure interne"""
-
+    refs = regle_ref.refs if regle_ref else mapper.refs
     # print('traitement_ligne', ligne, mapper.context)
     # regle = RegleTraitement(ligne, mapper, fichier, numero)
     # print ('context creation1',regle.context)
     regle = mapper.regleref.getregle(ligne, fichier, numero)
+    if macrodef:
+        regle.setlocal("_commande", macrodef)
     # print("creation regle", regle, ligne)
-    if prec:
-        if prec.niveau < len(refs):
-            refs[prec.niveau] = prec
-        else:
-            refs.append(prec)
-    else:
-        refs.append(None)
-    prepare_regle(regle, refs=refs)
-
+    prepare_regle(regle, prec, refs)
     # print("retour prepare", regle.valide, regle)
     if regle.valide == "vide":
         #        print('regle vide ',regle)
@@ -402,14 +401,10 @@ def interprete_ligne_csv(mapper, ligne, fichier, numero, prec=None, refs=[]):
         regle.f_init = regle.fonc
         regle.fonc = fdebug
 
-    mapper.done = False
     if regle.valide == "done":
         # print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
-        return None
-    if regle.valide in {"skip", "unselected"}:
-        return None
     return regle
 
 
@@ -443,7 +438,8 @@ def decoupe_liste_commandes(fichier_regles):
     #     "->",
     #     [(n, "<" + i) for n, i in enumerate(liste_commandes)],
     # )
-    return [(n, "<" + i) for n, i in enumerate(liste_commandes)]
+
+    return [(n, "##" + i) for n, i in enumerate(liste_commandes)]
 
 
 def prepare_acces_base_scripts(regle):
@@ -624,7 +620,14 @@ def prepare_texte(defligne, niveau):
 
 
 def traite_regle_std(
-    mapper, numero, texte, texte_brut, fichier_regles, bloc, regle_ref=None
+    mapper,
+    numero,
+    texte,
+    texte_brut,
+    fichier_regles,
+    bloc,
+    regle_ref=None,
+    macrodef=None,
 ):
     """ traite une regle classique """
     #    texte = texte_brut.strip()
@@ -633,15 +636,21 @@ def traite_regle_std(
     precedent = regles[-1] if regles else None
     try:
         r_cour = interprete_ligne_csv(
-            mapper, texte, fichier_regles, numero, prec=precedent
+            mapper,
+            texte,
+            fichier_regles,
+            numero,
+            prec=precedent,
+            regle_ref=regle_ref,
+            macrodef=macrodef,
         )
-    #                print ('interp regle',i,erreurs)
     except SyntaxError:
         print("syntaxerror ", texte_brut)
         return bloc, 1
     #        raise
     #            print ('icsv:traitement ligne ',i[:-1], r_cour)
     #            print ('retour',r_cour)
+    # print("interp regle", texte, erreurs, r_cour)
     if r_cour is None:
         return bloc, 0
     if r_cour.valide:
@@ -711,7 +720,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     # print ('mapping parametres macro', texte)
     context = mapper.cur_context
     champs = context.SPLITTER_PV.split(texte)
-    nom_inclus = champs[0][1:].strip()
+    nom_inclus = champs[0].strip()
     parametres = champs[1:]
     # print("prepare_env", nom_inclus, parametres)
     listevlocs = []
@@ -786,9 +795,9 @@ def getlevel(mapper, texte_brut, regle_ref):
     return niveau, texte, rvirt
 
 
-def importe_macro(mapper, texte_brut, context, fichier_regles, regle_ref=None):
+def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
-    niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
+    # niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     # print("importe_macro", texte)
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
@@ -808,16 +817,13 @@ def importe_macro(mapper, texte_brut, context, fichier_regles, regle_ref=None):
             mapper,
             "",
             liste_regles=macro.get_commands(),
-            niveau=niveau,
             regle_ref=regle_ref,
         )
         if erreurs:
             LOGGER.error("erreurs initialisation macro %s", macro.nom)
             # print("=======================erreurs initialisation macro", macro.nom)
-        if rvirt:
-            traite_regle_std(
-                mapper, 0, rvirt + "f", rvirt + "f", "", 0, regle_ref=regle_ref
-            )
+        texte_fin = ";;;;;;;return;;;;;retour macro"
+        traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
         # print("contexte macros apres:", mapper.cur_context)
         mapper.popcontext()  # on depile un contexte
         # print("contexte macros apres pop:", mapper.cur_context)
@@ -861,7 +867,9 @@ def lire_regles_csv(
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau)
     #    if niveau:
-    # print('regles lues:\n'+'\n'.join((str(i) for i in liste_regles)))
+    # print("regles lues:\n" + "\n".join((str(i) for i in liste_regles)))
+    # if regle_ref:
+    #     raise
     bloc = 0
     for defligne in liste_regles[:]:
         #        numero, texte = defligne
@@ -961,12 +969,29 @@ def lire_regles_csv(
             entree = None if context.istrue("entree") else ""
             mapper.macrorunner(texte[2:], entree=entree)
             print("=============interp:retour macro")
-        elif re.match(r"(([\|\+-]+)[a-z_]*:)?<", texte):
+        elif re.match(r"(([\|\+-]+)[a-z_]*:)?<(.*)", texte):
             # print("avant macro", texte, context, context.getvar("atts"))
             # on transforme ca en appel call
             # ligne,_ = context.resolve(texte)
+            match = re.match(r"(([\|\+-]+)[a-z_]*:)?<(.*)", texte)
+            macrodef = match.group(3)
+            level = match.group(1)
+            if level is None:
+                level = ""
+            rtext = level + ";;;;;;;call;;"
+            traite_regle_std(
+                mapper,
+                numero,
+                rtext,
+                rtext,
+                fichier_regles,
+                bloc,
+                regle_ref=regle_ref,
+                macrodef=macrodef,
+            )
+        elif re.match(r"^###(.*)", texte):
             errs = importe_macro(
-                mapper, texte, context, fichier_regles, regle_ref=regle_ref
+                mapper, texte[2:], context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
                 LOGGER.error("erreur chargement macro %s", texte)

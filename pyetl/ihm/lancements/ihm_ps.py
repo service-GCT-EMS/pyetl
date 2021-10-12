@@ -140,7 +140,7 @@ class Fenetre(object):
             vlist.extend(vslist)
 
         if self.statusbar:
-            statusbar = Label(self, self.lignes, 1, "", id="statusbar")
+            statusbar = Label(self, self.lignes, 1, "")
             vslist, scode = statusbar.genps(ihm)
             code.extend(scode)
             vlist.extend(vslist)
@@ -423,8 +423,8 @@ class Label(Element):
         self.nature = "label"
 
     def genps(self, ihm):
-        lab = self.id
-        code = self.header() + self.mklab(lab, self.titre)
+        lab = "$" + self.id
+        code = self.mkheader() + self.mklab(lab, self.titre)
         return [lab], code
 
 
@@ -576,8 +576,10 @@ def creihm(nom):
 
             elif code == "!status":
                 courant.parent.statusbar = True
-                courant.elements.append(Commande("$statusbar.text=" + commande))
-                courant.elements.append(Commande("$statusbar.Refresh()"))
+                courant.elements.append(
+                    Commande(courant, "$statusbar.text=" + commande)
+                )
+                courant.elements.append(Commande(courant, "$statusbar.Refresh()"))
             else:
                 print("code inconnu", code)
     ihm.struct()

@@ -206,6 +206,7 @@ class Pyetl(object):
         #        self.parametres_fichiers = dict() # parametres d'acces
         self.schemas = dict()  # schemas des classes
         self.regles = list()  # regles de mapping
+        self.refs = []
         self.regle_sortir = None
         self.regleref = RegleTraitement("", self, "", 0)
         self.regleref.context = (
@@ -248,6 +249,9 @@ class Pyetl(object):
                 print("erreur chargement commande", commande, fonc)
                 return None
         return fonc
+
+    def getmoteur(self):
+        return Moteur(self)
 
     def _relpath(self, path):
         """cree un chemin relatif par rapport au fichier de programme"""
@@ -1369,7 +1373,7 @@ class Pyetl(object):
             return connection
         print("erreur connection base", nombase)
         # return None
-        raise ConnectionError
+        raise StopIteration(3)
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
         """ lecture d'un fichier d'entree"""

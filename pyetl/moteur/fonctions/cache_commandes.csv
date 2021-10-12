@@ -143,11 +143,11 @@ paramgroups;.traitement_workflow
 pass;.traitement_workflow
 print;.traitement_workflow
 printv;.traitement_workflow
-quitter;.traitement_workflow
 reel;.traitement_workflow
 resetlog;.traitement_workflow
 retour;.traitement_workflow
 retry;.traitement_workflow
+return;.traitement_workflow
 sample;.traitement_workflow
 sleep;.traitement_workflow
 start;.traitement_workflow

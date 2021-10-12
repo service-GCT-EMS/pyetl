@@ -13,7 +13,7 @@ def _affiche_debug(regles, debug):
     """affichages de debug"""
     for regle in regles:
         if debug or regle.debug:
-            regle.affiche()
+            regle.affiche_debug()
             liens_num = regle.branchements.liens_num()
             liens_pos = regle.branchements.liens_pos()
             print(
