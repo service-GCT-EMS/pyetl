@@ -20,7 +20,7 @@ from copy import Error
 # from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect, Cursinfo
 from .gensql import DbGenSql
-from owslib.wfs import WebFeatureService
+from owslib.wfs import WebFeatureService, WebMapService
 import owslib.fes as F
 from owslib.etree import etree
 

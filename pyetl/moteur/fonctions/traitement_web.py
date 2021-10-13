@@ -412,11 +412,45 @@ def _to_dict(parms):
     return dict([k.split(":", 1) for k in parms.split(",")])
 
 
+def httpconnect(regle):
+    """connection http"""
+    # global FTP,SFTP
+    acces = regle.getvar("site")
+    if acces:
+        regle.stock_param.load_paramgroup(acces, nom=acces)
+        regle.authtyp = regle.getvar("authtyp_" + acces)
+        regle.user = regle.getvar("user_" + acces)
+        regle.passwd = regle.getvar("passwd_" + acces)
+        regle.racinesite = regle.getvar("server_" + acces)
+        if regle.authtyp == "ntlm":
+            if regle.user:
+                from requests_ntlm import HttpNtlmAuth
+
+                regle.auth = HttpNtlmAuth(regle.user, regle.passwd)
+
+                # from requests_negotiate_sspi import HttpNegotiateAuth
+
+                # regle.auth = HttpNegotiateAuth(
+                #     username=regle.user, password=regle.passwd, domain="cus.fr"
+                # )
+            else:
+                from requests_negotiate_sspi import HttpNegotiateAuth
+
+                regle.auth = HttpNegotiateAuth()
+
+
 def h_httpdownload(regle):
     """prepare les parametres http"""
     # importrequest()
-
+    regle.racinesite = ""
+    regle.auth = None
+    regle.agents = {
+        "chrome": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1"
+    }
     regle.chargeur = True
+    if regle.getvar("site"):
+        httpconnect(regle)
+
     if regle.params.pattern == "1":
         path = (
             regle.params.cmp1.val if regle.params.cmp1.val else regle.getvar("_sortie")
@@ -432,6 +466,11 @@ def h_httpdownload(regle):
     regle.checkssl = not regle.istrue("trust")
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
+    agent = regle.agents.get(regle.getvar("#agent"))
+    print("trouve agent", agent, regle.getvar("#agent"))
+    if agent:
+        regle.httheaders["User-Agent"] = agent
+    #
     # print("preparation parametres", regle.httparams, regle.httheaders)
     regle.valide = True
     regle.debug = regle.istrue("debug")
@@ -486,11 +525,15 @@ def f_httpdownload(regle, obj):
               ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
     """
-    url = regle.getval_entree(obj)
+    url = regle.racinesite + regle.getval_entree(obj)
     # if regle.debug:
     # print("telechargement", url, "-->", regle.fichier)
     # if regle.httparams:
     retour = None
+    # auth = regle.auth
+    # if regle.auth:
+    #     auth = regle.auth(regle.user, regle.passwd) if regle.user else regle.auth()
+    print("trouve auth", regle.auth)
     try:
         retour = RQ.get(
             url,
@@ -498,7 +541,14 @@ def f_httpdownload(regle, obj):
             params=regle.httparams,
             headers=regle.httheaders,
             verify=regle.checkssl,
+            auth=regle.auth,
         )
+
+        # retour = RQ.get(
+        #     url,
+        #     auth=regle.auth(regle.user, regle.passwd),
+        #     headers=regle.httheaders,
+        # )
     except Exception as err:
         print(err)
         LOGGER.error("connection impossible:->%s<-", retour.url if retour else url)

@@ -986,3 +986,72 @@ def f_format(regle, obj):
     else:
         regle.setval_sortie(obj, regle.format % tuple(vlist2))
     return True
+
+
+def blocfilter(text, identifiant, keypair, escape):
+    "analyse un bloc de texte et extrait des identifiants et des blocs enter paires de clefs"
+    matchpattern = identifiant + ".*"
+    startbloc, endbloc = keypair
+    foundblocs = dict()
+    for match in re.finiter(identifiant, text):
+        clef = match.groups[1]
+        recherche = match.end()
+        level = 0
+        start = 0
+        long = 0
+        for i in text[recherche:]:
+            if level == 0:
+                start += 1
+            else:
+                long += 1
+            if i == startbloc:
+                level += 1
+            elif i == endbloc:
+                level -= 1
+                if level <= 0:
+                    break
+        if long:
+            foundblocs[clef] = text[recherche + start : recherche + start + long]
+        else:
+            foundblocs[clef] = ""
+    return foundblocs
+
+
+def h_extractbloc(regle):
+    """prepare les extractions"""
+    try:
+        regle.regex = re.compile(regle.params.cmp1.val)
+    except re.error as err:
+        regle.stock_param.loger.error("erreur expression reguliere %s", err)
+        return False
+    keypair = regle.params.cmp2.val
+    regle.keypair = (keypair[0], keypair[1])
+    regle.escape = regle.getvar("escape")
+    return True
+
+
+def f_extractbloc(regle, obj):
+    """#aide||extrait des blocs d un attribut texte
+    #aide_spec||chaque bloc est identifie par une clef (regex avec un groupe de capture)
+              ||et une paire de caracteres debut/fin ex <> ou () {}...
+    #pattern1||A;?C;?A;extractbloc;re;C
+    #pattern2||;?C;?A;extractbloc;re;C
+    #parametre||attribut de sortie;defaut;liste_entree;;format
+    #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
+    #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
+    """
+    texte = regle.getval_entree(obj)
+    foundblocs = blocfilter(texte, regle.regex, regle.keypair, regle.escape)
+    print("trouve blocs", foundblocs)
+    if regle.params.pattern == "1":
+        obj.attributs[regle.params.att_sortie.val] = foundblocs
+    elif regle.params.pattern == "2":
+        tmp = obj.attributs[regle.params.val_entree.val] = ""
+        if tmp:
+            obj.attributs[regle.params.val_entree.val] = ""
+        for i in foundblocs:
+            obj2 = obj.dupplique()
+            obj2.attributs[regle.params.att_entree.val] = i
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        obj.attributs[regle.params.val_entree.val] = tmp
+    return bool(foundblocs)
