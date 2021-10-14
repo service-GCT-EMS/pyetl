@@ -21,7 +21,11 @@
   <br><br>
   <p><span>Selected job title: {{ selectedJobTitle  }}</span></p>
 <br><br>
-
+<p>
+    repetition:
+    <input v-model="nrep" />
+  </p>
+<br><br>
   <select class="form-control">
     <option value="" selected disabled>Choose</option>
     <option v-for="xx in essai2"> {{ xx }}</option>

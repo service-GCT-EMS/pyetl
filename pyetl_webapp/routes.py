@@ -25,19 +25,25 @@ from flask import (
     abort,
 )
 
+# from flask_gssapi import GSSAPI
 from pyetl_webapp import app
 from pyetl import pyetl
 from pyetl.vglobales import getmainmapper
 from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
-# try:
-#     from flask_gssapi import GSSAPI
+try:
+    from flask_gssapi import GSSAPI
 
-#     gssapi = GSSAPI(app)
-# except (ImportError, OSError):
-#     gssapi = None
-#     pass
+    gssapi = GSSAPI(app)
+    require_auth = gssapi.require_auth
+except (ImportError, OSError):
+    gssapi = None
+
+    def require_auth(func):
+        return func
+
+    pass
 LOGGER = logging.getLogger(__name__)
 
 
@@ -247,12 +253,13 @@ scriptlist = ScriptList()
 
 @app.route("/")
 @app.route("/index")
-def index():
+@require_auth
+def index(username=""):
     local = request.host.startswith("127.0.0.1:")
     scriptlist.refresh(local)
     return render_template(
         "index.html",
-        text="acces simplifie aux fonctions mapper",
+        text="acces simplifie aux fonctions mapper pour" + username,
         title="mapper interface web",
     )
 
@@ -537,12 +544,12 @@ def execscript(appel, mode):
             nom, definition = desc
             scriptparams[nom] = str(form.__getattribute__(nom).data)
 
-        # print("recup form", entree, rep_sortie, infos, scriptparams)
+        print("recup form", entree, rep_sortie, infos, scriptparams)
         # print("full url", request.base_url)
         x_ws = scriptparams.get("x_ws")
         if "x_ws" in scriptparams:
             del scriptparams["x_ws"]
-        # print("valeur xws", x_ws)
+        print("valeur xws", x_ws)
         if x_ws == "True":  # on appelle en mode webservice
             qstr = urlencode(scriptparams)
             # url = "http://mws/" + script

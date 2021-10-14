@@ -119,6 +119,9 @@ def formbuilder(description):
     print("recup description", description)
     varlist = []
     def_es = description.get("e_s", ())
+    if description["__mode__"] == "api":
+        setattr(CustomForm, "x_ws", F.BooleanField("x_ws"))
+        varlist.append(("x_ws", "voir resultat en mode webservice"))
     if def_es:
         if def_es[0]:
             setattr(
@@ -137,10 +140,8 @@ def formbuilder(description):
         if not description.get("no_in"):
             setattr(CustomForm, "entree", F.MultipleFileField("entree"))
             varlist.append(("entree", "entree"))
-        if description["__mode__"] == "api":
-            setattr(CustomForm, "x_ws", F.BooleanField("x_ws"))
-            varlist.append(("x_ws", "voir resultat en mode webservice"))
-        else:
+
+        if description["__mode__"] != "api":
             setattr(CustomForm, "sortie", F.StringField("sortie"))
             varlist.append(("sortie", "sortie"))
     print("formbuilder: variables", list(chain(params.items(), variables.items())))
@@ -164,13 +165,6 @@ def formbuilder(description):
                 CustomForm, nom, fieldfunctions.get(typevar, F.StringField)(definition)
             )
         varlist.append((nom, definition))
-
-    if description["__mode__"] == "api":
-        setattr(
-            CustomForm,
-            "x_ws",
-            F.BooleanField("voir resultats en mode webservice"),
-        )
 
     setattr(CustomForm, "submit", SubmitField("executer"))
     # print("cree customform", varlist)

@@ -9,7 +9,7 @@
 !#api;fakelist2;xml;temp1
 !#api;fakelist3;text;
 !#api;fakelist4;html;temp2
-;;;;xx;%valeur%;;creobj;tmp;%n%;;
+;;;;xx,t;%valeur%,t;;creobj;tmp;%n%;;
 ;;;;xx+;;#gid;set;;;
 ;;;;;;xx;print>;;;
 !==============================selections en cascade sur une table===========================;;;;;;;;;;;

@@ -21,7 +21,7 @@
         </div>
         <div class="row align-items-center">
         <div class="col"><h2>.</h2></div>
-        <div class="col"><p v-if="x_ws">url webservice : mws/{{url}}</p></div>
+        <div class="col"><p v-if="x_ws">url webservice : mws/{{url}}? </p></div>
         </div>
 
 
@@ -32,7 +32,7 @@
                     <p style="text-align:right"> {{ item[1] }}</p>
                 </div>
                 <div class="col-sm">
-                    {{ form[item[0]]() }}
+                    {{ form[item[0]](**{"v-model":item[0]}) }}
                 </div>
             </div>
         {% endfor %}
