@@ -427,7 +427,9 @@ def httpconnect(regle):
                 from requests_ntlm import HttpNtlmAuth
 
                 regle.auth = HttpNtlmAuth(regle.user, regle.passwd)
-
+                regle.stock_param.logger.info(
+                    "connection ntlm: %s en t tant que %s", acces, regle.user
+                )
                 # from requests_negotiate_sspi import HttpNegotiateAuth
 
                 # regle.auth = HttpNegotiateAuth(
@@ -437,6 +439,9 @@ def httpconnect(regle):
                 from requests_negotiate_sspi import HttpNegotiateAuth
 
                 regle.auth = HttpNegotiateAuth()
+                regle.stock_param.logger.info(
+                    "connection ntlm sso windows sur %s", acces
+                )
 
 
 def h_httpdownload(regle):
@@ -445,7 +450,11 @@ def h_httpdownload(regle):
     regle.racinesite = ""
     regle.auth = None
     regle.agents = {
-        "chrome": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1"
+        "chrome": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1",
+        "firefox": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0",
+        "opera": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36 OPR/38.0.2220.41",
+        "edge": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59",
+        "safari": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1",
     }
     regle.chargeur = True
     if regle.getvar("site"):
@@ -466,14 +475,15 @@ def h_httpdownload(regle):
     regle.checkssl = not regle.istrue("trust")
     regle.httparams = _to_dict(regle.getvar("http_params"))
     regle.httheaders = _to_dict(regle.getvar("http_header"))
-    agent = regle.agents.get(regle.getvar("#agent"))
-    print("trouve agent", agent, regle.getvar("#agent"))
-    if agent:
+    agentcode = regle.getvar("#agent")
+    if agentcode:
+        agent = regle.agents.get(agentcode, agentcode)
         regle.httheaders["User-Agent"] = agent
+        regle.stock_param.logger.log("agent utilise: %s", agentcode)
     #
     # print("preparation parametres", regle.httparams, regle.httheaders)
     regle.valide = True
-    regle.debug = regle.istrue("debug")
+    # regle.debug = regle.istrue("debug")
     # print("h_httpdownload valeur de debug", regle.debug)
     return True
 
@@ -533,7 +543,7 @@ def f_httpdownload(regle, obj):
     # auth = regle.auth
     # if regle.auth:
     #     auth = regle.auth(regle.user, regle.passwd) if regle.user else regle.auth()
-    print("trouve auth", regle.auth)
+    # print("trouve auth", regle.auth)
     try:
         retour = RQ.get(
             url,

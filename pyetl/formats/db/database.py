@@ -79,6 +79,7 @@ class Cursinfo(object):
         self.schema_req = None
         self.data = None
         self.attlist = None
+        self.role = None
         self.volume = volume
         self.decile = 100000 if volume == 0 else int(volume / 10 + 1)
 

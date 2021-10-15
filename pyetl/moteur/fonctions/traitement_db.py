@@ -1114,7 +1114,15 @@ def f_dbset(regle, obj):
 
 def h_dbmap_qgs(regle):
     """mapping statique de fichier qgis"""
-    regle.base = regle.code_classe[3:]
+    basedest = regle.code_classe[3:]
+    if basedest.startswith("in:"):  # c'est un mapping complexe
+        fichier = basedest
+        mode, vals = prepare_mode_in(fichier, regle)
+        regle.basedict = vals
+        regle.base = None
+    else:
+        regle.basedict = None
+        regle.base = basedest
     regle.nom_selecteur = regle.params.val_entree.val
     if regle.nom_selecteur.startswith("#"):
         regle.nom_selecteur = regle.nom_selecteur[1:]
@@ -1122,8 +1130,12 @@ def h_dbmap_qgs(regle):
     regle.sortie = regle.params.cmp2.val
     selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
     # print ("mapping statique",selecteur,selecteur.resolve())
-    if selecteur and selecteur.resolve():
-        LOGGER.info("mapping qgis statique %s -> %s", selecteur.nom, regle.sortie)
+    if selecteur and selecteur.resolve() or not selecteur:
+        LOGGER.info(
+            "mapping qgis statique " + regle.params.cmp1.val + " -> %s (%s)",
+            regle.sortie,
+            selecteur.nom if selecteur else "autosel",
+        )
         adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
         regle.valide = "done"
     return True
@@ -1131,9 +1143,9 @@ def h_dbmap_qgs(regle):
 
 def f_dbmap_qgs(regle, obj):
     """#aide||remappe des fichiers qgis pour un usage en local en prenant en comte un selecteur
-    #aide spec|| la base de destination est indiquee par db:defbasse en premiere colonne
+    #aide spec|| la base de destination est indiquee par db:defbase en premiere colonne
     #parametres||selecteur;;rep entree;rep sortie
-    #pattern||;C;;dbmap_qgs;C;C
+    #pattern||;?C;;dbmap_qgs;C;C
     """
     LOGGER.debug("dbmapqgs")
     print("====================dbmapqgs")

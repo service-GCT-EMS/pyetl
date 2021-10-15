@@ -72,11 +72,18 @@ def scandirs(
     rep_depart, chemin, rec, pattern=None, dirpattern=None
 ) -> T.Iterator[T.Tuple[str, str]]:
     """parcours recursif d'un repertoire."""
-    path = os.path.join(rep_depart, chemin)
-    # print("recherche", path)
+    path = (
+        os.path.join(rep_depart, chemin)
+        if chemin and rep_depart
+        else (chemin or rep_depart)
+    )
+    print("recherche", path)
     if os.path.isfile(path):
-        chemin = os.path.dirname(chemin)
-        yield (str(os.path.basename(path)), str(chemin))
+        rep_depart = os.path.dirname(rep_depart)
+        fichier = os.path.basename(rep_depart)
+        chemin = ""
+        print("retour", ("", ""))
+        yield ("", "")
         return
     if "*" in path:
         for element in glob.glob(path):
@@ -461,10 +468,12 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
     """
     stock_param = regle.stock_param
     fichier = fichier.strip()
+    if fichier.startswith("in:"):
+        fichier = fichier[3:]
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
-    valeurs = {i: i for i in liste_valeurs}
-    #    print ('fichier a lire ',fichier,valeurs)
+    valeurs = dict([i.split("=>", 1) if "=>" in i else (i, i) for i in liste_valeurs])
+    print("fichier a lire ", fichier, liste_valeurs)
     if fichier.startswith("#schema"):  # liste de classes d'un schema
         mode = "in_s"
         decoupage = fichier.split(":")

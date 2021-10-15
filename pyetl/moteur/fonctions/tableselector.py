@@ -590,20 +590,29 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
 
 def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFCODEC):
     """modifie un fichier qgs pour adapter les noms des bases et des niveaux"""
-    if not selecteur.resolved:
+
+    if selecteur and not selecteur.resolved:
         selecteur.resolve(obj)
     destbase = regle.base
+    basedict = regle.basedict
     for fich, chemin in scandirs(fichier, "", rec=True):
-        element = os.path.join(fichier, chemin, fich)
-        if not fich.endswith(".qgs"):
+        if not fich:  # un peu bizarre on a donne un fichier a la place d un repertoire
+            element = os.path.join(fichier, chemin) if chemin else fichier
+            fich = os.path.basename(element)
+        else:
+            element = os.path.join(fichier, chemin, fich)
+        print("traitement", element, fich)
+        if not element.endswith(".qgs"):
             continue
         codec = hasbom(element, codec)
         fdest = os.path.join(destination, chemin, fich)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
+        seldef = select_in(regle, element, "*") if not selecteur else selecteur
         regle.stock_param.logger.info(
-            "traitement (%s) %s->" + fdest, selecteur.nom, element
+            "traitement (%s) %s->" + fdest, seldef.nom, element
         )
+
         with open(element, "r", encoding=codec) as fich:
             # print("adapt projet qgs", element)
             for i in fich:
@@ -620,11 +629,11 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                     ident = (niveau, classe)
                     if database:
                         base = (database, "host=" + host, "port=" + port)
-                        idbase = selecteur.idbase(base)
+                        idbase = seldef.idbase(base)
                         tablemap = (niveau, classe)
-                        if idbase in selecteur.baseselectors:
-                            baseselector = selecteur.baseselectors[idbase]
-                            if selecteur.nobase:
+                        if idbase in seldef.baseselectors:
+                            baseselector = seldef.baseselectors[idbase]
+                            if seldef.nobase:
                                 tablemap = baseselector.mapping.get(ident)
                                 # print("baseselector.mapping", baseselector.mapping)
                             else:
@@ -647,7 +656,13 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                         i = i.replace(
                             oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
                         )
-                        i = i.replace(olddbdef, destbase)
+                        destbase = regle.base if regle.base else basedict.get(olddbdef)
+
+                        if destbase:
+                            i = i.replace(olddbdef, destbase)
+                        else:
+                            print("datasource inconnue", olddbdef, basedict)
+
                     # print("datasource=>", i)
 
                 sortie.write(i)

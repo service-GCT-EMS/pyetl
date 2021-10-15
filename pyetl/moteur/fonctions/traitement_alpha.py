@@ -990,11 +990,12 @@ def f_format(regle, obj):
 
 def blocfilter(text, identifiant, keypair, escape):
     "analyse un bloc de texte et extrait des identifiants et des blocs enter paires de clefs"
-    matchpattern = identifiant + ".*"
     startbloc, endbloc = keypair
     foundblocs = dict()
-    for match in re.finiter(identifiant, text):
-        clef = match.groups[1]
+    print("debut recherche")
+    for match in identifiant.finditer(text):
+        print("trouve match")
+        clef = match.groups(1)
         recherche = match.end()
         level = 0
         start = 0
@@ -1020,7 +1021,7 @@ def blocfilter(text, identifiant, keypair, escape):
 def h_extractbloc(regle):
     """prepare les extractions"""
     try:
-        regle.regex = re.compile(regle.params.cmp1.val)
+        regle.regex = re.compile(regle.params.cmp1.val, re.MULTILINE)
     except re.error as err:
         regle.stock_param.loger.error("erreur expression reguliere %s", err)
         return False
@@ -1041,6 +1042,7 @@ def f_extractbloc(regle, obj):
     #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
     texte = regle.getval_entree(obj)
+    print("recherche blocs", regle.params.cmp1.val, regle.keypair)
     foundblocs = blocfilter(texte, regle.regex, regle.keypair, regle.escape)
     print("trouve blocs", foundblocs)
     if regle.params.pattern == "1":
