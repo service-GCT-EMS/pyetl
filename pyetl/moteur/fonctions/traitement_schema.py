@@ -183,9 +183,10 @@ def f_force_alias(regle, obj):
 
 def f_valide_schema(regle, obj):
     """#aide||verifie si des objets sont compatibles avec un schema
+    #parametres||;nom du schema;;
     #pattern||?=#schema;?C;;valide_schema;?=strict;
     #pattern2||?=#schema;?C;;valide_schema;=supp_conf;
-    #variables||log_level;err ou warn par defaut no;
+    #variables||log;err ou warn par defaut no;
     #test||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
     #test2||obj;point||^type_geom;2;;set_schema||^;;;valide_schema||+fail:;;;;res;1;;set||atv;res;1
 
@@ -201,7 +202,7 @@ def f_valide_schema(regle, obj):
         return True
     if obj.schema:
         modeconf = regle.params.cmp1.val
-        loglevel = regle.getvar("log_level", "no")
+        loglevel = regle.getvar("log", "no")
         retour = FSC.valide_schema(regle, obj, modeconf, log=loglevel)
         #        print ('retour validation schema', retour, obj)
         return retour

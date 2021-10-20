@@ -100,6 +100,38 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
             reader.process(obj)
 
 
+def attreader(reader, ouvert):
+    header = reader.regle_ref.istrue("header")
+    champs = reader.regle_ref.params.cmp2.liste
+    reste = reader.regle_ref.getvar("restfields", "#reste")
+
+    if champs:
+        nchamps = len(champs)
+        champs.extend([reste])
+        reader.prepare_attlist(champs)
+    # print("attreader", ouvert)
+    for i in ouvert:
+        # print("attreader csv lecture", i, champs)
+        if i.endswith("\r\n"):
+            i = i[:-2]
+        elif i.endswith("\n"):
+            i = i[:-1]
+        if header:
+            champs = i.split(";")
+            header = False
+            champs.extend([reste])
+            reader.prepare_attlist(champs)
+            nchamps = len(champs)
+            continue
+        if not champs:
+            champs = ["champ_" + str(i + 1) for i in range(len(i.split(";")) - 1)]
+        attributs = list(zip(champs, i.split(";", nchamps)))
+        # print("attreader csv lecture", attributs)
+        obj = reader.getobj(attributs=attributs)
+        reader.process(obj)
+    # print("attreader", ouvert)
+
+
 class CsvWriter(FileWriter):
     """ gestionnaire des fichiers csv en sortie """
 
@@ -493,6 +525,6 @@ WRITERS = {
 
 #                  reader,geom,hasschema,auxfiles,initer
 READERS = {
-    "csv": (lire_objets_csv, "#ewkt", True, (), None, None),
+    "csv": (lire_objets_csv, "#ewkt", True, (), None, attreader),
     "txt": (lire_objets_txt, "#ewkt", True, (), None, None),
 }

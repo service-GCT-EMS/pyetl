@@ -124,6 +124,7 @@ geocode;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
 attreader;.traitement_workflow
+attsave;.traitement_workflow
 batch;.traitement_workflow
 bloc;.traitement_workflow
 boucle;.traitement_workflow

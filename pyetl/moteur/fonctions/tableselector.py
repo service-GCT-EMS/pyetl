@@ -616,7 +616,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         with open(element, "r", encoding=codec) as fich:
             # print("adapt projet qgs", element)
             for i in fich:
-                if "datasource" in i:
+                if "datasource" in i or 'source="' in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
                     inithost = _extract(i, "host=")
@@ -653,10 +653,13 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                             + " port="
                             + initport
                         )
+                        dbkey = (
+                            "dbname='" + database + "' host=" + host + " port=" + port
+                        )
                         i = i.replace(
                             oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
                         )
-                        destbase = regle.base if regle.base else basedict.get(olddbdef)
+                        destbase = regle.base if regle.base else basedict.get(dbkey)
 
                         if destbase:
                             i = i.replace(olddbdef, destbase)

@@ -270,6 +270,7 @@ class Reader(object):
                 if description.objreader
                 else None
             )
+
             self.nom_format = nom
             self.cree_schema = description.has_schema
             self.auxiliaires = description.auxfiles
@@ -472,6 +473,9 @@ class Reader(object):
     def attaccess(self, obj):
         """lance le reader sur un attribut en le traitant comme un buffer texte"""
         self.prepare_lecture_att(obj, self.regle.format)
+        if not self.objreader:
+            print("lecteur non defini")
+            return False
         with io.StringIO(obj.attributs[self.regle.nom_att]) as ouvert:
             self.objreader(ouvert)
 

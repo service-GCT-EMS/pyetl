@@ -174,9 +174,9 @@ class Moteur(object):
                                 regle.changeclasse(regle, obj)
                         if regle.changeschema:
                             regle.changeschema(regle, obj)
-                        if regle.debugvalid:
-                            obj.debug("apres", attlist=regle.champsdebug)
-                            regle.stock_param.gestion_log.stopdebug()
+                    if regle.debugvalid:
+                        obj.debug("apres", attlist=regle.champsdebug)
+                        regle.stock_param.gestion_log.stopdebug()
                     obj.is_ok = resultat
 
                     if regle.mode_chargeur:  # la on fait des

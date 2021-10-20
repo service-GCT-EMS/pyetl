@@ -551,6 +551,7 @@ def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
                     schemaclasse.info["type_geom"],
                     obj.attributs["#type_geom"],
                 )
+                # if regle.debug:
                 # print(
                 #     obj.ident,
                 #     "--type geometrie non conforme schema->",
@@ -709,7 +710,8 @@ def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
                 schemaclasse.groupe,
                 "+".join(warnings),
             )
-
+    if regle.debug:
+        print("validation schema", obj, erreurs, warnings)
     if erreurs:
         if obj.attributs.get("#erreurs", ""):
             obj.attributs["#erreurs"] = (
@@ -725,6 +727,7 @@ def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
                 "+".join(erreurs),
             )
         return False
+
     return True
 
 

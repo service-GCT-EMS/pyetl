@@ -5,6 +5,7 @@ Created on Fri Dec 11 14:34:04 2015
 @author: 89965
 fonctions de gestion du deroulement d'un script
 """
+from base64 import encode
 import os
 import sys
 import re
@@ -105,7 +106,7 @@ def f_start(regle, obj):
     #pattern||;;;start;?C
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
-    #    print ('start',obj)
+    print("start", obj)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
     if regle.schemas:
@@ -247,7 +248,7 @@ def printfunc(regle, obj):
     else:
         cmp1 = txt
     noms = regle.params.cmp2.val or regle.params.val_entree.val
-    #    print ('affichage', obj)
+    # print("affichage", obj)
     if regle.params.att_entree.dyn:
         liste = obj.get_dynlisteval(noms=noms)
     elif regle.params.att_entree.val == "#geomV":
@@ -258,6 +259,7 @@ def printfunc(regle, obj):
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:
         return str(cmp1) + ",".join(liste)
+    # print(" affichage simple", regle.getval_entree(obj))
     return (
         str(cmp1) + str(regle.getval_entree(obj)) if cmp1 else regle.getval_entree(obj)
     )
@@ -815,10 +817,11 @@ def h_schema_liste_classes(regle):
             return False
         regle.valide = "done"
     print("h liste classes", regle.valide)
+    regle.chargeur = True
     return True
 
 
-def f_schema_liste_classes(regle, _):
+def f_schema_liste_classes(regle, obj):
     """#aide||cree des objets virtuels ou reels a partir des schemas (1 objet par classe)
     #aide_spec||liste_schema;nom;?reel
     #aide_spec2||cree des objets virtuels par defaut sauf si on precise reel
@@ -826,6 +829,7 @@ def f_schema_liste_classes(regle, _):
     #schema||change_schema
     #pattern1||?=#schema;?C;?A;liste_schema;C;?=reel
     #pattern2||=mws:;?C;;liste_schema;C;||sortie
+    #pattern3||A;?C;;liste_schema;C;||sortie
     """
     schema = regle.getschema(regle.params.cmp1.val)
     print(
@@ -834,6 +838,22 @@ def f_schema_liste_classes(regle, _):
     if schema is None:
         return False
     virtuel = not regle.params.cmp2.val
+    if regle.params.pattern == "3":
+        if regle.params.val_entree.val in ("schemas", "groupes"):
+            for groupe in schema.groupes.keys():
+                obj2 = obj.dupplique()
+                obj2.setsortie(groupe)
+                regle.stock_param.moteur.traite_objet(
+                    obj2, regle.branchements.brch["gen"]
+                )
+        elif regle.params.val_entree.val == "classes":
+            for groupe in schema.groupes.keys():
+                obj2 = obj.dupplique()
+                obj2.setsortie(groupe)
+                regle.stock_param.moteur.traite_objet(
+                    obj2, regle.branchements.brch["gen"]
+                )
+
     classes = list(schema.classes)
     for i in classes:
         niveau, classe = i
@@ -954,20 +974,53 @@ def h_attreader(regle):
     regle.reader = regle.stock_param.getreader(format, regle)
 
     regle.nom_att = regle.params.att_entree.val
-    regle.format = regle.params.cmp1.val
-    regle.keepdata = regle.getvar("keepdata") == "1"
+    regle.format = format
+    regle.keepdata = regle.istrue("keepdata")
 
 
 def f_attreader(regle, obj):
     """#aide||traite un attribut d'un objet comme une source de donnees
+    #parametres||defaut;attribut;;format
     #aide_spec||par defaut attreader supprime le contenu de l attribut source
-    #aide_speca||pour le conserver positionner la variable keepdata a 1
-    #pattern||;?C;A;attreader;C;?C
+              ||pour le conserver positionner la variable keepdata a 1
+    #pattern||?L;?C;A;attreader;C;?C
     """
-    # print("attaccess", regle.params.att_entree.val, regle.params.cmp1.val)
+    # print("attaccess", obj.attributs[regle.params.att_entree.val])
     regle.reader.attaccess(obj)
+    # print("attaccess", obj.attributs[regle.params.att_entree.val])
+
     if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""
+
+
+def h_attsave(regle):
+    """prepare les repertoires"""
+    regle.destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp1.val)
+    regle.encoding = regle.getvar("encoding", "utf-8")
+    return True
+
+
+def f_attsave(regle, obj):
+    """#aide||stocke le contenu d un attribut comme un fichier
+    #parametres||;attribut;;fichier
+    #pattern||A;?C;A;attsave;?C
+    """
+    fich = os.path.join(regle.destdir, obj.attributs.get(regle.params.att_sortie.val))
+    destdir = os.path.dirname(fich)
+    os.makedirs(destdir, exist_ok=True)
+    contenu = regle.getval_entree(obj)
+    if isinstance(contenu, str):
+        with open(fich, "w", encoding=regle.encoding) as sortie:
+            sortie.write(contenu)
+    elif isinstance(contenu, list):
+        with open(fich, "w", encoding=regle.encoding) as sortie:
+            sortie.write("\n".join(contenu))
+    elif isinstance(contenu, dict):
+        with open(fich, "w", encoding=regle.encoding) as sortie:
+            sortie.write("\n".join(";".join(i) for i in contenu.items()))
+    else:
+        with open(fich, "wb") as sortie:
+            sortie.write(contenu)
 
 
 def h_parallel(regle):

@@ -34,7 +34,6 @@ def fdebug(regle, obj):
             att, val = cond.split("=", 1)
             regle.debugvalid = obj.attributs.get(att) == val
 
-    if regle.debugvalid:
         regle.stock_param.gestion_log.setdebug()
         wid = regle.getvar("_wid")
         debugmode = regle.v_nommees["debug"]

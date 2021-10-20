@@ -421,7 +421,11 @@ class Objet(object):
     def debug(self, code, attlist=None, limit=True):
         """affichage de debug"""
         virtuel = "_v" if self.virtuel else ""
-        fleche = "----------------------> obj" if code == "avant" else "            obj"
+        fleche = (
+            "----------------------> obj"
+            if code in {"avant", "apres"}
+            else "            obj"
+        )
         invariant = (
             fleche
             + virtuel

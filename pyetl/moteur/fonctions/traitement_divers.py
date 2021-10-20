@@ -954,8 +954,7 @@ def h_attwriter(regle):
 
 
 def f_attwriter(regle, obj):
-    """#aide||traite un attribut d'un objet comme une sortie cree un objet pas fanout
-    #aide_spec||par defaut attreader supprime le contenu de l attribut source
+    """#aide||traite un attribut d'un objet comme une sortie cree un objet par fanout
     #aide_speca||pour le conserver positionner la variable keepdata a 1
     #helper||sortir||attwriter
     #pattern||A;;;attwriter;C;?C

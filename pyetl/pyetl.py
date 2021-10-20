@@ -1102,8 +1102,8 @@ class Pyetl(object):
             entree = ",".join(entree)
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
 
-        if self.done:
-            # print("process: done : rien a faire")
+        if self.done and not self.regles:
+            print("process: done : rien a faire")
             self.logger.debug("rien a faire")
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
