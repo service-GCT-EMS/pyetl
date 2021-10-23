@@ -1012,7 +1012,7 @@ def blocfilter(text, identifiant, keypair, escape):
                 if level <= 0:
                     break
         if long:
-            foundblocs[clef] = text[recherche + start : recherche + start + long]
+            foundblocs[clef] = text[recherche + start - 1 : recherche + start + long]
         else:
             foundblocs[clef] = ""
     return foundblocs
@@ -1042,18 +1042,19 @@ def f_extractbloc(regle, obj):
     #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
     texte = regle.getval_entree(obj)
-    print("recherche blocs", regle.params.cmp1.val, regle.keypair)
+    # print("recherche blocs", regle.params.cmp1.val, regle.keypair)
     foundblocs = blocfilter(texte, regle.regex, regle.keypair, regle.escape)
-    print("trouve blocs", foundblocs)
+    # print("trouve blocs", foundblocs)
     if regle.params.pattern == "1":
         obj.attributs[regle.params.att_sortie.val] = foundblocs
     elif regle.params.pattern == "2":
         tmp = obj.attributs[regle.params.val_entree.val] = ""
         if tmp:
             obj.attributs[regle.params.val_entree.val] = ""
-        for i in foundblocs:
+        for clef, bloc in foundblocs.items():
             obj2 = obj.dupplique()
-            obj2.attributs[regle.params.att_entree.val] = i
+            obj2.attributs["#bloc"] = bloc
+            obj2.attributs["#clef"] = clef
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         obj.attributs[regle.params.val_entree.val] = tmp
     return bool(foundblocs)

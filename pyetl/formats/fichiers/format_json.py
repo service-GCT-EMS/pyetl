@@ -81,6 +81,7 @@ def readobjs(reader, jsonlist):
 
     n_obj = 0
     for i in jsonlist:
+        # print("jsonlist", i)
         if reader.maxobj and n_obj > reader.maxobj:
             break
         if not i:
@@ -89,9 +90,11 @@ def readobjs(reader, jsonlist):
         obj = reader.getobj()
         if n_obj % 100000 == 0:
             print("formats :", reader.fichier, "lecture_objets_json ", n_obj)
-        # print("traitement json", i)
+        # print("traitement json", [(nom, str(val)) for nom, val in i.items()])
         obj.attributs.update([(nom, str(val)) for nom, val in i.items()])
         obj.setorig(n_obj)
+        # print("lu objet", obj)
+        # print("traitement objet, ", reader.regle_start)
         reader.traite_objet(obj, reader.regle_start)
 
 
@@ -99,6 +102,7 @@ def objreader(self, ouvert):
     n_obj = 0
     obj = None
     contenu = json.load(ouvert)
+    # print("lu json", type(contenu), contenu)
     if isinstance(contenu, list):
         readobjs(self, contenu)
 

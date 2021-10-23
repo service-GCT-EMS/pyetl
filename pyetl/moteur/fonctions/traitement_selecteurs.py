@@ -416,7 +416,7 @@ def sel_idinfich(selecteur, obj):
         #helper||infich
     !test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
     """
-    if selecteur.taille == 3:  # on a ajoute la base
+    if selecteur.taille == 3 and "#codebase" in obj.attributs:  # on a ajoute la base
         return (
             obj.attributs.get("#codebase") + "." + ".".join(obj.ident) in selecteur.info
         )

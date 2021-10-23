@@ -137,7 +137,7 @@ class Moteur(object):
                     self.traite_objet(obj, i)
                     i.mode_chargeur = False
 
-    def traite_objet(self, obj, regle):
+    def traite_objet(self, obj, regle, parent=None):
         """traitement basique toutes les regles sont testees """
         last = None
         while regle:
@@ -253,7 +253,7 @@ class Moteur(object):
                 else:
                     printexception()
                 raise StopIteration(3)
-        #                raise
+
         if last and not last.store:
             if last.filter or last.supobj:
                 self.suppcnt += 1

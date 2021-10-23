@@ -800,7 +800,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     # on cree un contexte avec ses propres valeurs locales
     # print("importe_macro", texte)
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
-    if macroenv.istrue("debug"):
+    debug = macroenv.istrue("debug")
+    if debug:
         print(
             "debug macro:",
             context,
@@ -821,7 +822,10 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         if erreurs:
             LOGGER.error("erreurs initialisation macro %s", macro.nom)
             # print("=======================erreurs initialisation macro", macro.nom)
-        texte_fin = ";;;;;;;return;;;;;retour macro"
+        if debug:
+            texte_fin = ";;;;;;;return;;;debug;;retour macro"
+        else:
+            texte_fin = ";;;;;;;return;;;;;retour macro"
         traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
         # print("contexte macros apres:", mapper.cur_context)
         mapper.popcontext()  # on depile un contexte

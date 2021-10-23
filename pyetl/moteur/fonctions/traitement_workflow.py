@@ -443,7 +443,7 @@ def h_callmacro(regle):
     mapper.pushcontext(regle.context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)  # cree liste_regles
     if regle.liste_regles:
-        mapper.compilateur(regle.liste_regles, regle.debug)
+        mapper.compilateur(regle.liste_regles, regle.debug, parent=regle)
         regle.moteur.setregles(regle.liste_regles)
     else:
         regle.valide = "done"
@@ -464,7 +464,7 @@ def f_callmacro(regle, obj):
           ||X;2;;;X;%defaut%;;set||atv;X;3
     """
     # print("appel macro", regle.liste_regles)
-    return regle.moteur.traite_objet(obj, regle.liste_regles[0])
+    return regle.moteur.traite_objet(obj, regle.liste_regles[0], parent=regle)
 
 
 def f_geomprocess(regle, obj):

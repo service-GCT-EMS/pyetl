@@ -23,7 +23,7 @@ def f_archive(regle, obj):
     """#aide||zippe les fichiers ou les repertoires de sortie
     #parametres||liste de noms de fichiers(avec *...);attribut contenant le nom;;nom du fichier zip
       #pattern||;?C;?A;archive;C;
-      #pattern||;?C;?A;zip;C;
+      #pattern2||;?C;?A;zip;C;
          #test||notest
     """
     #    if not obj.virtuel:

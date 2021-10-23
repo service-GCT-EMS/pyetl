@@ -476,8 +476,11 @@ class Reader(object):
         if not self.objreader:
             print("lecteur non defini")
             return False
-        with io.StringIO(obj.attributs[self.regle.nom_att]) as ouvert:
-            self.objreader(ouvert)
+        if self.regle.nom_att in obj.attributs:
+            with io.StringIO(obj.attributs[self.regle.nom_att]) as ouvert:
+                self.objreader(ouvert)
+            return True
+        return False
 
     def process(self, obj):
         """renvoie au moteur de traitement"""

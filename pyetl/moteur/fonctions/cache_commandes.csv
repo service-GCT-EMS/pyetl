@@ -166,6 +166,7 @@ xmledit;.traitement_xml
 xmlextract;.traitement_xml
 xmlsplit;.traitement_xml
 xmlstruct;.traitement_xml
+archive;.traitement_zip
 zip;.traitement_zip
 zipdir;.traitement_zip
 zipextract;.traitement_zip

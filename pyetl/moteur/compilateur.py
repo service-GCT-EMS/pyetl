@@ -168,7 +168,7 @@ def nextregle(regles, niveau):
             yield from nextregle(regle.liste_regles, regle.niveau)
 
 
-def compile_regles(mapper, liste_regles, debug=0):
+def compile_regles(mapper, liste_regles, debug=0, parent=None):
     """ prepare l'enchainement des regles sous forme de liens entre regles """
     regles = liste_regles
     if regles is None:
@@ -177,25 +177,25 @@ def compile_regles(mapper, liste_regles, debug=0):
             print("pas de regles a compiler")
             raise EOFError("pas de regles a compiler")
         # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
-        if mapper.getvar("sans_sortie"):
-            regle_sortir = mapper.interpreteur(
-                ";;;;;;;pass;;;;;pas de sortie", "", 99999
-            )
-        else:
-            regle_sortir = mapper.interpreteur(
-                ";;;;;;;sortir;"
-                + mapper.getvar("F_sortie")
-                + ";"
-                + mapper.getvar("nom_sortie")
-                + ";;;sortie_defaut",
-                "",
-                99999,
-                prec=regles[-1],
-            )
-        regle_sortir.final = True
-
-        regle_sortir.index = len(regles)
-        regles.append(regle_sortir)  # on mets la regle de sortie pour finir
+        if not parent:
+            if mapper.getvar("sans_sortie"):
+                regle_sortir = mapper.interpreteur(
+                    ";;;;;;;pass;;;;;pas de sortie", "", 99999
+                )
+            else:
+                regle_sortir = mapper.interpreteur(
+                    ";;;;;;;sortir;"
+                    + mapper.getvar("F_sortie")
+                    + ";"
+                    + mapper.getvar("nom_sortie")
+                    + ";;;sortie_defaut",
+                    "",
+                    99999,
+                    prec=regles[-1],
+                )
+            regle_sortir.final = True
+            regle_sortir.index = len(regles)
+            regles.append(regle_sortir)  # on mets la regle de sortie pour finir
         # print ('liste_regles',mapper.idpyetl,regles)
 
     bloc = 0
