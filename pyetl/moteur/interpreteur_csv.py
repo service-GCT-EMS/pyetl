@@ -822,11 +822,11 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         if erreurs:
             LOGGER.error("erreurs initialisation macro %s", macro.nom)
             # print("=======================erreurs initialisation macro", macro.nom)
-        if debug:
-            texte_fin = ";;;;;;;return;;;debug;;retour macro"
-        else:
-            texte_fin = ";;;;;;;return;;;;;retour macro"
-        traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
+        # if debug:
+        #     texte_fin = ";;;;;;;return;;;debug;;retour macro"
+        # else:
+        #     texte_fin = ";;;;;;;return;;;;;retour macro"
+        # traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
         # print("contexte macros apres:", mapper.cur_context)
         mapper.popcontext()  # on depile un contexte
         # print("contexte macros apres pop:", mapper.cur_context)

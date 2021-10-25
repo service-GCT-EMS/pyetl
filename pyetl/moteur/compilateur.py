@@ -168,62 +168,55 @@ def nextregle(regles, niveau):
             yield from nextregle(regle.liste_regles, regle.niveau)
 
 
-def compile_regles(mapper, liste_regles, debug=0, parent=None):
+def compile_regles(mapper, regles, debug=0, parent=None):
     """ prepare l'enchainement des regles sous forme de liens entre regles """
-    regles = liste_regles
-    if regles is None:
-        regles = mapper.regles
-        if not regles:
-            print("pas de regles a compiler")
-            raise EOFError("pas de regles a compiler")
-        # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
-        if not parent:
-            if mapper.getvar("sans_sortie"):
-                regle_sortir = mapper.interpreteur(
-                    ";;;;;;;pass;;;;;pas de sortie", "", 99999
-                )
-            else:
-                regle_sortir = mapper.interpreteur(
-                    ";;;;;;;sortir;"
-                    + mapper.getvar("F_sortie")
-                    + ";"
-                    + mapper.getvar("nom_sortie")
-                    + ";;;sortie_defaut",
-                    "",
-                    99999,
-                    prec=regles[-1],
-                )
-            regle_sortir.final = True
-            regle_sortir.index = len(regles)
-            regles.append(regle_sortir)  # on mets la regle de sortie pour finir
-        # print ('liste_regles',mapper.idpyetl,regles)
+    # print("compile regles", parent, regles)
+    if not regles:
+        print("pas de regles a compiler")
+        raise EOFError("pas de regles a compiler")
+    # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
+    if not parent:
+        if mapper.getvar("sans_sortie"):
+            regle_sortir = mapper.interpreteur(
+                ";;;;;;;pass;;;;;pas de sortie", "", 99999
+            )
+        else:
+            regle_sortir = mapper.interpreteur(
+                ";;;;;;;sortir;"
+                + mapper.getvar("F_sortie")
+                + ";"
+                + mapper.getvar("nom_sortie")
+                + ";;;sortie_defaut",
+                "",
+                99999,
+                prec=regles[-1],
+            )
+        regle_sortir.final = True
 
+    # print ('liste_regles',mapper.idpyetl,regles)
+    else:  # cest un call il faut revenir
+        # print("ajout retour call")
+        regle_sortir = mapper.interpreteur(";;;;;;;return;;;;;retour", "", -1)
+    regle_sortir.index = len(regles)
+    regles.append(regle_sortir)  # on mets la regle de sortie pour finir
+    if parent:
+        regles.append(
+            mapper.interpreteur(";;;;;;;pass;;;;;retour", "", -1)
+        )  # on rajoute 2 retour juste pour les calculs
     bloc = 0
     for i in range(len(regles) - 1):
         regle = regles[i]
-        if regle.call:
-            compile_regles(mapper, regle.liste_regles, debug=0)
-
         if regles[i + 1].niveau > regle.niveau:  # ca se complique les regles sont liees
             _gestion_branchements(regles, i, debug)
-
         elif regles[i + 1].niveau == regle.niveau:
             if regles[i + 1].enchainement and regles[i + 1].enchainement != "ok":
-                # c'est une regle sinon ou fail ou next
                 propage_liens(regles, i)
-            #                niveau_courant = regles[i+1].niveau
-            #                for j in range(i+1, len(regles)):
-            #                    if regles[j].niveau < niveau_courant:
-            ##                        setclink(regle, j)
-            #                        regle.branchements.setclink(regles[j])
-            #                        break
             elif regles[i + 1].nonext:  # c est une suite d'acces
                 for j in range(i + 1, len(regles)):
                     if not regles[j].nonext:
                         regle.branchements.brch["next"] = regles[j]
                         regle.branchements.brch["gen"] = regles[j]
                         break
-
         regle.branchements.setclink(regles[i + 1])
         regle.suivante = True
         if regle.mode == "bloc":
@@ -235,17 +228,28 @@ def compile_regles(mapper, liste_regles, debug=0, parent=None):
 
         if regle.mode == "parallel" and not regle.stock_param.worker:
             _gestion_parallel(regles, i)
-
+        if regle.mode == "return":
+            if parent:
+                # print("mode return", parent.branchements)
+                regle.branchements = parent.branchements
+            else:
+                raise SyntaxError("return en dehors d une macro")
+        if regle.mode == "call":
+            compile_regles(mapper, regle.liste_regles, debug=debug, parent=regle)
+            # print(
+            #     "compile regle call\n", "\n".join((repr(i) for i in regle.liste_regles))
+            # )
+            regle.moteur.setregles(regle.liste_regles)
         _finalise(regle, debug)
-    if liste_regles is None:  # applatissement des regles
-        # print("applatissemeent")
-        nliste = []
-        for i in nextregle(regles, 0):
-            i.index = len(nliste)
-            nliste.append(i)
-            # print("ajout regle", i.niveau, i)
-        regles.clear()
-        regles.extend(list(nliste))
+    # if liste_regles is None:  # applatissement des regles
+    #     # print("applatissemeent")
+    #     nliste = []
+    #     for i in nextregle(regles, 0):
+    #         i.index = len(nliste)
+    #         nliste.append(i)
+    #         # print("ajout regle", i.niveau, i)
+    #     regles.clear()
+    #     regles.extend(list(nliste))
     # print("fin compil\n", "\n".join(map(repr, regles)))
     _affiche_debug(regles, debug)
     return True

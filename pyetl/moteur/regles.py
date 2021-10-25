@@ -1039,3 +1039,31 @@ class RegleTraitement(object):  # regle de mapping
             # raise
         else:
             print(*args, **kwargs)
+
+    def actions_schema(self, obj):
+        """gere les actions sur les schemas"""
+        if obj.schema is not None:
+            if self.action_schema:
+                self.action_schema(self, obj)
+            if self.changeclasse:
+                self.changeclasse(self, obj)
+        if self.changeschema:
+            self.changeschema(self, obj)
+
+    def traite_push(self):
+        """traite les objets en mode push (coroutines)"""
+        suite = 1
+        while suite:
+            obj = yield
+            if obj:
+                if self.selstd is None or self.selstd(obj):
+                    if self.copy:
+                        self.branchements.brch["copy"].send(obj.dupplique())
+                    obj.redirect = self.branchements.brch["ok"]
+                    result = self.fonc(self, obj)
+                    if result:
+                        self.actions_schema(obj)
+                    if obj.redirect and obj.redirect in self.branchements.brch:
+                        self.branchements.brch[obj.redirect].send(obj)
+            else:
+                suite = False

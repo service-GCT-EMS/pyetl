@@ -81,6 +81,8 @@ def f_return(regle, obj):
     #pattern||;;;return;?C;
     """
     obj.redirect = regle.params.cmp1.val
+    # print("obj", obj)
+    # print("redirect", regle.branchements.brch)
     return True
 
 
@@ -443,8 +445,9 @@ def h_callmacro(regle):
     mapper.pushcontext(regle.context)
     erreurs = mapper.lecteur_regles(commande, regle_ref=regle)  # cree liste_regles
     if regle.liste_regles:
-        mapper.compilateur(regle.liste_regles, regle.debug, parent=regle)
-        regle.moteur.setregles(regle.liste_regles)
+        pass
+        # mapper.compilateur(regle.liste_regles, regle.debug, parent=regle)
+        # regle.moteur.setregles(regle.liste_regles)
     else:
         regle.valide = "done"
     mapper.popcontext(typecheck="C")

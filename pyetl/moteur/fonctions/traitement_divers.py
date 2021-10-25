@@ -436,7 +436,7 @@ def h_sortir(regle):
 
 def setschemasortie(regle, obj):
     """positionne le schema de sortie pour l objet """
-    if regle.nom_fich_schema == "#auto":
+    if regle.nom_fich_schema == "#auto" and obj.schema:
         nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
     else:
         nom_fich_schema = regle.nom_fich_schema
