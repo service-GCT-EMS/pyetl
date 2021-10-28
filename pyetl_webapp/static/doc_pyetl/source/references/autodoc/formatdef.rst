@@ -60,7 +60,6 @@ spatialite                         oui           oui
 sql                                oui           oui
 sqlite                             oui           oui
 wfs                                oui           oui
-wfs2                               oui           oui
 ====================        ==========    ===========
 
 elyx
@@ -316,23 +315,6 @@ commandes disponibles :
 
 
 necessite la librairie requests et l acces au loader psql pour le chargement de donnees
-
-il est necessaire de positionner les parametres suivant:
-
-
-
-wfs2
-....
-
-
-Acces aux services web wfs
-
-commandes disponibles :
-
-    * requete getcapabilities et analyse des donnees disponibles
-
-
-necessite la librairie owslib
 
 il est necessaire de positionner les parametres suivant:
 

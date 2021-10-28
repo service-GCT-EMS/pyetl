@@ -8,7 +8,6 @@ reference macros
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees
-
 :ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
@@ -44,12 +43,9 @@ reference macros
 :ref:`#editparams` perso                                      
 :ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes a partir de fichiers
 :ref:`#extract+gid` niveau;classe                             lecture d'un jeu de donnees d un repertoire avec ajout d un gid si necessaire
-
 :ref:`#extract_donnees` schema                                scripts de passage en prod
 :ref:`#extractm`                                              extraction en mode multiprocesseur
-:ref:`#fakelist` valeur;n                                     genere une liste d'items numerotes pour les tests
 :ref:`#fanout`                                                positionne le fanout a classe avec un mode de traitement par classe
-
 :ref:`#fileschema` acces                                      
 :ref:`#filter` champ;filtre                                   mange tous les objets qui ne satisfont pas la condition 
 :ref:`#filtre` exp                                            filtrage d un fichier texte avec une regex
@@ -59,7 +55,7 @@ reference macros
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
 :ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
-:ref:`#geoextract` acces;niveau;classe;mode_geo;buffer        extraction d'un jeu de donnees d' une base par emprise p:format parametres serveur base chaine_connection niveau classe
+:ref:`#geoextract` acces;niveau;classe;mode_geo;buffer;champ  extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 :ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
 :ref:`#grantsitr` schema                                      generation des scripts de grant
@@ -71,21 +67,18 @@ reference macros
 :ref:`#ident` groupe;classe                                   force le groupe et la classe
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
 :ref:`#init_mp`                                               initialise un module en mode multiprocessing (ne fait rien et attends)
-
 :ref:`#initdb` acces;nomfich                                  positionne des elements d'acces a une base de donnees
+:ref:`#liste_params` clef;val                                 liste les parametres d acces aux bases
 :ref:`#ll2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#log` message;level                                     
 :ref:`#low` al                                                passe une liste d attributs en minuscule
 :ref:`#mastercrypt` val                                       crypte un element avec la masterkey
-
 :ref:`#mkcrypt` user                                          
 :ref:`#mod` att;val;repl                                      modif conditionelle de valeurs dans un champs
 :ref:`#moi`                                                   affiche le nom de l utilisateur courant
-
 :ref:`#ora2pg`                                                passage de oracle vers postgis
 :ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
-
 :ref:`#passage_dev` schema                                    
 :ref:`#passage_prod` schema                                   
 :ref:`#passage_schema` schema                                 scripts de passage en prod
@@ -99,7 +92,6 @@ reference macros
 :ref:`#pyetl_init_db`                                         initialise le schema pyetl pour travailler en base de donnees
 :ref:`#regroupe` groupe;stocke_groupe                         force le groupe et le transfere sur un attribut
 :ref:`#rename` old;new                                        
-
 :ref:`#reproj` orig;dest;grille                               convertit des coordonees du systeme orig vers dest
 :ref:`#retour_elyx` dest;clef;orig                            
 :ref:`#retour_sdea` dest;clef;orig                            retour des donnees vers elyx pour toutes les classes du schema sdea
@@ -107,14 +99,12 @@ reference macros
 :ref:`#runproc` nom;dest;params                               lancement fonction_sql
 :ref:`#runsql` nom;dest                                       lancement script_sql
 :ref:`#schema_sigli` nom_schema                               ajoute les attributs standard a un schema
-
 :ref:`#scriptodb` nom;dest                                    charge un script en base
 :ref:`#set` atts;vals;defaut                                  affectation  absolue de champs
 :ref:`#sigli2elyx`                                            passage de sigli vers elyx : sortie asc suppression GID renommage attributs modifies
 :ref:`#site_params` key;fin                                   affichage des parametres de connection stockes
 :ref:`#sleep` duree                                           
 :ref:`#stdvar`                                                variables de base appele par tous les autres elements
-
 :ref:`#store` clef;code                                       
 :ref:`#supp` atts                                             suppression de champs
 :ref:`#test` n1;n2;a                                          test des variables
@@ -151,9 +141,9 @@ convertit des coordonees x,y en attribut en point
 
 parametres positionnels
 
-* x:
-* y:
-* srid:
+* x:x
+* y:y
+* srid:srid
 
 
 
@@ -176,10 +166,9 @@ parametres positionnels
 
 analyse d'un jeu de donnees
 
-
 parametres positionnels
 
-* force:
+* force:force
 
 variables utilisées
 
@@ -195,10 +184,10 @@ chargement vers elyx
 
 parametres positionnels
 
-* nom:
-* dest_final:
-* reinit:
-* vgeom:
+* nom:nom
+* dest_final:dest_final
+* reinit:reinit
+* vgeom:vgeom
 
 
 
@@ -238,7 +227,7 @@ charge les derniers resultats en base de donnees
 
 parametres positionnels
 
-* dest:
+* dest:dest
 
 
 
@@ -256,7 +245,7 @@ sort un objet s il n existe pas en base
 
 parametres positionnels
 
-* acces:
+* acces:acces
 
 
 
@@ -302,12 +291,12 @@ passe une commande a la sauvage
 
 parametres positionnels
 
-* cmd:
-* v1:
-* v2:
-* v3:
-* v4:
-* v5:
+* cmd:cmd
+* v1:v1
+* v2:v2
+* v3:v3
+* v4:v4
+* v5:v5
 
 
 
@@ -325,7 +314,7 @@ passe les noms de classe et de groupe en minuscule
 
 parametres positionnels
 
-* rep:
+* rep:rep
 
 
 
@@ -359,8 +348,8 @@ conversion de schemas en sql
 
 parametres positionnels
 
-* nom:
-* dialecte:
+* nom:nom
+* dialecte:dialecte
 
 
 
@@ -386,9 +375,9 @@ passe les batchs actifs
 
 parametres positionnels
 
-* nom_batch:
-* famille_batch:
-* force:
+* nom_batch:nom_batch
+* famille_batch:famille_batch
+* force:force
 
 
 
@@ -400,7 +389,7 @@ lance le scheduler sur une liste de taches en base lecture unique
 
 parametres positionnels
 
-* bdef:
+* bdef:bdef
 
 
 
@@ -412,7 +401,7 @@ lance le scheduler sur une liste de taches modifiables en base
 
 parametres positionnels
 
-* bdef:
+* bdef:bdef
 
 
 
@@ -424,8 +413,8 @@ liste des batchs definis en base
 
 parametres positionnels
 
-* bdef:
-* sortie:
+* bdef:bdef
+* sortie:sortie
 
 
 
@@ -458,10 +447,10 @@ cree un script de reset de la base de donnees
 
 parametres positionnels
 
-* acces:
-* niveau:
-* classe:
-* nom:
+* acces:acces
+* niveau:niveau
+* classe:classe
+* nom:nom
 
 
 
@@ -473,11 +462,11 @@ extraction d'un jeu de donnees d'une base de donnees avec un programme externe
 
 parametres positionnels
 
-* acces:
-* niveau:
-* classe:
-* rep_sortie:
-* log:
+* acces:acces
+* niveau:niveau
+* classe:classe
+* rep_sortie:rep_sortie
+* log:log
 
 
 
@@ -489,12 +478,12 @@ extraction d'un jeu de donnees d'une base de donnÃ©es
 
 parametres positionnels
 
-* acces:
-* niveau:
-* classe:
-* attribut:
-* valeur:
-* ordre:
+* acces:acces
+* niveau:niveau
+* classe:classe
+* attribut:attribut
+* valeur:valeur
+* ordre:ordre
 
 
 
@@ -506,11 +495,11 @@ lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:form
 
 parametres positionnels
 
-* acces:
-* niveau:
-* classe:
-* attribut:
-* valeur:
+* acces:acces
+* niveau:niveau
+* classe:classe
+* attribut:attribut
+* valeur:valeur
 
 
 
@@ -522,8 +511,8 @@ recuperation d'un jeu de donnees par requete directe dans une variable
 
 parametres positionnels
 
-* acces:
-* requete:
+* acces:acces
+* requete:requete
 
 
 
@@ -535,10 +524,10 @@ recuperation d'un jeu de donnees par requete directe
 
 parametres positionnels
 
-* acces:
-* requete:
-* niveau:
-* classe:
+* acces:acces
+* requete:requete
+* niveau:niveau
+* classe:classe
 
 
 
@@ -559,10 +548,9 @@ variables utilisées
 
 * mod:selection (V T M =)
 
-
 macro utilisabe en service web
 
-* url          : ws/dbschema
+* url          : mws/dbschema
 * format retour:xml
 
 
@@ -579,7 +567,7 @@ macro utilisabe en service web
 
 parametres positionnels
 
-* perso:
+* perso:perso
 
 
 
@@ -591,7 +579,6 @@ extraction de niveaux ou de classes a partir de fichiers
 
  * effectue un filtrage apres lecture : peu efficace preferer les filtres de fichier si possible
 
-
 parametres positionnels
 
 * niveau:groupe a selectionner si vide pas de filtrage
@@ -600,9 +587,7 @@ parametres positionnels
 variables utilisées
 
 * schema:schema d entree sous forme de ficher de description csv
-
 * multigeom:force les geometries en multiple si vrai(1 ou t)
-
 
 
 
@@ -612,7 +597,6 @@ variables utilisées
 
 lecture d'un jeu de donnees d un repertoire avec ajout d un gid si necessaire
 
-
 parametres positionnels
 
 * niveau:groupe a selectionner si vide pas de filtrage
@@ -621,9 +605,7 @@ parametres positionnels
 variables utilisées
 
 * schema:schema d entree sous forme de ficher de description csv
-
 * multigeom:force les geometries en multiple si vrai(1 ou t)
-
 
 
 
@@ -635,7 +617,7 @@ scripts de passage en prod
 
 parametres positionnels
 
-* schema:
+* schema:schema
 
 
 
@@ -647,37 +629,15 @@ extraction en mode multiprocesseur
 
 
 
-#fakelist
-.........
-
-
-genere une liste d'items numerotes pour les tests
-
-parametres positionnels
-
-* valeur:texte a reproduire
-
-* n:nombre de lignes
-
-
-macro utilisabe en service web
-
-* url          : ws/fakelist3
-* format retour:text
-
-
-
 #fanout
 .......
 
 
 positionne le fanout a classe avec un mode de traitement par classe
 
-
 variables utilisées
 
 * format:format de sortie (asc par defaut)
-
 
 
 
@@ -687,7 +647,7 @@ variables utilisées
 
 parametres positionnels
 
-* acces:
+* acces:acces
 
 
 
@@ -699,8 +659,8 @@ mange tous les objets qui ne satisfont pas la condition
 
 parametres positionnels
 
-* champ:
-* filtre:
+* champ:champ
+* filtre:filtre
 
 
 
@@ -724,8 +684,8 @@ charge des elements par ftp
 
 parametres positionnels
 
-* fich:
-* acces:
+* fich:fich
+* acces:acces
 * accdir:
 
 
@@ -738,7 +698,7 @@ fusion de schemas issus de traitements paralleles p:schema: racine des schemas a
 
 parametres positionnels
 
-* nom:
+* nom:nom
 
 
 
@@ -750,8 +710,8 @@ convertit des coordonees lat long en attribut en point cc48
 
 parametres positionnels
 
-* lon:
-* lat:
+* lon:lon
+* lat:lat
 
 
 
@@ -763,8 +723,8 @@ geocode des elements
 
 parametres positionnels
 
-* adresse:
-* filtres:
+* adresse:adresse
+* filtres:filtres
 
 
 
@@ -776,8 +736,8 @@ geocode des elements et sort des points en cc48 cus
 
 parametres positionnels
 
-* adresse:
-* filtres:
+* adresse:adresse
+* filtres:filtres
 
 
 
@@ -789,10 +749,10 @@ geocodage d'un fichier csv
 
 parametres positionnels
 
-* adresse:
-* scoremin:
-* filtre:
-* prefix:
+* adresse:adresse
+* scoremin:scoremin
+* filtre:filtre
+* prefix:prefix
 
 
 
@@ -800,15 +760,16 @@ parametres positionnels
 ...........
 
 
-extraction d'un jeu de donnees d' une base par emprise p:format parametres serveur base chaine_connection niveau classe
+extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 
 parametres positionnels
 
-* acces:
-* niveau:
-* classe:
-* mode_geo:
-* buffer:
+* acces:acces
+* niveau:schema des classes a extraire (exp reg ou in:nom de fichier)
+* classe:classes a extraire (exp reg)
+* mode_geo:relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
+* buffer:taille du buffer
+* champ:champ
 
 
 
@@ -820,7 +781,7 @@ telecharge le fichier osm de l'alsace
 
 parametres positionnels
 
-* dest:
+* dest:dest
 
 
 
@@ -842,7 +803,7 @@ generation des scripts de grant
 
 parametres positionnels
 
-* schema:
+* schema:schema
 
 
 
@@ -854,10 +815,10 @@ repartit les objets selon une grille
 
 parametres positionnels
 
-* x_orig:
-* y_orig:
-* pas:
-* cases:
+* x_orig:x_orig
+* y_orig:y_orig
+* pas:pas
+* cases:cases
 
 
 
@@ -879,8 +840,8 @@ parametres positionnels
 
 parametres positionnels
 
-* rep_histo:
-* traitement:
+* rep_histo:rep_histo
+* traitement:traitement
 
 
 
@@ -892,9 +853,9 @@ convertit des bases en format historique
 
 parametres positionnels
 
-* rep:
-* date:
-* workers:
+* rep:rep
+* date:date
+* workers:workers
 
 
 
@@ -906,9 +867,9 @@ charge des elements par ftp
 
 parametres positionnels
 
-* url:
-* dest:
-* rep:
+* url:url
+* dest:dest
+* rep:rep
 
 
 
@@ -933,7 +894,7 @@ precharge des donnees depuis une base pour comparaison
 
 parametres positionnels
 
-* acces:
+* acces:acces
 
 
 
@@ -945,7 +906,6 @@ initialise un module en mode multiprocessing (ne fait rien et attends)
 
 
 
-
 #initdb
 .......
 
@@ -954,8 +914,21 @@ positionne des elements d'acces a une base de donnees
 
 parametres positionnels
 
-* acces:
-* nomfich:
+* acces:acces
+* nomfich:nomfich
+
+
+
+#liste_params
+.............
+
+
+liste les parametres d acces aux bases
+
+parametres positionnels
+
+* clef:clef
+* val:val
 
 
 
@@ -973,8 +946,8 @@ reprojette des donnees cus en rgf93
 
 parametres positionnels
 
-* message:
-* level:
+* message:message
+* level:level
 
 
 
@@ -996,10 +969,9 @@ parametres positionnels
 
 crypte un element avec la masterkey
 
-
 parametres positionnels
 
-* val:
+* val:val
 
 
 
@@ -1009,7 +981,7 @@ parametres positionnels
 
 parametres positionnels
 
-* user:
+* user:user
 
 
 
@@ -1021,9 +993,9 @@ modif conditionelle de valeurs dans un champs
 
 parametres positionnels
 
-* att:
-* val:
-* repl:
+* att:att
+* val:val
+* repl:repl
 
 
 
@@ -1033,11 +1005,9 @@ parametres positionnels
 
 affiche le nom de l utilisateur courant
 
-
 variables utilisées
 
 * ADserver:identification du serveur AD/LDAP a utiliser si pas de defaut systeme
-
 
 
 
@@ -1057,9 +1027,9 @@ passage de oracle vers postgis version locale
 
 parametres positionnels
 
-* base:
-* schema:
-* classe:
+* base:base
+* schema:schema
+* classe:classe
 
 
 
@@ -1071,14 +1041,13 @@ placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les
 
 
 
-
 #passage_dev
 ............
 
 
 parametres positionnels
 
-* schema:
+* schema:schema
 
 
 
@@ -1088,7 +1057,7 @@ parametres positionnels
 
 parametres positionnels
 
-* schema:
+* schema:schema
 
 
 
@@ -1100,7 +1069,7 @@ scripts de passage en prod
 
 parametres positionnels
 
-* schema:
+* schema:schema
 
 
 
@@ -1138,7 +1107,7 @@ affichage variable
 
 parametres positionnels
 
-* var:
+* var:var
 
 
 
@@ -1150,7 +1119,7 @@ crypte les mots de passe
 
 parametres positionnels
 
-* clef:
+* clef:clef
 
 
 
@@ -1170,7 +1139,7 @@ parametres positionnels
 
 parametres positionnels
 
-* ref:
+* ref:ref
 
 
 
@@ -1199,9 +1168,6 @@ parametres positionnels
 .......
 
 
-
-
-
 parametres positionnels
 
 * old:chaine a remplacer
@@ -1217,9 +1183,9 @@ convertit des coordonees du systeme orig vers dest
 
 parametres positionnels
 
-* orig:
-* dest:
-* grille:
+* orig:orig
+* dest:dest
+* grille:grille
 
 
 
@@ -1229,9 +1195,9 @@ parametres positionnels
 
 parametres positionnels
 
-* dest:
-* clef:
-* orig:
+* dest:dest
+* clef:clef
+* orig:orig
 
 
 
@@ -1243,9 +1209,9 @@ retour des donnees vers elyx pour toutes les classes du schema sdea
 
 parametres positionnels
 
-* dest:
-* clef:
-* orig:
+* dest:dest
+* clef:clef
+* orig:orig
 
 
 
@@ -1257,8 +1223,8 @@ execute une commande externe
 
 parametres positionnels
 
-* prog:
-* params:
+* prog:prog
+* params:params
 
 
 
@@ -1270,9 +1236,9 @@ lancement fonction_sql
 
 parametres positionnels
 
-* nom:
-* dest:
-* params:
+* nom:nom
+* dest:dest
+* params:params
 
 
 
@@ -1284,8 +1250,8 @@ lancement script_sql
 
 parametres positionnels
 
-* nom:
-* dest:
+* nom:nom
+* dest:dest
 
 
 
@@ -1294,7 +1260,6 @@ parametres positionnels
 
 
 ajoute les attributs standard a un schema
-
 
 parametres positionnels
 
@@ -1310,8 +1275,8 @@ charge un script en base
 
 parametres positionnels
 
-* nom:
-* dest:
+* nom:nom
+* dest:dest
 
 
 
@@ -1323,9 +1288,9 @@ affectation  absolue de champs
 
 parametres positionnels
 
-* atts:
-* vals:
-* defaut:
+* atts:atts
+* vals:vals
+* defaut:defaut
 
 
 
@@ -1345,8 +1310,8 @@ affichage des parametres de connection stockes
 
 parametres positionnels
 
-* key:
-* fin:
+* key:key
+* fin:fin
 
 
 
@@ -1356,7 +1321,7 @@ parametres positionnels
 
 parametres positionnels
 
-* duree:
+* duree:duree
 
 
 
@@ -1366,11 +1331,9 @@ parametres positionnels
 
 variables de base appele par tous les autres elements
 
-
 variables utilisées
 
 * format: format de sortie defaut csv
-
 * acces: acces base de donnees si necessaire
 * dest: acces base de donnees en sortie si necessaire
 
@@ -1382,8 +1345,8 @@ variables utilisées
 
 parametres positionnels
 
-* clef:
-* code:
+* clef:clef
+* code:code
 
 
 
@@ -1407,9 +1370,9 @@ test des variables
 
 parametres positionnels
 
-* n1:
-* n2:
-* a:
+* n1:n1
+* n2:n2
+* a:a
 
 
 
@@ -1427,7 +1390,7 @@ determine si un batch est executable en fonction de l'heure
 
 parametres positionnels
 
-* var:
+* var:var
 
 
 
@@ -1459,8 +1422,8 @@ charge des elements par ftp
 
 parametres positionnels
 
-* fich:
-* dest:
+* fich:fich
+* dest:dest
 * destdir:
 
 
@@ -1482,7 +1445,6 @@ variables utilisées
 
 * schema:schema a charger pour validation
 * format: format de sortie defaut csv
-
 * acces: acces base de donnees si necessaire
 * dest: acces base de donnees en sortie si necessaire
 
@@ -1496,11 +1458,11 @@ affiche la version de pyetl
 
 parametres positionnels
 
-* full:
+* full:full
 
 macro utilisabe en service web
 
-* url          : ws/version
+* url          : mws/version
 * format retour:text
 
 
@@ -1513,6 +1475,6 @@ zippe les resultats
 
 parametres positionnels
 
-* source:
-* destination:
+* source:source
+* destination:destination
 

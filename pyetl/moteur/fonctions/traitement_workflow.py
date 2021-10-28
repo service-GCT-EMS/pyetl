@@ -450,7 +450,9 @@ def h_callmacro(regle):
         # regle.moteur.setregles(regle.liste_regles)
     else:
         regle.valide = "done"
-    mapper.popcontext(typecheck="C")
+    mapper.popcontext(
+        typecheck="C", orig="h_callmacro"
+    )  # on sort du contexte de la macro
     # print("call:", regle)
     return erreurs
 

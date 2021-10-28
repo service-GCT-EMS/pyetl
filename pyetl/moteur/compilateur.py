@@ -172,7 +172,8 @@ def compile_regles(mapper, regles, debug=0, parent=None):
     """ prepare l'enchainement des regles sous forme de liens entre regles """
     # print("compile regles", parent, regles)
     if not regles:
-        print("pas de regles a compiler")
+        print("pas de regles a compiler", parent, parent.valide if parent else "")
+        raise
         raise EOFError("pas de regles a compiler")
     # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
     if not parent:
@@ -231,6 +232,7 @@ def compile_regles(mapper, regles, debug=0, parent=None):
         if regle.mode == "return":
             if parent:
                 # print("mode return", parent.branchements)
+                parent.branchements.brch["end"] = None  # la sortie
                 regle.branchements = parent.branchements
             else:
                 raise SyntaxError("return en dehors d une macro")

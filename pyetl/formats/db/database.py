@@ -986,14 +986,20 @@ class DbConnect(object):
         #        print ('geometrie',schema.info["type_geom"])
         volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
         # print( 'appel iterreq', volinfo,classe)
-        return self.iterreq(
-            requete,
-            data,
-            attlist=attlist[:],
-            has_geom=schema.info["type_geom"] != "0",
-            volume=volinfo,
-            nom=classe,
-        )
+        try:
+            return self.iterreq(
+                requete,
+                data,
+                attlist=attlist[:],
+                has_geom=schema.info["type_geom"] != "0",
+                volume=volinfo,
+                nom=classe,
+            )
+        except self.DBError as err:
+            # print("-------------- erreur de lecture table", classe, err)
+            self.regle.stock_param.logger.error(
+                classe + ": erreur acces base %s", repr(err)
+            )
 
     def req_geom(self, ident, schema, mods, nom_fonction, geometrie, maxi=0, buffer=0):
         """requete geometrique"""
@@ -1056,15 +1062,20 @@ class DbConnect(object):
             # curs.execute(requete,data)
             self.attlist = attlist
             volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
-
-            return self.iterreq(
-                requete,
-                data,
-                attlist=attlist[:],
-                has_geom=schema.info["type_geom"] != "0",
-                volume=volinfo,
-                nom=classe,
-            )
+            try:
+                return self.iterreq(
+                    requete,
+                    data,
+                    attlist=attlist[:],
+                    has_geom=schema.info["type_geom"] != "0",
+                    volume=volinfo,
+                    nom=classe,
+                )
+            except self.DBError as err:
+                # print("-------------- erreur de lecture table", classe, err)
+                self.regle.stock_param.logger.error(
+                    classe + ": erreur acces base %s", repr(err)
+                )
         else:
             print("error: classe non geometrique utilisee dans une requete geometrique")
             return iter(())

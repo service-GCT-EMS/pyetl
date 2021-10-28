@@ -190,7 +190,8 @@ class Moteur(object):
                     else:
                         if obj.redirect and obj.redirect in regle.branchements.brch:
                             regle = regle.branchements.brch[obj.redirect]
-                            obj.redirect = None
+                            if regle:
+                                obj.redirect = None
                         else:
                             regle = (
                                 regle.branchements.brch["ok"]
@@ -259,6 +260,9 @@ class Moteur(object):
                     printexception()
                 raise StopIteration(3)
 
+        if obj.redirect == "end":
+            # il est deja mort
+            return
         if last and not last.store:
             if last.filter or last.supobj:
                 self.suppcnt += 1
@@ -266,8 +270,8 @@ class Moteur(object):
             if obj.schema and not obj.virtuel:
                 # c est un objet qui a ete jete par une regle filtrante
                 obj.schema.objcnt -= 1
-
-        # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)
+        obj.redirect = "end"
+        # print("fin de l objet", obj.ido)
 
     def vide_stock(self):
         """vidange des tuyeaux"""

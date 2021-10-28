@@ -37,6 +37,30 @@ cnt
 
 
 .. index::
+  double: .traitement_alpha;extractbloc
+
+extractbloc
+...........
+
+   extrait des blocs d un attribut texte
+
+   chaque bloc est identifie par une clef (regex avec un groupe de capture)
+   et une paire de caracteres debut/fin ex <> ou () {}...
+
+**syntaxes acceptees**
+
++------+------+------+-----------+------+--------+
+|sortie|defaut|entree|commande   |param1|param2  |
++======+======+======+===========+======+========+
+|A     |?C    |?A    |extractbloc|re    |C       |
++------+------+------+-----------+------+--------+
+|      |?C    |?A    |extractbloc|re    |C       |
++------+------+------+-----------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_alpha;format
 
 format
@@ -634,6 +658,111 @@ decrypt
    C? :  clef de cryptage (optionnel)
 
 
+dataviz
+-------
+
+dataviz
+
+.. index::
+  double: .traitement_dataviz;dfgraph
+
+dfgraph
+.......
+
+   cree un graphique
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|C     |      |A     |dfgraph |C     |H       |
++------+------+------+--------+------+--------+
+|=mws: |      |A     |dfgraph |C     |H       |
++------+------+------+--------+------+--------+
+|=mws: |P     |      |dfgraph |C     |H       |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
+  double: .traitement_dataviz;dfload
+
+dfload
+......
+
+   charge un tableau pandas dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |?A    |dfload  |C     |        |
++------+------+------+--------+------+--------+
+
+
+   A :  attribut de sortie
+   ?C :  nom du fichier (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   dfload :  
+   C :  format lecture
+
+
+
+.. index::
+  double: .traitement_dataviz;dfset
+
+dfset
+.....
+
+ 
+ 
+ 
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |      |L     |dfset   |      |        |
++------+------+------+--------+------+--------+
+
+
+   A :  attribut de sortie
+   L :  
+   dfset :  liste colonnes contenant des tableaux de valeurs
+
+
+
+.. index::
+  double: .traitement_dataviz;dfwrite
+
+dfwrite
+.......
+
+   charge un tableau dans pandas dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |      |A     |dfwrite |C     |        |
++------+------+------+--------+------+--------+
+
+
+   A :  fichier de sortie
+   A :  
+   dfwrite :  attribut contenant le nom
+   C :  
+
+
 accés aux bases de données
 --------------------------
 
@@ -876,11 +1005,11 @@ dbmap_qgs
 +------+------+------+---------+------+--------+
 |sortie|defaut|entree|commande |param1|param2  |
 +======+======+======+=========+======+========+
-|      |C     |      |dbmap_qgs|C     |C       |
+|      |?C    |      |dbmap_qgs|C     |C       |
 +------+------+------+---------+------+--------+
 
 
-   C :  selecteur
+   ?C :  selecteur (optionnel)
    dbmap_qgs :  
    C :  rep entree
    C :  rep sortie
@@ -924,26 +1053,34 @@ dbreq
    classe du selecteur en substituant les variables par la classe courante
    sinon elle est passee une fois pour chaque base du selecteur
    les variables %#base et %#attr sont egalement substituees
+   autres variables: %#info : acces a des informations sur la classe
+   (nom_geometrie,dimension,type_geom,objcnt_init,courbe,alias,type_table)
+                     %#metas : acces a des informations sur la requete
+   (script_ref,filtre_niveau,filtre_classe,origine,restrictions,tables)
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|?A    |?     |?L    |dbreq   |C     |A.C     |
-+------+------+------+--------+------+--------+
-|?A    |?     |?L    |dbreq   |C     |A       |
-+------+------+------+--------+------+--------+
-|      |      |=#    |dbreq   |C     |?A      |
-+------+------+------+--------+------+--------+
-|      |      |=#    |dbreq   |C     |?A.C    |
-+------+------+------+--------+------+--------+
-|      |      |=#    |dbreq   |C     |=#      |
-+------+------+------+--------+------+--------+
-|      |      |      |dbreq   |C     |=#      |
-+------+------+------+--------+------+--------+
-|P     |      |      |dbreq   |C     |?L      |
-+------+------+------+--------+------+--------+
++---------+---------+---------+-----------+---------+-----------+
+|sortie   |defaut   |entree   |commande   |param1   |param2     |
++=========+=========+=========+===========+=========+===========+
+|?A       |?        |?L       |dbreq      |C        |A.C        |
++---------+---------+---------+-----------+---------+-----------+
+|?A       |?        |?L       |dbreq      |C        |A          |
++---------+---------+---------+-----------+---------+-----------+
+|         |         |=#       |dbreq      |C        |?A         |
++---------+---------+---------+-----------+---------+-----------+
+|         |         |=#       |dbreq      |C        |?A.C       |
++---------+---------+---------+-----------+---------+-----------+
+|         |         |=#       |dbreq      |C        |=#         |
++---------+---------+---------+-----------+---------+-----------+
+|         |         |         |dbreq      |C        |=#         |
++---------+---------+---------+-----------+---------+-----------+
+|P        |         |         |dbreq      |C        |?L         |
++---------+---------+---------+-----------+---------+-----------+
+|=mws:    |         |         |dbreq      |C        |?L         |
++---------+---------+---------+-----------+---------+-----------+
+| *mode webservice: renvoie le resultat brut de la requete*     |
++---------+---------+---------+-----------+---------+-----------+
 
 
    ?A :  att_sortie (optionnel)
@@ -1153,19 +1290,16 @@ divers
 attwriter
 .........
 
-   traite un attribut d'un objet comme une sortie cree un objet pas fanout
+   traite un attribut d'un objet comme une sortie cree un objet par fanout
 
-   par defaut attreader supprime le contenu de l attribut source
 
 **syntaxes acceptees**
 
-+----------+----------+----------+-------------+----------+------------+
-|sortie    |defaut    |entree    |commande     |param1    |param2      |
-+==========+==========+==========+=============+==========+============+
-|A         |          |          |attwriter    |C         |?C          |
-+----------+----------+----------+-------------+----------+------------+
-| *par defaut attreader supprime le contenu de l attribut source*      |
-+----------+----------+----------+-------------+----------+------------+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|A     |      |      |attwriter|C     |?C      |
++------+------+------+---------+------+--------+
 
 
 
@@ -2886,7 +3020,12 @@ valide_schema
 +---------+------+------+-------------+----------+--------+
 
 
-log_level;err ou warn par defaut no;
+   ?=#schema :   (optionnel)
+   ?C :  nom du schema (optionnel)
+   valide_schema :  
+   ?=strict :   (optionnel)
+
+log;err ou warn par defaut no;
 
 shapely
 -------
@@ -3243,17 +3382,49 @@ attreader
    traite un attribut d'un objet comme une source de donnees
 
    par defaut attreader supprime le contenu de l attribut source
+   pour le conserver positionner la variable keepdata a 1
 
 **syntaxes acceptees**
 
 +----------+----------+----------+-------------+----------+------------+
 |sortie    |defaut    |entree    |commande     |param1    |param2      |
 +==========+==========+==========+=============+==========+============+
-|          |?C        |A         |attreader    |C         |?C          |
+|?L        |?C        |A         |attreader    |C         |?C          |
 +----------+----------+----------+-------------+----------+------------+
 | *par defaut attreader supprime le contenu de l attribut source*      |
+| *pour le conserver positionner la variable keepdata a 1*             |
 +----------+----------+----------+-------------+----------+------------+
 
+
+   ?L :  defaut (optionnel)
+   ?C :  attribut (optionnel)
+   A :  
+   attreader :  format
+
+
+
+.. index::
+  double: .traitement_workflow;attsave
+
+attsave
+.......
+
+   stocke le contenu d un attribut comme un fichier
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |A     |attsave |?C    |        |
++------+------+------+--------+------+--------+
+
+
+   A :  
+   ?C :  attribut (optionnel)
+   A :  
+   attsave :  fichier
 
 
 
@@ -3367,6 +3538,8 @@ call
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |      |      |      |call    |C     |?LC     |
++------+------+------+--------+------+--------+
+|      |      |      |call    |      |        |
 +------+------+------+--------+------+--------+
 
 
@@ -3594,13 +3767,17 @@ liste_schema
 
 **syntaxes acceptees**
 
-+---------+------+------+------------+------+--------+
-|sortie   |defaut|entree|commande    |param1|param2  |
-+=========+======+======+============+======+========+
-|?=#schema|?C    |?A    |liste_schema|C     |?=reel  |
-+---------+------+------+------------+------+--------+
-| *liste_schema;nom;?reel*                           |
-+---------+------+------+------------+------+--------+
++-----------+--------+--------+--------------+--------+----------+
+|sortie     |defaut  |entree  |commande      |param1  |param2    |
++===========+========+========+==============+========+==========+
+|?=#schema  |?C      |?A      |liste_schema  |C       |?=reel    |
++-----------+--------+--------+--------------+--------+----------+
+|=mws:      |?C      |        |liste_schema  |C       |          |
++-----------+--------+--------+--------------+--------+----------+
+| *cree des objets virtuels par defaut sauf si on precise reel*  |
++-----------+--------+--------+--------------+--------+----------+
+|A          |?C      |        |liste_schema  |C       |          |
++-----------+--------+--------+--------------+--------+----------+
 
 
 
@@ -3646,6 +3823,28 @@ parallel
 
 
 .. index::
+  double: .traitement_workflow;paramgroups
+
+paramgroups
+...........
+
+   liste les groupes de parametres selon un critere
+
+
+**syntaxes acceptees**
+
++------+------+------+-----------+------+--------+
+|sortie|defaut|entree|commande   |param1|param2  |
++======+======+======+===========+======+========+
+|A     |?C    |?A    |paramgroups|?C    |        |
++------+------+------+-----------+------+--------+
+|=mws: |?LC   |      |paramgroups|?C    |        |
++------+------+------+-----------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_workflow;pass
 
 pass
@@ -3686,6 +3885,8 @@ print
 +------+------+------+--------+------+--------+
 |      |      |*     |print   |C?    |=noms?  |
 +------+------+------+--------+------+--------+
+|=mws: |=P    |?L    |print   |C?    |=noms?  |
++------+------+------+--------+------+--------+
 
 
    C? :  valeur defaut (optionnel)
@@ -3711,26 +3912,6 @@ printv
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |      |      |      |printv  |C?    |=noms?  |
-+------+------+------+--------+------+--------+
-
-
-
-
-.. index::
-  double: .traitement_workflow;quitter
-
-quitter
-.......
-
-   sort d une macro
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|      |      |      |quitter |?C    |        |
 +------+------+------+--------+------+--------+
 
 
@@ -3813,6 +3994,26 @@ retry
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |A     |      |      |retry   |C     |        |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
+  double: .traitement_workflow;return
+
+return
+......
+
+   sort d une macro
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |      |      |return  |?C    |        |
 +------+------+------+--------+------+--------+
 
 
@@ -4263,6 +4464,31 @@ zip
 ---
 
 zip
+
+.. index::
+  double: .traitement_zip;archive
+
+archive
+.......
+
+   zippe les fichiers ou les repertoires de sortie
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |?C    |?A    |archive |C     |        |
++------+------+------+--------+------+--------+
+
+
+   ?C :  liste de noms de fichiers(avec *...) (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   archive :  
+   C :  nom du fichier zip
+
+
 
 .. index::
   double: .traitement_zip;zip

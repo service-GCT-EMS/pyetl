@@ -404,6 +404,7 @@ def interprete_ligne_csv(
         # print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
+        return None
     return regle
 
 
@@ -670,7 +671,7 @@ def traite_regle_std(
                 )  # devient le contexte de reference
                 # print ("bloc",r_cour.ebloc,r_cour.context)
             elif r_cour.ebloc == -1:
-                mapper.popcontext(typecheck="B")  # on depile
+                mapper.popcontext(typecheck="B", orig="traite_regle_std")  # on depile
             if prec.bloc:
                 # print ("bloc",r_cour.ebloc,r_cour.context)
                 r_cour.context.setref(mapper.cur_context)
@@ -828,7 +829,9 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         #     texte_fin = ";;;;;;;return;;;;;retour macro"
         # traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
         # print("contexte macros apres:", mapper.cur_context)
-        mapper.popcontext()  # on depile un contexte
+        mapper.popcontext(
+            typecheck="M", orig="importe_macro", context=macroenv
+        )  # on depile un contexte
         # print("contexte macros apres pop:", mapper.cur_context)
 
     else:

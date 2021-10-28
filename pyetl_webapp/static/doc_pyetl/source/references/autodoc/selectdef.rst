@@ -116,7 +116,7 @@ reference sélecteurs
 
    * =is:dir;[A]
    * =is:dir;C
-       - tesste si un fichier existe
+       - teste si un repertoire existe
 
    * =is:file;[A]
    * =is:file;C
