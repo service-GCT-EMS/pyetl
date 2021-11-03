@@ -14,10 +14,6 @@ import re
 import logging
 from pyetl.schema.schema_interne import get_attribut
 from pyetl.formats.mdbaccess import recup_table_parametres
-
-# from pyetl.moteur.regles import ParametresSelecteur
-
-# from pyetl.moteur.selecteurs import Selecteur
 from .fonctions.outils import charge_fichier
 
 LOGGER = logging.getLogger(__name__)
@@ -94,10 +90,11 @@ def regles_liees(regle, liaison, prec, refs):
         if liaison[regle.niveau - 1] == "-":
             regle.nonext = True
         for i in regle.branchements.enchainements:
-            cmp = i + ":"
-            if liaison[regle.niveau : regle.niveau + len(cmp)] == cmp:
-                regle.enchainement = i
-                regle.code_classe = liaison[regle.niveau + len(cmp) :]
+            if isinstance(i, str):
+                cmp = i
+                if liaison[regle.niveau : regle.niveau + len(cmp)] == cmp:
+                    regle.enchainement = i
+                    regle.code_classe = liaison[regle.niveau + len(cmp) + 1 :]
         if regle.enchainement == "":
             regle.enchainement = "ok"
             # petite magouille pour coller aux branchements sans alourdir la syntaxe
@@ -868,7 +865,7 @@ def lire_regles_csv(
     numero = numero_ext
     # if regle_ref:
     #     print('regle_ref:',regle_ref)
-    # print("dans lire_regles", fichier_regles, liste_regles)
+    print("dans lire_regles", fichier_regles, liste_regles)
 
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau)
@@ -1017,7 +1014,7 @@ def lire_regles_csv(
             )
             if errs:
                 # LOGGER.error("erreur interpretation des regles : arret du traitement")
-                # print("====erreur traite_regles_std")
+                print("====erreur traite_regles_std")
                 erreurs += errs
     #            print('apres,regles std', defligne, errs)
 
@@ -1028,5 +1025,5 @@ def lire_regles_csv(
     if mapper.debug:
         print("niveau debug :", mapper.getvar("debug"))
         # on initialise les parametres pour finir #print 'parametres ', i
-    # print("fin lecture regles", erreurs)
+    print("fin lecture regles", erreurs)
     return erreurs

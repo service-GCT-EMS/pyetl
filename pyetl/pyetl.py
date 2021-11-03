@@ -455,12 +455,14 @@ class Pyetl(object):
         if self.fichier_regles or self.liste_regles:
             # if not self.done:
             try:
+                # print("appel lecteur")
                 erreurs = self.lecteur_regles(
                     self.fichier_regles, liste_regles=self.liste_regles
                 )
+                # print("retour lecteur", erreurs)
             except KeyError as ker:
                 self.logger.critical(
-                    "====erreur lecture %s (%s)", (repr(ker), repr(regles))
+                    "====erreur lecture %s (%s)", repr(ker), repr(regles)
                 )
                 erreurs = erreurs + 1 if erreurs else 1
                 # raise
@@ -506,14 +508,20 @@ class Pyetl(object):
             self.moteur.regle_debut = self.regles[0].numero
             # print("fin prepare", len(self.regles), len(self.moteur.regles))
             if self.getvar("showrules"):
-                for r in self.regles:
-                    print(r)
+                self.showrules(self.regles)
+
             return True
         # on refait si des choses ont change a l'initialisation
         except EOFError:
             self.logger.critical("pas de fichier de regles arret du traitement ")
             #            print("erreurs de compilation arret du traitement ")
             return False
+
+    def showrules(self, liste_regles):
+        for r in liste_regles:
+            print(r)
+            if r.liste_regles:
+                self.showrules(r.liste_regles)
 
     def _timer(self, init=True):
         """acces au temps pour les calculs de duree."""

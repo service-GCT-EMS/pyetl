@@ -414,7 +414,7 @@ def f_def_schema(regle, obj):
     if not schema_classe:
         schema_classe = schema.get_classe(("", nom))
         if schema_classe:
-            schema_classe.setorig((obj.groupe, obj.ident))
+            schema_classe.setorig(obj.ident)
     if schema_classe:
         obj.setschema(schema_classe)
 

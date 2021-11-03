@@ -82,7 +82,7 @@ def f_return(regle, obj):
     """
     obj.redirect = regle.params.cmp1.val
     # print("obj", obj)
-    # print("redirect", regle.branchements.brch)
+    print("redirect==================", obj.redirect, regle.branchements.brch)
     return True
 
 

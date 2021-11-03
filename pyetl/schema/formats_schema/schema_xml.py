@@ -6,7 +6,6 @@ gestion des entrees et sorties de schemas
 """
 import os
 import logging
-from pyetl.moteur.regles import ParametresFonction
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 from .. import schema_interne as SCI
