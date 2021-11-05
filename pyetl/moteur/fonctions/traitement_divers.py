@@ -37,7 +37,9 @@ def store_traite_stock(regle):
             store.sort(key=keyval, reverse=reverse)
         for obj in store:
             # print("store: relecture objet ", obj)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.branchements.brch["end"].traite_push.send(obj)
+
     elif isinstance(store, set):
         print("traitement set", len(store))
         print("store", len(regle.stock_param.store))
@@ -46,7 +48,9 @@ def store_traite_stock(regle):
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
         ):
             obj = store[clef]
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.branchements.brch["end"].traite_push.send(obj)
+
     h_stocke(regle)  # on reinitialise
 
 
@@ -228,14 +232,18 @@ def merge_traite_stock(regle):
         # print("merge_", len(liste))
         objref = attmerger(liste, regle)
         regle.liste = []
-        regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(objref)
+
     else:
         for clef in regle.tmpstore:
             liste = regle.tmpstore[clef]
             objref = attmerger(liste, regle)
-            regle.stock_param.moteur.traite_objet(
-                objref, regle.branchements.brch["gen"]
-            )
+            # regle.stock_param.moteur.traite_objet(
+            #     objref, regle.branchements.brch["gen"]
+            # )
+            regle.branchements.brch["gen"].traite_push.send(objref)
+
     regle.nbstock = 0
 
 
@@ -319,7 +327,9 @@ def sortir_traite_stock(regle):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             regle.output.ecrire_objets_stream(obj, regle, False)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.branchements.brch["end"].traite_push.send(obj)
+
     regle.nbstock = 0
 
 
@@ -656,7 +666,9 @@ def compare_traite_stock(regle):
     for obj in regle.comp.values():
         obj.attributs[regle.params.att_sortie.val] = "supp"
         obj.setidentobj(regle.precedent)
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["supp:"])
+        # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["supp"])
+        regle.branchements.brch["supp"].traite_push.send(obj)
+
     regle.comp = None
     regle.nbstock = 0
 
@@ -740,7 +752,9 @@ def f_compare2(regle, obj):
     obj.redirect = "diff"
     obj.attributs[regle.params.att_sortie.val] = "diff"
     ref.attributs[regle.params.att_sortie.val] = "orig"
-    regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
+    # regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
+    regle.branchements.brch["orig"].traite_push.send(ref)
+
     # on remet l'original dans le circuit
     return False
 
@@ -797,7 +811,8 @@ def f_compare(regle, obj):
     obj.attributs[regle.params.att_sortie.val] = "diff"
     ref.attributs[regle.params.att_sortie.val] = "orig"
     ref.setidentobj(obj.ident)  # on force l'identite de l'original
-    regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
+    # regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig"])
+    regle.branchements.brch["orig"].traite_push.send(ref)
     # on remet l'original dans le circuit
     return False
 
@@ -850,7 +865,9 @@ def f_loadconfig(regle, obj):
 def sortir_objets(regle):
     """sort les objets"""
     for obj in regle.objets.values():
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(obj)
+
     regle.nbstock = 0
 
 

@@ -611,7 +611,7 @@ def traite_parallel_load(regle):
         #         mapper.statstore.stats[nom] = ExtStat(nom, entete)
         #     mapper.statstore.stats[nom].add(entete, contenu)
 
-    traite = regle.stock_param.moteur.traite_objet  # fonction de traitement
+    # traite = regle.stock_param.moteur.traite_objet  # fonction de traitement
     # print("retour multiprocessing ", rdict.keys(), rfin.keys(), regle.tmpstore)
 
     for i in sorted(rdict):
@@ -620,7 +620,9 @@ def traite_parallel_load(regle):
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
         mapper.logger.info("fin traitement parallele")
         # print("fin traitement parallele", obj, rdict)
-        traite(obj, regle.branchements.brch["end"])
+        # traite(obj, regle.branchements.brch["end"])
+        regle.branchements.brch["end"].traite_push.send(obj)
+
     regle.nbstock = 0
 
 
@@ -709,7 +711,7 @@ def traite_parallel_batch(regle):
             if regle.debug:
                 print("retour end", bloc, rfin)
 
-    traite = mapper.moteur.traite_objet
+    # traite = mapper.moteur.traite_objet
     if regle.debug:
         print("retour multiprocessing ", list(rdict.items())[:10])
     #    print (finaux)
@@ -718,7 +720,8 @@ def traite_parallel_batch(regle):
         if numero in rdict:
             parametres = rdict[numero]["retour"]
             renseigne_attributs_batch(regle, obj, parametres)
-        traite(obj, regle.branchements.brch["end"])
+        # traite(obj, regle.branchements.brch["end"])
+        regle.branchements.brch["end"].traite_push.send(obj)
     regle.nbstock = 0
     time.sleep(1)
 
@@ -741,7 +744,8 @@ def iter_boucle(regle):
         # print("traitement boucle", minute)
         blocs = dict()
         for obj in regle.tmpstore:
-            regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            # regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+            regle.liste_regles[0].traite_push.send(obj)
             if obj.attributs.get(selector, "") == "1":
                 passage = float(obj.attributs.get(ordre, 9999))
                 if passage in blocs:

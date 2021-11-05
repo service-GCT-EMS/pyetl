@@ -233,7 +233,8 @@ def f_ingeom(regle, obj):
                     if intersected:
                         o2 = obj.dupplique()
                         regle.setval_sortie(o2, regle.getlist_entree(i))
-                        regle.stock_param.traite_objet(o2)
+                        # regle.stock_param.traite_objet(o2)
+                        regle.branchements.brch["gen"].traite_push.send(o2)
                     regle.setval_sortie(obj, regle.getlist_entree(i))
                     intersected = True
             return intersected
@@ -279,7 +280,8 @@ def geomerge_traite_stock(regle):
                 if v:
                     objref.attributs[i] = (vref + v) if vref else v
 
-        regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(objref)
         regle.nbstock = 0
         regle.liste = []
 

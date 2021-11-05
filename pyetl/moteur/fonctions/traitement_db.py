@@ -1026,7 +1026,8 @@ def f_liste_selecteur(regle, obj):
             obj2.debug("cree", attlist=regle.champsdebug)
             regle.debug -= 1
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == 2:
@@ -1101,7 +1102,8 @@ def f_dbset(regle, obj):
             obj2 = obj.dupplique()
             result = dataconverter(i)
             regle.setval_sortie(obj2, result)
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         obj.attributs["#nb_lignes"] = len(liste)
         return len(liste)
     if liste:

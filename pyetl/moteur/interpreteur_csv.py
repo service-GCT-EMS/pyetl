@@ -63,6 +63,14 @@ def fdebug(regle, obj):
         #        if obj.redirect and obj.redirect not in regle.branchements.brch:
         #            redirect = 'ok'
         #            print ('branchement orphelin', obj.redirect, '(',regle.branchements.brch.keys())
+        if redirect not in liens_num:
+            print(
+                "branchement orphelin",
+                redirect,
+                "(",
+                regle.branchements.brch.keys(),
+                ")",
+            )
         print(
             "retour fonction ",
             succes,
@@ -997,7 +1005,7 @@ def lire_regles_csv(
                 mapper, texte[2:], context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
-                LOGGER.error("erreur chargement macro %s", texte)
+                LOGGER.error("erreur chargement macro %s", texte[2:])
                 # print("====erreur chargement macro", texte, errs)
                 erreurs = erreurs + errs
                 return erreurs

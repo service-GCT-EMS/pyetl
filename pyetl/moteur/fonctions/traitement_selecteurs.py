@@ -714,7 +714,6 @@ def sel_is3d(_, obj):
     #pattern2||;=is:3D||1
     #test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
     """
-    #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.dimension == 3
 
 
@@ -723,7 +722,6 @@ def sel_is_type_geom(selecteur, obj):
     #pattern||=type_geom:;N||1
     #test||obj;point;1||^;1;;geom3D||^?;;;geom2D||;is:3d;;;res;1;;set||atv;res;1
     """
-    #        print ('selecteurs: dans virtuel :', obj.ident,obj.virtuel)
     return obj.geom_v.type == selecteur.params.vals.val
 
 

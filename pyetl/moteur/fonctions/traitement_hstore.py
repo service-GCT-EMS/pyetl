@@ -40,11 +40,11 @@ import re
 
 
 def f_hset1(regle, obj):
-    """ #aide||transforme des attributs en hstore
-        #aide_spec||liste d attributs en entree
-        #pattern||A;?;L;hset;;
-        #schema||ajout_attribut
-        #test||obj||^X;;C1,C2;hset;||^Z;;X;hget;C1;||atv;Z;AB
+    """#aide||transforme des attributs en hstore
+    #aide_spec||liste d attributs en entree
+    #pattern||A;?;L;hset;;
+    #schema||ajout_attribut
+    #test||obj||^X;;C1,C2;hset;||^Z;;X;hget;C1;||atv;Z;AB
     """
     #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(
@@ -71,11 +71,11 @@ def h_hset2(regle):
 
 
 def f_hset2(regle, obj):
-    """ #aide||transforme des attributs en hstore
-        #aide_spec||expression reguliere
-        #pattern||A;?;re;hset;;
-        #schema||ajout_attribut
-        #test||obj||^X;;C*;hset;||^Z;;X;hget;C1;||atv;Z;AB
+    """#aide||transforme des attributs en hstore
+    #aide_spec||expression reguliere
+    #pattern||A;?;re;hset;;
+    #schema||ajout_attribut
+    #test||obj||^X;;C*;hset;||^Z;;X;hget;C1;||atv;Z;AB
     """
     #    print("hcre2 ", obj.ido, "->", regle.params.att_entree.val)
     obj.attributs[regle.params.att_sortie.val] = ", ".join(
@@ -95,7 +95,7 @@ def f_hset2(regle, obj):
 
 
 def f_hset3(regle, obj):
-    """ #aide||transforme des attributs en hstore
+    """#aide||transforme des attributs en hstore
     #aide_spec||tous les attributs visibles
     #pattern||A;;;hset;;
     #schema||ajout_attribut
@@ -117,7 +117,7 @@ def f_hset3(regle, obj):
 
 
 def f_hset4(regle, obj):
-    """ #aide||transforme des attributs en hstore
+    """#aide||transforme des attributs en hstore
     #aide_spec||tous les attributs visibles passe les noma en minuscule
     #pattern||A;;;hset;=lower;
     #schema||ajout_attribut
@@ -139,7 +139,7 @@ def f_hset4(regle, obj):
 
 
 def f_hset5(regle, obj):
-    """ #aide||transforme des attributs en hstore
+    """#aide||transforme des attributs en hstore
     #aide_spec||tous les attributs visibles passe les noma en majuscule
     #pattern||A;;;hset;=upper;
     #schema||ajout_attribut
@@ -161,11 +161,11 @@ def f_hset5(regle, obj):
 
 
 def f_hget1(regle, obj):
-    """ #aide||eclatement d un hstore
-        #aide_spec||destination;defaut;hstore;hget;clef;
-        #pattern||S;?;A;hget;A;
-        #schema||ajout_attribut
-        #test||obj||^X;;;hset||^Z;;X;hget;C1;||atv;Z;AB
+    """#aide||eclatement d un hstore
+    #aide_spec||destination;defaut;hstore;hget;clef;
+    #pattern||S;?;A;hget;A;
+    #schema||ajout_attribut
+    #test||obj||^X;;;hset||^Z;;X;hget;C1;||atv;Z;AB
     """
     if regle.params.att_entree.val not in obj.attributs:
         regle.setval_sortie(obj, regle.params.val_entree.val)
@@ -181,11 +181,11 @@ def f_hget1(regle, obj):
 
 
 def f_hget2(regle, obj):
-    """ #aide||eclatement d un hstore
-        #aide_spec||destination;defaut;hstore;hget;liste clefs;
-        #pattern||M;?;A;hget;L;
-        #schema||ajout_attribut
-        #test||obj||^X;;;hset||^Z1,Z2;;X;hget;C1,C2;||atv;Z2;BCD
+    """#aide||eclatement d un hstore
+    #aide_spec||destination;defaut;hstore;hget;liste clefs;
+    #pattern||M;?;A;hget;L;
+    #schema||ajout_attribut
+    #test||obj||^X;;;hset||^Z1,Z2;;X;hget;C1,C2;||atv;Z2;BCD
     """
     if regle.params.att_entree.val not in obj.attributs:
         regle.setval_sortie(
@@ -202,11 +202,11 @@ def f_hget2(regle, obj):
 
 
 def f_hget3(regle, obj):
-    """ #aide||eclatement d un hstore
-        #aide_spec||destination;defaut;clef;hget;hstore;
-        #pattern||D;?;A;hget;?L;
-        #test||obj||^X;;;hset||^Z_*;;X;hget;;||atv;Z_C2;BCD
-        #schema||ajout_attribut
+    """#aide||eclatement d un hstore
+    #aide_spec||destination;defaut;clef;hget;hstore;
+    #pattern||D;?;A;hget;?L;
+    #test||obj||^X;;;hset||^Z_*;;X;hget;;||atv;Z_C2;BCD
+    #schema||ajout_attribut
     """
     if regle.params.att_entree.val not in obj.attributs:
         return False
@@ -224,7 +224,7 @@ def f_hsplit(regle, obj):
     #pattern||M;?;A;hsplit;?L
      #schema||ajout_attribut
        #test1||obj||^X;;;hset||^k,v;;X;hsplit>;C1,C2,C3;||cnt;3
-       """
+    """
     try:
         hdic = obj.gethdict(regle.params.att_entree.val)
     except ValueError:
@@ -239,7 +239,8 @@ def f_hsplit(regle, obj):
         obj2 = obj.dupplique()
         obj2.attributs[nom_clef] = k
         obj2.attributs[nom_val] = val
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(obj2)
     return True
 
 

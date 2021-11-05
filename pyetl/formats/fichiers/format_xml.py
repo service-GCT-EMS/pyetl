@@ -133,7 +133,7 @@ class XmlWriter(FileWriter):
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
-            return False  #  les objets virtuels ne sont pas sortis
+            return True  #  les objets virtuels ne sont pas sortis
         template = self.curtemp
 
         for i in template:

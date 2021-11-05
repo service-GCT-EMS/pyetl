@@ -221,7 +221,9 @@ class ExtStat(object):
             obj.setorig(nlignes)
             obj.attributs["#type_geom"] = "0"
             #            print("traitement objet stat",obj.attributs)
-            stock_param.moteur.traite_objet(obj, stock_param.regles[0])
+            # stock_param.moteur.traite_objet(obj, stock_param.regles[0])
+            stock_param.regles[0].traite_push.send(obj)
+
             if maxobj:  # nombre maxi d'objets a lire par fichier
                 if nlignes >= maxobj:
                     obj = None
@@ -424,7 +426,8 @@ class Stat(object):
             obj.setorig(nlignes)
             obj.attributs["#type_geom"] = "0"
             #            print("traitement objet stat",obj.attributs)
-            stock_param.moteur.traite_objet(obj, stock_param.regles[0])
+            # stock_param.moteur.traite_objet(obj, stock_param.regles[0])
+            stock_param.regles[0].traite_push.send(obj)
 
             if maxobj:  # nombre maxi d'objets a lire par fichier
                 if nlignes >= maxobj:

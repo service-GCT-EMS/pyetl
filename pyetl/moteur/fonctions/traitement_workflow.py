@@ -45,7 +45,8 @@ def f_pass(regle, obj):
     #!test4||obj||^X;1;;set;||$defaut=3||^;;;pass;;;;atts=X,defaut=2||
           ||X;1;;;X;%defaut%;;set||atv;X;3
     """
-    obj.redirect = regle.sortie
+    if regle.sortie:
+        obj.redirect = regle.sortie
     return True
 
 
@@ -122,16 +123,31 @@ def f_start(regle, obj):
                     conversion="virtuel",
                     schema=sc,
                 )
-                regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["next"]
-                )
+                # regle.stock_param.moteur.traite_objet(
+                #     obj2, regle.branchements.brch["next"]
+                # )
+                regle.branchements.brch["next"].traite_push.send(obj2)
         return True
     else:
         obj2 = Objet(
             "_declencheur", "_start", format_natif="interne", conversion="virtuel"
         )
     #    print('commande start: declenchement ', obj2)
-    regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+    # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["next"])
+    dest = regle.branchements.brch["next"]
+    if dest:
+        print(
+            "R",
+            regle.index,
+            ": Obj",
+            obj2.ido,
+            "envoye vers ",
+            dest.index if dest else dest,
+            "(",
+            obj2.redirect,
+            ")",
+        )
+    dest.traite_push.send(obj2)
     return True
 
 
@@ -467,7 +483,8 @@ def f_callmacro(regle, obj):
           ||X;2;;;X;%defaut%;;set||atv;X;3
     """
     # print("appel macro", regle.liste_regles)
-    return regle.moteur.traite_objet(obj, regle.liste_regles[0], parent=regle)
+    # return regle.moteur.traite_objet(obj, regle.liste_regles[0], parent=regle)
+    regle.liste_regles[0].traite_push.send(obj)
 
 
 def f_geomprocess(regle, obj):
@@ -489,7 +506,9 @@ def f_geomprocess(regle, obj):
         dimension = obj.schema.info["dimension"]
         type_geom = obj.schema.info["type_geom"]
         courbe = obj.schema.info["courbe"]
-    retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+    # retour = regle.stock_param.moteur.traite_objet(obj, regle.liste_regles[0])
+    regle.liste_regles[0].traite_push.send(obj)
+    retour = obj.redirect != "fail"
     # print ('retour geomprocess', retour)
     obj.geom_v = geom
     if sauveschema:
@@ -521,7 +540,7 @@ def f_creobj(regle, obj):
     noms = regle.params.att_sortie.liste
     vals = regle.getlist_entree(obj)
     tmp = regle.params.cmp1.liste
-    #    print ('testobj: ',regle.params.cmp1,noms,vals)
+    print("testobj: ", regle.params.cmp1, noms, vals, obj.ident)
 
     ident = (tmp[0], tmp[1]) if len(tmp) == 2 else ("niv_test", tmp[0])
 
@@ -547,6 +566,7 @@ def f_creobj(regle, obj):
         if modifschema:
             schemaclasse.stocke_attribut(nom, type_attribut=type_attribut)
     nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num is not None else 1
+    dest = regle.branchements.brch["gen"]
     for i in range(nombre):
         obj2 = Objet(ident[0], ident[1], format_natif="interne")
         obj2.setschema(schemaclasse)
@@ -554,7 +574,14 @@ def f_creobj(regle, obj):
         #        print ("objet_test",obj2.attributs,obj2.schema.schema.nom)
         obj2.setorig(i)
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            obj2.redirect = "gen"
+            # print(
+            #     "R",
+            #     regle.index,
+            #     "envoi O" + str(obj2.ido),
+            #     "(" + obj2.redirect + "): R" + str(dest.index),
+            # )
+            dest.traite_push.send(obj2)
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == 1:
@@ -792,7 +819,8 @@ def f_liste_paramgroups(regle, obj):
             attributs={regle.params.att_sortie.val: i},
         )
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == 2:
@@ -853,10 +881,10 @@ def f_schema_liste_classes(regle, obj):
             for groupe in schema.groupes.keys():
                 obj2 = obj.dupplique()
                 obj2.setsortie(groupe)
-                regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["gen"]
-                )
-
+                # regle.stock_param.moteur.traite_objet(
+                #     obj2, regle.branchements.brch["gen"]
+                # )
+                regle.branchements.brch["gen"].traite_push.send(obj2)
     classes = list(schema.classes)
     for i in classes:
         niveau, classe = i
@@ -869,7 +897,8 @@ def f_schema_liste_classes(regle, obj):
         )
         obj2.initattr()
         try:
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         except StopIteration as abort:
             #            print("intercepte abort",abort.args[0])
             if abort.args[0] == 2:

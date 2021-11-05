@@ -73,7 +73,7 @@ def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
     debut = next(iter_gy)
     liste_obj = []
     stock_param = regle.stock_param
-    traite_objet = stock_param.moteur.traite_objet
+    # traite_objet = stock_param.moteur.traite_objet
     for courant in iter_gy:
         if courant == "F":
             print("fin_fichier ")
@@ -93,7 +93,9 @@ def lire_objets_reseau(iter_gy, reseau, chemin, regle, getobj):
                 obj.attributs["_relation_cible"] = clef2
                 obj.attributs["#chemin"] = chemin
                 obj.setorig(total)
-                traite_objet(obj, regle)
+                # traite_objet(obj, regle)
+                regle.traite_push.send(obj)
+
                 total += 1
             liste_obj = []
             debut = next(iter_gy)
@@ -241,7 +243,8 @@ def setpoint2d(obj, iter_gy, regle):
         obj.infogeom()
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = "1"
-        regle.stock_param.moteur.traite_objet(obj, regle)
+        # regle.stock_param.moteur.traite_objet(obj, regle)
+        regle.traite_push.send(obj)
     except ValueError:
         coorderror(obj)
     return 0
@@ -256,7 +259,9 @@ def setpoint3d(obj, iter_gy, regle):
         obj.infogeom()
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = "1"
-        regle.stock_param.moteur.traite_objet(obj, regle)
+        # regle.stock_param.moteur.traite_objet(obj, regle)
+        regle.traite_push.send(obj)
+
     except ValueError:
         coorderror(obj)
     return 0
@@ -270,7 +275,8 @@ def addpoints2d(obj, iter_gy, npts, type_geom=None, regle=None):
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = type_geom
-        regle.stock_param.moteur.traite_objet(obj, regle)
+        # regle.stock_param.moteur.traite_objet(obj, regle)
+        regle.traite_push.send(obj)
         return 0
     return 1
 
@@ -283,7 +289,8 @@ def addpoints25d(obj, iter_gy, valz, npts, dimension, type_geom=None, regle=None
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = type_geom
-        regle.stock_param.moteur.traite_objet(obj, regle)
+        # regle.stock_param.moteur.traite_objet(obj, regle)
+        regle.traite_push.send(obj)
         return 0
     return 1
 
@@ -296,7 +303,8 @@ def addpoints3d(obj, iter_gy, npts, type_geom=None, regle=None):
         obj.finalise_geom(type_geom=type_geom)
         if obj.schema.amodifier(regle):
             obj.schema.info["type_geom"] = type_geom
-        regle.stock_param.moteur.traite_objet(obj, regle)
+        # regle.stock_param.moteur.traite_objet(obj, regle)
+        regle.traite_push.send(obj)
         return 0
     return 1
 
@@ -329,7 +337,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
     regle = self.regle_start
     couleur = "1"
     courbe = 0
-    traite_objet = self.regle_ref.stock_param.moteur.traite_objet
+    # traite_objet = self.regle_ref.stock_param.moteur.traite_objet
 
     maxobj = self.regle_ref.getvar("lire_maxi", 0)
     codec = self.regle_ref.getvar("codec_entree", "utf8")
@@ -418,14 +426,17 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                             if obj_ouvert == 0:
                                 #                                if obj.schema.amodifier(regle):
                                 #                                    obj.schema.info["type_geom"] = obj.attributs['#type_geom']
-                                traite_objet(obj, regle)
+                                # traite_objet(obj, regle)
+                                regle.traite_push.send(obj)
+
                         except ValueError:
                             coorderror(obj)
                             obj_ouvert = 0
                     else:
                         obj.attributs["#type_reseau"] = "non_topo"
                     if alpha:  # c'est un objet alpha pur
-                        traite_objet(obj, regle)
+                        # traite_objet(obj, regle)
+                        regle.traite_push.send(obj)
                         obj.attributs["#type_geom"] = "0"
                         obj_ouvert = 0
 
@@ -433,7 +444,8 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                 elif val == "":  # alpha pur
                     obj_ouvert = 0
                     obj.attributs["#type_geom"] = "0"
-                    traite_objet(obj, regle)
+                    # traite_objet(obj, regle)
+                    regle.traite_push.send(obj)
                 elif val == "F":
                     break
                 elif obj_ouvert == 0:
@@ -558,7 +570,8 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     if obj.schema.amodifier(regle):
                         obj.schema.info["type_geom"] = type_geom
                     #                    print('gy:objet a traiter ', obj)
-                    traite_objet(obj, regle)
+                    # traite_objet(obj, regle)
+                    regle.traite_push.send(obj)
                     obj_ouvert = 0
                 elif int(val) > 10000:
 

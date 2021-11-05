@@ -95,7 +95,8 @@ def f_zipdir(regle, obj):
     for i in filelist:
         obj2 = obj.dupplique()
         obj2.attributs[regle.params.att_sortie.val] = i
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(obj2)
 
 
 def f_zipextract(regle, obj):

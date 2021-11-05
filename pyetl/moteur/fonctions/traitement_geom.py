@@ -485,7 +485,9 @@ def fgrid2(regle, obj, cases, double=True):
             cgx, cgy = case
             obj2.attributs[regle.gx] = str(cgx)
             obj2.attributs[regle.gy] = str(cgy)
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["ok"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["ok"])
+            regle.branchements.brch["ok"].traite_push.send(obj2)
+
     return True
 
 
@@ -528,7 +530,9 @@ def fgrid(regle, obj, cases):
     for case in cases[1:]:
         obj2 = obj.dupplique()
         obj2.attributs[regle.params.att_sortie.val] = str(case)
-        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["ok"])
+        # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["ok"])
+        regle.branchements.brch["ok"].traite_push.send(obj2)
+
     return True
 
 
@@ -701,9 +705,11 @@ def f_splitcouleur(regle, obj):
         obj2.finalise_geom(type_geom="2")
         obj2.attributs[regle.params.att_sortie.val] = i
         obj2.infogeom()
-        regle.stock_param.moteur.traite_objet(
-            obj2, regle.branchements.brch.get(i, defaut_dest)
-        )
+        # regle.stock_param.moteur.traite_objet(
+        #     obj2, regle.branchements.brch.get(i, defaut_dest)
+        # )
+        regle.branchements.brch.get(i, defaut_dest).traite_push.send(obj2)
+
         # on l'envoie dans la tuyauterie'
     if geoms:
         obj.geom_v = geoms[liste_coul[0]]
@@ -801,9 +807,10 @@ def f_csplit(regle, obj):
                 obj2.infogeom()
                 if att_sortie:
                     obj2.attributs[att_sortie] = str(npt)
-                regle.stock_param.moteur.traite_objet(
-                    obj2, regle.branchements.brch["gen"]
-                )
+                # regle.stock_param.moteur.traite_objet(
+                #     obj2, regle.branchements.brch["gen"]
+                # )
+                regle.branchements.brch["gen"].traite_push.send(obj2)
                 valide = True
         obj.geom_v = geom
         return valide
@@ -831,7 +838,8 @@ def f_splitgeom(regle, obj):
             obj2.infogeom()
             if att_sortie:
                 obj2.attributs[att_sortie] = str(npt)
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         obj.geom_v = geom
         return True
     return False

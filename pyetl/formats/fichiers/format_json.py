@@ -43,7 +43,7 @@ class JsonWriter(FileWriter):
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
-            return False
+            return True
         chaine = obj.__json_if__(self.liste_att)
         if self.start:
             self.start = False
@@ -95,7 +95,8 @@ def readobjs(reader, jsonlist):
         obj.setorig(n_obj)
         # print("lu objet", obj)
         # print("traitement objet, ", reader.regle_start)
-        reader.traite_objet(obj, reader.regle_start)
+        # reader.traite_objet(obj, reader.regle_start)
+        reader.regle_start.traite_push.send(obj)
 
 
 def objreader(self, ouvert):
@@ -121,7 +122,8 @@ def objreader(self, ouvert):
                 # print("traitement json", i)
                 obj.from_geo_interface(i)
                 obj.setorig(n_obj)
-                self.traite_objet(obj, self.regle_start)
+                # self.traite_objet(obj, self.regle_start)
+                self.regle_start.traite_push.send(obj)
 
 
 READERS = {

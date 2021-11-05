@@ -50,7 +50,7 @@ def geocode_traite_stock(regle, final=True):
     header = []
     suite = regle.branchements.brch["end"]
     fail = regle.branchements.brch["fail"]
-    traite = regle.stock_param.moteur.traite_objet
+    # traite = regle.stock_param.moteur.traite_objet
     geocodeur = regle.getvar("url_geocodeur")
     data = {"columns": "_adresse"}.update(regle.filtres)
     buffer = (
@@ -119,7 +119,11 @@ def geocode_traite_stock(regle, final=True):
                     "erreur geocodage %s", ",".join(attributs)
                 )
                 # print("erreur geocodage", attributs)
-            traite(obj, suite if score else fail)
+            # traite(obj, suite if score else fail)
+            if score:
+                regle.branchements.brch["ok"].traite_push.send(obj)
+            else:
+                regle.branchements.brch["fail"].traite_push.send(obj)
         elif not header:
             header = [prefix + i for i in attributs[outcols:]]
             # print ('calcul header', header)
@@ -511,7 +515,8 @@ def _jsonsplitter(regle, obj, jsonbloc):
                         type_att = "H" if isinstance(val, dict) else "T"
                         obj.schema.stocke_attribut(att, type_att)
 
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         else:
             print("element incompatible", elem)
 
@@ -673,7 +678,8 @@ def f_wfsdownload(regle, obj):
     if regle.params.pattern == "2":  # retour dans un attribut
         regle.setval_sortie(obj, retour.text)
         if obj.virtuel and obj.attributs["#classe"] == "_chargement":  # mode chargement
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj)
         # print("apres", obj)
         return True
     if regle.fichier is None:

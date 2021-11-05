@@ -172,8 +172,6 @@ def db_streamer(obj, regle, _, attributs=None, rep_sortie=None):
     rep_sortie = regle.getvar("_sortie") if rep_sortie is None else rep_sortie
     sorties = regle.stock_param.sorties
     if obj.ident != regle.dident:
-        if obj.virtuel:  # on ne traite pas les virtuels
-            return
         dest = obj.ident
         ressource = sorties.get_res(regle, dest)
         if ressource is None:

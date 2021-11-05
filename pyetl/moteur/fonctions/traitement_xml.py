@@ -173,7 +173,8 @@ def f_xmlsplit(regle, obj):
             obj2.sethtext(nom="#xmlgrouptags", dic=cadretags, upd=False)
             # obj2.attributs["#xmlgrouptags"] = cadretags
             # print("xmlsplit traitement", obj2)
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
             trouve = True
     if not regle.keepdata:
         obj.attributs[regle.params.att_entree.val] = xml

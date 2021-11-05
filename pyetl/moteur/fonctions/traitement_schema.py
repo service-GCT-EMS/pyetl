@@ -124,7 +124,7 @@ def f_stock_schema(regle, obj):
     #test||obj;point||^#schema;;;supp||^;;;schema;essai||^V4;type_geom;;info_schema;||atv;V4;1
     """
     if obj.virtuel:
-        return False
+        return True
     if not regle.schema_courant:  # on choisit un nom
         if regle.params.cmp1.val:
             nom_base = regle.params.cmp1.val
@@ -184,10 +184,10 @@ def f_force_alias(regle, obj):
 def f_valide_schema(regle, obj):
     """#aide||verifie si des objets sont compatibles avec un schema
     #parametres||;nom du schema;;
-    #pattern||?=#schema;?C;;valide_schema;?=strict;
+    #pattern1||?=#schema;?C;;valide_schema;?=strict;
     #pattern2||?=#schema;?C;;valide_schema;=supp_conf;
     #variables||log;err ou warn par defaut no;
-    #test||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
+    #test1||obj||X;1;;;;;;pass||^;;;valide_schema||+:;;;;res;1;;set||atv;res;1
     #test2||obj;point||^type_geom;2;;set_schema||^;;;valide_schema||+fail:;;;;res;1;;set||atv;res;1
 
     """
@@ -512,7 +512,8 @@ def liste_table_traite_stock(regle):
         obj.attributs["nom_schema"] = sch
         obj.attributs["nom_classe"] = nom
         obj.setschema(schemaclasse)
-        regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(obj)
     regle.nbstock = 0
     regle.store = False
 

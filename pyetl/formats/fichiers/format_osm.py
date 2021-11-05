@@ -555,9 +555,11 @@ def lire_objets_osm(self, rep, chemin, fichier):
                 obj.attributs["#chemin"] = chemin
                 if obj.ident == ("osm", "om_comm_restriction"):
                     print("obj", obj)
-                stock_param.moteur.traite_objet(
-                    obj, self.regle_start
-                )  # on traite le dernier objet
+                # stock_param.moteur.traite_objet(
+                #     obj, self.regle_start
+                # )  # on traite le dernier objet
+                self.regle_start.traite_push.send(obj)
+
         elem.clear()
     print("parties", len(parties))
     for ideelem in parties:
@@ -744,9 +746,11 @@ def lire_objets_pbf(self, rep, chemin, fichier):
                 obj.attributs["#chemin"] = chemin
                 if obj.ident == ("osm", "om_comm_restriction"):
                     print("obj", obj)
-                stock_param.moteur.traite_objet(
-                    obj, self.regle_start
-                )  # on traite le dernier objet
+                # stock_param.moteur.traite_objet(
+                #     obj, self.regle_start
+                # )  # on traite le dernier objet
+                self.regle_start.traite_push.send(obj)
+
     print("parties", len(parties))
     for ideelem in parties:
         if ideelem not in used:

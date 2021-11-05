@@ -477,7 +477,8 @@ def f_asplit(regle, obj):
         for i in elems[1:]:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj)
     else:
         regle.setval_sortie(
             obj,
@@ -1055,6 +1056,7 @@ def f_extractbloc(regle, obj):
             obj2 = obj.dupplique()
             obj2.attributs["#bloc"] = bloc
             obj2.attributs["#clef"] = clef
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            # regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            regle.branchements.brch["gen"].traite_push.send(obj2)
         obj.attributs[regle.params.val_entree.val] = tmp
     return bool(foundblocs)

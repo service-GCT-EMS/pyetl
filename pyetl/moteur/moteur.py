@@ -100,31 +100,33 @@ class Moteur(object):
 
                         obj.attributs["#type_geom"] = schemaclasse.info["type_geom"]
                         # print("tv:traitement obj", obj)
-                        self.traite_objet(obj, self.regles[0])
+                        # self.traite_objet(obj, self.regles[0])
+                        self.regles[0].traite_push.send(obj)
 
     def traite_regles_chargement(self):
         """ declenche les regles de chargement pour les traitements sans entree"""
         #        if self.debug:
         #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
-        if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
-            pass
-        else:
-            obj = Objet(
-                "_declencheur",
-                "_chargement",
-                format_natif="interne",
-                conversion="virtuel",
-            )
-            self.traite_objet(obj, self.regles[0])
-        #        if self.regles[0].mode == "start": #on prends la main dans le script
-        #            self.regles[0].fonc(self.regles[0], None)
-        #            return
-        for i in self.regles:
+        # if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
+        #     pass
+        # else:
+        #     obj = Objet(
+        #         "_declencheur",
+        #         "_chargement",
+        #         format_natif="interne",
+        #         conversion="virtuel",
+        #     )
+        #     # self.traite_objet(obj, self.regles[0])
+        #     self.regles[0].send(obj)
+        # #        if self.regles[0].mode == "start": #on prends la main dans le script
+        # #            self.regles[0].fonc(self.regles[0], None)
+        # #            return
+        for regle in self.regles:
             #            print ('-------------------------------traite_charge ', i.declenchee ,i.chargeur,i )
             # on ne traite pas les regles de chargement si elles sont dans des conditions
-            if not i.declenchee and i.chargeur and i.niveau == 0:
-                if i.mode == "start":  # on prends la main dans le script
-                    i.fonc(i, None)
+            if not regle.declenchee and regle.chargeur and regle.niveau == 0:
+                if regle.mode == "start":  # on prends la main dans le script
+                    regle.fonc(regle, None)
                 else:
                     obj = Objet(
                         "_declencheur",
@@ -132,142 +134,143 @@ class Moteur(object):
                         format_natif="interne",
                         conversion="virtuel",
                     )
-                    i.mode_chargeur = True
+                    regle.mode_chargeur = True
                     # print("mode chargeur", i)
-                    self.traite_objet(obj, i)
-                    i.mode_chargeur = False
+                    # self.traite_objet(obj, i)
+                    regle.traite_push.send(obj)
+                    regle.mode_chargeur = False
 
-    def traite_objet(self, obj, regle, parent=None):
-        """traitement basique toutes les regles sont testees """
-        last = None
-        while regle:
-            last = regle
-            if (
-                obj.virtuel and regle.declenchee
-            ):  # un virtuel ne declenche une regle q une fois
-                regle = regle.branchements.brch["ok"]
-                continue
-            regle.declenchee = True
-            try:
-                if regle.selstd is None or regle.selstd(obj):
-                    #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)
-                    if regle.copy:
-                        #                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
-                        #                               regle.branchements.brch["fail"])
-                        self.traite_objet(
-                            obj.dupplique(), regle.branchements.brch["copy"]
-                        )
-                        # on envoie une copie dans le circuit qui ne passe pas la regle
-                        if not obj.virtuel:
-                            self.dupcnt += 1
-                        # print "apres copie ", obj.schema
-                    #                print("traitement regle",regle)
-                    resultat = regle.fonc(regle, obj)
-                    #                print ('params:action schema',regle.params.att_sortie.liste,
-                    #                           resultat,obj.schema,regle.action_schema)
-                    if resultat:
-                        if obj.schema is not None:
-                            # if regle.action_schema:
-                            # print("action schema", regle, regle.action_schema)
-                            #     # print("schema avant", obj.schema)
-                            #     regle.action_schema(regle, obj)
-                            if regle.action_schema:
-                                # print("action schema", regle, regle.action_schema)
-                                # print("schema avant", obj.schema)
-                                regle.action_schema(regle, obj)
-                            if regle.changeclasse:
-                                regle.changeclasse(regle, obj)
-                        if regle.changeschema:
-                            regle.changeschema(regle, obj)
-                    if regle.debugvalid:
-                        obj.debug("apres", attlist=regle.champsdebug)
-                        regle.stock_param.gestion_log.stopdebug()
-                    obj.is_ok = resultat
+    # def traite_objet(self, obj, regle, parent=None):
+    #     """traitement basique toutes les regles sont testees """
+    #     last = None
+    #     while regle:
+    #         last = regle
+    #         if (
+    #             obj.virtuel and regle.declenchee
+    #         ):  # un virtuel ne declenche une regle q une fois
+    #             regle = regle.branchements.brch["ok"]
+    #             continue
+    #         regle.declenchee = True
+    #         try:
+    #             if regle.selstd is None or regle.selstd(obj):
+    #                 #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)
+    #                 if regle.copy:
+    #                     #                        print ('moteur: copie', regle.numero, regle.branchements.brch["copy"],
+    #                     #                               regle.branchements.brch["fail"])
+    #                     self.traite_objet(
+    #                         obj.dupplique(), regle.branchements.brch["copy"]
+    #                     )
+    #                     # on envoie une copie dans le circuit qui ne passe pas la regle
+    #                     if not obj.virtuel:
+    #                         self.dupcnt += 1
+    #                     # print "apres copie ", obj.schema
+    #                 #                print("traitement regle",regle)
+    #                 resultat = regle.fonc(regle, obj)
+    #                 #                print ('params:action schema',regle.params.att_sortie.liste,
+    #                 #                           resultat,obj.schema,regle.action_schema)
+    #                 if resultat:
+    #                     if obj.schema is not None:
+    #                         # if regle.action_schema:
+    #                         # print("action schema", regle, regle.action_schema)
+    #                         #     # print("schema avant", obj.schema)
+    #                         #     regle.action_schema(regle, obj)
+    #                         if regle.action_schema:
+    #                             # print("action schema", regle, regle.action_schema)
+    #                             # print("schema avant", obj.schema)
+    #                             regle.action_schema(regle, obj)
+    #                         if regle.changeclasse:
+    #                             regle.changeclasse(regle, obj)
+    #                     if regle.changeschema:
+    #                         regle.changeschema(regle, obj)
+    #                 if regle.debugvalid:
+    #                     obj.debug("apres", attlist=regle.champsdebug)
+    #                     regle.stock_param.gestion_log.stopdebug()
+    #                 obj.is_ok = resultat
 
-                    if regle.mode_chargeur:  # la on fait des
-                        # print("==============mode chargeur", regle)
-                        regle = None
-                    else:
-                        if obj.redirect and obj.redirect in regle.branchements.brch:
-                            regle = regle.branchements.brch[obj.redirect]
-                            obj.redirect = None
-                        else:
-                            regle = (
-                                regle.branchements.brch["ok"]
-                                if resultat
-                                else regle.branchements.brch["fail"]
-                            )
-                            if not regle and obj.virtuel:
-                                # print(" ============traitement sortie virtuel", regle)
-                                regle = last.branchements.brch["next"]
+    #                 if regle.mode_chargeur:  # la on fait des
+    #                     # print("==============mode chargeur", regle)
+    #                     regle = None
+    #                 else:
+    #                     if obj.redirect and obj.redirect in regle.branchements.brch:
+    #                         regle = regle.branchements.brch[obj.redirect]
+    #                         obj.redirect = None
+    #                     else:
+    #                         regle = (
+    #                             regle.branchements.brch["ok"]
+    #                             if resultat
+    #                             else regle.branchements.brch["fail"]
+    #                         )
+    #                         if not regle and obj.virtuel:
+    #                             # print(" ============traitement sortie virtuel", regle)
+    #                             regle = last.branchements.brch["next"]
 
-                else:
-                    if regle.debug and "+" in regle.v_nommees["debug"]:
-                        regle.affiche_debug("--non executee--->")
-                        print("suite", regle.branchements.liens_num()["sinon"])
-                    regle = regle.branchements.brch["sinon"]
+    #             else:
+    #                 if regle.debug and "+" in regle.v_nommees["debug"]:
+    #                     regle.affiche_debug("--non executee--->")
+    #                     print("suite", regle.branchements.liens_num()["sinon"])
+    #                 regle = regle.branchements.brch["sinon"]
 
-                # if obj.virtuel:
-                #     print("=========virtuel", last, "\n====>", regle)
-                # if regle and regle.valide=="done":
-                #     regle = regle.branchements.brch["ok"]
-            except StopIteration as abort:
-                #                print ('stopiteration', ab.args)
-                if abort.args[0] == 1:  # arret de traitement de l'objet
-                    return
-                raise  # on la passe au niveau au dessus
-            except NotADirectoryError as exc:
-                print("==========erreur de traitement repertoire inconnu", exc)
-                print("====regle courante:", regle)
-                if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar("_wid"))
-                printexception()
-                raise StopIteration(3)
+    #             # if obj.virtuel:
+    #             #     print("=========virtuel", last, "\n====>", regle)
+    #             # if regle and regle.valide=="done":
+    #             #     regle = regle.branchements.brch["ok"]
+    #         except StopIteration as abort:
+    #             #                print ('stopiteration', ab.args)
+    #             if abort.args[0] == 1:  # arret de traitement de l'objet
+    #                 return
+    #             raise  # on la passe au niveau au dessus
+    #         except NotADirectoryError as exc:
+    #             print("==========erreur de traitement repertoire inconnu", exc)
+    #             print("====regle courante:", regle)
+    #             if regle.stock_param.worker:
+    #                 print("====mode parallele: process :", regle.getvar("_wid"))
+    #             printexception()
+    #             raise StopIteration(3)
 
-            except NotImplementedError as exc:
-                print("==========erreur de traitement fonction inexistante", exc)
-                print("====regle courante:", regle)
-                if regle.stock_param.worker:
-                    print("====mode parallele: process :", regle.getvar("_wid"))
-                printexception()
-                raise StopIteration(3)
+    #         except NotImplementedError as exc:
+    #             print("==========erreur de traitement fonction inexistante", exc)
+    #             print("====regle courante:", regle)
+    #             if regle.stock_param.worker:
+    #                 print("====mode parallele: process :", regle.getvar("_wid"))
+    #             printexception()
+    #             raise StopIteration(3)
 
-            except Exception as exc:
-                print("==========erreur de traitement non gérée")
-                print("====regle courante:", regle)
-                if regle:
-                    if regle.stock_param.worker:
-                        print("====mode parallele: process :", regle.getvar("_wid"))
-                    printexception()
-                    if regle.getvar("debuglevel", "0") != "0":
-                        print("==========environnement d'execution")
-                        print(
-                            "====pyetl :",
-                            regle.stock_param.nompyetl,
-                            regle.stock_param.idpyetl,
-                        )
-                        print("====objet courant :", obj)
-                        print("====parametres\n", regle.params)
-                        print(regle.context)
-                        if regle.getvar("debuglevel", "0") > "1":
-                            print(
-                                "========================= variables globales==========",
-                                regle.stock_param.context,
-                            )
-                        print("========== fin erreur de traitement")
-                else:
-                    printexception()
-                raise StopIteration(3)
+    #         except Exception as exc:
+    #             print("==========erreur de traitement non gérée")
+    #             print("====regle courante:", regle)
+    #             if regle:
+    #                 if regle.stock_param.worker:
+    #                     print("====mode parallele: process :", regle.getvar("_wid"))
+    #                 printexception()
+    #                 if regle.getvar("debuglevel", "0") != "0":
+    #                     print("==========environnement d'execution")
+    #                     print(
+    #                         "====pyetl :",
+    #                         regle.stock_param.nompyetl,
+    #                         regle.stock_param.idpyetl,
+    #                     )
+    #                     print("====objet courant :", obj)
+    #                     print("====parametres\n", regle.params)
+    #                     print(regle.context)
+    #                     if regle.getvar("debuglevel", "0") > "1":
+    #                         print(
+    #                             "========================= variables globales==========",
+    #                             regle.stock_param.context,
+    #                         )
+    #                     print("========== fin erreur de traitement")
+    #             else:
+    #                 printexception()
+    #             raise StopIteration(3)
 
-        if last and not last.store:
-            if last.filter or last.supobj:
-                self.suppcnt += 1
+    #     if last and not last.store:
+    #         if last.filter or last.supobj:
+    #             self.suppcnt += 1
 
-            if obj.schema and not obj.virtuel:
-                # c est un objet qui a ete jete par une regle filtrante
-                obj.schema.objcnt -= 1
+    #         if obj.schema and not obj.virtuel:
+    #             # c est un objet qui a ete jete par une regle filtrante
+    #             obj.schema.objcnt -= 1
 
-        # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)
+    #     # print ('fin de l objet ',last.filter,last.store,last.supobj last, obj, obj.schema.objcnt)
 
     def vide_stock(self):
         """vidange des tuyeaux"""

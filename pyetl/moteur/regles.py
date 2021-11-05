@@ -146,26 +146,7 @@ class ParametresFonction(object):
             defin = self.valeurs[nom].group(2).split(",")
         except (IndexError, AttributeError, KeyError):
             defin = []
-        try:
-            num = float(val)
-        except ValueError:
-            num = None
-        val2 = val
-        if ":" in val and not "," in val:
-            val2 = val.replace(":", ",")
-        liste = val2.split(",") if val else []
 
-        if taille > len(liste):
-            if liste:
-                liste.extend([liste[-1]] * (taille - len(liste)))
-            else:
-                liste.extend([""] * taille)
-        #        print (self.definitions)
-        try:
-            if self.definitions[nom].pattern == "|L":
-                liste = val.split("|") if val else []
-        except (IndexError, AttributeError, KeyError):
-            liste = []
         dyn = "*" in val
         origine = None
         if val.startswith("["):
@@ -173,6 +154,34 @@ class ParametresFonction(object):
             origine = val[1:-1]
             if ":" in origine:
                 origine, defaut = origine.split(":", 1)
+            mode = "att"
+        elif val.startswith("P:"):
+            origine = val[2:]
+            if ":" in origine:
+                origine, defaut = origine.split(":", 1)
+            mode = "var"
+        else:
+            mode = "static"
+            try:
+                num = float(val)
+            except ValueError:
+                num = None
+            val2 = val
+            if ":" in val and not "," in val:
+                val2 = val.replace(":", ",")
+            liste = val2.split(",") if val else []
+
+            if taille > len(liste):
+                if liste:
+                    liste.extend([liste[-1]] * (taille - len(liste)))
+                else:
+                    liste.extend([""] * taille)
+            #        print (self.definitions)
+            try:
+                if self.definitions[nom].pattern == "|L":
+                    liste = val.split("|") if val else []
+            except (IndexError, AttributeError, KeyError):
+                liste = []
 
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
@@ -421,6 +430,8 @@ class RegleTraitement(object):  # regle de mapping
         self.memlimit = int(self.getvar("memlimit", 0))
         self.erreurs = []
         self.v_nommees = dict()
+        self.traite_push = self.push()
+        next(self.traite_push)
 
     def __repr__(self):
         """pour l impression"""
@@ -1050,20 +1061,52 @@ class RegleTraitement(object):  # regle de mapping
         if self.changeschema:
             self.changeschema(self, obj)
 
-    def traite_push(self):
+    def push(self):
         """traite les objets en mode push (coroutines)"""
         suite = 1
         while suite:
             obj = yield
-            if obj:
-                if self.selstd is None or self.selstd(obj):
-                    if self.copy:
-                        self.branchements.brch["copy"].send(obj.dupplique())
-                    obj.redirect = self.branchements.brch["ok"]
-                    result = self.fonc(self, obj)
-                    if result:
-                        self.actions_schema(obj)
-                    if obj.redirect and obj.redirect in self.branchements.brch:
-                        self.branchements.brch[obj.redirect].send(obj)
-            else:
+            self.declenchee = True
+            self.obj = obj
+            if obj is None:
+                break
+            # print("R", self.index, "recu", obj.ido)
+            if self.selstd and not self.selstd(obj):
+                dest = self.branchements.brch.get("sinon")
+                if dest:
+                    dest.traite_push.send(obj)
+                    continue
                 suite = False
+                continue
+            if self.copy:
+                dest = self.branchements.brch["copy"]
+                if dest:
+                    dest.traite_push.send(obj.dupplique())
+            obj.redirect = "ok"
+            if self.fonc(self, obj):
+                self.actions_schema(obj)
+            else:
+                obj.redirect = "fail"
+            # print(
+            #     "R" + str(self.index),
+            #     "traitement O" + str(obj.ido),
+            #     "->" + str(obj.redirect),
+            # )
+            if obj.redirect in self.branchements.brch:
+                dest = self.branchements.brch[obj.redirect]
+                # print(
+                #     "R" + str(self.index),
+                #     ": Obj" + str(obj.ido),
+                #     "envoye vers ",
+                #     obj.redirect,
+                #     ":->",
+                #     dest.index if dest else dest,
+                # )
+                if dest:
+                    dest.traite_push.send(obj)
+            # print(
+            #     "R" + str(self.index),
+            #     ":Obj" + str(obj.ido),
+            #     "vers inexistant ",
+            #     obj.redirect,
+            # )

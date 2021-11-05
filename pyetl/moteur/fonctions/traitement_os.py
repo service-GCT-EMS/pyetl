@@ -546,7 +546,8 @@ def f_adquery(regle, obj):
                         obj2 = obj.dupplique()
                         val = getattr(item, regle.a_recuperer[0])
                         regle.setval_sortie(obj2, val)
-                        regle.stock_param.moteur.traite_objet(obj2, regle.ok)
+                        # regle.stock_param.moteur.traite_objet(obj2, regle.ok)
+                        regle.branchements.brch["ok"].traite_push.send(obj2)
                     return True
                 else:
                     return False  # liste vide
@@ -585,7 +586,7 @@ def f_listefich(regle, obj):
     if regle.params.pattern == "1":
         regle.setlocal("fileselect", regle.get_entree(obj))
     classe = regle.params.cmp1.val or obj.attributs.get("#classe")
-    traite_objet = regle.stock_param.moteur.traite_objet
+    # traite_objet = regle.stock_param.moteur.traite_objet
     trouve = False
     for fich in getfichs(regle, obj):
         nom, defs = fich
@@ -600,6 +601,7 @@ def f_listefich(regle, obj):
         nouveau.attributs["#f_base"] = nom_f
         nouveau.attributs["#f_ext"] = ext
         nouveau.attributs["#f_nom"] = nom_f + "." + ext
-        traite_objet(nouveau, regle.branchements.brch["gen"])
+        # traite_objet(nouveau, regle.branchements.brch["gen"])
+        regle.branchements.brch["gen"].traite_push.send(nouveau)
         trouve = True
     return trouve

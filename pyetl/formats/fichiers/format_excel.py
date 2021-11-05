@@ -170,7 +170,8 @@ def lire_objets_excel(self, rep, chemin, fichier, entete=None, separ=None):
                 # print("ligne", ligne)
                 obj.attributs["#type_geom"] = "0"
                 obj.attributs["#chemin"] = chemin
-                self.regle_ref.stock_param.moteur.traite_objet(obj, self.regle_start)
+                # self.regle_ref.stock_param.moteur.traite_objet(obj, self.regle_start)
+                self.regle_start.traite_push.send(obj)
     return
 
 
@@ -233,7 +234,7 @@ class XlsxWriter(FileWriter):
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
-            return False  #  les objets virtuels ne sont pas sortis
+            return True  #  les objets virtuels ne sont pas sortis
 
         atlist = (
             str(obj.attributs.get(i, "")).translate(self.transtable)

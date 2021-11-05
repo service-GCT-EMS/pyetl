@@ -326,7 +326,7 @@ def sortie_resultats(
     """ recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["gen"]
     stock_param = regle_courante.stock_param
-    traite_objet = stock_param.moteur.traite_objet
+    # traite_objet = stock_param.moteur.traite_objet
     niveau, classe = ident
     logger = regle_courante.stock_param.logger
     # print ('mdba:sortie_resultat ',type_geom,type(curs),niveau,classe)
@@ -438,7 +438,8 @@ def sortie_resultats(
         # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
         obj2.setorig(nbvals)
         # print("sortie_res", obj2)
-        traite_objet(obj2, regle_debut)
+        # traite_objet(obj2, regle_debut)
+        regle_debut.traite_push.send(obj2)
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
@@ -920,8 +921,8 @@ def recup_maxval(regle, base, selecteur):
 def recup_donnees_req_geo(regle_courante, baseselector, obj):
     """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
-    if obj.virtuel:
-        return True
+    # if obj.virtuel:
+    #     return True
     connect = baseselector.connect
     if connect is None:
         regle_courante.stock_param.logger.error(

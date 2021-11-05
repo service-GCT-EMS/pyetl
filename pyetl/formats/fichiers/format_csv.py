@@ -196,7 +196,7 @@ class CsvWriter(FileWriter):
         """ecrit un objet"""
         # print("writer: ", id(self), self.regle.idregle)
         if obj.virtuel:
-            return False  #  les objets virtuels ne sont pas sortis
+            return True  #  les objets virtuels ne sont pas sortis
         attributs = self.prepare_attributs(obj)
         if self.type_geom != "0":
             if (
