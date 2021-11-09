@@ -881,6 +881,7 @@ class SchemaClasse(object):
                     self.info["nom_geometrie"],
                     "non traite",
                 )
+                # raise
                 #                raise TypeError
                 self.info["type_geom"] = "0"
         self.srid = srid

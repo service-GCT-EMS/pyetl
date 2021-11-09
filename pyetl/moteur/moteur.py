@@ -349,10 +349,13 @@ class Macro(object):
 
     def close(self):
         """ ajoute une commande pass au cas ou la macro finit par un niveau"""
-        maxnum = max(self.commandes_macro.keys())
-        last = self.commandes_macro[maxnum]
-        if last.startswith("|") or last.startswith("+"):
-            self.commandes_macro[maxnum + 1] = ";;;;;;;pass;;"
+        pass
+        # maxnum = max(self.commandes_macro.keys())
+        # last = self.commandes_macro[maxnum]
+        # # if last.startswith("|") or last.startswith("+"):
+        # #     self.commandes_macro[maxnum + 1] = ";;;;;;;pass;;"
+        # self.commandes_macro[maxnum + 1] = ";;;;;;;return;;"
+        # self.commandes_macro[maxnum + 2] = ";;;;;;;pass;;"
 
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
@@ -374,7 +377,10 @@ class Macro(object):
 
     def get_commands(self):
         """recupere les commandes de la macro"""
-        return [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
+        cmds = [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
+        maxnum = max(self.commandes_macro.keys())
+        cmds.append((maxnum + 1, ";;;;;;;return;;"))
+        return cmds
 
     def __repr__(self):
         """affichage lisible de la macro"""

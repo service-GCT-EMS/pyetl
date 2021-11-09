@@ -69,7 +69,7 @@ class DefinitionAttribut(object):
         "[A]": (r"^" + vdef + "$", "A", "S", "indirect"),
         "+[A]": (r"^\+" + vdef + "$", "A", "S", "indirect"),
         "[A]+": (r"^" + vdef + r"\+$", "A", "S", "indirect"),
-        "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")*)$", "S", "S", "liste"),  # liste
+        "|L": (r"^(" + asdef + r"(?:\|" + asdef + r")+)$", "S", "S", "liste"),  # liste
         "L": (
             r"^(" + asdef + r"(?:[:,]" + asdef + r")*|\*)$",
             "L",
@@ -136,11 +136,11 @@ class DefinitionAttribut(object):
         self.deftype = "T"
         vide = pattern == ""
         self.expression = ""
-        self.commonlist = 0
+        # self.commonlist = 0
         self.obligatoire = vide or not "?" in pattern
-        if "~?" in pattern:
-            self.commonlist = 1
-            pattern = pattern.replace("~?", "")
+        # if "~?" in pattern:
+        #     self.commonlist = 1
+        #     pattern = pattern.replace("~?", "")
         if pattern != "?":
             pattern = pattern.replace("?", "")
         if pattern == "":

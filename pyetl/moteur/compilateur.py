@@ -14,6 +14,7 @@ def _affiche_debug(regles, debug):
     for regle in regles:
         if debug or regle.debug:
             regle.affiche_debug()
+            print("fonction", regle.f_init)
             liens_num = regle.branchements.liens_num()
             liens_pos = regle.branchements.liens_pos()
             print(
@@ -197,13 +198,9 @@ def compile_regles(mapper, regles, debug=0, parent=None):
     # print ('liste_regles',mapper.idpyetl,regles)
     else:  # cest un call il faut revenir
         # print("ajout retour call")
-        regle_sortir = mapper.interpreteur(";;;;;;;return;;;;;retour", "", -1)
+        regle_sortir = mapper.interpreteur(";;;;;;;pass;;;;;retour", "", 99000)
     regle_sortir.index = len(regles)
     regles.append(regle_sortir)  # on mets la regle de sortie pour finir
-    if parent:
-        regles.append(
-            mapper.interpreteur(";;;;;;;pass;;;;;retour", "", -1)
-        )  # on rajoute 2 retour juste pour les calculs
     bloc = 0
     for i in range(len(regles) - 1):
         regle = regles[i]

@@ -95,6 +95,8 @@ class PgsConnect(PgrConnect):
     def get_type(self, nom_type):
         if "geometry" in nom_type:
             return nom_type
+        if nom_type.upper() not in self.types_base:
+            print(" type non trouve", nom_type, self.types_base)
         return self.types_base.get(nom_type.upper(), "?")
 
     def get_surf(self, nom):

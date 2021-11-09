@@ -198,7 +198,7 @@ def setmetas(schema, metas):
         for j in metas.split(";")
         if j.strip() and j != "!meta"
     ]
-    print("decodage metas", v_tmp)
+    # print("decodage metas", v_tmp)
     metas = {var[0]: var[1] for var in v_tmp}
     schema.metas = metas
 

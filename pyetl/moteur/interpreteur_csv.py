@@ -309,7 +309,7 @@ def prepare_regle(regle, prec=None, refs=None):
                 print("     mode statique : skip", regle)
                 print("     refs", refs)
             return regle.valide
-        prec = refs[regle.niveau - 1] if regle.niveau else None
+        prec = refs[regle.niveau - 1] if len(refs) > regle.niveau else None
         if prec:
             ajuste_contexte(regle, prec)
         if len(refs) > regle.niveau:
@@ -865,7 +865,7 @@ def lire_regles_csv(
     numero = numero_ext
     # if regle_ref:
     #     print('regle_ref:',regle_ref)
-    print("dans lire_regles", fichier_regles, liste_regles)
+    # print("dans lire_regles", fichier_regles, liste_regles)
 
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau)
@@ -1025,5 +1025,5 @@ def lire_regles_csv(
     if mapper.debug:
         print("niveau debug :", mapper.getvar("debug"))
         # on initialise les parametres pour finir #print 'parametres ', i
-    print("fin lecture regles", erreurs)
+        print("fin lecture regles", erreurs, "erreurs")
     return erreurs

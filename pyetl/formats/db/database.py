@@ -432,6 +432,7 @@ class DbConnect(object):
 
     def get_type(self, nom_type):
         """ type en base d'un type interne """
+
         return self.types_base.get(nom_type, "?")
 
     def dbclose(self):

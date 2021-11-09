@@ -425,10 +425,10 @@ def h_asplit(regle):
     f_debut = None
     f_fin = None
     tmp = []
-    nbres = len(regle.params.att_sortie.liste) - 1
-    regle.multi = nbres == -1
-    if nbres == 0:
-        nbres = 1
+    nbres = len(regle.params.att_sortie.liste)
+    regle.multi = not regle.params.att_sortie.val
+    if regle.multi:
+        nbres = 0
     sep = regle.params.cmp1.val
     if regle.params.cmp1.val == "\\s":
         sep = ";"
@@ -441,13 +441,14 @@ def h_asplit(regle):
         int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
     )
     nbdecoup = nbres + (int(f_debut) if f_debut else 0)
-    # print(
-    #     "cible decoupage",
-    #     regle.defcible,
-    #     nbdecoup,
-    #     regle.params.att_sortie.liste,
-    #     regle.multi,
-    # )
+    if regle.debug:
+        print(
+            "cible decoupage",
+            regle.defcible,
+            nbdecoup,
+            regle.params.att_sortie.liste,
+            regle.multi,
+        )
     regle.sep = sep
     regle.nbdecoup = nbdecoup
 
@@ -473,10 +474,10 @@ def f_asplit(regle, obj):
             elems = [regle.getval_entree(obj)]
         obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
         # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
-        obj.redirect = "gen"
-        for i in elems[1:]:
+        for i in elems:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
+            obj2.redirect = "gen"
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
     else:
         regle.setval_sortie(
@@ -548,7 +549,8 @@ def f_vset(regle, obj):
     valeur = (
         obj.attributs.get(regle.params.att_entree.val) or regle.params.val_entree.val
     )
-    #    print ('dans vset',regle.params.att_sortie.val,valeur)
+    # print("dans vset", regle.params.att_sortie.val, valeur)
+    # raise
     if valeur != regle.getvar(regle.params.att_sortie.val):
         regle.setvar(regle.params.att_sortie.val, valeur)
         for i in regle.stock_param.bindings.get(regle.params.att_sortie.val, ()):
@@ -753,6 +755,8 @@ def f_cnt(regle, obj):
          #test1||obj||^V4;t1;;cnt;3;4||atv;V4;4
          #test2||obj;;2||^V4;t1;;cnt;3;4||V4;4;;;;;;supp||atv;V4;7
     """
+    if obj.virtuel:
+        return True
     if regle.local:
         obj.attributs[regle.params.att_sortie.val] = "%d" % (regle.orig)
         regle.orig += regle.pas

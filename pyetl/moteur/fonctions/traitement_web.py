@@ -575,7 +575,7 @@ def f_httpdownload(regle, obj):
             retour.encoding = regle.getvar("http_encoding")
 
         regle.setval_sortie(obj, retour.text)
-
+        # print("lu http", retour.text)
         return True
     elif regle.params.pattern == "3":
         regle.setval_sortie(obj, retour.content)

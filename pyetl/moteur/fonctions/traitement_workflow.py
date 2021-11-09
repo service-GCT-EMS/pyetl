@@ -81,8 +81,13 @@ def f_return(regle, obj):
     #pattern||;;;return;?C;
     """
     obj.redirect = regle.params.cmp1.val
+    # print("erreurs", regle.getvar("erreurs"))
     # print("obj", obj)
-    print("redirect==================", obj.redirect, regle.branchements.brch)
+    # print(
+    #     "redirect==================",
+    #     obj.redirect,
+    #     regle.branchements.brch.get(obj.redirect),
+    # )
     return True
 
 
@@ -90,6 +95,7 @@ def h_start(regle):
     """helper start"""
     regle.chargeur = True
     schema = regle.params.cmp1.val
+    regle.reel = regle.params.cmp2.val
     if schema == "#schemas":
         regle.schemas = [
             regle.stock_param.schemas[i]
@@ -104,11 +110,11 @@ def h_start(regle):
 
 
 def f_start(regle, obj):
-    """#aide||ne fait rien mais envoie un objet virtuel dans le circuit avec un schema si defini
-    #pattern||;;;start;?C
+    """#aide||ne fait rien mais envoie un objet virtuel ou reel dans le circuit avec un schema si defini
+    #pattern||;;;start;?C;=?reel
     #test||rien||^;;;start||^;;;reel||cnt;1
     """
-    print("start", obj)
+    regle.stock_param.logger.info("start %s %s", obj.ido if obj else "", regle.reel)
     if obj:  # on a deja un objet pas la peine d'en refaire un
         return True
     if regle.schemas:
@@ -119,7 +125,7 @@ def f_start(regle, obj):
                     niveau,
                     classe,
                     format_natif="interne",
-                    conversion="virtuel",
+                    conversion=None if regle.reel else "virtuel",
                     schema=sc,
                 )
                 regle.stock_param.moteur.traite_objet(
@@ -181,13 +187,13 @@ def f_sync(regle, __):
     return True
 
 
-def f_reel(_, obj):
+def f_reel(regle, obj):
     """#aide||transforme un objet virtuel en objet reel
     #pattern||;;;reel;;
-    #test||rien||^;;;start||^;;;reel||cnt;1
-    #test2||obj;;2||V0;1;;;;;;virtuel||^;;;reel;;;||cnt;2
+    #--test1||rien||^;;;start||^;;;reel||cnt;1
+    #test2||obj;;2||;;;;;;;virtuel;;;||^;;;reel;;;||cnt;1
     """
-    #    print("dans reel",obj)
+    print("dans reel", obj.ido)
 
     if obj.virtuel:
         obj.virtuel = False
@@ -426,7 +432,6 @@ def f_finbloc(*_):
 
 def h_callmacro(regle):
     """charge une macro et gere la tringlerie d'appel"""
-    regle.liste_regles = []  # si la regle est une regle call
     regle.refs = []
     mapper = regle.stock_param
     regle.moteur = mapper.getmoteur()
@@ -553,7 +558,7 @@ def f_creobj(regle, obj):
         obj2 = Objet(ident[0], ident[1], format_natif="interne")
         obj2.setschema(schemaclasse)
         obj2.attributs.update([j for j in zip(noms, vals)])
-        #        print ("objet_test",obj2.attributs,obj2.schema.schema.nom)
+        print("objet_test", obj2.ido)
         obj2.setorig(i)
         try:
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
@@ -896,13 +901,14 @@ def h_filter(regle):
     regle.branchements.addsortie("#autre")
     regle.branchements.addsortie("#blanc")
     regle.branchements.addsortie("#vide")
-    #    print("filtre", regle.liste_sortie)
+    # print("filtre", regle.liste_sortie, regle.branchements.brch)
     return True
 
 
 def f_filter(regle, obj):
     """#aide||filtre en fonction d un attribut
-    #aide_spec||sortie;defaut;attribut;filter;liste sorties;liste valeurs
+    #aide_spec||sortie;defaut;attribut;filter;liste valeurs;liste sorties
+              ||si la liste de sorties est vide c'est les valeurs qui font office de sortie
       #pattern||?S;?C;A;filter;LC;?LC
          #test||obj||^WW;;C1;filter;AB,BB,C||+AB:;;;;X;1;;~set||+BB:;;;;X;2;;~set||atv;X;1
         #test2||obj||^WW;;C1;filter;AB,BB,CD;1,2,3||+1:;;;;X;1;;~set||atv;X;1
@@ -925,8 +931,8 @@ def f_filter(regle, obj):
         obj.redirect = "#vide"
 
     regle.setval_sortie(obj, obj.redirect)
-    #    obj.redirect = obj.redirect+':'
-    #    print("redirect", obj.redirect, regle.branchements)
+    # obj.redirect = obj.redirect+':'
+    # print("redirect", obj.redirect, regle.branchements)
     return True
 
 
@@ -1010,22 +1016,28 @@ def f_attsave(regle, obj):
     #parametres||;attribut;;fichier
     #pattern||A;?C;A;attsave;?C
     """
-    fich = os.path.join(regle.destdir, obj.attributs.get(regle.params.att_sortie.val))
+    fich = os.path.join(regle.destdir, regle.getval_entree(obj))
     destdir = os.path.dirname(fich)
     os.makedirs(destdir, exist_ok=True)
-    contenu = regle.getval_entree(obj)
-    if isinstance(contenu, str):
-        with open(fich, "w", encoding=regle.encoding) as sortie:
-            sortie.write(contenu)
-    elif isinstance(contenu, list):
-        with open(fich, "w", encoding=regle.encoding) as sortie:
-            sortie.write("\n".join(contenu))
-    elif isinstance(contenu, dict):
-        with open(fich, "w", encoding=regle.encoding) as sortie:
-            sortie.write("\n".join(";".join(i) for i in contenu.items()))
+    contenu = obj.attributs.get(regle.params.att_sortie.val)
+    # print("attsave", type(contenu))
+    if contenu:
+        if isinstance(contenu, str):
+            with open(fich, "w", encoding=regle.encoding) as sortie:
+                sortie.write(contenu)
+            # print("attsave: ecrit", contenu)
+        elif isinstance(contenu, list):
+            with open(fich, "w", encoding=regle.encoding) as sortie:
+                sortie.writelines(contenu)
+        elif isinstance(contenu, dict):
+            with open(fich, "w", encoding=regle.encoding) as sortie:
+                sortie.writelines((";".join(i) for i in contenu.items()))
+        else:
+            with open(fich, "wb") as sortie:
+                sortie.write(contenu)
+        return True
     else:
-        with open(fich, "wb") as sortie:
-            sortie.write(contenu)
+        return False
 
 
 def h_parallel(regle):

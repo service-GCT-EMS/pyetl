@@ -61,7 +61,9 @@ TYPES_A = {
     "OID": "I",
     "#EXTERNE": "#EXTERNE",
     "JSON": "J",
+    "JSONB": "J",
     "J": "JSON",
+    "BIN": "BIN",
     "XML": "XML",
 }
 TYPES_S = {

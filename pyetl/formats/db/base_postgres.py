@@ -102,6 +102,8 @@ TYPES_A = {
     "INTERVALLE": "I",
     "OID": "I",
     "JSON": "J",
+    "JSONB": "J",
+    "BYTEA": "BIN",
     "XML": "XML",
     "UNKNOWN": "T",
 }

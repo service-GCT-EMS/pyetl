@@ -442,20 +442,6 @@ def sel_haspk(selecteur, obj):
 
 
 # ------------------------selecteurs sur parametres--------------------------
-def selh_pexiste(selecteur):
-    """precalcule le selecteur statique"""
-    var = selecteur.regle.getvar(selecteur.params.attr.val)
-    selecteur.static = True
-    selecteur.initval = var and var.lower() not in {"", "0", "f", "false"}
-    if selecteur.neg:
-        selecteur.initval = not selecteur.initval
-    # print(
-    #     "pexiste selecteur statique",
-    #     bool(selecteur.initval),
-    #     selecteur.regle.getvar(selecteur.params.attr.val),
-    #     selecteur.params.vals.val,
-    #     selecteur.neg,
-    # )
 
 
 def sel_pexiste(selecteur, _):
@@ -467,8 +453,7 @@ def sel_pexiste(selecteur, _):
     #         selecteur.params.attr.val,'->',
     #         selecteur.regle.getvar(selecteur.params.attr.val),'<-',
     #         bool(selecteur.regle.getvar(selecteur.params.attr.val)))
-    if selecteur.static:
-        return selecteur.initval
+
     var = str(selecteur.regle.getvar(selecteur.params.attr.val))
     return var and var.lower() not in {"", "0", "f", "false"}
 
