@@ -375,11 +375,12 @@ class Macro(object):
         # print("variables locales", macroenv.vlocales)
         return macroenv
 
-    def get_commands(self):
+    def get_commands(self, add_return=False):
         """recupere les commandes de la macro"""
         cmds = [(i, self.commandes_macro[i]) for i in sorted(self.commandes_macro)]
-        maxnum = max(self.commandes_macro.keys())
-        cmds.append((maxnum + 1, ";;;;;;;return;;"))
+        if add_return:
+            maxnum = max(self.commandes_macro.keys())
+            cmds.append((maxnum + 1, ";;;;;;;return;;"))
         return cmds
 
     def __repr__(self):

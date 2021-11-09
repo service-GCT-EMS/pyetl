@@ -256,7 +256,11 @@ def setvloc(regle):
 
 def ajuste_contexte(regle, prec):
     """ grer les contextes entre les regles liees"""
-    # print("avant ajuste_context", regle.niveau, prec.niveau, regle, prec)
+    return
+    ajuste = regle.niveau != prec.niveau
+    if ajuste:
+        print("avant ajuste_context", regle.niveau, prec.niveau, regle, prec)
+
     if regle.niveau > prec.niveau:
         cprec = regle.stock_param.pushcontext(prec.context)
         regle.context.setparent(cprec, ref=False)
@@ -265,7 +269,9 @@ def ajuste_contexte(regle, prec):
         for i in range(prec.niveau - regle.niveau):
             context = regle.stock_param.popcontext()
         regle.context.setparent(context, ref=False)
-    # print("apres ajuste_context", regle.context)
+
+    if ajuste:
+        print("apres ajuste_context", regle.context)
 
 
 def prepare_regle(regle, prec=None, refs=None):
@@ -390,7 +396,7 @@ def interprete_ligne_csv(
     if not regle.valide:
         return regle
 
-    if regle.debug:
+    if regle.debug or regle.istrue("debug"):
         msg = regle.v_nommees["debug"]
         if "print" in regle.v_nommees["debug"]:
             print("---------" + msg + " ligne--->", regle.numero, regle.ligne)
@@ -796,13 +802,13 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     """ importe une macro et l 'interprete"""
     # niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
     # on cree un contexte avec ses propres valeurs locales
-    # print("importe_macro", texte)
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
     debug = macroenv.istrue("debug")
     if debug:
+        print("importe_macro", texte, "contexte", mapper.cur_context)
         print(
             "debug macro:",
-            context,
+            macroenv,
             texte,
             "->",
             inclus,
@@ -811,10 +817,11 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
     if macro:
         # mapper.pushcontext(type_c="M")
         # print("contexte macros :", mapper.cur_context)
+        liste_regles = macro.get_commands(add_return=bool(regle_ref))
         erreurs = lire_regles_csv(
             mapper,
             "",
-            liste_regles=macro.get_commands(),
+            liste_regles=liste_regles,
             regle_ref=regle_ref,
         )
         if erreurs:
@@ -825,7 +832,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         # else:
         #     texte_fin = ";;;;;;;return;;;;;retour macro"
         # traite_regle_std(mapper, 0, texte_fin, texte_fin, "", 0, regle_ref=regle_ref)
-        # print("contexte macros apres:", mapper.cur_context)
+        if debug:
+            print("contexte macros apres:", mapper.cur_context)
         mapper.popcontext(
             typecheck="M", orig="importe_macro", context=macroenv
         )  # on depile un contexte

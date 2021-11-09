@@ -421,6 +421,7 @@ class RegleTraitement(object):  # regle de mapping
         self.memlimit = int(self.getvar("memlimit", 0))
         self.erreurs = []
         self.v_nommees = dict()
+        self.liste_regles = []
 
     def __repr__(self):
         """pour l impression"""

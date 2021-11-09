@@ -193,7 +193,7 @@ def f_reel(regle, obj):
     #--test1||rien||^;;;start||^;;;reel||cnt;1
     #test2||obj;;2||;;;;;;;virtuel;;;||^;;;reel;;;||cnt;1
     """
-    print("dans reel", obj.ido)
+    # print("dans reel", obj.ido)
 
     if obj.virtuel:
         obj.virtuel = False
@@ -558,7 +558,7 @@ def f_creobj(regle, obj):
         obj2 = Objet(ident[0], ident[1], format_natif="interne")
         obj2.setschema(schemaclasse)
         obj2.attributs.update([j for j in zip(noms, vals)])
-        print("objet_test", obj2.ido)
+        # print("objet_test", obj2.ido)
         obj2.setorig(i)
         try:
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
