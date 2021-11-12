@@ -9,6 +9,7 @@ import os
 import logging
 from itertools import zip_longest, count
 from io import StringIO
+from functools import partial
 
 
 # from collections import namedtuple
@@ -74,9 +75,20 @@ class Valdef(object):
     """classe de stockage d'un parametre"""
 
     def __init__(
-        self, val, num, liste, dyn, definition, origine, texte, defaut, typedef
+        self,
+        val,
+        num,
+        liste,
+        dyn,
+        definition,
+        origine,
+        texte,
+        defaut,
+        typedef,
+        regle_ref,
     ):
-        self.val = val
+        self._val = val
+        self.regle_ref = regle_ref
         self.num = num
         self.liste = liste
         if liste and all(":" in i for i in liste):  # liste de type clef:valeur
@@ -90,13 +102,14 @@ class Valdef(object):
         self.defaut = defaut
         self.texte = texte
         self.typedef = typedef
+        # print("parametre", repr(self))
 
     def update(self, obj):
         """mets a jour les elements a partir de l'objet"""
         self.val = obj.attributs.get(self.origine, "")
 
     def __repr__(self):
-        return self.texte + "->" + str(self.val)
+        return self.texte + "->" + str(self.val) + "L:" + repr(self.liste)
 
     def getval(self, obj, defaut=None):
         if self.origine:
@@ -106,6 +119,20 @@ class Valdef(object):
         return self.val
 
 
+class Valp(Valdef):
+    def getvar(self):
+        return self.regle_ref.getvar(self.origine)
+
+    val = property(getvar)
+
+
+class Vals(Valdef):
+    def getstatic(self):
+        return self._val
+
+    val = property(getstatic)
+
+
 class ParametresFonction(object):
     """ stockage des parametres standanrds des regles """
 
@@ -113,11 +140,13 @@ class ParametresFonction(object):
     MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
     #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
 
-    def __init__(self, valeurs, definition, pnum):
+    def __init__(self, regle_ref, valeurs, definition, pnum):
+        # print("creation param fonction", regle_ref, valeurs, definition)
+        self.regle_ref = regle_ref
         self.valeurs = valeurs
         self.definitions = definition
         # print("definition parametres", definition)
-        self.att_sortie = self._crent("sortie")
+        self.att_sortie = self._crent("sortie", out=True)
         self.def_sortie = None
         self.att_entree = self._crent("entree")
         taille = len(self.att_entree.liste or self.att_sortie.liste)
@@ -129,15 +158,19 @@ class ParametresFonction(object):
         self.pattern = pnum
         self.att_ref = self.att_entree if self.att_entree.val else self.att_sortie
 
-    def _crent(self, nom, taille=0):
+    def _crent(self, nom, taille=0, out=False):
         """extrait les infos de l'entite selectionnee"""
         # print("creent", nom, self.valeurs[nom].groups(), self.valeurs[nom].re)
         val = ""
         defaut = ""
         try:
             val = self.valeurs[nom].group(1)
-            if r"\;" in val:
-                val = val.replace(r"\;", ";")  # permet de specifier un ;
+            if val.startswith("P:") and not out:
+                origine = val[2:]
+                val = None
+            else:
+                if r"\;" in val:
+                    val = val.replace(r"\;", ";")  # permet de specifier un ;
         #                val = val.replace(r'\b', 'b')
         except (IndexError, AttributeError, KeyError):
             #            print ('creent erreur', self.valeurs)
@@ -146,39 +179,70 @@ class ParametresFonction(object):
             defin = self.valeurs[nom].group(2).split(",")
         except (IndexError, AttributeError, KeyError):
             defin = []
-        try:
-            num = float(val)
-        except ValueError:
-            num = None
-        val2 = val
-        if ":" in val and not "," in val:
-            val2 = val.replace(":", ",")
-        liste = val2.split(",") if val else []
+        liste = []
+        num = None
+        dyn = False
+        if isinstance(val, str):
+            try:
+                num = float(val)
+            except ValueError:
+                pass
+            val2 = val
+            if ":" in val and not "," in val:
+                val2 = val.replace(":", ",")
+            if val2:
+                liste = val2.split(",")
 
-        if taille > len(liste):
-            if liste:
-                liste.extend([liste[-1]] * (taille - len(liste)))
-            else:
-                liste.extend([""] * taille)
-        #        print (self.definitions)
-        try:
-            if self.definitions[nom].pattern == "|L":
-                liste = val.split("|") if val else []
-        except (IndexError, AttributeError, KeyError):
-            liste = []
-        dyn = "*" in val
-        origine = None
-        if val.startswith("["):
-            # dyn = True
-            origine = val[1:-1]
-            if ":" in origine:
-                origine, defaut = origine.split(":", 1)
+            if taille > len(liste):
+                if liste:
+                    liste.extend([liste[-1]] * (taille - len(liste)))
+                else:
+                    liste.extend([""] * taille)
+            #        print (self.definitions)
+            try:
+                if self.definitions[nom].pattern == "|L":
+                    liste = val.split("|") if val else []
+            except (IndexError, AttributeError, KeyError):
+                liste = []
+            dyn = "*" in val
+            origine = None
+            if val.startswith("["):
+                # dyn = True
+                origine = val[1:-1]
+                if ":" in origine:
+                    origine, defaut = origine.split(":", 1)
 
         #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
         typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
         #        return self.st_val(val, num, liste, dyn, defin)
-        return Valdef(val, num, liste, dyn, defin, origine, texte, defaut, typedef)
+        return (
+            Vals(
+                val,
+                num,
+                liste,
+                dyn,
+                defin,
+                origine,
+                texte,
+                defaut,
+                typedef,
+                self.regle_ref,
+            )
+            if val is not None
+            else Valp(
+                val,
+                num,
+                liste,
+                dyn,
+                defin,
+                origine,
+                texte,
+                defaut,
+                typedef,
+                self.regle_ref,
+            )
+        )
 
     def __repr__(self):
         listev = [
@@ -217,8 +281,9 @@ class ParametresFonction(object):
 class ParametresSelecteur(ParametresFonction):
     """stockage des parametres des selecteurs"""
 
-    def __init__(self, valeurs, definition, pnum):
-        #        print ('creation param selecteur', valeurs, definition)
+    def __init__(self, regle_ref, valeurs, definition, pnum):
+        # print("creation param selecteur", regle_ref, valeurs, definition)
+        self.regle_ref = regle_ref
         self.valeurs = valeurs
         self.definitions = definition
         self.attr = self._crent("attr")
@@ -292,7 +357,7 @@ class Selecteur(object):
             )
             if self.valide:
                 self.params = ParametresSelecteur(
-                    elements, candidat.definition, candidat.patternnum
+                    self.regle, elements, candidat.definition, candidat.patternnum
                 )
 
                 for fhelp in candidat.helper:
@@ -441,6 +506,8 @@ class RegleTraitement(object):  # regle de mapping
                 + repr(self.context)
                 + ")"
                 + repr(self.context.vlocales)
+                + "brch"
+                + repr(self.branchements)
             )
         return "regle vide"
 
@@ -587,7 +654,7 @@ class RegleTraitement(object):  # regle de mapping
                 if not self.fstore:
                     self.afficher_erreurs(fonc, "fonction de sortie non valide")
             self.params = ParametresFonction(
-                self.elements, fonc.definition, fonc.patternnum
+                self, self.elements, fonc.definition, fonc.patternnum
             )
             self.valide = valide
             self.traite_helpers(fonc)
