@@ -522,6 +522,7 @@ def selh_ininfoschema(selecteur):
 def sel_ininfoschema(selecteur, obj):
     """#aide||test sur un parametre de schema
     #pattern||=schema:(.*);||1
+    #test||obj||;?schema:dim;;;res;1;;set||;schema:dom;;;res;0;;set||atv;res;1
     """
     return obj.schema and selecteur.info in obj.schema.info
 

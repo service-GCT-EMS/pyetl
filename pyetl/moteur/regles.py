@@ -121,6 +121,8 @@ class Valdef(object):
 
 class Valp(Valdef):
     def getvar(self):
+        if self.origine in self.regle_ref.stock_param.fonctions:
+            return self.regle_ref.stock_param.fonctions[self.origine]()
         return self.regle_ref.getvar(self.origine)
 
     val = property(getvar)

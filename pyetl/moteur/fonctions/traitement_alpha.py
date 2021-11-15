@@ -255,7 +255,7 @@ def f_sub(regle, obj):  # fonction de substution
 
 def h_setcalc(regle):
     """ preparation de l'expression du calculateur de champs"""
-    print("dans hcalc", regle.params)
+    # print("dans hcalc", regle.params)
     try:
         if regle.params.pattern == "1":
             regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")

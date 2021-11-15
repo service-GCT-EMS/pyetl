@@ -532,6 +532,7 @@ class Context(object):
         """fournit la valeur d'un parametre selon des contextes standardises"""
         #        if nom == 'nbaffich':
         #            print ('chemin de recherche ',self.search)
+
         return self.getvar_b(nom, defaut)
         ret = self.getvar_b(nom, defaut)
 

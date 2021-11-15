@@ -22,7 +22,7 @@ from .traitement_geom import setschemainfo
 # import multiprocessing
 
 from pyetl.formats.interne.objet import Objet
-from .outils import renseigne_attributs_batch, objloader
+from .outils import renseigne_attributs_batch, getfichs
 
 
 LOGGER = logging.getLogger(__name__)
@@ -683,6 +683,27 @@ def h_fileloader(regle):
     regle.stock_param.gestion_parallel_load(regle)
 
 
+def objloader(regle, obj):
+    """charge des objets depuis des fichiers"""
+    nb_lu = 0
+    lecture = regle.stock_param.lecture
+    retour = False
+    for i, parms in getfichs(regle, obj):
+        print("lecture", i, parms)
+        try:
+            nb_lu += lecture(i, regle=regle.branchements.brch["gen"], parms=parms)
+            retour = True
+        except StopIteration as abort:
+            if abort.args[0] == 2:
+                continue
+    #    print("lecture",nb_lu)
+    if not retour:
+        print("chargeur: pas de fichiers d'entree")
+    if regle.params.att_sortie.val:
+        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
+    return retour
+
+
 def f_fileloader(regle, obj):
     """#aide||chargement d objets en fichier
      #aide_spec||cette fonction est l' équivalent du chargement initial
@@ -950,7 +971,9 @@ def f_idle(_, __):
 
 def f_sleep(regle, obj):
     """#aide||attends;;
+    #parametres||duree defaut;att_duree
     #pattern||;?C;?A;sleep;;
+    #test||obj||^A;P:#seconds;;set||^;1;;sleep||^B;P:#seconds;;set||^res;;N:B-N:A;set||atn;res;1
     """
     try:
         flemme = float(regle.getval_entree(obj))
@@ -992,9 +1015,9 @@ def h_attreader(regle):
 def f_attreader(regle, obj):
     """#aide||traite un attribut d'un objet comme une source de donnees
     #parametres||defaut;attribut;;format
-    #aide_spec||par defaut attreader supprime le contenu de l attribut source
-              ||pour le conserver positionner la variable keepdata a 1
-    #pattern||?L;?C;A;attreader;C;?C
+     #aide_spec||par defaut attreader supprime le contenu de l attribut source
+               ||pour le conserver positionner la variable keepdata a 1
+       #pattern||?L;?C;A;attreader;C;?C
     """
     # print("attaccess", obj.attributs[regle.params.att_entree.val])
     regle.reader.attaccess(obj)
@@ -1035,6 +1058,35 @@ def f_attsave(regle, obj):
         else:
             with open(fich, "wb") as sortie:
                 sortie.write(contenu)
+        return True
+    else:
+        return False
+
+
+def h_attload(regle):
+    """prepare les repertoires"""
+    regle.loaddir = os.path.join(regle.getvar("_entree"), regle.params.cmp1.val)
+    regle.encoding = regle.getvar("encoding", "utf-8")
+    regle.format = regle.params.cmp2.val
+    return True
+
+
+def f_attload(regle, obj):
+    """#aide||stocke le contenu d un fichier dans un attribut
+    #parametres||;attribut;;fichier
+    #pattern||A;?C;A;attload;?C;?C
+    """
+    fich = os.path.join(regle.loaddir, regle.getval_entree(obj))
+    if regle.format == "B":
+        contenu = open(
+            fich,
+            "rb",
+        ).read()
+    else:
+        contenu = open(fich, "r", encoding=regle.encoding).readlines()
+    # print("attload", type(contenu))
+    if contenu:
+        obj.attributs[regle.params.att_sortie.val] = contenu
         return True
     else:
         return False

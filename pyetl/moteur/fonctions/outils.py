@@ -177,27 +177,6 @@ def renseigne_attributs_batch(regle, obj, retour):
     obj.attributs[regle.params.att_sortie.val] = str(retour)
 
 
-def objloader(regle, obj):
-    """charge des objets depuis des fichiers"""
-    nb_lu = 0
-    lecture = regle.stock_param.lecture
-    retour = False
-    for i, parms in getfichs(regle, obj):
-        print("lecture", i, parms)
-        try:
-            nb_lu += lecture(i, regle=regle.branchements.brch["gen"], parms=parms)
-            retour = True
-        except StopIteration as abort:
-            if abort.args[0] == 2:
-                continue
-    #    print("lecture",nb_lu)
-    if not retour:
-        print("chargeur: pas de fichiers d'entree")
-    if regle.params.att_sortie.val:
-        obj.attributs[regle.params.att_sortie.val] = str(nb_lu)
-    return retour
-
-
 def expandfilename(nom, rdef, racine="", chemin="", fichier=""):
     """prepare un nom de fichier en fonction de modifieurs"""
     rplaces = {"D": rdef, "R": racine, "C": chemin, "F": fichier}
@@ -473,7 +452,7 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     valeurs = dict([i.split("=>", 1) if "=>" in i else (i, i) for i in liste_valeurs])
-    print("fichier a lire ", fichier, liste_valeurs)
+    # print("fichier a lire ", fichier, liste_valeurs)
     if fichier.startswith("#schema"):  # liste de classes d'un schema
         mode = "in_s"
         decoupage = fichier.split(":")

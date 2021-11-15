@@ -361,6 +361,7 @@ class Pyetl(object):
             self.site_params = self.parent.site_params
             self.dbref = self.parent.dbref
             self.sorties = self.parent.sorties
+            self.fonctions = self.parent.fonctions
 
     def traite_variables_speciales(self, nom):
         if nom == "log_file" or nom == "log_level":
@@ -846,6 +847,9 @@ class Pyetl(object):
         """initialise les parametres
         #help||parametres systeme:
         """
+        self.fonctions = dict()
+        self.fonctions["#time"] = time.time
+        self.fonctions["#seconds"] = lambda: int(time.time())
 
         self.context.update(
             [
