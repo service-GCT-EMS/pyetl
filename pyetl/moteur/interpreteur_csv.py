@@ -389,7 +389,7 @@ def interprete_ligne_csv(
     # print("creation regle", regle, ligne)
     prepare_regle(regle, prec, refs)
     # print("retour prepare", regle.valide, regle)
-    if regle.valide == "vide":
+    if regle.valide != True:
         #        print('regle vide ',regle)
         return None
 

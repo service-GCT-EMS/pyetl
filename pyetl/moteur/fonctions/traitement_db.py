@@ -174,8 +174,10 @@ def f_dbalpha(regle, obj):
             ||dest;repertoire temporaire si extracteur externe
     #req_test||testdb
     """
+    logger = regle.stock_param.logger
     if not regle.getvar("traitement_virtuel"):
         if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel":
+            logger.debug("traitement virtuel :%s", str(obj.ido))
             # print ('detection traitement virtuel : on ignore', obj, regle.getvar('traitement_virtuel'), regle.context.vlocales)
             return False
 
@@ -193,7 +195,7 @@ def f_dbalpha(regle, obj):
     regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
 
-        LOGGER.debug("select base %s %s", base, repr(regle.mods))
+        logger.debug("select base %s %s", base, repr(regle.mods))
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
 
@@ -211,7 +213,7 @@ def f_dbalpha(regle, obj):
             regle.setvar("_entree", dest)
             log = regle.getvar("log", os.path.join(dest, "log_extraction.log"))
             os.makedirs(os.path.dirname(log), exist_ok=True)
-            LOGGER.info("dump donnees de %s vers %s, log:%s", base, dest, log)
+            logger.info("dump donnees de %s vers %s, log:%s", base, dest, log)
             # print("traitement db: dump donnees de", base, "vers", dest)
             retour = DB.dbextalpha(regle, basesel, dest=dest, log=log)
         else:

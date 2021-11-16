@@ -607,7 +607,7 @@ class Pyetl(object):
                                     prochain, interm = affiche(message, nbval)
                                 # print("-main:------------------retour queue", msg, nbvals)
                             elif message == "fich":
-                                print("message fich", nbfic, w_nbval, wid, nbtotal)
+                                # print("message fich", nbfic, w_nbval, wid, nbtotal)
                                 tabletotal += nbfic
                                 nbfic = 0
                             elif message == "exp":

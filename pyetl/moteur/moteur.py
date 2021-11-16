@@ -106,25 +106,38 @@ class Moteur(object):
         """ declenche les regles de chargement pour les traitements sans entree"""
         #        if self.debug:
         #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
-        if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
-            pass
-        else:
-            obj = Objet(
-                "_declencheur",
-                "_chargement",
-                format_natif="interne",
-                conversion="virtuel",
-            )
-            self.traite_objet(obj, self.regles[0])
-        #        if self.regles[0].mode == "start": #on prends la main dans le script
-        #            self.regles[0].fonc(self.regles[0], None)
-        #            return
+        # if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
+        #     pass
+        # else:
+        #     obj = Objet(
+        #         "_declencheur",
+        #         "_chargement",
+        #         format_natif="interne",
+        #         conversion="virtuel",
+        #     )
+        #     self.traite_objet(obj, self.regles[0])
+        # #        if self.regles[0].mode == "start": #on prends la main dans le script
+        # #            self.regles[0].fonc(self.regles[0], None)
+        # #            return
         for i in self.regles:
-            #            print ('-------------------------------traite_charge ', i.declenchee ,i.chargeur,i )
+            # print(
+            #     "-------------------------------traite_charge ",
+            #     i.declenchee,
+            #     i.chargeur,
+            #     i.niveau,
+            #     i,
+            # )
             # on ne traite pas les regles de chargement si elles sont dans des conditions
-            if not i.declenchee and i.chargeur and i.niveau == 0:
-                if i.mode == "start":  # on prends la main dans le script
+            if (
+                not i.declenchee
+                and i.chargeur
+                and (i.niveau == 0 or (i.niveau == 1 and i.nonext))
+            ):
+                if (
+                    i.mode == "start"
+                ):  # on prends la main dans le script on est responsable de la suite
                     i.fonc(i, None)
+                    break
                 else:
                     obj = Objet(
                         "_declencheur",
@@ -162,7 +175,7 @@ class Moteur(object):
                             self.dupcnt += 1
                         # print "apres copie ", obj.schema
                     #                print("traitement regle",regle)
-                    resultat = regle.fonc(regle, obj)
+                    resultat = regle.fonc(regle, obj) if regle.fonc else True
                     #                print ('params:action schema',regle.params.att_sortie.liste,
                     #                           resultat,obj.schema,regle.action_schema)
                     if resultat:
