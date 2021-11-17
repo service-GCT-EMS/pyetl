@@ -55,7 +55,7 @@ reference macros
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
 :ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
-:ref:`#geoextract` acces;niveau;classe;mode_geo;buffer;champ  extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
+:ref:`#geoextract` acces;niveau;classe;rel_geo;buffer;champ   extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 :ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
 :ref:`#grantsitr` schema                                      generation des scripts de grant
@@ -767,7 +767,7 @@ parametres positionnels
 * acces:acces
 * niveau:schema des classes a extraire (exp reg ou in:nom de fichier)
 * classe:classes a extraire (exp reg)
-* mode_geo:relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
+* rel_geo:relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
 * buffer:taille du buffer
 * champ:champ
 

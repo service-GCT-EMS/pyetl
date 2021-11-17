@@ -154,7 +154,9 @@ def controle(mapper, idtest, descript_test, debug=0):
     regles_c = [re.sub(r"^\?", "", i) for i in regles if ";~" not in i]
     f_controle = desctest[-1]
     liste_regles = list(
-        enumerate(["<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"])
+        enumerate(
+            [";;;;;;;start;;", "<#" + init + ";"] + regles_s + ["<#" + f_controle + ";"]
+        )
     )
     #    if "debug" in nom_test:
     #        debug = 1
@@ -172,7 +174,7 @@ def controle(mapper, idtest, descript_test, debug=0):
     #    print ('unittest: ',liste_regles)
     liste_controle = list(
         enumerate(
-            ["<#" + init + ";"]
+            [";;;;;;;start;;", "<#" + init + ";"]
             + [i for i in regles_c if ";" + nom_fonc not in i + ";"]
             + ["<#" + f_controle + ";"]
         )

@@ -21,8 +21,8 @@ def h_archive(regle):
 
 def f_archive(regle, obj):
     """#aide||zippe les fichiers ou les repertoires de sortie
-    #parametres||liste de noms de fichiers(avec *...);attribut contenant le nom;;nom du fichier zip
-      #pattern||;?C;?A;archive;C;
+    #parametres||liste de noms de fichiers(avec \*...);attribut contenant le nom;;nom du fichier zip
+      #pattern1||;?C;?A;archive;C;
       #pattern2||;?C;?A;zip;C;
          #test||notest
     """

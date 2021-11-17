@@ -441,9 +441,10 @@ def f_dbrequest(regle, obj):
               ||classe du selecteur en substituant les variables par la classe courante
               ||sinon elle est passee une fois pour chaque base du selecteur
               ||les variables %#base et %#attr sont egalement substituees
-              ||autres variables: %#info : acces a des informations sur la classe
+              ||autres variables:
+              ||%#info : acces a des informations sur la classe
               ||(nom_geometrie,dimension,type_geom,objcnt_init,courbe,alias,type_table)
-              ||                  %#metas : acces a des informations sur la requete
+              ||%#metas : acces a des informations sur la requete
               ||(script_ref,filtre_niveau,filtre_classe,origine,restrictions,tables)
        #groupe||database
       #pattern1||?A;?;?L;dbreq;C;A.C

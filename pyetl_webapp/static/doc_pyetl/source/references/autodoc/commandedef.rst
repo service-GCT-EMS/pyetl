@@ -575,6 +575,118 @@ upper
    A :  attribut d'entree
 
 
+archives
+--------
+
+archives
+
+.. index::
+  double: .traitement_archives;archive
+
+archive
+.......
+
+   zippe les fichiers ou les repertoires de sortie
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |?C    |?A    |archive |C     |        |
++------+------+------+--------+------+--------+
+
+
+   ?C :  liste de noms de fichiers(avec \*...) (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   archive :  
+   C :  nom du fichier zip
+
+
+
+.. index::
+  double: .traitement_archives;zip
+
+zip
+...
+
+   zippe les fichiers ou les repertoires de sortie
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |?C    |?A    |zip     |C     |        |
++------+------+------+--------+------+--------+
+
+
+   ?C :  liste de noms de fichiers(avec \*...) (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zip :  
+   C :  nom du fichier zip
+
+
+
+.. index::
+  double: .traitement_archives;zipdir
+
+zipdir
+......
+
+   liste les fichiers d un zip
+
+
+**syntaxes acceptees**
+
++--------+--------+--------+----------+--------+----------+
+|sortie  |defaut  |entree  |commande  |param1  |param2    |
++========+========+========+==========+========+==========+
+|?A      |?C      |?A      |zipdir    |        |          |
++--------+--------+--------+----------+--------+----------+
+| *cree la liste de contenus dans l'attribut de sortie*   |
++--------+--------+--------+----------+--------+----------+
+|?A      |?C      |?A      |zipdir    |=split  |          |
++--------+--------+--------+----------+--------+----------+
+| *cree un objet par element du fichier zip*              |
++--------+--------+--------+----------+--------+----------+
+
+
+   ?A :  attribut de sortie (optionnel)
+   ?C :  nom du fichier (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zipdir :  
+
+
+
+.. index::
+  double: .traitement_archives;zipextract
+
+zipextract
+..........
+
+   extrait des fichiers d'un zip
+
+
+**syntaxes acceptees**
+
++------+------+------+----------+------+--------+
+|sortie|defaut|entree|commande  |param1|param2  |
++======+======+======+==========+======+========+
+|?C    |?C    |?A    |zipextract|C     |?=all   |
++------+------+------+----------+------+--------+
+
+
+   ?C :  destination (optionnel)
+   ?C :  fichier a extraire (optionnel)
+   ?A :  attribut contenant le nom (optionnel)
+   zipextract :  zipextract
+   C :  nom du zip
+   ?=all :   (optionnel)
+
+
 fonctions auxiliaires
 ---------------------
 
@@ -1053,9 +1165,10 @@ dbreq
    classe du selecteur en substituant les variables par la classe courante
    sinon elle est passee une fois pour chaque base du selecteur
    les variables %#base et %#attr sont egalement substituees
-   autres variables: %#info : acces a des informations sur la classe
+   autres variables:
+   %#info : acces a des informations sur la classe
    (nom_geometrie,dimension,type_geom,objcnt_init,courbe,alias,type_table)
-                     %#metas : acces a des informations sur la requete
+   %#metas : acces a des informations sur la requete
    (script_ref,filtre_niveau,filtre_classe,origine,restrictions,tables)
 
 **syntaxes acceptees**
@@ -3374,6 +3487,31 @@ abort
 
 
 .. index::
+  double: .traitement_workflow;attload
+
+attload
+.......
+
+   stocke le contenu d un fichier dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |A     |attload |?C    |?C      |
++------+------+------+--------+------+--------+
+
+
+   A :  
+   ?C :  attribut (optionnel)
+   A :  
+   attload :  fichier
+
+
+
+.. index::
   double: .traitement_workflow;attreader
 
 attreader
@@ -3677,17 +3815,19 @@ filter
 
    filtre en fonction d un attribut
 
-   sortie;defaut;attribut;filter;liste sorties;liste valeurs
+   sortie;defaut;attribut;filter;liste valeurs;liste sorties
+   si la liste de sorties est vide c'est les valeurs qui font office de sortie
 
 **syntaxes acceptees**
 
-+---------+---------+---------+-----------+---------+-----------+
-|sortie   |defaut   |entree   |commande   |param1   |param2     |
-+=========+=========+=========+===========+=========+===========+
-|?S       |?C       |A        |filter     |LC       |?LC        |
-+---------+---------+---------+-----------+---------+-----------+
-| *sortie;defaut;attribut;filter;liste sorties;liste valeurs*   |
-+---------+---------+---------+-----------+---------+-----------+
++------------+------------+------------+--------------+------------+--------------+
+|sortie      |defaut      |entree      |commande      |param1      |param2        |
++============+============+============+==============+============+==============+
+|?S          |?C          |A           |filter        |LC          |?LC           |
++------------+------------+------------+--------------+------------+--------------+
+| *sortie;defaut;attribut;filter;liste valeurs;liste sorties*                     |
+| *si la liste de sorties est vide c'est les valeurs qui font office de sortie*   |
++------------+------------+------------+--------------+------------+--------------+
 
 
 
@@ -4059,6 +4199,9 @@ sleep
 +------+------+------+--------+------+--------+
 
 
+   ?C :  duree defaut (optionnel)
+   ?A :  att_duree (optionnel)
+
 
 
 .. index::
@@ -4067,7 +4210,7 @@ sleep
 start
 .....
 
-   ne fait rien mais envoie un objet virtuel dans le circuit avec un schema si defini
+   ne fait rien mais envoie un objet virtuel ou reel dans le circuit avec un schema si defini
 
 
 **syntaxes acceptees**
@@ -4075,7 +4218,7 @@ start
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |start   |?C    |        |
+|      |      |      |start   |?C    |=?reel  |
 +------+------+------+--------+------+--------+
 
 
@@ -4458,116 +4601,4 @@ xmlstruct
    xmlstruct :  attribut xml
    ?C :   (optionnel)
    ?C :  tag a extraire (optionnel)
-
-
-zip
----
-
-zip
-
-.. index::
-  double: .traitement_zip;archive
-
-archive
-.......
-
-   zippe les fichiers ou les repertoires de sortie
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|      |?C    |?A    |archive |C     |        |
-+------+------+------+--------+------+--------+
-
-
-   ?C :  liste de noms de fichiers(avec *...) (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   archive :  
-   C :  nom du fichier zip
-
-
-
-.. index::
-  double: .traitement_zip;zip
-
-zip
-...
-
-   zippe les fichiers ou les repertoires de sortie
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|      |?C    |?A    |zip     |C     |        |
-+------+------+------+--------+------+--------+
-
-
-   ?C :  liste de noms de fichiers(avec *...) (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zip :  
-   C :  nom du fichier zip
-
-
-
-.. index::
-  double: .traitement_zip;zipdir
-
-zipdir
-......
-
-   liste les fichiers d un zip
-
-
-**syntaxes acceptees**
-
-+--------+--------+--------+----------+--------+----------+
-|sortie  |defaut  |entree  |commande  |param1  |param2    |
-+========+========+========+==========+========+==========+
-|?A      |?C      |?A      |zipdir    |        |          |
-+--------+--------+--------+----------+--------+----------+
-| *cree la liste de contenus dans l'attribut de sortie*   |
-+--------+--------+--------+----------+--------+----------+
-|?A      |?C      |?A      |zipdir    |=split  |          |
-+--------+--------+--------+----------+--------+----------+
-| *cree un objet par element du fichier zip*              |
-+--------+--------+--------+----------+--------+----------+
-
-
-   ?A :  attribut de sortie (optionnel)
-   ?C :  nom du fichier (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zipdir :  
-
-
-
-.. index::
-  double: .traitement_zip;zipextract
-
-zipextract
-..........
-
-   extrait des fichiers d'un zip
-
-
-**syntaxes acceptees**
-
-+------+------+------+----------+------+--------+
-|sortie|defaut|entree|commande  |param1|param2  |
-+======+======+======+==========+======+========+
-|?C    |?C    |?A    |zipextract|C     |?=all   |
-+------+------+------+----------+------+--------+
-
-
-   ?C :  destination (optionnel)
-   ?C :  fichier a extraire (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zipextract :  zipextract
-   C :  nom du zip
-   ?=all :   (optionnel)
 

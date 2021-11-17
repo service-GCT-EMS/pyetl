@@ -254,17 +254,17 @@ db:%acces%;%niveau%;%classe%;%attribut%;;%valeur%;;dbalpha;%mod%;%ordre%;;
 <#stdvar;;;;;;;;
 db:%acces%;%niveau%;%classe%;;;;;dbextdump;%rep_sortie%;%log%;fin;
 !===========================================================================================;;;;;;;;;;;
-&&#define;#geoextract;acces;niveau;classe;mode_geo;buffer;champ;;;;
+&&#define;#geoextract;acces;niveau;classe;rel_geo;buffer;champ;;;;
 !#help;extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 !#parametres;accces;base de donnees a acceder ( doit etr definie dans site_params)
 !#parametres;niveau;schema des classes a extraire (exp reg ou in:nom de fichier)
 !#parametres;classe;classes a extraire (exp reg)
-!#parametres;mode_geo;relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
+!#parametres;rel_geo;relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
 !#parametres;buffer;taille du buffer
 $mode_sortie=D;;;;;;;;;;;
 <#initdb;%acces%;;;;;
-$mode_geo=%mode_geo%;dans_emprise;;;;;;;;;;;
-db:%acces%;%niveau%;%classe%;%mode_geo%;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
+$rel_geo=%rel_geo%;dans_emprise;;;;;;;;;;;
+db:%acces%;%niveau%;%classe%;%rel_geo%;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract+gid;acces;niveau;classe;attribut;valeur;;;;;
 !#help;lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;
@@ -598,7 +598,7 @@ $mode_sortie=D;;;;
 &&#define;#editparams;perso;;;;;
 $fich=%_paramdir%;;
 K:perso;$fich=%_paramperso%;;
-;;;;;^;;run;notepad %fich%\site_params.csv;;debug;
+;;;;P:_;;;run;notepad %fich%\site_params.csv;;debug;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#debug;;;;;;
 ;;;;;;;pass;;;print;

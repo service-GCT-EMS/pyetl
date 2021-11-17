@@ -14,6 +14,10 @@ sub;.traitement_alpha
 supp;.traitement_alpha
 supp_classe;.traitement_alpha
 upper;.traitement_alpha
+archive;.traitement_archives
+zip;.traitement_archives
+zipdir;.traitement_archives
+zipextract;.traitement_archives
 stat;.traitement_aux
 crypt;.traitement_crypt
 decrypt;.traitement_crypt
@@ -123,6 +127,7 @@ ftp_upload;.traitement_web
 geocode;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
+attload;.traitement_workflow
 attreader;.traitement_workflow
 attsave;.traitement_workflow
 batch;.traitement_workflow
@@ -166,7 +171,3 @@ xmledit;.traitement_xml
 xmlextract;.traitement_xml
 xmlsplit;.traitement_xml
 xmlstruct;.traitement_xml
-archive;.traitement_zip
-zip;.traitement_zip
-zipdir;.traitement_zip
-zipextract;.traitement_zip
