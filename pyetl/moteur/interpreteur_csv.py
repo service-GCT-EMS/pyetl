@@ -389,12 +389,9 @@ def interprete_ligne_csv(
     # print("creation regle", regle, ligne)
     prepare_regle(regle, prec, refs)
     # print("retour prepare", regle.valide, regle)
-    if regle.valide != True:
-        #        print('regle vide ',regle)
-        return None
 
     if not regle.valide:
-        return regle
+        return None
 
     if regle.debug or regle.istrue("debug"):
         msg = regle.v_nommees["debug"]
@@ -407,6 +404,9 @@ def interprete_ligne_csv(
         # print ('done', regle)
         # c'est une regle qui n'a pas de consequences sur les objets
         mapper.done = True  # on a fait qque chose
+        return None
+    if regle.valide != True:
+        #        print('regle vide ',regle)
         return None
     return regle
 
@@ -648,7 +648,7 @@ def traite_regle_std(
             macrodef=macrodef,
         )
     except SyntaxError:
-        print("syntaxerror ", texte_brut)
+        # print("syntaxerror ", texte_brut)
         return bloc, 1
     #        raise
     #            print ('icsv:traitement ligne ',i[:-1], r_cour)
@@ -1005,7 +1005,7 @@ def lire_regles_csv(
                 mapper, texte[2:], context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
-                LOGGER.error("erreur chargement macro %s", texte)
+                # LOGGER.error("erreur chargement macro %s", texte)
                 # print("====erreur chargement macro", texte, errs)
                 erreurs = erreurs + errs
                 return erreurs

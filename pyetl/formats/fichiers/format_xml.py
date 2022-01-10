@@ -460,6 +460,7 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
 READERS = {
     "xml": (lire_objets_xml, "#gml", False, (), None, None),
     "qgs": (lire_objets_xml_simple, None, False, (), init_qgs, None),
+    "qlr": (lire_objets_xml_simple, None, False, (), init_qgs, None),
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {

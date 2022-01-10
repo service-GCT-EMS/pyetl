@@ -385,9 +385,18 @@ class PgrConnect(DbConnect):
     def get_elements_specifiques(self, schema):
         """recupere des elements specifiques a un format et les stocke dans
         une structure du schema"""
+        debug = self.regle.istrue("debug")
+        if debug:
+            print("acces vues")
         schema.elements_specifiques["def_vues"] = self._def_vues()
+        if debug:
+            print("acces triggers")
         schema.elements_specifiques["def_triggers"] = self._def_triggers()
+        if debug:
+            print("acces ftables")
         schema.elements_specifiques["def_ftables"] = self._def_ftables()
+        if debug:
+            print("acces fonctions")
         schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
         schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
         # print(

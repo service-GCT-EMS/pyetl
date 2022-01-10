@@ -145,10 +145,10 @@ class Moteur(object):
                         format_natif="interne",
                         conversion="virtuel",
                     )
-                    i.mode_chargeur = True
+                    # i.mode_chargeur = True
                     # print("mode chargeur", i)
                     self.traite_objet(obj, i)
-                    i.mode_chargeur = False
+                    # i.mode_chargeur = False
 
     def traite_objet(self, obj, regle, parent=None):
         """traitement basique toutes les regles sont testees """
@@ -197,7 +197,7 @@ class Moteur(object):
                         regle.stock_param.gestion_log.stopdebug()
                     obj.is_ok = resultat
 
-                    if regle.mode_chargeur:  # la on fait des
+                    if regle.mode_chargeur:  # la on fait de executtion unique
                         # print("==============mode chargeur", regle)
                         regle = None
                     else:

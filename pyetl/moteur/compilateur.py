@@ -174,7 +174,7 @@ def compile_regles(mapper, regles, debug=0, parent=None):
     # print("compile regles", parent, regles)
     if not regles:
         print("pas de regles a compiler", parent, parent.valide if parent else "")
-        raise
+        # raise
         raise EOFError("pas de regles a compiler")
     # print ('compilateur:gestion sortie',mapper.getvar("F_sortie"))
     if not parent:

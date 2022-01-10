@@ -11,6 +11,8 @@ import time
 import os
 from operator import attrgetter
 from collections import namedtuple
+
+from pyetl.formats.interne.objet import LOGGER
 from .dbconstants import *
 from .gensql import DbGenSql
 
@@ -681,6 +683,9 @@ class DbConnect(object):
         """ recupere le schema complet de la base """
         debut = time.time()
         self.schemabase.metas = self.metas
+        debug = self.regle.istrue("debug")
+        if debug:
+            print("lecture enums")
         for i in self.get_enums():
             nom_enum, ordre, valeur, alias = i[:4]
             conf = self.schemabase.get_conf(nom_enum)
@@ -690,6 +695,8 @@ class DbConnect(object):
             for ordre, valeur in enumerate(valeurs.split(",")):
                 conf = self.schemabase.get_conf(nom_enum)
                 conf.stocke_valeur(valeur, "", ordre=ordre, mode_force=mode_force_enums)
+        if debug:
+            print("lecture attributs")
         self._recup_attributs()
         self._recup_tables()
 
@@ -697,7 +704,12 @@ class DbConnect(object):
             nom, alias = i
             self.schemabase.alias_groupes[nom] = alias if alias else ""
         #        print ('recuperation alias',nom,alias)
-        self.get_elements_specifiques(self.schemabase)
+        if debug:
+            print("lecture elements specifiques")
+        try:
+            self.get_elements_specifiques(self.schemabase)
+        except:
+            LOGGER.error("erreur lecture elements specifiques")
         self.schemabase.dialecte = self.dialecte
         self.params.logger.info(
             "lecture schema base %s: %d tables en %d s(%s)",

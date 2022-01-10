@@ -79,10 +79,10 @@ def scandirs(
     )
     print("recherche", path)
     if os.path.isfile(path):
-        rep_depart = os.path.dirname(rep_depart)
         fichier = os.path.basename(rep_depart)
+        rep_depart = os.path.dirname(rep_depart)
         chemin = ""
-        print("retour", ("", ""))
+        print("retour", (str(fichier), ""))
         yield ("", "")
         return
     if "*" in path:
@@ -370,7 +370,7 @@ def charge_liste(
                     LOGGER.debug("chargement liste " + i + " repertoire " + f_interm)
 
                     #                    print("chargement liste ", i, 'repertoire:', f_interm)
-                    if os.path.splitext(i)[-1] == ".qgs":
+                    if os.path.splitext(i)[-1] in {".qgs", ".qlr"}:
                         stock.update(
                             _charge_liste_projet_qgs(
                                 os.path.join(f_interm, i),
@@ -394,7 +394,7 @@ def charge_liste(
                     #                    print ('non retenu',i,clef)
                     pass
         else:
-            if os.path.splitext(f_interm)[-1] == ".qgs":
+            if os.path.splitext(f_interm)[-1] in {".qgs", ".qlr"}:
                 stock.update(
                     _charge_liste_projet_qgs(
                         f_interm, codec=codec, debug=debug, taille=taille

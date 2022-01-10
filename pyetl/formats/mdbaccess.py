@@ -76,7 +76,8 @@ def dbaccess(regle, codebase, type_base=None):
     )
 
     if connection.valide:
-        # print("connection valide", serveur, base)
+        if regle.istrue("debug"):
+            print("connection valide", serveur, base)
         connection.gensql = dbdef.gensql(connection=connection)
         connection.prefix = prefix
         connection.type_serveur = dbdef.svtyp
@@ -285,6 +286,8 @@ def get_connect(
     nomschema = nomschema if nomschema else connect.schemabase.nom.replace("#", "")
     if mode == "fast":
         return connect
+    if regle.istrue("debug"):
+        print("recup schema complet")
     schema_travail, liste2 = connect.getschematravail(
         regle,
         niveau,
@@ -294,6 +297,8 @@ def get_connect(
         nocase=nocase,
         nomschema=nomschema,
     )
+    if regle.istrue("debug"):
+        print("connection base complete")
     return connect, schema_travail, liste2
 
 

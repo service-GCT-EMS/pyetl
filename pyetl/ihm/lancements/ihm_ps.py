@@ -140,7 +140,7 @@ class Fenetre(object):
             vlist.extend(vslist)
 
         if self.statusbar:
-            statusbar = Label(self, self.lignes, 1, "")
+            statusbar = Statusbar(self, self.lignes, 1, "")
             vslist, scode = statusbar.genps(ihm)
             code.extend(scode)
             vlist.extend(vslist)
@@ -428,6 +428,13 @@ class Label(Element):
         return [lab], code
 
 
+class Statusbar(Label):
+    def __init__(self, parent, lin, col, titre):
+        super().__init__(parent, lin, col, titre)
+        self.id = "statusbar"
+        self.nature = "statusbar"
+
+
 class Commande(Element):
     def __init__(self, parent, texte):
         super().__init__(parent, "=", 1, "")
@@ -519,8 +526,10 @@ def creihm(nom):
             elif code == "!fileselect":
                 lin, col = position.split(",", 1)
                 titre, selecteur, variable = commande.split(";", 2)
+                variable = variable.split(";")[0]
                 fsel = Fileselect(courant, lin, col, titre, selecteur, variable)
                 courant.elements.append(fsel)
+                print("fsel:trouve variable", variable)
                 if variable:
                     variables[variable] = fsel
 
@@ -541,6 +550,7 @@ def creihm(nom):
             elif code == "!droplist":
                 lin, col = position.split(",")
                 titre, liste, variable = commande.split(";", 2)
+                variable = variable.split(";")[0]
                 dlist = Droplist(courant, lin, col, titre, liste, variable)
                 courant.elements.append(dlist)
                 if variable:
@@ -549,6 +559,7 @@ def creihm(nom):
             elif code == "!checklist":
                 lin, col = position.split(",")
                 titre, liste, variable = commande.split(";", 2)
+                variable = variable.split(";")[0]
                 dlist = ListView(courant, lin, col, titre, liste, variable)
                 courant.elements.append(dlist)
                 if variable:
@@ -569,6 +580,7 @@ def creihm(nom):
             elif code == "!case":
                 lin, col = position.split(",")
                 titre, init, variable = commande.split(";", 2)
+                variable = variable.split(";")[0]
                 dlist = Checkbox(courant, lin, col, titre, init, variable)
                 courant.elements.append(dlist)
                 if variable:
@@ -577,7 +589,7 @@ def creihm(nom):
             elif code == "!status":
                 courant.parent.statusbar = True
                 courant.elements.append(
-                    Commande(courant, "$statusbar.text=" + commande)
+                    Commande(courant, "$statusbar.text='" + commande + "'")
                 )
                 courant.elements.append(Commande(courant, "$statusbar.Refresh()"))
             else:

@@ -313,6 +313,8 @@ class Selecteur(object):
         self.initval = True
         self.static = False
         self.neg = False
+        self.pattern = None
+        self.erreurs = None
         self.choix_fonction(attribut, valeur)
 
     def __repr__(self):
@@ -367,16 +369,33 @@ class Selecteur(object):
                     fhelp(self)
                 self.fonction = candidat.work
                 self.nom = candidat.nom
+                self.pattern = self.params.pattern
                 return
         # print("================================ erreur selecteur:", self.regle)
-        self.regle.afficher_erreurs(self, "erreur selecteur")
-        raise SyntaxError(
-            "erreur selecteur inconnu",
-            ascii(attribut),
-            ascii(valeur),
-            "dans:",
-            self.regle,
+        self.afficher_erreurs("erreur selecteur", attribut, valeur)
+
+    def afficher_erreurs(self, message, attribut, valeur):
+        """donne des indications sur les erreurs de syntaxe dans une condition"""
+        log = self.regle.stock_param.logger.error
+        motif = ""
+
+        log(
+            motif + "erreur interpretation condition %s %d",
+            self.regle.fichier,
+            self.regle.numero,
         )
+        log(motif + message)
+        log(motif + " ligne      : %s", self.ligne.replace("\n", ""))
+        log(motif + " contexte d'execution: %s", repr(self.regle.context))
+        log(
+            motif + " parametres : %s",
+            ";".join((attribut, valeur)),
+        )
+
+        if self.erreurs:
+            log(motif + " %s", "\n".join(self.erreurs))
+
+        raise SyntaxError("erreurs condition")
 
 
 def validepattern(v_nommees, definition, ligne):
@@ -667,11 +686,17 @@ class RegleTraitement(object):  # regle de mapping
         """donne des indications sur les erreurs de syntaxe"""
         log = self.stock_param.logger.error
         motif = ""
-        log(motif + " erreur interpretation regle %s %d", self.fichier, self.numero)
-        log(motif + " %s", self.ligne.replace("\n", ""))
-        log(motif + " contexte d'execution: %s", repr(self.context))
-        log(motif + " %s", ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]))
+
+        log(motif + "erreur interpretation regle %s %d", self.fichier, self.numero)
         log(motif + message)
+        log(motif + " ligne      : %s", self.ligne.replace("\n", ""))
+        log(motif + " contexte d'execution: %s", repr(self.context))
+        log(
+            motif + " parametres : %s",
+            ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]),
+        )
+        log(motif + " autorises  : %s", fonc.pattern)
+
         if self.erreurs:
             log(motif + " %s", "\n".join(self.erreurs))
         if not self.mode:  # pas de mode en general un decalage
@@ -682,20 +707,21 @@ class RegleTraitement(object):  # regle de mapping
         if self.elements:
             for i in self.elements:
                 if self.elements[i] is None:
-                    print(
-                        motif + "erreur commande>",
-                        # fonc.definition,
-                        self.mode,
-                        "<",
-                        i,
-                        fonc.nom if fonc else "",
-                        fonc.definition[i].pattern if fonc else "",
-                        "<-//->",
-                        self.v_nommees[i],
-                    )
+                    # print(
+                    #     motif + "erreur commande>",
+                    #     # fonc.definition,
+                    #     self.mode,
+                    #     "<",
+                    #     i,
+                    #     fonc.nom if fonc else "",
+                    #     fonc.definition[i].pattern if fonc else "",
+                    #     "<-//->",
+                    #     self.v_nommees[i],
+                    # )
+
                     log(
                         motif
-                        + "erreur commande >"
+                        + "   erreur parametre >"
                         + self.mode
                         + "< (%s) %s:       %s <-//-> %s",
                         fonc.nom if fonc else "",

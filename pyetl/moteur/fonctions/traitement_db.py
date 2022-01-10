@@ -1122,6 +1122,7 @@ def h_dbmap_qgs(regle):
         fichier = basedest
         mode, vals = prepare_mode_in(fichier, regle)
         regle.basedict = vals
+        print(" selecteur complexe", regle.basedict)
         regle.base = None
     else:
         regle.basedict = None
@@ -1132,7 +1133,8 @@ def h_dbmap_qgs(regle):
     regle.entree = regle.params.cmp1.val
     regle.sortie = regle.params.cmp2.val
     selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
-    # print ("mapping statique",selecteur,selecteur.resolve())
+    if selecteur:
+        print("mapping statique", selecteur, selecteur.resolve())
     if selecteur and selecteur.resolve() or not selecteur:
         LOGGER.info(
             "mapping qgis statique " + regle.params.cmp1.val + " -> %s (%s)",
@@ -1141,6 +1143,7 @@ def h_dbmap_qgs(regle):
         )
         adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
         regle.valide = "done"
+        print("retour mapping", regle.valide)
     return True
 
 

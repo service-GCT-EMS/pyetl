@@ -602,7 +602,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         else:
             element = os.path.join(fichier, chemin, fich)
         print("traitement", element, fich)
-        if not element.endswith(".qgs"):
+        if not (element.endswith(".qgs") or element.endswith(".qlr")):
             continue
         codec = hasbom(element, codec)
         fdest = os.path.join(destination, chemin, fich)
@@ -764,7 +764,7 @@ def selecteur_from_fich(regle, fichier, selecteur):
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)
-        if fich.endswith(".qgs"):
+        if fich.endswith(".qgs") or fich.endswith(".qlr"):
             _select_from_qgs(element, selecteur, codec_qgs)
         elif fich.endswith(".csv"):
             _select_from_csv(element, selecteur, codec_csv)
