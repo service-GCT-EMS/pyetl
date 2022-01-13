@@ -364,14 +364,14 @@ def doc_formats(mapper):
 
 
 def doc_select(mapper):
-    """genere la doc sphinx des selecteurs"""
-    """affiche l'aide des selecteurs """
-    doc = ["reference sélecteurs"]
+    """genere la doc sphinx des conditions"""
+    """affiche l'aide des conditions """
+    doc = ["reference conditions"]
     souligne(doc, "-")
 
     result = dict()
-    for i in mapper.selecteurs:
-        sel = mapper.selecteurs[i]
+    for i in mapper.conditions:
+        sel = mapper.conditions[i]
         clef = sel.work.__name__
         if clef in result:
             result[clef]["patterns"].append(i)

@@ -259,18 +259,18 @@ def fonctest(mapper, nom=None, debug=0):
 
 
 def seltest(mapper, nom=None, debug=0):
-    """ execute les tests unitaires des selecteurs"""
+    """ execute les tests unitaires des conditions"""
     nbtests = 0
     nberrs = 0
     invalides = set()
-    for sel_a_tester in sorted(mapper.selecteurs):
-        fonc = mapper.selecteurs[sel_a_tester]
+    for sel_a_tester in sorted(mapper.conditions):
+        fonc = mapper.conditions[sel_a_tester]
         testee = False
         if nom and fonc.nom != nom:
             continue
         for j in fonc.description:
             if "#test" in j:
-                #                print ("selecteur teste",fonc.nom,j)
+                #                print ("condition teste",fonc.nom,j)
                 desctest = fonc.description[j]
                 testee = True
                 idtest = (fonc.nom, "", j)
@@ -280,7 +280,7 @@ def seltest(mapper, nom=None, debug=0):
                     invalides.add(idtest)
                 nbtests += 2
         if not testee:
-            print("selecteur non teste", fonc.nom)
+            print("condition non testee", fonc.nom)
     return nbtests, nberrs, invalides
 
 
@@ -336,7 +336,7 @@ def unittests(mapper, nom=None, debug=0):
     erreurs = err1 + err2
     print("------", nbtests, "tests unitaires effectues", erreurs, "erreurs -----")
     if sinvalides:
-        print("selecteurs en erreur:", sinvalides)
+        print("conditions en erreur:", sinvalides)
     if finvalides:
         print("fonctions en erreur:", finvalides)
     return []

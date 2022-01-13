@@ -58,7 +58,7 @@ reference macros
 :ref:`#geoextract` acces;niveau;classe;rel_geo;buffer;champ   extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 :ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
-:ref:`#grantsitr` schema                                      generation des scripts de grant
+:ref:`#grantsitr` fich                                        generation des scripts de grant
 :ref:`#grid` x_orig;y_orig;pas;cases                          repartit les objets selon une grille
 :ref:`#groupe` groupe                                         force le groupe
 :ref:`#histo_cmp` rep_histo;traitement                        
@@ -80,7 +80,7 @@ reference macros
 :ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
 :ref:`#passage_dev` schema                                    
-:ref:`#passage_prod` schema                                   
+:ref:`#passage_prod` fich;acces                               
 :ref:`#passage_schema` schema                                 scripts de passage en prod
 :ref:`#prefix` prefix                                         prefixe la classe
 :ref:`#print`                                                 
@@ -803,7 +803,7 @@ generation des scripts de grant
 
 parametres positionnels
 
-* schema:schema
+* fich:fich
 
 
 
@@ -1057,7 +1057,8 @@ parametres positionnels
 
 parametres positionnels
 
-* schema:schema
+* fich:fich
+* acces:acces
 
 
 

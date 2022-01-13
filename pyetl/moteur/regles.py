@@ -280,11 +280,11 @@ class ParametresFonction(object):
         return retour
 
 
-class ParametresSelecteur(ParametresFonction):
-    """stockage des parametres des selecteurs"""
+class ParametresCondition(ParametresFonction):
+    """stockage des parametres des conditions"""
 
     def __init__(self, regle_ref, valeurs, definition, pnum):
-        # print("creation param selecteur", regle_ref, valeurs, definition)
+        # print("creation param conditions", regle_ref, valeurs, definition)
         self.regle_ref = regle_ref
         self.valeurs = valeurs
         self.definitions = definition
@@ -298,7 +298,7 @@ class ParametresSelecteur(ParametresFonction):
         return "\n\t".join(listev) + "\n\tidcommand: pattern" + self.pattern
 
 
-class Selecteur(object):
+class Condition(object):
     """ container pour les objets de selection """
 
     def __init__(self, regle, attribut, valeur):
@@ -319,7 +319,7 @@ class Selecteur(object):
 
     def __repr__(self):
         return (
-            "selecteur:"
+            "condition:"
             + (("valide:" + self.nom) if self.valide else "invalide")
             + "->"
             + repr(self.v_nommees)
@@ -336,7 +336,7 @@ class Selecteur(object):
         return False
 
     def _selpos(self, obj):
-        """selecteur standard """
+        """condition standard """
         #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
         return self.fonction(self, obj)
 
@@ -354,13 +354,13 @@ class Selecteur(object):
             self.select = self._selneg
             self.neg = True
             self.v_nommees["vals"] = valeur[1:]
-        for candidat in self.regle.stock_param.sortedsels:
+        for candidat in self.regle.stock_param.sortedconds:
             # print ("test sel ", candidat.nom, candidat.priorite, candidat.patternnum,":",candidat.pattern)
             self.valide, elements, erreurs = validepattern(
                 self.v_nommees, candidat.definition, self.ligne
             )
             if self.valide:
-                self.params = ParametresSelecteur(
+                self.params = ParametresCondition(
                     self.regle, elements, candidat.definition, candidat.patternnum
                 )
 
@@ -371,8 +371,8 @@ class Selecteur(object):
                 self.nom = candidat.nom
                 self.pattern = self.params.pattern
                 return
-        # print("================================ erreur selecteur:", self.regle)
-        self.afficher_erreurs("erreur selecteur", attribut, valeur)
+        # print("================================ erreur condition:", self.regle)
+        self.afficher_erreurs("erreur condition", attribut, valeur)
 
     def afficher_erreurs(self, message, attribut, valeur):
         """donne des indications sur les erreurs de syntaxe dans une condition"""
@@ -748,23 +748,23 @@ class RegleTraitement(object):  # regle de mapping
         """retourne une regle pour des operations particulieres"""
         return RegleTraitement(ligne, self.stock_param, fichier, numero)
 
-    def test_static_false(self, selecteur):
+    def test_static_false(self, condition):
         """ verifie si la condition est statique et realisee"""
-        if not selecteur.valide:  # y a pas de selecteur
+        if not condition.valide:  # y a pas de condition
             return False
-        if selecteur.static:
-            if selecteur.initval:
-                selecteur.valide = False  # c est comme si le test n existait pas
+        if condition.static:
+            if condition.initval:
+                condition.valide = False  # c est comme si le test n existait pas
                 self.valide = "selected"
                 return False
             self.valide = "unselected"  # rien a faire on a fini le boulot
             return True
         return False
 
-    def prepare_selecteur(self, v_nommees):
+    def prepare_condition(self, v_nommees):
         """prepare la fonction de selection de la regle"""
-        sel1 = Selecteur(self, self.code_classe, v_nommees["val_sel1"])
-        sel2 = Selecteur(self, v_nommees["sel2"], v_nommees["val_sel2"])
+        sel1 = Condition(self, self.code_classe, v_nommees["val_sel1"])
+        sel2 = Condition(self, v_nommees["sel2"], v_nommees["val_sel2"])
         self.sel1 = sel1
         self.sel2 = sel2  # pour le debug
         if self.test_static_false(
@@ -782,7 +782,7 @@ class RegleTraitement(object):  # regle de mapping
             if sel1.valide:  # une vraie fonction de selection
                 self.selstd = sel1.select
             return
-        # print("-------------selecteurs", self, sel1, sel2)
+        # print("-------------conditions", self, sel1, sel2)
         if self.test_static_false(sel2):  # le test1 est valide on verifie le test2
             return  # statique et faux: ca devalide la regle
         if sel2.valide:

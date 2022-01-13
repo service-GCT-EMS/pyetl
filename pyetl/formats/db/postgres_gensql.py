@@ -63,6 +63,8 @@ class PgrGenSql(DbGenSql):
             "b": "boolean",
             "S": "serial NOT NULL",
             "BS": "bigserial NOT NULL",
+            "J": "json",
+            "XML": "XML",
         }
 
         self.stdtriggers = set(["auteur"])
@@ -725,7 +727,7 @@ class PgrGenSql(DbGenSql):
                     defaut = ""
             if attype not in self.types_db and not nomconf:
                 LOGGER.warning(
-                    "type inconnu %s defaut %s",
+                    "postgres: type inconnu %s defaut %s",
                     attype,
                     deftype,
                 )

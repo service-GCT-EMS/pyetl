@@ -434,7 +434,7 @@ def conditionne_liste_classes(valeurs):
 def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
     """precharge les fichiers utilises pour les jointures ou les listes d'appartenance
     formats acceptes:
-        mode txt: clef simple (pour des selecteurs attributaires)
+        mode txt: clef simple (pour des conditions attributaires)
         mode n: (niveau,classe) ( pour des selections de schema)
         mode b: (base,niveau,classe)
         in:{a,b,c}                  -> liste de valeurs dans la commande

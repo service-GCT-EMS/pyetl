@@ -47,7 +47,7 @@ from .moteur.interpreteur_csv import (
 from .moteur.regles import RegleTraitement
 from .moteur.compilateur import compile_regles
 from .moteur.moteur import Moteur, MacroStore, Context
-from .moteur.fonctions import COMMANDES, SELECTEURS, MODULES, loadmodules
+from .moteur.fonctions import COMMANDES, CONDITIONS, MODULES, loadmodules
 from .moteur.fonctions.outils import scan_entree
 from .moteur.fonctions.traitement_crypt import paramdecrypter
 
@@ -144,10 +144,10 @@ class Pyetl(object):
     lire_schemas_multiples = lire_schemas_multiples
     init_schema = init_schema
     commandes = COMMANDES
-    selecteurs = SELECTEURS
+    conditions = CONDITIONS
     modules = MODULES
 
-    sortedsels = sorted(selecteurs.values(), key=lambda x: x.priorite)
+    sortedconds = sorted(conditions.values(), key=lambda x: x.priorite)
     reconfig = reinterprete_regle
     formats_connus_lecture = READERS
     formats_connus_ecriture = WRITERS

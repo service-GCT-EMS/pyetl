@@ -28,6 +28,7 @@ mif                                oui           oui
 osm                                oui           non
 pbf                                oui           non
 qgs                                oui           non
+qlr                                oui           non
 shp                                oui           oui
 spatialite                         oui           non
 sql                                non           oui
@@ -481,6 +482,13 @@ lit des objets a partir d'un fichier xml osm
 
 
 format qgs
+..........
+
+
+ lit les datasources des fichiers qgis
+
+
+format qlr
 ..........
 
 

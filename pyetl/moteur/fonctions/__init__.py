@@ -220,7 +220,7 @@ class ModuleInfo(object):
         self.disponible = not self.initable
         self.fonction = fonction
         self.commandes = set()
-        self.selecteurs = set()
+        self.conditions = set()
         self.aux = set()
         self.help = ""
         self.titre = nom.split("_")[-1]
@@ -440,7 +440,7 @@ def reg_stockage(store, info_module, nom, fonction, description):
 
 
 def reg_select(fonctions, info_module, nom, fonction, description_fonction):
-    """stockage d une description de fonction de selection"""
+    """stockage d une description de fonction de selection(condition)"""
     for i in list(description_fonction.keys()):
         # on passe tout ce qu'on a defini pour la fonction
         description = dict(description_fonction)
@@ -459,7 +459,7 @@ def reg_select(fonctions, info_module, nom, fonction, description_fonction):
             definition_champs = controle_pattern(pattern, noms)
             if not definition_champs:
                 continue
-            # print("lecture selecteur", nom, pattern, description)
+            # print("lecture conditions", nom, pattern, description)
             clef = pattern if pattern else None
             if clef is None:
                 print("fonction incompatible", nom)
@@ -468,7 +468,7 @@ def reg_select(fonctions, info_module, nom, fonction, description_fonction):
                 fct.module = info_module
                 fct.priorite = priorite
                 fonctions[clef] = fct
-                info_module.selecteurs.add(clef)
+                info_module.conditions.add(clef)
 
 
 def regwarnings(module, nom, store, storetype):
@@ -538,7 +538,7 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             )
 
         elif pref == "sel":  # c'est une fonction de selection
-            regwarnings(nom_module, nom_fonction, stockage, "selecteur")
+            regwarnings(nom_module, nom_fonction, stockage, "condition")
             reg_select(
                 stockage, infomodule, nom_fonction, fonction, description_fonction
             )
@@ -640,7 +640,7 @@ def moduleloader(modulename):
 
 def loadmodules(module=None, force=False):
     """charge les modules et enregistre les fonctions"""
-    global COMMANDES, SELECTEURS, MODULES, store, prefixes
+    global COMMANDES, CONDITIONS, MODULES, store, prefixes
     if module in MODULES:
         return (
             False if MODULES[module] == "indisponible" else True
@@ -655,7 +655,7 @@ def loadmodules(module=None, force=False):
         if os.path.isfile(cc) and not force:
             COMMANDES = dict((i[:-1].split(";") for i in open(cc, "r")))
             loadmodules(module=".traitement_aux")
-            loadmodules(module=".traitement_selecteurs")
+            loadmodules(module=".traitement_conditions")
             return
         for fich_module in os.listdir(commanddir):
             if fich_module.startswith("traitement"):
@@ -676,7 +676,7 @@ def loadmodules(module=None, force=False):
     simple_prefix = {
         "h": "helper fonction",
         "sh": "helper stockage",
-        "selh": "helper selecteur",
+        "selh": "helper condition",
         "fschema": "schemas",
     }
 
@@ -685,8 +685,8 @@ def loadmodules(module=None, force=False):
         MODULES[nom] = infomodule
 
     COMMANDES.update(store["f"])
-    SELECTEURS.update(store["sel"])
-    #    print(" selecteurs lus ",selecteurs.keys())
+    CONDITIONS.update(store["sel"])
+    #    print(" conditions lues ",CONDITIONS.keys())
     for i in sorted(COMMANDES):
         fct = COMMANDES[i]
         if isinstance(fct, str):
@@ -696,16 +696,16 @@ def loadmodules(module=None, force=False):
             complete_fonction(sbf, store)
         fct.subfonctions = sorted(fct.subfonctions, key=lambda i: i.priorite)
 
-    for i in SELECTEURS:
-        sel = SELECTEURS[i]
+    for i in CONDITIONS:
+        sel = CONDITIONS[i]
         set_helper(sel, store, "selh")
-    #        print (" enregistrement selecteurs",sel.nom,sel.helper)
+    #        print (" enregistrement conditions",sel.nom,sel.helper)
 
     return True
 
 
 COMMANDES = dict()
-SELECTEURS = dict()
+CONDITIONS = dict()
 MODULES = dict()
 store = dict()
 prefixes = {"f", "s", "sel", "selh", "fschema", "h", "sh"}

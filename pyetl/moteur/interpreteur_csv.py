@@ -278,7 +278,7 @@ def prepare_regle(regle, prec=None, refs=None):
     """positionne les elements standard de la regle
     decodage des liens entre regles (structure de blocs)
     premier parametre : contient les elements de structure
-            de la forme [|+-][sinon|fail]:[element de selecteur]
+            de la forme [|+-][sinon|fail]:[element de condition]
     """
     # print("vnommees1", regle.v_nommees)
     setvloc(regle)
@@ -328,7 +328,7 @@ def prepare_regle(regle, prec=None, refs=None):
         #        print ("interp: acces base de donnees",regle.code_classe,regle.mode,regle)
         else:
             # print("appelle prepare")
-            regle.prepare_selecteur(v_nommees)
+            regle.prepare_condition(v_nommees)
             regle.selected = True
             if regle.valide == "unselected":
                 # regle non selectionnable en mode statique
@@ -825,7 +825,8 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             regle_ref=regle_ref,
         )
         if erreurs:
-            LOGGER.error("erreurs initialisation macro %s", macro.nom)
+            LOGGER.error("erreur initialisation macro %s", macro.nom)
+            erreurs = -999
             # print("=======================erreurs initialisation macro", macro.nom)
         # if debug:
         #     texte_fin = ";;;;;;;return;;;debug;;retour macro"

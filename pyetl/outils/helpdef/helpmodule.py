@@ -45,8 +45,8 @@ def print_help(mapper, nom):
             print_macrohelp_detail(mapper, nom)
         elif nom in mapper.commandes:
             print_help_detail(mapper, nom)
-        elif nom == "selecteurs":
-            print_aide_selecteurs(mapper)
+        elif nom == "conditions":
+            print_aide_conditions(mapper)
         elif nom == "macros":
             print_aide_macros(mapper)
         elif nom == "commandes":
@@ -89,7 +89,7 @@ def print_help(mapper, nom):
         print("                    aide générique")
         print("taper help commande pour l'aide détaillée sur une commande")
         print_aide_commandes(mapper)
-        print_aide_selecteurs(mapper)
+        print_aide_conditions(mapper)
         print_aide_macros(mapper)
 
 
@@ -212,15 +212,15 @@ def print_aide_commandes(mapper, liste=None):
         print("%-20s: %s" % (i, "\n".join(commande.description.get("#aide", []))))
 
 
-def print_aide_selecteurs(mapper, liste=None):
-    """affiche l'aide des selecteurs """
+def print_aide_selectprint_aide_conditionseurs(mapper, liste=None):
+    """affiche l'aide des conditions """
     print("-----------------------------------------------------------------")
-    print("---selecteurs-----------------------------------------------")
+    print("---conditions-----------------------------------------------")
     print("-----------------------------------------------------------------")
-    for i in sorted(mapper.selecteurs):
+    for i in sorted(mapper.conditions):
         if liste and i not in liste:
             continue
-        sel = mapper.selecteurs[i]
+        sel = mapper.conditions[i]
         print("%-20s: %s" % (i, "\n".join(sel.description.get("#aide", []))))
 
 

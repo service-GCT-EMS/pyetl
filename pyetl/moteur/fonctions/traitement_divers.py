@@ -610,7 +610,7 @@ def h_preload(regle):
         regle.dynlevel = 3
     regle.entree = None
     regle.loaded = False
-    if regle.dynlevel == 0:  # pas de selecteur on precharge avant de lire
+    if regle.dynlevel == 0:  # pas de condition on precharge avant de lire
         regle.entree = regle.params.val_entree.val
         regle.fich = regle.entree
         regle.valide = "done" if preload(regle, None) else False

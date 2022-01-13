@@ -779,7 +779,7 @@ def getselector(regle, base=None, nom=""):
     """recuperation d un selecteur stocke"""
     if not nom:
         return TableSelector(regle, base)
-    if nom in regle.stock_param.selecteurs:
+    if nom in regle.stock_param.conditions:
         selecteur = regle.stock_param.namedselectors[nom]
     else:
         selecteur = TableSelector(regle, base)
