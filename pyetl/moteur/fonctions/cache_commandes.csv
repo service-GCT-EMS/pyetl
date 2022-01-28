@@ -26,6 +26,7 @@ dfload;.traitement_dataviz
 dfset;.traitement_dataviz
 dfwrite;.traitement_dataviz
 dbalpha;.traitement_db
+dbcheck;.traitement_db
 dbclean;.traitement_db
 dbclose;.traitement_db
 dbcount;.traitement_db

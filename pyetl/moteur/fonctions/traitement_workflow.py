@@ -313,20 +313,22 @@ def printvariable(regle):
     if regle.params.cmp2.val:  # affichage de noms
         return nomv + "=" + str(regle.getvar(regle.params.cmp1.val))
     v = regle.context.getvar_b(nomv, "")
-    print("printvariable", nomv, type(v), v)
+    # print("printvariable", nomv, type(v), v)
     return regle.context.getvar_b(nomv, "")
 
 
 def h_printvar(regle):
     """#aide||affichage des parametres nommes"""
     #    print("variables:")
-
+    if not regle.params.att_entree.val:
+        regle.print(printvariable(regle))
+        regle.done = True
     return True
 
 
 def f_printvar(regle, _):
     """#aide||affichage des parametres nommes
-    #pattern||;;;printv;C?;=noms?||entree
+    #pattern||;;?A;printv;C?;=noms?||entree
     #test||redirect||obj||$toto=ok||^;;;printv;toto||out
     #!test2||redirect||obj||$toto=ok||^;;;printv;||out
     """

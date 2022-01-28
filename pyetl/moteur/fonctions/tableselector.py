@@ -61,6 +61,7 @@ class TableBaseSelector(object):
         # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.static = dict()
         self.dynlist = dict()
+        self.unresolved = set()
 
     def __repr__(self):
         return (
@@ -111,19 +112,19 @@ class TableBaseSelector(object):
         if self.dynbase and obj.attributs.get(self.dynbase) != self.base:
             self.static = dict()
             self.base = obj.attributs.get(self.dynbase)
-            self.nombase = self.base if self.base != "*" else ""
+            # self.nombase = self.base if self.base != "*" else ""
             if not self.base:
                 return False
         if self.static:
             return
-
+        self.nombase = self.base if self.base != "*" else ""
         mod = self.regle_ref.mods
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
         prefix = ""
-        if os.path.isfile(self.base):  # bases fichier
+        if self.base and os.path.isfile(self.base):  # bases fichier
             self.base = "__filedb"
-        if self.base != "__filedb":
+        if self.base and self.base != "__filedb":
             self.mapper.load_paramgroup(self.base, nom=self.base)
             prefix = self.regle_ref.getvar("prefix_" + self.base)
             # print("acces base", self.base)
@@ -165,11 +166,13 @@ class TableBaseSelector(object):
                 pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
             for j in classes:
-                self.static.update(
-                    self.add_classlist(
-                        niveau, j, attr, vref, fonction, mod, nobase=self.nobase
-                    )
+                classlist = self.add_classlist(
+                    niveau, j, attr, vref, fonction, mod, nobase=self.nobase
                 )
+                if classlist:
+                    self.static.update(classlist)
+                else:
+                    self.unresolved.add((niveau, j))
 
     def set_prefix(self, cldef):
         """prefixage ses noms pour lea gestion des conflits entre base"""
@@ -206,7 +209,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        # print("resolve", self.base)
+        print("resolve", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.static = dict()
@@ -410,7 +413,7 @@ class TableSelector(object):
             base = self.mapper.dbref[base]
             return base
         if base != "*":
-            print("base inconnue", base)
+            print("idbase: base inconnue", base)
         return base
 
     def resolve(self, obj=None):
@@ -428,14 +431,14 @@ class TableSelector(object):
                 and not bool(self.baseselectors[base].dynbase)
             )
         self.resolved = complet
-        # print(
-        #     " fin resolve",
-        #     self.baseselectors.keys(),
-        #     self.resolved,
-        #     self.static,
-        #     len(list(self.get_classes())),
-        #     self.schema_travail,
-        # )
+        print(
+            " fin resolve",
+            self.baseselectors.keys(),
+            self.resolved,
+            self.static,
+            len(list(self.classlist())),
+            self.schema_travail,
+        )
         return complet
 
     def classlist(self):
@@ -480,6 +483,15 @@ class TableSelector(object):
                 self.fusion_schema(schema_travail)
         # print("tableselecteur")
         # schema_travail.printelements_specifiques()
+
+    def check(self, regle, obj=None):
+        """verifie si les classes d un selecteur existent dans les bases associees"""
+        if not self.resolved:
+            self.resolve(obj)
+        for baseselector in self.baseselectors.values():
+            print("analyse base"), baseselector.base
+            print("classes trouvees", list(baseselector.classlist()))
+            print("classes non trouvees", baseselector.base, baseselector.unresolved)
 
 
 # =============================================================
@@ -567,6 +579,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                 if "datasource" in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
+                    service = _extract(i, "service=")
                     host = _extract(i, "host=").lower()
                     port = _extract(i, "port=").lower()
                     niveau, classe = (
@@ -574,11 +587,17 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     )
                     niveau = niveau.replace('"', "")
                     classe = classe.replace('"', "")
-                    base = (database, "host=" + host, "port=" + port)
                     if database:
-                        selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    # print("qgs : descripteur", i, base, niveau, [classe])
+                        base = (database, "host=" + host, "port=" + port)
+                    elif service:
+                        base = "*" + service
+                    else:
+                        base = "__filedb"
+                    selecteur.add_descripteur(base, niveau, [classe], fonction="=")
+                    print("qgs : descripteur", i, base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
+                elif "provider" in i:
+                    print(" provider", i)
     except FileNotFoundError:
         LOGGER.error("fichier qgs introuvable %s", fichier)
         # print("fichier qgs introuvable ", fichier)
@@ -619,6 +638,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                 if "datasource" in i or 'source="' in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
+                    service = _extract(i, "service=")
                     inithost = _extract(i, "host=")
                     host = inithost.lower()
                     initport = _extract(i, "port=")
@@ -759,14 +779,15 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
 def selecteur_from_fich(regle, fichier, selecteur):
     # print("sel_from_fich:scandirs", fichier)
     LOGGER.debug("scandirs %s", fichier)
-    codec_csv = regle.getvar("codec_csv", DEFCODEC)
-    codec_qgs = regle.getvar("codec_qgs", DEFCODEC)
+
     for fich, chemin in scandirs("", fichier, rec=True):
         element = os.path.join(chemin, fich)
         # print("sel_from_fich:lu", element)
         if fich.endswith(".qgs") or fich.endswith(".qlr"):
+            codec_qgs = regle.getvar("codec_qgs", DEFCODEC)
             _select_from_qgs(element, selecteur, codec_qgs)
         elif fich.endswith(".csv"):
+            codec_csv = regle.getvar("codec_csv", DEFCODEC)
             _select_from_csv(element, selecteur, codec_csv)
     selecteur.metainfos = fichier
     # LOGGER.info("selecteur from fich %s", str(selecteur.baseselectors.keys()))

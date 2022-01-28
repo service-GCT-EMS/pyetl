@@ -327,7 +327,12 @@ class PgrConnect(DbConnect):
         if not logfile:
             logger.info("pas de fichier log : affichage console ")
             logger.debug("traitement %s", chaine)
-            fini = subprocess.run(chaine, env=env)
+            try:
+                fini = subprocess.run(chaine, env=env)
+            except Exception as err:
+                logger.error("traitement %s", chaine)
+                logger.error("erreur processus %s", repr(err))
+                return
         else:
             if self.logfile != logfile:
                 # print("pas  sorti")

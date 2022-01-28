@@ -561,9 +561,11 @@ class PgrGenSql(DbGenSql):
             schemabase = self.connection.schemabase
             entete, ftables = schemabase.elements_specifiques["def_ftables"]
             serveur, options = ftables.get(table)
-
+        print("tables_distantes", serveur, options)
         cretable.append("SERVER " + serveur)
-        opt = [i.replace("=", " '") + "'" for i in options]
+        opt = [i.replace("=", " '") + "'" for i in options.split(",")]
+        print("tables_distantes", serveur, opt)
+
         cretable.append("OPTIONS (" + ",".join(opt) + ");")
         return "\n".join(cretable)
 
@@ -712,6 +714,13 @@ class PgrGenSql(DbGenSql):
                 if attype == "T":
                     if attribut.defaut and attribut.defaut.startswith("="):
                         predef = attribut.defaut[1:].replace('"', "'")
+                        if "::" in predef:  # il y a un typecast, on force le schema
+                            nom, typedef = predef.split("::", 1)
+                            if "." in typedef:
+                                typedef = (
+                                    self.schema_conf + "." + typedef.split(".", 1)[1]
+                                )
+                            predef = nom + "::" + typedef
                         defaut = " DEFAULT " + predef
             if defaut is None:
                 defaut = (" DEFAULT " + attribut.defaut) if attribut.defaut else ""

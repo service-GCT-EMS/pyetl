@@ -1001,7 +1001,7 @@ def lire_regles_csv(
                 regle_ref=regle_ref,
                 macrodef=macrodef,
             )
-        elif re.match(r"^###(.*)", texte):
+        elif re.match(r"^##(.*)", texte):
             errs = importe_macro(
                 mapper, texte[2:], context, fichier_regles, regle_ref=regle_ref
             )

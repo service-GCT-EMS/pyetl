@@ -932,6 +932,29 @@ def f_dbselect(regle, obj):
     pass
 
 
+def h_checkselect(regle):
+    """controle selecteur"""
+    nom_selecteur = regle.params.cmp1.val or "#select"
+    if nom_selecteur.startswith("#"):
+        nom_selecteur = nom_selecteur[1:]
+    param_base(regle, nom=nom_selecteur)
+    selecteur = regle.cible_base
+    selecteur.check(regle)
+    regle.valide = "done"
+    return True
+
+
+def f_checkselect(regle, obj):
+    """#aide||verifie la presence de classesd un selecteur en base
+              ||sert a controler la compatibilite des fichiers qgis ou des listes de classes avec une base
+        #groupe||database
+       #pattern||;;;dbcheck;C?;
+    #parametres||;nom du selecteur;
+      #req_test||testdb
+    """
+    pass
+
+
 def h_liste_selecteur(regle):
     """prepare la liste"""
     regle.chargeur = True

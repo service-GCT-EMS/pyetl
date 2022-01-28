@@ -18,7 +18,7 @@ if __name__ == "__main__":
     from waitress import serve
 
     args = dict((i.split("=", 1) for i in sys.argv if "=" in i))
-    port = int(args.get("port", 5000))
+    port = int(args.get("port", 5500))
     print("essai serveur port:", port)
     # app.run(port=port)
-    serve(app, host="127.0.0.1", port=5000)
+    serve(app, host="127.0.0.1", port=port)

@@ -217,6 +217,8 @@ def descramble(key):
             return base64.b32decode(key).decode("utf-8")
         except UnicodeError:
             return key
+        except Exception as err:
+            print("clef incorrecte", key, err)
     return key
 
 

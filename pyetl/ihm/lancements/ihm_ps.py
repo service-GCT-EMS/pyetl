@@ -50,6 +50,7 @@ class Ihm(object):
             "[System.Windows.Forms.Application]::EnableVisualStyles()",
             "$font=New-Object System.Drawing.Font('Microsoft Sans Serif',10)",
             "$startx=20",
+            "$scriptdir=",
         ]
         if self.startserver:
             # on verifie si le serveur existe
@@ -589,7 +590,7 @@ def creihm(nom):
             elif code == "!status":
                 courant.parent.statusbar = True
                 courant.elements.append(
-                    Commande(courant, "$statusbar.text='" + commande + "'")
+                    Commande(courant, '$statusbar.text="' + commande + '"')
                 )
                 courant.elements.append(Commande(courant, "$statusbar.Refresh()"))
             else:

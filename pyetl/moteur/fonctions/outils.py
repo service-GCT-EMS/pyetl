@@ -77,13 +77,12 @@ def scandirs(
         if chemin and rep_depart
         else (chemin or rep_depart)
     )
-    print("recherche", path)
+    # print("scandirs:recherche", path)
     if os.path.isfile(path):
-        fichier = os.path.basename(rep_depart)
-        rep_depart = os.path.dirname(rep_depart)
-        chemin = ""
-        print("retour", (str(fichier), ""))
-        yield ("", "")
+        fichier = os.path.basename(path)
+        chemin = os.path.dirname(path)
+        # print("retour", (str(fichier), ""))
+        yield (fichier, chemin)
         return
     if "*" in path:
         for element in glob.glob(path):
@@ -501,6 +500,7 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
             #     "------>",
             #     "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
             # )
+    # print("prepare mode in ", mode, valeurs)
     return mode, valeurs
 
 
