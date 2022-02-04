@@ -199,7 +199,7 @@ class PgCursinfo(Cursinfo):
             return self.schema_req
         if self.requete:
             tmp = self.requete.split("\n")
-            tmprequete = " ".join(tmp).strip()
+            tmprequete = "\n".join(tmp).strip()
             if tmprequete.endswith(";"):
                 tmprequete = tmprequete[:-1]
             req = (

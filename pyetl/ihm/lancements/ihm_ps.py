@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """creation d ihm poweshell a partir d un fichier de definition"""
+from encodings import utf_8
 import itertools
 import os
 
@@ -484,6 +485,12 @@ def creihm(nom):
     if not nom:
         print("usage mapper -genihm nom_fichier_ihm")
         return
+    if not os.path.isfile(nom):
+        if os.path.isfile(nom + ".csv"):
+            nom = nom + ".csv"
+        else:
+            print("fichier de description introuvable", nom)
+            return
     with open(nom, "r") as f:
         for ligne in f:
             if not ligne or ligne.startswith("!#"):
@@ -598,5 +605,5 @@ def creihm(nom):
     ihm.struct()
 
     sortie = ihm.nom + ".ps1"
-    with open(sortie, "w") as f:
+    with open(sortie, "w", encoding="cp1252") as f:
         f.write("\n".join(ihm.genps(variables)))

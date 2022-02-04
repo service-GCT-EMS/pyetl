@@ -52,6 +52,7 @@ class TableBaseSelector(object):
         # dans ce cas le selecteur ne gere que la liste de classes et pas le schema
         self.schemaref = schemaref
         self.schemabase = None
+        self.schema_travail = None
         self.valide = bool(base or schemaref)
         self.map_prefix = map_prefix
         self.reg_prefix(map_prefix)
@@ -125,7 +126,10 @@ class TableBaseSelector(object):
         if self.base and os.path.isfile(self.base):  # bases fichier
             self.base = "__filedb"
         if self.base and self.base != "__filedb":
-            self.mapper.load_paramgroup(self.base, nom=self.base)
+            try:
+                self.mapper.load_paramgroup(self.base, nom=self.base)
+            except KeyError:
+                self.nobase = True
             prefix = self.regle_ref.getvar("prefix_" + self.base)
             # print("acces base", self.base)
         # print(
@@ -239,7 +243,8 @@ class TableBaseSelector(object):
                 liste_classes, liste_mapping = self.getmapping()
                 # print("mapping", liste_mapping)
                 self.mapping = {(i0, i1): (m0, m1) for m0, m1, i0, i1 in liste_mapping}
-            self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
+            if self.schema_travail:
+                self.schema_travail.metas["restrictions"] = self.selecteur.metainfos
         return solved
 
     def resolve_dyn(self, obj):
@@ -421,7 +426,7 @@ class TableSelector(object):
         if self.resolved and self.static:
             return True
         complet = len(self.baseselectors)
-        self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
+        self.nobase = self.nobase or self.regle_ref.istrue("nobase")
         static = True
         for base in self.baseselectors:
             complet = complet and self.baseselectors[base].resolve(obj)

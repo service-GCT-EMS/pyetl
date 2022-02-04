@@ -1018,14 +1018,15 @@ def f_liste_selecteur(regle, obj):
         }
         # print("infos selecteur", infos)
         schemabase = selecteur.baseselectors[idbase].schemabase
-        infoschema = {
-            i if i.startswith("#") else ("#" + i): j
-            for i, j in itertools.chain(
-                schemabase.metas.items(), schemabase.classes[idsel].info.items()
-            )
-        }
-        infos.update(infoschema)
-        infos["#alias_niveau"] = schemabase.alias_groupes.get(nsel, "")
+        if schemabase:
+            infoschema = {
+                i if i.startswith("#") else ("#" + i): j
+                for i, j in itertools.chain(
+                    schemabase.metas.items(), schemabase.classes[idsel].info.items()
+                )
+            }
+            infos.update(infoschema)
+            infos["#alias_niveau"] = schemabase.alias_groupes.get(nsel, "")
         if regle.params.pattern == "2":
             obj2 = obj.dupplique()
             obj2.attributs.update(infos)
