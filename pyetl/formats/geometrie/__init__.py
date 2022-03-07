@@ -30,7 +30,10 @@ def loadmodules():
                 for nom, description in getattr(format_def, "GEOMDEF").items():
                     #                    print('chargement geomdef', nom, description)
                     if nom in geomlist:
-                        print("attention : redefinition du format de sortie", nom)
+                        print(
+                            "attention : redefinition du format de sortie geometrique",
+                            nom,
+                        )
                     geomlist[nom] = geomdef(*description)
 
             except ImportError as err:

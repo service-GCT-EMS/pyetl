@@ -2,7 +2,9 @@ cnt;.traitement_alpha
 extractbloc;.traitement_alpha
 format;.traitement_alpha
 garder;.traitement_alpha
+infoatt;.traitement_alpha
 join;.traitement_alpha
+json;.traitement_alpha
 len;.traitement_alpha
 lower;.traitement_alpha
 ren;.traitement_alpha
@@ -13,6 +15,7 @@ strip;.traitement_alpha
 sub;.traitement_alpha
 supp;.traitement_alpha
 supp_classe;.traitement_alpha
+txtstruct;.traitement_alpha
 upper;.traitement_alpha
 archive;.traitement_archives
 zip;.traitement_archives
@@ -92,7 +95,6 @@ lasreader;.traitement_las
 map;.traitement_mapping
 map_data;.traitement_mapping
 abspath;.traitement_os
-adquery;.traitement_os
 infofich;.traitement_os
 listefich;.traitement_os
 namejoin;.traitement_os

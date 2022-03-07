@@ -940,6 +940,13 @@ class DbConnect(object):
             return "", ()
         oper = "="
         attribut, cast = self.getcast(schema, attribut)
+        neg = False
+        if isinstance(valeur, str):
+            neg = valeur.startswith("!")
+            if neg:
+                valeur = valeur[1:]
+            if valeur.startswith("in:{"):
+                valeur = valeur[4:-1].split(",")
         if isinstance(valeur, (set, list)) and len(valeur) > 1:
 
             data = self.multivaldata(valeur)
@@ -954,9 +961,14 @@ class DbConnect(object):
             #                oper = '='
             #                val = valeur
             #                print ('dbalpha valeur a traiter',val)
-
             if val:
-                if val[0] in "<>=~":
+                neg = val.startswith("!")
+                if neg:
+                    val = val[1:]
+                if val.startswith("<=") or val.startswith(">="):
+                    oper = val[0:1]
+                    val = val[2:]
+                elif val[0] in "<>=~":
                     oper = val[0]
                     val = val[1:]
                 if val[0] == "\\":
@@ -965,7 +977,7 @@ class DbConnect(object):
             data = {"val": val}
         #                print('valeur simple', valeur, oper, cond, cast, data)
 
-        condition = " WHERE " + cast(attribut) + cond
+        condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
         return condition, data
 
     def req_count(self, ident, schema, attribut, valeur, mods):
@@ -994,7 +1006,7 @@ class DbConnect(object):
         if not atttext:
             requete = ""
             data = ()
-        # print('acces alpha', self.geographique, requete, data)
+        # print("acces alpha", requete, data)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
         volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])

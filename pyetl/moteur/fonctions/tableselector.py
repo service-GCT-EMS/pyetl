@@ -84,7 +84,7 @@ class TableBaseSelector(object):
             self.np, self.cp = map_prefix, ""
         self.map_prefix = map_prefix
 
-    def add_descripteur(self, descripteur):
+    def stocke_descripteur(self, descripteur):
         """stocke un descripteur de selection il y a un descripteur par niveau ou expression
         de selection de niveau
         un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
@@ -95,13 +95,8 @@ class TableBaseSelector(object):
         niveau, classes, attr, valeur, fonction = descripteur
 
         dyn = any(["[" in i for i in classes])
-        if "[" in attr:
+        if "[" in attr or "[" in valeur:
             dyn = True
-        if attr and valeur:
-            att, defaut = valeur
-            if att:
-                print(" element dynamique", attr, valeur, "->", att, defaut)
-                dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
         else:
@@ -144,7 +139,10 @@ class TableBaseSelector(object):
         if not self.nobase:
             # print("connection ", self.nombase, self.base)
             if self.base != "__filedb":
-                self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
+                try:
+                    self.connect = self.mapper.getdbaccess(self.regle_ref, self.nombase)
+                except StopIteration:
+                    print("connection impossible", self.nombase)
             else:
                 type_base = os.path.splitext(self.nombase)[-1]
                 if type_base.startswith("."):
@@ -168,7 +166,7 @@ class TableBaseSelector(object):
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
             if niveau == "#":
                 pass  # placeholder genere une entree base mais pas de classes
-            vref = valeur[1] if valeur else ""
+            vref = valeur if valeur else ""
             for j in classes:
                 classlist = self.add_classlist(
                     niveau, j, attr, vref, fonction, mod, nobase=self.nobase
@@ -198,8 +196,12 @@ class TableBaseSelector(object):
         if nobase:
             classlist = [(niveau, classe)]
         else:
-            classlist = self.schemabase.select_niv_classe(
-                niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
+            classlist = (
+                self.schemabase.select_niv_classe(
+                    niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
+                )
+                if self.schemabase
+                else ()
             )
         direct = dict()
         # print("add_classlist: multi", multi, classlist)
@@ -213,7 +215,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        print("resolve", self.base)
+        print("resolve: base=", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.static = dict()
@@ -265,11 +267,13 @@ class TableBaseSelector(object):
                 attr = obj.attributs.get(attr[1:-1])
             if niveau.startswith("["):
                 niveau = obj.attributs.get(niveau[1:-1])
+            if valeur.startswith("["):
+                valeur = obj.attributs.get(valeur[1:-1])
             for classe in classes:
                 # print("dyn: traitement classe", classe)
                 if classe.startswith("["):
                     classe = obj.attributs.get(classe[1:-1])
-                valeur = obj.attributs.get(*valeur) if valeur else ""
+
                 # print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
                     self.add_classlist(
@@ -350,19 +354,19 @@ class TableSelector(object):
         self.static = True
         self.nobase = False
         self.onconflict = "add"
-        self.nom = ""
+        self.nom = "S" + str(self.regle_ref.numero)
         self.metainfos = ""
         self.maxsel = 0
 
     def __repr__(self):
-        return repr([repr(bs) for bs in self.baseselectors.values()])
+        return self.nom + repr([repr(bs) for bs in self.baseselectors.values()])
 
     def add_descripteur(
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
         # print("add descripteur", base, descripteur)
-        self.add_selector(base, descripteur)
+        self.add_descripteur_to_base(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
         if not base:
@@ -380,7 +384,7 @@ class TableSelector(object):
         for niveau, classes in tmp.items():
             self.add_descripteur(base, niveau, classes)
 
-    def add_selector(self, base, descripteur):
+    def add_descripteur_to_base(self, base, descripteur):
         if "." in base:
             tmp = base.split(".")
             if len(tmp) >= 3:
@@ -397,7 +401,7 @@ class TableSelector(object):
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self, base, "")
         # print("add descripteur", base, descripteur)
-        self.baseselectors[base].add_descripteur(descripteur)
+        self.baseselectors[base].stocke_descripteur(descripteur)
         if self.static and self.baseselectors[base].dyndescr:
             self.static = False
 
@@ -405,19 +409,34 @@ class TableSelector(object):
         """fusionne 2 selecteurs"""
         for base, bsel in selecteur.baseselectors.items():
             for descripteur in bsel.descripteurs:
-                self.add_selector(base, descripteur)
+                self.add_descripteur_to_base(base, descripteur)
             for descripteur in bsel.dyndescr:
-                self.add_selector(base, descripteur)
+                self.add_descripteur_to_base(base, descripteur)
         self.metainfos = self.metainfos + " " + selecteur.metainfos
+
+    def removebase(self, base):
+        """supprime une base d un selecteur multibase"""
+        try:
+            del self.baseselectors[base]
+            print("suppression base", base)
+            return True
+        except KeyError:
+            print("suppression base : keyerror", base, self.baseselectors.keys())
+            return False
 
     def idbase(self, base):
         """identifie une base de donnees"""
         if not base:
-            raise
+            print("idbase: pas de base definie", base)
         if base in self.mapper.dbref:
             base = self.mapper.dbref[base]
-            return base
-        if base != "*":
+        elif base == "*":
+            pass
+        elif base.startswith("*"):  # service
+            pass
+        elif base == "__filedb":  # fichier
+            pass
+        else:
             print("idbase: base inconnue", base)
         return base
 
@@ -438,6 +457,7 @@ class TableSelector(object):
         self.resolved = complet
         print(
             " fin resolve",
+            self,
             self.baseselectors.keys(),
             self.resolved,
             self.static,
@@ -521,7 +541,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     valeurs = {i: i for i in liste_valeurs}
-    LOGGER.info("fichier a lire: %s", fichier)
+    LOGGER.info("fichier a lire: %s base: %s", fichier, base)
 
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
@@ -599,10 +619,11 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     else:
                         base = "__filedb"
                     selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    print("qgs : descripteur", i, base, niveau, [classe])
+                    print("qgs : descripteur", base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
                 elif "provider" in i:
-                    print(" provider", i)
+                    pass
+                # print(" provider", i)
     except FileNotFoundError:
         LOGGER.error("fichier qgs introuvable %s", fichier)
         # print("fichier qgs introuvable ", fichier)
@@ -711,7 +732,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     nivau;classe;attribut;valeur
     base;niveau;classe;attribut;valeur
     il est possible d ajouter une info de mapping derriere sous forme niveau.classe prefix:N.:C
-    et un mapping attributaire sous forme att=>nouveau,... elle n est pas utilisee par le secleteur
+    et un mapping attributaire sous forme att=>nouveau,... elle n est pas utilisee par le selecteur
     """
     # print("select from csv", fichier, codec)
     try:
@@ -737,16 +758,18 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                 base, niveau, classe, attribut, valeur = [""] * 5
                 if not liste:
                     continue
-                if "." in liste[0]:
+                if "." in liste[0]:  # niveau.classe ou base.niveau.classe
                     l2 = liste[0].split(".")
                     if len(l2) == 2:
                         niveau, classe = l2
                     elif len(l2) == 3:
                         base, niveau, classe = l2
-                    if len(liste) > 2:
+                    if len(liste) == 2:  # on est au mapping
+                        attribut = liste[1]
+                    if len(liste) == 3:
                         attribut, valeur = liste[1:3]
-                        if "." in attribut:  # c' est un mapping
-                            attribut, valeur = "", ""
+                    if "." in attribut:  # c' est un mapping
+                        attribut, valeur = "", ""
                 else:
                     if len(liste) > 4:
                         base, niveau, classe, attribut, valeur = liste[:5]
@@ -758,13 +781,19 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         niveau = liste[0]
                     elif len(liste) == 2:
                         niveau, classe = liste
+                    if "." in attribut:  # c' est un mapping
+                        attribut, valeur = "", ""
                 classe = classe.split(",")
 
-                # print("analyse ligne", liste, base, niveau, classe)
-                if "," in valeur:
-                    valeur = tuple(valeur.split(",", 1))
-                else:
-                    valeur = ("", valeur)
+                print(
+                    "analyse ligne",
+                    liste,
+                    "->",
+                    "-".join(
+                        (base, str(niveau), str(classe), str(attribut), str(valeur))
+                    ),
+                )
+
                 for niv in niveau.split(","):
                     fonction = "="
                     if "*" in niveau or "*" in classe:
@@ -778,7 +807,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     except UnicodeDecodeError:
         LOGGER.error("erreur encodage " + fichier + " n'est pas en " + codec)
         raise StopIteration(4)
-    # print("prechargement selecteur csv", selecteur)
+    print("prechargement selecteur csv", selecteur)
 
 
 def selecteur_from_fich(regle, fichier, selecteur):

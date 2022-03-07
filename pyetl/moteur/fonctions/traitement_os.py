@@ -416,160 +416,10 @@ def f_namejoin(regle, obj):
     return True
 
 
-def dict_decode(attdict, encoding="utf-8"):
-    """decode un dictionnaide byte vers str"""
-    for i in attdict:
-        if isinstance(attdict[i], list):
-            attdict[i] = ",".join(
-                (
-                    (j.decode(encoding) if isinstance(j, bytes) else j)
-                    for j in attdict[i]
-                )
-            )
-        elif isinstance(attdict[i], bytes):
-            attdict[i] = attdict[i].decode(encoding)
-
-
-def h_adquery(regle):
-    """initialise l'acces active_directory"""
-
-    # print("acces LDAP", ACD.root(), regle)
-    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["cn"]
-    adcode = regle.getvar("ADserver")
-    if adcode:
-        # connection specifique a un autre serveur AD
-        # on charge le groupe de parametres
-        import ldap
-
-        regle.stock_param.load_paramgroup(adcode, nom=adcode)
-
-        server = regle.getvar("server_" + adcode)
-        user = regle.getvar("user_" + adcode)
-        passwd = regle.getvar("passwd_" + adcode)
-        base_dn = regle.getvar("base_dn_" + adcode)
-        # print("adconnect ", user, passwd, server)
-        try:
-            connect = ldap.initialize("ldap://" + server)
-            connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
-        except Exception as err:
-            print("erreur connection LDAP", adcode, "->", server, err)
-            regle.valide = False
-            return False
-        # print("connecteur LDAP sur ", server)
-        # print("champs", ["clef"] + regle.a_recuperer)
-        sortie = namedtuple("ldapreturn", ["clef"] + [i for i in regle.a_recuperer])
-
-        def find_user(nom):
-            filter = "(|(CN=%s)(sAMAccountName=%s))" % (nom, nom)
-            attrs = regle.a_recuperer
-            retour = connect.search_s(base_dn, ldap.SCOPE_SUBTREE, filter, attrs)
-            if regle.debug:
-                print("adquery", base_dn, filter, attrs)
-                print("retour adquery", retour)
-            result = list()
-            if retour:
-                for ligne in retour:
-                    ref, attdict = ligne
-                    dict_decode(attdict)
-                    attdict["clef"] = ref
-                    # print("stockage attdict", attdict)
-                    item = sortie(**attdict)
-                result.append(item)
-            return result
-
-        if regle.params.pattern == "1" or regle.params.pattern == "4":
-            regle.queryfonc = find_user
-
-    else:
-        # connection serveur par defaut
-        from . import active_directory as ACD
-
-        try:
-            regle.AD = ACD
-        except ACD.pywintypes.com_error:
-            regle.stock_param.logger.error("connection LDAP impossible")
-            regle.valide = False
-            return False
-        # regle.a_recuperer = regle.params.cmp2.val if regle.params.cmp2.val else "CN"
-        # print("----AD", regle.params.pattern, regle)
-        if regle.params.pattern == "1" or regle.params.pattern == "4":
-            regle.queryfonc = regle.AD.find_user
-        elif regle.params.pattern == "2":
-            regle.queryfonc = regle.AD.find_computer
-        elif regle.params.pattern == "3":
-            regle.queryfonc = regle.AD.find_group
-
-    if regle.params.pattern == "4":  # variable
-
-        items = regle.queryfonc(regle.params.val_entree.val)
-        if items is None:
-            regle.stock_param.logger.error(
-                "element introuvable: %s", regle.params.val_entree.val
-            )
-            regle.valide = "done"
-            return True
-        item = items[0] if isinstance(items, list) else items
-        val = getattr(item, regle.a_recuperer[0])
-        regle.setvar(regle.params.att_sortie.val, val)
-        if regle.debug:
-            print(
-                "AD setvar",
-                regle.params.att_sortie.val,
-                regle.params.val_entree.val,
-                item,
-            )
-        regle.valide = "done"
-
-
-def f_adquery(regle, obj):
-    """#aide||extait des information de active_directory
-    #pattern1||S;?C;?A;adquery;=user;?C;
-    #pattern2||S;?C;?A;adquery;=machine;?C;
-    #pattern3||S;?C;?A;adquery;=groupe;?C;
-    #pattern4||P;C;;adquery;=user;;||sortie||1
-    #req_test||adserver
-    #test||obj||X;89965;adquery;user;||atv;X;UNGER Claude;
-    #"""
-    if regle.get_entree(obj):
-        try:
-            items = regle.queryfonc(regle.get_entree(obj))
-        except TypeError as err:
-            print("erreur adquery", err, regle.get_entree(obj))
-            items = []
-        item = None
-        if items:
-            if isinstance(items, list):
-                if len(items) == 1:
-                    item = items[0]
-                elif len(items) > 1:
-                    for item in items:
-                        obj2 = obj.dupplique()
-                        val = getattr(item, regle.a_recuperer[0])
-                        regle.setval_sortie(obj2, val)
-                        regle.stock_param.moteur.traite_objet(obj2, regle.ok)
-                    return True
-                else:
-                    return False  # liste vide
-            else:
-                item = items
-        if regle.a_recuperer == ["*"]:
-            print("infos:", item)
-            item.dump()
-            regle.setval_sortie(obj, "")
-        else:
-            # print("recup adquery", regle.a_recuperer[0])
-            val = getattr(item, regle.a_recuperer[0]) if item else ""
-            regle.setval_sortie(obj, val)
-        return True
-    # print("pas d'entree adquery", regle.get_entree(obj))
-    return False
-
-
 def h_listefich(regle):
     """rends la regle executable"""
     regle.chargeur = True
-    if regle.params.pattern == "2":
-        regle.setlocal("fileselect", regle.params.val_entree.val)
+
     regle.setlocal("F_entree", "*")
     regle.extfilter = regle.params.cmp2.liste
 
@@ -582,8 +432,7 @@ def f_listefich(regle, obj):
     #variables||dirselect:selecteur de repertoires
               ||filtre_entree:filtrage noms par expression reguliere
     """
-    if regle.params.pattern == "1":
-        regle.setlocal("fileselect", regle.get_entree(obj))
+
     classe = regle.params.cmp1.val or obj.attributs.get("#classe")
     traite_objet = regle.stock_param.moteur.traite_objet
     trouve = False
@@ -593,6 +442,7 @@ def f_listefich(regle, obj):
         if regle.extfilter and ext not in regle.extfilter:
             continue
         nouveau = obj.dupplique()
+        nouveau.virtuel = False
         nouveau.attributs["#classe"] = classe
         regle.setval_sortie(nouveau, nom)
         nouveau.attributs["#f_racine"] = racine

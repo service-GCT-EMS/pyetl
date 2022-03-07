@@ -200,6 +200,8 @@ class ParametresFonction(object):
             if ":" in val and not "," in val:
                 val2 = val.replace(":", ",")
             if val2:
+                if val2.startswith(","):
+                    val2 = val2[1:]
                 liste = val2.split(",")
 
             if taille > len(liste):
@@ -275,6 +277,10 @@ class ParametresFonction(object):
 
     def compilefonc(self, descripteur, variable, debug=False):
         """compile une expression de champs"""
+        # print("descripteur->" + descripteur + "<-")
+        if descripteur.startswith("N::") or descripteur.startswith("C::"):
+            # print("detection formule")
+            descripteur = descripteur[3:]
         desc1 = descripteur.replace("N:", "n:")
         desc2 = desc1.replace("C:", "c:")
         desc3 = self.MODIFFONC1.sub(r"obj.atget_\1('\2')", desc2)
@@ -702,7 +708,8 @@ class RegleTraitement(object):  # regle de mapping
             motif + " parametres : %s",
             ";".join([self.v_nommees[i] for i in self.NOMS_CHAMPS]),
         )
-        log(motif + " autorises  : %s", fonc.pattern)
+        if fonc:
+            log(motif + " autorises  : %s", fonc.pattern)
 
         if self.erreurs:
             log(motif + " %s", "\n".join(self.erreurs))
@@ -833,6 +840,13 @@ class RegleTraitement(object):  # regle de mapping
         return self.stock_param.schemas.get(nom)
 
     # =========================acces standardises aux objets==================
+    def getobj(self, ident, format_natif="interne"):
+        """cree un objet"""
+        if hasattr(self, "reader"):
+            obj = self.reader.getobj(*ident, format_natif=format_natif)
+            return obj
+        return False
+
     def get_defaut(self, obj):
         """ retourne la valeur par defaut s'il n'y a pas de champ"""
         # print("get_defaut",self.params.val_entree.val)

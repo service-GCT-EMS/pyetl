@@ -141,6 +141,7 @@ class CsvWriter(FileWriter):
         self.headerfonc = str
         self.classes = set()
         self.errcnt = 0
+        self.objs = dict()
         if self.schemaclasse:
             #            print ('writer',nom, schema.schema.init, schema.info['type_geom'])
             if self.schemaclasse.info["type_geom"] == "indef":
@@ -192,7 +193,7 @@ class CsvWriter(FileWriter):
         attributs = self.separ.join((i if i else self.null for i in atlist))
         return attributs
 
-    def write(self, obj):
+    def prep_write(self, obj):
         """ecrit un objet"""
         # print("writer: ", id(self), self.regle.idregle)
         if obj.virtuel:
@@ -261,8 +262,26 @@ class CsvWriter(FileWriter):
 
         # print("ecriture csv", ligne, obj, self.liste_att)
 
-        self.fichier.write(ligne)
-        self.fichier.write("\n")
+        # self.fichier.write(ligne)
+        # self.fichier.write("\n")
+        return ligne
+
+    def write(self, obj):
+        ligne = self.prep_write(obj)
+        if ligne:
+            self.fichier.write(ligne)
+            self.fichier.write("\n")
+            return True
+        return False
+
+    def attstore(self, att, obj):
+        ligne = self.prep_write(self, obj)
+        clef = tuple(obj.attributs.get(i) for i in self.regle_ref.clef)
+        if clef in self.objs:
+            self.objs[clef].attributs[att].append(ligne)
+        else:
+            self.objs[clef] = self.getobj(att)
+            self.objs[clef].attributs[att] = [ligne]
         return True
 
 
@@ -294,6 +313,7 @@ class SqlWriter(CsvWriter):
 
     def prepare_attributs(self, obj):
         """ prepare les attributs en fonction du format"""
+
         if obj.hdict:
             # atlist = []
             atlist = (
@@ -313,7 +333,8 @@ class SqlWriter(CsvWriter):
                 str(obj.attributs.get(i, "")).translate(self.transtable)
                 for i in self.liste_att
             )
-
+        # atlist = list(atlist)
+        # print("prepare_attributs sql", atlist)
         return self.separ.join((i if i else self.null for i in atlist))
 
     def header(self, init=1):

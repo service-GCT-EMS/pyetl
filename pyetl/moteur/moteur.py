@@ -102,7 +102,7 @@ class Moteur(object):
                         # print("tv:traitement obj", obj)
                         self.traite_objet(obj, self.regles[0])
 
-    def traite_regles_chargement(self):
+    def traite_regles_chargement(self, regle=None):
         """ declenche les regles de chargement pour les traitements sans entree"""
         #        if self.debug:
         #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
@@ -119,14 +119,18 @@ class Moteur(object):
         # #        if self.regles[0].mode == "start": #on prends la main dans le script
         # #            self.regles[0].fonc(self.regles[0], None)
         # #            return
-        for i in self.regles:
-            # print(
-            #     "-------------------------------traite_charge ",
-            #     i.declenchee,
-            #     i.chargeur,
-            #     i.niveau,
-            #     i,
-            # )
+        regles = regle.liste_regles if regle else self.regles
+        for i in regles:
+            if i.mode == "call" and not i.declenchee:
+                self.traite_regles_chargement(i)
+            # elif i.chargeur:
+            #     print(
+            #         "--------traite_charge ",
+            #         i.declenchee,
+            #         i.chargeur,
+            #         i.niveau,
+            #         i,
+            #     )
             # on ne traite pas les regles de chargement si elles sont dans des conditions
             if (
                 not i.declenchee

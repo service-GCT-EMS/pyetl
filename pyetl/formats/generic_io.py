@@ -239,6 +239,7 @@ class Reader(object):
         self.schemaclasse = None
         self.schema_entree = None
         self.newschema = True
+        self.attformatters = None
         self.set_format_entree(nom)
         self.nb_lus = 0
         self.lus_fich = 0
@@ -263,7 +264,9 @@ class Reader(object):
             # print ('---initialisation reader',nom ,self.regle_ref)
             self.description = description
             self.format_natif = description.geom
-            self.lire_objets = MethodType(description.reader, self)
+            self.lire_objets = (
+                MethodType(description.reader, self) if description.reader else None
+            )
             # print("objreader", description)
             self.objreader = (
                 MethodType(description.objreader, self)

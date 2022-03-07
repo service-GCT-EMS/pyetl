@@ -858,17 +858,25 @@ def h_objgroup(regle):
     """regle stockante pour les objets crees"""
     regle.store = True
     regle.objets = OrderedDict()
+    regle.reader = regle.stock_param.getreader("interne+s", regle)
     regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
     if (
         len(regle.params.att_sortie.liste) == 1
         and len(regle.params.att_entree.liste) > 1
     ):
         regle.params.pattern = "2"
+    if regle.params.pattern == "2":
         regle.record = namedtuple(
             regle.params.att_sortie.val, regle.params.att_entree.liste
         )
     regle.nbstock = 0
     regle.traite_stock = sortir_objets
+    if "." in regle.params.cmp1.val:
+        idclasse = tuple(regle.params.cmp1.val.split(".", 1))
+    else:
+        idclasse = ("objgroup", regle.params.cmp1.val)
+    regle.classe_sortie = idclasse
+    regle.atts = [(i, "T") for i in regle.params.att_sortie.liste]
 
 
 def f_objgroup(regle, obj):
@@ -879,20 +887,22 @@ def f_objgroup(regle, obj):
     #parametres1||attributs en sortie;defaut;attributs en entree;;nom de la classe en sortie;attributs de groupage
     """
     clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
-    # print("regroupement", regle.params.cmp2.liste, "->", clef)
+    niveau, classe = regle.classe_sortie
+    # print("regroupement", regle.params.cmp2.liste, "->", clef, regle.params.pattern)
     if clef in regle.objets:
         obj2 = regle.objets.get(clef)
     else:
         # on cree un objet
-        obj2 = obj.dupplique()
-        ident = obj.ident
-        ident2 = (ident[0], regle.params.cmp1.val)
-        obj2.setidentobj(ident2)
+
+        obj2 = regle.reader.getobj(niveau=niveau, classe=classe, attributs=regle.atts)
+        # ident = obj.ident
+        # ident2 = (ident[0], regle.params.cmp1.val)
+        # obj2.setidentobj(ident2)
         # on supprime les attributs non communs
-        for i in list(obj2.attributs.keys()):
-            if i.startswith("#") or i in regle.attlist:
-                continue
-            del obj2.attributs[i]
+        # for i in list(obj2.attributs.keys()):
+        #     if i.startswith("#") or i in regle.attlist:
+        #         continue
+        #     del obj2.attributs[i]
         # on cree les attributs d accumulation
         for i in regle.params.att_sortie.liste:
             obj2.attributs[i] = []
@@ -947,9 +957,11 @@ def h_attwriter(regle):
     format = regle.params.cmp1.val
     if format not in regle.stock_param.formats_connus_ecriture:
         raise SyntaxError("format d'ecriture inconnu:" + format)
-    regle.output = regle.stock_param.getoutput(format, regle)
+
     regle.nom_att = regle.params.att_sortie.val
-    regle.format = regle.params.cmp1.val
+    regle.format = format
+    regle.writerparms = dict()
+    regle.output = regle.stock_param.getoutput(format, regle)
     regle.store = True
 
 

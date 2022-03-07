@@ -529,7 +529,7 @@ db:%dest%;;;;;%derniere_sortie%;;runsql;%log%;;;
 &&#define;#zip;source;destination;;;;;;;;
 !#help;zippe les resultats;;;;;;;;;;
 $sans_entree=True;;;;;;;;;;;
-;;;;;%_sortie%/%source%;;archive;%_sortie%/%destination%;;;
+;;;;;%source%;;archive;%destination%;%_sortie%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#filter;champ;filtre;;;;;;;;
 !#help;mange tous les objets qui ne satisfont pas la condition ;;;;;;;;;;
@@ -621,7 +621,7 @@ K:ADserver;$#%ADserver%;
 !#help;affiche le nom de l utilisateur courant
 !#variables;ADserver;identification du serveur AD/LDAP a utiliser si pas de defaut systeme
 K:ADserver;$#%ADserver%;
-;;;;P:_username;%_login%;;adquery;user;;
+;;;;P:_username;%_login%;;adquery;user;;debug
 !===========================================================================================;;;;;;;;;;;
 &&#define;#test;n1;n2;a;;;;
 !#help;test des variables;;;

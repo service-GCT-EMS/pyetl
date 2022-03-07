@@ -100,7 +100,6 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
                     )
         else:
             selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
-
     regle.cible_base = selecteur
 
     return True
@@ -108,9 +107,9 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
 
 def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
-    # print("acces base", regle.cible_base.keys())
+    print("acces base", regle.cible_base.baseselectors.keys())
     selecteur = regle.cible_base
-    maxsel = int(regle.getvar("maxsel", 0))
+    maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
     selecteur.maxsel = maxsel
     if selecteur:
         selecteur.resolve(obj)
@@ -134,16 +133,16 @@ def h_dbalpha(regle):
     if param_base(regle):
         #        print (" preparation lecture ",regle.cible_base)
         #    raise
-        defaut = regle.v_nommees.get(
-            "defaut", ""
-        )  # on utilise in comme selecteur attributaire
-        if defaut[:3].lower() == "in:":
-            mode_multi, valeurs = prepare_mode_in(
-                regle.v_nommees["defaut"][3:], regle, taille=1
-            )
-            regle.params.val_entree = regle.params.st_val(
-                defaut, None, list(valeurs.keys()), False, ""
-            )
+        # defaut = regle.v_nommees.get(
+        #     "defaut", ""
+        # )  # on utilise in comme selecteur attributaire
+        # if defaut[:3].lower() == "in:":
+        #     mode_multi, valeurs = prepare_mode_in(
+        #         regle.v_nommees["defaut"][3:], regle, taille=1
+        #     )
+        #     regle.params.val_entree = regle.params.st_val(
+        #         defaut, None, list(valeurs.keys()), False, ""
+        #     )
         regle.chargeur = True  # c est une regle qui cree des objets
         if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
             regle.setlocal("noauto", regle.getvar("noauto"))  # on confine en local
@@ -183,6 +182,7 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
+    print("dbalpha recup selecteur", selecteur)
     if not selecteur:
         return False
     if selecteur.nobase:  # on ne fait rien pour le test
@@ -199,7 +199,7 @@ def f_dbalpha(regle, obj):
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
 
-        if connect.accept_sql == "non":
+        if connect and connect.accept_sql == "non":
             # pas de requetes directes on essaye le mode dump
             dest = regle.getvar("dest")
             if dest:
@@ -840,7 +840,7 @@ def h_recup_schema(regle):
         complet = selecteur.resolve()
         LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
 
-        # print("retour selecteur", complet, selecteur)
+        print("retour selecteur", complet, selecteur)
         if complet:
             regle.valide = "done"
         return True
@@ -912,21 +912,39 @@ def f_dbclean(regle, obj):
 
 def h_dbselect(regle):
     """preparation selecteur"""
+
     nom_selecteur = regle.params.att_sortie.val
     if nom_selecteur.startswith("#"):
         nom_selecteur = nom_selecteur[1:]
-    param_base(regle, nom=nom_selecteur)
-    selecteur = regle.cible_base
-    # selecteur = regle.cible_base
-    regle.valide = "done"
-    return True
+    if regle.params.pattern == "1":
+        param_base(regle, nom=nom_selecteur)
+        regle.valide = "done"
+        return True
+    elif regle.params.pattern == "2":  # fusion de selecteurs
+        final = regle.stock_param.namedselectors.get(nom_selecteur)
+        if not final:
+            final = getselector(regle, None, nom=nom_selecteur)
+        for nom in regle.params.val_entree.liste:
+            if nom.startswith("#"):
+                nom = nom[1:]
+            selecteur = regle.stock_param.namedselectors.get(nom)
+            final.merge(selecteur)
+        return True
+    elif regle.params.pattern == "3":  # suppression d une base d'un selecteur
+        final = regle.stock_param.namedselectors.get(nom_selecteur)
+        if not final:
+            return False
+        base = regle.params.val_entree.val
+        return final.removebase(base)
 
 
 def f_dbselect(regle, obj):
     """#aide||creation d un selecteur: ce selecteur peut etre reutilise pour des operations
              ||sur les bases de donnees
       #groupe||database
-     #pattern||A;?;?;dbselect;?;?
+     #pattern1||A;?;?;dbselect;?;?
+     #pattern2||A;L;;dbselect;=merge;
+     #pattern3||A;C;;dbselect;=deletebase;
     #req_test||testdb
     """
     pass
@@ -1168,7 +1186,10 @@ def h_dbmap_qgs(regle):
         adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
         regle.valide = "done"
         print("retour mapping", regle.valide)
-    return True
+        return True
+    else:
+        print("erreur_mapping", selecteur)
+        return False
 
 
 def f_dbmap_qgs(regle, obj):

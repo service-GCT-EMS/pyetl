@@ -233,5 +233,6 @@ WRITERS = {
 #                  reader,geom,hasschema,auxfiles
 READERS = {
     "interne": (None, None, False, (), None, None),
+    "interne+s": (None, None, True, (), None, None),
     "#dir": (filelist_to_obj, False, True, (), None, None),
 }

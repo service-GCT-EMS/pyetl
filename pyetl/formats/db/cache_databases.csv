@@ -13,3 +13,4 @@ spatialite;.base_spatialite
 sql;.base_postgis
 sqlite;.base_sqlite
 wfs;.base_wfs
+wfs2;.base_webservices

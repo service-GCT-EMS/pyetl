@@ -22,6 +22,7 @@ DBMODS = DBACMODS | DBDATAMODS
 
 def dbaccess(regle, codebase, type_base=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
+    codebase = codebase if codebase and codebase != "*" else regle.getvar("_paramgroup")
     base = codebase
     serveur = ""
     stock_param = regle.stock_param

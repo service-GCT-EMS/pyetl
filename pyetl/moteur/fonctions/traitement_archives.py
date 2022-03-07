@@ -22,13 +22,14 @@ def h_archive(regle):
 def f_archive(regle, obj):
     """#aide||zippe les fichiers ou les repertoires de sortie
     #parametres||liste de noms de fichiers(avec \*...);attribut contenant le nom;;nom du fichier zip
-      #pattern1||;?C;?A;archive;C;
-      #pattern2||;?C;?A;zip;C;
+      #pattern1||;?C;?A;archive;C;?C
+      #pattern2||;?C;?A;zip;C;?C
          #test||notest
     """
     #    if not obj.virtuel:
     #        return False
-    dest = regle.params.cmp1.val + ".zip"
+    racine = regle.params.cmp2.val
+    dest = os.path.join(racine, regle.params.cmp1.val + ".zip")
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     stock = dict()
     print(
@@ -39,20 +40,20 @@ def f_archive(regle, obj):
         regle.getvar("_sortie"),
     )
     if regle.params.att_entree.val:
-        fich = obj.attributs.get(regle.params.att_entree.val)
+        fich = os.path.join(racine, obj.attributs.get(regle.params.att_entree.val))
         if fich:
             stock[fich] = fich
         mode = "a"
     else:
         mode = "w"
         regle.stock_param.logger.info(
-            "archive : ecriture zip:"
-            + ",".join(regle.params.val_entree.liste)
-            + " -> "
-            + dest
+            "archive : ecriture zip:" + (racine + ":")
+            if racine
+            else "" + ",".join(regle.params.val_entree.liste) + " -> " + dest
         )
-        for f_interm in regle.params.val_entree.liste:
+        for f_1 in regle.params.val_entree.liste:
             clefs = []
+            f_interm = os.path.join(racine, f_1)
             if "*" in os.path.basename(f_interm):
                 clefs = [i for i in os.path.basename(f_interm).split("*") if i]
                 #                print( 'clefs de fichier zip',clefs)

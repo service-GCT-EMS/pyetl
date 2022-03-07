@@ -322,10 +322,11 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
     master = False
     if masterkey:
         masterkey = decrypt(masterkey, key=[localkey], level=cr_lev, helper=cr_help)
+        master = masterkey and not masterkey.endswith("=")
     if userkey_c:
         if masterkey:
             userkey = decrypt(userkey_c, key=[masterkey], level=cr_lev, helper=cr_help)
-            master = bool(userkey and userkey != userkey_c)
+            master = master or bool(userkey and userkey != userkey_c)
         else:
             userkey = decrypt(userkey_c, key=localkey, level=cr_lev, helper=cr_help)
 
@@ -355,7 +356,7 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
                 else:
                     site_params[nom][numero] = (nom_p, val)
     for nom in supr:
-        # print("suppression paramgroup", nom)
+        print("suppression paramgroup", nom, master)
         del site_params[nom]
 
 

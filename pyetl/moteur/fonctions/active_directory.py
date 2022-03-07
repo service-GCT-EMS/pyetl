@@ -101,14 +101,14 @@ import win32security
 def i32(x):
     """Converts a long (for instance 0x80005000L) to a signed 32-bit-int.
 
-  Python2.4 will convert numbers >= 0x80005000 to large numbers
-  instead of negative ints.    This is not what we want for
-  typical win32 constants.
+    Python2.4 will convert numbers >= 0x80005000 to large numbers
+    instead of negative ints.    This is not what we want for
+    typical win32 constants.
 
-  Usage:
-      >>> i32(0x80005000L)
-      -2147363168
-  """
+    Usage:
+        >>> i32(0x80005000L)
+        -2147363168
+    """
     # x > 0x80000000L should be negative, such that:
     # i32(0x80000000L) -> -2147483648L
     # i32(0x80000001L) -> -2147483647L     etc.
@@ -208,40 +208,40 @@ ENUMS = {
 
 def _set(obj, attribute, value):
     """Helper function to add an attribute directly into the instance
-   dictionary, bypassing possible __getattr__ calls
-  """
+    dictionary, bypassing possible __getattr__ calls
+    """
     obj.__dict__[attribute] = value
 
 
 def _and(*args):
     """Helper function to return its parameters and-ed
-   together and bracketed, ready for a SQL statement.
+     together and bracketed, ready for a SQL statement.
 
-  eg,
+    eg,
 
-    _and ("x=1", "y=2") => "(x=1 AND y=2)"
-  """
+      _and ("x=1", "y=2") => "(x=1 AND y=2)"
+    """
     return " AND ".join(args)
 
 
 def _or(*args):
     """Helper function to return its parameters or-ed
-   together and bracketed, ready for a SQL statement.
+     together and bracketed, ready for a SQL statement.
 
-  eg,
+    eg,
 
-    _or ("x=1", _and ("a=2", "b=3")) => "(x=1 OR (a=2 AND b=3))"
-  """
+      _or ("x=1", _and ("a=2", "b=3")) => "(x=1 OR (a=2 AND b=3))"
+    """
     return " OR ".join(args)
 
 
 def _add_path(root_path, relative_path):
     """Add another level to an LDAP path.
-  eg,
+    eg,
 
-    _add_path ('LDAP://DC=gb,DC=vo,DC=local', "cn=Users")
-      => "LDAP://cn=users,DC=gb,DC=vo,DC=local"
-  """
+      _add_path ('LDAP://DC=gb,DC=vo,DC=local', "cn=Users")
+        => "LDAP://cn=users,DC=gb,DC=vo,DC=local"
+    """
     protocol = "LDAP://"
     if relative_path.startswith(protocol):
         return relative_path
@@ -299,8 +299,8 @@ class ADO_record(object):
 
 def query(query_string, **command_properties):
     """Auxiliary function to serve as a quick-and-dirty
-   wrapper round an ADO query
-  """
+    wrapper round an ADO query
+    """
     command = Dispatch("ADODB.Command")
     command.ActiveConnection = connection()
     #
@@ -409,14 +409,14 @@ class _AD_root(object):
 
 class _AD_object(object):
     """Wrap an active-directory object for easier access
-   to its properties and children. May be instantiated
-   either directly from a COM object or from an ADs Path.
+    to its properties and children. May be instantiated
+    either directly from a COM object or from an ADs Path.
 
-   eg,
+    eg,
 
-     import active_directory
-     users = AD_object (path="LDAP://cn=Users,DC=gb,DC=vo,DC=local")
-  """
+      import active_directory
+      users = AD_object (path="LDAP://cn=Users,DC=gb,DC=vo,DC=local")
+    """
 
     def __init__(self, obj):
         #
@@ -493,10 +493,10 @@ class _AD_object(object):
         return self.com_object.Guid == other.com_object.Guid
 
     class AD_iterator:
-        """ Inner class for wrapping iterated objects
-    (This class and the __iter__ method supplied by
-    Stian S�iland <stian@soiland.no>)
-    """
+        """Inner class for wrapping iterated objects
+        (This class and the __iter__ method supplied by
+        Stian S�iland <stian@soiland.no>)
+        """
 
         def __init__(self, com_object):
             self._iter = iter(com_object)
@@ -541,15 +541,15 @@ class _AD_object(object):
 
     def set(self, **kwds):
         """Set a number of values at one time. Should be
-     a little more efficient than assigning properties
-     one after another.
+         a little more efficient than assigning properties
+         one after another.
 
-    eg,
+        eg,
 
-      import active_directory
-      user = active_directory.find_user ("goldent")
-      user.set (displayName = "Tim Golden", description="SQL Developer")
-    """
+          import active_directory
+          user = active_directory.find_user ("goldent")
+          user.set (displayName = "Tim Golden", description="SQL Developer")
+        """
         for k, v in kwds.items():
             self.com_object.Put(k, v)
         self.com_object.SetInfo()
@@ -563,16 +563,16 @@ class _AD_object(object):
 
     def child(self, relative_path):
         """Return the relative child of this object. The relative_path
-     is inserted into this object's AD path to make a coherent AD
-     path for a child object.
+         is inserted into this object's AD path to make a coherent AD
+         path for a child object.
 
-    eg,
+        eg,
 
-      import active_directory
-      root = active_directory.root ()
-      users = root.child ("cn=Users")
+          import active_directory
+          root = active_directory.root ()
+          users = root.child ("cn=Users")
 
-    """
+        """
         return AD_object(path=_add_path(self.path(), relative_path))
 
     def find_user(self, name=None):
@@ -743,20 +743,20 @@ def cached_AD_object(path, obj):
 
 def AD_object(obj_or_path=None, path=""):
     """Factory function for suitably-classed Active Directory
-  objects from an incoming path or object. NB The interface
-  is now  intended to be:
+    objects from an incoming path or object. NB The interface
+    is now  intended to be:
 
-    AD_object (obj_or_path)
+      AD_object (obj_or_path)
 
-  but for historical reasons will continue to support:
+    but for historical reasons will continue to support:
 
-    AD_object (obj=None, path="")
+      AD_object (obj=None, path="")
 
-  @param obj_or_path Either an COM AD object or the path to one. If
-  the path doesn't start with "LDAP://" this will be prepended.
+    @param obj_or_path Either an COM AD object or the path to one. If
+    the path doesn't start with "LDAP://" this will be prepended.
 
-  @return An _AD_object or a subclass proxying for the AD object
-  """
+    @return An _AD_object or a subclass proxying for the AD object
+    """
     if path and not obj_or_path:
         obj_or_path = path
     try:
@@ -822,18 +822,18 @@ def search(*args, **kwargs):
 
 def search_ex(query_string=""):
     """Search the Active Directory by specifying a complete
-   query string. NB The results will *not* be AD_objects
-   but rather ADO_objects which are queried for their fields.
+    query string. NB The results will *not* be AD_objects
+    but rather ADO_objects which are queried for their fields.
 
-   eg,
+    eg,
 
-     import active_directory
-     for user in active_directory.search_ex (\"""
-       SELECT displayName
-       FROM 'LDAP://DC=gb,DC=vo,DC=local'
-       WHERE objectCategory = 'Person'
-     \"""):
-       print user.displayName
-  """
+      import active_directory
+      for user in active_directory.search_ex (\"""
+        SELECT displayName
+        FROM 'LDAP://DC=gb,DC=vo,DC=local'
+        WHERE objectCategory = 'Person'
+      \"""):
+        print user.displayName
+    """
     for result in query(query_string, Page_size=50):
         yield result

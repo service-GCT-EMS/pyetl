@@ -31,9 +31,11 @@ Created on Fri Dec 11 14:34:04 2015
 
 """
 # from pyetl.formats.formats import Stat
+from collections import namedtuple
 import re
 import copy
 import logging
+import json
 
 LOGGER = logging.getLogger(__name__)
 
@@ -258,7 +260,9 @@ def h_setcalc(regle):
     # print("dans hcalc", regle.params)
     try:
         if regle.params.pattern == "1":
-            regle.calcul = regle.params.compilefonc(regle.params.att_entree.val, "obj")
+            regle.calcul = regle.params.compilefonc(
+                regle.params.att_entree.val, "obj", debug=regle.debug
+            )
         elif regle.params.pattern == "2":
             regle.calcul = regle.params.compilefonc(
                 regle.params.val_entree.val, "obj", debug=regle.debug
@@ -441,6 +445,8 @@ def h_asplit(regle):
         int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
     )
     nbdecoup = nbres + (int(f_debut) if f_debut else 0)
+    regle.modestruct = regle.params.pattern == "3"
+
     if regle.debug:
         print(
             "cible decoupage",
@@ -465,18 +471,33 @@ def f_asplit(regle, obj):
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
     """
-    if regle.multi:
-        if regle.sep:
-            elems = regle.getval_entree(obj).split(regle.sep)[regle.defcible]
-        elif isinstance(regle.getval_entree(obj), (list, tuple)):
-            elems = regle.getval_entree(obj)[regle.defcible]
+    att = regle.getval_entree(obj)
+    keys = None
+
+    if regle.sep:
+        elems = att.split(regle.sep)[regle.defcible]
+    elif isinstance(att, (list, tuple)):
+        if hasattr(att, "_fields"):  # c est un namedtuple
+            atd = att._asdict()
+            elems = list(atd.values())[regle.defcible]
+            keys = list(atd.keys)[regle.defcible]
         else:
-            elems = [regle.getval_entree(obj)]
-        obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
+            elems = att[regle.defcible]
+    elif isinstance(att, dict):
+        elems = [att.values()][regle.defcible]
+        keys = [att.keys][regle.defcible]
+
+    else:
+        elems = [regle.getval_entree(obj)]
+
         # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+    if regle.multi:
+        obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
         for i in elems:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
+            if keys:
+                obj2.attributs["#clef"] = keys.pop(0)
             obj2.redirect = "gen"
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
     else:
@@ -1062,3 +1083,71 @@ def f_extractbloc(regle, obj):
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         obj.attributs[regle.params.val_entree.val] = tmp
     return bool(foundblocs)
+
+
+def affiche_iterable(elem, n, clef=""):
+    """affiche recursivement un iterable"""
+    print("--" * n, " element", clef, ":", type(elem), elem)
+    if isinstance(elem, dict):
+        for nom, val in elem.items():
+            affiche_iterable(val, n + 1, clef=nom)
+    else:
+        try:
+            for i in elem:
+                if isinstance(i, str):
+                    print("--" * (n + 1), "str", i)
+                else:
+                    affiche_iterable(i, n + 1)
+        except TypeError:
+            return
+
+
+def f_infoatt(regle, obj):
+    """#aide||affiche des infos sur un attribut
+    #aide_spec||donne recursivement les types d un attribut compexe
+    #pattern1||;;A;infoatt;;"""
+    att = obj.attributs[regle.params.att_entree.val]
+    print("analyse attribut", regle.params.att_entree.val)
+    print("type brut ", type(att))
+    if isinstance(att, str):
+        return True
+    affiche_iterable(att, 0)
+    return True
+
+
+def txtstruct(elem):
+    """convertit recursivement un iterable en texte"""
+    if isinstance(elem, dict):
+        return {nom: txtstruct(val) for nom, val in elem.items()}
+    if isinstance(elem, tuple):
+        return tuple(txtstruct(val) for val in elem)
+    else:
+        try:
+            return [txtstruct(val) for val in elem]
+        except:
+            return repr(elem)
+
+
+def f_txtstruct(regle, obj):
+    """#aide||transforme un objet complexe contenu dans un attribut en structures de texte
+    #aide_spec||attention mode rantanplan : fait ce qu il peut basé sur la fonction repr
+    #aide_spec||gere les dictionnaires et les iterables imbriques
+    #pattern1||A;;A;txtstruct;;
+    #"""
+    att = obj.attributs.get(regle.params.att_entree.val)
+    print(" restructuration de l objet", type(att))
+    if isinstance(att, str):
+        return True
+    sortie = txtstruct(att)
+    print(" restructuration de l objet", type(att), "->", type(sortie))
+    obj.attributs[regle.params.att_sortie.val] = sortie
+    return True
+
+
+def f_json(regle, obj):
+    """#aide||transforme un objet complexe contenu dans un attribut en texte json
+    #aide_spec||attention mode rantanplan : fait ce qu il peut basé sur la fonction repr
+    #aide_spec||gere les dictionnaires et les iterables imbriques
+    #pattern1||A;;A;json;;
+    #"""
+    obj.attributs[regle.params.att_sortie.val] = json.dumps(regle.getval_entree(obj))

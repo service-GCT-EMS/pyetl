@@ -6,6 +6,7 @@ import copy
 import itertools
 import collections
 import logging
+import json
 
 # from pyetl.formats.interne.stats import LOGGER
 from .geometrie.geom import Geometrie, Erreurs
@@ -275,16 +276,17 @@ class Objet(object):
             # if self.key
             # else ""
             + '\n"properties": {\n'
-            + ",\n".join(
-                [
-                    '"'
-                    + i
-                    + '": "'
-                    + self.attributs.get(i, "").replace('"', '\\"')
-                    + '"'
-                    for i in liste
-                ]
-            )
+            + json.dumps({i: self.attributs.get(i, "") for i in liste})
+            # + ",\n".join(
+            #     [
+            #         '"'
+            #         + i
+            #         + '": "'
+            #         + self.attributs.get(i, "").replace('"', '\\"')
+            #         + '"'
+            #         for i in liste
+            #     ]
+            # )
             + "},\n"
             + (geom if geom else "")
             + "}\n"
@@ -628,12 +630,19 @@ class Objet(object):
             self.hdict = dict()
         if nom not in self.hdict or force:
             hstore = self.attributs.get(nom, "")
+
             if hstore:
-                vlist = hstore[1:-1].split('", "')
-                hddef = (i.replace(r"\"", '"').split('" => "', 1) for i in vlist)
+                if isinstance(hstore, str):
+                    vlist = hstore[1:-1].split('", "')
+                    hddef = (i.replace(r"\"", '"').split('" => "', 1) for i in vlist)
+                    self.hdict[nom] = dict(hddef)
+                elif isinstance(hstore, dict):
+                    self.hdict[nom] = dict(hstore)
+                elif isinstance(hstore, collections.namedtuple):
+                    self.hdict[nom] = hstore._asdict()
             else:
-                hddef = ()
-            self.hdict[nom] = dict(hddef)
+                self.hdict[nom] = dict()
+
         return self.hdict[nom]
 
     def setmultiple(self, nom, liste=[]):

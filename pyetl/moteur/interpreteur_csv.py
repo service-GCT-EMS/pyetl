@@ -707,6 +707,9 @@ def get_macro(mapper, nom_inclus, parametres):
         nom_inclus = nom_inclus[1:]
         if not nom_inclus.startswith("#"):
             nom_inclus = "#" + nom_inclus
+    while nom_inclus.startswith("##"):
+        nom_inclus = nom_inclus[1:]
+
     if nom_inclus.startswith("#db:"):
         get_macro_from_db(mapper.regle_ref, nom_inclus)  # on mets en cache
         nom_inclus = nom_inclus[4:]
@@ -825,7 +828,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
             regle_ref=regle_ref,
         )
         if erreurs:
-            LOGGER.error("erreur initialisation macro %s", macro.nom)
+            LOGGER.error("erreur initialisation macro %s : %s", macro.nom, str(erreurs))
             erreurs = -999
             # print("=======================erreurs initialisation macro", macro.nom)
         # if debug:
@@ -875,7 +878,6 @@ def lire_regles_csv(
     # if regle_ref:
     #     print('regle_ref:',regle_ref)
     # print("dans lire_regles", fichier_regles, liste_regles)
-
     if fichier_regles:
         liste_regles = _lire_commandes(mapper, fichier_regles, niveau)
     #    if niveau:
@@ -956,9 +958,8 @@ def lire_regles_csv(
             champs_var = ligne.split(";") + [""] * 3
             vgroup = champs_var[0][2:].strip()
             ngroup = champs_var[1].strip() if champs_var[1].strip() else vgroup
-            check = champs_var[
-                2
-            ].strip()  # verif si le groupe n'a pas ete defini d'une autre facon
+            check = champs_var[2].strip()
+            # verif si le groupe n'a pas ete defini d'une autre facon
             #            print ("avt chargement groupe", vgroup, champs_var)
             if vgroup.startswith("#"):
                 pass  # c est un selecteur on ne le traite pas
@@ -1006,9 +1007,9 @@ def lire_regles_csv(
                 mapper, texte[2:], context, fichier_regles, regle_ref=regle_ref
             )
             if errs:
-                # LOGGER.error("erreur chargement macro %s", texte)
+                LOGGER.error("erreur chargement macro %s", texte)
                 # print("====erreur chargement macro", texte, errs)
-                erreurs = erreurs + errs
+                erreurs += errs
                 return erreurs
         else:
             #            print('regles std', defligne)
@@ -1023,7 +1024,8 @@ def lire_regles_csv(
             )
             if errs:
                 # LOGGER.error("erreur interpretation des regles : arret du traitement")
-                print("====erreur traite_regles_std")
+                # print("====erreur traite_regles_std")
+                LOGGER.error("erreur traite_regles_std %s", texte)
                 erreurs += errs
     #            print('apres,regles std', defligne, errs)
 
