@@ -277,6 +277,15 @@ def ftpconnect(regle):
         return False
 
 
+def uploadfile(regle, filename):
+    # upload un fichier
+    destname = regle.destdir + "/" + str(os.path.basename(filename))
+    localfile = open(filename, "rb")
+    regle.ftp.storbinary("STOR " + destname, localfile)
+    localfile.close()
+    # print("transfert effectue", filename, "->", destname)
+
+
 def f_ftpupload(regle, obj):
     """#aide||charge un fichier sur ftp
     #aide_spec||;nom fichier; (attribut contenant le nom);ftp_upload;ident ftp;chemin ftp
@@ -310,9 +319,14 @@ def f_ftpupload(regle, obj):
                 regle.ftp.storbinary("STOR " + destname, input.read)
                 input.close()
             else:
-                localfile = open(filename, "rb")
-                regle.ftp.storbinary("STOR " + destname, localfile)
-                localfile.close()
+                if os.path.isdir(filename):
+                    for fich in os.listdir(filename):
+                        uploadfile(regle, os.path.join(filename, fich))
+                else:
+                    uploadfile(regle, filename)
+                    # localfile = open(filename, "rb")
+                    # regle.ftp.storbinary("STOR " + destname, localfile)
+                    # localfile.close()
             if regle.debug:
                 print("transfert effectue", filename, "->", destname)
         return True

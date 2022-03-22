@@ -21,6 +21,7 @@ geojson                            oui           oui
 gpkg                               oui           oui
 gy                                 oui           non
 interne                            oui           non
+interne+s                          oui           non
 json                               oui           oui
 ligne                              oui           non
 mdb                                oui           non
@@ -61,6 +62,7 @@ spatialite                         oui           oui
 sql                                oui           oui
 sqlite                             oui           oui
 wfs                                oui           oui
+wfs2                               oui           oui
 ====================        ==========    ===========
 
 elyx
@@ -321,6 +323,23 @@ il est necessaire de positionner les parametres suivant:
 
 
 
+wfs2
+....
+
+
+Acces aux services web wfs
+
+commandes disponibles :
+
+    * requete getcapabilities et analyse des donnees disponibles
+
+
+necessite la librairie owslib
+
+il est necessaire de positionner les parametres suivant:
+
+
+
 
 
 format #comptage
@@ -435,6 +454,12 @@ boucle de lecture principale -> attention methode de reader
 
 format interne
 ..............
+
+
+
+
+format interne+s
+................
 
 
 

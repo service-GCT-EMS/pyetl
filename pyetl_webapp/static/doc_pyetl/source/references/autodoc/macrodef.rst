@@ -25,7 +25,7 @@ reference macros
 :ref:`#creclef`                                               
 :ref:`#cree_schema` nom;dialecte;modif                        conversion de fichiers de structure en schema sql
 :ref:`#cree_sql` nom;dialecte                                 conversion de schemas en sql
-:ref:`#crypt_site_params`                                     
+:ref:`#crypt_site_params`                                     prepare les acces personnalises aux bases
 :ref:`#cus2cc48`                                              reprojette des donnees cus en rgf93
 :ref:`#db_batch` nom_batch;famille_batch;force                passe les batchs actifs
 :ref:`#db_batch_rt` bdef                                      lance le scheduler sur une liste de taches en base lecture unique
@@ -87,7 +87,7 @@ reference macros
 :ref:`#printparams`                                           affichage
 :ref:`#printvar` var                                          affichage variable
 :ref:`#pwcrypt` clef                                          crypte les mots de passe
-:ref:`#pwdecrypt` key                                         
+:ref:`#pwdecrypt` key                                         decrypte les mots de passe
 :ref:`#pwprepare` ref                                         
 :ref:`#pyetl_init_db`                                         initialise le schema pyetl pour travailler en base de donnees
 :ref:`#regroupe` groupe;stocke_groupe                         force le groupe et le transfere sur un attribut
@@ -108,7 +108,7 @@ reference macros
 :ref:`#store` clef;code                                       
 :ref:`#supp` atts                                             suppression de champs
 :ref:`#test` n1;n2;a                                          test des variables
-:ref:`#testpourluc`                                           
+:ref:`#testpourluc`                                           aide speciale pour luc
 :ref:`#timeselect` var                                        determine si un batch est executable en fonction de l'heure
 :ref:`#to_sigli`                                              preparation d'un jeu de donnees formatage standard sigli p:format parametres serveur base chaine_connection niveau classe
 :ref:`#ukcrypt`                                               
@@ -356,6 +356,8 @@ parametres positionnels
 #crypt_site_params
 ..................
 
+
+prepare les acces personnalises aux bases
 
 
 
@@ -1128,6 +1130,8 @@ parametres positionnels
 ..........
 
 
+decrypte les mots de passe
+
 parametres positionnels
 
 * key:
@@ -1381,6 +1385,8 @@ parametres positionnels
 ............
 
 
+aide speciale pour luc
+
 
 
 #timeselect
@@ -1425,7 +1431,7 @@ parametres positionnels
 
 * fich:fich
 * dest:dest
-* destdir:
+* destdir:destdir
 
 
 

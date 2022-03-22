@@ -107,7 +107,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
 
 def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
-    print("acces base", regle.cible_base.baseselectors.keys())
+    # print("acces base", regle.cible_base.baseselectors.keys())
     selecteur = regle.cible_base
     maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
     selecteur.maxsel = maxsel
@@ -174,7 +174,7 @@ def f_dbalpha(regle, obj):
     #req_test||testdb
     """
     logger = regle.stock_param.logger
-    if not regle.getvar("traitement_virtuel"):
+    if not regle.istrue("traitement_virtuel"):
         if obj.virtuel and obj.attributs.get("#categorie") == "traitement_virtuel":
             logger.debug("traitement virtuel :%s", str(obj.ido))
             # print ('detection traitement virtuel : on ignore', obj, regle.getvar('traitement_virtuel'), regle.context.vlocales)
@@ -182,7 +182,6 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
-    print("dbalpha recup selecteur", selecteur)
     if not selecteur:
         return False
     if selecteur.nobase:  # on ne fait rien pour le test

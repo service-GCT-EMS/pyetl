@@ -117,33 +117,17 @@ class Cursinfo(object):
         # print("dans execute ", requete, data)
         cur = self.connecteur.connection.cursor() if newcursor else self.cursor
         if cur:
-            # try:
-            if data is not None:
-                cur.execute(requete, data)
-            else:
-                cur.execute(requete)
-            # except Exception as err:
-            #     regle_ref = regle if regle else self.connecteur.regle
-            #     fail_silent = (
-            #         regle_ref.getvar("Fail_silent", False) if regle_ref else False
-            #     )
-            #     if (
-            #         not fail_silent
-            #         or fail_silent == "0"
-            #         or fail_silent.lower() == "false"
-            #     ):
-            #         print(self.connecteur.base, "erreur requete", err, requete)
-            #         raise StopIteration(1)
-            #     if (
-            #         fail_silent == True
-            #         or fail_silent == "1"
-            #         or fail_silent.lower() == "true"
-            #     ):
-            #         raise StopIteration(1)
-            #     elif fail_silent != "pass":
-            #         print(self.connecteur.base, "erreur requete", err, requete)
-            #         raise StopIteration(1)
-            #     return None
+            try:
+                if data is not None:
+                    cur.execute(requete, data)
+                else:
+                    cur.execute(requete)
+            except Exception as err:
+                regle_ref = regle if regle else self.connecteur.regle
+                fail_silent = regle_ref.istrue("Fail_silent") if regle_ref else False
+                if not fail_silent:
+                    print(self.connecteur.base, "erreur requete", err, requete)
+                raise StopIteration(1)
 
             if not newcursor:
                 self.requete = requete

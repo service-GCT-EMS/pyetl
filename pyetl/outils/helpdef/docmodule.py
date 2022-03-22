@@ -155,9 +155,7 @@ def docgen(mapper, nom, nommodule):
                         )
                     )
     if commande.description.get("#parametres"):
-        doc.extend(
-            doc_pattern(commande.pattern, commande.description.get("#parametres"))
-        )
+        doc.extend(doc_pattern("", commande.description.get("#parametres")))
     if commande.description.get("#variables"):
         for i in commande.description.get("#variables"):
             doc.append(i)

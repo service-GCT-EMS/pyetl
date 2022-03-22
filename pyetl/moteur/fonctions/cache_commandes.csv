@@ -1,3 +1,4 @@
+adquery;.traitement_ad
 cnt;.traitement_alpha
 extractbloc;.traitement_alpha
 format;.traitement_alpha
@@ -90,8 +91,6 @@ hdel;.traitement_hstore
 hget;.traitement_hstore
 hset;.traitement_hstore
 hsplit;.traitement_hstore
-lasfilter;.traitement_las
-lasreader;.traitement_las
 map;.traitement_mapping
 map_data;.traitement_mapping
 abspath;.traitement_os

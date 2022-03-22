@@ -165,7 +165,7 @@ def sel_vinfich(condition, obj):
 
 def selh_infich_re(condition):
     """precharge le fichier"""
-    #    print ('infich', len(condition.params.attr.liste),condition.params)
+    # print("infich-re", len(condition.params.attr.liste), condition.params)
     _, valeurs = prepare_mode_in(
         condition.params.vals.val,
         condition.regle,
@@ -187,8 +187,7 @@ def selh_infich_re(condition):
     condition.info = [re.compile(pref + i[0] + suf) for i in valeurs]
     # TODO gerer correctement les listes
 
-
-#    print ('condition infichre fich charge ',condition.info)
+    # print("condition infichre fich charge ", condition.info)
 
 
 def sel_infich_re(condition, obj):
@@ -211,7 +210,7 @@ def sel_infich_re(condition, obj):
         condition.regle.matchlist = i.search(vals).groups()
 
         return True
-    print("infich_re: no match", vals)
+    # print("infich_re: no match", vals)
     condition.regle.match = ""
     return False
     # return any((i.search(vals) for i in condition.info))

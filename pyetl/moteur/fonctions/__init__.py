@@ -232,39 +232,15 @@ class ModuleInfo(object):
             self.disponible = self.fonction()
 
 
-class FonctionTraitement(object):
-    """ description d une fonction de traitment """
+class FoncGroup(object):
+    """groupe de fonction de meme nature il s agit d un objet conteneur pour les fonctions"""
 
-    def __init__(self, nom, fonction, description, definition):
+    def __init__(self, nom, description=None):
         self.nom = nom
         self.module = ModuleInfo(nom, None)
         self.subfonctions = []
-        self.fonctions_sortie = dict()
         self.description = description
-        self.groupe_sortie = None
-        pat = description.get("#pattern")
-        if not pat:
-            print("erreur definition fonction", nom)
-            pat = ["", ""]
-        self.pattern = pat[0]
-        self.patternnum = description["pn"]
-        self.work = fonction
-        self.helper = []
-        self.shelper = None
-        self.definition = definition  # definition_champs
-        # self.definition = None  # definition_champs
-        self.fonction_schema = None
-        self.prepare = description.get("#helper", "")
-        self.priorite = 99
-        self.style = "N"
-        # gestion des clefs secondaires :
-        self.clef_sec = ""
         self.subpatterns = set()
-
-    #        if len(self.pattern.split(";")) > 1:
-    #            self.clef_sec = pat[1] if len(pat) > 1 else ""
-    #            if self.clef_sec and self.clef_sec not in self.definition:
-    #                print("erreur clef fonction ", self.nom, ">"+self.clef_sec+"<", pat)
 
     def subfonc(
         self,
@@ -304,6 +280,91 @@ class FonctionTraitement(object):
                 print("pattern existant", pattern)
         else:
             print("subfunction incompatible", description)
+
+    def __repr__(self):
+        return (
+            "fonction_traitement "
+            + self.module.nom_module
+            + ":"
+            + self.nom
+            + ":"
+            + repr(self.definition)
+        )
+
+
+class FonctionTraitement(object):
+    """ description d une fonction de traitment """
+
+    def __init__(self, nom, fonction=None, description=None, definition=None):
+        self.nom = nom
+        self.module = ModuleInfo(nom, None)
+        self.subfonctions = []
+        self.fonctions_sortie = dict()
+        self.description = description
+        self.groupe_sortie = None
+        if description:
+            pat = description.get("#pattern")
+            if not pat:
+                print("erreur definition fonction", nom)
+                pat = ["", ""]
+            self.pattern = pat[0]
+            self.patternnum = description["pn"]
+            self.work = fonction
+            self.helper = []
+            self.shelper = None
+            self.definition = definition  # definition_champs
+            # self.definition = None  # definition_champs
+            self.fonction_schema = None
+            self.prepare = description.get("#helper", "")
+            self.priorite = 99
+            self.style = "N"
+            # gestion des clefs secondaires :
+        self.clef_sec = ""
+        self.subpatterns = set()
+
+    #        if len(self.pattern.split(";")) > 1:
+    #            self.clef_sec = pat[1] if len(pat) > 1 else ""
+    #            if self.clef_sec and self.clef_sec not in self.definition:
+    #                print("erreur clef fonction ", self.nom, ">"+self.clef_sec+"<", pat)
+
+    # def subfonc(
+    #     self,
+    #     nom,
+    #     fonction,
+    #     description,
+    #     definition,
+    #     groupe_sortie,
+    #     clef_sec,
+    #     style,
+    #     module,
+    # ):
+    #     """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
+    #     # self.definition = None
+    #     pnum = description["pn"]
+    #     # if not "#aide_spec" + pnum in description:
+    #     #     description["#aide_spec"] = description.get("#aide")
+    #     tsubfonc = FonctionTraitement(nom, fonction, description, definition)
+    #     tsubfonc.groupe_sortie = groupe_sortie
+    #     tsubfonc.style = style
+    #     tsubfonc.patternnum = pnum
+    #     tsubfonc.module = module
+    #     priorite = 99
+    #     if clef_sec:
+    #         priorite = tsubfonc.definition[clef_sec].priorite
+    #         #            print("enregistrement",nom,clef_sec,priorite)
+    #         tsubfonc.clef_sec = clef_sec
+    #     pattern = tsubfonc.pattern
+    #     if pattern:
+    #         if pattern not in self.subpatterns:
+    #             self.subfonctions.append(tsubfonc)
+    #             tsubfonc.priorite = priorite
+    #             self.subpatterns.add(pattern)
+    #             # print("pattern nouveau", pattern, nom, self.nom)
+
+    #         else:
+    #             print("pattern existant", pattern)
+    #     else:
+    #         print("subfunction incompatible", description)
 
     def __repr__(self):
         return (
@@ -353,7 +414,7 @@ def controle_pattern(pattern, noms):
     return definition_champs
 
 
-def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
+def reg_fonction(stockage, info_module, nom_fonction, fonction, description_fonction):
     """stockage d une description de fonction standard"""
     for i in list(description_fonction.keys()):
         # on passe tout ce qu'on a defini pour la fonction
@@ -377,23 +438,29 @@ def reg_fonction(stockage, info_module, nom, fonction, description_fonction):
             clef = pattern.split(";")[3] if pattern else None
             info_module.commandes.add(clef)
             if clef is None:
-                print("fonction incompatible", nom)
+                print("fonction incompatible", nom_fonction)
             if clef_sec and clef_sec not in definition_champs:
-                print("erreur clef fonction ", nom, ">" + clef_sec + "<", pattern)
+                print(
+                    "erreur clef fonction ", nom_fonction, ">" + clef_sec + "<", pattern
+                )
                 continue
 
             else:
                 if clef not in stockage:  # la clef existe
-                    fct = FonctionTraitement(
-                        nom, fonction, description, definition_champs
-                    )
+                    # fct = FonctionTraitement(
+                    #     clef, fonction, description, definition_champs
+                    # )
+                    # fct = FonctionTraitement(clef)
+                    fct = FoncGroup(clef, description=description)
+                    #     clef, fonction, description, definition_champs
+                    # )
                     fct.module = info_module
                     fct.style = style
                     stockage[clef] = fct
                 #        print ('definitions',definition)
                 groupe_sortie = definition_champs["sortie"].groupe
                 stockage[clef].subfonc(
-                    nom,
+                    nom_fonction,
                     fonction,
                     description,
                     definition_champs,

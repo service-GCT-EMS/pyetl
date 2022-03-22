@@ -43,7 +43,7 @@ def dbaccess(regle, codebase, type_base=None):
         type_base = regle.getvar("db_" + codebase, "")
         prefix = regle.getvar("prefix_" + codebase, "")
         stock_param.logger.info(
-            "acces base %s %s %s %s %s", codebase, base, serveur, type_base, prefix
+            "acces base ->%s;%s;%s;%s;%s<-", codebase, base, serveur, type_base, prefix
         )
         # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 

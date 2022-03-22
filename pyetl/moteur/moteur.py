@@ -71,8 +71,12 @@ class Moteur(object):
                     # (on ne traite que les schemas d'entree')
 
                     for schemaclasse in list(sch.classes.values()):
+                        # print("_________traitement virtuel examen", schemaclasse.nom)
                         # print(
-                        #     "traitement virtuel", schemaclasse.nom, schemaclasse.utilise
+                        #     "traitement virtuel",
+                        #     schemaclasse.nom,
+                        #     schemaclasse.utilise,
+                        #     force_virtuel,
                         # )
                         if schemaclasse.utilise and not force_virtuel:
                             # print(
@@ -99,7 +103,7 @@ class Moteur(object):
                         obj.attributs["#categorie"] = "traitement_virtuel"
 
                         obj.attributs["#type_geom"] = schemaclasse.info["type_geom"]
-                        # print("tv:traitement obj", obj)
+                        # print("tv:traitement obj", obj.ident, self.regles[0])
                         self.traite_objet(obj, self.regles[0])
 
     def traite_regles_chargement(self, regle=None):
@@ -159,11 +163,11 @@ class Moteur(object):
         last = None
         while regle:
             last = regle
-            if (
-                obj.virtuel and regle.declenchee
-            ):  # un virtuel ne declenche une regle q une fois
-                regle = regle.branchements.brch["ok"]
-                continue
+            # if (
+            #     obj.virtuel and regle.declenchee
+            # ):  # un virtuel ne declenche une regle q une fois
+            #     regle = regle.branchements.brch["ok"]
+            #     continue
             regle.declenchee = True
             try:
                 if regle.selstd is None or regle.selstd(obj):

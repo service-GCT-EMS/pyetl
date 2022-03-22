@@ -1,6 +1,36 @@
 reference des commandes
 =======================
 
+ad
+--
+
+ad
+
+.. index::
+  double: .traitement_ad;adquery
+
+adquery
+.......
+
+   extait des information de active_directory
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+--------+--------+
+|sortie|defaut|entree|commande|param1  |param2  |
++======+======+======+========+========+========+
+|M     |?C    |?A    |adquery |=user   |?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=machine|?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=groupe |?C      |
++------+------+------+--------+--------+--------+
+|P     |C     |      |adquery |=user   |        |
++------+------+------+--------+--------+--------+
+
+
+
 manipulation d'attributs
 ------------------------
 
@@ -27,12 +57,6 @@ cnt
 +---------+---------+---------+-----------+---------+-----------+
 
 
-   S :  attribut de sortie
-   ? :  nom fixe (optionnel)
-   ?A :  attribut contenant le nom du compteur (optionnel)
-   cnt :  
-   ?N :  pas (optionnel)
-   ?N :  origine (optionnel)
 
 
 
@@ -105,9 +129,27 @@ garder
 +----------+----------+----------+------------+----------+------------+
 
 
-   L :  nouveaux noms
-   ?L :  liste val defauts (optionnel)
-   L :  attributs a garder
+
+
+
+.. index::
+  double: .traitement_alpha;infoatt
+
+infoatt
+.......
+
+   affiche des infos sur un attribut
+
+   donne recursivement les types d un attribut compexe
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |      |A     |infoatt |      |        |
++------+------+------+--------+------+--------+
+
 
 
 
@@ -138,12 +180,27 @@ join
 +-------+-------+-------+---------+-------+---------+
 
 
-   L :  sortie
-   ? :  defaut (optionnel)
-   A :  entree
-   join :  
-   C[] :  fichier (dynamique)
-   ?C :  position des champs dans le fichier (ordre) (optionnel)
+
+
+
+.. index::
+  double: .traitement_alpha;json
+
+json
+....
+
+   transforme un objet complexe contenu dans un attribut en texte json
+
+   gere les dictionnaires et les iterables imbriques
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |      |A     |json    |      |        |
++------+------+------+--------+------+--------+
+
 
 
 
@@ -165,9 +222,6 @@ len
 +------+------+------+--------+------+--------+
 
 
-   S :  attribut resultat
-   ? :  defaut (optionnel)
-   A :  attribut d'entree
 
 
 
@@ -217,9 +271,6 @@ lower
    A :  defaut
    lower :  attribut d'entree
 
-   S :  attribut resultat
-   ? :  defaut (optionnel)
-   A :  attribut d'entree
 
 
 
@@ -243,8 +294,6 @@ ren
 +------+------+------+--------+------+--------+
 
 
-   A :  nouveau nom
-   A :  ancien nom
 
 
 
@@ -268,11 +317,6 @@ round
 +------+------+------+--------+------+--------+
 
 
-   S :  sortie
-   ?N :  defaut (optionnel)
-   A :  entree
-   round :  
-   ?N :  decimales (optionnel)
 
 
 
@@ -342,8 +386,6 @@ set
 +----------------+--------------+--------------+----------------+--------------+----------------+
 
 
-   S :  attribut resultat
-   NC: :  formule de calcul
 
 
 
@@ -421,11 +463,6 @@ strip
    ? :  defaut (optionnel)
    strip :  caractere a supprimer blanc par defaut
 
-   S :  sortie
-   ? :  defaut (optionnel)
-   A :  attribut
-   strip :  
-   ?C :  caractere a supprimer blanc par defaut (optionnel)
 
 
 
@@ -452,12 +489,6 @@ sub
 +-----------+-----------+-----------+-------------+-----------+-------------+
 
 
-   S :  resultat
-   ? :  defaut (optionnel)
-   A :  entree
-   sub :  
-   re :  expression de selection
-   ?re :  expression de substitution (optionnel)
 
 maxsub: nombre maxi de substitutions (variable locale)
 
@@ -499,7 +530,6 @@ supp
 +--------+------+--------+--------+------+--------+
 
 
-   =#geom :  #geom (mot clef) (mot_clef)
 
 
 
@@ -522,6 +552,27 @@ supp_classe
 +----------+----------+----------+---------------+----------+------------+
 | *suppression de la classe d objets avec tous ses objets et son schema* |
 +----------+----------+----------+---------------+----------+------------+
+
+
+
+
+.. index::
+  double: .traitement_alpha;txtstruct
+
+txtstruct
+.........
+
+   transforme un objet complexe contenu dans un attribut en structures de texte
+
+   gere les dictionnaires et les iterables imbriques
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|A     |      |A     |txtstruct|      |        |
++------+------+------+---------+------+--------+
 
 
 
@@ -570,9 +621,6 @@ upper
    ? :  defaut (optionnel)
    L :  liste attributs
 
-   A :  attribut resultat
-   ? :  defaut (optionnel)
-   A :  attribut d'entree
 
 
 archives
@@ -594,14 +642,10 @@ archive
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |?C    |?A    |archive |C     |        |
+|      |?C    |?A    |archive |C     |?C      |
 +------+------+------+--------+------+--------+
 
 
-   ?C :  liste de noms de fichiers(avec \*...) (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   archive :  
-   C :  nom du fichier zip
 
 
 
@@ -619,14 +663,10 @@ zip
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |?C    |?A    |zip     |C     |        |
+|      |?C    |?A    |zip     |C     |?C      |
 +------+------+------+--------+------+--------+
 
 
-   ?C :  liste de noms de fichiers(avec \*...) (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zip :  
-   C :  nom du fichier zip
 
 
 
@@ -654,10 +694,6 @@ zipdir
 +--------+--------+--------+----------+--------+----------+
 
 
-   ?A :  attribut de sortie (optionnel)
-   ?C :  nom du fichier (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zipdir :  
 
 
 
@@ -679,12 +715,6 @@ zipextract
 +------+------+------+----------+------+--------+
 
 
-   ?C :  destination (optionnel)
-   ?C :  fichier a extraire (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   zipextract :  zipextract
-   C :  nom du zip
-   ?=all :   (optionnel)
 
 
 fonctions auxiliaires
@@ -737,11 +767,6 @@ crypt
 +------+------+------+--------+------+--------+
 
 
-   A :  attribut resultat crypte
-   ? :  defaut (optionnel)
-   A :  attribut d'entree
-   crypt :  
-   C? :  clef de cryptage (optionnel)
 
 
 
@@ -763,11 +788,6 @@ decrypt
 +------+------+------+--------+------+--------+
 
 
-   A :  attribut resultat decrypte
-   ? :  defaut (optionnel)
-   A :  attribut d'entree
-   decrypt :  
-   C? :  clef de cryptage (optionnel)
 
 
 dataviz
@@ -817,11 +837,6 @@ dfload
 +------+------+------+--------+------+--------+
 
 
-   A :  attribut de sortie
-   ?C :  nom du fichier (optionnel)
-   ?A :  attribut contenant le nom (optionnel)
-   dfload :  
-   C :  format lecture
 
 
 
@@ -845,9 +860,6 @@ dfset
 +------+------+------+--------+------+--------+
 
 
-   A :  attribut de sortie
-   L :  
-   dfset :  liste colonnes contenant des tableaux de valeurs
 
 
 
@@ -869,10 +881,6 @@ dfwrite
 +------+------+------+--------+------+--------+
 
 
-   A :  fichier de sortie
-   A :  
-   dfwrite :  attribut contenant le nom
-   C :  
 
 
 accés aux bases de données
@@ -898,15 +906,31 @@ dbalpha
 +------+------+------+--------+------+--------+
 
 
-   ?A :   (optionnel)
-   ? :  defaut (optionnel)
-   ? :  entree (optionnel)
-   dbalpha :  dbalpha
-   ? :  precisions (optionnel)
-   ? :  ordre (optionnel)
 
 traitement_virtuel;se declenche pour un objet virtuel
 dest;repertoire temporaire si extracteur externe
+
+
+.. index::
+  double: .traitement_db;dbcheck
+
+dbcheck
+.......
+
+   verifie la presence de classesd un selecteur en base
+   sert a controler la compatibilite des fichiers qgis ou des listes de classes avec une base
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |      |      |dbcheck |C?    |        |
++------+------+------+--------+------+--------+
+
+
+
 
 
 .. index::
@@ -1121,10 +1145,6 @@ dbmap_qgs
 +------+------+------+---------+------+--------+
 
 
-   ?C :  selecteur (optionnel)
-   dbmap_qgs :  
-   C :  rep entree
-   C :  rep sortie
 
 
 
@@ -1148,8 +1168,6 @@ dbmaxval
 +------+------+------+--------+------+--------+
 
 
-   P :  variable de sortie
-   dbmaxval :  nom
 
 
 
@@ -1196,12 +1214,6 @@ dbreq
 +---------+---------+---------+-----------+---------+-----------+
 
 
-   ?A :  att_sortie (optionnel)
-   ? :  valeurs (optionnel)
-   ?L :  champ a integrer (optionnel)
-   dbreq :  dbreq
-   C :  requete
-   A.C :  destination
 
 
 
@@ -1244,11 +1256,15 @@ dbselect
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|A     |?     |?     |dbselect|?     |?       |
-+------+------+------+--------+------+--------+
++------+------+------+--------+-----------+--------+
+|sortie|defaut|entree|commande|param1     |param2  |
++======+======+======+========+===========+========+
+|A     |?     |?     |dbselect|?          |?       |
++------+------+------+--------+-----------+--------+
+|A     |L     |      |dbselect|=merge     |        |
++------+------+------+--------+-----------+--------+
+|A     |C     |      |dbselect|=deletebase|        |
++------+------+------+--------+-----------+--------+
 
 
 
@@ -1276,12 +1292,6 @@ dbset
 +------+------+------+--------+------+----------+
 
 
-   M :  sortie
-   ? :  defauts (optionnel)
-   ?L :  entrees (optionnel)
-   dbset :  dbset
-   C :  requete
-   ?=multiple :  multiple (optionnel)
 
 
 
@@ -2167,9 +2177,6 @@ setpoint
 +----------+----------+----------+------------+----------+------------+
 
 
-   LC :  defauts
-   ?A :  attribut contenant les coordonnees separees par des , (optionnel)
-   setpoint :  numero de srid
 
 
 
@@ -2355,59 +2362,6 @@ hsplit
 +------+------+------+--------+------+--------+
 
 
-   M :  
-
-
-las
----
-
-las
-
-.. index::
-  double: .traitement_las;lasfilter
-
-lasfilter
-.........
-
-   decoupage d'un attribut xml en objets
-
-   s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
-
-**syntaxes acceptees**
-
-+------+------+------+---------+------+--------+
-|sortie|defaut|entree|commande |param1|param2  |
-+======+======+======+=========+======+========+
-|A     |?     |?A    |lasfilter|C     |?=D     |
-+------+------+------+---------+------+--------+
-
-
-   A :  repertoire de sortie
-   ? :  defaut (optionnel)
-   ?A :  attribut (optionnel)
-   lasfilter :  
-   C :  json de traitement
-   ?=D :  D: dynamique (optionnel)
-
-
-
-.. index::
-  double: .traitement_las;lasreader
-
-lasreader
-.........
-
-   defineit les fichiers las en entree
-
-
-**syntaxes acceptees**
-
-+------+------+------+---------+------+--------+
-|sortie|defaut|entree|commande |param1|param2  |
-+======+======+======+=========+======+========+
-|C     |?     |A     |lasreader|C     |?=D     |
-+------+------+------+---------+------+--------+
-
 
 
 mapping
@@ -2499,32 +2453,6 @@ abspath
 
 
 .. index::
-  double: .traitement_os;adquery
-
-adquery
-.......
-
-   extait des information de active_directory
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+--------+--------+
-|sortie|defaut|entree|commande|param1  |param2  |
-+======+======+======+========+========+========+
-|S     |?C    |?A    |adquery |=user   |?C      |
-+------+------+------+--------+--------+--------+
-|S     |?C    |?A    |adquery |=machine|?C      |
-+------+------+------+--------+--------+--------+
-|S     |?C    |?A    |adquery |=groupe |?C      |
-+------+------+------+--------+--------+--------+
-|P     |C     |      |adquery |=user   |        |
-+------+------+------+--------+--------+--------+
-
-
-
-
-.. index::
   double: .traitement_os;infofich
 
 infofich
@@ -2602,10 +2530,6 @@ namejoin
 +------+------+------+--------+------+--------+
 
 
-   S :  sortie
-   C? :  defaut (optionnel)
-   L? :  liste d'attributs (optionnel)
-   namejoin :  namesjoin
 
 
 
@@ -2630,10 +2554,6 @@ namesplit
 +-----------+-----------+-----------+--------------+-----------+-------------+
 
 
-   ?A :  prefixe (optionnel)
-   C? :  defaut (optionnel)
-   A? :  attr contenant le nom (optionnel)
-   namesplit :  namesplit
 
 
 
@@ -2797,10 +2717,6 @@ run
 +--------------------+--------------------+--------------------+----------------------+--------------------+----------------------+
 
 
-   ?A :  attribut qui recupere le resultat (optionnel)
-   ?C :  parametres par defaut (optionnel)
-   ?A :  attribut contenant les parametres (optionnel)
-   run :  commande,parametres
 
 process:conditions d'execution (all: toujours execute, main: process de base child: chaque sous process
 		 en mode parallele: worker: pour chaque process esclave , master: uniquement process maitre)
@@ -2893,10 +2809,6 @@ info_schema
 +------+---------+------+-----------+------+--------+
 
 
-   A :  attribut qui recupere le resultat
-   C :  parametre a recuperer
-   info_schema :  nom de l'attribut
-   ?C :  commande,schema,classe (optionnel)
 
 
 
@@ -3066,10 +2978,6 @@ schema
 +----------------+-------------+-------------+---------------+-------------+---------------+
 
 
-   =#schema? :  applique le shema a l objet (mot_clef) (optionnel)
-   schema :  schema
-   C? :  nom (optionnel)
-   ?N :  nombre max de valeurs d enum (30) (optionnel)
 
 
 
@@ -3108,8 +3016,6 @@ set_schema
 +---------+---------+---------+-------------+---------+-----------+
 
 
-   C :  nom du parametre a positionner
-   ?C :  valeur (optionnel)
 
 
 
@@ -3133,10 +3039,6 @@ valide_schema
 +---------+------+------+-------------+----------+--------+
 
 
-   ?=#schema :   (optionnel)
-   ?C :  nom du schema (optionnel)
-   valide_schema :  
-   ?=strict :   (optionnel)
 
 log;err ou warn par defaut no;
 
@@ -3418,10 +3320,6 @@ geocode
 +-------------+-------------+-------------+---------------+-------------+---------------+
 
 
-   L :  liste attributs adresse
-   geocode :  
-   ?C :  confiance mini (optionnel)
-   ?LC :  liste filtres (optionnel)
 
 
 
@@ -3504,10 +3402,6 @@ attload
 +------+------+------+--------+------+--------+
 
 
-   A :  
-   ?C :  attribut (optionnel)
-   A :  
-   attload :  fichier
 
 
 
@@ -3534,10 +3428,6 @@ attreader
 +----------+----------+----------+-------------+----------+------------+
 
 
-   ?L :  defaut (optionnel)
-   ?C :  attribut (optionnel)
-   A :  
-   attreader :  format
 
 
 
@@ -3559,10 +3449,6 @@ attsave
 +------+------+------+--------+------+--------+
 
 
-   A :  
-   ?C :  attribut (optionnel)
-   A :  
-   attsave :  fichier
 
 
 
@@ -3604,11 +3490,6 @@ batch
 +--------+--------+--------+----------+----------------+----------+
 
 
-   A :  attribut_resultat
-   ?C :  commandes (optionnel)
-   ?A :  attribut_commandes (optionnel)
-   batch :  batch
-   ?=run :  mode_batch (optionnel)
 
 
 
@@ -3652,12 +3533,6 @@ boucle
 +--------+--------+--------+----------+--------+----------+
 
 
-   A :  
-   ?C :  attribut_resultat (optionnel)
-   ?A :  commandes (optionnel)
-   boucle :  attribut_commandes
-   C :  batch
-   ?C :  mode_batch (optionnel)
 
 
 
@@ -3710,8 +3585,6 @@ charge
 +---------+---------+---------+-----------+---------+-----------+
 
 
-   ?A :  sortie:nb obj lus (optionnel)
-   ?C :   (optionnel)
 
 
 
@@ -3802,8 +3675,6 @@ fail
 +------+------+------+--------+------+--------+
 
 
-   fail :  
-   ?C :   (optionnel)
 
 
 
@@ -4002,8 +3873,6 @@ pass
 +------+------+------+--------+------+--------+
 
 
-   pass :  
-   ?C :   (optionnel)
 
 
 
@@ -4029,11 +3898,6 @@ print
 +------+------+------+--------+------+--------+
 
 
-   C? :  valeur defaut (optionnel)
-   L? :  liste de champs (optionnel)
-   print :  
-   C? :  texte fixe (optionnel)
-   =noms? :  affichage noms de champs (mot_clef) (optionnel)
 
 
 
@@ -4051,7 +3915,7 @@ printv
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |printv  |C?    |=noms?  |
+|      |      |?A    |printv  |C?    |=noms?  |
 +------+------+------+--------+------+--------+
 
 
@@ -4199,8 +4063,6 @@ sleep
 +------+------+------+--------+------+--------+
 
 
-   ?C :  duree defaut (optionnel)
-   ?A :  att_duree (optionnel)
 
 
 

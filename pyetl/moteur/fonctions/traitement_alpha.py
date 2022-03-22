@@ -470,6 +470,7 @@ def f_asplit(regle, obj):
     #parametres3||defaut;attribut;;;nombre de morceaux:debut
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
+          !#test3||obj||^V4;a:b:c:d;;set||^X,Y;;V4;split;:;2;||ATV;Y;b:c:d
     """
     att = regle.getval_entree(obj)
     keys = None
@@ -929,8 +930,16 @@ def f_round(regle, obj):
     #schema||ajout_attribut
     #test||obj||^X;1.534;;set||^X;;X;round;2||atn;X;1.53
     """
-    regle.setval_sortie(obj, str(round(float(regle.getval_entree(obj)), regle.ndec)))
-    return True
+    try:
+        regle.setval_sortie(
+            obj, str(round(float(regle.getval_entree(obj)), regle.ndec))
+        )
+        return True
+    except ValueError:
+        regle.stock_param.logger.debug(
+            "attention valeur %s non numerique", regle.getval_entree(obj)
+        )
+        return False
 
 
 def f_vround(regle, obj):
@@ -941,9 +950,12 @@ def f_vround(regle, obj):
     #helper||round
     #test||obj||^X;1.534;;set||^P:W;;X;round;2||ptv;W;1.53
     """
-    valeur = str(round(float(regle.getval_entree(obj)), regle.ndec))
-    regle.setvar(regle.params.att_sortie.val, valeur)
-    return True
+    try:
+        valeur = str(round(float(regle.getval_entree(obj)), regle.ndec))
+        regle.setvar(regle.params.att_sortie.val, valeur)
+        return True
+    except ValueError:
+        return False
 
 
 def h_format(regle):

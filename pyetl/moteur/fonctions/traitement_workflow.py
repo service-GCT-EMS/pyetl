@@ -691,7 +691,7 @@ def objloader(regle, obj):
     lecture = regle.stock_param.lecture
     retour = False
     for i, parms in getfichs(regle, obj):
-        print("lecture", i, parms)
+        # print("lecture", i, parms)
         try:
             nb_lu += lecture(i, regle=regle.branchements.brch["gen"], parms=parms)
             retour = True
@@ -715,9 +715,7 @@ def f_fileloader(regle, obj):
       #pattern2||?A;?C;?A;charge;[A];
     #parametres||sortie:nb obj lus;
         #schema||ajout_attribut
-          #test||obj||^;;;charge>;%testrep%/refdata/join.csv||atv;valeur;1
-         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||#classe;!test;;;;;;pass>;;;
-               ||atv;NB;8
+         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||+gen:;;;;;;;pass>;;;||atv;NB;8
     """
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True

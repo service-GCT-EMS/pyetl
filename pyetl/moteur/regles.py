@@ -665,17 +665,21 @@ class RegleTraitement(object):  # regle de mapping
         fonc = None
         erreurs = []
         #    print( 'traitement fonction',fonction.nom,erreurs)
+        selected = None
         for fonc in fonction.subfonctions:
             if fonc.style != self.style:
                 continue
             if self._select_fonc(fonc):
+                selected = fonc
                 valide, self.elements, erreurs = validepattern(
                     self.v_nommees, fonc.definition, self.ligne
                 )
                 if valide:
                     break
-        if not valide:
-            self.afficher_erreurs(fonction, "fonction non valide")
+        if not selected:
+            self.afficher_erreurs(None, "")
+        elif not valide:
+            self.afficher_erreurs(selected, "fonction non valide")
 
         if callable(fonc.work):
             self.fonc = fonc.work
@@ -694,6 +698,16 @@ class RegleTraitement(object):  # regle de mapping
             self.traite_helpers(fonc)
             return
         self.afficher_erreurs(fonc, "fonction non implementee:")
+
+    def affich_autorises(self, foncgroup, motif):
+        """affiche les patterns autorises"""
+        if foncgroup:
+            patternlist = [
+                i.pattern for i in foncgroup.subfonctions if i.style == self.style
+            ]
+            print(motif + " patterns autorises ", patternlist)
+        else:
+            print("---------commande inconnue", self.mode)
 
     def afficher_erreurs(self, fonc, message):
         """donne des indications sur les erreurs de syntaxe"""
@@ -744,14 +758,15 @@ class RegleTraitement(object):  # regle de mapping
                         self.v_nommees[i],
                     )
         else:
-            fonction = self.stock_param.commandes.get(self.mode)
-            if fonction:
-                patternlist = [
-                    i.pattern for i in fonction.subfonctions if i.style == self.style
-                ]
-                print(motif + " patterns autorises ", patternlist)
-            else:
-                print("---------commande inconnue", self.mode)
+            foncgroup = self.stock_param.commandes.get(self.mode)
+            self.affich_autorises(foncgroup, motif)
+            # if foncgroup:
+            #     patternlist = [
+            #         i.pattern for i in foncgroup.subfonctions if i.style == self.style
+            #     ]
+            #     print(motif + " patterns autorises ", patternlist)
+            # else:
+            #     print("---------commande inconnue", self.mode)
         raise SyntaxError("erreurs parametres de commande")
 
     def ftrue(self, *_):

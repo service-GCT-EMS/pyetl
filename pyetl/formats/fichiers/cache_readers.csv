@@ -14,6 +14,8 @@ json;.format_json
 ligne;.format_textfile
 mdb;.format_filedb
 mif;.format_gdalio
+osm;.format_osm
+pbf;.format_osm
 qgs;.format_xml
 qlr;.format_xml
 shp;.format_gdalio

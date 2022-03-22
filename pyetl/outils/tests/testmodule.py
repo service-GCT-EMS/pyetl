@@ -208,9 +208,12 @@ def fonctest(mapper, nom=None, debug=0):
         if not fonc:
             print("fonction indisponible", fonc_a_tester)
             continue
-        # print("test: ", fonc_a_tester)
-        if nom and fonc.nom != nom:
+        # print("test: ", fonc_a_tester, fonc.nom, nom)
+        if nom and fonc_a_tester != nom:
             continue
+        if nom:
+            print("test: ", fonc_a_tester, "(", fonc.nom, ")")
+            print("variantes:", [subfonc.nom for subfonc in fonc.subfonctions])
         mapper.setvar("test_courant", fonc_a_tester)
 
         # teslist = dict()
@@ -224,12 +227,17 @@ def fonctest(mapper, nom=None, debug=0):
         for subfonc in fonc.subfonctions:
             testee = False
             raison = untestable(mapper, subfonc)
+            notest = False
             if not raison:
+                notest = True
                 for j in subfonc.description:
                     if "#test" in j:
+                        notest = False
                         desctest = subfonc.description[j]
-                        testee = True
+
                         idtest = (fonc.nom, subfonc.nom, j)
+                        # print("test unitaire,", idtest)
+                        testee = True
                         if idtest not in realises:
                             errs = controle(mapper, idtest, desctest, debug=debug)
                             if errs is None:
@@ -241,20 +249,16 @@ def fonctest(mapper, nom=None, debug=0):
                                 invalides.add(idtest)
                             nbtests += 1
             if not testee:
-                if subfonc.nom != fonc.nom:
-                    print(
-                        "fonction non testee",
-                        fonc.nom,
-                        subfonc.nom,
-                        (raison + " non definie") if raison else "",
-                    )
-                else:
-                    print(
-                        "fonction non testee",
-                        fonc.nom,
-                        (raison + " non definie") if raison else "",
-                    )
-    # print ('tests realises',sorted(realises))
+                print(
+                    "fonction non testee",
+                    fonc.nom,
+                    ":",
+                    subfonc.nom,
+                    (raison + " non definie") if raison else "",
+                    "pas de tests definis" if notest else "",
+                )
+    if nom:
+        print("tests realises", sorted(realises))
     return nbtests, nberrs, invalides
 
 
@@ -318,19 +322,22 @@ def formattests(mapper, nom=None, debug=0):
 
 def unittests(mapper, nom=None, debug=0):
     """ execute les tests unitaires """
+    debug = mapper.getvar("debug")
     if nom:
         print("---------------------test unitaire " + nom + " -----------------------")
+        # debug = 1
     else:
         print("---------------------test unitaires commandes-----------------------")
     set_test_config(mapper)
     mapper.initlog(force=True)
-    nbtests, erreurs = retest(mapper)
-    print("------", nbtests, "tests regex effectues", erreurs, "erreurs -----")
+    if not nom:
+        nbtests, erreurs = retest(mapper)
+        print("------", nbtests, "tests regex effectues", erreurs, "erreurs -----")
 
     nb1, err1, finvalides = fonctest(mapper, nom, debug)
     nb2, err2, sinvalides = seltest(mapper, nom, debug)
     if nb1 + nb2 == 0:
-        print("!!!!!!!!!!!!!!!!!!!!! erreur fonction inconnue")
+        print("!!!!!!!!!!!!!!!!!!!!! erreur fonction inconnue", nom)
         return []
     nbtests = nb1 + nb2
     erreurs = err1 + err2

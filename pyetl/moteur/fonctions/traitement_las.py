@@ -9,10 +9,12 @@ import logging
 import os
 import io
 
-try:
-    import pdal
-except ImportError as err:
-    print("fonctions pointcloud non disponibles", err)
+# try:
+import pdal
+
+# except ImportError as err:
+#     print("fonctions pointcloud non disponibles", err)
+#     raise
 # raise
 # global pdal
 # ==================constructeurs de pipeline=================

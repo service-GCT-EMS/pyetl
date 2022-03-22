@@ -215,7 +215,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        print("resolve: base=", self.base)
+        # print("resolve: base=", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.static = dict()
@@ -235,6 +235,7 @@ class TableBaseSelector(object):
 
         self.resolve_static(obj)
         if self.dyndescr:
+            # print("resolve dyn", obj)
             solved = self.resolve_dyn(obj)
         else:
             solved = True
@@ -260,15 +261,20 @@ class TableBaseSelector(object):
             return False
         self.dynlist = dict()
         # if self.dyndescr:
-        #     print("resolution descripteur dynamique", self.dyndescr)
+        # print("resolution descripteur dynamique", self.dyndescr)
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
-            # print("descripteur dynamique", niveau, classes, attr, valeur, fonction)
+            # print("descripteur dynamique", niveau, classes, attr, valeur, fonction, obj)
             if attr.startswith("["):
                 attr = obj.attributs.get(attr[1:-1])
             if niveau.startswith("["):
                 niveau = obj.attributs.get(niveau[1:-1])
-            if valeur.startswith("["):
-                valeur = obj.attributs.get(valeur[1:-1])
+            if attr:
+                if valeur:
+                    valeur = (
+                        obj.attributs.get(valeur[0], valeur[1])
+                        if valeur[0]
+                        else valeur[1]
+                    )
             for classe in classes:
                 # print("dyn: traitement classe", classe)
                 if classe.startswith("["):
@@ -455,15 +461,15 @@ class TableSelector(object):
                 and not bool(self.baseselectors[base].dynbase)
             )
         self.resolved = complet
-        print(
-            " fin resolve",
-            self,
-            self.baseselectors.keys(),
-            self.resolved,
-            self.static,
-            len(list(self.classlist())),
-            self.schema_travail,
-        )
+        # print(
+        #     " fin resolve",
+        #     self,
+        #     self.baseselectors.keys(),
+        #     self.resolved,
+        #     self.static,
+        #     len(list(self.classlist())),
+        #     self.schema_travail,
+        # )
         return complet
 
     def classlist(self):

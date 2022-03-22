@@ -769,7 +769,7 @@ class Pyetl(object):
             # print("pas de parametres locaux", configfile)
             return
         nom = ""
-        print("parametres locaux", configfile)
+        # print("parametres locaux", configfile)
         #        init = False
         for conf in open(configfile, "r", encoding=self.defautcsvencoding).readlines():
             liste = (conf[:-1] + ";;").split(";")
@@ -793,7 +793,7 @@ class Pyetl(object):
                     self.site_params[nom].append((nom_p, val))
         #                    self.site_params[nom].append((liste[0]+'_'+nom, liste[1]))
         self.load_paramgroup("init", fin=False)
-        print("parametres:", self.site_params.keys())
+        # print("parametres:", self.site_params.keys())
 
     #        print("parametres de site",origine)
     #        print("variables",self.parms)
