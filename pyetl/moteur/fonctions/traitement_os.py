@@ -109,14 +109,19 @@ def fileprep(regle, fonction, dest=False):
                 fonction(regle.params.cmp1.val)
             regle.valide = "done"
         except (FileNotFoundError, FileExistsError, OSError) as err:
-            print(
-                "erreur ",
+            regle.stock_param.logger.warning(
+                "erreur %s : %s",
                 regle.mode,
-                regle.params.cmp2.val,
-                "->",
-                regle.params.cmp1.val,
                 err,
             )
+            # print(
+            #     "erreur ",
+            #     regle.mode,
+            #     regle.params.cmp2.val,
+            #     "->",
+            #     regle.params.cmp1.val,
+            #     err,
+            # )
             regle.valide = "fail"
 
 
@@ -171,7 +176,7 @@ def f_filerename(regle, obj):
      #aide_spec2||execution pour chaque objet
     #parametres2||nom destination,nom d origine;chemin destination;chemin origine
        #req_test||testwriterep
-           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+           #test||obj||^;;;os_copy;%testwriterep%/;%testrep%/refdata/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
                 ||^;;;os_ren;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
@@ -197,7 +202,7 @@ def f_filecopy(regle, obj):
      #aide_spec2||execution pour chaque objet
     #parametres2||nom destination,nom d origine;chemin destination;chemin origine
        #req_test||testwriterep
-           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+           #test||obj||^;;;os_copy;%testwriterep%/;%testrep%/refdata/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
                 ||^;;;os_copy;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
@@ -223,7 +228,7 @@ def f_filemove(regle, obj):
      #aide_spec2||execution pour chaque objet
     #parametres2||nom destination,defaut,nom d origine;chemin destination;chemin origine
        #req_test||testwriterep
-           #test||obj||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+           #test||obj||^;;;os_copy;%testwriterep%/;%testrep%/refdata/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;;;;os_del;%testwriterep%/liste2.csv||
                 ||^;;;os_move;%testwriterep%/liste2.csv;%testwriterep%/liste.csv||
                 ||is:file;%testwriterep%/liste2.csv;;;X;1;;set||atv:X:1
@@ -248,7 +253,7 @@ def f_filedel(regle, obj):
     #parametres2||defaut;nom du fichier a supprimer;;chemin
        #req_test||testwriterep
            #test||obj||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
-                ||^;;;os_copy;%testwriterep%;%testrep%/refdata/liste.csv||
+                ||^;;;os_copy;%testwriterep%/;%testrep%/refdata/liste.csv||
                 ||is:file;%testwriterep%/liste.csv;;;;;;os_del;%testwriterep%/liste.csv||
                 ||is:file;!%testwriterep%/liste.csv;;;X;1;;set||atv:X:1
     """

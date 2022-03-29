@@ -31,7 +31,9 @@ def retest(mapper):
     erreurs = 0
     commande_test = None
     for commande_test in mapper.commandes:
-        break
+        if mapper.getcommande(commande_test):
+            break
+    # print("retest commande a tester", commande_test)
     commande_test = mapper.getcommande(commande_test)
     relist = commande_test.subfonctions[0].definition["entree"].relist
     nbtests = 0
