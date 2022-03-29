@@ -441,9 +441,16 @@ def h_asplit(regle):
         f_debut = tmp[0]
     if tmp and len(tmp) > 1:
         f_fin = tmp[1]
-    regle.defcible = slice(
-        int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
-    )
+    try:
+        regle.defcible = slice(
+            int(f_debut) if f_debut else None, int(f_fin) if f_fin else None
+        )
+    except ValueError as err:
+        regle.stock_param.logger.exception(
+            "erreur definition decoupage->%s<-", regle.params.cmp2.val, exc_info=err
+        )
+        regle.valide = False
+        return
     nbdecoup = nbres + (int(f_debut) if f_debut else 0)
     regle.modestruct = regle.params.pattern == "3"
 

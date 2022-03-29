@@ -52,7 +52,6 @@ runproc;.traitement_db
 runsql;.traitement_db
 attwriter;.traitement_divers
 compare;.traitement_divers
-compare2;.traitement_divers
 getkey;.traitement_divers
 loadconfig;.traitement_divers
 log;.traitement_divers

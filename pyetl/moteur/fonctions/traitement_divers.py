@@ -477,7 +477,7 @@ def f_sortir(regle, obj):
         regle.store = regle.calcule_schema and (not obj.schema or not obj.schema.stable)
         if regle.store:  # on ajuste les branchements
             regle.setstore()
-            print("f_sortir: passage en mode stockant")
+            regle.stock_param.logger.info("f_sortir: passage en mode stockant")
 
     if regle.store:
         regle.nbstock += 1
@@ -674,75 +674,7 @@ def h_compare(regle):
     regle.precedent = None
     regle.traite_stock = compare_traite_stock
 
-
-def f_compare2(regle, obj):
-    """#aide||compare a un element precharge
-     #aide_spec||parametres clef;fichier;attribut;compare;macro;nom
-    #aide_spec2||sort en si si egal en sinon si different
-    #aide_spec3||si les elements entre [] sont pris dans l objet courant
-       #pattern||A;;?L;compare2;A;C
-        #helper||compare
-        #schema||ajout_attribut
-         #!test||
-    """
-    if regle.precedent != obj.ident:
-        comp = regle.stock_param.store[regle.params.cmp2.val]
-        if regle.comp and comp is not regle.comp:
-            compare_traite_stock(regle)
-            regle.nbstock = 1
-        regle.comp = comp
-        if regle.comp:
-            if regle.params.att_entree.liste:
-                regle.comp2 = {
-                    i: ([i.attributs[j] for j in regle.params.att_entree.liste])
-                    for i in regle.comp
-                }
-            else:
-                regle.comp2 = {
-                    i: (
-                        [
-                            i.attributs[j]
-                            for j in sorted([k for k in i.attributs if k[0] != "#"])
-                        ]
-                    )
-                    for i in regle.comp
-                }
-    #    print ('comparaison ', len(regle.comp), regle.comp)
-    try:
-        if len(regle.params.cmp1.liste) > 1:
-            clef = "|".join(
-                obj.attributs.get(i, "") for i in regle.params.att_entree.liste
-            )
-        else:
-            clef = obj.attributs[regle.params.cmp1.val]
-        ref = regle.comp2[clef]
-        regle.ref.add(clef)
-    except KeyError:
-        obj.redirect = "new"
-        obj.attributs[regle.params.att_sortie.val] = "new"
-        return False
-    if regle.params.att_entree.liste:
-        compare = all(
-            [
-                obj.attributs[i] == ref.attributs[i]
-                for i in regle.params.att_entree.liste
-            ]
-        )
-    else:
-        atts = {i for i in obj.attributs if i[0] != "#" or i == "#geom"}
-        kref = {i for i in ref.attributs if i[0] != "#" or i == "#geom"}
-        #    id_att = atts == kref
-        compare = atts == kref and all(
-            [obj.attributs[i] == ref.attributs[i] for i in atts]
-        )
-    if compare:
-        return True
-    obj.redirect = "diff"
-    obj.attributs[regle.params.att_sortie.val] = "diff"
-    ref.attributs[regle.params.att_sortie.val] = "orig"
-    regle.stock_param.moteur.traite_objet(ref, regle.branchements.brch["orig:"])
-    # on remet l'original dans le circuit
-    return False
+    regle.nogeom = regle.istrue("#nogeom")
 
 
 def f_compare(regle, obj):
@@ -750,7 +682,7 @@ def f_compare(regle, obj):
      #aide_spec||parametres clef;fichier;attribut;preload;macro;nom
     #aide_spec2||sort en si si egal en sinon si different
     #aide_spec3||si les elements entre [] sont pris dans l objet courant
-       #pattern||A;;?L;compare;A;C
+       #pattern||A;;?L;compare;L;C
         #schema||ajout_attribut
          #!test||
     """
@@ -760,6 +692,11 @@ def f_compare(regle, obj):
             regle.nbstock = 1
         regle.comp = regle.stock_param.store[regle.params.cmp2.val]
         regle.precedent = obj.ident
+        regle.attlist = (
+            regle.params.att_entree.liste
+            if regle.params.att_entree.liste
+            else (list(obj.schema.attributs.keys()) if obj.schema else None)
+        )
     #    print ('comparaison ', len(regle.comp), regle.comp)
     if regle.comp is None:
         return False
@@ -767,7 +704,7 @@ def f_compare(regle, obj):
     try:
         if len(regle.params.cmp1.liste) > 1:
             clef = "|".join(
-                obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+                obj.attributs.get(i, "") for i in regle.params.params.cmp1.liste
             )
         else:
             clef = obj.attributs[regle.params.cmp1.val]
@@ -777,7 +714,7 @@ def f_compare(regle, obj):
         obj.redirect = "new"
         obj.attributs[regle.params.att_sortie.val] = "new"
         return False
-    if regle.params.att_entree.liste:
+    if regle.attlist:
         compare = all(
             [
                 obj.attributs[i] == ref.attributs[i]

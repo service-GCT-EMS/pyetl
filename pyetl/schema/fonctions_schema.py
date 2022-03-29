@@ -1140,7 +1140,7 @@ def compare_classes(schema, source, dest):
         schema.ajout_classe(ecart)
 
 
-def compare_schemas(schema, source, dest):
+def compare_schemas(schema, source, dest, full=False):
     """affiche la difference entre 2 schemas"""
     # phase 1 comparaison des schemas : classes manquantes ou en trop
     classes_a_creer = set()

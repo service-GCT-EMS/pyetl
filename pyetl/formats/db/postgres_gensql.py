@@ -938,13 +938,18 @@ class PgrGenSql(DbGenSql):
         )
 
         cretables = [idschema, self._setrole()]
-        if self.basic or (refcontext and refcontext.getvar("sql_nofunc") == "1"):
+        if self.basic or (refcontext and refcontext.istrue("sql_nofunc")):
+            LOGGER.info(
+                "pas de sortie des fonctions %s", refcontext.getvar("sql_nofunc")
+            )
             pass
         else:
-            # print ("pas de sortie des fonctions",refcontext.getvar("sql_nofunc"))
+
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
             )
+            LOGGER.info("sortie des fonctions %s", refcontext.getvar("sql_nofunc"))
+
             cretables.extend([i + ";" for i in self.def_fonctions().values()])
         cretables.append("\n-- ########### definition des tables ###############\n")
         cretables.extend(
@@ -1111,8 +1116,8 @@ class PgrGenSql(DbGenSql):
         entete, fonctions = self.schema.elements_specifiques.get(
             "def_fonctions", (None, dict())
         )
+        print("---------------------------fonctions a creer ", fonctions)
         return fonctions
-        # print("fonctions a creer ", fonctions)
 
     # ============== gestionnaire de reinitialisation de la base===============
 

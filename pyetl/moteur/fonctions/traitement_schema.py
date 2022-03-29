@@ -551,17 +551,38 @@ def f_remap_schema(regle, obj):
 def h_diff_schema(regle):
     """compare les schemas"""
     nomsource = regle.params.val_entree.val
-    nomdest = regle.params.att_sortie.val
-    schemasource = regle.getschema(nomsource)
-    schemadest = regle.getschema(nomdest)
+    schemaref = regle.getschema(regle.params.cmp1.val)
+    if nomsource:
+        schemasource = regle.getschema(nomsource)
+        rapport = FSC.compare_schema(
+            schemasource, schemaref, full=regle.params.cmp2.val == "full"
+        )
+        regle.setvar(regle.params.att_sortie.val, rapport)
+        regle.valide = "done"
+        return True
+    regle.schemaref = schemaref
+    regle.rapports = dict()
+    regle.branchements.addsortie("new")
+    regle.branchements.addsortie("diff")
 
 
 def f_diff_schema(regle, obj):
     """#aide||compare un nouveau schema en sortant les differences
-    #pattern||;?C;;compare_schema;C;?N
-    #patternC||C;C;;compare_schema;;;
+    #parametres||;schema;;compare_schema;ref
+    #pattern||P;C;;compare_schema;C;?=full
+    #pattern2||A;;;compare_schema;C;
     """
-    pass
+    if not obj.schema:
+        return False
+    if obj.ident not in regle.rapports:
+        regle.rapports[obj.ident] = FSC.compare_classe(obj.schema, regle.schemaref)
+    rapport = regle.rapports[obj.ident]
+    regle.setvalsortie(obj, rapport)
+    if rapport == "new":
+        obj.redirect = "new"
+    elif rapport:
+        obj.redirect = "diff"
+    return True
 
 
 def h_schema_add_attribut(regle):
