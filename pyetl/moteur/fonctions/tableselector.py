@@ -58,6 +58,7 @@ class TableBaseSelector(object):
         self.reg_prefix(map_prefix)
         self.descripteurs = []
         self.dyndescr = []
+        self.mapping = {}
         # un descripteur est un tuple
         # (type,niveau,classe,attribut,condition,valeur,mapping)
         self.static = dict()
@@ -685,7 +686,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                         tablemap = (niveau, classe)
                         if idbase in seldef.baseselectors:
                             baseselector = seldef.baseselectors[idbase]
-                            if seldef.nobase:
+                            if seldef.nobase or baseselector.schema_travail is None:
                                 tablemap = baseselector.mapping.get(ident)
                                 # print("baseselector.mapping", baseselector.mapping)
                             else:
@@ -708,9 +709,10 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
                         dbkey = (
                             "dbname='" + database + "' host=" + host + " port=" + port
                         )
-                        i = i.replace(
-                            oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
-                        )
+                        if tablemap:
+                            i = i.replace(
+                                oldtable, '"' + tablemap[0] + '"."' + tablemap[1] + '"'
+                            )
                         destbase = regle.base if regle.base else basedict.get(dbkey)
 
                         if destbase:
