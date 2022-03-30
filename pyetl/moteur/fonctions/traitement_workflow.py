@@ -524,7 +524,7 @@ def f_creobj(regle, obj):
     #pattern1||L;LC;?L;creobj;C;?N||sortie
     #parametres2||liste d'attributs;liste valeurs;;nom(niv,classe);nombre d'objets a creer
     #pattern2||L;LC;;testobj;C;?N||sortie
-    #test||obj||^A;1;;creobj;essai;2||cnt;3
+    #test||rien||^A;1;;creobj;essai;2;||cnt;2
     """
 
     noms = regle.params.att_sortie.liste
