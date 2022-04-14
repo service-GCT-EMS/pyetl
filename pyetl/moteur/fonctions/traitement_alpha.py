@@ -451,7 +451,7 @@ def h_asplit(regle):
         )
         regle.valide = False
         return
-    nbdecoup = nbres + (int(f_debut) if f_debut else 0)
+    nbdecoup = nbres - 1 + (int(f_debut) if f_debut else 0)
     regle.modestruct = regle.params.pattern == "3"
 
     if regle.debug:
@@ -463,7 +463,7 @@ def h_asplit(regle):
             regle.multi,
         )
     regle.sep = sep
-    regle.nbdecoup = nbdecoup
+    regle.nbdecoup = nbdecoup if not regle.multi else -1
 
 
 def f_asplit(regle, obj):
@@ -476,14 +476,15 @@ def f_asplit(regle, obj):
        #pattern3||;?;A;split;;?N:N||cmp1
     #parametres3||defaut;attribut;;;nombre de morceaux:debut
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
-          #test2||obj||^V4;a:b:c:d;;set||^;;V4;split;:;||cnt;4
-          !#test3||obj||^V4;a:b:c:d;;set||^X,Y;;V4;split;:;2;||ATV;Y;b:c:d
+          #test2||obj||^V4;a:b:c:d;;set||^;;V4;split>;:;||cnt;4
+          #test3||obj||^V4;a:b:c:d;;set||^X,Y;;V4;split;:;;||atv;Y;b:c:d
     """
     att = regle.getval_entree(obj)
     keys = None
 
     if regle.sep:
-        elems = att.split(regle.sep)[regle.defcible]
+        elems = att.split(regle.sep, regle.nbdecoup)[regle.defcible]
+        # print("decoupage", elems)
     elif isinstance(att, (list, tuple)):
         if hasattr(att, "_fields"):  # c est un namedtuple
             atd = att._asdict()
@@ -500,7 +501,7 @@ def f_asplit(regle, obj):
 
         # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     if regle.multi:
-        obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
+        # obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
         for i in elems:
             obj2 = obj.dupplique()
             obj2.attributs[regle.params.att_entree.val] = i
@@ -509,12 +510,7 @@ def f_asplit(regle, obj):
             obj2.redirect = "gen"
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
     else:
-        regle.setval_sortie(
-            obj,
-            regle.getval_entree(obj).split(regle.sep, regle.nbdecoup)[regle.defcible]
-            if regle.sep
-            else regle.getval_entree(obj)[regle.defcible],
-        )
+        regle.setval_sortie(obj, elems)
     return True
 
 

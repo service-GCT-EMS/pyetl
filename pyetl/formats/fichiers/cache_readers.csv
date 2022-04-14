@@ -21,7 +21,7 @@ qlr;.format_xml
 shp;.format_gdalio
 spatialite;.format_filedb
 sqlite;.format_filedb
-text;.format_textfile
+texte;.format_textfile
 txt;.format_csv
 xlsm;.format_excel
 xlsx;.format_excel

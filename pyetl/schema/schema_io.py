@@ -220,7 +220,7 @@ def ecrire_schema_sql(
         ecrire_fichier_sql(rep, nomschema, "01", "schema", tout, cod, False)
 
     else:
-        rep = os.path.join(rep, nomschema)
+        rep = os.path.join(rep, nomschema) if stock_param.isfalse("monoschema") else rep
         os.makedirs(rep, exist_ok=True)
         if tsql:
             ecrire_fichier_sql(rep, nomschema, "03", "tables", tsql, cod, transact)
@@ -240,7 +240,9 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
     """ sort un schema dans les differents formats disponibles """
 
     nom = schema.nom.replace("#", "")
-    rep_s = os.path.join(rep, "schemas")
+    rep_s = (
+        os.path.join(rep, "schemas") if not stock_param.getvar("sortie_schema") else rep
+    )
     cod = stock_param.getvar("codec_sortie", "utf-8")
     schema.resolve()  # la on force la resolution de tous les differes
     for form in formats_a_sortir:
@@ -349,6 +351,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         return
 
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
+
     if rep_sortie:
         stock_param.logger.info("repertoire de sortie des schemas %s", rep_sortie)
 

@@ -752,17 +752,22 @@ class Output(object):
 
         self.dialecte = None
         self.minmajfunc = None
-        destination = ""
-        dialecte = ""
-        fich = ""
+        self.destination = ""
+        self.dialecte = ""
+        self.fich = ""
+        self.writerclass = None
+        self.srid = None
+
         if ":" in nom:
             defs = nom.split(":")
             #            print ('decoupage writer', nom, defs,nom.split(':'))
             nom = defs[0]
-            dialecte = defs[1]
-            destination = defs[2] if len(defs) > 2 else ""
-            fich = defs[3] if len(defs) > 3 else ""
+            self.dialecte = defs[1]
+            self.destination = defs[2] if len(defs) > 2 else ""
+            self.fich = defs[3] if len(defs) > 3 else ""
         self.nom_format = nom
+        self.nom = nom
+
         #        self.destination = destination
         self.regle = regle
         self.regle_ref = regle
@@ -774,30 +779,20 @@ class Output(object):
             if nom:
                 logger = regle.stock_param.logger
                 logger.error("format sortie inconnu '%s'", nom)
-                logger.info("formats existants :")
+                # logger.info("formats existants :")
                 logger.info("formats existants : %s", ",".join(WRITERS.keys()))
             # print("format sortie inconnu '" + nom + "'", WRITERS.keys())
             nom = "#poubelle"
         # writer, streamer, force_schema, casse, attlen, driver, fanoutmin, geom, tmp_geom)
         self.writerparms = getwriter(nom)._asdict()  # parametres specifique au format
         # print("definition output", nom, self.writerparms)
-        if nom == "sql":
-
-            if dialecte == "":
-                dialecte = "natif"
-            else:
-                # dialecte = dialecte if dialecte in DATABASES else "sql"
-                self.writerparms["dialecte"] = getdb(dialecte)
-                self.writerparms["base_dest"] = destination
-                self.writerparms["destination"] = fich
-        else:
-            self.writerparms["destination"] = destination
+        self.writerparms["destination"] = self.destination
 
         initer = self.writerparms.get("initer")
         if initer:
             initer(self)
         self.writerparms.update(self.regle.writerparms)
-        self.dialecte = dialecte
+        # print("initialisation terminée", self.writerparms, self.writerclass)
         self.encoding = self.regle.getlocal(
             "encoding", self.writerparms.get("encoding")
         )

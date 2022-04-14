@@ -182,12 +182,10 @@ def selh_infich_re(condition):
     #     valeurs,
     # )
 
-    if isinstance(valeurs, list):
-        valeurs = set(valeurs)
-    condition.info = [re.compile(pref + i[0] + suf) for i in valeurs]
-    # TODO gerer correctement les listes
-
-    # print("condition infichre fich charge ", condition.info)
+    condition.info = [
+        tuple(re.compile(pref + i.strip().replace("\\b", " ") + suf) for i in v)
+        for v in valeurs
+    ]
 
 
 def sel_infich_re(condition, obj):
@@ -201,15 +199,22 @@ def sel_infich_re(condition, obj):
          #test||obj||^A;AA;;set||^?A;xxx;;set||A;in:%testrep%/refdata/liste.csv(^:F:.);;;res;1;;set
               ||atv;res;1
     """
+    # print("-----------infich_re", condition.params.attr.liste, condition.info)
     if len(condition.params.attr.liste) > 1:
-        vals = ";".join(obj.attributs.get(i, "") for i in condition.params.attr.liste)
+        vals = tuple(obj.attributs.get(i, "") for i in condition.params.attr.liste)
+        for conds in condition.info:
+            if all(c.search(v) for v, c in zip(vals, conds)):
+                condition.regle.match = ";".join(vals)
+                condition.regle.matchlist = vals
+                return True
     else:
-        vals = obj.attributs.get(condition.params.attr.val, "")
-    for i in itertools.dropwhile(lambda i: not i.search(vals), condition.info):
-        condition.regle.match = i.search(vals).group(0)
-        condition.regle.matchlist = i.search(vals).groups()
-
-        return True
+        val = obj.attributs.get(condition.params.attr.val, "")
+        for conds in condition.info:
+            cond = conds[0]
+            if cond.search(val):
+                condition.regle.match = cond.search(val).group(0)
+                condition.regle.matchlist = cond.search(val).groups()
+                return True
     # print("infich_re: no match", vals)
     condition.regle.match = ""
     return False

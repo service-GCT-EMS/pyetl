@@ -236,4 +236,5 @@ class GestionLogs(object):
         if self.mainmapper.parallelmanager:
             self.mainmapper.stoplistener()
             self.mainmapper.parallelmanager.shutdown()
+        time.sleep(1)
         logging.shutdown()

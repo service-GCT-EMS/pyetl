@@ -585,6 +585,9 @@ class Context(object):
         else:
             return bool(val)
 
+    def isfalse(self, nom):
+        return not self.istrue(nom)
+
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
         element = element.strip()  # on debarasse les blancs parasites

@@ -6,15 +6,17 @@
 # import sys
 import os
 import codecs
-from . import fileio
+from .fileio import FileWriter
 
 
-class TextWriter(fileio.FileWriter):
+class TextWriter(FileWriter):
     """writer de fichiers texte"""
 
     def write(self, obj):
         """ecrit un objet complet"""
-        chaine = obj.attributs["contenu"]
+        if self.liste_att is None:
+            self.liste_att = [i for i in obj.attributs if not i.startswith("#")]
+        chaine = self.separ.join(obj.attributs.get(i, "") for i in self.liste_att)
         self.fichier.write(chaine)
         if chaine[-1] != "\n":
             self.fichier.write("\n")
@@ -105,12 +107,13 @@ def lire_textfile_bloc(reader, rep, chemin, fichier):
     return reader.nb_lus
 
 
-def ecrire_objets_text(regle, _, attributs=None):
+def textwriter(self, regle, _, attributs=None):
     """ecrit un fichier dont le contenu est dans un attribut
     a partir d'un stockage memoire ou temporaire"""
     # ng, nf = 0, 0
     # memoire = defs.stockage
     #    print( "ecrire_objets asc")
+    # raise
     rep_sortie = regle.getvar("_sortie")
     sorties = regle.stock_param.sorties
     dident = None
@@ -123,17 +126,18 @@ def ecrire_objets_text(regle, _, attributs=None):
                 groupe, classe = obj.ident
                 if regle.fanout == "groupe":
                     nom = sorties.get_id(rep_sortie, groupe, "", regle.ext)
+                elif regle.fanout == "no":
+                    nom = sorties.get_id(rep_sortie, regle.nom, "", regle.ext)
                 else:
                     nom = sorties.get_id(rep_sortie, groupe, classe, regle.ext)
 
                 ressource = sorties.get_res(regle, nom)
                 if ressource is None:
+                    # print("_______________preparation textwriter", nom)
                     if os.path.dirname(nom):
                         os.makedirs(os.path.dirname(nom), exist_ok=True)
 
-                    streamwriter = TextWriter(
-                        nom, encoding=regle.getvar("codec_sortie", "utf-8"), regle=regle
-                    )
+                    streamwriter = self.writerclass(nom, regle=regle)
                     streamwriter.set_liste_att(attributs)
                     ressource = sorties.creres(nom, streamwriter)
                 regle.ressource = ressource
@@ -141,10 +145,68 @@ def ecrire_objets_text(regle, _, attributs=None):
             ressource.write(obj, regle.idregle)
 
 
+def init_text(self):
+    # print("dans inittext", self)
+    self.writerclass = TextWriter
+    self.regle_ref.ext = (
+        self.dialecte if self.dialecte.startswith(".") else "." + self.dialecte
+    )
+
+
+def text_streamer(self, obj, regle, _, attributs=None):
+    """ecrit un fichier dont le contenu est dans un attribut"""
+    # ng, nf = 0, 0
+    # memoire = defs.stockage
+    #    print( "ecrire_objets asc")
+    # raise
+    rep_sortie = regle.getvar("_sortie")
+    sorties = regle.stock_param.sorties
+    ressource = None
+
+    if obj.virtuel:  # on ne traite pas les virtuels
+        return
+    if obj.ident != regle.dident:
+        rep_sortie = regle.getvar("_sortie")
+        fanout = self.writerparms.get("fanout", self.fanoutmin)
+        groupe, classe = obj.ident
+        if fanout == "groupe":
+            nom = sorties.get_id(rep_sortie, groupe, "", regle.ext)
+        elif fanout == "no" or fanout == "all":
+            nom = sorties.get_id(rep_sortie, self.destination, "", regle.ext)
+        else:
+            nom = sorties.get_id(rep_sortie, groupe, classe, regle.ext)
+
+        ressource = sorties.get_res(regle, nom)
+        if ressource is None:
+            # print("_______________preparation textwriter", nom)
+            if os.path.dirname(nom):
+                os.makedirs(os.path.dirname(nom), exist_ok=True)
+            streamwriter = self.writerclass(nom, regle=regle)
+            streamwriter.set_liste_att(attributs)
+            ressource = sorties.creres(nom, streamwriter)
+        regle.ressource = ressource
+        regle.dident = (groupe, classe)
+    ressource = regle.ressource
+    ressource.write(obj, regle.idregle)
+
+
 READERS = {
     "ligne": (lire_textfile_ligne, "", True, (), None, None),
-    "text": (lire_textfile_bloc, "", True, (), None, None),
+    "texte": (lire_textfile_bloc, "", True, (), None, None),
     "fixed": (lire_textfile_pos, "", True, (), None, None),
 }
-# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
-WRITERS = {"text": (ecrire_objets_text, None, False, "", 0, "", "classe", "", "", None)}
+# writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom, initer)
+WRITERS = {
+    "texte": (
+        textwriter,
+        text_streamer,
+        False,
+        "",
+        0,
+        "",
+        "",
+        "",
+        "",
+        init_text,
+    ),
+}

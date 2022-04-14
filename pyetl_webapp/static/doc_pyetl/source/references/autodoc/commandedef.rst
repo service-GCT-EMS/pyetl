@@ -1442,32 +1442,9 @@ compare
 +--------+--------+--------+----------+--------+----------+
 |sortie  |defaut  |entree  |commande  |param1  |param2    |
 +========+========+========+==========+========+==========+
-|A       |        |?L      |compare   |A       |C         |
+|A       |        |?L      |compare   |L       |C         |
 +--------+--------+--------+----------+--------+----------+
 | *parametres clef;fichier;attribut;preload;macro;nom*    |
-+--------+--------+--------+----------+--------+----------+
-
-
-
-
-.. index::
-  double: .traitement_divers;compare2
-
-compare2
-........
-
-   compare a un element precharge
-
-   parametres clef;fichier;attribut;compare;macro;nom
-
-**syntaxes acceptees**
-
-+--------+--------+--------+----------+--------+----------+
-|sortie  |defaut  |entree  |commande  |param1  |param2    |
-+========+========+========+==========+========+==========+
-|A       |        |?L      |compare2  |A       |C         |
-+--------+--------+--------+----------+--------+----------+
-| *parametres clef;fichier;attribut;compare;macro;nom*    |
 +--------+--------+--------+----------+--------+----------+
 
 
@@ -2740,10 +2717,11 @@ compare_schema
 +------+------+------+--------------+------+--------+
 |sortie|defaut|entree|commande      |param1|param2  |
 +======+======+======+==============+======+========+
-|      |?C    |      |compare_schema|C     |?N      |
+|P     |C     |      |compare_schema|C     |?=full  |
 +------+------+------+--------------+------+--------+
-|C     |C     |      |compare_schema|      |        |
+|A     |      |      |compare_schema|C     |        |
 +------+------+------+--------------+------+--------+
+
 
 
 

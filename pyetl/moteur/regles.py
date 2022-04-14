@@ -827,6 +827,10 @@ class RegleTraitement(object):  # regle de mapping
         """recupere la valeur booleenne d une variable"""
         return self.context.istrue(nom, defaut)
 
+    def isfalse(self, nom):
+        """recupere la valeur booleenne d une variable"""
+        return self.context.isfalse(nom)
+
     def getlocal(self, nom, defaut=""):
         return self.context.getlocal(nom, defaut)
 

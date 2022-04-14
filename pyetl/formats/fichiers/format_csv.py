@@ -15,6 +15,7 @@ import codecs
 
 # from numba import jit
 from .fileio import FileWriter
+from ..generic_io import getdb
 
 
 def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
@@ -489,7 +490,7 @@ def init_csv(self):
         self.headerfonc = str.lower
     else:
         self.headerfonc = str
-    # print("initwriter csv separateur:", separ, headerdef, header,self.headerfonc)
+    # print("initwriter csv ", self)
 
 
 def init_txt(self):
@@ -507,6 +508,25 @@ def init_geo(self):
 def init_sql(self):
     """writer sql :  mode copy avec gestion des triggers et des sequences """
     initwriter(self, "sql", "sql", "\t", r"\N", writerclass=SqlWriter)
+    if self.dialecte == "":
+        self.dialecte = "natif"
+    else:
+        # dialecte = dialecte if dialecte in DATABASES else "sql"
+        self.writerparms["dialecte"] = getdb(self.dialecte)
+        self.writerparms["base_dest"] = self.destination
+        self.writerparms["destination"] = self.fich
+
+    # gestion des dialectes sql et du mode connecté
+    self.writerparms["reinit"] = self.regle_ref.getvar("reinit")
+    self.writerparms["nodata"] = self.regle_ref.getvar("nodata")
+    if self.destination:  # on va essayer de se connecter
+        connection = self.regle_ref.stock_param.getdbaccess(
+            self.regle_ref, self.destination
+        )
+        if connection and connection.valide:
+            self.gensql = connection.gensql  # la on a une instance connectee
+    elif self.writerparms["dialecte"]:
+        self.gensql = self.writerparms["dialecte"].gensql()
 
 
 def lire_objets_txt(self, rep, chemin, fichier):

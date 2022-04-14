@@ -278,8 +278,8 @@ def charge_liste_csv(
                     if len(liste) < taille:
                         liste = list(itertools.islice(itertools.cycle(liste), taille))
                     stock[tuple([liste[i] for i in positions])] = liste
-    if debug:
-        print("chargement liste", fichier)
+    # if debug:
+    # print("chargement liste", fichier, stock)
 
     # LOGGER.warning("fichier liste perdu: %s",fichier)
     #     LOGGER.warning("turlututu chapeau pointu")
@@ -409,7 +409,7 @@ def charge_liste(
                         positions=positions,
                     )
                 )
-    # print("charge liste", len(sorted(stock)))
+    # print("charge liste final", stock)
     if not stock:  # on a rien trouve
         pass
         # print("---------attention aucune liste disponible sous ", fichier)
@@ -493,13 +493,6 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
             valeurs = charge_liste(
                 fichier, taille=taille, positions=positions, type_cle=type_cle
             )
-            # on precharge le fichier de jointure
-            # print(
-            #     "outils: chargement liste ",
-            #     fichier,
-            #     "------>",
-            #     "\n".join((str(i) + ":" + str(valeurs[i]) for i in valeurs)),
-            # )
     # print("prepare mode in ", mode, valeurs)
     return mode, valeurs
 

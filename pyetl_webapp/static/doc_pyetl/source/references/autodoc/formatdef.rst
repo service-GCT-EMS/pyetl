@@ -34,7 +34,7 @@ shp                                oui           oui
 spatialite                         oui           non
 sql                                non           oui
 sqlite                             oui           non
-text                               oui           oui
+texte                              oui           oui
 txt                                oui           oui
 xlsm                               oui           non
 xlsx                               oui           oui
@@ -547,8 +547,8 @@ format sqlite
  prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
 
 
-format text
-...........
+format texte
+............
 
 
  lecture d'un fichier et stockage des objets en memoire de l'ensemble du texte en memmoire

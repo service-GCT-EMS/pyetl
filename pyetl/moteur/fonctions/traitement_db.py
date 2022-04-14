@@ -839,7 +839,7 @@ def h_recup_schema(regle):
         complet = selecteur.resolve()
         LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
 
-        print("retour selecteur", complet, selecteur)
+        # print("retour selecteur", complet, selecteur)
         if complet:
             regle.valide = "done"
         return True

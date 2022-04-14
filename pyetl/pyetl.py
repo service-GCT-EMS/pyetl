@@ -969,6 +969,10 @@ class Pyetl(object):
         """recupere la valeur booleenne d une variable"""
         return self.context.istrue(nom, defaut)
 
+    def isfalse(self, nom):
+        """recupere la valeur booleenne d une variable"""
+        return self.context.isfalse(nom)
+
     def setvar(self, nom, valeur):
         """positionne une variable dans un contexte de base
         dans ce cas on positionne en local"""
@@ -1278,7 +1282,15 @@ class Pyetl(object):
             "4": "int",  # sort les schemas de toutes les classes y compris internes
             "5": "fusion",  # combine les schemas en fonction des poids}
         }
-        rep_sortie = self.getvar("sortie_schema", self.getvar("_sortie"))
+
+        rep_sortie = self.getvar("sortie_schema")
+        if rep_sortie:
+            if os.path.isabs(rep_sortie) or rep_sortie.startswith("."):
+                pass
+            else:
+                rep_sortie = os.path.join(self.getvar("_sortie"), rep_sortie)
+        else:
+            rep_sortie = self.getvar("_sortie")
         # print(
         #     "rep sortie schema",
         #     self.getvar("sortie_schema", "rien"),
@@ -1289,7 +1301,7 @@ class Pyetl(object):
             if (
                 not self.getvar("_testmode") and self.schemas
             ):  # en mode test ou web on rale pas
-                if self.getvar("sans_sortie") in ("True", "true", "1", "T", "t"):
+                if self.istrue("sans_sortie"):
                     return " on rale pas c est voulu"
                 self.logger.warning("pas de repertoire de sortie")
             return
@@ -1298,7 +1310,7 @@ class Pyetl(object):
         mode_schema = modes_schema_num.get(mode_schema, mode_schema)
         if (
             mode_schema in {"all", "int", "fusion"}
-            or self.getvar("force_virtuel") == "1"
+            or self.istrue("force_virtuel")
             and not self.done
         ):
             self.logger.debug(

@@ -13,7 +13,7 @@ json;.format_json
 mif;.format_gdalio
 shp;.format_gdalio
 sql;.format_csv
-text;.format_textfile
+texte;.format_textfile
 txt;.format_csv
 xlsx;.format_excel
 xml;.format_xml

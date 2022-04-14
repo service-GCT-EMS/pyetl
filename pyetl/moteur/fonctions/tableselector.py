@@ -793,14 +793,14 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
                         attribut, valeur = "", ""
                 classe = classe.split(",")
 
-                print(
-                    "analyse ligne",
-                    liste,
-                    "->",
-                    "-".join(
-                        (base, str(niveau), str(classe), str(attribut), str(valeur))
-                    ),
-                )
+                # print(
+                #     "analyse ligne",
+                #     liste,
+                #     "->",
+                #     "-".join(
+                #         (base, str(niveau), str(classe), str(attribut), str(valeur))
+                #     ),
+                # )
 
                 for niv in niveau.split(","):
                     fonction = "="
@@ -815,7 +815,7 @@ def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     except UnicodeDecodeError:
         LOGGER.error("erreur encodage " + fichier + " n'est pas en " + codec)
         raise StopIteration(4)
-    print("prechargement selecteur csv", selecteur)
+    # print("prechargement selecteur csv", selecteur)
 
 
 def selecteur_from_fich(regle, fichier, selecteur):

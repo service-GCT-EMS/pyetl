@@ -264,7 +264,7 @@ class Fileselect(Element):
                 "",
                 "",
                 fbt + " = New-Object system.Windows.Forms.Button",
-                fbt + '.text = "f"',
+                fbt + '.text = "..."',
                 fbt + ".width = 24",
                 fbt + ".height = 24",
                 fbt + ".location = " + self.position(dx=300, dy=30),
@@ -400,15 +400,21 @@ class Bouton(Element):
             bt + ".height = 40",
             bt + ".location = " + self.position(),
             bt + ".Font = $font",
-            bt + ".UseWaitCursor = $true",
             "#---------onclick----------",
             bt + ".Add_Click(",
             "   {",
+            "[System.Windows.Forms.Cursor]::Current=[System.Windows.Forms.Cursors]::WaitCursor",
         ]
         for el in self.elements:
             se, sc = el.genps(ihm)
             code.extend(sc)
-        code.extend(["   }", ")"])
+        code.extend(
+            [
+                "[System.Windows.Forms.Cursor]::Current=[System.Windows.Forms.Cursors]::Default",
+                "   }",
+                ")",
+            ]
+        )
         return [bt], code
 
     @property

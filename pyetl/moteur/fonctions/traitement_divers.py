@@ -339,10 +339,10 @@ def h_sortir(regle):
         regle.nom_fich_schema = regle.params.cmp2.val
     else:
         regle.nom_fich_schema = "#auto"
-    regle.nom_base = os.path.basename(
+    regle.nom_sortie = os.path.basename(
         regle.params.cmp2.val if regle.params.cmp2.val else regle.nom_fich_schema
     )
-
+    regle.nom = regle.params.cmp2.val if regle.params.cmp2.val else "sortie"
     if regle.debug:
         print("nom de schema ", regle.nom_fich_schema)
 
@@ -372,7 +372,10 @@ def h_sortir(regle):
         )
         else regle.params.cmp1.val
     )
+    # print("creation output:", regle, fich, outformat)
     regle.output = regle.stock_param.getoutput(outformat, regle)
+    # print("preparation sortie ", regle.output.writerclass, regle.output.writerparms)
+
     if outformat == "#print":
         regle.output.writerparms["destination"] = "#print"
     else:
@@ -385,27 +388,11 @@ def h_sortir(regle):
             outformat,
             sorted(regle.output.writerparms.items()),
         )
-    # print("creation output", fich, outformat)
 
-    if regle.output.nom_format == "sql":
-        # gestion des dialectes sql et du mode connecté
-        destination = regle.output.writerparms.get("base_dest")
-        dialecte = regle.output.writerparms.get("dialecte")
-        regle.output.writerparms["reinit"] = regle.getvar("reinit")
-        regle.output.writerparms["nodata"] = regle.getvar("nodata")
-        if destination:  # on va essayer de se connecter
-            connection = regle.stock_param.getdbaccess(regle, destination)
-            if connection and connection.valide:
-                regle.output.gensql = (
-                    connection.gensql
-                )  # la on a une instance connectee
-        elif dialecte:
-            regle.output.gensql = dialecte.gensql()
-    #        print ('sortie',regle.ligne,regle.output.writerparms)
-    elif regle.output.nom_format == "file":  # gestion de fichiers de texte generiques
-        dialecte = regle.output.writerparms.get("dialecte")
-        regle.ext = dialecte
-
+    # if regle.output.nom_format == "text":  # gestion de fichiers de texte generiques
+    #     dialecte = regle.output.writerparms.get("dialecte")
+    #     regle.ext = dialecte
+    # print("----------------------------sortie", regle.ligne, regle.output.writerparms)
     regle.stock_param.logger.info(
         "repertoire de sortie: %s, %s",
         regle.getvar("_sortie"),
@@ -418,7 +405,7 @@ def h_sortir(regle):
     regle.store = True if mode_sortie in {"A", "B"} else None
     regle.nbstock = 0
     regle.traite_stock = sortir_traite_stock
-    #    regle.liste_attributs = regle.params.att_entree.liste
+    regle.liste_attributs = regle.params.att_entree.liste
     if regle.stock_param.debug:
         print("sortir :", regle.params.att_entree.liste)
     regle.final = True
@@ -430,8 +417,7 @@ def h_sortir(regle):
         regle.copy = False
     regle.valide = True
 
-
-#    print ('fin preparation sortie ',regle.output.writerparms)
+    # print("fin preparation sortie ", regle.output.writerclass, regle.output.writerparms)
 
 
 def setschemasortie(regle, obj):
@@ -484,7 +470,7 @@ def f_sortir(regle, obj):
         groupe = obj.attributs["#groupe"]
         #        print("stockage", obj.ido, groupe, regle)
         if groupe != "#poubelle":
-            nom_base = regle.nom_base
+            nom_sortie = regle.nom_sortie
             # regle.stock_param.nb_obj+=1
             if regle.stock_param.stream:  # sortie classe par classe
                 if groupe not in regle.stockage:
@@ -492,13 +478,15 @@ def f_sortir(regle, obj):
                         regle, False
                     )  # on sort le groupe precedent
                     regle.compt_stock = 0
-            regle.endstore(nom_base, groupe, obj)
+            regle.endstore(nom_sortie, groupe, obj)
         return True
     if obj.geom_v.valide and obj.geom_v.unsync == -1:
         obj.geomnatif = False
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
-    regle.output.ecrire_objets_stream(obj, regle, False)
+    regle.output.ecrire_objets_stream(
+        obj, regle, False, attributs=regle.liste_attributs
+    )
 
     if regle.final:
         obj.schema = None

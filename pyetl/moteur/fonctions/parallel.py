@@ -87,7 +87,10 @@ def stoplistener():
     if mapper.loglistener:
         # mapper.logger.info("arret listener")
         mapper.loglistener.enqueue_sentinel()
+        # time.sleep(1)
         mapper.loglistener.stop()
+        mapper.logqueue.close()
+        mapper.logqueue.join_thread()
         # mapper.loglistener = None
     # print("listener arrete")
 

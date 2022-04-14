@@ -301,7 +301,7 @@ class GestionSorties(object):
             "<->",
             os.path.join(rep_sortie, "defaut" + ext),
         )
-        raise KeyError("clef non definie")
+        raise KeyError("clef non definie " + "defaut" + ext)
         return os.path.join(rep_sortie, "defaut" + ext)
 
     def getwritestats(self):
