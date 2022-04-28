@@ -215,7 +215,7 @@ def fonctest(mapper, nom=None, debug=0):
             continue
         if nom:
             print("test: ", fonc_a_tester, "(", fonc.nom, ")")
-            print("variantes:", [subfonc.nom for subfonc in fonc.subfonctions])
+            print("fonctions:", {subfonc.nom for subfonc in fonc.subfonctions})
         mapper.setvar("test_courant", fonc_a_tester)
 
         # teslist = dict()

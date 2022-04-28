@@ -41,6 +41,10 @@ def store_traite_stock(regle):
     elif isinstance(store, set):
         print("traitement set", len(store))
         print("store", len(regle.stock_param.store))
+        for obj in store:
+            # print("store: relecture objet ", obj)
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+        # print("store", len(regle.stock_param.store))
     else:
         for clef in (
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store

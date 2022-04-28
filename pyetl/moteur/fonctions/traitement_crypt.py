@@ -357,7 +357,21 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
                     site_params[nom][numero] = (nom_p, val)
     for nom in supr:
         print("suppression paramgroup", nom, master)
-        del site_params[nom]
+        params = dict(site_params[nom])
+        if "sso_fallback" in params:
+            user, passwd = params["sso_fallback"].split(",")
+            del params[user]
+            del params[passwd]
+            site_params[nom] = list(params.items())
+        elif "public_fallback" in params:
+            user, passwd = params["public_fallback"].split(",")
+            uname, uval = user.split("=")
+            pname, pval = passwd.split("=")
+            params[uname] = uval
+            params[pname] = pval
+            site_params[nom] = list(params.items())
+        else:
+            del site_params[nom]
 
 
 def h_crypt(regle):

@@ -397,7 +397,7 @@ def f_retour(regle, obj):
     #pattern||;C?;L?;retour;C?;=noms?
     #test||obj||^;;C1;retour;test ok:;noms||out
     """
-    #    print ("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj))
+    # print("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj), obj)
     regle.stock_param.retour.append(printfunc(regle, obj))
     #    print ("retour stocke",regle.stock_param.retour)
     return True
