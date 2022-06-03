@@ -433,13 +433,14 @@ class Reader(object):
 
     def transfert_attribut(self, obj):
         "recupere les attributs de l objet initial"
+        prefix = self.regle.getvar("prefix", "")
         if self.regle.params.att_sortie.val == "*":
             liste_att = {
-                i: j for i, j in obj.attributs.items() if not i.startswith("#")
+                prefix + i: j for i, j in obj.attributs.items() if not i.startswith("#")
             }
         else:
             liste_att = {
-                i: j
+                prefix + i: j
                 for i, j in obj.attributs.items()
                 if i in self.regle.params.att_sortie.liste
             }
@@ -480,8 +481,18 @@ class Reader(object):
             print("lecteur non defini")
             return False
         if self.regle.nom_att in obj.attributs:
-            with io.StringIO(obj.attributs[self.regle.nom_att]) as ouvert:
-                self.objreader(ouvert)
+            origine = obj.attributs[self.regle.nom_att]
+            if isinstance(origine, str):
+                with io.StringIO(str(origine)) as ouvert:
+                    err = self.objreader(ouvert)
+            else:
+                err = self.objreader(origine)
+                if err == -1:
+                    print(
+                        "attaccess: erreur traitement ligne",
+                        self.regle.nom_att,
+                        type(origine),
+                    )
             return True
         return False
 
@@ -506,7 +517,7 @@ class Reader(object):
         self.stock_param.setvar(nom, val)
 
     def get_info(self):
-        """ affichage du format courant : debug """
+        """affichage du format courant : debug"""
         # print("info :format: format courant :", self.nom_format)
 
         # def get_converter(self, format_natif=None):
@@ -518,7 +529,7 @@ class Reader(object):
         return GEOMDEF[fgeom].converter
 
     def setattformatter(self):
-        """ gere les formatterurs de type"""
+        """gere les formatterurs de type"""
         # print ('setattformatter', self.schemaclasse)
         if self.formatters and any(
             [
@@ -733,6 +744,12 @@ class Reader(object):
         self.obj_crees += 1
         return obj
 
+    def objfail(self):
+        """corrige les compteurs si une creation nest pas allee jusqu au bout"""
+        self.nb_lus -= 1
+        self.lus_fich -= 1
+        self.obj_crees -= 1
+
 
 class Output(object):
     """wrappers de sortie génériques"""
@@ -824,7 +841,7 @@ class Output(object):
         # print("fin definition output", nom, self.writerparms)
 
     def get_info(self):
-        """ affichage du format courant : debug """
+        """affichage du format courant : debug"""
         print("error:format: format courant :", self.nom_format)
 
     def get_geomwriter(self, format_natif=None):
@@ -891,7 +908,7 @@ class Output(object):
         return ressource, nom
 
     def change_ressource(self, obj, initial=False):
-        """ change la definition de la ressource utilisee si necessaire"""
+        """change la definition de la ressource utilisee si necessaire"""
         # separ, extension, entete, null, initial=False, geomwriter=None
         ressource, nom = self.getfanout(obj.ident)
         self.srid = obj.geom_v.srid

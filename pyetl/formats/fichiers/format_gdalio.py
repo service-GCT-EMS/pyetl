@@ -59,7 +59,7 @@ def formatte_entree(type_orig):
     return type_att, taille, dec
 
 
-def recup_schema_fiona(schema_courant, ident, description, driver):
+def recup_schema_fiona(schema_courant, ident, description, driver, crs=None):
     """cree un schema a partir d une description fiona"""
     code_g = {
         "Point": "1",
@@ -78,7 +78,7 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         "date": "DS",
         "time": "D",
     }
-    # print ('recup_schema fiona:', ident, description, schema_courant)
+    # print("recup_schema fiona:", ident, description, schema_courant)
     # sc_classe = schema_courant.get_classe(ident)
     # #    print ('gdalio:recherche schema ',ident, sc_classe, schema_courant.nom,
     # #           schema_courant.classes.keys())
@@ -111,8 +111,15 @@ def recup_schema_fiona(schema_courant, ident, description, driver):
         type_geom = "0"
         dimension = 0
     # print('type geometrique fiona', type_geom, nom_geom)
+    srid = "3948"
+    if crs:
+        if isinstance(crs, dict):
+            if crs.get("init").startswith("epsg"):
+                srid = crs["init"].replace("epsg:", "")
+                if srid != "3948":
+                    print("attention donnees non cc48", ident, srid)
     sc_classe.stocke_geometrie(
-        type_geom, dimension=dimension, srid="3948", multiple=multigeom
+        type_geom, dimension=dimension, srid=srid, multiple=multigeom
     )
     # sc_classe.info["type_geom"] = type_geom
     for i in description["properties"]:
@@ -205,7 +212,7 @@ def schema_fiona(sc_classe, liste_attributs=None, l_nom=0):
 
 
 def lire_objets(self, rep, chemin, fichier):
-    """ lecture d'un fichier reconnu et stockage des objets en memoire"""
+    """lecture d'un fichier reconnu et stockage des objets en memoire"""
     # print("lecture gdal", (rep, chemin, fichier), self.schemaclasse)
     #    raise
     # ouv = None
@@ -216,7 +223,7 @@ def lire_objets(self, rep, chemin, fichier):
     # print('fiona:lecture niveaux',  layers)
     for layer in layers:
         with fiona.open(self.fichier, "r", layer=layer) as source:
-            # print ('recup fiona',self.newschema,source.driver, source.schema)
+            print("recup fiona", source.driver, source.schema, source.crs, source.meta)
             if layer != classe:
                 self.setidententree(self.groupe, layer)
             if self.newschema:
@@ -225,6 +232,7 @@ def lire_objets(self, rep, chemin, fichier):
                     (self.groupe, self.classe),
                     source.schema,
                     source.driver,
+                    crs=source.crs,
                 )
 
             driver = source.driver
@@ -240,7 +248,7 @@ def lire_objets(self, rep, chemin, fichier):
 
 
 class GdalWriter(FileWriter):
-    """ gestionnaire d'ecriture pour fichiers gdal"""
+    """gestionnaire d'ecriture pour fichiers gdal"""
 
     def __init__(
         self,
@@ -288,7 +296,7 @@ class GdalWriter(FileWriter):
         self.layerstate[self.layer] = 1
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ change de classe """
+        """change de classe"""
 
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
         if self.ressource.etat == 1:

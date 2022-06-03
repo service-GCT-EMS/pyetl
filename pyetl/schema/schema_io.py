@@ -123,7 +123,7 @@ def lire_schemas_multiples(
 
 
 def set_transaction(liste):
-    """ ajoute des transactions explicites sur les fichiers"""
+    """ajoute des transactions explicites sur les fichiers"""
     liste.insert(0, "START TRANSACTION;\n")
     liste.append("COMMIT;\n")
 
@@ -131,7 +131,7 @@ def set_transaction(liste):
 def ecrire_fichier_sql(
     rep, nomschema, numero, nomfich, valeurs, cod="utf-8", transact=False
 ):
-    """ ecrit la description du schema en sql """
+    """ecrit la description du schema en sql"""
     if valeurs is None:
         return
     if numero:
@@ -176,7 +176,7 @@ def ecrire_schema_sql(
     role=None,
     stock_param=None,
 ):
-    """ ecrit un schema en script sql """
+    """ecrit un schema en script sql"""
     # on determine le dialacte sql a choisir
     os.makedirs(rep, exist_ok=True)
 
@@ -237,7 +237,7 @@ def ecrire_schema_sql(
 
 
 def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
-    """ sort un schema dans les differents formats disponibles """
+    """sort un schema dans les differents formats disponibles"""
 
     nom = schema.nom.replace("#", "")
     rep_s = (
@@ -274,7 +274,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
                 schema.setbasic(type_base)
                 autopk = "" if autopk == "no" else True
                 rep_s = rep
-            stock_param.logger.info("dialecte de sortie %s", dialecte)
+            stock_param.logger.info("dialecte de sortie %s %s", dialecte, type_base)
             # print("dialecte de sortie", dialecte)
             # schema.printelements_specifiques()
 
@@ -345,7 +345,7 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
 
 
 def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1):
-    """prepare les schemas pour la sortie """
+    """prepare les schemas pour la sortie"""
     # print("ecriture_schemas", mode, stock_param.schemas.keys())
     if mode == "no":
         return
@@ -353,7 +353,10 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
 
     if rep_sortie:
-        stock_param.logger.info("repertoire de sortie des schemas %s", rep_sortie)
+        stock_param.logger.info(
+            "repertoire de sortie des schemas %s",
+            rep_sortie,
+        )
 
     if stock_param.mode.startswith("web") and not rep_sortie:
         formats = "xml"
@@ -363,13 +366,15 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             break
 
     schemas = stock_param.schemas
+    if not schemas:
+        stock_param.logger.info("pas de schema defini dans ce traitement")
+        return
 
     a_sortir = stock_param.getvar("schemas_a_sortir")
     a_sortir = a_sortir.split(",") if a_sortir else None
     if rep_sortie:
         os.makedirs(rep_sortie, exist_ok=True)
     for i in schemas:
-
         if not i:
             continue
         if a_sortir and i not in a_sortir:
@@ -463,7 +468,7 @@ def retour_schemas(schemas, mode="util"):
 
 
 def integre_schemas(stock_param, nouveaux):
-    """ recree les schemas apres transmission"""
+    """recree les schemas apres transmission"""
     schemas = stock_param.schemas
     if not nouveaux:
         return

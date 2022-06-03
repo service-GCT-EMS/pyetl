@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Moteur(object):
-    """gestionnaire de traitements """
+    """gestionnaire de traitements"""
 
     def __init__(self, mapper):
         self.regles = ()
@@ -23,7 +23,7 @@ class Moteur(object):
 
     @property
     def regle_sortir(self):
-        """ retourne la regle finale"""
+        """retourne la regle finale"""
         return self.regles[-1]
 
     def setregles(self, regles, debug=0):
@@ -38,7 +38,7 @@ class Moteur(object):
             print("regle:", i)
 
     def traitement_virtuel(self, unique=0, schema=None):
-        """ cree un objet virtuel et le traite pour toutes les classes non utilisees """
+        """cree un objet virtuel et le traite pour toutes les classes non utilisees"""
 
         #        if self.debug != 0:
         #        print("moteur: traitement virtuel", unique)
@@ -107,7 +107,7 @@ class Moteur(object):
                         self.traite_objet(obj, self.regles[0])
 
     def traite_regles_chargement(self, regle=None):
-        """ declenche les regles de chargement pour les traitements sans entree"""
+        """declenche les regles de chargement pour les traitements sans entree"""
         #        if self.debug:
         #        print('moteur: regles de chargement pour un traitement sans entree', self.regles[0].mode)
         # if self.regles[0].chargeur:  # tout va bien la premiere regle va faire le job
@@ -159,7 +159,7 @@ class Moteur(object):
                     # i.mode_chargeur = False
 
     def traite_objet(self, obj, regle, parent=None):
-        """traitement basique toutes les regles sont testees """
+        """traitement basique toutes les regles sont testees"""
         last = None
         while regle:
             last = regle
@@ -235,7 +235,8 @@ class Moteur(object):
                 #     regle = regle.branchements.brch["ok"]
             except StopIteration as abort:
                 #                print ('stopiteration', ab.args)
-                if abort.args[0] == 1:  # arret de traitement de l'objet
+
+                if abort.args and abort.args[0] == 1:  # arret de traitement de l'objet
                     return
                 raise  # on la passe au niveau au dessus
             except NotADirectoryError as exc:
@@ -307,7 +308,7 @@ class Moteur(object):
 
 
 class Macro(object):
-    """ structure de gestion des macros"""
+    """structure de gestion des macros"""
 
     def __init__(self, nom, file="", vpos=None):
         self.nom = nom
@@ -334,7 +335,7 @@ class Macro(object):
                 self.parametres_pos[i] = i
 
     def add_command(self, ligne, numero):
-        """ ajoute une commande a la liste"""
+        """ajoute une commande a la liste"""
         try:
             if ligne.startswith("!#help") or ligne.startswith("!#aide"):
                 self.help = ligne.split(";")[1]
@@ -369,7 +370,7 @@ class Macro(object):
         self.commandes_macro[numero] = ligne
 
     def close(self):
-        """ ajoute une commande pass au cas ou la macro finit par un niveau"""
+        """ajoute une commande pass au cas ou la macro finit par un niveau"""
         pass
         # maxnum = max(self.commandes_macro.keys())
         # last = self.commandes_macro[maxnum]
@@ -416,7 +417,7 @@ class Macro(object):
 
 
 class MacroStore(object):
-    """ conteneur de traitement des macros """
+    """conteneur de traitement des macros"""
 
     def __init__(self, parent=None):
         self.macros = dict() if parent is None else dict(parent.macros)
@@ -531,7 +532,7 @@ class Context(object):
         return Context(parent=self, ident=ident, type_c="B")
 
     def setbinding(self, nom, binding):
-        """ gere les retours de parametres"""
+        """gere les retours de parametres"""
         self.binding[nom] = binding
 
     def getcontext(self, ident="", liste=None, ref=False, type_c="C"):
@@ -637,7 +638,7 @@ class Context(object):
         return element
 
     def traite_egalite(self, element):
-        """ gere une affectation par egal"""
+        """gere une affectation par egal"""
         defnom, defval = element.split("=", 1)
         nom, _ = self.resolve(defnom)
         local = not nom.startswith("*")
@@ -647,7 +648,7 @@ class Context(object):
 
     # TODO a revoir la gestion des hstore dans les variables positionelles
     def traite_hstore(self, element, context):
-        """ mappe un hstore sur l'environnement"""
+        """mappe un hstore sur l'environnement"""
         val, binding = self.resolve(element[1:])  # c'est un eclatement de hstore
         liste = [i.strip().strip('"').replace('"=>"', "=") for i in val.split('","')]
         self.affecte(liste, context=context)

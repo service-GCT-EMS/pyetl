@@ -29,7 +29,7 @@ def getbase(regle):
 
 
 def param_base(regle, nom="", geo=False, req=False, mods=True):
-    """ extrait les parametres d acces a la base"""
+    """extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
     base = regle.code_classe[3:]
     # print("param base ", base)
@@ -82,6 +82,11 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
         if cla.lower().startswith("in:"):  # mode in
             clef = 1 if "#schema" in cla else 0
             mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
+            classlist = set()
+            for i in classes.values():
+                classlist = classlist.union(i)
+            classes = list(classlist)
+            print("trouve classes", type(classes), classes)
         else:
             classes = cla.split(",")
         if niv:
@@ -99,6 +104,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
                         base, niveau, classes, att, vals, fonction
                     )
         else:
+            print("param_base,niv,classe", base, niveau, classes)
             selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
     regle.cible_base = selecteur
 
@@ -107,7 +113,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
 
 def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
-    # print("acces base", regle.cible_base.baseselectors.keys())
+    print("acces bases", regle.cible_base.baseselectors.keys())
     selecteur = regle.cible_base
     maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
     selecteur.maxsel = maxsel
@@ -121,7 +127,7 @@ def setdb(regle, obj):
 
 
 def valide_dbmods(modlist):
-    """ valide les modificateur sur les requetes """
+    """valide les modificateur sur les requetes"""
 
     modlist = [i.upper() for i in modlist]
     valide = all([i in DB.DBMODS for i in modlist])
@@ -295,8 +301,10 @@ def h_dbgeo(regle):
         "!dans",
         "!dans_emprise",
     ]
-    regle.fonction_geom = regle.v_nommees.get("val_sel2", "")
+    regle.fonction_geom = regle.v_nommees.get("val_sel2")
     # print(" fonction geom", regle.fonction_geom, regle)
+    if not regle.fonction_geom:
+        regle.fonction_geom = "intersect"
     valide = True
     if regle.fonction_geom not in fonctions:
         regle.erreurs.append(
@@ -316,7 +324,7 @@ def h_dbgeo(regle):
 
 def f_dbgeo(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
-    #aide_spec||db:base;niveau;classe;fonction;att_sortie;valeur;champs a recuperer;dbgeo;buffer
+    #aide_spec||db:base;niveau;classe;fonction;att_sortie;valeur;champs a recuperer;dbgeo;type_tables;buffer
      #groupe||database
     #pattern||?L;?;?L;dbgeo;?C;?N
     #req_test||testdb
@@ -426,7 +434,7 @@ def h_dbrequest(regle):
 
 
 def printexception(regle, requete, err):
-    """ affiche ou pas une erreur"""
+    """affiche ou pas une erreur"""
     fail_silent = regle.getvar("Fail_silent", False)
     if not fail_silent or fail_silent == "0" or fail_silent.lower() == "false":
         print("dbrequest:erreur requete", requete, "->", err)
@@ -686,7 +694,7 @@ def dbwritebloc(regle):
 
 
 def h_dbwrite(regle):
-    """ preparation ecriture en base """
+    """preparation ecriture en base"""
     regle.blocksize = int(regle.getvar("transaction_size", 1000))
     regle.store = True
     regle.nbstock = 0
@@ -738,7 +746,7 @@ def f_dbupdate(regle, obj):
 
 
 def h_dbmaxval(regle):
-    """ stocke la valeur maxi """
+    """stocke la valeur maxi"""
     param_base(regle)
     selecteur = regle.cible_base
     regle.dyndescriptors = False
@@ -778,7 +786,7 @@ def f_dbmaxval(regle, obj):
 
 
 def h_dbcount(regle):
-    """ recupere le nombre d'objets """
+    """recupere le nombre d'objets"""
     retour = h_dbalpha(regle)
     regle.chargeur = False
     return retour
@@ -824,7 +832,7 @@ def f_dbcount(regle, obj):
 
 
 def h_recup_schema(regle):
-    """ lecture de schemas """
+    """lecture de schemas"""
     if not param_base(regle):
         print("erreur definition selecteur de base", regle.v_nommees)
         regle.valide = False
@@ -837,7 +845,8 @@ def h_recup_schema(regle):
     LOGGER.debug("selecteur %s", repr(selecteur))
     try:
         complet = selecteur.resolve()
-        LOGGER.debug("retour selecteur %s complet: %s", repr(selecteur), complet)
+        if not complet:
+            LOGGER.warning("retour selecteur %s complet: %s", repr(selecteur), complet)
 
         # print("retour selecteur", complet, selecteur)
         if complet:
@@ -845,6 +854,7 @@ def h_recup_schema(regle):
         return True
     except ConnectionError:
         regle.valide = False
+        LOGGER.error("erreur de connection a une base %s", repr(selecteur))
         return False
 
 
@@ -865,16 +875,24 @@ def f_recup_schema(regle, obj):
     valide = True
     selecteur = setdb(regle, obj)
     for base, baseselecteur in selecteur.baseselectors.items():
-        schema_travail = baseselecteur.getschematravail(regle)
+        if baseselecteur:
+            schema_travail = baseselecteur.getschematravail(regle)
+        else:
+            valide = False
 
     if valide:
         return True
-    print("recup_schema: base non definie ", regle, selecteur, obj)
+    regle.stock_params.logger.warning(
+        "recup_schema: base non definie %s %s %s",
+        repr(regle),
+        repr(selecteur),
+        repr(obj),
+    )
     return False
 
 
 def h_dbclean(regle):
-    """prepare un script de reinitialisation d'une ensemble de tables """
+    """prepare un script de reinitialisation d'une ensemble de tables"""
 
     regle.chargeur = True  # c est une regle a declencher
     if not param_base(regle):
@@ -1195,7 +1213,7 @@ def f_dbmap_qgs(regle, obj):
     """#aide||remappe des fichiers qgis pour un usage en local en prenant en comte un selecteur
     #aide spec|| la base de destination est indiquee par db:defbase en premiere colonne
     #parametres||selecteur;;rep entree;rep sortie
-    #pattern||;?C;;dbmap_qgs;C;C
+    #pattern||;?C;;dbmap_qgs;C;?C
     """
     LOGGER.debug("dbmapqgs")
     print("====================dbmapqgs")

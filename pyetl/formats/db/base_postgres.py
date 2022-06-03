@@ -290,7 +290,7 @@ class PgrConnect(DbConnect):
 
     @staticmethod
     def change_antislash(nom):
-        """ remplace les \\ par des /"""
+        """remplace les \\ par des /"""
         return nom.replace("\\", "/")
 
     def extsql(self, prog, file, logfile=None, outfile=None):
@@ -373,13 +373,13 @@ class PgrConnect(DbConnect):
             self.connection = connection
         except psycopg2.Error as err:
             self.params.logger.error("postgres: connection impossible" + repr(err))
-            # print("error: postgres: connection impossible ")
+            print("error: postgres: connection impossible ")
             print(
                 "info:  postgres: parametres ",
                 self.serveur,
                 self.base,
                 self.user,
-                self.passwd,
+                # self.passwd,
             )
             # print("error", err)
 
@@ -475,7 +475,7 @@ class PgrConnect(DbConnect):
         return (entete, contenu)
 
     def select_elements_specifiques(self, schema, liste_tables):
-        """ selectionne les elements specifiques pour coller a une restriction de schema"""
+        """selectionne les elements specifiques pour coller a une restriction de schema"""
         a_garder = set(liste_tables)
         els = schema.elements_specifiques
         # print("restriction elts spec avant", [(i, len(j[1])) for i, j in els.items()])
@@ -591,7 +591,7 @@ class PgrConnect(DbConnect):
         return {"val": "{" + ",".join(valeurs) + "}"}
 
     def multival(self, taille, operateur="=", cast=None):
-        """ acces listes"""
+        """acces listes"""
         return " " + operateur + " ANY (%(val)s)"
 
     def monoval(self, operateur="=", cast=None):
@@ -657,7 +657,7 @@ class PgrConnect(DbConnect):
     # cree 4 tables: Macros scripts batchs logs
 
     def init_pyetl_script(self, nom_schema):
-        """ cree les structures standard"""
+        """cree les structures standard"""
         pass
 
 

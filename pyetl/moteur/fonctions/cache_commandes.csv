@@ -19,6 +19,7 @@ supp_classe;.traitement_alpha
 txtstruct;.traitement_alpha
 upper;.traitement_alpha
 archive;.traitement_archives
+checksum;.traitement_archives
 zip;.traitement_archives
 zipdir;.traitement_archives
 zipextract;.traitement_archives

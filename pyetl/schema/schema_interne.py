@@ -23,7 +23,7 @@ CODES_G = C.CODES_G
 
 
 def get_attribut(nom, vmax):
-    """ recupere une structure d'attribut pour creer des modeles"""
+    """recupere une structure d'attribut pour creer des modeles"""
     return A.Attribut(nom, vmax, nom_conformite="")
 
 
@@ -38,7 +38,7 @@ def init_schema(
     copie=False,
     force=False,
 ):
-    """ retourne le schemas qui va bien et les cree si necsssaire """
+    """retourne le schemas qui va bien et les cree si necsssaire"""
     if not nom_schema:  # on demande un schema temporaire
         return Schema("##tmp", origine=origine, fich=fich, defmodeconf=defmodeconf)
     # print(
@@ -83,7 +83,7 @@ def init_schema(
 
 
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
-    """ determine si une table est a retenir """
+    """determine si une table est a retenir"""
     if nocase:
         # print("choix_multi", schemaclasse.identclasse)
         # print(
@@ -101,7 +101,7 @@ def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
 
 
 def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
-    """ determine si une table est a retenir """
+    """determine si une table est a retenir"""
     groupe = schemaclasse.groupe.lower() if nocase else schemaclasse.groupe
     vniv = groupe == exp_niv if exp_niv else True
     vniv = vniv and not negniv
@@ -114,7 +114,7 @@ def choix_simple(schemaclasse, exp_niv, exp_class, negniv, negclass, nocase):
 
 
 def compile_regex(regex):
-    """ essaye de compile une regex en transformant les * en .* si ce n est deja fait """
+    """essaye de compile une regex en transformant les * en .* si ce n est deja fait"""
     placeholder1 = "#1§"
     placeholder2 = "#2§"
     while placeholder1 in regex:
@@ -183,12 +183,13 @@ class Schema(object):
         self.compteurs = defaultdict(int)
         self.stable = True
         self.pending = False
+        self.base = ""
 
     def __repr__(self):
         return "schema:" + self.nom + " " + str(len(self.classes)) + " classes"
 
     def copy(self, nom=None):
-        "retourne une copie du schema "
+        "retourne une copie du schema"
         nouveau = Schema(self.nom if nom is None else nom)
         nouveau.from_dic_if(self.__dic_if__)
         return nouveau
@@ -261,7 +262,7 @@ class Schema(object):
         return sc_classe
 
     def get_classe(self, ident, cree=False, modele=None, filiation=False, guess=False):
-        """ recupere la description d'une classe"""
+        """recupere la description d'une classe"""
         schema_classe = self.classes.get(ident)
         if schema_classe:
             return schema_classe
@@ -278,7 +279,7 @@ class Schema(object):
             return self._cree_classe(ident, modele, filiation)
 
     def guess_classe(self, nom):
-        """ essaye de matcher une classe au mieux avec un nom approximatif """
+        """essaye de matcher une classe au mieux avec un nom approximatif"""
         ref = nom.lower()
         for i in self.classes:
             if i[1].lower() == ref:
@@ -312,7 +313,7 @@ class Schema(object):
             self.liste_groupes()
 
     def gere_conformites(self, schemaclasse):
-        """ recree les liens de conformites vers classe """
+        """recree les liens de conformites vers classe"""
         for i in schemaclasse.attributs:
             # il faut verifier les conformites
             nom_conf = schemaclasse.attributs[i].nom_conformite
@@ -381,12 +382,19 @@ class Schema(object):
             for j in self.classes[i].fkey_dep:
                 self.classes[j].cibles.add(i)
 
+    def calcule_deps_vue(self):
+        pass
+
     def is_cible(self, ident):
-        """ determine si une table est cible de clef etrangere"""
+        """determine si une table est cible de clef etrangere"""
         return self.classes[ident].cibles
 
+    def has_deps(self, ident):
+        """determine si une table a des clefs etrangeres"""
+        return self.classes[ident].fkey_dep
+
     def setdefault_classe(self, ident):
-        """ trouve une classe ou la cree au besoin"""
+        """trouve une classe ou la cree au besoin"""
         if ident in self.classes:
             return self.classes[ident]
         return self.ajout_classe(C.SchemaClasse(ident, self))
@@ -401,11 +409,11 @@ class Schema(object):
         return self.stock_mapping.init_mapping(self.classes, liste_mapping)
 
     def map_classes(self):
-        """ force les origines des classes"""
+        """force les origines des classes"""
         return self.stock_mapping.map_classes(self.classes)
 
     def map_dest(self, id_orig, virtuel=False):
-        """ force les origines des classes"""
+        """force les origines des classes"""
 
         id2 = self.stock_mapping.map_dest(id_orig)
         if id2 is None:
@@ -420,7 +428,7 @@ class Schema(object):
         return id2
 
     def map_orig(self, id_dest):
-        """ force les origines des classes"""
+        """force les origines des classes"""
         return self.stock_mapping.map_orig(id_dest)
 
     def mapping(self, id_classe):
@@ -430,11 +438,11 @@ class Schema(object):
     # -------------------------------------------------------------------------#
 
     def liste_classes(self, groupe):
-        """ retourne la liste des classes d'un groupe"""
+        """retourne la liste des classes d'un groupe"""
         return [i for i in self.classes if i[0] == groupe]
 
     def liste_groupes(self):
-        """ retourne la liste des groupes d'un schema"""
+        """retourne la liste des groupes d'un schema"""
         groupes = dict()
         for i in self.classes:
             groupes[i[0]] = (groupes[i[0]] + 1) if i[0] in groupes else 1
@@ -442,7 +450,7 @@ class Schema(object):
         return sorted(groupes.keys())
 
     def stat_schema(self):
-        """ sort les stats standard"""
+        """sort les stats standard"""
         groupes = self.liste_groupes()
         print(
             "schema : stat schema",
@@ -453,7 +461,7 @@ class Schema(object):
         )
 
     def get_conf(self, nom_conf, type_c="", mode=1):
-        """ retourne une conformite en la creeant si besoin"""
+        """retourne une conformite en la creeant si besoin"""
         conf = self.conformites.get(nom_conf)
         if conf:
             return conf
@@ -475,7 +483,7 @@ class Schema(object):
         self.elements_specifiques = {}
 
     def valide_condition(self, classe, tables):
-        """ valide la selection du type de tables"""
+        """valide la selection du type de tables"""
         return tables == "a" or self.classes[classe].type_table in tables
 
     def single_select(self, condition, tables, indice, multi, nocase, neg):
@@ -504,7 +512,7 @@ class Schema(object):
         """selectionne des classes a partir d une seule description"""
         # print("select_niv_classes", niveau, classe, attr, tables, multi)
         LOGGER.debug(
-            "select_niv_classes %s %s %s %s %s",
+            "select_niv_classes %s %s a=%s T=%s M=%s",
             niveau,
             classe,
             attr,
@@ -517,8 +525,24 @@ class Schema(object):
             tables = {"A"}
         tables = "".join(tables)
         tables_a_sortir = set()
+        if isinstance(niveau, (list, set)):
+            tables_a_sortir = set()
+            for niv in niveau:
+                tables_a_sortir.union(
+                    self.select_niv_classe(niv, classe, attr, tables, multi, nocase)
+                )
+            return tables_a_sortir
         exp_niv = niveau.strip() if niveau else ""
         exp_clas = classe.strip() if classe else ""
+        if "." in exp_niv and exp_clas == "":
+            # c'est un select ave niv.classe ou base.niv.classe
+            bnc = exp_niv.split(".")
+            if len(bnc) == 3:
+                self.base, exp_niv, exp_clas = bnc
+            else:
+                exp_niv, exp_clas = bnc
+            print("conversion liste", self.nom, bnc)
+            raise
         convert = {"v": "vm", "t": "r", "r": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         lmulti = multi
@@ -613,60 +637,79 @@ class Schema(object):
             print("taille schema", self.nom, len(self.classes))
         return list(tables_a_sortir)
 
-    def fkref(self, liste, niveau, niv_ref, add=False):
-        """identifie les tables referenceees par des fk"""
-        trouve = 0
-        adds = set()
-        for ident in liste:
-            if niveau[ident] == niv_ref:
-                cibles = self.is_cible(ident)
-                #            print(ident,":tables  visant la classe",cibles)
-                for j in cibles:
-                    if j not in niveau:
-                        if add:
-                            adds.add(j)
-                            trouve = 1
-                            # print("fkref: ajout cible", niv_ref, j)
-                        else:
-                            LOGGER.warning(
-                                "cible foreign key non selectionnée %s , (%d)",
-                                j,
-                                niv_ref,
-                            )
-                            # print("fkref: erreur cible", niv_ref, j)
-                        continue
-                    if niveau[j] >= niv_ref and j != ident:
-                        if ident in self.is_cible(j):
-                            print("attention references croisees", ident, j)
-                        else:
-                            niveau[ident] += 1
-                            # print(" trouve", ident, niveau[ident], j)
-                            trouve = 1
-                        break
-        return trouve, adds
+    def depend_calculator(self, liste, mode=""):
+        """identifie les dependances dues aux clefs etrangeres
+        mode :  O on ne fait rien
+                1 on ajoute les dependances (classes dont la classe a besoin)
+                2 on ajoute les references (classes qui utilisent la classe)"""
 
-    def tablesorter(self, liste, complete=False):
-        """ trie les tables en fonction des cibles de clef etrangeres """
-        ajouts = True
-        niveau = dict()
-        tables = set(liste)
-        while ajouts:
-            ajouts = set()
-            self.calcule_cibles()
-            niveau = {i: 0 for i in tables}
-            trouve = 1
-            niv_ref = 0
-            while trouve:
-                trouve, adds = self.fkref(tables, niveau, niv_ref, add=complete)
-                ajouts.update(adds)
-                niv_ref += 1
-            #    print("niveau maxi", niv_ref)
-            if complete and ajouts:
-                tables.update(ajouts)
-        niv2 = {i: "%5.5d_%s.%s" % (99999 - niveau[i], *i) for i in niveau}
-        liste.clear()
-        liste.extend(sorted(tables, key=niv2.get))
-        return niveau
+        # print("calcul de dépendances", len(liste), mode, liste)
+        if not mode:
+            return liste
+        adds = set(liste)
+        nbclasses = 0
+        while len(adds) > nbclasses:
+            nbclasses = len(adds)
+            for ident in list(adds):
+                # print(ident, "dependances", self.has_deps(ident))
+                adds.update(self.has_deps(ident))
+                if mode > "1":
+                    adds.update(self.is_cible(ident))
+        # print("apres calcul de dépendances", len(adds), mode)
+        return list(adds)
+
+    def tablesorter2(self, liste, mode):
+        self.calcule_cibles()
+        liste2 = self.depend_calculator(liste, mode)
+        modif = True
+        niveaux = {i: 0 for i in liste2}
+        # print("tablesorter", liste, liste2, niveaux)
+        ref_croisees = set()
+        while modif:
+            modif = False
+            for ident in niveaux:
+                for ref in self.has_deps(ident):
+                    if niveaux.get(ref, -1) >= niveaux[ident]:
+                        if ident in self.has_deps(ref):  # reference croisee
+                            if ident != ref:
+                                ref_croisees.add((ident, ref))
+                        else:
+                            modif = True
+                            niveaux[ident] = niveaux[ref] + 1
+        if ref_croisees:
+            LOGGER.warning("references croisees:%s", repr(ref_croisees))
+        niv2 = {i: "%5.5d_%s.%s" % (niveaux[i], *i) for i in niveaux}
+        # print("ordre de sortie", niv2)
+        # print("res", sorted(liste2, key=niv2.get))
+        return sorted(liste2, key=niv2.get)
+
+    def completewarning(self, liste):
+        """ronchonne si le schema propose n est pas cohérent"""
+        bloc = set(liste)
+        fkref = False
+        fklie = False
+        for ident in liste:
+            for ref in self.has_deps(ident):
+                if ref not in bloc:
+                    fkref = True
+                    LOGGER.warning(
+                        "%s cible foreign key non selectionnee:%s", ident, ref
+                    )
+
+            for lie in self.is_cible(ident):
+                if lie not in bloc:
+                    fklie = True
+                    LOGGER.warning(
+                        "%s table liée par foreign key non selectionnee:%s", ident, lie
+                    )
+        if fkref:
+            LOGGER.info(
+                "pour selectionner aussi les références positionner gestion_coherence à 1 ou 2"
+            )
+        if fklie:
+            LOGGER.info(
+                "pour selectionner aussi les tables liées positionner gestion_coherence à 2"
+            )
 
     def creschematravail(self, regle, liste, nomschema, liste_mapping=None):
         """cree un schema de travail a partir d une liste de classes"""
@@ -674,9 +717,12 @@ class Schema(object):
         nomschema = nomschema if nomschema else self.nom.replace("#", "")
         schema_travail = init_schema(params, nomschema, "B", modele=self)
         schema_travail.metas.update(self.metas)
-        complete = regle.getvar("gestion_coherence") == "1"
+        complete = regle.getvar("gestion_coherence", "")
         liste2 = liste[:]
-        niv = self.tablesorter(liste2, complete=complete)
+        # niv = self.tablesorter(liste2, complete=complete)
+        liste2 = self.tablesorter2(liste, mode=complete)
+        self.completewarning(liste2)
+        # print("ordre sortie", liste2)
         for ident in liste2:
             classe = self.get_classe(ident)
             classe.resolve()

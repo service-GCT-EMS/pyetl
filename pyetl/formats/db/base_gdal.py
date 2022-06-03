@@ -48,7 +48,7 @@ def qgisparser(file):
 
 
 class GdalConnect(DbConnect):
-    """connecteur de la base de donnees oracle"""
+    """connecteur geopackage"""
 
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
@@ -89,7 +89,7 @@ class GdalConnect(DbConnect):
         # print("connection réussie", self.type_base)
 
     def get_tables(self):
-        """ retourne la liste des tables """
+        """retourne la liste des tables"""
         return list(self.tables.values())
 
     def prepare_complements(self):
@@ -172,7 +172,7 @@ class GdalConnect(DbConnect):
         groupe = os.path.splitext(os.path.basename(self.base))[0]
         for layer in layers:
             with fiona.open(self.base, "r", layer=layer) as source:
-                # print("recup fiona", source.driver, source.schema)
+                # print("recup fiona", source.driver, source.schema, source.crs)
                 description = source.schema
                 classe = layer
                 ident = (groupe, classe)

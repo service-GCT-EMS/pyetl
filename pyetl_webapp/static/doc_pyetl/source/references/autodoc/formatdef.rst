@@ -415,7 +415,7 @@ format dxf
 ..........
 
 
- lecture d'un fichier reconnu et stockage des objets en memoire
+lecture d'un fichier reconnu et stockage des objets en memoire
 
 
 format fixed
@@ -435,14 +435,14 @@ format geojson
 ..............
 
 
- lecture d'un fichier json et stockage des objets en memoire
+lecture d'un fichier json et stockage des objets en memoire
 
 
 format gpkg
 ...........
 
 
- lecture d'un fichier reconnu et stockage des objets en memoire
+lecture d'un fichier reconnu et stockage des objets en memoire
 
 
 format gy
@@ -468,7 +468,7 @@ format json
 ...........
 
 
- lecture d'un fichier json et stockage des objets en memoire
+lecture d'un fichier json et stockage des objets en memoire
 
 
 format ligne
@@ -489,7 +489,7 @@ format mif
 ..........
 
 
- lecture d'un fichier reconnu et stockage des objets en memoire
+lecture d'un fichier reconnu et stockage des objets en memoire
 
 
 format osm
@@ -510,21 +510,21 @@ format qgs
 ..........
 
 
- lit les datasources des fichiers qgis
+lit les datasources des fichiers qgis
 
 
 format qlr
 ..........
 
 
- lit les datasources des fichiers qgis
+lit les datasources des fichiers qgis
 
 
 format shp
 ..........
 
 
- lecture d'un fichier reconnu et stockage des objets en memoire
+lecture d'un fichier reconnu et stockage des objets en memoire
 
 
 format spatialite

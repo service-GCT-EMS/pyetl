@@ -8,7 +8,7 @@ reference macros
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees
-:ref:`#asc_upload` nom;dest_final;reinit                      chargement vers elyx
+:ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
 :ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation et le gid
@@ -54,10 +54,11 @@ reference macros
 :ref:`#g2p` lon;lat                                           convertit des coordonees lat long en attribut en point cc48
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
-:ref:`#geocode_csv` adresse;scoremin;filtre;prefix            
+:ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
 :ref:`#geoextract` acces;niveau;classe;rel_geo;buffer;champ   extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 :ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
+:ref:`#grantsitr` fich                                        generation des scripts de grant
 :ref:`#grid` x_orig;y_orig;pas;cases                          repartit les objets selon une grille
 :ref:`#groupe` groupe                                         force le groupe
 :ref:`#histo_cmp` rep_histo;traitement                        
@@ -72,13 +73,15 @@ reference macros
 :ref:`#log` message;level                                     
 :ref:`#low` al                                                passe une liste d attributs en minuscule
 :ref:`#mastercrypt` val                                       crypte un element avec la masterkey
+:ref:`#md5` source                                            calcule une somme md5 sur le fichier
 :ref:`#mkcrypt` user                                          
 :ref:`#mod` att;val;repl                                      modif conditionelle de valeurs dans un champs
 :ref:`#moi`                                                   affiche le nom de l utilisateur courant
 :ref:`#ora2pg`                                                passage de oracle vers postgis
 :ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
-:ref:`#passage_dev` schema                                    creation des structures en dev
+:ref:`#passage_dev` schema                                    
+:ref:`#passage_prod` fich;acces                               
 :ref:`#passage_schema` schema                                 scripts de passage en prod
 :ref:`#prefix` prefix                                         prefixe la classe
 :ref:`#print`                                                 
@@ -91,7 +94,8 @@ reference macros
 :ref:`#regroupe` groupe;stocke_groupe                         force le groupe et le transfere sur un attribut
 :ref:`#rename` old;new                                        
 :ref:`#reproj` orig;dest;grille                               convertit des coordonees du systeme orig vers dest
-:ref:`#retour_elyx` dest                                      retour des donnees vers elyx pour toutes les classes definires dans ELYPG
+:ref:`#retour_elyx` dest;clef;orig                            
+:ref:`#retour_sdea` dest;clef;orig                            retour des donnees vers elyx pour toutes les classes du schema sdea
 :ref:`#run` prog;params                                       execute une commande externe
 :ref:`#runproc` nom;dest;params                               lancement fonction_sql
 :ref:`#runsql` nom;dest                                       lancement script_sql
@@ -184,6 +188,7 @@ parametres positionnels
 * nom:nom
 * dest_final:dest_final
 * reinit:reinit
+* vgeom:vgeom
 
 
 
@@ -743,6 +748,8 @@ parametres positionnels
 ............
 
 
+geocodage d'un fichier csv
+
 parametres positionnels
 
 * adresse:adresse
@@ -788,6 +795,18 @@ parametres positionnels
 ajout d un gid si necessaire
 
  * le gid n est ajoute que si la classe n'a pas de clef primaire
+
+
+
+#grantsitr
+..........
+
+
+generation des scripts de grant
+
+parametres positionnels
+
+* fich:fich
 
 
 
@@ -959,6 +978,18 @@ parametres positionnels
 
 
 
+#md5
+....
+
+
+calcule une somme md5 sur le fichier
+
+parametres positionnels
+
+* source:source
+
+
+
 #mkcrypt
 ........
 
@@ -1029,11 +1060,20 @@ placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les
 ............
 
 
-creation des structures en dev
-
 parametres positionnels
 
 * schema:schema
+
+
+
+#passage_prod
+.............
+
+
+parametres positionnels
+
+* fich:fich
+* acces:acces
 
 
 
@@ -1171,11 +1211,25 @@ parametres positionnels
 ............
 
 
-retour des donnees vers elyx pour toutes les classes definires dans ELYPG
+parametres positionnels
+
+* dest:dest
+* clef:clef
+* orig:orig
+
+
+
+#retour_sdea
+............
+
+
+retour des donnees vers elyx pour toutes les classes du schema sdea
 
 parametres positionnels
 
 * dest:dest
+* clef:clef
+* orig:orig
 
 
 

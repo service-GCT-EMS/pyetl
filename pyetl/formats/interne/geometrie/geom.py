@@ -85,7 +85,7 @@ class Geometrie(object):
 
     @property
     def epsg(self):
-        """ retourne la projection sous forme d'une chaine SRID"""
+        """retourne la projection sous forme d'une chaine SRID"""
         return "SRID=" + self.srid + ";"
 
     def setsrid(self, srid):
@@ -122,7 +122,7 @@ class Geometrie(object):
 
     @property
     def npt(self):
-        """ retourne le nombre de points en eliminant les points doubles entre sections"""
+        """retourne le nombre de points en eliminant les points doubles entre sections"""
         if self.sgeom:
             if self.sgeom.type in {
                 "GeometryCollection",
@@ -143,7 +143,7 @@ class Geometrie(object):
 
     @property
     def ferme(self):
-        """ retourne True si la geometrie est fermee"""
+        """retourne True si la geometrie est fermee"""
         if self.lignes:
             return all(i.ferme for i in self.lignes)
         print("ferme:pas de lignes")
@@ -177,6 +177,7 @@ class Geometrie(object):
             self.sgeom = shape
             self.unsync = -1  # c est la geom shapely qui gagne
             self.valide = 1
+            # self.shapesync()
         else:
             if SG == -1:
                 initsg()
@@ -230,7 +231,6 @@ class Geometrie(object):
             self.points.append(list(coords[:dim]))
             self.multi = len(self.points) > 1
             self.dim = dim
-            # raise
             return
 
         if self.lignes:
@@ -269,7 +269,7 @@ class Geometrie(object):
             self.lignes = [C.Ligne(sect, interieur=False)]
 
     def fin_section(self, couleur, courbe):
-        """ termine la section courante """
+        """termine la section courante"""
         sect = self.lignes[-1].fin_section(couleur, courbe)
         if sect:  # on a tente d'ajouter un cercle
             self.nouvelle_ligne_s(sect)
@@ -330,10 +330,12 @@ class Geometrie(object):
             self.valide = False
             self.type = "0"
             return False
-        if self.type == "1":
+
+        if type_geom == "1":
             self.multi = len(self.points) > 1
             self.lignes = []
             self.polygones = []
+            self.type = "1"
             return True
 
         if type_geom != "2":
@@ -412,7 +414,7 @@ class Geometrie(object):
         return geoms
 
     def extract_couleur(self, couleurs):
-        """ recupere les sections d'une couleur"""
+        """recupere les sections d'une couleur"""
         if self.unsync == -1:
             self.shapesync()
         geom = Geometrie()
@@ -513,7 +515,7 @@ class Geometrie(object):
 
     @property
     def coords(self):
-        """ iterateur sur les coordonnees"""
+        """iterateur sur les coordonnees"""
         if self.unsync == -1:
             self.shapesync()
         if self.points:
@@ -523,7 +525,7 @@ class Geometrie(object):
         return iter(())
 
     def convert(self, fonction, srid=None):
-        """ applique une fonction aux points """
+        """applique une fonction aux points"""
         if self.unsync == -1:
             self.shapesync()
         self.unsync = 1
@@ -566,7 +568,7 @@ class Geometrie(object):
         #     self.point.set_2d()
 
     def setz(self, val_z, force=False):
-        """force le z """
+        """force le z"""
         if self.unsync == -1:
             self.shapesync()
         if self.dimension == 3:
@@ -643,7 +645,7 @@ class Geometrie(object):
 
     @property
     def __json_if__(self):
-        """  interface de type json """
+        """interface de type json"""
         #        print ('jsonio ',self.type, self.null)
         if self.type == "0":
             return None
@@ -861,6 +863,7 @@ class Geometrie(object):
 
     def from_geo_interface(self, geo_if):
         """cree une geometrie a partir de la geo_interface"""
+        self.unsync = 1
         # print("geom from geo_if", geo_if["type"])
         if not geo_if:
             self.finalise_geom(type_geom="0")
@@ -953,7 +956,7 @@ class Geometrie(object):
 
     @property
     def __shapelygeom__(self):
-        """ retourne un format shapely de la geometrie"""
+        """retourne un format shapely de la geometrie"""
         # print("geom:",self)
         if self.unsync != 1:
             return self.sgeom
@@ -985,7 +988,7 @@ class Geometrie(object):
         if SG:
             geo_if = SG.mapping(self.sgeom)
             self.from_geo_interface(geo_if)
-            # print("-------->shapesync", self, geo_if, self.sgeom)
+            # print("-------->shapesync", self, geo_if)
 
     @property
     def fold(self):
@@ -1067,12 +1070,12 @@ class Erreurs(object):
         self.actif = 0
 
     def ajout_erreur(self, nature):
-        """ ajoute un element dans la structure erreurs et l'active"""
+        """ajoute un element dans la structure erreurs et l'active"""
         self.errs.append(nature)
         self.actif = 2
 
     def ajout_warning(self, nature):
-        """ ajoute un element de warning dans la structure erreurs et l'active"""
+        """ajoute un element de warning dans la structure erreurs et l'active"""
         self.warns.append(nature)
         if self.actif == 0:
             self.actif = 1
@@ -1093,7 +1096,7 @@ class Erreurs(object):
 
 
 class AttributsSpeciaux(object):
-    """gere les attibuts speciaux a certains formats """
+    """gere les attibuts speciaux a certains formats"""
 
     def __init__(self):
         self.special = dict()
@@ -1103,10 +1106,10 @@ class AttributsSpeciaux(object):
         self.special[nom] = nature
 
     def get_speciaux(self):
-        """ recupere la lisdte des attributs speciaux"""
+        """recupere la lisdte des attributs speciaux"""
         return self.special
 
 
 def noconversion(obj):
-    """ conversion geometrique par defaut """
+    """conversion geometrique par defaut"""
     return obj.attributs["#type_geom"] == "0"

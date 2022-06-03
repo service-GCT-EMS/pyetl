@@ -74,7 +74,7 @@ class Geometrie(object):
 
     @property
     def epsg(self):
-        """ retourne la projection sous forme d'une chaine SRID"""
+        """retourne la projection sous forme d'une chaine SRID"""
         return "SRID=" + self.srid + ";"
 
     def setsrid(self, srid):
@@ -99,12 +99,12 @@ class Geometrie(object):
 
     @property
     def npt(self):
-        """ retourne le nombre de points en eliminant les points doubles entre sections"""
+        """retourne le nombre de points en eliminant les points doubles entre sections"""
         return 0 if self.geom is None else self.geom.GetPointCount()
 
     @property
     def ferme(self):
-        """ retourne True si la geometrie est fermee"""
+        """retourne True si la geometrie est fermee"""
         return self.geom.IsRing()
 
     @property
@@ -123,6 +123,7 @@ class Geometrie(object):
             self.valide = False
         else:
             self.sgeom = SG.shape(self)
+        self.unsync = -1
 
     def setpoint(self, coordlist, angle=None, dim=2, longueur=0, srid="3948"):
         """cree une geometrie de point"""
@@ -227,7 +228,7 @@ class Geometrie(object):
             self.lignes = [C.Ligne(sect, interieur=False)]
 
     def fin_section(self, couleur, courbe):
-        """ termine la section courante """
+        """termine la section courante"""
         sect = self.lignes[-1].fin_section(couleur, courbe)
         if sect:  # on a tente d'ajouter un cercle
             self.nouvelle_ligne_s(sect)
@@ -370,7 +371,7 @@ class Geometrie(object):
         return geoms
 
     def extract_couleur(self, couleurs):
-        """ recupere les sections d'une couleur"""
+        """recupere les sections d'une couleur"""
         self.shapesync()
         geom = Geometrie()
         for i in self.lignes:
@@ -467,7 +468,7 @@ class Geometrie(object):
 
     @property
     def coords(self):
-        """ iterateur sur les coordonnees"""
+        """iterateur sur les coordonnees"""
         self.shapesync()
         if self.points:
             return self.points
@@ -476,7 +477,7 @@ class Geometrie(object):
         return iter(())
 
     def convert(self, fonction, srid=None):
-        """ applique une fonction aux points """
+        """applique une fonction aux points"""
         self.shapesync()
         for crd in self.coords:
             for i, val in enumerate(fonction(crd)):
@@ -514,7 +515,7 @@ class Geometrie(object):
         #     self.point.set_2d()
 
     def setz(self, val_z, force=False):
-        """force le z """
+        """force le z"""
         self.shapesync()
         if self.dimension == 3:
             if not force:
@@ -586,7 +587,7 @@ class Geometrie(object):
 
     @property
     def __json_if__(self):
-        """  interface de type json """
+        """interface de type json"""
         #        print ('jsonio ',self.type, self.null)
         if self.type == "0":
             return None
@@ -898,7 +899,7 @@ class Geometrie(object):
 
     @property
     def __shapelygeom__(self):
-        """ retourne un format shapely de la geometrie"""
+        """retourne un format shapely de la geometrie"""
         # print("geom:",self)
         if not self.sgeom:
             self.sgeom = SG.shape(self)
@@ -987,12 +988,12 @@ class Erreurs(object):
         self.actif = 0
 
     def ajout_erreur(self, nature):
-        """ ajoute un element dans la structure erreurs et l'active"""
+        """ajoute un element dans la structure erreurs et l'active"""
         self.errs.append(nature)
         self.actif = 2
 
     def ajout_warning(self, nature):
-        """ ajoute un element de warning dans la structure erreurs et l'active"""
+        """ajoute un element de warning dans la structure erreurs et l'active"""
         self.warns.append(nature)
         if self.actif == 0:
             self.actif = 1
@@ -1013,7 +1014,7 @@ class Erreurs(object):
 
 
 class AttributsSpeciaux(object):
-    """gere les attibuts speciaux a certains formats """
+    """gere les attibuts speciaux a certains formats"""
 
     def __init__(self):
         self.special = dict()
@@ -1023,10 +1024,10 @@ class AttributsSpeciaux(object):
         self.special[nom] = nature
 
     def get_speciaux(self):
-        """ recupere la lisdte des attributs speciaux"""
+        """recupere la lisdte des attributs speciaux"""
         return self.special
 
 
 def noconversion(obj):
-    """ conversion geometrique par defaut """
+    """conversion geometrique par defaut"""
     return obj.attributs["#type_geom"] == "0"

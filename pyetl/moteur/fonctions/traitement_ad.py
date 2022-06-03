@@ -35,7 +35,7 @@ def print_members(obj, obj_name="placeholder_name"):
     if len(fields) + len(methods) > 0:
         print("Members of '{}' ({}):".format(obj_name, obj))
     else:
-        raise ValueError("Object has no members to print")
+        print("!!!!!!\tObject has no members to print")
 
     print("\tFields:")
     if fields:
@@ -90,7 +90,7 @@ def find_ldapuser(regle, nom):
 
 def getADnames(regle, elems, *args, **kwargs):
     """recupere des utilisateurs dans la base active directory courante"""
-    print("recup", elems)
+    # print("recup", elems)
     sql_string = []
     sql_string.append("SELECT %s " % ",".join(elems))
     sql_string.append("FROM '%s'" % regle.AD.root().path())
@@ -107,13 +107,13 @@ def getADnames(regle, elems, *args, **kwargs):
     if where_clause:
         sql_string.append("WHERE %s" % where_clause)
 
-    print("requete ad", "\n".join(sql_string))
+    # print("requete ad", "\n".join(sql_string))
 
     for result in regle.AD.query("\n".join(sql_string), Page_size=50):
         # print("retour ad:", result, type(result))
 
         if isinstance(result, regle.AD.ADO_record):
-            print("retour", result.fields)
+            # print("retour", result.fields)
             if elems == ["*"]:
                 valeur = result.fields["ADsPath"]
                 # print("retour", valeur, type(valeur), result.fields)
@@ -123,7 +123,7 @@ def getADnames(regle, elems, *args, **kwargs):
                 retour = list()
                 for i in elems:
                     elem = result.fields.get(i)
-                    print("analyse", i, elem, type(elem), print_members(elem)),
+                    # print("analyse", i, elem, type(elem), print_members(elem)),
                     try:
                         val = [j for j in elem]
                         if len(val) == 1:
@@ -261,8 +261,10 @@ def f_adquery(regle, obj):
     if regle.get_entree(obj):
         try:
             items = regle.mqueryfonc(regle, regle.a_recuperer, regle.get_entree(obj))
-            print("adquery", items)
-            print("contenu", list(items))
+            if regle.debug:
+
+                print("adquery", items)
+                # print("contenu", list(items))
         except TypeError as err:
             print("erreur adquery", err, regle.get_entree(obj))
             items = []
@@ -274,13 +276,21 @@ def f_adquery(regle, obj):
             val.dump()
             regle.setval_sortie(obj, "")
             return True
+        if regle.params.pattern == "1" and regle.a_recuperer == ["cn"]:
+            if items:
+                val = next(items, [""])
+                # if regle.debug:
+                # print("recup user", val)
+                regle.setval_sortie(obj, val)
+                return True
+            return False
         for item in items:
             obj2 = obj.dupplique()
             if isinstance(item, (str, list)):
                 val = item
             else:
                 val = getattr(item, regle.a_recuperer[0])
-            # print("extraction adquey", item, val)
+            print("extraction adquey", item, val)
             regle.setval_sortie(obj2, val)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
 

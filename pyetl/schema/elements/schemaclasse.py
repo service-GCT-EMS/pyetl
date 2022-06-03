@@ -46,7 +46,7 @@ HIERARCHIE = {"P": 1, "U": 2, "K": 3, "X": 4, "I": 4}
 
 
 def _gestion_types_simples(attr, type_attribut):
-    """ decode les types classiques"""
+    """decode les types classiques"""
     type_attr = type_attribut.upper()
     # print ('type_attribut entree ',attr.nom, type_attr)
     taille = attr.taille
@@ -114,7 +114,7 @@ def _gestion_types_simples(attr, type_attribut):
 
 
 class SchemaClasse(object):
-    """ description de la structure d'un objet"""
+    """description de la structure d'un objet"""
 
     codes_g = CODES_G
     types_g = TYPES_G
@@ -213,13 +213,14 @@ class SchemaClasse(object):
         self.use_noms_courts = False
         self.noms_courts = set()
         self.cibles = set()
+        self.depends = set()
         self.basic = False
         self.autopk = False
         self.maxpk = 0
         self.pkref = None
 
     def setbasic(self, mode):
-        """simplifie la striucture pour les classes de consultation """
+        """simplifie la structure pour les classes de consultation"""
         self.triggers = dict()
         self.specifique = dict()
         self.changed = True
@@ -292,7 +293,7 @@ class SchemaClasse(object):
 
     @property
     def dbident(self):
-        """retourne l'identifiant de classe sous forme 'groupe'.'nom' pour acces base de donnees """
+        """retourne l'identifiant de classe sous forme 'groupe'.'nom' pour acces base de donnees"""
         return "'" + self.groupe + "'.'" + self.nom + "'"
 
     def setmulti(self):
@@ -309,7 +310,7 @@ class SchemaClasse(object):
 
     @property
     def getpkey(self):
-        """ retourne la liste de champs comportant la clef principale"""
+        """retourne la liste de champs comportant la clef principale"""
         return ",".join(
             [
                 self.minmajfunc(self.indexes[i])
@@ -325,7 +326,7 @@ class SchemaClasse(object):
 
     @property
     def pkey_simple(self):
-        """ vrai si la clef principale comprend un seul champ"""
+        """vrai si la clef principale comprend un seul champ"""
         return len([i for i in self.indexes if i.startswith("P")]) == 1
 
     @property
@@ -359,7 +360,7 @@ class SchemaClasse(object):
         self.info[nom] = valeur
 
     def dicindexes(self):
-        """ genere le dictionnaire des indexes de la classe """
+        """genere le dictionnaire des indexes de la classe"""
 
         defindexes = dict()
         nbkeys = 0
@@ -391,7 +392,7 @@ class SchemaClasse(object):
 
     @property
     def listindexes(self):
-        """ genere une representation lisible des autres indexes """
+        """genere une representation lisible des autres indexes"""
         defindexes = self.dicindexes()
         #        print ('dicindexes:',defindexes,self.indexes)
         #        print (' '.join([nom+':'+self.minmajfunc(defindexes[nom])
@@ -407,7 +408,7 @@ class SchemaClasse(object):
     #                         for nom in sorted(defindexes.keys())])
 
     def index_par_attributs(self):
-        """ genere un recapitulatif des indexes par attribut"""
+        """genere un recapitulatif des indexes par attribut"""
         defindexes = self.indexes
         dicatt = dict()
         #        print ('defindexes:',self.nom,self.indexes)
@@ -506,12 +507,12 @@ class SchemaClasse(object):
         )
 
     def setfkey(self, attribut, cible):
-        """ ajoute une clef etrangere a la classe """
+        """ajoute une clef etrangere a la classe"""
         self.attributs[attribut].clef_etr = cible
         self.settype_table("i")
 
     def getfkey(self, attribut):
-        """ recupere les infos de clef_etrangere """
+        """recupere les infos de clef_etrangere"""
         return (
             self.attributs[attribut].clef_etr,
             self.attributs[attribut].parametres_clef,
@@ -533,13 +534,13 @@ class SchemaClasse(object):
                     self.attributs[attr].clef_etr = cible2
 
     def addindex(self, index):
-        """ ajoute des definitions d'indexes"""
+        """ajoute des definitions d'indexes"""
         self.indexes.update(index)
         self.changed = True
         self.settype_table("i")
 
     def setminmaj(self, valeur):
-        """ cree les fonctions de coversio min mahj pour les formats"""
+        """cree les fonctions de coversio min mahj pour les formats"""
         if self.minmaj == valeur:
             return
         self.minmaj = valeur
@@ -580,7 +581,7 @@ class SchemaClasse(object):
                     del self.indexes[i]
 
     def rename_attribut(self, nom, nouveau_nom, modele=None):
-        """renomme un attribut en gerant les indexes et les clefs """
+        """renomme un attribut en gerant les indexes et les clefs"""
         self.settype_table("i")
         self.changed = True
 
@@ -606,7 +607,7 @@ class SchemaClasse(object):
         self.liste_attributs_cache = []
 
     def garder_attributs(self, liste, ordre=False):
-        """ ne conserve que les attributs de la liste, au besoin les cree..."""
+        """ne conserve que les attributs de la liste, au besoin les cree..."""
         att = dict()
         self.settype_table("i")
 
@@ -624,7 +625,7 @@ class SchemaClasse(object):
     #        print ('dans schema_garder_attributs',liste, self.attributs.keys())
 
     def ajuste_valeurs(self, obj):  # cas particuliers de mappings en entree
-        """ remplace des valeurs d 'enum en entree a la volee"""
+        """remplace des valeurs d 'enum en entree a la volee"""
         for i in self.ajust_enums:
             valeur = obj.attributs[i]
             if valeur in self.ajust_enums[i]:
@@ -632,14 +633,14 @@ class SchemaClasse(object):
                 obj.attributs[i] = self.ajust_enums[i][valeur]
 
     def controle_pk(self, pkey, err):
-        """ valide l'unicite de la clef primaire"""
+        """valide l'unicite de la clef primaire"""
         if pkey in self._pkey:
             err.append("clef duppliquee :" + pkey)
         else:
             self._pkey.add(pkey)
 
     def controle_conformites(self, obj, err):
-        """ valide les conformites à la lecture"""
+        """valide les conformites à la lecture"""
         #    print ('conformites a controler',confs)
 
         for i in self.confs.items():
@@ -659,7 +660,7 @@ class SchemaClasse(object):
         self.liste_attributs_cache = []
 
     def remap_attribut(self, nom, mapnom):
-        """ positionne les mappings d'entree et de sortie """
+        """positionne les mappings d'entree et de sortie"""
         self.changed = True
         self.settype_table("i")
         if nom in self.attributs:
@@ -672,7 +673,7 @@ class SchemaClasse(object):
         self.liste_attributs_cache = []
 
     def init_mapping(self, schema_destination, qual):
-        """ recherche une correspondance pour la classe"""
+        """recherche une correspondance pour la classe"""
         MP.match_classe(self, schema_destination, qual)
 
     def adapte_schema_classe(self, liste_attributs):
@@ -706,7 +707,7 @@ class SchemaClasse(object):
         self.liste_attributs_cache = []
 
     def _gestion_clef_etr(self, attr, clef_etr, parametres_clef):
-        """ gere les definitions de clef etrangeres sur les attributs """
+        """gere les definitions de clef etrangeres sur les attributs"""
         if not clef_etr:
             return
         if self.debug:
@@ -793,7 +794,7 @@ class SchemaClasse(object):
             # evite les conformites sur les sequences et autres attributs calcules
 
     def _gestion_ordre_insertion(self, attr, ordre, mode_ordre="r"):
-        """ gere la position d'insertion d'un attribut """
+        """gere la position d'insertion d'un attribut"""
 
         if mode_ordre == "r":  # insertion relative
             position = ordre
@@ -906,7 +907,7 @@ class SchemaClasse(object):
         #     )
 
     def ajout_attribut_modele(self, modele, nom=None, nom_court=None, force=False):
-        """ ajoute un attribut a partir d'un modele modele (surtout pour la filiation) """
+        """ajoute un attribut a partir d'un modele modele (surtout pour la filiation)"""
         if nom is None:
             nom = modele.nom
         if not force and nom in self.attributs:
@@ -987,7 +988,7 @@ class SchemaClasse(object):
         return attr
 
     def _liste_ordonnee(self, sys=False):
-        """ retourne la liste des atttibuts tries selon leur ordre"""
+        """retourne la liste des atttibuts tries selon leur ordre"""
         return sorted(
             [
                 i
@@ -1019,7 +1020,7 @@ class SchemaClasse(object):
         multiple="non",
         nb_conf=0,
     ):
-        """ stocke un attribut dans un schema """
+        """stocke un attribut dans un schema"""
         attr = None
         self.settype_table("i")
         self.changed = True
@@ -1158,7 +1159,7 @@ class SchemaClasse(object):
         return nom
 
     def cree_noms_courts(self, longueur=10, abrev=None):
-        """genere des noms courts pour les sorties shape """
+        """genere des noms courts pour les sorties shape"""
         self.noms_courts = set()
         a_supp = "_-YyUuOoIiAaEeBbCcDdFfGgHhJjKkLlMmNnPpQqRrSsTtVvWwXxYyZz0123456789"
         if not abrev:
@@ -1266,7 +1267,7 @@ class SchemaClasse(object):
         return nouvelle_classe
 
     def compare(self, classe):
-        """ verifie si 2 classes sont identiques """
+        """verifie si 2 classes sont identiques"""
         noms1 = set(self.attributs.keys())
         noms2 = set(classe.attributs.keys())
         if noms1 != noms2:

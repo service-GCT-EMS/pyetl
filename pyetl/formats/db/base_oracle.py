@@ -40,17 +40,21 @@ except ImportError:
 TYPES_A = {
     "VARCHAR": "T",
     "VARCHAR2": "T",
+    "DB_TYPE_VARCHAR": "T",
+    "DB_TYPE_CHAR": "T",
     "CLOB": "T",
     "CHAR": "T",
     "NUMBER": "N",
     "DOUBLE PRECISION": "F",
     "NUMERIC": "N",
+    "DB_TYPE_NUMBER": "N",
     "FLOAT": "F",
     "HSTORE": "H",
     "BLOB": "X",
     "SDO_GEOMETRY": "GEOMETRIE",
     "TIMESTAMP(6)": "D",
     "TIMESTAMP": "D",
+    "DB_TYPE_DATE": "D",
     "DATE": "DS",
     "ROWID": "E",
     "SMALLINT": "E",
@@ -85,12 +89,13 @@ class OraConnect(DbConnect):
             "info_enums": self.req_enums,
             "info_tables": self.req_tables,
             "info_attributs": self.req_attributs,
+            "info_vues": self.req_vues,
         }
         if cx_Oracle:
             self.DBError = cx_Oracle.Error
 
     def oracle_env(self):
-        """positionne les variables d'environnement pour le connecteur """
+        """positionne les variables d'environnement pour le connecteur"""
         if self.regle:
             orahome = self.regle.getchain(("oracle_home_" + self.code, "oracle_home"))
             lang = self.regle.getchain(
@@ -124,7 +129,7 @@ class OraConnect(DbConnect):
         if not cx_Oracle:
             raise NotImplemented("Cx_oracle non disponible")
         try:
-            """positionne les variables d'environnement pour les programmes externes """
+            """positionne les variables d'environnement pour les programmes externes"""
             # lib_oracle=r"C:\dev\mapper\autres\instantclient_19_9"
             # init_oracle_client(lib_dir=lib_oracle)
             # env = os.environ
@@ -303,9 +308,41 @@ class OraConnect(DbConnect):
 
         return requete
 
+    @property
+    def req_vues(self):
+        """accede au texte des vues"""
+        requete = """SELECT v.owner as schema,v.view_name as nom,v.text as requete,'False' as materialise FROM all_views v
+                    WHERE v.owner<> 'SYS'
+                      AND v.owner<> 'CTXSYS'
+                      AND v.owner<> 'SYSTEM'
+                      AND v.owner<> 'XDB'
+                      AND v.owner<> 'WMSYS'
+                      AND v.owner<> 'MDSYS'
+                      AND v.owner<> 'ORDSYS'
+                      AND v.owner<> 'EXFSYS'
+                      AND v.owner<> 'CUS_DBA'
+
+        union all
+        SELECT mv.owner as schema,mv.mview_name as nom ,mv.query as requete,'True' as materialise FROM all_mviews mv
+        WHERE mv.owner<> 'SYS'
+          AND mv.owner<> 'CTXSYS'
+          AND mv.owner<> 'SYSTEM'
+          AND mv.owner<> 'XDB'
+          AND mv.owner<> 'WMSYS'
+          AND mv.owner<> 'MDSYS'
+          AND mv.owner<> 'ORDSYS'
+          AND mv.owner<> 'EXFSYS'
+          AND mv.owner<> 'CUS_DBA'
+          """
+
+        return requete
+
     def getdatatype(self, datatype):
         """recupere le type interne associe a un type cx_oracle"""
-        nom = datatype.__name__
+
+        nom = datatype.name
+        if nom not in TYPES_A:
+            print("datatype inconnu", nom)
         return TYPES_A.get(nom, "T")
 
     def get_dateformat(self, nom):
@@ -410,7 +447,7 @@ class OraConnect(DbConnect):
             return cur
 
         def cursiter():
-            """iterateur sur le curseur oracle avec decodage de la geometrie """
+            """iterateur sur le curseur oracle avec decodage de la geometrie"""
             while True:
                 try:
                     elem = cur.cursor.fetchone()
@@ -440,6 +477,36 @@ class OraConnect(DbConnect):
 
         cur.__iter__ = cursiter
         return cur
+
+    def get_elements_specifiques(self, schema):
+        """recupere des elements specifiques a un format et les stocke dans
+        une structure du schema"""
+        debug = self.regle.istrue("debug")
+        if debug:
+            print("acces vues")
+        schema.elements_specifiques["def_vues"] = self._def_vues()
+        # if debug:
+        #     print("acces triggers")
+        # schema.elements_specifiques["def_triggers"] = self._def_triggers()
+        # if debug:
+        #     print("acces ftables")
+        # schema.elements_specifiques["def_ftables"] = self._def_ftables()
+        # if debug:
+        #     print("acces fonctions")
+        # schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
+        # schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
+        # print(
+        #     "elements specifiques",
+        #     [(i, len(j[1])) for i, j in schema.elements_specifiques.items()],
+        # )
+
+    def _def_vues(self):
+        entete = "schema;nom;definition;materialise"
+        # print("requete vues", self.requetes["info_vues"])
+        infos = self.request(self.requetes["info_vues"])
+        vals = {(i[0], i[1]): (i[2], str(i[3])) for i in infos}
+        # print("recup vues", len(vals))
+        return (entete, vals)
 
 
 class OraGenSql(DbGenSql):

@@ -44,7 +44,7 @@ KEYWORDS = {
 
 
 def decode_ewkt(code):
-    """ decodage du format ewkt avec expressions regulieres"""
+    """decodage du format ewkt avec expressions regulieres"""
     value = []
     liste = []
     zdef = [0.0]
@@ -209,7 +209,7 @@ def _ecrire_coord_ewkt3d(pnt):
 
 
 def ecrire_coord_ewkt(dim):
-    """ retourne la fonction d'ecriture adequate"""
+    """retourne la fonction d'ecriture adequate"""
     return _ecrire_coord_ewkt2d if dim == 2 else _ecrire_coord_ewkt3d
 
 
@@ -225,7 +225,8 @@ def _ecrire_point_ewkt(geom):
 
 
 def _ecrire_multipoint_ewkt(geom):
-    """ ecrit un multipoint"""
+    """ecrit un multipoint"""
+    print("dans ecrire_multipoint", len(geom.points))
     if geom.points:
         return (
             "MULTIPOINT(("
@@ -240,13 +241,13 @@ def _ecrire_multipoint_ewkt(geom):
 
 
 def _ecrire_section_simple_ewkt(section):
-    """ecrit une section """
+    """ecrit une section"""
     ecrire = ecrire_coord_ewkt(section.dimension)
     return "(" + ",".join([ecrire(i) for i in section.coords]) + ")"
 
 
 def _ecrire_section_ewkt(section, poly):
-    """ecrit une section """
+    """ecrit une section"""
     if section.courbe:
         prefix = "CIRCULARSTRING("
     elif poly:
@@ -322,7 +323,7 @@ def _ecrire_polygone_ewkt(polygone, courbe, erreurs, multi=False, force_courbe=F
 
 
 def _ecrire_poly_tin(polygones, tin, _):
-    """ecrit un tin en ewkt ne gere pas les erreurs """
+    """ecrit un tin en ewkt ne gere pas les erreurs"""
     if tin:
         code = "TIN("
     else:
@@ -411,17 +412,18 @@ def geom_from_ewkb(obj, code=None):
 
 
 def ecrire_geom_ewkt(
-    geom, geometrie_demandee="-1", multiple=-1, erreurs=None, force_courbe=False
+    geom, geometrie_demandee="-1", multiple=None, erreurs=None, force_courbe=False
 ):
     """ecrit une geometrie en ewkt"""
-
+    # print(" ecrire ewkt", geom)
     if geometrie_demandee == "0" or geom.type == "0" or geom.null:
         return None
-
+    if geom.unsync == -1:  # c est du shapely
+        geom.shapesync()
     geomt = ""
     type_geom = geom.type
     geometrie_demandee = geometrie_demandee if geometrie_demandee != "-1" else geom.type
-    multiple = multiple if multiple != "-1" else geom.multi
+    multiple = multiple if multiple is not None else geom.multi
 
     if _erreurs_type_geom(type_geom, geometrie_demandee, erreurs):
         return None
@@ -463,7 +465,10 @@ def ecrire_geom_ewkt(
 
     else:
         print("ecrire ewkt geometrie inconnue", geometrie_demandee)
-    # print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple)
+
+    # print(" ecrire ewkt", geom)
+
+    # print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple, geomt)
     return (geom.epsg + geomt) if geomt else None
 
     # nom:(multiwriter,           streamer,         tmpgeomwriter,
@@ -473,12 +478,12 @@ def ecrire_geom_ewkt(
 
 
 def noconversion(obj):
-    """ conversion geometrique par defaut """
+    """conversion geometrique par defaut"""
     return obj.geom_v.type == "0"
 
 
 def nowrite(obj):
-    """ sans sortie"""
+    """sans sortie"""
     return ""
 
 

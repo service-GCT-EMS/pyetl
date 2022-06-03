@@ -211,7 +211,7 @@ CRYPTOCLASS = dict()
 
 
 def descramble(key):
-    """ retourne la clef d'origine si elle est planquee"""
+    """retourne la clef d'origine si elle est planquee"""
     if key and key.endswith("="):
         try:
             return base64.b32decode(key).decode("utf-8")
@@ -223,7 +223,7 @@ def descramble(key):
 
 
 def scramble(key):
-    """ planque la clef d'origine"""
+    """planque la clef d'origine"""
 
     if key and key.endswith("="):
         return key
@@ -295,7 +295,7 @@ def crypt(val, key=None, level=None, helper=None):
 
 
 def valide_ulist(val, user, master, grouplist):
-    """ valide les autorisations par utilisateur"""
+    """valide les autorisations par utilisateur"""
     if val and val.endswith(")#"):  # il y a des utilisateurs
         ddv = val.index("#(")
         if ddv:

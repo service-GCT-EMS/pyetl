@@ -112,7 +112,7 @@ class PgrGenSql(DbGenSql):
         return False, False
 
     def ajuste_nom(self, nom):
-        """ sort les caracteres speciaux des noms"""
+        """sort les caracteres speciaux des noms"""
         nom = re.sub(
             "[" + "".join(sorted(self.remplace.keys())) + "]",
             lambda x: self.remplace[x.group(0)],
@@ -249,7 +249,7 @@ class PgrGenSql(DbGenSql):
         return ctr, idx
 
     def cree_fks(self, ident):
-        """ cree les definitions des foreign keys """
+        """cree les definitions des foreign keys"""
         if self.basic == "basic":
             return []
         classe = self.schema.classes[ident]
@@ -328,7 +328,7 @@ class PgrGenSql(DbGenSql):
         return fks
 
     def cree_comments(self, classe, groupe, nom):
-        """ cree les definitions commentaires """
+        """cree les definitions commentaires"""
         table = groupe + "." + nom
         # creation des commentaires :
         comments = ["-- ###### definition des commentaires ####"]
@@ -422,7 +422,7 @@ class PgrGenSql(DbGenSql):
         return idfonc, trig
 
     def cree_triggers(self, classe, groupe, nom):
-        """ cree les triggers """
+        """cree les triggers"""
         evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD OF"}
         evs2 = {"I": "INSERT ", "D": "DELETE ", "U": "UPDATE ", "T": "TRUNCATE"}
         ttype = {"T": "TRIGGER", "C": "CONSTRAINT"}
@@ -459,7 +459,7 @@ class PgrGenSql(DbGenSql):
         return trig
 
     def basetriggers(self, ident):
-        """ genere automatiquement les triggers a partir des defs en base"""
+        """genere automatiquement les triggers a partir des defs en base"""
         groupe, nom = self.get_nom_base(ident)
         deffoncs = dict()
         trig = []
@@ -502,14 +502,14 @@ class PgrGenSql(DbGenSql):
         return trig, deffoncs
 
     def get_nom_base(self, ident):
-        """ adapte les noms a la base de donnees """
+        """adapte les noms a la base de donnees"""
         classe = self.schema.classes[ident]
         nom = self.ajuste_nom(classe.nom.lower())
         groupe = self.ajuste_nom(classe.groupe.lower())
         return groupe, nom
 
     def get_type_geom(self, schemaclasse):
-        """ retourne le type geometrique de la classe precis """
+        """retourne le type geometrique de la classe precis"""
         type_geom = schemaclasse.info["type_geom"]
         if type_geom == "0" or type_geom == "indef":
             return "0", False
@@ -524,7 +524,7 @@ class PgrGenSql(DbGenSql):
         return geomt, arc
 
     def cretable_dist(self, ident, type_courbes="disc"):
-        """ genere le sql de creation des tables distantes """
+        """genere le sql de creation des tables distantes"""
         schema = self.schema
         classe = schema.classes[ident]
         groupe, nom = self.get_nom_base(ident)
@@ -574,7 +574,7 @@ class PgrGenSql(DbGenSql):
         return "\tgeometrie text,"
 
     def cree_tables(self, ident, creconf, type_courbes="disc", autopk=False):
-        """ genere le sql de creation de table """
+        """genere le sql de creation de table"""
         schema = self.schema
         # contraintes de clef etrangeres : on les fait a la fin pour que toutes les tables existent
         autoserial = True
@@ -790,7 +790,7 @@ class PgrGenSql(DbGenSql):
         return "\n".join(cretable)
 
     def get_vues_base(self, liste):
-        """ retourne la liste des vues dont on a la definition en base"""
+        """retourne la liste des vues dont on a la definition en base"""
         # self.schema.printelements_specifiques()
         try:
             vues_schema = self.schema.elements_specifiques["def_vues"][1]
@@ -841,7 +841,7 @@ class PgrGenSql(DbGenSql):
         return creschema, dropschema, dropschemac
 
     def droptables(self, liste):
-        """ nettoyage """
+        """nettoyage"""
         drop = []
         for ident in liste:
             groupe, nom = self.get_nom_base(ident)
@@ -851,7 +851,7 @@ class PgrGenSql(DbGenSql):
         return drop
 
     def dropvues(self, liste):
-        """ nettoyage """
+        """nettoyage"""
         drop = []
         tmplist = list(liste)
         if self.connection and self.connection.schemabase:
@@ -873,7 +873,7 @@ class PgrGenSql(DbGenSql):
         return drop
 
     def dropconf(self, liste_confs):
-        """sql de suppression des types """
+        """sql de suppression des types"""
         return [
             "DROP TYPE IF EXISTS " + self.schema_conf + "." + i + ";"
             for i in liste_confs
@@ -881,7 +881,7 @@ class PgrGenSql(DbGenSql):
 
     # scripts de creation de tables
     def sio_crestyle(self, liste=None):
-        """ genere les styles de saisie"""
+        """genere les styles de saisie"""
         return []
 
     def sio_cretable(self, cod="utf-8", liste=None, autopk=False, role=None):
@@ -938,7 +938,10 @@ class PgrGenSql(DbGenSql):
         )
 
         cretables = [idschema, self._setrole()]
-        if self.basic or (refcontext and refcontext.istrue("sql_nofunc")):
+        if self.basic or (
+            refcontext
+            and (refcontext.istrue("sql_nofunc") or refcontext.istrue("nofunc"))
+        ):
             LOGGER.info(
                 "pas de sortie des fonctions %s", refcontext.getvar("sql_nofunc")
             )
@@ -1048,7 +1051,7 @@ class PgrGenSql(DbGenSql):
         return niveau
 
     def dropvue(self, ident, is_mat):
-        """ nettoyage """
+        """nettoyage"""
         # print("dropview", ident, is_mat)
         if is_mat == "True":
             return "DROP MATERIALIZED VIEW IF EXISTS " + ".".join(ident) + ";"
@@ -1065,7 +1068,7 @@ class PgrGenSql(DbGenSql):
         return vues_sql
 
     def vue_to_sql(self, ident, definition, is_mat):
-        """creation des vues """
+        """creation des vues"""
         if is_mat == "True":
             return (
                 "CREATE MATERIALIZED VIEW "
@@ -1107,7 +1110,7 @@ class PgrGenSql(DbGenSql):
         return vues_sql
 
     def def_fonction_triggers(self, ident, ftrigs):
-        """ cree les fonctions trigger necessaires """
+        """cree les fonctions trigger necessaires"""
 
         return ftrigs.get(ident, "")
 
@@ -1123,17 +1126,17 @@ class PgrGenSql(DbGenSql):
 
     @staticmethod
     def _commande_geom_strict(niveau, classe, strict, gtyp="0", dim="2", courbe=False):
-        """ manipulation de la geometrie pour la discretisation des courbes """
+        """manipulation de la geometrie pour la discretisation des courbes"""
         return ""
 
     @staticmethod
     def _commande_geom_courbe(niveau, classe, gtyp="0", dim="2", courbe=False):
-        """ manipulation de la geometrie pour la discretisation des courbes """
+        """manipulation de la geometrie pour la discretisation des courbes"""
         return ""
 
     @staticmethod
     def _commande_index_gist(niveau, classe, drop):
-        """ suppression des index geometriques pour accelerer le chargement"""
+        """suppression des index geometriques pour accelerer le chargement"""
         return ""
 
     @staticmethod
@@ -1162,7 +1165,7 @@ class PgrGenSql(DbGenSql):
 
     @staticmethod
     def _commande_trigger(niveau, classe, valide):
-        """ cree une commande de reinitialisation des sequences"""
+        """cree une commande de reinitialisation des sequences"""
         return (
             "ALTER TABLE "
             + _nomsql(niveau, classe)
@@ -1172,7 +1175,7 @@ class PgrGenSql(DbGenSql):
 
     @staticmethod
     def _commande_monitoring(*args):
-        """ cree une commande de stockage de stats"""
+        """cree une commande de stockage de stats"""
         return ""
 
     def prefix_charge(self, niveau, classe, reinit, gtyp="0", dim="2"):
@@ -1202,7 +1205,7 @@ class PgrGenSql(DbGenSql):
     def tail_charge(
         self, niveau, classe, reinit, gtyp="0", dim="2", courbe=False, schema=None
     ):
-        """ menage de fin de chargement """
+        """menage de fin de chargement"""
         prefix = ""
         if "L" in reinit and gtyp in "23":  # discretisation'
             prefix = prefix + self._commande_geom_strict(

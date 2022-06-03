@@ -3,12 +3,25 @@
 
 import os
 import json
+import codecs
+
+# from this import d
 
 from .fileio import FileWriter
 
 
+def hasbom(fichier, encoding):
+    if open(fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
+        return "utf-8-sig"
+    return encoding
+
+
 def init_json(writer):
     writer.writerclass = JsonWriter
+
+
+def init_geojson(writer):
+    writer.writerclass = GeoJsonWriter
 
 
 class JsonWriter(FileWriter):
@@ -18,21 +31,11 @@ class JsonWriter(FileWriter):
 
     def header(self, init=None):
         """positionne l'entete"""
-        nom = os.path.splitext(os.path.basename(self.nom))[0]
-        self.ttext = "]}\n"  # queue
-        return (
-            '{\n"type": "FeatureCollection","name": "'
-            + nom
-            + '",\n'
-            + '"crs": { "type": "name", "properties": '
-            + '{ "name": "urn:ogc:def:crs:EPSG::'
-            + self.srid
-            + '" } },\n'
-            + '"features": [\n'
-        )
+        self.ttext = "]\n"  # queue
+        return "[\n"
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ ecriture multiclasse on change de schema"""
+        """ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
         self.liste_att = (
             schemaclasse.get_liste_attributs(liste=attributs)
@@ -40,11 +43,22 @@ class JsonWriter(FileWriter):
             else attributs
         )
 
+    def convert(self, obj):
+        """ecriture d objets"""
+        liste_att = (
+            self.liste_att
+            if self.liste_att
+            else [i for i in obj.attributs if not i.startswith("#")]
+        )
+        return json.dumps(
+            {i: obj.attributs.get(i, "") for i in liste_att}, ensure_ascii=False
+        )
+
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
             return False
-        chaine = obj.__json_if__(self.liste_att)
+        chaine = self.convert(obj)
         if self.start:
             self.start = False
         else:
@@ -63,21 +77,53 @@ class JsonWriter(FileWriter):
         return True
 
 
+class GeoJsonWriter(JsonWriter):
+    """gestionnaire d ecriture au format geojson"""
+
+    def header(self, init=None):
+        """positionne l'entete"""
+        nom = os.path.splitext(os.path.basename(self.nom))[0]
+        self.ttext = "]}\n"  # queue
+        return (
+            '{\n"type": "FeatureCollection","name": "'
+            + nom
+            + '",\n'
+            + '"crs": { "type": "name", "properties": '
+            + '{ "name": "urn:ogc:def:crs:EPSG::'
+            + self.srid
+            + '" } },\n'
+            + '"features": [\n'
+        )
+
+    def convert(self, obj):
+        return obj.__json_if__(self.liste_att)
+
+
 def lire_objets(self, rep, chemin, fichier):
-    """ lecture d'un fichier json et stockage des objets en memoire"""
+    """lecture d'un fichier json et stockage des objets en memoire"""
     regle_ref = self.regle if self.regle else self.regle_start
     stock_param = regle_ref.stock_param
     # ouv = None
     obj = None
-    codec = regle_ref.getvar("codec_entree", "utf-8")
+    codec = regle_ref.getchain(("codec_json", "codec_entree", "codec"), "utf-8-sig")
     entree = os.path.join(rep, chemin, fichier)
+    print("lecture objets json", entree, codec)
     stock_param.fichier_courant = os.path.splitext(fichier)[0]
     self.setidententree(chemin, stock_param.fichier_courant)
-    with open(entree, "r", 65536, encoding=codec) as ouvert:
-        return self.objreader(ouvert)
+    codec_lecture = hasbom(entree, codec)
+    with open(entree, "r", 65536, encoding=codec_lecture) as ouvert:
+        # print(ouvert.read())
+        # ouvert.seek(0)
+        if codec_lecture == codec:
+            return self.objreader(ouvert)
+        else:
+            contenu = ouvert.read()
+            # contenu = contenu.encode("UTF-8").decode(encoding=codec)
+            print("recup contenu", contenu[-100:])
+            return self.objreader(contenu)
 
 
-def readobjs(reader, jsonlist):
+def readobjs(reader, jsonlist, niveau=None, classe=None, geoif=False):
 
     n_obj = 0
     for i in jsonlist:
@@ -87,25 +133,52 @@ def readobjs(reader, jsonlist):
         if not i:
             continue  # ligne vide
         n_obj += 1
-        obj = reader.getobj()
         if n_obj % 100000 == 0:
             print("formats :", reader.fichier, "lecture_objets_json ", n_obj)
-        # print("traitement json", [(nom, str(val)) for nom, val in i.items()])
-        obj.attributs.update([(nom, str(val)) for nom, val in i.items()])
-        obj.setorig(n_obj)
-        # print("lu objet", obj)
-        # print("traitement objet, ", reader.regle_start)
-        reader.traite_objet(obj, reader.regle_start)
+        # print("traitement json", niveau, classe, i)
+        try:
+            obj = reader.getobj(niveau=niveau, classe=classe)
+            if geoif:
+                obj.from_geo_interface(i)
+            else:
+                obj.attributs.update([(nom, val) for nom, val in i.items()])
+            obj.setorig(n_obj)
+            # print("lu objet", obj)
+            # print("traitement objet, ", obj.ident, reader.regle_start)
+            reader.traite_objet(obj, reader.regle_start)
+        except AttributeError:
+            n_obj -= 1
+            reader.objfail()
+            print("json non parsable", niveau, classe, i)
+            # raise
+            pass
 
 
 def objreader(self, ouvert):
     n_obj = 0
     obj = None
-    contenu = json.load(ouvert)
+    try:
+        if isinstance(ouvert, str):
+            contenu = json.loads(ouvert) if ouvert else []
+        elif hasattr(ouvert, "read"):
+            contenu = json.load(ouvert)
+        else:
+            contenu = ouvert
+            # print("recup directe", contenu)
+    except json.JSONDecodeError as err:
+        print(
+            "objreader:json non parsable",
+            err,
+            self.encoding,
+            type(ouvert),
+            ouvert.read() if hasattr(ouvert, "read") else ouvert,
+        )
+        raise
+        return -1
     # print("lu json", type(contenu), contenu)
     if isinstance(contenu, list):
+        # print("lecture liste")
         readobjs(self, contenu)
-
     elif isinstance(contenu, dict):
         if contenu.get("type") == "FeatureCollection":
             # c'est des objets
@@ -114,14 +187,25 @@ def objreader(self, ouvert):
                     break
                 if not i:
                     continue  # ligne vide
-                n_obj += 1
-                obj = self.getobj()
-                if n_obj % 100000 == 0:
-                    print("formats :", self.fichier, "lecture_objets_json ", n_obj)
-                # print("traitement json", i)
-                obj.from_geo_interface(i)
-                obj.setorig(n_obj)
-                self.traite_objet(obj, self.regle_start)
+                readobjs(self, i, geoif=True)
+                # n_obj += 1
+                # obj = self.getobj()
+                # if n_obj % 100000 == 0:
+                #     print("formats :", self.fichier, "lecture_objets_json ", n_obj)
+                # # print("traitement json", i)
+                # obj.from_geo_interface(i)
+                # obj.setorig(n_obj)
+                # self.traite_objet(obj, self.regle_start)
+        else:  # c est n importe quoi on va essayer d en faire qque chose:
+            for ident, value in contenu.items():
+                if isinstance(value, dict):  # c est des objets ou des classes
+                    for elem, val2 in value.items():
+                        if isinstance(val2, list):  # c'est une liste d objets
+                            readobjs(self, val2, niveau=ident, classe=elem)
+                elif isinstance(value, list):  # c est des objets
+                    readobjs(self, val2, classe=ident)
+                else:
+                    print("element non exploitable", ident, type(value), value)
 
 
 READERS = {
@@ -130,7 +214,7 @@ READERS = {
 }
 WRITERS = {
     "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),
-    "geojson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),
+    "geojson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_geojson),
 }
 
 

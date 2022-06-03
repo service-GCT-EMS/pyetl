@@ -123,7 +123,7 @@ class PgsConnect(PgrConnect):
     #     return "ST_buffer(ST_GeomFromText('%s',%s),%f))" % (geom, srid, buffer)
 
     def set_geomb(self, geom, srid, buffer):
-        return "ST_buffer(%s,%f))" % (self.setgeom(geom, srid), buffer)
+        return "ST_buffer(%s,%f)" % (self.set_geom(geom, srid), buffer)
 
     def set_limit(self, maxi, _):
         if maxi:
@@ -202,7 +202,7 @@ class PgsGenSql(PgrGenSql):
         return ""
 
     def prepare_style(self, ident, conf):
-        """# prepare un style par defaut pour la table """
+        """# prepare un style par defaut pour la table"""
         schema = self.schema
         classe = schema.classes[ident]
         # print "traitement classe ", groupe,nom
@@ -309,7 +309,7 @@ class PgsGenSql(PgrGenSql):
         return nom_style, "\n".join(style)
 
     def db_cree_table(self, schema, ident):
-        """creation d' une tables en direct """
+        """creation d' une tables en direct"""
         req = self.cree_tables(schema, ident)
         if self.connection:
             return self.connection.request(req, ())
@@ -340,7 +340,7 @@ class PgsGenSql(PgrGenSql):
                 return False
 
     def dbload(self, schemaclasse, ident, source):
-        """ charge des objets en base de donnees par dbload"""
+        """charge des objets en base de donnees par dbload"""
         cur = self.connection.cursor()
         colonnes = tuple(schemaclasse.get_liste_attributs())
         nom = ".".join(ident)
@@ -357,7 +357,7 @@ class PgsGenSql(PgrGenSql):
     # ==== initialiseurs pour la gestion de la geometrie ====
     @staticmethod
     def _commande_geom_strict(niveau, classe, strict, gtyp="0", dim="2"):
-        """ manipulation de la geometrie pour la discretisation des courbes """
+        """manipulation de la geometrie pour la discretisation des courbes"""
         #        print ('geom strict ',niveau, classe, strict, gtyp)
         cmpz = "Z" if dim == "3" else ""
         if not strict:
@@ -390,7 +390,7 @@ class PgsGenSql(PgrGenSql):
 
     @staticmethod
     def _commande_geom_courbe(niveau, classe, gtyp="0", dim="2", courbe=False):
-        """ manipulation de la geometrie pour la discretisation des courbes """
+        """manipulation de la geometrie pour la discretisation des courbes"""
         cmpz = "Z" if dim == "3" else ""
         if courbe:
             geom = "MultiCurve" if gtyp == "2" else "MultiSurface"
@@ -414,7 +414,7 @@ class PgsGenSql(PgrGenSql):
 
     @staticmethod
     def _commande_index_gist(niveau, classe, drop):
-        """ suppression des index geometriques pour accelerer le chargement"""
+        """suppression des index geometriques pour accelerer le chargement"""
         if drop:
             return "DROP INDEX " + niveau.lower() + "." + classe.lower() + "_gist;\n"
         else:
@@ -432,7 +432,7 @@ class PgsGenSql(PgrGenSql):
     # cree 4 tables: Macros scripts batchs logs
 
     def init_pyetl_script(self, nom_schema):
-        """ cree les structures standard"""
+        """cree les structures standard"""
         pass
 
 

@@ -122,7 +122,7 @@ def f_xmlsplit(regle, obj):
        #pattern4||M;;A;xmlsplit;C;?C||sortie
        #pattern5||S;;A;xmlsplit;A.C;?C||sortie
     #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
-          #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;;||#xmltag;pp;;;;;;pass-;;;||cnt;2
+          #test1||obj||^V4;<g><pp p1="toto"/><pp p1="titi"/></g>;;set||^X;;V4;xmlsplit;pp;;||#xmltag;pp;;;;;;pass-;;;debug||cnt;2
          #test1b||obj||^V4;<g><pp p1="titi"/></g>;;set||^H:X;;V4;xmlsplit;pp;||#xmltag;pp;;;;;;pass-;;||ath;X;p1;titi
     """
     trouve = False

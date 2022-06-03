@@ -31,7 +31,7 @@ def wscaller(command, args, port=5000):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    command = sys.argv[1] if len(sys.argv) > 1 else None
+    command = sys.argv[1] if len(sys.argv) > 1 else ""
     args = dict((i.split("=", 1) for i in sys.argv if "=" in i))
     port = int(args.get("port", 5000))
     print("args", command, args)

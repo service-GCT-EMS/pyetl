@@ -32,6 +32,7 @@ Created on Fri Dec 11 14:34:04 2015
 """
 # from pyetl.formats.formats import Stat
 from collections import namedtuple
+from itertools import zip_longest
 import re
 import copy
 import logging
@@ -153,7 +154,7 @@ def f_setgeom(regle, obj):
 
 
 def h_setnonvide(regle):
-    """ pour repl_c il faut mettre en forme la liste """
+    """pour repl_c il faut mettre en forme la liste"""
     regle.params.att_entree.liste = []  # on vide la liste pour la recreer
     regle.params.att_entree.liste.extend(regle.params.att_entree.val.split("|"))
 
@@ -179,6 +180,40 @@ def f_setnonvide(regle, obj):
             regle.params.val_entree.val,
         ),
     )
+    return True
+
+
+def h_setjoin(regle):
+    """preparation separateur"""
+    regle.separ = regle.params.cmp1.val if regle.params.cmp1.val != "#b" else " "
+
+
+def f_setjoin(regle, obj):
+    """#aide||remplacement d une valeur
+    #aide_spec||remplacement d'une valeur d'attribut par la concatenation de champs
+    ||d'une liste avec defaut
+    #parametres||attribut resultat;defaut;liste d'attributs d'entree separes par ,;;separateur;format resultat
+    #pattern1||S;?;L;set;?C;=text
+    #pattern2||S;?;L;set;;=list
+    #pattern3||S;?;L;set;;=set
+    #test3||obj||^V4;1;A|C1|C2;set||atv;V4;AB
+    #test4||obj||^V4;1;A|B;set||atv;V4;1
+    #test2||obj||^V4;1;A|B;set||ats;V4
+    """
+    liste = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
+    if regle.params.pattern == "1":
+        regle.setval_sortie(
+            obj,
+            regle.separ.join(liste) or regle.params.val_entree.val,
+        ),
+    elif regle.params.pattern == "2":
+        obj.attributs[regle.params.att_sortie.val] = (
+            liste or regle.params.val_entree.liste
+        )
+    elif regle.params.pattern == "3":
+        obj.attributs[regle.params.att_sortie.val] = set(
+            liste or regle.params.val_entree.liste
+        )
     return True
 
 
@@ -256,7 +291,7 @@ def f_sub(regle, obj):  # fonction de substution
 
 
 def h_setcalc(regle):
-    """ preparation de l'expression du calculateur de champs"""
+    """preparation de l'expression du calculateur de champs"""
     # print("dans hcalc", regle.params)
     try:
         if regle.params.pattern == "1":
@@ -425,7 +460,7 @@ def f_lower_liste2(regle, obj):
 
 
 def h_asplit(regle):
-    """ preparation decoupage attributs"""
+    """preparation decoupage attributs"""
     f_debut = None
     f_fin = None
     tmp = []
@@ -622,7 +657,7 @@ def f_rename(regle, obj):  # fonction de substution
 
 
 def _suppatt(obj, nom):
-    """ #aide||suppression d'un element """
+    """#aide||suppression d'un element"""
     del obj.attributs[nom]  # suppression d'attribut
     if nom in obj.attributs_speciaux:
         del obj.attributs_speciaux[nom]
@@ -831,8 +866,8 @@ def h_join(regle):
 
 def f_join(regle, obj):
     """#aide||jointures
-       #pattern||L;?;A;join;C[];?C||cmp1
-       #pattern2||M?;?;A;join;#C;?C||cmp1
+       #pattern||L;?;?A;join;C[];?C||cmp1
+       #pattern2||M?;?;?A;join;#C;?C||cmp1
     #parametres||sortie;defaut;entree;;fichier (dynamique)
                ||position des champs dans le fichier (ordre)
      #attributs||#repertoire (optionnel) repertoire du fichier
@@ -841,10 +876,10 @@ def f_join(regle, obj):
           #test||obj||^X;C;;set||^val;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;val;3
     """
     if regle.jointtype == "obj":
-        clef_jointure = obj.attributs.get(regle.params.att_entree.val)
+        clef_jointure = regle.getval_entree(obj)
         # print("clef jointure", clef_jointure)
         obj_joint = regle.jstore.get(clef_jointure)
-        # print("obj joint", obj_joint, regle.recup_geom)
+        print("obj joint", obj_joint, regle.stock_param.store)
 
         if obj_joint:
             if regle.recup_geom:

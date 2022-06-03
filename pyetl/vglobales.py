@@ -10,9 +10,11 @@ import platform
 
 
 REVISION = "0.8.3p"
-BUILD = 52
+BUILD = 54
 isdev = (
-    "_dev" if os.path.isdir(os.path.join(os.path.dirname(__file__), "devenv")) else ""
+    "_dev_ems"
+    if os.path.isdir(os.path.join(os.path.dirname(__file__), "devenv"))
+    else ""
 )
 VERSION = REVISION + " (build:" + str(BUILD) + isdev + ")"
 # version de production
@@ -38,5 +40,5 @@ DEBUG = False
 
 
 def getdefcodec():
-    """ recupere la variable globale defcodec"""
+    """recupere la variable globale defcodec"""
     return DEFCODEC

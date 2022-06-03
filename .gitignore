@@ -106,6 +106,7 @@ venv.bak/
 
 #vscode settings
 .vscode/
+.vscode
 .pyrightconfig.json
 .vscode/settings.json
 pel.code-workspace

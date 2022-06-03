@@ -70,7 +70,7 @@ def f_next(regle, obj):
 
 
 def h_return(regle):
-    """ gere le return d'une macro appelee par call"""
+    """gere le return d'une macro appelee par call"""
     regle._return = True
     if regle.params.cmp1.val:
         regle.branchements.addsortie(regle.params.cmp1.val)
@@ -249,7 +249,7 @@ def f_abort(regle, obj):
 
 
 def printfunc(regle, obj):
-    """ gere le boulot de print pour choisir vers ou l on sort """
+    """gere le boulot de print pour choisir vers ou l on sort"""
     txt = regle.params.cmp1.val or regle.params.att_sortie.val
     if txt and txt[0] == "[":
         cmp1 = obj.attributs.get(txt[1:-1])
@@ -303,7 +303,7 @@ def f_sample(regle, obj):
 
 
 def printvariable(regle):
-    """ affichage de variables"""
+    """affichage de variables"""
     nomv = regle.params.cmp1.val
     if not nomv:
         return "\n".join(
@@ -358,7 +358,7 @@ def f_version(*_):
 
 
 def h_print(regle):
-    """"affichage direct en webservice"""
+    """ "affichage direct en webservice"""
     regle.printvirtuel = regle.istrue("virtuel")
     if regle.params.pattern == "3":
         # print(
@@ -397,7 +397,7 @@ def f_retour(regle, obj):
     #pattern||;C?;L?;retour;C?;=noms?
     #test||obj||^;;C1;retour;test ok:;noms||out
     """
-    # print("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj), obj)
+    #    print ("f_retour", regle.stock_param.idpyetl, printfunc(regle, obj))
     regle.stock_param.retour.append(printfunc(regle, obj))
     #    print ("retour stocke",regle.stock_param.retour)
     return True
@@ -513,7 +513,7 @@ def f_geomprocess(regle, obj):
 
 
 def h_creobj(regle):
-    """ definit la regle comme createur"""
+    """definit la regle comme createur"""
     regle.chargeur = True  # c est une regle qui cree des objets
     return True
 
@@ -693,7 +693,7 @@ def objloader(regle, obj):
     for i, parms in getfichs(regle, obj):
         # print("lecture", i, parms)
         try:
-            nb_lu += lecture(i, regle=regle.branchements.brch["gen"], parms=parms)
+            nb_lu += lecture(i, regle=regle, parms=parms)
             retour = True
         except StopIteration as abort:
             if abort.args[0] == 2:
@@ -715,7 +715,8 @@ def f_fileloader(regle, obj):
       #pattern2||?A;?C;?A;charge;[A];
     #parametres||sortie:nb obj lus;
         #schema||ajout_attribut
-         #test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||+gen:;;;;;;;pass>;;;||atv;NB;8
+         !#test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||+gen:;;;;;;;pass>;;;||atv;NB;8
+         #test1||obj||^NB;;;charge;%testrep%/refdata/lecture;;;||+gen:;;;;;;;pass>;;;||atv;NB;8
     """
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
@@ -731,7 +732,7 @@ def f_fileloader(regle, obj):
 
 
 def h_statprint(regle):
-    """ imprime les stats a la fin"""
+    """imprime les stats a la fin"""
     #        print ('impression stats ')
     regle.stock_param.statstore.statprint = "print"
     regle.stock_param.statstore.statfilter = (
@@ -750,7 +751,7 @@ def f_statprint(*_):
 
 
 def h_statprocess(regle):
-    """ retraite les stats en appliquant une macro"""
+    """retraite les stats en appliquant une macro"""
     #    print ('impression stats ')
     regle.stock_param.statstore.statprint = "statprocess"
     regle.stock_param.statstore.statfilter = (
@@ -910,7 +911,7 @@ def f_schema_liste_classes(regle, obj):
 # a partir du moment ou elles sont declarees par
 # la fonction addsortie elles sont automatiquement gerees par l'interpreteur et le compilateur
 def h_filter(regle):
-    """prepare les sorties pour le filtre """
+    """prepare les sorties pour le filtre"""
 
     ls1 = regle.params.cmp1.liste
     ls2 = (
@@ -1093,7 +1094,7 @@ def f_attload(regle, obj):
 
 
 def h_parallel(regle):
-    """ preparation parrallel """
+    """preparation parrallel"""
     pass
 
 

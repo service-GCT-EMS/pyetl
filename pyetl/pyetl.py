@@ -66,7 +66,7 @@ from .moteur.fonctions.parallel import setparallel
 
 
 def runpyetl(commandes, args):
-    """ lancement standardise c'est la fonction appelee au debut du programme"""
+    """lancement standardise c'est la fonction appelee au debut du programme"""
     mainmapper = getmainmapper()
     if not is_special(commandes):
         loginfo = L.getlog(args)
@@ -274,7 +274,7 @@ class Pyetl(object):
         self.contextstack = [self.context]
 
     def initpyetl(self, commandes, args):
-        """ initialisation standardisee: cree l'objet pyetl de base"""
+        """initialisation standardisee: cree l'objet pyetl de base"""
         if not self.inited:
             self.initlog()
         try:
@@ -416,7 +416,7 @@ class Pyetl(object):
                 self.setvar("_sortie", self.posparm[0])
 
     def prepare_module(self, regles, liste_params):
-        """ prepare le module pyetl pour l'execution"""
+        """prepare le module pyetl pour l'execution"""
         # print("dans prepare_module", regles, liste_params)
         if self.inited:
             # on nettoie
@@ -754,7 +754,7 @@ class Pyetl(object):
                 self.dbref[nom] = nom
 
     def _charge_site_params(self, origine):
-        """ charge des definitions de variables liees au site """
+        """charge des definitions de variables liees au site"""
         if not origine:  # localisation non definie
             return
         configfile = (
@@ -799,7 +799,7 @@ class Pyetl(object):
     #        print("variables",self.parms)
 
     def load_paramgroup(self, clef, nom="", check="", fin=True, context=None):
-        """ charge un groupe de parametres """
+        """charge un groupe de parametres"""
         # print("chargement", clef, self.site_params[clef], context)
 
         if not clef or clef == "*":
@@ -827,7 +827,7 @@ class Pyetl(object):
         return False
 
     def charge_cmd_internes(self, test=None, site=None, direct=None, opt=0):
-        """ charge un ensemble de macros utilisables directement """
+        """charge un ensemble de macros utilisables directement"""
         configfile = self._relpath("moteur/fonctions/commandes_internes.csv")
         if test:
             testrep = self.getvar("_test_path")
@@ -1034,7 +1034,7 @@ class Pyetl(object):
             self.schemas[nom_schema].dic_abrev = dic_abrev
 
     def charge(self, fichier, ident_fich):
-        """prechargement des fichiers de jointure ou de comparaison """
+        """prechargement des fichiers de jointure ou de comparaison"""
         #        print("charge: prechargement",fichier, ident_fich)
 
         clef = self.jointdef[ident_fich]
@@ -1057,7 +1057,7 @@ class Pyetl(object):
     #        print("charge: prechargement",fichier, ident_fich, stock)
 
     def _prep_chemins(self, chemin: str, nom: str) -> str:
-        """effectue la resolution des chemins """
+        """effectue la resolution des chemins"""
         # chemin du fichier de donnees
         f_intrm = nom.replace("C:", os.path.join(self.racine, chemin))
         # fichier de jointure dans le repertoire de regles
@@ -1092,19 +1092,19 @@ class Pyetl(object):
     #        return self.jointabs[fichier].get(clef.strip(), ["" for i in range(champ+1)])[champ]
 
     def get_converter(self, geomnatif, debug=None):
-        """ retourne le bon convertisseur de format geometrique"""
+        """retourne le bon convertisseur de format geometrique"""
         debug = debug or self.debug
         # print("get_converter:niveau de debug", debug)
         return get_converter(geomnatif, debug=debug)
 
     def get_geomstructure(self, geomnatif, debug=None):
-        """ retourne la structure du champs geom de format geometrique"""
+        """retourne la structure du champs geom de format geometrique"""
         debug = debug or self.debug
         # print("get_geomstructure:niveau de debug", debug)
         return get_geomstructure(geomnatif, debug=debug)
 
     def _finalise_sorties(self):
-        """ vide les tuyeaux et renseigne les stats"""
+        """vide les tuyeaux et renseigne les stats"""
         if self.sorties:
             nb_fichs, nb_total = self.sorties.final(self.idpyetl)
             self.padd("_st_wr_fichs", nb_fichs)
@@ -1114,7 +1114,7 @@ class Pyetl(object):
             self.padd("_st_obj_supprimes", self.moteur.suppcnt)
 
     def process(self, debug=0):
-        """traite les entrees """
+        """traite les entrees"""
         # print ('debut_process avant macro',self.idpyetl)
         self.debug = self.debug or debug
         abort = False
@@ -1237,7 +1237,7 @@ class Pyetl(object):
         return ()
 
     def macro_final(self):
-        """ execute une macro finale"""
+        """execute une macro finale"""
         if self.worker and self.parent is None:
             macrofinale = self.context.getlocal("_w_end")
         else:
@@ -1254,7 +1254,7 @@ class Pyetl(object):
         return
 
     def macro_entree(self):
-        """ execute une macro de demarrage"""
+        """execute une macro de demarrage"""
 
         if self.worker and self.parent is None:
             macroinit = self.context.getlocal("_w_start")
@@ -1273,7 +1273,7 @@ class Pyetl(object):
         return
 
     def _ecriture_schemas(self):
-        """sortie des schemas """
+        """sortie des schemas"""
         modes_schema_num = {
             "0": "no",  # pas de sortie de schema
             "1": "util",  # sort les schemas des classes utilisees dans le traitement
@@ -1314,7 +1314,7 @@ class Pyetl(object):
             and not self.done
         ):
             self.logger.debug(
-                "traitement virtuel %s worker:%s force:%s",
+                "traitement virtuel schema %s worker:%s force:%s",
                 mode_schema,
                 self.worker,
                 self.getvar("force_virtuel"),
@@ -1408,7 +1408,7 @@ class Pyetl(object):
         raise StopIteration(3)
 
     def lecture(self, fich, regle=None, reglenum=None, parms=None):
-        """ lecture d'un fichier d'entree"""
+        """lecture d'un fichier d'entree"""
         if parms is not None:
             racine, chemin, fichier, ext = parms
         else:  # on invente
@@ -1458,7 +1458,7 @@ set_mainmapper(mapper)
 
 
 def _main():
-    """ mode autotest du module """
+    """mode autotest du module"""
     print("autotest complet")
     ppp = getmainmapper().getpyetl("#autotest", liste_params=[])
     if ppp:

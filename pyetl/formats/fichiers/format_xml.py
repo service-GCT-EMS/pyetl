@@ -27,7 +27,7 @@ def ecrire_geom_xml(geomtemplate, geom_v, type_geom, multi, erreurs):
 
 
 class XmlWriter(FileWriter):
-    """ gestionnaire des fichiers xml en sortie """
+    """gestionnaire des fichiers xml en sortie"""
 
     def __init__(self, nom, schema=None, liste_att=None, regle=None):
         super().__init__(nom, schema=schema, regle=regle)
@@ -47,7 +47,7 @@ class XmlWriter(FileWriter):
         self.curclasse = None
 
     def header(self, init=1):
-        """ preparation de l'entete du fichiersr xml"""
+        """preparation de l'entete du fichiersr xml"""
         if not self.entete:
             return ""
         geom = (
@@ -124,7 +124,7 @@ class XmlWriter(FileWriter):
     #    print('prechargement csv', stock)
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ initialise un fichier """
+        """initialise un fichier"""
         clef = ".".join(schemaclasse.identclasse)
         self.liste_atts = attributs
         self.schema = schemaclasse
@@ -180,7 +180,7 @@ class XmlWriter(FileWriter):
 
 
 def get_ressource(obj, regle, attributs=None):
-    """ recupere une ressource en fonction du fanout"""
+    """recupere une ressource en fonction du fanout"""
     groupe, classe = obj.ident
     sorties = regle.stock_param.sorties
     rep_sortie = regle.getvar("_sortie")
@@ -360,7 +360,7 @@ def initschema(schema, config):
 
 
 def lire_objets_xml_simple(self, rep, chemin, fichier):
-    """ lit les datasources des fichiers qgis"""
+    """lit les datasources des fichiers qgis"""
     # importer()
     stock_param = self.regle_ref.stock_param
     self.prepare_lecture_fichier(rep, chemin, fichier)
@@ -454,6 +454,73 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
                 ressource = get_ressource(obj, regle, attributs=None)
                 dident = ident
             ressource.write(obj, regle.idregle)
+
+
+def convert_qgs_enums(nom):
+    projet = ET.parse(nom)
+    for layer in projet.iter("maplayer"):
+        provider = layer.find("provider")
+        #        print ('couches',layer.find('layername').text, ' type : ',layer.find('provider').text, layer.find('datasource').text)
+        #        print ('valeur de provider',provider)
+        if provider is not None:
+            #            print ('-------------------------valeur de provider',provider)
+
+            sourcetype = provider.text
+            source = layer.find("datasource")
+            ligne_source = source.text
+            if sourcetype == "postgres":
+                # traitement base postgres : on passe en base locale et on modifie les elements
+                l = ligne_source.split(" ")
+                table, dbname, svname, port = ("", "", "", "")
+                for k in l:
+                    v = k.split("=")
+                    if "dbname" in v[0]:
+                        dbname = v[1].replace("'", "")
+                    if v[0] == "table":
+                        table = v[1].replace('"', "")
+                        if table in schemas:
+                            table = schemas[table] + "." + table
+                    if v[0] == "host":
+                        svname = v[1]
+                    if v[0] == "port":
+                        port = v[1]
+                svdef = "host=" + svname + " port=" + port
+                # print ('detecte base', dbname,svdef)
+                nomschema, nomtable = table.split(".")
+                nomschema = nomschema.replace('"', "")
+                nomtable = nomtable.replace('"', "")
+                localname = os.path.join(".", racine + "_data")
+                source.text = ligne_source
+                # === analyse et modification des editeurs
+                for editeur in layer.iter("edittype"):
+                    widgettype = editeur.get("widgetv2type")
+                    if (
+                        editeur.get("widgetv2type") == "Enumeration"
+                    ):  # c'est une enum : on modifie
+                        nom_att_enum = editeur.get("name")
+                        if nom_att_enum:
+                            print("detection enum", dbname, "->", nom_att_enum)
+                        if (
+                            dbname in attributs
+                            and (nomschema, nomtable, nom_att_enum) in attributs[dbname]
+                        ):
+                            nom_enum = attributs[dbname][
+                                (nomschema, nomtable, nom_att_enum)
+                            ]
+                            if (
+                                dbname in enumerations
+                                and nom_enum in enumerations[dbname]
+                            ):
+                                print("enum traitable:", nom_enum)
+                                editeur.set("widgetv2type", "ValueMap")
+                                config = editeur.find("widgetv2config")
+                                for item in enumerations[dbname][nom_enum]:
+                                    newvalue = ET.Element(
+                                        "value", attrib={"key": item, "value": item}
+                                    )
+                                    config.append(newvalue)
+
+                # print ('transformation',source.text)
 
 
 # extension : (fonction de lecture, format graphique, schema, fichiers aux, initialiseur)

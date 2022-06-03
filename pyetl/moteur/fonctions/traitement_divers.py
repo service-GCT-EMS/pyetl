@@ -23,7 +23,7 @@ from .outils import renseigne_attributs_batch
 
 
 def store_traite_stock(regle):
-    """ relache les objets """
+    """relache les objets"""
     store = regle.tmpstore
 
     reverse = regle.params.cmp2.val == "rsort"
@@ -41,10 +41,6 @@ def store_traite_stock(regle):
     elif isinstance(store, set):
         print("traitement set", len(store))
         print("store", len(regle.stock_param.store))
-        for obj in store:
-            # print("store: relecture objet ", obj)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
-        # print("store", len(regle.stock_param.store))
     else:
         for clef in (
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
@@ -122,7 +118,7 @@ def f_stocke(regle, obj):
                 obj.attributs[regle.params.att_sortie.val] = str(cnt)
             regle.tmpstore[clef] = obj
         elif regle.flist or regle.recup_geom:
-            atts = [obj.attibuts.get(i, "") for i in regle.flist]
+            atts = [obj.attributs.get(i, "") for i in regle.flist]
             if regle.recup_geom:
                 atts.append(obj.geom)
             regle.tmpstore[clef] = atts
@@ -135,7 +131,7 @@ def f_stocke(regle, obj):
 
 
 def h_uniq(regle):
-    """ stocke les clefs pour l'unicite """
+    """stocke les clefs pour l'unicite"""
     regle.tmpstore = set()
 
 
@@ -166,7 +162,7 @@ def f_uniq(regle, obj):
 
 
 def h_uniqcnt(regle):
-    """ stocke les clefs pour l'unicite """
+    """stocke les clefs pour l'unicite"""
     regle.maxobj = regle.params.cmp1.num if regle.params.cmp1.num else 1
     regle.cnt = regle.maxobj != 1
     regle.tmpstore = defaultdict(int)
@@ -425,7 +421,7 @@ def h_sortir(regle):
 
 
 def setschemasortie(regle, obj):
-    """positionne le schema de sortie pour l objet """
+    """positionne le schema de sortie pour l objet"""
     if regle.nom_fich_schema == "#auto" and obj.schema:
         nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
     else:
@@ -644,7 +640,7 @@ def f_preload(regle, obj):
 
 
 def compare_traite_stock(regle):
-    """ sort les objets detruits"""
+    """sort les objets detruits"""
     for obj in regle.comp.values():
         obj.attributs[regle.params.att_sortie.val] = "supp"
         obj.setidentobj(regle.precedent)

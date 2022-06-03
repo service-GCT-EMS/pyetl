@@ -23,7 +23,7 @@ def r_orient(geom):
 
 
 def calculeangle(p1, p2):
-    """ valeur d'angle en degres"""
+    """valeur d'angle en degres"""
     angle = M.atan2(p2[0] - p1[0], p2[1] - p1[1]) * 180 / M.pi
     return angle
 
@@ -141,7 +141,7 @@ def calcul_db(geom, regle, largeur):
 
 
 def optimise_buffer_aire(geom, regle, largeur):
-    """ calcule un buffer selon l'aire"""
+    """calcule un buffer selon l'aire"""
     aire_demandee = geom.area * regle.limite
     ecart_largeur = 1
 
@@ -185,8 +185,10 @@ def f_buffer(regle, obj):
             if aire_init and buffer.area / aire_init > regle.limite:
                 # print("optimisation surface")
                 buffer, largeur = optimise_buffer_aire(sgeom, regle, largeur)
-        # print ("buffer calcule",buffer)
+        # print("buffer calcule", buffer)
         obj.geom_v.setsgeom(buffer)
+        obj.geom_v.shapesync()
+        # print("obj buffer", obj.geom_v)
         obj.geomnatif = False
         if regle.params.att_sortie.val:
             setschemainfo(regle, obj, multi=True, type="3", dyn=True)
@@ -263,25 +265,37 @@ def f_centre(regle, obj):
     return True
 
 
+def geomerge_traite_liste(regle, objlist):
+    """fusionne les geometries d une liste et retourne un objet"""
+    if not objlist:
+        return
+    objref = objlist[0].dupplique()
+    geoms = [obj.geom_v.__shapelygeom__ for obj in objlist]
+    merged = regle.gmerge(geoms)
+    # print("fusion geom", merged)
+
+    objref.geom_v.setsgeom(merged)
+    for attname, func in regle.traitement_attributs:
+        objref.attributs[attname] = func([obj.get(attname, "") for obj in objlist])
+    # print("recup objref", objref)
+    regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
+
+
 def geomerge_traite_stock(regle):
     """traite les objets stockes dans la regle"""
     if regle.nbstock == 0:
         return
     if regle.seq:
-        objref = regle.liste[0]
-        for obj in regle.liste[1:]:
-            for i in (
-                a for a in obj.attributs if not (a.startswith("#") or a in regle.keydef)
-            ):
-                # print("merge", i, objref.attributs[i], "+", obj.attributs[i])
-                v = obj.attributs[i]
-                vref = objref.attributs.get(i)
-                if v:
-                    objref.attributs[i] = (vref + v) if vref else v
-
-        regle.stock_param.moteur.traite_objet(objref, regle.branchements.brch["gen"])
-        regle.nbstock = 0
+        objlist = regle.liste
+        geomerge_traite_liste(regle, objlist)
         regle.liste = []
+        regle.nbstock = 0
+        return
+    for clef in regle.tmpstore:
+        objlist = regle.tmpstore[clef]
+        geomerge_traite_liste(regle, objlist)
+        regle.tmpstore[clef] = []
+    regle.nbstock = 0
 
 
 def h_geomerge(regle):
@@ -296,7 +310,7 @@ def h_geomerge(regle):
         "last": lambda x: x[-1],
     }
     regle.setsgeom = False
-    if regle.params.cmp2.val == "union":
+    if regle.params.cmp2.val == "union" or not regle.params.cmp2.val:
         from shapely.ops import unary_union
 
         regle.setsgeom = True
@@ -317,33 +331,36 @@ def h_geomerge(regle):
     regle.clef = None
     regle.liste = []
     regle.keydef = set(regle.params.att_entree.liste)
-    regle.alist = regle.params.att_sortie.liste
-    regle.attmerge = attmerge["add"]
-    if regle.params.cmp1.val in attmerge:
-        regle.attmerge = attmerge[regle.params.cmp1.val]
-
+    alist = regle.params.att_sortie.liste
+    mergefuncs = [attmerge.get(i, attmerge["list"]) for i in regle.params.cmp1.liste]
+    if len(mergefuncs) < len(alist):
+        mergefuncs.extend([attmerge["list"]] * (len(alist) - len(mergefuncs)))
+    regle.traitement_attributs = zip(alist, mergefuncs)
     regle.seq = regle.istrue("seq")
     regle.ordre = regle.getvar("order")
 
 
 def f_geomerge(regle, obj):
     """#aide||fusionne des objets adjacents de la meme classe en fonction de champs communs
-    #pattern2||?A;;L;geomerge;?C;C
+    #parametres||champs a accumuler;;champs clef;;fonctions d'accumulation;traitement geometrique
+    #pattern2||?L;;?L;geomerge;?LC;?C
     """
     clef = tuple((obj.attributs.get(i, "") for i in regle.params.att_entree.liste))
-    if regle.seq:
-        if regle.clef == clef:
-            regle.liste.append(obj)
+    if obj.geom_v.valide or obj.initgeom():
+        if regle.seq:
+            if regle.clef == clef:
+                regle.liste.append(obj)
+                regle.nbstock += 1
+            else:
+                if regle.nbstock:
+                    geomerge_traite_stock(regle)
+                regle.liste.append(obj)
+                regle.clef = clef
+        else:
+            if clef in regle.tmpstore:
+                regle.tmpstore[clef].append(obj)
+            else:
+                regle.tmpstore[clef] = [obj]
             regle.nbstock += 1
-        else:
-            if regle.nbstock:
-                geomerge_traite_stock(regle)
-            regle.liste.append(obj)
-            regle.clef = clef
-    else:
-        if clef in regle.tmpstore:
-            regle.tmpstore[clef].append(obj)
-        else:
-            regle.tmpstore[clef] = [obj]
-        regle.nbstock += 1
-    return True
+        return True
+    return False

@@ -12,6 +12,7 @@ import csv
 import json
 
 import requests as RQ
+from requests.auth import HTTPBasicAuth
 import ftplib as FTP
 
 try:
@@ -39,7 +40,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def geocode_traite_stock(regle, final=True):
-    """libere les objets geocodes """
+    """libere les objets geocodes"""
     # global RQ
     if regle.nbstock == 0:
         return
@@ -156,7 +157,7 @@ def geocode_traite_stock(regle, final=True):
 
 
 def h_geocode(regle):
-    """ prepare les espaces de stockage et charge le geocodeur addok choisi"""
+    """prepare les espaces de stockage et charge le geocodeur addok choisi"""
     LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
     LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
     # importrequest()
@@ -273,6 +274,7 @@ def ftpconnect(regle):
             print("retour_erreur", err)
             return False
     else:
+
         print("mode ftp non disponible", servertyp)
         return False
 
@@ -432,30 +434,31 @@ def httpconnect(regle):
     acces = regle.getvar("site")
     if acces:
         regle.stock_param.load_paramgroup(acces, nom=acces)
-        regle.authtyp = regle.getvar("authtyp_" + acces)
-        regle.user = regle.getvar("user_" + acces)
-        regle.passwd = regle.getvar("passwd_" + acces)
-        regle.racinesite = regle.getvar("server_" + acces)
-        if regle.authtyp == "ntlm":
-            if regle.user:
-                from requests_ntlm import HttpNtlmAuth
+    regle.authtyp = regle.getvar("authtyp_" + acces)
+    regle.user = regle.getvar("user_" + acces)
+    regle.passwd = regle.getvar("passwd_" + acces)
+    regle.racinesite = regle.getvar("server_" + acces)
+    if regle.authtyp == "ntlm":
+        if regle.user:
+            from requests_ntlm import HttpNtlmAuth
 
-                regle.auth = HttpNtlmAuth(regle.user, regle.passwd)
-                regle.stock_param.logger.info(
-                    "connection ntlm: %s en t tant que %s", acces, regle.user
-                )
-                # from requests_negotiate_sspi import HttpNegotiateAuth
+            regle.auth = HttpNtlmAuth(regle.user, regle.passwd)
+            regle.stock_param.logger.info(
+                "connection ntlm: %s en t tant que %s", acces, regle.user
+            )
+            # from requests_negotiate_sspi import HttpNegotiateAuth
 
-                # regle.auth = HttpNegotiateAuth(
-                #     username=regle.user, password=regle.passwd, domain="cus.fr"
-                # )
-            else:
-                from requests_negotiate_sspi import HttpNegotiateAuth
+            # regle.auth = HttpNegotiateAuth(
+            #     username=regle.user, password=regle.passwd, domain="cus.fr"
+            # )
+        else:
+            from requests_negotiate_sspi import HttpNegotiateAuth
 
-                regle.auth = HttpNegotiateAuth()
-                regle.stock_param.logger.info(
-                    "connection ntlm sso windows sur %s", acces
-                )
+            regle.auth = HttpNegotiateAuth()
+            regle.stock_param.logger.info("connection ntlm sso windows sur %s", acces)
+    elif regle.authtyp == "basic":
+        regle.auth = HTTPBasicAuth(regle.user, regle.passwd)
+        print("authent", regle.auth)
 
 
 def h_httpdownload(regle):
@@ -471,8 +474,9 @@ def h_httpdownload(regle):
         "safari": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1",
     }
     regle.chargeur = True
-    if regle.getvar("site"):
+    if regle.getvar("site") or regle.getvar("authtyp_"):
         httpconnect(regle)
+        print("connection", regle.authtyp)
 
     if regle.params.pattern == "1":
         path = (
@@ -504,7 +508,11 @@ def h_httpdownload(regle):
 
 def _jsonsplitter(regle, obj, jsonbloc):
     """decoupe une collection json en objets"""
-    struct = json.loads(jsonbloc)
+    try:
+        struct = json.loads(jsonbloc)
+    except json.JSONDecodeError as err:
+        print("erreur decodage json", err, jsonbloc)
+        return
     for elem in struct:
         if isinstance(elem, dict):
             obj2 = obj.dupplique()
@@ -595,6 +603,7 @@ def f_httpdownload(regle, obj):
         regle.setval_sortie(obj, retour.content)
         return True
     elif regle.params.pattern == "4":
+        print("recu", retour.text)
         _jsonsplitter(regle, obj, retour.text)
         return True
     if regle.fichier is None:

@@ -230,7 +230,7 @@ def dbextalpha(regle_courante, baseselector, dest="", log=""):
 
 
 def dbrunproc(regle, base, commande, data):
-    """execute une procedure stockeee en base """
+    """execute une procedure stockeee en base"""
     # print("mdba execution directe commande", base, file)
     connect = regle.stock_param.getdbaccess(regle, base)
     if connect is None:
@@ -273,7 +273,7 @@ def get_connect(
     description=None,
     mode="none",
 ):
-    """ recupere la connection a la base et les schemas qui vont bien"""
+    """recupere la connection a la base et les schemas qui vont bien"""
     # print("get_connect", regle, base, type_base)
     stock_param = regle.stock_param
     nombase = base
@@ -310,7 +310,7 @@ def get_dbtype(connect, typecode):
 
 
 def schema_from_curs(schema, curs, nomclasse):
-    """ cree un schema de classe a partir d'une requete generique"""
+    """cree un schema de classe a partir d'une requete generique"""
     attlist = [i for i in curs.infoschema if not i.nom_attr.startswith("#")]
     print("schema_from_curs", attlist)
     curs.connecteur.cree_schema_classe(nomclasse, attlist, schema=schema)
@@ -329,7 +329,7 @@ def sortie_resultats(
     cond="",
     objet=None,
 ):
-    """ recupere les resultats et génére les objets"""
+    """recupere les resultats et génére les objets"""
     regle_debut = regle_courante.branchements.brch["gen"]
     stock_param = regle_courante.stock_param
     traite_objet = stock_param.moteur.traite_objet
@@ -478,7 +478,7 @@ def recup_schema(
     mods=None,
     description=None,
 ):
-    """ recupere juste les schemas de la base sans donnees """
+    """recupere juste les schemas de la base sans donnees"""
     cmp1 = (
         mods
         if mods is not None
@@ -635,7 +635,7 @@ def lire_requete(
 
 
 def recup_donnees_req_alpha(regle_courante, baseselector):
-    """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
+    """recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
     # print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, classe)
     connect = baseselector.connect
@@ -740,7 +740,7 @@ def cre_script_reset(liste_tables, gensql):
 def reset_liste_tables(
     regle_courante, base, niveau, classe, type_base=None, chemin="", mods=None
 ):
-    """ genere un script de reset de tables"""
+    """genere un script de reset de tables"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
         base,
@@ -768,7 +768,7 @@ def recupval(
     chemin="",
     requete="",
 ):
-    """ recupere des valeurs en base (une par table)"""
+    """recupere des valeurs en base (une par table)"""
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
         base,
@@ -825,7 +825,7 @@ def recup_count(
     type_base=None,
     chemin="",
 ):
-    """ recupere des comptages en base"""
+    """recupere des comptages en base"""
 
     connect, schema_base, schema_travail, liste_tables = recup_schema(
         regle_courante,
@@ -874,7 +874,7 @@ def recup_count(
 def recup_table_parametres(
     regle, nombase, niveau, classe, clef=None, valeur=None, ordre=None, type_base=None
 ):
-    """lit une table en base de donnees et retourne le tableau de valeurs """
+    """lit une table en base de donnees et retourne le tableau de valeurs"""
     # print("recup_table", nombase, niveau, classe)
     regle.stock_param.logger.info(
         "recup table en base " + nombase + ":" + niveau + "." + classe
@@ -898,7 +898,7 @@ def recup_table_parametres(
 
 
 def recup_maxval(regle, base, selecteur):
-    """ recupere la valeur maxi d'un champ en base """
+    """recupere la valeur maxi d'un champ en base"""
     #    print('recup_table', nombase, niveau, classe, type_base)
     retour = get_connect(regle, base, None, None, mode="Fast")
     if retour:
@@ -924,7 +924,7 @@ def recup_maxval(regle, base, selecteur):
 
 
 def recup_donnees_req_geo(regle_courante, baseselector, obj):
-    """ recupere les objets de la base de donnees et les passe dans le moteur de regles"""
+    """recupere les objets de la base de donnees et les passe dans le moteur de regles"""
     #    debut = time.time()
     if obj.virtuel:
         return True
@@ -942,7 +942,7 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
     stock_param = regle_courante.stock_param
     maxobj = int(regle_courante.getvar("lire_maxi", 0))
     mods = regle_courante.params.cmp1.liste
-    buffer = regle_courante.params.cmp2.liste
+    buffer = regle_courante.params.cmp2.num
     sortie = regle_courante.params.att_sortie.liste
     v_sortie = [obj.attributs.get(i) for i in regle_courante.params.att_entree.liste]
     fonction_geom = regle_courante.fonction_geom
@@ -953,7 +953,8 @@ def recup_donnees_req_geo(regle_courante, baseselector, obj):
     else:
         if obj.initgeom():
             geometrie = connect.geom_to_natif(obj.geom_v, multiple=1)
-            # print("recup_geometrie", obj.geom_v.srid, geometrie)
+            # print("recup_geometrie", obj.geom_v.srid, geometrie, obj.geom_v)
+            # raise
         else:
             print(
                 "objet non geometrique comme filtre de requete geometrique",

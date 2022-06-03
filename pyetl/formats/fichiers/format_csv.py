@@ -134,7 +134,7 @@ def attreader(reader, ouvert):
 
 
 class CsvWriter(FileWriter):
-    """ gestionnaire des fichiers csv en sortie """
+    """gestionnaire des fichiers csv en sortie"""
 
     def __init__(self, nom, schema, regle):
 
@@ -165,7 +165,7 @@ class CsvWriter(FileWriter):
             )
 
     def header(self, init=1):
-        """ preparation de l'entete du fichiersr csv"""
+        """preparation de l'entete du fichiersr csv"""
         # print("csvheader ", self.entete)
         entete = self.writerparms.get("entete")
         if not entete:
@@ -183,7 +183,7 @@ class CsvWriter(FileWriter):
         )
 
     def prepare_attributs(self, obj):
-        """ prepare la es attributs en fonction du format"""
+        """prepare la es attributs en fonction du format"""
         atlist = (
             str(obj.attributs.get(i, "")).translate(self.transtable)
             for i in self.liste_att
@@ -310,10 +310,10 @@ class SqlWriter(CsvWriter):
         return "sqlwriter " + self.nom
 
     def prepare_hstore(self, val):
-        """ gere le cas particulier du hstore """
+        """gere le cas particulier du hstore"""
 
     def prepare_attributs(self, obj):
-        """ prepare les attributs en fonction du format"""
+        """prepare les attributs en fonction du format"""
 
         if obj.hdict:
             # atlist = []
@@ -432,7 +432,7 @@ class SqlWriter(CsvWriter):
         return 3  # on ne peut pas le reouvrir
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ ecriture de sql multiclasse on cree des entetes intermediaires"""
+        """ecriture de sql multiclasse on cree des entetes intermediaires"""
         #        print( 'dans changeclasse')
         # raise
         if schemaclasse == self.schemaclasse:
@@ -506,7 +506,7 @@ def init_geo(self):
 
 
 def init_sql(self):
-    """writer sql :  mode copy avec gestion des triggers et des sequences """
+    """writer sql :  mode copy avec gestion des triggers et des sequences"""
     initwriter(self, "sql", "sql", "\t", r"\N", writerclass=SqlWriter)
     if self.dialecte == "":
         self.dialecte = "natif"
@@ -525,7 +525,7 @@ def init_sql(self):
         )
         if connection and connection.valide:
             self.gensql = connection.gensql  # la on a une instance connectee
-    elif self.writerparms["dialecte"]:
+    elif "dialecte" in self.writerparms:
         self.gensql = self.writerparms["dialecte"].gensql()
 
 

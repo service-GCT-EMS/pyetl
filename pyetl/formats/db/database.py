@@ -90,7 +90,7 @@ class Cursinfo(object):
 
     def __next__(self):
         if self.cursor is None:
-            raise StopIteration
+            raise StopIteration(1)
         return next(self.cursor)
 
     def fetchall(self):
@@ -327,7 +327,7 @@ class DbConnect(object):
 
     @property
     def valide(self):
-        """ vrai si la connection est valide """
+        """vrai si la connection est valide"""
         return self.connection is not None
 
     @property
@@ -377,13 +377,13 @@ class DbConnect(object):
         return '"%s"' % (att)
 
     def attqjoiner(self, attlist, sep):
-        """ join une liste d'attributs et ajoute les quotes"""
+        """join une liste d'attributs et ajoute les quotes"""
         if isinstance(attlist, (list, tuple)):
             return sep.join([self.quote(i) for i in attlist])
         return self.quote(attlist)
 
     def getdecile(self, cur):
-        """ calcule les etapes pour l' affichage"""
+        """calcule les etapes pour l' affichage"""
         # print ('nombre de valeurs', cur.rowcount)
         if cur.rowcount == -1:
             self.decile = 100000
@@ -417,7 +417,7 @@ class DbConnect(object):
         return ()
 
     def get_type(self, nom_type):
-        """ type en base d'un type interne """
+        """type en base d'un type interne"""
 
         return self.types_base.get(nom_type, "?")
 
@@ -427,11 +427,11 @@ class DbConnect(object):
             self.connection.close()
 
     def get_enums(self):
-        """ recupere la description de toutes les enums depuis la base de donnees """
+        """recupere la description de toutes les enums depuis la base de donnees"""
         yield from self.schemarequest("info_enums")
 
     def get_enums2(self):
-        """ recupere la description de toutes les enums depuis la base de donnees """
+        """recupere la description de toutes les enums depuis la base de donnees"""
         yield from self.schemarequest("info_enums2")
 
     def get_tablelist(self):
@@ -664,7 +664,7 @@ class DbConnect(object):
             self.cree_schema_classe(classe, attlist)
 
     def get_schemabase(self, mode_force_enums=1):
-        """ recupere le schema complet de la base """
+        """recupere le schema complet de la base"""
         debut = time.time()
         self.schemabase.metas = self.metas
         debug = self.regle.istrue("debug")
@@ -704,7 +704,7 @@ class DbConnect(object):
         )
 
     def select_elements_specifiques(self, schema, liste_tables):
-        """ selectionne les elements specifiques pour coller a une restriction de schema"""
+        """selectionne les elements specifiques pour coller a une restriction de schema"""
         return None
 
     def getschematravail(
@@ -731,7 +731,7 @@ class DbConnect(object):
     def execrequest(
         self, requete, data=None, attlist=None, volume=0, nom="", regle=None
     ):
-        """ lancement requete specifique base"""
+        """lancement requete specifique base"""
         cur = self.get_cursinfo(volume=volume, nom=nom, regle=regle)
         #        cur.execute(requete, data=data, attlist=attlist)
         retour = cur.execute(requete, data=data, attlist=attlist)
@@ -742,7 +742,7 @@ class DbConnect(object):
     #        print ('exec:recup cursinfo', type(cur))
 
     def request(self, requete, data=None, attlist=None, regle=None):
-        """ lancement requete et gestion retours"""
+        """lancement requete et gestion retours"""
         cur = (
             self.execrequest(requete, data=data, attlist=attlist, regle=regle)
             if requete
@@ -764,7 +764,7 @@ class DbConnect(object):
         nom="",
         regle=None,
     ):
-        """ lancement requete et gestion retours en mode iterateur"""
+        """lancement requete et gestion retours en mode iterateur"""
         # print('appel iterreq database', volume,nom)
         cur = self.execrequest(
             requete, data=data, attlist=attlist, volume=volume, nom=nom, regle=regle
@@ -778,7 +778,7 @@ class DbConnect(object):
         return nom
 
     def nocast(self, nom):
-        """ pas de formattage"""
+        """pas de formattage"""
         return nom
 
     def textcast(self, nom):
@@ -798,7 +798,7 @@ class DbConnect(object):
         return nom
 
     def get_join_char(self):
-        """ separateur de liste"""
+        """separateur de liste"""
         return ","
 
     def multivaldata(self, valeurs):
@@ -806,7 +806,7 @@ class DbConnect(object):
         return {"v" + str(i): j for i, j in enumerate(valeurs)}
 
     def multival(self, _, operateur="=", cast=None):
-        """ acces listes"""
+        """acces listes"""
         if cast is not None:
             return cast(" " + operateur + " ANY (val)") + "[]"
         return " " + operateur + " ANY (val)"
@@ -822,7 +822,7 @@ class DbConnect(object):
         return ()
 
     def get_geom(self, nom):
-        """ acces a la geometrie """
+        """acces a la geometrie"""
         return nom
 
     def get_surf(self, nom):
@@ -846,23 +846,23 @@ class DbConnect(object):
         return ""
 
     def cond_geom(self, nom_fonction, nom_geometrie, geom2):
-        """ sql pour une condition geometrique"""
+        """sql pour une condition geometrique"""
         print("cond_geom:___________si on est la ce nest pas normal ______________")
         return ""
 
     def set_limit(self, maxi, whereclause):
-        """ limite le nombre de retours """
+        """limite le nombre de retours"""
         return ""
 
     def get_sys_fields(self, attlist, attlist2):
-        """ ajoute des champs systeme"""
+        """ajoute des champs systeme"""
         for i in self.sys_fields:
             attlist.append(i)
             attlist2.append('"' + self.sys_fields[i][0] + '"')
         return
 
     def construction_champs(self, schema, surf=False, long=False):
-        """ construit la liste de champs pour la requete"""
+        """construit la liste de champs pour la requete"""
         attlist = schema.get_liste_attributs()
         attlist2 = []
         for i in attlist:
@@ -919,7 +919,7 @@ class DbConnect(object):
         return attribut, cast
 
     def prepare_condition(self, schema, attribut, valeur):
-        """ prepare une requete faisant appel a des attributs"""
+        """prepare une requete faisant appel a des attributs"""
         if not attribut:
             return "", ()
         oper = "="
@@ -1067,6 +1067,8 @@ class DbConnect(object):
 
             # if self.debug > 2:
 
+            # print("debug: database: geometrie de selection", geometrie)
+            # raise
             # print("debug: database: requete de selection geo", requete, data)
             # curs.execute(requete,data)
             self.attlist = attlist
@@ -1159,21 +1161,21 @@ class DbConnect(object):
         return False
 
     def dbload(self, schema, ident, source):
-        """ charge des objets en base de donnees par dbload"""
+        """charge des objets en base de donnees par dbload"""
         return False
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
-        """ charge des objets en base de donnees par dbload"""
+        """charge des objets en base de donnees par dbload"""
         return False
 
     def check_helper(self, helper):
-        """ verifie l existance d un programme auxiliaire"""
+        """verifie l existance d un programme auxiliaire"""
         if not os.path.isfile(helper):
             print("========= attention ", helper, "inexistant arret traitement")
             raise StopIteration(3)
 
     def recup_maxval(self, niveau, classe, clef):
-        """ recupere le max d 'un champs """
+        """recupere le max d 'un champs"""
         if not self.valide:
             return False
         requete = "SELECT max(" + clef + ") as maxval FROM " + niveau + "." + classe

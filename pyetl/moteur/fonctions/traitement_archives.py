@@ -12,6 +12,7 @@ import zipfile
 import gzip
 import time
 import logging
+import hashlib
 
 
 def h_archive(regle):
@@ -83,7 +84,7 @@ def f_zipdir(regle, obj):
       #pattern2||?A;?C;?A;zipdir;=split;
           #test||notest
     """
-    name = regle.get_entree(obj)
+    name = regle.getval_entree(obj)
     if not os.path.isabs(name) and not name.startswith("."):
         name = os.path.join(regle.getvar("_entree", "."), name)
     if not zipfile.is_zipfile(name):
@@ -143,3 +144,45 @@ def f_zipextract(regle, obj):
                     files = regle.getlist_entree(obj)
                     archive.extractall(path=sortie, members=files)
     return found
+
+
+def get_checksum(regle, name, write=False):
+    """calcul checksum"""
+    if not os.path.isabs(name) and not name.startswith("."):
+        name = os.path.join(regle.getvar("_entree", "."), name)
+    hash = hashlib.md5()
+    print("ouverture ", name)
+    file = open(name, "br")
+    while i := file.read(1048576):
+        hash.update(i)
+    checksum = hash.hexdigest()
+    if write:
+        sortie = os.path.splitext(name)[0] + ".md5"
+        open(sortie, "w").write(checksum)
+    return checksum
+
+
+def h_checksum(regle):
+    """calcule le hash d un fichier"""
+    regle.result = regle.params.att_sortie.val
+    if regle.params.pattern == "2":
+        name = regle.params.val_entree.val
+        result = regle.params.att_sortie.val
+        cksum = get_checksum(regle, name, write=not result)
+        if result:
+            regle.setvar(result, cksum)
+        regle.valide = "done"
+
+
+def f_checksum(regle, obj):
+    """#aide||cree un hash md5 ou sha64
+    #parametres||destination;fichier a extraire;attribut contenant le nom;zipextract;nom du zip;
+     #pattern1||?A;?C;A;checksum;=md5;
+     #pattern2||?P;C;;checksum;=md5;
+         #test||notest
+    """
+    name = regle.getval_entree(obj)
+    cksum = get_checksum(regle, name, write=not regle.result)
+    if regle.result:
+        regle.seval_sortie(obj, cksum)
+    return True

@@ -91,11 +91,11 @@ class TableBaseSelector(object):
         un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
         ou dynamique s il depend de l objet courant
         """
-        # print("ajout descripteur", self.base, descripteur)
+        # print("ajout descripteur", self.base, self.nombase, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
 
-        dyn = any(["[" in i for i in classes])
+        dyn = any(["[" in i for i in classes]) or "[" in niveau
         if "[" in attr or "[" in valeur:
             dyn = True
         if dyn:
@@ -112,9 +112,10 @@ class TableBaseSelector(object):
             # self.nombase = self.base if self.base != "*" else ""
             if not self.base:
                 return False
+            self.nombase = self.base if self.base != "*" else ""
         if self.static:
             return
-        self.nombase = self.base if self.base != "*" else ""
+
         mod = self.regle_ref.mods
         # print("resolution statique", mod)
         set_prefix = self.regle_ref.getvar("set_prefix") == "1"
@@ -323,6 +324,8 @@ class TableBaseSelector(object):
             return None
         if not nom:
             nom = self.nombase
+        if not self.schemabase:
+            return None
         schema_travail, liste2 = self.schemabase.creschematravail(
             regle, liste_classes, nom
         )
@@ -378,7 +381,6 @@ class TableSelector(object):
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
         if not base:
             return
-            base = "__filedb"
         self.add_descripteur(base, niveau, [classe], attribut, valeur, fonction)
 
     def add_class_list(self, base, liste):
@@ -404,7 +406,6 @@ class TableSelector(object):
         if not base:
             print(" pas de base", descripteur, self.autobase)
             return
-            base = "__filedb"
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self, base, "")
         # print("add descripteur", base, descripteur)
@@ -543,12 +544,18 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     in:db:nom_de_la_table       -> valeur des attributs de l'objet en base (la clef donne le nom du champs)
     """
     stock_param = regle.stock_param
+    # print("select in ", fichier, base, classe)
 
     fichier = fichier.strip()
     #    valeurs = get_listeval(fichier)
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
+    liste_atts = (
+        fichier[1:-1].split(",")
+        if (fichier.startswith("[") and fichier.endswith("]"))
+        else []
+    )
     valeurs = {i: i for i in liste_valeurs}
-    LOGGER.info("fichier a lire: %s base: %s", fichier, base)
+    LOGGER.info("element a lire: %s base: %s", fichier, base)
 
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
@@ -568,6 +575,13 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     selecteur = getselector(regle, base=base, nom=nom)
 
     selecteur.metainfos = fichier
+    if liste_atts:
+        selecteur.static = False
+        for att in liste_atts:
+            selecteur.add_descripteur(base, "[" + att + "]")
+        print("selecteur dans attributs", selecteur)
+        return selecteur
+
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nomschema = fichier[7:]
         if nomschema in stock_param.schemas:
@@ -608,7 +622,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
             # LOGGER.info("projet %s", fichier)
             # print("----------------select projet qgs", fichier)
             for i in fich:
-                if "datasource" in i:
+                if "datasource" in i and not "<datasource></datasource>" in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
                     service = _extract(i, "service=")
@@ -624,9 +638,10 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     elif service:
                         base = "*" + service
                     else:
+                        print("analyse qgs: identification filedb", i)
                         base = "__filedb"
                     selecteur.add_descripteur(base, niveau, [classe], fonction="=")
-                    print("qgs : descripteur", base, niveau, [classe])
+                    # print("qgs : descripteur", base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
                 elif "provider" in i:
                     pass
