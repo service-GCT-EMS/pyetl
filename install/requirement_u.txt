@@ -16,5 +16,5 @@ flask_wtf
 flask_bootstrap4
 flaskfilemanager
 flup
-pywin32
+
 sphinx

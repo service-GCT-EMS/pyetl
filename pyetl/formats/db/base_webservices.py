@@ -14,6 +14,7 @@ il est necessaire de positionner les parametres suivant:
 
 """
 from copy import Error
+from re import I
 
 # version patchee de owslib pour eviter un crash sur data.strasbourg.eu
 
@@ -22,6 +23,7 @@ from .database import DbConnect, Cursinfo
 from .gensql import DbGenSql
 from owslib.wfs import WebFeatureService
 from owslib.wms import WebMapService
+from owslib.csw import CatalogueServiceWeb
 import owslib.fes as F
 from owslib.etree import etree
 
@@ -287,6 +289,158 @@ class WfstGenSql(DbGenSql):
     """generateur sql"""
 
     pass
+
+class CswConnect(DbConnect):
+    """connecteur csw: simule un acces base a partir du schema pour des services de catalogue"""
+
+    def __init__(
+        self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
+    ):
+        super().__init__(serveur, base, user, passwd, debug, system, params, code)
+        # importer()
+
+        self.types_base.update(TYPES_A)
+        self.type_base = "wfs"
+        self.tablelist = []
+        self.connect()
+        self.geographique = True
+        self.accept_sql = "no"
+        self.curtable = ""
+        self.curnb = 0
+
+    def connect(self):
+        """effectue un getcapabilities pour connaitre le schema"""
+        try:
+            print("connection wcs", self.serveur)
+            if "version=" in self.serveur:
+                serveur, vdef = self.serveur.split(" ", 1)
+                version = vdef.split("=")[1]
+            else:
+                serveur = self.serveur
+                version = "1.1.0"
+            self.connection = CatalogueServiceWeb(url=serveur, version=version)
+            self.connection.cursor = lambda: None
+            # simulation de curseur pour l'initialisation
+        except Error as err:
+            print("erreur wfs", err)
+            return False
+        self.connection.getrecords2(esn="full",maxrecords=1)
+        self.storedrowcount=self.connection.results["matches"]
+        self.refrecord=self.connection.records.pop()
+        reponse=self.connection.response
+        self.tablelist = ["metadata"]
+        # print("retour getcap", len(self.tablelist))
+
+    def commit(self):
+        pass
+
+    def get_tables(self):
+        """ retourne la liste des tables """
+        return list(self.tables.values())
+
+    @property
+    def rowcount(self):
+        return self.storedrowcount
+
+    def get_attr_of_classe(self, schemaclasse):
+        """recupere la description d une classe"""
+        pass
+        
+    def get_attributs(self):
+        """description des attributs de la base sqlite
+        structure fournie :
+            nom_groupe;nom_classe;nom_attr;alias;type_attr;graphique;multiple;\
+            defaut;obligatoire;enum;dimension;num_attribut;index;unique;clef_primaire;\
+            clef_etrangere;cible_clef;taille;decimales"""
+
+        attlist = []
+        tables = self.tablelist
+        print("webservices: lecture tables", tables)
+        attdict={i:type(i) for i in dir(self.refrecord) if not i.startswith("_")} 
+        for nom,typedef in attdict.items():
+            att=self.attdef(nom_groupe="md",nom_classe="metadata",nom_attr=nom,type_attr=typedef)
+            attlist.append(att)
+        ident = ("md", "metadata")
+        nouv_table = ["md", "metadata", "", "", "", -1, "", "", "", "", ""]
+            # print ('table', nouv_table)
+        self.tables[ident] = nouv_table
+        return attlist
+
+    def get_enums(self):
+        return ()
+
+    def get_type(self, nom_type):
+        if nom_type in TYPES_G:
+            return nom_type
+        return self.types_base.get(nom_type.upper(), "?")
+
+    def get_cursinfo(self, volume=0, nom="", regle=None):
+        """recupere un curseur"""
+        # print(" postgres get cursinfo")
+        return (
+            WfsCursinfo(self, volume=volume, nom=nom, regle=regle)
+            if self.connection
+            else None
+        )
+
+    def get_surf(self, nom):
+        return ""
+
+    def get_perim(self, nom):
+        return ""
+
+    def get_long(self, nom):
+        return ""
+
+    def get_geom(self, nom):
+        return ""
+
+    def set_geom(self, geom, srid):
+        return ""
+
+    def set_geomb(self, geom, srid, buffer):
+        return ""
+
+    def set_limit(self, maxi, _):
+        if maxi:
+            return "maxFeatures=" + str(maxi)
+        return ""
+
+    def cond_geom(self, nom_fonction, nom_geometrie, geom2):
+        cond = ""
+        fonction = ""
+        if nom_fonction == "dans_emprise":
+            bbox = getbbox(geom2)
+            return bbox
+        return ""
+
+    def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
+        """recupere les elements d'une requete alpha"""
+        niveau, classe = ident
+        requete = ""
+        data = ""
+        schema.resolve()
+        attlist = schema.get_liste_attributs()
+        self.get_attr_of_classe
+        params = {"typename": niveau + ":" + classe}
+        if attribut:
+            filter = F.PropertyIsLike(
+                propertyname=attribut, literal=valeur, wildCard="*"
+            )
+            filterxml = etree.tostring(filter.toXML(), encoding="unicode")
+            params["filter"] = filterxml
+        print("envoi requete", params)
+        # reponse = self.connection.getfeature(**params)
+        reponse = self.connection.getfeature(typename=niveau + ":" + classe)
+        print("wfs apres reponse", type(reponse))
+        return reponse
+
+
+
+
+
+
+
 
 
 DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs")}
