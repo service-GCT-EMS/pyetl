@@ -287,7 +287,9 @@ class WfsConnect(DbConnect):
 
 class WfstGenSql(DbGenSql):
     """generateur sql"""
+    pass
 
+class CswCursinfo(Cursinfo):
     pass
 
 class CswConnect(DbConnect):
@@ -360,8 +362,8 @@ class CswConnect(DbConnect):
         for nom,typedef in attdict.items():
             att=self.attdef(nom_groupe="md",nom_classe="metadata",nom_attr=nom,type_attr=typedef)
             attlist.append(att)
-        ident = ("md", "metadata")
-        nouv_table = ["md", "metadata", "", "", "", -1, "", "", "", "", ""]
+        ident = (self.base, "metadata")
+        nouv_table = [self.base, "metadata", "", "", "", -1, "", "", "", "", ""]
             # print ('table', nouv_table)
         self.tables[ident] = nouv_table
         return attlist
@@ -378,7 +380,7 @@ class CswConnect(DbConnect):
         """recupere un curseur"""
         # print(" postgres get cursinfo")
         return (
-            WfsCursinfo(self, volume=volume, nom=nom, regle=regle)
+            CswCursinfo(self, volume=volume, nom=nom, regle=regle)
             if self.connection
             else None
         )
@@ -435,12 +437,11 @@ class CswConnect(DbConnect):
         print("wfs apres reponse", type(reponse))
         return reponse
 
+class CswGenSql(DbGenSql):
+    """generateur sql"""
+    pass
 
 
-
-
-
-
-
-
-DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs")}
+DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs"),
+"csw": (CswConnect, CswGenSql, "server", "", "#gml", "acces wfs")
+}

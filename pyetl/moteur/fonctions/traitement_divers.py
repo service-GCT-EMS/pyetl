@@ -11,6 +11,7 @@ import logging
 from operator import add
 from functools import reduce
 from collections import defaultdict, OrderedDict, namedtuple
+from sys import exc_info
 
 try:
     import psutil
@@ -427,8 +428,8 @@ def setschemasortie(regle, obj):
             regle.nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
         else:
             regle.nom_fich_schema = "schema_sortie_" + regle.output.nom_format
-    else:
-        nom_fich_schema = regle.nom_fich_schema
+    
+    nom_fich_schema = regle.nom_fich_schema
         # on copie le schema pour ne plus le modifier apres ecriture
     regle.change_schema_nom(obj, nom_fich_schema)
 
@@ -487,10 +488,14 @@ def f_sortir(regle, obj):
         obj.geomnatif = False
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
-    regle.output.ecrire_objets_stream(
-        obj, regle, False, attributs=regle.liste_attributs
-    )
-
+    try:
+        regle.output.ecrire_objets_stream(
+            obj, regle, False, attributs=regle.liste_attributs
+        )
+    except Exception as exc:
+        regle.stock_param.logger.error("ecriture objet %s",repr(obj))
+        regle.stock_param.logger.exception("erreur:",exc_info=exc)
+        raise
     if regle.final:
         obj.schema = None
     return True
