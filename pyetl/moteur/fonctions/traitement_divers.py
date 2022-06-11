@@ -11,7 +11,6 @@ import logging
 from operator import add
 from functools import reduce
 from collections import defaultdict, OrderedDict, namedtuple
-from sys import exc_info
 
 try:
     import psutil
@@ -428,10 +427,8 @@ def setschemasortie(regle, obj):
             regle.nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
         else:
             regle.nom_fich_schema = "schema_sortie_" + regle.output.nom_format
-    
-    nom_fich_schema = regle.nom_fich_schema
         # on copie le schema pour ne plus le modifier apres ecriture
-    regle.change_schema_nom(obj, nom_fich_schema)
+    regle.change_schema_nom(obj, regle.nom_fich_schema)
 
     if obj.schema and obj.schema.amodifier(regle):
         rep_sortie = regle.getvar("sortie_schema")
@@ -488,14 +485,10 @@ def f_sortir(regle, obj):
         obj.geomnatif = False
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
-    try:
-        regle.output.ecrire_objets_stream(
-            obj, regle, False, attributs=regle.liste_attributs
-        )
-    except Exception as exc:
-        regle.stock_param.logger.error("ecriture objet %s",repr(obj))
-        regle.stock_param.logger.exception("erreur:",exc_info=exc)
-        raise
+    regle.output.ecrire_objets_stream(
+        obj, regle, False, attributs=regle.liste_attributs
+    )
+
     if regle.final:
         obj.schema = None
     return True
@@ -809,7 +802,7 @@ def h_objgroup(regle):
     else:
         idclasse = ("objgroup", regle.params.cmp1.val)
     regle.classe_sortie = idclasse
-    regle.atts = [(i, "T") for i in regle.params.att_sortie.liste]
+    regle.atts = [(i, "T") for i in regle.attlist]
 
 
 def f_objgroup(regle, obj):
@@ -849,10 +842,9 @@ def f_objgroup(regle, obj):
             obj2.attributs[i].append(obj.attributs.get(j, regle.params.val_entree.val))
     elif regle.params.pattern == "2":
         obj2.attributs[regle.params.att_sortie.val].append(
-            regle.record._make(
-                obj.attributs.get(i) for i in regle.params.att_entree.liste
+                {i:obj.attributs.get(i,"") for i in regle.params.att_entree.liste}
             )
-        )
+        
     return True
 
 

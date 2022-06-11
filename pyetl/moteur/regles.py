@@ -12,7 +12,6 @@ from io import StringIO
 from functools import partial
 
 
-# from collections import namedtuple
 import pyetl.formats.format_temporaire as T
 
 
@@ -147,7 +146,6 @@ class ParametresFonction(object):
 
     MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
     MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
-    #    st_val = namedtuple("valeur", ("val", "num", "liste", "dyn", 'definition'))
 
     def __init__(self, regle_ref, valeurs, definition, pnum):
         # print("creation param fonction", regle_ref, valeurs, definition)
