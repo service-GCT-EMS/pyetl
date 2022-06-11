@@ -8,10 +8,8 @@ fonctions de structurelles diverses
 import os
 import subprocess
 from pathlib import Path
-from collections import namedtuple
 import shutil
 import time
-from typing import NamedTuple
 
 # import win32con
 try:

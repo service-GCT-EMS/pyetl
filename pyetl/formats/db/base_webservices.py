@@ -48,6 +48,7 @@ TYPES_A = {
     "S": "S",
     "xsd:string": "T",
     "string": "T",
+    "str":"T",
     "xsd:date": "DS",
     "date": "DS",
     "xsd:int": "E",
@@ -273,6 +274,7 @@ class WfsConnect(DbConnect):
         self.get_attr_of_classe
         params = {"typename": niveau + ":" + classe}
         if attribut:
+            
             filter = F.PropertyIsLike(
                 propertyname=attribut, literal=valeur, wildCard="*"
             )
@@ -289,6 +291,39 @@ class WfstGenSql(DbGenSql):
     """generateur sql"""
 
     pass
+
+
+
+class CswCursinfo(Cursinfo):
+    """simule un curseur pour recuperer les resultats"""
+    def __init__(self,connecteur, volume=0, nom="", regle=None):
+        super().__init__(connecteur, volume, nom, regle)
+        self.cursor=CswCursor(regle,connecteur)
+
+class CswCursor(object):
+    """simule un curseur pour recuperer les resultats"""
+    def __init__(self,regle,connecteur):
+        self.connecteur=connecteur
+        self.connection=connecteur.connection
+        self.regle=regle
+        self.description=None
+        
+    def __iter__(self):
+        print ("dans cswcursor")
+        returned=1
+        nextrecord=0
+        while returned:
+            self.connection.getrecords2(esn="full",maxrecords=10,cql=self.connecteur.requete,startposition=nextrecord)
+            nmatch=self.connection.results["matches"]
+            returned=self.connection.results["returned"]
+            nextrecord=self.connection.results["nextrecord"]
+            print ("recup",self.connection.results)
+            while self.connection.records:
+                record=self.connection.records.popitem()[1]
+                print ("recup ",record)
+                iterable=((i,getattr(record,i)) for i in dir(record) if not i.startswith("_"))
+                yield iterable
+
 
 class CswConnect(DbConnect):
     """connecteur csw: simule un acces base a partir du schema pour des services de catalogue"""
@@ -312,21 +347,22 @@ class CswConnect(DbConnect):
         """effectue un getcapabilities pour connaitre le schema"""
         try:
             print("connection wcs", self.serveur)
-            if "version=" in self.serveur:
-                serveur, vdef = self.serveur.split(" ", 1)
-                version = vdef.split("=")[1]
-            else:
-                serveur = self.serveur
-                version = "1.1.0"
-            self.connection = CatalogueServiceWeb(url=serveur, version=version)
+            
+            serveur = self.serveur
+            self.connection = CatalogueServiceWeb(url=serveur)
             self.connection.cursor = lambda: None
             # simulation de curseur pour l'initialisation
         except Error as err:
             print("erreur wfs", err)
             return False
-        self.connection.getrecords2(esn="full",maxrecords=1)
+        self.connection.getrecords2(esn="full",maxrecords=2)
         self.storedrowcount=self.connection.results["matches"]
-        self.refrecord=self.connection.records.pop()
+        if self.storedrowcount=="0":
+            print ("pas de retour wfs") 
+            return False
+        self.refrecord=self.connection.records.popitem()
+        print("retour",self.refrecord)
+
         reponse=self.connection.response
         self.tablelist = ["metadata"]
         # print("retour getcap", len(self.tablelist))
@@ -356,9 +392,14 @@ class CswConnect(DbConnect):
         attlist = []
         tables = self.tablelist
         print("webservices: lecture tables", tables)
-        attdict={i:type(i) for i in dir(self.refrecord) if not i.startswith("_")} 
+        attdict={i:type(i).__name__ for i in dir(self.refrecord[1]) if not i.startswith("_")} 
+        print ("format metadonnee", attdict)
         for nom,typedef in attdict.items():
-            att=self.attdef(nom_groupe="md",nom_classe="metadata",nom_attr=nom,type_attr=typedef)
+            pyetltype = ALLTYPES.get(typedef)
+            if pyetltype is None:
+                print(" type inconnu", typedef)
+                pyetltype = "T"
+            att=self.attdef(nom_groupe="md",nom_classe="metadata",nom_attr=nom,type_attr=pyetltype)
             attlist.append(att)
         ident = ("md", "metadata")
         nouv_table = ["md", "metadata", "", "", "", -1, "", "", "", "", ""]
@@ -378,7 +419,7 @@ class CswConnect(DbConnect):
         """recupere un curseur"""
         # print(" postgres get cursinfo")
         return (
-            WfsCursinfo(self, volume=volume, nom=nom, regle=regle)
+            CswCursinfo(self, volume=volume, nom=nom, regle=regle)
             if self.connection
             else None
         )
@@ -417,22 +458,13 @@ class CswConnect(DbConnect):
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
-        requete = ""
+        self.requete = None
         data = ""
-        schema.resolve()
-        attlist = schema.get_liste_attributs()
-        self.get_attr_of_classe
-        params = {"typename": niveau + ":" + classe}
-        if attribut:
-            filter = F.PropertyIsLike(
-                propertyname=attribut, literal=valeur, wildCard="*"
-            )
-            filterxml = etree.tostring(filter.toXML(), encoding="unicode")
-            params["filter"] = filterxml
-        print("envoi requete", params)
-        # reponse = self.connection.getfeature(**params)
-        reponse = self.connection.getfeature(typename=niveau + ":" + classe)
-        print("wfs apres reponse", type(reponse))
+        # self.connection.getrecords2(esn="full",maxrecords=10)
+        # reponse=self.connection.records
+    
+        # print(" reponse", reponse)
+        return self.get_cursinfo()
         return reponse
 
 
@@ -443,4 +475,5 @@ class CswConnect(DbConnect):
 
 
 
-DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs")}
+DBDEF = {"wfs2": (WfsConnect, WfstGenSql, "server", "", "#gml", "acces wfs"),
+         "csw": (CswConnect, WfstGenSql, "server", "", "#gml", "acces metadonnees")}
