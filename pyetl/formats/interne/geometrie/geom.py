@@ -146,7 +146,7 @@ class Geometrie(object):
         """retourne True si la geometrie est fermee"""
         if self.lignes:
             return all(i.ferme for i in self.lignes)
-        print("ferme:pas de lignes")
+        # print("ferme:pas de lignes")
         return False
 
     @property

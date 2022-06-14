@@ -190,8 +190,8 @@ def f_sync(regle, __):
 def f_reel(regle, obj):
     """#aide||transforme un objet virtuel en objet reel
     #pattern||;;;reel;;
-    #--test1||rien||^;;;start||^;;;reel||cnt;1
-    #test2||obj;;2||;;;;;;;virtuel;;;||^;;;reel;;;||cnt;1
+    #test1||rien||^;;;start||^;;;reel||cnt;1
+    #test2||obj;;2||;;;;;;;virtuel;;;||^;;;reel;;;||cnt;3
     """
     # print("dans reel", obj.ido)
 
