@@ -368,7 +368,7 @@ def sortie_resultats(
     # nbvals = getattr(regle_courante, "nbvals", 0)
 
     namelist = curs.namelist
-    # print(" attributs recuperes avant", namelist)
+    print(" attributs recuperes avant", namelist)
     if type_geom == "indef":
         type_geom = schema_classe_travail.info["type_geom"]
     if type_geom != "0":
@@ -640,7 +640,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print('mdb: recup_donnees alpha', regle_courante, base, mods, sortie, classe)
     connect = baseselector.connect
     logger = regle_courante.stock_param.logger
-    logger.debug("recup liste tables %s", repr(list(baseselector.classlist())))
+    # logger.debug("recup liste tables %s", repr(list(baseselector.classlist())))
     if connect is None:
         regle_courante.stock_param.logger.error(
             "dbacces: pas de connection %s", repr(baseselector)
@@ -674,6 +674,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
+        # print ("description requete",description)
         treq = time.time()
         n += 1
         if ident is not None:

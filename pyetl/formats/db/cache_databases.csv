@@ -1,3 +1,4 @@
+csw;.base_webservices
 elyx;.base_elyx
 gpkg;.base_gdal
 mem_sqlite;.base_mem_sqlite

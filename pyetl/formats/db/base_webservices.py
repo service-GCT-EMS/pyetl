@@ -298,32 +298,44 @@ class CswCursinfo(Cursinfo):
     """simule un curseur pour recuperer les resultats"""
     def __init__(self,connecteur, volume=0, nom="", regle=None):
         super().__init__(connecteur, volume, nom, regle)
-        self.cursor=CswCursor(regle,connecteur)
+        self.cursor=CswCursor(self)
 
 class CswCursor(object):
     """simule un curseur pour recuperer les resultats"""
-    def __init__(self,regle,connecteur):
-        self.connecteur=connecteur
-        self.connection=connecteur.connection
-        self.regle=regle
+    def __init__(self,cursinfo):
+        self.cursinfo=cursinfo
+        self.regle=cursinfo.regle
+        self.connecteur=cursinfo.connecteur
+        self.connection=self.connecteur.connection
         self.description=None
+        self.lire_maxi=int(self.regle.getvar("lire_maxi",0))
+        self.connection.getrecords2(esn="full",maxrecords=1,cql=self.connecteur.requete,startposition=1)
+        self.returned=self.connection.results["returned"]
+        if self.returned:
+            record=self.connection.records.popitem()[1]
+            self.cursinfo.attlist=[i for i in dir(record) if not i.startswith("_")]
+
+            
+
         
     def __iter__(self):
         print ("dans cswcursor")
-        returned=1
-        nextrecord=0
-        while returned:
-            self.connection.getrecords2(esn="full",maxrecords=10,cql=self.connecteur.requete,startposition=nextrecord)
+        nextrecord=1
+        while nextrecord and (nextrecord<=self.lire_maxi) if self.lire_maxi else nextrecord:
+            nbrec=min(100,(self.lire_maxi+1-nextrecord) if self.lire_maxi else 100)
+            self.connection.getrecords2(esn="full",maxrecords=nbrec,cql=self.connecteur.requete,startposition=nextrecord)
             nmatch=self.connection.results["matches"]
-            returned=self.connection.results["returned"]
             nextrecord=self.connection.results["nextrecord"]
             print ("recup",self.connection.results)
             while self.connection.records:
                 record=self.connection.records.popitem()[1]
-                print ("recup ",record)
-                iterable=((i,getattr(record,i)) for i in dir(record) if not i.startswith("_"))
-                yield iterable
-
+                valeurs=[getattr(record,i) for i in self.cursinfo.namelist]
+                yield valeurs
+                
+    def close(self):
+        pass
+    
+    
 
 class CswConnect(DbConnect):
     """connecteur csw: simule un acces base a partir du schema pour des services de catalogue"""
@@ -391,9 +403,9 @@ class CswConnect(DbConnect):
 
         attlist = []
         tables = self.tablelist
-        print("webservices: lecture tables", tables)
+        # print("webservices: lecture tables", tables)
         attdict={i:type(i).__name__ for i in dir(self.refrecord[1]) if not i.startswith("_")} 
-        print ("format metadonnee", attdict)
+        # print ("format metadonnee", attdict)
         for nom,typedef in attdict.items():
             pyetltype = ALLTYPES.get(typedef)
             if pyetltype is None:
@@ -405,6 +417,7 @@ class CswConnect(DbConnect):
         nouv_table = ["md", "metadata", "", "", "", -1, "", "", "", "", ""]
             # print ('table', nouv_table)
         self.tables[ident] = nouv_table
+        self.attlist=attlist[:]
         return attlist
 
     def get_enums(self):
@@ -455,17 +468,38 @@ class CswConnect(DbConnect):
             return bbox
         return ""
 
-    def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
+    def req_alpha(self, ident, schema, attr, val, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         self.requete = None
-        data = ""
+        print ("req_alpha",ident,attr,val)
+        if val:
+            if val.startswith("~"):
+                cond=' Like '
+                val="%"+val[1:]+"%"
+            else:
+                cond=' = '
+            val="'"+val+"'"
+        if not attr:
+            attr="AnyText"
+        self.requete=attr+cond + val
+        print ("construction requete",self.requete)
+
+            # self.requete=r"csw:AnyText Like '%ilot%'"
+
         # self.connection.getrecords2(esn="full",maxrecords=10)
         # reponse=self.connection.records
     
         # print(" reponse", reponse)
-        return self.get_cursinfo()
-        return reponse
+        return self.get_cursinfo(regle=self.regle)
+        return self.iterreq(
+                requete,
+                data,
+                attlist=attlist[:],
+                has_geom=schema.info["type_geom"] != "0",
+                volume=volinfo,
+                nom=classe,)
+        
 
 
 
