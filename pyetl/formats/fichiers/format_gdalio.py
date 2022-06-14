@@ -299,9 +299,6 @@ class GdalWriter(FileWriter):
         """change de classe"""
 
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
-        if self.schemaclasse==schemaclasse and self.ressource.etat==1:
-            # c est la bonne classe et elle est ouverte
-            return
         if self.ressource.etat == 1:
             self.close()
         _, classe = schemaclasse.identclasse
@@ -352,7 +349,6 @@ class GdalWriter(FileWriter):
         try:
             if self.layer in self.layerstate and self.layerstate[self.layer] == 1:
                 self.fichier.close()
-                self.ressource.etat=2
                 self.layerstate[self.layer] = 2
         except AttributeError:
             print(
@@ -458,7 +454,6 @@ def gdalconverter(obj, liste_att, minmajfunc):
                 "schema:",
                 obj.schema.info["type_geom"],
                 obj,
-                list(obj.geom_v.coords)
             )
             return ""
     else:

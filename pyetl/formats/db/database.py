@@ -827,15 +827,15 @@ class DbConnect(object):
 
     def get_surf(self, nom):
         """surface d un polygone"""
-        return 0
+        return nom
 
     def get_perim(self, nom):
         """perimetre d un polygone"""
-        return 0
+        return nom
 
     def get_long(self, nom):
         """longueur d une ligne"""
-        return 0
+        return nom
 
     def set_geom(self, geom, srid):
         """cree la geometrie"""

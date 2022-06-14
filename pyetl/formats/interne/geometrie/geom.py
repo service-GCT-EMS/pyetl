@@ -236,7 +236,6 @@ class Geometrie(object):
         if self.lignes:
             ligne_active = self.lignes[-1]
             if ligne_active.addpoint(coords, dim):
-                # print ("ajout point changt ligne", coords, list(ligne_active.coords))
                 # la ligne est fermee
                 self.nouvelle_ligne_p(coords, dim)
                 # on ajoute un point a une nouvelle ligne
@@ -274,11 +273,6 @@ class Geometrie(object):
         sect = self.lignes[-1].fin_section(couleur, courbe)
         if sect:  # on a tente d'ajouter un cercle
             self.nouvelle_ligne_s(sect)
-
-    def fin_ligne(self):
-        """force une fin de ligne"""
-        if self.lignes:
-            self.lignes[-1].termine=True
 
     def annule_section(self):
         """annule la derniere section en cours"""
@@ -370,10 +364,6 @@ class Geometrie(object):
                             self.erreurs.ajout_warning("interieur")
                     else:
                         self.polygones.append(C.Polygone(i))
-            # else:
-            #     print ("element non ferme", list(self.coords))
-            #     print ("lignes", self.lignes)
-            #     # raise
 
         if self.lignes:
             self.type = "3" if self.polygones else "2"

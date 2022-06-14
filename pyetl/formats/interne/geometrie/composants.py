@@ -285,14 +285,13 @@ class Ligne(object):
 
     def addpoint(self, pnt, dim):
         """on ajoute un point a une ligne"""
-        # print ('addpoint_ligne', pnt, self.dpt, self.termine)
+        #        print ('addpoint_ligne')
         if self.termine:
             return pnt  # pas possible la ligne est fermee
         sc = self.sections[-1]
         if sc.encours:
             sc.addpoint(pnt)
             return 0
-        
         if self.dpt == pnt:
             sect = Section(pnt, dim)
             self.sections.append(sect)
@@ -344,7 +343,7 @@ class Ligne(object):
         """ finalise la geometrie d'une section """
         sc = self.sections[-1]
         sc.finalise(couleur, courbe)
-        # self.termine = True
+        self.termine = True
         if courbe == 3:  # cas particulier du cercle
             if (
                 len(self.sections) > 1

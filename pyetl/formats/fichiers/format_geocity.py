@@ -323,7 +323,7 @@ def _cotation(iter_gy, obj):
 
 def lire_objets_geocity(self, rep, chemin, fichier):
     """boucle de lecture principale -> attention methode de reader"""
-    self.lus_fich=0
+
     n_obj = 0
     # ouv = None
     regle = self.regle_start
@@ -405,7 +405,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         ):  # traitement des dates
                             #                            print( 'detecte date', val_attr)
                             err, val_attr = valide_dates(val_attr, "in")
-                        obj.attributs[i] = val_attr if val_attr is not None else '' # stockage des attributs
+                        obj.attributs[i] = val_attr  # stockage des attributs
                         # if atttop or ast:
                         # print ('attribut' ,i,'->',at)
                     #                if atttop or ast: # on est en présence d'attributs de topologie
@@ -510,7 +510,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     else:
                         addpoints3d(obj, iter_gy, 3)
                         consomme(iter_gy, 3)  # jette le 4eme identique au premier
-                    obj.geom_v.fin_section(1, 3)
+                    obj.geom_v.fin_section(1, "3")
 
                 elif val == "S" or val == "PA" or val == "CO" or val == "E":
                     # spline : on rale et on traite comme une polyligne
@@ -518,8 +518,8 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         "attention spline ou autre horreur detectee :"
                         + val
                         + " "
-                        + niveau,
-                        classe + ":" + "|".join(obj.attributs.values() if obj else ()),
+                        + self.niveau,
+                        self.classe + ":" + "|".join(obj.attributs.values()),
                     )
                     couleur = "1"
                     courbe = 0
@@ -545,11 +545,9 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         obj.geom_v.fin_section(couleur, 0)  # c'est de la partition
                     else:  # c'est un polygone complexe
                         obj.geom_v.fin_section(couleur, 0)
-                        obj.geom_v.fin_ligne()
                 elif val == "FG":
-                    # print ("finalise", type_geom)
                     obj.finalise_geom(type_geom=type_geom, desordre=mode == "P")
-                    # print ("retour", obj.geom_v.type)
+
                     if not obj.geom_v.valide:
                         print(
                             "erreur geometrique",

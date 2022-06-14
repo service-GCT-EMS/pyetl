@@ -78,7 +78,6 @@ class GdalConnect(DbConnect):
         try:
 
             self.connection = fiona.open(self.base)
-            print("recup fiona", self.connection.meta)
         except Exception as err:
             print(
                 "error: gpkg: utilisateur ou mot de passe errone sur la base gpkg",

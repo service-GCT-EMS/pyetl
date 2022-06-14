@@ -680,7 +680,6 @@ def h_fileloader(regle):
     if "[" in regle.params.cmp1.val:
         regle.dyn = True
     else:
-        regle.refdir=regle.params.cmp1.val
         regle.dyn = False
         regle.chargeur = True
     regle.stock_param.gestion_parallel_load(regle)
@@ -712,10 +711,9 @@ def f_fileloader(regle, obj):
      #aide_spec||cette fonction est l' équivalent du chargement initial
                ||peut fonctionner en parallele positionner multi a -1
                ||pour un nombre de process egal au nombre de processeurs
-      #pattern1||?A;?C;?A;charge;?C;
+       #pattern||?A;?C;?A;charge;?C;
       #pattern2||?A;?C;?A;charge;[A];
-    #parametres1||sortie:nb obj lus;defaut;fichier;;repertoire
-    #parametres2||sortie:nb obj lus;defaut;fichier;;repertoire(dynamique)
+    #parametres||sortie:nb obj lus;
         #schema||ajout_attribut
          !#test2||obj||^NB;;;charge;%testrep%/refdata/lecture;;;multi=2||+gen:;;;;;;;pass>;;;||atv;NB;8
          #test1||obj||^NB;;;charge;%testrep%/refdata/lecture;;;||+gen:;;;;;;;pass>;;;||atv;NB;8
