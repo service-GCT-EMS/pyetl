@@ -168,7 +168,7 @@ class TableBaseSelector(object):
         for niveau, classes, attr, valeur, fonction in self.descripteurs:
             if niveau == "#":
                 pass  # placeholder genere une entree base mais pas de classes
-            vref = valeur[1] if valeur else ""
+            vref = valeur if valeur else ""
             for j in classes:
                 classlist = self.add_classlist(
                     niveau, j, attr, vref, fonction, mod, nobase=self.nobase
