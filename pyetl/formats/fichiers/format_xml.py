@@ -457,7 +457,9 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
 
 
 def convert_qgs_enums(nom):
+    """convertit les enums d un projet qgis en liste de valeurs"""
     projet = ET.parse(nom)
+    racine = os.path.dirname(nom)
     for layer in projet.iter("maplayer"):
         provider = layer.find("provider")
         #        print ('couches',layer.find('layername').text, ' type : ',layer.find('provider').text, layer.find('datasource').text)

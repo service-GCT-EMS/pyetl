@@ -461,7 +461,8 @@ class Objet(object):
         )
         # LOGGER.debug("mode debug")
         LOGGER.debug("%s", invariant)
-        LOGGER.debug("   schema:%s", schema)
+        if not attlist:
+            LOGGER.debug("   schema:%s", schema)
         LOGGER.debug("   obj   :%s", attributs)
         if code == "apres":
             LOGGER.debug(" ==================================================== ")

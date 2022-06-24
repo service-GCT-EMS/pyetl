@@ -3580,19 +3580,26 @@ charge
 
 **syntaxes acceptees**
 
-+---------+---------+---------+-----------+---------+-----------+
-|sortie   |defaut   |entree   |commande   |param1   |param2     |
-+=========+=========+=========+===========+=========+===========+
-|?A       |?C       |?A       |charge     |?C       |           |
-+---------+---------+---------+-----------+---------+-----------+
-| *cette fonction est l' équivalent du chargement initial*      |
-| *peut fonctionner en parallele positionner multi a -1*        |
-| *pour un nombre de process egal au nombre de processeurs*     |
-+---------+---------+---------+-----------+---------+-----------+
-|?A       |?C       |?A       |charge     |[A]      |           |
-+---------+---------+---------+-----------+---------+-----------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |?C    |?A    |charge  |?C    |        |
++------+------+------+--------+------+--------+
+|?A    |?C    |?A    |charge  |[A]   |        |
++------+------+------+--------+------+--------+
 
 
+   ?A :  sortie:nb obj lus (optionnel)
+   ?C :  defaut (optionnel)
+   ?A :  fichier (optionnel)
+   charge :  
+   ?C :  repertoire (optionnel)
+
+   ?A :  sortie:nb obj lus (optionnel)
+   ?C :  defaut (optionnel)
+   ?A :  fichier (optionnel)
+   charge :  
+   [A] :  repertoire(dynamique)
 
 
 

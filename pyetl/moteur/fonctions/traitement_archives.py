@@ -14,6 +14,42 @@ import time
 import logging
 import hashlib
 
+def listefichs(regle,nom):
+    """gere la compression"""
+    racine = regle.params.cmp2.val
+    stock = dict()
+    mode=0
+    if regle.params.att_entree.val:
+        fich = os.path.join(racine, nom)
+        if fich:
+            stock[fich] = fich
+            mode = "a"
+    else:
+        mode = "w"
+        regle.stock_param.logger.info(
+            "archive : ecriture zip:" + (racine + ":")
+            if racine
+            else "" + ",".join(regle.params.val_entree.liste) + " -> " + dest
+        )
+        for f_1 in regle.params.val_entree.liste:
+            clefs = []
+            f_interm = os.path.join(racine, f_1)
+            if "*" in os.path.basename(f_interm):
+                clefs = [i for i in os.path.basename(f_interm).split("*") if i]
+                #                print( 'clefs de fichier zip',clefs)
+                f_interm = os.path.dirname(f_interm)
+            if os.path.isdir(f_interm):
+                for fich in os.listdir(f_interm):
+                    #                    print(' test fich ',fich, [i in fich for i in clefs])
+                    if all([i in fich for i in clefs]):
+                        stock[os.path.join(f_interm, fich)] = fich
+            else:
+                stock[f_interm] = f_interm
+
+    with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
+        for i in stock:
+            file.write(i, arcname=stock[i])
+
 
 def h_archive(regle):
     """definit la regle comme declenchable"""

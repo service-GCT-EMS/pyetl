@@ -34,7 +34,7 @@ def fdebug(regle, obj):
         wid = regle.getvar("_wid")
         debugmode = regle.v_nommees["debug"]
 
-        if debugmode == "print":
+        if "print" in debugmode:
             regle.affiche_debug(wid + "------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
             regle.debugvalid = False
@@ -59,6 +59,7 @@ def fdebug(regle, obj):
         #        if obj.redirect and obj.redirect not in regle.branchements.brch:
         #            redirect = 'ok'
         #            print ('branchement orphelin', obj.redirect, '(',regle.branchements.brch.keys())
+        
         print(
             "retour fonction ",
             succes,

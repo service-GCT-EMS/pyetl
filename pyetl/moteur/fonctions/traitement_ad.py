@@ -166,7 +166,7 @@ def h_adquery(regle):
     """initialise l'acces active_directory"""
 
     # print("acces LDAP", ACD.root(), regle)
-    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["cn"]
+    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["CN"]
     adcode = regle.getvar("ADserver")
     if adcode:
         # connection specifique a un autre serveur AD
@@ -276,7 +276,7 @@ def f_adquery(regle, obj):
             val.dump()
             regle.setval_sortie(obj, "")
             return True
-        if regle.params.pattern == "1" and regle.a_recuperer == ["cn"]:
+        if regle.params.pattern == "1" and regle.a_recuperer == ["CN"]:
             if items:
                 val = next(items, [""])
                 # if regle.debug:
@@ -290,7 +290,7 @@ def f_adquery(regle, obj):
                 val = item
             else:
                 val = getattr(item, regle.a_recuperer[0])
-            print("extraction adquey", item, val)
+            # print("extraction adquey", item, val)
             regle.setval_sortie(obj2, val)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
 

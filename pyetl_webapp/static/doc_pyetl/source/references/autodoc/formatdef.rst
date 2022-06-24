@@ -47,6 +47,7 @@ reference bases de donnees
 ====================        ==========    ===========
 format                         lecture      ecriture
 ====================        ==========    ===========
+csw                                oui           oui
 elyx                               oui           oui
 gpkg                               oui           oui
 mem_sqlite                         oui           oui
@@ -64,6 +65,23 @@ sqlite                             oui           oui
 wfs                                oui           oui
 wfs2                               oui           oui
 ====================        ==========    ===========
+
+csw
+...
+
+
+Acces aux services web wfs
+
+commandes disponibles :
+
+    * requete getcapabilities et analyse des donnees disponibles
+
+
+necessite la librairie owslib
+
+il est necessaire de positionner les parametres suivant:
+
+
 
 elyx
 ....

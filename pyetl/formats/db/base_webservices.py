@@ -347,7 +347,7 @@ class CswConnect(DbConnect):
         # importer()
 
         self.types_base.update(TYPES_A)
-        self.type_base = "wfs"
+        self.type_base = "csw"
         self.tablelist = []
         self.connect()
         self.geographique = True
@@ -472,6 +472,7 @@ class CswConnect(DbConnect):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         self.requete = None
+        cond=""
         print ("req_alpha",ident,attr,val)
         if val:
             if val.startswith("~"):
@@ -481,7 +482,7 @@ class CswConnect(DbConnect):
                 cond=' = '
             val="'"+val+"'"
         if not attr:
-            attr="AnyText"
+            attr="csw:AnyText"
         self.requete=attr+cond + val
         print ("construction requete",self.requete)
 

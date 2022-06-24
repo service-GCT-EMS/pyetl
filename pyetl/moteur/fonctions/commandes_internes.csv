@@ -264,7 +264,10 @@ db:%acces%;%niveau%;%classe%;;;;;dbextdump;%rep_sortie%;%log%;fin;
 $mode_sortie=D;;;;;;;;;;;
 <#initdb;%acces%;;;;;
 $rel_geo=%rel_geo%;dans_emprise;;;;;;;;;;;
-db:%acces%;%niveau%;%classe%;%rel_geo%;%champ%;%buffer%;;dbgeo;%mod%;%ordre%;fin;
+K:%emprise%;$sans_entree=1;;;;
+K:%emprise%;;;;;nom;emprise;;creobj;emprise;1;
+K:%emprise%;;;;;;%emprise%;;addgeom;2;;fin;;# on ajoute une geometrie de ligne
+db:%acces%;%niveau%;%classe%;%rel_geo%;%champ%;%buffer%;;dbgeo>;%mod%;%ordre%;fin;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbextract+gid;acces;niveau;classe;attribut;valeur;;;;;
 !#help;lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe;;;;;;;;;;

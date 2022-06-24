@@ -327,16 +327,18 @@ def f_xmlsave(regle, obj):
     return True
 
 
-def load_templates(regle, templatedef):
+def load_templates(regle, templatedir):
     """precharge les templates"""
     from jinja2 import FileSystemLoader, Environment
 
-    if os.path.isdir(templatedef):
-        templatedir = templatedef
+    if os.path.isdir(templatedir):
         templatename = ""
+    elif os.path.isfile(templatedir):
+        templatename = os.path.basename(templatedir)
+        templatedir = os.path.dirname(templatedir)
     else:
-        templatedir = os.path.dirname(templatedef)
-        templatename = os.path.basename(templatedef)
+        raise FileNotFoundError 
+
     loader = FileSystemLoader(templatedir)
     variables = regle.context.getvars()
     envir = Environment(loader=loader)
@@ -350,35 +352,39 @@ def load_templates(regle, templatedef):
 
 def h_formated_save(regle):
     """precharge les templates"""
-    templatedef = regle.params.cmp1.val
+    templatedef = os.path.join(regle.params.cmp1.val,regle.params.val_entree.val) if regle.params.att_entree.val=="" else regle.params.cmp1.val 
     load_templates(regle, templatedef)
-    destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp2.val)
-    os.makedirs(destdir, exist_ok=True)
-    regle.destdir = destdir
+    regle.destdir=""
+    if regle.params.pattern=="2":
+        destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp2.val)
+        os.makedirs(destdir, exist_ok=True)
+        regle.destdir = destdir
 
 
 def f_formated_save(regle, obj):
-    """#aide||stockage de l objet dans un fichier en utilisant un template jinja2
-       #pattern1||A;;;formated_save;C;?C;
-       #pattern2||A;C?;A;formated_save;C;?C;
-    #parametres1||nom fichier;;nom du template;nom du repertoire de sortie
-    #parametres2||nom fichier;defaut;attribut nom du template;;nom du repertoire de template;nom du repertoire de sortie
+    """#aide||stockage de l objet dans un fichier ou un attribut en utilisant un template jinja2
+       #pattern1||A;C?;?A;formated_save;C;;
+       #pattern2||[A];C?;?A;formated_save;C;?C;
+    #parametres1||attribut;defaut;attribut nom du template;;repertoire de template;
+    #parametres2||nom fichier;defaut;attribut nom du template;;repertoire de template;repertoire de sortie
     """
-    templatename = (
-        regle.getval_entree(obj) if regle.params.pattern == "2" else regle.templatename
-    )
+    
+    templatename = regle.templatename or regle.getval_entree(obj)
     if templatename not in regle.templates:
         regle.templates[templatename] = regle.envir.get_template(templatename)
     template = regle.templates[templatename]
     sortie = template.render(obj.attributs)
     # print("xml en sortie", sortie)
-    destname = obj.attributs.get(regle.params.att_sortie.val)
-    subdir = os.path.dirname(destname)
-    if subdir:
-        destdir = os.path.join(regle.destdir, subdir)
-        os.makedirs(destdir, exist_ok=True)
-    dest = os.path.join(regle.destdir, destname)
-    # print("ecriture sortie xml", dest)
-    with open(dest, "w", encoding="utf-8") as fich:
-        fich.write(sortie)
-    return True
+    if regle.params.pattern=="2":
+        destname = obj.attributs.get(regle.params.att_sortie.val)
+        subdir = os.path.dirname(destname)
+        if subdir:
+            destdir = os.path.join(regle.destdir, subdir)
+            os.makedirs(destdir, exist_ok=True)
+        dest = os.path.join(regle.destdir, destname)
+        # print("ecriture sortie xml", dest)
+        with open(dest, "w", encoding="utf-8") as fich:
+            fich.write(sortie)
+        return True
+    else:
+        obj.attributs[regle.params.att_sortie.val] = sortie
