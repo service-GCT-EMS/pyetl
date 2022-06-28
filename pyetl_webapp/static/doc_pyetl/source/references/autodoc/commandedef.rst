@@ -3580,26 +3580,19 @@ charge
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|?A    |?C    |?A    |charge  |?C    |        |
-+------+------+------+--------+------+--------+
-|?A    |?C    |?A    |charge  |[A]   |        |
-+------+------+------+--------+------+--------+
++---------+---------+---------+-----------+---------+-----------+
+|sortie   |defaut   |entree   |commande   |param1   |param2     |
++=========+=========+=========+===========+=========+===========+
+|?A       |?C       |?A       |charge     |?C       |           |
++---------+---------+---------+-----------+---------+-----------+
+| *cette fonction est l' équivalent du chargement initial*      |
+| *peut fonctionner en parallele positionner multi a -1*        |
+| *pour un nombre de process egal au nombre de processeurs*     |
++---------+---------+---------+-----------+---------+-----------+
+|?A       |?C       |?A       |charge     |[A]      |           |
++---------+---------+---------+-----------+---------+-----------+
 
 
-   ?A :  sortie:nb obj lus (optionnel)
-   ?C :  defaut (optionnel)
-   ?A :  fichier (optionnel)
-   charge :  
-   ?C :  repertoire (optionnel)
-
-   ?A :  sortie:nb obj lus (optionnel)
-   ?C :  defaut (optionnel)
-   ?A :  fichier (optionnel)
-   charge :  
-   [A] :  repertoire(dynamique)
 
 
 
@@ -4247,7 +4240,7 @@ xml
 formated_save
 .............
 
-   stockage de l objet dans un fichier en utilisant un template jinja2
+   stockage de l objet dans un fichier ou un attribut en utilisant un template jinja2
 
 
 **syntaxes acceptees**
@@ -4255,23 +4248,24 @@ formated_save
 +------+------+------+-------------+------+--------+
 |sortie|defaut|entree|commande     |param1|param2  |
 +======+======+======+=============+======+========+
-|A     |      |      |formated_save|C     |?C      |
+|A     |C?    |?A    |formated_save|C     |        |
 +------+------+------+-------------+------+--------+
-|A     |C?    |A     |formated_save|C     |?C      |
+|[A]   |C?    |?A    |formated_save|C     |?C      |
 +------+------+------+-------------+------+--------+
 
 
-   A :  nom fichier
-   formated_save :  
-   C :  nom du template
-   ?C :  nom du repertoire de sortie (optionnel)
-
-   A :  nom fichier
+   A :  attribut
    C? :  defaut (optionnel)
-   A :  attribut nom du template
+   ?A :  attribut nom du template (optionnel)
    formated_save :  
-   C :  nom du repertoire de template
-   ?C :  nom du repertoire de sortie (optionnel)
+   C :  repertoire de template
+
+   [A] :  nom fichier
+   C? :  defaut (optionnel)
+   ?A :  attribut nom du template (optionnel)
+   formated_save :  
+   C :  repertoire de template
+   ?C :  repertoire de sortie (optionnel)
 
 
 

@@ -64,10 +64,20 @@ from .moteur.fonctions.parallel import setparallel
 
 # MODULEDEBUG = False
 
+def cremapper():
+    """on cree l'objet parent et l'executeur principal"""
+    mapper = Pyetl()
+    # mapper.initpyetl("#init_mp", [])
+    mapper.ismainmapper = True
+    return set_mainmapper(mapper)
+
+
 
 def runpyetl(commandes, args):
     """lancement standardise c'est la fonction appelee au debut du programme"""
     mainmapper = getmainmapper()
+    if not mainmapper:
+        mainmapper=cremapper()
     if not is_special(commandes):
         loginfo = L.getlog(args)
         for i, v in loginfo.items():
@@ -335,6 +345,11 @@ class Pyetl(object):
             self._charge_site_params(self.site_params_def)
             if self.getvar("_paramperso") != "noparam":
                 self._charge_site_params(self.paramdir)
+            print ("traitement masterkey",self.getvar("nomaster"),self.istrue("nomaster")),
+            if self.istrue("nomaster"):
+                self.setvar("masterkey","")
+                print ("suppression masterkey", self.getvar("masterkey"))
+                
             cryptinfo = (
                 os.getlogin(),
                 self.getvar("usergroup"),
@@ -1450,16 +1465,19 @@ class Pyetl(object):
         return lecteur.lus_fich
 
 
-# on cree l'objet parent et l'executeur principal
-mapper = Pyetl()
-# mapper.initpyetl("#init_mp", [])
-mapper.ismainmapper = True
-set_mainmapper(mapper)
+# # on cree l'objet parent et l'executeur principal
+# mapper = Pyetl()
+# # mapper.initpyetl("#init_mp", [])
+# mapper.ismainmapper = True
+# set_mainmapper(mapper)
+
 
 
 def _main():
     """mode autotest du module"""
     print("autotest complet")
+    # on cree l'objet parent et l'executeur principal
+    cremapper()
     ppp = getmainmapper().getpyetl("#autotest", liste_params=[])
     if ppp:
         # if ppp.prepare_module("#autotest", []):

@@ -481,9 +481,9 @@ class CswConnect(DbConnect):
             else:
                 cond=' = '
             val="'"+val+"'"
-        if not attr:
-            attr="csw:AnyText"
-        self.requete=attr+cond + val
+            if not attr:
+                attr="csw:AnyText"
+            self.requete= attr+cond + val
         print ("construction requete",self.requete)
 
             # self.requete=r"csw:AnyText Like '%ilot%'"
@@ -493,13 +493,6 @@ class CswConnect(DbConnect):
     
         # print(" reponse", reponse)
         return self.get_cursinfo(regle=self.regle)
-        return self.iterreq(
-                requete,
-                data,
-                attlist=attlist[:],
-                has_geom=schema.info["type_geom"] != "0",
-                volume=volinfo,
-                nom=classe,)
         
 
 

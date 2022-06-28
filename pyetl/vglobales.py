@@ -10,7 +10,7 @@ import platform
 
 
 REVISION = "0.8.3p"
-BUILD = 54
+BUILD = 55
 isdev = (
     "_dev_ems"
     if os.path.isdir(os.path.join(os.path.dirname(__file__), "devenv"))
@@ -25,6 +25,7 @@ def set_mainmapper(val):
     """positionnement du point d entree pou les traitements paralleles"""
     # print("positionnement de mainMapper", val)
     MAINMAPPER[0] = val
+    return MAINMAPPER[0]
 
 
 def getmainmapper():
