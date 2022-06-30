@@ -128,17 +128,20 @@ def selh_infich(condition):
         taille=len(condition.params.attr.liste),
     )
     # print("recup_condition", mode, valeurs)
+    condition.dyn = False
+    condition.info = {}
+    condition.taille = 0
     if mode == "in_s":
-        condition.dyn = False
         if valeurs:
             taille_id = max([len(i[0].split(".")) for i in valeurs])
             condition.info = set(i[0] for i in valeurs)
             condition.taille = taille_id
-        else:
-            condition.info = {}
-            condition.taille = 0
+            
     else:
         condition.dyn = True
+
+    if condition.debug:
+        print ("condition infich",condition, mode,valeurs,condition.taille, condition.info)
 
 
 #    print ('condition liste fich charge ',condition.info)
@@ -421,7 +424,10 @@ def sel_idinfich(condition, obj):
         #helper||infich
     !test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
     """
+    
     if condition.taille == 3 and "#codebase" in obj.attributs:  # on a ajoute la base
+        if condition.debug:
+            print ("debug",obj.attributs.get("#codebase") + "." + ".".join(obj.ident))
         return (
             obj.attributs.get("#codebase") + "." + ".".join(obj.ident) in condition.info
         )

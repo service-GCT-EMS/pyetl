@@ -335,6 +335,8 @@ class TableBaseSelector(object):
         return schema_travail
 
 
+
+
 class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
     generes par des condition in: complexes
@@ -367,6 +369,7 @@ class TableSelector(object):
         self.nom = "S" + str(self.regle_ref.numero)
         self.metainfos = ""
         self.maxsel = 0
+        self.dbref=dict()
 
     def __repr__(self):
         return self.nom + repr([repr(bs) for bs in self.baseselectors.values()])
@@ -432,12 +435,59 @@ class TableSelector(object):
             print("suppression base : keyerror", base, self.baseselectors.keys())
             return False
 
+    def setdbref(self):
+        """identifie les references de bases de donnees pour qgis"""
+        priorites = dict()
+        refbases=set(self.regle_ref.getvar("baselist").split(",")) if self.regle_ref else {}
+        ## variable:baselist:liste de bases prioritaires pour les selections qgis(override du defaut du site_params)
+        for nom,variables  in self.mapper.site_params.items():
+            base, host, port = "", "", ""
+            priorite = 99
+            for clef, val in variables:
+                if clef == "server":
+                    if "port" in val and "host" in val:
+                        host, port = val.split(" ", 1)
+                    else:
+                        host = val
+                elif clef == "base":
+                    base = val
+                elif clef == "priorite":
+                    priorite = int(val)
+            if nom in refbases:
+                priorite=-99
+            if base:
+                tb = (base, host, port)
+                if tb in priorites:
+                    if priorite > priorites[tb]:
+                        # print("non retenu", nom, tb, priorite, priorites[tb])
+                        self.dbref[nom] = self.dbref[tb]
+                        for i, j in self.dbref.items():
+                            if j == nom:
+                                self.dbref[i] = self.dbref[tb]
+                        continue
+                # base non prioritaire on a deja la definition on la remappe sur l autre
+                # print("retenu", nom, tb, priorite, priorites.get(tb))
+                priorites[tb] = priorite
+                self.dbref[tb] = nom
+                self.dbref[",".join(tb)] = nom
+                self.dbref[nom] = nom
+
+
+
+
+
+
+
+
+
     def idbase(self, base):
         """identifie une base de donnees"""
+        if not self.dbref:
+            self.setdbref()
         if not base:
             print("idbase: pas de base definie", base)
-        if base in self.mapper.dbref:
-            base = self.mapper.dbref[base]
+        if base in self.dbref:
+            base = self.dbref[base]
         elif base == "*":
             pass
         elif base.startswith("*"):  # service

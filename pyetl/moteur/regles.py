@@ -303,6 +303,7 @@ class ParametresCondition(ParametresFonction):
         self.vals = self._crent("vals")
         self.specif = dict()
         self.pattern = pnum
+        
 
     def __repr__(self):
         listev = ["attr:%s" % (str(self.attr)), "vals:%s" % (str(self.vals))]
@@ -326,6 +327,7 @@ class Condition(object):
         self.neg = False
         self.pattern = None
         self.erreurs = None
+        self.debug = self.regle.istrue("debug_cond") if self.regle else False
         self.choix_fonction(attribut, valeur)
 
     def __repr__(self):
