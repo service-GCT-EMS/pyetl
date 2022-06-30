@@ -13,6 +13,7 @@ import time
 import os
 import logging
 import itertools
+import xml.etree.ElementTree as ET
 from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
 from .outils import scandirs, hasbom, _extract
@@ -712,6 +713,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         selecteur.resolve(obj)
     destbase = regle.base
     basedict = regle.basedict
+    enums_to_list = regle.istrue("enums_to_list")
     for fich, chemin in scandirs(fichier, "", rec=True):
         if not fich:  # un peu bizarre on a donne un fichier a la place d un repertoire
             element = os.path.join(fichier, chemin) if chemin else fichier
@@ -726,6 +728,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
         seldef = select_in(regle, element, "*") if not selecteur else selecteur
+        seldef.resolve(obj)
         regle.stock_param.logger.info(
             "traitement (%s) %s->" + fdest, seldef.nom, element
         )
@@ -792,6 +795,68 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
     # print ('lus fichier qgis ',fichier,list(stock))
     return True
 
+def convert_qgs_enums(nom,selecteur):
+    """convertit les enums d un projet qgis en liste de valeurs"""
+    projet = ET.parse(nom)
+    racine = os.path.dirname(nom)
+    for layer in projet.iter("maplayer"):
+        provider = layer.find("provider")
+        #        print ('couches',layer.find('layername').text, ' type : ',layer.find('provider').text, layer.find('datasource').text)
+        #        print ('valeur de provider',provider)
+        if provider is not None:
+            #            print ('-------------------------valeur de provider',provider)
+
+            sourcetype = provider.text
+            source = layer.find("datasource")
+            ligne_source = source.text
+            if sourcetype == "postgres":
+                # traitement base postgres : on passe en base locale et on modifie les elements
+                l = ligne_source.split(" ")
+                table, dbname, svname, port = ("", "", "", "")
+                
+                for k in l:
+                    v = k.split("=")
+                    if "dbname" in v[0]:
+                        dbname = v[1].replace("'", "")
+                    if v[0] == "table":
+                        table = v[1].replace('"', "")
+                        if table in selecteur.schema_travail.classes:
+                            table = selecteur.schema_travail.classes[table]
+                    if v[0] == "host":
+                        svname = v[1]
+                    if v[0] == "port":
+                        port = v[1]
+                base = (dbname, "host=" + svname, "port=" + port)
+                idbase = selecteur.idbase(base)
+                if idbase in selecteur.baseselectors:
+                    baseselector = selecteur.baseselectors[idbase]
+                # print ('detecte base', dbname,svdef)
+                table = table.replace('"', "")
+                idtable = tuple(table.split("."))
+                tabledef=baseselector.schematravail.classes.get(idtable)
+                source.text = ligne_source
+                # === analyse et modification des editeurs
+                for editeur in layer.iter("edittype"):
+                    widgettype = editeur.get("widgetv2type")
+                    if (
+                        editeur.get("widgetv2type") == "Enumeration"
+                    ):  # c'est une enum : on modifie
+                        nom_att_enum = editeur.get("name")
+                        if nom_att_enum:
+                            print("detection enum", dbname, "->", nom_att_enum)
+                        if (nom_att_enum in tabledef.attributs):
+                            nom_enum = tabledef.attributs[nom_att_enum].conformite
+                            if (nom_enum in baseselector.schematravail.enumerations):
+                                print("enum traitable:", nom_enum)
+                                editeur.set("widgetv2type", "ValueMap")
+                                config = editeur.find("widgetv2config")
+                                for item in baseselector.schematravail.enumerations[nom_enum]:
+                                    newvalue = ET.Element(
+                                        "value", attrib={"key": item, "value": item}
+                                    )
+                                    config.append(newvalue)
+
+                print ('transformation',source.text)
 
 def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     """decodage de selecteurs en fichiers csv
