@@ -53,41 +53,16 @@ def listefichs(regle,nom):
 
 def h_archive(regle):
     """definit la regle comme declenchable"""
-    regle.chargeur = True
-
-
-def f_archive(regle, obj):
-    """#aide||zippe les fichiers ou les repertoires de sortie
-    #parametres||liste de noms de fichiers(avec \*...);attribut contenant le nom;;nom du fichier zip
-      #pattern1||;?C;?A;archive;C;?C
-      #pattern2||;?C;?A;zip;C;?C
-         #test||notest
-    """
-    #    if not obj.virtuel:
-    #        return False
     racine = regle.params.cmp2.val
     dest = os.path.join(racine, regle.params.cmp1.val + ".zip")
-    os.makedirs(os.path.dirname(dest), exist_ok=True)
-    stock = dict()
-    print(
-        "archive",
-        time.ctime(),
-        regle.params.val_entree.liste,
-        dest,
-        regle.getvar("_sortie"),
-    )
-    if regle.params.att_entree.val:
-        fich = os.path.join(racine, obj.attributs.get(regle.params.att_entree.val))
-        if fich:
-            stock[fich] = fich
-        mode = "a"
-    else:
+    if regle.params.pattern=="2" or regle.params.pattern=="2b":
         mode = "w"
         regle.stock_param.logger.info(
             "archive : ecriture zip:" + (racine + ":")
             if racine
             else "" + ",".join(regle.params.val_entree.liste) + " -> " + dest
         )
+        stock = dict()
         for f_1 in regle.params.val_entree.liste:
             clefs = []
             f_interm = os.path.join(racine, f_1)
@@ -102,10 +77,52 @@ def f_archive(regle, obj):
                         stock[os.path.join(f_interm, fich)] = fich
             else:
                 stock[f_interm] = f_interm
+        with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
+            for i in stock:
+                file.write(i, arcname=stock[i])
+        print("fin_archive", dest, time.ctime())
+        regle.valide="done"
+    else:
+        if os.path.isfile(dest):
+            if regle.istrue("ajout_zip"):
+                pass
+            else:
+                os.remove(dest)
+        regle.chargeur = True
+
+
+
+
+
+
+
+def f_archive(regle, obj):
+    """#aide||zippe les fichiers ou les repertoires de sortie
+    #parametres||liste de noms de fichiers(avec \*...);attribut contenant le nom;;nom du fichier zip
+      #pattern1||;?C;A;archive;C;?C
+      #pattern1b||;?C;A;zip;C;?C
+      #pattern2||;C;;archive;C;?C
+      #pattern2b||;C;;zip;C;?C
+         #test||notest
+    """
+    #    if not obj.virtuel:
+    #        return False
+    racine = regle.params.cmp2.val
+    dest = os.path.join(racine, regle.params.cmp1.val + ".zip")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    print(
+        "archive",
+        time.ctime(),
+        regle.getval_entree(obj),
+        dest,
+        regle.getvar("_sortie"),
+    )
+    fich = os.path.join(racine, regle.getval_entree(obj))
+    mode = "a"
+        
 
     with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
-        for i in stock:
-            file.write(i, arcname=stock[i])
+        file.write(i, arcname=fich)
     print("fin_archive", dest, time.ctime())
     regle.stock_param.logger.info("fin_archive " + dest)
     return True
@@ -187,7 +204,7 @@ def get_checksum(regle, name, write=False):
     if not os.path.isabs(name) and not name.startswith("."):
         name = os.path.join(regle.getvar("_entree", "."), name)
     hash = hashlib.md5()
-    print("ouverture ", name)
+    print("md5: ouverture ", name)
     file = open(name, "br")
     while i := file.read(1048576):
         hash.update(i)
@@ -196,6 +213,11 @@ def get_checksum(regle, name, write=False):
         sortie = os.path.splitext(name)[0] + ".md5"
         open(sortie, "w").write(checksum)
     return checksum
+
+def verify_checksum(regle,name,checksum):
+    """compare une checksum"""
+    calcul=get_checksum(regle, name)
+    return calcul == checksum
 
 
 def h_checksum(regle):
