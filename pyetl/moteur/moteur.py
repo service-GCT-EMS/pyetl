@@ -484,6 +484,7 @@ class Context(object):
     SPLITTER_V = re.compile(r"(?<!\\),")  # reconnait les , non précédes d'un \
     SPLITTER_B = re.compile(r"(?<!\\)\|")  # reconnait les | non précédes d'un \
     SPLITTER_2P = re.compile(r"(?<!\\):")  # reconnait les : non précédes d'un \
+    SPLITTERS={';':SPLITTER_PV,'v':SPLITTER_V,'|':SPLITTER_B,':':SPLITTER_2P, }
 
     def __init__(self, parent=None, ident="", type_c="C", root=False):
         self.nom = type_c + ident
@@ -505,6 +506,33 @@ class Context(object):
 
     def __repr__(self):
         return self.ident + ("(" + self.ref.nom + ")" if self.ref else "")
+
+    def parse_sep(self, texte, sep):
+        """decoupe une chaine en respectant les guillemets"""
+        if sep in self.SPLITTERS and not '"' in texte:
+            return self.SPLITTERS[sep].split(texte)
+        liste=[""]
+        sc=sep
+        escape=False
+        for v in texte:
+            if v=='\\':
+                escape=True
+                continue
+            if escape:
+                escape=False
+                if v==sep or v=='\\' or v=='"':
+                    liste[-1]+=v
+                else:
+                    liste[-1]+='\\'+v
+                continue
+            if v=='"':
+                sc=sep if sc is None else None
+            if v==sc:
+                liste.append("")
+            else:
+                liste[-1]+=v
+        return liste
+
 
     def setenv(self, env):
         "ajoute les variables d environnement au contexte courant"

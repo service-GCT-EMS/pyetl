@@ -237,7 +237,7 @@ def printelements(elements):
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
-    valeurs = regle.context.SPLITTER_PV.split(regle.ligne)
+    valeurs=regle.context.parse_sep(regle.ligne,';')
     if len(valeurs) > 11:
         listevlocs = regle.context.SPLITTER_V.split(valeurs[11])
         regle.context.affecte(listevlocs)
@@ -359,7 +359,9 @@ def prepare_regle(regle, prec=None, refs=None):
                 "------>regle sans fonction",
                 regle.numero,
             )
-            morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
+            
+            morceaux=regle.context.parse_sep(regle.ligne.replace("\n", ""),';')
+            # morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
             if len(morceaux) < 8:
                 morceaux = morceaux + [""] * 8
             morceaux[7] = "???"
@@ -481,7 +483,8 @@ def get_macro_from_db(regle, nom_inclus):
 
 def lire_commandes_en_base(mapper, fichier_regles):
     """ lit les commandes en base de donnees"""
-    defs = mapper.context.SPLITTER_2P.split(fichier_regles)
+    defs = mapper.context.parse_sep.split(fichier_regles,':')
+    # defs = mapper.context.SPLITTER_2P.split(fichier_regles)
     if len(defs) != 2:
         print(
             "erreur commande en base de donnees la commande doit"
@@ -565,8 +568,8 @@ def affecte_variable(mapper, commande, context, regle_ref):
     """ affecte une variable avec gestion des valeurs par defaut"""
     niveau, texte, rvirt = getlevel(mapper, commande, regle_ref)
     commande_orig = texte[1:]
-
-    liste_vals = context.SPLITTER_PV.split(commande)
+    liste_vals=context.parse_sep(commande,';')
+        # liste_vals = context.SPLITTER_PV.split(commande)
     commande = liste_vals[0][1:].strip()
     if not "=" in commande:
         commande = commande + "=True"
@@ -727,7 +730,8 @@ def prepare_env(mapper, texte: str, fichier_regles):
     """prepare une macro ou un chargement de fichier et son environnement (positionne les variables)"""
     # print ('mapping parametres macro', texte)
     context = mapper.cur_context
-    champs = context.SPLITTER_PV.split(texte)
+    champs = context.parse_sep(texte,';')
+    # champs = context.SPLITTER_PV.split(texte)
     nom_inclus = champs[0].strip()
     parametres = champs[1:]
     # print("prepare_env", nom_inclus, parametres)
@@ -856,12 +860,26 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
 
 def initmacro(mapper, texte, fichier_regles):
     """ initialise le stockage """
-    champs_macro = mapper.context.SPLITTER_PV.split(texte)
+    champs_macro = mapper.context.parse_sep(texte,';')
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.macrostore.regmacro(nom, file=fichier_regles, vpos=vposmacro)
     # print('enregistrement macro',mapper.idpyetl,nom)
     return macro
+
+def parse_sep(texte, sep):
+    """decoupe une chaine en respectant les guillemets"""
+    liste=[""]
+    sc=sep
+    for v in texte:
+        if v=='"':
+            sc=sep if sc is None else None
+        if v==sc:
+            liste.append("")
+        else:
+            liste[-1]+=v
+    return liste
+
 
 
 def lire_regles_csv(

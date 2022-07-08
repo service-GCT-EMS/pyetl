@@ -221,10 +221,8 @@ class ParametresFonction(object):
                 if ":" in origine:
                     origine, defaut = origine.split(":", 1)
 
-        #        var = "P:" in val
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
         typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
-        #        return self.st_val(val, num, liste, dyn, defin)
         return (
             Vals(
                 val,
@@ -729,7 +727,8 @@ class RegleTraitement(object):  # regle de mapping
             log(motif + " %s", "\n".join(self.erreurs))
         if not self.mode:  # pas de mode en general un decalage
             log(motif + " %s", "regle vide")
-            morceaux = self.context.SPLITTER_PV.split(self.ligne.replace("\n", ""))
+            morceaux = self.context.parse_sep(self.ligne.replace("\n", ""))
+            # morceaux = self.context.SPLITTER_PV.split(self.ligne.replace("\n", ""))
             morceaux[7] = "???"
             print(motif, ";".join(morceaux))
         if self.elements:

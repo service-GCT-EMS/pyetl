@@ -626,6 +626,15 @@ K:ADserver;$#%ADserver%;
 ;;;;P:x;%nom%;;adquery;user;%clef%;;
 ;;;;;%x%;;print;;;;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#adquery;condition,element,clef;;;;
+!#help;passe une requete LDAP;
+!#parametres;condition;clause de recherche;
+!#parametres;element;element recherche;
+!#parametres;clef;items a recuperer;
+K:ADserver;$#%ADserver%;
+;;;;;%condition%;;adquery;%element%;%clef%;;
+;;;;;;;print;;;;
+!===========================================================================================;;;;;;;;;;;
 &&#define;#moi;;;;;
 !#help;affiche le nom de l utilisateur courant
 !#variables;ADserver;identification du serveur AD/LDAP a utiliser si pas de defaut systeme

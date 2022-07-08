@@ -107,9 +107,10 @@ def getADnames(regle, elems, *args, **kwargs):
     if where_clause:
         sql_string.append("WHERE %s" % where_clause)
 
-    # print("requete ad", "\n".join(sql_string))
-
-    for result in regle.AD.query("\n".join(sql_string), Page_size=50):
+    print("requete ad", "\n".join(sql_string))
+    adreponse=regle.AD.query("\n".join(sql_string), Page_size=50)
+    print ("reponse", adreponse) 
+    for result in adreponse:
         # print("retour ad:", result, type(result))
 
         if isinstance(result, regle.AD.ADO_record):
@@ -177,7 +178,7 @@ def h_adquery(regle):
         server = regle.getvar("server_" + adcode)
         user = regle.getvar("user_" + adcode)
         passwd = regle.getvar("passwd_" + adcode)
-        # print("adconnect ", user, passwd, server)
+        print("adconnect ", user, passwd, server)
         try:
             regle.connect = ldap.initialize("ldap://" + server)
             regle.connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
@@ -198,6 +199,7 @@ def h_adquery(regle):
 
         try:
             regle.AD = ACD
+            print ('connection active directory par defaut (com object)')
         except ACD.pywintypes.com_error:
             regle.stock_param.logger.error("connection active directory impossible")
             regle.valide = False
@@ -223,6 +225,11 @@ def h_adquery(regle):
             regle.ad_objectclass = "group"
             regle.queryfonc = regle.AD.find_group
             regle.mqueryfonc = find_group
+        elif regle.params.pattern=='5':
+            regle.ad_objectclass=regle.params.cmp1.val
+            regle.queryfonc = regle.AD.search
+            regle.mqueryfonc = find_group
+
 
     if regle.params.pattern == "4":  # variable
 
@@ -255,6 +262,7 @@ def f_adquery(regle, obj):
     #pattern2||M;?C;?A;adquery;=machine;?C;
     #pattern3||M;?C;?A;adquery;=groupe;?C;
     #pattern4||P;C;;adquery;=user;;||sortie||1
+    #pattern5||;?C;?A;adquery;C;?C;||sortie||1
     #req_test||adserver
     #test||obj||X;89965;adquery;user;||atv;X;UNGER Claude;
     #"""
@@ -290,7 +298,7 @@ def f_adquery(regle, obj):
                 val = item
             else:
                 val = getattr(item, regle.a_recuperer[0])
-            # print("extraction adquey", item, val)
+            print("extraction adquey", item, val)
             regle.setval_sortie(obj2, val)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
 
