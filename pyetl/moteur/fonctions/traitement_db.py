@@ -104,7 +104,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
                         base, niveau, classes, att, vals, fonction
                     )
         else:
-            print("param_base,niv,classe", base, niveau, classes)
+            # print("param_base,niv,classe", base, niveau, classes)
             selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
     regle.cible_base = selecteur
 

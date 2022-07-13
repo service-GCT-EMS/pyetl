@@ -56,6 +56,8 @@ def print_help(mapper, nom):
         else:
             # essais de noms partiels
             recherche = nom.replace("*", "")
+            recherche = recherche.replace("#", "")
+            recherche = recherche.replace("-", "")
             trouve = False
             macrolist = []
             commandlist = []

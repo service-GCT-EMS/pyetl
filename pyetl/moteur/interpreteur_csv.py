@@ -732,6 +732,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     context = mapper.cur_context
     champs = context.parse_sep(texte,';')
     # champs = context.SPLITTER_PV.split(texte)
+    print ('prepare_env',texte,'->',champs)
     nom_inclus = champs[0].strip()
     parametres = champs[1:]
     # print("prepare_env", nom_inclus, parametres)
@@ -850,7 +851,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         # print("contexte macros apres pop:", mapper.cur_context)
 
     else:
-        LOGGER.error("macro introuvable %s", texte)
+        LOGGER.error("macro introuvable: %s (%s)",inclus, texte)
         # print("================================macro introuvable", texte)
         erreurs = 1
     return erreurs

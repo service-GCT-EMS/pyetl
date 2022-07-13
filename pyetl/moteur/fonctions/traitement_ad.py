@@ -261,7 +261,7 @@ def f_adquery(regle, obj):
     #pattern1||M;?C;?A;adquery;=user;?C;
     #pattern2||M;?C;?A;adquery;=machine;?C;
     #pattern3||M;?C;?A;adquery;=groupe;?C;
-    #pattern4||P;C;;adquery;=user;;||sortie||1
+    #pattern4||P;C;;adquery;=user;;||sortie||2
     #pattern5||;?C;?A;adquery;C;?C;||sortie||1
     #req_test||adserver
     #test||obj||X;89965;adquery;user;||atv;X;UNGER Claude;
