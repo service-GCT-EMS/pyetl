@@ -206,9 +206,10 @@ def h_ftpupload(regle):
     if codeftp:
         serveur = regle.context.getvar("server_" + codeftp, "")
         servertyp = regle.context.getvar("ftptyp_" + codeftp, "")
+        port = regle.context.getvar("port_" + codeftp, "")
         user = regle.context.getvar("user_" + codeftp, "")
         passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
-        regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd))
+        regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd,port))
         regle.servertyp = servertyp
         regle.destdir = regle.params.cmp2.val
     else:  # connection complete dans l'url
@@ -239,7 +240,7 @@ def getftpinfo(regle, fichier):
 def ftpconnect(regle):
     """connection ftp"""
     # global FTP,SFTP
-    _, serveur, servertyp, user, passwd = regle.getvar("acces_ftp")
+    _, serveur, servertyp, user, passwd,port = regle.getvar("acces_ftp")
     if regle.debug:
         regle.stock_param.logger.info("ouverture acces %s", regle.getvar("acces_ftp"))
         # print("ouverture acces ", regle.getvar("acces_ftp"))
@@ -262,8 +263,10 @@ def ftpconnect(regle):
         try:
             cno = SFTP.CnOpts()
             cno.hostkeys = None
+            if port=="":
+                port=22
             regle.ftp = SFTP.Connection(
-                serveur, username=user, password=passwd, cnopts=cno
+                serveur, username=user, password=passwd, cnopts=cno, port=port
             )
             return True
         except SFTP.ConnectionException as err:

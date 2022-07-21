@@ -671,7 +671,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     n = 0
     ident2 = None
     # stock_param.logger.info("dbacces: selecteur %s", repr(baseselector))
-    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector)
+    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector,list(baseselector.classlist()))
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         treq = time.time()

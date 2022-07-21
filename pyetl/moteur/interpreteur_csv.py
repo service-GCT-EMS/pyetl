@@ -38,6 +38,7 @@ def fdebug(regle, obj):
             regle.affiche_debug(wid + "------affiche------>")
             obj.debug("", attlist=regle.champsdebug)
             regle.debugvalid = False
+            regle.stock_param.gestion_log.stopdebug()
             return regle.f_init(regle, obj)
         if debugmode == "step":
             regle.affiche_debug(wid + "------step------>")
@@ -732,7 +733,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     context = mapper.cur_context
     champs = context.parse_sep(texte,';')
     # champs = context.SPLITTER_PV.split(texte)
-    print ('prepare_env',texte,'->',champs)
+    # print ('prepare_env',texte,'->',champs)
     nom_inclus = champs[0].strip()
     parametres = champs[1:]
     # print("prepare_env", nom_inclus, parametres)

@@ -152,6 +152,7 @@ class Schema(object):
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()
+        self.ordre=[]
         self.nocase = dict()
         self.conformites = dict()
         self.defmodeconf = defmodeconf
@@ -731,6 +732,8 @@ class Schema(object):
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
             # on renseigne le nombre d'objets de la table
             clas2.settype_table(classe.type_table)
+        schema_travail.ordre=liste2
+        # print ("creschematravail", schema_travail)
         return schema_travail, liste2
 
     def getschematravail(

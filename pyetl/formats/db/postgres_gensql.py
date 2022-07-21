@@ -683,7 +683,8 @@ class PgrGenSql(DbGenSql):
                 schema.conformites.get(attype).nombase = self.ajuste_nom(attype)
                 nomconf = schema.conformites.get(
                     attype
-                ).nombase  # on a pu adapter le nom a postgres
+                ).nombase
+                  # on a pu adapter le nom a postgres
                 #                nomconf = self.ajuste_nom(nomconf)
                 #                print ('detection conformite', attname, attype, nomconf)
 
@@ -710,9 +711,11 @@ class PgrGenSql(DbGenSql):
             else:
                 pass
             # gestion des defauts
-            if defaut is None:
+            # if attribut.defaut:
+            #     print ('gestion des defauts',defaut,attype,attribut.defaut)
+            if defaut is None and attribut.defaut:
                 if attype == "T":
-                    if attribut.defaut and attribut.defaut.startswith("="):
+                    if attribut.defaut.startswith("="):
                         predef = attribut.defaut[1:].replace('"', "'")
                         if "::" in predef:  # il y a un typecast, on force le schema
                             nom, typedef = predef.split("::", 1)
@@ -722,9 +725,22 @@ class PgrGenSql(DbGenSql):
                                 )
                             predef = nom + "::" + typedef
                         defaut = " DEFAULT " + predef
-            if defaut is None:
-                defaut = (" DEFAULT " + attribut.defaut) if attribut.defaut else ""
-
+                if nomconf:
+                    if "::" in attribut.defaut: # il y a un typecast
+                        val,typedef=attribut.defaut.split("::",1)
+                        if "." in typedef:
+                            ts,tn=typedef.split('.')
+                            if ts!=classe.ident([0]):
+                                ts=self.schema_conf
+                            typedef=ts+'.'+tn
+                        else:
+                            typedef=self.schema_conf+'.'+typedef
+                        attribut.defaut=val+'::'+typedef
+                    defaut = (" DEFAULT " + attribut.defaut)
+                else:
+                    defaut = (" DEFAULT " + attribut.defaut)
+            else:
+                defaut=''
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
                 if seq and not self.basic:
@@ -762,6 +778,8 @@ class PgrGenSql(DbGenSql):
             if attribut.multiple:
                 type_sortie = type_sortie + "[]"
             cretable.append("\t" + attname + " " + type_sortie + defaut + ",")
+            # if defaut:
+            #     print('sql_genere',cretable[-1])
             if sql_conf and self.basic != "basic":
                 creconf[nomconf] = sql_conf
         if geomt != "0":

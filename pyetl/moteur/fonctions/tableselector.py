@@ -62,7 +62,7 @@ class TableBaseSelector(object):
         self.mapping = {}
         # un descripteur est un tuple
         # (type,niveau,classe,attribut,condition,valeur,mapping)
-        self.static = dict()
+        self.staticlist = dict()
         self.dynlist = dict()
         self.unresolved = set()
 
@@ -72,7 +72,7 @@ class TableBaseSelector(object):
             + ":"
             + str(len(self.descripteurs))
             + "->"
-            + str(len(self.static))
+            + str(len(self.staticlist))
             + ","
             + str(len(self.dynlist))
         )
@@ -108,13 +108,13 @@ class TableBaseSelector(object):
         """transformation de la liste de descripteurs statiques en liste de classes
         le selecteur gere la connection a la base se donnees"""
         if self.dynbase and obj.attributs.get(self.dynbase) != self.base:
-            self.static = dict()
+            self.staticlist = dict()
             self.base = obj.attributs.get(self.dynbase)
             # self.nombase = self.base if self.base != "*" else ""
             if not self.base:
                 return False
             self.nombase = self.base if self.base != "*" else ""
-        if self.static:
+        if self.staticlist:
             return
 
         mod = self.regle_ref.mods
@@ -175,7 +175,7 @@ class TableBaseSelector(object):
                     niveau, j, attr, vref, fonction, mod, nobase=self.nobase
                 )
                 if classlist:
-                    self.static.update(classlist)
+                    self.staticlist.update(classlist)
                 else:
                     self.unresolved.add((niveau, j))
 
@@ -207,7 +207,7 @@ class TableBaseSelector(object):
                 else ()
             )
         direct = dict()
-        # print("add_classlist: multi", multi, classlist)
+        # print("add classlist: multi", multi, classlist)
         for i in classlist:
             mapped = self.set_prefix(i)
             direct[mapped] = (i, attr, valeur, fonction)
@@ -221,7 +221,7 @@ class TableBaseSelector(object):
         # print("resolve: base=", self.base)
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
-                self.static = dict()
+                self.staticlist = dict()
                 self.nombase = obj.attributs.get("#nombase")
                 nombase = obj.attributs.get("#nombase")
                 base = obj.attributs.get("#base")
@@ -296,12 +296,25 @@ class TableBaseSelector(object):
         """retourne un iterateur sur la liste de classes resolue"""
         n = 0
         maxsel = self.selecteur.maxsel
-        for i in itertools.chain(self.static.items(), self.dynlist.items()):
+        if self.schema_travail:
+            for i in self.schema_travail.ordre:
+                mapped = self.set_prefix(i)
+                if mapped in self.staticlist:
+                    yield mapped, self.staticlist[mapped]
+                elif mapped in self.dynlist:
+                    yield mapped, self.dynlist[mapped]
+                else:
+                    yield mapped,(i, "", "", "")
+                n += 1
+                if maxsel and n > maxsel:
+                    break
+        else:
+            for i in itertools.chain(self.staticlist.items(), self.dynlist.items()):
             # print("dans classlist", maxsel, n)
-            yield i
-            n += 1
-            if maxsel and n > maxsel:
-                break
+                yield i
+                n += 1
+                if maxsel and n > maxsel:
+                    break
 
     def getmapping(self):
         liste_mapping = []
@@ -708,34 +721,45 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
 
 def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFCODEC):
     """modifie un fichier qgs pour adapter les noms des bases et des niveaux"""
-
+    # print ("adapt_qgs", fichier, destination)
+    regle.mods="="
     if selecteur and not selecteur.resolved:
         selecteur.resolve(obj)
     destbase = regle.base
     basedict = regle.basedict
     enums_to_list = regle.istrue("enums_to_list")
-    for fich, chemin in scandirs(fichier, "", rec=True):
+    if os.path.isfile(fichier):
+        flist=[(os.path.basename(fichier),"")]
+        fichier=os.path.dirname(fichier)
+    else:
+        flist=scandirs(fichier, "", rec=True)
+    for fich, chemin in flist:
         if not fich:  # un peu bizarre on a donne un fichier a la place d un repertoire
             element = os.path.join(fichier, chemin) if chemin else fichier
-            fich = os.path.basename(element)
         else:
             element = os.path.join(fichier, chemin, fich)
-        print("traitement", element, fich)
+        nom = os.path.basename(element)
+        
         if not (element.endswith(".qgs") or element.endswith(".qlr")):
             continue
         codec = hasbom(element, codec)
-        fdest = os.path.join(destination, chemin, fich)
+        fdest = os.path.join(destination, chemin, nom)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
         sortie = open(fdest, "w", encoding=codec)
+        if fdest==element:
+            regle.stock_param.logger.warning(
+                "attention ecrasement du fichier %s-> non traite", element
+            )
+            continue
         seldef = select_in(regle, element, "*") if not selecteur else selecteur
         seldef.resolve(obj)
         regle.stock_param.logger.info(
             "traitement (%s) %s->" + fdest, seldef.nom, element
         )
 
-        with open(element, "r", encoding=codec) as fich:
+        with open(element, "r", encoding=codec) as entree:
             # print("adapt projet qgs", element)
-            for i in fich:
+            for i in entree:
                 if "datasource" in i or 'source="' in i:
                     table = _extract(i, "table=")
                     database = _extract(i, "dbname=")
