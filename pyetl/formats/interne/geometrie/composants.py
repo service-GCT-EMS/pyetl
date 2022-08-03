@@ -47,6 +47,20 @@ def cercle_3pts(pt1, pt2, pt3):
     pcentre = [xctr, yctr]
     return pcentre, rayon
 
+def discretise(pt1, pt2, pt3,ang=30,tol=0.05):
+    """discretise un arc en fonction d'une tolerance anguraire et de cord a arc"""
+    angrad=Ma.pi*ang/180
+    pcentre,r=cercle_3pts(pt1, pt2, pt3)
+    xc,yc=pcentre
+    xd,yd=pt1
+    xf,yf=pt3
+    tolrad=Ma.sqrt(1-((r-tol)/tol)**2)
+    angletol=min(abs(tolrad),abs(angrad))
+    ad=Ma.acos((xd-xc)/r)
+    af=Ma.acos((xf-xc)/r)
+    pas=Ma.copysign(angletol,(af-ad))
+    coordlist=[(xc+r*Ma.cos(i),yc+r*Ma.sin(i)) for i in range(ad,af,pas)]+[pt3]
+    return coordlist
 
 class Section(object):
     """# definition d'une section

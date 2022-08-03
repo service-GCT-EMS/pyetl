@@ -6,6 +6,7 @@ reference macros
 ===========================================================   ========
 :ref:`#2d`                                                    convertit des coordonees 2d
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
+:ref:`#adquery` condition,element,clef                        passe une requete LDAP
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees
 :ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
@@ -18,7 +19,7 @@ reference macros
 :ref:`#cc2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#cc482ll`                                               reprojette des donnees cus en rgf93
 :ref:`#charge_osm`                                            
-:ref:`#classe` classe                                         force la classe
+:ref:`#classe` classe;att                                     force la classe
 :ref:`#cmd` cmd;v1;v2;v3;v4;v5                                passe une commande a la sauvage
 :ref:`#cmin`                                                  passe les noms de classe et de groupe en minuscule
 :ref:`#convert_sigli` rep                                     
@@ -68,6 +69,7 @@ reference macros
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
 :ref:`#init_mp`                                               initialise un module en mode multiprocessing (ne fait rien et attends)
 :ref:`#initdb` acces;nomfich                                  positionne des elements d'acces a une base de donnees
+:ref:`#linefilter`                                            filtre les lignes pour eviter les erreurs
 :ref:`#liste_params` clef;val                                 liste les parametres d acces aux bases
 :ref:`#ll2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#log` message;level                                     
@@ -145,6 +147,18 @@ parametres positionnels
 * x:x
 * y:y
 * srid:srid
+
+
+
+#adquery
+........
+
+
+passe une requete LDAP
+
+parametres positionnels
+
+* condition,element,clef:condition,element,clef
 
 
 
@@ -281,6 +295,7 @@ force la classe
 parametres positionnels
 
 * classe:nouvelle classe
+* att:att
 
 
 
@@ -919,6 +934,14 @@ parametres positionnels
 
 * acces:acces
 * nomfich:nomfich
+
+
+
+#linefilter
+...........
+
+
+filtre les lignes pour eviter les erreurs
 
 
 

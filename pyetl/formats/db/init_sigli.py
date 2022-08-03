@@ -450,6 +450,41 @@ requetes_sigli[
         from pg_type t left join pg_namespace n on t.typnamespace=n.oid where n.nspname='pg_catalog' or n.nspname='public'
         """
 
+requetes_sigli["info_roles"]="""
+    WITH app AS (
+            SELECT pg_group.groname AS role,
+                unnest(pg_group.grolist) AS id
+            FROM pg_group
+            ), interm AS (
+            SELECT r.rolname AS member,
+                array_agg(app.role) AS roles,
+                "substring"(r.rolname::text, '..$'::text) AS type,
+                regexp_replace(r.rolname::text, 'role_sigl._(.*)_[a|c]'::text, '\1'::text) AS schema,
+                shobj_description(r.oid, 'pg_authid'::name) AS description,
+                    CASE
+                        WHEN "substring"(r.rolname::text, '..$'::text) = '_a'::text THEN COALESCE(shobj_description(r.oid, 'pg_authid'::name), 'role d''administration du schema '::text || regexp_replace(r.rolname::text, 'role_sigl._(.*)_[a|c]'::text, '\1'::text))
+                        WHEN "substring"(r.rolname::text, '..$'::text) = '_c'::text THEN COALESCE(shobj_description(r.oid, 'pg_authid'::name), 'role de consultation du schema '::text || regexp_replace(r.rolname::text, 'role_sigl._(.*)_[a|c]'::text, '\1'::text))
+                        ELSE NULL::text
+                    END AS description_auto,
+                r.rolcanlogin 
+            FROM pg_roles r
+                LEFT JOIN app ON app.id = r.oid
+            GROUP BY r.rolname, r.oid,r.rolcanlogin
+            ORDER BY r.rolname
+            )
+    SELECT interm.member,
+        interm.roles,
+        COALESCE(interm.description, interm.description_auto) AS description
+    FROM interm;
+"""
+
+
+
+
+
+
+
+
 
 def cree_sigli(nomschema):
     """enregistre les requetes en base pour creer  la structure sigli"""

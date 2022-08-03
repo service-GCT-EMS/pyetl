@@ -372,16 +372,19 @@ class PgrConnect(DbConnect):
             connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
-            self.params.logger.error("postgres: connection impossible" + repr(err))
-            print("error: postgres: connection impossible ")
+            print("error: postgres: connection impossible ",err)
+            self.params.logger.error("postgres: connection impossible " + repr(err))
+            
             print(
                 "info:  postgres: parametres ",
                 self.serveur,
                 self.base,
                 self.user,
                 # self.passwd,
+                # chaine_connect
             )
-            # print("error", err)
+            
+            print("error", err)
 
             raise
 
@@ -404,6 +407,7 @@ class PgrConnect(DbConnect):
             print("acces fonctions")
         schema.elements_specifiques["def_fonctions_trigger"] = self._def_f_trigger()
         schema.elements_specifiques["def_fonctions"] = self._def_fonctions()
+        schema.elements_specifiques["roles"] = self._get_roles()
         # print(
         #     "elements specifiques",
         #     [(i, len(j[1])) for i, j in schema.elements_specifiques.items()],
@@ -460,6 +464,14 @@ class PgrConnect(DbConnect):
         return entete, def_trigg
 
     #        print('pgr --------- selection info triggers ', len(triggers))
+    def _get_roles(self):
+        """recupere les roles de la base de donnees"""
+        entete="nom;roles;description;login"
+        infos = self.request(self.requetes["info_roles"])
+        liste_roles = {i[0] : (i[1],i[2]) for i in infos}
+        return (entete, liste_roles)
+
+
 
     def get_type_from_connect(self, typecode):
         """recupere une information de type"""

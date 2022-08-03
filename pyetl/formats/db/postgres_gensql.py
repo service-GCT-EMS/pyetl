@@ -730,7 +730,7 @@ class PgrGenSql(DbGenSql):
                         val,typedef=attribut.defaut.split("::",1)
                         if "." in typedef:
                             ts,tn=typedef.split('.')
-                            if ts!=classe.ident([0]):
+                            if ts!=classe.identclasse[0]:
                                 ts=self.schema_conf
                             typedef=ts+'.'+tn
                         else:

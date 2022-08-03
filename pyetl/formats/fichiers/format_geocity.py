@@ -30,11 +30,14 @@ def calculeangle(p1_x, p1_y, p2_x, p2_y):
 def gyr(fich):
     """iterateur sur le fichier avec suppression des newlines non significatifs"""
     iter_fich = (v for line in fich for v in line.split("|") if v != "\n")
-    for i in iter_fich:
-        if i.endswith("\n"):
-            i = i[:-1] + next(iter_fich)
-        #        print ('iter',i)
-        yield i
+    try:
+        for i in iter_fich:
+            if i.endswith("\n"):
+                i = i[:-1] + next(iter_fich)
+            #        print ('iter',i)
+            yield i
+    except UnicodeDecodeError:
+        print ("erreur encoding",ascii(i),ascii(fich.readline()))
 
 
 def consomme(iter_fich, nb_elts):
@@ -323,18 +326,20 @@ def _cotation(iter_gy, obj):
 
 def lire_objets_geocity(self, rep, chemin, fichier):
     """boucle de lecture principale -> attention methode de reader"""
-
+    
     n_obj = 0
+    self.lus_fich=0
     # ouv = None
     regle = self.regle_start
     couleur = "1"
     courbe = 0
     traite_objet = self.regle_ref.stock_param.moteur.traite_objet
 
-    maxobj = self.regle_ref.getvar("lire_maxi", 0)
+    # maxobj = self.regle_ref.getvar("lire_maxi", 0)
     codec = self.regle_ref.getvar("codec_entree", "utf8")
-
+    classe_is_file=self.regle_ref.getvar("nomfich")
     entree = os.path.join(rep, chemin, fichier)
+    print ("lire_geocity", entree)
     #    stock_param.racine = rep
     fichier_courant = os.path.splitext(fichier)[0]
     self.fichier_courant = fichier_courant
@@ -365,6 +370,12 @@ def lire_objets_geocity(self, rep, chemin, fichier):
 
         niveau = next(iter_gy)
         classe = next(iter_gy)
+        if classe_is_file=="1":
+            classe=fichier_courant
+        elif classe_is_file=="2":
+            classe=fichier_courant+'_'+classe
+        elif classe_is_file=="3":
+            classe=fichier_courant if classe in fichier_courant else fichier_courant+'_'+classe
         self.setidententree(niveau, classe)
         # on cree les schemas qui vont bien
         if base not in self.stock_param.schemas:
@@ -518,8 +529,8 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         "attention spline ou autre horreur detectee :"
                         + val
                         + " "
-                        + self.niveau,
-                        self.classe + ":" + "|".join(obj.attributs.values()),
+                        + niveau,
+                        classe + ":" + "|".join((str(i) for i in obj.attributs.values())),
                     )
                     couleur = "1"
                     courbe = 0
@@ -580,6 +591,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
         except AttributeError:
             print("ereur lecture fichier", fichier)
             raise
+    print ("fin lecture gy")
     return
 
 

@@ -115,7 +115,10 @@ def get_jma(date, sep):
         elif el_date2 in def_mois:  # aaaa nom_mois jj
             annee, mois, jour = el_date1, def_mois[el_date2], el_date3
             fdate = "fr"
-
+    if len(jour)==1:
+        jour='0'+jour
+    if len(mois)==1:
+        mois='0'+mois
     return annee, mois, jour, fdate
 
 
@@ -189,6 +192,7 @@ def valide_dates(val, format_dates=""):
     date, heure = None, None
     #    if '03-09-2015' in val:
     #        print(" schema interne: validation date ",val)
+    val=val.replace("  "," ")
     v_2 = val.strip().split(" ")
     taille = len(v_2)
     if taille == 1:  # pas de blanc dans la date c'est un format numerique

@@ -730,7 +730,21 @@ def ecrire_schema_csv(rep, schema, mode, cod="utf-8", modeconf=-1, stock_param=N
                             for n, v in sorted(infos.items()):
                                 # print ("e-s",n,v)
                                 nom = n if isinstance(n, str) else ";".join(n)
-                                valeurs = v if isinstance(v, str) else ";".join(v)
+                                if isinstance(v, str):
+                                    valeurs=v
+                                else:
+                                    valeurs=""
+                                    for k in v:
+                                        if isinstance(k,str):
+                                            valeurs+=k
+                                        if isinstance(k,list):
+                                            valeurs+='{'+','.join((repr(z) for z in k ))+'}'
+                                        else:
+                                            valeurs+=(repr(k))
+                                        valeurs+=(';')
+                                    valeurs=valeurs[:-1]if valeurs else ''
+
+                                # valeurs = v if isinstance(v, str) else ";".join(v)
                                 contenu.append(nom + ";" + valeurs)
                         else:
                             contenu.extend(infos)
