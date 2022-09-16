@@ -273,11 +273,11 @@ def getfanout(regle, extention, ident, initial):
             ressource = sorties.get_res(regle, nom)
             return ressource, nom
 
-    if regle.fanout == "no" and regle.f_sortie.fanoutmax == "all":
+    if regle.output.fanout == "no" and regle.f_sortie.fanoutmax == "all":
         bfich = dest if dest else "all"
         nom = sorties.get_id(rep_sortie, bfich, "", extention, nom=dest)
     #            print('nom de fichier sans fanout ', rep_sortie, nfich, nom)
-    elif regle.fanout == "groupe" and (
+    elif regle.output.fanout == "groupe" and (
         regle.f_sortie.fanoutmax == "all" or regle.f_sortie.fanoutmax == "groupe"
     ):
         #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,

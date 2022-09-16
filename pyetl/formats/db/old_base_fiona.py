@@ -20,7 +20,7 @@ if printtime:
     t1 = time.time()
     print("start_gdal")
 
-from ..fichiers.format_gdalio import formatte_entree
+from ..fichiers import formatte_entree
 
 if printtime:
     print(" format gdalio      ", time.time() - t1)

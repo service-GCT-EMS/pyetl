@@ -99,6 +99,8 @@ class TableBaseSelector(object):
         dyn = any(["[" in i for i in classes]) or "[" in niveau
         if "[" in attr or "[" in valeur:
             dyn = True
+        if isinstance(valeur, tuple) and valeur[0]:
+            dyn=True
         if dyn:
             self.dyndescr.append(descripteur)
         else:
@@ -425,7 +427,7 @@ class TableSelector(object):
             return
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self, base, "")
-        # print("add descripteur", base, descripteur)
+        print("add descripteur", base, descripteur)
         self.baseselectors[base].stocke_descripteur(descripteur)
         if self.static and self.baseselectors[base].dyndescr:
             self.static = False

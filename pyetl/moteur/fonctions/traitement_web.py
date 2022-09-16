@@ -504,6 +504,8 @@ def h_httpdownload(regle):
     #
     # print("preparation parametres", regle.httparams, regle.httheaders)
     regle.valide = True
+    if regle.params.pattern=='4': #decodage json
+        regle.reader = regle.stock_param.getreader("json", regle)
     # regle.debug = regle.istrue("debug")
     # print("h_httpdownload valeur de debug", regle.debug)
     return True
@@ -516,29 +518,60 @@ def _jsonsplitter(regle, obj, jsonbloc):
     except json.JSONDecodeError as err:
         print("erreur decodage json", err, jsonbloc)
         return
-    for elem in struct:
-        if isinstance(elem, dict):
-            obj2 = obj.dupplique()
-            obj2.virtuel = False
-            for att, val in elem.items():
-                if isinstance(val, str):
-                    obj2.attributs[att] = val
-                elif isinstance(val, dict):
-                    hdict = {
-                        i: json.dumps(j, separators=(",", ":")) for i, j in val.items()
-                    }
-                    obj2.sethtext(att, dic=hdict)
-                elif isinstance(val, list):
-                    jlist = [json.dumps(j, separators=(",", ":")) for j in val]
-                    obj2.setmultiple(att, liste=jlist)
-                if obj2.schema:
-                    if att not in obj2.schema.attributs:
-                        type_att = "H" if isinstance(val, dict) else "T"
-                        obj.schema.stocke_attribut(att, type_att)
+    nom=""
+    if len(struct)==1:
+        #il y a in titre
+        
+        for nom,contenu in struct.items():
+            pass
+        
+        struct=contenu
+    selected=regle.params.cmp2.liste
+    print ("recup contenu", nom,type(contenu))
+    if isinstance (contenu,dict):
+        print ("contenu", contenu.keys())
+        for classe,elem in struct.items():
+            if selected and classe not in selected:
+                print ('jsonsplitter non selectionne',classe)
+                continue
+            print ('traitement elem', classe,type(elem))
+            if isinstance(elem, list):
+                #c est une liste d objets
+                if obj.virtuel:
+                    regle.reader.setidententree(nom,classe)
+                    print ('presence schema', regle.reader.cree_schema)
+                for objdef in elem:
+                    if isinstance(objdef,dict):
+                        if obj.virtuel:
+                            obj2=regle.getobj((nom,classe))
+                            print ("jsonsplitter: cree",nom,classe,"->",obj2)
+                        else:
+                            obj2 = obj.dupplique()
+                            obj2.attributs['#classe']=classe
+                            obj2.attributs['#groupe']=nom
+                        #c est une definition d objet
+                        for att, val in objdef.items():
+                            if isinstance(val, str) or regle.istrue("keepjson"):
+                                obj2.attributs[att] = val
+                            elif isinstance(val, dict):
+                                hdict = {
+                                    i: json.dumps(j, separators=(",", ":")) for i, j in val.items()
+                                }
+                                obj2.sethtext(att, dic=hdict)
+                            elif isinstance(val, list):
+                                jlist = [json.dumps(j, separators=(",", ":")) for j in val]
+                                obj2.setmultiple(att, liste=jlist)
+                            if obj2.schema:
+                                if att not in obj2.schema.attributs:
+                                    if regle.istrue("keepjson"):
+                                        type_att="J"
+                                    else:
+                                        type_att = "H" if isinstance(val, dict) else "T"
+                                    obj2.schema.stocke_attribut(att, type_att)
 
-            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
-        else:
-            print("element incompatible", elem)
+                        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+            else:
+                print("element incompatible", elem, type(elem))
 
 
 def f_httpdownload(regle, obj):
@@ -555,7 +588,7 @@ def f_httpdownload(regle, obj):
       #pattern3||A;?C;?A;download;=#B||cmp1
     #aide_spec4||telecharge un element json et genere un objet par element
     #parametres4||url;attribut contenant l'url;;;
-      #pattern4||;?C;?A;download;=#json||cmp1
+      #pattern4||;?C;?A;download;=#json;?LC||cmp1
     #variables||trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
               ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
@@ -606,7 +639,7 @@ def f_httpdownload(regle, obj):
         regle.setval_sortie(obj, retour.content)
         return True
     elif regle.params.pattern == "4":
-        print("recu", retour.text)
+        # print("recu", retour.text)
         _jsonsplitter(regle, obj, retour.text)
         return True
     if regle.fichier is None:

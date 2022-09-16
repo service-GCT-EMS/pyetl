@@ -529,9 +529,10 @@ def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
         courbe = obj.geom_v.courbe
         if mode != "strict":  # on detecte s'il y a des courbes pour la sortie
             if multigeom:
-                schemaclasse.setmulti()
+                schemaclasse.setmulti(point=True)
             if courbe:
                 schemaclasse.info["courbe"] = "1"
+                schemaclasse.courbe=1
             if srid != schemaclasse.srid:
                 schemaclasse.sridmix = True
     else:

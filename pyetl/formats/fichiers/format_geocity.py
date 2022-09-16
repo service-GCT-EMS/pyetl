@@ -304,7 +304,7 @@ def addpoints3d(obj, iter_gy, npts, type_geom=None, regle=None):
     return 1
 
 
-def _cotation(iter_gy, obj):
+def _cotation(iter_gy, obj, regle):
     """gere les objets cotation"""
     # stockage des attributs
     for att_cont in range(20):
@@ -315,13 +315,25 @@ def _cotation(iter_gy, obj):
     #    dimcoord = 2
     #    valz = 0
     npts = int(obj.attributs["#_cote_12"])
-    addpoints2d(obj, iter_gy, npts, type_geom="2")
+    addpoints2d(obj, iter_gy, npts)
 
     obj.geom_v.fin_section(1, 0)
     obj.attributs["#_cote_20"] = next(iter_gy)
     obj.finalise_geom(type_geom="2")
+    if obj.schema.amodifier(regle):
+            obj.schema.info["type_geom"] = "2"
     # print ('#_cote_'+str(ac+1),'->', obj.attributs['#_cote_'+str(ac)])
-    return 2, 2, 0
+    regle.stock_param.moteur.traite_objet(obj, regle)
+    return 0
+    # return 2, 2, 0
+
+def supp_tangentes(geom):
+    """suprime le 2 eme et l avant dernier point d une spline"""
+    geom.supp_point(1)
+    geom.supp_point(-2)
+
+
+
 
 
 def lire_objets_geocity(self, rep, chemin, fichier):
@@ -331,7 +343,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
     self.lus_fich=0
     # ouv = None
     regle = self.regle_start
-    couleur = "1"
+    couleur = 1
     courbe = 0
     traite_objet = self.regle_ref.stock_param.moteur.traite_objet
 
@@ -339,7 +351,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
     codec = self.regle_ref.getvar("codec_entree", "utf8")
     classe_is_file=self.regle_ref.getvar("nomfich")
     entree = os.path.join(rep, chemin, fichier)
-    print ("lire_geocity", entree)
+    # print ("lire_geocity", entree)
     #    stock_param.racine = rep
     fichier_courant = os.path.splitext(fichier)[0]
     self.fichier_courant = fichier_courant
@@ -397,6 +409,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                 #                print ('gy:lu',val, obj_ouvert,obj)
                 if val == "1" and obj_ouvert == 0:  # debut d'objet
                     obj_ouvert = 1
+                    spline=0
                     mode = "N"
                     n_obj += 1
                     obj = self.getobj()
@@ -512,7 +525,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     type_geom = "3"
                 elif val == "7":  # mode cotation
                     # stockage des attributs
-                    dimension, dimcoord, valz = _cotation(iter_gy, obj)
+                    obj_ouvert = _cotation(iter_gy, obj, regle)
 
                 elif val == "C3":  # cercle :
                     if dimcoord == 2:
@@ -521,26 +534,34 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     else:
                         addpoints3d(obj, iter_gy, 3)
                         consomme(iter_gy, 3)  # jette le 4eme identique au premier
-                    obj.geom_v.fin_section(1, "3")
+                    obj.geom_v.fin_section(1, 3)
 
-                elif val == "S" or val == "PA" or val == "CO" or val == "E":
-                    # spline : on rale et on traite comme une polyligne
+                elif val == "S" :
+                    couleur = 1
+                    courbe = 0
+                    spline = 1 
+                elif val == "PA" or val == "CO" or val == "E":
+                    # spline : on rale et on traite comme une courbe
                     print(
-                        "attention spline ou autre horreur detectee :"
+                        "attention conique ou autre horreur detectee :"
                         + val
                         + " "
                         + niveau,
                         classe + ":" + "|".join((str(i) for i in obj.attributs.values())),
                     )
-                    couleur = "1"
+                    couleur = 1
                     courbe = 0
                 elif val == "PL":
-                    couleur = "1"
+                    couleur = 1
                     courbe = 0
                 elif val == "D":
-                    couleur = "0"  # deplacement : on mets le style à 0
+                    couleur = 0  # deplacement : on mets le style à 0
                     courbe = 0
                 elif val == "FA":
+                    if spline:
+                        supp_tangentes(obj.geom_v)
+                        spline=0
+
                     obj.geom_v.fin_section(couleur, courbe)
                 elif val == "AC":
                     if dimcoord == 2:
@@ -548,7 +569,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     else:
                         addpoints3d(obj, iter_gy, 3)
                     courbe = 2
-                    couleur = "1"
+                    couleur = 1
                 elif (
                     val == "FL"
                 ):  # ce code n'apparait que pour les brins et les contours complexes
@@ -558,7 +579,7 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                         obj.geom_v.fin_section(couleur, 0)
                 elif val == "FG":
                     obj.finalise_geom(type_geom=type_geom, desordre=mode == "P")
-
+                    spline=0
                     if not obj.geom_v.valide:
                         print(
                             "erreur geometrique",
@@ -571,27 +592,31 @@ def lire_objets_geocity(self, rep, chemin, fichier):
                     #                    print('gy:objet a traiter ', obj)
                     traite_objet(obj, regle)
                     obj_ouvert = 0
-                elif int(val) > 10000:
-
-                    if dimcoord == 2:
-                        obj.geom_v.addpoint(
-                            [int(val) / unit, numconv(iter_gy), valz], dimension
-                        )
-                        # lecture de coordonnees
-                    else:
-                        obj.geom_v.addpoint(
-                            [int(val) / unit, numconv(iter_gy), numconv(iter_gy)],
-                            dimension,
-                        )
-                        # lecture de coordonnees
-
                 else:
-                    print("code inconnu " + val + " " + self.niveau, self.classe)
-                    obj.debug("valeurs")
+                    try:
+                        if int(val) > 10000:
+                            if dimcoord == 2:
+                                obj.geom_v.addpoint(
+                                    [int(val) / unit, numconv(iter_gy), valz], dimension
+                                )
+                                # lecture de coordonnees
+                            else:
+                                obj.geom_v.addpoint(
+                                    [int(val) / unit, numconv(iter_gy), numconv(iter_gy)],
+                                    dimension,
+                                )
+                                # lecture de coordonnees
+                        else:
+                            print("code inconnu " + val + " " + niveau, classe)
+                            obj.debug("valeurs")
+                    except ValueError:
+                        print( "valeur inattendue pour une coordonnee", val,niveau, classe)
+                        obj.debug("valeurs")
+                
         except AttributeError:
             print("ereur lecture fichier", fichier)
             raise
-    print ("fin lecture gy")
+    # print ("fin lecture gy")
     return
 
 

@@ -17,8 +17,16 @@ def hasbom(fichier, encoding):
 
 
 def init_json(writer):
+    """json liste"""
     writer.writerclass = JsonWriter
+    writer.writerclass.header=writer.writerclass.listheader
+    
 
+def init_sjson(writer):
+    """json mono objet"""
+    writer.writerclass = JsonWriter
+    writer.writerparms["extension"]="json"
+    writer.writerclass.header=writer.writerclass.singleheader
 
 def init_geojson(writer):
     writer.writerclass = GeoJsonWriter
@@ -29,19 +37,29 @@ class JsonWriter(FileWriter):
 
     start = True
 
-    def header(self, init=None):
+    def listheader(self, init=None):
         """positionne l'entete"""
         self.ttext = "]\n"  # queue
         return "[\n"
 
+    def singleheader(self, init=None):
+        """positionne l'entete"""
+        self.ttext = ""  # queue
+        return ""
+
+
     def changeclasse(self, schemaclasse, attributs=None):
         """ecriture multiclasse on change de schema"""
-        #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
         self.liste_att = (
             schemaclasse.get_liste_attributs(liste=attributs)
             if schemaclasse
             else attributs
         )
+        if not self.liste_att:
+            self.liste_att=schemaclasse.attributs.keys() 
+        self.hconvert=[i for i in self.liste_att if schemaclasse.attributs.get(i) and schemaclasse.attributs.get(i).type_att=="H"]
+        print ("trouve hconvert", self.liste_att, self.hconvert)
 
     def convert(self, obj):
         """ecriture d objets"""
@@ -51,18 +69,20 @@ class JsonWriter(FileWriter):
             else [i for i in obj.attributs if not i.startswith("#")]
         )
         return json.dumps(
-            {i: obj.attributs.get(i, "") for i in liste_att}, ensure_ascii=False
+            {i: obj.attributs.get(i, "") for i in liste_att}, ensure_ascii=False, indent=4 if self.pp else None
         )
 
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
             return False
-        chaine = self.convert(obj)
+        
         if self.start:
             self.start = False
+            self.pp=self.regle.istrue("indent")
         else:
             self.fichier.write(",")
+        chaine = self.convert(obj)
         try:
             self.fichier.write(chaine)
         except UnicodeEncodeError:
@@ -213,7 +233,8 @@ READERS = {
     "geojson": (lire_objets, None, True, (), None, objreader),
 }
 WRITERS = {
-    "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),
+    "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json), #liste json
+    "sjson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_sjson), #objet json
     "geojson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_geojson),
 }
 

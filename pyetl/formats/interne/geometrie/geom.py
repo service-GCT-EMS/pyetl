@@ -3,6 +3,8 @@
 attributs et geometrie """
 
 import itertools
+
+from pyetl.formats.geometrie.format_ewkt import ecrire_geom_ewkt
 from . import composants as C
 
 global SG, P
@@ -242,7 +244,13 @@ class Geometrie(object):
         else:
             self.lignes = [C.Ligne(C.Section(coords, dim))]
 
-    #
+
+    def supp_point(self,indice=-1):
+        """supprime un point dans la section courante de la ligne courante"""
+        if self.lignes:
+            ligne_active = self.lignes[-1]
+            ligne_active.supp_point(indice)
+
 
     def nouvelle_ligne_s(self, sect, interieur=None):
         """finit la ligne courante et en demarre une nouvelle avec une section"""
@@ -642,6 +650,13 @@ class Geometrie(object):
     # -------------------------------------------------------------------
     # ---------------------- interfaces ---------------------------------
     # -------------------------------------------------------------------
+    @property
+    def __as_ewkt__(self):
+        return ecrire_geom_ewkt(self)
+
+
+
+
 
     @property
     def __json_if__(self):

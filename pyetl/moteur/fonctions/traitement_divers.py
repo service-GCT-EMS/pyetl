@@ -352,7 +352,9 @@ def h_sortir(regle):
         regle.writerparms["fanout"] = regle.params.cmp1.val[tmplist + 1 : -1]
         # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-
+    regle.writerparms["force_multi"]= regle.istrue("force_multi")
+    regle.writerparms["force_multipoint"]= regle.istrue("force_multipoint")
+    regle.writerparms["force_courbe"]= regle.istrue("force_courbe")
     if regle.params.cmp2.val != "#print":
         fich = ""
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
@@ -775,6 +777,7 @@ def f_loadconfig(regle, obj):
 
 def sortir_objets(regle):
     """sort les objets"""
+    schema_courant = regle.stock_param.init_schema(regle.nomschema, origine="L")
     for obj in regle.objets.values():
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     regle.nbstock = 0
@@ -802,7 +805,8 @@ def h_objgroup(regle):
     else:
         idclasse = ("objgroup", regle.params.cmp1.val)
     regle.classe_sortie = idclasse
-    regle.atts = [(i, "T") for i in regle.attlist]
+    regle.nomschema=""
+    # regle.atts = [i for i in regle.attlist]
 
 
 def f_objgroup(regle, obj):
@@ -812,15 +816,41 @@ def f_objgroup(regle, obj):
     #pattern1||L;?C;L;objgroup;C;?L;
     #parametres1||attributs en sortie;defaut;attributs en entree;;nom de la classe en sortie;attributs de groupage
     """
+    if obj.virtuel:
+        return True
     clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
     niveau, classe = regle.classe_sortie
+
     # print("regroupement", regle.params.cmp2.liste, "->", clef, regle.params.pattern)
     if clef in regle.objets:
         obj2 = regle.objets.get(clef)
     else:
         # on cree un objet
+        atts=list(zip(regle.params.cmp2.liste,clef))
+        if obj.schema:
+            regle.nomschema=obj.schema.schema.nom
+            schemaclasse=obj.schema.schema.setdefault_classe(regle.classe_sortie)
+            if schemaclasse.amodifier(regle):
+                for nom in regle.params.cmp2.liste:
+                    modele=obj.schema.attributs.get(nom)
+                    if modele:
+                        schemaclasse.ajout_attribut_modele(modele)
+                    else:
+                        schemaclasse.stocke_attribut(nom,"T")
+                if regle.params.pattern==2:
+                    schemaclasse.stocke_attribut(regle.params.att_sortie.val,"H")
+                else:
+                    for nom in regle.params.att_entree.liste:
+                        modele=obj.schema.attributs.get(nom)
+                        if modele:
+                            schemaclasse.ajout_attribut_modele(modele)
+                        else:
+                            schemaclasse.stocke_attribut(nom,"T")
+                        schemaclasse.attributs[nom].multiple=True
 
-        obj2 = regle.reader.getobj(niveau=niveau, classe=classe, attributs=regle.atts)
+        obj2 = regle.reader.getobj(niveau=niveau, classe=classe, attributs=atts)
+        obj2.schema=schemaclasse
+
         # ident = obj.ident
         # ident2 = (ident[0], regle.params.cmp1.val)
         # obj2.setidentobj(ident2)

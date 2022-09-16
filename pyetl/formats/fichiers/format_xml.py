@@ -41,8 +41,8 @@ class XmlWriter(FileWriter):
             self.readtemplate(template)
         self.classes = set()
         self.blocs = []
-
-        self.encoding = regle.encoding
+        self.entete=regle.getvar("xml_header")
+        self.encoding = regle.getvar("codec_sortie", "utf-8")
         self.curtemp = None
         self.curclasse = None
 
@@ -50,12 +50,7 @@ class XmlWriter(FileWriter):
         """preparation de l'entete du fichiersr xml"""
         if not self.entete:
             return ""
-        geom = (
-            self.separ + "geometrie" + "\n"
-            if self.schema.info["type_geom"] != "0"
-            else "\n"
-        )
-        return self.separ.join(self.liste_att) + geom
+        
 
     def readtemplate(self, templatefile, codec=DEFCODEC):
         """lit un fichier de description de template xml"""
@@ -142,22 +137,24 @@ class XmlWriter(FileWriter):
                 self.fichier.write('"' + val + '" ')
             else:
                 self.fichier.write(i)
-
         if obj.initgeom():
             if self.type_geom:
                 geom = ecrire_geom_xml(
                     self.templates, obj.geom_v, self.type_geom, self.multi, obj.erreurs
                 )
         else:
-            print(
-                "xml: geometrie invalide : erreur geometrique",
-                obj.ident,
-                obj.numobj,
-                obj.geom_v.erreurs.errs,
-                obj.attributs["#type_geom"],
-                self.schema.info["type_geom"],
-                obj.attributs["#geom"],
-            )
+            if not obj.attributs["#geom"]:
+                geom = self.null
+            else:
+                print(
+                    "xml: geometrie invalide : erreur geometrique",
+                    obj.ident,
+                    obj.numobj,
+                    obj.geom_v.erreurs.errs,
+                    obj.attributs["#type_geom"],
+                    self.schema.info["type_geom"],
+                    obj.attributs["#geom"],
+                )
             geom = ""
         if not geom:
             geom = self.null
@@ -186,9 +183,9 @@ def get_ressource(obj, regle, attributs=None):
     rep_sortie = regle.getvar("_sortie")
     if not rep_sortie:
         raise NotADirectoryError("repertoire de sortie non défini")
-    if regle.fanout == "no":
+    if regle.output.fanout == "no":
         nom = sorties.get_id(rep_sortie, "all", "", ".xml")
-    if regle.fanout == "groupe":
+    if regle.output.fanout == "groupe":
         nom = sorties.get_id(rep_sortie, groupe, "", ".xml")
     else:
         nom = sorties.get_id(rep_sortie, groupe, classe, ".xml")
@@ -200,7 +197,7 @@ def get_ressource(obj, regle, attributs=None):
         #            print ('ascstr:creation liste',attributs)
         streamwriter = XmlWriter(
             nom,
-            encoding=regle.getvar("codec_sortie", "utf-8"),
+            # encoding=regle.getvar("codec_sortie", "utf-8"),
             liste_att=attributs,
             schema=obj.schema,
             regle=regle,

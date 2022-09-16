@@ -69,7 +69,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     if req:
         vals = ""
     LOGGER.debug("info base %s ", repr(regle))
-    # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
+    print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
         selecteur = select_in(regle, niv[3:], base, nom=nom)
@@ -104,7 +104,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
                         base, niveau, classes, att, vals, fonction
                     )
         else:
-            # print("param_base,niv,classe", base, niveau, classes)
+            print("param_base,niv,classe", base, niveau, classes,att,vals,fonction)
             selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
     regle.cible_base = selecteur
 
@@ -149,7 +149,10 @@ def h_dbalpha(regle):
         #     regle.params.val_entree = regle.params.st_val(
         #         defaut, None, list(valeurs.keys()), False, ""
         #     )
-        regle.chargeur = True  # c est une regle qui cree des objets
+        if regle.params.pattern=="1":
+            regle.chargeur = True  # c est une regle qui cree des objets
+        elif regle.params.pattern=="2":
+            regle.prefix = regle.params.cmp2.val
         if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
             regle.setlocal("noauto", regle.getvar("noauto"))  # on confine en local
             regle.chargeur = False
@@ -172,7 +175,8 @@ def h_dbalpha(regle):
 def f_dbalpha(regle, obj):
     """#aide||recuperation d'objets depuis la base de donnees
      #groupe||database
-    #pattern||?A;?;?;dbalpha;?;?
+    #pattern1||?A;?;?;dbalpha;?;?
+    #pattern2||=#;?;?L;dbalpha;?;?||sortie||1
     #parametres||;defaut;entree;dbalpha;precisions;ordre
     #dbparams||base;schema;table;attribut;valeur
     #variables||traitement_virtuel;se declenche pour un objet virtuel
@@ -188,10 +192,18 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
+    print ("dbalpha",selecteur)
     if not selecteur:
         return False
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
+    if regle.params.pattern=="2":
+        print ("fdbalpha recup elements",selecteur.baseselectors.items())
+        for base, basesel in selecteur.baseselectors.items():
+            atts=DB.recup_attributs_req_alpha(regle, basesel,regle.params.att_entree.liste)
+            obj.attributs.update(atts)
+        return True
+
     ordre = regle.params.cmp2.liste
     # print("dbalpha: acces base ", selecteur)
     retour = 0

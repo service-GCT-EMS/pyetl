@@ -20,14 +20,14 @@ def _ecrire_section_asc(sect, numero_courant):
         return (
             "1SEC %d, %d, \n" % (num_sect, len(sect.coords))
             + "\n".join(("%d, %d, " % (i[0] * FC, i[1] * FC) for i in sect.coords))
-            + " %s,  %d;\n" % (sect.couleur, sect.courbe)
+            + " %d,  %d;\n" % (sect.couleur, sect.courbe)
         )
     return (
         "1SEC3D %d, %d, \n" % (num_sect, len(sect.coords))
         + "\n".join(
             ("%d, %d, %d, " % (i[0] * FC, i[1] * FC, i[2] * FC) for i in sect.coords)
         )
-        + " %s, %d;\n" % (sect.couleur, sect.courbe)
+        + " %d, %d;\n" % (sect.couleur, sect.courbe)
     )
 
 
@@ -111,8 +111,8 @@ def geom_from_asc(obj):
             if len(lcrd) > dim + 1:  # fin de ligne
                 # print l
                 try:
-                    couleur = lcrd[dim].strip()
-                    if couleur != "500":
+                    couleur = int(lcrd[dim].strip())
+                    if couleur != 500:
                         courbe = int(lcrd[1 + dim].replace(";\n", ""))
                         geom_v.cree_section(coords, dim, couleur, courbe)
                 #                            geom_v.fin_section(couleur, courbe)

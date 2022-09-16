@@ -354,13 +354,13 @@ def f_forcepoly(regle, obj):
 
 def f_force_couleur(regle, obj):
     """#aide||remplace une couleur par une autre
-    #pattern||;;;change_couleur;C;C
+    #pattern||;;;change_couleur;N;N
     #test||obj;asc_c||^;;;change_couleur;2;3||^;;;extract_couleur;3||atv;#points;2
     """
     if obj.virtuel:
         return True
     if obj.initgeom():
-        obj.geom_v.forcecouleur(regle.params.cmp1.val, regle.params.cmp2.val)
+        obj.geom_v.forcecouleur(regle.params.cmp1.num, regle.params.cmp2.num)
         obj.geomnatif = False
         return True
     return False
@@ -643,8 +643,9 @@ def f_mod_3d(regle, obj):
 # ----- decoupage
 def h_splitcouleur(regle):
     """ ajoute des sorties par couleur """
-    regle.liste_couleurs = set(regle.params.cmp1.liste)
-    if regle.liste_couleurs:
+    couleurs = set(regle.params.cmp1.liste)
+    regle.liste_couleurs=[int(i) for i in couleurs]
+    if couleurs:
         for i in regle.liste_couleurs:
             regle.branchements.addsortie(i)
         regle.branchements.addsortie("#autre")
@@ -662,12 +663,8 @@ def f_splitcouleur(regle, obj):
     #    print ('split_couleurs ', regle.params,obj)
     if obj.virtuel:
         return True
-    couleurs = regle.liste_couleurs
-    if obj.virtuel:
-        #            print("objet virtuel")
-        return True
     if obj.initgeom():
-        geoms = obj.geom_v.split_couleur(couleurs)
+        geoms = obj.geom_v.split_couleur(regle.liste_couleurs)
     else:
         regle.stock_param.logger.warning(
             "geometrie invalide %s %s %s <-> %s",
@@ -720,7 +717,8 @@ def f_splitcouleur(regle, obj):
 
 def h_extractcouleur(regle):
     """ extrait des couleurs """
-    regle.liste_couleurs = set(regle.params.cmp1.liste)
+    couleurs = set(regle.params.cmp1.liste)
+    regle.liste_couleurs=[int(i) for i in couleurs]
     return True
 
 
@@ -733,9 +731,8 @@ def f_extractcouleur(regle, obj):
     """
     if obj.virtuel:
         return True
-    couleurs = regle.liste_couleurs
     if obj.initgeom():
-        geom = obj.geom_v.extract_couleur(couleurs)
+        geom = obj.geom_v.extract_couleur(regle.liste_couleurs)
         obj.geom_v = geom
         obj.geomnatif = False
         if obj.finalise_geom(type_geom="2"):

@@ -100,7 +100,7 @@ def geom_from_tmp(obj):
             sect_parts = i.split(",")
             couleur, arc = sect_parts[1:2]
             coords = [list(map(float, j.split(" "))) for j in sect_parts[3:]]
-            lig.ajout_section(couleur, arc, len(coords[0]), coords)
+            lig.ajout_section(int(couleur), int(arc), len(coords[0]), coords)
         elif code == "M":  # fin ligne
             geom_v.ajout_ligne(lig)
             if poly:

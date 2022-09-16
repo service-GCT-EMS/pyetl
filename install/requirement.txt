@@ -8,6 +8,11 @@ psycopg2
 mysql-connector-python
 pyodbc
 owslib
+requests_negotiate_sspi
+requests.auth
+cert_human
+asn1crypto
+pyOpenSSL
 dbfread
 openpyxl
 psutil

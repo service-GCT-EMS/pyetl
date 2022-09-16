@@ -205,7 +205,7 @@ def _sortir_schema_classe_xml(sc_classe, mode="util"):
             )
         description.extend(_sortir_attribut_xml(sc_classe, attribut, keys))
     complement = "MULTIPLE" if sc_classe.multigeom else "SIMPLE"
-    arc = "COURBE" if sc_classe.info["courbe"] else "LIGNE"
+    arc = "COURBE" if sc_classe.info["courbe"]=="1" else "LIGNE"
     dimension = sc_classe.info["dimension"]
     # print 'type_geom',self.info["type_geom"]
     if sc_classe.info["type_geom"]:

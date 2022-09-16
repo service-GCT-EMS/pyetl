@@ -693,7 +693,7 @@ def sel_hascouleur(condition, obj):
     #test||obj;asc_c;1||^;;;geom;||^?#geom;;;supp||has:couleur;2;;;res;1;;set;;||atv;res;1
     #test2||obj;asc_c;1||^;;;geom;||^res;0;;set||?has:couleur;!3;;;res;1;;set;;||atv;res;0
     """
-    return obj.geom_v.has_couleur(condition.params.vals.val)
+    return obj.geom_v.has_couleur(condition.params.vals.num)
 
 
 def sel_is2d(_, obj):

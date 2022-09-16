@@ -129,6 +129,7 @@ ftp_upload;.traitement_web
 geocode;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
+attdecode;.traitement_workflow
 attload;.traitement_workflow
 attreader;.traitement_workflow
 attsave;.traitement_workflow

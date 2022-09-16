@@ -1027,20 +1027,34 @@ def f_attreader(regle, obj):
     if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""
 
+def h_attdecode(regle):
+    '''prepare l'encodage'''
+    regle.encoding=regle.getvar("encoding", "utf-8")
+    
+
+def f_attdecode(regle,obj):
+    """#aide||decode un attribut de type byte en texte
+    #pattern||A;?C;A;attdecode;?C;?C
+    #parametres||sortie;defaut;entree;codec
+    """
+    val=regle.getval_entree(obj)
+    regle.setvalsortie(val.decode(regle.encoding) if isinstance(val,bytes) else val)
+
 
 def h_attsave(regle):
     """prepare les repertoires"""
     regle.destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp1.val)
     regle.encoding = regle.getvar("encoding", "utf-8")
+    regle.ext=regle.params.cmp2.val
     return True
 
 
 def f_attsave(regle, obj):
     """#aide||stocke le contenu d un attribut comme un fichier
-    #parametres||;attribut;;fichier
-    #pattern||A;?C;A;attsave;?C
+    #parametres||attribut;defaut;fichier;;repertoire;extention
+    #pattern||A;?C;A;attsave;?C;?C
     """
-    fich = os.path.join(regle.destdir, regle.getval_entree(obj))
+    fich = os.path.join(regle.destdir, regle.getval_entree(obj))+(regle.ext)
     destdir = os.path.dirname(fich)
     os.makedirs(destdir, exist_ok=True)
     contenu = obj.attributs.get(regle.params.att_sortie.val)

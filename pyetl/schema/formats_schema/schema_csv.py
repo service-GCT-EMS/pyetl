@@ -50,7 +50,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
     #    print('sio: sortir schema', sc_classe.info["type_geom"], type_geom)
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, "")
-    arc = "courbe" if sc_classe.info["courbe"] else ""
+    arc = "courbe" if sc_classe.info["courbe"]=="1" else ""
 
     srid = "mixte" if sc_classe.sridmixte else str(sc_classe.srid)
     nbr = sc_classe.objcnt

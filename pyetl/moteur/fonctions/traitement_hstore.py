@@ -46,19 +46,20 @@ def f_hset1(regle, obj):
         #schema||ajout_attribut
         #test||obj||^X;;C1,C2;hset;||^Z;;X;hget;C1;||atv;Z;AB
     """
-    #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste)
-    obj.attributs[regle.params.att_sortie.val] = ", ".join(
-        [
-            '"'
-            + i
-            + '" => "'
-            + obj.attributs.get(i, regle.params.val_entree.val)
-            .replace("\\", "\\\\")
-            .replace('"', r"\"")
-            + '"'
-            for i in regle.params.att_entree.liste
-        ]
-    )
+    #    print("hcre! ", obj.ido, "->", regle.params.att_entree.liste
+    obj.attributs[regle.params.att_sortie.val] = {i:obj.attributs.get(i, regle.params.val_entree.val)for i in regle.params.att_entree.liste}
+    # obj.attributs[regle.params.att_sortie.val] = ", ".join(
+    #     [
+    #         '"'
+    #         + i
+    #         + '" => "'
+    #         + obj.attributs.get(i, regle.params.val_entree.val)
+    #         .replace("\\", "\\\\")
+    #         .replace('"', r"\"")
+    #         + '"'
+    #         for i in regle.params.att_entree.liste
+    #     ]}
+    # )
     #    print("creation hstore", regle.params.att_sortie.val,
     #          obj.attributs[regle.params.att_sortie.val])
     return True
@@ -254,5 +255,6 @@ def f_hdel(regle, obj):
             del hdic[i]
         except KeyError:
             pass
-    obj.sethtext(regle.params.att_entree.val)
+    if isinstance(obj.attributs.get(regle.params.att_entree.val),str):
+        obj.sethtext(regle.params.att_entree.val)
     return True

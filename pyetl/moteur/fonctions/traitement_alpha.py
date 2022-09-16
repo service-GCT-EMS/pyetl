@@ -769,13 +769,16 @@ def f_keep2(regle, obj):
 def h_keep(regle):
     """cree un ensemble a partir de la liste de sortie"""
     regle.selset = set(regle.params.att_sortie.liste)
+    print ('keep',regle.params.att_entree.liste,
+            regle.params.att_sortie.liste,
+            regle.params.val_entree.liste)
     return True
 
 
 def f_keep(regle, obj):
     """#aide||suppression de tous les attributs sauf ceux de la liste
      #aide_spec||avec renommage de la liste et eventuellemnt valeur par defaut
-       #pattern||L;?L;L;garder;;
+       #pattern3||L;?LC;L;garder;;
     #parametres||nouveaux noms;liste val defauts;attributs a garder
         #schema||garder_attributs
           #test||obj||^C1;;;garder||^X;2;C2;set||atv;X;2

@@ -10,7 +10,6 @@ import json
 
 # from pyetl.formats.interne.stats import LOGGER
 from .geometrie.geom import Geometrie, Erreurs
-
 LOGGER = logging.getLogger(__name__)
 # class AttributsSpeciaux(object):
 #     """gere les attibuts speciaux a certains formats """
@@ -257,8 +256,27 @@ class Objet(object):
             )
             self.setschema(schema_classe)
 
+    def __dict_if__(self,liste_attributs=None):
+        """interface dictionnaire"""
+        liste = (
+            liste_attributs
+            if liste_attributs
+            else [i for i in self.attributs if i[0] != "#" and i != self.key]
+        )
+        if self.classe_is_att:
+            liste.insert(0, "#classe")
+        if not self.geom_v.valide:
+            self.attributs_geom(self)
+        geom= self.geom_v.__as_ewkt__
+        attd={i: self.attributs.get(i, "") for i in liste}
+        print ("dans dict_if", liste, attd, self.attributs)
+
+        attd["#geom"]=geom
+        return attd
+
+
     def __json_if__(self, liste_attributs=None):
-        """interface geojson en sortie"""
+        """interface geojson texte en sortie"""
         liste = (
             liste_attributs
             if liste_attributs
@@ -292,10 +310,10 @@ class Objet(object):
             + "}\n"
         )
 
-    def set_multi(self):
+    def set_multi(self,point):
         """forcage multigeom"""
         if self.schema:
-            self.schema.setmulti()
+            self.schema.setmulti(point)
         self.geom_v.multi = True
 
     def __geo_interface__(self, liste_attributs):
@@ -605,11 +623,14 @@ class Objet(object):
         """convertit un dict en hstore et le range"""
         if dic is None:
             dic = self.hdict.get(nom) if self.hdict else None
-        elif self.hdict:
-            if nom in self.hdict and upd:
-                self.hdict[nom].update(dic)
-            else:
-                self.hdict[nom] = dict(dic)
+            if not dic and isinstance(self.attributs.get(nom),dict):
+                dic=self.attributs[nom]
+        if self.hdict:
+            if dic:
+                if nom in self.hdict and upd:
+                    self.hdict[nom].update(dic)
+                else:
+                    self.hdict[nom] = dict(dic)
         else:
             self.hdict = {nom: dict(dic)}
         res = ""

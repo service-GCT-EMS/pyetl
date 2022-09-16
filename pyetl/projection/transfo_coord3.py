@@ -135,8 +135,8 @@ class Projection(object):
             # + str(self.from_proj)
             # + "\n-> "
             # + str(self.to_proj)
-            + " grille ign "
-            + str(self.grille_ign)
+            + " grille ign " if self.grille_ign else ""
+            
         )
 
         self.valide = 1

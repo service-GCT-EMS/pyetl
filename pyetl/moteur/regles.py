@@ -198,8 +198,8 @@ class ParametresFonction(object):
             if ":" in val and not "," in val:
                 val2 = val.replace(":", ",")
             if val2:
-                if val2.startswith(","):
-                    val2 = val2[1:]
+                # if val2.startswith(","):
+                #     val2 = val2[1:]
                 liste = val2.split(",")
 
             if taille > len(liste):
@@ -665,6 +665,7 @@ class RegleTraitement(object):  # regle de mapping
         #    print( 'traitement fonction',fonction.nom,erreurs)
         selected = None
         for fonc in fonction.subfonctions:
+            # print ('test fonc', fonc)
             if fonc.style != self.style:
                 continue
             if self._select_fonc(fonc):
@@ -672,8 +673,11 @@ class RegleTraitement(object):  # regle de mapping
                 valide, self.elements, erreurs = validepattern(
                     self.v_nommees, fonc.definition, self.ligne
                 )
+                # print ('test fonc',valide, fonc, erreurs)
                 if valide:
                     break
+            # else:
+            #     print ('test fonc:unselected')
         if not selected:
             self.afficher_erreurs(None, "")
         elif not valide:
@@ -858,10 +862,11 @@ class RegleTraitement(object):  # regle de mapping
         return self.stock_param.schemas.get(nom)
 
     # =========================acces standardises aux objets==================
-    def getobj(self, ident, format_natif="interne"):
+    def getobj(self, ident):
         """cree un objet"""
         if hasattr(self, "reader"):
-            obj = self.reader.getobj(*ident, format_natif=format_natif)
+            niveau,classe=ident
+            obj = self.reader.getobj(niveau=niveau,classe=classe)
             return obj
         return False
 

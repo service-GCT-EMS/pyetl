@@ -124,9 +124,9 @@ def textwriter(self, regle, _, attributs=None):
                 continue
             if obj.ident != dident:
                 groupe, classe = obj.ident
-                if regle.fanout == "groupe":
+                if regle.output.fanout == "groupe":
                     nom = sorties.get_id(rep_sortie, groupe, "", regle.ext)
-                elif regle.fanout == "no":
+                elif regle.output.fanout == "no":
                     nom = sorties.get_id(rep_sortie, regle.nom, "", regle.ext)
                 else:
                     nom = sorties.get_id(rep_sortie, groupe, classe, regle.ext)

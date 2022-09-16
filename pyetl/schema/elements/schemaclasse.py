@@ -158,7 +158,9 @@ class SchemaClasse(object):
             "dimension": "2",
             "type_geom": "indef",
             "objcnt_init": "0",
-            "courbe": "",
+            "courbe": "0",
+            "mesure": "0",
+            "multiple": "0",
             "alias": "",
             "type_table": "i",
         }
@@ -173,6 +175,7 @@ class SchemaClasse(object):
         self.srid = 3948
         self.sridmixte = False
         self.multigeom = False
+        self.courbe = False
         self.changed = False
         self.force_dim = False
         self.ajust_enums = dict()  # le schema comprend des conformites ajustables
@@ -296,8 +299,12 @@ class SchemaClasse(object):
         """retourne l'identifiant de classe sous forme 'groupe'.'nom' pour acces base de donnees"""
         return "'" + self.groupe + "'.'" + self.nom + "'"
 
-    def setmulti(self):
-        self.multigeom = True
+    def setmulti(self, point=False):
+        if self.info["type_geom"]=="1":
+            if point:
+                self.multigeom = True
+        else:
+            self.multigeom = True
         # raise
 
     def setsimple(self):
@@ -829,7 +836,7 @@ class SchemaClasse(object):
         attr.ordre = ordreins
 
     def stocke_geometrie(
-        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None, nom=None
+        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None, nom=None, mesure=False
     ):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
@@ -856,7 +863,7 @@ class SchemaClasse(object):
             dimension = 3 if "Z" in nom_type else dimension
             courbe = "Curve" in nom_type
             multiple = "Multi" in nom_type
-
+            self.info["multiple"] = str(int(multiple))
             if "Point" in nom_type:
                 self.info["type_geom"] = "1"
             elif "Surface" in nom_type or "Polygon" in nom_type:
@@ -895,6 +902,11 @@ class SchemaClasse(object):
         #        self.courbe = courbe
         if courbe:
             self.info["courbe"] = "1"
+            self.courbe = 1
+        if mesure:
+            self.info["mesure"] = "1"
+        if multiple:
+            self.info["multiple"] = "1"
         #        self.is_3d = dimension==3
         self.info["dimension"] = str(dimension)
         # if type_geom:

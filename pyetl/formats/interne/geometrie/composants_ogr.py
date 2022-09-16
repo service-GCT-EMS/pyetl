@@ -53,7 +53,7 @@ class Section(object):
             self.coords = [list(pnt)]
         else:
             self.coords = list()
-        self.couleur = "1"
+        self.couleur = 1
         self.courbe = 0
         self.aire = 0
         self.dimension = dim

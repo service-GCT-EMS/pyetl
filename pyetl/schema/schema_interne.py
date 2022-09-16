@@ -511,7 +511,7 @@ class Schema(object):
         self, niveau, classe, attr, tables=None, multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        # print("select_niv_classes", niveau, classe, attr, tables, multi)
+        print("select_niv_classes", niveau, classe, attr, tables, multi)
         LOGGER.debug(
             "select_niv_classes %s %s a=%s T=%s M=%s",
             niveau,
@@ -586,7 +586,7 @@ class Schema(object):
                     # print("non retenu", tables, self.classes[i].type_table)
                     continue
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
-                    if not attr or attr in self.classes[i].attributs:
+                    if not attr or attr=="*" or attr in self.classes[i].attributs:
                         tables_a_sortir.add(i)
                     elif attr == "#geom" and self.classes[i].info["type_geom"] > "0":
                         tables_a_sortir.add(i)

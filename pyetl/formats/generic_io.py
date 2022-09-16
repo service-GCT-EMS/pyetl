@@ -326,7 +326,13 @@ class Reader(object):
                 self.schema = self.stock_param.init_schema(
                     self.nomschema, origine="B", stable=False
                 )
-
+            if not self.schema and self.cree_schema:
+            # les objets ont un schema issu du fichier (le format a un schema)
+                self.nomschema = "schema"
+                self.schema = self.stock_param.init_schema(
+                    self.nomschema, origine="B", stable=False
+                )
+                # print("__________________creation schema", self.schema, self.regle_ref)
             if self.debug:
                 print(
                     "set format entree: schema entree", self.schema_entree, self.schema
@@ -596,6 +602,7 @@ class Reader(object):
         if self.schema:
             self.schemaclasse = self.schema.setdefault_classe(self.ident)
             self.setattformatter()
+        # print ("positionnement schemaclasse", self.schemaclasse)
 
     def prepare_attlist(self, attlist):
         """prepare une liste de mapping"""
@@ -742,6 +749,7 @@ class Reader(object):
         if self.maxobj and self.obj_crees == -self.maxobj:
             raise GeneratorExit
         self.obj_crees += 1
+        # print ("-------------------objet cree",self.regle,'\n', obj,'\n', obj.schema)
         return obj
 
     def objfail(self):
@@ -924,8 +932,9 @@ class Output(object):
                 os.makedirs(os.path.dirname(nom), exist_ok=True)
             str_w = self.writerclass(nom, schema=obj.schema, regle=self.regle)
             ressource = self.sorties.creres(nom, str_w)
-        else:
-            ressource.handler.changeclasse(obj.schema)
+        # else:
+        #     ressource.handler.changeclasse(obj.schema)
+        ressource.handler.changeclasse(obj.schema)
 
         #    print ('recup_ressource ressource stream csv' , ressource, nom, ident, ressource.etat, entete)
         self.regle.context.setroot("derniere_sortie", nom)

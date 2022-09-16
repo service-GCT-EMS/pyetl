@@ -13,8 +13,10 @@ il est necessaire de positionner les parametres suivant:
 
 
 """
+from codecs import unicode_escape_decode
 from copy import Error
 from re import I
+import html
 
 # version patchee de owslib pour eviter un crash sur data.strasbourg.eu
 
@@ -330,6 +332,8 @@ class CswCursor(object):
             while self.connection.records:
                 record=self.connection.records.popitem()[1]
                 valeurs=[getattr(record,i) for i in self.cursinfo.namelist]
+                valeurs=[(i.decode(encoding='UTF-8')) if isinstance(i,bytes) else i for i in valeurs ]
+                valeurs=[(html.unescape(i)) if isinstance(i,str) else i for i in valeurs ]
                 yield valeurs
                 
     def close(self):
@@ -473,7 +477,7 @@ class CswConnect(DbConnect):
         niveau, classe = ident
         self.requete = None
         cond=""
-        print ("req_alpha",ident,attr,val)
+        # print ("req_alpha",ident,attr,val)
         if val:
             if val.startswith("~"):
                 cond=' Like '
@@ -481,11 +485,11 @@ class CswConnect(DbConnect):
             else:
                 cond=' = '
             val="'"+val+"'"
-            if not attr:
+            if not attr or attr=="*":
                 attr="csw:AnyText"
             self.requete= attr+cond + val
-        print ("construction requete",self.requete)
-
+        # print ("construction requete",self.requete, ident,attr,val)
+        # raise
             # self.requete=r"csw:AnyText Like '%ilot%'"
 
         # self.connection.getrecords2(esn="full",maxrecords=10)

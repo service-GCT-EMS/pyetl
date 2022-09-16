@@ -135,9 +135,9 @@ def ecrire_objets_db(regle, _, attributs=None, rep_sortie=None):
                 groupe, classe = obj.ident
                 print("dbw : regle.fanout", regle.fanout)
 
-                if regle.fanout == "no":
+                if regle.output.fanout == "no":
                     nom = sorties.get_id(rep_sortie, "all", "", ".sql")
-                elif regle.fanout == "groupe":
+                elif regle.output.fanout == "groupe":
                     nom = sorties.get_id(rep_sortie, groupe, "", ".sql")
                 else:
                     nom = sorties.get_id(rep_sortie, classe, "", ".sql")

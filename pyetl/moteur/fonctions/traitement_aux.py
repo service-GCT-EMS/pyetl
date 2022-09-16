@@ -154,8 +154,13 @@ def s_simple_pre(sortie, obj, valeur):
     #pattern||+A||S
     #shelper||simple
     """
-    obj.attributs[sortie.val] = valeur + obj.attributs.get(sortie.val, "")
-
+    v_champ=obj.attributs.get(sortie.val, "")
+    if isinstance(v_champ,str):
+        obj.attributs[sortie.val] = valeur + obj.attributs.get(sortie.val, "")
+    elif isinstance(v_champ,list):
+        obj.attributs[sortie.val] = [valeur + i for i in v_champ]
+    elif isinstance(v_champ,dict):
+        obj.attributs[sortie.val] = {i:valeur + j for i,j in v_champ.items()}
 
 def s_simple_post(sortie, obj, valeur):
     """#aide|| cree l' attribut si necessaire
@@ -263,15 +268,16 @@ def h_stat(regle):
 
 def f_stat(regle, obj):
     """#aide||fonctions statistiques
-    #aide_spec||nom de la colonne de stat;val;col entree;stat;fonction stat
-    #aide_spec1||fonctions disponibles
-    #aide_spec2||cnt : comptage
-    #aide_spec3||val : liste des valeurs
-    #aide_spec4||min : minimum numerique
-    #aide_spec5||max : maximum numerique
-    #aide_spec6||somme : somme
-    #aide_spec7||moy : moyenne
-    #pattern||C;?;?A;stat;C;?C
+    #aide_spec||la colonne a analyser est definie dans la premiere colonne de test
+            ||fonctions disponibles
+            ||cnt : comptage
+            ||val : liste des valeurs
+            ||min : minimum numerique
+            ||max : maximum numerique
+            ||somme : somme
+            ||moy : moyenne
+    #pattern1||C;?;?A;stat;C;?C
+    #aide_spec1||nom de la colonne de stat;val;col entree;stat;fonction stat;prefixe_colonne
     #test1 cnt||obj;;4||#classe;;;;T;;;stat;cnt||anstat;atv:T:4;
     #test2 somme||obj;;4||#classe;;;;T;1;;stat;somme||anstat;atv:T:4;
     #test3 min||obj;;4||#classe;;;;T;;V0;stat;min||anstat;atv:T:0;

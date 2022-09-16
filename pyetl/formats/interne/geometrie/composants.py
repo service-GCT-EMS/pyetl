@@ -73,7 +73,7 @@ class Section(object):
             self.coords = [list(pnt)]
         else:
             self.coords = list()
-        self.couleur = "1"
+        self.couleur = 1
         self.courbe = 0
         self.aire = 0
         self.dimension = dim
@@ -186,9 +186,19 @@ class Section(object):
         """ cache le Z """
         self.dimension = 2
 
-    def set_3d(self):
+    def set_3d(self): 
         """ montre le Z """
         self.dimension = 3
+
+    def discretise(self,ang=30,tol=0.05): 
+        """discretise une geometrie"""
+        if not self.courbe:
+            return
+        if self.courbe == 3: #cercle
+            pass
+        else:
+            pass
+
 
     @property
     def longueur(self):
@@ -312,6 +322,16 @@ class Ligne(object):
             return 0
         self.termine = True
         return pnt
+
+    def supp_point(self,indice):
+        """supprime un point de la section courante"""
+        sc = self.sections[-1]
+        if sc.encours:
+            try:
+                sc.coords.pop(indice)
+                return 0
+            except IndexError:
+                return 0
 
     def force_fermeture(self):
         """force la fermeture d'une ligne"""

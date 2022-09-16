@@ -633,6 +633,69 @@ def lire_requete(
             return res
     return 0
 
+def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
+    """passe un ensemble de requetes et retourne une liste de valeurs"""
+    connect = baseselector.connect
+    logger = regle_courante.stock_param.logger
+    logger.debug("recup liste tables %s", repr(list(baseselector.classlist())))
+    if connect is None:
+        regle_courante.stock_param.logger.error(
+            "dbacces: pas de connection %s", repr(baseselector)
+        )
+        # print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
+        return 0
+    print("recup liste tables %s", repr(list(baseselector.classlist())))
+    schema_travail = baseselector.schema_travail
+    # print("recup schema_travail ", schema_travail.nom)
+
+    schema_base = connect.schemabase
+    maxobj = int(regle_courante.getvar("lire_maxi", 0))
+    mods = regle_courante.params.cmp1.liste
+    prefix=regle_courante.prefix
+    champs = {a:prefix+a for a in regle_courante.params.att_entree.liste}
+    retours={i:[] for i in champs}
+    # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
+    curs = None  #
+    n = 0
+    
+    for ident2, description in baseselector.classlist():
+        ident, attr, val, fonction = description
+        n += 1
+        if ident is not None:
+            schema_classe_base = schema_base.get_classe(ident)
+            print("mdba:recup_donnees_req_alpha ", ident, description)
+            # print("mdba: ", ident, ident2)
+            schema_classe_travail = schema_travail.get_classe(ident)
+            if (
+                attr
+                and attr!="*"
+                and attr not in schema_classe_travail.attributs
+                and attr not in connect.sys_fields
+            ):
+                # print ('la on fait rien',type(attribut), attr)
+                continue  # on a fait une requete sur un attribut inexistant: on passe
+
+            curs = connect.req_alpha(
+                ident, schema_classe_base, attr, val, mods, maxi=maxobj
+            )
+            logger.debug(
+                "traitement curseur " + str(ident) + " %s ",
+                curs is not None and curs.cursor is not None,
+            )
+            if curs:
+                namelist=curs.namelist
+                for valeurs in curs.cursor:
+                    n+=1
+                    attributs={champs[a]:b for a,b in zip(
+                    namelist, [str(i) if i is not None else "" for i in valeurs]) if a in champs}
+                    [retours[i].append(attributs.get(i,'')) for i in champs]                
+        if n==1:
+            print ('recup retours',retours)
+            retours={i:(retours[i].pop() if retours[i] else "") for i in retours}
+        if n==0:
+            retours={i:"" for i in champs}
+    return retours    
+
 
 def recup_donnees_req_alpha(regle_courante, baseselector):
     """recupere les objets de la base de donnees et les passe dans le moteur de regles"""
