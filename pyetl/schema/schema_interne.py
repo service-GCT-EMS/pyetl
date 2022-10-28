@@ -511,7 +511,7 @@ class Schema(object):
         self, niveau, classe, attr, tables=None, multi=True, nocase=False
     ):
         """selectionne des classes a partir d une seule description"""
-        print("select_niv_classes", niveau, classe, attr, tables, multi)
+        # print("select_niv_classes", niveau, classe, attr, tables, multi)
         LOGGER.debug(
             "select_niv_classes %s %s a=%s T=%s M=%s",
             niveau,

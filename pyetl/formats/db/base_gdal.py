@@ -5,31 +5,32 @@ Created on Wed Sep  7 08:33:53 2016
 @author: 89965
 acces gdal en mode base de donnees
 """
-import sys
 import os
+
+from pyetl.formats.geometrie.format_ewkt import ecrire_geom_ewkt
 import xml.etree.ElementTree as ET
-
-# global fiona, from_epsg
-import fiona
-from fiona.crs import from_epsg
-
 printtime = False
 if printtime:
     import time
 
     t1 = time.time()
-    print("start_gdal")
-
-from ..fichiers.format_gdal import formatte_entree
+    print("start gdal")
+from collections import defaultdict, OrderedDict
+import itertools
+from osgeo import ogr,osr, gdal
+gdal.UseExceptions()
+from ..fichiers.format_gdal import decode_wkbgeomtyp, formatte_entree
 
 if printtime:
-    print(" format gdalio      ", time.time() - t1)
+    print(" base gdal      ", time.time() - t1)
     t1 = time.time()
+
 from .database import DbConnect
 
 if printtime:
     print(" dbconnect      ", time.time() - t1)
     t1 = time.time()
+
 from .gensql import DbGenSql
 
 if printtime:
@@ -59,6 +60,7 @@ class GdalConnect(DbConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         # importer()
         self.type_base = "gpkg"
+        self.driver=ogr.GetDriverByName('gpkg')
         self.connect()
         self.geographique = True
         self.accept_sql = "no"
@@ -68,25 +70,42 @@ class GdalConnect(DbConnect):
         self.qgstree = None
         self.enuminfos = dict()
         self.layerinfos = dict()
+        self.rastercount= self.getraster()
         self.prepare_complements()
-
+        print ('gdalconnect actif',self,self.connection)
+        
     #        self.encoding =
 
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
-        # print("info : dbacces:connection sqlite", self.user, "****", self.base)
+        print("info : dbacces:connection gdal", self.driver, self.base)
         try:
-
-            self.connection = fiona.open(self.base)
+            self.connection = gdal.Open(self.base)
+            print (self.connection,self.base)
         except Exception as err:
             print(
                 "error: gpkg: erreur acces base",
                 self.base,err
             )
-            sys.exit(1)
-            return None
+            raise
+        if not self.connection:
+            print ('erreur connection', self.base)
+            raise StopIteration(1)
 
         # print("connection réussie", self.type_base)
+    def getlayers(self):
+        """ lecture de la liste de couches"""
+        layerdict=dict()
+        print ('couches',self.connection.GetLayerCount())
+        for i in range(self.connection.GetLayerCount()):
+            layer = self.connection.GetLayerByIndex(i)
+            name=layer.GetName()
+            layerdict[name]=layer
+        return layerdict
+
+    def getraster(self):
+        """ determine si un gpkg contient des couches raster"""
+        return self.connection.RasterCount
 
     def get_tables(self):
         """retourne la liste des tables"""
@@ -164,66 +183,66 @@ class GdalConnect(DbConnect):
             "date": "DS",
             "time": "D",
         }
-
+        nb=0
         attlist = []
-
-        layers = fiona.listlayers(self.base)
+        layers = self.getlayers()
         # print("gdalshema: lecture tables", layers)
+        
         groupe = os.path.splitext(os.path.basename(self.base))[0]
-        for layer in layers:
-            with fiona.open(self.base, "r", layer=layer) as source:
-                # print("recup fiona", source.driver, source.schema, source.crs)
-                description = source.schema
-                classe = layer
-                ident = (groupe, classe)
-                complements = self.layerinfos.get(classe, dict())
-                multigeom = False
-                if "geometry" in description:
-                    nom_geom = description["geometry"]
-                    type_geom = code_g.get(nom_geom, "-1")
-                    dimension = 2
-                    if "3D " in nom_geom:
-                        dimension = 3
-                        nom_geom = nom_geom.split(" ")[1]
-                        type_geom = code_g.get(nom_geom, "-1")
-                    if "Multi" in nom_geom:
-                        multigeom = True
-                else:
-                    nom_geom = ""
-                    type_geom = "0"
-                    dimension = 0
+        for layername,layer in layers.items():
+            # sc_classe = schema_courant.setdefault_classe(ident)
+            classe=layername
+            ident = (groupe, classe)
+            complements = self.layerinfos.get(classe, dict())
+            attcomp = complements.get("attributs", dict())
+            geomtyp=layer.GetGeomType()
+            nom_geom=layer.GetGeometryColumn()
+            if not nom_geom:
+                nom_geom="geometrie"
+            type_geom,multigeom,courbe,dimension,mesure=decode_wkbgeomtyp(geomtyp)
+            type_geom=str(type_geom)
 
-                nb = 0
-                attcomp = complements.get("attributs", dict())
-                for nom_att in description["properties"]:
-                    type_att = description["properties"][nom_att]
-                    type_att, taille, dec = formatte_entree(type_att)
-                    compdef = attcomp.get(nom_att, dict())
-                    attlist.append(
+            print("---------recup schema gdal",ident,':type geometrique gdal', geomtyp,ogr.GeometryTypeToName(geomtyp), type_geom, nom_geom)
+            spatialref=layer.GetSpatialRef()
+            srid=str(spatialref.GetAttrValue("AUTHORITY", 1))
+            print(ident,':spatialref gdal', spatialref.GetName(),spatialref.AutoIdentifyEPSG(),spatialref.GetAttrValue("AUTHORITY", 1))
+            if not srid:
+                srid = "3948"
+
+            layerDefinition =  layer.GetLayerDefn()
+            # sc_classe.info["type_geom"] = type_geom
+            for i in range(layerDefinition.GetFieldCount()):
+                fielddef=layerDefinition.GetFieldDefn(i)
+                nom_att =  fielddef.GetName()
+                fieldTypeCode = fielddef.GetType()
+                fieldType = fielddef.GetFieldTypeName(fieldTypeCode)
+                type_att=types_a[fieldType]
+                taille = fielddef.GetWidth()
+                dec = fielddef.GetPrecision()
+                attlist.append(
                         self.attdef(
                             nom_groupe=groupe,
                             nom_classe=classe,
                             nom_attr=nom_att,
-                            alias=compdef.get("alias", ""),
+                            alias=complements.get("alias", ""),
                             type_attr=types_a[type_att],
                             taille=taille,
                             decimales=dec,
-                            enum=compdef.get("enum", ""),
+                            enum=complements.get("enum", ""),
                         )
                     )
-                if type_geom != "0":
-                    attlist.append(
-                        self.attdef(
-                            nom_groupe=groupe,
-                            nom_classe=classe,
-                            nom_attr="geometrie",
-                            type_attr=type_geom,
-                            dimension=dimension,
-                            multiple=multigeom,
-                        )
+            if type_geom != "0":
+                attlist.append(
+                    self.attdef(
+                        nom_groupe=groupe,
+                        nom_classe=classe,
+                        nom_attr=nom_geom,
+                        type_attr=type_geom,
+                        dimension=dimension,
+                        multiple=multigeom,
                     )
-
-                nouv_table = [
+                )
+            nouv_table = [
                     groupe,
                     classe,
                     complements.get("alias", ""),
@@ -236,7 +255,7 @@ class GdalConnect(DbConnect):
                     "",
                     "",
                 ]
-                self.tables[ident] = nouv_table
+            self.tables[ident] = nouv_table
         return attlist
 
 
@@ -253,6 +272,6 @@ DBDEF = {
         "file",
         ".gpkg",
         "#ewkt",
-        "base sqlite basique",
+        "base geopackage",
     ),
 }

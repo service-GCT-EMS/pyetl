@@ -376,7 +376,6 @@ def f_multigeom(regle, obj):
         return True
     if regle.params.val_entree.num:
         obj.set_multi()
-
     return True
 
 
@@ -647,7 +646,7 @@ def h_splitcouleur(regle):
     regle.liste_couleurs=[int(i) for i in couleurs]
     if couleurs:
         for i in regle.liste_couleurs:
-            regle.branchements.addsortie(i)
+            regle.branchements.addsortie("#"+str(i))
         regle.branchements.addsortie("#autre")
     #    print ('preparation split_couleurs',regle.branchements, regle.liste_couleurs)
     return True

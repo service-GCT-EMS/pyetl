@@ -16,21 +16,17 @@ from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
 from pyetl.formats.interne.objet import Objet
 
-from .outils import prepare_mode_in, getfichs
+from .outils import prepare_mode_in, getfichs,isatt,resolve_att,getbase
 from .tableselector import getselector, select_in, adapt_qgs_datasource
 
 LOGGER = logging.getLogger(__name__)
 
 
-def getbase(regle):
-    """recuper le code base our les ecritures"""
-    regle.base = regle.code_classe[3:]
-    return regle.base
-
-
-def param_base(regle, nom="", geo=False, req=False, mods=True):
+def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     """extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
+    if not obj and any(isatt(i) for i in regle.v_nommees):
+        regle.cible_base=None
     base = regle.code_classe[3:]
     # print("param base ", base)
     if not base:
@@ -48,20 +44,22 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
         regle.cible_base = selecteur
         return True
     niveau, classe, att = "", "", ""
-    niv = regle.v_nommees["val_sel1"]
-    cla = regle.v_nommees["sel2"]
-    att = regle.v_nommees["val_sel2"]
-    if ":" in att:
-        tmp = att.split(":") + ["", ""]
-        att = tmp[0]
-        vals = (tmp[1], tmp[2])
-    else:
-        vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
     if mods:
         regle.mods = regle.params.cmp1.val
     else:
         regle.mods = regle.context.getlocal("mods")
     fonction = "=" if "=" in regle.mods else ""
+    niv = resolve_att(regle.v_nommees["val_sel1"],obj)
+    cla = resolve_att(regle.v_nommees["sel2"],obj)
+    att = resolve_att(regle.v_nommees["val_sel2"],obj)
+    if ":" in att:
+        tmp = att.split(":") + ["", "",""]
+        att = resolve_att(tmp[0],obj)
+        vals = (tmp[1], tmp[2])
+        fonction=tmp[3]
+    else:
+        vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
+
     if geo:
         fonction = att
         att = ""
@@ -72,21 +70,29 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
     print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
-        selecteur = select_in(regle, niv[3:], base, nom=nom)
-        # print("recup selecteur", selecteur)
+        nivdef=resolve_att(niv[3:],obj)
+        if nivdef.startswith('['):
+            nivdef=niv
+        selecteur = select_in(regle, nivdef, base, nom=nom)
+        # print("------------------------------recup selecteur", selecteur)
+    elif not niv and cla.lower().startswith("in:"):  # mode in
+            cladef=resolve_att(cla[3:],obj)
+            if cladef.startswith('['):
+                cladef=cla
+            selecteur = select_in(regle, cladef, base, nom=nom)
+            # print("------------------------------recup selecteur", selecteur)
     else:
         selecteur = getselector(regle, base, nom=nom)
         selecteur.metainfos = ("niveau=" + niv if niv else "") + (
             " classe=" + cla if cla else ""
         )
-        if cla.lower().startswith("in:"):  # mode in
+        if cla.lower().startswith("in:"):
             clef = 1 if "#schema" in cla else 0
-            mode_select, classes = prepare_mode_in(cla[3:], regle, taille=1, clef=clef)
-            classlist = set()
-            for i in classes.values():
-                classlist = classlist.union(i)
+            mode_select, classes = prepare_mode_in(resolve_att(cla[3:],obj), regle, taille=1, clef=clef)
+            classlist=set(classes.values())
+            print ("classlist:",classlist)
             classes = list(classlist)
-            print("trouve classes", type(classes), classes)
+            # print("trouve classes", type(classes), classes)
         else:
             classes = cla.split(",")
         if niv:
@@ -113,11 +119,19 @@ def param_base(regle, nom="", geo=False, req=False, mods=True):
 
 def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
-    print("acces bases", regle.cible_base.baseselectors.keys())
+    print("acces bases",( regle.cible_base.baseselectors.keys() if regle.cible_base else "*") )
     selecteur = regle.cible_base
-    maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
-    selecteur.maxsel = maxsel
+    
+    if selecteur is None:
+        if param_base(regle,nom=regle.getval_entree(obj),obj=obj):
+            selecteur=regle.cible_base
+            regle.cible_base=None
+        # base=regle.code_classe[3:]
+        # selecteur=getselector(regle, (base if base else "*"), nom=regle.getval_entree(obj))
+            print ('creation selecteur',selecteur)
     if selecteur:
+        maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
+        selecteur.maxsel = maxsel
         selecteur.resolve(obj)
         return selecteur
     print("setdb: pas de selecteur")
@@ -178,7 +192,7 @@ def f_dbalpha(regle, obj):
     #pattern1||?A;?;?;dbalpha;?;?
     #pattern2||=#;?;?L;dbalpha;?;?||sortie||1
     #parametres||;defaut;entree;dbalpha;precisions;ordre
-    #dbparams||base;schema;table;attribut;valeur
+    #dbparams||base;schema;table;attribut:valeur
     #variables||traitement_virtuel;se declenche pour un objet virtuel
             ||dest;repertoire temporaire si extracteur externe
     #req_test||testdb
@@ -698,8 +712,10 @@ def dbwritebloc(regle):
         if connect is None:
             LOGGER.error("connection impossible a la base %s", regle.base)
             raise StopIteration(2)
-    schema = regle.schema
-    connect.dbload(schema, regle.dident, regle.tmpstore)
+    schema = regle.colonnes
+    if regle.insert:
+        connect.dbinsert(schema,regle.dident,regle.tmpstore,regle.insert)
+    connect.dbload(schema, regle.dident, regle.tmpstore, regle.insert)
     regle.nbstock = 0
     regle.traite += len(regle.tmpstore)
     regle.tmpstore = []
@@ -716,6 +732,15 @@ def h_dbwrite(regle):
     regle.connect = None
     regle.colonnes = None
     regle.dident = None
+    regle.insert = regle.istrue("insert")
+    if regle.istrue("update"):
+        regle.insert=2
+    regle.use_geom=not regle.params.cmp1.val
+    regle.liste_att=regle.params.att_entree.liste
+    regle.force_entree=bool(regle.liste_att)
+    regle.colonnes=regle.params.att_sortie.liste
+    regle.force_sortie=bool(regle.colonnes)
+    regle.has_geom=False
     if not getbase(regle):
         LOGGER.error("base non definie")
         return False
@@ -725,26 +750,33 @@ def h_dbwrite(regle):
 def f_dbwrite(regle, obj):
     """#aide||chargement en base de donnees en bloc
       #groupe||database
-     #pattern||;;;dbwrite;;
+     #pattern||?L;;?L;dbwrite;?=#nogeom;
     #req_test||testdb
     """
     ident = obj.ident
+    if obj.virtuel:
+        return True
     if regle.dident != ident:
-        regle.traite_stock()
+        if regle.nbstock:
+            regle.traite_stock(regle)
         regle.dident = ident
-        regle.liste_att = tuple((i for i in obj.schema.get_liste_attributs()))
-        regle.colonnes = (
-            regle.liste_att + ("geometrie",)
-            if obj.schema.type_geom != "0"
-            else regle.liste_att
-        )
-        regle.has_geom = obj.schema.type_geom != "0"
+        if not regle.force_entree:
+            regle.liste_att = tuple((i for i in obj.schema.get_liste_attributs()))
+        if not regle.force_sortie:
+            regle.colonnes = (
+                regle.liste_att + ("geometrie",)
+                if regle.use_geom and obj.schema.info["type_geom"] != "0"
+                else regle.liste_att
+            )
+            regle.has_geom = obj.schema.info["type_geom"] != "0" and regle.use_geom
     if regle.nbstock >= regle.blocksize:
-        regle.traite_stock()
+        regle.traite_stock(regle)
     ligne = tuple((obj.attributs[i]) for i in regle.liste_att)
     if regle.has_geom:
         ligne = ligne + obj.geometrie
     regle.tmpstore.append(ligne)
+    regle.nbstock+=1
+    return True
 
 
 def f_dbupdate(regle, obj):
@@ -845,6 +877,9 @@ def f_dbcount(regle, obj):
 
 def h_recup_schema(regle):
     """lecture de schemas"""
+    if regle.params.pattern in "34":
+        regle.cible_base=None
+        return True
     if not param_base(regle):
         print("erreur definition selecteur de base", regle.v_nommees)
         regle.valide = False

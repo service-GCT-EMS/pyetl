@@ -16,7 +16,7 @@ import itertools
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
-from .outils import scandirs, hasbom, _extract
+from .outils import scandirs, hasbom, _extract,isatt,resolve_att,getbase
 
 
 DEBUG = False
@@ -65,6 +65,7 @@ class TableBaseSelector(object):
         self.staticlist = dict()
         self.dynlist = dict()
         self.unresolved = set()
+        self.subselects=[]
 
     def __repr__(self):
         return (
@@ -99,7 +100,7 @@ class TableBaseSelector(object):
         dyn = any(["[" in i for i in classes]) or "[" in niveau
         if "[" in attr or "[" in valeur:
             dyn = True
-        if isinstance(valeur, tuple) and valeur[0]:
+        if valeur and isinstance(valeur, tuple) and valeur[0]:
             dyn=True
         if dyn:
             self.dyndescr.append(descripteur)
@@ -109,7 +110,12 @@ class TableBaseSelector(object):
     def resolve_static(self, obj):
         """transformation de la liste de descripteurs statiques en liste de classes
         le selecteur gere la connection a la base se donnees"""
-        if self.dynbase and obj.attributs.get(self.dynbase) != self.base:
+        print ("resolve static", self.base, self.dynbase)
+        if not obj and (isatt(self.base) or self.dynbase):
+            return
+        if self.base=="*":
+            return
+        if self.dynbase and obj and obj.attributs.get(self.dynbase) != self.base:
             self.staticlist = dict()
             self.base = obj.attributs.get(self.dynbase)
             # self.nombase = self.base if self.base != "*" else ""
@@ -267,30 +273,41 @@ class TableBaseSelector(object):
         self.dynlist = dict()
         # if self.dyndescr:
         # print("resolution descripteur dynamique", self.dyndescr)
+        subselects=[]
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
-            # print("descripteur dynamique", niveau, classes, attr, valeur, fonction, obj)
-            if attr.startswith("["):
-                attr = obj.attributs.get(attr[1:-1])
-            if niveau.startswith("["):
-                niveau = obj.attributs.get(niveau[1:-1])
+            print("descripteur dynamique n:", niveau,"\nc:",classes, "\na:",attr, "\nv:",valeur,"\nf:", fonction)
+            if niveau.startswith('in:['):
+                niv=resolve_att(niveau[3:],obj)
+                selecteur=select_in(self.regle_ref,niv,'')
+                subselects.append(selecteur)
+                continue
+
+            attr=resolve_att(attr,obj)
+            niveau=resolve_att(niveau,obj)
+
             if attr:
                 if valeur:
-                    valeur = (
+                    # print ('valeur dynamique',valeur, valeur[0],obj.attributs.get(valeur[0]),(obj.attributs.get(valeur[0], valeur[1])
+                    #     if valeur[0]
+                    #     else valeur[1]))
+                    valeur = fonction + (
                         obj.attributs.get(valeur[0], valeur[1])
                         if valeur[0]
                         else valeur[1]
                     )
             for classe in classes:
-                # print("dyn: traitement classe", classe)
-                if classe.startswith("["):
-                    classe = obj.attributs.get(classe[1:-1])
-
+                print("dyn: traitement classe", classe)
+                classe=resolve_att(classe,obj)
                 # print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
                     self.add_classlist(
                         niveau, classe, attr, valeur, fonction, mod, nobase=self.nobase
                     )
                 )
+        for i in subselects:
+            i.resolve(obj)
+            self.selecteur.merge(i)  
+            
         # print("dynlist:", self.dynlist)
         return True
 
@@ -394,7 +411,8 @@ class TableSelector(object):
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
-        # print("add descripteur", base, descripteur)
+        # print("appel add descripteur", base, descripteur)
+        # if base
         self.add_descripteur_to_base(base, descripteur)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
@@ -427,7 +445,7 @@ class TableSelector(object):
             return
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self, base, "")
-        print("add descripteur", base, descripteur)
+        # print("add descripteur", base, descripteur)
         self.baseselectors[base].stocke_descripteur(descripteur)
         if self.static and self.baseselectors[base].dyndescr:
             self.static = False
@@ -521,13 +539,14 @@ class TableSelector(object):
         complet = len(self.baseselectors)
         self.nobase = self.nobase or self.regle_ref.istrue("nobase")
         static = True
-        for base in self.baseselectors:
+        for base in list(self.baseselectors.keys()):
             complet = complet and self.baseselectors[base].resolve(obj)
             self.static = (
                 self.static
                 and not bool(self.baseselectors[base].dyndescr)
                 and not bool(self.baseselectors[base].dynbase)
             )
+        
         self.resolved = complet
         # print(
         #     " fin resolve",
@@ -614,6 +633,8 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
 
     fichier = fichier.strip()
     #    valeurs = get_listeval(fichier)
+    
+
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     liste_atts = (
         fichier[1:-1].split(",")
@@ -646,6 +667,9 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
         for att in liste_atts:
             selecteur.add_descripteur(base, "[" + att + "]")
         print("selecteur dans attributs", selecteur)
+        return selecteur
+    if fichier.startswith('in:['): # resolution differee
+        selecteur.add_descripteur(base, fichier)
         return selecteur
 
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
@@ -758,7 +782,7 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
         regle.stock_param.logger.info(
             "traitement (%s) %s->" + fdest, seldef.nom, element
         )
-
+        buffer=""
         with open(element, "r", encoding=codec) as entree:
             # print("adapt projet qgs", element)
             for i in entree:
@@ -816,15 +840,17 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
 
                     # print("datasource=>", i)
 
-                sortie.write(i)
-
+                buffer.append(i)
+            if enums_to_list:
+                buffer=convert_qgs_enums(buffer,selecteur)
+            sortie.write(buffer)
     # print ('lus fichier qgis ',fichier,list(stock))
     return True
 
-def convert_qgs_enums(nom,selecteur):
+def convert_qgs_enums(buffer,selecteur):
     """convertit les enums d un projet qgis en liste de valeurs"""
-    projet = ET.parse(nom)
-    racine = os.path.dirname(nom)
+    projet = ET.fromstring(buffer)
+    # racine = os.path.dirname(nom)
     for layer in projet.iter("maplayer"):
         provider = layer.find("provider")
         #        print ('couches',layer.find('layername').text, ' type : ',layer.find('provider').text, layer.find('datasource').text)
@@ -883,6 +909,7 @@ def convert_qgs_enums(nom,selecteur):
                                     config.append(newvalue)
 
                 print ('transformation',source.text)
+    return projet.tostring()
 
 def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     """decodage de selecteurs en fichiers csv

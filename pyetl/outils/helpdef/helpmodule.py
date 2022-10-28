@@ -214,7 +214,7 @@ def print_aide_commandes(mapper, liste=None):
         print("%-20s: %s" % (i, "\n".join(commande.description.get("#aide", []))))
 
 
-def print_aide_selectprint_aide_conditionseurs(mapper, liste=None):
+def print_aide_conditions(mapper, liste=None):
     """affiche l'aide des conditions """
     print("-----------------------------------------------------------------")
     print("---conditions-----------------------------------------------")

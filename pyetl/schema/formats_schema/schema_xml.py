@@ -73,8 +73,11 @@ def _sortir_attribut_xml(classe, attr, keys):
         + ESC_XML(attr.nom)
         + "' type='"
         + str(type_att)
+        +("[]" if attr.multiple else "")
         + "' type_base='"
         + str(type_att_base)
+        + "' multiple='"
+        +("oui" if attr.multiple else "non")
         + "' fonction='"
         + ESC_XML(attr.defaut)
         + "' alias='"

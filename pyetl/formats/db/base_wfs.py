@@ -332,7 +332,7 @@ class WfsConnect(DbConnect):
             return fonction + geom2 + "," + nom_geometrie + ")"
         return ""
 
-    def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
+    def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None, fonction=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         requete = ""

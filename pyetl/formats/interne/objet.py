@@ -310,7 +310,7 @@ class Objet(object):
             + "}\n"
         )
 
-    def set_multi(self,point):
+    def set_multi(self,point=False):
         """forcage multigeom"""
         if self.schema:
             self.schema.setmulti(point)

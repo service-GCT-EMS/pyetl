@@ -1058,10 +1058,10 @@ def f_attsave(regle, obj):
     destdir = os.path.dirname(fich)
     os.makedirs(destdir, exist_ok=True)
     contenu = obj.attributs.get(regle.params.att_sortie.val)
-    # print("attsave", type(contenu))
+    print("attsave", type(contenu))
     if contenu:
         if isinstance(contenu, str):
-            with open(fich, "w", encoding=regle.encoding) as sortie:
+            with open(fich, "w", encoding=regle.encoding, newline='\n') as sortie:
                 sortie.write(contenu)
             # print("attsave: ecrit", contenu)
         elif isinstance(contenu, list):

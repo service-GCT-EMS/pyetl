@@ -703,9 +703,10 @@ class RegleTraitement(object):  # regle de mapping
 
     def affich_autorises(self, foncgroup, motif):
         """affiche les patterns autorises"""
-        if foncgroup:
+        foncdef=self.stock_param.getcommande(foncgroup)
+        if foncdef:
             patternlist = [
-                i.pattern for i in foncgroup.subfonctions if i.style == self.style
+                i.pattern for i in foncdef.subfonctions if i.style == self.style
             ]
             print(motif + " patterns autorises ", patternlist)
         else:

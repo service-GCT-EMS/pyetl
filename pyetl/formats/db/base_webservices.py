@@ -26,6 +26,8 @@ from .gensql import DbGenSql
 from owslib.wfs import WebFeatureService
 from owslib.wms import WebMapService
 from owslib.csw import CatalogueServiceWeb
+from owslib.util import Authentication
+from owslib.namespaces import Namespaces
 import owslib.fes as F
 from owslib.etree import etree
 
@@ -76,6 +78,11 @@ TYPES_G = {
 
 ALLTYPES = dict(TYPES_A)
 ALLTYPES.update(TYPES_G)
+
+OSWNAMESPACES=Namespaces()
+
+def get_oswnamespace(nom):
+    return OSWNAMESPACES.get_namespace(nom)
 
 
 def getnamespace(root):
@@ -311,7 +318,8 @@ class CswCursor(object):
         self.connection=self.connecteur.connection
         self.description=None
         self.lire_maxi=int(self.regle.getvar("lire_maxi",0))
-        self.connection.getrecords2(esn="full",maxrecords=1,cql=self.connecteur.requete,startposition=1)
+        # self.connection.getrecords2(esn="full",maxrecords=1,cql=self.connecteur.requete,startposition=1)
+        self.connection.getrecords2(esn="full",outputschema=get_oswnamespace("gmd"),maxrecords=1,cql=self.connecteur.requete,startposition=1)
         self.returned=self.connection.results["returned"]
         if self.returned:
             record=self.connection.records.popitem()[1]
@@ -325,15 +333,17 @@ class CswCursor(object):
         nextrecord=1
         while nextrecord and (nextrecord<=self.lire_maxi) if self.lire_maxi else nextrecord:
             nbrec=min(100,(self.lire_maxi+1-nextrecord) if self.lire_maxi else 100)
-            self.connection.getrecords2(esn="full",maxrecords=nbrec,cql=self.connecteur.requete,startposition=nextrecord)
+            self.connection.getrecords2(esn="full",outputschema=get_oswnamespace("gmd"),maxrecords=nbrec,cql=self.connecteur.requete,startposition=nextrecord)
+            # self.connection.getrecords2(esn="full",maxrecords=nbrec,cql=self.connecteur.requete,startposition=nextrecord)
             nmatch=self.connection.results["matches"]
             nextrecord=self.connection.results["nextrecord"]
-            print ("recup",self.connection.results)
+            # print ("recup",self.connection.results)
             while self.connection.records:
                 record=self.connection.records.popitem()[1]
                 valeurs=[getattr(record,i) for i in self.cursinfo.namelist]
                 valeurs=[(i.decode(encoding='UTF-8')) if isinstance(i,bytes) else i for i in valeurs ]
                 valeurs=[(html.unescape(i)) if isinstance(i,str) else i for i in valeurs ]
+                # print ("lecture valeurs csw",valeurs)
                 yield valeurs
                 
     def close(self):
@@ -362,22 +372,33 @@ class CswConnect(DbConnect):
     def connect(self):
         """effectue un getcapabilities pour connaitre le schema"""
         try:
-            print("connection wcs", self.serveur)
+            # print("connection csw", self.serveur)
             
             serveur = self.serveur
-            self.connection = CatalogueServiceWeb(url=serveur)
+            from requests_negotiate_sspi import HttpNegotiateAuth
+            from requests.auth import AuthBase
+            auth = HttpNegotiateAuth()
+            print("recup auth",auth, isinstance(auth,AuthBase))
+            self.connection = CatalogueServiceWeb(url=serveur,auth=Authentication(auth_delegate=auth))
             self.connection.cursor = lambda: None
             # simulation de curseur pour l'initialisation
-        except Error as err:
-            print("erreur wfs", err)
+            self.connection.getrecords2(esn="full",maxrecords=2)
+        except Exception as err:
+            print( "erreur de connection au service ", serveur)
+            self.refrecord=None
+            if self.regle.istrue("debug"):
+                print("erreur wfs", err)
             return False
-        self.connection.getrecords2(esn="full",maxrecords=2)
+        
         self.storedrowcount=self.connection.results["matches"]
         if self.storedrowcount=="0":
             print ("pas de retour wfs") 
             return False
-        self.refrecord=self.connection.records.popitem()
-        print("retour",self.refrecord)
+        if self.connection.records:
+            self.refrecord=self.connection.records.popitem()
+        else:
+            self.refrecord={}
+            print("retour",self.refrecord)
 
         reponse=self.connection.response
         self.tablelist = ["metadata"]
@@ -408,7 +429,10 @@ class CswConnect(DbConnect):
         attlist = []
         tables = self.tablelist
         # print("webservices: lecture tables", tables)
-        attdict={i:type(i).__name__ for i in dir(self.refrecord[1]) if not i.startswith("_")} 
+        if self.refrecord:
+            attdict={i:type(i).__name__ for i in dir(self.refrecord[1]) if not i.startswith("_")} 
+        else:
+            attdict={}
         # print ("format metadonnee", attdict)
         for nom,typedef in attdict.items():
             pyetltype = ALLTYPES.get(typedef)
@@ -498,9 +522,26 @@ class CswConnect(DbConnect):
         # print(" reponse", reponse)
         return self.get_cursinfo(regle=self.regle)
         
+    def dbinsert(self,schema,ident,valeurs,updatemode=1):
+        """insere sur le webservice : accepte un seul champs en entree : le xml"""
+        print ("dans dbibsert webservice",ident, len(valeurs))
+        if len(schema)>1:
+            raise KeyError("un seul champs autorisé", ','.join(valeurs.keys()))
 
+        for value in valeurs:
+            texte=value[0].replace('&','\\&')
+            print ('preparation insertion ', texte)
+            try:
+                self.connection.transaction(ttype='insert', typename='gmd:MD_Metadata', record=texte)
+                print ("------------------------------insertion csw")
+            except :
+                print ('erreur insertion')
+                raise
+        return True
 
-
+    def dbload(self, schema, ident, valeurs, insertmode):
+        """charge des objets en base de donnees par dbload"""
+        return self.dbinsert(schema,ident,valeurs,updatemode=insertmode)
 
 
 

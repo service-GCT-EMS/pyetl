@@ -7,6 +7,8 @@ fonctions de structurelles diverses
 """
 
 from collections import namedtuple
+
+from numpy import iterable
 import ldap
 from win32com.client import Dispatch, GetObject
 
@@ -109,12 +111,13 @@ def getADnames(regle, elems, *args, **kwargs):
 
     print("requete ad", "\n".join(sql_string))
     adreponse=regle.AD.query("\n".join(sql_string), Page_size=50)
-    print ("reponse", adreponse) 
+    # print ("reponse adquery", adreponse) 
+    found=0
     for result in adreponse:
-        # print("retour ad:", result, type(result))
-
+        print("retour ad:", result, type(result))
+        found=1
         if isinstance(result, regle.AD.ADO_record):
-            # print("retour", result.fields)
+            print("retour", result.fields)
             if elems == ["*"]:
                 valeur = result.fields["ADsPath"]
                 # print("retour", valeur, type(valeur), result.fields)
@@ -132,8 +135,10 @@ def getADnames(regle, elems, *args, **kwargs):
                     except TypeError:
                         val = str(elem)
                     retour.append(val)
+                    print ('retour AD', retour)
                 yield retour
-
+    if not found:
+        print ('ad: iterateur vide')
 
 def find_ADuser(regle, elems, name=None):
     if not name or name == "*":
@@ -240,7 +245,12 @@ def h_adquery(regle):
             )
             regle.valide = "done"
             return True
-        item = items[0] if isinstance(items, list) else items
+        print ('recup query ', items)
+        if iterable(items):
+            item=next(items)
+        else:
+            item=items
+        # item = items[0] if isinstance(items, list) else items
         val = getattr(item, regle.a_recuperer[0])
         regle.setvar(regle.params.att_sortie.val, val)
         if regle.debug:

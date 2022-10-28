@@ -139,7 +139,7 @@ def lire_objets(self, rep, chemin, fichier):
         else:
             contenu = ouvert.read()
             # contenu = contenu.encode("UTF-8").decode(encoding=codec)
-            print("recup contenu", contenu[-100:])
+            # print("recup contenu", contenu[-100:])
             return self.objreader(contenu)
 
 
@@ -223,7 +223,7 @@ def objreader(self, ouvert):
                         if isinstance(val2, list):  # c'est une liste d objets
                             readobjs(self, val2, niveau=ident, classe=elem)
                 elif isinstance(value, list):  # c est des objets
-                    readobjs(self, val2, classe=ident)
+                    readobjs(self, value, classe=ident)
                 else:
                     print("element non exploitable", ident, type(value), value)
 

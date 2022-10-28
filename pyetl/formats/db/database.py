@@ -732,10 +732,13 @@ class DbConnect(object):
         self, requete, data=None, attlist=None, volume=0, nom="", regle=None
     ):
         """lancement requete specifique base"""
-        cur = self.get_cursinfo(volume=volume, nom=nom, regle=regle)
-        #        cur.execute(requete, data=data, attlist=attlist)
-        retour = cur.execute(requete, data=data, attlist=attlist)
-        if retour is None:
+        try:
+            cur = self.get_cursinfo(volume=volume, nom=nom, regle=regle)
+            #        cur.execute(requete, data=data, attlist=attlist)
+            retour = cur.execute(requete, data=data, attlist=attlist)
+            if retour is None:
+                return None
+        except:
             return None
         return cur
 
@@ -955,11 +958,11 @@ class DbConnect(object):
                 elif val[0] in "<>=~":
                     oper = val[0]
                     val = val[1:]
-                if val[0] == "\\":
+                if val.startswith("\\"):
                     val = val[1:]
             cond = self.monoval(oper, cast)
             data = {"val": val}
-        #                print('valeur simple', valeur, oper, cond, cast, data)
+        print('valeur simple', valeur, oper, cond, cast, data)
 
         condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
         return condition, data
@@ -990,7 +993,7 @@ class DbConnect(object):
         if not atttext:
             requete = ""
             data = ()
-        # print("acces alpha", requete, data)
+        # print("acces alpha", requete, data, valeur)
         #        raise
         #        print ('geometrie',schema.info["type_geom"])
         volinfo = int(maxi) if maxi else int(schema.info["objcnt_init"])
@@ -1160,8 +1163,12 @@ class DbConnect(object):
         """# charge un fichier par copy"""
         return False
 
-    def dbload(self, schema, ident, source):
+    def dbload(self, schema, ident, source, insertmode):
         """charge des objets en base de donnees par dbload"""
+        return False
+
+    def dbinsert(self, schema, ident, source, insertmode):
+        """charge des objets en base de donnees par insert"""
         return False
 
     def extload(self, helper, files, logfile=None, reinit="0", vgeom="1"):
@@ -1183,6 +1190,7 @@ class DbConnect(object):
         curs = self.request(requete, ())
         valeur = curs[0][0]
         return valeur
+
 
     def req_update_obj(self, regle, ident, attributs, obj, clef=None):
         """recupere les elements d'une requete alpha"""

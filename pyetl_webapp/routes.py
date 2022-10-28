@@ -172,8 +172,12 @@ class ScriptList(object):
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
-                script = open(fpath, "r").readlines()
+                script = open(fpath, "r",encoding='cp1252').readlines()
             except FileNotFoundError:
+                print ("fichier introuvable",fpath)
+                raise KeyError
+            except UnicodeDecodeError:
+                print ("erreur d 'encodage",fpath)
                 raise KeyError
             for ligne in script:
                 if ligne.startswith("!#"):

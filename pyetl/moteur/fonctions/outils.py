@@ -24,6 +24,28 @@ from pyetl.vglobales import DEFCODEC
 LOGGER = logging.getLogger(__name__)
 
 
+def getbase(regle,obj=None):
+    """recuper le code base pour les ecritures"""
+    regle.base = resolve_att(regle.code_classe[3:],obj)
+    return regle.base
+
+def resolve_att(att,obj=None):
+    """resout les descriptions de type [attribut]"""
+    if att.startswith('[') and obj:
+        return obj.attributs.get(att[1:-1])
+    return att
+
+def isatt(txt):
+    """verifie si une description contient un attribut"""
+    if txt.startswith('['):
+        return True
+    if txt.startswith("in:") and isatt(txt[3:]):
+        return True
+    if txt.startswith("db:") and isatt(txt[3:]):
+        return True
+    return False
+
+
 def description_schema(regle, nom, schema):
     """gere les definitions de schema associees a l'attribut resultat
     la description d'uun attribut prend la forme suivante ([p:]type,[D:defaut],[index])
@@ -341,7 +363,7 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
 
             if debug:
                 print("chargement liste", fichier)
-
+    # print ('in:',stock)
     return stock
 
 
@@ -413,6 +435,7 @@ def charge_liste(
     if not stock:  # on a rien trouve
         pass
         # print("---------attention aucune liste disponible sous ", fichier)
+    # print ('liste:',stock)
     return stock
 
 

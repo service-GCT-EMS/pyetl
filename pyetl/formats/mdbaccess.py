@@ -48,7 +48,8 @@ def dbaccess(regle, codebase, type_base=None):
         # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
-        print("type_base inconnu", type_base, DATABASES.keys())
+        print("type_base inconnu:", type_base,'connus:', DATABASES.keys())
+        raise
         return None
     # print(
     #     "--------acces base de donnees",
@@ -75,7 +76,7 @@ def dbaccess(regle, codebase, type_base=None):
     connection = dbdef.acces(
         serveur, base, user, passwd, system=systables, params=regle, code=codebase
     )
-
+    # print ('recup connection',connection, connection.valide, connection.connection)
     if connection.valide:
         if regle.istrue("debug"):
             print("connection valide", serveur, base)
@@ -660,7 +661,7 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
     
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
-        n += 1
+        # n += 1
         if ident is not None:
             schema_classe_base = schema_base.get_classe(ident)
             print("mdba:recup_donnees_req_alpha ", ident, description)
@@ -689,11 +690,11 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
                     attributs={champs[a]:b for a,b in zip(
                     namelist, [str(i) if i is not None else "" for i in valeurs]) if a in champs}
                     [retours[i].append(attributs.get(i,'')) for i in champs]                
-        if n==1:
-            print ('recup retours',retours)
-            retours={i:(retours[i].pop() if retours[i] else "") for i in retours}
-        if n==0:
-            retours={i:"" for i in champs}
+    if n==1:
+        print ('recup retours',retours)
+        retours={i:(retours[i].pop() if retours[i] else "") for i in retours}
+    if n==0:
+        retours={i:"" for i in champs}
     return retours    
 
 
@@ -754,7 +755,7 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
             ):
                 # print ('la on fait rien',type(attribut), attr)
                 continue  # on a fait une requete sur un attribut inexistant: on passe
-
+            # print ("----------------appel req alpha",description)
             curs = connect.req_alpha(
                 ident, schema_classe_base, attr, val, mods, maxi=maxobj, ordre=ordre
             )

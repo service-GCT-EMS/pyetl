@@ -361,18 +361,17 @@ requetes_sigli[
             string_agg(t3.index, ' '::text ORDER BY t3.index) AS index,
             string_agg(t3.pk::text, ''::text) AS pk,
             string_agg(t3."unique"::text, ''::text) AS "unique"
-           FROM t3
+          FROM t3 
           GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.attname, t3.attnum,
            t3.atttypid, t3.atttypmod, t3.atthasdef, t3.attnotnull
         )
- SELECT t4.nomschema,
+    SELECT t4.nomschema,
     t4.nomtable,
     t4.attname AS attribut,
     col_description(t4.identifiant, t4.attnum::integer) AS alias,
         CASE
-            WHEN (( SELECT pg_type.typtype
-               FROM pg_type
-              WHERE t4.atttypid = pg_type.oid)) = 'e'::"char" THEN 'text'::text
+            WHEN (p.typtype = 'e'::"char" or (select p2.typtype from pg_type p2 where p2.oid=p.typelem) ='e'::char )
+                THEN 'text'::text
             WHEN ( format_type(t4.atttypid, t4.atttypmod) = 'integer'
 		        AND ( select pg_get_serial_sequence(quote_ident(t4.nomschema)||'.'||quote_ident(t4.nomtable),t4.attname)
                  IS NOT Null))
@@ -381,10 +380,13 @@ requetes_sigli[
 		        AND ( select pg_get_serial_sequence(quote_ident(t4.nomschema)||'.'||quote_ident(t4.nomtable),t4.attname)
                  IS NOT Null))
 		    THEN 'bigserial'
+            WHEN (p.typarray = 0 and p.typelem!=0) THEN format_type(p.typelem, t4.atttypmod)
             ELSE format_type(t4.atttypid, t4.atttypmod)
         END AS type_attribut,
     'non'::text AS graphique,
-    'non'::text AS multiple,
+    CASE WHEN (p.typarray = 0 and p.typelem!=0) THEN 'oui'::text
+        else 'non'::text 
+    END AS multiple,
     ( SELECT "substring"(pg_get_expr(d.adbin, d.adrelid), 1, 128) AS "substring"
            FROM pg_attrdef d
           WHERE d.adrelid = t4.identifiant AND d.adnum = t4.attnum AND t4.atthasdef) AS defaut,
@@ -428,7 +430,7 @@ requetes_sigli[
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char" AND (t4.attnum = ANY (c.conkey))) as parametres_clef,
     0 as taille,
     0 as decimales
-   FROM t4
+   FROM t4 left join pg_type p on t4.atttypid = p.oid
         """
 
 requetes_sigli[
