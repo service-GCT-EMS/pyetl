@@ -35,7 +35,7 @@ class Moteur(object):
     def debug_moteur(self):
         print("moteur: mode debug")
         for i in self.regles:
-            print("regle:", i)
+            print("regle:","(chargeur)" if i.chargeur else "", i)
 
     def traitement_virtuel(self, unique=0, schema=None):
         """cree un objet virtuel et le traite pour toutes les classes non utilisees"""
@@ -124,6 +124,15 @@ class Moteur(object):
         # #            self.regles[0].fonc(self.regles[0], None)
         # #            return
         regles = regle.liste_regles if regle else self.regles
+        obj = Objet(
+                        "_declencheur",
+                        "_init",
+                        format_natif="interne",
+                        conversion="virtuel",
+                    )
+        if regles and not regle:
+            # print ('traitement regle 0',regles[0])
+            self.traite_objet(obj,regles[0])            
         for i in regles:
             if i.mode == "call" and not i.declenchee:
                 self.traite_regles_chargement(i)

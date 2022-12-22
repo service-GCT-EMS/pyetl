@@ -31,6 +31,7 @@ pbf                                oui           non
 qgs                                oui           non
 qlr                                oui           non
 shp                                oui           oui
+sjson                              non           oui
 spatialite                         oui           non
 sql                                non           oui
 sqlite                             oui           non
@@ -543,6 +544,12 @@ format shp
 
 
 lecture d'un fichier reconnu et stockage des objets en memoire
+
+
+format sjson
+............
+
+
 
 
 format spatialite

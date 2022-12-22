@@ -82,8 +82,19 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
             csvfile, fieldnames=entete, dialect=dialect, restval="", restkey=reste
         )
         csvfile.seek(0)
-        if has_header:
+        if has_header: # on teste la presence de metadonnees
             lecteur.__next__()
+            ligne=list(lecteur.__next__().values())
+            nlin=1
+            while ligne[0].startswith("!"):
+                nlin+=1
+                ligne=list(lecteur.__next__().values())
+            csvfile.seek(0)
+            print("csv:",nlin,"entete")
+            for i in range(nlin):
+                lecteur.__next__()
+
+            
         # print("entete csv", entete, dialect.delimiter, separ, dialect)
         if reader.newschema:
             for i in entete + [reste]:

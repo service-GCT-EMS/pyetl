@@ -513,10 +513,11 @@ def h_httpdownload(regle):
 
 def _jsonsplitter(regle, obj, jsonbloc):
     """decoupe une collection json en objets"""
+    verbose=regle.istrue("verbose")
     try:
         struct = json.loads(jsonbloc)
     except json.JSONDecodeError as err:
-        print("erreur decodage json", err, jsonbloc)
+        regle.stock_param.logger.error("erreur decodage json %s %s", err, repr(jsonbloc))
         return
     nom=""
     if len(struct)==1:
@@ -527,24 +528,28 @@ def _jsonsplitter(regle, obj, jsonbloc):
         
         struct=contenu
     selected=regle.params.cmp2.liste
-    print ("recup contenu", nom,type(contenu))
+    if verbose:
+        regle.stock_param.logger.info('recup contenu %s', nom)
     if isinstance (contenu,dict):
-        print ("contenu", contenu.keys())
+        if verbose:
+            regle.stock_param.logger.info('contenu %s', repr(list(contenu.keys())))
         for classe,elem in struct.items():
             if selected and classe not in selected:
-                print ('jsonsplitter non selectionne',classe)
+                if verbose:
+                    regle.stock_param.logger.info('non selectionne %s',classe)
+                    # print ('jsonsplitter non selectionne',classe)
                 continue
-            print ('traitement elem', classe,type(elem))
+            # print ('traitement elem', classe,type(elem))
             if isinstance(elem, list):
                 #c est une liste d objets
                 if obj.virtuel:
                     regle.reader.setidententree(nom,classe)
-                    print ('presence schema', regle.reader.cree_schema)
+                    # print ('presence schema', regle.reader.cree_schema)
                 for objdef in elem:
                     if isinstance(objdef,dict):
                         if obj.virtuel:
                             obj2=regle.getobj((nom,classe))
-                            print ("jsonsplitter: cree",nom,classe,"->",obj2)
+                            # print ("jsonsplitter: cree",nom,classe,"->",obj2)
                         else:
                             obj2 = obj.dupplique()
                             obj2.attributs['#classe']=classe
@@ -571,7 +576,7 @@ def _jsonsplitter(regle, obj, jsonbloc):
 
                         regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
             else:
-                print("element incompatible", elem, type(elem))
+                regle.stock_param.logger.error("element incompatible %s : %s", repr(elem), type(elem))
 
 
 def f_httpdownload(regle, obj):

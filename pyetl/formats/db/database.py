@@ -962,7 +962,7 @@ class DbConnect(object):
                     val = val[1:]
             cond = self.monoval(oper, cast)
             data = {"val": val}
-        print('valeur simple', valeur, oper, cond, cast, data)
+        # print('valeur simple', valeur, oper, cond, cast, data)
 
         condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
         return condition, data
@@ -978,6 +978,8 @@ class DbConnect(object):
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
+        if maxi<0:
+            return
         niveau, classe = ident
         attlist = []
         atttext, attlist = self.construction_champs(schema, "S" in mods, "L" in mods)

@@ -26,8 +26,8 @@ from .gensql import DbGenSql
 from owslib.wfs import WebFeatureService
 from owslib.wms import WebMapService
 from owslib.csw import CatalogueServiceWeb
-from owslib.util import Authentication
 from owslib.namespaces import Namespaces
+from owslib.util import Authentication
 import owslib.fes as F
 from owslib.etree import etree
 
@@ -378,7 +378,10 @@ class CswConnect(DbConnect):
             from requests_negotiate_sspi import HttpNegotiateAuth
             from requests.auth import AuthBase
             auth = HttpNegotiateAuth()
-            print("recup auth",auth, isinstance(auth,AuthBase))
+            # print("recup auth",dir(auth),
+            #                     [(i,getattr(auth,i)) for i in dir(auth)] 
+            #                     )
+            
             self.connection = CatalogueServiceWeb(url=serveur,auth=Authentication(auth_delegate=auth))
             self.connection.cursor = lambda: None
             # simulation de curseur pour l'initialisation
@@ -402,6 +405,16 @@ class CswConnect(DbConnect):
 
         reponse=self.connection.response
         self.tablelist = ["metadata"]
+
+        import requests
+        req_test=requests.Request('GET', url=serveur,auth=auth)
+        r = req_test.prepare()
+        print ("requete",r, dir(r))
+        print("recup auth",dir(r),'\n'.join( ["=".join((i,repr(getattr(r,i)))) for i in dir(r) if not i.startswith('_')] )
+                            )
+    #   >>> req = requests.Request('GET', 'https://httpbin.org/get')
+    #   >>> r = req.prepare()
+    #   >>> r
         # print("retour getcap", len(self.tablelist))
 
     def commit(self):

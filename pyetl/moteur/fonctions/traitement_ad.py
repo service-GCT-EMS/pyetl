@@ -174,6 +174,8 @@ def h_adquery(regle):
     # print("acces LDAP", ACD.root(), regle)
     regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["CN"]
     adcode = regle.getvar("ADserver")
+    regle.queryfonc=None
+    regle.mqueryfonc=None
     if adcode:
         # connection specifique a un autre serveur AD
         # on charge le groupe de parametres
@@ -278,7 +280,10 @@ def f_adquery(regle, obj):
     #"""
     if regle.get_entree(obj):
         try:
-            items = regle.mqueryfonc(regle, regle.a_recuperer, regle.get_entree(obj))
+            if regle.mqueryfonc:
+                items = regle.mqueryfonc(regle, regle.a_recuperer, regle.get_entree(obj))
+            else:
+                items=regle.queryfonc(regle.get_entree(obj))
             if regle.debug:
 
                 print("adquery", items)

@@ -306,6 +306,7 @@ def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
         obj.attributs["#dimension"] = "3" if geom[0].find("3D") else "2"
     if obj.dimension == 0:
         print("asc: erreur finalisation ", obj, coords, geom, dim)
+    # print ('creation obj', obj)
     reader.process(obj)
 
 

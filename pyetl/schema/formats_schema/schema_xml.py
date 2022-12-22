@@ -76,6 +76,7 @@ def _sortir_attribut_xml(classe, attr, keys):
         +("[]" if attr.multiple else "")
         + "' type_base='"
         + str(type_att_base)
+        +("[]" if attr.multiple else "")
         + "' multiple='"
         +("oui" if attr.multiple else "non")
         + "' fonction='"
@@ -253,7 +254,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
         + (header + "\n" if header else "")
         + "<structure nom='"
         + sch.nom
-        + ("' alias='" + alias_schema if alias_schema else "")
+        + ("' alias='" + (alias_schema if alias_schema else sch.metas.get('alias','')))
         + "' type='"
         + sch.origine
         + "'>"

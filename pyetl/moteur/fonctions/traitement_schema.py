@@ -116,6 +116,9 @@ def f_set_schema_d(regle, obj):
     return False
 
 
+
+
+
 def f_stock_schema(regle, obj):
     """#aide||cree un schema par analyse des objets et l'associe a un objet
     #parametres||applique le shema a l objet;schema;nom;nombre max de valeurs d enum (30)
@@ -136,12 +139,13 @@ def f_stock_schema(regle, obj):
         regle.schema_courant = regle.getschema(nom_base)
         if not regle.schema_courant:
             regle.schema_courant = regle.stock_param.init_schema(nom_base)
+        
         if regle.getvar("taux_conformite"):
             # print("reglage_taux conformite", int(regle.getvar("taux_conformite")))
             regle.schema_courant.taux_conformite = int(regle.getvar("taux_conformite"))
 
     regle.schema_courant.ajuste(
-        obj, regle.params.cmp2.num if regle.params.cmp2.num else 30
+        obj, regle.params.cmp2.num if regle.params.cmp2.num else 30, force=regle.istrue("force_analyse")
     )
     if regle.final:
         # on force la sortie du schema l' objet est mort il n'a plus besoin de schema

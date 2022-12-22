@@ -63,6 +63,7 @@ def init_schema(
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
         nouveau.metas["script_ref"] = mapper.getvar("pyetl_script_ref")
+        nouveau.metas["alias"] =  mapper.getvar("alias_schema")
         #            self.schemas[nom_schema].modele = modele
         #        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 
@@ -690,25 +691,24 @@ class Schema(object):
         fkref = False
         fklie = False
         for ident in liste:
-            for ref in self.has_deps(ident):
-                if ref not in bloc:
-                    fkref = True
-                    LOGGER.warning(
-                        "%s cible foreign key non selectionnee:%s", ident, ref
+            refs=[i for i in self.has_deps(ident) if i not in bloc]
+            if refs:
+                fkref = True
+                LOGGER.warning(
+                        "%s cible foreign key non selectionnee:%s", ident, refs
                     )
-
-            for lie in self.is_cible(ident):
-                if lie not in bloc:
-                    fklie = True
-                    LOGGER.warning(
-                        "%s table liée par foreign key non selectionnee:%s", ident, lie
-                    )
+            lies=[i for i in self.is_cible(ident) if i not in bloc]
+            if lies:
+                fklie = True
+                LOGGER.warning(
+                    "%s table liée par foreign key non selectionnee:%s", ident, lies
+                )
         if fkref:
-            LOGGER.info(
+            LOGGER.warning(
                 "pour selectionner aussi les références positionner gestion_coherence à 1 ou 2"
             )
         if fklie:
-            LOGGER.info(
+            LOGGER.warning(
                 "pour selectionner aussi les tables liées positionner gestion_coherence à 2"
             )
 
@@ -722,7 +722,10 @@ class Schema(object):
         liste2 = liste[:]
         # niv = self.tablesorter(liste2, complete=complete)
         liste2 = self.tablesorter2(liste, mode=complete)
-        self.completewarning(liste2)
+        if regle.istrue("nowarn"):
+            pass
+        else:
+            self.completewarning(liste2)
         # print("ordre sortie", liste2)
         for ident in liste2:
             classe = self.get_classe(ident)
@@ -746,6 +749,7 @@ class Schema(object):
         schema_travail.metas["tables"] = tables
         schema_travail.metas["filtre_niveau"] = ",".join(niveau) if niveau else ""
         schema_travail.metas["filtre_classe"] = ",".join(classe) if classe else ""
+        schema_travail.metas["alias"] = regle.getvar("alias_schema",'')
         # print("recup schema travail", schema_travail.metas)
         return schema_travail, liste2
 

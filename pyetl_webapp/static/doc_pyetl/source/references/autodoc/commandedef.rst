@@ -118,17 +118,15 @@ garder
 
 **syntaxes acceptees**
 
-+----------+----------+----------+------------+----------+------------+
-|sortie    |defaut    |entree    |commande    |param1    |param2      |
-+==========+==========+==========+============+==========+============+
-|L         |?L        |L         |garder      |          |            |
-+----------+----------+----------+------------+----------+------------+
-| *avec renommage de la liste et eventuellemnt valeur par defaut*     |
-+----------+----------+----------+------------+----------+------------+
-|          |          |L         |garder      |          |            |
-+----------+----------+----------+------------+----------+------------+
-|L         |          |          |garder      |          |            |
-+----------+----------+----------+------------+----------+------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |      |L     |garder  |      |        |
++------+------+------+--------+------+--------+
+|L     |      |      |garder  |      |        |
++------+------+------+--------+------+--------+
+|L     |?LC   |L     |garder  |      |        |
++------+------+------+--------+------+--------+
 
 
 
@@ -765,17 +763,24 @@ stat
 
    fonctions statistiques
 
-   nom de la colonne de stat;val;col entree;stat;fonction stat
+   la colonne a analyser est definie dans la premiere colonne de test
+   fonctions disponibles
+   cnt : comptage
+   val : liste des valeurs
+   min : minimum numerique
+   max : maximum numerique
+   somme : somme
+   moy : moyenne
 
 **syntaxes acceptees**
 
-+---------+---------+---------+-----------+---------+-----------+
-|sortie   |defaut   |entree   |commande   |param1   |param2     |
-+=========+=========+=========+===========+=========+===========+
-|C        |?        |?A       |stat       |C        |?C         |
-+---------+---------+---------+-----------+---------+-----------+
-| *nom de la colonne de stat;val;col entree;stat;fonction stat* |
-+---------+---------+---------+-----------+---------+-----------+
++------------+------------+------------+--------------+------------+--------------+
+|sortie      |defaut      |entree      |commande      |param1      |param2        |
++============+============+============+==============+============+==============+
+|C           |?           |?A          |stat          |C           |?C            |
++------------+------------+------------+--------------+------------+--------------+
+| *nom de la colonne de stat;val;col entree;stat;fonction stat;prefixe_colonne*   |
++------------+------------+------------+--------------+------------+--------------+
 
 
 
@@ -938,6 +943,8 @@ dbalpha
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |?A    |?     |?     |dbalpha |?     |?       |
++------+------+------+--------+------+--------+
+|=#    |?     |?L    |dbalpha |?     |?       |
 +------+------+------+--------+------+--------+
 
 
@@ -1381,11 +1388,11 @@ dbwrite
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|      |      |      |dbwrite |      |        |
-+------+------+------+--------+------+--------+
++------+------+------+--------+---------+--------+
+|sortie|defaut|entree|commande|param1   |param2  |
++======+======+======+========+=========+========+
+|?L    |      |?L    |dbwrite |?=#nogeom|        |
++------+------+------+--------+---------+--------+
 
 
 
@@ -1778,7 +1785,7 @@ change_couleur
 +------+------+------+--------------+------+--------+
 |sortie|defaut|entree|commande      |param1|param2  |
 +======+======+======+==============+======+========+
-|      |      |      |change_couleur|C     |C       |
+|      |      |      |change_couleur|N     |N       |
 +------+------+------+--------------+------+--------+
 
 
@@ -3231,7 +3238,7 @@ download
 +---------+---------+---------+-----------+---------+-----------+
 | *telecharge un element vers un attribut en mode binaire*      |
 +---------+---------+---------+-----------+---------+-----------+
-|         |?C       |?A       |download   |=#json   |           |
+|         |?C       |?A       |download   |=#json   |?LC        |
 +---------+---------+---------+-----------+---------+-----------+
 | *telecharge un element json et genere un objet par element*   |
 +---------+---------+---------+-----------+---------+-----------+
@@ -3247,6 +3254,7 @@ download
    ?A :  attribut contenant l'url (optionnel)
    download :  
    =#json :  #json (mot_clef)
+   ?LC :   (optionnel)
 
    ?C :  url (optionnel)
    ?A :  attribut contenant l'url (optionnel)
@@ -3399,6 +3407,27 @@ abort
 
 
 .. index::
+  double: .traitement_workflow;attdecode
+
+attdecode
+.........
+
+   decode un attribut de type byte en texte
+
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|A     |?C    |A     |attdecode|?C    |?C      |
++------+------+------+---------+------+--------+
+
+
+
+
+
+.. index::
   double: .traitement_workflow;attload
 
 attload
@@ -3459,7 +3488,7 @@ attsave
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|A     |?C    |A     |attsave |?C    |        |
+|A     |?C    |A     |attsave |?C    |?C      |
 +------+------+------+--------+------+--------+
 
 

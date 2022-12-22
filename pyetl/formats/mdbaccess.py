@@ -645,7 +645,7 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
         )
         # print("dbacces: recup_donnees_req_alpha: pas de connection", baseselector)
         return 0
-    print("recup liste tables %s", repr(list(baseselector.classlist())))
+    # print("recup liste tables", repr(list(baseselector.classlist())))
     schema_travail = baseselector.schema_travail
     # print("recup schema_travail ", schema_travail.nom)
 
@@ -664,7 +664,7 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
         # n += 1
         if ident is not None:
             schema_classe_base = schema_base.get_classe(ident)
-            print("mdba:recup_donnees_req_alpha ", ident, description)
+            # print("mdba:recup_donnees_req_alpha ", ident, description)
             # print("mdba: ", ident, ident2)
             schema_classe_travail = schema_travail.get_classe(ident)
             if (
@@ -691,7 +691,7 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
                     namelist, [str(i) if i is not None else "" for i in valeurs]) if a in champs}
                     [retours[i].append(attributs.get(i,'')) for i in champs]                
     if n==1:
-        print ('recup retours',retours)
+        # print ('recup retours',retours)
         retours={i:(retours[i].pop() if retours[i] else "") for i in retours}
     if n==0:
         retours={i:"" for i in champs}
@@ -792,30 +792,21 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
 
 
 def cre_script_reset(liste_tables, gensql):
-    # print ('reinit tables a traiter', travail)
     script_clean = [
-        gensql.prefix_charge(niveau, classe, "TDGS")
+        gensql.prefix_charge(niveau, classe, "TDG")
         + gensql.tail_charge(niveau, classe, "TDGS")
         for niveau, classe in reversed(liste_tables)
     ]
     return script_clean
 
 
-def reset_liste_tables(
-    regle_courante, base, niveau, classe, type_base=None, chemin="", mods=None
-):
+def reset_liste_tables(selecteur):
     """genere un script de reset de tables"""
-    connect, schema_base, schema_travail, liste_tables = recup_schema(
-        regle_courante,
-        base,
-        niveau,
-        classe,
-        type_base=type_base,
-        chemin=chemin,
-        mods=mods,
-    )
+    selecteur.resolve(None)
+    gensql=selecteur.connect.gensql
+    liste_tables=[i[0] for i in selecteur.classlist()]
     script_clean = (
-        cre_script_reset(liste_tables, connect.gensql) if liste_tables else []
+        cre_script_reset(liste_tables, gensql) if liste_tables else []
     )
     return script_clean
 

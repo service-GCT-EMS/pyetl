@@ -390,7 +390,7 @@ class PgsGenSql(PgrGenSql):
 
     @staticmethod
     def _commande_geom_courbe(niveau, classe, gtyp="0", dim="2", courbe=False):
-        """manipulation de la geometrie pour la discretisation des courbes"""
+        """manipulation de la geometrie pour la conservation des courbes"""
         cmpz = "Z" if dim == "3" else ""
         if courbe:
             geom = "MultiCurve" if gtyp == "2" else "MultiSurface"

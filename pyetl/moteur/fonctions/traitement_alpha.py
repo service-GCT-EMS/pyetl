@@ -769,9 +769,10 @@ def f_keep2(regle, obj):
 def h_keep(regle):
     """cree un ensemble a partir de la liste de sortie"""
     regle.selset = set(regle.params.att_sortie.liste)
-    print ('keep',regle.params.att_entree.liste,
-            regle.params.att_sortie.liste,
-            regle.params.val_entree.liste)
+    if regle.istrue("verbose"):
+        regle.stock_param.logger.info('keep %s -> %s (%s)',repr(regle.params.att_entree.liste),
+            repr(regle.params.att_sortie.liste),
+            repr(regle.params.val_entree.liste))
     return True
 
 

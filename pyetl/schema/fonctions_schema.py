@@ -740,7 +740,7 @@ def ajuste_schema_classe(schemaclasse, obj, taux_conformite=0):
     """mets a jour la definition du schema a partir de la structure d'un objet
     le taux de conformite est le nombre maxi de valeurs distinctes
     autorisees pour une enumeration"""
-    # print conf
+    # print ('ajuste_schema classe', obj)
     if obj.virtuel:
         return
     if obj.schema:
@@ -864,7 +864,7 @@ def adapte_schema_classe(schema_classe_dest, schema_classe_orig):
                 print("FSC: adapte_schema: attribut obligatoire inexistant supprime", i)
 
 
-def ajuste_schema(schema, obj, conf=0):
+def ajuste_schema(schema, obj, conf=0, force=False):
     """ deduit un schema a partir des objets"""
 
     ident = obj.ident

@@ -1106,7 +1106,7 @@ class Pyetl(object):
         # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
 
         if self.done and not self.regles:
-            print("process: done : rien a faire")
+            self.logger.info("traitments termines a l initialisation")
             self.logger.debug("rien a faire")
         elif self.statstore.isstat(entree):
             nb_total = entree.to_obj(self)
@@ -1300,7 +1300,7 @@ class Pyetl(object):
             )
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
             self.moteur.vide_stock()
-        #        print('pyetl: ecriture schemas ', mode_schema)
+            print('pyetl: ecriture schemas ', mode_schema,self.schemas.keys())
         ecrire_schemas(
             self, rep_sortie, mode_schema, formats=self.getvar("format_schema", "csv")
         )

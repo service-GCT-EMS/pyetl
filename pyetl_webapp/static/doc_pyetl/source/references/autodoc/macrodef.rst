@@ -6,18 +6,20 @@ reference macros
 ===========================================================   ========
 :ref:`#2d`                                                    convertit des coordonees 2d
 :ref:`#2p` x;y;srid                                           convertit des coordonees x,y en attribut en point
-:ref:`#adquery` condition,element,clef                        passe une requete LDAP
+:ref:`#adquery` condition;element;clef                        passe une requete LDAP
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees
 :ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
 :ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation et le gid
+:ref:`#attsave` att;nom;ext                                   stocke le contenu d'un attribut
 :ref:`#autoload` dest                                         charge les derniers resultats en base de donnees
 :ref:`#batch_rt`                                              
 :ref:`#bdiff` acces                                           sort un objet s il n existe pas en base
 :ref:`#cc2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#cc482ll`                                               reprojette des donnees cus en rgf93
+:ref:`#change` att;old;new                                    
 :ref:`#charge_osm`                                            
 :ref:`#classe` classe;att                                     force la classe
 :ref:`#cmd` cmd;v1;v2;v3;v4;v5                                passe une commande a la sauvage
@@ -40,6 +42,7 @@ reference macros
 :ref:`#dblist` acces;requete                                  recuperation d'un jeu de donnees par requete directe dans une variable
 :ref:`#dbrequest` acces;requete;niveau;classe                 recuperation d'un jeu de donnees par requete directe
 :ref:`#dbschema` acces;niveau;classe;nom                      analyse une base de donnees
+:ref:`#dbwrite` dest;niveau;classe;attributs                  chargement dans une base de donnees d'une base de donnÃ©es
 :ref:`#debug`                                                 
 :ref:`#editparams` perso                                      
 :ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes a partir de fichiers
@@ -53,10 +56,12 @@ reference macros
 :ref:`#ftpdownload` fich;acces;accdir                         charge des elements par ftp
 :ref:`#fusion_schema` nom                                     fusion de schemas issus de traitements paralleles p:schema: racine des schemas a lire (*) lecture multiple >nom: nom du schema a creer
 :ref:`#g2p` lon;lat                                           convertit des coordonees lat long en attribut en point cc48
+:ref:`#garder` atts                                           ne conserver que certains champs
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
 :ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
 :ref:`#geoextract` acces;niveau;classe;rel_geo;buffer;champ   extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
+:ref:`#geomfilter`                                            filtre les geometries pour eviter les erreurs
 :ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
 :ref:`#grantsitr` fich                                        generation des scripts de grant
@@ -69,6 +74,7 @@ reference macros
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
 :ref:`#init_mp`                                               initialise un module en mode multiprocessing (ne fait rien et attends)
 :ref:`#initdb` acces;nomfich                                  positionne des elements d'acces a une base de donnees
+:ref:`#jette`                                                 mange tous les objets
 :ref:`#linefilter`                                            filtre les lignes pour eviter les erreurs
 :ref:`#liste_params` clef;val                                 liste les parametres d acces aux bases
 :ref:`#ll2cus`                                                reprojette des donnees cus en rgf93
@@ -158,7 +164,9 @@ passe une requete LDAP
 
 parametres positionnels
 
-* condition,element,clef:condition,element,clef
+* condition:clause de recherche
+* element:element recherche
+* clef:items a recuperer
 
 
 
@@ -234,6 +242,20 @@ ajoute les attributs standard  date_maj / date_creation et le gid
 
 
 
+#attsave
+........
+
+
+stocke le contenu d'un attribut
+
+parametres positionnels
+
+* att:att
+* nom:nom
+* ext:ext
+
+
+
 #autoload
 .........
 
@@ -277,6 +299,18 @@ reprojette des donnees cus en rgf93
 
 
 reprojette des donnees cus en rgf93
+
+
+
+#change
+.......
+
+
+parametres positionnels
+
+* att:att
+* old:chaine a remplacer
+* new:chaine de remplacement
 
 
 
@@ -573,6 +607,21 @@ macro utilisabe en service web
 
 
 
+#dbwrite
+........
+
+
+chargement dans une base de donnees d'une base de donnÃ©es
+
+parametres positionnels
+
+* dest:dest
+* niveau:niveau
+* classe:classe
+* attributs:attributs
+
+
+
 #debug
 ......
 
@@ -733,6 +782,18 @@ parametres positionnels
 
 
 
+#garder
+.......
+
+
+ne conserver que certains champs
+
+parametres positionnels
+
+* atts:liste d'attributs a conserver
+
+
+
 #geocode
 ........
 
@@ -788,6 +849,14 @@ parametres positionnels
 * rel_geo:relation geometrique: dans_emprise,dans,intersecte,contient ou inverse en commencant par ! (!dans...)
 * buffer:taille du buffer
 * champ:champ
+
+
+
+#geomfilter
+...........
+
+
+filtre les geometries pour eviter les erreurs
 
 
 
@@ -934,6 +1003,14 @@ parametres positionnels
 
 * acces:acces
 * nomfich:nomfich
+
+
+
+#jette
+......
+
+
+mange tous les objets
 
 
 

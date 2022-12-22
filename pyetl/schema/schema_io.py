@@ -416,7 +416,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
             if not stock_param.worker:  # on ne sort jamais un schema en mode worker
-                stock_param.logger.info(
+                stock_param.logger.debug(
                     "mode %s: %s %d classes", mode, i, len(schemas[i].classes)
                 )
                 # print("ecriture schema", i, len(schemas[i].classes))

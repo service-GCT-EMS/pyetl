@@ -110,7 +110,7 @@ class TableBaseSelector(object):
     def resolve_static(self, obj):
         """transformation de la liste de descripteurs statiques en liste de classes
         le selecteur gere la connection a la base se donnees"""
-        print ("resolve static", self.base, self.dynbase)
+        # print ("resolve static", self.base, self.dynbase)
         if not obj and (isatt(self.base) or self.dynbase):
             return
         if self.base=="*":
@@ -275,7 +275,7 @@ class TableBaseSelector(object):
         # print("resolution descripteur dynamique", self.dyndescr)
         subselects=[]
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
-            print("descripteur dynamique n:", niveau,"\nc:",classes, "\na:",attr, "\nv:",valeur,"\nf:", fonction)
+            # print("descripteur dynamique n:", niveau,"\nc:",classes, "\na:",attr, "\nv:",valeur,"\nf:", fonction)
             if niveau.startswith('in:['):
                 niv=resolve_att(niveau[3:],obj)
                 selecteur=select_in(self.regle_ref,niv,'')
@@ -296,7 +296,7 @@ class TableBaseSelector(object):
                         else valeur[1]
                     )
             for classe in classes:
-                print("dyn: traitement classe", classe)
+                # print("dyn: traitement classe", classe)
                 classe=resolve_att(classe,obj)
                 # print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
@@ -405,7 +405,7 @@ class TableSelector(object):
         self.dbref=dict()
 
     def __repr__(self):
-        return self.nom + repr([repr(bs) for bs in self.baseselectors.values()])
+        return self.nom +(" resolved " if self.resolved else " unresolved ") +repr([repr(bs) for bs in self.baseselectors.values()])
 
     def add_descripteur(
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
@@ -728,7 +728,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     elif service:
                         base = "*" + service
                     else:
-                        print("analyse qgs: identification filedb", i)
+                        LOGGER.info("analyse qgs: identification filedb %s", i)
                         base = "__filedb"
                     selecteur.add_descripteur(base, niveau, [classe], fonction="=")
                     # print("qgs : descripteur", base, niveau, [classe])
@@ -740,7 +740,7 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
         LOGGER.error("fichier qgs introuvable %s", fichier)
         # print("fichier qgs introuvable ", fichier)
 
-    LOGGER.info("lu fichier qgis " + fichier)
+    # LOGGER.info("lu fichier qgis " + fichier)
     # print("lus fichier qgis ", fichier, selecteur)
     return True
 

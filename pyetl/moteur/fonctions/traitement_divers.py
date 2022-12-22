@@ -779,6 +779,7 @@ def sortir_objets(regle):
     """sort les objets"""
     schema_courant = regle.stock_param.init_schema(regle.nomschema, origine="L")
     for obj in regle.objets.values():
+        obj.attributs["#nb_objs"]=str(obj.attributs["#nb_objs"]) # compteur
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     regle.nbstock = 0
 
@@ -788,7 +789,10 @@ def h_objgroup(regle):
     regle.store = True
     regle.objets = OrderedDict()
     regle.reader = regle.stock_param.getreader("interne+s", regle)
+    if not regle.params.att_sortie.liste:
+        regle.params.att_sortie.liste=regle.params.att_entree.liste
     regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
+    
     if (
         len(regle.params.att_sortie.liste) == 1
         and len(regle.params.att_entree.liste) > 1
@@ -810,10 +814,12 @@ def h_objgroup(regle):
 
 
 def f_objgroup(regle, obj):
-    """#aide||accumule des attributs en un tableau
-    #aide_spec1||cree un tableau par attribut autant de tableaux que de champs en entree
+    """#aide||accumule des attributs en tableaux
+    #aide_spec1||cree un tableau par attribut autant de tableaux que de champs en entree/sortie
                ||si un seul attribut en sortie cree un tableau contenant des champs nommes
-    #pattern1||L;?C;L;objgroup;C;?L;
+               ||si aucun attribut en sortie : garde les noms des attributs d'entree
+               ||sinon le nombre de sorties doit etre égal au nombre d'entrees sinon seul lees correspondances sont traitees
+    #pattern1||?L;?C;L;objgroup;C;?L;
     #parametres1||attributs en sortie;defaut;attributs en entree;;nom de la classe en sortie;attributs de groupage
     """
     if obj.virtuel:
@@ -849,6 +855,7 @@ def f_objgroup(regle, obj):
                         schemaclasse.attributs[nom].multiple=True
 
         obj2 = regle.reader.getobj(niveau=niveau, classe=classe, attributs=atts)
+        obj2.attributs["#nb_objs"]=0
         obj2.schema=schemaclasse
 
         # ident = obj.ident
@@ -865,6 +872,7 @@ def f_objgroup(regle, obj):
         # la premiere fois on ajuste le schema
         if regle.nbstock == 0:
             obj2.ajuste_schema()
+            obj2.attributs["#nb_objs"]+=1
         regle.objets[clef] = obj2
         regle.nbstock += 1
     if regle.params.pattern == "1":

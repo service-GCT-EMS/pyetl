@@ -2,7 +2,7 @@
 """
 bases de donnees sqlite en memoire pour l execution directe de requetes sql
 
-module experimental non disponible
+module experimental 
 
 commandes disponibles :
 
@@ -59,7 +59,7 @@ TYPES_G = {"POINT": "1", "MULTILINESTRING": "2", "MULTIPOLYGON": "3"}
 
 
 class SqlmConnect(SqltConnect):
-    """connecteur de la base de donnees oracle"""
+    """connecteur de la base de donnees sqlite"""
 
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
@@ -287,6 +287,14 @@ class SqlmConnect(SqltConnect):
             yield tmp
         cur.cursor.close()
         return
+
+    def dbstore(self,obj):
+        """stocke un objet en base"""
+        pass
+
+    def dbstorelist(self,objlist):
+        """stocke une liste d'objets en base"""
+        pass
 
 
 class SqlmGenSql(SqltGenSql):

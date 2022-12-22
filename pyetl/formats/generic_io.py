@@ -951,8 +951,8 @@ class Output(object):
         if regle.ressource is None:
             regle.ressource = self.change_ressource(obj)
         elif regle.ressource.lastid != obj.ident:
-            if not self.writerparms.get("usebuffer"):  # buffer interne au writer
-                regle.ressource = self.change_ressource(obj)
+            # if not self.writerparms.get("usebuffer"):  # buffer interne au writer
+            regle.ressource = self.change_ressource(obj)
             # regle.dident = obj.ident
         regle.ressource.write(obj, regle.idregle)
         if obj.geom_v.courbe and obj.schema:

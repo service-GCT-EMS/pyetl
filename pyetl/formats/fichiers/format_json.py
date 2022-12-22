@@ -50,7 +50,10 @@ class JsonWriter(FileWriter):
 
     def changeclasse(self, schemaclasse, attributs=None):
         """ecriture multiclasse on change de schema"""
-        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
+        verbose=self.regle_ref.istrue("verbose") if self.regle_ref else self.regle.istrue("verbose") 
+        if verbose:
+            logger=self.regle_ref.stock_param.logger if self.regle_ref else self.regle.stock_param.logger
+            logger.info("json schema: %s,%s", repr(schemaclasse), schemaclasse.schema)
         self.liste_att = (
             schemaclasse.get_liste_attributs(liste=attributs)
             if schemaclasse
@@ -59,7 +62,8 @@ class JsonWriter(FileWriter):
         if not self.liste_att:
             self.liste_att=schemaclasse.attributs.keys() 
         self.hconvert=[i for i in self.liste_att if schemaclasse.attributs.get(i) and schemaclasse.attributs.get(i).type_att=="H"]
-        print ("trouve hconvert", self.liste_att, self.hconvert)
+        if self.hconvert and verbose:
+            logger.info("json:trouve hconvert %s %s", repr(self.liste_att), repr(self.hconvert))
 
     def convert(self, obj):
         """ecriture d objets"""

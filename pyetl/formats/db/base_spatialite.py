@@ -319,7 +319,7 @@ class SqltConnect(DbConnect):
                         val = val[1:]
                 cond = self.monoval(oper, cast)
                 data = {"val": val}
-                print("valeur simple", valeur, oper, cond, cast, data)
+                # print("valeur simple", valeur, oper, cond, cast, data)
 
             requete = (
                 " SELECT "
