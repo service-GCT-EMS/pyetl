@@ -119,7 +119,7 @@ mem_sqlite
 
 bases de donnees sqlite en memoire pour l execution directe de requetes sql
 
-module experimental non disponible
+module experimental 
 
 commandes disponibles :
 

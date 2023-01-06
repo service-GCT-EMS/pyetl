@@ -841,7 +841,7 @@ dataviz
 dfgraph
 .......
 
-   cree un graphique
+   cree un graphique a partir d 'un tableau contenu dans un attribut
 
 
 **syntaxes acceptees**
@@ -849,13 +849,31 @@ dfgraph
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|C     |      |A     |dfgraph |C     |H       |
+|?A    |C?    |A     |dfgraph |C     |?H      |
 +------+------+------+--------+------+--------+
-|=mws: |      |A     |dfgraph |C     |H       |
+|=mws: |      |A     |dfgraph |C     |?H      |
 +------+------+------+--------+------+--------+
-|=mws: |P     |      |dfgraph |C     |H       |
+|=mws: |P     |      |dfgraph |C     |?H      |
 +------+------+------+--------+------+--------+
 
+
+   ?A :  attribut de sortie (optionnel)
+   C? :  fichier (optionnel)
+   A :  attribut contenant les donnees
+   dfgraph :  type de graphique
+   C :  parametres
+
+   =mws: :  mws: (mot_clef)
+   A :  
+   dfgraph :  attribut contenant les donnees
+   C :  type de graphique
+   ?H :  parametres (optionnel)
+
+   =mws: :  mws: (mot_clef)
+   P :  variable contenant les donnees
+   dfgraph :  
+   C :  type de graphique
+   ?H :  parametres (optionnel)
 
 
 
@@ -917,7 +935,7 @@ dfwrite
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|A     |      |A     |dfwrite |C     |        |
+|?A    |?C    |A     |dfwrite |?C    |        |
 +------+------+------+--------+------+--------+
 
 
@@ -981,8 +999,9 @@ dbcheck
 dbclean
 .......
 
-   vide un ensemble de tables
+   cree un script pour vider un ensemble de tables
 
+   commande de base sde donnees (debut de ligne en db:base;schema;table...)
 
 **syntaxes acceptees**
 
@@ -991,6 +1010,7 @@ dbclean
 +======+======+======+========+======+========+
 |      |      |      |dbclean |?C    |?C      |
 +------+------+------+--------+------+--------+
+
 
 
 
@@ -1586,22 +1606,24 @@ merge
 objgroup
 ........
 
-   accumule des attributs en un tableau
+   accumule des attributs en tableaux
 
 
 **syntaxes acceptees**
 
-+------------+------------+------------+--------------+------------+--------------+
-|sortie      |defaut      |entree      |commande      |param1      |param2        |
-+============+============+============+==============+============+==============+
-|L           |?C          |L           |objgroup      |C           |?L            |
-+------------+------------+------------+--------------+------------+--------------+
-| *cree un tableau par attribut autant de tableaux que de champs en entree*       |
-| *si un seul attribut en sortie cree un tableau contenant des champs nommes*     |
-+------------+------------+------------+--------------+------------+--------------+
++-----------------+-----------------+-----------------+-------------------+-----------------+-------------------+
+|sortie           |defaut           |entree           |commande           |param1           |param2             |
++=================+=================+=================+===================+=================+===================+
+|?L               |?C               |L                |objgroup           |C                |?L                 |
++-----------------+-----------------+-----------------+-------------------+-----------------+-------------------+
+| *cree un tableau par attribut autant de tableaux que de champs en entree/sortie*                              |
+| *si un seul attribut en sortie cree un tableau contenant des champs nommes*                                   |
+| *si aucun attribut en sortie : garde les noms des attributs d'entree*                                         |
+| *sinon le nombre de sorties doit etre égal au nombre d'entrees sinon seul lees correspondances sont traitees* |
++-----------------+-----------------+-----------------+-------------------+-----------------+-------------------+
 
 
-   L :  attributs en sortie
+   ?L :  attributs en sortie (optionnel)
    ?C :  defaut (optionnel)
    L :  attributs en entree
    objgroup :  

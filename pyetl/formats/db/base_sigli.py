@@ -211,30 +211,30 @@ class SglGenSql(PgsGenSql):
                 trig.append("\tON " + table)
                 trig.append("\tFOR EACH ROW")
                 trig.append("\tEXECUTE PROCEDURE " + SCHEMA_ADM + ".auteur();")
-        liste_triggers = classe.triggers
-        for i in liste_triggers:
-            (
-                type_trigger,
-                action,
-                declencheur,
-                timing,
-                event,
-                colonnes,
-                condition,
-                sql,
-            ) = liste_triggers[i].split(",")
-            trigdef = (
-                ttype[type_trigger],
-                action,
-                decl[declencheur],
-                evs[timing],
-                evs2[event],
-                colonnes,
-                condition,
-                sql,
-            )
-            idfonc, trigsql = self.cree_sql_trigger(i, table, trigdef)
-            trig.extend(trigsql)
+        # liste_triggers = classe.triggers
+        # for i in liste_triggers:
+        #     (
+        #         type_trigger,
+        #         action,
+        #         declencheur,
+        #         timing,
+        #         event,
+        #         colonnes,
+        #         condition,
+        #         sql,
+        #     ) = liste_triggers[i].split(",")
+        #     trigdef = (
+        #         ttype[type_trigger],
+        #         action,
+        #         decl[declencheur],
+        #         evs[timing],
+        #         evs2[event],
+        #         colonnes,
+        #         condition,
+        #         sql,
+        #     )
+        #     idfonc, trigsql = self.cree_sql_trigger(i, table, trigdef)
+        #     trig.extend(trigsql)
         return trig
 
     # scripts de creation de tables

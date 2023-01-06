@@ -945,6 +945,16 @@ class RegleTraitement(object):  # regle de mapping
     #        obj.attributs.update(zip(self.params.att_ref.liste,
     #                                 map(fonction, self.getlist_ref(obj))))
 
+    def prepare_place(self,nom):
+        """prepare le chemin pour ecrire un fichier"""
+        localdir = self.getvar("localdir", os.path.join(self.getvar("_sortie", ".")))
+        if not(os.path.isabs(nom) or nom.startswith('.')):
+            nom=os.path.join(localdir,nom)
+        dirname=os.path.dirname(nom)
+        os.makedirs(dirname,exist_ok=True)
+        base,ext=os.path.splitext(nom)
+        return nom,ext
+
     def affiche_debug(self, origine=""):
         """fonction d'affichage de debug"""
         msg = " ".join(

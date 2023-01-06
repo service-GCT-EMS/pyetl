@@ -35,7 +35,7 @@ reference macros
 :ref:`#db_batch_suivi` bdef                                   lance le scheduler sur une liste de taches modifiables en base
 :ref:`#db_list_batch` bdef;sortie                             liste des batchs definis en base 
 :ref:`#dbaccess` acces;base;serveur;type;user;pass            positionne des elements d'acces a une base de donnees en direct
-:ref:`#dbclean` acces;niveau;classe;nom                       cree un script de reset de la base de donnees
+:ref:`#dbclean` acces;niveau;classe;nom;mod                   cree un script de reset de la base de donnees
 :ref:`#dbdump` acces;niveau;classe;rep_sortie;log             extraction d'un jeu de donnees d'une base de donnees avec un programme externe
 :ref:`#dbextract` acces;niveau;classe;attribut;valeur;ordre   extraction d'un jeu de donnees d'une base de donnÃ©es
 :ref:`#dbextract+gid` acces;niveau;classe;attribut;valeur     lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe
@@ -503,6 +503,7 @@ parametres positionnels
 * niveau:niveau
 * classe:classe
 * nom:nom
+* mod:mod
 
 
 

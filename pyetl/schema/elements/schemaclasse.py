@@ -202,7 +202,7 @@ class SchemaClasse(object):
         self.ech_denom_min = 0
         self.fils = []
         self._pkey = set()  # pour les tests d'unicite de clef primaire
-        self.triggers = dict()
+        # self.triggers = dict()
         self.indexes = dict()
         self.debug = debug
         self.minmaj = ""
@@ -224,7 +224,7 @@ class SchemaClasse(object):
 
     def setbasic(self, mode):
         """simplifie la structure pour les classes de consultation"""
-        self.triggers = dict()
+        # self.triggers = dict()
         self.specifique = dict()
         self.changed = True
         self.type_table = "i"

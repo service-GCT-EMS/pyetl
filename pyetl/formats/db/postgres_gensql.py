@@ -432,30 +432,30 @@ class PgrGenSql(DbGenSql):
             return []
         trig = ["-- ###### definition des triggers ####"]
 
-        liste_triggers = classe.triggers
-        for i in liste_triggers:
-            (
-                type_trigger,
-                action,
-                declencheur,
-                timing,
-                event,
-                colonnes,
-                condition,
-                sql,
-            ) = liste_triggers[i].split(",")
-            trigdef = (
-                ttype[type_trigger],
-                action,
-                decl[declencheur],
-                evs[timing],
-                evs2[event],
-                colonnes,
-                condition,
-                sql,
-            )
-            idfonc, trigsql = self.cree_sql_trigger(i, table, trigdef)
-            trig.extend(trigsql)
+        # liste_triggers = classe.triggers
+        # for i in liste_triggers:
+        #     (
+        #         type_trigger,
+        #         action,
+        #         declencheur,
+        #         timing,
+        #         event,
+        #         colonnes,
+        #         condition,
+        #         sql,
+        #     ) = liste_triggers[i].split(",")
+        #     trigdef = (
+        #         ttype[type_trigger],
+        #         action,
+        #         decl[declencheur],
+        #         evs[timing],
+        #         evs2[event],
+        #         colonnes,
+        #         condition,
+        #         sql,
+        #     )
+        #     idfonc, trigsql = self.cree_sql_trigger(i, table, trigdef)
+        #     trig.extend(trigsql)
         return trig
 
     def basetriggers(self, ident):
@@ -471,14 +471,15 @@ class PgrGenSql(DbGenSql):
         if "def_triggers" in specs:
             table = groupe + "." + nom
             ident = (groupe, nom)
-            #            print ('definition triggers',schema.elements_specifiques['def_triggers'])
-            if ident in specs["def_triggers"]:
-                table_trigs = specs["def_triggers"][ident]
+            # print ('definition triggers',schema.elements_specifiques['def_triggers'])
+            # print ("recherche trigger", ident,specs["def_triggers"].keys() )
+            if ident in specs["def_triggers"][1]:
+                table_trigs = specs["def_triggers"][1][ident]
                 print("traitement trigger", table_trigs)
                 for i in table_trigs:
                     idfonc, trigsql = self.cree_sql_trigger(i, table, table_trigs[i])
                     try:
-                        deffoncs[idfonc] = specs["def_fonctions_trigger"][idfonc]
+                        deffoncs[idfonc] = specs["def_fonctions_trigger"][1][idfonc]
                     except KeyError:
                         print(
                             "gsql fonction trigger manquante en base",
@@ -669,10 +670,12 @@ class PgrGenSql(DbGenSql):
                 ):
                     seq = True
             if attname == "auteur":
+                
                 if not attype:
                     attype = "T"
                 if attype == "T" and not self.basic:
                     defaut = " DEFAULT current_user"
+                print ("cretable auteur", attype, self.basic, defaut)
             if attname == "date_creation" or attname == "date_maj":
                 if not attype:
                     attype = "D"
@@ -739,7 +742,7 @@ class PgrGenSql(DbGenSql):
                     defaut = (" DEFAULT " + attribut.defaut)
                 else:
                     defaut = (" DEFAULT " + attribut.defaut)
-            else:
+            elif defaut is None:
                 defaut=''
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
@@ -1005,7 +1008,7 @@ class PgrGenSql(DbGenSql):
             trigdefs = []
             for ident in liste:
                 trigs, foncs = self.basetriggers(ident)
-                #                print ('definition triggers ', ident,len(trigs),len(foncs))
+                print ('definition triggers ', ident,len(trigs),len(foncs))
                 trigdefs.extend(trigs)
                 foncdefs.update(foncs)
             cretables.append(

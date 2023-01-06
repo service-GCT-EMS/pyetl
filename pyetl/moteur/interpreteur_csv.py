@@ -544,7 +544,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
 def _lire_commandes(mapper, fichier_regles, niveau):
     """lit les commandes quelle que soit l'origine base de donnees fichier ou macro"""
     #    print(" lecture",fichier_regles)
-    if fichier_regles.startswith("#db:"):  # acces a des commandes en base de donnees
+    if fichier_regles.startswith("db:"):  # acces a des commandes en base de donnees
         liste_regles = lire_commandes_en_base(mapper, fichier_regles)
 
     elif (
