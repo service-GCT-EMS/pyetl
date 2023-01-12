@@ -108,7 +108,7 @@ def formbuilder(description):
         "P": F.PasswordField,
         "R": F.RadioField,
         "S": F.SelectField,
-        "DS": F.SelectField,
+        "DS": DynSelectfieldwidget,
         "SS": F.SelectMultipleField,
         "DSS": DynSelectfieldwidget,
         "T": F.StringField,

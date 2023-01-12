@@ -839,7 +839,7 @@ def h_join(regle):
     regle.fichier = regle.params.cmp1.val  # nom du fichier
     if regle.fichier.startswith("#"):  # jointure objets sur tmpstore
         regle.jointtype = "obj"
-        regle.champs = list((i for i in regle.params.cmp2.liste if i != "#geom"))
+        regle.champs = list((i for i in regle.params.cmp2.liste))
         regle.recup_geom = "#geom" in regle.params.cmp2.liste
         regle.ajuste_geom = regle.recup_geom
         regle.jstore = regle.stock_param.store.get(regle.params.cmp1.val)
@@ -871,7 +871,7 @@ def h_join(regle):
 def f_join(regle, obj):
     """#aide||jointures
        #pattern||L;?;?A;join;C[];?C||cmp1
-       #pattern2||M?;?;?A;join;#C;?C||cmp1
+       #pattern2||M?;?;?L;join;#C;?C||cmp1
     #parametres||sortie;defaut;entree;;fichier (dynamique)
                ||position des champs dans le fichier (ordre)
      #attributs||#repertoire (optionnel) repertoire du fichier
@@ -880,10 +880,10 @@ def f_join(regle, obj):
           #test||obj||^X;C;;set||^val;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;val;3
     """
     if regle.jointtype == "obj":
-        clef_jointure = regle.getval_entree(obj)
+        clef_jointure = '|'.join(regle.getlist_entree(obj))
         # print("clef jointure", clef_jointure)
         obj_joint = regle.jstore.get(clef_jointure)
-        print("obj joint", obj_joint, regle.stock_param.store)
+        # print("obj joint",clef_jointure, obj_joint)
 
         if obj_joint:
             if regle.recup_geom:
@@ -904,9 +904,8 @@ def f_join(regle, obj):
                         if obj.schema:
                             obj.schema.info["type_geom"] = "-1"
                     # print("recup #geom")
-                    obj.attributs["#geom"] = (
-                        geom if isinstance(geom, str) else list(geom)
-                    )
+                    obj.attributs["#geom"] = geom
+                    # (geom if isinstance(geom, str) else list(geom))
 
                     obj.format_natif = obj_joint.format_natif
                     obj.geompending()
@@ -1029,9 +1028,14 @@ def h_format(regle):
 
 
 def f_format(regle, obj):
-    """#aide||formatte un attribut
+    """#aide||formatte un attribut utilise les formatages python standard
+    #aide_spec||en cas de conflit (motif de type variable %xxx%) 
+            ||il est possible de remplacer le % par un autre caractere (par defaut µ)
+            ||si on souhaite des espaces avant ou apres le format il est possible de definir
+            ||la variable espace pour remplacer les espaces
+            ||exemple: °°µs%d°° avec espace=° devient '  %s%d  '
     #pattern||S;?LC;?LC;format;C;?C
-    #paramatre||attribut de sortie;defaut;liste_entree;;format
+    #paramatre||attribut de sortie;defaut;liste_entree;;format;remplacement du %
     #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
     #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
@@ -1049,7 +1053,11 @@ def f_format(regle, obj):
         regle.incomplet = False
 
     vlist = regle.getlist_entree(obj)
-    vlist2 = tuple(i(j) for i, j in zip(regle.flist, vlist))
+    try:
+        vlist2 = tuple((i(j)) for i, j in zip(regle.flist, vlist))
+    except ValueError:
+        regle.setval_sortie(obj, "")
+        return False
     # print(
     #     " formattage",
     #     regle.params.cmp1.val,

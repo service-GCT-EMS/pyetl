@@ -131,6 +131,8 @@ def f_graph(regle, obj):
             fichier_sortie=regle.params.val_entree.val
             nom,ext=regle.prepare_place(fichier_sortie)
             print ('ecriture',fichier_sortie,nom,ext,regle.options,regle.params.cmp2.liste)
+            nomdef=nom.replace(ext,'.json')
+            chart.save(nomdef)
             if ext in regle.graphwriters:
                 chart.save(nom)
             else:

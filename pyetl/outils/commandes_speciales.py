@@ -53,12 +53,12 @@ def gendoc(mapper, nom):
             dest.write("\n".join(contenu))
     if build:
         builderhtml = os.path.join(sourcedir, "make") + " html "
-        # builderpdf = os.path.join(sourcedir, "make") + " pdf "
+        builderpdf = os.path.join(sourcedir, "make") + " latexpdf "
 
         os.system(builderhtml)
         print("generation format html dans", os.path.join(sourcedir, "build/html"))
-        # os.system(builderpdf)
-        # print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
+        os.system(builderpdf)
+        print("generation format pdf dans", os.path.join(sourcedir, "build/pdf"))
 
 
 def commandes_speciales(mapper, commandes, args):

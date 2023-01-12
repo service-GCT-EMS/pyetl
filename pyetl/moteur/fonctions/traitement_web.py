@@ -114,7 +114,7 @@ def geocode_traite_stock(regle, final=True):
                 [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])]
             )
             # print ('retour',obj)
-            score = obj.attributs.get("result_score", "")
+            score = obj.attributs.get(prefix+"result_score", "")
             if not score:
                 regle.stock_param.logger.error(
                     "erreur geocodage %s", ",".join(attributs)
@@ -178,7 +178,7 @@ def h_geocode(regle):
 def f_geocode(regle, obj):
     """#aide||geocode des objets en les envoyant au gecocodeur addict
     #aide_spec||en entree clef et liste des champs adresse a geocoder score min pour un succes
-    #parametres||liste attributs adresse;;confiance mini;liste filtres
+    #parametres||liste attributs adresse;;prefixe;liste filtres
     #pattern||;;L;geocode;?C;?LC
     #schema||ajout_att_from_liste
     #req_test||url_geocodeur

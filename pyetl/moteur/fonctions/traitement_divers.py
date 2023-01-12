@@ -65,7 +65,7 @@ def h_stocke(regle):
     else:
         if regle.params.cmp2.val not in regle.stock_param.store:
             if regle.params.cmp1.val == "clef":
-                regle.stocke_obj = False
+                regle.stocke_obj = True
                 regle.stock_param.store[regle.params.cmp2.val] = (
                     dict() if regle.params.att_sortie.liste else set()
                 )
@@ -74,7 +74,7 @@ def h_stocke(regle):
         regle.tmpstore = regle.stock_param.store[regle.params.cmp2.val]
     regle.fold = regle.params.cmp1.val == "cmpf"
     regle.cnt = regle.params.cmp1.val == "cnt"
-    regle.flist = [i for i in regle.params.att_sortie.liste if i != "#geom"]
+    regle.flist = [i for i in regle.params.att_sortie.liste]
     regle.recup_geom = "#geom" in regle.params.att_sortie.liste
     if regle.params.pattern in "3456":
         regle.final = True
@@ -119,8 +119,8 @@ def f_stocke(regle, obj):
             regle.tmpstore[clef] = obj
         elif regle.flist or regle.recup_geom:
             atts = [obj.attributs.get(i, "") for i in regle.flist]
-            if regle.recup_geom:
-                atts.append(obj.geom)
+            # if regle.recup_geom:
+            #     atts.append(obj.geom_v)
             regle.tmpstore[clef] = atts
         else:
             regle.tmpstore.add(clef)

@@ -455,11 +455,11 @@ def h_dbrequest(regle):
         return True
 
     if regle.params.cmp2.val and regle.params.cmp2.val != "#":
-        regle.identclasse = (
-            (regle.params.cmp2.val, regle.params.cmp2.definition[0])
-            if regle.params.cmp2.definition
+        regle.identclasse = (tuple(regle.params.cmp2.texte.split('.',1)) 
+            if '.' in regle.params.cmp2.texte
             else (None, regle.params.cmp2.val)
         )
+        print ('nom classe',regle.params.cmp2.texte)
     else:
         regle.identclasse = None
     LOGGER.debug("req:%s --> %s", requete, str(regle.identclasse))

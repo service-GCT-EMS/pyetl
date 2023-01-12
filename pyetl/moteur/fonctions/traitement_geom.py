@@ -105,7 +105,7 @@ def cregeompoint(obj, point, srid):
 
 def f_setpoint(regle, obj):
     """#aide||ajoute une geometrie point a partir des coordonnes en attribut
-    #parametres||defauts;attribut contenant les coordonnees separees par des ,;numero de srid
+    #parametres||defauts;attribut contenant les coordonnees separees par des ,;;numero de srid(defaut 3948)
       #pattern1||;LC;?A;setpoint;?N;
           #test||obj||^;1,2;;setpoint||atv;#type_geom;1
     """

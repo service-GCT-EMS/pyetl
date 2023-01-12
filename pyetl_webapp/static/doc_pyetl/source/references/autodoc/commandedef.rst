@@ -849,11 +849,11 @@ dfgraph
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|?A    |C?    |A     |dfgraph |C     |?H      |
+|?A    |C?    |A     |dfgraph |C     |?LC     |
 +------+------+------+--------+------+--------+
-|=mws: |      |A     |dfgraph |C     |?H      |
+|=mws: |      |A     |dfgraph |C     |?LC     |
 +------+------+------+--------+------+--------+
-|=mws: |P     |      |dfgraph |C     |?H      |
+|=mws: |P     |      |dfgraph |C     |?LC     |
 +------+------+------+--------+------+--------+
 
 
@@ -867,13 +867,13 @@ dfgraph
    A :  
    dfgraph :  attribut contenant les donnees
    C :  type de graphique
-   ?H :  parametres (optionnel)
+   ?LC :  parametres (optionnel)
 
    =mws: :  mws: (mot_clef)
    P :  variable contenant les donnees
    dfgraph :  
    C :  type de graphique
-   ?H :  parametres (optionnel)
+   ?LC :  parametres (optionnel)
 
 
 
