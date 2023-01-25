@@ -1300,7 +1300,7 @@ class Pyetl(object):
             )
             self.moteur.traitement_virtuel()  # on force un peu pour creer toutes les classes
             self.moteur.vide_stock()
-            print('pyetl: ecriture schemas ', mode_schema,self.schemas.keys())
+            # print('pyetl: ecriture schemas ', mode_schema,self.schemas.keys())
         ecrire_schemas(
             self, rep_sortie, mode_schema, formats=self.getvar("format_schema", "csv")
         )

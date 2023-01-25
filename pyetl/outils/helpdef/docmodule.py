@@ -160,6 +160,16 @@ def docgen(mapper, nom, nommodule):
         for i in commande.description.get("#variables"):
             doc.append(i)
             # print("%s" % "\n".join(variante.description.get("#parametres")))
+    if commande.description.get("#variables_utilisees"):
+        doc.append("")
+        doc.append("**autres variables utilisees**")
+        doc.append("")
+        var_desc=commande.description.get("#variables",[])
+        for i in sorted(set(commande.description.get("#variables_utilisees"))):
+            if not i in var_desc:
+                nom='\\'+i if i.startswith("#") else i
+                nom=i[:-1] +'\\_' if i.endswith("_") else i 
+                doc.append(nom+',')
     doc.append("")
     return doc
 

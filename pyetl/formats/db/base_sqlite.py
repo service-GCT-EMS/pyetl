@@ -197,6 +197,7 @@ class SqltConnect(DbConnect):
                 "",
                 "",
                 "",
+                "geometrie"
             ]
             # print ('table', nouv_table)
             self.tables.append(nouv_table)

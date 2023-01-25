@@ -185,6 +185,7 @@ class SqlmConnect(SqltConnect):
                 "",
                 "",
                 "",
+                "geometrie",
             ]
             self.tables.append(nouv_table)
         return attlist

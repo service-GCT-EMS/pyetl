@@ -413,6 +413,12 @@ class GdalWriter(object):
                 )
                 type_geom = 0
             courbe = int(self.schemaclasse.info.get("courbe", 0)) or self.courbe
+            nom_geometrie=""
+            if type_geom:
+                if not self.schemaclasse.info["nom_geometrie"]:
+                    self.schemaclasse.info["nom_geometrie"] = "geometrie"
+                nom_geometrie = self.schemaclasse.info["nom_geometrie"] 
+           
             if type_geom == 2 or type_geom == 3:
                 multi = int(self.schemaclasse.info.get("multiple", 0)) or self.multi
             else:
@@ -430,7 +436,7 @@ class GdalWriter(object):
             try:
                 self.currentlayer = self.datasource.CreateLayer(self.layername, srs=srs)
                 if geomcode is not None:
-                    geomdef = ogr.GeomFieldDefn("geometrie", geomcode)
+                    geomdef = ogr.GeomFieldDefn(nom_geometrie, geomcode)
                     geomdef.SetSpatialRef(srs)
                     # print ('def geom', geomdef.GetSpatialRef())
                     self.currentlayer.CreateGeomField(geomdef)

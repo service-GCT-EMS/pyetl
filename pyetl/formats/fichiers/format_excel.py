@@ -224,7 +224,7 @@ class XlsxWriter(FileWriter):
         if not self.entete:
             return ""
         geom = (
-            self.separ + "geometrie" + "\n"
+            self.separ + self.schemaclasse.info["nom_geometrie"] + "\n"
             if self.schema.info["type_geom"] != "0"
             else "\n"
         )

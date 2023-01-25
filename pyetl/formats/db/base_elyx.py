@@ -802,6 +802,7 @@ class ElyConnect(ora.OrwConnect):
                     "",
                     "",
                     "",
+                    "geometrie"
                 )
 
                 compos_id[i[3]] = ident  # lien numero nom

@@ -325,6 +325,7 @@ class Macro(object):
         self.retour = "text"
         self.file = file
         self.commandes_macro = dict()
+        self.lignes=[]
         self.help = ""
         self.help_detaillee = []
         self.parametres_pos = dict()
@@ -345,6 +346,7 @@ class Macro(object):
 
     def add_command(self, ligne, numero):
         """ajoute une commande a la liste"""
+        self.lignes.append(ligne)
         try:
             if ligne.startswith("!#help") or ligne.startswith("!#aide"):
                 self.help = ligne.split(";")[1]
@@ -413,6 +415,9 @@ class Macro(object):
             maxnum = max(self.commandes_macro.keys())
             cmds.append((maxnum + 1, ";;;;;;;return;;"))
         return cmds
+
+    def get_lignes(self):
+        return self.lignes
 
     def __repr__(self):
         """affichage lisible de la macro"""

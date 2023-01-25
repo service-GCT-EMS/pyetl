@@ -911,11 +911,7 @@ class SchemaClasse(object):
         self.info["dimension"] = str(dimension)
         # if type_geom:
         #     print(
-        #         "apres stockage geometrie ",
-        #         self.info["nom_geometrie"],
-        #         type_geom,
-        #         dimension,
-        #         self.info["type_geom"],
+        #         "apres stockage geometrie ",self
         #     )
 
     def ajout_attribut_modele(self, modele, nom=None, nom_court=None, force=False):

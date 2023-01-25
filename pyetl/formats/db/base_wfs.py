@@ -282,7 +282,7 @@ class WfsConnect(DbConnect):
             )
             attlist.append(att)
             ident = (groupe, nom)
-            nouv_table = [groupe, nom, "", "", "", -1, "", "", "", "", ""]
+            nouv_table = [groupe, nom, "", "", "", -1, "", "", "", "", "",""]
             # print ('table', nouv_table)
             self.tables[ident] = nouv_table
         return attlist

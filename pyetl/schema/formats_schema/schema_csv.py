@@ -47,6 +47,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
     sc_classe.cree_noms_courts(longueur=10)
     complement = "oui" if sc_classe.multigeom else "non"
     type_geom = sc_classe.types_g[sc_classe.info["type_geom"]]
+    nom_geometrie = sc_classe.info["nom_geometrie"]
     #    print('sio: sortir schema', sc_classe.info["type_geom"], type_geom)
     dimension = sc_classe.info["dimension"]
     type_stockage = sc_classe.types_stock.get(sc_classe.type_table, "")
@@ -73,7 +74,7 @@ def sortir_schema_classe_csv(sc_classe, mode="util"):
                 srid,
                 dimension,
                 str(nbr),
-                "",
+                nom_geometrie,
                 "",
                 "fin",
                 sc_classe.listindexes,
@@ -508,7 +509,7 @@ def decode_classes_csv(schema_courant, entree):
             if len(v_tmp) > 13:
                 nom_court = v_tmp[13] if v_tmp[13] != "fin" else ""
 
-            if attr == "geometrie":
+            if attr == classe.info["nom_geometrie"]:
                 _lire_geometrie_csv(classe, v_tmp, dimension)
             elif attr:  # c'est un attribut
                 classe.stocke_attribut(
@@ -553,6 +554,8 @@ def decode_classes_csv(schema_courant, entree):
                 if len(v_tmp) > 11 and v_tmp[11].isnumeric():
                     classe.poids = int(v_tmp[11])
                 classe.setalias(v_tmp[3])
+                if len(v_tmp) > 12:
+                    classe.info["nom_geometrie"]=v_tmp[12]
 
                 if v_tmp[5] == "courbe":
                     classe.courbe = True

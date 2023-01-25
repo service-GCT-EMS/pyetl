@@ -217,15 +217,25 @@ class PgrGenSql(DbGenSql):
             #            print ('postgres: definition indexes', schemaclasse.nom, type_index,
             #                   '->', champs, schemaclasse.getpkey)
             if type_index[0] == "U":
-                ctr.append(
-                    "\tCONSTRAINT "
-                    + nom.replace(".", "_")
-                    + "_"
-                    + (champs.replace(",", "_"))
-                    + "_key UNIQUE("
-                    + champs
-                    + "),"
-                )
+                if schemaclasse.type_table=='t':
+                    ctr.append(
+                        "\tCONSTRAINT "
+                        + nom.replace(".", "_")
+                        + "_"
+                        + (champs.replace(",", "_"))
+                        + "_key UNIQUE("
+                        + champs
+                        + "),"
+                    )
+                else:
+                    idx.append(
+                        "CREATE UNIQUE INDEX uid_"
+                        + nom.replace(".", "_")
+                        + "_uniq_"
+                        + (champs.replace(",", "_"))
+                        
+                    )
+
             elif type_index[0] == "K":
                 idx.append(
                     "CREATE INDEX fki_"
@@ -1121,8 +1131,18 @@ class PgrGenSql(DbGenSql):
                     + " definition vue generee a partir de la base\n"
                 )
                 vues_sql.append(self.vue_to_sql(ident, *vues_base[ident]))
+
                 groupe, nom = ident
                 classe = self.schema.classes[ident]
+
+                if classe.type_table=='m':
+                    ctr, idx = self.cree_indexes(classe, groupe, nom)
+
+                    vues_sql.extend(ctr)
+                    vues_sql.extend(idx)
+
+
+
                 vues_sql.extend(self.cree_comments(classe, groupe, nom))
 
         print("definition de vues generees", len(vues_base), "->", len(vues_sql))

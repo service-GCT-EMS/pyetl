@@ -768,3 +768,11 @@ def f_wfsdownload(regle, obj):
         )
         return True
     return False
+
+def h_ssoconnect(regle):
+    """aide realise une connection sso"""
+
+def f_ssoconnect(regle, obj):
+    """aide||realise une connection sso uniquement en mode serveur
+    pattern||;;;ssoconnect;;;
+    """

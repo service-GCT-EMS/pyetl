@@ -254,6 +254,7 @@ class GdalConnect(DbConnect):
                     "",
                     "",
                     "",
+                    nom_geom
                 ]
             self.tables[ident] = nouv_table
         return attlist

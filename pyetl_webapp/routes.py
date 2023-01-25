@@ -32,6 +32,7 @@ from pyetl.vglobales import getmainmapper
 from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
+LOGGER = logging.getLogger(__name__)
 try:
     from flask_gssapi import GSSAPI
 
@@ -39,12 +40,12 @@ try:
     require_auth = gssapi.require_auth
 except (ImportError, OSError):
     gssapi = None
-
+    LOGGER.error("systeme d'authentification non activé")
     def require_auth(func):
         return func
 
     pass
-LOGGER = logging.getLogger(__name__)
+
 
 
 def url_to_nom(url):
@@ -169,6 +170,7 @@ class ScriptList(object):
             infos["help"] = macro.help
             infos["help_detaillee"] = macro.help_detaillee
             infos["api"] = macro.apis
+            infos["lignes"] =  macro.lignes
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:

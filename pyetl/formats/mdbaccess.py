@@ -405,9 +405,10 @@ def sortie_resultats(
         if objet:
             obj2 = objet.dupplique()
             obj2.setidentobj(ident)
-            obj2.attributs.update(
-                zip(namelist, [str(i) if i is not None else "" for i in valeurs])
-            )
+            obj2.attributs.update(((i,j) for i,j in zip(namelist,valeurs) if j is not None))
+            # obj2.attributs.update(
+            #     zip(namelist, [str(i) if i is not None else i for i in valeurs])
+            # )
             if obj2.schema.amodifier(regle_courante):
                 obj2.mergeschema(schema_classe_travail, prefix=regle_courante.prefixe)
         else:
@@ -416,9 +417,10 @@ def sortie_resultats(
                 classe,
                 format_natif=format_natif,
                 conversion=geom_from_natif,
-                attributs=zip(
-                    namelist, [str(i) if i is not None else "" for i in valeurs]
-                ),
+                attributs=((i,j) for i,j in zip(namelist,valeurs) if j is not None)
+                # attributs=zip(
+                #     namelist, [str(i) if i is not None else i for i in valeurs]
+                # ),
             )
             obj2.setschema(schema_classe_travail)
 

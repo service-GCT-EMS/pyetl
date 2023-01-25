@@ -92,16 +92,27 @@ extractbloc
 format
 ......
 
-   formatte un attribut
+   formatte un attribut utilise les formatages python standard
 
+   en cas de conflit (motif de type variable %xxx%)
+   il est possible de remplacer le % par un autre caractere (par defaut µ)
+   si on souhaite des espaces avant ou apres le format il est possible de definir
+   la variable espace pour remplacer les espaces
+   exemple: °°µs%d°° avec espace=° devient '  %s%d  '
 
 **syntaxes acceptees**
 
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|S     |?LC   |?LC   |format  |C     |?C      |
-+------+------+------+--------+------+--------+
++-------------+-------------+-------------+---------------+-------------+---------------+
+|sortie       |defaut       |entree       |commande       |param1       |param2         |
++=============+=============+=============+===============+=============+===============+
+|S            |?LC          |?LC          |format         |C            |?C             |
++-------------+-------------+-------------+---------------+-------------+---------------+
+| *en cas de conflit (motif de type variable %xxx%)*                                    |
+| *il est possible de remplacer le % par un autre caractere (par defaut µ)*             |
+| *si on souhaite des espaces avant ou apres le format il est possible de definir*      |
+| *la variable espace pour remplacer les espaces*                                       |
+| *exemple: °°µs%d°° avec espace=° devient '  %s%d  '*                                  |
++-------------+-------------+-------------+---------------+-------------+---------------+
 
 
 
@@ -176,7 +187,7 @@ join
 +-------+-------+-------+---------+-------+---------+
 | *jointure statique*                               |
 +-------+-------+-------+---------+-------+---------+
-|M?     |?      |?A     |join     |#C     |?C       |
+|M?     |?      |?L     |join     |#C     |?C       |
 +-------+-------+-------+---------+-------+---------+
 
 
@@ -656,6 +667,10 @@ archive
 
 
 
+**autres variables utilisees**
+
+_sortie,
+
 
 .. index::
   double: .traitement_archives;checksum
@@ -702,6 +717,10 @@ zip
 
 
 
+**autres variables utilisees**
+
+_sortie,
+
 
 .. index::
   double: .traitement_archives;zipdir
@@ -729,6 +748,10 @@ zipdir
 
 
 
+**autres variables utilisees**
+
+_entree,
+
 
 .. index::
   double: .traitement_archives;zipextract
@@ -749,6 +772,11 @@ zipextract
 
 
 
+
+**autres variables utilisees**
+
+_entree,
+_sortie,
 
 fonctions auxiliaires
 ---------------------
@@ -970,6 +998,13 @@ dbalpha
 traitement_virtuel;se declenche pour un objet virtuel
 dest;repertoire temporaire si extracteur externe
 
+**autres variables utilisees**
+
+_sortie,
+dest,
+log,
+traitement_virtuel,
+
 
 .. index::
   double: .traitement_db;dbcheck
@@ -1076,6 +1111,10 @@ dbextdump
 +------+------+------+---------+------+--------+
 
 
+
+**autres variables utilisees**
+
+_sortie,
 
 
 .. index::
@@ -1187,6 +1226,14 @@ dblist
    ?C :  #1 (optionnel)
    ?C :  #2 (optionnel)
 
+
+**autres variables utilisees**
+
+base\_,
+db\_,
+server\_,
+user\_,
+virtuel,
 
 
 .. index::
@@ -1304,6 +1351,10 @@ dbschema
 +--------------+------+------+--------+------+--------+
 
 
+
+**autres variables utilisees**
+
+groupe_bases,
 
 
 .. index::
@@ -1463,6 +1514,10 @@ runsql
 +-----------+-----------+-----------+-------------+-----------+-------------+
 
 
+
+**autres variables utilisees**
+
+_progdir,
 
 divers
 ------
@@ -3022,6 +3077,11 @@ schema
 
 
 
+**autres variables utilisees**
+
+force_analyse,
+taux_conformite,
+
 
 .. index::
   double: .traitement_schema;set_schema
@@ -3083,6 +3143,10 @@ valide_schema
 
 
 log;err ou warn par defaut no;
+
+**autres variables utilisees**
+
+log,
 
 shapely
 -------
@@ -3292,6 +3356,10 @@ download
 trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
 http_encoding;force l encoding du rettour par defaut c est celui de l entete http
 
+**autres variables utilisees**
+
+http_encoding,
+
 
 .. index::
   double: .traitement_web;ftp_download
@@ -3318,6 +3386,11 @@ ftp_download
 +------+------+------+------------+------+--------+
 
 
+
+**autres variables utilisees**
+
+_sortie,
+localdir,
 
 
 .. index::
@@ -3679,6 +3752,10 @@ creobj
    ?N :  nombre d'objets a creer (optionnel)
 
 
+**autres variables utilisees**
+
+schema_entree,
+
 
 .. index::
   double: .traitement_workflow;end
@@ -3919,6 +3996,10 @@ paramgroups
 
 
 
+**autres variables utilisees**
+
+virtuel,
+
 
 .. index::
   double: .traitement_workflow;pass
@@ -4087,6 +4168,10 @@ return
 
 
 
+**autres variables utilisees**
+
+erreurs,
+
 
 .. index::
   double: .traitement_workflow;sample
@@ -4241,6 +4326,10 @@ testobj
    C :  nom(niv,classe)
    ?N :  nombre d'objets a creer (optionnel)
 
+
+**autres variables utilisees**
+
+schema_entree,
 
 
 .. index::

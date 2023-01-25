@@ -147,7 +147,7 @@ requetes_sigli[
     "info_tables"
 ] = """
 
-     WITH info_fk as (
+    WITH info_fk as (
          SELECT
          c.confrelid::regclass AS cible,
          c.conrelid::regclass AS fk,
@@ -190,6 +190,7 @@ requetes_sigli[
                 t.champ AS num_champ,
                 row_number() OVER (PARTITION BY t.clef) AS ordre_champs,
                 pa.attname AS nom_champ,
+				pa.atttypid as type_champ,
                 t.pk,
                 t.uniq,
                 t.clef
@@ -200,6 +201,7 @@ requetes_sigli[
                 t2.nomschema,
                 t2.nomtable,
                 t2.type_table,
+				
                     CASE
                         WHEN t2.pk THEN string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
                         ELSE NULL::text
@@ -215,23 +217,26 @@ requetes_sigli[
                                  WHERE t2.identifiant = info_fk.fk::oid))
                             THEN 'K:'::text ||
                                  string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
-                        WHEN string_agg(t2.nom_champ::text, ','::text
-                                        ORDER BY t2.ordre_champs) <> 'geometrie'::text
+                        WHEN NOT ('geometry'::regtype = any(array_agg(t2.type_champ::regtype))) 
                             THEN 'X:'::text
                                 || string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
                         ELSE NULL::text
                     END AS index,
                     CASE
-                        WHEN string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs) = 'geometrie'::text THEN 'geometrie'::text
-                        ELSE NULL::text
+                        WHEN string_agg(t2.type_champ::regtype::text, ','::text ORDER BY t2.ordre_champs) = 'geometry'::text 
+							THEN string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
+                        	ELSE NULL::text
                     END AS index_geometrique
+				 	
                FROM t2
+				 
               GROUP BY t2.identifiant, t2.clef, t2.nomschema, t2.nomtable, t2.type_table, t2.pk, t2.uniq
             ), t4 AS (
              SELECT t3.identifiant,
                 t3.nomschema,
                 t3.nomtable,
                 t3.type_table,
+				pa.attname as champ_geom ,
                 string_agg(t3.index_geometrique, ''::text) AS index_geometrique,
                 string_agg(t3.clef_primaire, ''::text) AS clef_primaire,
                 string_agg(t3.index, ' '::text ORDER BY t3.index DESC) AS index,
@@ -242,7 +247,8 @@ requetes_sigli[
                       WHERE pg_class.oid = fk.cible::oid))) || '.'::text) || fk.attribut_cible::text AS clef_etrangere
                FROM t3
                  LEFT JOIN info_fk fk ON t3.identifiant = fk.fk::oid
-              GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible
+				 LEFT JOIN pg_attribute pa ON t3.identifiant = pa.attrelid AND pa.atttypid = 'geometry'::regtype
+              GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible, pa.attname
             )
      SELECT
         --t4.identifiant AS oid,
@@ -251,7 +257,7 @@ requetes_sigli[
         obj_description(t4.identifiant, 'pg_class'::name) AS commentaire,
         COALESCE(( SELECT format_type(a.atttypid, a.atttypmod) AS format_type
                FROM pg_attribute a
-              WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 'alpha'::text) AS type_geometrique,
+              WHERE a.attrelid = t4.identifiant AND a.attname = t4.champ_geom::name), 'alpha'::text) AS type_geometrique,
         COALESCE(( SELECT
                     CASE
                         WHEN "position"(format_type(a.atttypid, a.atttypmod), 'Z'::text) > 0 THEN 3
@@ -264,9 +270,10 @@ requetes_sigli[
         t4.index_geometrique,
         t4.clef_primaire,
         t4.index,
-        string_agg(t4.clef_etrangere, ' '::text) AS clef_etrangere
+        string_agg(t4.clef_etrangere, ' '::text) AS clef_etrangere,
+        t4.champ_geom::name
        FROM t4
-      GROUP BY t4.identifiant, t4.nomschema, t4.nomtable, t4.type_table, (obj_description(t4.identifiant, 'pg_class'::name)), (COALESCE(( SELECT format_type(a.atttypid, a.atttypmod) AS format_type
+      GROUP BY t4.identifiant, t4.nomschema, t4.nomtable, t4.type_table,t4.champ_geom, (obj_description(t4.identifiant, 'pg_class'::name)), (COALESCE(( SELECT format_type(a.atttypid, a.atttypmod) AS format_type
                FROM pg_attribute a
               WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 'alpha'::text)), (COALESCE(( SELECT
                     CASE
@@ -275,7 +282,6 @@ requetes_sigli[
                     END AS dim_geom
                FROM pg_attribute a
               WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 0)), t4.index_geometrique, t4.clef_primaire, t4.index;
-
 """
 
 

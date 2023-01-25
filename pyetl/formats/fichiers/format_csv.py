@@ -183,7 +183,7 @@ class CsvWriter(FileWriter):
             #            raise
             return ""
         geom = (
-            self.separ + self.headerfonc("geometrie") + "\n"
+            self.separ + self.headerfonc(self.schemaclasse.info["nom_geometrie"]) + "\n"
             if self.schemaclasse.info["type_geom"] != "0"
             else "\n"
         )
@@ -336,18 +336,18 @@ class SqlWriter(CsvWriter):
                     ]
                 )
                 if nom in obj.hdict
-                else str(obj.attributs.get(nom, "")).translate(self.transtable)
+                else str(obj.attributs.get(nom, self.null)).translate(self.transtable)
                 for nom in self.liste_att
             )
 
         else:
             atlist = (
-                str(obj.attributs.get(i, "")).translate(self.transtable)
-                for i in self.liste_att
+                str(obj.attributs[i]).translate(self.transtable) if i in obj.attributs else self.null
+                for i in self.liste_att 
             )
         # atlist = list(atlist)
         # print("prepare_attributs sql", atlist)
-        return self.separ.join((i if i else self.null for i in atlist))
+        return self.separ.join(atlist)
 
     def header(self, init=1):
         separ = ", "
@@ -369,6 +369,7 @@ class SqlWriter(CsvWriter):
         nodata = False
 
         type_geom = self.schemaclasse.info["type_geom"]
+        nom_geom = self.schemaclasse.info["nom_geometrie"]
         dim = self.schemaclasse.info["dimension"]
 
         if self.writerparms and nouveau:
@@ -389,7 +390,7 @@ class SqlWriter(CsvWriter):
         end = ") FROM stdin;"
 
         geom = (
-            separ + "geometrie" + end + "\n"
+            separ + nom_geom + end + "\n"
             if self.schemaclasse.info["type_geom"] != "0"
             else end + "\n"
         )
@@ -551,7 +552,7 @@ def lire_objets_txt(self, rep, chemin, fichier):
         # entete = separ.join(schema.get_liste_attributs()) + geom
         entete = schema.get_liste_attributs()
         if schema.info["type_geom"] > "0":
-            entete.append("geometrie")
+            entete.append(self.schemaclasse.info["nom_geometrie"])
     else:
         entete = None
     return csvreader(self, rep, chemin, fichier, entete=entete, separ=separ)

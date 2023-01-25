@@ -72,10 +72,11 @@ class TableBaseSelector(object):
             str(self.base)
             + ":"
             + str(len(self.descripteurs))
-            + "->"
+            + "D->"
             + str(len(self.staticlist))
-            + ","
+            + "s,"
             + str(len(self.dynlist))
+            + "d"
         )
 
     def reg_prefix(self, map_prefix):

@@ -217,6 +217,7 @@ class DbConnect(object):
             "clef_primaire",
             "index",
             "clef_etrangere",
+            "champ_geom"
         ),
         defaults=[""] * 11,
     )
@@ -450,11 +451,11 @@ class DbConnect(object):
 
     def _recup_tables(self):
         """recupere la structure des tables"""
+        n=0
         for i in self.get_tables():
-
+            n+=1
             if len(i) == 12:
                 (
-                    _,
                     nom_groupe,
                     nom_classe,
                     alias_classe,
@@ -466,21 +467,9 @@ class DbConnect(object):
                     _,
                     _,
                     _,
+                    champ_geom,
                 ) = i
-            elif len(i) == 11:
-                (
-                    nom_groupe,
-                    nom_classe,
-                    alias_classe,
-                    type_geometrique,
-                    dimension,
-                    nb_obj,
-                    type_table,
-                    _,
-                    _,
-                    _,
-                    _,
-                ) = i
+            
             else:
                 print("db:table mal formee ", self.type_base, len(i), i)
                 continue
@@ -504,11 +493,11 @@ class DbConnect(object):
             schemaclasse.fichier = self.nombase
             #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
             if schemaclasse.info["type_geom"] == "indef":
-                schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension)
+                schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension, nom=champ_geom)
                 #            print('stockage type geometrique', ident, type_geometrique,
                 #                  schemaclasse.info["type_geom"])
                 if schemaclasse.info["type_geom"] != "0":
-                    schemaclasse.info["nom_geometrie"] = "geometrie"
+                    schemaclasse.info["nom_geometrie"] = champ_geom if champ_geom else 'geometrie'
             if schemaclasse.info["type_geom"] == "indef":
                 print(
                     ident,
@@ -517,6 +506,7 @@ class DbConnect(object):
                 )
 
             schemaclasse.settype_table(type_table)
+        # print ('fin recup tables ',n)
 
     def update_schema_classe(self, ident, attlist1, schema, regle):
         """adapte un schema en fonction d une requete"""
@@ -899,6 +889,7 @@ class DbConnect(object):
                     )
                     attlist.append("#longueur_calculee")
             if schema.info["type_geom"] != "0":
+                print (" recup geom, ",schema.info["type_geom"], schema)
                 attlist2.append(self.get_geom(nom_geometrie) + "as geometrie")
         join_char = self.join_char
         atttext = join_char.join(attlist2)

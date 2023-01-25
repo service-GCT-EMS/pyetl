@@ -324,6 +324,7 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
     for i in origine.getiterator("classe"):
         nom = i.get("nom")
         groupe = i.get("schema")
+        nom_geometrie=i.get("nom_geometrie","geometrie")
         ident = (groupe, nom)
         classe = schema.setdefault_classe(ident)
         #        g[nom]=sc
@@ -338,7 +339,7 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
                 nom_a, type_a, defaut_a, type_base, taille=taille_a, dec=dec_a, ordre=-1
             )
 
-        for j in i.getiterator("geometrie"):
+        for j in i.getiterator(nom_geometrie):
             classe.info["type_geom"] = j.get("type")
             classe.setalias(j.get("alias"))
             dimension = j.get("dimension", "2")

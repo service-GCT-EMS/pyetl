@@ -174,7 +174,7 @@ class AccConnect(DbConnect):
                         taille = -1
                 # print("taille table ", idt, taille)
                 # taille = taille[0][0] if taille else "0"
-                nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", ""]
+                nouv_table = [schema, nom, rem, 0, 0, taille, type_t, "", "", "", "",""]
                 tables.append(nouv_table)
         return tables
 

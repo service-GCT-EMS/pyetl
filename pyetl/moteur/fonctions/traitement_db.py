@@ -774,7 +774,7 @@ def f_dbwrite(regle, obj):
             regle.liste_att = tuple((i for i in obj.schema.get_liste_attributs()))
         if not regle.force_sortie:
             regle.colonnes = (
-                regle.liste_att + ("geometrie",)
+                regle.liste_att + (obj.schema.info["nom_geometrie"],)
                 if regle.use_geom and obj.schema.info["type_geom"] != "0"
                 else regle.liste_att
             )
@@ -927,7 +927,7 @@ def f_recup_schema(regle, obj):
      #req_test||testdb
     """
     chemin = ""
-    print("recup_schema---------------", obj)
+    # print("recup_schema---------------", obj)
     if obj.attributs.get("#categorie") == "traitement_virtuel":
         return True
     valide = True

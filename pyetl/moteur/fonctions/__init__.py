@@ -11,7 +11,7 @@ commencent par traitement
 """
 
 
-# import inspect
+import inspect
 import os
 import re
 import importlib
@@ -379,7 +379,7 @@ class FonctionTraitement(object):
         )
 
 
-def interprete_doc(listedoc):
+def interprete_doc(listedoc, sourcecode):
     """decompose la docstring pour extraire les exemples"""
     description_fonction = dict()
     lastel = ""
@@ -392,7 +392,13 @@ def interprete_doc(listedoc):
         if ligne.startswith("+") or ligne.startswith("||"):
             elements = ligne.split("||")
             description_fonction[lastel].extend(elements[1:])
-
+    variables=(
+               re.findall('getvar\(\"(.*?)\"',sourcecode) +
+               re.findall('getlocal\(\"(.*?)\"',sourcecode)+
+               re.findall('istrue\(\"(.*?)\"',sourcecode)+
+               re.findall('isfalse\(\"(.*?)\"',sourcecode)
+              )
+    description_fonction["#variables_utilisees"]=variables
     #    print ("description retenue",description_fonction,listedoc)
     return description_fonction
 
@@ -582,8 +588,9 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             continue
         nom_fonction = nom.replace(pref + "_", "", 1)
         listedoc = fonction.__doc__.split("\n")
+        sourcecode=inspect.getsource(fonction)
         description_fonction = interprete_doc(
-            listedoc
+            listedoc, sourcecode
         )  # on decoupe la doc sous forme de listes
         stockage = store[pref]
         if pref in simple_prefix:
