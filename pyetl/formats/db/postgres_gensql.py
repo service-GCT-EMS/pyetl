@@ -232,9 +232,10 @@ class PgrGenSql(DbGenSql):
                         "CREATE UNIQUE INDEX uid_"
                         + nom.replace(".", "_")
                         + "_uniq_"
-                        + (champs.replace(",", "_"))
-                        
+                        + (champs.replace(",", "_"))  
                     )
+                    idx.append("\tON " + table)
+                    idx.append("\tUSING btree (" + champs + ");")
 
             elif type_index[0] == "K":
                 idx.append(

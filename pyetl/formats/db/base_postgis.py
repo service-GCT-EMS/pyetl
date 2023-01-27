@@ -91,6 +91,15 @@ class PgsConnect(PgrConnect):
         self.dialecte = "postgis"
         self.type_base = "postgis"
         self.defsrid = "3948"
+        self.requetes["info_tables"] = self.requetes["info_tables_g"]
+
+    @property
+    def req_tables(self):
+        """recupere les tables de la base"""
+        print ('req table postgis')
+        return self.requetes["info_tables"], None
+
+
 
     def get_type(self, nom_type):
         if "geometry" in nom_type:

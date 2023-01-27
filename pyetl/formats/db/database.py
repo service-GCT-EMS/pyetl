@@ -126,7 +126,7 @@ class Cursinfo(object):
                 regle_ref = regle if regle else self.connecteur.regle
                 fail_silent = regle_ref.istrue("Fail_silent") if regle_ref else False
                 if not fail_silent:
-                    print(self.connecteur.base, "erreur requete", err, requete)
+                    print(self.connecteur.base,self.connecteur.type_base, "erreur requete", err, requete)
                 raise StopIteration(1)
 
             if not newcursor:

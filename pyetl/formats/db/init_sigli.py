@@ -144,7 +144,7 @@ requetes_sigli[
 
 
 requetes_sigli[
-    "info_tables"
+    "info_tables_g"
 ] = """
 
     WITH info_fk as (
@@ -283,6 +283,144 @@ requetes_sigli[
                FROM pg_attribute a
               WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 0)), t4.index_geometrique, t4.clef_primaire, t4.index;
 """
+
+requetes_sigli[
+    "info_tables_ng"
+] = """
+
+    WITH info_fk as (
+         SELECT
+         c.confrelid::regclass AS cible,
+         c.conrelid::regclass AS fk,
+         ( SELECT a.attname
+               FROM pg_attribute a
+              WHERE a.attrelid = c.conrelid AND a.attnum = c.conkey[1]) AS attribut_cible,
+         ( SELECT a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attnum = c.confkey[1]) AS attribut_lien
+       FROM pg_constraint c
+      WHERE c.contype = 'f'::"char"),
+
+     t AS ( SELECT c.oid AS identifiant,
+                n.nspname AS nomschema,
+                c.relname AS nomtable,
+                c.relkind AS type_table,
+                i.indrelid,
+                (i.indrelid::text || ':'::text) || array_to_string(i.indkey, ':'::text)
+                    AS clef,
+                row_number() OVER (PARTITION BY i.indrelid) AS num_index,
+                i.indkey,
+                champ.champ,
+                i.indisprimary AS pk,
+                i.indisunique AS uniq
+               FROM pg_class c
+                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+                 LEFT JOIN pg_index i ON c.oid = i.indrelid
+                 LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
+              WHERE n.nspname <> 'public'::name
+                  AND has_schema_privilege(n.nspname,'usage')
+                  AND n.nspname <> 'information_schema'::name
+                  AND n.nspname !~~ 'pg_%'::text
+                  AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
+            ), t2 AS (
+             SELECT t.identifiant,
+                t.nomschema,
+                t.nomtable,
+                t.type_table,
+                t.num_index,
+                t.champ AS num_champ,
+                row_number() OVER (PARTITION BY t.clef) AS ordre_champs,
+                pa.attname AS nom_champ,
+				pa.atttypid as type_champ,
+                t.pk,
+                t.uniq,
+                t.clef
+               FROM t
+                 LEFT JOIN pg_attribute pa ON t.identifiant = pa.attrelid AND pa.attnum = t.champ
+            ), t3 AS (
+             SELECT t2.identifiant,
+                t2.nomschema,
+                t2.nomtable,
+                t2.type_table,
+				
+                    CASE
+                        WHEN t2.pk THEN string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
+                        ELSE NULL::text
+                    END AS clef_primaire,
+                    CASE
+                        WHEN t2.pk THEN NULL::text
+                        WHEN t2.uniq THEN 'U:'::text ||
+                            string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
+                        WHEN (string_agg(t2.nom_champ::text, ','::text
+                                         ORDER BY t2.ordre_champs)
+                             IN (SELECT info_fk.attribut_lien::text AS attribut_lien
+                                 FROM info_fk
+                                 WHERE t2.identifiant = info_fk.fk::oid))
+                            THEN 'K:'::text ||
+                                 string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
+                        WHEN ('' = any (array_agg(t2.nom_champ)))
+                            THEN NULL::text
+                        ELSE  'X:'::text
+                                || string_agg(t2.nom_champ::text, ','::text ORDER BY t2.ordre_champs)
+                        
+                    END AS index,
+                    NULL::text AS index_geometrique
+				 	
+               FROM t2
+				 
+              GROUP BY t2.identifiant, t2.clef, t2.nomschema, t2.nomtable, t2.type_table, t2.pk, t2.uniq
+            ), t4 AS (
+             SELECT t3.identifiant,
+                t3.nomschema,
+                t3.nomtable,
+                t3.type_table,
+				'' as champ_geom ,
+                string_agg(t3.index_geometrique, ''::text) AS index_geometrique,
+                string_agg(t3.clef_primaire, ''::text) AS clef_primaire,
+                string_agg(t3.index, ' '::text ORDER BY t3.index DESC) AS index,
+                (((fk.attribut_lien::text || '->'::text) || (( SELECT ((( SELECT pg_namespace.nspname
+                               FROM pg_namespace
+                              WHERE pg_namespace.oid = pg_class.relnamespace))::text || '.'::text) || pg_class.relname::text
+                       FROM pg_class
+                      WHERE pg_class.oid = fk.cible::oid))) || '.'::text) || fk.attribut_cible::text AS clef_etrangere
+               FROM t3
+                 LEFT JOIN info_fk fk ON t3.identifiant = fk.fk::oid
+              GROUP BY t3.identifiant, t3.nomschema, t3.nomtable, t3.type_table, fk.attribut_lien, fk.cible, fk.attribut_cible
+            )
+     SELECT
+        --t4.identifiant AS oid,
+        t4.nomschema,
+        t4.nomtable,
+        obj_description(t4.identifiant, 'pg_class'::name) AS commentaire,
+        COALESCE(( SELECT format_type(a.atttypid, a.atttypmod) AS format_type
+               FROM pg_attribute a
+              WHERE a.attrelid = t4.identifiant AND a.attname = t4.champ_geom::name), 'alpha'::text) AS type_geometrique,
+        COALESCE(( SELECT
+                    CASE
+                        WHEN "position"(format_type(a.atttypid, a.atttypmod), 'Z'::text) > 0 THEN 3
+                        ELSE 2
+                    END AS dim_geom
+               FROM pg_attribute a
+              WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 0) AS dimension,
+        pg_stat_get_live_tuples(t4.identifiant) AS nb_enreg,
+        t4.type_table,
+        t4.index_geometrique,
+        t4.clef_primaire,
+        t4.index,
+        string_agg(t4.clef_etrangere, ' '::text) AS clef_etrangere,
+        t4.champ_geom::name
+       FROM t4
+      GROUP BY t4.identifiant, t4.nomschema, t4.nomtable, t4.type_table,t4.champ_geom, (obj_description(t4.identifiant, 'pg_class'::name)), (COALESCE(( SELECT format_type(a.atttypid, a.atttypmod) AS format_type
+               FROM pg_attribute a
+              WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 'alpha'::text)), (COALESCE(( SELECT
+                    CASE
+                        WHEN "position"(format_type(a.atttypid, a.atttypmod), 'Z'::text) > 0 THEN 3
+                        ELSE 2
+                    END AS dim_geom
+               FROM pg_attribute a
+              WHERE a.attrelid = t4.identifiant AND a.attname = 'geometrie'::name), 0)), t4.index_geometrique, t4.clef_primaire, t4.index;
+"""
+
 
 
 requetes_sigli[

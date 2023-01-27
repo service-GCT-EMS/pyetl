@@ -234,6 +234,7 @@ class PgrConnect(DbConnect):
     reqs = REQS  # requetes de fallback our les infos base
     requetes = reqs
     codecinfo = {"utf-8": "UTF8", "cp1252": "WIN1252"}
+    requetes["info_tables"]=requetes["info_tables_ng"]
 
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
@@ -514,7 +515,7 @@ class PgrConnect(DbConnect):
     @property
     def req_tables(self):
         """recupere les tables de la base"""
-        return self.requetes["info_tables"], None
+        return self.requetes["info_tables_ng"], None
 
     @property
     def req_enums(self):
