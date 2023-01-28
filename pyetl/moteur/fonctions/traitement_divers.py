@@ -487,10 +487,14 @@ def f_sortir(regle, obj):
         obj.geomnatif = False
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
-    regle.output.ecrire_objets_stream(
-        obj, regle, False, attributs=regle.liste_attributs
-    )
-
+    try:
+        regle.output.ecrire_objets_stream(
+            obj, regle, False, attributs=regle.liste_attributs
+        )
+    except Exception as exc:
+        regle.stock_param.logger.error("ecriture objet %s",repr(obj))
+        regle.stock_param.logger.exception("erreur:",exc_info=exc)
+        raise
     if regle.final:
         obj.schema = None
     return True
