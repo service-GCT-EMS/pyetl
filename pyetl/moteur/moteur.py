@@ -371,7 +371,7 @@ class Macro(object):
                 apiname = apidef[1] if apidef[1] else self.nom[1:]
                 retour = apidef[2] if apidef[2] else "text"
                 no_in = "no_in" in ligne
-                template = apidef[3] if apidef[3] else "no"
+                template = apidef[3] if apidef[3] else ""
                 self.apis[apiname] = (self.nom, retour, template, no_in)
                 return
             if ligne.startswith("!"):  # commentaire on jette

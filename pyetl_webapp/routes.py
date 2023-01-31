@@ -514,6 +514,7 @@ def execscript(appel, mode):
     ws = mode == "api"
     if ws:
         infoscript = scriptlist.apis.get(appel)
+        print ("recup script",appel, "->",infoscript)
         if not infoscript:
             return "erreur script non trouve %s (%s)" % (
                 appel,
@@ -531,6 +532,7 @@ def execscript(appel, mode):
     )
     infos = scriptlist.descriptif[nomscript]
     infos["__mode__"] = mode
+    infos["__api_name__"] = appel
     # print("appel formbuilder", nomscript, infos)
     formclass, varlist = formbuilder(infos)
     form = formclass()
@@ -560,7 +562,7 @@ def execscript(appel, mode):
             qstr = urlencode(scriptparams)
             # url = "http://mws/" + script
             wsurl = "/mws/" + appel + "?" + qstr
-            # print("mode webservice ", "/mws/" + script + "?" + qstr)
+            print("mode webservice ", wsurl)
             return redirect(wsurl)
         retour = process_script(
             nomscript, entree, rep_sortie, scriptparams, "web", local
@@ -586,7 +588,7 @@ def execscript(appel, mode):
             )
 
     return render_template(
-        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=script, ws=ws
+        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws
     )
 
 

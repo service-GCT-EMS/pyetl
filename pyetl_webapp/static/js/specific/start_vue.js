@@ -24,7 +24,7 @@ const vm = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         message: 'Vue OK',
-        x_ws: true,
+        is_ws: true,
         fields: {}
     }
 })

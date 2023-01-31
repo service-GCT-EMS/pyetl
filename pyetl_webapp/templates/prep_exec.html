@@ -13,7 +13,7 @@
                 <div class="col">
                     <p style="text-align:right">voir resultat en mode webservice</p>
                 </div>
-                <div class="col">{{ form["x_ws"](**{"v-model":"x_ws"}) }}</div>
+                <div class="col">{{ form["x_ws"](**{"v-model":"is_ws"}) }}</div>
             {%endif%}
             <div class="col">
             <p>{{ form.submit() }}</p>
@@ -21,7 +21,13 @@
         </div>
         <div class="row align-items-center">
         <div class="col"><h2>.</h2></div>
-        <div class="col"><p v-if="x_ws">url webservice : mws/{{url}}? </p></div>
+        <div class="col">
+            <p v-if="is_ws">url webservice : 
+            <a href=/mws/{{ url }}?{% 
+            for item in varlist if item[0]!="x_ws"%}{%
+                 if loop.index>1 %}&{%endif%}{{item[0]}}=[[ fields.{{item[0]}} ]]{% endfor %}
+            
+            </a></p></div>
         </div>
 
 
@@ -32,7 +38,7 @@
                     <p style="text-align:right"> {{ item[1] }}</p>
                 </div>
                 <div class="col-sm">
-                    {{ form[item[0]](**{"v-model":item[0]}) }}
+                    {{ form[item[0]](**{"v-model":"fields."+item[0]+"" }) }}
                 </div>
             </div>
         {% endfor %}
