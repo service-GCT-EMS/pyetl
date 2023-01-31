@@ -89,7 +89,8 @@ class DynSelectfieldwidget(F.SelectMultipleField):
 
 
 def formbuilder(description):
-    "construit un formulaire web a partir d'une description"
+    """construit un formulaire web a partir d'une description
+    """
 
     class CustomForm(FlaskForm):
         pass

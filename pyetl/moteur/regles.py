@@ -202,7 +202,7 @@ class ParametresFonction(object):
                 #     val2 = val2[1:]
                 liste = val2.split(",")
 
-            if taille > len(liste):
+            if val and taille > len(liste):
                 if liste:
                     liste.extend([liste[-1]] * (taille - len(liste)))
                 else:
@@ -567,6 +567,25 @@ class RegleTraitement(object):  # regle de mapping
         if clef != "-1":
             return definition[clef].match(self.v_nommees[clef])
         return True
+
+    def action(self):
+        """execute la fonction de la regle sur l objet courant"""
+        obj=self.objet_courant
+        resultat = self.fonc(self,obj) if self.fonc else True
+        if resultat:
+            if obj.schema is not None:
+                if self.action_schema:
+                    self.action_schema(self, obj)
+                if self.changeclasse:
+                    self.changeclasse(self, obj)
+            if self.changeschema:
+                self.changeschema(self, obj)
+        if self.debugvalid:
+            obj.debug("apres", attlist=self.champsdebug)
+            self.stock_param.gestion_log.stopdebug()
+        obj.is_ok = resultat
+        self.resultat = resultat
+        return resultat
 
     def set_resultat(self, fonc):
         """ positionne la fonction de sortie de la regle"""

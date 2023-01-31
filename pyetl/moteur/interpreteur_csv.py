@@ -911,6 +911,7 @@ def lire_regles_csv(
         #        numero, texte = defligne
         numero, texte, texte_brut = prepare_texte(defligne, niveau)
         context = mapper.cur_context
+        mapper.script_courant.append(texte_brut)
         # print("context lecture", context)
         if texte is None:
             continue

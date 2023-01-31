@@ -781,8 +781,9 @@ def h_liste_paramgroups(regle):
             clef = regle.params.cmp1.val
             val = regle.params.val_entree.liste
             for nom, vals in regle.stock_param.site_params.items():
-                # print("params", nom, vals)
                 v2 = dict(vals)
+                # print("params", nom, v2, bool(val),str(val),clef,regle.params.val_entree.val)
+
                 if clef in v2 and (v2[clef] in val or not val):
                     paramlist.append(nom)
         else:
@@ -795,6 +796,8 @@ def h_liste_paramgroups(regle):
 
 def f_liste_paramgroups(regle, obj):
     """#aide||liste les groupes de parametres selon un critere
+    #parametres1||champ de sortie;defaut;champ valeur;paramgroups;nom du parametre
+    #parametres2||;liste de valeurs autorisees;;paramgroups;nom du parametre
     #pattern1||A;?C;?A;paramgroups;?C;;
     #pattern2||=mws:;?LC;;paramgroups;?C;;
     """

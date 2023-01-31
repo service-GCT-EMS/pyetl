@@ -167,6 +167,7 @@ class Pyetl(object):
 
         self.starttime = time.time()  # timer interne
         # variables d'instance (stockage des elements)
+        self.script_courant=[]
         self.mode = mode
         self.maintimer = self._timer(init=True)
         self.statstore = Statstore(self)
@@ -719,8 +720,11 @@ class Pyetl(object):
             # print("apres initpyetl:", petl.inited, petl.mode, petl.done, petl.regles)
 
             return petl
-        self.logger.critical("erreur getpyetl %s", str(regles))
-        # print("erreur getpyetl", regles)
+        if not regles:
+            self.logger.critical("erreur getpyetl: pas de regles %s",nom)
+        else:
+            self.logger.critical("erreur getpyetl %s : %s",nom, str(regles))
+        print("erreur getpyetl", petl.script_courant)
         return None
 
     def _set_streammode(self):

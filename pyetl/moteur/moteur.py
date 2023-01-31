@@ -192,27 +192,29 @@ class Moteur(object):
                             self.dupcnt += 1
                         # print "apres copie ", obj.schema
                     #                print("traitement regle",regle)
-                    resultat = regle.fonc(regle, obj) if regle.fonc else True
+                    regle.obj_courant=obj
+                    resultat=regle.action()
+                    # resultat = regle.fonc(regle, obj) if regle.fonc else True
                     #                print ('params:action schema',regle.params.att_sortie.liste,
                     #                           resultat,obj.schema,regle.action_schema)
-                    if resultat:
-                        if obj.schema is not None:
-                            # if regle.action_schema:
-                            # print("action schema", regle, regle.action_schema)
-                            #     # print("schema avant", obj.schema)
-                            #     regle.action_schema(regle, obj)
-                            if regle.action_schema:
-                                # print("action schema", regle, regle.action_schema)
-                                # print("schema avant", obj.schema)
-                                regle.action_schema(regle, obj)
-                            if regle.changeclasse:
-                                regle.changeclasse(regle, obj)
-                        if regle.changeschema:
-                            regle.changeschema(regle, obj)
-                    if regle.debugvalid:
-                        obj.debug("apres", attlist=regle.champsdebug)
-                        regle.stock_param.gestion_log.stopdebug()
-                    obj.is_ok = resultat
+                    # if resultat:
+                    #     if obj.schema is not None:
+                    #         # if regle.action_schema:
+                    #         # print("action schema", regle, regle.action_schema)
+                    #         #     # print("schema avant", obj.schema)
+                    #         #     regle.action_schema(regle, obj)
+                    #         if regle.action_schema:
+                    #             # print("action schema", regle, regle.action_schema)
+                    #             # print("schema avant", obj.schema)
+                    #             regle.action_schema(regle, obj)
+                    #         if regle.changeclasse:
+                    #             regle.changeclasse(regle, obj)
+                    #     if regle.changeschema:
+                    #         regle.changeschema(regle, obj)
+                    # if regle.debugvalid:
+                    #     obj.debug("apres", attlist=regle.champsdebug)
+                    #     regle.stock_param.gestion_log.stopdebug()
+                    # obj.is_ok = resultat
 
                     if regle.mode_chargeur:  # la on fait de executtion unique
                         # print("==============mode chargeur", regle)
