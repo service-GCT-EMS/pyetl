@@ -12,7 +12,11 @@ try:
 except ImportError:
     print("==========================attention shapely non disponible")
     wkb = None
-
+try:
+    from osgeo import ogr
+except ImportError:
+    print("==========================attention ogr non disponible")
+    wkb = None
 # from numba import jit
 
 TOKEN_SPECIFICATION = [
@@ -412,7 +416,7 @@ def geom_from_ewkb(obj, code=None):
 
 
 def ecrire_geom_ewkt(
-    geom, geometrie_demandee="-1", multiple=None, erreurs=None, force_courbe=False, epsg=True
+    geom, geometrie_demandee="-1", multiple=None, erreurs=None, force_courbe=False
 ):
     """ecrit une geometrie en ewkt"""
     # print(" ecrire ewkt", geom)
@@ -469,12 +473,7 @@ def ecrire_geom_ewkt(
     # print(" ecrire ewkt", geom)
 
     # print(" ecrire ewkt", geom.epsg, geometrie_demandee, multiple, geomt)
-    if not geomt:
-        return None
-    if epsg:
-        return (geom.epsg + geomt)
-    else: 
-        return geomt
+    return (geom.epsg + geomt) if geomt else None
 
     # nom:(multiwriter,           streamer,         tmpgeomwriter,
 
@@ -514,10 +513,53 @@ def geom_from_geojson(obj, code=None):
         obj.geom_v.finalise_geom(type_geom="0")
     return obj.geom_v.valide
 
+def init_ogr():
+    global ogr, ogr_inited
+    try:
+        from osgeo import ogr
+    except ImportError:
+        print("==========================attention ogr non disponible")
+        ogr = None
+    ogr_inited = True
+
+
+def decode_ewkb(code):
+    ogr_geom = ogr.CreateGeometryFromWkb(code)
+    wkt_text = ogr_geom.ExportToWkt()
+    geom=geom_from_ewkt(wkt_text)
+    return geom
+
+
+def geom_from_shapely(obj):
+    pass
+
+
+def ogr_ecrire_geom_ewkb(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
+    wkt_text = ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe)
+    ogr_geom=ogr.CreateGeometryFromWkb(wkt_text)
+    return hex(ogr_geom.ExportToWkb()) if ogr_geom else ""
+
+
+def ogr_geom_from_ewkb(obj, code=None):
+    if code is None:
+        code = obj.attributs.get("#geom")
+    ogr_geom = ogr.CreateGeometryFromWkb(code)
+    wkt_text = ogr_geom.ExportToWkt()
+    obj.attributs["#geom"]=wkt_text
+    geom_from_ewkt(obj)
+    obj.attributs["#geom"]=code
+
+
+
+
+
+
+
 
 GEOMDEF = {
     "#ewkt": (ecrire_geom_ewkt, geom_from_ewkt, init_ewk, str),
     "#ewkb": (ecrire_geom_ewkb, geom_from_ewkb, init_ewk, str),
+    "#ogr_ewkb": (ogr_ecrire_geom_ewkb, ogr_geom_from_ewkb, init_ogr, str),
     "#geojson": (ecrire_geom_geojson, geom_from_geojson, None, list),
     None: (nowrite, noconversion, None, None),
 }
