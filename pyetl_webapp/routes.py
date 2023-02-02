@@ -149,8 +149,20 @@ class ScriptList(object):
         """ stocke les definitions des apis"""
         for i, m in self.mapper.getmacros():
             if m.apis:
+                self.is_api[i] =True
                 for nom, contenu in m.apis.items():
                     self.apis[nom] = contenu
+                    print("apidef apis", contenu, self.apis[nom])
+            else:
+                self.is_api[i] = False
+        # if apidef:
+        #     for i in apidef:
+        #         nom, retour, template,no_in, *_ = i.split(";") + ["", "", "",""]
+        #         self.apis[nom] = (nom_script, retour, template, no_in)
+        #     print("apidef apis", apidef, self.apis[nom])
+
+
+
 
     def getlignes(self, nom_script):
         """recupere la description du script"""
@@ -171,6 +183,7 @@ class ScriptList(object):
             infos["help_detaillee"] = macro.help_detaillee
             infos["api"] = macro.apis
             infos["lignes"] =  macro.lignes
+            print ("lecture macro", nom_script, infos)
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
@@ -202,10 +215,8 @@ class ScriptList(object):
         apidef = infos.get("api", False)
         self.is_api[nom_script] = bool(apidef)
         if apidef:
-            for i in apidef:
-                nom, retour, template, *_ = i.split(";") + ["", "", ""]
-                self.apis[nom] = (nom_script, retour, template)
-            # print("apidef apis", self.apis, apidef)
+            self.apis.update(apidef)
+        print ("lecture script", nom_script, apidef)
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -417,6 +428,7 @@ def webservicelist():
 def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     """execute un traitement"""
     stime = time.time()
+    print ("process_script", nomscript,scriptparams, mode)
     fich_script = (
         nomscript
         if nomscript.startswith("#")
@@ -478,13 +490,22 @@ def webservice(api):
     entree = ""
     rep_sortie = ""
     scriptparams = [i + "=" + j for i, j in tmp.items()]
-
+    print ("ajout infoscript", infoscript,scriptlist.apis)
+    scriptparams.extend(["F_sortie="+infoscript[1],"template="+infoscript[2],"sans_entree="+infoscript[3]])
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
     if result:
-        if "print" in result:
+        if infoscript[1]=="link": #retour url
+            url=result["print"][0] if result["print"] else ""
+            if url:
+                return redirect(url)
+
+
+
+
+        elif "print" in result:
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
             # print("recup ", ret)
             if len(ret) == 0:

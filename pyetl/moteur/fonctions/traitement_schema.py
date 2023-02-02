@@ -591,7 +591,7 @@ def f_diff_schema(regle, obj):
 
 def h_schema_add_attribut(regle):
     """cas statique : on ajoute les attributs a une liste de classes"""
-    if regle.params.cmp2.val:
+    if regle.params.cmp1.val:
         nom_schema = regle.params.cmp1.val
         classes = [
             regle.stock_param.schemas[nom_schema].classes.get(i)
@@ -671,3 +671,48 @@ def f_schema_order(regle, obj):
                 nummax += 1
                 att.ordre = nummax
     return True
+
+
+def h_schema_change_type(regle):
+    """cas statique : on ajoute les attributs a une liste de classes"""
+    regle.typefiltre=regle.params.val_entree
+    regle.typecast=regle.params.att_sortie
+    if regle.params.cmp1.val:
+        nom_schema = regle.params.cmp1.val
+        classes = [
+            regle.stock_param.schemas[nom_schema].classes.get(i)
+            for i in regle.params.cmp2.liste
+        ] if regle.cmp2.val else regle.stock_param.schemas[nom_schema].classes
+        for i in classes:
+            if regle.params.att_entree.val:
+                liste_att=regle.params.att_entree.liste
+            else:
+                liste_att=i.attributs.keys()
+            
+            for att in liste_att:
+                if not regle.typefiltre or i.attributs[att].type==regle.typefiltre:
+                    i.attributs[att].type=regle.typecast
+        regle.valide = "done"
+
+
+
+def f_schema_change_type(regle, obj):
+    """#aide||change le type d'attributs attribut d un schema sans toucher aux objets
+    #aide_spec1||change le type d'une liste d'attributs
+    #aide_spec2||cas statique change un type en un autre sur une liste de classes d'un schema
+    #pattern1|C;?C;?L;sc_change_type;
+    #pattern2||C;?C;?L;sc_change_type;C;?L
+    """
+
+    schemaclasse = obj.schema
+    if not schemaclasse:
+        return False
+    if schemaclasse.amodifier(regle):
+        if regle.params.att_entree.val:
+            liste_att=regle.params.att_entree.liste
+        else:
+            liste_att=schemaclasse.attributs.keys()
+            
+        for att in liste_att:
+            if not regle.typefiltre or schemaclasse.attributs[att].type==regle.typefiltre:
+                schemaclasse.attributs[att].type=regle.typecast

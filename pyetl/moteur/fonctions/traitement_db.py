@@ -440,7 +440,12 @@ def h_dbrequest(regle):
                 parms=[regle.getvar[i] for i in regle.params.cmp2.liste],
             )
             if regle.params.pattern == "7":
-                regle.setvar(regle.params.att_sortie.val, retour)
+                if isinstance(retour, list):
+                    r2 = [",".join(i) for i in retour]
+                    r3 = ",".join(r2)
+                else:
+                    r3=retour
+                regle.setvar(regle.params.att_sortie.val, r3)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
                 # sortie.extend(retour if isinstance(retour, list) else [retour])

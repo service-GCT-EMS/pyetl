@@ -26,5 +26,15 @@ const vm = new Vue({
         message: 'Vue OK',
         is_ws: true,
         fields: {}
-    }
+    },
+    methods: {
+        // a computed getter
+        wsurl() {
+          // `this` points to the component instance
+          let url=""
+          for (let item in this.fields) {if (this.fields[item]) {url+="&"+item+"="+this.fields[item]}}
+          return url.slice(1)
+        }
+      }
 })
+

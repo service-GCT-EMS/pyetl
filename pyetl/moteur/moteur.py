@@ -367,12 +367,17 @@ class Macro(object):
                 self.vars_utilisees[nomv] = defv
                 return
             if ligne.startswith("!#api"):
-                apidef = ligne.split(";") + ["", "", ""]
-                apiname = apidef[1] if apidef[1] else self.nom[1:]
-                retour = apidef[2] if apidef[2] else "text"
-                no_in = "no_in" in ligne
-                template = apidef[3] if apidef[3] else ""
-                self.apis[apiname] = (self.nom, retour, template, no_in)
+                apidef = ligne.split(";")
+                apiname = apidef[1] if len(apidef)>1 else self.nom[1:]
+                retour = apidef[2] if len(apidef)>2 else "text"
+                template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
+                no_in = "1" if "no_in" in ligne else "0"
+                auxv=apidef[-1] if '=' in apidef[-1] else ""
+                aux=dict()
+                if auxv:
+                    vars=auxv.split(',')
+                    aux={i.split("=") for i in vars}
+                self.apis[apiname] = (self.nom, retour, template, no_in, aux)
                 return
             if ligne.startswith("!"):  # commentaire on jette
                 return
