@@ -213,11 +213,14 @@ def ecrire_schema_sql(
 
     csty = gsql.sio_crestyle()
 
-    if type_base == "basic":
+    if type_base == "basic" or type_base == "consult":
         # on concatene tout
         tout = crsc
         tout.extend(tsql)
         ecrire_fichier_sql(rep, nomschema, "01", "schema", tout, cod, False)
+        
+    if type_base == "consult":
+        ecrire_fichier_sql(rep, nomschema, "99c", "dropschemas", dscc, cod)
 
     else:
         rep = os.path.join(rep, nomschema) if stock_param.isfalse("monoschema") else rep

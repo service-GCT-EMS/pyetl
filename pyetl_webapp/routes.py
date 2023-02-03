@@ -512,7 +512,10 @@ def webservice(api):
             url=result["print"][0] if result["print"] else ""
             if url:
                 return redirect(url)
-
+        elif infoscript[1]=="html": #retour html direct
+                url=result["print"][0] if result["print"] else ""
+                if url:
+                    return redirect(url)
 
 
 
@@ -553,8 +556,10 @@ def execscript(appel, mode):
                 str(list(scriptlist.apis.keys())),
             )
         script = infoscript[0]
+        format_retour = infoscript[1]
     else:
         script = appel
+        format_retour="auto"
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -620,7 +625,7 @@ def execscript(appel, mode):
             )
 
     return render_template(
-        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws
+        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws, format_retour=format_retour
     )
 
 

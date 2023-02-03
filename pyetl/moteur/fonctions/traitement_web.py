@@ -10,6 +10,7 @@ import os
 import io
 import csv
 import json
+import re
 
 import requests as RQ
 from requests.auth import HTTPBasicAuth
@@ -159,7 +160,7 @@ def geocode_traite_stock(regle, final=True):
 def h_geocode(regle):
     """prepare les espaces de stockage et charge le geocodeur addok choisi"""
     LOGGER.info("geocodeur utilise  %s", regle.getvar("url_geocodeur"))
-    LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.val)
+    LOGGER.info("liste_filtres demandes %s", regle.params.cmp2.liste)
     # importrequest()
 
     regle.blocksize = int(regle.getvar("geocodeur_blocks", 1000))
@@ -170,7 +171,7 @@ def h_geocode(regle):
     regle.tmpstore = []
     regle.liste_atts = []
     regle.scoremin = 0
-    regle.filtres = dict(i.split(":") for i in regle.params.cmp2.liste)
+    regle.filtres = dict(i.split("=") for i in regle.params.cmp2.liste)
     regle.tinit = time.time()
     return True
 
@@ -714,7 +715,7 @@ def h_wfsdownload(regle):
 
 
 def f_wfsdownload(regle, obj):
-    """aide||recupere une couche wfs
+    """#aide||recupere une couche wfs
     #aide_spec||; classe;  attribut contenant la classe;wfs;url;format
       #pattern1||F;?C;?A;wfsload;C;?C
       #pattern2||A;?C;?A;wfsload;C;?C
@@ -771,8 +772,35 @@ def f_wfsdownload(regle, obj):
 
 def h_ssoconnect(regle):
     """aide realise une connection sso"""
+    pass
 
 def f_ssoconnect(regle, obj):
     """aide||realise une connection sso uniquement en mode serveur
     pattern||;;;ssoconnect;;;
     """
+
+
+
+def h_geom2url(regle):
+    """convertit un point en bout d'url pour appel wms/wfs"""
+    if regle.params.pattern=="2":
+        geom=regle.params.val_entree
+        match=re.find('.*\(([0-9]+)\.?[0-9]*,([0-9]+)', geom)
+        if match:
+            x=match.groups(1)
+            y=match.groups(2)
+            urlfrag='&c='+x+"%2C"+y
+            regle.setvar(regle.params.att_sortie.val,urlfrag)
+        else:
+            regle.valide=False
+            return False
+
+
+
+def f_geom2url(regle,obj):
+    """aide||convertit un point en bout d'url pour appel wms/wfs
+    pattern1||;;;pt2url;;
+    pattern2||P;C;pt2url;;
+    """
+    if obj.initgeom():
+        pass

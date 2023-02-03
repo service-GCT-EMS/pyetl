@@ -1359,11 +1359,12 @@ class Pyetl(object):
             for i in self.webstore if i !="logbrut"
         }
         if "logbrut" in self.webstore:
-            self.gestion_log.resetlog()
-            self.gestion_log.set_weblog()
-        # if buffer:
-        #     buffer.truncate(0)
-        #     self.webstore = {"logbrut": buffer}
+            self.webstore = {"logbrut": buffer}
+            
+        #     self.gestion_log.resetlog()
+        #     self.gestion_log.set_weblog()
+        if buffer:
+            buffer.truncate(0)
         else:
             self.webstore = dict()
         name = "noname"

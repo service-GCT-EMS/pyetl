@@ -11,7 +11,7 @@
             </div>
             {%if ws%}
                 <div class="col">
-                    <p style="text-align:right">voir resultat en mode webservice</p>
+                    <p style="text-align:right">voir resultat en mode webservice ({{ format_retour }})</p>
                 </div>
                 <div class="col">{{ form["x_ws"](**{"v-model":"is_ws"}) }}</div>
             {%endif%}
