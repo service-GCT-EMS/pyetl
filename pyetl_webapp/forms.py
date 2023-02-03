@@ -156,6 +156,7 @@ def formbuilder(description):
             vlist = tmp2[1:]
         if vlist and vlist[0].startswith("@") and not typevar.startswith("D"):
             typevar = "D" + typevar
+            #on tagge l attribut en dynamique
         if vlist and typevar:
             setattr(
                 CustomForm, nom, fieldfunctions.get(typevar)(definition, choices=vlist)

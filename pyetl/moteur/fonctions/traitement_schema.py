@@ -657,7 +657,7 @@ def f_schema_supp_attribut(regle, obj):
 
 def f_schema_order(regle, obj):
     """#aide||ordonne les champs dans un schema
-    #pattern||L;;;ordre;;
+    #pattern||L;;;sc_ordre;;
     """
     schemaclasse = obj.schema
     if not schemaclasse:
@@ -690,7 +690,7 @@ def h_schema_change_type(regle):
                 liste_att=i.attributs.keys()
             
             for att in liste_att:
-                if not regle.typefiltre or i.attributs[att].type==regle.typefiltre:
+                if not regle.typefiltre or i.attributs.get(att).type==regle.typefiltre:
                     i.attributs[att].type=regle.typecast
         regle.valide = "done"
 
@@ -700,7 +700,7 @@ def f_schema_change_type(regle, obj):
     """#aide||change le type d'attributs attribut d un schema sans toucher aux objets
     #aide_spec1||change le type d'une liste d'attributs
     #aide_spec2||cas statique change un type en un autre sur une liste de classes d'un schema
-    #pattern1|C;?C;?L;sc_change_type;
+    #pattern1||C;?C;?L;sc_change_type;
     #pattern2||C;?C;?L;sc_change_type;C;?L
     """
 
@@ -714,5 +714,6 @@ def f_schema_change_type(regle, obj):
             liste_att=schemaclasse.attributs.keys()
             
         for att in liste_att:
-            if not regle.typefiltre or schemaclasse.attributs[att].type==regle.typefiltre:
+            if not regle.typefiltre or schemaclasse.attributs.get(att).type==regle.typefiltre:
                 schemaclasse.attributs[att].type=regle.typecast
+    return True

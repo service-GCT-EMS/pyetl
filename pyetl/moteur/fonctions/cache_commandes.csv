@@ -1,4 +1,3 @@
-adquery;.traitement_ad
 cnt;.traitement_alpha
 extractbloc;.traitement_alpha
 format;.traitement_alpha
@@ -111,8 +110,9 @@ lire_schema;.traitement_schema
 liste_tables;.traitement_schema
 map_schema;.traitement_schema
 match_schema;.traitement_schema
-ordre;.traitement_schema
 sc_add_attr;.traitement_schema
+sc_change_type;.traitement_schema
+sc_ordre;.traitement_schema
 sc_supp_attr;.traitement_schema
 schema;.traitement_schema
 set_schema;.traitement_schema

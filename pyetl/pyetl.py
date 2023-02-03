@@ -1349,18 +1349,21 @@ class Pyetl(object):
         # )
         # on reformate les logs qui sont des buffers
         buffer = None
-        if "log" in self.webstore:
-            buffer = self.webstore["log"]
+        if "logbrut" in self.webstore:
+            buffer = self.webstore["logbrut"]
             sortie = buffer.getvalue().split("\n")
             self.webstore["log"] = sortie
         # petite manip pour nettoyer les #
         tmp = {
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
-            for i in self.webstore
+            for i in self.webstore if i !="logbrut"
         }
-        if buffer:
-            buffer.truncate(0)
-            self.webstore = {"log": buffer}
+        if "logbrut" in self.webstore:
+            self.gestion_log.resetlog()
+            self.gestion_log.set_weblog()
+        # if buffer:
+        #     buffer.truncate(0)
+        #     self.webstore = {"logbrut": buffer}
         else:
             self.webstore = dict()
         name = "noname"

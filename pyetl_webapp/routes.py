@@ -195,7 +195,20 @@ class ScriptList(object):
                 print ("erreur d 'encodage",fpath)
                 raise KeyError
             for ligne in script:
-                if ligne.startswith("!#"):
+                if ligne.startswith("!#api"):
+                    self.is_api[nom_script] = True
+                    apidef = ligne.split(";")
+                    apiname = apidef[1] if len(apidef)>1 else self.nom[1:]
+                    retour = apidef[2] if len(apidef)>2 else "text"
+                    template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
+                    no_in = "1" if "no_in" in ligne else "0"
+                    auxv=apidef[-1] if '=' in apidef[-1] else ""
+                    aux=dict()
+                    if auxv:
+                        vars=auxv.split(',')
+                        aux={i.split("=") for i in vars}
+                    self.apis[apiname] = (nom_script, retour, template, no_in, aux)
+                elif ligne.startswith("!#"):
                     if ligne.endswith("\n"):
                         ligne = ligne[:-1]
                     tmp = ligne[2:].split(":", 1)
@@ -212,11 +225,7 @@ class ScriptList(object):
                         infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
-        apidef = infos.get("api", False)
-        self.is_api[nom_script] = bool(apidef)
-        if apidef:
-            self.apis.update(apidef)
-        print ("lecture script", nom_script, apidef)
+        
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -412,6 +421,7 @@ def retour_api(script):
     stats = session.get("stats")
     retour = session.get("retour")
     nom = url_to_nom(script)
+    print ("retour api",stats,retour)
     if stats:
         return render_template(
             "script_result.html", stats=stats, retour=retour, url=script, nom=nom
@@ -496,6 +506,7 @@ def webservice(api):
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
+    print ("-----------retour script",retour)
     if result:
         if infoscript[1]=="link": #retour url
             url=result["print"][0] if result["print"] else ""
@@ -625,6 +636,7 @@ def execscript(appel, mode):
 def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
+    
     nom = url_to_nom(script)
     if stats:
         return render_template(
