@@ -371,6 +371,7 @@ def scriptview(script):
     nomscript = scriptlist.getnom(script)
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
     lignes = scriptlist.scripts[nomscript]
+    lignes = scriptlist.descriptif[nomscript].get("lignes", lignes)
     fill = [""] * 13
     code = []
     n = 0
@@ -382,6 +383,13 @@ def scriptview(script):
             continue
         if i.startswith("!#") or i.startswith("!"):
             type_ligne = "ltype_comment"
+            if i.startswith("!#api"):
+                type_ligne = "ltype_api"
+            elif i.startswith("!#ihm"):
+                type_ligne = "ltype_ihm"
+            elif i.startswith("!#help"):
+                type_ligne = "ltype_help"
+
             colspan = 13
             contenu = [i.replace(";", " ")]
         elif i.startswith("$"):
