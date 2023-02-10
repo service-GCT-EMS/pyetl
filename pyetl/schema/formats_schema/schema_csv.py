@@ -343,7 +343,7 @@ def _lire_geometrie_csv(classe, v_tmp, dimension):
         classe.info["courbe"] = "1"
 
     if gref not in classe.codes_g:
-        print("schema:", classe.nom, "erreur type", v_tmp[4], v_tmp)
+        print("schema geom:", classe.nom, "erreur type", v_tmp[4], v_tmp)
     classe.info["type_geom"] = classe.codes_g[gref]
     classe.setalias(v_tmp[3])
 

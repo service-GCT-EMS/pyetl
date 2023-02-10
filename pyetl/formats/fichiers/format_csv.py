@@ -388,7 +388,7 @@ class SqlWriter(CsvWriter):
             return prefix
         prefix = prefix + 'copy "' + niveau.lower() + '"."' + classe.lower() + '" ('
         end = ") FROM stdin;"
-
+        print ("generation geometrie",type_geom,"->",nom_geom)
         geom = (
             separ + nom_geom + end + "\n"
             if self.schemaclasse.info["type_geom"] != "0"

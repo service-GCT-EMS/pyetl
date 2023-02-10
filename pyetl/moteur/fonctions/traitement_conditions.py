@@ -38,10 +38,28 @@ def sel_attexiste_re(condition, obj):
     condition.regle.matchlist = result if result else []
     return condition.regle.match
 
+def sel_attegal(condition,obj):
+    """#aide||selection sur la valeur d un attribut egalite stricte avec un attribut
+    #pattern2||A;[A]||1
+    #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
+    """
+    # print ("condition egal",condition.params.vals.val)
+    return obj.attributs.get(condition.params.vals.val) == obj.attributs.get(condition.params.attr.val)
+
+
+def sel_egal(condition, obj):
+    """#aide||selection sur la valeur d un attribut egalite stricte
+    #pattern1||A;=:||1
+    #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
+    """
+    # print ("condition egal",condition.params.vals.val)
+    return condition.params.vals.val == obj.attributs.get(condition.params.attr.val)
+
 
 def selh_regex(condition):
     """ compile lesexpressions regulieres"""
     # print (" dans helper regex",condition.params.vals.val,re.compile(condition.params.vals.val))
+    
     try:
         condition.fselect = re.compile(condition.params.vals.val).search
     except re.error:
@@ -51,13 +69,6 @@ def selh_regex(condition):
         # print("expression condition erronee", condition, condition.regle)
 
 
-def sel_egal(condition, obj):
-    """#aide||selection sur la valeur d un attribut egalite stricte
-    #pattern||A;=:||1
-    #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
-    """
-    # print ("condition egal",condition.params.vals.val)
-    return condition.params.vals.val == obj.attributs.get(condition.params.attr.val)
 
 
 def sel_regex(condition, obj):
@@ -785,7 +796,7 @@ def sel_is_date(condition, obj):
     """
     # print ("comparaison temps", condition.params.pattern)
     if condition.params.pattern == "1" or condition.params.pattern == "3":
-        dateref = obj.attributs.get(condition.params.vals.val, "X")
+        dateref = obj.attributs.get(condition.params.vals.val, "")
     else:
         dateref = condition.params.vals.val
     if condition.vref == "O":  # temps de reference pris dans l objet: faux si invalide
@@ -796,7 +807,7 @@ def sel_is_date(condition, obj):
             return False
     else:
         date = time.localtime()  # temps de reference = jour courant
-    # print ("comparaison temps", date, dateref,condition.params.pattern)
+    # print ("comparaison temps", date, condition.params.vals.val,':',dateref,condition.params.pattern,obj)
 
     if dateref == "X":
         return False

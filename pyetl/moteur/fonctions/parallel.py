@@ -623,7 +623,7 @@ def traite_parallel_load(regle):
             obj.attributs[regle.params.att_sortie.val] = str(rdict[i])
         mapper.logger.info("fin traitement parallele")
         # print("fin traitement parallele", obj, rdict)
-        traite(obj, regle.branchements.brch["end"])
+        traite(obj, regle.branchements.brch["endstore"])
     regle.nbstock = 0
 
 
@@ -721,7 +721,7 @@ def traite_parallel_batch(regle):
         if numero in rdict:
             parametres = rdict[numero]["retour"]
             renseigne_attributs_batch(regle, obj, parametres)
-        traite(obj, regle.branchements.brch["end"])
+        traite(obj, regle.branchements.brch["endstore"])
     regle.nbstock = 0
     time.sleep(1)
 

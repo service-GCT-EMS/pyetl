@@ -476,8 +476,8 @@ def h_dbrequest(regle):
 
 def printexception(regle, requete, err):
     """affiche ou pas une erreur"""
-    fail_silent = regle.getvar("Fail_silent", False)
-    if not fail_silent or fail_silent == "0" or fail_silent.lower() == "false":
+    fail_silent = regle.istrue("fail_silent")
+    if not fail_silent :
         print("dbrequest:erreur requete", requete, "->", err)
 
 
@@ -1224,9 +1224,10 @@ def f_dbset(regle, obj):
 
     data = regle.getlist_entree(obj)
     # print("dbset", requete, data)
+    # print ("requete dbset", regle.cible_base)
     try:
         liste = regle.connect.request(requete, data, regle=regle)
-    except regle.connect.DBError as errs:
+    except (regle.connect.DBError,StopIteration) as errs:
         if regle.debug:
             print("dbset: erreur requete", errs)
         return False

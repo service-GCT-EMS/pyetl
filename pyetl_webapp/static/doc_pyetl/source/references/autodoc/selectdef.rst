@@ -1,6 +1,9 @@
 reference conditions
 --------------------
 
+   * A;[A]
+       - selection sur la valeur d un attribut egalite stricte avec un attribut
+
    * A;
        - teste si un attribut existe
 

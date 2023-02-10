@@ -11,7 +11,7 @@ from collections import namedtuple
 from numpy import iterable
 import ldap
 from win32com.client import Dispatch, GetObject
-
+from types import MethodType
 
 from inspect import getmembers
 
@@ -72,10 +72,12 @@ def find_ldapuser(regle, nom):
     """recupere des utilisateurs dans une base ldap"""
     adcode = regle.getvar("ADserver")
     base_dn = regle.getvar("base_dn_" + adcode)
-    filter = "(|(CN=%s)(sAMAccountName=%s)(displayName='%s'))" % (nom, nom, nom)
+    nom=str(nom)
+    # filter = "(|(CN='%s')(sAMAccountName='%s')(displayName='%s'))" % (nom, nom, nom)
+    filter = "(|(CN=%s)(sAMAccountName=%s))" % (nom, nom)
     attrs = regle.a_recuperer
     retour = regle.connect.search_s(base_dn, ldap.SCOPE_SUBTREE, filter, attrs)
-    if regle.debug:
+    if regle.debug or regle.istrue('debug'):
         print("adquery", base_dn, filter, attrs)
         print("retour adquery", retour)
     result = list()
@@ -85,7 +87,7 @@ def find_ldapuser(regle, nom):
             dict_decode(attdict)
             attdict["clef"] = ref
             # print("stockage attdict", attdict)
-            item = regle.sortie(**attdict)
+            item = {i.upper():j for i,j in attdict.items()}
         result.append(item)
     return result
 
@@ -109,7 +111,7 @@ def getADnames(regle, elems, *args, **kwargs):
     if where_clause:
         sql_string.append("WHERE %s" % where_clause)
 
-    print("requete ad", "\n".join(sql_string))
+    # print("requete ad", "\n".join(sql_string))
     adreponse=regle.AD.query("\n".join(sql_string), Page_size=50)
     # print ("reponse adquery", adreponse) 
     found=0
@@ -195,11 +197,11 @@ def h_adquery(regle):
             return False
         # print("connecteur LDAP sur ", server)
         # print("champs", ["clef"] + regle.a_recuperer)
-        regle.sortie = namedtuple(
-            "ldapreturn", ["clef"] + [i for i in regle.a_recuperer]
-        )
+        # regle.sortie = namedtuple(
+        #     "ldapreturn", ["clef"] + [i.upper() for i in regle.a_recuperer]
+        #  )
         if regle.params.pattern == "1" or regle.params.pattern == "4":
-            regle.queryfonc = find_ldapuser
+            regle.queryfonc = MethodType(find_ldapuser,regle)
     else:
         # connection serveur par defaut
         from . import active_directory as ACD
@@ -247,22 +249,27 @@ def h_adquery(regle):
             )
             regle.valide = "done"
             return True
-        print ('recup query ', items)
-        if iterable(items):
-            item=next(items)
+        # print ('recup query ', items)
+        if items and iterable(items):
+            item=next((i for i in items))
         else:
             item=items
         # item = items[0] if isinstance(items, list) else items
-        val = getattr(item, regle.a_recuperer[0])
-        regle.setvar(regle.params.att_sortie.val, val)
-        if regle.debug:
-            print(
-                "AD setvar",
-                regle.params.att_sortie.val,
-                regle.params.val_entree.val,
-                item,
-                items,
-            )
+        if item:
+            if isinstance(item,dict):
+                val=item.get(regle.a_recuperer[0].upper(),'')
+            else:
+                val = getattr(item, regle.a_recuperer[0])
+            print ('lu ad', regle.params.att_sortie.val,'->',val)
+            regle.setvar(regle.params.att_sortie.val, val)
+            if regle.debug:
+                print(
+                    "AD setvar",
+                    regle.params.att_sortie.val,
+                    regle.params.val_entree.val,
+                    item,
+                    items,
+                )
         regle.valide = "done"
     else:
         regle.chargeur = True
@@ -289,7 +296,7 @@ def f_adquery(regle, obj):
                 print("adquery", items)
                 # print("contenu", list(items))
         except TypeError as err:
-            print("erreur adquery", err, regle.get_entree(obj))
+            print("erreur f_adquery", err, regle.get_entree(obj),regle.queryfonc,regle.mqueryfonc )
             items = []
         item = None
         if regle.a_recuperer == ["*"]:
@@ -300,8 +307,10 @@ def f_adquery(regle, obj):
             regle.setval_sortie(obj, "")
             return True
         if regle.params.pattern == "1" and regle.a_recuperer == ["CN"]:
-            if items:
-                val = next(items, [""])
+            if items and iterable(items):
+                val=next((i for i in items))
+            else:
+                val=items
                 # if regle.debug:
                 # print("recup user", val)
                 regle.setval_sortie(obj, val)

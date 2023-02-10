@@ -372,6 +372,9 @@ def h_print(regle):
             regle.print(regle.getvar(regle.params.att_entree.val))
 
         regle.valide = "done"
+    if regle.params.pattern == "4":
+        regle.print(regle.params.val_entree.val)
+        regle.valide = "done"
     return True
 
 
@@ -379,7 +382,8 @@ def f_print(regle, obj):
     """#aide||affichage d elements de l objet courant
     #parametres||valeur defaut;liste de champs;;texte fixe;affichage noms de champs
 
-    #pattern1||;C?;L?;print;C?;=noms?||entree
+    #pattern1||;C?;L;print;C?;=noms?||entree
+    #pattern4||;C;;print;C?;=noms?||entree
     #pattern2||;;*;print;C?;=noms?||entree
     #pattern3||=mws:;=P;?L;print;C?;=noms?||sortie
     #test||redirect||obj||^X;ok;;set||^;;X;print||out

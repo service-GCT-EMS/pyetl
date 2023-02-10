@@ -841,7 +841,7 @@ class SchemaClasse(object):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,
         #               dimension,self.info["type_geom"])
-        if nom is not None:
+        if nom:
             self.info["nom_geometrie"] = nom
         if isinstance(type_geom, (int, float)):
             type_geom = str(type_geom)

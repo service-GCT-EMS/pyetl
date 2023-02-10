@@ -66,10 +66,10 @@ def fdebug(regle, obj):
             succes,
             "->",
             redirect if succes else "fail",
-            liens_num[redirect] if succes else liens_num["fail"],
-            regle.branchements.brch[redirect]
+            liens_num.get(redirect) if succes else liens_num.get("fail"),
+            regle.branchements.brch.get(redirect)
             if succes
-            else regle.branchements.brch["fail"],
+            else regle.branchements.brch.get("fail"),
         )
         if regle.copy:
             print("copy :  ->", liens_num["copy"], regle.branchements.brch["copy"])

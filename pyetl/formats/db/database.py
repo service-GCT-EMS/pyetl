@@ -124,9 +124,9 @@ class Cursinfo(object):
                     cur.execute(requete)
             except Exception as err:
                 regle_ref = regle if regle else self.connecteur.regle
-                fail_silent = regle_ref.istrue("Fail_silent") if regle_ref else False
+                fail_silent = regle_ref.istrue("fail_silent") if regle_ref else False
                 if not fail_silent:
-                    print(self.connecteur.base,self.connecteur.type_base, "erreur requete", err, requete)
+                    print(self.connecteur.base,self.connecteur.type_base, "erreur execute requete", err, requete)
                 raise StopIteration(1)
 
             if not newcursor:
@@ -889,7 +889,7 @@ class DbConnect(object):
                     )
                     attlist.append("#longueur_calculee")
             if schema.info["type_geom"] != "0":
-                print (" recup geom, ",schema.info["type_geom"], schema)
+                # print (" recup geom, ",schema.info["type_geom"], schema)
                 attlist2.append(self.get_geom(nom_geometrie) + "as geometrie")
         join_char = self.join_char
         atttext = join_char.join(attlist2)

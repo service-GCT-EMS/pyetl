@@ -193,6 +193,10 @@ join
 
 
 
+**autres variables utilisees**
+
+debug,
+
 
 .. index::
   double: .traitement_alpha;json
@@ -2995,26 +2999,6 @@ match_schema
 
 
 .. index::
-  double: .traitement_schema;ordre
-
-ordre
-.....
-
-   ordonne les champs dans un schema
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|L     |      |      |ordre   |      |        |
-+------+------+------+--------+------+--------+
-
-
-
-
-.. index::
   double: .traitement_schema;sc_add_attr
 
 sc_add_attr
@@ -3030,6 +3014,52 @@ sc_add_attr
 +======+======+======+===========+======+========+
 |A     |      |      |sc_add_attr|C?    |L?      |
 +------+------+------+-----------+------+--------+
+
+
+
+
+.. index::
+  double: .traitement_schema;sc_change_type
+
+sc_change_type
+..............
+
+   change le type d'attributs attribut d un schema sans toucher aux objets
+
+
+**syntaxes acceptees**
+
++-----------+-----------+-----------+-------------------+-----------+-------------+
+|sortie     |defaut     |entree     |commande           |param1     |param2       |
++===========+===========+===========+===================+===========+=============+
+|C          |?C         |?L         |sc_change_type     |           |             |
++-----------+-----------+-----------+-------------------+-----------+-------------+
+| *change le type d'une liste d'attributs*                                        |
++-----------+-----------+-----------+-------------------+-----------+-------------+
+|C          |?C         |?L         |sc_change_type     |C          |?L           |
++-----------+-----------+-----------+-------------------+-----------+-------------+
+| *cas statique change un type en un autre sur une liste de classes d'un schema*  |
++-----------+-----------+-----------+-------------------+-----------+-------------+
+
+
+
+
+.. index::
+  double: .traitement_schema;sc_ordre
+
+sc_ordre
+........
+
+   ordonne les champs dans un schema
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|L     |      |      |sc_ordre|      |        |
++------+------+------+--------+------+--------+
 
 
 
@@ -3446,9 +3476,7 @@ geocode
 wfsload
 .......
 
- 
- 
- 
+   recupere une couche wfs
 
    ; classe;  attribut contenant la classe;wfs;url;format
 

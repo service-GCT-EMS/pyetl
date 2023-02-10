@@ -920,7 +920,8 @@ def f_join(regle, obj):
                     if not i.startswith("#")
                 ]
         else:
-            # print("non trouve", clef_jointure)
+            if regle.istrue("debug"):
+                print ('non trouve', clef_jointure)
             return False
         # print("list", vnlist)
         if regle.params.att_sortie.liste:

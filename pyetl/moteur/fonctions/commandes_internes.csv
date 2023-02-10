@@ -497,9 +497,9 @@ $#%bdef%;;;;;;;;;;;
 $ordrebatch=ordre,famille;;;;;;;;;;;
 K:%sortie%;$sans_sortie=True
 <#dbextract;%batchserver%;%batchschema%;%batchtable%;;;%ordrebatch%;;;;;
-is:valid_date;[jours];;;;;;pass-;
+is:valid_date;[jours];;;;;;pass;;;;
 p:sortie;#print;;;;;;tmpstore;;;;
-+:;;;;;;nom,famille,ordre,commentaire,actif;print>;;;;
+|:;;;;;;nom,famille,ordre,commentaire,actif;print>;;;;
 !;;;;;;;pass;;;print;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#db_batch;nom_batch;famille_batch;force;;;;;;;

@@ -44,8 +44,9 @@ class Branch(object):
     def liens_num(self):
         """retourne les numeros de regles """
         liens_num = {
-            i: self.brch[i].numero if self.brch[i] else 99999 for i in self.brch
+            i: (self.brch[i].numero if self.brch[i] else 99999) for i in self.brch
         }
+        # liens_num['end']=99999
         return liens_num
 
     def liens_pos(self):
@@ -973,7 +974,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def setstore(self):
         """definit une regle comme stockante et ajuste les sorties"""
-        self.branchements.brch["end"] = self.branchements.brch["ok"]
+        self.branchements.brch["endstore"] = self.branchements.brch["ok"]
         self.branchements.brch["ok"] = None
 
     def endstore(self, nom_base, groupe, obj):

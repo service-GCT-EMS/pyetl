@@ -37,7 +37,7 @@ def store_traite_stock(regle):
             store.sort(key=keyval, reverse=reverse)
         for obj in store:
             # print("store: relecture objet ", obj)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
     elif isinstance(store, set):
         print("traitement set", len(store))
         print("store", len(regle.stock_param.store))
@@ -46,7 +46,7 @@ def store_traite_stock(regle):
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
         ):
             obj = store[clef]
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
     h_stocke(regle)  # on reinitialise
 
 
@@ -91,8 +91,8 @@ def f_stocke(regle, obj):
       #pattern4||;;?L;tmpstore;=cmpf;#C||cmp1
       #pattern5||?L;;?L;tmpstore;=clef;#C||cmp1
       #pattern6||S;;?L;tmpstore;=cnt;?=clef||cmp1
-          #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique||atv;V0;3;
-         #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique;||atv;V2;1;
+          #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique-||atv;V0;3;
+         #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique-;||^;;;pass;;;print||atv;V2;1;
     """
     #    regle.stock.append(obj)
     # if obj.virtuel:
@@ -151,7 +151,7 @@ def f_uniq(regle, obj):
         else ""
     )
     clef = clef + "|".join(
-        obj.attributs.get(i, "") for i in regle.params.att_entree.liste
+        str(obj.attributs.get(i, "")) for i in regle.params.att_entree.liste
     )
 
     #    print ('uniq ',clef, regle.params.att_entree.val )
@@ -319,7 +319,7 @@ def sortir_traite_stock(regle):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             regle.output.ecrire_objets_stream(obj, regle, False)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["end"])
+            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
     regle.nbstock = 0
 
 

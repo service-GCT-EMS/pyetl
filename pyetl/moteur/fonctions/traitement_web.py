@@ -50,11 +50,12 @@ def geocode_traite_stock(regle, final=True):
     prefix = regle.params.cmp1.val
     outcols = 2 + len(flist)
     header = []
-    suite = regle.branchements.brch["end"]
+    suite = regle.branchements.brch["endstore"]
     fail = regle.branchements.brch["fail"]
     traite = regle.stock_param.moteur.traite_objet
     geocodeur = regle.getvar("url_geocodeur")
-    data = {"columns": "_adresse"}.update(regle.filtres)
+    data={"columns": "_adresse"}
+    data.update(regle.filtres)
     buffer = (
         ";".join(["ident", "_adresse"] + flist)
         + "\n"
@@ -64,7 +65,7 @@ def geocode_traite_stock(regle, final=True):
                 + ";"
                 + " ".join(
                     [
-                        obj.attributs.get(i, "").replace("\n", " ").replace('"', "")
+                        str(obj.attributs.get(i, "")).replace("\n", " ").replace('"', "")
                         for i in adlist
                     ]
                 )
@@ -88,7 +89,7 @@ def geocode_traite_stock(regle, final=True):
         )
     ).encode("utf-8")
 
-    # print('geocodage', regle.nbstock, adlist,flist, data)
+    print('geocodage', regle.nbstock, "adlist",adlist,"flist",flist,"data", data)
 
     files = {"data": io.BytesIO(buffer)}
     try:
@@ -266,14 +267,16 @@ def ftpconnect(regle):
             cno.hostkeys = None
             if port=="":
                 port=22
+            else:
+                port=int(port)
             regle.ftp = SFTP.Connection(
                 serveur, username=user, password=passwd, cnopts=cno, port=port
             )
             return True
-        except SFTP.ConnectionException as err:
+        except (SFTP.ConnectionException,SFTP.AuthenticationException) as err:
 
             print(
-                "!!!!! erreur ftp: acces non autorisé", serveur, servertyp, user, passwd
+                "!!!!! erreur ftp: acces non autorisé", serveur, port, servertyp, user, passwd
             )
             print("retour_erreur", err)
             return False
@@ -366,7 +369,10 @@ def f_ftpdownload(regle, obj):
             print("connection ftp etablie")
     if not regle.params.att_sortie.val:
         localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
-        localname = os.path.join(localdir, filename)
+        if filename.startswith('/'):
+            localname = os.path.join(localdir, filename[1:])
+        else:
+            localname = os.path.join(localdir, filename)
         os.makedirs(os.path.dirname(localname), exist_ok=True)
         if regle.debug:
             print("creation repertoire", os.path.dirname(localname))
@@ -402,9 +408,10 @@ def f_ftpdownload(regle, obj):
         return True
 
     except FTP.all_errors as err:
-        print("!!!!! erreur ftp:", err)
-        LOGGER.error(
-            "ftp download error: Houston, we have a %s", "major problem", exc_info=True
+        print("!!!!! erreur ftp:", err,filename,localdir,localname)
+        LOGGER.error("erreur transfert ftp: %s -> %s %s\n%s",filename,localdir,localname
+            , exc_info=True
+
         )
         return False
 
