@@ -9,6 +9,9 @@
 }
 
 .ltype_comment{ background-color: #45e299; line-height:0.8;}
+.ltype_help{ background-color: #90c5a8; line-height:0.8;}
+.ltype_api{ background-color: #a0eca5; line-height:0.8;}
+.ltype_ihm{ background-color: #9fd356; line-height:0.8;}
 .ltype_affect{  background-color: #e9d18a; line-height:0.8;}
 .ltype_group{  background-color: #ebb71b;}
 .ltype_inst{  background-color:#cff4fc; line-height:0.8;}
