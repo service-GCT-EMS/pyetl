@@ -8,7 +8,7 @@ import flaskfilemanager
 from .config import config
 
 
-app = Flask(__name__.split(".")[0])
+app = Flask(__name__.split(".")[0],static_url_path="/mw")
 # Bootstrap(app)
 app.config.from_object(config.appconfig)
 

@@ -12,6 +12,7 @@ import time
 from collections import namedtuple
 from requests import Request
 from urllib.parse import urlencode
+from flask_sspi import authenticate
 
 from flask import (
     render_template,
@@ -23,6 +24,7 @@ from flask import (
     request,
     Response,
     abort,
+    g
 )
 
 # from flask_gssapi import GSSAPI
@@ -277,26 +279,28 @@ scriptlist = ScriptList()
 # )
 
 
-@app.route("/")
-@app.route("/index")
-@require_auth
-def index(username=""):
+@app.route("/mw/")
+@app.route("/mw/index")
+# @authenticate
+def index():
+
     local = request.host.startswith("127.0.0.1:")
     scriptlist.refresh(local)
+    current_user=getattr(g,"current_user","non identifié")
     return render_template(
         "index.html",
-        text="acces simplifie aux fonctions mapper pour" + username,
+        text="acces simplifie aux fonctions mapper pour " + current_user,
         title="mapper interface web",
     )
 
 
-@app.route("/fmgr")
+@app.route("/mw/fmgr")
 def fmgr():
     print("url ", url_for("flaskfilemanager.index"))
     return redirect(url_for("flaskfilemanager.index"))
 
 
-@app.route("/folderselect/<fichier>")
+@app.route("/mw/folderselect/<fichier>")
 def foldeselector(fichier):
     current = session.get("folder", "S:/")
     if fichier and os.path.isfile(os.path.join(current, fichier)):
@@ -307,7 +311,7 @@ def foldeselector(fichier):
         return render_template("fileselect.html")
 
 
-@app.route("/scripts")
+@app.route("/mw/scripts")
 def scripts():
     return render_template(
         "scriptlist.html",
@@ -317,7 +321,7 @@ def scripts():
     )
 
 
-@app.route("/macros")
+@app.route("/mw/macros")
 def macros():
     macrolist = sorted(
         [
@@ -330,14 +334,14 @@ def macros():
     )
 
 
-@app.route("/apis")
+@app.route("/mw/apis")
 def apis():
     # print("isapi", scriptlist.liste)
     apilist = scriptlist.getapilist()
     return render_template("scriptlist.html", liste=sorted(apilist), mode="api", c2="")
 
 
-@app.route("/refresh/<mode>")
+@app.route("/mw/refresh/<mode>")
 def refresh(mode):
     local = request.host.startswith("127.0.0.1:")
     scriptlist.refresh(local)
@@ -349,12 +353,12 @@ def refresh(mode):
     )
 
 
-# @app.route("/statictest/<script>")
-# def statictest(script):
-#     return url_for("static", filename="statictest/" + script)
+@app.route("/mw/statictest/<script>")
+def statictest(script):
+    return url_for("static", filename="statictest/" + script)
 
 
-@app.route("/scriptdesc/<script>")
+@app.route("/mw/scriptdesc/<script>")
 def scriptdesc(script):
     nomscript = scriptlist.getnom(script)
     print("appel scriptdesc", scriptlist.descriptif[nomscript])
@@ -366,7 +370,7 @@ def scriptdesc(script):
     )
 
 
-@app.route("/scriptview/<script>")
+@app.route("/mw/scriptview/<script>")
 def scriptview(script):
     nomscript = scriptlist.getnom(script)
     fich_script = os.path.join(scriptlist.scriptdir, nomscript)
@@ -424,7 +428,7 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
-@app.route("/retour_api/<script>")
+@app.route("/mw/retour_api/<script>")
 def retour_api(script):
     stats = session.get("stats")
     retour = session.get("retour")
@@ -437,7 +441,7 @@ def retour_api(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
-@app.route("/mws")
+@app.route("/mw/mws")
 def webservicelist():
     apilist = scriptlist.getapilist()
     return jsonify(apilist)
@@ -489,7 +493,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     return (wstats, result, tmpdir)
 
 
-@app.route("/mws/<api>", methods=["GET", "POST"])
+@app.route("/mw/mws/<api>", methods=["GET", "POST"])
 def webservice(api):
     local = request.host.startswith("127.0.0.1:")
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
@@ -549,8 +553,8 @@ def webservice(api):
         return "erreur pas de retour"
 
 
-@app.route("/exec/<appel>/<mode>", methods=["GET", "POST"])
-# @app.route("/exec/<script>")
+@app.route("/mw/exec/<appel>/<mode>", methods=["GET", "POST"])
+# @app.route("/mw/exec/<script>")
 def execscript(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
@@ -637,7 +641,7 @@ def execscript(appel, mode):
     )
 
 
-# @app.route("/plantage/<script>")
+# @app.route("/mw/plantage/<script>")
 # def fail(script):
 #     nom = url_to_nom(script)
 #     return render_template(
@@ -645,7 +649,7 @@ def execscript(appel, mode):
 #     )
 
 
-@app.route("/result/<script>")
+@app.route("/mw/result/<script>")
 def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
@@ -658,8 +662,8 @@ def showresult(script):
     return render_template("noresult.html", url=script, nom=nom)
 
 
-@app.route("/login", methods=["GET", "POST"])
-@app.route("/login/<script>", methods=["GET", "POST"])
+@app.route("/mw/login", methods=["GET", "POST"])
+@app.route("/mw/login/<script>", methods=["GET", "POST"])
 def login(script="", username=""):
     if username:
         print("utilisateur identifie", username)
@@ -671,27 +675,27 @@ def login(script="", username=""):
                 form.username.data, form.remember_me.data
             )
         )
-        return redirect("/index")
+        return redirect("/mw/index")
     return render_template(
         "login.html", title="Sign In", form=form, nom=nom, url=script
     )
 
 
-@app.route("/help")
+@app.route("/mw/help")
 def show_help():
     return render_template("help.html")
 
 
-@app.route("/favicon.ico")
+@app.route("/mw/favicon.ico")
 def favicon():
-    return url_for("static", filename="images/favicon.ico")
+    return url_for("static/mw", filename="images/favicon.ico")
 
 
-@app.route("/intro")
+@app.route("/mw/intro")
 def show_intro():
     return render_template("intro.html")
 
 
-@app.route("/fm")
+@app.route("/mw/fm")
 def fileman():
-    return redirect("/fm/index.html")
+    return redirect("/mw/fm/index.html")

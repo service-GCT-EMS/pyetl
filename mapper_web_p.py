@@ -21,4 +21,5 @@ if __name__ == "__main__":
     port = int(args.get("port", 5500))
     print("essai serveur port:", port)
     # app.run(port=port)
+    # serve(app, host="127.0.0.1", port=port,threads=10)
     serve(app, host="127.0.0.1", port=port,threads=10,url_scheme='https')
