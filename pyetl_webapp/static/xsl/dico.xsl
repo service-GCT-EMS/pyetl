@@ -24,7 +24,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9;IE=10;IE=EDGE"/>
 <title>Dictionnaire de données</title>
-<link rel="stylesheet" href="/static/xsl/css/ems.css" type="text/css"/>
+<link rel="stylesheet" href="/mw/xsl/css/ems.css" type="text/css"/>
 </head>
 <body class="general">
 	<div id="conteneur">

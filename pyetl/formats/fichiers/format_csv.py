@@ -18,7 +18,7 @@ from .fileio import FileWriter
 from ..generic_io import getdb
 
 
-def csvreader(reader, rep, chemin, fichier, entete=None, separ=None):
+def csvreader(reader, rep, chemin, fichier, entete=None, separ=None, mode="csv"):
     reader.prepare_lecture_fichier(rep, chemin, fichier)
     logger = reader.regle_ref.stock_param.logger
     # print("dertermination separ", separ, reader.separ)

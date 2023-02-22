@@ -376,7 +376,7 @@ def ecrire_schema_xml(
         url_for = mapper.url_for
         header = (
             '<?xml-stylesheet href="'
-            + url_for("mw", filename="static/xsl/dico.xsl")
+            + url_for("static", filename="xsl/dico.xsl")
             + '" type="text/xsl"?>'
         )
     xml = sortir_schema_xml(schema, header, alias, cod, mode=mode)

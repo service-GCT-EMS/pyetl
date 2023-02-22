@@ -22,4 +22,7 @@ if __name__ == "__main__":
     print("essai serveur port:", port)
     # app.run(port=port)
     # serve(app, host="127.0.0.1", port=port,threads=10)
-    serve(app, host="127.0.0.1", port=port,threads=10,url_scheme='https')
+    if "http" in args:
+        serve(app, host="127.0.0.1", port=port,threads=10)
+    else:
+        serve(app, host="127.0.0.1", port=port,threads=10,url_scheme='https')

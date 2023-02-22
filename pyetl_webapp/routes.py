@@ -281,7 +281,7 @@ scriptlist = ScriptList()
 
 @app.route("/mw/")
 @app.route("/mw/index")
-# @authenticate
+@authenticate
 def index():
 
     local = request.host.startswith("127.0.0.1:")
@@ -355,7 +355,7 @@ def refresh(mode):
 
 @app.route("/mw/statictest/<script>")
 def statictest(script):
-    return url_for("static", filename="statictest/" + script)
+    return( render_template(url_for("static", filename="statictest/" + script)))
 
 
 @app.route("/mw/scriptdesc/<script>")
@@ -493,7 +493,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     return (wstats, result, tmpdir)
 
 
-@app.route("/mw/mws/<api>", methods=["GET", "POST"])
+@app.route("/mws/<api>", methods=["GET", "POST"])
 def webservice(api):
     local = request.host.startswith("127.0.0.1:")
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
@@ -688,7 +688,7 @@ def show_help():
 
 @app.route("/mw/favicon.ico")
 def favicon():
-    return url_for("static/mw", filename="images/favicon.ico")
+    return url_for("static", filename="images/favicon.ico")
 
 
 @app.route("/mw/intro")

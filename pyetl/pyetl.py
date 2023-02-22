@@ -620,9 +620,11 @@ class Pyetl(object):
                                 # print("-main:------------------retour queue", msg, nbvals)
                             elif message == "fich":
                                 # print("message fich", nbfic, w_nbval, wid, nbtotal)
+                                message=''
                                 tabletotal += nbfic
                                 nbfic = 0
                             elif message == "exp":
+                                message=''
                                 nbexp = sum(nbvals.values())
                                 # print("patience: recu exp", nbfic, nbval, nbexp)
                         except Empty:
@@ -652,6 +654,7 @@ class Pyetl(object):
                 nop = nbval
 
             if message == "fich":
+                print("message fich", nbfic,  nbtotal, nbval, tabletotal)
                 nbtotal += nbval
                 interm = 0.001
                 tabletotal += nbfic
