@@ -1,0 +1,85 @@
+
+{% extends "base.html" %}
+{% block title %}
+    
+    <h1>{{ nom }}</h1>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid_renderers.js')}}" ></script>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid_editors.js')}}" ></script>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid_validators.js')}}" ></script>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid.js')}}" ></script>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid_utils.js')}}" ></script>
+    <script src="{{url_for('static', filename='js/editgrid/editablegrid_charts.js')}}" ></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='js/editgrid/editablegrid.css')}}" type="text/css" media="screen">
+    
+
+
+
+
+
+{% endblock %}
+{% block content %}
+
+    <div class="table-responsive" style="height:80vh">
+        <table id="script-courant" class="table table-bordered" >
+            <thead>
+                <tr>
+                    <th>num</th>
+                    <th>att_tri1</th>
+                    <th>valeur_tri1</th>
+                    <th>att_tri2</th>
+                    <th>valeur_tri2</th>
+                    <th>att_sortie</th>
+                    <th>defaut</th>
+                    <th>att_entree</th>
+                    <th>mode</th>
+                    <th>param1</th>
+                    <th>param2</th>
+                    <th>debug</th>
+                    <th>variables</th>
+                    <th>commentaires</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n,span,ligne,type_ligne in code %}
+                    <tr class="{{type_ligne}}">
+                        <td>{{ n }}</td>
+                        <td colspan={{ span }}>{{ ligne[0] }}</td>
+                        {% for item in ligne[1:] %}
+                            <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{%block scripts%}
+<script>
+    window.onload = function() {
+      editableGrid = new EditableGrid("{{nom}}", {}); 
+
+        // we build and load the metadata in Javascript
+        editableGrid.load({ metadata: [
+            { name: "num", datatype: "integer", editable: true },
+            { name: "att_tri1", datatype: "string", editable: true },
+            { name: "val_tri1", datatype: "string", editable: true },
+            { name: "att_tri2", datatype: "string", editable: true },
+            { name: "val_tri2", datatype: "string", editable: true },
+            { name: "att_sortie", datatype: "string", editable: true },
+            { name: "val_defaut", datatype: "string", editable: true },
+            { name: "att_entree", datatype: "string", editable: true },
+            { name: "commande", datatype: "string", editable: true },
+            { name: "param1", datatype: "string", editable: true },
+            { name: "param2", datatype: "string", editable: true },
+            { name: "debug", datatype: "string", editable: true },
+            { name: "variables", datatype: "string", editable: true },
+            { name: "commentaire", datatype: "string", editable: true }
+        ]});
+
+        // then we attach to the HTML table and render it
+        editableGrid.attachToHTMLTable('script-courant');
+        editableGrid.renderGrid();
+    } 
+</script>
+{% endblock %}
+

@@ -428,6 +428,72 @@ def scriptview(script):
     return render_template("scriptview.html", code=code, nom=nomscript, url=script)
 
 
+@app.route("/mw/edit/<script>")
+def edit_script(script):
+    nomscript = scriptlist.getnom(script)
+    fich_script = os.path.join(scriptlist.scriptdir, nomscript)
+    lignes = scriptlist.scripts[nomscript]
+    lignes = scriptlist.descriptif[nomscript].get("lignes", lignes)
+    fill = [""] * 13
+    code = []
+    n = 0
+    typem = ""
+    for i in lignes:
+        type_ligne = "ltype_inst"
+        n += 1
+        if n == 1 and i.startswith("!"):
+            continue
+        if i.startswith("!#") or i.startswith("!"):
+            type_ligne = "ltype_comment"
+            if i.startswith("!#api"):
+                type_ligne = "ltype_api"
+            elif i.startswith("!#ihm"):
+                type_ligne = "ltype_ihm"
+            elif i.startswith("!#help"):
+                type_ligne = "ltype_help"
+
+            colspan = 13
+            contenu = [i.replace(";", " ")]
+        elif i.startswith("$"):
+            type_ligne = "ltype_group" if i.startswith("$#") else "ltype_affect"
+            tmp = (i.split(";") + fill)[:13]
+            contenu = [" ".join(tmp[:12]), tmp[12]]
+            colspan = 12
+        else:
+            type_ligne = "ltype_inst"
+            if i.startswith("&&#"):
+                type_ligne = "ltype_macro"
+                typem = " levelm"
+            if i.startswith("&&#end"):
+                type_ligne = "ltype_macro"
+                typem = ""
+            if "<#" in i:
+                type_ligne = "ltype_charge"
+            contenu = (i.split(";") + fill)[:13]
+            colspan = 1
+            if not any(contenu):
+                continue
+        type_ligne = type_ligne + typem
+        if i.startswith("|||"):
+            type_ligne = type_ligne + " level3"
+        elif i.startswith("||"):
+            type_ligne = type_ligne + " level2"
+        elif i.startswith("|"):
+            type_ligne = type_ligne + " level1"
+
+        code.append((n, colspan, contenu, type_ligne))
+    # print("scriptview,", code)
+    return render_template("scriptview2.html", code=code, nom=nomscript, url=script)
+
+
+
+
+
+
+
+
+
+
 @app.route("/mw/retour_api/<script>")
 def retour_api(script):
     stats = session.get("stats")
@@ -554,7 +620,6 @@ def webservice(api):
 
 
 @app.route("/mw/exec/<appel>/<mode>", methods=["GET", "POST"])
-# @app.route("/mw/exec/<script>")
 def execscript(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
@@ -679,6 +744,8 @@ def login(script="", username=""):
     return render_template(
         "login.html", title="Sign In", form=form, nom=nom, url=script
     )
+
+
 
 
 @app.route("/mw/help")

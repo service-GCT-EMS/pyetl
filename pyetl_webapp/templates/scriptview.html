@@ -1,7 +1,14 @@
 
 {% extends "base.html" %}
 {% block title %}
-    <h1>{{ nom }}</h1>
+    <div class=container-fluid>
+        <div class="col-md-auto">
+            <a href=/mw/edit/{{ nom }}>edit</a>
+        </div>
+        <div class="col-md-auto">
+            <h1>{{ nom }}</h1>
+        </div>
+    </div>
 {% endblock %}
 {% block content %}
     <div class="table-responsive" style="height:80vh">
