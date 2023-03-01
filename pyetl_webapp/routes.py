@@ -12,7 +12,7 @@ import time
 from collections import namedtuple
 from requests import Request
 from urllib.parse import urlencode
-from flask_sspi import authenticate
+# from flask_sspi import authenticate
 
 from flask import (
     render_template,
@@ -35,18 +35,18 @@ from pyetl_webapp.forms import LoginForm, BasicForm, formbuilder
 
 fichinfo = namedtuple("fichinfo", ("nom", "url", "date_maj", "description"))
 LOGGER = logging.getLogger(__name__)
-try:
-    from flask_gssapi import GSSAPI
+# try:
+#     from flask_gssapi import GSSAPI
 
-    gssapi = GSSAPI(app)
-    require_auth = gssapi.require_auth
-except (ImportError, OSError):
-    gssapi = None
-    LOGGER.error("systeme d'authentification non activé")
-    def require_auth(func):
-        return func
+#     gssapi = GSSAPI(app)
+#     require_auth = gssapi.require_auth
+# except (ImportError, OSError):
+#     gssapi = None
+#     LOGGER.error("systeme d'authentification non activé")
+#     def require_auth(func):
+#         return func
 
-    pass
+#     pass
 
 
 
@@ -204,11 +204,12 @@ class ScriptList(object):
                     retour = apidef[2] if len(apidef)>2 else "text"
                     template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
                     no_in = "1" if "no_in" in ligne else "0"
+                    infos["no_in"]=no_in
                     auxv=apidef[-1] if '=' in apidef[-1] else ""
                     aux=dict()
                     if auxv:
                         vars=auxv.split(',')
-                        aux={i.split("=") for i in vars}
+                        aux=[i.split("=") for i in vars]
                     self.apis[apiname] = (nom_script, retour, template, no_in, aux)
                 elif ligne.startswith("!#"):
                     if ligne.endswith("\n"):
@@ -278,13 +279,14 @@ scriptlist = ScriptList()
 #     "flaskfilemanager.userfile", filename="/my_folder/uploaded_file.txt"
 # )
 
-
+@app.route("/mw")
 @app.route("/mw/")
 @app.route("/mw/index")
-@authenticate
+# @authenticate
 def index():
 
     local = request.host.startswith("127.0.0.1:")
+    local=False
     scriptlist.refresh(local)
     current_user=getattr(g,"current_user","non identifié")
     return render_template(
@@ -344,6 +346,7 @@ def apis():
 @app.route("/mw/refresh/<mode>")
 def refresh(mode):
     local = request.host.startswith("127.0.0.1:")
+    local=False
     scriptlist.refresh(local)
     return render_template(
         "scriptlist.html",
@@ -508,6 +511,7 @@ def retour_api(script):
 
 
 @app.route("/mw/mws")
+@app.route("/mws")
 def webservicelist():
     apilist = scriptlist.getapilist()
     return jsonify(apilist)
@@ -562,6 +566,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
 @app.route("/mws/<api>", methods=["GET", "POST"])
 def webservice(api):
     local = request.host.startswith("127.0.0.1:")
+    local=False
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
     infoscript = scriptlist.apis.get(api)
     if not infoscript:
@@ -623,6 +628,7 @@ def webservice(api):
 def execscript(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
+    local=False
     ws = mode == "api"
     if ws:
         infoscript = scriptlist.apis.get(appel)

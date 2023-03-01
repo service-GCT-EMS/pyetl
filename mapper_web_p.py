@@ -19,10 +19,12 @@ if __name__ == "__main__":
 
     args = dict((i.split("=", 1) for i in sys.argv if "=" in i))
     port = int(args.get("port", 5500))
-    print("essai serveur port:", port)
+    host=args.get("host", "127.0.0.1")
+
+    print("essai serveur host:",host,"port:", port)
     # app.run(port=port)
     # serve(app, host="127.0.0.1", port=port,threads=10)
     if "http" in args:
-        serve(app, host="127.0.0.1", port=port,threads=10)
+        serve(app, host=host, port=port,threads=10)
     else:
-        serve(app, host="127.0.0.1", port=port,threads=10,url_scheme='https')
+        serve(app, host=host, port=port,threads=10, url_scheme='https')
