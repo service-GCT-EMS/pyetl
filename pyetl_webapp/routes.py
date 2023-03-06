@@ -190,6 +190,7 @@ class ScriptList(object):
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
                 script = open(fpath, "r",encoding='cp1252').readlines()
+                nomscript=os.path.splitext(nom_script)[0]
             except FileNotFoundError:
                 print ("fichier introuvable",fpath)
                 raise KeyError
@@ -200,7 +201,7 @@ class ScriptList(object):
                 if ligne.startswith("!#api"):
                     self.is_api[nom_script] = True
                     apidef = ligne.split(";")
-                    apiname = apidef[1] if len(apidef)>1 else self.nom[1:]
+                    apiname = apidef[1] if len(apidef)>1 else nomscript
                     retour = apidef[2] if len(apidef)>2 else "text"
                     template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
                     no_in = "1" if "no_in" in ligne else "0"
@@ -589,7 +590,7 @@ def webservice(api):
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
-    print ("-----------retour script",retour)
+    print ("-----------retour script",infoscript)
     if result:
         if infoscript[1]=="link": #retour url
             url=result["print"][0] if result["print"] else ""
@@ -599,7 +600,10 @@ def webservice(api):
                 url=result["print"][0] if result["print"] else ""
                 if url:
                     return redirect(url)
-
+        elif infoscript[1]=="json": #retour json
+                url=result["print"][0] if result["print"] else ""
+                if url:
+                    return jsonify(result)
 
 
         elif "print" in result:

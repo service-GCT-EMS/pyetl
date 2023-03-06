@@ -919,43 +919,43 @@ class DbConnect(object):
         oper = "="
         attribut, cast = self.getcast(schema, attribut)
         neg = False
+        val=''
+        cond=''
+        data={}
+        condition = ""
         if isinstance(valeur, str):
             neg = valeur.startswith("!")
             if neg:
                 valeur = valeur[1:]
             if valeur.startswith("in:{"):
                 valeur = valeur[4:-1].split(",")
-        if isinstance(valeur, (set, list)) and len(valeur) > 1:
-
-            data = self.multivaldata(valeur)
-            #                data = {'val':"{'"+"','".join(valeur)+"'}"}
-            cond = self.multival(len(data), cast=cast)
-        else:
-            if isinstance(valeur, (set, list)):
-                val = valeur[0]
+        if isinstance(valeur, (set, list, tuple)):
+            if len(valeur) > 1:
+                data = self.multivaldata(valeur)
+                #                data = {'val':"{'"+"','".join(valeur)+"'}"}
+                cond = self.multival(len(data), cast=cast)
             else:
-                val = valeur
-                oper = "="
-            #                oper = '='
-            #                val = valeur
-            #                print ('dbalpha valeur a traiter',val)
-            if val:
-                neg = val.startswith("!")
-                if neg:
-                    val = val[1:]
-                if val.startswith("<=") or val.startswith(">="):
-                    oper = val[0:1]
-                    val = val[2:]
-                elif val[0] in "<>=~":
-                    oper = val[0]
-                    val = val[1:]
-                if val.startswith("\\"):
-                    val = val[1:]
+                val = valeur[0]
+        else:
+            val = valeur
+
+        if val:
+            neg = val.startswith("!")
+            if neg:
+                val = val[1:]
+            if val.startswith("<=") or val.startswith(">="):
+                oper = val[0:1]
+                val = val[2:]
+            elif val[0] in "<>=~":
+                oper = val[0]
+                val = val[1:]
+            if val.startswith("\\"):
+                val = val[1:]
             cond = self.monoval(oper, cast)
             data = {"val": val}
         # print('valeur simple', valeur, oper, cond, cast, data)
-
-        condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
+        if cond: 
+            condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
         return condition, data
 
     def req_count(self, ident, schema, attribut, valeur, mods):
