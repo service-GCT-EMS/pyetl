@@ -53,7 +53,8 @@ def affiche_header(obj):
 
 def prepare_webstore(obj, regle):
     """ fabrique un namedtuple pour stocker les objets"""
-    regle.storestruct=namedtuple(obj.ident,obj.schema.get_liste_attributs())
+    idstruc="_".join(obj.ident)
+    regle.storestruct=namedtuple(idstruc,obj.schema.get_liste_attributs())
 
 
 def affiche_stream(self, obj, regle, *_, **__):
@@ -64,7 +65,7 @@ def affiche_stream(self, obj, regle, *_, **__):
             prepare_webstore(obj,regle)
             regle.dident = obj.ident
         res = regle.storestruct(
-            (obj.attributs.get(i, "") for i in obj.schema.get_liste_attributs())
+            *(obj.get_valeur(i) for i in obj.schema.get_liste_attributs())
         )
         # on stocke
         ident = obj.ident if stock_param.mode == "web" else "#print"

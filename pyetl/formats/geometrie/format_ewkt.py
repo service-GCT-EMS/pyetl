@@ -186,18 +186,24 @@ def geom_from_ewkt(obj):
     geom = obj.attributs["#geom"]
     if geom:
 
-        geom_demandee = obj.schema.info["type_geom"] if obj.schema else "-1"
-        # print("decodage geometrie ewkt/ewkb ", obj.schema.info["type_geom"])
+        
+        
         if geom.startswith("0"):  # c est de l'ewkb
             # print("detection ewkb")
             geom_from_ewkb(obj)
         else:
             _parse_ewkt(obj.geom_v, geom)
+        if obj.schema:
+            geom_demandee = obj.schema.info["type_geom"]
+        else:
+            geom_demandee = str(obj.geom_v.type) 
+        # print("decodage geometrie ewkt/ewkb ", obj.schema.info["type_geom"], "->", geom_demandee )   
         try:
             obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         except ValueError:
             print("conversion angle impossible", obj.attributs.get("#angle"))
             obj.geom_v.angle = 0
+
         obj.finalise_geom(type_geom=str(geom_demandee))
     return obj.geom_v.valide
 

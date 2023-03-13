@@ -1384,7 +1384,9 @@ class Pyetl(object):
     def getdbaccess(self, regle, nombase, type_base=None, chemin=""):
         """retourne une connection et la cache"""
         if nombase in self.dbconnect:
-            return self.dbconnect[nombase]
+            connection=self.dbconnect[nombase]
+            if not connection.closed:
+                return self.dbconnect[nombase]
         connection = dbaccess(regle, nombase, type_base)
         if connection:
             self.dbconnect[nombase] = connection

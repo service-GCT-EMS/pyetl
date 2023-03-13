@@ -374,7 +374,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         return
 
     a_sortir = stock_param.getvar("schemas_a_sortir")
-    a_sortir = a_sortir.split(",") if a_sortir else None
+    a_sortir = a_sortir.split(",") if a_sortir else []
     if rep_sortie:
         os.makedirs(rep_sortie, exist_ok=True)
     for i in schemas:
@@ -404,7 +404,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         if stock_param.schemas[i].origine == "G":
             schemas[i].analyse_conformites()
 
-        if schemas[i].analyse_interne(mode_sortie, type_schema=type_schemas_a_sortir):
+        if schemas[i].analyse_interne(mode_sortie, type_schema=type_schemas_a_sortir) or i in a_sortir:
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == "sql":

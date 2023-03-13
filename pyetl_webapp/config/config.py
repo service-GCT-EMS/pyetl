@@ -12,6 +12,6 @@ class Config(object):
     )
     FLASKFILEMANAGER_FILE_PATH = "C:/dev/test_mapper"
     
-
+    JSON_AS_ASCII = False
 
 appconfig = Config()

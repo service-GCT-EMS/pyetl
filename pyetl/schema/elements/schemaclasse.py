@@ -913,6 +913,7 @@ class SchemaClasse(object):
         #     print(
         #         "apres stockage geometrie ",self
         #     )
+        #     raise
 
     def ajout_attribut_modele(self, modele, nom=None, nom_court=None, force=False):
         """ajoute un attribut a partir d'un modele modele (surtout pour la filiation)"""

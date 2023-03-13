@@ -616,7 +616,7 @@ def _execbatch(regle, obj):
     if processor is None:
         return False
 
-    processor.process(debug=1)
+    processor.process()
     renseigne_attributs_batch(regle, obj, processor.retour)
     return True
 

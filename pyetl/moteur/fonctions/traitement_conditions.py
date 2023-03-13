@@ -375,7 +375,8 @@ def sel_isnotnull(condition, obj):
     """
     return obj.attributs.get(condition.params.attr.val, "")
 
-
+# def sel_istrue(condition,obj):
+#     pass
 # fonctions de selections dans un hstore
 
 

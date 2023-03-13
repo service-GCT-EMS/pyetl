@@ -27,6 +27,7 @@ class DummyConnect(object):
         self.schemabase = None
         self.valide = False
         self.DBError = None
+        self.closed = False
 
     def close(self):
         pass
@@ -312,6 +313,16 @@ class DbConnect(object):
     #        self.req_tables = ("", None)
 
     #  methodes specifiques a ecraser dans les subclasses ####
+
+    @property
+    def closed(self):
+        if self.connection:
+            try:
+                return self.connection.closed
+            except:
+                return False
+        return True
+
 
     def commit(self):
         """gere le commit"""

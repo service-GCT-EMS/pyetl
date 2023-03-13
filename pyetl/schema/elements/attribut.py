@@ -336,6 +336,7 @@ class Attribut(object):
         except ValueError:
             self.type_att = "T"
         self.type_att_base = self.type_att
+        self.typeconv = typeconv.get(self.type_att, str)
         return
 
     def setbasic(self, mode):

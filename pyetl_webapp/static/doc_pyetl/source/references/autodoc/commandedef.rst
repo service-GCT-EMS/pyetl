@@ -1,6 +1,38 @@
 reference des commandes
 =======================
 
+ad
+--
+
+ad
+
+.. index::
+  double: .traitement_ad;adquery
+
+adquery
+.......
+
+   extait des information de active_directory
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+--------+--------+
+|sortie|defaut|entree|commande|param1  |param2  |
++======+======+======+========+========+========+
+|M     |?C    |?A    |adquery |=user   |?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=machine|?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=groupe |?C      |
++------+------+------+--------+--------+--------+
+|P     |C     |      |adquery |=user   |        |
++------+------+------+--------+--------+--------+
+|      |?C    |?A    |adquery |C       |?C      |
++------+------+------+--------+--------+--------+
+
+
+
 manipulation d'attributs
 ------------------------
 

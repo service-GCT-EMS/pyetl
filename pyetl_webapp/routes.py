@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 # from flask_sspi import authenticate
 
 from flask import (
-    render_template,
+    render_template,render_template_string,
     flash,
     redirect,
     session,
@@ -215,16 +215,18 @@ class ScriptList(object):
                 elif ligne.startswith("!#"):
                     if ligne.endswith("\n"):
                         ligne = ligne[:-1]
-                    tmp = ligne[2:].split(":", 1)
+                    tmp = ligne[2:].split(";",1)
                     if len(tmp) == 1:
                         continue
                     clef, contenu = tmp
                     if clef not in infos:
                         infos[clef] = dict() if clef == "variables" else []
                     if clef == "variables":
-                        tmp = contenu.split(";", 1)
-                        nom, question = tmp if len(tmp) == 2 else (contenu, contenu)
-                        infos[clef][nom] = question
+                        tmp = contenu.split(";", 2)
+                        nom=tmp[0]
+                        question=tmp[1] if len(tmp) > 1 else nom
+                        defaut=tmp[2] if len(tmp) > 2 else ""
+                        infos[clef][nom] = (question,defaut)
                     else:
                         infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
@@ -563,6 +565,11 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
             result, tmpdir = failedworker.get_results()
     return (wstats, result, tmpdir)
 
+def autotemplate(data): # genere un template basique pour l affichage
+    pass
+
+
+
 
 @app.route("/mws/<api>", methods=["GET", "POST"])
 def webservice(api):
@@ -597,13 +604,21 @@ def webservice(api):
             if url:
                 return redirect(url)
         elif infoscript[1]=="html": #retour html direct
-                url=result["print"][0] if result["print"] else ""
-                if url:
-                    return redirect(url)
+                data=result["print"] if result["print"] else ""
+                
+                if infoscript[2]: #(template)
+                    template=open(infoscript[2].readlines())
+                    return render_template_string(template,data)
+                else:
+                    return render_template_string(autotemplate(data),data)
         elif infoscript[1]=="json": #retour json
-                url=result["print"][0] if result["print"] else ""
-                if url:
-                    return jsonify(result)
+                # print ("retour web ", result["print"])
+                if "print" in result and result["print"]:
+                    return jsonify([i._asdict() for i in result["print"]])
+                elif "log" in result:
+                    return jsonify("log")
+                else:
+                    return redirect(code=404)
 
 
         elif "print" in result:
