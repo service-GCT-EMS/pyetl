@@ -607,9 +607,14 @@ class Objet(object):
         if self.schema and nom in self.schema.attributs:
             conv=self.schema.attributs[nom].typeconv
         try:
-            print  ("conv",nom,self.attributs[nom],conv(self.attributs[nom]),type(conv(self.attributs[nom])))
+            # print  ("conv",nom,self.attributs[nom],conv(self.attributs[nom]),type(conv(self.attributs[nom])))
             return conv(self.attributs[nom]) if nom in self.attributs else conv(defaut)
         except ValueError:
+            if conv==int:
+                try:
+                    return int(float(self.attributs[nom]))
+                except ValueError:
+                    pass
             return ''
 
     def get_listeattval(self, liste, noms=False):

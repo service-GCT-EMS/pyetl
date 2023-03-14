@@ -963,6 +963,7 @@ def f_sjoin(regle, obj):
 def h_round(regle):
     """helper round : stocke le nombre de decimales"""
     regle.ndec = int(regle.params.cmp1.num if regle.params.cmp1.num else 0)
+    
 
 
 def f_round(regle, obj):
@@ -974,7 +975,10 @@ def f_round(regle, obj):
     """
     try:
         regle.setval_sortie(
-            obj, str(round(float(regle.getval_entree(obj)), regle.ndec))
+            obj, str(
+                round(float(regle.getval_entree(obj)), regle.ndec) if regle.ndec else
+                int(round(float(regle.getval_entree(obj)), regle.ndec))
+                     )
         )
         return True
     except ValueError:
