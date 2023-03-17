@@ -9,6 +9,15 @@ requetes de creation de la base sigli essentiellement
 
 requetes_sigli = dict()
 
+exclusions= """n.nspname <> 'public'::name
+            AND n.nspname <> 'pg_catalog'::name
+            AND n.nspname <> 'information_schema'::name
+            AND n.nspname <> 'tiger'
+            AND n.nspname <> 'tiger_data'
+            AND n.nspname <> 'topology'
+            """
+
+
 requetes_sigli[
     "info_vues"
 ] = """
@@ -33,11 +42,10 @@ requetes_sigli[
             pg_get_functiondef(p.oid) AS definition
            FROM pg_proc p
              LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
-          WHERE n.nspname <> 'pg_catalog'::name
-            AND has_schema_privilege(n.nspname,'usage')
-            AND n.nspname <> 'information_schema'::name
-            AND p.prorettype = 'trigger'::regtype::oid;
-          """
+          WHERE has_schema_privilege(n.nspname,'usage')
+                AND p.prorettype = 'trigger'::regtype::oid
+                AND """ + exclusions +";"
+          
 requetes_sigli[
     "def_fonctions_utilisateur"
 ] = """
@@ -46,11 +54,9 @@ requetes_sigli[
             pg_get_functiondef(p.oid) AS definition
         FROM pg_proc p
             LEFT JOIN pg_namespace n ON n.oid = p.pronamespace
-        WHERE n.nspname <> 'public'::name
-            AND n.nspname <> 'pg_catalog'::name
-            AND n.nspname <> 'information_schema'::name
-            AND p.prorettype <> 'trigger'::regtype::oid;
-    """
+        WHERE  p.prorettype <> 'trigger'::regtype::oid
+        AND """ + exclusions +";"
+        
 
 
 requetes_sigli[
@@ -176,8 +182,8 @@ requetes_sigli[
                  LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                  LEFT JOIN pg_index i ON c.oid = i.indrelid
                  LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
-              WHERE n.nspname <> 'public'::name
-                  AND has_schema_privilege(n.nspname,'usage')
+              WHERE has_schema_privilege(n.nspname,'usage')
+              AND """ +exclusions+""" 
                   AND n.nspname <> 'information_schema'::name
                   AND n.nspname !~~ 'pg_%'::text
                   AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
@@ -317,8 +323,8 @@ requetes_sigli[
                  LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                  LEFT JOIN pg_index i ON c.oid = i.indrelid
                  LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
-              WHERE n.nspname <> 'public'::name
-                  AND has_schema_privilege(n.nspname,'usage')
+              WHERE has_schema_privilege(n.nspname,'usage')
+              AND """ +exclusions+""" 
                   AND n.nspname <> 'information_schema'::name
                   AND n.nspname !~~ 'pg_%'::text
                   AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
@@ -443,11 +449,11 @@ requetes_sigli[
              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
              LEFT JOIN pg_index i ON c.oid = i.indrelid
              LEFT JOIN LATERAL unnest(i.indkey) champ(champ) ON true
-          WHERE n.nspname <> 'information_schema'::name
-           --AND n.nspname <> 'public'::name
-           AND has_schema_privilege(n.nspname,'usage')
-           AND n.nspname !~~ 'pg_%'::text
-           AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
+          WHERE has_schema_privilege(n.nspname,'usage')
+              AND """ +exclusions+""" 
+                  AND n.nspname <> 'information_schema'::name
+                  AND n.nspname !~~ 'pg_%'::text
+                  AND (c.relkind::text = ANY (ARRAY['r'::text, 'v'::text, 'm'::text, 'f'::text]))
         ), t2 AS (
          SELECT t.identifiant,
             t.nomschema,
@@ -569,7 +575,7 @@ requetes_sigli[
             pg_attribute a1
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char"
             AND (t4.attnum = ANY (c.conkey)) AND a1.attrelid = c.confrelid AND a1.attnum = c.confkey[1]) AS cible_clef,
-   ( SELECT 'u'||c.confupdtype||',d'||c.confdeltype||',m'||c.confmatchtype||','|| (case when c.condeferrable then 'defer' else 'nd' end)
+   ( SELECT 'u'||coalesce(c.confupdtype,'')::text||',d'||coalesce(c.confdeltype,'')::text||',m'||coalesce(c.confmatchtype,'')::text||','|| (case when c.condeferrable then 'defer' else 'nd' end)
           FROM pg_constraint c
           WHERE c.conrelid = t4.identifiant AND c.contype = 'f'::"char" AND (t4.attnum = ANY (c.conkey))) as parametres_clef,
     0 as taille,

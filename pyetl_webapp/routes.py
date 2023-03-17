@@ -612,11 +612,11 @@ def webservice(api):
                 else:
                     return render_template_string(autotemplate(data),data)
         elif infoscript[1]=="json": #retour json
-                # print ("retour web ", result["print"])
+                # print ("retour web ", [i._asdict() for i in result["print"]])
                 if "print" in result and result["print"]:
                     return jsonify([i._asdict() for i in result["print"]])
                 elif "log" in result:
-                    return jsonify("log")
+                    return jsonify(result["log"])
                 else:
                     return redirect(code=404)
 
@@ -737,6 +737,96 @@ def execscript(appel, mode):
 #     return render_template(
 #         "plantage.html", text="erreur d'execution", nom=nom, url=script
 #     )
+@app.route("/mw/interacif/<appel>/<mode>", methods=["GET", "POST"])
+def execscriptihm(appel, mode):
+    # print("dans exec", script)
+    local = request.host.startswith("127.0.0.1:")
+    local=False
+    ws = mode == "api"
+    if ws:
+        infoscript = scriptlist.apis.get(appel)
+        print ("recup script",appel, "->",infoscript)
+        if not infoscript:
+            return "erreur script non trouve %s (%s)" % (
+                appel,
+                str(list(scriptlist.apis.keys())),
+            )
+        script = infoscript[0]
+        format_retour = infoscript[1]
+    else:
+        script = appel
+        format_retour="auto"
+    nomscript = "#" + script[1:] if script.startswith("_") else script
+    scriptlist.refreshscript(nomscript)
+    fich_script = (
+        nomscript
+        if nomscript.startswith("#")
+        else os.path.join(scriptlist.scriptdir, nomscript)
+    )
+    infos = scriptlist.descriptif[nomscript]
+    infos["__mode__"] = mode
+    infos["__api_name__"] = appel
+    # print("appel formbuilder", nomscript, infos)
+    formclass, varlist = formbuilder(infos)
+    form = formclass()
+    rep_sortie = ""
+    entree = ""
+    if form.validate_on_submit():
+        try:
+            entree = form.entree.data
+        except AttributeError:
+            pass
+        try:
+            rep_sortie = form.sortie.data
+        except AttributeError:
+            pass
+        scriptparams = dict()
+        for desc in varlist:
+            nom, definition = desc
+            scriptparams[nom] = str(form.__getattribute__(nom).data)
+
+        print("recup form", entree, rep_sortie, infos, scriptparams)
+        # print("full url", request.base_url)
+        x_ws = scriptparams.get("x_ws")
+        if "x_ws" in scriptparams:
+            del scriptparams["x_ws"]
+        print("valeur xws", x_ws)
+        if x_ws == "True":  # on appelle en mode webservice
+            qstr = urlencode(scriptparams)
+            # url = "http://mws/" + script
+            wsurl = "/mws/" + appel + "?" + qstr
+            print("mode webservice ", wsurl)
+            return redirect(wsurl)
+        retour = process_script(
+            nomscript, entree, rep_sortie, scriptparams, "web", local
+        )
+        wstats, result, tmpdir = retour
+        if wstats:
+            return render_template(
+                "script_result.html",
+                stats=wstats,
+                retour=result,
+                url=script,
+                nom=nomscript,
+            )
+        else:
+            # return render_template("noresult.html", url=script, nom=nomscript)
+
+            return render_template(
+                "plantage.html",
+                text="erreur d'execution",
+                nom=nom,
+                url=script,
+                retour=result,
+            )
+
+    return render_template(
+        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws, format_retour=format_retour
+    )
+
+
+
+
 
 
 @app.route("/mw/result/<script>")
@@ -771,7 +861,11 @@ def login(script="", username=""):
     )
 
 
-
+@app.route("/mw/srvcontrol/<cmd>")
+def srvcontrol(cmd):
+    """interface de controle du serveur"""
+    if cmd=="shutdown":
+        os._exit(99)
 
 @app.route("/mw/help")
 def show_help():

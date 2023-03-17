@@ -20,6 +20,7 @@ class Moteur(object):
         self.regle_debut = 0
         self.dupcnt = 0
         self.suppcnt = 0
+        self.hasstart = False
 
     @property
     def regle_sortir(self):
@@ -47,6 +48,7 @@ class Moteur(object):
         #            print (i.chargeur, i)
         if unique:  # on lance un virtuel unique pour les traitements sans entree
             # on lance un virtuel unique puis on verifie toutes les regles de chargement
+            
             self.traite_regles_chargement()
         else:
             f_v = self.mapper.getvar("force_virtuel")
@@ -132,7 +134,9 @@ class Moteur(object):
                     )
         if regles and not regle:
             # print ('traitement regle 0',regles[0])
-            self.traite_objet(obj,regles[0])            
+            self.traite_objet(obj,regles[0]) 
+            if self.hasstart:
+                return           
         for i in regles:
             if i.mode == "call" and not i.declenchee:
                 self.traite_regles_chargement(i)

@@ -85,17 +85,16 @@ $s=%2C
 $coord=%x%%s%%y%
 $url=https://wpsiglw.cus.fr/?l=defaut&bl=fond_de_carte_gris_ems&t=defaut&c=%coord%&s=%echelle%
 ;;;;mws:;P;url;print;;;
-&&#define;#recherche_cadastre;commune;section;parcelle;
 !====================================ouverture qgis_web======================================;;;;;;;;;;;
+&&#define;#recherche_cadastre;commune;section;parcelle;
 !#help;ouvre le projet par defaut a une parcelle
 !#api;recherche_cadastre;link;;no_in;
 $ws=%2C
 $coord=%x%%s%%y%
 $url=https://wpsiglw.cus.fr/?bl=fond_de_carte_gris_ems&t=fonci_plan_cadastral_ems&
 $r1=select st_x(ST_PointOnSurface(geometrie))::int::text||','||st_y(ST_PointOnSurface(geometrie))::int::text
-$r2=%r1% from doref.dr_vue_parcelles where
-$req=%r2% num_commune::admin_sigli.sig_num_commune='%commune%' and num_section='%section%' and num_parcelle='%parcelle%'
-!$req=select * from doref.dr_vue_parcelles where num_commune::admin_sigli.sig_num_commune='%commune%' and num_section='%section%' and num_parcelle='%parcelle%'
-db:sigliv2;;;;P:xx;;;dbreq;%req%
+$r2=%r1% from elyre.rg_cad_parcelle where
+$req=%r2% num_commune::text='%commune%'::text and num_section='%section%'::text and num_parcelle='%parcelle%'::text
+db:siglc_prod_consult;;;;P:xx;;;dbreq;%req%
 $url2=%url%c=%xx%&s=500&hc=1;
 ;;;;mws:;P;url2;print;;;

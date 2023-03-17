@@ -806,8 +806,8 @@ def h_geom2url(regle):
 
 def f_geom2url(regle,obj):
     """aide||convertit un point en bout d'url pour appel wms/wfs
-    pattern1||;;;pt2url;;
-    pattern2||P;C;pt2url;;
+    pattern1||A;;;pt2url;N;?C;
+    pattern2||P;C;pt2url;N;?C;
     """
     if obj.initgeom():
         pass

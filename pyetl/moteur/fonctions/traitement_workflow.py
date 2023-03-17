@@ -96,6 +96,7 @@ def h_start(regle):
     regle.chargeur = True
     schema = regle.params.cmp1.val
     regle.reel = regle.params.cmp2.val
+    regle.stock_param.moteur.hasstart=True
     if schema == "#schemas":
         regle.schemas = [
             regle.stock_param.schemas[i]

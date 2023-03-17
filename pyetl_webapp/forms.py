@@ -170,3 +170,85 @@ def formbuilder(description):
     setattr(CustomForm, "submit", SubmitField("executer"))
     # print("cree customform", varlist)
     return CustomForm, varlist
+
+
+def miniformbuilder(description):
+    "construit un formulaire web minimaliste pour integration dans un iframe a partir d'une description"
+
+    class CustomForm(FlaskForm):
+        pass
+
+    fieldfunctions = {
+        "B": F.BooleanField,
+        "DS": F.DateField,
+        "D": F.DateTimeField,
+        "N": F.DecimalField,
+        "FF": F.FileField,
+        "F": F.FloatField,
+        "K": F.HiddenField,
+        "E": F.IntegerField,
+        "L": F.Label,
+        "FFS": F.MultipleFileField,
+        "P": F.PasswordField,
+        "R": F.RadioField,
+        "S": F.SelectField,
+        "DS": DynSelectfieldwidget,
+        "SS": F.SelectMultipleField,
+        "DSS": DynSelectfieldwidget,
+        "T": F.StringField,
+        "OK": F.SubmitField,
+    }
+    variables = description.get("variables", dict())
+    params = description.get("parametres", dict())
+    print("recup description", description)
+    varlist = []
+    def_es = description.get("e_s", ())
+    
+    if def_es:
+        if def_es[0]:
+            setattr(
+                CustomForm,
+                "entree",
+                F.MultipleFileField("entree", validators=[DataRequired()]),
+            )
+            varlist.append(("entree", def_es[0]))
+        if def_es[1]:
+            setattr(
+                CustomForm, "sortie", F.FileField("sortie", validators=[DataRequired()])
+            )
+            varlist.append(("sortie", def_es[1]))
+    else:
+
+        if not description.get("no_in"):
+            setattr(CustomForm, "entree", F.MultipleFileField("entree"))
+            varlist.append(("entree", "entree"))
+
+        if description["__mode__"] != "api":
+            setattr(CustomForm, "sortie", F.StringField("sortie"))
+            varlist.append(("sortie", "sortie"))
+    print("formbuilder: variables", list(chain(params.items(), variables.items())))
+    for name, definition in chain(params.items(), variables.items()):
+
+        nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")
+        typevar = typevar[:-1]
+        vlist = []
+        if ":" in typevar:
+            tmp2 = typevar.split(":")
+            typevar = tmp2[0]
+            vlist = tmp2[1:]
+        if vlist and vlist[0].startswith("@") and not typevar.startswith("D"):
+            typevar = "D" + typevar
+            #on tagge l attribut en dynamique
+        if vlist and typevar:
+            setattr(
+                CustomForm, nom, fieldfunctions.get(typevar)(definition, choices=vlist)
+            )
+        else:
+            setattr(
+                CustomForm, nom, fieldfunctions.get(typevar, F.StringField)(definition)
+            )
+        varlist.append((nom, definition))
+
+    setattr(CustomForm, "submit", SubmitField("executer"))
+    # print("cree customform", varlist)
+    return CustomForm, varlist

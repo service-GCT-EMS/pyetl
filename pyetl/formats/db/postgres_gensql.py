@@ -413,12 +413,12 @@ class PgrGenSql(DbGenSql):
             action = action_2
         if nomf not in self.stdtriggers:
             trig = [
-                "\nDROP TRIGGER IF EXISTS " + nom.lower() + " ON " + table.lower() + ";"
+                '\nDROP TRIGGER IF EXISTS "' + nom.lower() + '" ON "' + table.lower() + '";'
             ]
             if sql:
                 trig.append(sql + ";")
             else:
-                trig.append("\nCREATE " + type_trigger + " " + nom.lower())
+                trig.append("\nCREATE " + type_trigger + ' "' + nom.lower()+ '" ')
                 trig.append(
                     timing + " " + event + (" OF " + colonnes.lower())
                     if colonnes
