@@ -26,6 +26,7 @@ class TextWriter(FileWriter):
 
 def lire_textfile_ligne(reader, rep, chemin, fichier):
     """ lecture d'un fichier et creation d un objet par ligne"""
+    print ("lecture fichier par ligne",fichier)
     reader.prepare_lecture_fichier(rep, chemin, fichier)
     nlin = 0
     if reader.newschema:
@@ -38,7 +39,7 @@ def lire_textfile_ligne(reader, rep, chemin, fichier):
             attrs = {"contenu": ligne[:-1]}
             obj = reader.getobj(attrs)
             if obj is None:  # gere le maxval
-                continue
+                break
             # obj.attributs["contenu"] = ligne[:-1]
             nlin += 1
             obj.attributs["#num_ligne"] = str(nlin)

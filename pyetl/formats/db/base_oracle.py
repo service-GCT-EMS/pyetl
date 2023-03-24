@@ -109,6 +109,12 @@ class OraConnect(DbConnect):
                 env["PATH"] = orahome + ";" + env["PATH"]
             env["NLS_LANG"] = lang
 
+    
+
+
+
+
+
     def connect(self):
         """ouvre l'acces a la base de donnees et lit le schema"""
         if self.connection:
@@ -126,6 +132,13 @@ class OraConnect(DbConnect):
         #     self.user,
         #     "*" * len(self.passwd),
         # )
+        def output_type_handler(cursor, name, default_type, size, precision, scale):
+            if default_type == cx_Oracle.DB_TYPE_CLOB:
+                return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
+            if default_type == cx_Oracle.DB_TYPE_BLOB:
+                return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
+
+
         if not cx_Oracle:
             raise NotImplemented("Cx_oracle non disponible")
         try:
@@ -135,8 +148,11 @@ class OraConnect(DbConnect):
             # env = os.environ
             # env["ORACLE_HOME"]=lib_oracle
 
+
+
             connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
+            connection.outputtypehandler = output_type_handler
             self.connection = connection
         except self.DBError as err:
             self.params.logger.exception("erreur connection oracle", exc_info=err)

@@ -183,6 +183,8 @@ def compile_regles(mapper, regles, debug=0, parent=None):
                 ";;;;;;;pass;;;;;pas de sortie", "", 99999
             )
         else:
+            if mapper.getvar("nom_sortie") == "#print":
+                mapper.setvar("F_sortie","#print")
             regle_sortir = mapper.interpreteur(
                 ";;;;;;;sortir;"
                 + mapper.getvar("F_sortie")

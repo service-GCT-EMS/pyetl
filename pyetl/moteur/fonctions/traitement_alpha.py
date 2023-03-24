@@ -33,6 +33,7 @@ Created on Fri Dec 11 14:34:04 2015
 # from pyetl.formats.formats import Stat
 from collections import namedtuple
 from itertools import zip_longest
+from datetime import datetime
 import re
 import copy
 import logging
@@ -1006,11 +1007,13 @@ def f_vround(regle, obj):
 
 def h_format(regle):
     """prepare le formattage"""
+    holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
+    regle.espace = regle.getvar("espace")
     regle.params.att_entree.liste = regle.params.att_entree.val.split(",")
     regle.params.val_entree.liste = regle.params.val_entree.val.split(",")
     vlist = regle.params.att_entree.liste
     # on gere le fait que le % est reserve pour les variable donc on peut mettre autre chose
-    holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
+    
     regle.format = regle.params.cmp1.val.replace(holder, "%")
     # print("remplacement", holder, regle.params.cmp1.val)
     regle.espace = regle.getvar("espace", " ")
@@ -1028,7 +1031,6 @@ def h_format(regle):
             flist[n] = str
     regle.flist = flist
     regle.incomplet = None in flist
-    regle.espace = regle.getvar("espace")
     return True
 
 
@@ -1039,11 +1041,20 @@ def f_format(regle, obj):
             ||si on souhaite des espaces avant ou apres le format il est possible de definir
             ||la variable espace pour remplacer les espaces
             ||exemple: °°µs%d°° avec espace=° devient '  %s%d  '
-    #pattern||S;?LC;?LC;format;C;?C
-    #paramatre||attribut de sortie;defaut;liste_entree;;format;remplacement du %
+    #pattern1||S;?LC;?LC;format;C;?C
+    #parametre||attribut de sortie;defaut;liste_entree;;format;remplacement du %
     #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
     #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
+    if len(regle.params.val_entree.liste)==1 and  isinstance(regle.getval_entree(obj),datetime):
+        #formattage de dates
+        try:
+            regle.setval_sortie(obj,datetime.strftime(regle.getval_entree(obj),regle.format))
+            return True
+        except ValueError as err:
+            print( "erreur formattage", err)
+        return False
+
     if regle.incomplet:
         for n, v in enumerate(regle.params.att_entree.liste):
             if not regle.flist[n]:
@@ -1078,6 +1089,39 @@ def f_format(regle, obj):
     else:
         regle.setval_sortie(obj, regle.format % tuple(vlist2))
     return True
+
+def h_todate(regle):
+    """prepare le format de dates"""
+    holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
+    regle.espace = regle.getvar("espace")
+    regle.format = regle.params.cmp1.val.replace(holder, "%")
+    return True
+
+
+def f_todate(regle,obj):
+    """#aide||convertit un texte en date en utilisant un formattage prdefini
+    #aide_spec||en cas de conflit (motif de type variable %xxx%) 
+            ||il est possible de remplacer le % par un autre caractere (par defaut µ)
+            ||si on souhaite des espaces avant ou apres le format il est possible de definir
+            ||la variable espace pour remplacer les espaces
+            ||exemple: °°µs%d°° avec espace=° devient '  %s%d  '
+    #pattern1||S;?C;?A;to_date;C;?C
+    #parametre||attribut de sortie;defaut;liste_entree;;format;remplacement du %
+    ##test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
+    ##test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
+    """
+    try:
+        regle.setval_sortie(obj,datetime.strptime(regle.getval_entree(obj),regle.format))
+        return True
+    except ValueError as err:
+        print( "erreur formattage", err)
+        return False
+
+
+
+
+
+
 
 
 def blocfilter(text, identifiant, keypair, escape):

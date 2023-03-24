@@ -112,11 +112,11 @@ class Statdef(object):  # definition d'une statistique
 
     def ligne(self, categorie, valeurs):
         """retourne une ligne formatee pour l'ecriture finale."""
-        return ";".join([categorie] + self.get_vals(categorie, valeurs))
+        return ";".join([str(categorie)] + self.get_vals(categorie, valeurs))
 
     def ligne_liste(self, categorie, valeurs):
         """retourne les elements sous forme de liste"""
-        return [categorie] + self.get_vals(categorie, valeurs)
+        return [str(categorie)] + self.get_vals(categorie, valeurs)
 
 
 #    @staticmethod
@@ -438,9 +438,12 @@ class Stat(object):
         nom = "_".join(self.nom).replace("#", "")
         result = sorted(self.lignes)
         entete = self.structure.entete_liste(self.colonnes_indirect)
-        corps = [
-            self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i
-        ]
+        if filtre:
+            corps = [
+                self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i
+            ]
+        else:
+            corps = [self.structure.ligne_liste(i, self.valeurs) for i in result]
         return (nom, entete, corps)
 
     def ecrire(

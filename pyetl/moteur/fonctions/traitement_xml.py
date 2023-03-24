@@ -35,9 +35,9 @@ def h_xmlextract(regle):
         regle.recherche = None
         regle.partiel = regle.params.cmp1.val.replace("*", "")
     regle.item = regle.params.cmp1.definition[0] if regle.params.cmp1.definition else ""
-    regle.keepdata = regle.getvar("xml_keepdata") == "1"
-    regle.keeptree = regle.getvar("xml_keeptree") == "1"
-    regle.noprefix = regle.getvar("xml_noprefix") == "1"
+    regle.keepdata = regle.istrue("xml_keepdata")
+    regle.keeptree = regle.istrue("xml_keeptree")
+    regle.noprefix = regle.istrue("xml_noprefix")
 
 
 def getcadre(regle, obj):
@@ -50,11 +50,14 @@ def getcadre(regle, obj):
             xml = re.sub("(</?)[A-Za-z0-9]*:", "\g<1>", regle.getval_entree(obj))
         else:
             xml = regle.getval_entree(obj)
-        try:
-            tree = ET.fromstring(xml)
-        except ParseError as err:
-            # print("erreur xml mal formé", err, regle.getval_entree(obj))
-            LOGGER.error("erreur xml mal formé %s : %s", repr(err), xml)
+        if xml:
+            try:
+                tree = ET.fromstring(xml)
+            except ParseError as err:
+                # print("erreur xml mal formé", err, regle.getval_entree(obj))
+                LOGGER.error("erreur xml mal formé %s : %s", repr(err), xml)
+                return None, ()
+        else:
             return None, ()
     cadres = tree.iter(regle.cadre) if regle.cadre else [tree]
     return tree, cadres
@@ -166,7 +169,7 @@ def f_xmlsplit(regle, obj):
             else:
                 contenu = ""
             regle.setval_sortie(obj2, contenu)
-            if obj2.schema:
+            if obj2.schema and regle.action_schema:
                 regle.action_schema(regle, obj2)
             obj2.attributs["#xmltag"] = regle.recherche or regle.partiel or elem.tag
             obj2.attributs["#xmlgroup"] = regle.cadre

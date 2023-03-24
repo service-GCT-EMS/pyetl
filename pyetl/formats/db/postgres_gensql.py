@@ -1115,14 +1115,14 @@ class PgrGenSql(DbGenSql):
         """fournit les definitione de vues lues en base"""
         vues_sql = ["--gestion des vues en base \n", "--menage"]
         niveau = self.viewsorter(liste, vues_base)
-        liste_d = liste[::-1]
-        for ident in liste_d:
-            if ident in vues_base:
-                # print(
-                #     "drop_vues", ident, vues_base[ident][1], type(vues_base[ident][1])
-                # )
-                vues_sql.append(self.dropvue(ident, vues_base[ident][1]))
-                # print("recu ", self.dropvue(ident, vues_base[ident][1]))
+        # liste_d = liste[::-1]
+        # for ident in liste_d:
+        #     if ident in vues_base:
+        #         # print(
+        #         #     "drop_vues", ident, vues_base[ident][1], type(vues_base[ident][1])
+        #         # )
+        #         vues_sql.append(self.dropvue(ident, vues_base[ident][1]))
+        #         # print("recu ", self.dropvue(ident, vues_base[ident][1]))
         for ident in liste:
             if ident in vues_base:
                 vues_sql.append(

@@ -103,25 +103,37 @@ def code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure):
     gt = None
     if type_geom == 1:
         gt = 4 if multi else 1
-    elif type_geom == 2:
-        if courbe:
+        if mesure:
+            gt=gt+3000 if dimension==3 else gt+2000
+    elif type_geom==2:
+        if courbe: 
             gt = 11 if multi else 9
+            if dimension==3:
+                gt=gt+1000
+            if mesure: 
+                gt=gt+2000
         else:
             gt = 5 if multi else 2
+            if mesure:
+                gt=gt+3000 if dimension==3 else gt+2000
     elif type_geom == 3:
         if courbe:
             gt = 12 if multi else 10
+            if dimension==3:
+                gt=gt+1000
+            if mesure: 
+                gt=gt+2000
         else:
             gt = 6 if multi else 3
+            if mesure:
+                gt=gt+3000 if dimension==3 else gt+2000
     elif type_geom == -1:
         gt = 0
     elif type_geom == 9:
         gt = 7
-    if gt is not None:
-        if dimension == 3:
-            gt = gt + 1000
         if mesure:
-            gt = gt + 2000
+            gt=gt+3000 if dimension==3 else gt+2000
+    print ('code geom wkb',(type_geom, multi, courbe, dimension, mesure),gt)
     return gt
 
 
@@ -365,7 +377,7 @@ class GdalWriter(object):
         self.currentlayer = None
         self.write = self.bwrite if self.usebuffer else self.swrite
         # self.write = self.swrite
-        print("----------------------------gdalwriter", nom)
+        # print("----------------------------gdalwriter", nom)
         # raise
 
     def open(self):
@@ -391,7 +403,7 @@ class GdalWriter(object):
                 return None
         if not self.datasource:
             datasource = self.driver.CreateDataSource(self.nom)
-            print ('creation',self.nom,"->",datasource)
+            # print ('creation',self.nom,"->",datasource)
             if datasource is None:
                 print("erreur creation de la sortie", self.nom)
                 raise StopIteration(3)
@@ -432,14 +444,17 @@ class GdalWriter(object):
             geomcode = code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure)
             srs = osr.SpatialReference()
             srs.ImportFromEPSG(int(self.srid))
-            # print ('recup srs',srs)
+            # print ('creation table',self.layername,(type_geom, multi, courbe, dimension, mesure),"->", geomcode)
             try:
-                self.currentlayer = self.datasource.CreateLayer(self.layername, srs=srs)
+                self.currentlayer = self.datasource.CreateLayer(self.layername)
                 if geomcode is not None:
-                    geomdef = ogr.GeomFieldDefn(nom_geometrie, geomcode)
+                    geomdef = ogr.GeomFieldDefn()
+                    geomdef.SetName(nom_geometrie)
                     geomdef.SetSpatialRef(srs)
-                    # print ('def geom', geomdef.GetSpatialRef())
-                    self.currentlayer.CreateGeomField(geomdef)
+                    geomdef.SetType(geomcode)
+                    print ("creation geom", geomdef)
+                    err=self.currentlayer.CreateGeomField(geomdef)
+                    print ('def geom',err, nom_geometrie, self.currentlayer.GetGeometryColumn(),self.currentlayer.GetGeomType(),geomdef.GetType() )
             except Exception as err:
                 print("erreur creation table", self.layername, srs, geomcode, err)
             try:
@@ -589,6 +604,8 @@ class GdalWriter(object):
         print("appel finalise")
         for ident in list(self.buffer.keys()):
             self.flush_buffer(ident)
+        self.layers=[]
+        self.currentlayer=None
         # self.datasource.Destroy()
         # self.datasource=None
         return 3
@@ -600,8 +617,8 @@ def gdalconverter(obj, liste_att, minmajfunc, layer, courbe, multi):
 
     for nom in liste_att:
         val = obj.attributs.get(nom, "")
-        # print ("champs", nom,val)
-        feature.SetField(nom, val)
+        # print ("gdalconverter : champs", nom,val)
+        feature.SetField(nom, str(val))
     geom = ecrire_geom_ewkt(
         obj.geom_v,
         # geometrie_demandee=obj.schema.info.get("type_geom"),

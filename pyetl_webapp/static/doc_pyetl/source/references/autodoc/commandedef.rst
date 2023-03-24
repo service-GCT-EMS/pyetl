@@ -102,17 +102,11 @@ format
 
 **syntaxes acceptees**
 
-+-------------+-------------+-------------+---------------+-------------+---------------+
-|sortie       |defaut       |entree       |commande       |param1       |param2         |
-+=============+=============+=============+===============+=============+===============+
-|S            |?LC          |?LC          |format         |C            |?C             |
-+-------------+-------------+-------------+---------------+-------------+---------------+
-| *en cas de conflit (motif de type variable %xxx%)*                                    |
-| *il est possible de remplacer le % par un autre caractere (par defaut µ)*             |
-| *si on souhaite des espaces avant ou apres le format il est possible de definir*      |
-| *la variable espace pour remplacer les espaces*                                       |
-| *exemple: °°µs%d°° avec espace=° devient '  %s%d  '*                                  |
-+-------------+-------------+-------------+---------------+-------------+---------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|S     |?LC   |?LC   |format  |C     |?C      |
++------+------+------+--------+------+--------+
 
 
 
@@ -573,6 +567,31 @@ supp_classe
 +----------+----------+----------+---------------+----------+------------+
 | *suppression de la classe d objets avec tous ses objets et son schema* |
 +----------+----------+----------+---------------+----------+------------+
+
+
+
+
+.. index::
+  double: .traitement_alpha;to_date
+
+to_date
+.......
+
+   convertit un texte en date en utilisant un formattage prdefini
+
+   en cas de conflit (motif de type variable %xxx%)
+   il est possible de remplacer le % par un autre caractere (par defaut µ)
+   si on souhaite des espaces avant ou apres le format il est possible de definir
+   la variable espace pour remplacer les espaces
+   exemple: °°µs%d°° avec espace=° devient '  %s%d  '
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|S     |?C    |?A    |to_date |C     |?C      |
++------+------+------+--------+------+--------+
 
 
 

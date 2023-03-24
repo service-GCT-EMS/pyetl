@@ -433,9 +433,9 @@ def sortie_resultats(
         if sys_gid:
             obj2.attributs["#gid"] = obj2.attributs.get(sys_gid, str(nbvals))
         if sys_cre:
-            obj2.attributs["#_sys_date_cre"] = obj2.attributs[sys_cre]
+            obj2.attributs["#_sys_date_cre"] = obj2.attributs.get(sys_cre,'')
         if sys_mod:
-            obj2.attributs["#_sys_date_mod"] = obj2.attributs[sys_mod]
+            obj2.attributs["#_sys_date_mod"] = obj2.attributs.get(sys_mod,'')
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
         obj2.attributs["#base"] = base
         obj2.attributs["#codebase"] = code
