@@ -244,6 +244,9 @@ class Pyetl(object):
         self.done = False
         self.inited = False
         self.webworkers = dict()
+        self.webmaxworkers = 10
+        self.lasttime = None
+        self.webnbexec = 0
         self.variables_speciales = {"log_file", "log_level"}
         self.scan_entree = scan_entree
 
@@ -262,6 +265,24 @@ class Pyetl(object):
 
     def getmoteur(self):
         return Moteur(self)
+
+    def settime(self):
+        self.lasttime=time.time()
+
+    def getoldest(self):
+        nom=None
+        for n,w in self.webworkers.items():
+            if not nom:
+                nom,temps=n,w.lasttime 
+            elif w.lasttime<temps:
+                nom,temps=n,w.lasttime 
+        return nom
+
+    def cleanoldest(self):
+        nom = self.getoldest()
+        if nom:
+            del self.webworkers[nom]
+
 
     def _relpath(self, path):
         """cree un chemin relatif par rapport au fichier de programme"""
@@ -374,6 +395,7 @@ class Pyetl(object):
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
             self.fonctions = self.parent.fonctions
+            self.dbconnect=self.parent.dbconnect
 
     def traite_variables_speciales(self, nom):
         if nom == "log_file" or nom == "log_level":
@@ -654,7 +676,7 @@ class Pyetl(object):
                 nop = nbval
 
             if message == "fich":
-                print("message fich", nbfic,  nbtotal, nbval, tabletotal)
+                # print("message fich", nbfic,  nbtotal, nbval, tabletotal)
                 nbtotal += nbval
                 interm = 0.001
                 tabletotal += nbfic
@@ -680,6 +702,7 @@ class Pyetl(object):
         #     nom,
         #     mode,
         #     rep_sortie,
+        #     len(self.webworkers),
         #     self.webworkers.keys(),
         # )
 
@@ -695,7 +718,10 @@ class Pyetl(object):
 
             if nom in self.webworkers:
                 petl = self.webworkers[nom]
+                self.settime()
             else:
+                if len(self.webworkers) > self.webmaxworkers:
+                    self.cleanoldest()
                 petl = Pyetl(parent=self, nom=nom)
                 self.webworkers[petl.nompyetl] = petl
         else:

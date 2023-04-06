@@ -631,7 +631,7 @@ def f_httpdownload(regle, obj):
         #     headers=regle.httheaders,
         # )
     except Exception as err:
-        print(err)
+        print("erreur download", err)
         LOGGER.error("connection impossible:->%s<-", retour.url if retour else url)
         return False
 

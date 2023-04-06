@@ -143,16 +143,16 @@ def _parse_ewkt(geometrie, texte):
     ring = 0
     nbring = 0
     type_lu = None
+    geometrie.type = "0"
     if not isinstance(texte, str):
         print("geometrie non decodable", texte)
-        geometrie.type = "0"
         return
     if not texte:
         print("geometrie vide", texte)
-        geometrie.type = "0"
         return
     try:
         for oper, nature, dim, valeurs in decode_ewkt(texte.upper()):
+            # print ('decodage ewkt', oper, nature, dim, valeurs)
             if oper == "end":
                 if poly == niveau:
                     poly = 0
@@ -169,7 +169,7 @@ def _parse_ewkt(geometrie, texte):
                 type_lu, poly, ring, nbring = _parse_start(
                     nature, niveau, poly, ring, nbring
                 )
-                geometrie.type = type_lu
+                geometrie.type = max(type_lu,geometrie.type)
     #                if not type_geom:
     #                    print ('erreur decodage', texte, oper, nature, valeurs)
     except RuntimeError as err:
@@ -185,7 +185,7 @@ def geom_from_ewkt(obj):
     """convertit une geometrie ewkt en geometrie interne"""
     geom = obj.attributs["#geom"]
     if geom:
-
+        # print ("conversion ewkt",geom)
         
         
         if geom.startswith("0"):  # c est de l'ewkb
@@ -197,7 +197,7 @@ def geom_from_ewkt(obj):
             geom_demandee = obj.schema.info["type_geom"]
         else:
             geom_demandee = str(obj.geom_v.type) 
-        # print("decodage geometrie ewkt/ewkb ", obj.schema.info["type_geom"], "->", geom_demandee )   
+        # print("decodage geometrie ewkt/ewkb ",obj.ident, obj.schema, "->", geom_demandee )   
         try:
             obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         except ValueError:
@@ -205,6 +205,10 @@ def geom_from_ewkt(obj):
             obj.geom_v.angle = 0
 
         obj.finalise_geom(type_geom=str(geom_demandee))
+    else:
+        obj.finalise_geom(type_geom="0")
+    if not obj.geom_v.valide:
+        print ("erreur geometrie",geom,geom_demandee)
     return obj.geom_v.valide
 
 

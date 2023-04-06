@@ -423,6 +423,7 @@ def sortie_resultats(
                 # ),
             )
             obj2.setschema(schema_classe_travail)
+            # print ("setschema", obj2.ident,obj2.schema)
 
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj2.attributs["#angle"] = obj2.attributs.get("angle_g", "0")
@@ -439,19 +440,24 @@ def sortie_resultats(
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
         obj2.attributs["#base"] = base
         obj2.attributs["#codebase"] = code
+
         if sortie:
             #            print ('mdba: renseignement attributs',sortie,v_sortie)
             for nom, val in zip(sortie, v_sortie):
                 obj2.attributs[nom] = val
         #                print ('renseigne',obj.attributs)
         # print ("mdba sortie_resultats vers regle:",regle_courante.ligne,regle_debut.ligne)
+        # print ("fin atts", obj2.ident,obj2.schema)
+
         obj2.setorig(nbvals)
+        # print ("fin setorig", obj2.ident,obj2.schema)
+
         # print("sortie_res", obj2)
         traite_objet(obj2, regle_debut)
         if nbvals == maxobj:
             break
         # deco avec petits points por faire patienter
-
+        # print ("recup obj db",obj2.ident,obj2.schema, schema_classe_travail)
         if log and nbvals > decile:
             decile += connect.getdecile(curs)
             nb_pts += 1

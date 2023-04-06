@@ -80,7 +80,7 @@ class GdalConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
         print("info : dbacces:connection gdal", self.driver, self.base)
         try:
-            self.connection = gdal.Open(self.base)
+            self.connection = self.driver.Open(self.base)
             print (self.connection,self.base)
         except Exception as err:
             print(
@@ -105,7 +105,10 @@ class GdalConnect(DbConnect):
 
     def getraster(self):
         """ determine si un gpkg contient des couches raster"""
-        return self.connection.RasterCount
+        try:
+            return self.connection.RasterCount
+        except AttributeError:
+            return 0
 
     def get_tables(self):
         """retourne la liste des tables"""
@@ -175,13 +178,13 @@ class GdalConnect(DbConnect):
             "None": "0",
         }
         types_a = {
-            "str": "T",
-            "int": "E",
-            "long": "EL",
-            "float": "F",
-            "datetime": "D",
-            "date": "DS",
-            "time": "D",
+            "String": "T",
+            "Integer": "E",
+            "Integer64": "EL",
+            "Real": "F",
+            "DateTime": "D",
+            "Date": "DS",
+            "Time": "D",
         }
         nb=0
         attlist = []
@@ -216,7 +219,9 @@ class GdalConnect(DbConnect):
                 nom_att =  fielddef.GetName()
                 fieldTypeCode = fielddef.GetType()
                 fieldType = fielddef.GetFieldTypeName(fieldTypeCode)
-                type_att=types_a[fieldType]
+                type_att=types_a.get(fieldType,'-1')
+                if type_att=="-1":
+                    print ("type attribut inconnu",fieldType,fieldTypeCode)
                 taille = fielddef.GetWidth()
                 dec = fielddef.GetPrecision()
                 attlist.append(
@@ -225,7 +230,7 @@ class GdalConnect(DbConnect):
                             nom_classe=classe,
                             nom_attr=nom_att,
                             alias=complements.get("alias", ""),
-                            type_attr=types_a[type_att],
+                            type_attr=type_att,
                             taille=taille,
                             decimales=dec,
                             enum=complements.get("enum", ""),

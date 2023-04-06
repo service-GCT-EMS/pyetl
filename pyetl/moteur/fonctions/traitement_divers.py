@@ -92,7 +92,7 @@ def f_stocke(regle, obj):
       #pattern5||?L;;?L;tmpstore;=clef;#C||cmp1
       #pattern6||S;;?L;tmpstore;=cnt;?=clef||cmp1
           #test||obj;point;4||^;;V0;tmpstore;uniq;rsort||^;;C1;unique-||atv;V0;3;
-         #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique-;||^;;;pass;;;print||atv;V2;1;
+         #test2||obj;point;4||^V2;;;cnt;-1;4;||^;;V2;tmpstore;uniq;sort||^;;C1;unique-;||atv;V2;1;
     """
     #    regle.stock.append(obj)
     # if obj.virtuel:
@@ -460,7 +460,10 @@ def f_sortir(regle, obj):
         # print("======================sortie objet virtuel", regle, obj)
         # raise
         return True
+    # print ("avant schema sortie",obj.ident,obj.schema)
     setschemasortie(regle, obj)
+    # print ("apres schema sortie",obj.ident,obj.schema)
+
     # print("======================sortie objet", regle.output)
     if regle.store is None:  # on decide si la regle est stockante ou pas
         regle.store = regle.calcule_schema and (not obj.schema or not obj.schema.stable)
@@ -488,6 +491,7 @@ def f_sortir(regle, obj):
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
     try:
+        # print ("ecriture", obj.ident,obj.schema)
         regle.output.ecrire_objets_stream(
             obj, regle, False, attributs=regle.liste_attributs
         )

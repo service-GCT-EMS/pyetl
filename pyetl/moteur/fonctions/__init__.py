@@ -736,17 +736,12 @@ def loadmodules(module=None, force=False):
             if fich_module.startswith("traitement"):
                 module = "." + os.path.splitext(fich_module)[0]
                 imported = moduleloader(module)
-                if imported:
-                    modules[module] = moduleloader(module)
-                else:  # module non disponible
-                    modules[module] = "indisponible"
+                modules[module] = imported if imported else "indisponible"
     else:
         # print("loadmodules", module, MODULES)
         imported = moduleloader(module)
-        if imported:
-            modules[module] = moduleloader(module)
-        else:  # module non disponible
-            modules[module] = "indisponible"
+        modules[module] = imported if imported else "indisponible"
+
 
     simple_prefix = {
         "h": "helper fonction",
@@ -788,3 +783,5 @@ for i in prefixes:
     store[i] = dict()
 
 loadmodules()
+if printtime:
+    print("temps de chargement initial", time.time() - t1)

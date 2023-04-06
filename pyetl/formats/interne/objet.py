@@ -151,7 +151,7 @@ class Objet(object):
 
     def initgeom(self, force=False):
         """convertit la geometrie du format natif en interne"""
-        #        print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
+        # print ('initgeom ', self.ido, self.geom_v.valide, self.attributs_geom)
         if force or not self.geom_v.valide:
             if self.geom_v.unsync == -1:
                 self.geom_v.shapesync()

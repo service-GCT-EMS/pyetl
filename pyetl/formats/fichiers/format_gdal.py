@@ -100,7 +100,7 @@ def decode_wkbgeomtyp(geomtyp):
 
 
 def code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure):
-    gt = None
+    gt = 0
     if type_geom == 1:
         gt = 4 if multi else 1
         if mesure:
@@ -133,7 +133,7 @@ def code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure):
         gt = 7
         if mesure:
             gt=gt+3000 if dimension==3 else gt+2000
-    print ('code geom wkb',(type_geom, multi, courbe, dimension, mesure),gt)
+    # print ('code geom wkb',(type_geom, multi, courbe, dimension, mesure),gt)
     return gt
 
 
@@ -145,9 +145,9 @@ def recup_schema_gdal(schema_courant, ident, layer, driver, crs=None):
         "Integer": "E",
         "Integer64": "EL",
         "Real": "F",
-        "datetime": "D",
-        "Date": "D",
-        "time": "D",
+        "DateTime": "D",
+        "Date": "DS",
+        "Time": "D",
     }
 
     sc_classe = schema_courant.setdefault_classe(ident)
@@ -363,6 +363,7 @@ class GdalWriter(object):
         self.layername = ""
         self.transtable = None
         self.buffer = dict()
+        self.schemastore = dict()
         self.usebuffer = self.writerparms["usebuffer"]
         self.courbe = 1 if self.writerparms["force_courbe"] else 0
         self.multi = 1 if self.writerparms["force_multi"] else 0
@@ -410,8 +411,9 @@ class GdalWriter(object):
             self.datasource = datasource
         # print ("gdal: traitement",key )
         if key in self.layers:
-            self.currentlayer = self.layers[key]
+            self.currentlayer = self.datasource.GetLayerByName(self.layername)
         else:
+            
             description = schema_gdal(
                 self.schemaclasse, liste_attributs=self.liste_att, l_nom=l_max
             )
@@ -444,24 +446,22 @@ class GdalWriter(object):
             geomcode = code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure)
             srs = osr.SpatialReference()
             srs.ImportFromEPSG(int(self.srid))
-            # print ('creation table',self.layername,(type_geom, multi, courbe, dimension, mesure),"->", geomcode)
+            options=["GEOMETRY_NAME="+nom_geometrie]
             try:
-                self.currentlayer = self.datasource.CreateLayer(self.layername)
-                if geomcode is not None:
-                    geomdef = ogr.GeomFieldDefn()
-                    geomdef.SetName(nom_geometrie)
-                    geomdef.SetSpatialRef(srs)
-                    geomdef.SetType(geomcode)
-                    print ("creation geom", geomdef)
-                    err=self.currentlayer.CreateGeomField(geomdef)
-                    print ('def geom',err, nom_geometrie, self.currentlayer.GetGeometryColumn(),self.currentlayer.GetGeomType(),geomdef.GetType() )
+                
+                self.datasource.StartTransaction()
+                error = self.datasource.CreateLayer(self.layername,srs,geom_type=geomcode,options=options)
+                self.datasource.CommitTransaction()
+                self.currentlayer = self.datasource.GetLayerByName(self.layername)
             except Exception as err:
-                print("erreur creation table", self.layername, srs, geomcode, err)
+                print("erreur creation table", self.layername, self.srid, geomcode, err)
             try:
                 self.currentlayer.CreateFields(description["properties"].values())
             except Exception as err:
                 print("erreur creation champs", description["properties"], err)
             self.layers[key] = self.currentlayer
+            # print ('creation table',self.layername,self.datasource, self.currentlayer)
+
             # print ('affectation', self.geomforcer,key,courbe,multi)
             self.geomforcers[key] = [courbe, multi]
         # print ("creation classe",self.layername,type_geom,multi,courbe)
@@ -482,13 +482,12 @@ class GdalWriter(object):
         # crs = from_epsg(int(self.srid))
         self.schemaclasse = schemaclasse
         # schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
-        # if key not in self.layerstate:
-        #     self.open()
-        # else:
-        #     self.reopen(key)
-        # else:
-        #     self.open()
-        # print ("-------currentlayer",key)
+        if key not in self.layerstate:
+            self.open()
+        else:
+            self.reopen(key)
+        
+        # print ("-------currentlayer",key, self.layerstate, '->', self.currentlayer)
 
     def reopen(self, key):
         """reouvre le fichier s'il a ete ferme entre temps"""
@@ -523,6 +522,7 @@ class GdalWriter(object):
         # if obj.schema:
         return self.converter(
             obj,
+            self.schemaclasse,
             self.liste_att,
             self.schemaclasse.minmajfunc,
             self.currentlayer,
@@ -536,11 +536,13 @@ class GdalWriter(object):
         """ecrit les elements"""
         self.flush = True
         if ident in self.buffer:
+            # print ("recup buffer",ident,self.buffer[ident][0].schema)
+            # self.changeclasse(self.schema.classes[ident])
             self.changeclasse(self.schema.classes[ident])
-            if ident in self.layerstate:
-                self.reopen(ident)
-            else:
-                self.open()
+            # if ident in self.layerstate:
+            #     self.reopen(ident)
+            # else:
+            #     self.open()
             # try:
             #     currentlayer=self.layers[ident]
             # except KeyError:
@@ -552,9 +554,13 @@ class GdalWriter(object):
             # map(currentlayer.CreateFeature,self.buffer[ident])
             # map(lambda i:self.currentlayer.CreateFeature(self.convert(i)),self.buffer[ident])
             for i in self.buffer[ident]:
+                # print ("apres buffer",i.ident,i.schema)
                 feature = self.convert(i)
+                # feature=i
                 if feature:
-                    self.currentlayer.CreateFeature(feature)
+                    err=self.currentlayer.CreateFeature(feature)
+                    if err: 
+                        print ("gpkg: erreur creation objet", i)
             self.currentlayer.CommitTransaction()
 
             # # currentlayer.CreateFeatures(self.buffer[ident])
@@ -571,7 +577,9 @@ class GdalWriter(object):
 
         # feature = self.convert(obj)
         ident = obj.ident
-        # print("bwrite", ident)
+        # print("bwrite", ident, obj.schema)
+        # self.changeclasse(self.schema.classes[ident])
+        # feature = self.convert(obj)
         if ident in self.buffer:
             # print("gdal:bwrite", len(self.buffer[ident]))
             self.buffer[ident].append(obj)
@@ -579,6 +587,9 @@ class GdalWriter(object):
                 self.flush_buffer(ident)
         else:
             self.buffer[ident] = [obj]
+
+        # print("bwrite2", ident, self.buffer[ident][0].schema)
+
         return True
 
     def swrite(self, obj):
@@ -601,38 +612,47 @@ class GdalWriter(object):
 
     def finalise(self):
         """ferme definitivement les fichiers"""
-        print("appel finalise")
+        # print("appel finalise")
         for ident in list(self.buffer.keys()):
             self.flush_buffer(ident)
         self.layers=[]
         self.currentlayer=None
-        # self.datasource.Destroy()
-        # self.datasource=None
+        self.datasource.Destroy()
+        self.datasource=None
         return 3
 
 
-def gdalconverter(obj, liste_att, minmajfunc, layer, courbe, multi):
+def gdalconverter(obj, schemaclasse, liste_att, minmajfunc, layer, courbe, multi):
     """convertit un objet dans un format compatible avec la lib gdal"""
     feature = ogr.Feature(layer.GetLayerDefn())
-
+    # print ("conversion gdal", obj.ident,schemaclasse)
     for nom in liste_att:
         val = obj.attributs.get(nom, "")
         # print ("gdalconverter : champs", nom,val)
         feature.SetField(nom, str(val))
-    geom = ecrire_geom_ewkt(
-        obj.geom_v,
-        # geometrie_demandee=obj.schema.info.get("type_geom"),
-        epsg=False,
-        multiple=multi,
-        force_courbe=courbe,
-    )
+    if obj.geomnatif and obj.format_natif=="ewkt":
+        geom=obj.attributs["#geom"]
+    else:
+        if obj.initgeom():
+            geom = ecrire_geom_ewkt(
+                obj.geom_v,
+                epsg=False,
+                multiple=multi,
+                force_courbe=courbe,
+            )
+        else:
+            geom = "EMPTY"
+            print ("erreur creation geometrie", obj.geom_v.erreurs)
+        # print ("geom ewkt", geom, obj.geom_v)
     # if multi and obj.geom_v.type=="1":
     #     print ("multipoint",obj)
 
-    # print ("creation geometrie" , geom)
+    # print ("creation geometrie" , obj.geomnatif, obj.format_natif,obj.attributs["#geom"],'->',geom)
     if geom:
         feature.SetGeometry(ogr.CreateGeometryFromWkt(geom))
     else:
+        if schemaclasse.info["type_geom"]!="0":
+            print ("warning geometrie vide", obj.ident,schemaclasse.info["type_geom"])
         feature.SetGeometry(None)
     return feature
 

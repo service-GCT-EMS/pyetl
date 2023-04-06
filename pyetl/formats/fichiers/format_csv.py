@@ -90,7 +90,7 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None, mode="csv")
                 nlin+=1
                 ligne=list(lecteur.__next__().values())
             csvfile.seek(0)
-            print("csv:",nlin,"entete")
+            # print("csv:",nlin,"entete")
             for i in range(nlin):
                 lecteur.__next__()
 

@@ -92,6 +92,8 @@ hdel;.traitement_hstore
 hget;.traitement_hstore
 hset;.traitement_hstore
 hsplit;.traitement_hstore
+lasfilter;.traitement_las
+lasreader;.traitement_las
 map;.traitement_mapping
 map_data;.traitement_mapping
 abspath;.traitement_os
