@@ -267,11 +267,11 @@ class PgrGenSql(DbGenSql):
 
         groupe, nom = self.get_nom_base(ident)
         table = groupe + "." + nom
-        fkeys = classe.fkeys
+        fkeys = classe.fkeys if classe.fkeys else []
         fkprops = classe.fkprops
         fks = []
         for i in fkeys:
-            props = fkprops[i]
+            props = fkprops[i] or []
             deffk = fkeys[i].split(".")
             #            print('%-40s clef fk:'%(nom), nom+'.'+i, '->', deffk)
             idfk = (deffk[0], deffk[1])
@@ -737,7 +737,11 @@ class PgrGenSql(DbGenSql):
                                 typedef = (
                                     self.schema_conf + "." + typedef.split(".", 1)[1]
                                 )
-                            predef = nom + "::" + typedef
+                            if nom.startswith("'") or nom.startswith('"'):
+                                nom=nom[1:]
+                            if nom.endswith("'") or nom.endswith('"'):
+                                nom=nom[:1]
+                            predef = "'"+nom + "'::" + typedef
                         defaut = " DEFAULT " + predef
                 if nomconf:
                     if "::" in attribut.defaut: # il y a un typecast
@@ -752,7 +756,11 @@ class PgrGenSql(DbGenSql):
                         attribut.defaut=val+'::'+typedef
                     defaut = (" DEFAULT " + attribut.defaut)
                 else:
-                    defaut = (" DEFAULT " + attribut.defaut)
+                    if attribut.defaut.startswith("'") or attribut.defaut.startswith('"'):
+                        attribut.defaut=attribut.defaut[1:]
+                    if attribut.defaut.endswith("'") or attribut.defaut.endswith('"'):
+                        attribut.defaut=attribut.defaut[:1]
+                    defaut = (" DEFAULT '" + attribut.defaut+"'")
             elif defaut is None:
                 defaut=''
             if self.types_db.get(attype) == "integer":
