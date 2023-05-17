@@ -661,3 +661,9 @@ class Statstore(object):
             print("%-60s | %10s |" % ("           nom", "nombre   "))
             for i in sorted(liste_fich):
                 print("%-60s | %10d |" % (i, liste_fich[i]))
+        
+    def rulestat(self):
+        "indique les stats d'utilisation des regles"
+        regles=self.parent.regles
+        for i in regles:
+            print ("regle:",i.declenchee,"->", i.ligne)

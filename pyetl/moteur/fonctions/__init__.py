@@ -84,6 +84,7 @@ class DefinitionAttribut(object):
         "+L": (r"^\+(" + asdef + r"(?:," + asdef + r")*)$", "L", "M", "liste"),  # liste
         "L+": (r"^(" + asdef + r"(?:," + asdef + r")*)\+$", "L", "M", "liste"),  # liste
         "P": (r"^[Pp]:(" + asdef + r")$", "P", "P", "parametre"),
+        "LP": (r"^[Pp]:(" + asdef + r"(?:[:,]" + asdef + r")*|\*)$", "P", "P", "liste de parametres"),
         "N:N": (r"^(" + ndef + r"(?::" + ndef + r")?)$", "N", "", "numerique"),
         "LN": (r"^(" + ndef + r"(?:,(" + ndef + r"))*)$", "N", "", "liste numerique"),
         "N": (r"^([" + ndef + r")$", "N", "", "numerique"),

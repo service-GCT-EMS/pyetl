@@ -215,6 +215,26 @@ def f_valide_schema(regle, obj):
     obj.attributs["#erreurs"] = "objet sans schema"
     return False
 
+def f_supp_enums(regle,obj):
+    """#aide||transforme un schema en mode basique (supprime des enums)
+    #aide_spec||;;attributs a traiter(tous);;
+     #pattern1||;;?L;supp_enums;;
+    """
+    schem = obj.schema
+    if schem:
+        if schem.amodifier(regle):
+            if regle.params.att_entree.liste:
+                for i in regle.params.att_entree.liste:
+                    att = schem.attributs.get(i)
+                    if att:
+                        att.setbasic()
+            else:
+                schem.setbasic(attributs=regle.params.att_entree.liste)
+        return True
+    return False
+
+
+
 
 def h_def_schema(regle):
     """lecture de schema : preparation

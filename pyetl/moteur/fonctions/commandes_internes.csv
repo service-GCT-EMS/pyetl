@@ -624,7 +624,7 @@ $#ftp_%acces%;;;;;;
 ;;;;;%fich%;;ftp_download;ftp_%acces%;%accdir%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#httpdownload;url;dest;rep;;;;
-!#help;charge des elements par ftp;;;;;;;;;;
+!#help;charge des elements en http;;;;;;;;;;
 ;;;;;%url%;;download;%rep%;%dest%;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#geocode;adresse;filtres;;;;

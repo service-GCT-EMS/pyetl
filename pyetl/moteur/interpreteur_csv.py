@@ -296,7 +296,7 @@ def prepare_regle(regle, prec=None, refs=None):
         if len(vdebug) > 1:
             regle.champsdebug = vdebug[1:]
         print("debug regle ::::", regle.ligne)
-        print("vnommees", regle.v_nommees)
+        print("vnommees", {i:j for i,j in regle.v_nommees.items() if j })
 
     if not regle.runscope():
         regle.valide = "out_of_scope"

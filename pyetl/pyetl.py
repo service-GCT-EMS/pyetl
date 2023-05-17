@@ -10,7 +10,9 @@ if printtime:
 import os
 import re
 import io
+import datetime
 import itertools
+
 from queue import Empty
 from .vglobales import VERSION, set_mainmapper, getmainmapper, DEFCODEC
 from .outils.commandes_speciales import is_special, commandes_speciales
@@ -68,6 +70,12 @@ def cremapper():
     """on cree l'objet parent et l'executeur principal"""
     mapper = Pyetl()
     # mapper.initpyetl("#init_mp", [])
+    try:
+        # on essaye de nommer le process (ne marche pas sous windows)
+        import setproctitle
+        setproctitle.setproctitle("mapper")
+    except:
+        pass
     mapper.ismainmapper = True
     return set_mainmapper(mapper)
 
@@ -861,6 +869,9 @@ class Pyetl(object):
         self.fonctions["#time"] = time.time
         self.fonctions["#seconds"] = lambda: int(time.time())
 
+        aujourd_hui = datetime.datetime.today()
+        demain = aujourd_hui + datetime.timedelta(days=1)
+        hier = aujourd_hui + datetime.timedelta(days=-1)
         self.context.update(
             [
                 ("mode_sortie", "D"),
@@ -873,7 +884,9 @@ class Pyetl(object):
                 ("F_entree", ""),
                 ("racine", "."),
                 ("job_control", "no"),
-                ("aujourdhui", time.strftime("%Y/%m/%d 00:00:00")),
+                ("aujourdhui", aujourd_hui.strftime("%Y/%m/%d 00:00:00")),
+                ("hier", hier.strftime("%Y/%m/%d 00:00:00")),
+                ("demain", demain.strftime("%Y/%m/%d 00:00:00")),
                 ("annee", time.strftime("%Y")),
                 ("mois", time.strftime("%m")),
                 ("jour", time.strftime("%D")),
@@ -1338,6 +1351,8 @@ class Pyetl(object):
         self.statstore.ecriture_stats()
         if self.getvar("fstat"):  # ecriture de statistiques de fichier
             self.statstore.ecriture_stat_fichiers()
+        if self.istrue("rulecount"): # ecriture stat utilisation des regles
+            self.statstore.rulestat()
 
     def signale_fin(self):
         """ecrit un fichier pour signaler la fin du traitement"""

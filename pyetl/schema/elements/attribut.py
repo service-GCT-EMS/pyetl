@@ -345,7 +345,7 @@ class Attribut(object):
             return
         self.nom_conformite = ""
         self.defaut = None
-        if mode == "basic":
+        if mode == "basic" or mode=="consult":
             self.conformite = None
             self.type_att = self.type_att_base
 

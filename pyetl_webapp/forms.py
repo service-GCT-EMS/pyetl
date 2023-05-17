@@ -116,7 +116,7 @@ def formbuilder(description):
     }
     variables = description.get("variables", dict())
     params = description.get("parametres", dict())
-    print("recup description", description)
+    # print("recup description", description)
     varlist = []
     def_es = description.get("e_s", ())
     if description["__mode__"] == "api":
@@ -144,7 +144,7 @@ def formbuilder(description):
         if description["__mode__"] != "api":
             setattr(CustomForm, "sortie", F.StringField("sortie"))
             varlist.append(("sortie", "sortie"))
-    print("formbuilder: variables", list(chain(params.items(), variables.items())))
+    # print("formbuilder: variables", list(chain(params.items(), variables.items())))
     for name, definition in chain(params.items(), variables.items()):
 
         nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")
@@ -226,7 +226,7 @@ def miniformbuilder(description):
         if description["__mode__"] != "api":
             setattr(CustomForm, "sortie", F.StringField("sortie"))
             varlist.append(("sortie", "sortie"))
-    print("formbuilder: variables", list(chain(params.items(), variables.items())))
+    print("miniformbuilder: variables", list(chain(params.items(), variables.items())))
     for name, definition in chain(params.items(), variables.items()):
 
         nom, typevar = name.split("(", 1) if "(" in name else (name, "T)")

@@ -440,12 +440,20 @@ def h_dbrequest(regle):
                 parms=[regle.getvar[i] for i in regle.params.cmp2.liste],
             )
             if regle.params.pattern == "7":
-                if isinstance(retour, list):
-                    r2 = [",".join(i) for i in retour]
-                    r3 = ",".join(r2)
-                else:
-                    r3=retour
-                regle.setvar(regle.params.att_sortie.val, r3)
+                if regle.debug:
+                    print ("dbreq:",retour,"->",regle.params.att_sortie.liste)
+                if retour and isinstance(retour, list):
+                    if len(retour)==1:  # une valeur
+                        vals=retour[0]
+                        if len(regle.params.att_sortie.liste)>1:
+                            for nom,contenu in zip(regle.params.att_sortie.liste,vals):      
+                                regle.setvar(nom, contenu)
+                        else:
+                            r3 = ",".join([str(i) for i in vals])
+                            regle.setvar(regle.params.att_sortie.liste[0], r3)
+                    else:
+                        r2=",".join([",".join([str(i) for i in vals]) for vals in retour])
+                        regle.setvar(regle.params.att_sortie.val, r3)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
                 # sortie.extend(retour if isinstance(retour, list) else [retour])
@@ -501,7 +509,7 @@ def f_dbrequest(regle, obj):
       #pattern4||;;=#;dbreq;C;?A.C
       #pattern5||;;=#;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
-      #pattern7||P;;;dbreq;C;?L
+      #pattern7||LP;;;dbreq;C;?L
       #aide_spec8||mode webservice: renvoie le resultat brut de la requete
       #pattern8||=mws:;;;dbreq;C;?L||sortie
      #req_test||testdb

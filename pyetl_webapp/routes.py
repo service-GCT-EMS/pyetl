@@ -185,7 +185,7 @@ class ScriptList(object):
             infos["help_detaillee"] = macro.help_detaillee
             infos["api"] = macro.apis
             infos["lignes"] =  macro.lignes
-            print ("lecture macro", nom_script, infos)
+            # print ("lecture macro", nom_script, infos)
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
@@ -591,7 +591,7 @@ def webservice(api):
     entree = ""
     rep_sortie = ""
     scriptparams = [i + "=" + j for i, j in tmp.items()]
-    print ("ajout infoscript", infoscript,scriptlist.apis)
+    # print ("ajout infoscript", infoscript,scriptlist.apis)
     scriptparams.extend(["F_sortie="+infoscript[1],"template="+infoscript[2],"sans_entree="+infoscript[3]])
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local

@@ -176,12 +176,11 @@ class Moteur(object):
         last = None
         while regle:
             last = regle
-            # if (
-            #     obj.virtuel and regle.declenchee
-            # ):  # un virtuel ne declenche une regle q une fois
-            #     regle = regle.branchements.brch["ok"]
-            #     continue
-            regle.declenchee = True
+            if obj.virtuel and regle.declenchee and obj.ident[0]=="_declencheur":
+                # un declencheur ne declenche une regle q une fois
+                regle = regle.branchements.brch["ok"]
+                continue
+            regle.declenchee += 1
             try:
                 if regle.selstd is None or regle.selstd(obj):
                     #                    print ('moteur:select', regle.numero, obj.ident, regle.fonc)

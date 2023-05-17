@@ -362,11 +362,12 @@ def h_print(regle):
     """ "affichage direct en webservice"""
     regle.printvirtuel = regle.istrue("virtuel")
     if regle.params.pattern == "3":
-        # print(
-        #     "affichage variable ws",
-        #     regle.params.att_entree.liste,
-        #     ",".join((repr(regle.getvar(i)) for i in regle.params.att_entree.liste)),
-        # )
+        if regle.debug:
+            print(
+                "affichage mode ws",
+                regle.params.att_entree.liste,'\n',
+                ",".join((repr(regle.getvar(i)) for i in regle.params.att_entree.liste)),
+            )
         if len(regle.params.att_entree.liste) > 1:
             regle.print([regle.getvar(i) for i in regle.params.att_entree.liste])
         else:

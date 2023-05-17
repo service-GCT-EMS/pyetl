@@ -476,12 +476,13 @@ class Schema(object):
         for i in self.classes:
             self.classes[i].adapte_attributs(fonction)
 
-    def setbasic(self, mode):
+    def setbasic(self, mode, classes=None):
         """simplifie un schema pour supprimer les enums et les liens / fonctions vues etc..."""
         if mode == "basic":
             self.conformites = dict()
         for i in self.classes:
-            self.classes[i].setbasic(mode)
+            if not classes or i in classes:
+                self.classes[i].setbasic(mode)
         self.elements_specifiques = {}
 
     def valide_condition(self, classe, tables):

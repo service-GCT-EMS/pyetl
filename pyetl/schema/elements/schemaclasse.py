@@ -222,15 +222,16 @@ class SchemaClasse(object):
         self.maxpk = 0
         self.pkref = None
 
-    def setbasic(self, mode):
+    def setbasic(self, mode="basic", attributs=None):
         """simplifie la structure pour les classes de consultation"""
         # self.triggers = dict()
         self.specifique = dict()
         self.changed = True
         self.type_table = "i"
         self.basic = mode
-        for i in self.attributs.values():
-            i.setbasic(mode)
+        for i,att in self.attributs.items():
+            if not attributs or i in attributs:
+                att.setbasic(mode)
 
     def __repr__(self):
         """affichage simplifie"""

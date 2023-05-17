@@ -117,11 +117,13 @@ def geocode_traite_stock(regle, final=True):
             )
             # print ('retour',obj)
             score = obj.attributs.get(prefix+"result_score", "")
-            if not score:
+            if not score or float(score) < regle.scoremin:
                 regle.stock_param.logger.error(
                     "erreur geocodage %s", ",".join(attributs)
                 )
-                # print("erreur geocodage", attributs)
+                score=0
+                # print("erreur geocodage",
+                #        [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])])
             traite(obj, suite if score else fail)
         elif not header:
             header = [prefix + i for i in attributs[outcols:]]
@@ -171,7 +173,7 @@ def h_geocode(regle):
     regle.traite_stock = geocode_traite_stock
     regle.tmpstore = []
     regle.liste_atts = []
-    regle.scoremin = 0
+    regle.scoremin = float(regle.getvar("scoremin",0))
     regle.filtres = dict(i.split("=") for i in regle.params.cmp2.liste)
     regle.tinit = time.time()
     return True

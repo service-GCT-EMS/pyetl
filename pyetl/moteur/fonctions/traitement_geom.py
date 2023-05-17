@@ -186,6 +186,7 @@ def h_addgeom(regle):
         ext = True
     regle.csep = decode_sep(regle.getvar("sep_coords", ","))
     regle.ext = regle.getvar("bouts") == 1 if regle.getvar("bouts") else ext
+    regle.ordre = [int(i)-1 for i in regle.params.cmp2.val]
     # print(
     #     "addgeom separateurs :p >%s< c>%s< ext:%d" % (regle.psep, regle.csep, regle.ext)
     # )
@@ -193,10 +194,12 @@ def h_addgeom(regle):
 
 def f_addgeom(regle, obj):
     """#aide||cree une geometrie pour l'objet
+   #parametres1||defaut;variable contenant les coordonnees;;type_geom;ordre des coordonnees(21 inverse x et y)
+   #parametres2||defaut;liste de variables contenant les coordonnees;;type_geom;
      #aide_spec||N:type geometrique
     #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
     #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
-      #pattern1||;?C;?A;addgeom;N;||entree
+      #pattern1||;?C;?A;addgeom;N;?N||entree
       #pattern2||;?C;?L;addgeom;N;||entree
          #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
          #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
@@ -207,6 +210,7 @@ def f_addgeom(regle, obj):
     if type_geom == "1":
         try:
             if len(regle.params.att_entree.liste) > 1:
+
                 point = list(map(float, regle.getlist_entree(obj).split(regle.csep)))
             #                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
             #                         for i in regle.params.att_entree.liste]
@@ -218,7 +222,9 @@ def f_addgeom(regle, obj):
         except (ValueError, TypeError):
             print("add geom : erreur valeurs entree ", regle.ligne[:-1])
             return False
-        dim = len(point)
+        if regle.ordre:
+            point=[point[i] for i in regle.ordre]
+        dim=len(point)
         if dim == 2:
             point.append(0.0)
         obj.geom_v.setpoint(point, None, dim)
@@ -244,7 +250,9 @@ def f_addgeom(regle, obj):
             except (ValueError, TypeError):
                 print("add geom : erreur valeurs entree ", vals, regle.ligne)
                 return False
-            dim = len(point)
+            if regle.ordre:
+                point=[point[i] for i in regle.ordre]
+            dim=len(point)
             if dim == 2:
                 point.append(0.0)
             obj.geom_v.addpoint(point, dim)
