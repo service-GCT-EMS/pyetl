@@ -380,6 +380,11 @@ class Macro(object):
                 if auxv:
                     vars=auxv.split(',')
                     aux={i.split("=") for i in vars}
+                if "#" in apiname:
+                    tmp=apiname.split('#')
+                    apiname=tmp[0]
+                    subname=tmp[1]
+                    aux['suburl']=subname
                 self.apis[apiname] = (self.nom, retour, template, no_in, aux)
                 return
             if ligne.startswith("!"):  # commentaire on jette

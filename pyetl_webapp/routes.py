@@ -569,10 +569,9 @@ def autotemplate(data): # genere un template basique pour l affichage
     pass
 
 
-
-
 @app.route("/mws/<api>", methods=["GET", "POST"])
-def webservice(api):
+@app.route("/mws/<api>/<suburl>", methods=["GET", "POST"])
+def webservice(api, suburl=None):
     local = request.host.startswith("127.0.0.1:")
     local=False
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
@@ -641,6 +640,18 @@ def webservice(api):
         return "erreur rien a retourner"
     else:
         return "erreur pas de retour"
+
+
+# @app.route("/mws/<api>/<suburl>", methods=["GET", "POST"])
+# def webservice2(api,suburl):
+#     print( "url a 2 niveaux",api,suburl)
+#     infoscript = scriptlist.apis.get(api)
+#     aux=infoscript[4]
+#     if "suburl" in aux:
+
+
+
+    return render_template("plantage.html",text="fonction non disponible",)
 
 
 @app.route("/mw/exec/<appel>/<mode>", methods=["GET", "POST"])
