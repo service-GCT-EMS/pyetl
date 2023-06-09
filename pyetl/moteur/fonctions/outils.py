@@ -556,7 +556,7 @@ def getfilelist(
                 yield from (
                     (
                         str(os.path.basename(i)),
-                        str(os.path.dirname(i)).replace(rep, ""),
+                        str(os.path.dirname(i)).replace(racine, ""),
                         racine,
                     )
                     for i in glob.glob(entree, recursive=True)

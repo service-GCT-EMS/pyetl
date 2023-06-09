@@ -120,6 +120,7 @@ sc_ordre;.traitement_schema
 sc_supp_attr;.traitement_schema
 schema;.traitement_schema
 set_schema;.traitement_schema
+supp_enums;.traitement_schema
 valide_schema;.traitement_schema
 angle;.traitement_shapely
 buffer;.traitement_shapely
@@ -131,6 +132,7 @@ download;.traitement_web
 ftp_download;.traitement_web
 ftp_upload;.traitement_web
 geocode;.traitement_web
+qwc2url;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
 attdecode;.traitement_workflow

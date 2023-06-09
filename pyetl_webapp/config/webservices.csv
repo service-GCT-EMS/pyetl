@@ -31,6 +31,14 @@ P:p3;;;;P:p3;%p3%;;sub;::;=;
 ||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;
 ||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;
 !===========================================================================================;;;;;;;;;;;
+&&#define;#complete;base;table;champ;valeur;
+!==============================selections en cascade sur une table===========================;;;;;;;;;;;
+!#help;outil d'interrogation rapide de base de donnees (autocompletion de liste)
+!#api;complete;text;
+$v2=%valeur%%
+db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ% like %s limit 10;%v2%;debug;
+!db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ% like 'S%' limit 10;;
+!===========================================================================================;;;;;;;;;;;
 &&#define;#var;nom;
 !==================================affichage d une variable==================================;;;;;;;;;;;
 !#help;affiche une variable
@@ -50,7 +58,7 @@ P:p3;;;;P:p3;%p3%;;sub;::;=;
 !========================================extraction des groupes=============================;;;;;;;;;;;
 !#help;liste les groupes d une base;
 !#api;listegroupes;json;
-!#parametres;base(S:#params,server,*@);base de donnees
+!#parametres;base(S:@params,server,*@);base de donnees
 <#dbschema;%base%;
 ;;;;mws:;groupes;;liste_schema>;%base%;
 !;;;;;;#groupe;unique-;;;debug
@@ -98,3 +106,10 @@ $req=%r2% num_commune::text='%commune%'::text and num_section='%section%'::text 
 db:siglc_prod_consult;;;;P:gid,xx;;;dbreq;%req%;;debug
 $url2=%url%c=%xx%&s=500&hc=1&SELECTION=Parcelles:%gid%;
 ;;;;mws:;P;url2;print;;;debug
+!======================================locator==============================================;;;
+&&#define;#locator;table;key;keyid;projet
+!#help;ouvre le projet par defaut a une parcelle
+!#api;recherche_cadastre;link;;no_in;
+<#dbextract;sigli_prod_consult;;%table%;%keyid%;%key%
+<#dbextract;siglc_prod_consult;;%table%;%keyid%;%key%
+<#genurl;https://wipsiglw.cus.fr;projet

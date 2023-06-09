@@ -21,6 +21,12 @@ def sel_attexiste(condition, obj):
     """
     return condition.params.attr.val in obj.attributs
 
+def sel_attsexistent(condition, obj):
+    """#aide||teste si des attributs existent
+    #pattern||L;||60
+       #test||obj||^?Z;0;;set||Z;!;;;res;1;;set||atv;res;1
+    """
+    return all([i in obj.attributs for i in condition.params.attr.liste])
 
 def selh_attexiste_re(condition):
     """ compile les expressions regulieres"""

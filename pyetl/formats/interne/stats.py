@@ -48,6 +48,7 @@ class Statdef(object):  # definition d'une statistique
             "val": lambda x: ",".join(x) if x else "",
             "valtri": lambda x: ",".join(sorted(x)) if x else "",
             "val_uniq": lambda x: ",".join(sorted(x)) if x else "",
+            "cnt_val_uniq": lambda x: str(len(x)) if x else "0",
         }
 
     def ajout_colonne(self, colonne, vtype):
@@ -256,6 +257,7 @@ class Stat(object):
             "valtri": self._val,
             "val": self._val,
             "val_uniq": self._val_unique,
+            "cnt_val_uniq": self._val_unique,
         }
 
         self.types_stat = {
@@ -269,6 +271,7 @@ class Stat(object):
             "val": "T",
             "valtri": "T",
             "val_uniq": "T",
+            "cnt_val_uniq": "E",
         }
 
     def _cnt(self, clef, _):

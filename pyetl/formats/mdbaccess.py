@@ -20,7 +20,7 @@ DBDATAMODS = {"S", "L"}
 DBMODS = DBACMODS | DBDATAMODS
 
 
-def dbaccess(regle, codebase, type_base=None):
+def dbaccess(regle, codebase, type_base=None, mode=None):
     """ouvre l'acces a la base de donnees et lit le schema"""
     codebase = codebase if codebase and codebase != "*" else regle.getvar("_paramgroup")
     base = codebase
@@ -87,7 +87,8 @@ def dbaccess(regle, codebase, type_base=None):
         connection.geom_to_natif = dbdef.geomwriter
         connection.format_natif = dbdef.geom
         connection.schemabase.dbsql = connection.gensql
-        connection.get_schemabase()
+        if mode !='fast':
+            connection.get_schemabase()
         connection.commit()  # on referme toutes les transactions
         return connection
 
@@ -279,7 +280,7 @@ def get_connect(
     stock_param = regle.stock_param
     nombase = base
 
-    connect = stock_param.getdbaccess(regle, nombase, type_base=type_base)
+    connect = stock_param.getdbaccess(regle, nombase, type_base=type_base, mode=mode)
 
     if connect is None:
         stock_param.logger.error("connection base invalide " + str(nombase))

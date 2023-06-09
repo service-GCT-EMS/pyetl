@@ -115,19 +115,24 @@ class Cursinfo(object):
     def execute(self, requete, data=None, attlist=None, newcursor=False, regle=None):
         """execute une requete"""
 
-        # print("dans execute ", requete, data)
+        # print("dans execute ", requete, ":",repr(data))
         cur = self.connecteur.connection.cursor() if newcursor else self.cursor
         if cur:
             try:
                 if data is not None:
-                    cur.execute(requete, data)
+                    cur.execute(requete, tuple(data))
                 else:
                     cur.execute(requete)
             except Exception as err:
                 regle_ref = regle if regle else self.connecteur.regle
                 fail_silent = regle_ref.istrue("fail_silent") if regle_ref else False
                 if not fail_silent:
-                    print(self.connecteur.base,self.connecteur.type_base, "erreur execute requete", err, requete)
+                    print(self.connecteur.base,self.connecteur.type_base, "erreur execute requete", err, requete, data)
+                    if data: 
+                        # print ("requete envoyee")
+                        print ("requete envoyee", cur.mogrify(requete, data))
+                    else: 
+                        print ("requete envoyee sans data")
                 raise StopIteration(1)
 
             if not newcursor:

@@ -257,7 +257,9 @@ def h_stat(regle):
     if regle.debug:
         print("moteur: stat", regle.code_classe)
     # TODO  attention risque de melange des statdefs si on utilise la meme colonne
-    regle.id_stat = regle.code_classe
+    
+    regle.id_stat = regle.code_classe.replace(",",'_')
+    regle.idlist  = tuple(regle.code_classe.split(',')) if ',' in regle.code_classe else None
     # statdef = regle.params.statstore.getstatdef(regle.id_stats, debug=regle.debug)
     # statdef.ajout_colonne(regle.params.att_sortie.val, regle.modestat)
     regle.stock_param.statstore.ajout_colonne(
@@ -272,6 +274,8 @@ def f_stat(regle, obj):
             ||fonctions disponibles
             ||cnt : comptage
             ||val : liste des valeurs
+            ||val_uniq: valeurs distinctes
+            ||cnt_val_uniq: nbre de valeurs distinctes
             ||min : minimum numerique
             ||max : maximum numerique
             ||somme : somme
@@ -291,9 +295,10 @@ def f_stat(regle, obj):
     # if entree not in regle.stock_param.stats:
     #     regle.stock_param.stats[entree] = Stat(entree, regle.stock_param.statdefs[regle.id_stat])
     # if regle.stock_param.stats[entree].ajout_valeur(
+    clef = ','.join(obj.attributs.get(i,'') for i in regle.idlist) if regle.idlist else obj.attributs.get(regle.code_classe, "")
     if regle.stock_param.statstore.ajout_valeur(
         entree,
-        obj.attributs.get(regle.code_classe, ""),  # ligne
+        clef,  # ligne
         regle.params.att_sortie.val,  # colonne
         regle.getval_entree(obj),  # valeur
         regle.params.cmp2.val

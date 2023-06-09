@@ -433,12 +433,15 @@ def h_dbrequest(regle):
         try:
             selecteur = regle.cible_base
             base = selecteur.base
+            parms = regle.params.cmp2.liste if regle.params.cmp2.val else None
+            # print ("appel fastrequest")
             retour = DB.fastrequest(
                 regle,
                 base,
                 requete=regle.requete,
-                parms=[regle.getvar[i] for i in regle.params.cmp2.liste],
+                parms=parms,
             )
+            # print ("dbrequest, fastrequest ",regle.requete,parms,regle.params.cmp2.liste)
             if regle.params.pattern == "7":
                 if regle.debug:
                     print ("dbreq:",retour,"->",regle.params.att_sortie.liste)
@@ -462,7 +465,7 @@ def h_dbrequest(regle):
                 sortie.append(r2)
         except Exception as err:
             printexception(regle, requete, err)
-            # raise
+            raise
             return False
 
         return True
@@ -511,7 +514,7 @@ def f_dbrequest(regle, obj):
       #pattern6||;;;dbreq;C;=#
       #pattern7||LP;;;dbreq;C;?L
       #aide_spec8||mode webservice: renvoie le resultat brut de la requete
-      #pattern8||=mws:;;;dbreq;C;?L||sortie
+      #pattern8||=mws:;;;dbreq;C;?LC||sortie
      #req_test||testdb
     """
     print ("dbrequest", obj)

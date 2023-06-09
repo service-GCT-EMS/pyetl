@@ -582,7 +582,7 @@ def webservice(api, suburl=None):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     if not scriptlist.refreshscript(nomscript):
         abort(404)
-    tmp = dict(request.args.items())
+    tmp = dict(request.args.items())        
     # on recupere les parametres positionnels s il y en a
     pp = tmp.pop("_pp", "")
     if pp:
@@ -592,6 +592,8 @@ def webservice(api, suburl=None):
     scriptparams = [i + "=" + j for i, j in tmp.items()]
     # print ("ajout infoscript", infoscript,scriptlist.apis)
     scriptparams.extend(["F_sortie="+infoscript[1],"template="+infoscript[2],"sans_entree="+infoscript[3]])
+    if suburl:
+        scriptparams.append("#suburl="+suburl)
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
@@ -613,11 +615,17 @@ def webservice(api, suburl=None):
         elif infoscript[1]=="json": #retour json
                 # print ("retour web ", [i._asdict() for i in result["print"]])
                 if "print" in result and result["print"]:
-                    return jsonify([i._asdict() for i in result["print"]])
+                    return jsonify([i._asdict() if isinstance(i,namedtuple) else i for i in result["print"]])
                 elif "log" in result:
                     return jsonify(result["log"])
                 else:
-                    return redirect(code=404)
+                    return render_template(
+                                    "notfound.html",
+                                    text="pas de resultat",
+                                    nom=infoscript[0],
+                                    url=script,
+                                    retour=result,
+            )
 
 
         elif "print" in result:
@@ -642,16 +650,6 @@ def webservice(api, suburl=None):
         return "erreur pas de retour"
 
 
-# @app.route("/mws/<api>/<suburl>", methods=["GET", "POST"])
-# def webservice2(api,suburl):
-#     print( "url a 2 niveaux",api,suburl)
-#     infoscript = scriptlist.apis.get(api)
-#     aux=infoscript[4]
-#     if "suburl" in aux:
-
-
-
-    return render_template("plantage.html",text="fonction non disponible",)
 
 
 @app.route("/mw/exec/<appel>/<mode>", methods=["GET", "POST"])

@@ -81,11 +81,26 @@ class GestionLogs(object):
         """ demarre le mode web qui stocke les logs dans l instance """
         store = StringIO()
         if self.print_handler:
-            self.logger.removeHandler(self.print_handler)
+            if isinstance(self.print_handler,logging.StreamHandler):
+                self.print_handler.setStream(store)
+            else:
+                self.logger.removeHandler(self.print_handler)
+                self.print_handler = logging.StreamHandler(store)
+                self.logger.addHandler(self.print_handler)
+        else:
+            self.print_handler = logging.StreamHandler(store)
+            self.logger.addHandler(self.print_handler)
+
         if self.aff_handler:
-            self.logger.removeHandler(self.aff_handler)
-        self.print_handler = logging.StreamHandler(store)
-        self.aff_handler = logging.StreamHandler(store)
+            if isinstance(self.print_handler,logging.StreamHandler):
+                self.aff_handler.setStream(store)
+            else:
+                self.logger.removeHandler(self.aff_handler)
+                self.aff_handler = logging.StreamHandler(store)
+                self.logger.addHandler(self.aff_handler)
+        else:
+            self.aff_handler = logging.StreamHandler(store)
+            self.logger.addHandler(self.aff_handler)
         self.cur_mapper.webstore["logbrut"] = store
 
     def resetlog(self):

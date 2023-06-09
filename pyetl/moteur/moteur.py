@@ -380,11 +380,6 @@ class Macro(object):
                 if auxv:
                     vars=auxv.split(',')
                     aux={i.split("=") for i in vars}
-                if "#" in apiname:
-                    tmp=apiname.split('#')
-                    apiname=tmp[0]
-                    subname=tmp[1]
-                    aux['suburl']=subname
                 self.apis[apiname] = (self.nom, retour, template, no_in, aux)
                 return
             if ligne.startswith("!"):  # commentaire on jette
@@ -657,7 +652,7 @@ class Context(object):
                 #     "recup getvar", self, element, cible, i, "->", self.getvar(i)
                 # ), element.replace(cible, str(self.getvar(i)))
                 element = element.replace(cible, str(self.getvar(i)))
-
+        element=element.replace('\%','%')
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement
             element = self.env.get(element.split(":")[1], "")

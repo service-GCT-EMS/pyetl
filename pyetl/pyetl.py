@@ -1170,7 +1170,7 @@ class Pyetl(object):
                     dirselect=self.getvar("dirselect"),
                     filtre_entree=self.getvar("filtre_entree"),
                 ):
-                    # print("mapper:traitement fichier", fich)
+                    # print("mapper:traitement fichier", entree, fich, parms)
                     # traitement.racine_fich = os.path.dirname(i)
                     if self.worker:
                         self.aff.send(("init", 0, 0))
@@ -1402,15 +1402,16 @@ class Pyetl(object):
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
             for i in self.webstore if i !="logbrut"
         }
-        if "logbrut" in self.webstore:
-            self.webstore = {"logbrut": buffer}
+        self.gestion_log.set_weblog()
+        # if "logbrut" in self.webstore:
+        #     self.webstore = {"logbrut": buffer}
             
-        #     self.gestion_log.resetlog()
-        #     self.gestion_log.set_weblog()
-        if buffer:
-            buffer.truncate(0)
-        else:
-            self.webstore = dict()
+        # #     self.gestion_log.resetlog()
+        # #     self.gestion_log.set_weblog()
+        # if buffer:
+        #     buffer.truncate(0)
+        # else:
+        #     self.webstore = dict()
         name = "noname"
         return tmp, name
 
@@ -1422,13 +1423,13 @@ class Pyetl(object):
         """retourne un writer"""
         return Output(nom_format, regle, None)
 
-    def getdbaccess(self, regle, nombase, type_base=None, chemin=""):
+    def getdbaccess(self, regle, nombase, type_base=None, chemin="", mode=None):
         """retourne une connection et la cache"""
         if nombase in self.dbconnect:
             connection=self.dbconnect[nombase]
             if not connection.closed:
                 return self.dbconnect[nombase]
-        connection = dbaccess(regle, nombase, type_base)
+        connection = dbaccess(regle, nombase, type_base, mode)
         if connection:
             self.dbconnect[nombase] = connection
             return connection

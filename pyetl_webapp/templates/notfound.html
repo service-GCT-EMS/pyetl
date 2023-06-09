@@ -1,0 +1,19 @@
+
+{% extends "base.html" %}
+{% block title %}
+{% endblock %}
+{% block content %}
+       <h1>{{ text }} {{nom}}</h1>
+       <div class="container">
+              <div class="row">
+                     <div class="col"></div>
+                     <div class="col">
+                     <img src="{{url_for('static', filename='images/rantancherche.jpg')}}">
+                     </div>
+                     <div class="col"></div>
+              </div>
+       </div>
+       {% if retour  %}
+              {%include "show_results.html"%}
+       {% endif %}
+{% endblock %}

@@ -846,12 +846,15 @@ def h_schema_liste_classes(regle):
     # )
     if regle.params.pattern == "2":
         schema = regle.getschema(regle.params.cmp1.val)
-        sortie = regle.stock_param.webstore.setdefault("#print", [])
-        if regle.params.val_entree.val in ("schemas", "groupes"):
-            sortie.extend(list(schema.groupes.keys()))
-        elif regle.params.val_entree.val == "classes":
-            sortie.extend(list(schema.classes))
-        else:
+        try:
+            sortie = regle.stock_param.webstore.setdefault("#print", [])
+            if regle.params.val_entree.val in ("schemas", "groupes"):
+                sortie.extend(list(schema.groupes.keys()))
+            elif regle.params.val_entree.val == "classes":
+                sortie.extend(list(schema.classes))
+            else:
+                return False
+        except AttributeError:
             return False
         regle.valide = "done"
     print("h liste classes", regle.valide)
