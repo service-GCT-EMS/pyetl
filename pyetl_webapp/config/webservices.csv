@@ -30,14 +30,15 @@ P:p3;;;;P:p3;%p3%;;sub;::;=;
 |sinon:P:p2;;;;;;;pass;;;
 ||:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1% and %p2%;;
 ||sinon:db:%base%;;;;mws:;;;dbreq;select %result% from %table% where %p1%;;
-!===========================================================================================;;;;;;;;;;;
-&&#define;#complete;base;table;champ;valeur;
-!==============================selections en cascade sur une table===========================;;;;;;;;;;;
+!==============================selections pour autocompletion===========================;;;;;;;;;;;
+&&#define;#complete;base;table;champ;valeur;champ1;valeur1;champ2;valeur2;num
+!==============================autocomplete selection sur 2 champs===========================;;;;;;;;;;;
 !#help;outil d'interrogation rapide de base de donnees (autocompletion de liste)
-!#api;complete;text;
-$v2=%valeur%%
-db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ% like %s limit 10;%v2%;debug;
-!db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ% like 'S%' limit 10;;
+!#api;complete;list;
+$v0=%valeur%%
+K:%num%=2;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ1%=%s and %champ2%=%s and lower(%champ%) like lower(%s) limit 10;%valeur1%,%valeur2%,%v0%;
+K:%num%=1;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ1%=%s and lower(%champ%) like lower(%s) limit 10;%valeur1%,%v0%;
+K:%num%=0;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where lower(%champ%) like lower(%s) limit 10;%v0%;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#var;nom;
 !==================================affichage d une variable==================================;;;;;;;;;;;

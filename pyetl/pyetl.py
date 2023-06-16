@@ -280,8 +280,10 @@ class Pyetl(object):
     def getoldest(self):
         nom=None
         for n,w in self.webworkers.items():
+            if not w.lasttime:
+                w.settime()
             if not nom:
-                nom,temps=n,w.lasttime 
+                nom,temps=n,w.lasttime
             elif w.lasttime<temps:
                 nom,temps=n,w.lasttime 
         return nom
@@ -1402,6 +1404,7 @@ class Pyetl(object):
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
             for i in self.webstore if i !="logbrut"
         }
+        self.webstore=dict() # on reset
         self.gestion_log.set_weblog()
         # if "logbrut" in self.webstore:
         #     self.webstore = {"logbrut": buffer}

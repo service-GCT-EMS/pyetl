@@ -120,7 +120,7 @@ class Cursinfo(object):
         if cur:
             try:
                 if data is not None:
-                    cur.execute(requete, tuple(data))
+                    cur.execute(requete, data if isinstance(data,dict) else tuple(data))
                 else:
                     cur.execute(requete)
             except Exception as err:
@@ -133,6 +133,7 @@ class Cursinfo(object):
                         print ("requete envoyee", cur.mogrify(requete, data))
                     else: 
                         print ("requete envoyee sans data")
+                    LOGGER.exception("erreur requete",exc_info=err)
                 raise StopIteration(1)
 
             if not newcursor:

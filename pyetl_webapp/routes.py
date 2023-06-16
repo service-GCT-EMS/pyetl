@@ -603,6 +603,7 @@ def webservice(api, suburl=None):
         if infoscript[1]=="link": #retour url
             url=result["print"][0] if result["print"] else ""
             if url:
+
                 return redirect(url)
         elif infoscript[1]=="html": #retour html direct
                 data=result["print"] if result["print"] else ""
@@ -626,7 +627,26 @@ def webservice(api, suburl=None):
                                     url=script,
                                     retour=result,
             )
-
+        elif infoscript[1]=="list": #retour liste
+                # print ("retour web ", result["print"])
+                if "print" in result:
+                    retour=result["print"]
+                    if retour:
+                        if len(retour)==1 and isinstance(retour[0],(list,tuple)):
+                            retour=retour[0] 
+                        ret = list([i if isinstance(i,str) else jsonify(i) for i in retour if i])
+                    else: ret = ()
+                elif "log" in result:
+                    ret = result["log"]
+                else:
+                    return render_template(
+                                    "notfound.html",
+                                    text="pas de resultat",
+                                    nom=infoscript[0],
+                                    url=script,
+                                    retour=result,)
+                print ("retour liste",ret,"->",jsonify(ret))
+                return jsonify(ret)
 
         elif "print" in result:
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
@@ -645,9 +665,14 @@ def webservice(api, suburl=None):
                 return Response(result[elem], mimetype="text/xml")
         if "log" in result:
             return jsonify(result["log"])
-        return "erreur rien a retourner"
+        
     else:
-        return "erreur pas de retour"
+        return render_template(
+                                    "notfound.html",
+                                    text="pas de resultat",
+                                    nom=infoscript[0],
+                                    url=script,
+                                    retour=result,)
 
 
 
