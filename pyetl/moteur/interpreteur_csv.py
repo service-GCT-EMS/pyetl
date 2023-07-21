@@ -497,7 +497,7 @@ def lire_commandes_en_base(mapper, fichier_regles):
     if not acces:
         raise SyntaxError("base scripts non accessible")
     serv, nomschema = acces
-    # mapper.load_paramgroup("dbscriptmode")
+    mapper.load_paramgroup("dbscriptmode")
     serv = mapper.getvar("scriptserver")
     if not serv:
         raise SyntaxError("base de scripts non definie")
