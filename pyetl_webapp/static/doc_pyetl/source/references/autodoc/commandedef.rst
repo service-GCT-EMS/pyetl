@@ -360,6 +360,10 @@ set
 | *remplacement d'une valeur d'attribut par le premier non vide*                                |
 | *d'une liste avec defaut*                                                                     |
 +----------------+--------------+--------------+----------------+--------------+----------------+
+|S               |              |              |set             |=UUID         |                |
++----------------+--------------+--------------+----------------+--------------+----------------+
+| *cree un uuid*                                                                                |
++----------------+--------------+--------------+----------------+--------------+----------------+
 |S               |?             |?A            |set             |              |                |
 +----------------+--------------+--------------+----------------+--------------+----------------+
 | *remplacement d'une valeur d'attribut avec defaut*                                            |
@@ -424,6 +428,8 @@ split
 |      |?     |A     |split   |.     |?N:N    |
 +------+------+------+--------+------+--------+
 |      |?     |A     |split   |      |?N:N    |
++------+------+------+--------+------+--------+
+|LP    |C     |      |split   |.     |?N:N    |
 +------+------+------+--------+------+--------+
 
 
@@ -818,6 +824,8 @@ stat
    fonctions disponibles
    cnt : comptage
    val : liste des valeurs
+   val_uniq: valeurs distinctes
+   cnt_val_uniq: nbre de valeurs distinctes
    min : minimum numerique
    max : maximum numerique
    somme : somme
@@ -1338,9 +1346,9 @@ dbreq
 +---------+---------+---------+-----------+---------+-----------+
 |         |         |         |dbreq      |C        |=#         |
 +---------+---------+---------+-----------+---------+-----------+
-|P        |         |         |dbreq      |C        |?L         |
+|LP       |         |         |dbreq      |C        |?L         |
 +---------+---------+---------+-----------+---------+-----------+
-|=mws:    |         |         |dbreq      |C        |?L         |
+|=mws:    |         |         |dbreq      |C        |?LC        |
 +---------+---------+---------+-----------+---------+-----------+
 | *mode webservice: renvoie le resultat brut de la requete*     |
 +---------+---------+---------+-----------+---------+-----------+
@@ -1839,7 +1847,7 @@ addgeom
 +-----------+-----------+-----------+-------------+-----------+-------------+
 |sortie     |defaut     |entree     |commande     |param1     |param2       |
 +===========+===========+===========+=============+===========+=============+
-|           |?C         |?A         |addgeom      |N          |             |
+|           |?C         |?A         |addgeom      |N          |?N           |
 +-----------+-----------+-----------+-------------+-----------+-------------+
 | *ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)*                      |
 +-----------+-----------+-----------+-------------+-----------+-------------+
@@ -1848,6 +1856,17 @@ addgeom
 | *  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)*    |
 +-----------+-----------+-----------+-------------+-----------+-------------+
 
+
+   ?C :  defaut (optionnel)
+   ?A :  variable contenant les coordonnees (optionnel)
+   addgeom :  
+   N :  type_geom
+   ?N :  ordre des coordonnees(21 inverse x et y) (optionnel)
+
+   ?C :  defaut (optionnel)
+   ?L :  liste de variables contenant les coordonnees (optionnel)
+   addgeom :  
+   N :  type_geom
 
 
 
@@ -1906,9 +1925,9 @@ coordp
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|?M    |?N    |?A    |coordp  |      |        |
+|      |?N    |?A    |coordp  |      |        |
 +------+------+------+--------+------+--------+
-| *les coordonnees sont sous #x,#y,#z*        |
+|      |=C    |      |coordp  |      |        |
 +------+------+------+--------+------+--------+
 
 
@@ -1932,6 +1951,26 @@ csplit
 |?A    |      |      |csplit  |C     |        |
 +------+------+------+--------+------+--------+
 | *expression sur les coordonnes : x y z*     |
++------+------+------+--------+------+--------+
+
+
+
+
+.. index::
+  double: .traitement_geom;emprise
+
+emprise
+.......
+
+   retourne l emprise de la geometrie
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |      |      |emprise |      |        |
 +------+------+------+--------+------+--------+
 
 
@@ -2480,6 +2519,58 @@ hsplit
 |M     |?     |A     |hsplit  |?L    |        |
 +------+------+------+--------+------+--------+
 
+
+
+
+las
+---
+
+las
+
+.. index::
+  double: .traitement_las;lasfilter
+
+lasfilter
+.........
+
+   decoupage d'un attribut xml en objets
+
+   s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|A     |?     |?A    |lasfilter|C     |?=D     |
++------+------+------+---------+------+--------+
+
+
+   A :  repertoire de sortie
+   ? :  defaut (optionnel)
+   ?A :  attribut (optionnel)
+   lasfilter :  
+   C :  json de traitement
+   ?=D :  D: dynamique (optionnel)
+
+
+
+.. index::
+  double: .traitement_las;lasreader
+
+lasreader
+.........
+
+   defineit les fichiers las en entree
+
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|C     |?     |A     |lasreader|C     |?=D     |
++------+------+------+---------+------+--------+
 
 
 
@@ -3171,6 +3262,27 @@ set_schema
 
 
 .. index::
+  double: .traitement_schema;supp_enums
+
+supp_enums
+..........
+
+   transforme un schema en mode basique (supprime des enums)
+
+   ;;attributs a traiter(tous);;
+
+**syntaxes acceptees**
+
++------+------+------+----------+------+--------+
+|sortie|defaut|entree|commande  |param1|param2  |
++======+======+======+==========+======+========+
+|      |      |?L    |supp_enums|      |        |
++------+------+------+----------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_schema;valide_schema
 
 valide_schema
@@ -3484,6 +3596,31 @@ geocode
 +-------------+-------------+-------------+---------------+-------------+---------------+
 | *en entree clef et liste des champs adresse a geocoder score min pour un succes*      |
 +-------------+-------------+-------------+---------------+-------------+---------------+
+
+
+
+
+
+.. index::
+  double: .traitement_web;qwc2url
+
+qwc2url
+.......
+
+ 
+ 
+ 
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |?A    |qwc2url |N     |C       |
++------+------+------+--------+------+--------+
+|P     |C     |      |qwc2url |N     |C       |
++------+------+------+--------+------+--------+
 
 
 
@@ -4585,19 +4722,23 @@ xmlextract
 
    extraction de valeurs d un xml
 
-   retourne le premier element trouve
+   retourne le premier element trouve qui correspond aux criteres
 
 **syntaxes acceptees**
 
-+------+------+------+----------+------+--------+
-|sortie|defaut|entree|commande  |param1|param2  |
-+======+======+======+==========+======+========+
-|H     |?C    |A     |xmlextract|C     |?C      |
-+------+------+------+----------+------+--------+
-|D     |?C    |A     |xmlextract|C     |?C      |
-+------+------+------+----------+------+--------+
-|S     |?C    |A     |xmlextract|A.C   |?C      |
-+------+------+------+----------+------+--------+
++--------+--------+--------+------------+--------+----------+
+|sortie  |defaut  |entree  |commande    |param1  |param2    |
++========+========+========+============+========+==========+
+|H       |?C      |A       |xmlextract  |C       |?C        |
++--------+--------+--------+------------+--------+----------+
+| *sort le parametre sezlectionne sous forme d'un attribut* |
++--------+--------+--------+------------+--------+----------+
+|D       |?C      |A       |xmlextract  |C       |?C        |
++--------+--------+--------+------------+--------+----------+
+| *sort tous les parametres sous forme d'un dictionnaire*   |
++--------+--------+--------+------------+--------+----------+
+|S       |?C      |A       |xmlextract  |A.C     |?C        |
++--------+--------+--------+------------+--------+----------+
 
 
    H :  attribut sortie(hstore)
@@ -4605,6 +4746,20 @@ xmlextract
    A :  attribut xml
    xmlextract :  
    C :  tag a extraire
+   ?C :  groupe de recherche (optionnel)
+
+   D :  attribut sortie(dictionnaire)
+   ?C :  defaut (optionnel)
+   A :  attribut xml
+   xmlextract :  
+   C :  tag a extraire
+   ?C :  groupe de recherche (optionnel)
+
+   S :  attribut sortie
+   ?C :  defaut (optionnel)
+   A :  attribut xml
+   xmlextract :  
+   A.C :  element a extraire sous forme tag.attribut ou tag.#text
    ?C :  groupe de recherche (optionnel)
 
 

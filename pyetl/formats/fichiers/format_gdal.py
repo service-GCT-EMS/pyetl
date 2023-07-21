@@ -95,6 +95,10 @@ def decode_wkbgeomtyp(geomtyp):
             type_geom = 3
         elif gt == 7:
             type_geom = 9
+        elif gt == 0:
+            type_geom=-1
+        elif gt == 100:
+            type_geom=0
 
     return type_geom, multi, courbe, dimension, mesure
 

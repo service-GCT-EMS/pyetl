@@ -204,15 +204,20 @@ class GdalConnect(DbConnect):
                 nom_geom="geometrie"
             type_geom,multigeom,courbe,dimension,mesure=decode_wkbgeomtyp(geomtyp)
             type_geom=str(type_geom)
-
+            srid=None
             print("---------recup schema gdal",ident,':type geometrique gdal', geomtyp,ogr.GeometryTypeToName(geomtyp), type_geom, nom_geom)
-            spatialref=layer.GetSpatialRef()
-            srid=str(spatialref.GetAttrValue("AUTHORITY", 1))
-            print(ident,':spatialref gdal', spatialref.GetName(),spatialref.AutoIdentifyEPSG(),spatialref.GetAttrValue("AUTHORITY", 1))
+            if type_geom != '100':
+                spatialref=layer.GetSpatialRef()
+                if spatialref:
+                    srid=str(spatialref.GetAttrValue("AUTHORITY", 1))
+                    print(ident,':spatialref gdal', spatialref.GetName(),spatialref.AutoIdentifyEPSG(),srid)
+                else:
+                    print(ident, ':non geometrique')
             if not srid:
                 srid = "3948"
 
             layerDefinition =  layer.GetLayerDefn()
+            nb=layer.GetFeatureCount()
             # sc_classe.info["type_geom"] = type_geom
             for i in range(layerDefinition.GetFieldCount()):
                 fielddef=layerDefinition.GetFieldDefn(i)

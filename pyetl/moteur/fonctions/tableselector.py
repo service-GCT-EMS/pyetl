@@ -180,8 +180,27 @@ class TableBaseSelector(object):
                 pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
             for j in classes:
+                att2=attr
+                if attr=='?': #valeur de l'index (pk hors gid ou index)
+                    schema=self.schemabase.get((niveau,j))
+                    att2=""
+                    if schema.mainkey:
+                        att2=schema.mainkey
+                    else:
+                        tmp=[i for i,j in schema.indexes.items() if j.startswith("X")]
+                        if not tmp:
+                           tmp=[i for i,j in schema.indexes.items() if j.startswith("I")]
+                        elif not tmp:
+                           tmp=[i for i,j in schema.indexes.items() if j.startswith("U")]
+                        elif not tmp:
+                           tmp=[i for i,j in schema.indexes.items() if j.startswith("K")]
+                        elif not tmp:
+                           tmp=[i for i,j in schema.indexes.items() if j.startswith("K")]
+                        if tmp:
+                            att2=tmp[0]
+
                 classlist = self.add_classlist(
-                    niveau, j, attr, vref, fonction, mod, nobase=self.nobase
+                    niveau, j, att2, vref, fonction, mod, nobase=self.nobase
                 )
                 if classlist:
                     self.staticlist.update(classlist)

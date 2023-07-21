@@ -10,6 +10,9 @@ reference conditions
    * re:re;
        - teste si un attribut existe
 
+   * L;
+       - teste si des attributs existent
+
    * A;NC2:
        - evaluation d une expression avec un attribut
 

@@ -147,6 +147,14 @@ def cache(mapper):
         print("ecriture cache DATABASES", len(DATABASES))
 
 
+def zip_xsl(orig=start):
+    """compresse le xsl pour les schemas"""
+    orig=os.path.join(orig,'schema','formats_schema','xsl')
+    with zipfile.ZipFile('xsl.zip', "w", compression=zipfile.ZIP_DEFLATED) as zip:
+        os.chdir(orig)
+        for (fichier, chemin) in scandirs(".", ""):
+            # print(fichier, chemin)
+            zip.write(os.path.join(chemin, fichier))
 def zipall(orig=start, nv=""):
     name = "mapper" + nv + ".zip"
     with zipfile.ZipFile(name, "w", compression=zipfile.ZIP_DEFLATED) as zip:

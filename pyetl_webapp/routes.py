@@ -572,7 +572,7 @@ def autotemplate(data): # genere un template basique pour l affichage
 @app.route("/mws/<api>", methods=["GET", "POST"])
 @app.route("/mws/<api>/<suburl>", methods=["GET", "POST"])
 def webservice(api, suburl=None):
-    local = request.host.startswith("127.0.0.1:")
+    # local = request.host.startswith("127.0.0.1:")
     local=False
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
     infoscript = scriptlist.apis.get(api)
@@ -598,12 +598,11 @@ def webservice(api, suburl=None):
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
-    print ("-----------retour script",infoscript)
+    print ("-----------retour script",infoscript,result)
     if result:
         if infoscript[1]=="link": #retour url
-            url=result["print"][0] if result["print"] else ""
+            url=result["print"][0] if "print" in result else ""
             if url:
-
                 return redirect(url)
         elif infoscript[1]=="html": #retour html direct
                 data=result["print"] if result["print"] else ""

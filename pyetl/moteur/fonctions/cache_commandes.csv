@@ -68,6 +68,7 @@ aire;.traitement_geom
 change_couleur;.traitement_geom
 coordp;.traitement_geom
 csplit;.traitement_geom
+emprise;.traitement_geom
 extract_couleur;.traitement_geom
 force_ligne;.traitement_geom
 force_pt;.traitement_geom

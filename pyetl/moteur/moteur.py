@@ -338,14 +338,21 @@ class Macro(object):
         self.e_s = dict()
         self.no_in = True
         if vpos is not None:
-            self.vpos = [i.split("=")[0].strip() for i in vpos if i and i != "\n"]
+            # self.vpos = [i.split("=")[0].strip() for i in vpos if i and i != "\n"]
             for i in vpos:
-                if "=" in i:
-                    nom, defaut = i.split("=", 1)
-                    self.vdef[nom.strip()] = defaut
-                else:
-                    self.vdef[i] = ""
-                self.parametres_pos[i] = i
+                if i and i != "\n":
+                    if "=" in i:
+                        nom, defaut = i.split("=", 1)
+                        nom=nom.strip()
+                        defaut=defaut.strip()
+                        if defaut.startswith('"') or defaut.startswith("'"): 
+                            defaut=defaut[1:-1]
+                        self.vdef[nom] = defaut
+                    elif i and i != "\n":
+                        nom=i
+                        self.vdef[i] = ""
+                    self.parametres_pos[nom] = i
+                    self.vpos.append(nom)
 
     def add_command(self, ligne, numero):
         """ajoute une commande a la liste"""
@@ -400,12 +407,10 @@ class Macro(object):
 
     def bind(self, liste, context):
         """mappe les variables locales et retourne un environnement"""
-        # print("bind", liste)
+        # print("bind", liste, self.vpos, [context.getvar(i) for i in self.vpos])
         macroenv = context.getmacroenv(self.nom)
         for i in self.vpos:  # on initialise le contexte local
-            macroenv.setlocal(
-                i, self.vdef[i] if self.vdef.get(i) else context.getvar(i)
-            )
+            macroenv.setlocal(i, context.getvar(i) or self.vdef[i])
         # print("macro bind", self.nom, self.vpos, macroenv, macroenv.vlocales, liste)
         if not liste:
             args = context.getvar("_args")

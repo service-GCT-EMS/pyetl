@@ -359,6 +359,21 @@ def f_forcepoly(regle, obj):
 
     return False
 
+def f_emprise(regle, obj):
+    """
+    #aide||retourne l emprise de la geometrie
+    #pattern||;;;emprise;;
+    #schema||set_geom
+    #test||obj;ligne_fermee||^;;;forcepoly;||atv;#type_geom;3
+    """
+    if obj.virtuel:
+        return True
+    if obj.initgeom():
+        #        print ('force poly',obj.geom_v.valide,obj.attributs['#type_geom'])
+       xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+       obj.geom_v.unfold(((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin),(xmin,ymin)),(4,1,0),(1))
+
+    return False
 
 def f_force_couleur(regle, obj):
     """#aide||remplace une couleur par une autre
@@ -421,7 +436,8 @@ def f_aire(regle, obj):
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
     #aide_spec||les coordonnees sont sous #x,#y,#z
-      #pattern||?M;?N;?A;coordp;;
+      #pattern1||;?N;?A;coordp;;
+      #pattern2||;=C;;coordp;;
        #helper||setval
          #test||obj;ligne||^;1;;coordp||atn;#y;1
          #test1||obj;point||^;0;;coordp||atn;#y;2
@@ -433,13 +449,25 @@ def f_coordp(regle, obj):
         if obj.attributs["#type_geom"] == "0" or obj.geom_v.null:
             return False
         position = regle.get_entree(obj)
+        if position.startswith("C"): #centre
+            sgeom = obj.geom_v.__shapelygeom__
+            if sgeom:
+                point = (
+                    sgeom.representative_point()
+                    if position=="CP"
+                    else sgeom.centroid
+                )
+                obj.attributs["#x"] = str(point.x)
+                obj.attributs["#y"] = str(point.y)
+                return True
+                
         if not position:
             position = 0
-        else:
-            position = int(position)
-
         try:
+            position = int(position)
             # refpt = list(obj.geom_v.coords)[position]
+            if position>len(position):
+                position=-1
             refpt = list(obj.geom_v.coords)[position]
             # print("coordp: ",list(obj.geom_v.coords),position,refpt)
             if regle.params.att_sortie.val:
@@ -454,7 +482,7 @@ def f_coordp(regle, obj):
                     )
                 )
             return True
-        except IndexError:
+        except (IndexError,TypeError):
             return False
     return False
 

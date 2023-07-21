@@ -551,15 +551,20 @@ def getfilelist(
                 )
             elif "*" in entree:
                 racine = str(os.path.dirname(entree))
+                chemin = str(os.path.basename(entree))
                 while "*" in racine:
-                    racine = str(os.path.dirname(rep))
+                    chemin=os.path.join(str(os.path.basename(racine)),chemin)
+                    racine = str(os.path.dirname(racine))
+                    print ("recherche", racine)
+                    print ("trouve", glob.glob(chemin, recursive=True, root_dir=racine))
+                
                 yield from (
                     (
                         str(os.path.basename(i)),
-                        str(os.path.dirname(i)).replace(racine, ""),
+                        str(os.path.dirname(i)),
                         racine,
                     )
-                    for i in glob.glob(entree, recursive=True)
+                    for i in glob.glob(chemin, recursive=True, root_dir=racine)
                 )
             else:
                 yield from (

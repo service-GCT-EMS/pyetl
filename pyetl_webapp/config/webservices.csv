@@ -94,6 +94,11 @@ $s=%2C
 $coord=%x%%s%%y%
 $url=https://wpsiglw.cus.fr/?l=defaut&bl=fond_de_carte_gris_ems&t=defaut&c=%coord%&s=%echelle%
 ;;;;mws:;P;url;print;;;
+!====================================url qgis web======================================;;;;;;;;;;;
+&&#define;#qwcgenurl;carte;echelle
+;;;;;C;;coordp;;;
+$qwc2baseurl=https://wpsiglw.cus.fr
+;;;;#url;;N:#x,N:#y;format;%qwc2baseurl%/?t=%carte%&s=%echelle%c=°d,°d;°
 !====================================ouverture qgis_web======================================;;;;;;;;;;;
 &&#define;#recherche_cadastre;commune;section;parcelle;
 !#help;ouvre le projet par defaut a une parcelle
@@ -108,9 +113,13 @@ db:siglc_prod_consult;;;;P:gid,xx;;;dbreq;%req%;;debug
 $url2=%url%c=%xx%&s=500&hc=1&SELECTION=Parcelles:%gid%;
 ;;;;mws:;P;url2;print;;;debug
 !======================================locator==============================================;;;
-&&#define;#locator;table;key;keyid;projet
-!#help;ouvre le projet par defaut a une parcelle
-!#api;recherche_cadastre;link;;no_in;
-<#dbextract;sigli_prod_consult;;%table%;%keyid%;%key%
-<#dbextract;siglc_prod_consult;;%table%;%keyid%;%key%
-<#genurl;https://wipsiglw.cus.fr;projet
+&&#define;#locator;table;key;val;projet;echelle=2000
+!#help;ouvre un projet par rapport a un objet
+!#api;locator;link;;no_in;
+$qwc2baseurl=https://wpsiglw.cus.fr
+;;;;P:att,val;%key%;;split;:;;
+db:sigli_prod_consult;;%table%;%att%;;%val%;;dbalpha;=;;;lire_maxi=1
+|fail:db:siglc_prod_consult;;%table%;%att%;;%val%;;dbalpha;=;;;lire_maxi=1
+;;;;;C;;coordp;;;
+;;;;#url;;N:#x,N:#y;format;%qwc2baseurl%/?t=%projet%&s=%echelle%&hc=1&c=°d,°d;°
+;;;;;;#url;print;;;

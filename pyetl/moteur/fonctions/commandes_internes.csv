@@ -680,7 +680,7 @@ K:ADserver;$#%ADserver%;
 K:ADserver;$#%ADserver%;
 ;;;;P:_username;%_login%;;adquery;user;;debug
 !===========================================================================================;;;;;;;;;;;
-&&#define;#test;n1;n2;a;;;;
+&&#define;#test;n1;n2=1;a;;;;
 !#help;test des variables;;;
 $#%a%;
 $test_v1=%n1%;;;;;

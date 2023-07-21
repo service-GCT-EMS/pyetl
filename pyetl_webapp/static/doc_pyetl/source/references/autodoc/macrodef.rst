@@ -69,7 +69,7 @@ reference macros
 :ref:`#groupe` groupe                                         force le groupe
 :ref:`#histo_cmp` rep_histo;traitement                        
 :ref:`#histor` rep;date;workers                               convertit des bases en format historique
-:ref:`#httpdownload` url;dest;rep                             charge des elements par ftp
+:ref:`#httpdownload` url;dest;rep                             charge des elements en http
 :ref:`#ident` groupe;classe                                   force le groupe et la classe
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
 :ref:`#init_mp`                                               initialise un module en mode multiprocessing (ne fait rien et attends)
@@ -755,7 +755,7 @@ parametres positionnels
 
 * fich:fich
 * acces:acces
-* accdir:
+* accdir:accdir=.
 
 
 
@@ -952,7 +952,7 @@ parametres positionnels
 .............
 
 
-charge des elements par ftp
+charge des elements en http
 
 parametres positionnels
 
@@ -1259,7 +1259,7 @@ decrypte les mots de passe
 
 parametres positionnels
 
-* key:
+* key:key=%userkey%
 
 
 
@@ -1393,7 +1393,7 @@ ajoute les attributs standard a un schema
 
 parametres positionnels
 
-* nom_schema:
+* nom_schema:nom_schema=#schemas
 
 
 

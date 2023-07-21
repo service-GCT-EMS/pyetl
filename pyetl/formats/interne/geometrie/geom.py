@@ -1064,7 +1064,7 @@ class Geometrie(object):
                         depart = fin
                     interieur = True
                 dep_p = fin_p
-        self.finalise_geom(type_geom="2")
+        self.finalise_geom(type_geom="3")
 
     def __repr__(self):
         if self.null:

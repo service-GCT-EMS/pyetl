@@ -78,11 +78,16 @@ def writeback(regle, obj, tree, nomxml, changed=False):
 
 def f_xmlextract(regle, obj):
     """#aide||extraction de valeurs d un xml
-      #aide_spec||retourne le premier element trouve
+      #aide_spec||retourne le premier element trouve qui correspond aux criteres
+      #aide_spec1||sort tous les parametres sous forme d'un hstore
+      #aide_spec2||sort tous les parametres sous forme d'un dictionnaire
+      #aide_spec1||sort le parametre sezlectionne sous forme d'un attribut
        #pattern1||H;?C;A;xmlextract;C;?C||sortie
        #pattern2||D;?C;A;xmlextract;C;?C||sortie
        #pattern3||S;?C;A;xmlextract;A.C;?C||sortie
     #parametres1||attribut sortie(hstore);defaut;attribut xml;;tag a extraire;groupe de recherche
+    #parametres2||attribut sortie(dictionnaire);defaut;attribut xml;;tag a extraire;groupe de recherche
+    #parametres3||attribut sortie;defaut;attribut xml;;element a extraire sous forme tag.attribut ou tag.#text;groupe de recherche
           #test1||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^H:XX;;V4;xmlextract;pp;||ath;XX;p2;titi
           #test2||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^*;;V4;xmlextract;pp;||atv;p2;titi
           #test3||obj||^V4;<g><pp p1="toto" p2="titi"/></g>;;set||^XX;;V4;xmlextract;pp.p1;||atv;XX;toto

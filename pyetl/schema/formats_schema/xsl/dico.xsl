@@ -96,6 +96,8 @@
 											<xsl:when test="@type='POINT'"> (Point - </xsl:when>
 											<xsl:when test="@type='LIGNE'"> (Ligne - </xsl:when>
 											<xsl:when test="@type='SURFACE'"> (Polygone - </xsl:when>
+											<xsl:when test="@type='GEOMETRIE'"> (geometrie - </xsl:when>
+											<xsl:otherwise> (Indéfini - </xsl:otherwise>
 										</xsl:choose>
 										<xsl:choose>
 											<xsl:when test="@type_table='vue'"> vue)</xsl:when>
@@ -139,6 +141,8 @@
 											<xsl:when test="@type='POINT'"> (Vectoriel : Point)</xsl:when>
 											<xsl:when test="@type='LIGNE'"> (Vectoriel : Ligne)</xsl:when>
 											<xsl:when test="@type='SURFACE'"> (Vectoriel : Polygone)</xsl:when>
+											<xsl:when test="@type='GEOMETRIE'"> (Vectoriel)</xsl:when>
+											<xsl:otherwise> (Indéfini)</xsl:otherwise>
 										</xsl:choose>
 									</h2>
 									</span>

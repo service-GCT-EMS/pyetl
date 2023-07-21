@@ -90,6 +90,20 @@ def f_setval(regle, obj):
     regle.setval_sortie(obj, regle.get_entree(obj))
     return True
 
+def h_setuuid(regle):
+    """ importe la bibliotheque"""
+    import uuid
+    regle.uuid=uuid
+    return True
+
+def f_setuuid(regle, obj):
+    """#aide||affectation d un attribut
+       #aide_spec||cree un uuid
+       #pattern||S;;;set;=UUID;||sortie
+    #parametres||attribut de sortie;defaut;attribut d'entree
+    """
+    regle.setval_sortie(obj, str(regle.uuid.uuid1()))
+    return True
 
 def f_setmatch(regle, obj):
     """#aide||affectation d un attribut
@@ -500,6 +514,13 @@ def h_asplit(regle):
         )
     regle.sep = sep
     regle.nbdecoup = nbdecoup if not regle.multi else -1
+    if regle.params.pattern=="4":
+        print ("decoupage parametres",regle.params.att_sortie.liste)
+        vals=str(regle.params.val_entree.val).split(regle.sep, regle.nbdecoup)
+        for p,v in zip(regle.params.att_sortie.liste,vals):
+            regle.setvar(p,v)
+        regle.valide='done'
+
 
 
 def f_asplit(regle, obj):
@@ -511,6 +532,8 @@ def f_asplit(regle, obj):
     #parametres2||defaut;attribut;;caractere decoupage;nombre de morceaux:debut
        #pattern3||;?;A;split;;?N:N||cmp1
     #parametres3||defaut;attribut;;;nombre de morceaux:debut
+       #pattern4||LP;C;;split;.;?N:N||sortie
+    #traitement de variables
           #test1||obj||^V4;a:b:cc:d;;set||^r1,r2,r3,r4;;V4;split;:;||atv;r3;cc
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split>;:;||cnt;4
           #test3||obj||^V4;a:b:c:d;;set||^X,Y;;V4;split;:;;||atv;Y;b:c:d

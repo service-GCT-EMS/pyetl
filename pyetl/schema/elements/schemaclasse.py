@@ -218,6 +218,7 @@ class SchemaClasse(object):
         self.cibles = set()
         self.depends = set()
         self.basic = False
+        self.mainkey='' # clef d acces princpale a l objet (externe si different du gid)
         self.autopk = False
         self.maxpk = 0
         self.pkref = None
