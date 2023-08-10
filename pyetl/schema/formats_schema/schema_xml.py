@@ -65,7 +65,7 @@ def _sortir_conformite_xml(conf, mode=-1, init=False):
 
 def _sortir_attribut_xml(classe, attr, keys):
     """ecrit une definition d'attribut en xml"""
-
+    type_connus = {"E", "EL", "F", "S", "BS", "N"}
     type_att = "enum" if attr.conformite else attr.get_type()
     type_att_base = attr.nom_conformite if attr.conformite else attr.type_att_base
     texte = (
@@ -73,12 +73,12 @@ def _sortir_attribut_xml(classe, attr, keys):
         + ESC_XML(attr.nom)
         + "' type='"
         + str(type_att)
-        +("[]" if attr.multiple else "")
+        + ("[]" if attr.multiple else "")
         + "' type_base='"
         + str(type_att_base)
-        +("[]" if attr.multiple else "")
+        + ("[]" if attr.multiple else "")
         + "' multiple='"
-        +("oui" if attr.multiple else "non")
+        + ("oui" if attr.multiple else "non")
         + "' fonction='"
         + ESC_XML(attr.defaut)
         + "' alias='"
@@ -130,14 +130,7 @@ def _sortir_attribut_xml(classe, attr, keys):
 
     if attr.conf and attr.nom_conformite == "":
         description = [texte + ">"]
-        if attr.type_att in {"E", "EL", "F", "S", "BS", "N"} or attr.type_att_base in {
-            "E",
-            "EL",
-            "F",
-            "S",
-            "BS",
-            "N",
-        }:
+        if attr.type_att in type_connus or attr.type_att_base in type_connus:
             # types numeriques
             # print "type attribut",self.type_att
             try:
@@ -208,10 +201,11 @@ def _sortir_schema_classe_xml(sc_classe, mode="util"):
                 attribut.conformite.taille if attribut.conformite.taille else 0
             )
         description.extend(_sortir_attribut_xml(sc_classe, attribut, keys))
-    complement = "MULTIPLE" if sc_classe.multigeom else "SIMPLE"
-    arc = "COURBE" if sc_classe.info["courbe"]=="1" else "LIGNE"
+
+    complement = "MULTIPLE" if sc_classe.multigeom == "1" else "SIMPLE"
+    arc = "COURBE" if sc_classe.info["courbe"] == "1" else ""
     dimension = sc_classe.info["dimension"]
-    # print 'type_geom',self.info["type_geom"]
+    # print("type_geom", sc_classe.info)
     if sc_classe.info["type_geom"]:
         description.append(
             "\t<geometrie type='"
@@ -254,7 +248,7 @@ def sortir_schema_xml(sch, header, alias_schema, codec, mode="util"):
         + (header + "\n" if header else "")
         + "<structure nom='"
         + sch.nom
-        + ("' alias='" + (alias_schema if alias_schema else sch.metas.get('alias','')))
+        + ("' alias='" + (alias_schema if alias_schema else sch.metas.get("alias", "")))
         + "' type='"
         + sch.origine
         + "'>"
@@ -324,7 +318,7 @@ def fusion_schema_xml(schema, fichier, cod="utf-8"):
     for i in origine.getiterator("classe"):
         nom = i.get("nom")
         groupe = i.get("schema")
-        nom_geometrie=i.get("nom_geometrie","geometrie")
+        nom_geometrie = i.get("nom_geometrie", "geometrie")
         ident = (groupe, nom)
         classe = schema.setdefault_classe(ident)
         #        g[nom]=sc
@@ -403,7 +397,6 @@ def ecrire_schema_xml(
                 copier_xsl(rep)
             # mode webservice
     if stock_param and stock_param.mode.startswith("web"):
-
         # print(
         #     "##################### mode webstore schemas :",
         #     stock_param.idpyetl,
@@ -417,7 +410,7 @@ def ecrire_schema_xml(
 
 
 def copier_xsl(rep):
-    """ copie un xsl par defaut pour la visibilite du schema"""
+    """copie un xsl par defaut pour la visibilite du schema"""
     xslref = os.path.join(os.path.dirname(__file__), "xsl.zip")
     #    print(" copie fichier ", xslref)
     with ZipFile(xslref) as xsl:

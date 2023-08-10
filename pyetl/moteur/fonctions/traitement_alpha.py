@@ -87,14 +87,17 @@ def f_setval(regle, obj):
        #test3||obj||^V4;1;X;set||ats;V4
 
     """
-    regle.setval_sortie(obj, regle.get_entree(obj))
+    regle.setval_sortie(obj, regle.entree)
     return True
 
+
 def h_setuuid(regle):
-    """ importe la bibliotheque"""
+    """importe la bibliotheque"""
     import uuid
-    regle.uuid=uuid
+
+    regle.uuid = uuid
     return True
+
 
 def f_setuuid(regle, obj):
     """#aide||affectation d un attribut
@@ -104,6 +107,7 @@ def f_setuuid(regle, obj):
     """
     regle.setval_sortie(obj, str(regle.uuid.uuid1()))
     return True
+
 
 def f_setmatch(regle, obj):
     """#aide||affectation d un attribut
@@ -136,7 +140,7 @@ def f_setschema(regle, obj):
       #pattern3||=#schema;?;?A;set;||sortie
     #aide_spec3||change le schema de reference d'un objet
     """
-    obj.attributs["#schema"] = regle.get_entree(obj)
+    obj.attributs["#schema"] = regle.entree
     return True
 
 
@@ -151,7 +155,7 @@ def f_setgeom(regle, obj):
       #test2||obj||^#gg;1SEC 1,2,|1,0,|0,0,1,0;;set||^#geom;;#gg;set;#asc;2;\
             ||^;;;geom||atv;#type_geom;2
     """
-    geom = regle.get_entree(obj)
+    geom = regle.entree
     # print("recup geom:", geom, obj)
 
     obj.format_natif = regle.params.cmp1.val
@@ -300,7 +304,7 @@ def f_sub(regle, obj):  # fonction de substution
 
     regle.setval_sortie(
         obj,
-        regle.exp_entree.sub(exp_sortie, regle.getval_entree(obj), count=regle.maxsub),
+        regle.exp_entree.sub(exp_sortie, regle.entree, count=regle.maxsub),
     )
     return True
 
@@ -366,7 +370,7 @@ def f_upper(regle, obj):
 
     """
     # print("-----------upper", regle.params.att_sortie, regle.fstore)
-    regle.setval_sortie(obj, regle.getval_entree(obj).upper())
+    regle.setval_sortie(obj, regle.entree.upper())
     return True
 
 
@@ -424,7 +428,7 @@ def f_lower(regle, obj):
          #test1||obj||^V4;A;;set||^V4;;V4;lower||atv;V4;a
 
     """
-    regle.setval_sortie(obj, regle.getval_entree(obj).lower())
+    regle.setval_sortie(obj, regle.entree.lower())
     return True
 
 
@@ -514,13 +518,12 @@ def h_asplit(regle):
         )
     regle.sep = sep
     regle.nbdecoup = nbdecoup if not regle.multi else -1
-    if regle.params.pattern=="4":
-        print ("decoupage parametres",regle.params.att_sortie.liste)
-        vals=str(regle.params.val_entree.val).split(regle.sep, regle.nbdecoup)
-        for p,v in zip(regle.params.att_sortie.liste,vals):
-            regle.setvar(p,v)
-        regle.valide='done'
-
+    if regle.params.pattern == "4":
+        print("decoupage parametres", regle.params.att_sortie.liste)
+        vals = str(regle.params.val_entree.val).split(regle.sep, regle.nbdecoup)
+        for p, v in zip(regle.params.att_sortie.liste, vals):
+            regle.setvar(p, v)
+        regle.valide = "done"
 
 
 def f_asplit(regle, obj):
@@ -538,7 +541,7 @@ def f_asplit(regle, obj):
           #test2||obj||^V4;a:b:c:d;;set||^;;V4;split>;:;||cnt;4
           #test3||obj||^V4;a:b:c:d;;set||^X,Y;;V4;split;:;;||atv;Y;b:c:d
     """
-    att = regle.getval_entree(obj)
+    att = regle.entree
     keys = None
 
     if regle.sep:
@@ -556,7 +559,7 @@ def f_asplit(regle, obj):
         keys = [att.keys][regle.defcible]
 
     else:
-        elems = [regle.getval_entree(obj)]
+        elems = [regle.entree]
 
         # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     if regle.multi:
@@ -579,11 +582,11 @@ def f_strip(regle, obj):
     #parametres||sortie;defaut;attribut;;caractere a supprimer blanc par defaut
      #test||obj||^V4;abbcaa;;set||^r1;;V4;strip;a||atv;r1;bbc
     """
-    #    print("strip",regle.getval_entree(obj),regle.getval_entree(obj).strip(regle.params.cmp1.val))
+    #    print("strip",regle.entree,regle.entree.strip(regle.params.cmp1.val))
     if regle.params.cmp1.val:
-        regle.setval_sortie(obj, regle.getval_entree(obj).strip(regle.params.cmp1.val))
+        regle.setval_sortie(obj, regle.entree.strip(regle.params.cmp1.val))
     else:
-        regle.setval_sortie(obj, regle.getval_entree(obj).strip())
+        regle.setval_sortie(obj, regle.entree.strip())
     return True
 
 
@@ -612,7 +615,7 @@ def f_len(regle, obj):
     #parametres||attribut resultat;defaut;attribut d'entree
         #test||obj||^X;toto;;set;||^Y;;X;len;;||atv;Y;4
     """
-    regle.setval_sortie(obj, str(len(regle.getval_entree(obj))))
+    regle.setval_sortie(obj, str(len(regle.entree)))
     return True
 
 
@@ -794,9 +797,12 @@ def h_keep(regle):
     """cree un ensemble a partir de la liste de sortie"""
     regle.selset = set(regle.params.att_sortie.liste)
     if regle.istrue("verbose"):
-        regle.stock_param.logger.info('keep %s -> %s (%s)',repr(regle.params.att_entree.liste),
+        regle.stock_param.logger.info(
+            "keep %s -> %s (%s)",
+            repr(regle.params.att_entree.liste),
             repr(regle.params.att_sortie.liste),
-            repr(regle.params.val_entree.liste))
+            repr(regle.params.val_entree.liste),
+        )
     return True
 
 
@@ -849,7 +855,7 @@ def f_cnt(regle, obj):
         obj.attributs[regle.params.att_sortie.val] = "%d" % (regle.orig)
         regle.orig += regle.pas
         return True
-    nom = regle.getval_entree(obj)
+    nom = regle.entree
     val = regle.stock_param.cntr.get(nom, regle.orig)
     obj.attributs[regle.params.att_sortie.val] = "%d" % (val)
     regle.stock_param.cntr[nom] = val + regle.pas
@@ -904,7 +910,7 @@ def f_join(regle, obj):
           #test||obj||^X;C;;set||^val;;X;join;%testrep%/refdata/join.csv;X,nom,val||atv;val;3
     """
     if regle.jointtype == "obj":
-        clef_jointure = '|'.join(regle.getlist_entree(obj))
+        clef_jointure = "|".join(regle.getlist_entree(obj))
         # print("clef jointure", clef_jointure)
         obj_joint = regle.jstore.get(clef_jointure)
         # print("obj joint",clef_jointure, obj_joint)
@@ -945,7 +951,7 @@ def f_join(regle, obj):
                 ]
         else:
             if regle.istrue("debug"):
-                print ('non trouve', clef_jointure)
+                print("non trouve", clef_jointure)
             return False
         # print("list", vnlist)
         if regle.params.att_sortie.liste:
@@ -987,7 +993,6 @@ def f_sjoin(regle, obj):
 def h_round(regle):
     """helper round : stocke le nombre de decimales"""
     regle.ndec = int(regle.params.cmp1.num if regle.params.cmp1.num else 0)
-    
 
 
 def f_round(regle, obj):
@@ -999,15 +1004,17 @@ def f_round(regle, obj):
     """
     try:
         regle.setval_sortie(
-            obj, str(
-                round(float(regle.getval_entree(obj)), regle.ndec) if regle.ndec else
-                int(round(float(regle.getval_entree(obj)), regle.ndec))
-                     )
+            obj,
+            str(
+                round(float(regle.entree), regle.ndec)
+                if regle.ndec
+                else int(round(float(regle.entree), 0))
+            ),
         )
         return True
     except ValueError:
         regle.stock_param.logger.debug(
-            "attention valeur %s non numerique", regle.getval_entree(obj)
+            "attention valeur %s non numerique", regle.entree
         )
         return False
 
@@ -1021,7 +1028,7 @@ def f_vround(regle, obj):
     #test||obj||^X;1.534;;set||^P:W;;X;round;2||ptv;W;1.53
     """
     try:
-        valeur = str(round(float(regle.getval_entree(obj)), regle.ndec))
+        valeur = str(round(float(regle.entree), regle.ndec))
         regle.setvar(regle.params.att_sortie.val, valeur)
         return True
     except ValueError:
@@ -1036,7 +1043,7 @@ def h_format(regle):
     regle.params.val_entree.liste = regle.params.val_entree.val.split(",")
     vlist = regle.params.att_entree.liste
     # on gere le fait que le % est reserve pour les variable donc on peut mettre autre chose
-    
+
     regle.format = regle.params.cmp1.val.replace(holder, "%")
     # print("remplacement", holder, regle.params.cmp1.val)
     regle.espace = regle.getvar("espace", " ")
@@ -1059,7 +1066,7 @@ def h_format(regle):
 
 def f_format(regle, obj):
     """#aide||formatte un attribut utilise les formatages python standard
-    #aide_spec||en cas de conflit (motif de type variable %xxx%) 
+    #aide_spec||en cas de conflit (motif de type variable %xxx%)
             ||il est possible de remplacer le % par un autre caractere (par defaut µ)
             ||si on souhaite des espaces avant ou apres le format il est possible de definir
             ||la variable espace pour remplacer les espaces
@@ -1069,13 +1076,13 @@ def f_format(regle, obj):
     #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
     #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
-    if len(regle.params.val_entree.liste)==1 and  isinstance(regle.getval_entree(obj),datetime):
-        #formattage de dates
+    if len(regle.params.val_entree.liste) == 1 and isinstance(regle.entree, datetime):
+        # formattage de dates
         try:
-            regle.setval_sortie(obj,datetime.strftime(regle.getval_entree(obj),regle.format))
+            regle.setval_sortie(obj, datetime.strftime(regle.entree, regle.format))
             return True
         except ValueError as err:
-            print( "erreur formattage", err)
+            print("erreur formattage", err)
         return False
 
     if regle.incomplet:
@@ -1113,6 +1120,7 @@ def f_format(regle, obj):
         regle.setval_sortie(obj, regle.format % tuple(vlist2))
     return True
 
+
 def h_todate(regle):
     """prepare le format de dates"""
     holder = regle.params.cmp2.val if regle.params.cmp2.val else "µ"
@@ -1121,9 +1129,9 @@ def h_todate(regle):
     return True
 
 
-def f_todate(regle,obj):
+def f_todate(regle, obj):
     """#aide||convertit un texte en date en utilisant un formattage prdefini
-    #aide_spec||en cas de conflit (motif de type variable %xxx%) 
+    #aide_spec||en cas de conflit (motif de type variable %xxx%)
             ||il est possible de remplacer le % par un autre caractere (par defaut µ)
             ||si on souhaite des espaces avant ou apres le format il est possible de definir
             ||la variable espace pour remplacer les espaces
@@ -1134,17 +1142,11 @@ def f_todate(regle,obj):
     ##test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
     try:
-        regle.setval_sortie(obj,datetime.strptime(regle.getval_entree(obj),regle.format))
+        regle.setval_sortie(obj, datetime.strptime(regle.entree, regle.format))
         return True
     except ValueError as err:
-        print( "erreur formattage", err)
+        print("erreur formattage", err)
         return False
-
-
-
-
-
-
 
 
 def blocfilter(text, identifiant, keypair, escape):
@@ -1196,18 +1198,15 @@ def f_extractbloc(regle, obj):
               ||et une paire de caracteres debut/fin ex <> ou () {}...
     #pattern1||A;?C;?A;extractbloc;re;C
     #pattern2||;?C;?A;extractbloc;re;C
-    #parametre||attribut de sortie;defaut;liste_entree;;format
-    #test1||obj||^X;1.534;;set||^Y;;N:X;format;%3.1f;||atv;Y;1.5
-    #test2||obj||^X,A;1.534,B;;set||^Y;;N:X,A;format;%3.1f %s;||atv;Y;1.5 B
     """
-    texte = regle.getval_entree(obj)
+    texte = regle.entree
     # print("recherche blocs", regle.params.cmp1.val, regle.keypair)
     foundblocs = blocfilter(texte, regle.regex, regle.keypair, regle.escape)
     # print("trouve blocs", foundblocs)
     if regle.params.pattern == "1":
         obj.attributs[regle.params.att_sortie.val] = foundblocs
     elif regle.params.pattern == "2":
-        tmp = obj.attributs[regle.params.val_entree.val] = ""
+        tmp = obj.attributs[regle.params.val_entree.val]
         if tmp:
             obj.attributs[regle.params.val_entree.val] = ""
         for clef, bloc in foundblocs.items():
@@ -1284,4 +1283,4 @@ def f_json(regle, obj):
     #aide_spec||gere les dictionnaires et les iterables imbriques
     #pattern1||A;;A;json;;
     #"""
-    obj.attributs[regle.params.att_sortie.val] = json.dumps(regle.getval_entree(obj))
+    obj.attributs[regle.params.att_sortie.val] = json.dumps(regle.entree)

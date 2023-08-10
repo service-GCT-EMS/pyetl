@@ -247,7 +247,6 @@ $nom=%nomfich%;%acces%;extraction;;;;;;;;;
 $xmlheader=%xmlheader%;;;;;;;;;;;
 $xmlalias=%alias%;;;;;;;;;;;
 $mode_sortie=D;;;;;;;;;;;
-!$#%acces%;%acces%;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dbschema;acces;niveau;classe;nom;;;;;;
 !#help;analyse une base de donnees;;;;;;;;;;

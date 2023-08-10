@@ -42,7 +42,7 @@ class Branch(object):
             self.enchainements.add(sortie)
 
     def liens_num(self):
-        """retourne les numeros de regles """
+        """retourne les numeros de regles"""
         liens_num = {
             i: (self.brch[i].numero if self.brch[i] else 99999) for i in self.brch
         }
@@ -76,8 +76,47 @@ class Valdef(object):
 
     def __init__(
         self,
+        dyn,
+        definition,
+        origine,
+        texte,
+        defaut,
+        typedef,
+        regle_ref,
+    ):
+        self.regle_ref = regle_ref
+        self.vdict = dict()
+        self.dyn = dyn
+        self.definition = definition
+        #        self.besoin = None
+        self.origine = origine  # valeur dynamique issue d'un champs de l'objet
+        self.defaut = defaut
+        self.texte = texte
+        self.typedef = typedef
+        # print("parametre", repr(self))
+
+    # def update(self, obj):
+    #     """mets a jour les elements a partir de l'objet"""
+    #     self.val = obj.attributs.get(self.origine, "")
+
+    def __repr__(self):
+        return self.texte + "->" + str(self.val) + "L:" + repr(self.liste)
+
+    def getval(self, obj, defaut=None):
+        if obj and self.origine:
+            return obj.attributs.get(self.origine, defaut)
+        return self.val
+
+    def getstatic(self):
+        return self._val
+
+
+class Vals(Valdef):
+    mode = "S"
+
+    def __init__(
+        self,
         val,
-        num,
         liste,
         dyn,
         definition,
@@ -87,9 +126,20 @@ class Valdef(object):
         typedef,
         regle_ref,
     ):
-        self._val = val
-        self.regle_ref = regle_ref
-        self.num = num
+        super().__init__(
+            dyn,
+            definition,
+            origine,
+            texte,
+            defaut,
+            typedef,
+            regle_ref,
+        )
+        self.val = val
+        try:
+            self.num = float(self.val)
+        except ValueError:
+            self.num = 0
         self.liste = liste
         if liste and all(":" in i for i in liste):  # liste de type clef:valeur
             try:
@@ -100,30 +150,6 @@ class Valdef(object):
                     texte,
                     [tuple(i.split(":", 1)) for i in liste],
                 )
-        else:
-            self.vdict = dict()
-        self.dyn = dyn
-        self.definition = definition
-        #        self.besoin = None
-        self.origine = origine  # valeur dynamique issue d'un champs de l'objet
-        self.defaut = defaut
-        self.texte = texte
-        self.typedef = typedef
-        # print("parametre", repr(self))
-
-    def update(self, obj):
-        """mets a jour les elements a partir de l'objet"""
-        self.val = obj.attributs.get(self.origine, "")
-
-    def __repr__(self):
-        return self.texte + "->" + str(self.val) + "L:" + repr(self.liste)
-
-    def getval(self, obj, defaut=None):
-        if self.origine:
-            return obj.attributs.get(
-                self.origine, defaut if defaut is not None else self.defaut
-            )
-        return self.val
 
 
 class Valp(Valdef):
@@ -132,18 +158,42 @@ class Valp(Valdef):
             return self.regle_ref.stock_param.fonctions[self.origine]()
         return self.regle_ref.getvar(self.origine)
 
-    val = property(getvar)
+    def getnum(self):
+        try:
+            return float(self.val)
+        except ValueError:
+            return 0
+
+    def getval_as_list(self):
+        print("getlist", self.val)
+        return [
+            self.val,
+        ]
+
+    def forget(self, val):
+        pass
+
+    val = property(getvar, forget)
+    num = property(getnum, forget)
+    liste = property(getval_as_list, forget)
+    mode = "P"
 
 
-class Vals(Valdef):
-    def getstatic(self):
-        return self._val
+class Valatt(Valp):
+    def getatt(self):
+        if self.regle_ref and self.regle_ref.obj_courant:
+            return self.regle_ref.obj_courant.attributs.get(self.origine, self.defaut)
+        return self.texte
 
-    val = property(getstatic)
+    def forget(self, val):
+        pass
+
+    val = property(getatt, forget)
+    mode = "A"
 
 
 class ParametresFonction(object):
-    """ stockage des parametres standanrds des regles """
+    """stockage des parametres standanrds des regles"""
 
     MODIFFONC1 = re.compile(r"([nc]):(#?[a-zA-Z_][a-zA-Z0-9_]*)")
     MODIFFONC2 = re.compile(r"P:([a-zA-Z_][a-zA-Z0-9_]*)")
@@ -164,6 +214,18 @@ class ParametresFonction(object):
         self.specif = dict()
         self.fstore = None
         self.pattern = pnum
+        self.static = all(
+            (
+                i.mode == "S"
+                for i in (
+                    self.att_sortie,
+                    self.att_entree,
+                    self.val_entree,
+                    self.cmp1,
+                    self.cmp2,
+                )
+            )
+        )
         self.att_ref = self.att_entree if self.att_entree.val else self.att_sortie
 
     def _crent(self, nom, taille=0, out=False):
@@ -171,11 +233,13 @@ class ParametresFonction(object):
         # print("creent", nom, self.valeurs[nom].groups(), self.valeurs[nom].re)
         val = ""
         defaut = ""
+        mode = "S"
         try:
             val = self.valeurs[nom].group(1)
             if val.startswith("P:") and not out:
                 origine = val[2:]
                 val = None
+                mode = "P"
             else:
                 if r"\;" in val:
                     val = val.replace(r"\;", ";")  # permet de specifier un ;
@@ -190,11 +254,8 @@ class ParametresFonction(object):
         liste = []
         num = None
         dyn = False
+
         if isinstance(val, str):
-            try:
-                num = float(val)
-            except ValueError:
-                pass
             val2 = val
             if ":" in val and not "," in val:
                 val2 = val.replace(":", ",")
@@ -218,16 +279,16 @@ class ParametresFonction(object):
             origine = None
             if val.startswith("["):
                 # dyn = True
+                mode = "A"
                 origine = val[1:-1]
                 if ":" in origine:
                     origine, defaut = origine.split(":", 1)
 
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
         typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
-        return (
-            Vals(
+        if mode == "S":
+            return Vals(
                 val,
-                num,
                 liste,
                 dyn,
                 defin,
@@ -237,11 +298,8 @@ class ParametresFonction(object):
                 typedef,
                 self.regle_ref,
             )
-            if val is not None
-            else Valp(
-                val,
-                num,
-                liste,
+        elif mode == "P":
+            return Valp(
                 dyn,
                 defin,
                 origine,
@@ -250,7 +308,16 @@ class ParametresFonction(object):
                 typedef,
                 self.regle_ref,
             )
-        )
+        elif mode == "A":
+            return Valatt(
+                dyn,
+                defin,
+                origine,
+                texte,
+                defaut,
+                typedef,
+                self.regle_ref,
+            )
 
     def __repr__(self):
         listev = [
@@ -302,7 +369,7 @@ class ParametresCondition(ParametresFonction):
         self.vals = self._crent("vals")
         self.specif = dict()
         self.pattern = pnum
-        
+        self.static = self.attr.mode == "S" and self.vals.mode == "S"
 
     def __repr__(self):
         listev = ["attr:%s" % (str(self.attr)), "vals:%s" % (str(self.vals))]
@@ -310,7 +377,7 @@ class ParametresCondition(ParametresFonction):
 
 
 class Condition(object):
-    """ container pour les objets de selection """
+    """container pour les objets de selection"""
 
     def __init__(self, regle, attribut, valeur):
         self.regle = regle
@@ -348,7 +415,7 @@ class Condition(object):
         return False
 
     def _selpos(self, obj):
-        """condition standard """
+        """condition standard"""
         #        print ("dans select ", self.regle.numero, self.ligne, self.fonction)
         return self.fonction(self, obj)
 
@@ -358,7 +425,7 @@ class Condition(object):
         return not self.fonction(self, obj)
 
     def choix_fonction(self, attribut, valeur):
-        """ definition d un critere de selection """
+        """definition d un critere de selection"""
         if not (attribut or valeur):
             return None
         self.select = self._selpos
@@ -430,7 +497,7 @@ def validepattern(v_nommees, definition, ligne):
 
 
 class RegleTraitement(object):  # regle de mapping
-    """ descripteur de traitement unitaire """
+    """descripteur de traitement unitaire"""
 
     _ido = count(1)  # compteur d'instance
     NOMS_CHAMPS = [
@@ -449,7 +516,6 @@ class RegleTraitement(object):  # regle de mapping
     ]
 
     def __init__(self, ligne, stock_param, fichier, numero, context=None):
-
         self.idregle = next(self._ido)
 
         self.ligne = ligne
@@ -520,6 +586,7 @@ class RegleTraitement(object):  # regle de mapping
         self.erreurs = []
         self.v_nommees = dict()
         self.liste_regles = []
+        self.obj_courant = None
 
     def __repr__(self):
         """pour l impression"""
@@ -570,7 +637,7 @@ class RegleTraitement(object):  # regle de mapping
         return True
 
     def set_resultat(self, fonc):
-        """ positionne la fonction de sortie de la regle"""
+        """positionne la fonction de sortie de la regle"""
         cref = "sortie"
         elements = self.elements
         #                for j in sorted(fonc.fonctions_sortie.values(),key=lambda x:x.priorite):
@@ -596,7 +663,7 @@ class RegleTraitement(object):  # regle de mapping
         return False
 
     def traite_helpers(self, fonc):
-        """execute les fonctions auxiliaires """
+        """execute les fonctions auxiliaires"""
         self.valide = True
         inited = False
         try:
@@ -650,7 +717,7 @@ class RegleTraitement(object):  # regle de mapping
         return True
 
     def identifie_operation(self):
-        """ identifie la fonction a appliquer et recupere les parametres """
+        """identifie la fonction a appliquer et recupere les parametres"""
         fonction = self.stock_param.getcommande(self.mode)
         # print ('detecte commande',regle.mode, regle.ligne, fonction)
         #        printpattern (fonction)
@@ -704,7 +771,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def affich_autorises(self, foncgroup, motif):
         """affiche les patterns autorises"""
-        foncdef=self.stock_param.getcommande(foncgroup)
+        foncdef = self.stock_param.getcommande(foncgroup)
         if foncdef:
             patternlist = [
                 i.pattern for i in foncdef.subfonctions if i.style == self.style
@@ -775,7 +842,7 @@ class RegleTraitement(object):  # regle de mapping
         raise SyntaxError("erreurs parametres de commande")
 
     def ftrue(self, *_):
-        """ toujours vrai  pour les expressions sans conditions"""
+        """toujours vrai  pour les expressions sans conditions"""
         return True
 
     def getregle(self, ligne, fichier, numero):
@@ -783,7 +850,7 @@ class RegleTraitement(object):  # regle de mapping
         return RegleTraitement(ligne, self.stock_param, fichier, numero)
 
     def test_static_false(self, condition):
-        """ verifie si la condition est statique et realisee"""
+        """verifie si la condition est statique et realisee"""
         if not condition.valide:  # y a pas de condition
             return False
         if condition.static:
@@ -867,13 +934,13 @@ class RegleTraitement(object):  # regle de mapping
     def getobj(self, ident):
         """cree un objet"""
         if hasattr(self, "reader"):
-            niveau,classe=ident
-            obj = self.reader.getobj(niveau=niveau,classe=classe)
+            niveau, classe = ident
+            obj = self.reader.getobj(niveau=niveau, classe=classe)
             return obj
         return False
 
     def get_defaut(self, obj):
-        """ retourne la valeur par defaut s'il n'y a pas de champ"""
+        """retourne la valeur par defaut s'il n'y a pas de champ"""
         # print("get_defaut",self.params.val_entree.val)
         return self.params.val_entree.val
 
@@ -881,10 +948,15 @@ class RegleTraitement(object):  # regle de mapping
         """acces standadise a la valeur d'entree valeur avec defaut"""
         return obj.attributs.get(self.params.att_entree.val, self.params.val_entree.val)
 
-    def getval_ref(self, obj):
+    @property
+    def entree(self):
+        return self.getval_entree(self.obj_courant)
+
+    def getval_ref(self, obj=None):
         """acces standadise a la valeur d'entree valeur avec defaut"""
         #        print("recup att_ref ",self.params.att_ref,"valeur",
         #              obj.attributs.get(self.params.att_ref.val))
+        obj = self.obj_courant if obj is None else obj
         return obj.attributs.get(self.params.att_ref.val, self.params.val_entree.val)
 
     def getlist_entree(self, obj):
@@ -920,7 +992,7 @@ class RegleTraitement(object):  # regle de mapping
         #     self.fstore,
         # )
         self.fstore(self.params.att_sortie, obj, valeurs)
-
+        # print("fstore", self.fstore)
         # print(
         #     "-----val stockee- ",
         #     self.params.att_sortie.val,
@@ -938,7 +1010,7 @@ class RegleTraitement(object):  # regle de mapping
 
     def process_val(self, obj, fonction):
         """applique une fonction a un attribut"""
-        self.setval_sortie(obj, fonction(self.getval_entree(obj)))
+        self.setval_sortie(obj, fonction(self.entree))
 
     #    def process_list_inplace(self, obj, fonction):
     #        '''applique une fonction a une liste d'attributs'''
@@ -946,15 +1018,15 @@ class RegleTraitement(object):  # regle de mapping
     #        obj.attributs.update(zip(self.params.att_ref.liste,
     #                                 map(fonction, self.getlist_ref(obj))))
 
-    def prepare_place(self,nom):
+    def prepare_place(self, nom):
         """prepare le chemin pour ecrire un fichier"""
         localdir = self.getvar("localdir", os.path.join(self.getvar("_sortie", ".")))
-        if not(os.path.isabs(nom) or nom.startswith('.')):
-            nom=os.path.join(localdir,nom)
-        dirname=os.path.dirname(nom)
-        os.makedirs(dirname,exist_ok=True)
-        base,ext=os.path.splitext(nom)
-        return nom,ext
+        if not (os.path.isabs(nom) or nom.startswith(".")):
+            nom = os.path.join(localdir, nom)
+        dirname = os.path.dirname(nom)
+        os.makedirs(dirname, exist_ok=True)
+        base, ext = os.path.splitext(nom)
+        return nom, ext
 
     def affiche_debug(self, origine=""):
         """fonction d'affichage de debug"""
@@ -1046,7 +1118,7 @@ class RegleTraitement(object):  # regle de mapping
         obj.stored = True
 
     def tmpwrite(self, groupe, geomwriter, nomgeom):
-        """ stockage intermediaire sur disque pour limiter la consommation memoire"""
+        """stockage intermediaire sur disque pour limiter la consommation memoire"""
         tmpfile = os.path.join(
             self.getvar("tmpdir"),
             "tmp_"
@@ -1153,7 +1225,7 @@ class RegleTraitement(object):  # regle de mapping
         return True
 
     def get_max_workers(self):
-        """ retourne le nombre de threads paralleles demandes"""
+        """retourne le nombre de threads paralleles demandes"""
         try:
             multi = self.getvar("multi", "1")
             if ":" in multi:

@@ -60,7 +60,7 @@ class Statdef(object):  # definition d'une statistique
             return
         self.colonnes.append(colonne)
         self.types[colonne] = vtype  # ajoute une colonne a une stat
-        if colonne[0] == "[":
+        if colonne.startswith("["):
             self.indirect = True
         if self.debug:
             print("debug:format: definition stat ", colonne, vtype, self.types)
@@ -69,7 +69,7 @@ class Statdef(object):  # definition d'une statistique
         """refait la liste des colonnes pour tenir compte des indirections"""
         nouv_colonnes = []
         for i in self.colonnes:
-            if i[0] == "[":
+            if i.startswith("["):
                 nouv_colonnes.extend(
                     [
                         j
@@ -98,7 +98,7 @@ class Statdef(object):  # definition d'une statistique
         return [self.nom] + self.colonnes_sortie
 
     def get_vals(self, categorie, valeurs):
-        """ retourne la liste des valeurs pour une categorie"""
+        """retourne la liste des valeurs pour une categorie"""
         try:
             return [
                 self.formats[self.types[i]](valeurs.get((categorie, i), 0))
@@ -135,7 +135,7 @@ def _get_number(valeur):
 
 
 class ExtStat(object):
-    """ structure de stockage simplifie de stats externes"""
+    """structure de stockage simplifie de stats externes"""
 
     def __init__(self, nom, entete):
         self.nom = nom  # nom de la stat (fichier de sortie)
@@ -154,7 +154,7 @@ class ExtStat(object):
     def ecrire(
         self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
     ):
-        """ sortie stat en format csv"""
+        """sortie stat en format csv"""
         nom = self.nom
         if wid:
             nom = nom + "_" + wid
@@ -236,7 +236,7 @@ class ExtStat(object):
 
 
 class Stat(object):
-    """ structure de stockage des statistiques."""
+    """structure de stockage des statistiques."""
 
     def __init__(self, nom, structure):
         self.nom = nom  # nom de la stat (fichier de sortie)
@@ -328,7 +328,7 @@ class Stat(object):
         somme, nbval = self.valeurs.get(clef, (0, 0))
         self.valeurs[clef] = (somme + val, nbval + 1)
 
-    def ajout_valeur(self, ligne, colonne, valeur, val_colonne=None):
+    def ajout_valeur(self, ligne, colonne, valeur, val_colonne=None, indirect=False):
         """ajoute une valeur a une stat.
         appele dans le traitement des objets pour chaque objet
         perfs a ameliorer a l'occasion
@@ -344,7 +344,8 @@ class Stat(object):
         #     "VC:",
         #     val_colonne,
         # )
-        if colonne[0] == "[":  # eclatement par colonnes
+        if indirect:  # eclatement par colonnes
+            colonne = "[" + colonne + "]"
             clef = (ligne, val_colonne)
             self.colonnes_indirect[val_colonne] = colonne
         else:
@@ -443,7 +444,9 @@ class Stat(object):
         entete = self.structure.entete_liste(self.colonnes_indirect)
         if filtre:
             corps = [
-                self.structure.ligne_liste(i, self.valeurs) for i in result if filtre in i
+                self.structure.ligne_liste(i, self.valeurs)
+                for i in result
+                if filtre in i
             ]
         else:
             corps = [self.structure.ligne_liste(i, self.valeurs) for i in result]
@@ -452,7 +455,7 @@ class Stat(object):
     def ecrire(
         self, rep_sortie, affiche=False, filtre="", defaut=None, codec="utf-8", wid=""
     ):
-        """ sortie stat en format csv"""
+        """sortie stat en format csv"""
         nom = "_".join(self.nom).replace("#", "")
         if wid:
             nom = nom + "_" + wid
@@ -585,7 +588,7 @@ class Statstore(object):
         return {nom: stat.retour() for nom, stat in self.stats.items()}
 
     def ecriture_stats(self, regle=None):
-        """stockage des stats """
+        """stockage des stats"""
         # print(
         #     "pyetl : stats a ecrire",
         #     self.parent.idpyetl,
@@ -664,9 +667,9 @@ class Statstore(object):
             print("%-60s | %10s |" % ("           nom", "nombre   "))
             for i in sorted(liste_fich):
                 print("%-60s | %10d |" % (i, liste_fich[i]))
-        
+
     def rulestat(self):
         "indique les stats d'utilisation des regles"
-        regles=self.parent.regles
+        regles = self.parent.regles
         for i in regles:
-            print ("regle:",i.declenchee,"->", i.ligne)
+            print("regle:", i.declenchee, "->", i.ligne)

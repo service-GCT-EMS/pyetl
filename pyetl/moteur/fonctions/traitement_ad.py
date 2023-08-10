@@ -72,14 +72,12 @@ def find_ldapuser(regle, nom):
     """recupere des utilisateurs dans une base ldap"""
     adcode = regle.getvar("ADserver")
     base_dn = regle.getvar("base_dn_" + adcode)
-    nom=str(nom)
+    nom = str(nom)
     # filter = "(|(CN='%s')(sAMAccountName='%s')(displayName='%s'))" % (nom, nom, nom)
     filter = "(|(CN=%s)(sAMAccountName=%s))" % (nom, nom)
     attrs = regle.a_recuperer
     retour = regle.connect.search_s(base_dn, ldap.SCOPE_SUBTREE, filter, attrs)
-    if regle.debug or regle.istrue('debug'):
-        print("adquery", base_dn, filter, attrs)
-        print("retour adquery", retour)
+
     result = list()
     if retour:
         for ligne in retour:
@@ -87,8 +85,13 @@ def find_ldapuser(regle, nom):
             dict_decode(attdict)
             attdict["clef"] = ref
             # print("stockage attdict", attdict)
-            item = {i.upper():j for i,j in attdict.items()}
+            item = {i.upper(): j for i, j in attdict.items()}
         result.append(item)
+    if regle.debug or regle.istrue("debug"):
+        print("adquery", base_dn, filter, attrs)
+        print("retour adquery", retour)
+        print("resultat", result)
+
     return result
 
 
@@ -112,12 +115,12 @@ def getADnames(regle, elems, *args, **kwargs):
         sql_string.append("WHERE %s" % where_clause)
 
     # print("requete ad", "\n".join(sql_string))
-    adreponse=regle.AD.query("\n".join(sql_string), Page_size=50)
-    # print ("reponse adquery", adreponse) 
-    found=0
+    adreponse = regle.AD.query("\n".join(sql_string), Page_size=50)
+    # print ("reponse adquery", adreponse)
+    found = 0
     for result in adreponse:
         print("retour ad:", result, type(result))
-        found=1
+        found = 1
         if isinstance(result, regle.AD.ADO_record):
             print("retour", result.fields)
             if elems == ["*"]:
@@ -137,10 +140,11 @@ def getADnames(regle, elems, *args, **kwargs):
                     except TypeError:
                         val = str(elem)
                     retour.append(val)
-                    print ('retour AD', retour)
+                    print("retour AD", retour)
                 yield retour
     if not found:
-        print ('ad: iterateur vide')
+        print("ad: iterateur vide")
+
 
 def find_ADuser(regle, elems, name=None):
     if not name or name == "*":
@@ -174,11 +178,11 @@ def h_adquery(regle):
     """initialise l'acces active_directory"""
 
     # print("acces LDAP", ACD.root(), regle)
-    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.liste else ["CN"]
+    regle.a_recuperer = regle.params.cmp2.liste if regle.params.cmp2.val else ["CN"]
     adcode = regle.getvar("ADserver")
-    regle.queryfonc=None
-    regle.mqueryfonc=None
-    if adcode:
+    regle.queryfonc = None
+    regle.mqueryfonc = None
+    if adcode and adcode != "#defaut":
         # connection specifique a un autre serveur AD
         # on charge le groupe de parametres
 
@@ -187,7 +191,7 @@ def h_adquery(regle):
         server = regle.getvar("server_" + adcode)
         user = regle.getvar("user_" + adcode)
         passwd = regle.getvar("passwd_" + adcode)
-        print("adconnect ", user, passwd, server)
+        # print("adconnect ", user, passwd, server)
         try:
             regle.connect = ldap.initialize("ldap://" + server)
             regle.connect.bind_s(user, passwd, ldap.AUTH_SIMPLE)
@@ -201,14 +205,14 @@ def h_adquery(regle):
         #     "ldapreturn", ["clef"] + [i.upper() for i in regle.a_recuperer]
         #  )
         if regle.params.pattern == "1" or regle.params.pattern == "4":
-            regle.queryfonc = MethodType(find_ldapuser,regle)
+            regle.queryfonc = MethodType(find_ldapuser, regle)
     else:
         # connection serveur par defaut
         from . import active_directory as ACD
 
         try:
             regle.AD = ACD
-            print ('connection active directory par defaut (com object)')
+            print("connection active directory par defaut (com object)")
         except ACD.pywintypes.com_error:
             regle.stock_param.logger.error("connection active directory impossible")
             regle.valide = False
@@ -234,14 +238,12 @@ def h_adquery(regle):
             regle.ad_objectclass = "group"
             regle.queryfonc = regle.AD.find_group
             regle.mqueryfonc = find_group
-        elif regle.params.pattern=='5':
-            regle.ad_objectclass=regle.params.cmp1.val
+        elif regle.params.pattern == "5":
+            regle.ad_objectclass = regle.params.cmp1.val
             regle.queryfonc = regle.AD.search
             regle.mqueryfonc = find_group
 
-
     if regle.params.pattern == "4":  # variable
-
         items = regle.queryfonc(regle.params.val_entree.val)
         if items is None:
             regle.stock_param.logger.error(
@@ -251,16 +253,16 @@ def h_adquery(regle):
             return True
         # print ('recup query ', items)
         if items and iterable(items):
-            item=next((i for i in items))
+            item = next((i for i in items))
         else:
-            item=items
+            item = items
         # item = items[0] if isinstance(items, list) else items
         if item:
-            if isinstance(item,dict):
-                val=item.get(regle.a_recuperer[0].upper(),'')
+            if isinstance(item, dict):
+                val = item.get(regle.a_recuperer[0].upper(), "")
             else:
                 val = getattr(item, regle.a_recuperer[0])
-            print ('lu ad', regle.params.att_sortie.val,'->',val)
+            print("lu ad", regle.params.att_sortie.val, "->", val)
             regle.setvar(regle.params.att_sortie.val, val)
             if regle.debug:
                 print(
@@ -282,38 +284,42 @@ def f_adquery(regle, obj):
     #pattern3||M;?C;?A;adquery;=groupe;?C;
     #pattern4||P;C;;adquery;=user;;||sortie||2
     #pattern5||;?C;?A;adquery;C;?C;||sortie||1
-    #req_test||adserver
-    #test||obj||X;89965;adquery;user;||atv;X;UNGER Claude;
+    #req_test||ADserver
+    #test||obj||^X;89965;;adquery;user||atv;X;UNGER Claude;
     #"""
-    if regle.get_entree(obj):
+    if regle.entree:
         try:
             if regle.mqueryfonc:
-                items = regle.mqueryfonc(regle, regle.a_recuperer, regle.get_entree(obj))
+                items = regle.mqueryfonc(regle, regle.a_recuperer, regle.entree)
             else:
-                items=regle.queryfonc(regle.get_entree(obj))
+                items = regle.queryfonc(regle.entree)
             if regle.debug:
-
-                print("adquery", items)
+                print("adquery", regle.a_recuperer, items)
                 # print("contenu", list(items))
         except TypeError as err:
-            print("erreur f_adquery", err, regle.get_entree(obj),regle.queryfonc,regle.mqueryfonc )
+            print(
+                "erreur f_adquery", err, regle.entree, regle.queryfonc, regle.mqueryfonc
+            )
             items = []
         item = None
         if regle.a_recuperer == ["*"]:
-            print("root", dir(regle.AD.root()))
-            val = regle.queryfonc(regle.get_entree(obj))
-            print("infos:", val)
+            val = regle.queryfonc(regle.entree)
+            if regle.debug:
+                print("root", dir(regle.AD.root()))
+                print("infos:", val)
             val.dump()
             regle.setval_sortie(obj, "")
             return True
         if regle.params.pattern == "1" and regle.a_recuperer == ["CN"]:
             if items and iterable(items):
-                val=next((i for i in items))
+                val = next((i for i in items))
             else:
-                val=items
-                # if regle.debug:
-                # print("recup user", val)
-                regle.setval_sortie(obj, val)
+                val = items
+            v2 = val.get("CN")
+            if regle.debug:
+                print("recup user", v2, val)
+            if v2:
+                regle.setval_sortie(obj, [v2])
                 return True
             return False
         for item in items:
@@ -322,11 +328,12 @@ def f_adquery(regle, obj):
                 val = item
             else:
                 val = getattr(item, regle.a_recuperer[0])
-            print("extraction adquey", item, val)
+            if regle.debug:
+                print("extraction adquey", item, val)
             regle.setval_sortie(obj2, val)
             regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
 
         if item:
             return True
-    # print("pas d'entree adquery", regle.get_entree(obj))
+    # print("pas d'entree adquery", regle.entree)
     return False

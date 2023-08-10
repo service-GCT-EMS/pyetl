@@ -37,7 +37,9 @@ def store_traite_stock(regle):
             store.sort(key=keyval, reverse=reverse)
         for obj in store:
             # print("store: relecture objet ", obj)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
+            regle.stock_param.moteur.traite_objet(
+                obj, regle.branchements.brch["endstore"]
+            )
     elif isinstance(store, set):
         print("traitement set", len(store))
         print("store", len(regle.stock_param.store))
@@ -46,7 +48,9 @@ def store_traite_stock(regle):
             sorted(store.keys(), reverse=reverse) if regle.params.cmp2.val else store
         ):
             obj = store[clef]
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
+            regle.stock_param.moteur.traite_objet(
+                obj, regle.branchements.brch["endstore"]
+            )
     h_stocke(regle)  # on reinitialise
 
 
@@ -319,7 +323,9 @@ def sortir_traite_stock(regle):
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):
             regle.output.ecrire_objets_stream(obj, regle, False)
-            regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["endstore"])
+            regle.stock_param.moteur.traite_objet(
+                obj, regle.branchements.brch["endstore"]
+            )
     regle.nbstock = 0
 
 
@@ -352,9 +358,9 @@ def h_sortir(regle):
         regle.writerparms["fanout"] = regle.params.cmp1.val[tmplist + 1 : -1]
         # regle.setlocal("fanout", regle.params.cmp1.val[tmplist + 1 : -1])
         regle.params.cmp1.val = regle.params.cmp1.val[:tmplist]
-    regle.writerparms["force_multi"]= regle.istrue("force_multi")
-    regle.writerparms["force_multipoint"]= regle.istrue("force_multipoint")
-    regle.writerparms["force_courbe"]= regle.istrue("force_courbe")
+    regle.writerparms["force_multi"] = regle.istrue("force_multi")
+    regle.writerparms["force_multipoint"] = regle.istrue("force_multipoint")
+    regle.writerparms["force_courbe"] = regle.istrue("force_courbe")
     if regle.params.cmp2.val != "#print":
         fich = ""
         #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
@@ -426,7 +432,9 @@ def setschemasortie(regle, obj):
     """positionne le schema de sortie pour l objet"""
     if regle.nom_fich_schema == "#auto":
         if obj.schema:
-            regle.nom_fich_schema = obj.schema.schema.nom + "_" + regle.output.nom_format
+            regle.nom_fich_schema = (
+                obj.schema.schema.nom + "_" + regle.output.nom_format
+            )
         else:
             regle.nom_fich_schema = "schema_sortie_" + regle.output.nom_format
         # on copie le schema pour ne plus le modifier apres ecriture
@@ -496,8 +504,8 @@ def f_sortir(regle, obj):
             obj, regle, False, attributs=regle.liste_attributs
         )
     except Exception as exc:
-        regle.stock_param.logger.error("ecriture objet %s",repr(obj))
-        regle.stock_param.logger.exception("erreur:",exc_info=exc)
+        regle.stock_param.logger.error("ecriture objet %s", repr(obj))
+        regle.stock_param.logger.exception("erreur:", exc_info=exc)
         raise
     if regle.final:
         obj.schema = None
@@ -522,12 +530,7 @@ def preload(regle, obj):
         process = psutil.Process(os.getpid())
         mem1 = process.memory_info()[0]
     # =========================================
-    if obj and regle.params.att_entree.val:
-        entree = obj.attributs.get(regle.params.att_entree.val, regle.fich)
-    else:
-        entree = regle.entree if regle.entree else regle.fich
-    # if not os.path.isabs(entree):
-    #     entree = os.path.join(regle.getvar("_entree"), entree)
+    entree = regle.fich
     print(
         "------- preload commandes:(",
         chaine_comm,
@@ -607,11 +610,8 @@ def h_preload(regle):
         regle.dynlevel = 1
     elif "[" in fich:
         regle.dynlevel = 3
-    regle.entree = None
     regle.loaded = False
     if regle.dynlevel == 0:  # pas de condition on precharge avant de lire
-        regle.entree = regle.params.val_entree.val
-        regle.fich = regle.entree
         regle.valide = "done" if preload(regle, None) else False
 
     # print(
@@ -637,7 +637,7 @@ def f_preload(regle, obj):
         fich = fich.replace("[G]", obj.attributs["#groupe"])
         fich = fich.replace("[F]", obj.attributs["#classe"])
         if fich != regle.entree:
-            regle.entree = fich
+            regle.fich = fich
             print(
                 "==================f_preload===",
                 regle.stock_param.racine,
@@ -709,7 +709,6 @@ def f_compare(regle, obj):
             clef = obj.attributs[regle.params.cmp1.val]
         ref = regle.comp.pop(clef)
     except KeyError:
-
         obj.redirect = "new"
         obj.attributs[regle.params.att_sortie.val] = "new"
         return False
@@ -762,7 +761,7 @@ def f_getkey(regle, obj):
     #aide_spec||attribut qui recupere le resultat, valeur de reference a coder , getkey , nom de la clef
     #pattern||S;?C;?A;getkey;?A;?A;;
     """
-    ref = regle.get_entree(obj)
+    ref = regle.entree
     if ref not in regle.keystore:
         regle.keystore[ref] = len(regle.keystore) + 1
     regle.setval_sortie(obj, regle.keystore[ref])
@@ -787,7 +786,7 @@ def sortir_objets(regle):
     """sort les objets"""
     schema_courant = regle.stock_param.init_schema(regle.nomschema, origine="L")
     for obj in regle.objets.values():
-        obj.attributs["#nb_objs"]=str(obj.attributs["#nb_objs"]) # compteur
+        obj.attributs["#nb_objs"] = str(obj.attributs["#nb_objs"])  # compteur
         regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     regle.nbstock = 0
 
@@ -798,9 +797,9 @@ def h_objgroup(regle):
     regle.objets = OrderedDict()
     regle.reader = regle.stock_param.getreader("interne+s", regle)
     if not regle.params.att_sortie.liste:
-        regle.params.att_sortie.liste=regle.params.att_entree.liste
+        regle.params.att_sortie.liste = regle.params.att_entree.liste
     regle.attlist = set(regle.params.att_sortie.liste) | set(regle.params.cmp2.liste)
-    
+
     if (
         len(regle.params.att_sortie.liste) == 1
         and len(regle.params.att_entree.liste) > 1
@@ -817,7 +816,7 @@ def h_objgroup(regle):
     else:
         idclasse = ("objgroup", regle.params.cmp1.val)
     regle.classe_sortie = idclasse
-    regle.nomschema=""
+    regle.nomschema = ""
     # regle.atts = [i for i in regle.attlist]
 
 
@@ -840,31 +839,31 @@ def f_objgroup(regle, obj):
         obj2 = regle.objets.get(clef)
     else:
         # on cree un objet
-        atts=list(zip(regle.params.cmp2.liste,clef))
+        atts = list(zip(regle.params.cmp2.liste, clef))
         if obj.schema:
-            regle.nomschema=obj.schema.schema.nom
-            schemaclasse=obj.schema.schema.setdefault_classe(regle.classe_sortie)
+            regle.nomschema = obj.schema.schema.nom
+            schemaclasse = obj.schema.schema.setdefault_classe(regle.classe_sortie)
             if schemaclasse.amodifier(regle):
                 for nom in regle.params.cmp2.liste:
-                    modele=obj.schema.attributs.get(nom)
+                    modele = obj.schema.attributs.get(nom)
                     if modele:
                         schemaclasse.ajout_attribut_modele(modele)
                     else:
-                        schemaclasse.stocke_attribut(nom,"T")
-                if regle.params.pattern==2:
-                    schemaclasse.stocke_attribut(regle.params.att_sortie.val,"H")
+                        schemaclasse.stocke_attribut(nom, "T")
+                if regle.params.pattern == 2:
+                    schemaclasse.stocke_attribut(regle.params.att_sortie.val, "H")
                 else:
                     for nom in regle.params.att_entree.liste:
-                        modele=obj.schema.attributs.get(nom)
+                        modele = obj.schema.attributs.get(nom)
                         if modele:
                             schemaclasse.ajout_attribut_modele(modele)
                         else:
-                            schemaclasse.stocke_attribut(nom,"T")
-                        schemaclasse.attributs[nom].multiple=True
+                            schemaclasse.stocke_attribut(nom, "T")
+                        schemaclasse.attributs[nom].multiple = True
 
         obj2 = regle.reader.getobj(niveau=niveau, classe=classe, attributs=atts)
-        obj2.attributs["#nb_objs"]=0
-        obj2.schema=schemaclasse
+        obj2.attributs["#nb_objs"] = 0
+        obj2.schema = schemaclasse
 
         # ident = obj.ident
         # ident2 = (ident[0], regle.params.cmp1.val)
@@ -880,7 +879,7 @@ def f_objgroup(regle, obj):
         # la premiere fois on ajuste le schema
         if regle.nbstock == 0:
             obj2.ajuste_schema()
-            obj2.attributs["#nb_objs"]+=1
+            obj2.attributs["#nb_objs"] += 1
         regle.objets[clef] = obj2
         regle.nbstock += 1
     if regle.params.pattern == "1":
@@ -888,9 +887,9 @@ def f_objgroup(regle, obj):
             obj2.attributs[i].append(obj.attributs.get(j, regle.params.val_entree.val))
     elif regle.params.pattern == "2":
         obj2.attributs[regle.params.att_sortie.val].append(
-                {i:obj.attributs.get(i,"") for i in regle.params.att_entree.liste}
-            )
-        
+            {i: obj.attributs.get(i, "") for i in regle.params.att_entree.liste}
+        )
+
     return True
 
 
@@ -912,15 +911,13 @@ def f_log(regle, obj):
     #pattern||;?C;?A;log;C;?C;
     """
     if regle.params.cmp2.val == "debug":
-        regle.stock_param.logger.debug(regle.params.cmp1.val, regle.getval_entree(obj))
+        regle.stock_param.logger.debug(regle.params.cmp1.val, regle.entree)
     elif regle.params.cmp2.val == "warn":
-        regle.stock_param.logger.warning(
-            regle.params.cmp1.val, regle.getval_entree(obj)
-        )
+        regle.stock_param.logger.warning(regle.params.cmp1.val, regle.entree)
     elif regle.params.cmp2.val == "err":
-        regle.stock_param.logger.error(regle.params.cmp1.val, regle.getval_entree(obj))
+        regle.stock_param.logger.error(regle.params.cmp1.val, regle.entree)
     else:
-        regle.stock_param.logger.info(regle.params.cmp1.val, regle.getval_entree(obj))
+        regle.stock_param.logger.info(regle.params.cmp1.val, regle.entree)
 
 
 def h_attwriter(regle):

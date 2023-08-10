@@ -14,11 +14,12 @@ import time
 import logging
 import hashlib
 
-def listefichs(regle,nom):
+
+def listefichs(regle, nom):
     """gere la compression"""
     racine = regle.params.cmp2.val
     stock = dict()
-    mode=0
+    mode = 0
     if regle.params.att_entree.val:
         fich = os.path.join(racine, nom)
         if fich:
@@ -55,7 +56,7 @@ def h_archive(regle):
     """definit la regle comme declenchable"""
     racine = regle.params.cmp2.val
     dest = os.path.join(racine, regle.params.cmp1.val + ".zip")
-    if regle.params.pattern=="2" or regle.params.pattern=="2b":
+    if regle.params.pattern == "2" or regle.params.pattern == "2b":
         mode = "w"
         regle.stock_param.logger.info(
             "archive : ecriture zip:" + (racine + ":")
@@ -81,7 +82,7 @@ def h_archive(regle):
             for i in stock:
                 file.write(i, arcname=stock[i])
         print("fin_archive", dest, time.ctime())
-        regle.valide="done"
+        regle.valide = "done"
     else:
         if os.path.isfile(dest):
             if regle.istrue("ajout_zip"):
@@ -89,11 +90,6 @@ def h_archive(regle):
             else:
                 os.remove(dest)
         regle.chargeur = True
-
-
-
-
-
 
 
 def f_archive(regle, obj):
@@ -113,13 +109,12 @@ def f_archive(regle, obj):
     print(
         "archive",
         time.ctime(),
-        regle.getval_entree(obj),
+        regle.entree,
         dest,
         regle.getvar("_sortie"),
     )
-    fich = os.path.join(racine, regle.getval_entree(obj))
+    fich = os.path.join(racine, regle.entree)
     mode = "a"
-        
 
     with zipfile.ZipFile(dest, compression=zipfile.ZIP_BZIP2, mode=mode) as file:
         file.write(i, arcname=fich)
@@ -137,7 +132,7 @@ def f_zipdir(regle, obj):
       #pattern2||?A;?C;?A;zipdir;=split;
           #test||notest
     """
-    name = regle.getval_entree(obj)
+    name = regle.entree
     if not os.path.isabs(name) and not name.startswith("."):
         name = os.path.join(regle.getvar("_entree", "."), name)
     if not zipfile.is_zipfile(name):
@@ -160,14 +155,14 @@ def f_zipextract(regle, obj):
          #test||notest
     """
 
-    name = regle.params.cmp1.getval(obj)
+    name = regle.params.cmp1.val
     # print("preparation zipextract", name)
     if not os.path.isabs(name) and not name.startswith("."):
         name = os.path.join(regle.getvar("_entree", "."), name)
 
     namelist = glob.glob(name) if "*" in name else [name]
     found = False
-    sortie = regle.params.att_sortie.getval(obj)
+    sortie = regle.params.att_sortie.val
     if not os.path.isabs(sortie) and not sortie.startswith("."):
         sortie = os.path.join(regle.getvar("_sortie", "."), sortie)
     for name in namelist:
@@ -214,9 +209,10 @@ def get_checksum(regle, name, write=False):
         open(sortie, "w").write(checksum)
     return checksum
 
-def verify_checksum(regle,name,checksum):
+
+def verify_checksum(regle, name, checksum):
     """compare une checksum"""
-    calcul=get_checksum(regle, name)
+    calcul = get_checksum(regle, name)
     return calcul == checksum
 
 
@@ -239,7 +235,7 @@ def f_checksum(regle, obj):
      #pattern2||?P;C;;checksum;=md5;
          #test||notest
     """
-    name = regle.getval_entree(obj)
+    name = regle.entree
     cksum = get_checksum(regle, name, write=not regle.result)
     if regle.result:
         regle.seval_sortie(obj, cksum)

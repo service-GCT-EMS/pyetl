@@ -21,6 +21,7 @@ def sel_attexiste(condition, obj):
     """
     return condition.params.attr.val in obj.attributs
 
+
 def sel_attsexistent(condition, obj):
     """#aide||teste si des attributs existent
     #pattern||L;||60
@@ -28,8 +29,9 @@ def sel_attsexistent(condition, obj):
     """
     return all([i in obj.attributs for i in condition.params.attr.liste])
 
+
 def selh_attexiste_re(condition):
-    """ compile les expressions regulieres"""
+    """compile les expressions regulieres"""
     #    print (" dans helper regex",condition.params.vals.val)
     condition.fselect = re.compile(condition.params.attr.val).search
 
@@ -44,13 +46,16 @@ def sel_attexiste_re(condition, obj):
     condition.regle.matchlist = result if result else []
     return condition.regle.match
 
-def sel_attegal(condition,obj):
+
+def sel_attegal(condition, obj):
     """#aide||selection sur la valeur d un attribut egalite stricte avec un attribut
     #pattern2||A;[A]||1
     #test||obj||^A;1;;set||^?A;0;;set||A;=:1;;;res;1;;set||atv;res;1
     """
     # print ("condition egal",condition.params.vals.val)
-    return obj.attributs.get(condition.params.vals.val) == obj.attributs.get(condition.params.attr.val)
+    return obj.attributs.get(condition.params.vals.val) == obj.attributs.get(
+        condition.params.attr.val
+    )
 
 
 def sel_egal(condition, obj):
@@ -63,9 +68,9 @@ def sel_egal(condition, obj):
 
 
 def selh_regex(condition):
-    """ compile lesexpressions regulieres"""
+    """compile lesexpressions regulieres"""
     # print (" dans helper regex",condition.params.vals.val,re.compile(condition.params.vals.val))
-    
+
     try:
         condition.fselect = re.compile(condition.params.vals.val).search
     except re.error:
@@ -73,8 +78,6 @@ def selh_regex(condition):
             "expression regulière erronée %s %s", repr(condition), repr(condition.regle)
         )
         # print("expression condition erronee", condition, condition.regle)
-
-
 
 
 def sel_regex(condition, obj):
@@ -92,7 +95,7 @@ def sel_regex(condition, obj):
 
 
 def selh_calc(condition):
-    """prepare les expressions pour le calcul """
+    """prepare les expressions pour le calcul"""
 
     attribut = condition.params.attr.val
     valeurs = condition.params.vals.val
@@ -118,7 +121,7 @@ def sel_calc(condition, obj):
 
 
 def selh_calc2(condition):
-    """prepare les expressions pour le calcul """
+    """prepare les expressions pour le calcul"""
     valeurs = condition.params.vals.val
     condition.fselect = condition.params.compilefonc(
         valeurs, "obj", debug=condition.regle.debug
@@ -153,12 +156,19 @@ def selh_infich(condition):
             taille_id = max([len(i[0].split(".")) for i in valeurs])
             condition.info = set(i[0] for i in valeurs)
             condition.taille = taille_id
-            
+
     else:
         condition.dyn = True
 
     if condition.debug:
-        print ("condition infich",condition, mode,valeurs,condition.taille, condition.info)
+        print(
+            "condition infich",
+            condition,
+            mode,
+            valeurs,
+            condition.taille,
+            condition.info,
+        )
 
 
 #    print ('condition liste fich charge ',condition.info)
@@ -381,6 +391,7 @@ def sel_isnotnull(condition, obj):
     """
     return obj.attributs.get(condition.params.attr.val, "")
 
+
 # def sel_istrue(condition,obj):
 #     pass
 # fonctions de selections dans un hstore
@@ -442,10 +453,10 @@ def sel_idinfich(condition, obj):
         #helper||infich
     !test1||obj||^#groupe,#classe;e1,tt;;set||^?#groupe;e2;;set||ident:;e1;;;res;1;;set||atv;res;1
     """
-    
+
     if condition.taille == 3 and "#codebase" in obj.attributs:  # on a ajoute la base
         if condition.debug:
-            print ("debug",obj.attributs.get("#codebase") + "." + ".".join(obj.ident))
+            print("debug", obj.attributs.get("#codebase") + "." + ".".join(obj.ident))
         return (
             obj.attributs.get("#codebase") + "." + ".".join(obj.ident) in condition.info
         )
@@ -498,7 +509,7 @@ def sel_pregex(condition, _):
 
 
 def selh_constante(condition):
-    """ mets en place le condition de constante """
+    """mets en place le condition de constante"""
     condition.static = True
     if condition.neg:
         condition.initval = condition.params.attr.val != condition.params.vals.val[1:]
@@ -515,7 +526,7 @@ def sel_constante(condition, *_):
 
 
 def selh_cexiste(condition):
-    """ mets en place le condition de constante """
+    """mets en place le condition de constante"""
     condition.static = True
     if condition.neg:
         condition.initval = not bool(condition.params.attr.val)
@@ -744,39 +755,41 @@ def sel_is_type_geom(condition, obj):
 
 def sel_isfile(condition, obj):
     """#aide||teste si un fichier existe
-    #pattern1||=is:file;[A]||1
+    #!pattern1||=is:file;[A]||1
     #pattern2||=is:file;C||1
     #test||obj||is:file;%testrep%/refdata/liste.csv;;;C1;1;;set||?is:file;!%testrep%/refdata;;;C1;0;;set||atv;C1;1
     """
-    if condition.params.pattern == "2":
-        # print(
-        #     "isfile",
-        #     condition.params.vals.val,
-        #     os.path.isfile(condition.params.vals.val),
-        # )
-        return os.path.isfile(condition.params.vals.val)
-    else:
-        return (
-            os.path.isfile(obj.attributs.get(condition.params.vals.val))
-            if obj is not None
-            else None
-        )
+    return os.path.isfile(condition.params.vals.val)
+    # if condition.params.pattern == "2":
+    #     # print(
+    #     #     "isfile",
+    #     #     condition.params.vals.val,
+    #     #     os.path.isfile(condition.params.vals.val),
+    #     # )
+    #     return os.path.isfile(condition.params.vals.val)
+    # else:
+    #     return (
+    #         os.path.isfile(obj.attributs.get(condition.params.vals.val))
+    #         if obj is not None
+    #         else None
+    #     )
 
 
 def sel_isdir(condition, obj):
     """#aide||teste si un repertoire existe
-    #pattern1||=is:dir;[A]||1
+    #!pattern1||=is:dir;[A]||1
     #pattern2||=is:dir;C||1
     #test||obj||is:dir;%testrep%/refdata;;;C1;1;;set||?is:dir;!%testrep%/dudule;;;C1;0;;set||atv;C1;1
     """
-    if condition.params.pattern == "2":
-        return os.path.isdir(condition.params.vals.val)
-    else:
-        return (
-            os.path.isdir(obj.attributs.get(condition.params.vals.val))
-            if obj is not None
-            else None
-        )
+    return os.path.isdir(condition.params.vals.val)
+    # if condition.params.pattern == "2":
+    #     return os.path.isdir(condition.params.vals.val)
+    # else:
+    #     return (
+    #         os.path.isdir(obj.attributs.get(condition.params.vals.val))
+    #         if obj is not None
+    #         else None
+    #     )
 
 
 def selh_is_date(condition):

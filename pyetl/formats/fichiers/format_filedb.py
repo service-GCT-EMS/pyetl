@@ -8,19 +8,21 @@ type access, sqlite... en envoyant un objet virtuel a un lecteur de base de donn
 
 """
 import os
+from ..generic_io import getdb
 
 # from .db import DATABASES
 # types de bases fichier connues
 
 
 def lire_objets_fdb(self, rep, chemin, fichier):
-    """ prepare l objet virtuel declencheur pour la lecture en base access ou sqlite"""
+    """prepare l objet virtuel declencheur pour la lecture en base access ou sqlite"""
     #    type_base = {".mdb":"access",
     #                 ".sqlite":"sqlite"}
-    databases = self.get_formats("d")
-    type_base = {
-        databases[i].fileext: i for i in databases if databases[i].svtyp == "file"
-    }
+    # databases = self.get_formats("d")
+    # print("recup databases", databases)
+    # type_base = {
+    #     databases[i].fileext: i for i in databases if databases[i].svtyp == "file"
+    # }
     #    regle = stock_param.regles[0]
     base, ext = os.path.splitext(fichier)
     #    stock_param.parms["serveur_"+base]=chemin
@@ -31,9 +33,13 @@ def lire_objets_fdb(self, rep, chemin, fichier):
     obj.attributs["#nombase"] = base
     obj.attributs["#base"] = os.path.join(chemin, fichier)
     force = self.regle_ref.getvar("F_entree")
-    type_base_demande = "." + force if force else ext
-    type_base_trouve = type_base.get(type_base_demande)
+    type_base_demande = force if force else ext[1:]
+
+    type_base_trouve = getdb(type_base_demande)
     if type_base_trouve:
+        connection = dbdef.acces(
+            serveur, base, user, passwd, system=systables, params=regle, code=codebase
+        )
         obj.attributs["#type_base"] = type_base_trouve
         #        obj.debug("filedb:virtuel")
         obj.virtuel = True

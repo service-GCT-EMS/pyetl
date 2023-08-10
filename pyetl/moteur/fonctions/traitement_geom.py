@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setschemainfo(regle, obj, multi=None, type=None, dyn=False):
-    """ reporte les infos sur le schema en cas de modification de la geometrie """
+    """reporte les infos sur le schema en cas de modification de la geometrie"""
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
     tgeom = obj.geom_v.type_geom
     obj.attributs["#type_geom"] = tgeom
@@ -30,14 +30,14 @@ def setschemainfo(regle, obj, multi=None, type=None, dyn=False):
 
 
 def setschemadim(regle, obj, dyn=False):
-    """ reporte les infos sur le schema en cas de modification de la geometrie """
+    """reporte les infos sur le schema en cas de modification de la geometrie"""
     obj.attributs["#dimension"] = str(obj.geom_v.dimension)
     if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["dimension"] = str(obj.geom_v.dimension)
 
 
 def setschema_typegeom(regle, obj, dyn=False):
-    """ reporte les infos sur le schema en cas de modification de la geometrie """
+    """reporte les infos sur le schema en cas de modification de la geometrie"""
     obj.attributs["#type_geom"] = obj.geom_v.type
     if obj.schema and obj.schema.amodifier(regle, dyn):
         obj.schema.info["type_geom"] = obj.geom_v.type
@@ -114,7 +114,7 @@ def f_setpoint(regle, obj):
     try:
         #        point = [float(i) for i in obj.attributs.get(regle.params.att_entree.val,\
         #                 regle.params.val_entree.val).split(',')]
-        point = list(map(float, regle.getval_entree(obj).split(",")))
+        point = list(map(float, regle.entree.split(",")))
     except (ValueError, TypeError):
         #        coords = [i for i in obj.attributs.get(regle.params.att_entree.val,\
         #                 regle.params.val_entree.val).split(',')]
@@ -123,7 +123,7 @@ def f_setpoint(regle, obj):
         obj.finalise_geom(type_geom="1")
         #        coords = [obj.attributs.get(i, regle.params.val_entree.val)
         #                 for i in regle.params.att_entree.liste]
-        # print("set point : erreur valeurs entree ", regle.getval_entree(obj))
+        # print("set point : erreur valeurs entree ", regle.entree)
         return False
     # print("---------------------set point", point)
     cregeompoint(obj, point, regle.params.cmp1.val)
@@ -186,7 +186,7 @@ def h_addgeom(regle):
         ext = True
     regle.csep = decode_sep(regle.getvar("sep_coords", ","))
     regle.ext = regle.getvar("bouts") == 1 if regle.getvar("bouts") else ext
-    regle.ordre = [int(i)-1 for i in regle.params.cmp2.val]
+    regle.ordre = [int(i) - 1 for i in regle.params.cmp2.val]
     # print(
     #     "addgeom separateurs :p >%s< c>%s< ext:%d" % (regle.psep, regle.csep, regle.ext)
     # )
@@ -194,15 +194,15 @@ def h_addgeom(regle):
 
 def f_addgeom(regle, obj):
     """#aide||cree une geometrie pour l'objet
-   #parametres1||defaut;variable contenant les coordonnees;;type_geom;ordre des coordonnees(21 inverse x et y)
-   #parametres2||defaut;liste de variables contenant les coordonnees;;type_geom;
-     #aide_spec||N:type geometrique
-    #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
-    #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
-      #pattern1||;?C;?A;addgeom;N;?N||entree
-      #pattern2||;?C;?L;addgeom;N;||entree
-         #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
-         #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
+    #parametres1||defaut;variable contenant les coordonnees;;type_geom;ordre des coordonnees(21 inverse x et y)
+    #parametres2||defaut;liste de variables contenant les coordonnees;;type_geom;
+      #aide_spec||N:type geometrique
+     #aide_spec1||ex: A;addgeom  avec A = (1,2),(3,3) -> (1,2),(3,3)
+     #aide_spec2||  X,Y;addgeom avec X=1,2,3,4 et Y=6,7,8,9 -> (1,6),(2,7),(3,8),(4,9)
+       #pattern1||;?C;?A;addgeom;N;?N||entree
+       #pattern2||;?C;?L;addgeom;N;||entree
+          #test1||obj||^;(1,2),(3,3);;addgeom;2;||atv;#type_geom;2
+          #test2||obj||^;(0,0),(0,1),(1,1),(1,0),(0,0);;addgeom;3;||atv;#type_geom;3
     """
     if obj.virtuel:
         return True
@@ -210,12 +210,11 @@ def f_addgeom(regle, obj):
     if type_geom == "1":
         try:
             if len(regle.params.att_entree.liste) > 1:
-
                 point = list(map(float, regle.getlist_entree(obj).split(regle.csep)))
             #                point = [float(obj.attributs.get(i, regle.params.val_entree.val))
             #                         for i in regle.params.att_entree.liste]
             else:
-                point = list(map(float, regle.getval_entree(obj).split(regle.csep)))
+                point = list(map(float, regle.entree.split(regle.csep)))
         #                point = [float(i) for i in
         #                         obj.attributs.get(regle.params.att_entree.val,
         #                                           regle.params.val_entree.val).split(',')]
@@ -223,8 +222,8 @@ def f_addgeom(regle, obj):
             print("add geom : erreur valeurs entree ", regle.ligne[:-1])
             return False
         if regle.ordre:
-            point=[point[i] for i in regle.ordre]
-        dim=len(point)
+            point = [point[i] for i in regle.ordre]
+        dim = len(point)
         if dim == 2:
             point.append(0.0)
         obj.geom_v.setpoint(point, None, dim)
@@ -235,9 +234,9 @@ def f_addgeom(regle, obj):
             coordonnees = zip(*[i.split(",") for i in regle.getlist_entree(obj)])
         else:
             if regle.psep == " " or regle.csep == " ":
-                cdef = regle.getval_entree(obj)
+                cdef = regle.entree
             else:
-                cdef = regle.getval_entree(obj).replace(" ", "")
+                cdef = regle.entree.replace(" ", "")
             coords = cdef.split(regle.psep)
             if regle.ext:
                 coords[0] = coords[0][1:]
@@ -251,8 +250,8 @@ def f_addgeom(regle, obj):
                 print("add geom : erreur valeurs entree ", vals, regle.ligne)
                 return False
             if regle.ordre:
-                point=[point[i] for i in regle.ordre]
-            dim=len(point)
+                point = [point[i] for i in regle.ordre]
+            dim = len(point)
             if dim == 2:
                 point.append(0.0)
             obj.geom_v.addpoint(point, dim)
@@ -281,7 +280,7 @@ def f_force_pt(regle, obj):
     if obj.attributs["#type_geom"] == "0":
         return False
     if obj.geom_v.type > "1":
-        position = regle.get_entree(obj)
+        position = regle.entree
         if position:
             position = int(position)
             try:
@@ -359,6 +358,7 @@ def f_forcepoly(regle, obj):
 
     return False
 
+
 def f_emprise(regle, obj):
     """
     #aide||retourne l emprise de la geometrie
@@ -370,10 +370,15 @@ def f_emprise(regle, obj):
         return True
     if obj.initgeom():
         #        print ('force poly',obj.geom_v.valide,obj.attributs['#type_geom'])
-       xmin, ymin, xmax, ymax = obj.geom_v.emprise()
-       obj.geom_v.unfold(((xmin,ymin),(xmin,ymax),(xmax,ymax),(xmax,ymin),(xmin,ymin)),(4,1,0),(1))
+        xmin, ymin, xmax, ymax = obj.geom_v.emprise()
+        obj.geom_v.unfold(
+            ((xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin), (xmin, ymin)),
+            (4, 1, 0),
+            (1),
+        )
 
     return False
+
 
 def f_force_couleur(regle, obj):
     """#aide||remplace une couleur par une autre
@@ -436,8 +441,8 @@ def f_aire(regle, obj):
 def f_coordp(regle, obj):
     """#aide||extrait les coordonnees d'un point en attributs
     #aide_spec||les coordonnees sont sous #x,#y,#z
-      #pattern1||;?N;?A;coordp;;
-      #pattern2||;=C;;coordp;;
+      #pattern1||?L;?N;?A;coordp;;
+      #pattern2||?L;=C;;coordp;;
        #helper||setval
          #test||obj;ligne||^;1;;coordp||atn;#y;1
          #test1||obj;point||^;0;;coordp||atn;#y;2
@@ -448,28 +453,29 @@ def f_coordp(regle, obj):
     if obj.initgeom():
         if obj.attributs["#type_geom"] == "0" or obj.geom_v.null:
             return False
-        position = regle.get_entree(obj)
-        if position.startswith("C"): #centre
+        position = regle.entree
+        if position.startswith("C"):  # centre
             sgeom = obj.geom_v.__shapelygeom__
             if sgeom:
                 point = (
-                    sgeom.representative_point()
-                    if position=="CP"
-                    else sgeom.centroid
+                    sgeom.representative_point() if position == "CP" else sgeom.centroid
                 )
-                obj.attributs["#x"] = str(point.x)
-                obj.attributs["#y"] = str(point.y)
+                if regle.params.att_sortie.val:
+                    regle.setval_sortie(obj, [str(point.x), str(point.y)])
+                else:
+                    obj.attributs["#x"] = str(point.x)
+                    obj.attributs["#y"] = str(point.y)
                 return True
-                
+
         if not position:
             position = 0
         try:
             position = int(position)
             # refpt = list(obj.geom_v.coords)[position]
-            if position>len(position):
-                position=-1
-            refpt = list(obj.geom_v.coords)[position]
-            # print("coordp: ",list(obj.geom_v.coords),position,refpt)
+            coords = list(obj.geom_v.coords)
+            if position > len(coords):
+                position = -1
+            refpt = coords[position]
             if regle.params.att_sortie.val:
                 regle.setval_sortie(
                     obj, [str(i) for i in refpt[0 : obj.geom_v.dimension]]
@@ -482,20 +488,20 @@ def f_coordp(regle, obj):
                     )
                 )
             return True
-        except (IndexError,TypeError):
+        except (IndexError, TypeError):
             return False
     return False
 
 
 def grille(orig, pas, vmin, vmax):
-    """ retourne des intervalles regulier """
+    """retourne des intervalles regulier"""
     #    print ("detection case",vmin, vmax, orig, pas,
     #           range(int((vmin-orig)/pas),int((vmax-orig)/pas)+1))
     return range(int((vmin - orig) / pas), int((vmax - orig) / pas) + 1)
 
 
 def grille2(orig, pas, pmin, pmax):
-    """ retourne des intervalles regulier """
+    """retourne des intervalles regulier"""
     #    print ("detection case",vmin, vmax, orig, pas,
     #           range(int((vmin-orig)/pas),int((vmax-orig)/pas)+1))
 
@@ -632,7 +638,7 @@ def f_geom_3d(regle, obj):
     if obj.virtuel:
         return True
     if obj.initgeom():
-        obj.geom_v.setz(float(regle.get_entree(obj)), force=regle.params.cmp1.val)
+        obj.geom_v.setz(float(regle.entree), force=regle.params.cmp1.val)
         obj.infogeom()
         setschemadim(regle, obj)
         obj.geomnatif = False
@@ -677,12 +683,12 @@ def f_mod_3d(regle, obj):
 
 # ----- decoupage
 def h_splitcouleur(regle):
-    """ ajoute des sorties par couleur """
+    """ajoute des sorties par couleur"""
     couleurs = set(regle.params.cmp1.liste)
-    regle.liste_couleurs=[int(i) for i in couleurs]
+    regle.liste_couleurs = [int(i) for i in couleurs]
     if couleurs:
         for i in regle.liste_couleurs:
-            regle.branchements.addsortie("#"+str(i))
+            regle.branchements.addsortie("#" + str(i))
         regle.branchements.addsortie("#autre")
     #    print ('preparation split_couleurs',regle.branchements, regle.liste_couleurs)
     return True
@@ -751,9 +757,9 @@ def f_splitcouleur(regle, obj):
 
 
 def h_extractcouleur(regle):
-    """ extrait des couleurs """
+    """extrait des couleurs"""
     couleurs = set(regle.params.cmp1.liste)
-    regle.liste_couleurs=[int(i) for i in couleurs]
+    regle.liste_couleurs = [int(i) for i in couleurs]
     return True
 
 
@@ -894,7 +900,7 @@ def f_prolonge(regle, obj):
 
 
 def h_reproj(regle):
-    """ initialise la reprojection """
+    """initialise la reprojection"""
     srid_sortie = {"LL": "4326", "CC48": "3948", "CC49": "3949", "L93": "2154"}
     regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
     LOGGER.info("reprojection vers %s", str(regle.srid))
@@ -955,13 +961,12 @@ def f_translate(regle, obj):
     """#aide||translate un objet
       #aide_spec||translation d un objet par une liste de coordonnees (dans un attribut)
     #pattern||;?LN;?A;translate;;
-    #test||obj;ligne;||^dec;1,1;;set||^;;dec;translate||^;1;;coordp||atn;#x;2
+    #test||obj;ligne;||^dec;1,1;;set||^;;dec;translate||^;1;;coordp;;;||atn;#x;2
 
     """
-    liste_trans = obj.attributs.get(
-        regle.params.att_entree.val, regle.params.val_entree.val
-    ).split(",")
+    liste_trans = regle.entree.split(",")
     liste_trans = [float(i) for i in liste_trans]
+    print("recup liste_trans", liste_trans)
     if len(liste_trans) < 3:
         liste_trans.extend([0, 0, 0])
     if obj.initgeom():
@@ -972,7 +977,7 @@ def f_translate(regle, obj):
 
 
 def h_translatel(regle):
-    """ prepare la fonction translate"""
+    """prepare la fonction translate"""
     if len(regle.params.att_entree.liste) < 3:
         regle.tz = None
     else:

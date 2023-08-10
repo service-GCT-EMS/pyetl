@@ -78,7 +78,7 @@ def f_run(regle, obj):
           #test2||obj||^X;toto;;run;echo;;||atv:X:toto
     """
     try:
-        retour = commandrunner(regle, regle.getval_entree(obj))
+        retour = commandrunner(regle, regle.entree)
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = retour
         return True
@@ -138,7 +138,7 @@ def fileop(regle, obj, fonction):
                 exist_ok=True,
             )
         fonction(
-            os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
+            os.path.join(regle.chemin_orig, regle.entree),
             os.path.join(
                 regle.chemin_final, obj.attributs.get(regle.params.att_sortie.val, "")
             ),
@@ -146,7 +146,7 @@ def fileop(regle, obj, fonction):
         print(
             "operation",
             fonction.__name__,
-            os.path.join(regle.chemin_orig, regle.getval_entree(obj)),
+            os.path.join(regle.chemin_orig, regle.entree),
             os.path.join(
                 regle.chemin_final, obj.attributs.get(regle.params.att_sortie.val, "")
             ),
@@ -335,7 +335,7 @@ def f_infofich(regle, obj):
     """
     # print ('infofich',obj)
     if regle.nomexiste:
-        fichier = regle.get_entree(obj)
+        fichier = regle.entree
         # print ('infofich avec entree', fichier)
 
     else:
@@ -351,12 +351,14 @@ def f_infofich(regle, obj):
     return False
 
 
-def h_abspath(regle):
-    """ prepare le chemin absolu"""
-    regle.dynref = regle.params.cmp1.val.startswith("[")
-    regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
-    if not regle.ref:
-        regle.ref = os.path.curdir
+# def h_abspath(regle):
+#     """prepare le chemin absolu"""
+#     if regle.params.cmp1.mode == "S" and not regle.params.cmp1.val:
+#         regle.params.cmp1.val = os.path.curdir
+#     # regle.dynref = regle.params.cmp1.val.startswith("[")
+#     # regle.ref = regle.params.cmp1.val[1:-1] if regle.dynref else regle.params.cmp1.val
+#     # if not regle.ref:
+#     #     regle.ref = os.path.curdir
 
 
 def f_abspath(regle, obj):
@@ -367,15 +369,16 @@ def f_abspath(regle, obj):
               ||^absp2;toto;;set;||^absp2;%_progdir%;;abspath||ata:absp:absp2
          #test2||obj||^X;toto;;set;||^absp;;X;abspath;A:/titi;||atv2|absp|A:\\titi\\toto|
     """
-    candidat = regle.get_entree(obj)
+    candidat = regle.entree
     if os.path.isabs(candidat):
         final = candidat
     else:
-        ref = (
-            os.path.abspath(obj.attributs.get(regle.ref, ""))
-            if regle.dynref
-            else regle.ref
-        )
+        ref = regle.params.cmp1.val or os.path.curdir
+        # ref = (
+        #     os.path.abspath(obj.attributs.get(regle.ref, ""))
+        #     if regle.dynref
+        #     else regle.ref
+        # )
         final = os.path.normpath(os.path.join(ref, candidat))
     try:
         final = os.path.realpath(final)
@@ -401,7 +404,7 @@ def f_namesplit(regle, obj):
        #pattern||?A;C?;A?;namesplit;;
           #test||obj||^;/aaa/bbb/ccc.tst;;namesplit||atv:#s_nom:ccc
     """
-    fichier = Path(regle.get_entree(obj))
+    fichier = Path(regle.entree)
     # print ('namesplit ',fichier,list(zip(regle.ajout_attributs,(str(fichier.parent),fichier.stem,fichier.suffix))))
     obj.attributs.update(
         zip(regle.ajout_attributs, (str(fichier.parent), fichier.stem, fichier.suffix))

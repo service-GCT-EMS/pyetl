@@ -36,7 +36,7 @@ class Moteur(object):
     def debug_moteur(self):
         print("moteur: mode debug")
         for i in self.regles:
-            print("regle:","(chargeur)" if i.chargeur else "", i)
+            print("regle:", "(chargeur)" if i.chargeur else "", i)
 
     def traitement_virtuel(self, unique=0, schema=None):
         """cree un objet virtuel et le traite pour toutes les classes non utilisees"""
@@ -48,7 +48,7 @@ class Moteur(object):
         #            print (i.chargeur, i)
         if unique:  # on lance un virtuel unique pour les traitements sans entree
             # on lance un virtuel unique puis on verifie toutes les regles de chargement
-            
+
             self.traite_regles_chargement()
         else:
             f_v = self.mapper.getvar("force_virtuel")
@@ -67,7 +67,6 @@ class Moteur(object):
                 if (
                     sch.origine in "LB" and not sch.nom.startswith("#")
                 ) or sch.nom == schema:
-
                     LOGGER.info("traitement schema " + sch.nom + " " + sch.origine)
 
                     # (on ne traite que les schemas d'entree')
@@ -127,16 +126,16 @@ class Moteur(object):
         # #            return
         regles = regle.liste_regles if regle else self.regles
         obj = Objet(
-                        "_declencheur",
-                        "_init",
-                        format_natif="interne",
-                        conversion="virtuel",
-                    )
+            "_declencheur",
+            "_init",
+            format_natif="interne",
+            conversion="virtuel",
+        )
         if regles and not regle:
             # print ('traitement regle 0',regles[0])
-            self.traite_objet(obj,regles[0]) 
+            self.traite_objet(obj, regles[0])
             if self.hasstart:
-                return           
+                return
         for i in regles:
             if i.mode == "call" and not i.declenchee:
                 self.traite_regles_chargement(i)
@@ -176,7 +175,8 @@ class Moteur(object):
         last = None
         while regle:
             last = regle
-            if obj.virtuel and regle.declenchee and obj.ident[0]=="_declencheur":
+            regle.obj_courant = obj
+            if obj.virtuel and regle.declenchee and obj.ident[0] == "_declencheur":
                 # un declencheur ne declenche une regle q une fois
                 regle = regle.branchements.brch["ok"]
                 continue
@@ -328,7 +328,7 @@ class Macro(object):
         self.retour = "text"
         self.file = file
         self.commandes_macro = dict()
-        self.lignes=[]
+        self.lignes = []
         self.help = ""
         self.help_detaillee = []
         self.parametres_pos = dict()
@@ -343,13 +343,13 @@ class Macro(object):
                 if i and i != "\n":
                     if "=" in i:
                         nom, defaut = i.split("=", 1)
-                        nom=nom.strip()
-                        defaut=defaut.strip()
-                        if defaut.startswith('"') or defaut.startswith("'"): 
-                            defaut=defaut[1:-1]
+                        nom = nom.strip()
+                        defaut = defaut.strip()
+                        if defaut.startswith('"') or defaut.startswith("'"):
+                            defaut = defaut[1:-1]
                         self.vdef[nom] = defaut
                     elif i and i != "\n":
-                        nom=i
+                        nom = i
                         self.vdef[i] = ""
                     self.parametres_pos[nom] = i
                     self.vpos.append(nom)
@@ -378,15 +378,17 @@ class Macro(object):
                 return
             if ligne.startswith("!#api"):
                 apidef = ligne.split(";")
-                apiname = apidef[1] if len(apidef)>1 else self.nom[1:]
-                retour = apidef[2] if len(apidef)>2 else "text"
-                template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
+                apiname = apidef[1] if len(apidef) > 1 else self.nom[1:]
+                retour = apidef[2] if len(apidef) > 2 else "text"
+                template = (
+                    apidef[3] if (len(apidef) > 3 and apidef[3] != "no_in") else ""
+                )
                 no_in = "1" if "no_in" in ligne else "0"
-                auxv=apidef[-1] if '=' in apidef[-1] else ""
-                aux=dict()
+                auxv = apidef[-1] if "=" in apidef[-1] else ""
+                aux = dict()
                 if auxv:
-                    vars=auxv.split(',')
-                    aux={i.split("=") for i in vars}
+                    vars = auxv.split(",")
+                    aux = {i.split("=") for i in vars}
                 self.apis[apiname] = (self.nom, retour, template, no_in, aux)
                 return
             if ligne.startswith("!"):  # commentaire on jette
@@ -511,7 +513,12 @@ class Context(object):
     SPLITTER_V = re.compile(r"(?<!\\),")  # reconnait les , non précédes d'un \
     SPLITTER_B = re.compile(r"(?<!\\)\|")  # reconnait les | non précédes d'un \
     SPLITTER_2P = re.compile(r"(?<!\\):")  # reconnait les : non précédes d'un \
-    SPLITTERS={';':SPLITTER_PV,'v':SPLITTER_V,'|':SPLITTER_B,':':SPLITTER_2P, }
+    SPLITTERS = {
+        ";": SPLITTER_PV,
+        "v": SPLITTER_V,
+        "|": SPLITTER_B,
+        ":": SPLITTER_2P,
+    }
 
     def __init__(self, parent=None, ident="", type_c="C", root=False):
         self.nom = type_c + ident
@@ -538,28 +545,27 @@ class Context(object):
         """decoupe une chaine en respectant les guillemets"""
         if sep in self.SPLITTERS and not '"' in texte:
             return self.SPLITTERS[sep].split(texte)
-        liste=[""]
-        sc=sep
-        escape=False
+        liste = [""]
+        sc = sep
+        escape = False
         for v in texte:
-            if v=='\\':
-                escape=True
+            if v == "\\":
+                escape = True
                 continue
             if escape:
-                escape=False
-                if v==sep or v=='\\' or v=='"':
-                    liste[-1]+=v
+                escape = False
+                if v == sep or v == "\\" or v == '"':
+                    liste[-1] += v
                 else:
-                    liste[-1]+='\\'+v
+                    liste[-1] += "\\" + v
                 continue
-            if v=='"':
-                sc=sep if sc is None else None
-            if v==sc:
+            if v == '"':
+                sc = sep if sc is None else None
+            if v == sc:
                 liste.append("")
             else:
-                liste[-1]+=v
+                liste[-1] += v
         return liste
-
 
     def setenv(self, env):
         "ajoute les variables d environnement au contexte courant"
@@ -657,7 +663,7 @@ class Context(object):
                 #     "recup getvar", self, element, cible, i, "->", self.getvar(i)
                 # ), element.replace(cible, str(self.getvar(i)))
                 element = element.replace(cible, str(self.getvar(i)))
-        element=element.replace('\%','%')
+        element = element.replace("\%", "%")
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement
             element = self.env.get(element.split(":")[1], "")

@@ -16,7 +16,7 @@ import itertools
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
-from .outils import scandirs, hasbom, _extract,isatt,resolve_att,getbase
+from .outils import scandirs, hasbom, _extract, isatt, resolve_att, getbase
 
 
 DEBUG = False
@@ -65,7 +65,7 @@ class TableBaseSelector(object):
         self.staticlist = dict()
         self.dynlist = dict()
         self.unresolved = set()
-        self.subselects=[]
+        self.subselects = []
 
     def __repr__(self):
         return (
@@ -102,7 +102,7 @@ class TableBaseSelector(object):
         if "[" in attr or "[" in valeur:
             dyn = True
         if valeur and isinstance(valeur, tuple) and valeur[0]:
-            dyn=True
+            dyn = True
         if dyn:
             self.dyndescr.append(descripteur)
         else:
@@ -114,7 +114,7 @@ class TableBaseSelector(object):
         # print ("resolve static", self.base, self.dynbase)
         if not obj and (isatt(self.base) or self.dynbase):
             return
-        if self.base=="*":
+        if self.base == "*":
             return
         if self.dynbase and obj and obj.attributs.get(self.dynbase) != self.base:
             self.staticlist = dict()
@@ -159,6 +159,7 @@ class TableBaseSelector(object):
                 type_base = os.path.splitext(self.nombase)[-1]
                 if type_base.startswith("."):
                     type_base = type_base[1:]
+                type_base = self.regle_ref.getvar("F_entree") or type_base
                 self.connect = self.mapper.getdbaccess(
                     self.regle_ref,
                     self.nombase,
@@ -180,24 +181,42 @@ class TableBaseSelector(object):
                 pass  # placeholder genere une entree base mais pas de classes
             vref = valeur[1] if valeur else ""
             for j in classes:
-                att2=attr
-                if attr=='?': #valeur de l'index (pk hors gid ou index)
-                    schema=self.schemabase.get((niveau,j))
-                    att2=""
+                att2 = attr
+                if attr == "?":  # valeur de l'index (pk hors gid ou index)
+                    schema = self.schemabase.get((niveau, j))
+                    att2 = ""
                     if schema.mainkey:
-                        att2=schema.mainkey
+                        att2 = schema.mainkey
                     else:
-                        tmp=[i for i,j in schema.indexes.items() if j.startswith("X")]
+                        tmp = [
+                            i for i, j in schema.indexes.items() if j.startswith("X")
+                        ]
                         if not tmp:
-                           tmp=[i for i,j in schema.indexes.items() if j.startswith("I")]
+                            tmp = [
+                                i
+                                for i, j in schema.indexes.items()
+                                if j.startswith("I")
+                            ]
                         elif not tmp:
-                           tmp=[i for i,j in schema.indexes.items() if j.startswith("U")]
+                            tmp = [
+                                i
+                                for i, j in schema.indexes.items()
+                                if j.startswith("U")
+                            ]
                         elif not tmp:
-                           tmp=[i for i,j in schema.indexes.items() if j.startswith("K")]
+                            tmp = [
+                                i
+                                for i, j in schema.indexes.items()
+                                if j.startswith("K")
+                            ]
                         elif not tmp:
-                           tmp=[i for i,j in schema.indexes.items() if j.startswith("K")]
+                            tmp = [
+                                i
+                                for i, j in schema.indexes.items()
+                                if j.startswith("K")
+                            ]
                         if tmp:
-                            att2=tmp[0]
+                            att2 = tmp[0]
 
                 classlist = self.add_classlist(
                     niveau, j, att2, vref, fonction, mod, nobase=self.nobase
@@ -242,11 +261,13 @@ class TableBaseSelector(object):
         # print("classlist", direct)
         return direct
 
-    def resolve(self, obj):
+    def resolve(self, obj=None):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
         # print("resolve: base=", self.base)
+        if obj is None:
+            obj = self.regle_ref.obj_courant
         if self.base == "__filedb":
             if obj and obj.attributs["#groupe"] == "__filedb":
                 self.staticlist = dict()
@@ -293,17 +314,17 @@ class TableBaseSelector(object):
         self.dynlist = dict()
         # if self.dyndescr:
         # print("resolution descripteur dynamique", self.dyndescr)
-        subselects=[]
+        subselects = []
         for niveau, classes, attr, valeur, fonction in self.dyndescr:
             # print("descripteur dynamique n:", niveau,"\nc:",classes, "\na:",attr, "\nv:",valeur,"\nf:", fonction)
-            if niveau.startswith('in:['):
-                niv=resolve_att(niveau[3:],obj)
-                selecteur=select_in(self.regle_ref,niv,'')
+            if niveau.startswith("in:["):
+                niv = resolve_att(niveau[3:], obj)
+                selecteur = select_in(self.regle_ref, niv, "")
                 subselects.append(selecteur)
                 continue
 
-            attr=resolve_att(attr,obj)
-            niveau=resolve_att(niveau,obj)
+            attr = resolve_att(attr, obj)
+            niveau = resolve_att(niveau, obj)
 
             if attr:
                 if valeur:
@@ -317,7 +338,7 @@ class TableBaseSelector(object):
                     )
             for classe in classes:
                 # print("dyn: traitement classe", classe)
-                classe=resolve_att(classe,obj)
+                classe = resolve_att(classe, obj)
                 # print("prepare dynlist:", niveau, classe, attr, valeur, fonction, mod)
                 self.dynlist.update(
                     self.add_classlist(
@@ -326,8 +347,8 @@ class TableBaseSelector(object):
                 )
         for i in subselects:
             i.resolve(obj)
-            self.selecteur.merge(i)  
-            
+            self.selecteur.merge(i)
+
         # print("dynlist:", self.dynlist)
         return True
 
@@ -343,13 +364,13 @@ class TableBaseSelector(object):
                 elif mapped in self.dynlist:
                     yield mapped, self.dynlist[mapped]
                 else:
-                    yield mapped,(i, "", "", "")
+                    yield mapped, (i, "", "", "")
                 n += 1
                 if maxsel and n > maxsel:
                     break
         else:
             for i in itertools.chain(self.staticlist.items(), self.dynlist.items()):
-            # print("dans classlist", maxsel, n)
+                # print("dans classlist", maxsel, n)
                 yield i
                 n += 1
                 if maxsel and n > maxsel:
@@ -388,8 +409,6 @@ class TableBaseSelector(object):
         return schema_travail
 
 
-
-
 class TableSelector(object):
     """condition de selection de tables dans des base de donnees ou des fichiers
     generes par des condition in: complexes
@@ -422,10 +441,14 @@ class TableSelector(object):
         self.nom = "S" + str(self.regle_ref.numero)
         self.metainfos = ""
         self.maxsel = 0
-        self.dbref=dict()
+        self.dbref = dict()
 
     def __repr__(self):
-        return self.nom +(" resolved " if self.resolved else " unresolved ") +repr([repr(bs) for bs in self.baseselectors.values()])
+        return (
+            self.nom
+            + (" resolved " if self.resolved else " unresolved ")
+            + repr([repr(bs) for bs in self.baseselectors.values()])
+        )
 
     def add_descripteur(
         self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
@@ -492,9 +515,11 @@ class TableSelector(object):
     def setdbref(self):
         """identifie les references de bases de donnees pour qgis"""
         priorites = dict()
-        refbases=set(self.regle_ref.getvar("baselist").split(",")) if self.regle_ref else {}
+        refbases = (
+            set(self.regle_ref.getvar("baselist").split(",")) if self.regle_ref else {}
+        )
         ## variable:baselist:liste de bases prioritaires pour les selections qgis(override du defaut du site_params)
-        for nom,variables  in self.mapper.site_params.items():
+        for nom, variables in self.mapper.site_params.items():
             base, host, port = "", "", ""
             priorite = 99
             for clef, val in variables:
@@ -508,7 +533,7 @@ class TableSelector(object):
                 elif clef == "priorite":
                     priorite = int(val)
             if nom in refbases:
-                priorite=-99
+                priorite = -99
             if base:
                 tb = (base, host, port)
                 if tb in priorites:
@@ -525,14 +550,6 @@ class TableSelector(object):
                 self.dbref[tb] = nom
                 self.dbref[",".join(tb)] = nom
                 self.dbref[nom] = nom
-
-
-
-
-
-
-
-
 
     def idbase(self, base):
         """identifie une base de donnees"""
@@ -566,7 +583,7 @@ class TableSelector(object):
                 and not bool(self.baseselectors[base].dyndescr)
                 and not bool(self.baseselectors[base].dynbase)
             )
-        
+
         self.resolved = complet
         # print(
         #     " fin resolve",
@@ -653,7 +670,6 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
 
     fichier = fichier.strip()
     #    valeurs = get_listeval(fichier)
-    
 
     liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
     liste_atts = (
@@ -688,7 +704,7 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
             selecteur.add_descripteur(base, "[" + att + "]")
         print("selecteur dans attributs", selecteur)
         return selecteur
-    if fichier.startswith('in:['): # resolution differee
+    if fichier.startswith("in:["):  # resolution differee
         selecteur.add_descripteur(base, fichier)
         return selecteur
 
@@ -768,41 +784,42 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
 def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFCODEC):
     """modifie un fichier qgs pour adapter les noms des bases et des niveaux"""
     # print ("adapt_qgs", fichier, destination)
-    regle.mods="="
+    regle.mods = "="
     if selecteur and not selecteur.resolved:
         selecteur.resolve(obj)
     destbase = regle.base
     basedict = regle.basedict
     enums_to_list = regle.istrue("enums_to_list")
     if os.path.isfile(fichier):
-        flist=[(os.path.basename(fichier),"")]
-        fichier=os.path.dirname(fichier)
+        flist = [(os.path.basename(fichier), "")]
+        fichier = os.path.dirname(fichier)
     else:
-        flist=scandirs(fichier, "", rec=True)
+        flist = scandirs(fichier, "", rec=True)
     for fich, chemin in flist:
         if not fich:  # un peu bizarre on a donne un fichier a la place d un repertoire
             element = os.path.join(fichier, chemin) if chemin else fichier
         else:
             element = os.path.join(fichier, chemin, fich)
         nom = os.path.basename(element)
-        
+
         if not (element.endswith(".qgs") or element.endswith(".qlr")):
             continue
         codec = hasbom(element, codec)
         fdest = os.path.join(destination, chemin, nom)
         os.makedirs(os.path.dirname(fdest), exist_ok=True)
-        sortie = open(fdest, "w", encoding=codec)
-        if fdest==element:
+
+        if fdest == element:
             regle.stock_param.logger.warning(
-                "attention ecrasement du fichier %s-> non traite", element
+                "attention risque ecrasement du fichier %s-> non traite", element
             )
             continue
+
         seldef = select_in(regle, element, "*") if not selecteur else selecteur
         seldef.resolve(obj)
         regle.stock_param.logger.info(
             "traitement (%s) %s->" + fdest, seldef.nom, element
         )
-        buffer=""
+        buffer = ""
         with open(element, "r", encoding=codec) as entree:
             # print("adapt projet qgs", element)
             for i in entree:
@@ -860,14 +877,16 @@ def adapt_qgs_datasource(regle, obj, fichier, selecteur, destination, codec=DEFC
 
                     # print("datasource=>", i)
 
-                buffer.append(i)
+                buffer += i
             if enums_to_list:
-                buffer=convert_qgs_enums(buffer,selecteur)
-            sortie.write(buffer)
+                buffer = convert_qgs_enums(buffer, selecteur)
+
+        open(fdest, "w", encoding=codec).write(buffer)
     # print ('lus fichier qgis ',fichier,list(stock))
     return True
 
-def convert_qgs_enums(buffer,selecteur):
+
+def convert_qgs_enums(buffer, selecteur):
     """convertit les enums d un projet qgis en liste de valeurs"""
     projet = ET.fromstring(buffer)
     # racine = os.path.dirname(nom)
@@ -885,7 +904,7 @@ def convert_qgs_enums(buffer,selecteur):
                 # traitement base postgres : on passe en base locale et on modifie les elements
                 l = ligne_source.split(" ")
                 table, dbname, svname, port = ("", "", "", "")
-                
+
                 for k in l:
                     v = k.split("=")
                     if "dbname" in v[0]:
@@ -905,7 +924,7 @@ def convert_qgs_enums(buffer,selecteur):
                 # print ('detecte base', dbname,svdef)
                 table = table.replace('"', "")
                 idtable = tuple(table.split("."))
-                tabledef=baseselector.schematravail.classes.get(idtable)
+                tabledef = baseselector.schematravail.classes.get(idtable)
                 source.text = ligne_source
                 # === analyse et modification des editeurs
                 for editeur in layer.iter("edittype"):
@@ -916,20 +935,23 @@ def convert_qgs_enums(buffer,selecteur):
                         nom_att_enum = editeur.get("name")
                         if nom_att_enum:
                             print("detection enum", dbname, "->", nom_att_enum)
-                        if (nom_att_enum in tabledef.attributs):
+                        if nom_att_enum in tabledef.attributs:
                             nom_enum = tabledef.attributs[nom_att_enum].conformite
-                            if (nom_enum in baseselector.schematravail.enumerations):
+                            if nom_enum in baseselector.schematravail.enumerations:
                                 print("enum traitable:", nom_enum)
                                 editeur.set("widgetv2type", "ValueMap")
                                 config = editeur.find("widgetv2config")
-                                for item in baseselector.schematravail.enumerations[nom_enum]:
+                                for item in baseselector.schematravail.enumerations[
+                                    nom_enum
+                                ]:
                                     newvalue = ET.Element(
                                         "value", attrib={"key": item, "value": item}
                                     )
                                     config.append(newvalue)
 
-                print ('transformation',source.text)
+                print("transformation", source.text)
     return projet.tostring()
+
 
 def _select_from_csv(fichier, selecteur, codec=DEFCODEC):
     """decodage de selecteurs en fichiers csv

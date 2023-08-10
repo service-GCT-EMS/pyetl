@@ -83,13 +83,16 @@ def _gestion_types_simples(attr, type_attribut):
         attr.type_att = "E"
         attr.type_att_base = "E"
         taille = len(type_attr.split("_")[1])
-    elif type_attr == "X":  # attribut non traite
+    elif type_attr == "X":  # attribut non traite inconnu
         attr.type_att = "X"
         attr.type_att_base = "X"
-    elif type_attr == "A":  # attribut non traite
+    elif type_attr == "XB":  # attribut non traite #blob
+        attr.type_att = "XB"
+        attr.type_att_base = "XB"
+    elif type_attr == "A":  # attribut non traite # non defini
         attr.type_att = "A"
         attr.type_att_base = "A"
-    elif type_attr == "N":  # attribut non traite
+    elif type_attr == "N":  # attribut non traite # numerique
         attr.type_att = "N"
         attr.type_att_base = "N"
     else:
@@ -218,7 +221,9 @@ class SchemaClasse(object):
         self.cibles = set()
         self.depends = set()
         self.basic = False
-        self.mainkey='' # clef d acces princpale a l objet (externe si different du gid)
+        self.mainkey = (
+            ""  # clef d acces princpale a l objet (externe si different du gid)
+        )
         self.autopk = False
         self.maxpk = 0
         self.pkref = None
@@ -230,7 +235,7 @@ class SchemaClasse(object):
         self.changed = True
         self.type_table = "i"
         self.basic = mode
-        for i,att in self.attributs.items():
+        for i, att in self.attributs.items():
             if not attributs or i in attributs:
                 att.setbasic(mode)
 
@@ -269,7 +274,7 @@ class SchemaClasse(object):
     def __dic_if__(self):
         """interface de type dictionnaire pour la transmission de schemas entre instances"""
         d_if = {
-            "infos": {i: getattr(self, i) for i in self.__transfert__},
+            "infos": {i: getattr(self, i, None) for i in self.__transfert__},
             "attributs": {nom: att.__dic_if__ for nom, att in self.attributs.items()},
         }
         return d_if
@@ -302,7 +307,7 @@ class SchemaClasse(object):
         return "'" + self.groupe + "'.'" + self.nom + "'"
 
     def setmulti(self, point=False):
-        if self.info["type_geom"]=="1":
+        if self.info["type_geom"] == "1":
             if point:
                 self.multigeom = True
         else:
@@ -698,7 +703,6 @@ class SchemaClasse(object):
             if (
                 i not in liste_att
             ):  # on essaye de creer un attribut on regarde si on a le droit
-
                 att = self.attributs[i]
                 #                print('---------attributs a supprimer ', i, att.nom, att.oblig)
 
@@ -838,7 +842,14 @@ class SchemaClasse(object):
         attr.ordre = ordreins
 
     def stocke_geometrie(
-        self, type_geom, dimension=0, srid="3948", courbe=False, multiple=None, nom=None, mesure=False
+        self,
+        type_geom,
+        dimension=0,
+        srid="3948",
+        courbe=False,
+        multiple=None,
+        nom=None,
+        mesure=False,
     ):
         """stockage de la geometrie"""
         #        print ("avant stockage geometrie ",self.info["nom_geometrie"],type_geom,

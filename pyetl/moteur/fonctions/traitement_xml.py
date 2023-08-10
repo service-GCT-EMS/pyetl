@@ -47,14 +47,14 @@ def getcadre(regle, obj):
 
     if not tree:
         if regle.noprefix:
-            xml = re.sub("(</?)[A-Za-z0-9]*:", "\g<1>", regle.getval_entree(obj))
+            xml = re.sub("(</?)[A-Za-z0-9]*:", "\g<1>", regle.entree)
         else:
-            xml = regle.getval_entree(obj)
+            xml = regle.entree
         if xml:
             try:
                 tree = ET.fromstring(xml)
             except ParseError as err:
-                # print("erreur xml mal formé", err, regle.getval_entree(obj))
+                # print("erreur xml mal formé", err, regle.entree)
                 LOGGER.error("erreur xml mal formé %s : %s", repr(err), xml)
                 return None, ()
         else:
@@ -200,7 +200,6 @@ def f_xmlstruct(regle, obj):
     if regle.keepdata:  # on actualise l xml
         writeback(regle, obj, tree, regle.params.att_entree.val, changed=False)
     for cadre in cadres:
-
         for elem in cadre.iter(None):
             if (
                 regle.recherche is None
@@ -226,15 +225,15 @@ def f_xmledit(regle, obj):
     """#aide||modification en place d elements xml
        #pattern1||re;re;A;xmledit;C;?C||sortie
        #pattern2||;C;A;xmledit;A.C;?C||cmp1
-       #pattern3||;[A];A;xmledit;A.C;?C||cmp1
+       #!pattern3||;[A];A;xmledit;A.C;?C||cmp1
        #pattern4||?=\\*;H;A;xmledit;C;?C||defaut
        #pattern5||;;A;xmledit;A.C;?C||defaut
      #aide_spec1||remplacement de texte
     #parametres1||expression de sortie;selection;attribut xml;xmledit;tag a modifier;groupe de recherche
      #aide_spec2||remplacement ou ajout d un tag
     #parametres2||;valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
-     #aide_spec3||remplacement ou ajout d un tags
-    #parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
+     #!aide_spec3||remplacement ou ajout d un tags
+    #!parametres3||;attribut contenant la valeur;attribut xml;xmledit;tag a modifier.parametre;groupe de recherche
      #aide_spec4||remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche
      #aide_spec5||suppression d un ensemble de tags
     #parametres5||;liste de clefs a supprimer;attribut xml;xmledit;tag a modifier;groupe de recherche
@@ -272,9 +271,9 @@ def f_xmledit(regle, obj):
             elif regle.params.pattern == "2":
                 # print("set tag", regle.item, regle.params.val_entree.val)
                 elem.set(regle.item, regle.params.val_entree.val)
-            elif regle.params.pattern == "3":
-                # print("set tag", regle.item, regle.params.val_entree.val)
-                elem.set(regle.item, obj.attributs[regle.params.val_entree.val])
+            # elif regle.params.pattern == "3":
+            #     # print("set tag", regle.item, regle.params.val_entree.val)
+            #     elem.set(regle.item, obj.attributs[regle.params.val_entree.val])
             elif regle.params.pattern == "4":
                 vals = obj.gethdict(regle.params.val_entree.val)
                 for i, j in vals.items():
@@ -290,7 +289,7 @@ def f_xmlload(regle, obj):
        #pattern1||A;?;?A;xml_load;;;
     #parametres1||attribut de sortie;defaut;attribut contenant le nom de fichier;
     """
-    nom = regle.getval_entree(obj)
+    nom = regle.entree
     # print("xmlload traitement ", nom)
     try:
         obj.attributs[regle.params.att_sortie.val] = "".join(
@@ -321,13 +320,13 @@ def f_xmlsave(regle, obj):
     """
     writeback(regle, obj, None, regle.params.att_entree.val, changed=False)
     sortie = obj.attributs.get(regle.params.att_sortie.val)
-    rep = regle.params.cmp1.getval(obj)
+    rep = regle.params.cmp1.val
     if rep:
         sortie = os.path.join(rep, sortie)
     os.makedirs(os.path.dirname(sortie), exist_ok=True)
     # print("ecriture xml", sortie)
     try:
-        open(sortie, "w", encoding="utf-8").write(regle.getval_entree(obj))
+        open(sortie, "w", encoding="utf-8").write(regle.entree)
     except (FileNotFoundError, PermissionError):
         LOGGER.error("ecriture impossible %s", sortie)
         # print("ecriture impossible", sortie)
@@ -345,7 +344,7 @@ def load_templates(regle, templatedir):
         templatename = os.path.basename(templatedir)
         templatedir = os.path.dirname(templatedir)
     else:
-        raise FileNotFoundError 
+        raise FileNotFoundError
 
     loader = FileSystemLoader(templatedir)
     variables = regle.context.getvars()
@@ -360,10 +359,14 @@ def load_templates(regle, templatedir):
 
 def h_formated_save(regle):
     """precharge les templates"""
-    templatedef = os.path.join(regle.params.cmp1.val,regle.params.val_entree.val) if regle.params.att_entree.val=="" else regle.params.cmp1.val 
+    templatedef = (
+        os.path.join(regle.params.cmp1.val, regle.params.val_entree.val)
+        if regle.params.att_entree.val == ""
+        else regle.params.cmp1.val
+    )
     load_templates(regle, templatedef)
-    regle.destdir=""
-    if regle.params.pattern=="2":
+    regle.destdir = ""
+    if regle.params.pattern == "2":
         destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp2.val)
         os.makedirs(destdir, exist_ok=True)
         regle.destdir = destdir
@@ -376,14 +379,14 @@ def f_formated_save(regle, obj):
     #parametres1||attribut;defaut;attribut nom du template;;repertoire de template;
     #parametres2||nom fichier;defaut;attribut nom du template;;repertoire de template;repertoire de sortie
     """
-    
-    templatename = regle.templatename or regle.getval_entree(obj)
+
+    templatename = regle.templatename or regle.entree
     if templatename not in regle.templates:
         regle.templates[templatename] = regle.envir.get_template(templatename)
     template = regle.templates[templatename]
     sortie = template.render(obj.attributs)
     # print("xml en sortie", sortie)
-    if regle.params.pattern=="2":
+    if regle.params.pattern == "2":
         destname = obj.attributs.get(regle.params.att_sortie.val)
         subdir = os.path.dirname(destname)
         if subdir:

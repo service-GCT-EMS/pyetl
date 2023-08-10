@@ -19,6 +19,7 @@ from .fonctions.outils import charge_fichier
 LOGGER = logging.getLogger(__name__)
 PARAM_EXP = re.compile("(%#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?%)")
 
+
 # quelques fonction générales
 def fdebug(regle, obj):
     """gestion des affichages de debug"""
@@ -28,7 +29,7 @@ def fdebug(regle, obj):
         cond = regle.getvar("debug_cond")
         if "=" in cond:
             att, val = cond.split("=", 1)
-            regle.debugvalid = obj.attributs.get(att) == val  
+            regle.debugvalid = obj.attributs.get(att) == val
     if regle.debugvalid:
         regle.stock_param.gestion_log.setdebug()
         wid = regle.getvar("_wid")
@@ -60,7 +61,7 @@ def fdebug(regle, obj):
         #        if obj.redirect and obj.redirect not in regle.branchements.brch:
         #            redirect = 'ok'
         #            print ('branchement orphelin', obj.redirect, '(',regle.branchements.brch.keys())
-        
+
         print(
             "retour fonction ",
             succes,
@@ -81,7 +82,7 @@ def fdebug(regle, obj):
 
 
 def regles_liees(regle, liaison, prec, refs):
-    """ decode le systeme de regles liees """
+    """decode le systeme de regles liees"""
     nivprec = prec.niveau if prec else 0
     nivref = refs[-1].niveau if refs else 0
     if liaison and liaison[0] in "|+-":  # mode de regles liees
@@ -197,7 +198,7 @@ def description_schema(regle):
 
 
 def extraction_operation(regle, fonction):
-    """ isole le code operation de tous les modificateurs """
+    """isole le code operation de tous les modificateurs"""
     # fonction avec les modificateurs de comportement
     # + : dupplique l'objet  un passe la regle l'autre pas
     # - : mange les objets qui ne passent pas la regle
@@ -238,7 +239,7 @@ def printelements(elements):
 
 def setvloc(regle):
     """positionne les variables locales declarees dans la regle"""
-    valeurs=regle.context.parse_sep(regle.ligne,';')
+    valeurs = regle.context.parse_sep(regle.ligne, ";")
     if len(valeurs) > 11:
         listevlocs = regle.context.SPLITTER_V.split(valeurs[11])
         regle.context.affecte(listevlocs)
@@ -257,7 +258,7 @@ def setvloc(regle):
 
 
 def ajuste_contexte(regle, prec):
-    """ grer les contextes entre les regles liees"""
+    """grer les contextes entre les regles liees"""
     return
     ajuste = regle.niveau != prec.niveau
     if ajuste:
@@ -296,7 +297,7 @@ def prepare_regle(regle, prec=None, refs=None):
         if len(vdebug) > 1:
             regle.champsdebug = vdebug[1:]
         print("debug regle ::::", regle.ligne)
-        print("vnommees", {i:j for i,j in regle.v_nommees.items() if j })
+        print("vnommees", {i: j for i, j in regle.v_nommees.items() if j})
 
     if not regle.runscope():
         regle.valide = "out_of_scope"
@@ -360,8 +361,8 @@ def prepare_regle(regle, prec=None, refs=None):
                 "------>regle sans fonction",
                 regle.numero,
             )
-            
-            morceaux=regle.context.parse_sep(regle.ligne.replace("\n", ""),';')
+
+            morceaux = regle.context.parse_sep(regle.ligne.replace("\n", ""), ";")
             # morceaux = regle.context.SPLITTER_PV.split(regle.ligne.replace("\n", ""))
             if len(morceaux) < 8:
                 morceaux = morceaux + [""] * 8
@@ -374,7 +375,7 @@ def prepare_regle(regle, prec=None, refs=None):
 
 
 def reinterprete_regle(regle, mapper, context=None):
-    """ reinterprete les variables d'une regle pour la mise a jour"""
+    """reinterprete les variables d'une regle pour la mise a jour"""
     # TODO gerer correctement ce truc
     prepare_regle(regle)
 
@@ -401,7 +402,7 @@ def interprete_ligne_csv(
     if regle.debug or regle.istrue("debug"):
         msg = regle.v_nommees["debug"]
         if "print" in regle.v_nommees["debug"]:
-            print("---------" + msg + " ligne--->", regle.numero, regle.ligne)
+            print("-interp---" + msg + " ligne--->", regle.numero, regle.ligne)
         regle.f_init = regle.fonc
         regle.fonc = fdebug
 
@@ -417,7 +418,7 @@ def interprete_ligne_csv(
 
 
 def decoupe_liste_commandes(fichier_regles):
-    """ gere les cas ou la liste de commandes est un assemblage complexe de macros"""
+    """gere les cas ou la liste de commandes est un assemblage complexe de macros"""
     fichier_regles = fichier_regles.strip()
     if fichier_regles.startswith("[") and fichier_regles.endswith("]"):
         fichier_regles = fichier_regles[1:-1]
@@ -451,7 +452,7 @@ def decoupe_liste_commandes(fichier_regles):
 
 
 def prepare_acces_base_scripts(regle):
-    """ initialise les acces a la base de scripts"""
+    """initialise les acces a la base de scripts"""
     mapper = regle.stock_param
     if mapper.load_paramgroup("dbscriptmode"):
         serv = mapper.getvar("scriptserver")
@@ -468,7 +469,7 @@ def prepare_acces_base_scripts(regle):
 
 
 def get_macro_from_db(regle, nom_inclus):
-    """ lit une macro en base """
+    """lit une macro en base"""
     acces = prepare_acces_base_scripts(regle)
     if acces:
         serv, nomschema = acces
@@ -483,8 +484,8 @@ def get_macro_from_db(regle, nom_inclus):
 
 
 def lire_commandes_en_base(mapper, fichier_regles):
-    """ lit les commandes en base de donnees"""
-    defs = mapper.context.parse_sep.split(fichier_regles,':')
+    """lit les commandes en base de donnees"""
+    defs = mapper.context.parse_sep.split(fichier_regles, ":")
     # defs = mapper.context.SPLITTER_2P.split(fichier_regles)
     if len(defs) != 2:
         print(
@@ -566,11 +567,11 @@ def _lire_commandes(mapper, fichier_regles, niveau):
 
 
 def affecte_variable(mapper, commande, context, regle_ref):
-    """ affecte une variable avec gestion des valeurs par defaut"""
+    """affecte une variable avec gestion des valeurs par defaut"""
     niveau, texte, rvirt = getlevel(mapper, commande, regle_ref)
     commande_orig = texte[1:]
-    liste_vals=context.parse_sep(commande,';')
-        # liste_vals = context.SPLITTER_PV.split(commande)
+    liste_vals = context.parse_sep(commande, ";")
+    # liste_vals = context.SPLITTER_PV.split(commande)
     commande = liste_vals[0][1:].strip()
     if not "=" in commande:
         commande = commande + "=True"
@@ -610,7 +611,7 @@ def affecte_variable(mapper, commande, context, regle_ref):
 
 
 def prepare_texte(defligne, niveau):
-    """ prepare le texte pour l 'interpretation et verifie s 'il y a des choses a faire """
+    """prepare le texte pour l 'interpretation et verifie s 'il y a des choses a faire"""
     numero, texte_brut = defligne
     #        texte_brut = texte
     texte = texte_brut.strip()
@@ -638,7 +639,7 @@ def traite_regle_std(
     regle_ref=None,
     macrodef=None,
 ):
-    """ traite une regle classique """
+    """traite une regle classique"""
     #    texte = texte_brut.strip()
     erreurs = 0
     regles = mapper.regles if regle_ref is None else regle_ref.liste_regles
@@ -731,7 +732,7 @@ def prepare_env(mapper, texte: str, fichier_regles):
     """prepare une macro ou un chargement de fichier et son environnement (positionne les variables)"""
     # print ('mapping parametres macro', texte)
     context = mapper.cur_context
-    champs = context.parse_sep(texte,';')
+    champs = context.parse_sep(texte, ";")
     # champs = context.SPLITTER_PV.split(texte)
     # print ('prepare_env',texte,'->',champs)
     nom_inclus = champs[0].strip()
@@ -810,7 +811,7 @@ def getlevel(mapper, texte_brut, regle_ref):
 
 
 def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
-    """ importe une macro et l 'interprete"""
+    """importe une macro et l 'interprete"""
     # niveau, texte, rvirt = getlevel(mapper, texte_brut, regle_ref)
     # on cree un contexte avec ses propres valeurs locales
     inclus, macroenv, macro = prepare_env(mapper, texte, fichier_regles)
@@ -852,7 +853,7 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
         # print("contexte macros apres pop:", mapper.cur_context)
 
     else:
-        LOGGER.error("macro introuvable: %s (%s)",inclus, texte)
+        LOGGER.error("macro introuvable: %s (%s)", inclus, texte)
         # print("================================macro introuvable", texte)
         erreurs = 1
     return erreurs
@@ -861,33 +862,33 @@ def importe_macro(mapper, texte, context, fichier_regles, regle_ref=None):
 
 
 def initmacro(mapper, texte, fichier_regles):
-    """ initialise le stockage """
-    champs_macro = mapper.context.parse_sep(texte,';')
+    """initialise le stockage"""
+    champs_macro = mapper.context.parse_sep(texte, ";")
     nom = champs_macro[1]
     vposmacro = [i for i in champs_macro[2:] if i]
     macro = mapper.macrostore.regmacro(nom, file=fichier_regles, vpos=vposmacro)
     # print('enregistrement macro',mapper.idpyetl,nom)
     return macro
 
+
 def parse_sep(texte, sep):
     """decoupe une chaine en respectant les guillemets"""
-    liste=[""]
-    sc=sep
+    liste = [""]
+    sc = sep
     for v in texte:
-        if v=='"':
-            sc=sep if sc is None else None
-        if v==sc:
+        if v == '"':
+            sc = sep if sc is None else None
+        if v == sc:
             liste.append("")
         else:
-            liste[-1]+=v
+            liste[-1] += v
     return liste
-
 
 
 def lire_regles_csv(
     mapper, fichier_regles, numero_ext=0, liste_regles=None, niveau="", regle_ref=None
 ):
-    """ lecture des fichiers de regles """
+    """lecture des fichiers de regles"""
     erreurs = 0
     #    mstore = False
     autonum = 0

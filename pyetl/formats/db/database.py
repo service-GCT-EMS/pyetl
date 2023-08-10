@@ -120,20 +120,29 @@ class Cursinfo(object):
         if cur:
             try:
                 if data is not None:
-                    cur.execute(requete, data if isinstance(data,dict) else tuple(data))
+                    cur.execute(
+                        requete, data if isinstance(data, dict) else tuple(data)
+                    )
                 else:
                     cur.execute(requete)
             except Exception as err:
                 regle_ref = regle if regle else self.connecteur.regle
                 fail_silent = regle_ref.istrue("fail_silent") if regle_ref else False
                 if not fail_silent:
-                    print(self.connecteur.base,self.connecteur.type_base, "erreur execute requete", err, requete, data)
-                    if data: 
+                    print(
+                        self.connecteur.base,
+                        self.connecteur.type_base,
+                        "erreur execute requete",
+                        err,
+                        requete,
+                        data,
+                    )
+                    if data:
                         # print ("requete envoyee")
-                        print ("requete envoyee", cur.mogrify(requete, data))
-                    else: 
-                        print ("requete envoyee sans data")
-                    LOGGER.exception("erreur requete",exc_info=err)
+                        print("requete envoyee", cur.mogrify(requete, data))
+                    else:
+                        print("requete envoyee sans data")
+                    LOGGER.exception("erreur requete", exc_info=err)
                 raise StopIteration(1)
 
             if not newcursor:
@@ -224,7 +233,7 @@ class DbConnect(object):
             "clef_primaire",
             "index",
             "clef_etrangere",
-            "champ_geom"
+            "champ_geom",
         ),
         defaults=[""] * 11,
     )
@@ -329,7 +338,6 @@ class DbConnect(object):
                 return False
         return True
 
-
     def commit(self):
         """gere le commit"""
         if self.connection and self.explicitcommit:
@@ -365,7 +373,6 @@ class DbConnect(object):
         }
 
     def connect(self):
-
         self.connection = DummyConnect()
 
     def getbasicatt(self, nom_groupe, nom_classe, nom_att, type_att):
@@ -468,9 +475,9 @@ class DbConnect(object):
 
     def _recup_tables(self):
         """recupere la structure des tables"""
-        n=0
+        n = 0
         for i in self.get_tables():
-            n+=1
+            n += 1
             if len(i) == 12:
                 (
                     nom_groupe,
@@ -486,7 +493,7 @@ class DbConnect(object):
                     _,
                     champ_geom,
                 ) = i
-            
+
             else:
                 print("db:table mal formee ", self.type_base, len(i), i)
                 continue
@@ -510,11 +517,15 @@ class DbConnect(object):
             schemaclasse.fichier = self.nombase
             #        print ('_get_tables: type_geometrique',type_geometrique,schemaclasse.info["type_geom"])
             if schemaclasse.info["type_geom"] == "indef":
-                schemaclasse.stocke_geometrie(type_geometrique, dimension=dimension, nom=champ_geom)
+                schemaclasse.stocke_geometrie(
+                    type_geometrique, dimension=dimension, nom=champ_geom
+                )
                 #            print('stockage type geometrique', ident, type_geometrique,
                 #                  schemaclasse.info["type_geom"])
                 if schemaclasse.info["type_geom"] != "0":
-                    schemaclasse.info["nom_geometrie"] = champ_geom if champ_geom else 'geometrie'
+                    schemaclasse.info["nom_geometrie"] = (
+                        champ_geom if champ_geom else "geometrie"
+                    )
             if schemaclasse.info["type_geom"] == "indef":
                 print(
                     ident,
@@ -936,9 +947,9 @@ class DbConnect(object):
         oper = "="
         attribut, cast = self.getcast(schema, attribut)
         neg = False
-        val=''
-        cond=''
-        data={}
+        val = ""
+        cond = ""
+        data = {}
         condition = ""
         if isinstance(valeur, str):
             neg = valeur.startswith("!")
@@ -971,7 +982,7 @@ class DbConnect(object):
             cond = self.monoval(oper, cast)
             data = {"val": val}
         # print('valeur simple', valeur, oper, cond, cast, data)
-        if cond: 
+        if cond:
             condition = " WHERE " + cast(attribut) + (" NOT " if neg else "") + cond
         return condition, data
 
@@ -986,7 +997,7 @@ class DbConnect(object):
 
     def req_alpha(self, ident, schema, attribut, valeur, mods, maxi=0, ordre=None):
         """recupere les elements d'une requete alpha"""
-        if maxi<0:
+        if maxi < 0:
             return
         niveau, classe = ident
         attlist = []
@@ -1201,30 +1212,27 @@ class DbConnect(object):
         valeur = curs[0][0]
         return valeur
 
-
-    def req_update_obj(self, regle, ident, attributs, obj, clef=None):
+    def req_update_obj(self, regle, ident, attributs, valeurs, clef=None):
         """recupere les elements d'une requete alpha"""
         niveau, classe = ident
         if ident not in self.schemabase.classes:
             return False
         tablekey = self.schemabase.classes[ident].getpkey
-        requete = (
-            " UPDATE "
-            + self.quote_table(ident)
-            + " SET "
-            + attributs
-            + " = "
-            + valeur
-            + " WHERE "
-            + tablekey
-            + "="
-            + clef
-        )
+        if tablekey and clef and attributs:
+            requete = (
+                " UPDATE "
+                + self.quote_table(ident)
+                + " SET ("
+                + ("','").join(["quote_ident(" + i + ")" for i in attributs])
+                + " = ("
+                + (",").join(["%s"] * len(valeurs))
+                + "') WHERE "
+                + tablekey
+                + "="
+                + clef
+            )
 
-        #        print ('parametres',data,valeur)
-        data = valeur
-        if not attribut:
-            requete = ""
-            data = ()
-
-        return self.request(requete, data)
+            #        print ('parametres',data,valeur)
+            data = valeurs
+            return self.request(requete, data)
+        return False

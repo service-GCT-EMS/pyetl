@@ -140,6 +140,7 @@ TYPES_PG = {
     "BS": "bigserial NOT NULL",
     "J": "json",
     "XML": "XML",
+    "XB": "bytea",
 }
 GTYPES_DISC = {
     "alpha": "",
@@ -234,7 +235,7 @@ class PgrConnect(DbConnect):
     reqs = REQS  # requetes de fallback our les infos base
     requetes = reqs
     codecinfo = {"utf-8": "UTF8", "cp1252": "WIN1252"}
-    requetes["info_tables"]=requetes["info_tables_ng"]
+    requetes["info_tables"] = requetes["info_tables_ng"]
 
     def __init__(
         self, serveur, base, user, passwd, debug=0, system=False, params=None, code=None
@@ -373,9 +374,9 @@ class PgrConnect(DbConnect):
             connection.autocommit = True
             self.connection = connection
         except psycopg2.Error as err:
-            print("error: postgres: connection impossible ",err)
+            print("error: postgres: connection impossible ", err)
             self.params.logger.error("postgres: connection impossible " + repr(err))
-            
+
             print(
                 "info:  postgres: parametres ",
                 self.serveur,
@@ -384,7 +385,7 @@ class PgrConnect(DbConnect):
                 # self.passwd,
                 # chaine_connect
             )
-            
+
             print("error", err)
 
             raise
@@ -467,12 +468,10 @@ class PgrConnect(DbConnect):
     #        print('pgr --------- selection info triggers ', len(triggers))
     def _get_roles(self):
         """recupere les roles de la base de donnees"""
-        entete="nom;roles;description;login"
+        entete = "nom;roles;description;login"
         infos = self.request(self.requetes["info_roles"])
-        liste_roles = {i[0] : (i[1],i[2]) for i in infos}
+        liste_roles = {i[0]: (i[1], i[2]) for i in infos}
         return (entete, liste_roles)
-
-
 
     def get_type_from_connect(self, typecode):
         """recupere une information de type"""
@@ -534,7 +533,6 @@ class PgrConnect(DbConnect):
 
     def set_limit(self, maxi, _):
         if maxi:
-
             return " limit " + str(maxi)
         return ""
 
@@ -626,7 +624,6 @@ class PgrConnect(DbConnect):
         #  \copy  table [ ( column_list ) ] from 'filename' [ with ( option [, ...] ) ]
 
         for file in files:
-
             chaine = " --".join((helper, chaine_connect, "file=" + file))
             #        print ('loader ', chaine)
             env = dict(os.environ)

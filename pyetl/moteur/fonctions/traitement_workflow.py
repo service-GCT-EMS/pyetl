@@ -96,7 +96,7 @@ def h_start(regle):
     regle.chargeur = True
     schema = regle.params.cmp1.val
     regle.reel = regle.params.cmp2.val
-    regle.stock_param.moteur.hasstart=True
+    regle.stock_param.moteur.hasstart = True
     if schema == "#schemas":
         regle.schemas = [
             regle.stock_param.schemas[i]
@@ -238,8 +238,8 @@ def f_abort(regle, obj):
     niveau = regle.params.cmp1.val or "1"
     message = regle.params.cmp2.val
     LOGGER.info("stop iteration %s %s", niveau, repr(regle))
-    if message.startswith("["):
-        message = obj.attributs.get(message[1:-1])
+    # if message.startswith("["):
+    #     message = obj.attributs.get(message[1:-1])
     if message:
         # print("abort: arret du traitement ", message, regle.ligne)
         LOGGER.info("arret %s", message)
@@ -251,13 +251,15 @@ def f_abort(regle, obj):
 
 def printfunc(regle, obj):
     """gere le boulot de print pour choisir vers ou l on sort"""
-    txt = regle.params.cmp1.val or regle.params.att_sortie.val
-    if txt and txt[0] == "[":
-        cmp1 = obj.attributs.get(txt[1:-1])
-    else:
-        cmp1 = txt
+    # txt = regle.params.cmp1.val or regle.params.att_sortie.val
+    # if txt and txt[0] == "[":
+    #     cmp1 = obj.attributs.get(txt[1:-1])
+    # else:
+    #     cmp1 = txt
+    cmp1 = regle.params.cmp1.val or regle.params.att_sortie.val
     noms = regle.params.cmp2.val or regle.params.val_entree.val
     # print("affichage", obj)
+    # print("v_ent", regle.params.val_entree.val)
     if regle.params.att_entree.dyn:
         liste = obj.get_dynlisteval(noms=noms)
     elif regle.params.att_entree.val == "#geomV":
@@ -268,10 +270,8 @@ def printfunc(regle, obj):
         liste = obj.get_listeattval(regle.params.att_entree.liste, noms=noms)
     if len(liste) > 1:
         return str(cmp1) + ",".join(liste)
-    # print(" affichage simple", regle.getval_entree(obj))
-    return (
-        str(cmp1) + str(regle.getval_entree(obj)) if cmp1 else regle.getval_entree(obj)
-    )
+    # print(" affichage simple", regle.entree)
+    return str(cmp1) + str(regle.entree) if cmp1 else regle.entree
 
 
 def h_sample(regle):
@@ -318,20 +318,19 @@ def printvariable(regle):
     return regle.context.getvar_b(nomv, "")
 
 
-def h_printvar(regle):
+def h_printv(regle):
     """#aide||affichage des parametres nommes"""
     #    print("variables:")
     if not regle.params.att_entree.val:
         regle.print(printvariable(regle))
-        regle.done = True
+        regle.valide = "done"
     return True
 
 
-def f_printvar(regle, _):
+def f_printv(regle, _):
     """#aide||affichage des parametres nommes
     #pattern||;;?A;printv;C?;=noms?||entree
-    #test||redirect||obj||$toto=ok||^;;;printv;toto||out
-    #!test2||redirect||obj||$toto=ok||^;;;printv;||out
+    #test||redirect||obj||$toto=ok||^;;Z;printv;toto||out
     """
     #    print("variables:")
     regle.print(printvariable(regle))
@@ -365,8 +364,11 @@ def h_print(regle):
         if regle.debug:
             print(
                 "affichage mode ws",
-                regle.params.att_entree.liste,'\n',
-                ",".join((repr(regle.getvar(i)) for i in regle.params.att_entree.liste)),
+                regle.params.att_entree.liste,
+                "\n",
+                ",".join(
+                    (repr(regle.getvar(i)) for i in regle.params.att_entree.liste)
+                ),
             )
         if len(regle.params.att_entree.liste) > 1:
             regle.print([regle.getvar(i) for i in regle.params.att_entree.liste])
@@ -374,7 +376,7 @@ def h_print(regle):
             regle.print(regle.getvar(regle.params.att_entree.val))
 
         regle.valide = "done"
-    if regle.params.pattern == "4":
+    if regle.params.pattern == "4" and regle.params.static:
         regle.print(regle.params.val_entree.val)
         regle.valide = "done"
     return True
@@ -536,12 +538,12 @@ def f_creobj(regle, obj):
     noms = regle.params.att_sortie.liste
     vals = regle.getlist_entree(obj)
     tmp = regle.params.cmp1.liste
-    #    print ('testobj: ',regle.params.cmp1,noms,vals)
+    # print("testobj: ", regle.params.cmp1, noms, vals)
 
     ident = (tmp[0], tmp[1]) if len(tmp) == 2 else ("niv_test", tmp[0])
 
     schema = regle.getschema(regle.getvar("schema_entree"))
-    if schema is None:
+    if not schema:
         schema = regle.stock_param.init_schema("schema_test", origine="B", stable=False)
     gen_schema = ident not in schema.classes
     schemaclasse = schema.setdefault_classe(ident)
@@ -561,7 +563,7 @@ def f_creobj(regle, obj):
                 type_attribut = "T"
         if modifschema:
             schemaclasse.stocke_attribut(nom, type_attribut=type_attribut)
-    nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num is not None else 1
+    nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num else 1
     for i in range(nombre):
         obj2 = Objet(ident[0], ident[1], format_natif="interne")
         obj2.setschema(schemaclasse)
@@ -584,7 +586,7 @@ def f_creobj(regle, obj):
 def _prepare_batch_from_object(regle, obj):
     """extrait les parametres pertinents de l'objet decrivant le batch"""
 
-    comm = regle.getval_entree(obj)
+    comm = regle.entree
     commande = comm if comm else obj.attributs.get("commandes", "")
 
     entree = obj.attributs.get("entree", regle.getvar("_entree"))
@@ -986,7 +988,7 @@ def f_sleep(regle, obj):
     #test||obj||^A;P:#seconds;;set||^;1;;sleep||^B;P:#seconds;;set||^res;;N:B-N:A;set||atn;res;1
     """
     try:
-        flemme = float(regle.getval_entree(obj))
+        flemme = float(regle.entree)
     except ValueError:
         flemme = 1
     # un peu de deco ....
@@ -1036,25 +1038,33 @@ def f_attreader(regle, obj):
     if not regle.keepdata:  # on evite du duppliquer des gros xml
         obj.attributs[regle.params.att_entree.val] = ""
 
-def h_attdecode(regle):
-    '''prepare l'encodage'''
-    regle.encoding=regle.getvar("encoding", "utf-8")
-    
 
-def f_attdecode(regle,obj):
-    """#aide||decode un attribut de type byte en texte
-    #pattern||A;?C;A;attdecode;?C;?C
-    #parametres||sortie;defaut;entree;codec
+def h_attencode(regle):
+    """prepare l'encodage"""
+    regle.encoding = regle.getvar("encoding", "utf-8")
+
+
+def f_attencode(regle, obj):
+    """#aide||encode un attribut de type byte en texte ou recode un attribut texte en changeant le codec
+    #parametres||attribut sortie;defaut;attribut entree;encoding;encoding existant
+    #pattern||A;?C;A;attencode;?C;?C
+    #parametres||sortie;defaut;entree;codec;
     """
-    val=regle.getval_entree(obj)
-    regle.setvalsortie(val.decode(regle.encoding) if isinstance(val,bytes) else val)
+    val = regle.entree
+    encode = regle.params.cmp1.val or regle.encoding
+    decode = regle.params.cmp2.val or regle.encoding
+    regle.setvalsortie(
+        val.decode(decode)
+        if isinstance(val, bytes)
+        else str(val).encode(encode).decode(decode)
+    )
 
 
 def h_attsave(regle):
     """prepare les repertoires"""
     regle.destdir = os.path.join(regle.getvar("_sortie"), regle.params.cmp1.val)
     regle.encoding = regle.getvar("encoding", "utf-8")
-    regle.ext=regle.params.cmp2.val
+    regle.ext = regle.params.cmp2.val
     return True
 
 
@@ -1063,15 +1073,15 @@ def f_attsave(regle, obj):
     #parametres||attribut;defaut;fichier;;repertoire;extention
     #pattern||A;?C;A;attsave;?C;?C
     """
-    fich = os.path.join(regle.destdir, regle.getval_entree(obj))+(regle.ext)
+    fich = os.path.join(regle.destdir, regle.entree) + (regle.ext)
     destdir = os.path.dirname(fich)
     os.makedirs(destdir, exist_ok=True)
     contenu = obj.attributs.get(regle.params.att_sortie.val)
     # print("attsave", type(contenu))
     if contenu:
         if isinstance(contenu, str):
-            with open(fich, "w", encoding=regle.encoding, newline='\n') as sortie:
-            # with open(fich, "w", encoding=regle.encoding) as sortie:
+            with open(fich, "w", encoding=regle.encoding, newline="\n") as sortie:
+                # with open(fich, "w", encoding=regle.encoding) as sortie:
                 sortie.write(contenu)
             # print("attsave: ecrit", contenu)
         elif isinstance(contenu, list):
@@ -1101,7 +1111,7 @@ def f_attload(regle, obj):
     #parametres||;attribut;;fichier
     #pattern||A;?C;A;attload;?C;?C
     """
-    fich = os.path.join(regle.loaddir, regle.getval_entree(obj))
+    fich = os.path.join(regle.loaddir, regle.entree)
     if regle.format == "B":
         contenu = open(
             fich,

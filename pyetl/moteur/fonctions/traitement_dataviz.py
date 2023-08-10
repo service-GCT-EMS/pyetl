@@ -12,10 +12,10 @@ import altair as alt
 def h_dfload(regle):
     """definit la regle comme declenchable"""
     dataloaders = {
-        "csv": (pd.read_csv,{'delimiter':';', 'encoding':'cp1252', 'decimal':','}),
-        "xls": (pd.read_excel,{}),
-        "sql": (pd.read_sql,{}),
-        "json": (pd.read_json,{}), 
+        "csv": (pd.read_csv, {"delimiter": ";", "encoding": "cp1252", "decimal": ","}),
+        "xls": (pd.read_excel, {}),
+        "sql": (pd.read_sql, {}),
+        "json": (pd.read_json, {}),
     }
     if regle.params.cmp1.val == "#auto":
         regle.dataloader = None
@@ -30,11 +30,9 @@ def h_dfload(regle):
     elif regle.params.cmp1.val == "#url":
         regle.dataloader = lambda x: alt.Data(regle.getval_entree(x))
     elif regle.params.cmp1.val in dataloaders:
-        fonction=dataloaders[regle.params.cmp1.val][0]
-        params=dataloaders[regle.params.cmp1.val][1]
-        regle.dataloader = lambda x: fonction(
-            regle.getval_entree(x), **params
-        )
+        fonction = dataloaders[regle.params.cmp1.val][0]
+        params = dataloaders[regle.params.cmp1.val][1]
+        regle.dataloader = lambda x: fonction(regle.getval_entree(x), **params)
     regle.dataloaders = dataloaders
 
 
@@ -44,7 +42,7 @@ def f_dfload(regle, obj):
        #pattern||A;?C;?A;dfload;C;
           #test||notest
     """
-    fich = regle.getval_entree(obj)
+    fich = regle.entree
     dataloader = regle.dataloader
     try:
         df = dataloader(obj)
@@ -86,20 +84,22 @@ def f_dfwrite(regle, obj):
        #pattern||?A;?C;A;dfwrite;?C
           #test||notest
     """
-    attnom=regle.params.att_sortie.val
-    fichier_sortie = obj.attributs.get(attnom) if attnom else regle.params.val_entree.val
-    nom,ext=regle.prepare_place(fichier_sortie)
-    datawriter = regle.datawriters.get(ext,regle.datawriter)
+    attnom = regle.params.att_sortie.val
+    fichier_sortie = (
+        obj.attributs.get(attnom) if attnom else regle.params.val_entree.val
+    )
+    nom, ext = regle.prepare_place(fichier_sortie)
+    datawriter = regle.datawriters.get(ext, regle.datawriter)
     df = obj.attributs.get(regle.params.att_entree.val)
-    if isinstance(df,pd.DataFrame) and datawriter:
-        getattr(df,datawriter)(nom)
+    if isinstance(df, pd.DataFrame) and datawriter:
+        getattr(df, datawriter)(nom)
         return True
     return False
 
 
 def h_graph(regle):
     """preparation graphique"""
-    regle.graphwriters={'.html','.png','.svg','.pdf','.json'}
+    regle.graphwriters = {".html", ".png", ".svg", ".pdf", ".json"}
     regle.options = regle.params.cmp2.vdict if regle.params.cmp2.val else dict()
     regle.charttyp = regle.params.cmp1.val
     if regle.params.pattern >= "2":
@@ -123,22 +123,28 @@ def f_graph(regle, obj):
     """
     charttyp = regle.charttyp
     df = obj.attributs.get(regle.params.att_entree.val)
-    chart = getattr(alt.Chart(df),charttyp)().encode(**regle.options)
+    chart = getattr(alt.Chart(df), charttyp)().encode(**regle.options)
     if regle.params.pattern == "1":
         if regle.params.att_sortie.val:
             obj.attributs[regle.params.att_sortie.val] = chart
         else:
-            fichier_sortie=regle.params.val_entree.val
-            nom,ext=regle.prepare_place(fichier_sortie)
-            print ('ecriture',fichier_sortie,nom,ext,regle.options,regle.params.cmp2.liste)
-            nomdef=nom.replace(ext,'.json')
+            fichier_sortie = regle.params.val_entree.val
+            nom, ext = regle.prepare_place(fichier_sortie)
+            print(
+                "ecriture",
+                fichier_sortie,
+                nom,
+                ext,
+                regle.options,
+                regle.params.cmp2.liste,
+            )
+            nomdef = nom.replace(ext, ".json")
             chart.save(nomdef)
             if ext in regle.graphwriters:
                 chart.save(nom)
             else:
-                regle.stock_param.logger.error("format inconnu %s",ext)
+                regle.stock_param.logger.error("format inconnu %s", ext)
                 raise StopIteration(1)
     elif regle.params.pattern == "2":
         regle.sortie.append(chart.to_html())
     return True
-

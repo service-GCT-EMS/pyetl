@@ -55,13 +55,12 @@ def h_angle(regle):
 
 def f_angle(regle, obj):
     """#aide||calcule un angle de reference de l'objet
-    #aide_spec||N:N indices des point a utiliser, P creation d'un point au centre
     #pattern||S;;;angle;?N:N;?=P
     #schema||ajout_attribut
     #test1||obj;poly||^Z;;;angle;;||atv;Z;0.0
-    #test2||obj;poly||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;X;0.5
-    #test3||obj;ligne||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Y;0.5
-    #test4||obj;ligne45||^Z;;;angle;;P||^X,Y;;;coordp;;||atv;Z;45.0
+    #test2||obj;poly||^Z;;;angle;;P||^;;;coordp;;||atv;#x;0.5
+    #test3||obj;ligne||^Z;;;angle;;P||^;;;coordp;;||atv;#y;0.5
+    #test4||obj;ligne45||^AA;;;angle;;||atv;AA;45.0
     """
     if obj.initgeom():
         geom = obj.geom_v
@@ -103,7 +102,6 @@ def f_angle(regle, obj):
                 longueur=longueur,
             )
             setschemainfo(regle, obj, multi=False, type="1", dyn=True)
-
         regle.setval_sortie(obj, str(angle))
         return True
 
@@ -115,9 +113,6 @@ def h_buffer(regle):
     regle.join_style = int(regle.getvar("join_style", 1))
     regle.mitre_limit = float(regle.getvar("mitre_limit", 5.0))
     regle.limite = regle.params.cmp1.num
-    regle.largeur = (
-        regle.params.val_entree.num if regle.params.att_entree.val == "" else 0
-    )
 
 
 def calcul_db(geom, regle, largeur):
@@ -172,7 +167,7 @@ def f_buffer(regle, obj):
     """
     if obj.geom_v.sgeom or obj.initgeom():
         sgeom = obj.geom_v.sgeom or obj.geom_v.__shapelygeom__
-        largeur = regle.largeur or float(regle.get_entree(obj))
+        largeur = float(regle.entree)
         buffer = sgeom.buffer(
             largeur,
             resolution=regle.resolution,

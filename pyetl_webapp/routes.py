@@ -12,10 +12,12 @@ import time
 from collections import namedtuple
 from requests import Request
 from urllib.parse import urlencode
+
 # from flask_sspi import authenticate
 
 from flask import (
-    render_template,render_template_string,
+    render_template,
+    render_template_string,
     flash,
     redirect,
     session,
@@ -24,7 +26,7 @@ from flask import (
     request,
     Response,
     abort,
-    g
+    g,
 )
 
 # from flask_gssapi import GSSAPI
@@ -49,7 +51,6 @@ LOGGER = logging.getLogger(__name__)
 #     pass
 
 
-
 def url_to_nom(url):
     return "#" + url[1:] if url.startswith("_") else url
 
@@ -60,7 +61,7 @@ def url_to_fich(url):
 
 
 def init_vue(vars):
-    """initialise l objet vue """
+    """initialise l objet vue"""
     vuedict = {
         "el": "'#vm'",
         "delimiters": "['[[', ']]']",
@@ -148,10 +149,10 @@ class ScriptList(object):
                 self.loadws(webworker)
 
     def macroapis(self):
-        """ stocke les definitions des apis"""
+        """stocke les definitions des apis"""
         for i, m in self.mapper.getmacros():
             if m.apis:
-                self.is_api[i] =True
+                self.is_api[i] = True
                 for nom, contenu in m.apis.items():
                     self.apis[nom] = contenu
                     print("apidef apis", contenu, self.apis[nom])
@@ -162,9 +163,6 @@ class ScriptList(object):
         #         nom, retour, template,no_in, *_ = i.split(";") + ["", "", "",""]
         #         self.apis[nom] = (nom_script, retour, template, no_in)
         #     print("apidef apis", apidef, self.apis[nom])
-
-
-
 
     def getlignes(self, nom_script):
         """recupere la description du script"""
@@ -184,38 +182,40 @@ class ScriptList(object):
             infos["help"] = macro.help
             infos["help_detaillee"] = macro.help_detaillee
             infos["api"] = macro.apis
-            infos["lignes"] =  macro.lignes
+            infos["lignes"] = macro.lignes
             # print ("lecture macro", nom_script, infos)
         else:
             fpath = os.path.join(self.scriptdir, nom_script)
             try:
-                script = open(fpath, "r",encoding='cp1252').readlines()
-                nomscript=os.path.splitext(nom_script)[0]
+                script = open(fpath, "r", encoding="cp1252").readlines()
+                nomscript = os.path.splitext(nom_script)[0]
             except FileNotFoundError:
-                print ("fichier introuvable",fpath)
+                print("fichier introuvable", fpath)
                 raise KeyError
             except UnicodeDecodeError:
-                print ("erreur d 'encodage",fpath)
+                print("erreur d 'encodage", fpath)
                 raise KeyError
             for ligne in script:
                 if ligne.startswith("!#api"):
                     self.is_api[nom_script] = True
                     apidef = ligne.split(";")
-                    apiname = apidef[1] if len(apidef)>1 else nomscript
-                    retour = apidef[2] if len(apidef)>2 else "text"
-                    template = apidef[3] if (len(apidef)>3 and apidef[3]!="no_in") else ""
+                    apiname = apidef[1] if len(apidef) > 1 else nomscript
+                    retour = apidef[2] if len(apidef) > 2 else "text"
+                    template = (
+                        apidef[3] if (len(apidef) > 3 and apidef[3] != "no_in") else ""
+                    )
                     no_in = "1" if "no_in" in ligne else "0"
-                    infos["no_in"]=no_in
-                    auxv=apidef[-1] if '=' in apidef[-1] else ""
-                    aux=dict()
+                    infos["no_in"] = no_in
+                    auxv = apidef[-1] if "=" in apidef[-1] else ""
+                    aux = dict()
                     if auxv:
-                        vars=auxv.split(',')
-                        aux=[i.split("=") for i in vars]
+                        vars = auxv.split(",")
+                        aux = [i.split("=") for i in vars]
                     self.apis[apiname] = (nom_script, retour, template, no_in, aux)
                 elif ligne.startswith("!#"):
                     if ligne.endswith("\n"):
                         ligne = ligne[:-1]
-                    tmp = ligne[2:].split(";",1)
+                    tmp = ligne[2:].split(";", 1)
                     if len(tmp) == 1:
                         continue
                     clef, contenu = tmp
@@ -223,15 +223,14 @@ class ScriptList(object):
                         infos[clef] = dict() if clef == "variables" else []
                     if clef == "variables":
                         tmp = contenu.split(";", 2)
-                        nom=tmp[0]
-                        question=tmp[1] if len(tmp) > 1 else nom
-                        defaut=tmp[2] if len(tmp) > 2 else ""
-                        infos[clef][nom] = (question,defaut)
+                        nom = tmp[0]
+                        question = tmp[1] if len(tmp) > 1 else nom
+                        defaut = tmp[2] if len(tmp) > 2 else ""
+                        infos[clef][nom] = (question, defaut)
                     else:
                         infos[clef].append(contenu)
         self.descriptif[nom_script] = infos
         self.scripts[nom_script] = script
-        
 
     def refreshscript(self, nom_script):
         """rafraichit un script"""
@@ -282,16 +281,16 @@ scriptlist = ScriptList()
 #     "flaskfilemanager.userfile", filename="/my_folder/uploaded_file.txt"
 # )
 
+
 @app.route("/mw")
 @app.route("/mw/")
 @app.route("/mw/index")
 # @authenticate
 def index():
-
     local = request.host.startswith("127.0.0.1:")
-    local=False
+    local = False
     scriptlist.refresh(local)
-    current_user=getattr(g,"current_user","non identifié")
+    current_user = getattr(g, "current_user", "non identifié")
     return render_template(
         "index.html",
         text="acces simplifie aux fonctions mapper pour " + current_user,
@@ -349,7 +348,7 @@ def apis():
 @app.route("/mw/refresh/<mode>")
 def refresh(mode):
     local = request.host.startswith("127.0.0.1:")
-    local=False
+    local = False
     scriptlist.refresh(local)
     return render_template(
         "scriptlist.html",
@@ -361,7 +360,7 @@ def refresh(mode):
 
 @app.route("/mw/statictest/<script>")
 def statictest(script):
-    return( render_template(url_for("static", filename="statictest/" + script)))
+    return render_template(url_for("static", filename="statictest/" + script))
 
 
 @app.route("/mw/scriptdesc/<script>")
@@ -492,20 +491,12 @@ def edit_script(script):
     return render_template("scriptview2.html", code=code, nom=nomscript, url=script)
 
 
-
-
-
-
-
-
-
-
 @app.route("/mw/retour_api/<script>")
 def retour_api(script):
     stats = session.get("stats")
     retour = session.get("retour")
     nom = url_to_nom(script)
-    print ("retour api",stats,retour)
+    print("retour api", stats, retour)
     if stats:
         return render_template(
             "script_result.html", stats=stats, retour=retour, url=script, nom=nom
@@ -523,7 +514,7 @@ def webservicelist():
 def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
     """execute un traitement"""
     stime = time.time()
-    print ("process_script", nomscript,scriptparams, mode)
+    print("process_script", nomscript, scriptparams, mode)
     fich_script = (
         nomscript
         if nomscript.startswith("#")
@@ -565,7 +556,8 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
             result, tmpdir = failedworker.get_results()
     return (wstats, result, tmpdir)
 
-def autotemplate(data): # genere un template basique pour l affichage
+
+def autotemplate(data):  # genere un template basique pour l affichage
     pass
 
 
@@ -573,7 +565,7 @@ def autotemplate(data): # genere un template basique pour l affichage
 @app.route("/mws/<api>/<suburl>", methods=["GET", "POST"])
 def webservice(api, suburl=None):
     # local = request.host.startswith("127.0.0.1:")
-    local=False
+    local = False
     # print("dans webservice", script, session, request.host, local, scriptlist.worker)
     infoscript = scriptlist.apis.get(api)
     if not infoscript:
@@ -582,7 +574,7 @@ def webservice(api, suburl=None):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     if not scriptlist.refreshscript(nomscript):
         abort(404)
-    tmp = dict(request.args.items())        
+    tmp = dict(request.args.items())
     # on recupere les parametres positionnels s il y en a
     pp = tmp.pop("_pp", "")
     if pp:
@@ -591,61 +583,76 @@ def webservice(api, suburl=None):
     rep_sortie = ""
     scriptparams = [i + "=" + j for i, j in tmp.items()]
     # print ("ajout infoscript", infoscript,scriptlist.apis)
-    scriptparams.extend(["F_sortie="+infoscript[1],"template="+infoscript[2],"sans_entree="+infoscript[3]])
+    scriptparams.extend(
+        [
+            "F_sortie=" + infoscript[1],
+            "template=" + infoscript[2],
+            "sans_entree=" + infoscript[3],
+        ]
+    )
     if suburl:
-        scriptparams.append("#suburl="+suburl)
+        scriptparams.append("#suburl=" + suburl)
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
-    print ("-----------retour script",infoscript,result)
+    # print ("-----------retour script",infoscript,result)
     if result:
-        if infoscript[1]=="link": #retour url
-            url=result["print"][0] if "print" in result else ""
+        if infoscript[1] == "link":  # retour url
+            url = result["print"][0] if "print" in result else ""
             if url:
                 return redirect(url)
-        elif infoscript[1]=="html": #retour html direct
-                data=result["print"] if result["print"] else ""
-                
-                if infoscript[2]: #(template)
-                    template=open(infoscript[2].readlines())
-                    return render_template_string(template,data)
+        elif infoscript[1] == "html":  # retour html direct
+            data = result["print"] if result["print"] else ""
+
+            if infoscript[2]:  # (template)
+                template = open(infoscript[2].readlines())
+                return render_template_string(template, data)
+            else:
+                return render_template_string(autotemplate(data), data)
+        elif infoscript[1] == "json":  # retour json
+            # print ("retour web ", [i._asdict() for i in result["print"]])
+            if "print" in result and result["print"]:
+                return jsonify(
+                    [
+                        i._asdict() if isinstance(i, namedtuple) else i
+                        for i in result["print"]
+                    ]
+                )
+            elif "log" in result:
+                return jsonify(result["log"])
+            else:
+                return render_template(
+                    "notfound.html",
+                    text="pas de resultat",
+                    nom=infoscript[0],
+                    url=script,
+                    retour=result,
+                )
+        elif infoscript[1] == "list":  # retour liste
+            # print ("retour web ", result["print"])
+            if "print" in result:
+                retour = result["print"]
+                if retour:
+                    if len(retour) == 1 and isinstance(retour[0], (list, tuple)):
+                        retour = retour[0]
+                    ret = list(
+                        [i if isinstance(i, str) else jsonify(i) for i in retour if i]
+                    )
                 else:
-                    return render_template_string(autotemplate(data),data)
-        elif infoscript[1]=="json": #retour json
-                # print ("retour web ", [i._asdict() for i in result["print"]])
-                if "print" in result and result["print"]:
-                    return jsonify([i._asdict() if isinstance(i,namedtuple) else i for i in result["print"]])
-                elif "log" in result:
-                    return jsonify(result["log"])
-                else:
-                    return render_template(
-                                    "notfound.html",
-                                    text="pas de resultat",
-                                    nom=infoscript[0],
-                                    url=script,
-                                    retour=result,
-            )
-        elif infoscript[1]=="list": #retour liste
-                # print ("retour web ", result["print"])
-                if "print" in result:
-                    retour=result["print"]
-                    if retour:
-                        if len(retour)==1 and isinstance(retour[0],(list,tuple)):
-                            retour=retour[0] 
-                        ret = list([i if isinstance(i,str) else jsonify(i) for i in retour if i])
-                    else: ret = ()
-                elif "log" in result:
-                    ret = result["log"]
-                else:
-                    return render_template(
-                                    "notfound.html",
-                                    text="pas de resultat",
-                                    nom=infoscript[0],
-                                    url=script,
-                                    retour=result,)
-                print ("retour liste",ret,"->",jsonify(ret))
-                return jsonify(ret)
+                    ret = ()
+            elif "log" in result:
+                ret = result["log"]
+            else:
+                return render_template(
+                    "notfound.html",
+                    text="pas de resultat",
+                    nom=infoscript[0],
+                    url=script,
+                    retour=result,
+                )
+            print("retour liste", ret, "->", jsonify(ret))
+            return jsonify(ret)
 
         elif "print" in result:
             ret = tuple([i if len(i) > 1 else i[0] for i in result["print"] if i])
@@ -664,27 +671,26 @@ def webservice(api, suburl=None):
                 return Response(result[elem], mimetype="text/xml")
         if "log" in result:
             return jsonify(result["log"])
-        
+
     else:
         return render_template(
-                                    "notfound.html",
-                                    text="pas de resultat",
-                                    nom=infoscript[0],
-                                    url=script,
-                                    retour=result,)
-
-
+            "notfound.html",
+            text="pas de resultat",
+            nom=infoscript[0],
+            url=script,
+            retour=result,
+        )
 
 
 @app.route("/mw/exec/<appel>/<mode>", methods=["GET", "POST"])
 def execscript(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
-    local=False
+    local = False
     ws = mode == "api"
     if ws:
         infoscript = scriptlist.apis.get(appel)
-        print ("recup script",appel, "->",infoscript)
+        print("recup script", appel, "->", infoscript)
         if not infoscript:
             return "erreur script non trouve %s (%s)" % (
                 appel,
@@ -694,7 +700,7 @@ def execscript(appel, mode):
         format_retour = infoscript[1]
     else:
         script = appel
-        format_retour="auto"
+        format_retour = "auto"
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -760,7 +766,13 @@ def execscript(appel, mode):
             )
 
     return render_template(
-        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws, format_retour=format_retour
+        "prep_exec.html",
+        nom=nomscript,
+        form=form,
+        varlist=varlist,
+        url=appel,
+        ws=ws,
+        format_retour=format_retour,
     )
 
 
@@ -774,11 +786,11 @@ def execscript(appel, mode):
 def execscriptihm(appel, mode):
     # print("dans exec", script)
     local = request.host.startswith("127.0.0.1:")
-    local=False
+    local = False
     ws = mode == "api"
     if ws:
         infoscript = scriptlist.apis.get(appel)
-        print ("recup script",appel, "->",infoscript)
+        print("recup script", appel, "->", infoscript)
         if not infoscript:
             return "erreur script non trouve %s (%s)" % (
                 appel,
@@ -788,7 +800,7 @@ def execscriptihm(appel, mode):
         format_retour = infoscript[1]
     else:
         script = appel
-        format_retour="auto"
+        format_retour = "auto"
     nomscript = "#" + script[1:] if script.startswith("_") else script
     scriptlist.refreshscript(nomscript)
     fich_script = (
@@ -854,19 +866,21 @@ def execscriptihm(appel, mode):
             )
 
     return render_template(
-        "prep_exec.html", nom=nomscript, form=form, varlist=varlist, url=appel, ws=ws, format_retour=format_retour
+        "prep_exec.html",
+        nom=nomscript,
+        form=form,
+        varlist=varlist,
+        url=appel,
+        ws=ws,
+        format_retour=format_retour,
     )
-
-
-
-
 
 
 @app.route("/mw/result/<script>")
 def showresult(script):
     stats = session.get("stats")
     retour = session.get("retour")
-    
+
     nom = url_to_nom(script)
     if stats:
         return render_template(
@@ -897,8 +911,9 @@ def login(script="", username=""):
 @app.route("/mw/srvcontrol/<cmd>")
 def srvcontrol(cmd):
     """interface de controle du serveur"""
-    if cmd=="shutdown":
+    if cmd == "shutdown":
         os._exit(99)
+
 
 @app.route("/mw/help")
 def show_help():

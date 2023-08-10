@@ -35,7 +35,7 @@ def prepare_elmap(mapping):
 
 
 def remap_noms(items, intmap1, intmap2, elt):
-    """ remappe un nom """
+    """remappe un nom"""
     elt2 = elt
     for tbl in items:
         elt2 = elt2.replace(tbl, intmap1[tbl])
@@ -50,7 +50,7 @@ def remap_noms(items, intmap1, intmap2, elt):
 
 
 def remap_ident(elmap, ident):
-    """ remappe un identifiant """
+    """remappe un identifiant"""
     if isinstance(ident, tuple):
         schema, table = ident
         schema2 = remap_noms(*elmap, schema)
@@ -127,7 +127,7 @@ def traite_mapping(elements):
 
 
 def charge_mapping(regle, mapping=None):
-    """ precharge un mapping"""
+    """precharge un mapping"""
 
     if regle.params.cmp1.val.startswith("{"):  # c'est une definition in line
         # {groupe.classe,groupe.classe,att=>att,att=>att...:groupe.classe,groupe.classe,att=>att,...:...}
@@ -217,7 +217,6 @@ def _map_schemas(regle, obj):
     # print("-------------------------------------------------mapping effectue", schema2.nom, len(schema2.classes))
     for clef in schema2.classes:
         if clef in regle.mapping_attributs:
-
             for dest, orig in regle.mapping_attributs[clef].items():
                 schema2.classes[clef].rename_attribut(orig, dest)
                 # print ('-----------------------------mappin attributs', clef, orig,dest)
@@ -235,7 +234,7 @@ def applique_mapping(regle):
 
 
 def h_map2(regle):
-    """ prepare le mapping des structures"""
+    """prepare le mapping des structures"""
     regle.store = True
     regle.blocksize = 1
     regle.nbstock = 0
@@ -252,7 +251,7 @@ def f_map2(regle, obj):
 
 
 def h_map(regle):
-    """ precharge le fichier de mapping et prepare les dictionnaires"""
+    """precharge le fichier de mapping et prepare les dictionnaires"""
     regle.dynlevel = 0  # les noms de mapping dependent ils des donnees d entree
     regle.mapping = None
     regle.schema = None
@@ -314,7 +313,7 @@ def f_map(regle, obj):
 
 
 def h_map_data(regle):
-    """ precharge le fichier de mapping et prepare les dictionnaires"""
+    """precharge le fichier de mapping et prepare les dictionnaires"""
     regle.dynlevel = 0  # les noms de mapping dependent ils des donnees d entree
     regle.mapping = None
     regle.identclasse = None
@@ -339,7 +338,7 @@ def f_map_data(regle, obj):
     #pattern||A;?C;A;map_data;C
     #schema||ajout_attribut
     """
-    val = regle.getval_entree(obj)
+    val = regle.entree
     obj.attributs[regle.params.att_sortie.val] = regle.elmap.get(val, val)
     return val in regle.elmap
 

@@ -10,7 +10,7 @@ import os
 
 
 def ecrire_objets_neant(self, regle, *_, **__):
-    """ pseudowriter ne fait rien :  poubelle"""
+    """pseudowriter ne fait rien :  poubelle"""
     for groupe in list(regle.stockage.keys()):
         for obj in regle.recupobjets(groupe):  # on parcourt les objets
             if not obj.virtuel:  # on ne traite pas les virtuels
@@ -19,13 +19,13 @@ def ecrire_objets_neant(self, regle, *_, **__):
 
 
 def stream_objets_neant(self, obj, *_, **__):
-    """ pseudowriter ne fait rien :  poubelle"""
+    """pseudowriter ne fait rien :  poubelle"""
     obj.setschema(None)
     return 0, 0
 
 
 def compte_obj_stream(self, obj, regle, *_, **__):
-    """poubelle avec comptage """
+    """poubelle avec comptage"""
     groupe, classe = obj.ident
     #    obj.setschema(None)
     sorties = regle.stock_param.sorties
@@ -48,13 +48,14 @@ def compte_obj(self, regle, *_, **__):
 def affiche_header(obj):
     """affichage entete"""
     # raise
-    print("!----------affichage", obj.ident, "----------")
+    print("!-final----affichage", obj.ident, "----------")
     print("!" + ",".join(obj.schema.get_liste_attributs()))
 
+
 def prepare_webstore(obj, regle):
-    """ fabrique un namedtuple pour stocker les objets"""
-    idstruc="_".join(obj.ident)
-    regle.storestruct=namedtuple(idstruc,obj.schema.get_liste_attributs())
+    """fabrique un namedtuple pour stocker les objets"""
+    idstruc = "_".join(obj.ident)
+    regle.storestruct = namedtuple(idstruc, obj.schema.get_liste_attributs())
 
 
 def affiche_stream(self, obj, regle, *_, **__):
@@ -62,7 +63,7 @@ def affiche_stream(self, obj, regle, *_, **__):
     stock_param = regle.stock_param
     if stock_param.mode.startswith("web"):
         if obj.ident != regle.dident:
-            prepare_webstore(obj,regle)
+            prepare_webstore(obj, regle)
             regle.dident = obj.ident
         res = regle.storestruct(
             *(obj.get_valeur(i) for i in obj.schema.get_liste_attributs())
@@ -79,7 +80,10 @@ def affiche_stream(self, obj, regle, *_, **__):
             regle.dident = obj.ident
         print(
             ",".join(
-                (str(obj.attributs.get(i, "")) for i in obj.schema.get_liste_attributs())
+                (
+                    str(obj.attributs.get(i, ""))
+                    for i in obj.schema.get_liste_attributs()
+                )
             )
         )
     return 0, 0
@@ -105,7 +109,7 @@ class ObjStore(object):
         self.nbval = 0
 
     def write(self, obj):
-        """ stocke un objet """
+        """stocke un objet"""
         clef = obj.attributs.get(self.key)
         if clef in self.data:
             print("interne:clef duppliqueee", self.nom, self.key, clef)
@@ -135,7 +139,7 @@ class ObjStore(object):
 
 
 def intstreamer(self, obj, regle, *_, **__):  # ecritures non bufferisees
-    """ ecrit des objets tmp en streaming"""
+    """ecrit des objets tmp en streaming"""
     store = regle.stock_param.store
 
     if obj.ident != regle.dident:
@@ -159,7 +163,7 @@ def intstreamer(self, obj, regle, *_, **__):  # ecritures non bufferisees
 
 
 def ecrire_objets_int(self, regle, *_, **__):
-    """ ecrit des objets dans le stockage interne"""
+    """ecrit des objets dans le stockage interne"""
     nb_obj, nb_fich = 0, 0
     dident = None
     store = regle.stock_param.store

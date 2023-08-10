@@ -97,7 +97,7 @@ class SqlmConnect(SqltConnect):
             return None
 
     def _set_tablelist(self):
-        """ produit la liste des tables pour definir les tables a recuperer (systeme ou pas) """
+        """produit la liste des tables pour definir les tables a recuperer (systeme ou pas)"""
         requete = """select name, type from sqlite_master
                         where name not like 'spatial_ref_sys%'
                         and name not in ('spatialite_history',  'sqlite_sequence',
@@ -110,7 +110,7 @@ class SqlmConnect(SqltConnect):
         return tables
 
     def get_tables(self):
-        """ retourne la liste des tables """
+        """retourne la liste des tables"""
         return self.tables
 
     def get_attributs(self):
@@ -289,11 +289,11 @@ class SqlmConnect(SqltConnect):
         cur.cursor.close()
         return
 
-    def dbstore(self,obj):
+    def dbstore(self, obj):
         """stocke un objet en base"""
         pass
 
-    def dbstorelist(self,objlist):
+    def dbstorelist(self, objlist):
         """stocke une liste d'objets en base"""
         pass
 

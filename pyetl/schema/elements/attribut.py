@@ -82,6 +82,7 @@ TYPES_S = {
     "A": "non defini",
     "J": "json",
     "XML": "XML",
+    "XB": "binaire",
 }
 
 typeconv = {"E": int, "EL": int, "S": int, "BS": int, "F": float, "N": float, "T": str}
@@ -250,7 +251,7 @@ class Conformite(object):
         return d_if
 
     def from_dic_if(self, d_if):
-        """ reinitialise a partir d'une interface dict """
+        """reinitialise a partir d'une interface dict"""
         self.nom = d_if["nom"]
         self.poids = d_if["poids"]
         self.maxobj = d_if["maxobj"]
@@ -260,7 +261,7 @@ class Conformite(object):
 
 
 class Attribut(object):
-    """ gestion des attributs"""
+    """gestion des attributs"""
 
     types = {type(1): "entier", type(1.1): "flottant", type("a"): "texte"}
     types_a = TYPES_A
@@ -340,12 +341,12 @@ class Attribut(object):
         return
 
     def setbasic(self, mode):
-        """ retourne une structure basique"""
+        """retourne une structure basique"""
         if not mode:
             return
         self.nom_conformite = ""
         self.defaut = None
-        if mode == "basic" or mode=="consult":
+        if mode == "basic" or mode == "consult":
             self.conformite = None
             self.type_att = self.type_att_base
 
@@ -356,7 +357,7 @@ class Attribut(object):
         # print('positionnement formats', self.format_entree, self.format_sortie)
 
     def copie(self, nom=None):
-        """ retourne un clone de l'attribut """
+        """retourne un clone de l'attribut"""
         conf = self.conformite
         self.conformite = None
         nouveau = copy.deepcopy(self)
@@ -373,7 +374,7 @@ class Attribut(object):
         return nouveau
 
     def ajout_valeur(self, valeur):
-        """ analyse d'une valeur pour la determination automatique des conformites"""
+        """analyse d'une valeur pour la determination automatique des conformites"""
         if valeur is None:
             return
         val = str(valeur)
@@ -423,7 +424,7 @@ class Attribut(object):
         }
 
     def from_dic_if(self, dic_if):
-        """ recupere les valeurs depuis l'interface"""
+        """recupere les valeurs depuis l'interface"""
         for nom, valeur in dic_if.items():
             setattr(self, nom, valeur)
         self.set_formats()

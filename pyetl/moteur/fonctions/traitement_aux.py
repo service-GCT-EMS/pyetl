@@ -51,6 +51,7 @@ from pyetl.formats.interne.stats import Stat, Statdef
 
 LOGGER = logging.getLogger(__name__)
 
+
 # fonctions de remplacement
 def setajout(regle, liste):
     """cree l'ajout d'attributs au schema si necessaire"""
@@ -66,17 +67,20 @@ def setajout(regle, liste):
 
 
 def sh_simple(regle):
-    """ helper pour les sorties simples"""
-    setajout(regle, [regle.params.att_sortie.val])
+    """helper pour les sorties simples"""
+    if regle.params.att_sortie.mode == "S":
+        setajout(regle, [regle.params.att_sortie.val])
+    else:
+        sh_dyn(regle)
 
 
 def sh_liste(regle):
-    """ helper pour les sorties listes"""
+    """helper pour les sorties listes"""
     setajout(regle, regle.params.att_sortie.liste)
 
 
 def sh_dyn(regle):
-    """ helper pour les sorties dynamiques"""
+    """helper pour les sorties dynamiques"""
     regle.changeschema = True
     regle.changeclasse = True
     regle.dynschema = True
@@ -154,13 +158,14 @@ def s_simple_pre(sortie, obj, valeur):
     #pattern||+A||S
     #shelper||simple
     """
-    v_champ=obj.attributs.get(sortie.val, "")
-    if isinstance(v_champ,str):
+    v_champ = obj.attributs.get(sortie.val, "")
+    if isinstance(v_champ, str):
         obj.attributs[sortie.val] = valeur + obj.attributs.get(sortie.val, "")
-    elif isinstance(v_champ,list):
+    elif isinstance(v_champ, list):
         obj.attributs[sortie.val] = [valeur + i for i in v_champ]
-    elif isinstance(v_champ,dict):
-        obj.attributs[sortie.val] = {i:valeur + j for i,j in v_champ.items()}
+    elif isinstance(v_champ, dict):
+        obj.attributs[sortie.val] = {i: valeur + j for i, j in v_champ.items()}
+
 
 def s_simple_post(sortie, obj, valeur):
     """#aide|| cree l' attribut si necessaire
@@ -257,9 +262,11 @@ def h_stat(regle):
     if regle.debug:
         print("moteur: stat", regle.code_classe)
     # TODO  attention risque de melange des statdefs si on utilise la meme colonne
-    
-    regle.id_stat = regle.code_classe.replace(",",'_')
-    regle.idlist  = tuple(regle.code_classe.split(',')) if ',' in regle.code_classe else None
+
+    regle.id_stat = regle.code_classe.replace(",", "_")
+    regle.idlist = (
+        tuple(regle.code_classe.split(",")) if "," in regle.code_classe else None
+    )
     # statdef = regle.params.statstore.getstatdef(regle.id_stats, debug=regle.debug)
     # statdef.ajout_colonne(regle.params.att_sortie.val, regle.modestat)
     regle.stock_param.statstore.ajout_colonne(
@@ -295,16 +302,19 @@ def f_stat(regle, obj):
     # if entree not in regle.stock_param.stats:
     #     regle.stock_param.stats[entree] = Stat(entree, regle.stock_param.statdefs[regle.id_stat])
     # if regle.stock_param.stats[entree].ajout_valeur(
-    clef = ','.join(obj.attributs.get(i,'') for i in regle.idlist) if regle.idlist else obj.attributs.get(regle.code_classe, "")
+    clef = (
+        ",".join(obj.attributs.get(i, "") for i in regle.idlist)
+        if regle.idlist
+        else obj.attributs.get(regle.code_classe, "")
+    )
     if regle.stock_param.statstore.ajout_valeur(
         entree,
         clef,  # ligne
-        regle.params.att_sortie.val,  # colonne
-        regle.getval_entree(obj),  # valeur
-        regle.params.cmp2.val
-        + obj.attributs.get(
-            regle.params.att_sortie.val[1:-1], regle.params.att_sortie.val
-        ),
+        regle.params.att_sortie.origine
+        or regle.params.att_sortie.val,  # colonne (non resolue)
+        regle.entree,  # valeur
+        regle.params.cmp2.val + regle.params.att_sortie.val,
+        regle.params.att_sortie.origine,
     ):
         # print ('regles:fstat ',regle.params.att_sortie[1:-1],
         #        obj.attributs.get(regle.params.att_sortie[1:-1],regle.params.att_sortie),
@@ -418,7 +428,7 @@ def fschema_set_geom(regle, obj):
 
 
 def fschema_rename_attribut(regle, obj):
-    """ renomme un attribut"""
+    """renomme un attribut"""
     if obj.schema.amodifier(regle):
         #        print ('dans rename_attribut',regle.params.att_entree.val,'->',regle.params.att_sortie.val)
         #        print ('dans rename_attribut',obj.attributs.get(regle.params.att_sortie.val))
@@ -447,7 +457,7 @@ def fschema_garder_attributs(regle, obj):
 
 
 def fschema_change_schema(regle, obj):
-    """changement de schema """
+    """changement de schema"""
     nom_schema = obj.attributs.get("#schema")
     if not nom_schema:
         # print("F-schema: schema sans nom ", obj, regle.ligne)
@@ -497,7 +507,7 @@ def fschema_change_schema(regle, obj):
 
 
 def fschema_change_classe(_, obj):
-    """changement de classe """
+    """changement de classe"""
 
     schema2 = obj.schema.schema
     ident = obj.ident
@@ -523,12 +533,12 @@ def fschema_change_classe(_, obj):
 
 
 def fschema_nochange(regle, obj):
-    """ inhibe les changements de schema si non utiles """
+    """inhibe les changements de schema si non utiles"""
     regle.changeschema = None
 
 
 def fschema_supp_classe(regle, obj):
-    """ marque une classe pour suppression dans un schema """
+    """marque une classe pour suppression dans un schema"""
     obj.schema.deleted = True
 
 

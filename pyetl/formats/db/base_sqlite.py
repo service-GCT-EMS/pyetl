@@ -27,9 +27,11 @@ TYPES_A = {
     "F": "F",
     "NUMBER": "F",
     "TIMESTAMP": "D",
+    "DATETIME": "D",
     "DATE": "DS",
     "ROWID": "E",
     "FLOAT": "F",
+    "DOUBLE": "F",
     "NUMERIC": "N",
     "BOOLEEN": "B",
     "BOOLEAN": "B",
@@ -43,6 +45,7 @@ TYPES_A = {
     "OID": "I",
     "INTEGER": "E",
     "E": "E",
+    "BLOB": "XB",
 }
 
 TYPES_G = {
@@ -50,7 +53,7 @@ TYPES_G = {
     "MULTIPOINT": "1",
     "MULTILINESTRING": "2",
     "MULTIPOLYGON": "3",
-    "BLOB": "-1",
+    # "BLOB": "-1",
 }
 
 
@@ -76,7 +79,7 @@ class SqltConnect(DbConnect):
         """ouvre l'acces a la base de donnees et lit le schema"""
 
         #        import pyodbc as odbc
-        print("info : dbacces:connection sqlite", self.user, "****", self.base)
+        # print("info : dbacces:connection sqlite", self.user, "****", self.base)
         try:
             self.connection = sqlite3.Connection(self.base)
         except sqlite3.Error as err:
@@ -90,7 +93,7 @@ class SqltConnect(DbConnect):
         print("connection réussie", self.type_base)
 
     def _set_tablelist(self):
-        """ produit la liste des tables pour definir les tables a recuperer (systeme ou pas) """
+        """produit la liste des tables pour definir les tables a recuperer (systeme ou pas)"""
         requete = """select name, type from sqlite_master
                         where name not like 'spatial_ref_sys%'
                         and name not in ('spatialite_history',  'sqlite_sequence',
@@ -98,7 +101,8 @@ class SqltConnect(DbConnect):
                         and name not like '%geometry_columns%'
                         and name not like 'idx_%'
                         and name not like 'vector_layers%'
-                        and (type='table' or type='view')"""
+                        --and (type='table' or type='view')
+                        """
         tables_tmp = self.request(requete, None)
         tables = []
         for i in tables_tmp:
@@ -110,7 +114,7 @@ class SqltConnect(DbConnect):
         return tables
 
     def get_tables(self):
-        """ retourne la liste des tables """
+        """retourne la liste des tables"""
         return self.tables
 
     @property
@@ -137,7 +141,10 @@ class SqltConnect(DbConnect):
                 type_table = "t"
             elif type_table == "view":
                 type_table = "v"
-
+            elif type_table == "index":
+                type_table = "i"
+            else:
+                print("type table", nomtable, type_table)
             if "." in nomtable:
                 schema, nom = nomtable.split(".")
             else:
@@ -146,16 +153,19 @@ class SqltConnect(DbConnect):
             #            print('table', nom)
             table_geom = "ALPHA"
             table_dim = 2
-            requete = 'select count(*) from "' + nomtable + '"'
-            try:
-                nb = self.request(requete, None)[0][0]
-            except sqlite3.OperationalError:
-                print("erreur comptage", nomtable)
-            # print ('retour',nb)
+            nb = -1
+            if type_table == "t":
+                requete = 'select count(*) from "' + nomtable + '"'
+                try:
+                    nb = self.request(requete, None)[0][0]
+                except (sqlite3.OperationalError, IndexError):
+                    print("erreur comptage", nomtable)
+                # print ('retour',nb)
             requete = 'pragma table_info("' + nomtable + '")'
             attributs = self.request(requete, None)
+            nom_geom = "geometrie"
             for att in attributs:
-                # print ('att', att)
+                # print("atts", nomtable, att)
                 num_att, nom_att, type_att, notnull, defaut, ispk = att
                 attlist.append(
                     self.attdef(
@@ -184,6 +194,8 @@ class SqltConnect(DbConnect):
                 if nom_att == "GEOMETRY" or type_att in TYPES_G:
                     table_geom = TYPES_G.get(type_att, "-1")
                     table_dim = 2
+                    nom_geom = nom_att if nom_att != "GEOMETRY" else "geometrie"
+                    print("detection géometrie", table_geom)
 
             nouv_table = [
                 schema,
@@ -197,7 +209,7 @@ class SqltConnect(DbConnect):
                 "",
                 "",
                 "",
-                "geometrie"
+                nom_geom,
             ]
             # print ('table', nouv_table)
             self.tables.append(nouv_table)
@@ -269,7 +281,6 @@ class SqltConnect(DbConnect):
                 cast = self.textcast
 
             if isinstance(valeur, (set, list)) and len(valeur) > 1:
-
                 data = self.multivaldata(valeur)
                 #                data = {'val':"{'"+"','".join(valeur)+"'}"}
                 cond = self.multival(len(data), cast=cast)

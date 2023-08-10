@@ -356,20 +356,19 @@ def paramdecrypter(site_params, cryptinfo):  # decrypte les parametres cryptes
                 else:
                     site_params[nom][numero] = (nom_p, val)
     for nom in supr:
-        
         params = dict(site_params[nom])
         if "sso_fallback" in params:
-            if 'user' in params:
-                del params['user']
-            if '**passwd' in params:
-                del params['**passwd']
+            if "user" in params:
+                del params["user"]
+            if "**passwd" in params:
+                del params["**passwd"]
             site_params[nom] = list(params.items())
-            print("sso fallback", nom, master,site_params[nom])
+            print("sso fallback", nom, master, site_params[nom])
         elif "public_fallback" in params:
             user, passwd = params["public_fallback"].split(",")
-            params['user'] = user
-            if '**passwd' in params:
-                del params['**passwd']
+            params["user"] = user
+            if "**passwd" in params:
+                del params["**passwd"]
             params[passwd] = passwd
             site_params[nom] = list(params.items())
         else:
@@ -395,7 +394,7 @@ def f_crypt(regle, obj):
        #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
     vcrypte = crypt(
-        regle.getval_entree(obj),
+        regle.entree,
         key=regle.params.cmp1.getval(obj, regle.cryptokey),
         level=regle.cryptolevel,
         helper=regle.cryptohelper,
@@ -413,7 +412,7 @@ def f_decrypt(regle, obj):
        #test||obj||^X;toto;;set;||^Y;;X;crypt;ffff;||^Z;;Y;decrypt;ffff||atv;Z;toto
     """
     clef = regle.params.cmp1.getval(obj, regle.cryptokey)
-    val = regle.getval_entree(obj)
+    val = regle.entree
     decrypte = decrypt(val, key=clef)
     # print("decrypte", decrypte, val, clef)
     obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val

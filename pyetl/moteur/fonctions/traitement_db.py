@@ -23,7 +23,7 @@ from itertools import zip_longest
 import pyetl.formats.mdbaccess as DB
 from pyetl.formats.interne.objet import Objet
 
-from .outils import prepare_mode_in, getfichs,isatt,resolve_att,getbase
+from .outils import prepare_mode_in, getfichs, isatt, resolve_att, getbase
 from .tableselector import getselector, select_in, adapt_qgs_datasource
 
 LOGGER = logging.getLogger(__name__)
@@ -32,9 +32,12 @@ LOGGER = logging.getLogger(__name__)
 def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     """extrait les parametres d acces a la base"""
     # TODO gerer les modes in dynamiques
+    obj = obj if obj is not None else regle.obj_courant
     if not obj and any(isatt(i) for i in regle.v_nommees):
-        regle.cible_base=None
+        regle.cible_base = None
     base = regle.code_classe[3:]
+    if obj and obj.attributs.get("#base"):
+        base = "__filedb"
     # print("param base ", base)
     if not base:
         base = "*"
@@ -56,16 +59,16 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     else:
         regle.mods = regle.context.getlocal("mods")
     fonction = "=" if "=" in regle.mods else ""
-    niv = resolve_att(regle.v_nommees["val_sel1"],obj)
-    cla = resolve_att(regle.v_nommees["sel2"],obj)
-    att = resolve_att(regle.v_nommees["val_sel2"],obj)
-    vals=('','')
+    niv = resolve_att(regle.v_nommees["val_sel1"], obj)
+    cla = resolve_att(regle.v_nommees["sel2"], obj)
+    att = resolve_att(regle.v_nommees["val_sel2"], obj)
+    vals = ("", "")
     if att:
         if ":" in att:
-            tmp = att.split(":") + ["", "",""]
-            att = resolve_att(tmp[0],obj)
+            tmp = att.split(":") + ["", "", ""]
+            att = resolve_att(tmp[0], obj)
             vals = (tmp[1], tmp[2])
-            fonction=tmp[3]
+            fonction = tmp[3]
         else:
             vals = (regle.v_nommees["entree"], regle.v_nommees["defaut"])
 
@@ -79,17 +82,17 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     # print("param_base", regle, "-", nom, base, niv, cla, att, vals)
 
     if niv.lower().startswith("in:"):  # mode in
-        nivdef=resolve_att(niv[3:],obj)
-        if nivdef.startswith('['):
-            nivdef=niv
+        nivdef = resolve_att(niv[3:], obj)
+        if nivdef.startswith("["):
+            nivdef = niv
         selecteur = select_in(regle, nivdef, base, nom=nom)
         # print("------------------------------recup selecteur", selecteur)
     elif not niv and cla.lower().startswith("in:"):  # mode in
-            cladef=resolve_att(cla[3:],obj)
-            if cladef.startswith('['):
-                cladef=cla
-            selecteur = select_in(regle, cladef, base, nom=nom)
-            # print("------------------------------recup selecteur", selecteur)
+        cladef = resolve_att(cla[3:], obj)
+        if cladef.startswith("["):
+            cladef = cla
+        selecteur = select_in(regle, cladef, base, nom=nom)
+        # print("------------------------------recup selecteur", selecteur)
     else:
         selecteur = getselector(regle, base, nom=nom)
         selecteur.metainfos = ("niveau=" + niv if niv else "") + (
@@ -97,9 +100,11 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
         )
         if cla.lower().startswith("in:"):
             clef = 1 if "#schema" in cla else 0
-            mode_select, classes = prepare_mode_in(resolve_att(cla[3:],obj), regle, taille=1, clef=clef)
-            classlist=set(classes.values())
-            print ("classlist:",classlist)
+            mode_select, classes = prepare_mode_in(
+                resolve_att(cla[3:], obj), regle, taille=1, clef=clef
+            )
+            classlist = set(classes.values())
+            print("classlist:", classlist)
             classes = list(classlist)
             # print("trouve classes", type(classes), classes)
         else:
@@ -130,16 +135,18 @@ def setdb(regle, obj):
     """positionne des parametres d'acces aux bases de donnees"""
     # print("acces bases",( regle.cible_base.baseselectors.keys() if regle.cible_base else "*") )
     selecteur = regle.cible_base
-    
+
     if selecteur is None:
-        if param_base(regle,nom=regle.getval_entree(obj),obj=obj):
-            selecteur=regle.cible_base
-            regle.cible_base=None
+        if param_base(regle, nom=regle.entree, obj=obj):
+            selecteur = regle.cible_base
+            regle.cible_base = None
         # base=regle.code_classe[3:]
-        # selecteur=getselector(regle, (base if base else "*"), nom=regle.getval_entree(obj))
-            # print ('creation selecteur',selecteur)
+        # selecteur=getselector(regle, (base if base else "*"), nom=regle.entree)
+        # print ('creation selecteur',selecteur)
     if selecteur:
-        maxsel = int(regle.getvar("maxsel", 0))  # limite les selections (pour les tests)
+        maxsel = int(
+            regle.getvar("maxsel", 0)
+        )  # limite les selections (pour les tests)
         selecteur.maxsel = maxsel
         selecteur.resolve(obj)
         return selecteur
@@ -172,9 +179,9 @@ def h_dbalpha(regle):
         #     regle.params.val_entree = regle.params.st_val(
         #         defaut, None, list(valeurs.keys()), False, ""
         #     )
-        if regle.params.pattern=="1":
+        if regle.params.pattern == "1":
             regle.chargeur = True  # c est une regle qui cree des objets
-        elif regle.params.pattern=="2":
+        elif regle.params.pattern == "2":
             regle.prefix = regle.params.cmp2.val
         if regle.getvar("noauto"):  # mais on veut pas qu'elle se declenche seule
             regle.setlocal("noauto", regle.getvar("noauto"))  # on confine en local
@@ -220,10 +227,12 @@ def f_dbalpha(regle, obj):
         return False
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
-    if regle.params.pattern=="2":
+    if regle.params.pattern == "2":
         # print ("fdbalpha recup elements",selecteur.baseselectors.items())
         for base, basesel in selecteur.baseselectors.items():
-            atts=DB.recup_attributs_req_alpha(regle, basesel,regle.params.att_entree.liste)
+            atts = DB.recup_attributs_req_alpha(
+                regle, basesel, regle.params.att_entree.liste
+            )
             obj.attributs.update(atts)
         return True
 
@@ -234,7 +243,6 @@ def f_dbalpha(regle, obj):
     # selecteur.resolve(regle, obj)
     regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
     for base, basesel in selecteur.baseselectors.items():
-
         logger.debug("select base %s %s", base, repr(regle.mods))
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)
         connect = basesel.connect
@@ -284,7 +292,6 @@ def h_dbtmp(regle):
             regle.chargeur = False
         #        regle.stock_param.gestion_parallel_load(regle)
         if not valide_dbmods(regle.params.cmp1.liste):
-
             regle.erreurs.append(
                 "dbtmp: modificateurs non autorises seulement:"
                 + str(regle.params.cmp1.liste)
@@ -395,7 +402,7 @@ def getrequest(regle):
             with open(requete[2:], "r", encoding="utf-8-sig") as fich:
                 requete = "".join(fich.readlines())
         except FileNotFoundError:
-            LOGGER.error("fichier de requetes introuvable %s",requete[2:])
+            LOGGER.error("fichier de requetes introuvable %s", requete[2:])
             regle.valide = False
             regle.erreurs = "fichier introuvable ->" + requete[2:]
             return False
@@ -444,18 +451,22 @@ def h_dbrequest(regle):
             # print ("dbrequest, fastrequest ",regle.requete,parms,regle.params.cmp2.liste)
             if regle.params.pattern == "7":
                 if regle.debug:
-                    print ("dbreq:",retour,"->",regle.params.att_sortie.liste)
+                    print("dbreq:", retour, "->", regle.params.att_sortie.liste)
                 if retour and isinstance(retour, list):
-                    if len(retour)==1:  # une valeur
-                        vals=retour[0]
-                        if len(regle.params.att_sortie.liste)>1:
-                            for nom,contenu in zip(regle.params.att_sortie.liste,vals):      
+                    if len(retour) == 1:  # une valeur
+                        vals = retour[0]
+                        if len(regle.params.att_sortie.liste) > 1:
+                            for nom, contenu in zip(
+                                regle.params.att_sortie.liste, vals
+                            ):
                                 regle.setvar(nom, contenu)
                         else:
                             r3 = ",".join([str(i) for i in vals])
                             regle.setvar(regle.params.att_sortie.liste[0], r3)
                     else:
-                        r2=",".join([",".join([str(i) for i in vals]) for vals in retour])
+                        r2 = ",".join(
+                            [",".join([str(i) for i in vals]) for vals in retour]
+                        )
                         regle.setvar(regle.params.att_sortie.val, r3)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
@@ -471,24 +482,25 @@ def h_dbrequest(regle):
         return True
 
     if regle.params.cmp2.val and regle.params.cmp2.val != "#":
-        regle.identclasse = (tuple(regle.params.cmp2.texte.split('.',1)) 
-            if '.' in regle.params.cmp2.texte
+        regle.identclasse = (
+            tuple(regle.params.cmp2.texte.split(".", 1))
+            if "." in regle.params.cmp2.texte
             else (None, regle.params.cmp2.val)
         )
-        print ('nom classe',regle.params.cmp2.texte)
+        print("nom classe", regle.params.cmp2.texte)
     else:
         regle.identclasse = None
     LOGGER.debug("req:%s --> %s", requete, str(regle.identclasse))
 
     regle.prefixe = regle.params.att_sortie.val
-    print ("retour valide", valide)
+    print("retour valide", valide)
     return valide
 
 
 def printexception(regle, requete, err):
     """affiche ou pas une erreur"""
     fail_silent = regle.istrue("fail_silent")
-    if not fail_silent :
+    if not fail_silent:
         print("dbrequest:erreur requete", requete, "->", err)
 
 
@@ -517,7 +529,7 @@ def f_dbrequest(regle, obj):
       #pattern8||=mws:;;;dbreq;C;?LC||sortie
      #req_test||testdb
     """
-    print ("dbrequest", obj)
+    print("dbrequest", obj)
     selecteur = setdb(regle, obj)
     retour = 0
     parms = None
@@ -527,7 +539,7 @@ def f_dbrequest(regle, obj):
 
     for base, basesel in selecteur.baseselectors.items():
         requete_ref = regle.requete.replace("%#base", base)
-        print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))
+        # print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
                 identclasse, att, *_ = definition
@@ -636,7 +648,7 @@ def f_dbrunsql(regle, obj):
     LOGGER.debug("runsql: %s", repr(selecteur))
     for id in selecteur.baseselectors:
         base = selecteur.baseselectors[id].base
-        script = regle.getval_entree(obj)
+        script = regle.entree
         # print(
         #     "traitement db: execution sql ",
         #     base,
@@ -678,7 +690,7 @@ def f_dbrunproc(regle, obj):
     """
     selecteur = setdb(regle, obj)
     for base in selecteur.baseselectors:
-        params = regle.getval_entree(obj)
+        params = regle.entree
         print("runproc", regle.procedure, params)
         DB.dbrunproc(regle, base, regle.procedure, params)
 
@@ -697,7 +709,7 @@ def f_dbextload(regle, obj):
       #req_test||testdb
     """
     base = regle.cible_base.base
-    datas = regle.getval_entree(obj)
+    datas = regle.entree
     #    print('traitement db: chargement donnees ', base, '->', datas, regle.params.cmp1.val)
     fichs = sorted(glob.glob(datas))
     retour = DB.dbextload(regle, base, fichs, log=regle.params.cmp1.val)
@@ -740,7 +752,7 @@ def dbwritebloc(regle):
             raise StopIteration(2)
     schema = regle.colonnes
     if regle.insert:
-        connect.dbinsert(schema,regle.dident,regle.tmpstore,regle.insert)
+        connect.dbinsert(schema, regle.dident, regle.tmpstore, regle.insert)
     connect.dbload(schema, regle.dident, regle.tmpstore, regle.insert)
     regle.nbstock = 0
     regle.traite += len(regle.tmpstore)
@@ -760,13 +772,13 @@ def h_dbwrite(regle):
     regle.dident = None
     regle.insert = regle.istrue("insert")
     if regle.istrue("update"):
-        regle.insert=2
-    regle.use_geom=not regle.params.cmp1.val
-    regle.liste_att=regle.params.att_entree.liste
-    regle.force_entree=bool(regle.liste_att)
-    regle.colonnes=regle.params.att_sortie.liste
-    regle.force_sortie=bool(regle.colonnes)
-    regle.has_geom=False
+        regle.insert = 2
+    regle.use_geom = not regle.params.cmp1.val
+    regle.liste_att = regle.params.att_entree.liste
+    regle.force_entree = bool(regle.liste_att)
+    regle.colonnes = regle.params.att_sortie.liste
+    regle.force_sortie = bool(regle.colonnes)
+    regle.has_geom = False
     if not getbase(regle):
         LOGGER.error("base non definie")
         return False
@@ -801,7 +813,7 @@ def f_dbwrite(regle, obj):
     if regle.has_geom:
         ligne = ligne + obj.geometrie
     regle.tmpstore.append(ligne)
-    regle.nbstock+=1
+    regle.nbstock += 1
     return True
 
 
@@ -903,9 +915,9 @@ def f_dbcount(regle, obj):
 
 def h_recup_schema(regle):
     """lecture de schemas"""
-    print ("recup_schema",regle.params.pattern)
+    # print("hrecup_schema:", regle.params.pattern)
     if regle.params.pattern in "34":
-        regle.cible_base=None
+        regle.cible_base = None
         return True
     if not param_base(regle):
         print("erreur definition selecteur de base", regle.v_nommees)
@@ -915,7 +927,7 @@ def h_recup_schema(regle):
 
     regle.setlocal("mode_schema", "dbschema")
     selecteur = regle.cible_base
-    print ("h_recup_schema:selecteur", selecteur)
+    # print("h_recup_schema:selecteur", selecteur)
     LOGGER.debug("selecteur %s", repr(selecteur))
     try:
         complet = selecteur.resolve()
@@ -948,12 +960,15 @@ def f_recup_schema(regle, obj):
         return True
     valide = True
     selecteur = setdb(regle, obj)
-    # print ('recup selecteur', selecteur.nom)
-    multibase = len(selecteur.baseselectors)>1 and not regle.istrue("groupe_bases")
+    # print("recup selecteur", selecteur.nom, len(selecteur.baseselectors))
+    multibase = len(selecteur.baseselectors) > 1 and not regle.istrue("groupe_bases")
     for base, baseselecteur in selecteur.baseselectors.items():
         if baseselecteur:
-            nomselecteur=selecteur.nom if not multibase else selecteur.nom +'_'+base
+            nomselecteur = (
+                selecteur.nom if not multibase else selecteur.nom + "_" + base
+            )
             schema_travail = baseselecteur.getschematravail(regle, nomselecteur)
+            # print("schema_travail", schema_travail)
         else:
             valide = False
 
@@ -975,14 +990,18 @@ def h_dbclean(regle):
     if not param_base(regle):
         regle.valide = False
         return False
-    selecteur=regle.cible_base
+    selecteur = regle.cible_base
     selecteur.resolve()
     # print ("selecteur",selecteur)
-    
-    for base,basesel in selecteur.baseselectors.items():
+
+    for base, basesel in selecteur.baseselectors.items():
         # print ('dbclean classes a traiter',base,   basesel)
         regle.type_base = regle.getvar("db_" + base)
-        nom = str(regle.params.cmp2.val) if regle.params.cmp2.val else 'clean_'+base  + ".sql"
+        nom = (
+            str(regle.params.cmp2.val)
+            if regle.params.cmp2.val
+            else "clean_" + base + ".sql"
+        )
         if len(selecteur.baseselectors) > 1:
             nom = os.path.join(os.path.dirname(nom), base + "_" + os.path.basename(nom))
         script = DB.reset_liste_tables(basesel)
@@ -994,7 +1013,7 @@ def h_dbclean(regle):
         with open(nom, "w") as sortie:
             sortie.write("".join(script))
         regle.valide = "done"
-        regle.stock_param.logger.info('preparation script de reinitialisation %s', base)
+        regle.stock_param.logger.info("preparation script de reinitialisation %s", base)
     return True
 
 
@@ -1238,7 +1257,7 @@ def f_dbset(regle, obj):
     # print ("requete dbset", regle.cible_base)
     try:
         liste = regle.connect.request(requete, data, regle=regle)
-    except (regle.connect.DBError,StopIteration) as errs:
+    except (regle.connect.DBError, StopIteration) as errs:
         if regle.debug:
             print("dbset: erreur requete", errs)
         return False
@@ -1273,18 +1292,19 @@ def h_dbmap_qgs(regle):
     regle.nom_selecteur = regle.params.val_entree.val
     if regle.nom_selecteur.startswith("#"):
         regle.nom_selecteur = regle.nom_selecteur[1:]
-    regle.entree = regle.params.cmp1.val
-    regle.sortie = regle.params.cmp2.val
+
     selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
     if selecteur:
         print("mapping statique", selecteur, selecteur.resolve())
     if selecteur and selecteur.resolve() or not selecteur:
         LOGGER.info(
             "mapping qgis statique " + regle.params.cmp1.val + " -> %s (%s)",
-            regle.sortie,
+            regle.params.cmp2.val,
             selecteur.nom if selecteur else "autosel",
         )
-        adapt_qgs_datasource(regle, None, regle.entree, selecteur, regle.sortie)
+        adapt_qgs_datasource(
+            regle, None, regle.params.cmp1.val, selecteur, regle.params.cmp2.val
+        )
         regle.valide = "done"
         print("retour mapping", regle.valide)
         return True
@@ -1300,10 +1320,13 @@ def f_dbmap_qgs(regle, obj):
     #pattern||;?C;;dbmap_qgs;C;?C
     """
     LOGGER.debug("dbmapqgs")
-    print("====================dbmapqgs")
     selecteur = regle.stock_param.namedselectors.get(regle.nom_selecteur)
+    print("====================dbmapqgs", selecteur)
+
     if selecteur:
-        adapt_qgs_datasource(regle, obj, regle.entree, selecteur, regle.sortie)
+        adapt_qgs_datasource(
+            regle, obj, regle.params.cmp1.val, selecteur, regle.params.cmp2.val
+        )
         return True
     else:
         return False

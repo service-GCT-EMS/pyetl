@@ -25,7 +25,7 @@ RETESTFAIL = {
 
 
 def retest(mapper):
-    """ verifie la description des expressions regulieres """
+    """verifie la description des expressions regulieres"""
     # test expressions regulieres
     #    commande_test = next(iter(mapper.commandes.values()))
     erreurs = 0
@@ -80,7 +80,7 @@ def testrunner(mapper, idtest, liste_regles, debug, redirect=False):
             with redirect_stdout(capture):
                 map2.process()
             retour = capture.getvalue()
-        #            print ("mode redirect actif ->",retour,"<-")
+            # print("mode redirect actif ->", retour, "<-")
         else:
             map2.process()
             retour = map2.retour
@@ -134,7 +134,7 @@ def eval_test(mapper, idtest, liste_regles, liste_controle, debug=0, redirect=Fa
 
 
 def controle(mapper, idtest, descript_test, debug=0):
-    """ realise une paire de tests fonctionnels standardises"""
+    """realise une paire de tests fonctionnels standardises"""
     desctest = descript_test[:]
 
     init = desctest[0]
@@ -200,7 +200,7 @@ def untestable(mapper, fonc):
 
 
 def fonctest(mapper, nom=None, debug=0):
-    """ execute les tests unitaires des fonctions """
+    """execute les tests unitaires des fonctions"""
     nbtests = 0
     nberrs = 0
     invalides = set()
@@ -215,7 +215,10 @@ def fonctest(mapper, nom=None, debug=0):
             continue
         if nom:
             print("test: ", fonc_a_tester, "(", fonc.nom, ")")
-            print("variantes:", [subfonc.nom for subfonc in fonc.subfonctions])
+            print(
+                "variantes:",
+                [(subfonc.nom, subfonc.description) for subfonc in fonc.subfonctions],
+            )
         mapper.setvar("test_courant", fonc_a_tester)
 
         # teslist = dict()
@@ -265,7 +268,7 @@ def fonctest(mapper, nom=None, debug=0):
 
 
 def seltest(mapper, nom=None, debug=0):
-    """ execute les tests unitaires des conditions"""
+    """execute les tests unitaires des conditions"""
     nbtests = 0
     nberrs = 0
     invalides = set()
@@ -313,7 +316,7 @@ def set_test_config(mapper):
 
 
 def formattests(mapper, nom=None, debug=0):
-    """ execute les tests d'entree sortie """
+    """execute les tests d'entree sortie"""
     if nom:
         print("---------------------test format " + nom + " -----------------------")
     else:
@@ -323,7 +326,7 @@ def formattests(mapper, nom=None, debug=0):
 
 
 def unittests(mapper, nom=None, debug=0):
-    """ execute les tests unitaires """
+    """execute les tests unitaires"""
     debug = mapper.getvar("debug")
     if nom:
         print("---------------------test unitaire " + nom + " -----------------------")
@@ -352,7 +355,7 @@ def unittests(mapper, nom=None, debug=0):
 
 
 def autotest_partiel(mapper, nom):
-    """ execute un fichier d autotest"""
+    """execute un fichier d autotest"""
     if nom == "unittest":  # tests unitaires de commandes
         unittests(mapper)
         return []
@@ -370,7 +373,7 @@ def autotest_partiel(mapper, nom):
 
 
 def full_autotest(mapper, nom):
-    """ realise un autotest complet"""
+    """realise un autotest complet"""
 
     if not nom:
         unittests(mapper)

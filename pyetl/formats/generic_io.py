@@ -46,6 +46,8 @@ from .interne.objet import Objet
 if printtime:
     print("     objet      ", time.time() - t1)
     t1 = time.time()
+
+
 #
 # geomdef = namedtuple("geomdef", ("writer", "converter"))
 #
@@ -195,7 +197,6 @@ def get_write_encoding(regle, nom_format):
 
 
 def get_read_separ(regle, nom_format):
-
     sep_chain = ["sep", "separ_" + nom_format + "_in", "separ_" + nom_format]
     separ = regle.getchain(sep_chain, ";")
     # print("positionnement separateur", separ)
@@ -327,7 +328,7 @@ class Reader(object):
                     self.nomschema, origine="B", stable=False
                 )
             if not self.schema and self.cree_schema:
-            # les objets ont un schema issu du fichier (le format a un schema)
+                # les objets ont un schema issu du fichier (le format a un schema)
                 self.nomschema = "schema"
                 self.schema = self.stock_param.init_schema(
                     self.nomschema, origine="B", stable=False
@@ -371,7 +372,6 @@ class Reader(object):
     def getobjvirtuel(
         self, attributs=None, niveau=None, classe=None, geom=None, valeurs=None
     ):
-
         self.nb_lus += 1
         obj = Objet(
             niveau or self.groupe,
@@ -408,7 +408,7 @@ class Reader(object):
     def prepare_lecture_fichier(self, rep, chemin, fichier, schema=True, classe=None):
         """prepare les parametres de lecture"""
         # print("preparation lecteur", self.separ)
-        #self.aff.send(("fich", 1, self.lus_fich))
+        # self.aff.send(("fich", 1, self.lus_fich))
         regle = self.regle_ref
         self.chemin = chemin
         chem = chemin
@@ -895,7 +895,6 @@ class Output(object):
             # print('nom de fichier sans fanout ', rep_sortie, dest,"->",nom)
         elif self.fanout == "groupe":
             rep_sortie = self.getrepsortie(dest)
-            #            print('csv:recherche fichier',obj.ident,groupe,classe,obj.schema.nom,
             nom = self.sorties.get_id(rep_sortie, groupe, "", self.ext)
         else:
             rep_sortie = self.getrepsortie(dest)

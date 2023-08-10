@@ -24,20 +24,22 @@ from pyetl.vglobales import DEFCODEC
 LOGGER = logging.getLogger(__name__)
 
 
-def getbase(regle,obj=None):
+def getbase(regle, obj=None):
     """recuper le code base pour les ecritures"""
-    regle.base = resolve_att(regle.code_classe[3:],obj)
+    regle.base = resolve_att(regle.code_classe[3:], obj)
     return regle.base
 
-def resolve_att(att,obj=None):
+
+def resolve_att(att, obj=None):
     """resout les descriptions de type [attribut]"""
-    if att.startswith('[') and obj:
+    if att.startswith("[") and obj:
         return obj.attributs.get(att[1:-1])
     return att
 
+
 def isatt(txt):
     """verifie si une description contient un attribut"""
-    if txt.startswith('['):
+    if txt.startswith("["):
         return True
     if txt.startswith("in:") and isatt(txt[3:]):
         return True
@@ -145,7 +147,7 @@ def getfichs(regle, obj, sort=False):
     #    mapper = regle.stock_param
     if obj:
         racine = regle.params.cmp1.getval(obj)
-        nom = regle.getval_entree(obj)
+        nom = regle.entree
     else:
         nom = regle.refdir
         racine = ""
@@ -311,7 +313,7 @@ def charge_liste_csv(
 
 
 def _extract(ligne, clef):
-    """ extrait un element de la ligne"""
+    """extrait un element de la ligne"""
     l_tmp = ligne.split(clef)
     if len(l_tmp) > 1:
         liste = l_tmp[1].split(" ")
@@ -334,7 +336,6 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
     with open(fichier, "r", encoding=codec) as fich:
         print("lecture projet qgs", taille, fichier, type_cle)
         for i in fich:
-
             if "datasource" in i:
                 table = _extract(i, "table=")
                 database = _extract(i, "dbname=")
@@ -352,7 +353,6 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
                     elif taille == 2:
                         clef = tuple(table.split(".", 1))
                     else:
-
                         niv, cla = table.split(".", 1)
                         if type_cle == "txt":
                             txt = ",".join(dbdef)
@@ -370,7 +370,7 @@ def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle=
 def charge_liste(
     fichier, codec="", debug=False, taille=1, positions=None, type_cle="txt"
 ):
-    """prechargement des fichiers de comparaison """
+    """prechargement des fichiers de comparaison"""
     # fichier de jointure dans le repertoire de regles
     clef = ""
     if "*." in os.path.basename(fichier):
@@ -440,7 +440,7 @@ def charge_liste(
 
 
 def conditionne_liste_classes(valeurs):
-    """ transforme une liste en liste de classes """
+    """transforme une liste en liste de classes"""
     result = dict()
     for val in valeurs:
         if "." in val[0]:
@@ -521,7 +521,7 @@ def prepare_mode_in(fichier, regle, taille=1, clef=0, type_cle="txt"):
 
 
 def valide_auxiliaires(identifies, non_identifies):
-    """ valide que les fichiers trouves sont connus"""
+    """valide que les fichiers trouves sont connus"""
     auxiliaires = {
         a: defin[3] for a, defin in READERS.items() if not isinstance(defin, str)
     }
@@ -538,7 +538,7 @@ def valide_auxiliaires(identifies, non_identifies):
 def getfilelist(
     rep=None, fileselect=None, dirselect=None
 ) -> T.Iterator[T.Tuple[str, str, str]]:
-    " etablit la liste de fichiers sous forme d'iterateur"
+    "etablit la liste de fichiers sous forme d'iterateur"
     liste_entree = rep.split(",")
     for entree in liste_entree:
         if entree:
@@ -553,11 +553,11 @@ def getfilelist(
                 racine = str(os.path.dirname(entree))
                 chemin = str(os.path.basename(entree))
                 while "*" in racine:
-                    chemin=os.path.join(str(os.path.basename(racine)),chemin)
+                    chemin = os.path.join(str(os.path.basename(racine)), chemin)
                     racine = str(os.path.dirname(racine))
-                    print ("recherche", racine)
-                    print ("trouve", glob.glob(chemin, recursive=True, root_dir=racine))
-                
+                    print("recherche", racine)
+                    print("trouve", glob.glob(chemin, recursive=True, root_dir=racine))
+
                 yield from (
                     (
                         str(os.path.basename(i)),
@@ -583,7 +583,6 @@ def scan_entree(
     dirselect=None,
     debug=0,
 ):
-
     identifies = dict()
     non_identifies = set()
     select = re.compile(filtre_entree if filtre_entree else ".*")

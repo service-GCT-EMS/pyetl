@@ -54,7 +54,7 @@ def geocode_traite_stock(regle, final=True):
     fail = regle.branchements.brch["fail"]
     traite = regle.stock_param.moteur.traite_objet
     geocodeur = regle.getvar("url_geocodeur")
-    data={"columns": "_adresse"}
+    data = {"columns": "_adresse"}
     data.update(regle.filtres)
     buffer = (
         ";".join(["ident", "_adresse"] + flist)
@@ -65,7 +65,9 @@ def geocode_traite_stock(regle, final=True):
                 + ";"
                 + " ".join(
                     [
-                        str(obj.attributs.get(i, "")).replace("\n", " ").replace('"', "")
+                        str(obj.attributs.get(i, ""))
+                        .replace("\n", " ")
+                        .replace('"', "")
                         for i in adlist
                     ]
                 )
@@ -89,7 +91,7 @@ def geocode_traite_stock(regle, final=True):
         )
     ).encode("utf-8")
 
-    print('geocodage', regle.nbstock, "adlist",adlist,"flist",flist,"data", data)
+    print("geocodage", regle.nbstock, "adlist", adlist, "flist", flist, "data", data)
 
     files = {"data": io.BytesIO(buffer)}
     try:
@@ -116,12 +118,12 @@ def geocode_traite_stock(regle, final=True):
                 [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])]
             )
             # print ('retour',obj)
-            score = obj.attributs.get(prefix+"result_score", "")
+            score = obj.attributs.get(prefix + "result_score", "")
             if not score or float(score) < regle.scoremin:
                 regle.stock_param.logger.error(
                     "erreur geocodage %s", ",".join(attributs)
                 )
-                score=0
+                score = 0
                 # print("erreur geocodage",
                 #        [(nom, contenu) for nom, contenu in zip(header, attributs[outcols:])])
             traite(obj, suite if score else fail)
@@ -173,7 +175,7 @@ def h_geocode(regle):
     regle.traite_stock = geocode_traite_stock
     regle.tmpstore = []
     regle.liste_atts = []
-    regle.scoremin = float(regle.getvar("scoremin",0))
+    regle.scoremin = float(regle.getvar("scoremin", 0))
     regle.filtres = dict(i.split("=") for i in regle.params.cmp2.liste)
     regle.tinit = time.time()
     return True
@@ -213,7 +215,7 @@ def h_ftpupload(regle):
         port = regle.context.getvar("port_" + codeftp, "")
         user = regle.context.getvar("user_" + codeftp, "")
         passwd = regle.context.getvar("passwd_" + codeftp, regle.params.cmp2.val)
-        regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd,port))
+        regle.setlocal("acces_ftp", (codeftp, serveur, servertyp, user, passwd, port))
         regle.servertyp = servertyp
         regle.destdir = regle.params.cmp2.val
     else:  # connection complete dans l'url
@@ -244,7 +246,7 @@ def getftpinfo(regle, fichier):
 def ftpconnect(regle):
     """connection ftp"""
     # global FTP,SFTP
-    _, serveur, servertyp, user, passwd,port = regle.getvar("acces_ftp")
+    _, serveur, servertyp, user, passwd, port = regle.getvar("acces_ftp")
     if regle.debug:
         regle.stock_param.logger.info("ouverture acces %s", regle.getvar("acces_ftp"))
         # print("ouverture acces ", regle.getvar("acces_ftp"))
@@ -267,23 +269,26 @@ def ftpconnect(regle):
         try:
             cno = SFTP.CnOpts()
             cno.hostkeys = None
-            if port=="":
-                port=22
+            if port == "":
+                port = 22
             else:
-                port=int(port)
+                port = int(port)
             regle.ftp = SFTP.Connection(
                 serveur, username=user, password=passwd, cnopts=cno, port=port
             )
             return True
-        except (SFTP.ConnectionException,SFTP.AuthenticationException) as err:
-
+        except (SFTP.ConnectionException, SFTP.AuthenticationException) as err:
             print(
-                "!!!!! erreur ftp: acces non autorisé", serveur, port, servertyp, user, passwd
+                "!!!!! erreur ftp: acces non autorisé",
+                serveur,
+                port,
+                servertyp,
+                user,
+                passwd,
             )
             print("retour_erreur", err)
             return False
     else:
-
         print("mode ftp non disponible", servertyp)
         return False
 
@@ -305,7 +310,7 @@ def f_ftpupload(regle, obj):
          #test||notest
     """
 
-    filename = regle.getval_entree(obj)
+    filename = regle.entree
     destname = regle.destdir + "/" + str(os.path.basename(filename))
 
     # destname = regle.destdir
@@ -360,9 +365,9 @@ def f_ftpdownload(regle, obj):
        #helper||ftpupload
          #test||notest
     """
-    filename = regle.getval_entree(obj)
+    filename = regle.entree
     if regle.servertyp == "direct":
-        filename = getftpinfo(regle, regle.getval_entree(obj))
+        filename = getftpinfo(regle, regle.entree)
     if not regle.ftp:
         retour = ftpconnect(regle)
         if not retour:
@@ -371,7 +376,7 @@ def f_ftpdownload(regle, obj):
             print("connection ftp etablie")
     if not regle.params.att_sortie.val:
         localdir = regle.getvar("localdir", os.path.join(regle.getvar("_sortie", ".")))
-        if filename.startswith('/'):
+        if filename.startswith("/"):
             localname = os.path.join(localdir, filename[1:])
         else:
             localname = os.path.join(localdir, filename)
@@ -410,10 +415,13 @@ def f_ftpdownload(regle, obj):
         return True
 
     except FTP.all_errors as err:
-        print("!!!!! erreur ftp:", err,filename,localdir,localname)
-        LOGGER.error("erreur transfert ftp: %s -> %s %s\n%s",filename,localdir,localname
-            , exc_info=True
-
+        print("!!!!! erreur ftp:", err, filename, localdir, localname)
+        LOGGER.error(
+            "erreur transfert ftp: %s -> %s %s\n%s",
+            filename,
+            localdir,
+            localname,
+            exc_info=True,
         )
         return False
 
@@ -514,7 +522,7 @@ def h_httpdownload(regle):
     #
     # print("preparation parametres", regle.httparams, regle.httheaders)
     regle.valide = True
-    if regle.params.pattern=='4': #decodage json
+    if regle.params.pattern == "4":  # decodage json
         regle.reader = regle.stock_param.getreader("json", regle)
     # regle.debug = regle.istrue("debug")
     # print("h_httpdownload valeur de debug", regle.debug)
@@ -523,70 +531,79 @@ def h_httpdownload(regle):
 
 def _jsonsplitter(regle, obj, jsonbloc):
     """decoupe une collection json en objets"""
-    verbose=regle.istrue("verbose")
+    verbose = regle.istrue("verbose")
     try:
         struct = json.loads(jsonbloc)
     except json.JSONDecodeError as err:
-        regle.stock_param.logger.error("erreur decodage json %s %s", err, repr(jsonbloc))
+        regle.stock_param.logger.error(
+            "erreur decodage json %s %s", err, repr(jsonbloc)
+        )
         return
-    nom=""
-    if len(struct)==1:
-        #il y a in titre
-        
-        for nom,contenu in struct.items():
+    nom = ""
+    if len(struct) == 1:
+        # il y a in titre
+
+        for nom, contenu in struct.items():
             pass
-        
-        struct=contenu
-    selected=regle.params.cmp2.liste
+
+        struct = contenu
+    selected = regle.params.cmp2.liste
     if verbose:
-        regle.stock_param.logger.info('recup contenu %s', nom)
-    if isinstance (contenu,dict):
+        regle.stock_param.logger.info("recup contenu %s", nom)
+    if isinstance(contenu, dict):
         if verbose:
-            regle.stock_param.logger.info('contenu %s', repr(list(contenu.keys())))
-        for classe,elem in struct.items():
+            regle.stock_param.logger.info("contenu %s", repr(list(contenu.keys())))
+        for classe, elem in struct.items():
             if selected and classe not in selected:
                 if verbose:
-                    regle.stock_param.logger.info('non selectionne %s',classe)
+                    regle.stock_param.logger.info("non selectionne %s", classe)
                     # print ('jsonsplitter non selectionne',classe)
                 continue
             # print ('traitement elem', classe,type(elem))
             if isinstance(elem, list):
-                #c est une liste d objets
+                # c est une liste d objets
                 if obj.virtuel:
-                    regle.reader.setidententree(nom,classe)
+                    regle.reader.setidententree(nom, classe)
                     # print ('presence schema', regle.reader.cree_schema)
                 for objdef in elem:
-                    if isinstance(objdef,dict):
+                    if isinstance(objdef, dict):
                         if obj.virtuel:
-                            obj2=regle.getobj((nom,classe))
+                            obj2 = regle.getobj((nom, classe))
                             # print ("jsonsplitter: cree",nom,classe,"->",obj2)
                         else:
                             obj2 = obj.dupplique()
-                            obj2.attributs['#classe']=classe
-                            obj2.attributs['#groupe']=nom
-                        #c est une definition d objet
+                            obj2.attributs["#classe"] = classe
+                            obj2.attributs["#groupe"] = nom
+                        # c est une definition d objet
                         for att, val in objdef.items():
                             if isinstance(val, str) or regle.istrue("keepjson"):
                                 obj2.attributs[att] = val
                             elif isinstance(val, dict):
                                 hdict = {
-                                    i: json.dumps(j, separators=(",", ":")) for i, j in val.items()
+                                    i: json.dumps(j, separators=(",", ":"))
+                                    for i, j in val.items()
                                 }
                                 obj2.sethtext(att, dic=hdict)
                             elif isinstance(val, list):
-                                jlist = [json.dumps(j, separators=(",", ":")) for j in val]
+                                jlist = [
+                                    json.dumps(j, separators=(",", ":")) for j in val
+                                ]
                                 obj2.setmultiple(att, liste=jlist)
                             if obj2.schema:
                                 if att not in obj2.schema.attributs:
                                     if regle.istrue("keepjson"):
-                                        type_att="J"
+                                        type_att = "J"
                                     else:
                                         type_att = "H" if isinstance(val, dict) else "T"
                                     obj2.schema.stocke_attribut(att, type_att)
 
-                        regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
+                        regle.stock_param.moteur.traite_objet(
+                            obj2, regle.branchements.brch["gen"]
+                        )
             else:
-                regle.stock_param.logger.error("element incompatible %s : %s", repr(elem), type(elem))
+                regle.stock_param.logger.error(
+                    "element incompatible %s : %s", repr(elem), type(elem)
+                )
 
 
 def f_httpdownload(regle, obj):
@@ -608,7 +625,7 @@ def f_httpdownload(regle, obj):
               ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
     """
-    url = regle.racinesite + regle.getval_entree(obj)
+    url = regle.racinesite + regle.entree
     # if regle.debug:
     # print("telechargement", url, "-->", regle.fichier)
     # if regle.httparams:
@@ -737,7 +754,7 @@ def f_wfsdownload(regle, obj):
     # &VESRION=1.1&SERVICE=WFS
     url = regle.params.cmp1.val
     params = regle.wfsparams
-    params["TYPENAME"] = regle.getval_entree(obj)
+    params["TYPENAME"] = regle.entree
     print("wfs", url, params)
     retour = RQ.get(url, params, stream=regle.params.pattern == "1")
     print("info", retour.headers)
@@ -779,9 +796,11 @@ def f_wfsdownload(regle, obj):
         return True
     return False
 
+
 def h_ssoconnect(regle):
     """aide realise une connection sso"""
     pass
+
 
 def f_ssoconnect(regle, obj):
     """aide||realise une connection sso uniquement en mode serveur
@@ -789,29 +808,26 @@ def f_ssoconnect(regle, obj):
     """
 
 
-
 def h_geom2url(regle):
     """convertit un point en bout d'url pour appel wms/wfs"""
-    if regle.params.pattern=="2":
-        geom=regle.params.val_entree
-        match=re.find('.*\(([0-9]+)\.?[0-9]*,([0-9]+)', geom)
+    if regle.params.pattern == "2":
+        geom = regle.params.val_entree
+        match = re.find(".*\(([0-9]+)\.?[0-9]*,([0-9]+)", geom)
         if match:
-            x=match.groups(1)
-            y=match.groups(2)
-            urlfrag='&c='+x+"%2C"+y
-            regle.setvar(regle.params.att_sortie.val,urlfrag)
+            x = match.groups(1)
+            y = match.groups(2)
+            urlfrag = "&c=" + x + "%2C" + y
+            regle.setvar(regle.params.att_sortie.val, urlfrag)
         else:
-            regle.valide=False
+            regle.valide = False
             return False
 
 
-
-def f_geom2url(regle,obj):
+def f_geom2url(regle, obj):
     """aide||convertit un point en url pour appel qwc2
     #pattern1||A;?C;?A;qwc2url;N;C;
     #pattern2||P;C;;qwc2url;N;C;
     #parametres||sortie;geom defaut;objet a cibler;;echelle;projet
     """
     if obj.initgeom():
-        
         pass
