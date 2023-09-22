@@ -243,8 +243,8 @@ def h_filedel(regle):
 def f_filedel(regle, obj):
     """#aide||supprime un fichier
       #aide_spec||suppression d'un fichier
-       #pattern1||;;;os_del;C;
-       #pattern2||;?C;A;os_del;?C;
+       #pattern1||;;;os_del;C;?=\*
+       #pattern2||;?C;A;os_del;?C;?=\*
      #aide_spec1||execution unique au demarrage
     #parametres1||;nom du fichier a supprimer
      #aide_spec2||execution pour chaque objet

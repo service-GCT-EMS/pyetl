@@ -611,11 +611,17 @@ class SchemaClasse(object):
                 for i in self.indexes:
                     if self.indexes[i] == nom:
                         self.indexes[i] = nouveau_nom
-        else:
+        elif modele:
             #            print('renommage attribut creation', self.identclasse, ':',
             #                  nouveau_nom)
             self.ajout_attribut_modele(modele, nom=nouveau_nom)
-
+        else:
+            print(
+                "attention attribut inexistant a renommer : non cree",
+                self.identclasse,
+                nom,
+                nouveau_nom,
+            )
         #        print ('renommage attribut ',self.identclasse,':', nom ,'->', nouveau_nom, self.getpkey)
 
         self.liste_attributs_cache = []

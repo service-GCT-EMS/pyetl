@@ -84,7 +84,12 @@ class DefinitionAttribut(object):
         "+L": (r"^\+(" + asdef + r"(?:," + asdef + r")*)$", "L", "M", "liste"),  # liste
         "L+": (r"^(" + asdef + r"(?:," + asdef + r")*)\+$", "L", "M", "liste"),  # liste
         "P": (r"^[Pp]:(" + asdef + r")$", "P", "P", "parametre"),
-        "LP": (r"^[Pp]:(" + asdef + r"(?:[:,]" + asdef + r")*|\*)$", "P", "P", "liste de parametres"),
+        "LP": (
+            r"^[Pp]:(" + asdef + r"(?:[:,]" + asdef + r")*|\*)$",
+            "P",
+            "P",
+            "liste de parametres",
+        ),
         "N:N": (r"^(" + ndef + r"(?::" + ndef + r")?)$", "N", "", "numerique"),
         "LN": (r"^(" + ndef + r"(?:,(" + ndef + r"))*)$", "N", "", "liste numerique"),
         "N": (r"^([" + ndef + r")$", "N", "", "numerique"),
@@ -190,7 +195,7 @@ class DefinitionAttribut(object):
     #        self.helper = None
 
     def match(self, texte):
-        """ determine si un texte est compatible avec la definition"""
+        """determine si un texte est compatible avec la definition"""
         if texte:
             if self.pattern != "":
                 return self.regex.match(texte)
@@ -255,7 +260,7 @@ class FoncGroup(object):
         style,
         module,
     ):
-        """ sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
+        """sous fonction : fait partie du meme groupe mais accepte des attributs differents"""
         # self.definition = None
         pnum = description["pn"]
         # if not "#aide_spec" + pnum in description:
@@ -295,7 +300,7 @@ class FoncGroup(object):
 
 
 class FonctionTraitement(object):
-    """ description d une fonction de traitment """
+    """description d une fonction de traitment"""
 
     def __init__(self, nom, fonction=None, description=None, definition=None):
         self.nom = nom
@@ -393,13 +398,13 @@ def interprete_doc(listedoc, sourcecode):
         if ligne.startswith("+") or ligne.startswith("||"):
             elements = ligne.split("||")
             description_fonction[lastel].extend(elements[1:])
-    variables=(
-               re.findall('getvar\(\"(.*?)\"',sourcecode) +
-               re.findall('getlocal\(\"(.*?)\"',sourcecode)+
-               re.findall('istrue\(\"(.*?)\"',sourcecode)+
-               re.findall('isfalse\(\"(.*?)\"',sourcecode)
-              )
-    description_fonction["#variables_utilisees"]=variables
+    variables = (
+        re.findall('getvar\("(.*?)"', sourcecode)
+        + re.findall('getlocal\("(.*?)"', sourcecode)
+        + re.findall('istrue\("(.*?)"', sourcecode)
+        + re.findall('isfalse\("(.*?)"', sourcecode)
+    )
+    description_fonction["#variables_utilisees"] = variables
     #    print ("description retenue",description_fonction,listedoc)
     return description_fonction
 
@@ -490,7 +495,7 @@ def reg_fonction(stockage, info_module, nom_fonction, fonction, description_fonc
 
 
 def reg_stockage(store, info_module, nom, fonction, description):
-    """ enregistre les fonctions de stockage """
+    """enregistre les fonctions de stockage"""
     pattern = description.get("#pattern")
     description["pn"] = "0"
 
@@ -547,7 +552,7 @@ def reg_select(fonctions, info_module, nom, fonction, description_fonction):
 
 
 def regwarnings(module, nom, store, storetype):
-    """ emets des warnings si on ecrase une fonction"""
+    """emets des warnings si on ecrase une fonction"""
     if nom in store:
         print(
             "!!!!!!!!!!!attention la fonction ",
@@ -566,7 +571,7 @@ def reghelpers(module, nom, fonction, stockage, storetype):
 
 
 def register(nom_module, module, store, prefixes, simple_prefix):
-    """ enregistre toutes les fonctions du module """
+    """enregistre toutes les fonctions du module"""
     #    for nom, fonction in inspect.getmembers(module, inspect.isfunction):
     #        if nom[:2] == 'f_':
     initer = getattr(module, "_initer") if "_initer" in dir(module) else None
@@ -589,7 +594,7 @@ def register(nom_module, module, store, prefixes, simple_prefix):
             continue
         nom_fonction = nom.replace(pref + "_", "", 1)
         listedoc = fonction.__doc__.split("\n")
-        sourcecode=inspect.getsource(fonction)
+        sourcecode = inspect.getsource(fonction)
         description_fonction = interprete_doc(
             listedoc, sourcecode
         )  # on decoupe la doc sous forme de listes
@@ -632,7 +637,7 @@ def get_fonction(nom, store, clef):
 
 
 def add_helper(sbf, nom, store, clef):
-    """ ajoute un helper s il n est pas deja la"""
+    """ajoute un helper s il n est pas deja la"""
     if nom in store[clef]:
         helper = get_fonction(nom, store, clef)
         if helper not in sbf.helper:
@@ -742,7 +747,6 @@ def loadmodules(module=None, force=False):
         # print("loadmodules", module, MODULES)
         imported = moduleloader(module)
         modules[module] = imported if imported else "indisponible"
-
 
     simple_prefix = {
         "h": "helper fonction",

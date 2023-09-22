@@ -1,38 +1,6 @@
 reference des commandes
 =======================
 
-ad
---
-
-ad
-
-.. index::
-  double: .traitement_ad;adquery
-
-adquery
-.......
-
-   extait des information de active_directory
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+--------+--------+
-|sortie|defaut|entree|commande|param1  |param2  |
-+======+======+======+========+========+========+
-|M     |?C    |?A    |adquery |=user   |?C      |
-+------+------+------+--------+--------+--------+
-|M     |?C    |?A    |adquery |=machine|?C      |
-+------+------+------+--------+--------+--------+
-|M     |?C    |?A    |adquery |=groupe |?C      |
-+------+------+------+--------+--------+--------+
-|P     |C     |      |adquery |=user   |        |
-+------+------+------+--------+--------+--------+
-|      |?C    |?A    |adquery |C       |?C      |
-+------+------+------+--------+--------+--------+
-
-
-
 manipulation d'attributs
 ------------------------
 
@@ -884,117 +852,6 @@ decrypt
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |A     |?     |A     |decrypt |C?    |        |
-+------+------+------+--------+------+--------+
-
-
-
-
-dataviz
--------
-
-dataviz
-
-.. index::
-  double: .traitement_dataviz;dfgraph
-
-dfgraph
-.......
-
-   cree un graphique a partir d 'un tableau contenu dans un attribut
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|?A    |C?    |A     |dfgraph |C     |?LC     |
-+------+------+------+--------+------+--------+
-|=mws: |      |A     |dfgraph |C     |?LC     |
-+------+------+------+--------+------+--------+
-|=mws: |P     |      |dfgraph |C     |?LC     |
-+------+------+------+--------+------+--------+
-
-
-   ?A :  attribut de sortie (optionnel)
-   C? :  fichier (optionnel)
-   A :  attribut contenant les donnees
-   dfgraph :  type de graphique
-   C :  parametres
-
-   =mws: :  mws: (mot_clef)
-   A :  
-   dfgraph :  attribut contenant les donnees
-   C :  type de graphique
-   ?LC :  parametres (optionnel)
-
-   =mws: :  mws: (mot_clef)
-   P :  variable contenant les donnees
-   dfgraph :  
-   C :  type de graphique
-   ?LC :  parametres (optionnel)
-
-
-
-.. index::
-  double: .traitement_dataviz;dfload
-
-dfload
-......
-
-   charge un tableau pandas dans un attribut
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|A     |?C    |?A    |dfload  |C     |        |
-+------+------+------+--------+------+--------+
-
-
-
-
-
-.. index::
-  double: .traitement_dataviz;dfset
-
-dfset
-.....
-
- 
- 
- 
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|A     |      |L     |dfset   |      |        |
-+------+------+------+--------+------+--------+
-
-
-
-
-
-.. index::
-  double: .traitement_dataviz;dfwrite
-
-dfwrite
-.......
-
-   charge un tableau dans pandas dans un attribut
-
-
-**syntaxes acceptees**
-
-+------+------+------+--------+------+--------+
-|sortie|defaut|entree|commande|param1|param2  |
-+======+======+======+========+======+========+
-|?A    |?C    |A     |dfwrite |?C    |        |
 +------+------+------+--------+------+--------+
 
 
@@ -1925,9 +1782,9 @@ coordp
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |?N    |?A    |coordp  |      |        |
+|?L    |?N    |?A    |coordp  |      |        |
 +------+------+------+--------+------+--------+
-|      |=C    |      |coordp  |      |        |
+|?L    |=C    |      |coordp  |      |        |
 +------+------+------+--------+------+--------+
 
 
@@ -2522,58 +2379,6 @@ hsplit
 
 
 
-las
----
-
-las
-
-.. index::
-  double: .traitement_las;lasfilter
-
-lasfilter
-.........
-
-   decoupage d'un attribut xml en objets
-
-   s'il n'y a pas d'attributs de sortie on cree un objet pour chaque element
-
-**syntaxes acceptees**
-
-+------+------+------+---------+------+--------+
-|sortie|defaut|entree|commande |param1|param2  |
-+======+======+======+=========+======+========+
-|A     |?     |?A    |lasfilter|C     |?=D     |
-+------+------+------+---------+------+--------+
-
-
-   A :  repertoire de sortie
-   ? :  defaut (optionnel)
-   ?A :  attribut (optionnel)
-   lasfilter :  
-   C :  json de traitement
-   ?=D :  D: dynamique (optionnel)
-
-
-
-.. index::
-  double: .traitement_las;lasreader
-
-lasreader
-.........
-
-   defineit les fichiers las en entree
-
-
-**syntaxes acceptees**
-
-+------+------+------+---------+------+--------+
-|sortie|defaut|entree|commande |param1|param2  |
-+======+======+======+=========+======+========+
-|C     |?     |A     |lasreader|C     |?=D     |
-+------+------+------+---------+------+--------+
-
-
-
 mapping
 -------
 
@@ -2816,11 +2621,11 @@ os_del
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |os_del  |C     |        |
+|      |      |      |os_del  |C     |?=\*    |
 +------+------+------+--------+------+--------+
 | *execution unique au demarrage*             |
 +------+------+------+--------+------+--------+
-|      |?C    |A     |os_del  |?C    |        |
+|      |?C    |A     |os_del  |?C    |?=\*    |
 +------+------+------+--------+------+--------+
 | *execution pour chaque objet*               |
 +------+------+------+--------+------+--------+
@@ -3322,17 +3127,14 @@ angle
 
    calcule un angle de reference de l'objet
 
-   N:N indices des point a utiliser, P creation d'un point au centre
 
 **syntaxes acceptees**
 
-+----------+----------+----------+------------+----------+------------+
-|sortie    |defaut    |entree    |commande    |param1    |param2      |
-+==========+==========+==========+============+==========+============+
-|S         |          |          |angle       |?N:N      |?=P         |
-+----------+----------+----------+------------+----------+------------+
-| *N:N indices des point a utiliser, P creation d'un point au centre* |
-+----------+----------+----------+------------+----------+------------+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|S     |      |      |angle   |?N:N  |?=P     |
++------+------+------+--------+------+--------+
 
 
 
@@ -3686,12 +3488,12 @@ abort
 
 
 .. index::
-  double: .traitement_workflow;attdecode
+  double: .traitement_workflow;attencode
 
-attdecode
+attencode
 .........
 
-   decode un attribut de type byte en texte
+   encode un attribut de type byte en texte ou recode un attribut texte en changeant le codec
 
 
 **syntaxes acceptees**
@@ -3699,7 +3501,7 @@ attdecode
 +------+------+------+---------+------+--------+
 |sortie|defaut|entree|commande |param1|param2  |
 +======+======+======+=========+======+========+
-|A     |?C    |A     |attdecode|?C    |?C      |
+|A     |?C    |A     |attencode|?C    |?C      |
 +------+------+------+---------+------+--------+
 
 
@@ -4674,10 +4476,6 @@ xmledit
 +------------------------+------------------------+------------------------+--------------------------+------------------------+--------------------------+
 | *remplacement ou ajout d un tag*                                                                                                                        |
 +------------------------+------------------------+------------------------+--------------------------+------------------------+--------------------------+
-|                        |[A]                     |A                       |xmledit                   |A.C                     |?C                        |
-+------------------------+------------------------+------------------------+--------------------------+------------------------+--------------------------+
-| *remplacement ou ajout d un tags*                                                                                                                       |
-+------------------------+------------------------+------------------------+--------------------------+------------------------+--------------------------+
 |?=\*                    |H                       |A                       |xmledit                   |C                       |?C                        |
 +------------------------+------------------------+------------------------+--------------------------+------------------------+--------------------------+
 | *remplacement ou ajout d un en: remplacement total;attribut hstore contenant clefs/valeurs;attribut xml;xmledit;tag a modifier;groupe de recherche*     |
@@ -4697,12 +4495,6 @@ xmledit
 
    C :  
    A :  valeur
-   xmledit :  attribut xml
-   A.C :  xmledit
-   ?C :  tag a modifier.parametre (optionnel)
-
-   [A] :  
-   A :  attribut contenant la valeur
    xmledit :  attribut xml
    A.C :  xmledit
    ?C :  tag a modifier.parametre (optionnel)

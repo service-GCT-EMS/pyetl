@@ -15,6 +15,67 @@ from collections import defaultdict, OrderedDict
 import itertools
 from osgeo import ogr, osr, gdal
 
+from osgeo import ogr
+
+POINT = 1
+LINE = 2
+POLY = 3
+M = 1
+MULTI = 1
+CURVE = 1
+
+GEOMETRY_TYPES = {
+    ogr.wkbPoint: ("Point", POINT, 0, 2, 0, 0),
+    ogr.wkbPoint25D: ("Point25D", POINT, 0, 3, 0, 0),
+    ogr.wkbPointM: ("PointM", POINT, 0, 2, 0, M),
+    ogr.wkbPointZM: ("PointZM", POINT, 0, 3, 0, M),
+    ogr.wkbMultiPoint: ("MultiPoint", POINT, 0, 2, MULTI, 0),
+    ogr.wkbMultiPoint25D: ("MultiPoint25D", POINT, 0, 3, MULTI, 0),
+    ogr.wkbMultiPointM: ("MultiPointM", POINT, 0, 2, MULTI, M),
+    ogr.wkbMultiPointZM: ("MultiPointZM", POINT, 0, 3, MULTI, M),
+    ogr.wkbLineString: ("LineString", LINE, 0, 2, 0, 0),
+    ogr.wkbLineString25D: ("LineString25D", LINE, 0, 3, 0, 0),
+    ogr.wkbLineStringM: ("LineStringM", LINE, 0, 2, 0, M),
+    ogr.wkbLineStringZM: ("LineStringZM", LINE, 0, 3, 0, M),
+    ogr.wkbCurve: ("Curve", LINE, CURVE, 2, 0, 0),
+    ogr.wkbCurveZ: ("Curve", LINE, CURVE, 2, 0, 0),
+    ogr.wkbCurveZM: ("Curve", LINE, CURVE, 2, 0, 0),
+    ogr.wkbCurveM: ("Curve", LINE, CURVE, 2, 0, 0),
+    ogr.wkbPolygon: ("Polygon", POLY, 2, 0, 0),
+    ogr.wkbPolygon25D: ("Polygon25D", POLY, 2, 0, 0),
+    ogr.wkbPolygonM: ("PolygonM", POLY, 2, 0, 0),
+    ogr.wkbPolygonZM: ("PolygonZM", POLY, 2, 0, 0),
+    ogr.wkbMultiPoint: ("MultiPoint"),
+    ogr.wkbMultiPoint25D: ("MultiPoint25D"),
+    ogr.wkbMultiPointM: ("MultiPointM"),
+    ogr.wkbMultiPointZM: ("MultiPointZM"),
+    ogr.wkbMultiLineString: ("MultiLineString"),
+    ogr.wkbMultiLineString25D: ("MultiLineString25D"),
+    ogr.wkbMultiLineStringM: ("MultiLineStringM"),
+    ogr.wkbMultiLineStringZM: ("MultiLineStringZM"),
+    ogr.wkbMultiPolygon: ("MultiPolygon"),
+    ogr.wkbMultiPolygon25D: ("MultiPolygon25D"),
+    ogr.wkbMultiPolygonM: ("MultiPolygonM"),
+    ogr.wkbMultiPolygonZM: ("MultiPolygonZM"),
+    ogr.wkbGeometryCollection: ("GeometryCollection"),
+    ogr.wkbGeometryCollection25D: ("GeometryCollection25D"),
+    ogr.wkbGeometryCollectionM: ("GeometryCollectionM"),
+    ogr.wkbGeometryCollectionZM: ("GeometryCollectionZM"),
+    ogr.wkbCircularString: "CircularString",
+    ogr.wkbCompoundCurve: "CompoundCurve",
+    ogr.wkbCurvePolygon: "CurvePolygon",
+    ogr.wkbMultiCurve: "MultiCurve",
+    ogr.wkbMultiSurface: "MultiSurface",
+    ogr.wkbSurface: "Surface",
+    ogr.wkbPolyhedralSurface: "PolyhedralSurface",
+    ogr.wkbTIN: "TIN",
+    ogr.wkbTINZ: "TIN",
+    ogr.wkbTINM: "TIN",
+    ogr.wkbTINZM: "TIN",
+    ogr.wkbTriangle: "Triangle",
+}
+
+
 gdal.UseExceptions()
 # import fiona
 # from fiona.crs import from_epsg
@@ -67,6 +128,7 @@ def decode_wkbgeomtyp(geomtyp):
     mesure = 0
     courbe = 0
     multi = 0
+
     if geomtyp is not None:
         type_geom = -1
         if geomtyp > 3000:
@@ -80,9 +142,17 @@ def decode_wkbgeomtyp(geomtyp):
         elif geomtyp > 1000:
             dimension = 3
             gt = geomtyp - 1000
-        else:
-            gt = geomtyp
-            dimension = 2
+        else:  # (truc bizarre)
+            nom_geom = ogr.GeometryTypeToName(geomtyp)
+            dimension = 3 if "3D" in nom_geom else 2
+            if "Point" in nom_geom:
+                type_geom = 1
+            elif "Line" in nom_geom:
+                type_geom = 2
+            elif "Polygon" in nom_geom:
+                type_geom = 3
+            multi = "Multi" in nom_geom
+            return type_geom, multi, courbe, dimension, mesure
         multi = gt in {4, 5, 6}
         type_geom = gt - 3 if multi else gt
         if gt in {11, 12}:
@@ -96,10 +166,20 @@ def decode_wkbgeomtyp(geomtyp):
         elif gt == 7:
             type_geom = 9
         elif gt == 0:
-            type_geom=-1
+            type_geom = -1
         elif gt == 100:
-            type_geom=0
-
+            type_geom = 0
+    print(
+        "decodage type",
+        geomtyp,
+        "->",
+        ogr.GeometryTypeToName(geomtyp),
+        type_geom,
+        multi,
+        courbe,
+        dimension,
+        mesure,
+    )
     return type_geom, multi, courbe, dimension, mesure
 
 
@@ -108,35 +188,35 @@ def code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure):
     if type_geom == 1:
         gt = 4 if multi else 1
         if mesure:
-            gt=gt+3000 if dimension==3 else gt+2000
-    elif type_geom==2:
-        if courbe: 
+            gt = gt + 3000 if dimension == 3 else gt + 2000
+    elif type_geom == 2:
+        if courbe:
             gt = 11 if multi else 9
-            if dimension==3:
-                gt=gt+1000
-            if mesure: 
-                gt=gt+2000
+            if dimension == 3:
+                gt = gt + 1000
+            if mesure:
+                gt = gt + 2000
         else:
             gt = 5 if multi else 2
             if mesure:
-                gt=gt+3000 if dimension==3 else gt+2000
+                gt = gt + 3000 if dimension == 3 else gt + 2000
     elif type_geom == 3:
         if courbe:
             gt = 12 if multi else 10
-            if dimension==3:
-                gt=gt+1000
-            if mesure: 
-                gt=gt+2000
+            if dimension == 3:
+                gt = gt + 1000
+            if mesure:
+                gt = gt + 2000
         else:
             gt = 6 if multi else 3
             if mesure:
-                gt=gt+3000 if dimension==3 else gt+2000
+                gt = gt + 3000 if dimension == 3 else gt + 2000
     elif type_geom == -1:
         gt = 0
     elif type_geom == 9:
         gt = 7
         if mesure:
-            gt=gt+3000 if dimension==3 else gt+2000
+            gt = gt + 3000 if dimension == 3 else gt + 2000
     # print ('code geom wkb',(type_geom, multi, courbe, dimension, mesure),gt)
     return gt
 
@@ -258,6 +338,11 @@ def schema_gdal(sc_classe, liste_attributs=None, l_nom=0):
     description["properties"] = props
     if l_nom:
         sc_classe.use_noms_courts = True
+    # print(
+    #     "schema gdal",
+    #     sc_classe.identclasse,
+    #     sc_classe.get_liste_attributs(liste=liste_attributs),
+    # )
     for i in sc_classe.get_liste_attributs(liste=liste_attributs):
         att = sc_classe.attributs[i]
         if l_nom and att.nom_court:
@@ -265,14 +350,26 @@ def schema_gdal(sc_classe, liste_attributs=None, l_nom=0):
         else:
             nom = att.nom
         nom = sc_classe.minmajfunc(nom)
-        # print ("fiona:", sc_classe.nom, " attribut", i, att.nom_court, nom, l_nom)
         if att.conformite:
             att.type_att = "T"
             att.taille = att.conformite.taille if att.conformite.taille else 0
         # graphique="oui" if att.graphique else 'non'
         taille = ""
-        type_att = nom_a.get(att.get_type(), ogr.OFTString)
+
+        type_att = nom_a.get(att.type_att, nom_a["T"])
         attdef = ogr.FieldDefn(nom, type_att)
+        # print(
+        #     "schema gdal:",
+        #     sc_classe.nom,
+        #     " attribut",
+        #     i,
+        #     att.nom,
+        #     att.type_att,
+        #     type_att,
+        #     attdef.GetTypeName(),
+        #     attdef.GetName(),
+        # )
+
         if att.taille:
             attdef.SetWidth(att.taille)
         if att.dec:
@@ -280,12 +377,12 @@ def schema_gdal(sc_classe, liste_attributs=None, l_nom=0):
         if att.alias:
             attdef.SetAlternativeName(att.alias)
         if att.defaut:
-            attdef.SetDefault(att.alias)
+            attdef.SetDefault(att.defaut)
         props[nom] = attdef
     if not props:
         props[sc_classe.minmajfunc("gid")] = ogr.OFTInteger
     # print ("gdal sortie schema:", sc_classe.nom,description,sc_classe.minmajfunc)
-    # print ("schema gdal", sc_classe)
+    # print("schema gdal", props)
     return description
 
 
@@ -331,7 +428,8 @@ def lire_objets(self, rep, chemin, fichier):
             obj = self.getobj()
             jsondef = i.ExportToJson(as_object=True)
             if "geometry" in jsondef:
-                geometrie = i.GetGeometryRef().ExportToWkt()
+                geomref = i.GetGeometryRef()
+                geometrie = geomref.ExportToWkt() if geomref else ""
                 obj.attributs["#geom"] = geometrie
             if "properties" in jsondef:
                 attribs = jsondef["properties"]
@@ -417,7 +515,6 @@ class GdalWriter(object):
         if key in self.layers:
             self.currentlayer = self.datasource.GetLayerByName(self.layername)
         else:
-            
             description = schema_gdal(
                 self.schemaclasse, liste_attributs=self.liste_att, l_nom=l_max
             )
@@ -431,12 +528,12 @@ class GdalWriter(object):
                 )
                 type_geom = 0
             courbe = int(self.schemaclasse.info.get("courbe", 0)) or self.courbe
-            nom_geometrie=""
+            nom_geometrie = ""
             if type_geom:
                 if not self.schemaclasse.info["nom_geometrie"]:
                     self.schemaclasse.info["nom_geometrie"] = "geometrie"
-                nom_geometrie = self.schemaclasse.info["nom_geometrie"] 
-           
+                nom_geometrie = self.schemaclasse.info["nom_geometrie"]
+
             if type_geom == 2 or type_geom == 3:
                 multi = int(self.schemaclasse.info.get("multiple", 0)) or self.multi
             else:
@@ -450,17 +547,20 @@ class GdalWriter(object):
             geomcode = code_wkbgeomtyp(type_geom, multi, courbe, dimension, mesure)
             srs = osr.SpatialReference()
             srs.ImportFromEPSG(int(self.srid))
-            options=["GEOMETRY_NAME="+nom_geometrie]
+            options = ["GEOMETRY_NAME=" + nom_geometrie]
             try:
-                
                 self.datasource.StartTransaction()
-                error = self.datasource.CreateLayer(self.layername,srs,geom_type=geomcode,options=options)
+                error = self.datasource.CreateLayer(
+                    self.layername, srs, geom_type=geomcode, options=options
+                )
                 self.datasource.CommitTransaction()
                 self.currentlayer = self.datasource.GetLayerByName(self.layername)
+                # print("creation couche", self.layername, options)
             except Exception as err:
                 print("erreur creation table", self.layername, self.srid, geomcode, err)
             try:
                 self.currentlayer.CreateFields(description["properties"].values())
+                # print("creation champs", description["properties"].keys())
             except Exception as err:
                 print("erreur creation champs", description["properties"], err)
             self.layers[key] = self.currentlayer
@@ -490,7 +590,7 @@ class GdalWriter(object):
             self.open()
         else:
             self.reopen(key)
-        
+
         # print ("-------currentlayer",key, self.layerstate, '->', self.currentlayer)
 
     def reopen(self, key):
@@ -540,7 +640,7 @@ class GdalWriter(object):
         """ecrit les elements"""
         self.flush = True
         if ident in self.buffer:
-            # print ("recup buffer",ident,self.buffer[ident][0].schema)
+            # print("recup buffer", ident, self.buffer[ident][0].schema)
             # self.changeclasse(self.schema.classes[ident])
             self.changeclasse(self.schema.classes[ident])
             # if ident in self.layerstate:
@@ -559,12 +659,15 @@ class GdalWriter(object):
             # map(lambda i:self.currentlayer.CreateFeature(self.convert(i)),self.buffer[ident])
             for i in self.buffer[ident]:
                 # print ("apres buffer",i.ident,i.schema)
+                # print("buffer", i)
                 feature = self.convert(i)
+                # print("feature", feature)
+                # print("contenu", feature.ExportToJson(as_object=True))
                 # feature=i
                 if feature:
-                    err=self.currentlayer.CreateFeature(feature)
-                    if err: 
-                        print ("gpkg: erreur creation objet", i)
+                    err = self.currentlayer.CreateFeature(feature)
+                    if err:
+                        print("gpkg: erreur creation objet", i)
             self.currentlayer.CommitTransaction()
 
             # # currentlayer.CreateFeatures(self.buffer[ident])
@@ -619,23 +722,23 @@ class GdalWriter(object):
         # print("appel finalise")
         for ident in list(self.buffer.keys()):
             self.flush_buffer(ident)
-        self.layers=[]
-        self.currentlayer=None
+        self.layers = []
+        self.currentlayer = None
         self.datasource.Destroy()
-        self.datasource=None
+        self.datasource = None
         return 3
 
 
 def gdalconverter(obj, schemaclasse, liste_att, minmajfunc, layer, courbe, multi):
     """convertit un objet dans un format compatible avec la lib gdal"""
     feature = ogr.Feature(layer.GetLayerDefn())
-    # print ("conversion gdal", obj.ident,schemaclasse)
+    # print("conversion gdal", obj.ident, schemaclasse)
     for nom in liste_att:
         val = obj.attributs.get(nom, "")
-        # print ("gdalconverter : champs", nom,val)
+        # print("gdalconverter : champs", nom, val)
         feature.SetField(nom, str(val))
-    if obj.geomnatif and obj.format_natif=="ewkt":
-        geom=obj.attributs["#geom"]
+    if obj.geomnatif and obj.format_natif == "ewkt":
+        geom = obj.attributs["#geom"]
     else:
         if obj.initgeom():
             geom = ecrire_geom_ewkt(
@@ -646,7 +749,7 @@ def gdalconverter(obj, schemaclasse, liste_att, minmajfunc, layer, courbe, multi
             )
         else:
             geom = "EMPTY"
-            print ("erreur creation geometrie", obj.geom_v.erreurs)
+            print("erreur creation geometrie", obj.geom_v.erreurs)
         # print ("geom ewkt", geom, obj.geom_v)
     # if multi and obj.geom_v.type=="1":
     #     print ("multipoint",obj)
@@ -655,9 +758,10 @@ def gdalconverter(obj, schemaclasse, liste_att, minmajfunc, layer, courbe, multi
     if geom:
         feature.SetGeometry(ogr.CreateGeometryFromWkt(geom))
     else:
-        if schemaclasse.info["type_geom"]!="0":
-            print ("warning geometrie vide", obj.ident,schemaclasse.info["type_geom"])
+        if schemaclasse.info["type_geom"] != "0":
+            print("warning geometrie vide", obj.ident, schemaclasse.info["type_geom"])
         feature.SetGeometry(None)
+    # print("contenu", feature.ExportToJson(as_object=True))
     return feature
 
 

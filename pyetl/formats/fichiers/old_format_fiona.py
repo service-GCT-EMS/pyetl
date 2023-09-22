@@ -259,7 +259,7 @@ class GdalWriter(FileWriter):
         super().__init__(nom, schema=schema, regle=regle)
         # importer()
         self.converter = gdalconverter
-        self.layer = ""
+        self.currentlayer = ""
         self.transtable = None
         self.buffer = dict()
         self.usebuffer = self.writerparms["usebuffer"]
@@ -270,8 +270,8 @@ class GdalWriter(FileWriter):
 
     def open(self):
         """ouvre  sur disque"""
-        # print("open", self.layer, bool(self.layer))
-        if not self.layer:
+        # print("open", self.currentlayer, bool(self.currentlayer))
+        if not self.currentlayer:
             return
         crs = from_epsg(int(self.srid))
         l_max = self.writerparms["attlen"]
@@ -281,8 +281,8 @@ class GdalWriter(FileWriter):
         schema = schema_fiona(
             self.schemaclasse, liste_attributs=self.liste_att, l_nom=l_max
         )
-        self.layer = self.schemaclasse.nom
-        # print("fiona: ouverture", self.nom, self.layer, self.writerparms)
+        self.currentlayer = self.schemaclasse.nom
+        # print("fiona: ouverture", self.nom, self.currentlayer, self.writerparms)
 
         self.fichier = fiona.open(
             self.nom,
@@ -291,9 +291,9 @@ class GdalWriter(FileWriter):
             encoding=self.encoding,
             driver=self.writerparms["driver"],
             schema=schema,
-            layer=self.layer,
+            layer=self.currentlayer,
         )
-        self.layerstate[self.layer] = 1
+        self.layerstate[self.currentlayer] = 1
 
     def changeclasse(self, schemaclasse, attributs=None):
         """change de classe"""
@@ -305,16 +305,16 @@ class GdalWriter(FileWriter):
         # print(
         #     "fiona: changeclasse depuis",
         #     self.nom,
-        #     self.layer,
+        #     self.currentlayer,
         #     "vers",
         #     classe,
         # )
-        self.layer = classe
+        self.currentlayer = classe
         # crs = from_epsg(int(self.srid))
         self.schemaclasse = schemaclasse
         # schema = schema_fiona(self.schemaclasse, liste_attributs=self.liste_att, l_nom=self.l_max)
-        #        print ('fiona: reouverture' ,self.nom, self.layer)
-        if self.layer not in self.layerstate:
+        #        print ('fiona: reouverture' ,self.nom, self.currentlayer)
+        if self.currentlayer not in self.layerstate:
             self.open()
         else:
             self.reopen()
@@ -323,7 +323,7 @@ class GdalWriter(FileWriter):
 
     def reopen(self):
         """reouvre le fichier s'il a ete ferme entre temps"""
-        # print("reopen", self.layer, self.ressource.etat)
+        # print("reopen", self.currentlayer, self.ressource.etat)
         crs = from_epsg(int(self.srid))
         l_max = self.writerparms["attlen"]
         schema = schema_fiona(
@@ -336,9 +336,9 @@ class GdalWriter(FileWriter):
             encoding=self.encoding,
             driver=self.writerparms["driver"],
             schema=schema,
-            layer=self.layer,
+            layer=self.currentlayer,
         )
-        self.layerstate[self.layer] = 1
+        self.layerstate[self.currentlayer] = 1
 
     def close(self):
         """fermeture"""
@@ -347,9 +347,12 @@ class GdalWriter(FileWriter):
         if self.nom == "#print":
             return  # stdout
         try:
-            if self.layer in self.layerstate and self.layerstate[self.layer] == 1:
+            if (
+                self.currentlayer in self.layerstate
+                and self.layerstate[self.currentlayer] == 1
+            ):
                 self.fichier.close()
-                self.layerstate[self.layer] = 2
+                self.layerstate[self.currentlayer] = 2
         except AttributeError:
             print(
                 "error: fw  : writer close: fichier non defini",

@@ -1184,6 +1184,7 @@ def h_extractbloc(regle):
     try:
         regle.regex = re.compile(regle.params.cmp1.val, re.MULTILINE)
     except re.error as err:
+        print("extractbloc:probleme sur la regle", regle)
         regle.stock_param.loger.error("erreur expression reguliere %s", err)
         return False
     keypair = regle.params.cmp2.val

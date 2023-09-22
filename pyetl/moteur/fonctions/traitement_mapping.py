@@ -171,7 +171,7 @@ def map_struct(regle):
 
 def _map_schemas(regle, obj):
     """essaye de trouver un mapping pour une classe"""
-    # print ('appel map_schema', regle,obj)
+    # print("appel map_schema", regle, obj)
     if obj is None:
         if regle.getvar("schema_entree"):
             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]

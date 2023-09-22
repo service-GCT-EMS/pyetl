@@ -48,7 +48,7 @@ def dbaccess(regle, codebase, type_base=None, mode=None):
         # print("mdba:acces base", codebase, base, serveur, type_base, prefix)
 
     if type_base not in DATABASES:
-        print("type_base inconnu:", type_base,'connus:', DATABASES.keys())
+        print("type_base inconnu:", type_base, "connus:", DATABASES.keys())
         raise
         return None
     # print(
@@ -87,7 +87,7 @@ def dbaccess(regle, codebase, type_base=None, mode=None):
         connection.geom_to_natif = dbdef.geomwriter
         connection.format_natif = dbdef.geom
         connection.schemabase.dbsql = connection.gensql
-        if mode !='fast':
+        if mode != "fast":
             connection.get_schemabase()
         connection.commit()  # on referme toutes les transactions
         return connection
@@ -406,7 +406,9 @@ def sortie_resultats(
         if objet:
             obj2 = objet.dupplique()
             obj2.setidentobj(ident)
-            obj2.attributs.update(((i,j) for i,j in zip(namelist,valeurs) if j is not None))
+            obj2.attributs.update(
+                ((i, j) for i, j in zip(namelist, valeurs) if j is not None)
+            )
             # obj2.attributs.update(
             #     zip(namelist, [str(i) if i is not None else i for i in valeurs])
             # )
@@ -418,7 +420,7 @@ def sortie_resultats(
                 classe,
                 format_natif=format_natif,
                 conversion=geom_from_natif,
-                attributs=((i,j) for i,j in zip(namelist,valeurs) if j is not None)
+                attributs=((i, j) for i, j in zip(namelist, valeurs) if j is not None)
                 # attributs=zip(
                 #     namelist, [str(i) if i is not None else i for i in valeurs]
                 # ),
@@ -435,9 +437,9 @@ def sortie_resultats(
         if sys_gid:
             obj2.attributs["#gid"] = obj2.attributs.get(sys_gid, str(nbvals))
         if sys_cre:
-            obj2.attributs["#_sys_date_cre"] = obj2.attributs.get(sys_cre,'')
+            obj2.attributs["#_sys_date_cre"] = obj2.attributs.get(sys_cre, "")
         if sys_mod:
-            obj2.attributs["#_sys_date_mod"] = obj2.attributs.get(sys_mod,'')
+            obj2.attributs["#_sys_date_mod"] = obj2.attributs.get(sys_mod, "")
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
         obj2.attributs["#base"] = base
         obj2.attributs["#codebase"] = code
@@ -561,7 +563,7 @@ def fastrequest(regle_courante, base, requete, parms):
     connect = get_connect(regle_courante, base, None, None, mode="fast")
     result = connect.request(requete, data=parms)
     # retour = [i[0] if len(i) == 1 else i for i in result]
-    # print("retour fast request", retour)
+    print("retour fast request", result)
     return result if result else []
 
 
@@ -643,7 +645,8 @@ def lire_requete(
             return res
     return 0
 
-def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
+
+def recup_attributs_req_alpha(regle_courante, baseselector, attlist):
     """passe un ensemble de requetes et retourne une liste de valeurs"""
     connect = baseselector.connect
     logger = regle_courante.stock_param.logger
@@ -661,13 +664,13 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
     schema_base = connect.schemabase
     maxobj = int(regle_courante.getvar("lire_maxi", 0))
     mods = regle_courante.params.cmp1.liste
-    prefix=regle_courante.prefix
-    champs = {a:prefix+a for a in regle_courante.params.att_entree.liste}
-    retours={i:[] for i in champs}
+    prefix = regle_courante.prefix
+    champs = {a: prefix + a for a in regle_courante.params.att_entree.liste}
+    retours = {i: [] for i in champs}
     # print("dbacces: recup_donnees_req_alpha", connect.idconnect, mods)
     curs = None  #
     n = 0
-    
+
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         # n += 1
@@ -678,7 +681,7 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
             schema_classe_travail = schema_travail.get_classe(ident)
             if (
                 attr
-                and attr!="*"
+                and attr != "*"
                 and attr not in schema_classe_travail.attributs
                 and attr not in connect.sys_fields
             ):
@@ -693,18 +696,23 @@ def recup_attributs_req_alpha(regle_courante,baseselector,attlist):
                 curs is not None and curs.cursor is not None,
             )
             if curs:
-                namelist=curs.namelist
+                namelist = curs.namelist
                 for valeurs in curs.cursor:
-                    n+=1
-                    attributs={champs[a]:b for a,b in zip(
-                    namelist, [str(i) if i is not None else "" for i in valeurs]) if a in champs}
-                    [retours[i].append(attributs.get(i,'')) for i in champs]                
-    if n==1:
+                    n += 1
+                    attributs = {
+                        champs[a]: b
+                        for a, b in zip(
+                            namelist, [str(i) if i is not None else "" for i in valeurs]
+                        )
+                        if a in champs
+                    }
+                    [retours[i].append(attributs.get(i, "")) for i in champs]
+    if n == 1:
         # print ('recup retours',retours)
-        retours={i:(retours[i].pop() if retours[i] else "") for i in retours}
-    if n==0:
-        retours={i:"" for i in champs}
-    return retours    
+        retours = {i: (retours[i].pop() if retours[i] else "") for i in retours}
+    if n == 0:
+        retours = {i: "" for i in champs}
+    return retours
 
 
 def recup_donnees_req_alpha(regle_courante, baseselector):
@@ -812,11 +820,9 @@ def cre_script_reset(liste_tables, gensql):
 def reset_liste_tables(selecteur):
     """genere un script de reset de tables"""
     selecteur.resolve(None)
-    gensql=selecteur.connect.gensql
-    liste_tables=[i[0] for i in selecteur.classlist()]
-    script_clean = (
-        cre_script_reset(liste_tables, gensql) if liste_tables else []
-    )
+    gensql = selecteur.connect.gensql
+    liste_tables = [i[0] for i in selecteur.classlist()]
+    script_clean = cre_script_reset(liste_tables, gensql) if liste_tables else []
     return script_clean
 
 
@@ -854,7 +860,6 @@ def recupval(
     for ident in liste_tables:
         attr, val = attribut, valeur
         if ident is not None:
-
             niveau, classe = ident
 
             schema_classe_travail = schema_travail.get_classe(ident)
@@ -911,7 +916,6 @@ def recup_count(
     for ident in liste_tables:
         attr, val = attribut, valeur
         if ident is not None:
-
             niveau, classe = ident
 
             schema_classe_travail = schema_travail.get_classe(ident)

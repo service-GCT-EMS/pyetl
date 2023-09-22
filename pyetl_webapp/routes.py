@@ -611,11 +611,11 @@ def webservice(api, suburl=None):
             else:
                 return render_template_string(autotemplate(data), data)
         elif infoscript[1] == "json":  # retour json
-            # print ("retour web ", [i._asdict() for i in result["print"]])
+            print("retour web ", result)
             if "print" in result and result["print"]:
                 return jsonify(
                     [
-                        i._asdict() if isinstance(i, namedtuple) else i
+                        i._asdict() if isinstance(i, tuple) else i
                         for i in result["print"]
                     ]
                 )

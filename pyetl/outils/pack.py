@@ -32,7 +32,7 @@ def scandirs(rep_depart, chemin):
 
 
 def update_build(build="BUILD =", file="vglobales.py", orig=start):
-    for (fichier, chemin) in scandirs(orig, ""):
+    for fichier, chemin in scandirs(orig, ""):
         # print(fichier, chemin)
         if file and fichier != file:
             # print ("ignore ",fichier)
@@ -132,40 +132,51 @@ def cache(mapper):
     with open(fich2, "w") as f:
         for nom, desc in sorted(READERS.items()):
             # print("readers", nom, desc.module, desc)
-            f.write(nom + ";" + desc.module + "\n")
+            try:
+                f.write(nom + ";" + desc.module + "\n")
+            except AttributeError:
+                pass
         print("ecriture cache READERS", len(READERS))
 
     with open(fich3, "w") as f:
         for nom, desc in sorted(WRITERS.items()):
             # print("readers", nom, desc.module, desc)
-            f.write(nom + ";" + desc.module + "\n")
+            try:
+                f.write(nom + ";" + desc.module + "\n")
+            except AttributeError:
+                pass
         print("ecriture cache WRITERS", len(WRITERS))
     with open(fich4, "w") as f:
         for nom, desc in sorted(DATABASES.items()):
             # print("readers", nom, desc.module, desc)
-            f.write(nom + ";" + desc.module + "\n")
+            try:
+                f.write(nom + ";" + desc.module + "\n")
+            except AttributeError:
+                pass
         print("ecriture cache DATABASES", len(DATABASES))
 
 
 def zip_xsl(orig=start):
     """compresse le xsl pour les schemas"""
-    orig=os.path.join(orig,'schema','formats_schema','xsl')
-    with zipfile.ZipFile('xsl.zip', "w", compression=zipfile.ZIP_DEFLATED) as zip:
+    orig = os.path.join(orig, "schema", "formats_schema", "xsl")
+    with zipfile.ZipFile("xsl.zip", "w", compression=zipfile.ZIP_DEFLATED) as zip:
         os.chdir(orig)
-        for (fichier, chemin) in scandirs(".", ""):
+        for fichier, chemin in scandirs(".", ""):
             # print(fichier, chemin)
             zip.write(os.path.join(chemin, fichier))
+
+
 def zipall(orig=start, nv=""):
     name = "mapper" + nv + ".zip"
     with zipfile.ZipFile(name, "w", compression=zipfile.ZIP_DEFLATED) as zip:
         os.chdir(orig)
-        for (fichier, chemin) in scandirs(".", ""):
+        for fichier, chemin in scandirs(".", ""):
             # print(fichier, chemin)
             zip.write(os.path.join(chemin, fichier))
 
 
 def _main():
-    """ mode autonome """
+    """mode autonome"""
     print("preparation version")
     zipall()
 

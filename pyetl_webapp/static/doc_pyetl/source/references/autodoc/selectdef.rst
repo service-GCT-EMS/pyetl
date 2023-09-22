@@ -120,11 +120,9 @@ reference conditions
    * =type_geom:;N
        - vrai si l'objet est de dimension 3
 
-   * =is:dir;[A]
    * =is:dir;C
        - teste si un repertoire existe
 
-   * =is:file;[A]
    * =is:file;C
        - teste si un fichier existe
 

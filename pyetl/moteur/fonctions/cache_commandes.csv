@@ -1,4 +1,3 @@
-adquery;.traitement_ad
 cnt;.traitement_alpha
 extractbloc;.traitement_alpha
 format;.traitement_alpha
@@ -27,10 +26,6 @@ zipextract;.traitement_archives
 stat;.traitement_aux
 crypt;.traitement_crypt
 decrypt;.traitement_crypt
-dfgraph;.traitement_dataviz
-dfload;.traitement_dataviz
-dfset;.traitement_dataviz
-dfwrite;.traitement_dataviz
 dbalpha;.traitement_db
 dbcheck;.traitement_db
 dbclean;.traitement_db
@@ -93,8 +88,6 @@ hdel;.traitement_hstore
 hget;.traitement_hstore
 hset;.traitement_hstore
 hsplit;.traitement_hstore
-lasfilter;.traitement_las
-lasreader;.traitement_las
 map;.traitement_mapping
 map_data;.traitement_mapping
 abspath;.traitement_os

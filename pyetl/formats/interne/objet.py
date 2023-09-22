@@ -10,6 +10,7 @@ import json
 
 # from pyetl.formats.interne.stats import LOGGER
 from .geometrie.geom import Geometrie, Erreurs
+
 LOGGER = logging.getLogger(__name__)
 # class AttributsSpeciaux(object):
 #     """gere les attibuts speciaux a certains formats """
@@ -32,12 +33,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 def noconversion(obj):
-    """ conversion geometrique par defaut """
+    """conversion geometrique par defaut"""
     return obj.attributs["#type_geom"] == "0"
 
 
 class Objet(object):
-    """structure de stockage d'un objet.   """
+    """structure de stockage d'un objet."""
 
     _ido = itertools.count(1)  # compteur d'instance
     __slots__ = [
@@ -215,14 +216,14 @@ class Objet(object):
 
     @property
     def type_geom(self):
-        """ recupere le type de geometrie de l'objet"""
+        """recupere le type de geometrie de l'objet"""
         if self.geom_v.valide:
             return self.geom_v.type
         return self.attributs.get("#type_geom", "0")
 
     @property
     def dimension(self):
-        """ recupere le type de geometrie de l'objet"""
+        """recupere le type de geometrie de l'objet"""
         if self.geom_v.valide:
             return int(self.geom_v.dimension)
         return int(self.attributs.get("#dimension", 0))
@@ -256,7 +257,7 @@ class Objet(object):
             )
             self.setschema(schema_classe)
 
-    def __dict_if__(self,liste_attributs=None):
+    def __dict_if__(self, liste_attributs=None):
         """interface dictionnaire"""
         liste = (
             liste_attributs
@@ -267,13 +268,12 @@ class Objet(object):
             liste.insert(0, "#classe")
         if not self.geom_v.valide:
             self.attributs_geom(self)
-        geom= self.geom_v.__as_ewkt__
-        attd={i: self.attributs.get(i, "") for i in liste}
-        print ("dans dict_if", liste, attd, self.attributs)
+        geom = self.geom_v.__as_ewkt__
+        attd = {i: self.attributs.get(i, "") for i in liste}
+        print("dans dict_if", liste, attd, self.attributs)
 
-        attd["#geom"]=geom
+        attd["#geom"] = geom
         return attd
-
 
     def __json_if__(self, liste_attributs=None):
         """interface geojson texte en sortie"""
@@ -294,7 +294,7 @@ class Objet(object):
             # if self.key
             # else ""
             + '\n"properties": {\n'
-            + json.dumps({i: self.attributs.get(i, "") for i in liste})
+            + json.dumps({i: str(self.attributs.get(i, "")) for i in liste})
             # + ",\n".join(
             #     [
             #         '"'
@@ -310,7 +310,7 @@ class Objet(object):
             + "}\n"
         )
 
-    def set_multi(self,point=False):
+    def set_multi(self, point=False):
         """forcage multigeom"""
         if self.schema:
             self.schema.setmulti(point)
@@ -396,7 +396,6 @@ class Objet(object):
         props = geoif.get("properties", {})
         if self.schema:
             if self.schema.attmap:
-
                 # self.attributs.update(((self.schema.attmap.get(i,i),v) for i, v in props.items()))
 
                 # print("traitement attmap", self.schema.attmap)
@@ -558,7 +557,6 @@ class Objet(object):
             self.attributs["#schema"] = ""
         if remap:
             if self.schema.attmap is not None:
-
                 self.attributs = {
                     self.schema.attmap.get(i, i): j for i, j in self.attributs.items()
                 }
@@ -579,7 +577,7 @@ class Objet(object):
         print("avec", schemaclasse)
 
     def initattr(self):
-        """ initialise les attributs a leur valeur de defaut """
+        """initialise les attributs a leur valeur de defaut"""
         if not self.schema:
             return False
         for i in self.schema.get_liste_attributs(sys=True):
@@ -597,7 +595,7 @@ class Objet(object):
             self.setschema(schema.setdefault_classe(self.ident))
 
     def ajuste_schema(self):
-        """ ajuste le schema de l'objet a la liste d attributs """
+        """ajuste le schema de l'objet a la liste d attributs"""
         agarder = [i for i in self.attributs if not i.startswith("#")]
         if self.schema:
             self.schema.garder_attributs(agarder)
@@ -605,17 +603,17 @@ class Objet(object):
     def get_valeur(self, nom, defaut=""):
         """retourne un attribut par son nom"""
         if self.schema and nom in self.schema.attributs:
-            conv=self.schema.attributs[nom].typeconv
+            conv = self.schema.attributs[nom].typeconv
         try:
             # print  ("conv",nom,self.attributs[nom],conv(self.attributs[nom]),type(conv(self.attributs[nom])))
             return conv(self.attributs[nom]) if nom in self.attributs else conv(defaut)
         except ValueError:
-            if conv==int:
+            if conv == int:
                 try:
                     return int(float(self.attributs[nom]))
                 except ValueError:
                     pass
-            return ''
+            return ""
 
     def get_listeattval(self, liste, noms=False):
         """retourne une liste de valeurs selectionees"""
@@ -624,7 +622,7 @@ class Objet(object):
         return [str(self.attributs.get(i, "")) for i in liste if i]
 
     def get_dynlisteval(self, noms=False):
-        """ gestion des attributs en liste dynamique"""
+        """gestion des attributs en liste dynamique"""
         #        liste_entree = list(self.attributs.keys())
         if noms:
             return [a + "=" + b for a, b in self.attributs.items()]
@@ -634,8 +632,8 @@ class Objet(object):
         """convertit un dict en hstore et le range"""
         if dic is None:
             dic = self.hdict.get(nom) if self.hdict else None
-            if not dic and isinstance(self.attributs.get(nom),dict):
-                dic=self.attributs[nom]
+            if not dic and isinstance(self.attributs.get(nom), dict):
+                dic = self.attributs[nom]
         if self.hdict:
             if dic:
                 if nom in self.hdict and upd:
@@ -715,7 +713,7 @@ class Objet(object):
         self.erreurs.ajout_erreur(nature)
 
     def fold(self, classe, alist, geom=True, gsep="|"):
-        """ retourne un objet compact pour le stockage temporaire en general un namedtuple"""
+        """retourne un objet compact pour le stockage temporaire en general un namedtuple"""
         gfold = self.geom_v.fold()
         return classe([self.attributs.get(i) for i in alist] + [gfold])
 

@@ -7,6 +7,8 @@ Created on Tue Mar 20 20:54:48 2018
 
 module crypt : gere le cryptage des mots de passe dans les parametres de site
 
+utilise une adaptation du chiffre de playfair sur un hypercube de dimension 4 avec salage aleatoire
+
 """
 import base64
 import itertools

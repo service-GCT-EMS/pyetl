@@ -448,7 +448,13 @@ def h_dbrequest(regle):
                 requete=regle.requete,
                 parms=parms,
             )
-            # print ("dbrequest, fastrequest ",regle.requete,parms,regle.params.cmp2.liste)
+            if regle.debug:
+                print(
+                    "dbrequest, fastrequest ",
+                    regle.requete,
+                    parms,
+                    regle.params.cmp2.liste,
+                )
             if regle.params.pattern == "7":
                 if regle.debug:
                     print("dbreq:", retour, "->", regle.params.att_sortie.liste)
@@ -470,10 +476,11 @@ def h_dbrequest(regle):
                         regle.setvar(regle.params.att_sortie.val, r3)
             else:
                 sortie = regle.stock_param.webstore.setdefault("#print", [])
-                # sortie.extend(retour if isinstance(retour, list) else [retour])
-                if isinstance(retour, list):
-                    r2 = [",".join(i) for i in retour]
-                sortie.append(r2)
+                sortie.extend(retour if isinstance(retour, list) else [retour])
+                # print("mws:", retour)
+                # if isinstance(retour, list):
+                #     r2 = [",".join(str(i)) for i in retour]
+                # sortie.append(r2)
         except Exception as err:
             printexception(regle, requete, err)
             raise

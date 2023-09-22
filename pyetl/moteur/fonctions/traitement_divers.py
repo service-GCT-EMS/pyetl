@@ -337,9 +337,8 @@ def h_sortir(regle):
     if regle.getvar("newlines"):
         regle.writerparms["newlines"] = regle.getvar("newlines")
     regle.writerparms["fanout"] = regle.context.getvar("fanout", "groupe")
-    if (
-        regle.params.att_sortie.val == "#schema"
-    ):  # on force les noms de schema pour l'ecriture
+    if regle.params.att_sortie.val == "#schema":
+        # on force les noms de schema pour l'ecriture
         regle.nom_fich_schema = regle.params.val_entree.val
     elif regle.params.cmp2.val:
         regle.nom_fich_schema = regle.params.cmp2.val
@@ -361,28 +360,32 @@ def h_sortir(regle):
     regle.writerparms["force_multi"] = regle.istrue("force_multi")
     regle.writerparms["force_multipoint"] = regle.istrue("force_multipoint")
     regle.writerparms["force_courbe"] = regle.istrue("force_courbe")
-    if regle.params.cmp2.val != "#print":
-        fich = ""
-        #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
-        if regle.params.cmp2.val:
-            fich = regle.params.cmp2.val
+    fich = regle.params.cmp2.val
+    # if regle.params.cmp2.val != "#print":
+    #     fich = ""
+    #     #   print('positionnement sortie', rep_base, os.path.join(rep_base, regle.params.cmp2.val))
+    #     if regle.params.cmp2.val:
+    #         fich = regle.params.cmp2.val
 
     outformat = (
-        "#print"
-        if (
-            regle.params.cmp2.val == "#print"
-            or regle.getvar("_sortie") == "#print"
-            or (
-                regle.stock_param.mode.startswith("web")
-                and regle.getvar("_sortie") == ""
-            )
-            or (fich == "" and regle.getvar("_sortie") == "")
-        )
-        else regle.params.cmp1.val
+        regle.params.cmp1.val
+        if regle.params.cmp1.val
+        else "#print"
+        # "#print"
+        # if (
+        #     regle.params.cmp2.val == "#print"
+        #     or regle.getvar("_sortie") == "#print"
+        #     or (
+        #         regle.stock_param.mode.startswith("web")
+        #         and regle.getvar("_sortie") == ""
+        #     )
+        #     or (fich == "" and regle.getvar("_sortie") == "")
+        # )
+        # else regle.params.cmp1.val
     )
     # print("creation output:", regle, fich, outformat)
     regle.output = regle.stock_param.getoutput(outformat, regle)
-    # print("preparation sortie ", regle.output.writerclass, regle.output.writerparms)
+    print("preparation sortie ", regle.output.writerclass, regle.output.writerparms)
 
     if outformat == "#print":
         regle.output.writerparms["destination"] = "#print"

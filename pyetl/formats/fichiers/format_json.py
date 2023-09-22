@@ -19,14 +19,15 @@ def hasbom(fichier, encoding):
 def init_json(writer):
     """json liste"""
     writer.writerclass = JsonWriter
-    writer.writerclass.header=writer.writerclass.listheader
-    
+    writer.writerclass.header = writer.writerclass.listheader
+
 
 def init_sjson(writer):
     """json mono objet"""
     writer.writerclass = JsonWriter
-    writer.writerparms["extension"]="json"
-    writer.writerclass.header=writer.writerclass.singleheader
+    writer.writerparms["extension"] = "json"
+    writer.writerclass.header = writer.writerclass.singleheader
+
 
 def init_geojson(writer):
     writer.writerclass = GeoJsonWriter
@@ -47,12 +48,20 @@ class JsonWriter(FileWriter):
         self.ttext = ""  # queue
         return ""
 
-
     def changeclasse(self, schemaclasse, attributs=None):
         """ecriture multiclasse on change de schema"""
-        verbose=self.regle_ref.istrue("verbose") if self.regle_ref else self.regle.istrue("verbose") 
+        self.currentlayer = self.schemaclasse.identclasse
+        verbose = (
+            self.regle_ref.istrue("verbose")
+            if self.regle_ref
+            else self.regle.istrue("verbose")
+        )
         if verbose:
-            logger=self.regle_ref.stock_param.logger if self.regle_ref else self.regle.stock_param.logger
+            logger = (
+                self.regle_ref.stock_param.logger
+                if self.regle_ref
+                else self.regle.stock_param.logger
+            )
             logger.info("json schema: %s,%s", repr(schemaclasse), schemaclasse.schema)
         self.liste_att = (
             schemaclasse.get_liste_attributs(liste=attributs)
@@ -60,10 +69,17 @@ class JsonWriter(FileWriter):
             else attributs
         )
         if not self.liste_att:
-            self.liste_att=schemaclasse.attributs.keys() 
-        self.hconvert=[i for i in self.liste_att if schemaclasse.attributs.get(i) and schemaclasse.attributs.get(i).type_att=="H"]
+            self.liste_att = schemaclasse.attributs.keys()
+        self.hconvert = [
+            i
+            for i in self.liste_att
+            if schemaclasse.attributs.get(i)
+            and schemaclasse.attributs.get(i).type_att == "H"
+        ]
         if self.hconvert and verbose:
-            logger.info("json:trouve hconvert %s %s", repr(self.liste_att), repr(self.hconvert))
+            logger.info(
+                "json:trouve hconvert %s %s", repr(self.liste_att), repr(self.hconvert)
+            )
 
     def convert(self, obj):
         """ecriture d objets"""
@@ -72,18 +88,21 @@ class JsonWriter(FileWriter):
             if self.liste_att
             else [i for i in obj.attributs if not i.startswith("#")]
         )
+        # raise
         return json.dumps(
-            {i: obj.attributs.get(i, "") for i in liste_att}, ensure_ascii=False, indent=4 if self.pp else None
+            {i: obj.attributs.get(i, "") for i in liste_att},
+            ensure_ascii=False,
+            indent=4 if self.pp else None,
         )
 
     def write(self, obj):
         """ecrit un objet"""
         if obj.virtuel:
             return False
-        
+
         if self.start:
             self.start = False
-            self.pp=self.regle.istrue("indent")
+            self.pp = self.regle.istrue("indent")
         else:
             self.fichier.write(",")
         chaine = self.convert(obj)
@@ -120,6 +139,8 @@ class GeoJsonWriter(JsonWriter):
         )
 
     def convert(self, obj):
+        print("conversion geojson", self.liste_att)
+
         return obj.__json_if__(self.liste_att)
 
 
@@ -148,7 +169,6 @@ def lire_objets(self, rep, chemin, fichier):
 
 
 def readobjs(reader, jsonlist, niveau=None, classe=None, geoif=False):
-
     n_obj = 0
     for i in jsonlist:
         # print("jsonlist", i)
@@ -237,8 +257,19 @@ READERS = {
     "geojson": (lire_objets, None, True, (), None, objreader),
 }
 WRITERS = {
-    "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json), #liste json
-    "sjson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_sjson), #objet json
+    "json": ("", "", False, "", 0, "", "classe", None, "#tmp", init_json),  # liste json
+    "sjson": (
+        "",
+        "",
+        False,
+        "",
+        0,
+        "",
+        "classe",
+        None,
+        "#tmp",
+        init_sjson,
+    ),  # objet json
     "geojson": ("", "", False, "", 0, "", "classe", None, "#tmp", init_geojson),
 }
 

@@ -63,6 +63,7 @@ class FileWriter(object):
         self.ttext = ""
         self.transtable = str.maketrans("", "")
         self.regle_ref = None  # regle de reference pour l'acces aux contextes
+        self.currentlayer = self.schemaclasse.identclasse if self.schemaclasse else None
 
     def header(self, init=None):
         """entete du fichier"""
@@ -75,14 +76,16 @@ class FileWriter(object):
         return self.ttext
 
     def ouvrir(self, mode):
-        """retourne une sortie ouverte """
-
+        """retourne une sortie ouverte"""
         if self.nom == "#print":
             self.fichier = sys.stdout
             if self.regle.stock_param.mode.startswith("web"):
+                print("ouverture webstore", self.nom, self.currentlayer)
                 self.fichier = io.StringIO()
-                if self.layer in self.regle.stock_param.webstore:
-                    self.regle.stock_param.webstore[self.layer].append(self.fichier)
+                if self.currentlayer in self.regle.stock_param.webstore:
+                    self.regle.stock_param.webstore[self.currentlayer].append(
+                        self.fichier
+                    )
         elif self.nom == "#attw":
             self.fichier = io.StringIO()
         else:
@@ -106,7 +109,7 @@ class FileWriter(object):
 
     def open(self):
         """ouverture de fichier"""
-        # print ("filewriter: open")
+        # print("filewriter: open")
         self.ouvrir("w")
         self.ressource.etat = 1
         if self.fichier:
@@ -133,9 +136,9 @@ class FileWriter(object):
             raise
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ ecriture multiclasse on change de schema"""
+        """ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
-        self.layer = schemaclasse.identclasse
+        self.currentlayer = schemaclasse.identclasse
         self.liste_att = schemaclasse.get_liste_attributs(liste=attributs)
         self.schemaclasse = schemaclasse
 
@@ -149,8 +152,9 @@ class FileWriter(object):
             except AttributeError:
                 print("error: fw  : writer finalise: fichier non defini", self.nom)
             self.fichier.write(end)
-            self.close()
-            return self.FINAL
+            if self.nom != "#print":
+                self.close()
+                return self.FINAL
         self.close()
         return self.CLOSE
 

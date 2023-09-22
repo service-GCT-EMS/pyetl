@@ -38,7 +38,7 @@ P:p3;;;;P:p3;%p3%;;sub;::;=;
 $v0=%valeur%%
 K:%num%=2;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ1%=%s and %champ2%=%s and lower(%champ%) like lower(%s) limit 10;%valeur1%,%valeur2%,%v0%;
 K:%num%=1;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where %champ1%=%s and lower(%champ%) like lower(%s) limit 10;%valeur1%,%v0%;
-K:%num%=0;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where lower(%champ%) like lower(%s) limit 10;%v0%;
+K:%num%=0;db:%base%;;;;mws:;;;dbreq;select %champ% from %table% where lower(%champ%) like lower(%s) limit 10;%v0%;debug
 !===========================================================================================;;;;;;;;;;;
 &&#define;#var;nom;
 !==================================affichage d une variable==================================;;;;;;;;;;;

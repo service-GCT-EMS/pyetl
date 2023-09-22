@@ -380,7 +380,7 @@ format #poubelle
 
 
 
- pseudowriter ne fait rien :  poubelle
+pseudowriter ne fait rien :  poubelle
 
 format #print
 .............
@@ -394,13 +394,13 @@ format #store
 
 
 
- ecrit des objets dans le stockage interne
+ecrit des objets dans le stockage interne
 
 format accdb
 ............
 
 
- prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
+prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
 
 
 format asc
@@ -501,7 +501,7 @@ format mdb
 ..........
 
 
- prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
+prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
 
 
 format mif
@@ -556,7 +556,7 @@ format spatialite
 .................
 
 
- prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
+prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
 
 
 format sql
@@ -569,7 +569,7 @@ format sqlite
 .............
 
 
- prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
+prepare l objet virtuel declencheur pour la lecture en base access ou sqlite
 
 
 format texte
