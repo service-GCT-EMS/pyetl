@@ -119,17 +119,17 @@ def getADnames(regle, elems, *args, **kwargs):
     # print ("reponse adquery", adreponse)
     found = 0
     for result in adreponse:
-        print("retour ad:", result, type(result))
+        # print("getadnames:retour brut", result, type(result))
         found = 1
         if isinstance(result, regle.AD.ADO_record):
-            print("retour", result.fields)
+            # print("getadnames champs", result.fields)
             if elems == ["*"]:
                 valeur = result.fields["ADsPath"]
                 # print("retour", valeur, type(valeur), result.fields)
                 # valeur.dump()
                 yield valeur
             else:
-                retour = list()
+                retour = dict()
                 for i in elems:
                     elem = result.fields.get(i)
                     # print("analyse", i, elem, type(elem), print_members(elem)),
@@ -139,11 +139,12 @@ def getADnames(regle, elems, *args, **kwargs):
                             val = val[1]
                     except TypeError:
                         val = str(elem)
-                    retour.append(val)
-                    print("retour AD", retour)
+                    retour[i] = val
+                    # print("retour AD", retour)
                 yield retour
     if not found:
         print("ad: iterateur vide")
+        yield {}
 
 
 def find_ADuser(regle, elems, name=None):
@@ -302,12 +303,16 @@ def f_adquery(regle, obj):
             )
             items = []
         item = None
+        # print("adquery: recup", items)
         if regle.a_recuperer == ["*"]:
             val = regle.queryfonc(regle.entree)
             if regle.debug:
                 print("root", dir(regle.AD.root()))
                 print("infos:", val)
-            val.dump()
+            if val:
+                val.dump()
+            else:
+                print("adquery: pas de reponse")
             regle.setval_sortie(obj, "")
             return True
         if regle.params.pattern == "1" and regle.a_recuperer == ["CN"]:
@@ -315,7 +320,8 @@ def f_adquery(regle, obj):
                 val = next((i for i in items))
             else:
                 val = items
-            v2 = val.get("CN")
+            # print("recup items", items)
+            v2 = val.get("CN") if val else ""
             if regle.debug:
                 print("recup user", v2, val)
             if v2:
@@ -323,7 +329,9 @@ def f_adquery(regle, obj):
                 return True
             return False
         for item in items:
+            # print("adquery: recup item:", item)
             obj2 = obj.dupplique()
+            obj2.virtuel = False
             if isinstance(item, (str, list)):
                 val = item
             else:

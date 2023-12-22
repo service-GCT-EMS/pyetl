@@ -314,9 +314,15 @@ db:%acces%;%niveau%;%classe%;%rel_geo%;%champ%;%buffer%;;dbgeo>;%mod%;%ordre%;fi
 db:%acces%;%niveau%;%classe%;;;;;dbreq;%requete%;%nom%;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#dblist;acces;requete;;;;
-!#help;recuperation d'un jeu de donnees par requete directe dans une variable;;;;;;;;;;
+!#help;affichage d'un jeu de donnees par requete directe dans une variable;;;;;;;;;;
 db:%acces%;;;;P:result;;;dbreq;%requete%;;;;
 ;;;;;;;printv;result;;;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#dir;;;;;;
+!#help;affichage d une liste recursive de fichiers;;;;;;;;;;
+$F_entree=dir;
+;;;;;;;pass;;;;
+
 !========================= conversion ======================================================;;;;;;;;;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#to_sigli;;;;;;;;;;
@@ -616,6 +622,11 @@ $sans_entree=1;;
 $fichier=%fich%;%derniere_sortie%;;
 $destdir=%destdir%;.;;
 ;;;;;%fichier%;;ftp_upload;ftp_%dest%;%destdir%;;
+!===========================================================================================;;;;;;;;;;;
+&&#define;#s3upload;fich;acces;dest;;;;
+!#help;charge des elements en s3;;;;;;;;;;
+$#%acces%;;;;;;
+;;;;;%fich%;;s3upload;%dest%;;;
 !===========================================================================================;;;;;;;;;;;
 &&#define;#ftpdownload;fich;acces;accdir=.;;;;
 !#help;charge des elements par ftp;;;;;;;;;;

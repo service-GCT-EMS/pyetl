@@ -250,7 +250,14 @@ class SchemaClasse(object):
             + repr(self.info)
             + "\n\t\t"
             + "atts: "
-            + ",".join(sorted(self.attributs.keys()))
+            + ",".join(
+                sorted(
+                    [
+                        i + "(" + (j.nom_conformite or j.type_att) + ")"
+                        for i, j in self.attributs.items()
+                    ]
+                )
+            )
         )
 
     def setalias(self, alias):

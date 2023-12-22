@@ -17,6 +17,7 @@ mif;.format_gdal
 osm;.format_osm
 pbf;.format_osm
 qgs;.format_xml
+qgz;.format_xml
 qlr;.format_xml
 shp;.format_gdal
 spatialite;.format_filedb

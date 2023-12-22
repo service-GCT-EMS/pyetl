@@ -87,12 +87,22 @@ def traite_mapping(elements):
     """
     mapping = dict()
     mapping_attributs = dict()
+    map_enum_prefix = ()
+    map_enums = dict()
+
     for els in elements:
         # print ("traitement els", els)
         if not els or els[0].startswith("!") or not els[0]:
             continue
         attrmap = ""
-        if len(els) == 2 or len(els) == 3:
+        if els[0] == "#enum":  # mapping d 'enums
+            if els[1].endswith("*"):
+                map_enum_prefix = (els[1][:-1], els[2])
+            else:
+                map_enums[els[1]] = els[2]
+            # print("mapping enums", map_enum_prefix, map_enums)
+
+        elif len(els) == 2 or len(els) == 3:
             id1 = tuple(els[0].split("."))
             id2 = tuple(els[1].split("."))
             if len(els) == 3:
@@ -123,7 +133,7 @@ def traite_mapping(elements):
 
         mapping[id1] = id2
         mapping[id2] = id1
-    return mapping, mapping_attributs
+    return mapping, mapping_attributs, map_enum_prefix, map_enums
 
 
 def charge_mapping(regle, mapping=None):
@@ -148,7 +158,12 @@ def charge_mapping(regle, mapping=None):
     else:
         elements = []
 
-    regle.mapping, regle.mapping_attributs = traite_mapping(elements)
+    (
+        regle.mapping,
+        regle.mapping_attributs,
+        regle.map_enum_prefix,
+        regle.map_enums,
+    ) = traite_mapping(elements)
 
     if regle.params.att_sortie.val == "#schema":
         regle.schema_dest = regle.getschema(regle.params.val_entree.val)
@@ -184,7 +199,10 @@ def _map_schemas(regle, obj):
         #                                                    modele=schema_origine, origine='B')
         #        else:
         return
-    else:
+    elif not regle.schema:
+        if not obj.schema:
+            print("objet sans schema", obj)
+            return
         schema_origine = obj.schema.schema
         if regle.params.val_entree.val:
             schema2 = regle.stock_param.init_schema(
@@ -192,34 +210,74 @@ def _map_schemas(regle, obj):
             )
         else:
             schema2 = obj.schema.schema
-    regle.schema = schema2
-    if schema2.elements_specifiques:
-        for i in schema2.elements_specifiques:
-            #            print('mapping specifique', i)
-            spec = schema2.elements_specifiques[i]
-            mapped = remap(spec, regle.elmap)
-            #            print('mapping specifique', i, len(spec), '->', len(mapped))
-            schema2.elements_specifiques[i] = mapped
-    else:
-        LOGGER.info("pas d'elements specifiques")
+        regle.schema = schema2
 
-        # print("-----------------------------pas d'elements specifiques")
+        if schema2.elements_specifiques:
+            for i in schema2.elements_specifiques:
+                #            print('mapping specifique', i)
+                spec = schema2.elements_specifiques[i]
+                mapped = remap(spec, regle.elmap)
+                #            print('mapping specifique', i, len(spec), '->', len(mapped))
+                schema2.elements_specifiques[i] = mapped
+        else:
+            LOGGER.info("pas d'elements specifiques")
 
-    for i in schema_origine.classes:
-        schema2.get_classe(i, modele=schema_origine.classes[i], cree=True)
-    for i in list(schema_origine.classes.keys()):
-        #        print ('map_schemas ',schema_origine.nom,i,regle.mapping.get(i))
-        if i in regle.mapping:
-            schema2.renomme_classe(i, regle.mapping[i])
+            # print("-----------------------------pas d'elements specifiques")
 
-        # mapping foreign keys :
+        for i in schema_origine.classes:
+            schema2.get_classe(i, modele=schema_origine.classes[i], cree=True)
 
-    # print("-------------------------------------------------mapping effectue", schema2.nom, len(schema2.classes))
-    for clef in schema2.classes:
-        if clef in regle.mapping_attributs:
-            for dest, orig in regle.mapping_attributs[clef].items():
-                schema2.classes[clef].rename_attribut(orig, dest)
-                # print ('-----------------------------mappin attributs', clef, orig,dest)
+        # print("mapping enums:", regle.schema.nom, regle.schema.conformites.keys())
+        if schema2.conformites and (regle.map_enum_prefix or regle.map_enums):
+            for classe in schema2.classes.values():
+                # print("traitement classe", classe.identclasse)
+                for attribut in classe.attributs.values():
+                    if attribut.conformite:
+                        if regle.map_enum_prefix:
+                            attribut.nom_conformite = attribut.nom_conformite.replace(
+                                *regle.map_enum_prefix
+                            )
+                        attribut.nom_conformite = regle.map_enums.get(
+                            attribut.nom_conformite, attribut.nom_conformite
+                        )
+
+                        attribut.conformite = schema2.conformites.get(
+                            attribut.nom_conformite, attribut.conformite
+                        )
+                        # print("conformite apres", attribut.nom_conformite)
+                        # print("changement conformite", attribut)
+                # print("changement classe", classe.attributs)
+            new_enums = schema2.conformites
+            if regle.map_enum_prefix:
+                new_enums = {
+                    i.replace(*regle.map_enum_prefix): j
+                    for i, j in schema2.conformites.items()
+                }
+            new_enums = {regle.map_enums.get(i, i): j for i, j in new_enums.items()}
+
+            for i, j in new_enums.items():
+                j.nom = i
+
+            # print("enums orig", schema2.conformites.keys())
+            # print("conversion enums", new_enums.keys())
+            schema2.conformites.update(new_enums)
+            # print("mapping enums", schema2.conformites.keys())
+            # print("schema origine", schema_origine.name)
+
+        for i in list(schema_origine.classes.keys()):
+            #        print ('map_schemas ',schema_origine.nom,i,regle.mapping.get(i))
+            if i in regle.mapping:
+                schema2.renomme_classe(i, regle.mapping[i])
+                # print("renommage", i, regle.mapping[i])
+                # print("attributs", schema2.classes[regle.mapping[i]].attributs)
+            # mapping foreign keys :
+
+        # print("-------------------------------------------------mapping effectue", schema2.nom, len(schema2.classes))
+        for clef in schema2.classes:
+            if clef in regle.mapping_attributs:
+                for dest, orig in regle.mapping_attributs[clef].items():
+                    schema2.classes[clef].rename_attribut(orig, dest)
+                    # print ('-----------------------------mappin attributs', clef, orig,dest)
 
 
 def applique_mapping(regle):
@@ -291,18 +349,27 @@ def f_map(regle, obj):
         _map_schemas(regle, obj)
     clef = obj.ident
     schema2 = regle.schema
+    # print(
+    #     " mapping objet",
+    #     clef,
+    #     regle.mapping,
+    #     obj.schema.schema.nom,
+    #     schema2.nom,
+    # )
+    oldschema = obj.schema.schema
     if clef in regle.mapping:
         nouv = regle.mapping.get(clef)
         obj.setidentobj(nouv, schema2=schema2)
+        # print("changement obj", oldschema.nom, obj.schema)
         if clef in regle.mapping_attributs:
             for orig, dest in regle.mapping_attributs[clef].items():
                 # print("mapping", clef, nouv, orig, dest)
                 try:
                     obj.attributs[dest] = obj.attributs.get(orig, "")
                     del obj.attributs[orig]
-                    if obj.schema and obj.schema.amodifier(regle):
-                        # print
-                        obj.schema.rename_attribut(orig, dest)
+                    # if obj.schema and obj.schema.amodifier(regle):
+                    #     # print
+                    #     obj.schema.rename_attribut(orig, dest)
                 except KeyError:
                     obj.attributs[dest] = ""
         return True

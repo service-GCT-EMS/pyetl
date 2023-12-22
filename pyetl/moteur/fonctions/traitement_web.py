@@ -479,7 +479,7 @@ def httpconnect(regle):
             regle.stock_param.logger.info("connection ntlm sso windows sur %s", acces)
     elif regle.authtyp == "basic":
         regle.auth = HTTPBasicAuth(regle.user, regle.passwd)
-        print("authent", regle.auth)
+        print("authent basic", regle.auth)
 
 
 def h_httpdownload(regle):
@@ -831,3 +831,57 @@ def f_geom2url(regle, obj):
     """
     if obj.initgeom():
         pass
+
+
+def h_s3connect(regle):
+    """connection amazon s3"""
+    import boto3
+    from botocore.exceptions import ClientError
+
+    regle.ClientError = ClientError
+    acces = regle.getvar("acces")
+    if acces:
+        regle.stock_param.load_paramgroup(acces, nom=acces)
+        regle.bucket = regle.getvar("bucket_" + acces)
+        regle.repertoire = regle.getvar("repertoire_" + acces)
+        regle.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=regle.getvar("user_" + acces),
+            aws_secret_access_key=regle.getvar("passwd_" + acces),
+            endpoint_url=regle.getvar("endpoint_" + acces),
+        )
+        if regle.debug:
+            print(
+                "acces s3>",
+                acces,
+                "<>",
+                regle.getvar("user_" + acces),
+                "<>",
+                regle.getvar("passwd_" + acces),
+                "<>",
+                regle.getvar("endpoint_" + acces),
+            )
+            # response = regle.s3_client.list_buckets()
+            # # Output the bucket names
+            # print("Existing buckets:")
+            # for bucket in response["Buckets"]:
+            #     print(f'  {bucket["Name"]}')
+    else:
+        regle.valide = False
+        return False
+
+
+def f_s3upload(regle, obj):
+    """aide||charge un fichier sur aws S3
+    #pattern1||;?C;?A;s3upload;?C;
+    #helper||s3connect
+    #parametres||fichier;att fichier;s3upload;destination;"""
+    file = regle.entree
+    aws_name = regle.repertoire + "/" + (regle.params.cmp1.val or file)
+    try:
+        response = regle.s3_client.upload_file(file, regle.bucket, aws_name)
+    except regle.ClientError as e:
+        LOGGER.error(e)
+        return False
+    return True
+    pass

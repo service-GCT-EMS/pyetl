@@ -52,7 +52,7 @@ TYPES_A = {
     '"CHAR"': "T",
     "CHAR": "T",
     "CHARACTER": "T",
-    "XML": "T",
+    "UUID": "T",
     "REGCLASS": "T",
     "CHARACTER VARYING": "T",
     "INFORMATION_SCHEMA.SQL_IDENTIFIER": "T",

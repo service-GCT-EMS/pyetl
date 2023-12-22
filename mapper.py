@@ -15,7 +15,7 @@ from pyetl.vglobales import VERSION
 
 
 def message_help():
-    """ message d aide de demarrage"""
+    """message d aide de demarrage"""
     print("mapper version", VERSION)
     print("parametres insuffisants")
     print("usage:", sys.argv[0], "commande [entree] [sortie] [parametres]")
@@ -36,8 +36,7 @@ def main():
         args = sys.argv
 
         # print("args", list((n, i) for n, i in enumerate(args)))
-        mapping = args[1]
-        runpyetl(mapping, args[2:])
+        runpyetl(args[1], args[2:])
     print(
         "=========== temps d'execution total %.2f secondes" % (time.time() - STARTTIME)
     )

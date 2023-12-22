@@ -78,7 +78,9 @@ class SglGenSql(PgsGenSql):
         self.geom = True
         self.courbes = False
         self.schemas = True
-
+        self.sys_gid = "gid"
+        self.sys_cre = "date_creation"
+        self.sys_mod = "date_maj"
         self.dialecte = "sigli"
         self.defaut_schema = SCHEMA_ADM
         self.schema_conf = SCHEMA_ADM
@@ -86,7 +88,7 @@ class SglGenSql(PgsGenSql):
     # scripts de creation de tables
 
     def db_cree_table(self, schema, ident):
-        """creation d' une tables en direct """
+        """creation d' une tables en direct"""
         req = self.cree_tables(schema, ident)
         if self.connection:
             return self.connection.request(req, ())
@@ -102,7 +104,7 @@ class SglGenSql(PgsGenSql):
     # cree 4 tables: Macros scripts batchs logs
 
     def init_pyetl_script(self, nom_schema):
-        """ cree les structures standard"""
+        """cree les structures standard"""
         pass
 
     @staticmethod
@@ -124,7 +126,7 @@ class SglGenSql(PgsGenSql):
 
     @staticmethod
     def _commande_sequence(niveau, classe):
-        """ cree une commande de reinitialisation des sequences"""
+        """cree une commande de reinitialisation des sequences"""
         return (
             "SELECT "
             + SCHEMA_ADM
@@ -137,7 +139,7 @@ class SglGenSql(PgsGenSql):
 
     @staticmethod
     def _commande_trigger(niveau, classe, valide):
-        """ cree une commande de reinitialisation des sequences"""
+        """cree une commande de reinitialisation des sequences"""
         if valide:
             return (
                 "SELECT "
@@ -159,7 +161,7 @@ class SglGenSql(PgsGenSql):
         )
 
     def _commande_monitoring(self, niveau, classe, schema, mode):
-        """ insere une ligne dans une table de stats"""
+        """insere une ligne dans une table de stats"""
         regle_ref = self.connection.regle if self.connection else self.regle_ref
         # print ('monitoring', regle_ref)
         if regle_ref:
@@ -190,7 +192,7 @@ class SglGenSql(PgsGenSql):
         return ligne
 
     def cree_triggers(self, classe, groupe, nom):
-        """ cree les triggers """
+        """cree les triggers"""
         evs = {"B": "BEFORE ", "A": "AFTER ", "I": "INSTEAD OF"}
         evs2 = {"I": "INSERT ", "D": "DELETE ", "U": "UPDATE ", "T": "TRUNCATE"}
         ttype = {"T": "TRIGGER", "C": "CONSTRAINT"}
@@ -239,7 +241,7 @@ class SglGenSql(PgsGenSql):
 
     # scripts de creation de tables
     def sio_crestyle(self, liste=None):
-        """ genere les styles de saisie"""
+        """genere les styles de saisie"""
         conf = True
         if self.basic == "basic":
             return []
@@ -247,7 +249,6 @@ class SglGenSql(PgsGenSql):
             liste = [i for i in self.schema.classes if self.schema.classes[i].a_sortir]
         declaration = []
         for ident in liste:
-
             groupe, nom = self.get_nom_base(ident)
             nom_style, style = self.prepare_style(ident, conf)
             sql1 = (

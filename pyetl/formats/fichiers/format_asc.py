@@ -4,7 +4,7 @@
 
 import os
 import logging
-
+import datetime
 from .fileio import FileWriter
 
 
@@ -123,39 +123,41 @@ def att_to_text(obj, liste, transtable):
 
 def apic2iso(date, heure):
     # convertit une date apic en format iso
-    return (date[6:10] + date[2:6] + date[:2] + " " + heure).strip()
+    date = date.strip()
+    heure = heure.strip()
+    return date[6:10] + date[2:6] + date[:2] + " " + heure
 
 
 def _decode_dates_apic(chaine):
-    """ decode une date au format apic"""
+    """decode une date au format apic"""
     dates = chaine.split(",")
     # on passe les dates en format ISO
     if len(dates) == 4:
-        dat_cre = apic2iso(dates[0].strip(), dates[1].strip())
-        dat_mod = apic2iso(dates[2].strip(), dates[3].strip())
+        dat_cre = apic2iso(dates[0], dates[1])
+        dat_mod = apic2iso(dates[2], dates[3])
     elif len(dates) == 3:  # une seule date
         if dates[0] == "":
             dat_cre = ""
-            dat_mod = apic2iso(dates[0].strip(), dates[1].strip())
+            dat_mod = apic2iso(dates[0], dates[1])
         else:
-            dat_cre = apic2iso(dates[2].strip(), dates[3].strip())
+            dat_cre = apic2iso(dates[2], dates[3])
             dat_mod = ""
     elif len(dates) == 2:  # une seule date partielle
         if dates[0] == "":
             dat_cre = ""
-            dat_mod = apic2iso(dates[1].strip(), "")
+            dat_mod = apic2iso(dates[1], "")
         else:
             if ":" in dates[1]:
-                dat_cre = apic2iso(dates[0].strip(), dates[1].strip())
+                dat_cre = apic2iso(dates[0], dates[1])
                 dat_mod = ""
             else:
-                dat_cre = apic2iso(dates[0].strip(), "")
-                dat_mod = apic2iso(dates[1].strip(), "")
+                dat_cre = apic2iso(dates[0], "")
+                dat_mod = apic2iso(dates[1], "")
     else:
         dat_cre = ""
         dat_mod = ""
     # print("decode_dates apic", dates, "->", dat_cre, dat_mod)
-    return dat_cre, dat_mod
+    return dat_cre.strip(), dat_mod.strip()
 
 
 def decode_entete_asc(entete):
@@ -215,7 +217,7 @@ def decode_entete_asc(entete):
 
 
 def traite_booleen(vatt):
-    """ traitement des booleens """
+    """traitement des booleens"""
     bcode = {"-1": "t", "0": "f", "t": "t", "f": "f"}
     # print("asc: traitement booleen")
     try:
@@ -311,7 +313,7 @@ def finalise_obj(reader, attributs, coords, geom, angle, dim, speciaux):
 
 
 def lire_objets_asc(self, rep, chemin, fichier):
-    """ lecture d'un fichier asc et stockage des objets en memoire"""
+    """lecture d'un fichier asc et stockage des objets en memoire"""
     obj = None
     nom = ""
     attributs = dict()
@@ -395,18 +397,21 @@ def ecrire_point_asc(geom):
 
 
 def format_date(date, format_d="ISO"):
-    """ genere une date en format entete elyx"""
+    """genere une date en format entete elyx"""
     if not date:
         return ""
     if format_d == "ISO":
-        dd1 = date.split(".")[0]
-        return dd1[8:10] + dd1[4:8] + dd1[:4] + "," + dd1[11:]
+        if isinstance(date, datetime.datetime):
+            return date.strftime("%d-%m-%Y,%H:%M:%S")
+        elif isinstance(date, str):
+            dd1 = date.split(".")[0]
+            return dd1[8:10] + dd1[4:8] + dd1[:4] + "," + dd1[11:]
     else:
         return date.replace("/", "-").replace(" ", ",").split(".")[0] if date else ""
 
 
 def ecrire_entete_asc(obj) -> str:
-    """ genere le texte d'entete asc a partir d'un objet en memoire"""
+    """genere le texte d'entete asc a partir d'un objet en memoire"""
     types_geom_asc = {"0": ";5 ", "1": "3", "2": ";9 ", "3": ";9 "}
     type_geom_sortie = ";5 "
     attr = obj.attributs
@@ -448,7 +453,6 @@ def ecrire_entete_asc(obj) -> str:
         fin_ent = fin_ent[:-1]
 
     if type_geom_sortie == "3":
-
         code, chaine = ecrire_point_asc(obj.geom_v)
         entete = code + idobj + chaine + fin_ent + ";\n"
     else:
@@ -457,7 +461,7 @@ def ecrire_entete_asc(obj) -> str:
 
 
 class AscWriter(FileWriter):
-    """ gestionnaire d'ecriture pour fichiers asc"""
+    """gestionnaire d'ecriture pour fichiers asc"""
 
     def __init__(self, nom, schema=None, regle=None):
         super().__init__(nom, schema=schema, regle=regle)
@@ -475,7 +479,7 @@ class AscWriter(FileWriter):
         self.liste_ordinaire = None
 
     def changeclasse(self, schemaclasse, attributs=None):
-        """ ecriture multiclasse on change de schema"""
+        """ecriture multiclasse on change de schema"""
         #        print ("changeclasse schema:", schemaclasse, schemaclasse.schema)
         if attributs:
             self.liste_att = set(attributs)
@@ -492,7 +496,7 @@ class AscWriter(FileWriter):
                 self.liste_ordinaire = set(self.liste_att)
 
     def convertir_objet_asc(self, obj, liste, transtable=None):
-        """sort un objet asc en chaine """
+        """sort un objet asc en chaine"""
         entete = ecrire_entete_asc(obj)
         if not entete:  # ca na rien donne
             return ""

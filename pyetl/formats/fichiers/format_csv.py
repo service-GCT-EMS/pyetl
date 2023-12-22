@@ -82,19 +82,18 @@ def csvreader(reader, rep, chemin, fichier, entete=None, separ=None, mode="csv")
             csvfile, fieldnames=entete, dialect=dialect, restval="", restkey=reste
         )
         csvfile.seek(0)
-        if has_header: # on teste la presence de metadonnees
+        if has_header:  # on teste la presence de metadonnees
             lecteur.__next__()
-            ligne=list(lecteur.__next__().values())
-            nlin=1
+            ligne = list(lecteur.__next__().values())
+            nlin = 1
             while ligne[0].startswith("!"):
-                nlin+=1
-                ligne=list(lecteur.__next__().values())
+                nlin += 1
+                ligne = list(lecteur.__next__().values())
             csvfile.seek(0)
             # print("csv:",nlin,"entete")
             for i in range(nlin):
                 lecteur.__next__()
 
-            
         # print("entete csv", entete, dialect.delimiter, separ, dialect)
         if reader.newschema:
             for i in entete + [reste]:
@@ -148,7 +147,6 @@ class CsvWriter(FileWriter):
     """gestionnaire des fichiers csv en sortie"""
 
     def __init__(self, nom, schema, regle):
-
         super().__init__(nom, schema=schema, regle=regle)
         self.headerfonc = str
         self.classes = set()
@@ -194,16 +192,42 @@ class CsvWriter(FileWriter):
         )
 
     def prepare_attributs(self, obj):
-        """prepare la es attributs en fonction du format"""
-        atlist = (
-            str(obj.attributs.get(i, "")).translate(self.transtable)
-            for i in self.liste_att
-        )
-        #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
-        #                obj.geomnatif, obj.type_geom)
-        #        print ('orig',obj.attributs)
-        attributs = self.separ.join((i if i else self.null for i in atlist))
-        return attributs
+        """prepare les attributs en fonction du format"""
+
+        if obj.hdict:
+            # atlist = []
+            atlist = (
+                ",".join(
+                    [
+                        '"' + i + '"=>"' + str(j).translate(self.htranstable) + '"'
+                        for i, j in sorted(obj.hdict[nom].items())
+                    ]
+                )
+                if nom in obj.hdict
+                else str(obj.attributs.get(nom, "")).translate(self.transtable)
+                for nom in self.liste_att
+            )
+
+        else:
+            atlist = (
+                str(obj.attributs.get(nom, "")).translate(self.transtable)
+                for nom in self.liste_att
+            )
+
+        return self.separ.join((i or self.null for i in atlist))
+
+    # def prepare_attributs(self, obj):
+    #     """prepare les attributs en fonction du format"""
+    #     atlist = (
+    #         str(obj.attributs.get(i, "")).translate(self.transtable)
+    #         for i in self.liste_att
+    #     )
+    #     #        print ('ectriture_csv',self.schema.type_geom, obj.format_natif,
+    #     #                obj.geomnatif, obj.type_geom)
+    #     #        print ('orig',obj.attributs)
+    #     attributs = self.separ.join((i or self.null for i in atlist))
+    #     print("attributs", attributs)
+    #     return attributs
 
     def prep_write(self, obj):
         """ecrit un objet"""
@@ -322,32 +346,6 @@ class SqlWriter(CsvWriter):
 
     def prepare_hstore(self, val):
         """gere le cas particulier du hstore"""
-
-    def prepare_attributs(self, obj):
-        """prepare les attributs en fonction du format"""
-
-        if obj.hdict:
-            # atlist = []
-            atlist = (
-                ",".join(
-                    [
-                        '"' + i + '"=>"' + str(j).translate(self.htranstable) + '"'
-                        for i, j in sorted(obj.hdict[nom].items())
-                    ]
-                )
-                if nom in obj.hdict
-                else str(obj.attributs.get(nom, self.null)).translate(self.transtable)
-                for nom in self.liste_att
-            )
-
-        else:
-            atlist = (
-                str(obj.attributs[i]).translate(self.transtable) if i in obj.attributs else self.null
-                for i in self.liste_att 
-            )
-        # atlist = list(atlist)
-        # print("prepare_attributs sql", atlist)
-        return self.separ.join(atlist)
 
     def header(self, init=1):
         separ = ", "
@@ -527,6 +525,8 @@ def init_sql(self):
         self.writerparms["dialecte"] = getdb(self.dialecte)
         self.writerparms["base_dest"] = self.destination
         self.writerparms["destination"] = self.fich
+        if self.dialecte == "sigli":
+            self.writerparms["sys_gid"] = "gid"
 
     # gestion des dialectes sql et du mode connecté
     self.writerparms["reinit"] = self.regle_ref.getvar("reinit")

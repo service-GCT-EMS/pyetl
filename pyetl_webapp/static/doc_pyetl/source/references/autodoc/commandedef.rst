@@ -1,6 +1,38 @@
 reference des commandes
 =======================
 
+ad
+--
+
+ad
+
+.. index::
+  double: .traitement_ad;adquery
+
+adquery
+.......
+
+   extait des information de active_directory
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+--------+--------+
+|sortie|defaut|entree|commande|param1  |param2  |
++======+======+======+========+========+========+
+|M     |?C    |?A    |adquery |=user   |?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=machine|?C      |
++------+------+------+--------+--------+--------+
+|M     |?C    |?A    |adquery |=groupe |?C      |
++------+------+------+--------+--------+--------+
+|P     |C     |      |adquery |=user   |        |
++------+------+------+--------+--------+--------+
+|      |?C    |?A    |adquery |C       |?C      |
++------+------+------+--------+--------+--------+
+
+
+
 manipulation d'attributs
 ------------------------
 
@@ -852,6 +884,117 @@ decrypt
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
 |A     |?     |A     |decrypt |C?    |        |
++------+------+------+--------+------+--------+
+
+
+
+
+dataviz
+-------
+
+dataviz
+
+.. index::
+  double: .traitement_dataviz;dfgraph
+
+dfgraph
+.......
+
+   cree un graphique a partir d 'un tableau contenu dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |C?    |A     |dfgraph |C     |?LC     |
++------+------+------+--------+------+--------+
+|=mws: |      |A     |dfgraph |C     |?LC     |
++------+------+------+--------+------+--------+
+|=mws: |P     |      |dfgraph |C     |?LC     |
++------+------+------+--------+------+--------+
+
+
+   ?A :  attribut de sortie (optionnel)
+   C? :  fichier (optionnel)
+   A :  attribut contenant les donnees
+   dfgraph :  type de graphique
+   C :  parametres
+
+   =mws: :  mws: (mot_clef)
+   A :  
+   dfgraph :  attribut contenant les donnees
+   C :  type de graphique
+   ?LC :  parametres (optionnel)
+
+   =mws: :  mws: (mot_clef)
+   P :  variable contenant les donnees
+   dfgraph :  
+   C :  type de graphique
+   ?LC :  parametres (optionnel)
+
+
+
+.. index::
+  double: .traitement_dataviz;dfload
+
+dfload
+......
+
+   charge un tableau pandas dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |?A    |dfload  |C     |        |
++------+------+------+--------+------+--------+
+
+
+
+
+
+.. index::
+  double: .traitement_dataviz;dfset
+
+dfset
+.....
+
+ 
+ 
+ 
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |      |L     |dfset   |      |        |
++------+------+------+--------+------+--------+
+
+
+
+
+
+.. index::
+  double: .traitement_dataviz;dfwrite
+
+dfwrite
+.......
+
+   charge un tableau dans pandas dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|?A    |?C    |A     |dfwrite |?C    |        |
 +------+------+------+--------+------+--------+
 
 
@@ -2621,11 +2764,11 @@ os_del
 +------+------+------+--------+------+--------+
 |sortie|defaut|entree|commande|param1|param2  |
 +======+======+======+========+======+========+
-|      |      |      |os_del  |C     |?=\*    |
+|      |      |      |os_del  |C     |        |
 +------+------+------+--------+------+--------+
 | *execution unique au demarrage*             |
 +------+------+------+--------+------+--------+
-|      |?C    |A     |os_del  |?C    |?=\*    |
+|      |?C    |A     |os_del  |      |        |
 +------+------+------+--------+------+--------+
 | *execution pour chaque objet*               |
 +------+------+------+--------+------+--------+
@@ -2637,7 +2780,6 @@ os_del
    ?C :  defaut (optionnel)
    A :  nom du fichier a supprimer
    os_del :  
-   ?C :  chemin (optionnel)
 
 
 
@@ -3429,6 +3571,29 @@ qwc2url
 
 
 .. index::
+  double: .traitement_web;s3upload
+
+s3upload
+........
+
+ 
+ 
+ 
+
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|      |?C    |?A    |s3upload|?C    |        |
++------+------+------+--------+------+--------+
+
+
+
+
+
+.. index::
   double: .traitement_web;wfsload
 
 wfsload
@@ -4103,7 +4268,7 @@ resetlog
 retour
 ......
 
-   ramene les elements apres l execution
+   ramene les elements apres l execution d une macro
 
 
 **syntaxes acceptees**

@@ -29,6 +29,7 @@ mif                                oui           oui
 osm                                oui           non
 pbf                                oui           non
 qgs                                oui           non
+qgz                                oui           non
 qlr                                oui           non
 shp                                oui           oui
 sjson                              non           oui
@@ -407,7 +408,7 @@ format asc
 ..........
 
 
- lecture d'un fichier asc et stockage des objets en memoire
+lecture d'un fichier asc et stockage des objets en memoire
 
 
 format csv
@@ -530,6 +531,13 @@ format qgs
 
 
 lit les datasources des fichiers qgis
+
+
+format qgz
+..........
+
+
+lit les datasources des fichiers qgs
 
 
 format qlr

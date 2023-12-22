@@ -77,6 +77,7 @@ def dbaccess(regle, codebase, type_base=None, mode=None):
         serveur, base, user, passwd, system=systables, params=regle, code=codebase
     )
     # print ('recup connection',connection, connection.valide, connection.connection)
+    mode_enums = int(regle.getvar("mode_enums", 1))
     if connection.valide:
         if regle.istrue("debug"):
             print("connection valide", serveur, base)
@@ -88,7 +89,7 @@ def dbaccess(regle, codebase, type_base=None, mode=None):
         connection.format_natif = dbdef.geom
         connection.schemabase.dbsql = connection.gensql
         if mode != "fast":
-            connection.get_schemabase()
+            connection.get_schemabase(mode_enums)
         connection.commit()  # on referme toutes les transactions
         return connection
 
@@ -752,7 +753,11 @@ def recup_donnees_req_alpha(regle_courante, baseselector):
     n = 0
     ident2 = None
     # stock_param.logger.info("dbacces: selecteur %s", repr(baseselector))
-    # print("mdba:recup_donnees_req_alpha : selecteur", baseselector,list(baseselector.classlist()))
+    # print(
+    #     "mdba:recup_donnees_req_alpha : selecteur",
+    #     baseselector,
+    #     list(baseselector.classlist()),
+    # )
     for ident2, description in baseselector.classlist():
         ident, attr, val, fonction = description
         treq = time.time()

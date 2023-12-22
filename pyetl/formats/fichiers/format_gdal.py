@@ -10,7 +10,7 @@ if printtime:
     import time
 
     t1 = time.time()
-    print("start gdal")
+    # print("start gdal")
 from collections import defaultdict, OrderedDict
 import itertools
 from osgeo import ogr, osr, gdal
@@ -89,7 +89,7 @@ if printtime:
     print("    filewriter ", time.time() - t1)
     t1 = time.time()
 
-
+#
 # global fiona, from_epsg
 
 
@@ -749,7 +749,7 @@ def gdalconverter(obj, schemaclasse, liste_att, minmajfunc, layer, courbe, multi
             )
         else:
             geom = "EMPTY"
-            print("erreur creation geometrie", obj.geom_v.erreurs)
+            print("erreur creation geometrie", obj.geom_v.erreurs, obj)
         # print ("geom ewkt", geom, obj.geom_v)
     # if multi and obj.geom_v.type=="1":
     #     print ("multipoint",obj)

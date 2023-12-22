@@ -104,7 +104,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
                 resolve_att(cla[3:], obj), regle, taille=1, clef=clef
             )
             classlist = set(classes.values())
-            print("classlist:", classlist)
+            # print("classlist:", classlist)
             classes = list(classlist)
             # print("trouve classes", type(classes), classes)
         else:
@@ -127,7 +127,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
             # print("param_base,niv,classe", base, niveau, classes,att,vals,fonction)
             selecteur.add_descripteur(base, niveau, classes, att, vals, fonction)
     regle.cible_base = selecteur
-
+    # print("param_base creation selecteur ;", selecteur)
     return True
 
 
@@ -149,6 +149,7 @@ def setdb(regle, obj):
         )  # limite les selections (pour les tests)
         selecteur.maxsel = maxsel
         selecteur.resolve(obj)
+        # print("setdb creation selecteur ;", selecteur)
         return selecteur
     regle.stock_param.logger.error("pas de selecteur")
     raise StopIteration(3)
@@ -222,13 +223,13 @@ def f_dbalpha(regle, obj):
 
     # bases, niveau, classe, attrs, valeur, chemin, type_base = setdb(regle, obj)
     selecteur = setdb(regle, obj)
-    # print ("dbalpha",selecteur)
+    # print("dbalpha", selecteur, regle)
     if not selecteur:
         return False
     if selecteur.nobase:  # on ne fait rien pour le test
         return True
     if regle.params.pattern == "2":
-        # print ("fdbalpha recup elements",selecteur.baseselectors.items())
+        # print("fdbalpha2 recup elements", selecteur.baseselectors.items())
         for base, basesel in selecteur.baseselectors.items():
             atts = DB.recup_attributs_req_alpha(
                 regle, basesel, regle.params.att_entree.liste
@@ -242,6 +243,7 @@ def f_dbalpha(regle, obj):
     # print("dbalpha", basedict.keys())
     # selecteur.resolve(regle, obj)
     regle.liste_sortie = [obj.attributs.get(i) for i in regle.params.att_entree.liste]
+    # print("fdbalpha1 recup elements", selecteur.baseselectors.items())
     for base, basesel in selecteur.baseselectors.items():
         logger.debug("select base %s %s", base, repr(regle.mods))
         # connect = regle.stock_param.getdbaccess(regle, base, type_base=type_base)

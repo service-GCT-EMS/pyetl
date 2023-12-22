@@ -66,6 +66,7 @@ from .moteur.fonctions.parallel import setparallel
 
 # MODULEDEBUG = False
 
+
 def cremapper():
     """on cree l'objet parent et l'executeur principal"""
     mapper = Pyetl()
@@ -73,6 +74,7 @@ def cremapper():
     try:
         # on essaye de nommer le process (ne marche pas sous windows)
         import setproctitle
+
         setproctitle.setproctitle("mapper")
     except:
         pass
@@ -80,12 +82,11 @@ def cremapper():
     return set_mainmapper(mapper)
 
 
-
 def runpyetl(commandes, args):
     """lancement standardise c'est la fonction appelee au debut du programme"""
     mainmapper = getmainmapper()
     if not mainmapper:
-        mainmapper=cremapper()
+        mainmapper = cremapper()
     if not is_special(commandes):
         loginfo = L.getlog(args)
         for i, v in loginfo.items():
@@ -172,7 +173,6 @@ class Pyetl(object):
     defautcsvencoding = "cp1252"
 
     def __init__(self, parent=None, nom=None, context=None, env=None, mode="cmd"):
-
         self.starttime = time.time()  # timer interne
         # variables d'instance (stockage des elements)
         self.mode = mode
@@ -275,24 +275,23 @@ class Pyetl(object):
         return Moteur(self)
 
     def settime(self):
-        self.lasttime=time.time()
+        self.lasttime = time.time()
 
     def getoldest(self):
-        nom=None
-        for n,w in self.webworkers.items():
+        nom = None
+        for n, w in self.webworkers.items():
             if not w.lasttime:
                 w.settime()
             if not nom:
-                nom,temps=n,w.lasttime
-            elif w.lasttime<temps:
-                nom,temps=n,w.lasttime 
+                nom, temps = n, w.lasttime
+            elif w.lasttime < temps:
+                nom, temps = n, w.lasttime
         return nom
 
     def cleanoldest(self):
         nom = self.getoldest()
         if nom:
             del self.webworkers[nom]
-
 
     def _relpath(self, path):
         """cree un chemin relatif par rapport au fichier de programme"""
@@ -322,7 +321,6 @@ class Pyetl(object):
             result = self.prepare_module(commandes, args)
             self.inited = True
         except SyntaxError as err:
-
             if self.worker:
                 self.logger.exception(
                     "worker:%s erreur script %s",
@@ -375,11 +373,13 @@ class Pyetl(object):
             self._charge_site_params(self.site_params_def)
             if self.getvar("_paramperso") != "noparam":
                 self._charge_site_params(self.paramdir)
-            print ("traitement masterkey",self.getvar("nomaster"),self.istrue("nomaster")),
+            # print(
+            #     "traitement masterkey", self.getvar("nomaster"), self.istrue("nomaster")
+            # ),
             if self.istrue("nomaster"):
-                self.setvar("masterkey","")
-                print ("suppression masterkey", self.getvar("masterkey"))
-                
+                self.setvar("masterkey", "")
+                print("suppression masterkey", self.getvar("masterkey"))
+
             cryptinfo = (
                 os.getlogin(),
                 self.getvar("usergroup"),
@@ -405,7 +405,7 @@ class Pyetl(object):
             self.site_params = self.parent.site_params
             self.sorties = self.parent.sorties
             self.fonctions = self.parent.fonctions
-            self.dbconnect=self.parent.dbconnect
+            self.dbconnect = self.parent.dbconnect
 
     def traite_variables_speciales(self, nom):
         if nom == "log_file" or nom == "log_level":
@@ -652,11 +652,11 @@ class Pyetl(object):
                                 # print("-main:------------------retour queue", msg, nbvals)
                             elif message == "fich":
                                 # print("message fich", nbfic, w_nbval, wid, nbtotal)
-                                message=''
+                                message = ""
                                 tabletotal += nbfic
                                 nbfic = 0
                             elif message == "exp":
-                                message=''
+                                message = ""
                                 nbexp = sum(nbvals.values())
                                 # print("patience: recu exp", nbfic, nbval, nbexp)
                         except Empty:
@@ -676,7 +676,7 @@ class Pyetl(object):
             elif self.worker:
                 try:
                     self.msgqueue.put((message, nbfic, nbval, wid))
-                except (BrokenPipeError):
+                except BrokenPipeError:
                     print("ecriture: queue inexistante")
 
                 # print(" worker : ecriture queue", (message, nbfic, nbval, wid))
@@ -725,7 +725,6 @@ class Pyetl(object):
                 return None
 
         if mode.startswith("web"):
-
             if nom in self.webworkers:
                 petl = self.webworkers[nom]
                 self.settime()
@@ -770,7 +769,6 @@ class Pyetl(object):
 
     #        print('---------pyetl : mode sortie', self.stream, self.getvar("mode_sortie"))
 
-    
     def _charge_site_params(self, origine):
         """charge des definitions de variables liees au site"""
         if not origine:  # localisation non definie
@@ -1215,7 +1213,6 @@ class Pyetl(object):
         ft, _ = next(self.maintimer)
         self.setvar("_st_duree", (ft - dt))
         if not self.is_special and not self.done:
-
             self.logger.info(
                 "fin traitement %d: %s traites %s",
                 self.idpyetl,
@@ -1353,7 +1350,7 @@ class Pyetl(object):
         self.statstore.ecriture_stats()
         if self.getvar("fstat"):  # ecriture de statistiques de fichier
             self.statstore.ecriture_stat_fichiers()
-        if self.istrue("rulecount"): # ecriture stat utilisation des regles
+        if self.istrue("rulecount"):  # ecriture stat utilisation des regles
             self.statstore.rulestat()
 
     def signale_fin(self):
@@ -1402,13 +1399,14 @@ class Pyetl(object):
         # petite manip pour nettoyer les #
         tmp = {
             i[1:] if str(i).startswith("#") else i: self.webstore[i]
-            for i in self.webstore if i !="logbrut"
+            for i in self.webstore
+            if i != "logbrut"
         }
-        self.webstore=dict() # on reset
+        self.webstore = dict()  # on reset
         self.gestion_log.set_weblog()
         # if "logbrut" in self.webstore:
         #     self.webstore = {"logbrut": buffer}
-            
+
         # #     self.gestion_log.resetlog()
         # #     self.gestion_log.set_weblog()
         # if buffer:
@@ -1429,7 +1427,7 @@ class Pyetl(object):
     def getdbaccess(self, regle, nombase, type_base=None, chemin="", mode=None):
         """retourne une connection et la cache"""
         if nombase in self.dbconnect:
-            connection=self.dbconnect[nombase]
+            connection = self.dbconnect[nombase]
             if not connection.closed:
                 return self.dbconnect[nombase]
         connection = dbaccess(regle, nombase, type_base, mode)
@@ -1489,7 +1487,6 @@ class Pyetl(object):
 # mapper.ismainmapper = True
 # set_mainmapper(mapper)
 cremapper()
-
 
 
 def _main():

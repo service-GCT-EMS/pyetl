@@ -218,7 +218,7 @@ def ecrire_schema_sql(
         tout = crsc
         tout.extend(tsql)
         ecrire_fichier_sql(rep, nomschema, "01", "schema", tout, cod, False)
-        
+
     if type_base == "consult":
         ecrire_fichier_sql(rep, nomschema, "99c", "dropschemas", dscc, cod)
 
@@ -323,7 +323,6 @@ def ecrire_au_format(schema, rep, formats_a_sortir, stock_param, mode, confs):
         #            copier_xsl(rep_s)
 
         if form == "xml_d":
-
             header = stock_param.getvar("xmlheader_dist", "")
             prefix = stock_param.getvar("xmlprefix_dist", "d")
             if header:
@@ -377,6 +376,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     a_sortir = a_sortir.split(",") if a_sortir else []
     if rep_sortie:
         os.makedirs(rep_sortie, exist_ok=True)
+    # print("analyse schemas", schemas.keys())
     for i in schemas:
         if not i:
             continue
@@ -404,7 +404,10 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         if stock_param.schemas[i].origine == "G":
             schemas[i].analyse_conformites()
 
-        if schemas[i].analyse_interne(mode_sortie, type_schema=type_schemas_a_sortir) or i in a_sortir:
+        if (
+            schemas[i].analyse_interne(mode_sortie, type_schema=type_schemas_a_sortir)
+            or i in a_sortir
+        ):
             formats_a_sortir = set(formats.split(","))
             if schemas[i].format_sortie:
                 if schemas[i].format_sortie == "sql":

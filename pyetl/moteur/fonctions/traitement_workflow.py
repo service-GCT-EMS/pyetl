@@ -401,7 +401,7 @@ def f_print(regle, obj):
 
 
 def f_retour(regle, obj):
-    """#aide||ramene les elements apres l execution
+    """#aide||ramene les elements apres l execution d une macro
     #pattern||;C?;L?;retour;C?;=noms?
     #test||obj||^;;C1;retour;test ok:;noms||out
     """
@@ -1026,7 +1026,7 @@ def h_attreader(regle):
 
 def f_attreader(regle, obj):
     """#aide||traite un attribut d'un objet comme une source de donnees
-    #parametres||defaut;attribut;;format
+    #parametres||defaut;attribut;format;
      #aide_spec||par defaut attreader supprime le contenu de l attribut source
                ||pour le conserver positionner la variable keepdata a 1
        #pattern||?L;?C;A;attreader;C;?C

@@ -8,9 +8,9 @@ Created on Tue Jan 15 13:47:55 2019
 import platform
 
 
-REVISION = "0.8.3p"
+REVISION = "0.8.3d"
 BUILD = 1
-VERSION=REVISION+" (build:"+str(BUILD)+")"
+VERSION = REVISION + " (build:" + str(BUILD) + ")"
 # version de production
 MAINMAPPER = [None]
 
@@ -34,5 +34,5 @@ DEBUG = False
 
 
 def getdefcodec():
-    """ recupere la variable globale defcodec"""
+    """recupere la variable globale defcodec"""
     return DEFCODEC

@@ -217,7 +217,7 @@ class PgrGenSql(DbGenSql):
             #            print ('postgres: definition indexes', schemaclasse.nom, type_index,
             #                   '->', champs, schemaclasse.getpkey)
             if type_index[0] == "U":
-                if schemaclasse.type_table=='t':
+                if schemaclasse.type_table == "t":
                     ctr.append(
                         "\tCONSTRAINT "
                         + nom.replace(".", "_")
@@ -232,7 +232,7 @@ class PgrGenSql(DbGenSql):
                         "CREATE UNIQUE INDEX uid_"
                         + nom.replace(".", "_")
                         + "_uniq_"
-                        + (champs.replace(",", "_"))  
+                        + (champs.replace(",", "_"))
                     )
                     idx.append("\tON " + table)
                     idx.append("\tUSING btree (" + champs + ");")
@@ -413,12 +413,16 @@ class PgrGenSql(DbGenSql):
             action = action_2
         if nomf not in self.stdtriggers:
             trig = [
-                '\nDROP TRIGGER IF EXISTS "' + nom.lower() + '" ON "' + table.lower() + '";'
+                '\nDROP TRIGGER IF EXISTS "'
+                + nom.lower()
+                + '" ON "'
+                + table.lower()
+                + '";'
             ]
             if sql:
                 trig.append(sql + ";")
             else:
-                trig.append("\nCREATE " + type_trigger + ' "' + nom.lower()+ '" ')
+                trig.append("\nCREATE " + type_trigger + ' "' + nom.lower() + '" ')
                 trig.append(
                     timing + " " + event + (" OF " + colonnes.lower())
                     if colonnes
@@ -681,24 +685,20 @@ class PgrGenSql(DbGenSql):
                 ):
                     seq = True
             if attname == "auteur":
-                
                 if not attype:
                     attype = "T"
                 if attype == "T" and not self.basic:
                     defaut = " DEFAULT current_user"
-                print ("cretable auteur", attype, self.basic, defaut)
+                # print("cretable auteur", attype, self.basic, defaut)
             if attname == "date_creation" or attname == "date_maj":
                 if not attype:
                     attype = "D"
                 if attype == "D" and not self.basic:
                     defaut = " DEFAULT current_timestamp"
             elif attype in schema.conformites and self.basic != "basic":
-
                 schema.conformites.get(attype).nombase = self.ajuste_nom(attype)
-                nomconf = schema.conformites.get(
-                    attype
-                ).nombase
-                  # on a pu adapter le nom a postgres
+                nomconf = schema.conformites.get(attype).nombase
+                # on a pu adapter le nom a postgres
                 #                nomconf = self.ajuste_nom(nomconf)
                 #                print ('detection conformite', attname, attype, nomconf)
 
@@ -738,31 +738,33 @@ class PgrGenSql(DbGenSql):
                                     self.schema_conf + "." + typedef.split(".", 1)[1]
                                 )
                             if nom.startswith("'") or nom.startswith('"'):
-                                nom=nom[1:]
+                                nom = nom[1:]
                             if nom.endswith("'") or nom.endswith('"'):
-                                nom=nom[:1]
-                            predef = "'"+nom + "'::" + typedef
+                                nom = nom[:1]
+                            predef = "'" + nom + "'::" + typedef
                         defaut = " DEFAULT " + predef
                 if nomconf:
-                    if "::" in attribut.defaut: # il y a un typecast
-                        val,typedef=attribut.defaut.split("::",1)
+                    if "::" in attribut.defaut:  # il y a un typecast
+                        val, typedef = attribut.defaut.split("::", 1)
                         if "." in typedef:
-                            ts,tn=typedef.split('.')
-                            if ts!=classe.identclasse[0]:
-                                ts=self.schema_conf
-                            typedef=ts+'.'+tn
+                            ts, tn = typedef.split(".")
+                            if ts != classe.identclasse[0]:
+                                ts = self.schema_conf
+                            typedef = ts + "." + tn
                         else:
-                            typedef=self.schema_conf+'.'+typedef
-                        attribut.defaut=val+'::'+typedef
-                    defaut = (" DEFAULT " + attribut.defaut)
+                            typedef = self.schema_conf + "." + typedef
+                        attribut.defaut = val + "::" + typedef
+                    defaut = " DEFAULT " + attribut.defaut
                 else:
-                    if attribut.defaut.startswith("'") or attribut.defaut.startswith('"'):
-                        attribut.defaut=attribut.defaut[1:]
+                    if attribut.defaut.startswith("'") or attribut.defaut.startswith(
+                        '"'
+                    ):
+                        attribut.defaut = attribut.defaut[1:]
                     if attribut.defaut.endswith("'") or attribut.defaut.endswith('"'):
-                        attribut.defaut=attribut.defaut[:1]
-                    defaut = (" DEFAULT '" + attribut.defaut+"'")
+                        attribut.defaut = attribut.defaut[:1]
+                    defaut = " DEFAULT '" + attribut.defaut + "'"
             elif defaut is None:
-                defaut=''
+                defaut = ""
             if self.types_db.get(attype) == "integer":
                 #                print ('test pk',attribut.nom, classe.getpkey)
                 if seq and not self.basic:
@@ -774,7 +776,10 @@ class PgrGenSql(DbGenSql):
                     defaut = ""
             if attype not in self.types_db and not nomconf:
                 LOGGER.warning(
-                    "postgres: type inconnu %s defaut %s",
+                    "postgres: %s:%s.%s type inconnu %s defaut %s",
+                    self.schema.nom,
+                    table,
+                    attname,
                     attype,
                     deftype,
                 )
@@ -794,7 +799,11 @@ class PgrGenSql(DbGenSql):
                     + ("," + str(attribut.dec) if attribut.dec is not None else "0")
                     + ")"
                 )
-            elif type_sortie == "text" and attribut.taille > 0:
+            elif type_sortie == "text" and (
+                attribut.taille > 0
+                and self.regle_ref
+                and self.regle_ref.istrue("keepvarchar")
+            ):
                 type_sortie = "varchar" + "(" + str(attribut.taille) + ")"
             # print("creation attribut", attname, type_sortie, attribut.multiple)
             if attribut.multiple:
@@ -987,7 +996,6 @@ class PgrGenSql(DbGenSql):
             )
             pass
         else:
-
             cretables.append(
                 "\n-- ########### definition des fonctions ###############\n"
             )
@@ -1004,7 +1012,6 @@ class PgrGenSql(DbGenSql):
             )
         )
         if not self.basic:
-
             if liste_ftables:
                 cretables.append(
                     "\n-- ########### definition des tables distantes ############\n"
@@ -1027,7 +1034,7 @@ class PgrGenSql(DbGenSql):
             trigdefs = []
             for ident in liste:
                 trigs, foncs = self.basetriggers(ident)
-                print ('definition triggers ', ident,len(trigs),len(foncs))
+                # print("definition triggers ", ident, len(trigs), len(foncs))
                 trigdefs.extend(trigs)
                 foncdefs.update(foncs)
             cretables.append(
@@ -1144,13 +1151,11 @@ class PgrGenSql(DbGenSql):
                 groupe, nom = ident
                 classe = self.schema.classes[ident]
 
-                if classe.type_table=='m':
+                if classe.type_table == "m":
                     ctr, idx = self.cree_indexes(classe, groupe, nom)
 
                     vues_sql.extend(ctr)
                     vues_sql.extend(idx)
-
-
 
                 vues_sql.extend(self.cree_comments(classe, groupe, nom))
 

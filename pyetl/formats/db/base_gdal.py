@@ -9,6 +9,7 @@ import os
 
 from pyetl.formats.geometrie.format_ewkt import ecrire_geom_ewkt
 import xml.etree.ElementTree as ET
+
 printtime = False
 if printtime:
     import time
@@ -17,7 +18,8 @@ if printtime:
     print("start gdal")
 from collections import defaultdict, OrderedDict
 import itertools
-from osgeo import ogr,osr, gdal
+from osgeo import ogr, osr, gdal
+
 gdal.UseExceptions()
 from ..fichiers.format_gdal import decode_wkbgeomtyp, formatte_entree
 
@@ -60,7 +62,7 @@ class GdalConnect(DbConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         # importer()
         self.type_base = "gpkg"
-        self.driver=ogr.GetDriverByName('gpkg')
+        self.driver = ogr.GetDriverByName("gpkg")
         self.connect()
         self.geographique = True
         self.accept_sql = "no"
@@ -70,10 +72,10 @@ class GdalConnect(DbConnect):
         self.qgstree = None
         self.enuminfos = dict()
         self.layerinfos = dict()
-        self.rastercount= self.getraster()
+        self.rastercount = self.getraster()
         self.prepare_complements()
-        print ('gdalconnect actif',self,self.connection)
-        
+        print("gdalconnect actif", self, self.connection)
+
     #        self.encoding =
 
     def connect(self):
@@ -81,30 +83,28 @@ class GdalConnect(DbConnect):
         print("info : dbacces:connection gdal", self.driver, self.base)
         try:
             self.connection = self.driver.Open(self.base)
-            print (self.connection,self.base)
+            print(self.connection, self.base)
         except Exception as err:
-            print(
-                "error: gpkg: erreur acces base",
-                self.base,err
-            )
+            print("error: gpkg: erreur acces base", self.base, err)
             raise
         if not self.connection:
-            print ('erreur connection', self.base)
+            print("erreur connection", self.base)
             raise StopIteration(1)
 
         # print("connection réussie", self.type_base)
+
     def getlayers(self):
-        """ lecture de la liste de couches"""
-        layerdict=dict()
-        print ('couches',self.connection.GetLayerCount())
+        """lecture de la liste de couches"""
+        layerdict = dict()
+        print("couches", self.connection.GetLayerCount())
         for i in range(self.connection.GetLayerCount()):
             layer = self.connection.GetLayerByIndex(i)
-            name=layer.GetName()
-            layerdict[name]=layer
+            name = layer.GetName()
+            layerdict[name] = layer
         return layerdict
 
     def getraster(self):
-        """ determine si un gpkg contient des couches raster"""
+        """determine si un gpkg contient des couches raster"""
         try:
             return self.connection.RasterCount
         except AttributeError:
@@ -186,61 +186,83 @@ class GdalConnect(DbConnect):
             "Date": "DS",
             "Time": "D",
         }
-        nb=0
+        nb = 0
         attlist = []
         layers = self.getlayers()
         # print("gdalshema: lecture tables", layers)
-        
+
         groupe = os.path.splitext(os.path.basename(self.base))[0]
-        for layername,layer in layers.items():
+        for layername, layer in layers.items():
             # sc_classe = schema_courant.setdefault_classe(ident)
-            classe=layername
+            classe = layername
             ident = (groupe, classe)
             complements = self.layerinfos.get(classe, dict())
             attcomp = complements.get("attributs", dict())
-            geomtyp=layer.GetGeomType()
-            nom_geom=layer.GetGeometryColumn()
+            geomtyp = layer.GetGeomType()
+            nom_geom = layer.GetGeometryColumn()
             if not nom_geom:
-                nom_geom="geometrie"
-            type_geom,multigeom,courbe,dimension,mesure=decode_wkbgeomtyp(geomtyp)
-            type_geom=str(type_geom)
-            srid=None
-            print("---------recup schema gdal",ident,':type geometrique gdal', geomtyp,ogr.GeometryTypeToName(geomtyp), type_geom, nom_geom)
-            if type_geom != '100':
-                spatialref=layer.GetSpatialRef()
+                nom_geom = "geometrie"
+            type_geom, multigeom, courbe, dimension, mesure = decode_wkbgeomtyp(geomtyp)
+            type_geom = str(type_geom)
+            srid = None
+            nb = layer.GetFeatureCount()
+            if geomtyp == 0 and nb:  # type indefini : on essaye d 'analyser les donnees
+                geom = set(
+                    i.ExportToJson(as_object=True)["geometry"]["type"] for i in layer
+                )
+                if len(geom) == 1:
+                    type_geom = code_g.get(geom.pop(), 0)
+                print("type geom objet: ", type_geom)
+
+            print(
+                "---------recup schema gdal",
+                ident,
+                ":type geometrique gdal",
+                geomtyp,
+                ogr.GeometryTypeToName(geomtyp),
+                type_geom,
+                nom_geom,
+            )
+            if type_geom != "100":
+                spatialref = layer.GetSpatialRef()
                 if spatialref:
-                    srid=str(spatialref.GetAttrValue("AUTHORITY", 1))
-                    print(ident,':spatialref gdal', spatialref.GetName(),spatialref.AutoIdentifyEPSG(),srid)
+                    srid = str(spatialref.GetAttrValue("AUTHORITY", 1))
+                    print(
+                        ident,
+                        ":spatialref gdal",
+                        spatialref.GetName(),
+                        spatialref.AutoIdentifyEPSG(),
+                        srid,
+                    )
                 else:
-                    print(ident, ':non geometrique')
+                    print(ident, ":non geometrique")
             if not srid:
                 srid = "3948"
 
-            layerDefinition =  layer.GetLayerDefn()
-            nb=layer.GetFeatureCount()
+            layerDefinition = layer.GetLayerDefn()
             # sc_classe.info["type_geom"] = type_geom
             for i in range(layerDefinition.GetFieldCount()):
-                fielddef=layerDefinition.GetFieldDefn(i)
-                nom_att =  fielddef.GetName()
+                fielddef = layerDefinition.GetFieldDefn(i)
+                nom_att = fielddef.GetName()
                 fieldTypeCode = fielddef.GetType()
                 fieldType = fielddef.GetFieldTypeName(fieldTypeCode)
-                type_att=types_a.get(fieldType,'-1')
-                if type_att=="-1":
-                    print ("type attribut inconnu",fieldType,fieldTypeCode)
+                type_att = types_a.get(fieldType, "-1")
+                if type_att == "-1":
+                    print("type attribut inconnu", fieldType, fieldTypeCode)
                 taille = fielddef.GetWidth()
                 dec = fielddef.GetPrecision()
                 attlist.append(
-                        self.attdef(
-                            nom_groupe=groupe,
-                            nom_classe=classe,
-                            nom_attr=nom_att,
-                            alias=complements.get("alias", ""),
-                            type_attr=type_att,
-                            taille=taille,
-                            decimales=dec,
-                            enum=complements.get("enum", ""),
-                        )
+                    self.attdef(
+                        nom_groupe=groupe,
+                        nom_classe=classe,
+                        nom_attr=nom_att,
+                        alias=complements.get("alias", ""),
+                        type_attr=type_att,
+                        taille=taille,
+                        decimales=dec,
+                        enum=complements.get("enum", ""),
                     )
+                )
             if type_geom != "0":
                 attlist.append(
                     self.attdef(
@@ -253,19 +275,19 @@ class GdalConnect(DbConnect):
                     )
                 )
             nouv_table = [
-                    groupe,
-                    classe,
-                    complements.get("alias", ""),
-                    type_geom,
-                    dimension,
-                    nb,
-                    "t",
-                    "",
-                    "",
-                    "",
-                    "",
-                    nom_geom
-                ]
+                groupe,
+                classe,
+                complements.get("alias", ""),
+                type_geom,
+                dimension,
+                nb,
+                "t",
+                "",
+                "",
+                "",
+                "",
+                nom_geom,
+            ]
             self.tables[ident] = nouv_table
         return attlist
 

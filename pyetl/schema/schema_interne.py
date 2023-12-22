@@ -63,7 +63,7 @@ def init_schema(
         mapper.schemas[nom_schema] = nouveau
         nouveau.stable = stable
         nouveau.metas["script_ref"] = mapper.getvar("pyetl_script_ref")
-        nouveau.metas["alias"] =  mapper.getvar("alias_schema")
+        nouveau.metas["alias"] = mapper.getvar("alias_schema")
         #            self.schemas[nom_schema].modele = modele
         #        print (nom_schema, 'creation schema', modele.nom if modele else 'init')
 
@@ -85,6 +85,13 @@ def init_schema(
 
 def choix_multi(schemaclasse, ren, rec, negniv, negclass, nocase):
     """determine si une table est a retenir"""
+    # print(
+    #     "choix multi",
+    #     schemaclasse.groupe,
+    #     schemaclasse.nom,
+    #     bool(ren.search(schemaclasse.groupe)),
+    #     bool(rec.search(schemaclasse.nom)),
+    # )
     if nocase:
         # print("choix_multi", schemaclasse.identclasse)
         # print(
@@ -153,7 +160,7 @@ class Schema(object):
 
     def __init__(self, nom_schema, fich="", origine="G", defmodeconf=0, alias=""):
         self.classes = dict()
-        self.ordre=[]
+        self.ordre = []
         self.nocase = dict()
         self.conformites = dict()
         self.defmodeconf = defmodeconf
@@ -582,13 +589,13 @@ class Schema(object):
             if rec is None:
                 print("erreur de description de classe ", exp_clas)
                 return set()
-            # print("selection ", exp_niv, exp_clas)
+            # print("multi selection >", exp_niv, "<>", exp_clas)
             for i in self.classes:
                 if tables != "a" and self.classes[i].type_table not in tables:
                     # print("non retenu", tables, self.classes[i].type_table)
                     continue
                 if choix_multi(self.classes[i], ren, rec, negniv, negclass, nocase):
-                    if not attr or attr=="*" or attr in self.classes[i].attributs:
+                    if not attr or attr == "*" or attr in self.classes[i].attributs:
                         tables_a_sortir.add(i)
                     elif attr == "#geom" and self.classes[i].info["type_geom"] > "0":
                         tables_a_sortir.add(i)
@@ -609,7 +616,11 @@ class Schema(object):
                         tables_a_sortir.add(idclas)
 
         # print(
-        #     "db: Nombre de tables a sortir:", len(tables_a_sortir), niveau, classe, attr
+        #     "db:select_niv_classe Nombre de tables a sortir:",
+        #     len(tables_a_sortir),
+        #     niveau,
+        #     classe,
+        #     attr,
         # )
         return tables_a_sortir
 
@@ -634,10 +645,13 @@ class Schema(object):
                 self.select_niv_classe(exp_niv, exp_clas, attr, tables, multi, nocase)
             )
 
-        if not tables_a_sortir:
+        if tables_a_sortir:
+            print("select_classes: nombre de tables a sortir", len(tables_a_sortir))
+        else:
             print("pas de tables a sortir")
             print("select tables: requete", tables, niveau, classe, multi)
             print("taille schema", self.nom, len(self.classes))
+
         return list(tables_a_sortir)
 
     def depend_calculator(self, liste, mode=""):
@@ -692,13 +706,11 @@ class Schema(object):
         fkref = False
         fklie = False
         for ident in liste:
-            refs=[i for i in self.has_deps(ident) if i not in bloc]
+            refs = [i for i in self.has_deps(ident) if i not in bloc]
             if refs:
                 fkref = True
-                LOGGER.warning(
-                        "%s cible foreign key non selectionnee:%s", ident, refs
-                    )
-            lies=[i for i in self.is_cible(ident) if i not in bloc]
+                LOGGER.warning("%s cible foreign key non selectionnee:%s", ident, refs)
+            lies = [i for i in self.is_cible(ident) if i not in bloc]
             if lies:
                 fklie = True
                 LOGGER.warning(
@@ -727,7 +739,7 @@ class Schema(object):
             pass
         else:
             self.completewarning(liste2)
-        # print("ordre sortie", liste2)
+        # print("creschematravail ordre sortie", liste, "->", liste2)
         for ident in liste2:
             classe = self.get_classe(ident)
             classe.resolve()
@@ -736,7 +748,7 @@ class Schema(object):
             clas2.setinfo("objcnt_init", classe.getinfo("objcnt_init", "0"))
             # on renseigne le nombre d'objets de la table
             clas2.settype_table(classe.type_table)
-        schema_travail.ordre=liste2
+        schema_travail.ordre = liste2
         # print ("creschematravail", schema_travail)
         return schema_travail, liste2
 
@@ -746,11 +758,14 @@ class Schema(object):
         """recupere le schema de travail"""
         # print ( 'schema base ',connect.schemabase.classes.keys())
         liste = self.select_classes(niveau, classe, [], tables, multi, nocase)
+        # print("getschematravail ", liste)
         schema_travail, liste2 = self.creschematravail(regle, liste, nomschema)
+        # print("apres creschematravail ", liste2)
+
         schema_travail.metas["tables"] = tables
         schema_travail.metas["filtre_niveau"] = ",".join(niveau) if niveau else ""
         schema_travail.metas["filtre_classe"] = ",".join(classe) if classe else ""
-        schema_travail.metas["alias"] = regle.getvar("alias_schema",'')
+        schema_travail.metas["alias"] = regle.getvar("alias_schema", "")
         # print("recup schema travail", schema_travail.metas)
         return schema_travail, liste2
 

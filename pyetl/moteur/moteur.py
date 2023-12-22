@@ -307,12 +307,14 @@ class Moteur(object):
         obj.redirect = "end"
         # print("fin de l objet", obj.ido)
 
-    def vide_stock(self):
+    def vide_stock(self, regles=None):
         """vidange des tuyeaux"""
         stock = True
         while stock:
             stock = False
-            for regle in self.regles:
+            for regle in regles or self.regles:
+                if regle.liste_regles:
+                    self.vide_stock(regles=regle.liste_regles)
                 if regle.store and regle.nbstock:
                     # print("--------menage_final ", regle, regle.nbstock)
                     stock = True

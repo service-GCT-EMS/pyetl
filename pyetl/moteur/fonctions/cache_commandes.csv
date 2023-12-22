@@ -1,3 +1,4 @@
+adquery;.traitement_ad
 cnt;.traitement_alpha
 extractbloc;.traitement_alpha
 format;.traitement_alpha
@@ -26,6 +27,10 @@ zipextract;.traitement_archives
 stat;.traitement_aux
 crypt;.traitement_crypt
 decrypt;.traitement_crypt
+dfgraph;.traitement_dataviz
+dfload;.traitement_dataviz
+dfset;.traitement_dataviz
+dfwrite;.traitement_dataviz
 dbalpha;.traitement_db
 dbcheck;.traitement_db
 dbclean;.traitement_db
@@ -127,6 +132,7 @@ ftp_download;.traitement_web
 ftp_upload;.traitement_web
 geocode;.traitement_web
 qwc2url;.traitement_web
+s3upload;.traitement_web
 wfsload;.traitement_web
 abort;.traitement_workflow
 attencode;.traitement_workflow

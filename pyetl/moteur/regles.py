@@ -950,6 +950,7 @@ class RegleTraitement(object):  # regle de mapping
 
     @property
     def entree(self):
+        # affectation de la proprieté entree de la regle (regle.entree = )
         return self.getval_entree(self.obj_courant)
 
     def getval_ref(self, obj=None):

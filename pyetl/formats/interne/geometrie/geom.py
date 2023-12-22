@@ -244,13 +244,11 @@ class Geometrie(object):
         else:
             self.lignes = [C.Ligne(C.Section(coords, dim))]
 
-
-    def supp_point(self,indice=-1):
+    def supp_point(self, indice=-1):
         """supprime un point dans la section courante de la ligne courante"""
         if self.lignes:
             ligne_active = self.lignes[-1]
             ligne_active.supp_point(indice)
-
 
     def nouvelle_ligne_s(self, sect, interieur=None):
         """finit la ligne courante et en demarre une nouvelle avec une section"""
@@ -320,7 +318,9 @@ class Geometrie(object):
         if reste:
             print("ligne orpheline", reste)
 
-    def finalise_geom(self, type_geom="0", orientation="L", desordre=False):
+    def finalise_geom(
+        self, type_geom="0", orientation="L", desordre=False, autocorrect=False
+    ):
         """termine une geometrie et finalise la structure"""
         self.valide = True
         self.multi = False
@@ -328,7 +328,7 @@ class Geometrie(object):
         self.unsync = 1
         self.null = (len(self.points) + len(self.lignes)) == 0
         # print("finalise_geom:", type_geom, self.type)
-        if type_geom == "0":
+        if type_geom == "0" or (self.null and autocorrect):
             self.type = "0"
             self.lignes = []
             self.polygones = []
@@ -357,6 +357,8 @@ class Geometrie(object):
                     aire = i.aire_orientee()
                     if aire == 0 and self.dimension != 3:
                         self.erreurs.ajout_erreur("contour degénéré " + type_geom)
+                        if autocorrect:
+                            continue
                         self.valide = False
                         return False
                     if orientation == "R":
@@ -380,10 +382,18 @@ class Geometrie(object):
         #            raise
         if self.type == "2":
             for i in self.lignes:
+                regen = False
                 for j in i.sections:
                     if j.npt < 2:
                         self.erreurs.ajout_erreur("section un point")
+                        if autocorrect:
+                            regen = True
+                            continue
                         self.valide = False
+                if regen:
+                    i.sections = [
+                        s for s in i.sections if s.npt > 1
+                    ]  # on supprime les sections 1 pt
         self.multi = len(self.polygones) - 1 if self.polygones else len(self.lignes) - 1
         self.courbe = any([i.courbe for i in self.lignes])
         if self.lignes:
@@ -654,10 +664,6 @@ class Geometrie(object):
     def __as_ewkt__(self):
         return ecrire_geom_ewkt(self)
 
-
-
-
-
     @property
     def __json_if__(self):
         """interface de type json"""
@@ -834,7 +840,6 @@ class Geometrie(object):
                 }
 
         elif self.type == "3":
-
             multi = self.force_multi or self.multi or len(self.polygones) > 1
 
             if multi:
@@ -942,7 +947,6 @@ class Geometrie(object):
         elif geo_if["type"] == "Tin":
             dim = len(geo_if["coordinates"][0][0][0])
             for poly in geo_if["coordinates"]:
-
                 for ligne in poly:
                     self.cree_section(ligne, dim, 1, 0)
 
@@ -955,7 +959,6 @@ class Geometrie(object):
         elif geo_if["type"] == "PolyhedralSurface":
             dim = len(geo_if["coordinates"][0][0][0])
             for poly in geo_if["coordinates"]:
-
                 for ligne in poly:
                     self.cree_section(ligne, dim, 1, 0)
 

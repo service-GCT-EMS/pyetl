@@ -200,10 +200,15 @@ class Objet(object):
                 ]
             )
 
-    def finalise_geom(self, type_geom=None, orientation="L", desordre=False):
+    def finalise_geom(
+        self, type_geom=None, orientation="L", desordre=False, autocorrect=False
+    ):
         """finalise la geometrie et renseigne les attributs"""
         self.geom_v.finalise_geom(
-            type_geom=type_geom, orientation=orientation, desordre=desordre
+            type_geom=type_geom,
+            orientation=orientation,
+            desordre=desordre,
+            autocorrect=autocorrect,
         )
         if not self.geom_v.valide:
             self.setnogeom(tmp=True)

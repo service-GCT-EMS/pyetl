@@ -9,6 +9,7 @@ reference macros
 :ref:`#adquery` condition;element;clef                        passe une requete LDAP
 :ref:`#aduser` nom;clef                                       recupere un nom d utilisateur sur active directory ou LDAP
 :ref:`#analyse` force                                         analyse d'un jeu de donnees
+:ref:`#asc_upload` nom;dest_final;reinit;vgeom                chargement vers elyx
 :ref:`#att_sigli` modif                                       ajoute les attributs standard a un schema
 :ref:`#att_sigli_modif`                                       ajoute les attributs standard + date_maj et auteur 
 :ref:`#att_sigli_std`                                         ajoute les attributs standard  date_maj / date_creation et le gid
@@ -19,11 +20,15 @@ reference macros
 :ref:`#cc2cus`                                                reprojette des donnees cus en rgf93
 :ref:`#cc482ll`                                               reprojette des donnees cus en rgf93
 :ref:`#change` att;old;new                                    
+:ref:`#charge_osm`                                            
 :ref:`#classe` classe;att                                     force la classe
 :ref:`#cmd` cmd;v1;v2;v3;v4;v5                                passe une commande a la sauvage
 :ref:`#cmin`                                                  passe les noms de classe et de groupe en minuscule
+:ref:`#convert_sigli` rep                                     
+:ref:`#creclef`                                               
 :ref:`#cree_schema` nom;dialecte;modif                        conversion de fichiers de structure en schema sql
 :ref:`#cree_sql` nom;dialecte                                 conversion de schemas en sql
+:ref:`#crypt_site_params`                                     prepare les acces personnalises aux bases
 :ref:`#cus2cc48`                                              reprojette des donnees cus en rgf93
 :ref:`#db_batch` nom_batch;famille_batch;force                passe les batchs actifs
 :ref:`#db_batch_rt` bdef                                      lance le scheduler sur une liste de taches en base lecture unique
@@ -34,14 +39,16 @@ reference macros
 :ref:`#dbdump` acces;niveau;classe;rep_sortie;log             extraction d'un jeu de donnees d'une base de donnees avec un programme externe
 :ref:`#dbextract` acces;niveau;classe;attribut;valeur;ordre   extraction d'un jeu de donnees d'une base de donnÃ©es
 :ref:`#dbextract+gid` acces;niveau;classe;attribut;valeur     lecture d'un jeu de donnees d' une base avec ajout d un gid si necessaire p:format parametres serveur base chaine_connection niveau classe
-:ref:`#dblist` acces;requete                                  recuperation d'un jeu de donnees par requete directe dans une variable
+:ref:`#dblist` acces;requete                                  affichage d'un jeu de donnees par requete directe dans une variable
 :ref:`#dbrequest` acces;requete;niveau;classe                 recuperation d'un jeu de donnees par requete directe
 :ref:`#dbschema` acces;niveau;classe;nom                      analyse une base de donnees
 :ref:`#dbwrite` dest;niveau;classe;attributs                  chargement dans une base de donnees d'une base de donnÃ©es
 :ref:`#debug`                                                 
+:ref:`#dir`                                                   affichage d une liste recursive de fichiers
 :ref:`#editparams` perso                                      
 :ref:`#extract` niveau;classe                                 extraction de niveaux ou de classes a partir de fichiers
 :ref:`#extract+gid` niveau;classe                             lecture d'un jeu de donnees d un repertoire avec ajout d un gid si necessaire
+:ref:`#extract_donnees` schema                                scripts de passage en prod
 :ref:`#extractm`                                              extraction en mode multiprocesseur
 :ref:`#fanout`                                                positionne le fanout a classe avec un mode de traitement par classe
 :ref:`#fileschema` acces                                      
@@ -53,17 +60,23 @@ reference macros
 :ref:`#garder` atts                                           ne conserver que certains champs
 :ref:`#geocode` adresse;filtres                               geocode des elements
 :ref:`#geocode2cus` adresse;filtres                           geocode des elements et sort des points en cc48 cus
+:ref:`#geocode_csv` adresse;scoremin;filtre;prefix            geocodage d'un fichier csv
 :ref:`#geoextract` acces;niveau;classe;rel_geo;buffer;champ   extraction d'un jeu de donnees d'une base par contour(le contour est l objet d entree)
 :ref:`#geomfilter`                                            filtre les geometries pour eviter les erreurs
+:ref:`#getosm` dest                                           telecharge le fichier osm de l'alsace
 :ref:`#gid`                                                   ajout d un gid si necessaire
+:ref:`#grantsitr` fich                                        generation des scripts de grant
 :ref:`#grid` x_orig;y_orig;pas;cases                          repartit les objets selon une grille
 :ref:`#groupe` groupe                                         force le groupe
+:ref:`#histo_cmp` rep_histo;traitement                        
+:ref:`#histor` rep;date;workers                               convertit des bases en format historique
 :ref:`#httpdownload` url;dest;rep                             charge des elements en http
 :ref:`#ident` groupe;classe                                   force le groupe et la classe
 :ref:`#indb` acces                                            precharge des donnees depuis une base pour comparaison
 :ref:`#init_mp`                                               initialise un module en mode multiprocessing (ne fait rien et attends)
 :ref:`#initdb` acces;nomfich                                  positionne des elements d'acces a une base de donnees
 :ref:`#jette`                                                 mange tous les objets
+:ref:`#justdecrypt` valeur                                    
 :ref:`#linefilter`                                            filtre les lignes pour eviter les erreurs
 :ref:`#liste_params` clef;val                                 liste les parametres d acces aux bases
 :ref:`#ll2cus`                                                reprojette des donnees cus en rgf93
@@ -71,22 +84,32 @@ reference macros
 :ref:`#low` al                                                passe une liste d attributs en minuscule
 :ref:`#mastercrypt` val                                       crypte un element avec la masterkey
 :ref:`#md5` source                                            calcule une somme md5 sur le fichier
+:ref:`#mkcrypt` user                                          
 :ref:`#mod` att;val;repl                                      modif conditionelle de valeurs dans un champs
 :ref:`#moi`                                                   affiche le nom de l utilisateur courant
 :ref:`#ora2pg`                                                passage de oracle vers postgis
+:ref:`#ora2pg2` base;schema;classe                            passage de oracle vers postgis version locale
 :ref:`#pass`                                                  placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
+:ref:`#passage_dev` schema                                    
+:ref:`#passage_prod` fich;acces                               
+:ref:`#passage_schema` schema                                 scripts de passage en prod
 :ref:`#prefix` prefix                                         prefixe la classe
 :ref:`#print`                                                 
 :ref:`#printparams`                                           affichage
 :ref:`#printvar` var                                          affichage variable
 :ref:`#pwcrypt` clef                                          crypte les mots de passe
+:ref:`#pwdecrypt` key                                         decrypte les mots de passe
+:ref:`#pwprepare` ref                                         
 :ref:`#pyetl_init_db`                                         initialise le schema pyetl pour travailler en base de donnees
 :ref:`#regroupe` groupe;stocke_groupe                         force le groupe et le transfere sur un attribut
 :ref:`#rename` old;new                                        
 :ref:`#reproj` orig;dest;grille                               convertit des coordonees du systeme orig vers dest
+:ref:`#retour_elyx` dest;clef;orig                            
+:ref:`#retour_sdea` dest;clef;orig                            retour des donnees vers elyx pour toutes les classes du schema sdea
 :ref:`#run` prog;params                                       execute une commande externe
 :ref:`#runproc` nom;dest;params                               lancement fonction_sql
 :ref:`#runsql` nom;dest                                       lancement script_sql
+:ref:`#s3upload` fich;acces;dest                              charge des elements en s3
 :ref:`#schema_sigli` nom_schema                               ajoute les attributs standard a un schema
 :ref:`#scriptodb` nom;dest                                    charge un script en base
 :ref:`#set` atts;vals;defaut                                  affectation  absolue de champs
@@ -94,10 +117,14 @@ reference macros
 :ref:`#site_params` key;fin                                   affichage des parametres de connection stockes
 :ref:`#sleep` duree                                           
 :ref:`#stdvar`                                                variables de base appele par tous les autres elements
+:ref:`#store` clef;code                                       
 :ref:`#supp` atts                                             suppression de champs
 :ref:`#test` n1;n2;a                                          test des variables
+:ref:`#testpourluc`                                           aide speciale pour luc
 :ref:`#timeselect` var                                        determine si un batch est executable en fonction de l'heure
 :ref:`#to_sigli`                                              preparation d'un jeu de donnees formatage standard sigli p:format parametres serveur base chaine_connection niveau classe
+:ref:`#ukcrypt`                                               
+:ref:`#ukdecrypt`                                             
 :ref:`#upload` fich;dest;destdir                              charge des elements par ftp
 :ref:`#valide` niveau;classe                                  validation de niveaux ou de classes par rapport a un schema
 :ref:`#version` full                                          affiche la version de pyetl
@@ -172,6 +199,21 @@ parametres positionnels
 variables utilisées
 
 * max_conf:nombre de classes maxi d une enum
+
+
+
+#asc_upload
+...........
+
+
+chargement vers elyx
+
+parametres positionnels
+
+* nom:nom
+* dest_final:dest_final
+* reinit:reinit
+* vgeom:vgeom
 
 
 
@@ -275,6 +317,12 @@ parametres positionnels
 
 
 
+#charge_osm
+...........
+
+
+
+
 #classe
 .......
 
@@ -313,6 +361,22 @@ passe les noms de classe et de groupe en minuscule
 
 
 
+#convert_sigli
+..............
+
+
+parametres positionnels
+
+* rep:rep
+
+
+
+#creclef
+........
+
+
+
+
 #cree_schema
 ............
 
@@ -339,6 +403,14 @@ parametres positionnels
 
 * nom:nom
 * dialecte:dialecte
+
+
+
+#crypt_site_params
+..................
+
+
+prepare les acces personnalises aux bases
 
 
 
@@ -491,7 +563,7 @@ parametres positionnels
 .......
 
 
-recuperation d'un jeu de donnees par requete directe dans une variable
+affichage d'un jeu de donnees par requete directe dans une variable
 
 parametres positionnels
 
@@ -560,6 +632,14 @@ parametres positionnels
 
 
 
+#dir
+....
+
+
+affichage d une liste recursive de fichiers
+
+
+
 #editparams
 ...........
 
@@ -605,6 +685,18 @@ variables utilisées
 
 * schema:schema d entree sous forme de ficher de description csv
 * multigeom:force les geometries en multiple si vrai(1 ou t)
+
+
+
+#extract_donnees
+................
+
+
+scripts de passage en prod
+
+parametres positionnels
+
+* schema:schema
 
 
 
@@ -740,6 +832,21 @@ parametres positionnels
 
 
 
+#geocode_csv
+............
+
+
+geocodage d'un fichier csv
+
+parametres positionnels
+
+* adresse:adresse
+* scoremin:scoremin
+* filtre:filtre
+* prefix:prefix
+
+
+
 #geoextract
 ...........
 
@@ -765,6 +872,18 @@ filtre les geometries pour eviter les erreurs
 
 
 
+#getosm
+.......
+
+
+telecharge le fichier osm de l'alsace
+
+parametres positionnels
+
+* dest:dest
+
+
+
 #gid
 ....
 
@@ -772,6 +891,18 @@ filtre les geometries pour eviter les erreurs
 ajout d un gid si necessaire
 
  * le gid n est ajoute que si la classe n'a pas de clef primaire
+
+
+
+#grantsitr
+..........
+
+
+generation des scripts de grant
+
+parametres positionnels
+
+* fich:fich
 
 
 
@@ -799,6 +930,31 @@ force le groupe
 parametres positionnels
 
 * groupe:nouveau groupe
+
+
+
+#histo_cmp
+..........
+
+
+parametres positionnels
+
+* rep_histo:rep_histo
+* traitement:traitement
+
+
+
+#histor
+.......
+
+
+convertit des bases en format historique
+
+parametres positionnels
+
+* rep:rep
+* date:date
+* workers:workers
 
 
 
@@ -867,6 +1023,16 @@ parametres positionnels
 
 
 mange tous les objets
+
+
+
+#justdecrypt
+............
+
+
+parametres positionnels
+
+* valeur:valeur
 
 
 
@@ -946,6 +1112,16 @@ parametres positionnels
 
 
 
+#mkcrypt
+........
+
+
+parametres positionnels
+
+* user:user
+
+
+
 #mod
 ....
 
@@ -980,11 +1156,58 @@ passage de oracle vers postgis
 
 
 
+#ora2pg2
+........
+
+
+passage de oracle vers postgis version locale
+
+parametres positionnels
+
+* base:base
+* schema:schema
+* classe:classe
+
+
+
 #pass
 .....
 
 
 placeholdermacro: s'il faut une macro qui ne fait rien(ne fait rien et passe les objets)
+
+
+
+#passage_dev
+............
+
+
+parametres positionnels
+
+* schema:schema
+
+
+
+#passage_prod
+.............
+
+
+parametres positionnels
+
+* fich:fich
+* acces:acces
+
+
+
+#passage_schema
+...............
+
+
+scripts de passage en prod
+
+parametres positionnels
+
+* schema:schema
 
 
 
@@ -1038,6 +1261,28 @@ parametres positionnels
 
 
 
+#pwdecrypt
+..........
+
+
+decrypte les mots de passe
+
+parametres positionnels
+
+* key:key=%userkey%
+
+
+
+#pwprepare
+..........
+
+
+parametres positionnels
+
+* ref:ref
+
+
+
 #pyetl_init_db
 ..............
 
@@ -1084,6 +1329,32 @@ parametres positionnels
 
 
 
+#retour_elyx
+............
+
+
+parametres positionnels
+
+* dest:dest
+* clef:clef
+* orig:orig
+
+
+
+#retour_sdea
+............
+
+
+retour des donnees vers elyx pour toutes les classes du schema sdea
+
+parametres positionnels
+
+* dest:dest
+* clef:clef
+* orig:orig
+
+
+
 #run
 ....
 
@@ -1120,6 +1391,20 @@ lancement script_sql
 parametres positionnels
 
 * nom:nom
+* dest:dest
+
+
+
+#s3upload
+.........
+
+
+charge des elements en s3
+
+parametres positionnels
+
+* fich:fich
+* acces:acces
 * dest:dest
 
 
@@ -1208,6 +1493,17 @@ variables utilisées
 
 
 
+#store
+......
+
+
+parametres positionnels
+
+* clef:clef
+* code:code
+
+
+
 #supp
 .....
 
@@ -1234,6 +1530,14 @@ parametres positionnels
 
 
 
+#testpourluc
+............
+
+
+aide speciale pour luc
+
+
+
 #timeselect
 ...........
 
@@ -1251,6 +1555,18 @@ parametres positionnels
 
 
 preparation d'un jeu de donnees formatage standard sigli p:format parametres serveur base chaine_connection niveau classe
+
+
+
+#ukcrypt
+........
+
+
+
+
+#ukdecrypt
+..........
+
 
 
 

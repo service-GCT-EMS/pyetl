@@ -40,6 +40,7 @@ KEYWORDS = {
     "CIRCULARSTRING(": "2",
     "LINESTRING(": "2",
     "POINT(": "1",
+    "MULTIPOINT(": "1",
     "(": "0",
     "EMPTY": "0",
     "TIN(": "4",
@@ -124,6 +125,11 @@ def _parse_end(nature, valeurs, dim, nbring, niveau, geometrie):
     if nature == "POINT(":
         geometrie.setpoint(valeurs[0], None, dim)
     #                    print ('detecte point ',valeurs[0], 0, dim)
+    elif nature == "MULTIPOINT(":
+        geometrie.setpoint(valeurs[0], None, dim)
+        if len(valeurs) > 1:
+            for i in valeurs[1:]:
+                geometrie.addpoint(i, None, dim)
     elif nature == "(":
         geometrie.cree_section(valeurs, dim, 1, 0, interieur=nbring > 1)
     elif nature == "LINESTRING(":
@@ -169,7 +175,7 @@ def _parse_ewkt(geometrie, texte):
                 type_lu, poly, ring, nbring = _parse_start(
                     nature, niveau, poly, ring, nbring
                 )
-                geometrie.type = max(type_lu,geometrie.type)
+                geometrie.type = max(type_lu, geometrie.type)
     #                if not type_geom:
     #                    print ('erreur decodage', texte, oper, nature, valeurs)
     except RuntimeError as err:
@@ -186,8 +192,7 @@ def geom_from_ewkt(obj):
     geom = obj.attributs["#geom"]
     if geom:
         # print ("conversion ewkt",geom)
-        
-        
+
         if geom.startswith("0"):  # c est de l'ewkb
             # print("detection ewkb")
             geom_from_ewkb(obj)
@@ -196,8 +201,8 @@ def geom_from_ewkt(obj):
         if obj.schema:
             geom_demandee = obj.schema.info["type_geom"]
         else:
-            geom_demandee = str(obj.geom_v.type) 
-        # print("decodage geometrie ewkt/ewkb ",obj.ident, obj.schema, "->", geom_demandee )   
+            geom_demandee = str(obj.geom_v.type)
+        # print("decodage geometrie ewkt/ewkb ",obj.ident, obj.schema, "->", geom_demandee )
         try:
             obj.geom_v.angle = float(obj.attributs.get("#angle", 0))
         except ValueError:
@@ -208,7 +213,7 @@ def geom_from_ewkt(obj):
     else:
         obj.finalise_geom(type_geom="0")
     if not obj.geom_v.valide:
-        print ("erreur geometrie",geom,geom_demandee)
+        print("erreur geometrie", geom, geom_demandee)
     return obj.geom_v.valide
 
 
@@ -426,7 +431,12 @@ def geom_from_ewkb(obj, code=None):
 
 
 def ecrire_geom_ewkt(
-    geom, geometrie_demandee="-1", multiple=None, erreurs=None, force_courbe=False, epsg=True
+    geom,
+    geometrie_demandee="-1",
+    multiple=None,
+    erreurs=None,
+    force_courbe=False,
+    epsg=True,
 ):
     """ecrit une geometrie en ewkt"""
     # print(" ecrire ewkt", geom)
@@ -526,6 +536,7 @@ def geom_from_geojson(obj, code=None):
         obj.geom_v.finalise_geom(type_geom="0")
     return obj.geom_v.valide
 
+
 def init_ogr():
     global ogr, ogr_inited
     try:
@@ -539,7 +550,7 @@ def init_ogr():
 def decode_ewkb(code):
     ogr_geom = ogr.CreateGeometryFromWkb(code)
     wkt_text = ogr_geom.ExportToWkt()
-    geom=geom_from_ewkt(wkt_text)
+    geom = geom_from_ewkt(wkt_text)
     return geom
 
 
@@ -547,9 +558,13 @@ def geom_from_shapely(obj):
     pass
 
 
-def ogr_ecrire_geom_ewkb(geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False):
-    wkt_text = ecrire_geom_ewkt(geom, geometrie_demandee, multiple, erreurs, force_courbe)
-    ogr_geom=ogr.CreateGeometryFromWkb(wkt_text)
+def ogr_ecrire_geom_ewkb(
+    geom, geometrie_demandee="-1", multiple=0, erreurs=None, force_courbe=False
+):
+    wkt_text = ecrire_geom_ewkt(
+        geom, geometrie_demandee, multiple, erreurs, force_courbe
+    )
+    ogr_geom = ogr.CreateGeometryFromWkb(wkt_text)
     return hex(ogr_geom.ExportToWkb()) if ogr_geom else ""
 
 
@@ -558,15 +573,9 @@ def ogr_geom_from_ewkb(obj, code=None):
         code = obj.attributs.get("#geom")
     ogr_geom = ogr.CreateGeometryFromWkb(code)
     wkt_text = ogr_geom.ExportToWkt()
-    obj.attributs["#geom"]=wkt_text
+    obj.attributs["#geom"] = wkt_text
     geom_from_ewkt(obj)
-    obj.attributs["#geom"]=code
-
-
-
-
-
-
+    obj.attributs["#geom"] = code
 
 
 GEOMDEF = {

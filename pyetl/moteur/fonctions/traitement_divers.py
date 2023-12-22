@@ -312,6 +312,7 @@ def f_merge(regle, obj):
 
 def sortir_traite_stock(regle):
     """ecriture finale"""
+    # print("dans traite_stock")
     if regle.final:
         try:
             # print("ecriture finale", regle.output.writerparms)
@@ -385,8 +386,8 @@ def h_sortir(regle):
     )
     # print("creation output:", regle, fich, outformat)
     regle.output = regle.stock_param.getoutput(outformat, regle)
-    print("preparation sortie ", regle.output.writerclass, regle.output.writerparms)
-
+    # print("preparation sortie ", regle.output.writerclass, regle.output.writerparms)
+    regle.sys_gid = regle.output.writerparms.get("sys_gid")
     if outformat == "#print":
         regle.output.writerparms["destination"] = "#print"
     else:
@@ -441,8 +442,19 @@ def setschemasortie(regle, obj):
         else:
             regle.nom_fich_schema = "schema_sortie_" + regle.output.nom_format
         # on copie le schema pour ne plus le modifier apres ecriture
-    regle.change_schema_nom(obj, regle.nom_fich_schema)
 
+    # print(
+    #     "schema_sortie: avant",
+    #     obj.schema.schema.nom,
+    #     obj.schema,
+    # )
+    regle.change_schema_nom(obj, regle.nom_fich_schema)
+    # print(
+    #     "schema_sortie: apres",
+    #     obj.schema.schema.nom,
+    #     obj.schema.schema.conformites.keys(),
+    #     obj.schema,
+    # )
     if obj.schema and obj.schema.amodifier(regle):
         rep_sortie = regle.getvar("sortie_schema")
         if not rep_sortie:
@@ -465,7 +477,9 @@ def f_sortir(regle, obj):
       #pattern2||;;?L;sortir;?C;?C||sortie
          #test||redirect||obj||^Z;ok;;set||^;;;sortir;csv;#print||out
     """
+    # print("f_sortir", obj.ident, regle.store, regle.traite_stock, regle.nbstock)
     if regle.output is None:
+        print("pas de sortie")
         return False
     if obj.virtuel:  # on ne traite pas les virtuels
         # print("======================sortie objet virtuel", regle, obj)
@@ -473,9 +487,14 @@ def f_sortir(regle, obj):
         return True
     # print ("avant schema sortie",obj.ident,obj.schema)
     setschemasortie(regle, obj)
+    if regle.sys_gid:
+        sys_gid = obj.attributs.get(regle.sys_gid) or obj.attributs.get("#gid")
+        obj.attributs[regle.sys_gid] = sys_gid
     # print ("apres schema sortie",obj.ident,obj.schema)
 
-    # print("======================sortie objet", regle.output)
+    # print("======================sortie objet", regle.store, regle.output)
+    # print("ecriture2", obj.ident, regle.store)
+
     if regle.store is None:  # on decide si la regle est stockante ou pas
         regle.store = regle.calcule_schema and (not obj.schema or not obj.schema.stable)
         if regle.store:  # on ajuste les branchements
@@ -502,14 +521,14 @@ def f_sortir(regle, obj):
         obj.geom_v.shapesync()
         # print("geomv", obj.geom_v)
     try:
-        # print ("ecriture", obj.ident,obj.schema)
+        # print("ecriturex", obj.ident, obj.schema)
         regle.output.ecrire_objets_stream(
             obj, regle, False, attributs=regle.liste_attributs
         )
     except Exception as exc:
         regle.stock_param.logger.error("ecriture objet %s", repr(obj))
         regle.stock_param.logger.exception("erreur:", exc_info=exc)
-        raise
+        # raise
     if regle.final:
         obj.schema = None
     return True

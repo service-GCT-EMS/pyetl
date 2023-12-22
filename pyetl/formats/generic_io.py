@@ -782,6 +782,7 @@ class Output(object):
         self.fich = ""
         self.writerclass = None
         self.srid = None
+        self.sys_gid = None
 
         if ":" in nom:
             defs = nom.split(":")

@@ -284,7 +284,7 @@ class Attribut(object):
         self.alias = ""
         self.oblig = False
         self.taille = 0
-        self.dec = nom_conformite
+        self.dec = 0
         self.ordre = 0
         self.nom_court = ""
         self.nom_sortie = ""

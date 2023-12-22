@@ -24,7 +24,7 @@ class RessourceDistante(object):
         return "ressource distante:" + self.nom + " " + str(self.etat)
 
     def finalise(self):
-        """ retourne le nombre d'objet"""
+        """retourne le nombre d'objet"""
         if self.etat > 2:
             self.regle_ref.stock_param.logger.warning(
                 "ressource deja finalisee %", repr(self)
@@ -35,7 +35,7 @@ class RessourceDistante(object):
         return self.nbo
 
     def cnt(self):
-        """ incremente le compteur"""
+        """incremente le compteur"""
         self.nbo += 1
 
 
@@ -68,7 +68,7 @@ class Ressource(object):
         )
 
     def ouvrir(self, id_regle):
-        """ ouvre une ressource (en general un fichier)"""
+        """ouvre une ressource (en general un fichier)"""
         try:
             if self.etat == 3:
                 return False
@@ -85,7 +85,7 @@ class Ressource(object):
             raise StopIteration(2)
 
     def fermer(self, id_regle):
-        """ referme une ressource """
+        """referme une ressource"""
         if id_regle == -1:
             self.handler.close()
             self.etat = 2
@@ -98,7 +98,7 @@ class Ressource(object):
             self.etat = 2
 
     def bwrite(self, obj, id_regle):
-        """ ecritures bufferisees"""
+        """ecritures bufferisees"""
 
         try:
             if self.handler.bwrite(obj):
@@ -127,11 +127,11 @@ class Ressource(object):
             raise StopIteration(2)
 
     def compte(self, nbr):
-        """ compte le nobre d'objets sortie vers une ressource"""
+        """compte le nobre d'objets sortie vers une ressource"""
         self.nbo += nbr
 
     def finalise(self):
-        """ finalise une ressource : une resource finalisee ne peut pas etre reouverte"""
+        """finalise une ressource : une resource finalisee ne peut pas etre reouverte"""
         if self.etat == 0:
             self.handler.open()
             self.etat = 1
@@ -143,7 +143,7 @@ class Ressource(object):
 
 
 class GestionSorties(object):
-    """ gestion des ressources ouvertes """
+    """gestion des ressources ouvertes"""
 
     def __init__(self, maxcles=20, rep_sortie=None):
         self.locks = dict()  # regle verouille ressource
@@ -153,7 +153,7 @@ class GestionSorties(object):
         self.rep_sortie = rep_sortie
 
     def get_res(self, regle, id_ressource, usebuffer=False):
-        """ verouille une ressource existante"""
+        """verouille une ressource existante"""
         if id_ressource in self.ressources:
             regle.setroot("derniere_sortie", id_ressource)
             # print("positionnement derniere sortie", id_ressource)
@@ -176,7 +176,7 @@ class GestionSorties(object):
         return None
 
     def creres(self, id_ressource, handler, usebuffer=False):
-        """ verouille une recssource et la cree si necessaire"""
+        """verouille une recssource et la cree si necessaire"""
         regle = handler.regle
         id_mapper = regle.stock_param.idpyetl
         if id_ressource not in self.ressources:

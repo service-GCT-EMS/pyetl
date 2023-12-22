@@ -15,7 +15,8 @@ import logging
 import glob
 import codecs
 
-# import zipfile
+import zipfile
+import tempfile
 import typing as T
 
 from pyetl.formats.generic_io import READERS, getreader
@@ -325,15 +326,21 @@ def _extract(ligne, clef):
 
 def _charge_liste_projet_qgs(fichier, codec="", debug=False, taille=1, type_cle="txt"):
     """prechargement d un fichier projet qgis"""
-    if not codec:
-        codec = DEFCODEC
     stock = dict()
+    nom, ext = os.path.splitext(os.path.basename(fichier))
+    if ext == ".qgz":
+        zipped = zipfile.ZipFile(fichier, mode="r")
+        fichier = nom + ".qgs"
+        opener = zipped.open
+    else:
+        opener = open
     try:
-        codec = hasbom(fichier, codec)
+        if opener(fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
+            codec = "utf-8-sig"
     except FileNotFoundError:
         LOGGER.warning("fichier qgis introuvable " + fichier)
         return stock
-    with open(fichier, "r", encoding=codec) as fich:
+    with opener(fichier, "r", encoding=codec) as fich:
         print("lecture projet qgs", taille, fichier, type_cle)
         for i in fich:
             if "datasource" in i:
@@ -391,7 +398,7 @@ def charge_liste(
                     LOGGER.debug("chargement liste " + i + " repertoire " + f_interm)
 
                     #                    print("chargement liste ", i, 'repertoire:', f_interm)
-                    if os.path.splitext(i)[-1] in {".qgs", ".qlr"}:
+                    if os.path.splitext(i)[-1] in {".qgs", ".qlr", ".qgz"}:
                         stock.update(
                             _charge_liste_projet_qgs(
                                 os.path.join(f_interm, i),
@@ -415,7 +422,7 @@ def charge_liste(
                     #                    print ('non retenu',i,clef)
                     pass
         else:
-            if os.path.splitext(f_interm)[-1] in {".qgs", ".qlr"}:
+            if os.path.splitext(f_interm)[-1] in {".qgs", ".qlr", ".qgz"}:
                 stock.update(
                     _charge_liste_projet_qgs(
                         f_interm, codec=codec, debug=debug, taille=taille

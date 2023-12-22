@@ -13,6 +13,8 @@ import time
 import os
 import logging
 import itertools
+import zipfile
+import codecs
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from pyetl.vglobales import DEFCODEC
@@ -128,7 +130,7 @@ class TableBaseSelector(object):
 
         mod = self.regle_ref.mods
         # print("resolution statique", mod)
-        set_prefix = self.regle_ref.getvar("set_prefix") == "1"
+        set_prefix = self.regle_ref.istrue("set_prefix")
         prefix = ""
         if self.base and os.path.isfile(self.base):  # bases fichier
             self.base = "__filedb"
@@ -138,16 +140,7 @@ class TableBaseSelector(object):
             except KeyError:
                 self.nobase = True
             prefix = self.regle_ref.getvar("prefix_" + self.base)
-            # print("acces base", self.base)
-        # print(
-        #     "variables",
-        #     self.regle_ref.getvar("set_prefix"),
-        #     set_prefix,
-        #     prefix,
-        #     self.base,
-        #     # self.regle_ref.stock_param.context.vlocales,
-        # )
-        # raise
+
         if not self.nobase:
             # print("connection ", self.nombase, self.base)
             if self.base != "__filedb":
@@ -159,7 +152,7 @@ class TableBaseSelector(object):
                 type_base = os.path.splitext(self.nombase)[-1]
                 if type_base.startswith("."):
                     type_base = type_base[1:]
-                type_base = self.regle_ref.getvar("F_entree") or type_base
+                type_base = self.regle_ref.getvar("F_entree", type_base)
                 self.connect = self.mapper.getdbaccess(
                     self.regle_ref,
                     self.nombase,
@@ -218,16 +211,16 @@ class TableBaseSelector(object):
                         if tmp:
                             att2 = tmp[0]
 
-                classlist = self.add_classlist(
+                mapped_classlist = self.add_classlist(
                     niveau, j, att2, vref, fonction, mod, nobase=self.nobase
                 )
-                if classlist:
-                    self.staticlist.update(classlist)
+                if mapped_classlist:
+                    self.staticlist.update(mapped_classlist)
                 else:
                     self.unresolved.add((niveau, j))
 
     def set_prefix(self, cldef):
-        """prefixage ses noms pour lea gestion des conflits entre base"""
+        """prefixage ses noms pour la gestion des conflits entre base"""
         niveau, classe = cldef[:2]
         map_n = "_".join((self.np, niveau)) if self.np else niveau
         map_c = "_".join((self.cp, classe)) if self.cp else classe
@@ -244,22 +237,22 @@ class TableBaseSelector(object):
         if not mod:
             mod = {"A"}
         if nobase:
-            classlist = [(niveau, classe)]
+            new_classlist = [(niveau, classe)]
         else:
-            classlist = (
+            new_classlist = (
                 self.schemabase.select_niv_classe(
                     niveau, classe, attr, tables=mod, multi=multi, nocase=nocase
                 )
                 if self.schemabase
                 else ()
             )
-        direct = dict()
-        # print("add classlist: multi", multi, classlist)
-        for i in classlist:
+        mapped_classlist = dict()
+        # print("add_classlist: multi", multi, new_classlist)
+        for i in new_classlist:
             mapped = self.set_prefix(i)
-            direct[mapped] = (i, attr, valeur, fonction)
-        # print("classlist", direct)
-        return direct
+            mapped_classlist[mapped] = (i, attr, valeur, fonction)
+        # print("mapped classlist", mapped_classlist)
+        return mapped_classlist
 
     def resolve(self, obj=None):
         """fonction de transformation de la liste de descripteurs en liste de classe
@@ -356,25 +349,27 @@ class TableBaseSelector(object):
         """retourne un iterateur sur la liste de classes resolue"""
         n = 0
         maxsel = self.selecteur.maxsel
-        if self.schema_travail:
-            for i in self.schema_travail.ordre:
-                mapped = self.set_prefix(i)
-                if mapped in self.staticlist:
-                    yield mapped, self.staticlist[mapped]
-                elif mapped in self.dynlist:
-                    yield mapped, self.dynlist[mapped]
-                else:
-                    yield mapped, (i, "", "", "")
-                n += 1
-                if maxsel and n > maxsel:
-                    break
-        else:
-            for i in itertools.chain(self.staticlist.items(), self.dynlist.items()):
-                # print("dans classlist", maxsel, n)
-                yield i
-                n += 1
-                if maxsel and n > maxsel:
-                    break
+        # print("appel classlist")
+
+        # if self.schema_travail and self.schema_travail.ordre:
+        #     for i in self.schema_travail.ordre:
+        #         mapped = self.set_prefix(i)
+        #         if mapped in self.staticlist:
+        #             yield mapped, self.staticlist[mapped]
+        #         elif mapped in self.dynlist:
+        #             yield mapped, self.dynlist[mapped]
+        #         else:
+        #             yield mapped, (i, "", "", "")
+        #         n += 1
+        #         if maxsel and n > maxsel:
+        #             break
+        # else:
+        for i in itertools.chain(self.staticlist.items(), self.dynlist.items()):
+            # print("dans classlist", maxsel, n)
+            yield i
+            n += 1
+            if maxsel and n > maxsel:
+                break
 
     def getmapping(self):
         liste_mapping = []
@@ -742,9 +737,17 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
 def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
     """prechargement d un fichier projet qgis"""
     # selecteur.autobase = True
+    nom, ext = os.path.splitext(os.path.basename(fichier))
+    if ext == ".qgz":
+        zipped = zipfile.ZipFile(fichier, mode="r")
+        fichier = nom + ".qgs"
+        opener = zipped.open
+    else:
+        opener = open
     try:
-        codec = hasbom(fichier, codec)
-        with open(fichier, "r", encoding=codec) as fich:
+        if opener(fichier, "rb").read(10).startswith(codecs.BOM_UTF8):
+            codec = "utf-8-sig"
+        with opener(fichier, "r", encoding=codec) as fich:
             # LOGGER.info("projet %s", fichier)
             # print("----------------select projet qgs", fichier)
             for i in fich:

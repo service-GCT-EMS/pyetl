@@ -80,7 +80,7 @@ def geom_from_asc(obj):
     # s'il y a un schema : on force le type de geometrie demandees
     if obj.schema and obj.schema.schema.origine != "B":
         geom_demandee = obj.schema.info["type_geom"]
-        print("gfa: geom_demandee", geom_demandee, obj.schema.info)
+        # print("gfa: geom_demandee", geom_demandee, obj.schema.info)
     geom_v = obj.geom_v
     dim = 2
     if "#geom" not in obj.attributs:

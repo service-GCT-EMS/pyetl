@@ -4,6 +4,7 @@
 import os
 import re
 import logging
+import zipfile
 import xml.etree.cElementTree as ET
 from pyetl.vglobales import DEFCODEC, DEBUG
 from .fileio import FileWriter
@@ -41,7 +42,7 @@ class XmlWriter(FileWriter):
             self.readtemplate(template)
         self.classes = set()
         self.blocs = []
-        self.entete=regle.getvar("xml_header")
+        self.entete = regle.getvar("xml_header")
         self.encoding = regle.getvar("codec_sortie", "utf-8")
         self.curtemp = None
         self.curclasse = None
@@ -50,7 +51,6 @@ class XmlWriter(FileWriter):
         """preparation de l'entete du fichiersr xml"""
         if not self.entete:
             return ""
-        
 
     def readtemplate(self, templatefile, codec=DEFCODEC):
         """lit un fichier de description de template xml"""
@@ -356,7 +356,18 @@ def initschema(schema, config):
                     # print (schema)
 
 
-def lire_objets_xml_simple(self, rep, chemin, fichier):
+def lire_objets_xml_compresse(self, rep, chemin, fichier):
+    """lit les datasources des fichiers qgs"""
+    nom, ext = os.path.splitext(os.path.basename(fichier))
+    if os.path.dirname(fichier):
+        chemin = os.path.join(chemin, os.path.dirname(fichier))
+    zipped = zipfile.ZipFile(fichier, mode="r")
+    fichier = nom + ".qgs"
+    tree = ET.fromstringlist(zipped.open(fichier, "r"))
+    lire_objets_xml_simple(self, rep, chemin, fichier, base=tree)
+
+
+def lire_objets_xml_simple(self, rep, chemin, fichier, base=None):
     """lit les datasources des fichiers qgis"""
     # importer()
     stock_param = self.regle_ref.stock_param
@@ -378,11 +389,12 @@ def lire_objets_xml_simple(self, rep, chemin, fichier):
             "fanout"
         ):  # on positionne un fanout approprie par defaut
             self.regle_ref.stock_param.setvar("fanout", "classe")
-    try:
-        base = ET.parse(os.path.join(rep, chemin, fichier))
-    except ET.ParseError as err:
-        print("xml mal forme", err)
-        return
+    if not base:
+        try:
+            base = ET.parse(os.path.join(rep, chemin, fichier))
+        except ET.ParseError as err:
+            print("xml mal forme", err)
+            return
     if self.full_tree:
         pmap = {c: p for p in base.iter() for c in p}
         gp = lambda elem: [elem.tag] + gp(pmap[elem]) if elem in pmap else [elem.tag]
@@ -453,14 +465,12 @@ def ecrire_objets_xml(self, regle, _, attributs=None):
             ressource.write(obj, regle.idregle)
 
 
-
-
-
 # extension : (fonction de lecture, format graphique, schema, fichiers aux, initialiseur)
 READERS = {
     "xml": (lire_objets_xml, "#gml", False, (), None, None),
     "qgs": (lire_objets_xml_simple, None, False, (), init_qgs, None),
     "qlr": (lire_objets_xml_simple, None, False, (), init_qgs, None),
+    "qgz": (lire_objets_xml_compresse, None, False, (), init_qgs, None),
 }
 # writer, streamer, force_schema, casse, attlen, driver, fanout, geom, tmp_geom)
 WRITERS = {

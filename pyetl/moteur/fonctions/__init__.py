@@ -34,7 +34,7 @@ class DefinitionAttribut(object):
 
     # non capturing groupe : (?: .....)
     # variable : #?[a-zA-Z_][a-zA-Z0-9_]*
-    asdef = r"#?[a-zA-Z_][a-zA-Z0-9_]*"  # description simple de nom de champs
+    asdef = r"#?[a-zA-Z_][a-zA-Z0-9_-]*"  # description simple de nom de champs
     #    asdef = r'(#?[a-zA-Z_\-][a-zA-Z0-9_\-]*)' # description simple de nom de champs
     #    aldef = r'(?:'+asdef+')|&'
     adef = r"(" + asdef + r")(?:\((.+)\))?"  # description champs avec details

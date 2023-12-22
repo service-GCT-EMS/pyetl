@@ -89,6 +89,7 @@ DFORM = {
     "fr": "%d-%m-%Y %H:%M:%S.%f",
 }
 
+
 # ----------------fonctions de validation de contenu-----------------------
 # --------------dates--------------------
 def get_jma(date, sep):
@@ -115,15 +116,15 @@ def get_jma(date, sep):
         elif el_date2 in def_mois:  # aaaa nom_mois jj
             annee, mois, jour = el_date1, def_mois[el_date2], el_date3
             fdate = "fr"
-    if len(jour)==1:
-        jour='0'+jour
-    if len(mois)==1:
-        mois='0'+mois
+    if len(jour) == 1:
+        jour = "0" + jour
+    if len(mois) == 1:
+        mois = "0" + mois
     return annee, mois, jour, fdate
 
 
 def _valide_jour(date, format_date):
-    """ teste si le jour est correct"""
+    """teste si le jour est correct"""
 
     # on cherche le separateur:
     seps = r"-/\,:"
@@ -161,7 +162,7 @@ def _valide_jour(date, format_date):
 
 
 def _valide_heure(heure):
-    """ controle le format d'une heure """
+    """controle le format d'une heure"""
     dec = 0
     milisecs = None
     if heure[-1] == "M":
@@ -192,7 +193,7 @@ def valide_dates(val, format_dates=""):
     date, heure = None, None
     #    if '03-09-2015' in val:
     #        print(" schema interne: validation date ",val)
-    val=val.replace("  "," ")
+    val = val.replace("  ", " ")
     v_2 = val.strip().split(" ")
     taille = len(v_2)
     if taille == 1:  # pas de blanc dans la date c'est un format numerique
@@ -311,7 +312,7 @@ def set_val_schema(schemaclasse, nom, valeur):
 
 
 def _gere_conformite_invalide(classe, atdef, val, mode):
-    """ gere le controle de type par rapport au schema"""
+    """gere le controle de type par rapport au schema"""
     repl = None
     erreurs = list()
     warnings = list()
@@ -439,7 +440,7 @@ def _valide_bool(val):
 
 
 def _valide_type(classe, atdef, val):
-    """ gere le controle de type par rapport au schema"""
+    """gere le controle de type par rapport au schema"""
     repl = None
     err = ""
     changetype = None
@@ -501,7 +502,7 @@ def _valide_type(classe, atdef, val):
 
 
 def set_err(classe, obj, message, attendu, erreur, affich):
-    """ genere le message d'erreurs qui va bien"""
+    """genere le message d'erreurs qui va bien"""
     idobj = ".".join(obj.ident)
     if erreur == "#NOMSCHEMA":
         erreur = classe.schema.nom
@@ -515,7 +516,7 @@ def set_err(classe, obj, message, attendu, erreur, affich):
 
 
 def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
-    """ verifie si un objet est conforme a son schema """
+    """verifie si un objet est conforme a son schema"""
     # print 'dans valide_schema',obj.ident
     # validation des types geometriques
     schemaclasse = obj.schema
@@ -532,7 +533,7 @@ def valide_schema(regle, obj, mode="", repl="inconnu", log="no"):
                 schemaclasse.setmulti(point=True)
             if courbe:
                 schemaclasse.info["courbe"] = "1"
-                schemaclasse.courbe=1
+                schemaclasse.courbe = 1
             if srid != schemaclasse.srid:
                 schemaclasse.sridmix = True
     else:
@@ -865,7 +866,7 @@ def adapte_schema_classe(schema_classe_dest, schema_classe_orig):
 
 
 def ajuste_schema(schema, obj, conf=0, force=False):
-    """ deduit un schema a partir des objets"""
+    """deduit un schema a partir des objets"""
 
     ident = obj.ident
     schema.origine = "G"
