@@ -214,6 +214,29 @@ json
 
 
 .. index::
+  double: .traitement_alpha;jsonsplit
+
+jsonsplit
+.........
+
+   transforme un attribut json en attributs
+
+   gere les dictionnaires et les iterables imbriques
+
+**syntaxes acceptees**
+
++------+------+------+---------+------+--------+
+|sortie|defaut|entree|commande |param1|param2  |
++======+======+======+=========+======+========+
+|H     |?     |A     |jsonsplit|      |        |
++------+------+------+---------+------+--------+
+|=*    |?     |A     |jsonsplit|      |        |
++------+------+------+---------+------+--------+
+
+
+
+
+.. index::
   double: .traitement_alpha;len
 
 len

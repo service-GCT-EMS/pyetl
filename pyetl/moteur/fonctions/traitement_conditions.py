@@ -138,6 +138,29 @@ def sel_calc2(condition, obj):
     condition.regle.match = result if result else ""
     return condition.fselect(obj)
 
+def selh_sample(condition):
+    """echantillonne des elements"""
+    valeurs = condition.params.vals.val
+    condition.count=-1
+    condition.trigger = int(valeurs)
+    if condition.trigger==0:
+        condition.trigger= 1
+    if condition.trigger<0:
+        condition.trigger = -condition.trigger
+        condition.count = 0
+
+
+def sel_sample(condition,obj):
+    """ #aide||garde un objet tous les N
+    #pattern||=%;N||99
+    """
+    condition.count+=1
+    if condition.count % condition.trigger :
+        return False
+    return True
+
+
+
 
 def selh_infich(condition):
     """precharge le fichier"""

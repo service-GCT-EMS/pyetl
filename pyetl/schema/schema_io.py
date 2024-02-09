@@ -353,13 +353,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
         return
 
     type_schemas_a_sortir = stock_param.getvar("orig_schema")
-
-    if rep_sortie:
-        stock_param.logger.info(
-            "repertoire de sortie des schemas %s",
-            rep_sortie,
-        )
-
+        
     if stock_param.mode.startswith("web") and not rep_sortie:
         formats = "xml"
     for i in formats.split(","):  # en cas de format inconnu on sort en csv
@@ -376,8 +370,14 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
     a_sortir = a_sortir.split(",") if a_sortir else []
     if rep_sortie:
         os.makedirs(rep_sortie, exist_ok=True)
+        stock_param.logger.info(
+            "repertoire de sortie des schemas %s, %s, %s",
+            rep_sortie,repr(a_sortir), repr(schemas)
+        )
     # print("analyse schemas", schemas.keys())
     for i in schemas:
+        if i in a_sortir:
+            print ('schema_a sortir',i)
         if not i:
             continue
         if a_sortir and i not in a_sortir:
@@ -421,11 +421,11 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
                     formats_a_sortir.add(schemas[i].format_sortie)
             # controle du sql et de ses dialectes
             #            print('sio:analyse interne ', i, len(schemas[i].classes), formats, mode_sortie)
-            if not stock_param.worker:  # on ne sort jamais un schema en mode worker
+            if not stock_param.worker or i in a_sortir:  # on ne sort jamais un schema en mode worker sauf si on force
                 stock_param.logger.debug(
                     "mode %s: %s %d classes", mode, i, len(schemas[i].classes)
                 )
-                # print("ecriture schema", i, len(schemas[i].classes))
+                print("________________________ecriture schema", i, len(schemas[i].classes),formats_a_sortir )
                 # schemas[i].printelements_specifiques()
 
                 ecrire_au_format(

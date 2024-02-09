@@ -12,7 +12,7 @@ compilateur de regles : cree les enchainements de regles
 def _affiche_debug(regles, debug):
     """affichages de debug"""
     for regle in regles:
-        if debug or regle.debug:
+        if debug or regle.istrue('debug_compil'):
             regle.affiche_debug()
             print("fonction", regle.f_init)
             liens_num = regle.branchements.liens_num()

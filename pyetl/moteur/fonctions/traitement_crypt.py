@@ -11,6 +11,7 @@ utilise une adaptation du chiffre de playfair sur un hypercube de dimension 4 av
 
 """
 import base64
+import os
 import itertools
 import random
 import subprocess
@@ -420,6 +421,32 @@ def f_decrypt(regle, obj):
     obj.attributs[regle.params.att_sortie.val] = decrypte if decrypte else val
     return True
 
+def f_b64_to_file(regle,obj):
+    """#aide||decode un attribut en b64 el le stocle en fichier
+    #pattern||;;A;b64_to_file;C;?C;
+    #parametres||attribut contenant les donnees;;nom du fichier;repertoire
+    """
+    
+    filename = regle.params.cmp1.val
+    rep = regle.params.cmp2.val
+    nom,ext = regle.prepare_place(filename, rep)
+    if nom:
+        try:
+            # print ("ecriture",regle.getval_entree(obj))
+            with open(nom, "wb") as fh:
+                fh.write(base64.b64decode(regle.getval_entree(obj)))
+            return True
+        except (PermissionError,FileNotFoundError):
+            regle.stock_param.logger.error('erreur ecriture fichier %s',nom)
+    return False
+
+
+def f_file_to_b64(regle,obj):
+    """#aide||encode un fichier en b64 et le stocke dans un attribut
+    #pattern||A;;;file_to_b64;C;?C
+ #parametres||attribut a renseigner;;nom du fichier;repertoire
+    """
+    pass
 
 if __name__ == "__main__":
     print(" cryptotest")

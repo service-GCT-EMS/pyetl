@@ -599,14 +599,14 @@ class RegleTraitement(object):  # regle de mapping
                 + str(self.numero)
                 + "):"
                 + (self.ligne[:-1] if self.ligne.endswith("\n") else self.ligne)
-                + ":R->"
+                + "\n\t\t:R->"
                 + (self.params._compact(self.mode) if self.params else "noparams ")
                 + str(self.idregle)
                 + "("
                 + repr(self.context)
                 + ")"
                 + repr(self.context.vlocales)
-                + "brch"
+                + "\n\t\tbrch"
                 + repr(self.branchements)
             )
         return "regle vide"
@@ -1019,9 +1019,13 @@ class RegleTraitement(object):  # regle de mapping
     #        obj.attributs.update(zip(self.params.att_ref.liste,
     #                                 map(fonction, self.getlist_ref(obj))))
 
-    def prepare_place(self, nom):
+    def prepare_place(self, nom, rep=''):
         """prepare le chemin pour ecrire un fichier"""
         localdir = self.getvar("localdir", os.path.join(self.getvar("_sortie", ".")))
+        if rep and os.path.isabs(rep):
+            localdir=rep
+        else:
+            localdir = os.path.join(localdir,rep)
         if not (os.path.isabs(nom) or nom.startswith(".")):
             nom = os.path.join(localdir, nom)
         dirname = os.path.dirname(nom)

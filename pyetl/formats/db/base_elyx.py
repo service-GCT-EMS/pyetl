@@ -523,10 +523,10 @@ class ElyConnect(ora.OrwConnect):
             resultat = "TIN." + defaut[8:-2]
             return resultat
         elif defaut.startswith("!AUTEUR"):
-            resultat = "F.AUTEUR"
+            resultat = "current_user"
             return resultat
         elif defaut.startswith("!CALDAT"):
-            resultat = "now()"
+            resultat = "current_timestamp"
             return resultat
         elif defaut.startswith('="') and defaut.endswith('"') and not "+" in defaut:
             resultat = defaut[1:].replace("'", "''").replace('"', "'")
@@ -690,7 +690,7 @@ class ElyConnect(ora.OrwConnect):
                 for i in enum:
                     _, clef, val, ordre = enum[i]
                     #                    print ('enum_en_table',nom, ordre, clef, val)
-                    enums.append((nom, int(ordre) if ordre else 0, clef, val, 1))
+                    enums.append((nom, int(ordre) if ordre else 0, clef.strip(), val.strip(), 1))
 
             # print "stockage_conformite",valeur,alias
         #        print ('confs',self.confs)

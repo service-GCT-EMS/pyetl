@@ -363,7 +363,7 @@ class OraConnect(DbConnect):
 
     def get_dateformat(self, nom):
         """formattage dates"""
-        return 'TO_CHAR("' + nom + '"' + ",'" + self.dateformat + "')"
+        return "TO_CHAR(" + nom + ",'" + self.dateformat + "')"
 
     #        return 'TO_CHAR("'+nom+'")'
     #        return nom

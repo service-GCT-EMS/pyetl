@@ -339,7 +339,7 @@ class Schema(object):
 
     def _cree_classe(self, ident, modele, filiation=True):
         """copie du schema d'une classe vers un nouveau schema avec gestion des conformites"""
-        #        print ('avant copie',modele.type_geom, modele)
+        # print ('avant copie',modele.type_geom, modele)
         if modele is None:  # on cree une classe a partir de 0
             return self.setdefault_classe(ident)
         #        on recopie le modele
@@ -551,8 +551,8 @@ class Schema(object):
                 self.base, exp_niv, exp_clas = bnc
             else:
                 exp_niv, exp_clas = bnc
-            print("conversion liste", self.nom, bnc)
-            raise
+            # print("conversion liste", self.nom, bnc)
+            
         convert = {"v": "vm", "t": "r", "r": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         lmulti = multi
@@ -682,17 +682,29 @@ class Schema(object):
         niveaux = {i: 0 for i in liste2}
         # print("tablesorter", liste, liste2, niveaux)
         ref_croisees = set()
+        changelist1 = set()
         while modif:
-            modif = False
+            modif = False 
+            changelist2 = set()
             for ident in niveaux:
                 for ref in self.has_deps(ident):
-                    if niveaux.get(ref, -1) >= niveaux[ident]:
+                    if niveaux.get(ref, -1) >= niveaux[ident] and ((ident,ref) not in ref_croisees) and (ref,ident) not in ref_croisees:
                         if ident in self.has_deps(ref):  # reference croisee
                             if ident != ref:
+                                # print ("ref_croisees",ident,ref)
                                 ref_croisees.add((ident, ref))
                         else:
                             modif = True
                             niveaux[ident] = niveaux[ref] + 1
+                            changelist2.add(ident)
+                            # print ("up",ident, niveaux[ident], ref, niveaux[ref])
+            if changelist2 and changelist2 == changelist1:
+                LOGGER.warning("references circulaires: %s", repr(changelist1))
+                modif=False
+            else:
+                changelist1=changelist2
+                
+
         if ref_croisees:
             LOGGER.warning("references croisees:%s", repr(ref_croisees))
         niv2 = {i: "%5.5d_%s.%s" % (niveaux[i], *i) for i in niveaux}

@@ -167,6 +167,12 @@ def f_force_alias(regle, obj):
     if schem:
         if mode and schem.schema.defmodeconf != mode:
             schem.schema.defmodeconf = mode
+        if schem.amodifier(regle): # on ajuste les defauts
+            for nom,attr in schem.attributs.items():
+                if attr.conformite and attr.defaut and attr.defaut.startswith("'"):
+                    old_defaut=attr.defaut.strip("'")
+                    attr.defaut = "'"+attr.conformite.ajuste_valeur(old_defaut)+"'"
+                    # print ('modif defaut >'+old_defaut+'<',attr.defaut,attr.conformite.ajust.get(old_defaut), attr.conformite.ajust)
         # TODO valider le mecanisem de changement de mode alias
 
         for i in [j for j in obj.attributs.keys() if j and j[0] != "#"]:

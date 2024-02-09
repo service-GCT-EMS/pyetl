@@ -362,7 +362,7 @@ def fschema_ajout_att_from_obj_dyn(regle, obj):
 
 def fschema_ajout_att_from_liste_d(regle, obj):
     """ajoute des attributs a partir de la definition de l'objet"""
-    # print ('ajout attribut',liste)
+    # print ('ajout attribut',regle.liste_atts)
     if not regle.liste_atts:
         return
     for att in [a for a in regle.liste_atts if a and a[0] != "#"]:

@@ -762,7 +762,10 @@ class PgrGenSql(DbGenSql):
                         attribut.defaut = attribut.defaut[1:]
                     if attribut.defaut.endswith("'") or attribut.defaut.endswith('"'):
                         attribut.defaut = attribut.defaut[:1]
-                    defaut = " DEFAULT '" + attribut.defaut + "'"
+                    if attribut.defaut=='curent_user' or attribut.defaut=='current_timestamp':
+                        defaut = " DEFAULT " + attribut.defaut
+                    else:
+                        defaut = " DEFAULT '" + attribut.defaut + "'"
             elif defaut is None:
                 defaut = ""
             if self.types_db.get(attype) == "integer":

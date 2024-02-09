@@ -133,9 +133,9 @@ def geocode_traite_stock(regle, final=True):
             obj = regle.tmpstore[0]
             if obj.schema:
                 # print ('geocodage action schema',regle.action_schema, header)
-                obj.schema.force_modif(regle)
+                # obj.schema.force_modif(regle)
                 regle.liste_atts = header
-                regle.action_schema(regle, obj)
+                regle.action_schema_differe(regle, obj)
                 # print ('schema :', obj.schema)
         else:
             if not final:
@@ -178,6 +178,8 @@ def h_geocode(regle):
     regle.scoremin = float(regle.getvar("scoremin", 0))
     regle.filtres = dict(i.split("=") for i in regle.params.cmp2.liste)
     regle.tinit = time.time()
+    regle.action_schema_differe=regle.action_schema
+    regle.action_schema=None
     return True
 
 
@@ -528,6 +530,52 @@ def h_httpdownload(regle):
     # print("h_httpdownload valeur de debug", regle.debug)
     return True
 
+def _jsonlistsplitter(regle,obj,nom,classe,jsonlist):
+    """"decoupe une liste json en objets"""
+    if obj.virtuel:
+        regle.reader.setidententree(nom, classe)
+        # print ('presence schema', regle.reader.cree_schema)
+    for objdef in jsonlist:
+        if isinstance(objdef, dict):
+            if obj.virtuel:
+                obj2 = regle.getobj((nom, classe))
+                # print ("jsonliqssplitter: cree",nom,classe,"->",obj2)
+            else:
+                obj2 = obj.dupplique()
+                obj2.attributs["#classe"] = classe
+                obj2.attributs["#groupe"] = nom
+            # c est une definition d objet
+            for att, val in objdef.items():
+                if isinstance(val, str) or regle.istrue("keepjson"):
+                    obj2.attributs[att] = val
+                elif isinstance(val, dict):
+                    hdict = {
+                        i: json.dumps(j, separators=(",", ":"))
+                        for i, j in val.items()
+                    }
+                    obj2.sethtext(att, dic=hdict)
+                elif isinstance(val, list):
+                    jlist = [
+                        json.dumps(j, separators=(",", ":")) for j in val
+                    ]
+                    obj2.setmultiple(att, liste=jlist)
+                if obj2.schema:
+                    if att not in obj2.schema.attributs:
+                        if regle.istrue("keepjson"):
+                            type_att = "J"
+                        else:
+                            type_att = "H" if isinstance(val, dict) else "T"
+                        obj2.schema.stocke_attribut(att, type_att)
+
+            regle.stock_param.moteur.traite_objet(
+                obj2, regle.branchements.brch["gen"]
+            )
+        else:
+            print ("type objet non traite",type(objdef),objdef)
+
+
+
+
 
 def _jsonsplitter(regle, obj, jsonbloc):
     """decoupe une collection json en objets"""
@@ -540,9 +588,8 @@ def _jsonsplitter(regle, obj, jsonbloc):
         )
         return
     nom = ""
-    if len(struct) == 1:
+    if isinstance (struct,dict) and len(struct) == 1:
         # il y a in titre
-
         for nom, contenu in struct.items():
             pass
 
@@ -550,7 +597,7 @@ def _jsonsplitter(regle, obj, jsonbloc):
     selected = regle.params.cmp2.liste
     if verbose:
         regle.stock_param.logger.info("recup contenu %s", nom)
-    if isinstance(contenu, dict):
+    if isinstance(struct, dict):
         if verbose:
             regle.stock_param.logger.info("contenu %s", repr(list(contenu.keys())))
         for classe, elem in struct.items():
@@ -562,49 +609,18 @@ def _jsonsplitter(regle, obj, jsonbloc):
             # print ('traitement elem', classe,type(elem))
             if isinstance(elem, list):
                 # c est une liste d objets
-                if obj.virtuel:
-                    regle.reader.setidententree(nom, classe)
-                    # print ('presence schema', regle.reader.cree_schema)
-                for objdef in elem:
-                    if isinstance(objdef, dict):
-                        if obj.virtuel:
-                            obj2 = regle.getobj((nom, classe))
-                            # print ("jsonsplitter: cree",nom,classe,"->",obj2)
-                        else:
-                            obj2 = obj.dupplique()
-                            obj2.attributs["#classe"] = classe
-                            obj2.attributs["#groupe"] = nom
-                        # c est une definition d objet
-                        for att, val in objdef.items():
-                            if isinstance(val, str) or regle.istrue("keepjson"):
-                                obj2.attributs[att] = val
-                            elif isinstance(val, dict):
-                                hdict = {
-                                    i: json.dumps(j, separators=(",", ":"))
-                                    for i, j in val.items()
-                                }
-                                obj2.sethtext(att, dic=hdict)
-                            elif isinstance(val, list):
-                                jlist = [
-                                    json.dumps(j, separators=(",", ":")) for j in val
-                                ]
-                                obj2.setmultiple(att, liste=jlist)
-                            if obj2.schema:
-                                if att not in obj2.schema.attributs:
-                                    if regle.istrue("keepjson"):
-                                        type_att = "J"
-                                    else:
-                                        type_att = "H" if isinstance(val, dict) else "T"
-                                    obj2.schema.stocke_attribut(att, type_att)
-
-                        regle.stock_param.moteur.traite_objet(
-                            obj2, regle.branchements.brch["gen"]
-                        )
+                _jsonlistsplitter(regle,obj,nom,classe,elem)
             else:
                 regle.stock_param.logger.error(
                     "element incompatible %s : %s", repr(elem), type(elem)
                 )
-
+    elif isinstance(struct, list):
+        classe=regle.getvar('classe','json')
+        if verbose:
+            regle.stock_param.logger.info("contenu liste %d items", len(struct))
+        _jsonlistsplitter(regle,obj,nom,classe,struct)
+    else:
+        print ('type non géré', type(struct),struct)
 
 def f_httpdownload(regle, obj):
     """#aide||telecharge un fichier via http
@@ -625,7 +641,9 @@ def f_httpdownload(regle, obj):
               ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
     """
-    url = regle.racinesite + regle.entree
+    url = regle.entree
+    if not url.startswith('http'):
+        url = regle.racinesite + url
     # if regle.debug:
     # print("telechargement", url, "-->", regle.fichier)
     # if regle.httparams:
@@ -877,7 +895,10 @@ def f_s3upload(regle, obj):
     #helper||s3connect
     #parametres||fichier;att fichier;s3upload;destination;"""
     file = regle.entree
-    aws_name = regle.repertoire + "/" + (regle.params.cmp1.val or file)
+    if regle.params.cmp1.val.endswith('/'):
+        aws_name = regle.repertoire + "/" + regle.params.cmp1.val + file
+    else:
+        aws_name = regle.repertoire + "/" + (regle.params.cmp1.val or file)
     try:
         response = regle.s3_client.upload_file(file, regle.bucket, aws_name)
     except regle.ClientError as e:

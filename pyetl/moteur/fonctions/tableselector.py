@@ -258,7 +258,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        # print("resolve: base=", self.base)
+        print("resolve: base=", self.base)
         if obj is None:
             obj = self.regle_ref.obj_courant
         if self.base == "__filedb":
@@ -476,8 +476,6 @@ class TableSelector(object):
                 descripteur = tmp[1:]
         if self.autobase or not self.base:
             base = self.idbase(base)
-        else:
-            base = self.base
         if not base:
             print(" pas de base", descripteur, self.autobase)
             return
@@ -565,7 +563,7 @@ class TableSelector(object):
         return base
 
     def resolve(self, obj=None):
-        # print(" debut resolve", self.baseselectors.keys(), self.resolved, self.static)
+        print(" debut resolve", self.nom, self.baseselectors.keys(), self.resolved, self.static)
         if self.resolved and self.static:
             return True
         complet = len(self.baseselectors)
@@ -649,7 +647,7 @@ class TableSelector(object):
 # =============================================================
 
 
-def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
+def select_in(regle, fichier, base, nom=""):
     """precharge les elements des selecteurs:
     in:{a,b,c}                  -> liste de valeurs dans la commande
     in:#schema:nom_du_schema    -> liste des tables d'un schema
@@ -662,18 +660,20 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
     """
     stock_param = regle.stock_param
     # print("select in ", fichier, base, classe)
-
+    if fichier.startswith('in:'):
+        fichier=fichier[3:]
     fichier = fichier.strip()
+    
     #    valeurs = get_listeval(fichier)
-
-    liste_valeurs = fichier[1:-1].split(",") if fichier.startswith("{") else []
-    liste_atts = (
-        fichier[1:-1].split(",")
-        if (fichier.startswith("[") and fichier.endswith("]"))
-        else []
-    )
-    valeurs = {i: i for i in liste_valeurs}
-    LOGGER.info("element a lire: %s base: %s", fichier, base)
+    liste_valeurs=[]
+    liste_atts=[]
+    if fichier.startswith('{'):
+        liste_valeurs = fichier[1:-1].split(",")
+    elif fichier.startswith("["):
+        liste_atts = fichier[1:-1].split(",")
+                   
+    # valeurs = {i: i for i in liste_valeurs}
+    LOGGER.info("element a lire: %s base: %s -> %s %s", fichier, base, repr(liste_valeurs),repr(liste_atts))
 
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
@@ -699,9 +699,16 @@ def select_in(regle, fichier, base, classe=[], att="", valeur=(), nom=""):
             selecteur.add_descripteur(base, "[" + att + "]")
         print("selecteur dans attributs", selecteur)
         return selecteur
-    if fichier.startswith("in:["):  # resolution differee
-        selecteur.add_descripteur(base, fichier)
+    if liste_valeurs:
+        selecteur.static = True
+        for val in liste_valeurs:
+            selecteur.add_descripteur(base, val)
+            print ('ajout descripteur' ,selecteur.nom, base, val, len(selecteur.baseselectors))
         return selecteur
+
+    # if fichier.startswith("in:["):  # resolution differee
+    #     selecteur.add_descripteur(base, fichier)
+    #     return selecteur
 
     if fichier.startswith("#schema:"):  # liste de classes d'un schema
         nomschema = fichier[7:]
@@ -1070,7 +1077,7 @@ def getselector(regle, base=None, nom=""):
     """recuperation d un selecteur stocke"""
     if not nom:
         return TableSelector(regle, base)
-    if nom in regle.stock_param.conditions:
+    if nom in regle.stock_param.namedselectors:
         selecteur = regle.stock_param.namedselectors[nom]
     else:
         selecteur = TableSelector(regle, base)

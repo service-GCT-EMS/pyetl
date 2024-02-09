@@ -6,6 +6,7 @@ garder;.traitement_alpha
 infoatt;.traitement_alpha
 join;.traitement_alpha
 json;.traitement_alpha
+jsonsplit;.traitement_alpha
 len;.traitement_alpha
 lower;.traitement_alpha
 ren;.traitement_alpha
@@ -25,8 +26,10 @@ zip;.traitement_archives
 zipdir;.traitement_archives
 zipextract;.traitement_archives
 stat;.traitement_aux
+b64_to_file;.traitement_crypt
 crypt;.traitement_crypt
 decrypt;.traitement_crypt
+file_to_b64;.traitement_crypt
 dfgraph;.traitement_dataviz
 dfload;.traitement_dataviz
 dfset;.traitement_dataviz

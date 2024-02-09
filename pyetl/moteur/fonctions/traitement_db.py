@@ -969,15 +969,16 @@ def f_recup_schema(regle, obj):
         return True
     valide = True
     selecteur = setdb(regle, obj)
-    # print("recup selecteur", selecteur.nom, len(selecteur.baseselectors))
+    print("recup selecteur", selecteur.nom, len(selecteur.baseselectors))
     multibase = len(selecteur.baseselectors) > 1 and not regle.istrue("groupe_bases")
     for base, baseselecteur in selecteur.baseselectors.items():
+        print("base selecteur", base, baseselecteur)
         if baseselecteur:
             nomselecteur = (
                 selecteur.nom if not multibase else selecteur.nom + "_" + base
             )
             schema_travail = baseselecteur.getschematravail(regle, nomselecteur)
-            # print("schema_travail", schema_travail)
+            print("schema_travail", baseselecteur.base, schema_travail)
         else:
             valide = False
 
@@ -1040,8 +1041,9 @@ def f_dbclean(regle, obj):
 
 def h_dbselect(regle):
     """preparation selecteur"""
-
+    
     nom_selecteur = regle.params.att_sortie.val
+
     if nom_selecteur.startswith("#"):
         nom_selecteur = nom_selecteur[1:]
     if regle.params.pattern == "1":

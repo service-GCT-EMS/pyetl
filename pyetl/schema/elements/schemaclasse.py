@@ -468,36 +468,25 @@ class SchemaClasse(object):
                     self.schema.dbsql.dialecte, "sql"
                 )
 
-    def force_modif(self, regle):
-        """force une modif de schema"""
-        self.regles_modif = set()
-        # on annulle toutes les optimisatins de modif...
-        # idregle = regle.index
-        # if idregle in self.regles_modif:
-        #     self.regles_modif.remove(idregle)
+    # def force_modif(self, regle):
+    #     """force une modif de schema"""
+    #     self.regles_modif = set()
+    #     # on annulle toutes les optimisatins de modif...
+    #     print ('dans force_modif', regle)
+    #     raise
+    #     # if idregle in self.regles_modif:
+    #     #     self.regles_modif.remove(idregle)
 
     def amodifier(self, regle, dyn=False):
         """determine si une modif de schema a deja ete faite
         ( on garde en memoire le numero de regle)"""
         idregle = regle.idregle
-        # idregle = regle.index
-        # print("amodifier ", regle.index, regle.numero, regle)
-        # if idregle not in self.regles_modif:
-        # print(
-        #     "amodifier",
-        #     self.schema.nom,
-        #     idregle,
-        #     regle,
-        #     "regles_modif",
-        #     self.regles_modif,
-        #     "->",
-        #     idregle in self.regles_modif,
-        # )
         if dyn:
             return True
         if idregle in self.regles_modif:
             return False
         self.regles_modif.add(idregle)
+        # print ('modif schema',id(self),self.nom,idregle, self.regles_modif)
         return True
 
     # TODO gerer le pb du call
@@ -1265,7 +1254,7 @@ class SchemaClasse(object):
         old_schema = self.schema  # on evite de recopier toute la structure
         old_fils = self.fils
         old_regles_modif = self.regles_modif
-        #    print ("copie schema ",ident,schema2.nom,classe.attributs)
+        # print ("copie schema ",ident,self.schema.nom,'->',schema2.nom)
         self.schema = None
         self.fils = []
         self.regles_modif = set()
@@ -1277,8 +1266,8 @@ class SchemaClasse(object):
         nouvelle_classe.schema = schema2
         nouvelle_classe.objcnt = 0
         self.schema = old_schema
-        self.fils = [i for i in old_fils]
-        self.regles_modif = {i for i in old_regles_modif}
+        self.fils = old_fils
+        self.regles_modif = old_regles_modif
         if filiation:
             old_fils.append(nouvelle_classe)  # gestion des filiations de classes
         # n = 0

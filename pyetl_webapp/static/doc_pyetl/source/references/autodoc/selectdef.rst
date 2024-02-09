@@ -164,5 +164,8 @@ reference conditions
    * A;re:re
        - selection sur la valeur d un attribut
 
+   * =%;N
+       - garde un objet tous les N
+
    * A;in:fich
        - valeur dans un fichier

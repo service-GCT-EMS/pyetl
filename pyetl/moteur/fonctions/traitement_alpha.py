@@ -1285,3 +1285,63 @@ def f_json(regle, obj):
     #pattern1||A;;A;json;;
     #"""
     obj.attributs[regle.params.att_sortie.val] = json.dumps(regle.entree)
+    return True
+
+def f_jsonsplit1(regle, obj):
+    """#aide||transforme un attribut json en attributs
+    #aide_spec||mode 1 : hstore attention mode rantanplan : fait ce qu il peut basé sur la structure json 
+    #aide_spec||chaque sous structure redevient du json
+    #aide_spec||gere les dictionnaires et les iterables imbriques
+    #pattern1||H;?;A;jsonsplit;;
+    #pattern2||L;?;A;jsonsplit;LC;
+    #"""
+    jsonbloc=regle.entree
+    try:
+        struct = json.loads(jsonbloc)
+    except json.JSONDecodeError as err:
+        regle.stock_param.logger.error(
+            "erreur decodage json %s %s", err, repr(jsonbloc)
+        )
+        return False
+    if isinstance(struct,dict):
+        if regle.params.pattern=='1':
+            simplif = {i:(j if isinstance(j,str) else json.dumps(j)) for i,j in struct.items()}
+            obj.sethtext(regle.params.att_sortie.val, dic=simplif)
+        elif regle.params.pattern=='2':
+            for i,j in zip(regle.params.cmp1.liste,regle.params.att_sortie.liste):
+                acces=i.split('.')
+                courant=struct
+                for key in acces:
+                    if isinstance(courant,dict): 
+                        courant=courant.get(key,'')
+                    else:
+                        courant=''
+                val=(courant if isinstance(courant,str) else json.dumps(courant))
+                obj.attributs[j] = val
+        return True
+
+
+def f_jsonsplit2(regle, obj):
+    """#aide||transforme un attribut json en attributs
+    #aide_spec||attention mode rantanplan : fait ce qu il peut basé sur la structure json 
+    #aide_spec||chaque sous structure redevient du json
+    #aide_spec||gere les dictionnaires et les iterables imbriques
+    #schema||ajout_att_from_liste_d
+    #pattern||;?;A;jsonsplit;;
+    #"""
+    jsonbloc=regle.entree
+    if not jsonbloc:
+        return False
+    try:
+        struct = json.loads(jsonbloc)
+    except json.JSONDecodeError as err:
+        regle.stock_param.logger.error(
+            "erreur decodage json %s %s", err, repr(jsonbloc)
+        )
+        return  False
+    if isinstance(struct,dict):
+        simplif = {i:(j if isinstance(j,str) else json.dumps(j)) for i,j in struct.items()}
+        regle.liste_atts=list(simplif.keys())
+        # print ('attributs crees ', regle.liste_atts)
+        obj.attributs.update(simplif)
+        return True

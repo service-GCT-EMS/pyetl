@@ -510,6 +510,7 @@ class Context(object):
     """contexte de stockage des variables"""
 
     PARAM_EXP = re.compile(r"%((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%")
+    PARAM_VAR = re.compile(r"\[((\*?)#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)\]")
     PARAM_BIND = re.compile(r"^%(\*#?[a-zA-Z0-9_]+(?:#[a-zA-Z0-9_]+)?)%$")
     SPLITTER_PV = re.compile(r"(?<!\\);")  # reconnait les ; non précédes d'un \
     SPLITTER_V = re.compile(r"(?<!\\),")  # reconnait les , non précédes d'un \
@@ -655,16 +656,29 @@ class Context(object):
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
         element = element.strip()  # on debarasse les blancs parasites
-
+        indirect =  (element.startswith("%%") and element.endswith("%%") and len(element) >4)
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]), element[2:-1]
+        if self.PARAM_VAR.match(element):
+            dyn=True
         while self.PARAM_EXP.search(element):
             for i, j in self.PARAM_EXP.findall(element):
+                if j: 
+                    i=i[1:]
                 cible = "%" + j + i + "%"
                 # print(
                 #     "recup getvar", self, element, cible, i, "->", self.getvar(i)
                 # ), element.replace(cible, str(self.getvar(i)))
-                element = element.replace(cible, str(self.getvar(i)))
+                contenu=self.getvar(i)
+                if isinstance(contenu,list):
+                    contenu='{'+','.join((str(a) for a in contenu))+'}'
+                elif isinstance(contenu,dict):
+                    contenu="{'"+"','".join((str(a)+'=>'+str(b) for a,b in contenu.items))+"'}"
+                else:
+                    contenu = str(contenu)
+                element = element.replace(cible, contenu)
+        if indirect:
+            element, _  = self.resolve(element)
         element = element.replace("\%", "%")
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement

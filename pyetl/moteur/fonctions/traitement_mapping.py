@@ -191,7 +191,7 @@ def _map_schemas(regle, obj):
         if regle.getvar("schema_entree"):
             schema_origine = regle.stock_param.schemas[regle.getvar("schema_entree")]
             # print("-------------------------mapping", schema_origine)
-        regle.schema = None
+            regle.schema = schema_origine
         #        else:
         #            return
         #        if regle.params.val_entree.val:
@@ -226,13 +226,30 @@ def _map_schemas(regle, obj):
 
         for i in schema_origine.classes:
             schema2.get_classe(i, modele=schema_origine.classes[i], cree=True)
-
+        # on ajuste les mappings si il y a des * dedans
+        complement=dict()
+        for i in regle.mapping:
+            niv,clas=i
+            if clas.endswith('*'): #c est du generique
+                prefix = clas.replace('*','')
+                n2,remplacement = regle.mapping[i]
+                for j in list(schema_origine.classes.keys()):
+                    n1,c1 = j
+                    if n1==niv and c1.startswith(prefix):
+                        c2 = c1.replace(prefix,remplacement,1)
+                        complement[(niv,c1)] = (n2,c2)
+                        complement[(n2,c2)] = (niv,c1)
+                        if i in regle.mapping_attributs:
+                            regle.mapping_attributs[(niv,c1)] = regle.mapping_attributs[i]
+                            regle.mapping_attributs[n2,c2] = regle.mapping_attributs[n2,remplacement]
+        regle.mapping.update(complement)    
         # print("mapping enums:", regle.schema.nom, regle.schema.conformites.keys())
         if schema2.conformites and (regle.map_enum_prefix or regle.map_enums):
             for classe in schema2.classes.values():
                 # print("traitement classe", classe.identclasse)
                 for attribut in classe.attributs.values():
-                    if attribut.conformite:
+                    if attribut.nom_conformite:
+                        # print("conformite avant", regle.schema.nom,attribut.nom_conformite)
                         if regle.map_enum_prefix:
                             attribut.nom_conformite = attribut.nom_conformite.replace(
                                 *regle.map_enum_prefix
@@ -373,7 +390,8 @@ def f_map(regle, obj):
                 except KeyError:
                     obj.attributs[dest] = ""
         return True
-    # print("====================== mapping non trouve", clef)
+    print("====================== mapping non trouve", clef, regle.mapping)
+    raise
     #    print ('definition mapping', '\n'.join([str(i)+':\t\t'+str(regle.mapping[i])
     #                                            for i in sorted(regle.mapping)]))
     return False

@@ -598,8 +598,11 @@ def _prepare_batch_from_object(regle, obj):
 
     params = {"_nom_batch=": nom}
     if parametres:
-        params.update(i.split('"=>"', 1) for i in re.split('" *, *"', parametres[1:-1]))
-
+        print ('lecture parametres',type(parametres),parametres)
+        if isinstance(parametres,dict):
+            params.update(parametres)
+        else:
+            params.update(i.split('"=>"', 1) for i in re.split('" *, *"', parametres[1:-1]))
         # print("recuperation parametres hstore", parametres, params)
     # print("commande batch", numero, commande, entree, sortie, params)
 

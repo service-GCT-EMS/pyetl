@@ -965,14 +965,18 @@ def analyse_interne(schema, mode="util", type_schema=None):
 
                 for att in schema_classe.attributs.values():
                     if att.nom_conformite:
-                        conf = schema.conformites[att.nom_conformite]
-                        att.conformite = conf
-                        conf.utilise = True
-                        conf.usages.append(
+                        try:
+                            conf = schema.conformites[att.nom_conformite]
+                            att.conformite = conf
+                            conf.utilise = True
+                            conf.usages.append(
                             (schema_classe.groupe, schema_classe.nom, att.nom)
-                        )
-                        conf.poids += schema_classe.poids
-                        conf.maxobj += schema_classe.maxobj
+                         )
+                            conf.poids += schema_classe.poids
+                            conf.maxobj += schema_classe.maxobj
+                        except KeyError:
+                            print ("erreur conformite introuvable", schema.nom, att.nom_conformite, schema.conformites.keys())
+                            att.nom_conformite=''
                         # sert pour la fusion de schemas
     if mode == "fusion":
         schema.stock_mapping.mode_fusion = True

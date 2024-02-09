@@ -546,7 +546,7 @@ class Pyetl(object):
 
         self._set_streammode()
         try:
-            self.compilateur(self.regles, self.debug)
+            self.compilateur(self.regles, self.debug>1)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
             self.moteur.setregles(self.regles, self.debug)

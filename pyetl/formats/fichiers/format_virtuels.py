@@ -75,6 +75,17 @@ def affiche_stream(self, obj, regle, *_, **__):
         else:
             stock_param.webstore[ident] = [res]
     else:
+        if regle.istrue('#par_attribut'):
+            print('') 
+            print(
+            "\n".join(
+                (   '\t'+i+':\t'+
+                    str(obj.attributs.get(i, ""))
+                    for i in obj.schema.get_liste_attributs()
+                )
+            )
+        )
+            return 0,0
         if obj.ident != regle.dident:
             affiche_header(obj)
             regle.dident = obj.ident
