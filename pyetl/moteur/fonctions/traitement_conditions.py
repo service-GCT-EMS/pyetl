@@ -91,6 +91,8 @@ def sel_regex(condition, obj):
     result = condition.fselect(obj.attributs.get(condition.params.attr.val, ""))
     condition.regle.match = result.group(0) if result else ""
     condition.regle.matchlist = result.groups() if result else []
+    condition.regle.matchobject = result
+    # print ("position matchobject",result)
     return result
 
 

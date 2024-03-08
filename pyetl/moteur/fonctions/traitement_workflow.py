@@ -523,6 +523,12 @@ def f_geomprocess(regle, obj):
 def h_creobj(regle):
     """definit la regle comme createur"""
     regle.chargeur = True  # c est une regle qui cree des objets
+    noms = regle.params.att_sortie.liste
+    vals = regle.params.val_entree.liste
+    regle.listgen = (len(noms) == 1 and len(vals) >1)
+    if regle.listgen:
+        regle.nom_att=noms[0]
+        regle.valeurs=vals
     return True
 
 
@@ -561,13 +567,20 @@ def f_creobj(regle, obj):
                 type_attribut = "F"
             except (ValueError, TypeError):
                 type_attribut = "T"
-        if modifschema:
+        if modifschema and not nom.startswith("#"):
             schemaclasse.stocke_attribut(nom, type_attribut=type_attribut)
-    nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num else 1
+    if regle.listgen:
+        nombre=len(regle.valeurs)
+    else:
+        nombre = int(regle.params.cmp2.num) if regle.params.cmp2.num else 1
     for i in range(nombre):
         obj2 = Objet(ident[0], ident[1], format_natif="interne")
         obj2.setschema(schemaclasse)
-        obj2.attributs.update([j for j in zip(noms, vals)])
+        if regle.listgen:
+            # print ('listgen',regle.nom_att,regle.valeurs, nombre)
+            obj2.attributs[regle.nom_att]=regle.valeurs[i]
+        else:
+            obj2.attributs.update([j for j in zip(noms, vals)])
         # print("objet_test", obj2.ido)
         obj2.setorig(i)
         try:

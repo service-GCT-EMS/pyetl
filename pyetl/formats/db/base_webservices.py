@@ -354,6 +354,8 @@ class CswCursor(object):
             # self.connection.getrecords2(esn="full",maxrecords=nbrec,cql=self.connecteur.requete,startposition=nextrecord)
             nmatch = self.connection.results["matches"]
             nextrecord = self.connection.results["nextrecord"]
+            if nextrecord > nmatch :
+                nextrecord=0
             # print ("recup",self.connection.results)
             while self.connection.records:
                 record = self.connection.records.popitem()[1]
@@ -365,7 +367,7 @@ class CswCursor(object):
                 valeurs = [
                     (html.unescape(i)) if isinstance(i, str) else i for i in valeurs
                 ]
-                # print ("lecture valeurs csw",valeurs)
+                # print ("lecture valeurs csw",repr(record))
                 yield valeurs
 
     def close(self):

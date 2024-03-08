@@ -902,7 +902,7 @@ def f_prolonge(regle, obj):
 def h_reproj(regle):
     """initialise la reprojection"""
     srid_sortie = {"LL": "4326", "CC48": "3948", "CC49": "3949", "L93": "2154"}
-    regle.srid = srid_sortie.get(regle.params.cmp1.val, "")
+    regle.srid = srid_sortie.get(regle.params.cmp1.val.upper(), "")
     LOGGER.info("reprojection vers %s", str(regle.srid))
     # print("reproj srid sortie", regle.srid)
     regle.projection = P.init_proj(

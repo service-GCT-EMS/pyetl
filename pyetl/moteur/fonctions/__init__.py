@@ -39,6 +39,7 @@ class DefinitionAttribut(object):
     #    aldef = r'(?:'+asdef+')|&'
     adef = r"(" + asdef + r")(?:\((.+)\))?"  # description champs avec details
     vdef = r"\[(" + asdef + r")\]"  # contenu champs
+    indef = r"[" + adef + "," + vdef + "]"
     ndef = r"-?[0-9]*.?[0-9]*|[0-9]+"
     # definition des expressions utilisables pour la description d un champs
     # sous la forme :  clef : apparair dans le parrern de la fonction
@@ -197,9 +198,14 @@ class DefinitionAttribut(object):
     def match(self, texte):
         """determine si un texte est compatible avec la definition"""
         if texte:
-            if self.pattern != "":
-                return self.regex.match(texte)
-            return None
+            if isinstance(texte, str):
+                if self.pattern != "":
+                    return self.regex.match(texte)
+                return None
+            elif self.pattern == "C":
+                return True
+            elif self.pattern == "LC" and isinstance(texte, list):
+                return True
         if self.obligatoire and self.pattern != "":
             return None
         return re.match("", "")

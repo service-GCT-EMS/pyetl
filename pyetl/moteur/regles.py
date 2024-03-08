@@ -165,7 +165,7 @@ class Valp(Valdef):
             return 0
 
     def getval_as_list(self):
-        print("getlist", self.val)
+        # print("getlist", self.val)
         return [
             self.val,
         ]
@@ -192,6 +192,33 @@ class Valatt(Valp):
     mode = "A"
 
 
+class Valmix(Valp):
+    """definition complexe avex des champs et des elements fixes"""
+
+    def getatt(self):
+        if self.regle_ref and self.regle_ref.obj_courant:
+            attributs = self.regle_ref.obj_courant.attributs
+            return "".join(
+                (
+                    deft
+                    if not orig
+                    else (
+                        self.regle_ref.getvar(orig[2:-1], deft)
+                        if orig.startswith("P<") and orig.endswith(">")
+                        else str(attributs.get(orig, deft))
+                    )
+                )
+                for orig, deft in zip(self.origine, self.defaut)
+            )
+        return self.texte
+
+    def forget(self, val):
+        pass
+
+    val = property(getatt, forget)
+    mode = "AC"
+
+
 class ParametresFonction(object):
     """stockage des parametres standanrds des regles"""
 
@@ -204,6 +231,10 @@ class ParametresFonction(object):
         self.valeurs = valeurs
         self.definitions = definition
         # print("definition parametres", definition)
+        self.base = self._crent("sel1")
+        self.schema = self._crent("val_sel1")
+        self.table = self._crent("sel2")
+        self.attrib = self._crent("val_sel2")
         self.att_sortie = self._crent("sortie", out=True)
         self.def_sortie = None
         self.att_entree = self._crent("entree")
@@ -230,14 +261,15 @@ class ParametresFonction(object):
 
     def _crent(self, nom, taille=0, out=False):
         """extrait les infos de l'entite selectionnee"""
-        # print("creent", nom, self.valeurs[nom].groups(), self.valeurs[nom].re)
+        # if nom in self.valeurs:
+        #     print("creent", nom, self.valeurs[nom].groups(), self.valeurs[nom].re)
         val = ""
         defaut = ""
         mode = "S"
         try:
             val = self.valeurs[nom].group(1)
-            if val.startswith("P:") and not out:
-                origine = val[2:]
+            if val.startswith("P<") and val.endswith(">") and not out:
+                origine = val[2:-1]
                 val = None
                 mode = "P"
             else:
@@ -277,12 +309,32 @@ class ParametresFonction(object):
                 liste = []
             dyn = "*" in val
             origine = None
-            if val.startswith("["):
+            if val.startswith("[") and val.endswith("]") and not "[" in val[1:-1]:
                 # dyn = True
                 mode = "A"
                 origine = val[1:-1]
                 if ":" in origine:
                     origine, defaut = origine.split(":", 1)
+
+            elif "[" in val and "]" in val:
+                liste = re.split("(?<!\\\)[\[\]]", val)
+                origine = []
+                defaut = []
+                mode = "AC"
+                for i in range(len(liste)):
+                    if i % 2:
+                        orig = liste[i]
+                        if ":" in origine:
+                            orig, deft = origine.split(":", 1)
+                        else:
+                            deft = ""
+                    else:
+                        deft = liste[i]
+                        if not deft:
+                            continue
+                        orig = None
+                    origine.append(orig)
+                    defaut.append(deft)
 
         texte = self.valeurs[nom].string if nom in self.valeurs else ""
         typedef = self.definitions[nom].deftype if nom in self.definitions else "T"
@@ -310,6 +362,17 @@ class ParametresFonction(object):
             )
         elif mode == "A":
             return Valatt(
+                dyn,
+                defin,
+                origine,
+                texte,
+                defaut,
+                typedef,
+                self.regle_ref,
+            )
+        elif mode == "AC":
+            # print("appel valmix", dyn, texte, origine, defaut)
+            return Valmix(
                 dyn,
                 defin,
                 origine,
@@ -951,6 +1014,7 @@ class RegleTraitement(object):  # regle de mapping
     @property
     def entree(self):
         # affectation de la proprieté entree de la regle (regle.entree = )
+        # print("entree", self.params.val_entree, self)
         return self.getval_entree(self.obj_courant)
 
     def getval_ref(self, obj=None):
@@ -1019,13 +1083,13 @@ class RegleTraitement(object):  # regle de mapping
     #        obj.attributs.update(zip(self.params.att_ref.liste,
     #                                 map(fonction, self.getlist_ref(obj))))
 
-    def prepare_place(self, nom, rep=''):
+    def prepare_place(self, nom, rep=""):
         """prepare le chemin pour ecrire un fichier"""
         localdir = self.getvar("localdir", os.path.join(self.getvar("_sortie", ".")))
         if rep and os.path.isabs(rep):
-            localdir=rep
+            localdir = rep
         else:
-            localdir = os.path.join(localdir,rep)
+            localdir = os.path.join(localdir, rep)
         if not (os.path.isabs(nom) or nom.startswith(".")):
             nom = os.path.join(localdir, nom)
         dirname = os.path.dirname(nom)

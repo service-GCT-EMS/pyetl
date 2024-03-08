@@ -68,9 +68,11 @@ def fdebug(regle, obj):
             "->",
             redirect if succes else "fail",
             liens_num.get(redirect) if succes else liens_num.get("fail"),
-            regle.branchements.brch.get(redirect)
-            if succes
-            else regle.branchements.brch.get("fail"),
+            (
+                regle.branchements.brch.get(redirect)
+                if succes
+                else regle.branchements.brch.get("fail")
+            ),
         )
         if regle.copy:
             print("copy :  ->", liens_num["copy"], regle.branchements.brch["copy"])
@@ -601,7 +603,6 @@ def affecte_variable(mapper, commande, context, regle_ref):
     elif nom.startswith("!"):  # $!X variable retour environnement
         nom = nom[1:]
         setter = context.setretour_env
-
     setter(nom, valeur)
     if nom in mapper.variables_speciales:
         setter = context.setroot

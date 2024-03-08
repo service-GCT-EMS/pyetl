@@ -36,9 +36,10 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     if not obj and any(isatt(i) for i in regle.v_nommees):
         regle.cible_base = None
     base = regle.code_classe[3:]
+    base = resolve_att(base, obj)
     if obj and obj.attributs.get("#base"):
         base = "__filedb"
-    # print("param base ", base)
+    print("--------------------param base ", base, regle.params.base)
     if not base:
         base = "*"
     # elif os.path.isfile(base): #filedb
@@ -533,22 +534,27 @@ def f_dbrequest(regle, obj):
       #pattern4||;;=#;dbreq;C;?A.C
       #pattern5||;;=#;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
-      #pattern7||LP;;;dbreq;C;?L
+      #pattern7||LP;;;dbreq;C;?LC
       #aide_spec8||mode webservice: renvoie le resultat brut de la requete
       #pattern8||=mws:;;;dbreq;C;?LC||sortie
      #req_test||testdb
     """
-    print("dbrequest", obj)
+    # print("dbrequest", obj)
     selecteur = setdb(regle, obj)
     retour = 0
     parms = None
+    if not regle.params.static:
+        getrequest(regle)
+
     if regle.params.att_entree.liste:
         parms = [obj.attributs.get(i, "") for i in regle.params.att_entree.liste]
     refobj = obj if regle.params.pattern in "345" else None
 
     for base, basesel in selecteur.baseselectors.items():
+        base = basesel.base
         requete_ref = regle.requete.replace("%#base", base)
         # print("requete dynamique", regle.dynrequete, len(list(basesel.classlist())))
+        # print("requete dynamique", regle.requete, selecteur.base)
         if regle.dynrequete:
             for resultat, definition in basesel.classlist():
                 identclasse, att, *_ = definition
@@ -608,9 +614,11 @@ def f_dbrequest(regle, obj):
                 retour += DB.lire_requete(
                     regle,
                     base,
-                    regle.identclasse
-                    if regle.identclasse is not None
-                    else ("tmp", "tmp"),
+                    (
+                        regle.identclasse
+                        if regle.identclasse is not None
+                        else ("tmp", "tmp")
+                    ),
                     requete=requete_ref,
                     parms=parms,
                     obj=refobj,
@@ -1041,7 +1049,7 @@ def f_dbclean(regle, obj):
 
 def h_dbselect(regle):
     """preparation selecteur"""
-    
+
     nom_selecteur = regle.params.att_sortie.val
 
     if nom_selecteur.startswith("#"):

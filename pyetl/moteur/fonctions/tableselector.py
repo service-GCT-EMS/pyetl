@@ -90,7 +90,7 @@ class TableBaseSelector(object):
             self.np, self.cp = map_prefix, ""
         self.map_prefix = map_prefix
 
-    def stocke_descripteur(self, descripteur):
+    def stocke_descripteur(self, descripteur, dyn=None):
         """stocke un descripteur de selection il y a un descripteur par niveau ou expression
         de selection de niveau
         un descripteur peut etre statique s il n integere aucun element dependant de l objet courant
@@ -99,8 +99,8 @@ class TableBaseSelector(object):
         # print("ajout descripteur", self.base, self.nombase, descripteur)
         # raise
         niveau, classes, attr, valeur, fonction = descripteur
-
-        dyn = any(["[" in i for i in classes]) or "[" in niveau
+        if dyn is None:
+            dyn = any(["[" in i for i in classes]) or "[" in niveau
         if "[" in attr or "[" in valeur:
             dyn = True
         if valeur and isinstance(valeur, tuple) and valeur[0]:
@@ -113,7 +113,7 @@ class TableBaseSelector(object):
     def resolve_static(self, obj):
         """transformation de la liste de descripteurs statiques en liste de classes
         le selecteur gere la connection a la base se donnees"""
-        # print ("resolve static", self.base, self.dynbase)
+        # print("resolve static", self.base, self.dynbase)
         if not obj and (isatt(self.base) or self.dynbase):
             return
         if self.base == "*":
@@ -258,7 +258,7 @@ class TableBaseSelector(object):
         """fonction de transformation de la liste de descripteurs en liste de classe
         et preparation du schema de travail"""
         self.nobase = self.nobase or self.regle_ref.getvar("nobase") == "1"
-        print("resolve: base=", self.base)
+        # print("resolve: base=", self.base)
         if obj is None:
             obj = self.regle_ref.obj_courant
         if self.base == "__filedb":
@@ -278,7 +278,10 @@ class TableBaseSelector(object):
             else:
                 return False
 
+        # print("avant resolve static", self.base, self.dynbase)
         self.resolve_static(obj)
+        # print("fin resolve static", self.base, self.dynbase)
+
         if self.dyndescr:
             # print("resolve dyn", obj)
             solved = self.resolve_dyn(obj)
@@ -430,7 +433,7 @@ class TableSelector(object):
         self.inverse = dict()
         self.refbases = set()
         self.resolved = False
-        self.static = True
+        self.static = not self.dynbase
         self.nobase = False
         self.onconflict = "add"
         self.nom = "S" + str(self.regle_ref.numero)
@@ -446,12 +449,12 @@ class TableSelector(object):
         )
 
     def add_descripteur(
-        self, base, niv, classes=[""], attribut="", valeur=(), fonction="="
+        self, base, niv, classes=[""], attribut="", valeur=(), fonction="=", dyn=None
     ):
         descripteur = (niv, classes, attribut, valeur, fonction)
         # print("appel add descripteur", base, descripteur)
         # if base
-        self.add_descripteur_to_base(base, descripteur)
+        self.add_descripteur_to_base(base, descripteur, dyn=dyn)
 
     def add_niv_class(self, base, niveau, classe, attribut="", valeur=(), fonction="="):
         if not base:
@@ -468,7 +471,7 @@ class TableSelector(object):
         for niveau, classes in tmp.items():
             self.add_descripteur(base, niveau, classes)
 
-    def add_descripteur_to_base(self, base, descripteur):
+    def add_descripteur_to_base(self, base, descripteur, dyn=None):
         if "." in base:
             tmp = base.split(".")
             if len(tmp) >= 3:
@@ -482,7 +485,7 @@ class TableSelector(object):
         if base not in self.baseselectors:
             self.baseselectors[base] = TableBaseSelector(self, base, "")
         # print("add descripteur", base, descripteur)
-        self.baseselectors[base].stocke_descripteur(descripteur)
+        self.baseselectors[base].stocke_descripteur(descripteur, dyn=dyn)
         if self.static and self.baseselectors[base].dyndescr:
             self.static = False
 
@@ -563,7 +566,13 @@ class TableSelector(object):
         return base
 
     def resolve(self, obj=None):
-        print(" debut resolve", self.nom, self.baseselectors.keys(), self.resolved, self.static)
+        # print(
+        #     " debut resolve",
+        #     self.nom,
+        #     self.baseselectors.keys(),
+        #     self.resolved,
+        #     self.static,
+        # )
         if self.resolved and self.static:
             return True
         complet = len(self.baseselectors)
@@ -660,20 +669,26 @@ def select_in(regle, fichier, base, nom=""):
     """
     stock_param = regle.stock_param
     # print("select in ", fichier, base, classe)
-    if fichier.startswith('in:'):
-        fichier=fichier[3:]
+    if fichier.startswith("in:"):
+        fichier = fichier[3:]
     fichier = fichier.strip()
-    
+
     #    valeurs = get_listeval(fichier)
-    liste_valeurs=[]
-    liste_atts=[]
-    if fichier.startswith('{'):
+    liste_valeurs = []
+    liste_atts = []
+    if fichier.startswith("{"):
         liste_valeurs = fichier[1:-1].split(",")
     elif fichier.startswith("["):
         liste_atts = fichier[1:-1].split(",")
-                   
+
     # valeurs = {i: i for i in liste_valeurs}
-    LOGGER.info("element a lire: %s base: %s -> %s %s", fichier, base, repr(liste_valeurs),repr(liste_atts))
+    LOGGER.info(
+        "element a lire: %s base: %s -> %s %s",
+        fichier,
+        base,
+        repr(liste_valeurs),
+        repr(liste_atts),
+    )
 
     if fichier.startswith("#sel:"):  # selecteur externe
         selecteur = stock_param.namedselectors.get(fichier[5:])
@@ -703,7 +718,13 @@ def select_in(regle, fichier, base, nom=""):
         selecteur.static = True
         for val in liste_valeurs:
             selecteur.add_descripteur(base, val)
-            print ('ajout descripteur' ,selecteur.nom, base, val, len(selecteur.baseselectors))
+            print(
+                "ajout descripteur",
+                selecteur.nom,
+                base,
+                val,
+                len(selecteur.baseselectors),
+            )
         return selecteur
 
     # if fichier.startswith("in:["):  # resolution differee

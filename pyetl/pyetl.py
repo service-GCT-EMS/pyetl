@@ -546,7 +546,7 @@ class Pyetl(object):
 
         self._set_streammode()
         try:
-            self.compilateur(self.regles, self.debug>1)
+            self.compilateur(self.regles, self.debug > 1)
             self.regle_sortir = self.regles[-1]
             self.regle_sortir.declenchee = True
             self.moteur.setregles(self.regles, self.debug)
@@ -997,8 +997,8 @@ class Pyetl(object):
     def setvar(self, nom, valeur):
         """positionne une variable dans un contexte de base
         dans ce cas on positionne en local"""
-        # print ('setvar:',self.context, nom,valeur)
         self.context.setlocal(nom, valeur)
+        # print("setvar:", self.context, nom, valeur, "->", self.context.getvar(nom))
 
     def setvar_parent(self, nom, valeur):
         """positionne une variable dans un contexte de base

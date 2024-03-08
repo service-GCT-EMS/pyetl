@@ -710,7 +710,7 @@ class DbConnect(object):
             print("lecture elements specifiques")
         try:
             self.get_elements_specifiques(self.schemabase)
-        except:
+        except KeyError:
             LOGGER.error("erreur lecture elements specifiques")
         self.schemabase.dialecte = self.dialecte
         self.params.logger.info(

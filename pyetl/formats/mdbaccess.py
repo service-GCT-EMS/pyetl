@@ -421,7 +421,7 @@ def sortie_resultats(
                 classe,
                 format_natif=format_natif,
                 conversion=geom_from_natif,
-                attributs=((i, j) for i, j in zip(namelist, valeurs) if j is not None)
+                attributs=((i, j) for i, j in zip(namelist, valeurs) if j is not None),
                 # attributs=zip(
                 #     namelist, [str(i) if i is not None else i for i in valeurs]
                 # ),

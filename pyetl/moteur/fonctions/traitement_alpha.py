@@ -61,13 +61,17 @@ def f_setmatch_liste(regle, obj):
     """#aide||affectation d un attribut
     #aide_spec1||remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection
                ||par expression regulieres (recupere les groupes de selections)
-      #pattern1||M;;;set;=match;||sortie
-    #parametres||liste de sortie;=match;
+      #pattern1||M;;;set;=match;?C||sortie
+    #parametres||liste de sortie;=match;formattage
           #test1||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V4;B
           #test2||obj||^X;BCD;;set;||X;re:(.)C(.);;;V4,V5;;;set;match||atv;V5;D
     """
     # print ('regle.match',regle.match )
-    regle.setval_sortie(obj, regle.matchlist)
+    if regle.params.cmp2.val:
+        # print (" match ", regle.matchobject)
+        regle.setval_sortie(obj, regle.matchobject.expand(regle.params.cmp2.val))
+    else:
+        regle.setval_sortie(obj, regle.matchlist)
     return True
 
 
@@ -113,12 +117,17 @@ def f_setmatch(regle, obj):
     """#aide||affectation d un attribut
        #aide_spec||remplacement d'une valeur d'attribut par les valeurs retenues dans la selection
        ||par expression regulieres (recupere toute la selection)
-       #pattern||S;;;set;=match;||sortie
-    #parametres||attribut de sortie
+       #pattern||S;;;set;=match;?C||sortie
+    #parametres||attribut de sortie;motif de remplacement
        #test1||obj||^X;BCDXX;;set;||X;re:(.)C(.);;;V4;;;set;match||atv;V4;BCD
        #test2||obj||^X;BCDXX;;set;||X;re:(.)C(.);;;V4;;;set;match||ats;V4
     """
-    regle.setval_sortie(obj, regle.match)
+    # print ("singlematch", regle.matchobject)
+    if regle.params.cmp2.val:
+        # print (" match ", regle.matchobject,regle.params.cmp2.val, regle.matchobject.groups())
+        regle.setval_sortie(obj, regle.matchobject.expand(regle.params.cmp2.val))
+    else:
+        regle.setval_sortie(obj, regle.match)
     return True
 
 
@@ -546,7 +555,6 @@ def f_asplit(regle, obj):
 
     if regle.sep:
         elems = att.split(regle.sep, regle.nbdecoup)[regle.defcible]
-        # print("decoupage", elems)
     elif isinstance(att, (list, tuple)):
         if hasattr(att, "_fields"):  # c est un namedtuple
             atd = att._asdict()
@@ -561,7 +569,9 @@ def f_asplit(regle, obj):
     else:
         elems = [regle.entree]
 
-        # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
+    # print("-----------------------decoupage", att, "->", elems)
+
+    # regle.stock_param.moteur.traite_objet(obj, regle.branchements.brch["gen"])
     if regle.multi:
         # obj.attributs[regle.params.att_entree.val] = elems[0] if elems else ""
         for i in elems:
@@ -1287,49 +1297,74 @@ def f_json(regle, obj):
     obj.attributs[regle.params.att_sortie.val] = json.dumps(regle.entree)
     return True
 
+
+def jflatten(struct, fields, racine=""):
+    """depilage recursif d une structure json ( garde les listes)"""
+    for nom, valeur in struct.items():
+        nom_champ = racine + "_" + nom
+        if isinstance(valeur, dict):
+            jflatten(valeur, fields, racine=nom_champ)
+        else:
+            fields[nom_champ] = (
+                valeur if isinstance(valeur, str) else json.dumps(valeur)
+            )
+
+
 def f_jsonsplit1(regle, obj):
     """#aide||transforme un attribut json en attributs
-    #aide_spec||mode 1 : hstore attention mode rantanplan : fait ce qu il peut basé sur la structure json 
+    #aide_spec||mode 1 : hstore attention mode rantanplan : fait ce qu il peut basé sur la structure json
     #aide_spec||chaque sous structure redevient du json
     #aide_spec||gere les dictionnaires et les iterables imbriques
-    #pattern1||H;?;A;jsonsplit;;
-    #pattern2||L;?;A;jsonsplit;LC;
+    #aide_spec||en mode flat la decompositione est recursive
+    #pattern1||H;?;A;jsonsplit;;?=flat;
+    #pattern2||L;?;A;jsonsplit;LC;;
     #"""
-    jsonbloc=regle.entree
-    try:
-        struct = json.loads(jsonbloc)
-    except json.JSONDecodeError as err:
-        regle.stock_param.logger.error(
-            "erreur decodage json %s %s", err, repr(jsonbloc)
-        )
-        return False
-    if isinstance(struct,dict):
-        if regle.params.pattern=='1':
-            simplif = {i:(j if isinstance(j,str) else json.dumps(j)) for i,j in struct.items()}
+    jsonbloc = regle.entree
+    flat = regle.params.cmp2.val == "flat"
+    if isinstance(jsonbloc, str):
+        try:
+            struct = json.loads(jsonbloc)
+        except json.JSONDecodeError as err:
+            regle.stock_param.logger.error(
+                "erreur decodage json %s %s", err, repr(jsonbloc)
+            )
+            return False
+    else:
+        struct = jsonbloc
+    if isinstance(struct, dict):
+        if regle.params.pattern == "1":
+            if flat:
+                simplif = dict()
+                jflatten(struct, simplif)
+            else:
+                simplif = {
+                    i: (j if isinstance(j, str) else json.dumps(j))
+                    for i, j in struct.items()
+                }
             obj.sethtext(regle.params.att_sortie.val, dic=simplif)
-        elif regle.params.pattern=='2':
-            for i,j in zip(regle.params.cmp1.liste,regle.params.att_sortie.liste):
-                acces=i.split('.')
-                courant=struct
+        elif regle.params.pattern == "2":
+            for i, j in zip(regle.params.cmp1.liste, regle.params.att_sortie.liste):
+                acces = i.split(".")
+                courant = struct
                 for key in acces:
-                    if isinstance(courant,dict): 
-                        courant=courant.get(key,'')
+                    if isinstance(courant, dict):
+                        courant = courant.get(key, "")
                     else:
-                        courant=''
-                val=(courant if isinstance(courant,str) else json.dumps(courant))
+                        courant = ""
+                val = courant if isinstance(courant, str) else json.dumps(courant)
                 obj.attributs[j] = val
         return True
 
 
 def f_jsonsplit2(regle, obj):
     """#aide||transforme un attribut json en attributs
-    #aide_spec||attention mode rantanplan : fait ce qu il peut basé sur la structure json 
+    #aide_spec||attention mode rantanplan : fait ce qu il peut basé sur la structure json
     #aide_spec||chaque sous structure redevient du json
     #aide_spec||gere les dictionnaires et les iterables imbriques
     #schema||ajout_att_from_liste_d
-    #pattern||;?;A;jsonsplit;;
+    #pattern||;?;A;jsonsplit;;?=flat
     #"""
-    jsonbloc=regle.entree
+    jsonbloc = regle.entree
     if not jsonbloc:
         return False
     try:
@@ -1338,10 +1373,18 @@ def f_jsonsplit2(regle, obj):
         regle.stock_param.logger.error(
             "erreur decodage json %s %s", err, repr(jsonbloc)
         )
-        return  False
-    if isinstance(struct,dict):
-        simplif = {i:(j if isinstance(j,str) else json.dumps(j)) for i,j in struct.items()}
-        regle.liste_atts=list(simplif.keys())
+        return False
+    flat = regle.params.cmp2.val == "flat"
+    if isinstance(struct, dict):
+        if flat:
+            simplif = dict()
+            jflatten(struct, simplif)
+        else:
+            simplif = {
+                i: (j if isinstance(j, str) else json.dumps(j))
+                for i, j in struct.items()
+            }
+        regle.liste_atts = list(simplif.keys())
         # print ('attributs crees ', regle.liste_atts)
         obj.attributs.update(simplif)
         return True

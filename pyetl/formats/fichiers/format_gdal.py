@@ -463,6 +463,7 @@ class GdalWriter(object):
         self.regle = regle
         self.converter = gdalconverter
         self.layername = ""
+        self.inited = set()
         self.transtable = None
         self.buffer = dict()
         self.schemastore = dict()
@@ -504,6 +505,7 @@ class GdalWriter(object):
             if not self.driver:
                 print("gdal: driver inconnu", self.writerparms["driver"])
                 return None
+            self.datasource = self.driver.Open(self.nom,1)
         if not self.datasource:
             datasource = self.driver.CreateDataSource(self.nom)
             # print ('creation',self.nom,"->",datasource)
@@ -512,6 +514,11 @@ class GdalWriter(object):
                 raise StopIteration(3)
             self.datasource = datasource
         # print ("gdal: traitement",key )
+        if self.regle.getvar('reinit') =='T' and self.layername not in self.inited:
+            self.inited.add(self.layername)
+            print ("suppression couche ", self.layername)
+            self.datasource.DeleteLayer(self.layername)
+
         if key in self.layers:
             self.currentlayer = self.datasource.GetLayerByName(self.layername)
         else:

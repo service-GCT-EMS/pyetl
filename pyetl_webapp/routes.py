@@ -558,6 +558,7 @@ def process_script(nomscript, entree, rep_sortie, scriptparams, mode, local):
 
 
 def autotemplate(data):  # genere un template basique pour l affichage
+
     pass
 
 
@@ -574,42 +575,48 @@ def webservice(api, suburl=None):
     nomscript = "#" + script[1:] if script.startswith("_") else script
     if not scriptlist.refreshscript(nomscript):
         abort(404)
-    tmp = dict(request.args.items())
+    tmp = dict()
+    for k, v in request.args.lists():
+        try:
+            tmp[k] = v if len(v) > 1 else v.pop()
+        except IndexError:
+            tmp[k] = ""
     # on recupere les parametres positionnels s il y en a
     pp = tmp.pop("_pp", "")
     if pp:
         nomscript = nomscript + ";" + pp
     entree = ""
     rep_sortie = ""
-    scriptparams = [i + "=" + j for i, j in tmp.items()]
+    scriptparams = {i: j for i, j in tmp.items()}
     # print ("ajout infoscript", infoscript,scriptlist.apis)
-    scriptparams.extend(
-        [
-            "F_sortie=" + infoscript[1],
-            "template=" + infoscript[2],
-            "sans_entree=" + infoscript[3],
-        ]
+    scriptparams.update(
+        {
+            "F_sortie": infoscript[1],
+            "template": infoscript[2],
+            "sans_entree": infoscript[3],
+        }
     )
     if suburl:
-        scriptparams.append("#suburl=" + suburl)
+        scriptparams["#suburl"] = suburl
     retour = process_script(
         nomscript, entree, rep_sortie, scriptparams, "webservice", local
     )
     wstats, result, tmpdir = retour
-    # print ("-----------retour script",infoscript,result)
+    print("-----------parametres script", scriptparams)
+    print("-----------retour script", infoscript, result)
     if result:
         if infoscript[1] == "link":  # retour url
-            url = result["print"][0] if "print" in result else ""
+            url = result["print"][0] if "print" in result and result["print"] else ""
             if url:
                 return redirect(url)
         elif infoscript[1] == "html":  # retour html direct
-            data = result["print"] if result["print"] else ""
+            data = result["print"] if print in result and result["print"] else ""
 
             if infoscript[2]:  # (template)
                 template = open(infoscript[2].readlines())
-                return render_template_string(template, data)
+                return render_template_string(template, data=data)
             else:
-                return render_template_string(autotemplate(data), data)
+                return render_template("show_results.html", data=data)
         elif infoscript[1] == "json":  # retour json
             print("retour web ", result)
             if "print" in result and result["print"]:

@@ -522,6 +522,7 @@ class Context(object):
         "|": SPLITTER_B,
         ":": SPLITTER_2P,
     }
+    MULTIVAL = re.compile(r"^[\(\[\{].+[\}\]\)]$")
 
     def __init__(self, parent=None, ident="", type_c="C", root=False):
         self.nom = type_c + ident
@@ -656,29 +657,41 @@ class Context(object):
     def resolve(self, element: str) -> T.Tuple[str, str]:
         """effectue le remplacement de variables"""
         element = element.strip()  # on debarasse les blancs parasites
-        indirect =  (element.startswith("%%") and element.endswith("%%") and len(element) >4)
+        indirect = (
+            element.startswith("%%") and element.endswith("%%") and len(element) > 4
+        )
         if self.PARAM_BIND.match(element):
             return self.getvar(element[2:-1]), element[2:-1]
         if self.PARAM_VAR.match(element):
-            dyn=True
+            dyn = True
         while self.PARAM_EXP.search(element):
             for i, j in self.PARAM_EXP.findall(element):
-                if j: 
-                    i=i[1:]
+                if j:
+                    i = i[1:]
                 cible = "%" + j + i + "%"
                 # print(
                 #     "recup getvar", self, element, cible, i, "->", self.getvar(i)
                 # ), element.replace(cible, str(self.getvar(i)))
-                contenu=self.getvar(i)
-                if isinstance(contenu,list):
-                    contenu='{'+','.join((str(a) for a in contenu))+'}'
-                elif isinstance(contenu,dict):
-                    contenu="{'"+"','".join((str(a)+'=>'+str(b) for a,b in contenu.items))+"'}"
-                else:
-                    contenu = str(contenu)
-                element = element.replace(cible, contenu)
+                if cible == element:
+                    return self.getvar(i), ""
+                else:  # composition : on passe en texte
+                    contenu = self.getvar(i)
+                    if isinstance(contenu, list):
+                        contenu = "{" + ",".join((str(a) for a in contenu)) + "}"
+                    elif isinstance(contenu, dict):
+                        contenu = (
+                            "{'"
+                            + "','".join(
+                                (str(a) + "=>" + str(b) for a, b in contenu.items)
+                            )
+                            + "'}"
+                        )
+                    else:
+                        contenu = str(contenu)
+                    element = element.replace(cible, contenu)
+
         if indirect:
-            element, _  = self.resolve(element)
+            element, _ = self.resolve(element)
         element = element.replace("\%", "%")
         if element.startswith("#env:") and element.split(":")[1]:
             # on affecte une variable d'environnement
@@ -758,8 +771,10 @@ class Context(object):
                 else:
                     if local:
                         # print("setlocal", nom, val)
-                        context.setlocal(nom, val) if context else self.setlocal(
-                            nom, val
+                        (
+                            context.setlocal(nom, val)
+                            if context
+                            else self.setlocal(nom, val)
                         )
                     else:
                         context.setroot(nom, val)
@@ -788,10 +803,11 @@ class Context(object):
         )
         return retour
 
-    def setvar(self, nom, valeur):
+    def setvar(self, nom, valeurbrut):
         """positionne une variable du contexte de reference"""
         # print("contexte setvar", self, nom, valeur)
         local = False
+        valeur = self.convert_type(valeurbrut)
         if nom.startswith("."):
             local = True
             nom = nom[1:]
@@ -804,30 +820,44 @@ class Context(object):
             self.ref.setvar(nom, valeur) if self.ref else self.setlocal(nom, valeur)
         # print("--- verif", print("contexte setvar", self, nom, self.getvar(nom)))
 
+    def convert_type(self, valeur):
+        """gere les types en liste et en dictionnaires"""
+        retour = valeur
+
+        if isinstance(valeur, str) and self.MULTIVAL.match(valeur):
+            elems = valeur[1:-1].split(",")
+            isdict = all((":" in i for i in elems))
+            if isdict:
+                retour = dict((i.split(":", 1) for i in elems))
+            else:
+                retour = elems
+        # print("conversion ", valeur, type(valeur), type(retour), retour)
+        return retour
+
     def setlocal(self, nom, valeur):
         """positionne une variable locale du contexte"""
         # print("----contexte setlocal", self, nom, "->", valeur)
         # if nom == "nom" and not valeur:
         #     raise
 
-        self.vlocales[nom] = valeur
+        self.vlocales[nom] = self.convert_type(valeur)
 
     def setroot(self, nom, valeur):
         """positionne une variable du contexte racine"""
         #        print ('contexte setvar', nom, valeur)
-        self.root.vlocales[nom] = valeur
+        self.root.vlocales[nom] = self.convert_type(valeur)
 
     def setretour(self, nom, valeur):
         """positionne une variable et la mappe sur le contexte parent"""
-        self.vlocales[nom] = valeur
+        self.vlocales[nom] = self.convert_type(valeur)
         if nom in self.binding and self.ref:
-            self.ref.setlocal(self.binding[nom], valeur)
+            self.ref.setlocal(self.binding[nom], self.convert_type(valeur))
 
     def setretour_env(self, nom, valeur):
         """positionne une variable et la mappe sur le contexte parent"""
-        self.vlocales[nom] = valeur
+        self.vlocales[nom] = self.convert_type(valeur)
         if nom in self.binding and self.root.parent:
-            self.root.parent.setvar(self.binding[nom], valeur)
+            self.root.parent.setvar(self.binding[nom], self.convert_type(valeur))
 
     def exists(self, nom):
         """la variable existe"""
