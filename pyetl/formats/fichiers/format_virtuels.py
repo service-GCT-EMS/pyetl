@@ -61,7 +61,9 @@ def prepare_webstore(obj, regle):
 def affiche_stream(self, obj, regle, *_, **__):
     """affichage"""
     stock_param = regle.stock_param
+    print("mode affichage", stock_param.mode)
     if stock_param.mode.startswith("web"):
+        print("mode web", stock_param.mode)
         if obj.ident != regle.dident:
             prepare_webstore(obj, regle)
             regle.dident = obj.ident
@@ -75,17 +77,17 @@ def affiche_stream(self, obj, regle, *_, **__):
         else:
             stock_param.webstore[ident] = [res]
     else:
-        if regle.istrue('#par_attribut'):
-            print('') 
+        if regle.istrue("#par_attribut"):
+            print("")
             print(
-            "\n".join(
-                (   '\t'+i+':\t'+
-                    str(obj.attributs.get(i, ""))
-                    for i in obj.schema.get_liste_attributs()
+                "\n".join(
+                    (
+                        "\t" + i + ":\t" + str(obj.attributs.get(i, ""))
+                        for i in obj.schema.get_liste_attributs()
+                    )
                 )
             )
-        )
-            return 0,0
+            return 0, 0
         if obj.ident != regle.dident:
             affiche_header(obj)
             regle.dident = obj.ident

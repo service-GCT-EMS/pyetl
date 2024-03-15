@@ -1228,7 +1228,10 @@ class Pyetl(object):
         self.moteur.vide_stock()
         self.debug = 0
         # self._finalise_sorties()
-        self._ecriture_schemas()
+        if self.getvar("noschema") == "1":
+            print("pas de sortie schema")
+        else:
+            self._ecriture_schemas()
         self._ecriture_stats()
         self._finalise_sorties()  # on ne finalise les sorties que la pour tenir compte des traitements eventuels de schemas
         self.macro_final()

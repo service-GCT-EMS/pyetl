@@ -502,7 +502,7 @@ def h_dbrequest(regle):
         regle.identclasse = None
     LOGGER.debug("req:%s --> %s", requete, str(regle.identclasse))
 
-    regle.prefixe = regle.params.att_sortie.val
+    regle.prefixe = regle.getvar("prefixe", "")
     print("retour valide", valide)
     return valide
 
@@ -530,9 +530,9 @@ def f_dbrequest(regle, obj):
        #groupe||database
       #pattern1||?A;?;?L;dbreq;C;A.C
       #pattern2||?A;?;?L;dbreq;C;A
-      #pattern3||;;=#;dbreq;C;?A
-      #pattern4||;;=#;dbreq;C;?A.C
-      #pattern5||;;=#;dbreq;C;=#
+      #pattern3||=#;?;?L;dbreq;C;?A
+      #pattern4||=#;?;?L;dbreq;C;?A.C
+      #pattern5||=#;?;?L;dbreq;C;=#
       #pattern6||;;;dbreq;C;=#
       #pattern7||LP;;;dbreq;C;?LC
       #aide_spec8||mode webservice: renvoie le resultat brut de la requete
@@ -597,18 +597,19 @@ def f_dbrequest(regle, obj):
                 else:
                     idsortie = identclasse
                 # print("execution requete", niveau, classe, requete, "->", idsortie)
-                try:
-                    retour += DB.lire_requete(
-                        regle,
-                        base,
-                        idsortie,
-                        requete=requete,
-                        parms=parms,
-                        obj=refobj,
-                    )
-                except Exception as err:
-                    printexception(regle, requete, err)
-                    continue
+                # try:
+                retour += DB.lire_requete(
+                    regle,
+                    base,
+                    idsortie,
+                    requete=requete,
+                    parms=parms,
+                    obj=refobj,
+                )
+                # except Exception as err:
+                #     printexception(regle, requete, err)
+
+                #     continue
         else:
             try:
                 retour += DB.lire_requete(

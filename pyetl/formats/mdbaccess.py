@@ -338,7 +338,7 @@ def sortie_resultats(
     traite_objet = stock_param.moteur.traite_objet
     niveau, classe = ident
     logger = regle_courante.stock_param.logger
-    # print ('mdba:sortie_resultat ',type_geom,type(curs),niveau,classe)
+    print("mdba:sortie_resultat ", type_geom, type(curs), niveau, classe)
     # valeurs = curs.fetchone()
     # print ('mdba:recuperation valeurs ',valeurs)
     schema_init = None
@@ -384,7 +384,7 @@ def sortie_resultats(
                     namelist[n] = "#geom"
                     break
 
-    # print("mdba: attributs recuperes ", namelist)
+    print("mdba: attributs recuperes ", namelist)
     # namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
@@ -401,20 +401,25 @@ def sortie_resultats(
     decile = connect.decile
     base = connect.base
     code = connect.code
-    logger.debug(" traitement base %s %s", base, code)
+    # logger.debug(" traitement base %s %s", base, code)
+    rowcount = curs.cursor.rowcount
+    # print("sortie resultat: nb recup", rowcount)
     for valeurs in curs.cursor:
-        # logger.debug("lu " + str(valeurs))
+        logger.debug("lu " + str(valeurs))
+        # print("sortie resultat: lu", valeurs, curs.cursor.rownumber)
         if objet:
             obj2 = objet.dupplique()
             obj2.setidentobj(ident)
             obj2.attributs.update(
                 ((i, j) for i, j in zip(namelist, valeurs) if j is not None)
             )
+            # print("creation objet", obj2)
             # obj2.attributs.update(
             #     zip(namelist, [str(i) if i is not None else i for i in valeurs])
             # )
             if obj2.schema.amodifier(regle_courante):
                 obj2.mergeschema(schema_classe_travail, prefix=regle_courante.prefixe)
+            print("setschema", obj2.ident, obj2.schema)
         else:
             obj2 = Objet(
                 niveau,
@@ -427,7 +432,7 @@ def sortie_resultats(
                 # ),
             )
             obj2.setschema(schema_classe_travail)
-            # print ("setschema", obj2.ident,obj2.schema)
+        # print("setschema", obj2.ident, obj2.schema)
 
         if type_geom == "1":  # on prepare les angles s'il y en a
             obj2.attributs["#angle"] = obj2.attributs.get("angle_g", "0")
@@ -444,9 +449,9 @@ def sortie_resultats(
         #        print ('lu sys',obj.attributs,sys_cre,connect.sys_cre,connect.idconnect)
         obj2.attributs["#base"] = base
         obj2.attributs["#codebase"] = code
-
+        # print("finalisation objet", objet)
         if sortie:
-            #            print ('mdba: renseignement attributs',sortie,v_sortie)
+            # print("mdba: renseignement attributs", sortie, v_sortie)
             for nom, val in zip(sortie, v_sortie):
                 obj2.attributs[nom] = val
         #                print ('renseigne',obj.attributs)
@@ -576,6 +581,9 @@ def lire_requete(
     if regle_courante.debug:
         regle_courante.stock_param.logger.info("req:%s", requete)
         # print("-------lire_requete req:", requete)
+    elif regle_courante.istrue("printreq"):
+        print("-------lire_requete req:", requete, parms)
+
     if obj and obj.schema:
         nom_schema = obj.schema.schema.nom
     retour = get_connect(regle_courante, base, None, None, nomschema=nom_schema)

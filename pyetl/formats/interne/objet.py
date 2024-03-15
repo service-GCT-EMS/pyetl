@@ -377,9 +377,9 @@ class Objet(object):
             goif = {
                 "id": attributs.get("#gid", str(self.ido)),
                 "properties": {
-                    self.casefold(self.schema.attributs[i].nom_court): attributs[i]
-                    if i in self.attributs
-                    else None
+                    self.casefold(self.schema.attributs[i].nom_court): (
+                        attributs[i] if i in self.attributs else None
+                    )
                     for i in liste
                 },
                 "geometry": geom,
@@ -472,9 +472,11 @@ class Objet(object):
             [
                 (
                     i,
-                    (str(self.attributs[i])[:50] + "...")
-                    if len(str(self.attributs.get(i, ""))) > 50
-                    else self.attributs.get(i, "<non defini>"),
+                    (
+                        (str(self.attributs[i])[:50] + "...")
+                        if len(str(self.attributs.get(i, ""))) > 50
+                        else self.attributs.get(i, "<non defini>")
+                    ),
                 )
                 for i in aliste
             ]
@@ -575,11 +577,11 @@ class Objet(object):
         if self.schema is None:
             self.setschema(schemaclasse)
             return
-        for nom, att in schemaclasse.attributs.items():
+        for nom, att in list(schemaclasse.attributs.items()):
             nom = prefix + nom if prefix else nom
             self.schema.ajout_attribut_modele(att, nom=nom, force=True)
-        print("merge", self.schema)
-        print("avec", schemaclasse)
+        # print("merge", self.schema)
+        # print("avec", schemaclasse)
 
     def initattr(self):
         """initialise les attributs a leur valeur de defaut"""

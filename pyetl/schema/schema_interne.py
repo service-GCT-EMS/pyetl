@@ -552,7 +552,7 @@ class Schema(object):
             else:
                 exp_niv, exp_clas = bnc
             # print("conversion liste", self.nom, bnc)
-            
+
         convert = {"v": "vm", "t": "r", "r": "r"}
         tables = convert.get(tables.lower(), tables.lower())
         lmulti = multi
@@ -684,11 +684,15 @@ class Schema(object):
         ref_croisees = set()
         changelist1 = set()
         while modif:
-            modif = False 
+            modif = False
             changelist2 = set()
             for ident in niveaux:
                 for ref in self.has_deps(ident):
-                    if niveaux.get(ref, -1) >= niveaux[ident] and ((ident,ref) not in ref_croisees) and (ref,ident) not in ref_croisees:
+                    if (
+                        niveaux.get(ref, -1) >= niveaux[ident]
+                        and ((ident, ref) not in ref_croisees)
+                        and (ref, ident) not in ref_croisees
+                    ):
                         if ident in self.has_deps(ref):  # reference croisee
                             if ident != ref:
                                 # print ("ref_croisees",ident,ref)
@@ -700,10 +704,9 @@ class Schema(object):
                             # print ("up",ident, niveaux[ident], ref, niveaux[ref])
             if changelist2 and changelist2 == changelist1:
                 LOGGER.warning("references circulaires: %s", repr(changelist1))
-                modif=False
+                modif = False
             else:
-                changelist1=changelist2
-                
+                changelist1 = changelist2
 
         if ref_croisees:
             LOGGER.warning("references croisees:%s", repr(ref_croisees))
@@ -779,6 +782,8 @@ class Schema(object):
         schema_travail.metas["filtre_classe"] = ",".join(classe) if classe else ""
         schema_travail.metas["alias"] = regle.getvar("alias_schema", "")
         # print("recup schema travail", schema_travail.metas)
+        # self.schematravail=schema_travail
+        # self.liste2=liste2
         return schema_travail, liste2
 
     def cleanrules(self):

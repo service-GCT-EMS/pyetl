@@ -30,7 +30,6 @@ from sqlalchemy import inspect, create_engine, URL
 
 #
 from .database import Cursinfo, DbConnect
-from .postgres_gensql import PgrGenSql
 from .init_sigli import requetes_sigli as REQS
 
 
@@ -678,6 +677,10 @@ class AlcConnect(DbConnect):
     def init_pyetl_script(self, nom_schema):
         """cree les structures standard"""
         pass
+
+
+class AlcGenSql(object):
+    pass
 
 
 # class PostgresWriter(DbWriter):

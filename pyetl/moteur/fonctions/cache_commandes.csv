@@ -134,6 +134,7 @@ download;.traitement_web
 ftp_download;.traitement_web
 ftp_upload;.traitement_web
 geocode;.traitement_web
+post;.traitement_web
 qwc2url;.traitement_web
 s3upload;.traitement_web
 wfsload;.traitement_web

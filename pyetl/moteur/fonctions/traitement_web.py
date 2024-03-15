@@ -178,8 +178,8 @@ def h_geocode(regle):
     regle.scoremin = float(regle.getvar("scoremin", 0))
     regle.filtres = dict(i.split("=") for i in regle.params.cmp2.liste)
     regle.tinit = time.time()
-    regle.action_schema_differe=regle.action_schema
-    regle.action_schema=None
+    regle.action_schema_differe = regle.action_schema
+    regle.action_schema = None
     return True
 
 
@@ -530,8 +530,9 @@ def h_httpdownload(regle):
     # print("h_httpdownload valeur de debug", regle.debug)
     return True
 
-def _jsonlistsplitter(regle,obj,nom,classe,jsonlist):
-    """"decoupe une liste json en objets"""
+
+def _jsonlistsplitter(regle, obj, nom, classe, jsonlist):
+    """ "decoupe une liste json en objets"""
     if obj.virtuel:
         regle.reader.setidententree(nom, classe)
         # print ('presence schema', regle.reader.cree_schema)
@@ -550,14 +551,11 @@ def _jsonlistsplitter(regle,obj,nom,classe,jsonlist):
                     obj2.attributs[att] = val
                 elif isinstance(val, dict):
                     hdict = {
-                        i: json.dumps(j, separators=(",", ":"))
-                        for i, j in val.items()
+                        i: json.dumps(j, separators=(",", ":")) for i, j in val.items()
                     }
                     obj2.sethtext(att, dic=hdict)
                 elif isinstance(val, list):
-                    jlist = [
-                        json.dumps(j, separators=(",", ":")) for j in val
-                    ]
+                    jlist = [json.dumps(j, separators=(",", ":")) for j in val]
                     obj2.setmultiple(att, liste=jlist)
                 if obj2.schema:
                     if att not in obj2.schema.attributs:
@@ -567,14 +565,9 @@ def _jsonlistsplitter(regle,obj,nom,classe,jsonlist):
                             type_att = "H" if isinstance(val, dict) else "T"
                         obj2.schema.stocke_attribut(att, type_att)
 
-            regle.stock_param.moteur.traite_objet(
-                obj2, regle.branchements.brch["gen"]
-            )
+            regle.stock_param.moteur.traite_objet(obj2, regle.branchements.brch["gen"])
         else:
-            print ("type objet non traite",type(objdef),objdef)
-
-
-
+            print("type objet non traite", type(objdef), objdef)
 
 
 def _jsonsplitter(regle, obj, jsonbloc):
@@ -588,7 +581,7 @@ def _jsonsplitter(regle, obj, jsonbloc):
         )
         return
     nom = ""
-    if isinstance (struct,dict) and len(struct) == 1:
+    if isinstance(struct, dict) and len(struct) == 1:
         # il y a in titre
         for nom, contenu in struct.items():
             pass
@@ -609,18 +602,19 @@ def _jsonsplitter(regle, obj, jsonbloc):
             # print ('traitement elem', classe,type(elem))
             if isinstance(elem, list):
                 # c est une liste d objets
-                _jsonlistsplitter(regle,obj,nom,classe,elem)
+                _jsonlistsplitter(regle, obj, nom, classe, elem)
             else:
                 regle.stock_param.logger.error(
                     "element incompatible %s : %s", repr(elem), type(elem)
                 )
     elif isinstance(struct, list):
-        classe=regle.getvar('classe','json')
+        classe = regle.getvar("classe", "json")
         if verbose:
             regle.stock_param.logger.info("contenu liste %d items", len(struct))
-        _jsonlistsplitter(regle,obj,nom,classe,struct)
+        _jsonlistsplitter(regle, obj, nom, classe, struct)
     else:
-        print ('type non géré', type(struct),struct)
+        print("type non géré", type(struct), struct)
+
 
 def f_httpdownload(regle, obj):
     """#aide||telecharge un fichier via http
@@ -637,12 +631,12 @@ def f_httpdownload(regle, obj):
     #aide_spec4||telecharge un element json et genere un objet par element
     #parametres4||url;attribut contenant l'url;;;
       #pattern4||;?C;?A;download;=#json;?LC||cmp1
-    #variables||trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
+    #variables||trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifiesrq.get
               ||http_encoding;force l encoding du rettour par defaut c est celui de l entete http
          #test||notest
     """
     url = regle.entree
-    if not url.startswith('http'):
+    if not url.startswith("http"):
         url = regle.racinesite + url
     # if regle.debug:
     # print("telechargement", url, "-->", regle.fichier)
@@ -653,6 +647,7 @@ def f_httpdownload(regle, obj):
     #     auth = regle.auth(regle.user, regle.passwd) if regle.user else regle.auth()
     # print("trouve auth", regle.auth)
     try:
+
         retour = RQ.get(
             url,
             stream=regle.params.pattern == "1",
@@ -738,6 +733,41 @@ def f_httpdownload(regle, obj):
     # print ("headers", retour.headers)
     # print ("text", retour.text)
     return False
+
+
+def f_httppost(regle, obj):
+    """#aide||envoie des element en mode post
+    #aide_spec||l'entete du retour est stocke dans l'attribut #http_header
+    #parametres1||reponse,json;attribut json;;url;
+    #patternp||A;?C;?A;post;C;
+    #helper||httpdownload
+    """
+    retour = ""
+    url = regle.params.cmp1.val
+    jsonval = regle.entree
+    if isinstance(jsonval, str):
+        # print("decodage ", jsonval)
+        if jsonval.startswith('"') and jsonval.endswith('"'):
+            jsonval = jsonval[1:-1]
+        jsonval = json.loads(jsonval)
+    print("envoi json", type(jsonval), jsonval)
+    try:
+        retour = RQ.post(
+            url,
+            json=jsonval,
+            params=regle.httparams,
+            headers=regle.httheaders,
+            verify=regle.checkssl,
+            auth=regle.auth,
+        )
+
+    except Exception as err:
+        print("erreur download", err)
+        LOGGER.error("connection impossible:->%s<-", retour.url if retour else url)
+        return False
+
+    regle.setval_sortie(obj, retour.content)
+    return True
 
 
 def h_wfsdownload(regle):
@@ -895,7 +925,7 @@ def f_s3upload(regle, obj):
     #helper||s3connect
     #parametres||fichier;att fichier;s3upload;destination;"""
     file = regle.entree
-    if regle.params.cmp1.val.endswith('/'):
+    if regle.params.cmp1.val.endswith("/"):
         aws_name = regle.repertoire + "/" + regle.params.cmp1.val + file
     else:
         aws_name = regle.repertoire + "/" + (regle.params.cmp1.val or file)

@@ -3,6 +3,7 @@
 import logging
 import re
 import os
+import json
 import typing as T
 from pyetl.formats.interne.objet import Objet  # objets et outils de gestiion
 from .fonctions.outils import printexception
@@ -824,13 +825,19 @@ class Context(object):
         """gere les types en liste et en dictionnaires"""
         retour = valeur
 
-        if isinstance(valeur, str) and self.MULTIVAL.match(valeur):
-            elems = valeur[1:-1].split(",")
-            isdict = all((":" in i for i in elems))
-            if isdict:
-                retour = dict((i.split(":", 1) for i in elems))
-            else:
-                retour = elems
+        if isinstance(valeur, str):
+            if valeur.startswith("#JSON:"):
+                try:
+                    retour = json.loads(valeur[6:])
+                except json.JSONDecodeError:
+                    print("erreur decodage json ", valeur)
+            elif self.MULTIVAL.match(valeur):
+                elems = valeur[1:-1].split(",")
+                isdict = all((":" in i for i in elems))
+                if isdict:
+                    retour = dict((i.split(":", 1) for i in elems))
+                else:
+                    retour = elems
         # print("conversion ", valeur, type(valeur), type(retour), retour)
         return retour
 

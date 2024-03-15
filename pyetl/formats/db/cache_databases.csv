@@ -12,6 +12,7 @@ postgres;.base_postgres
 sigli;.base_sigli
 spatialite;.base_spatialite
 sql;.base_postgis
+sqlalc;.base_sqlalc
 sqlite;.base_sqlite
 wfs;.base_wfs
 wfs2;.base_webservices

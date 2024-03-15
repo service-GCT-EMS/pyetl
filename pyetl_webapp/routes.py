@@ -591,7 +591,7 @@ def webservice(api, suburl=None):
     # print ("ajout infoscript", infoscript,scriptlist.apis)
     scriptparams.update(
         {
-            "F_sortie": infoscript[1],
+            "F_sortie": "#print",
             "template": infoscript[2],
             "sans_entree": infoscript[3],
         }
