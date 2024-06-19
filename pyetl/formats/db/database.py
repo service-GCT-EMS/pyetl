@@ -302,7 +302,7 @@ class DbConnect(object):
         self.codecinfo = dict()
         self.geographique = False
         self.connection = None
-        defmodeconf = self.regle.getvar("mode_enums", 1)
+        defmodeconf = int(self.regle.getvar("mode_enums", 1))
         self.schemabase = self.params.init_schema(
             "#" + str(code), "B", defmodeconf=defmodeconf
         )
@@ -363,9 +363,10 @@ class DbConnect(object):
 
     @property
     def metas(self):
+        xml_date_format=self.regle.getvar('xml_date_format','%d/%m/%Y') if self.regle else '%d/%m/%Y'
         return {
             "type_base": self.idconnect,
-            "date_extraction": time.asctime(),
+            "date_extraction": time.strftime(xml_date_format),
             "serveur": self.serveur,
             "base": self.base,
             "origine": "B",
@@ -388,7 +389,7 @@ class DbConnect(object):
         )
 
     def getdatatype(self, datatype):
-        """recupere le type interne associe a un type cx_oracle"""
+        """recupere le type interne associe a un type base"""
         return "T"
 
     def quote_table(self, ident):

@@ -61,7 +61,7 @@ def prepare_webstore(obj, regle):
 def affiche_stream(self, obj, regle, *_, **__):
     """affichage"""
     stock_param = regle.stock_param
-    print("mode affichage", stock_param.mode)
+    # print("mode affichage", stock_param.mode)
     if stock_param.mode.startswith("web"):
         print("mode web", stock_param.mode)
         if obj.ident != regle.dident:

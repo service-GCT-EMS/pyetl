@@ -975,7 +975,7 @@ def analyse_interne(schema, mode="util", type_schema=None):
                             conf.poids += schema_classe.poids
                             conf.maxobj += schema_classe.maxobj
                         except KeyError:
-                            print ("erreur conformite introuvable", schema.nom, att.nom_conformite, schema.conformites.keys())
+                            print ("erreur conformite introuvable", schema.nom, att.nom_conformite)
                             att.nom_conformite=''
                         # sert pour la fusion de schemas
     if mode == "fusion":

@@ -856,7 +856,14 @@ def f_objgroup(regle, obj):
     clef = tuple(obj.attributs.get(i) for i in regle.params.cmp2.liste)
     niveau, classe = regle.classe_sortie
 
-    # print("regroupement", regle.params.cmp2.liste, "->", clef, regle.params.pattern)
+    print(
+        "regroupement",
+        regle.params.cmp2.liste,
+        "->",
+        clef,
+        len(clef),
+        regle.params.pattern,
+    )
     if clef in regle.objets:
         obj2 = regle.objets.get(clef)
     else:

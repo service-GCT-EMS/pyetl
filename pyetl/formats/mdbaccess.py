@@ -384,7 +384,7 @@ def sortie_resultats(
                     namelist[n] = "#geom"
                     break
 
-    print("mdba: attributs recuperes ", namelist)
+    # print("mdba: attributs recuperes ", namelist)
     # namelist = [i[0] for i in attlist]
     geom_from_natif = connect.geom_from_natif
     format_natif = connect.format_natif
@@ -396,7 +396,7 @@ def sortie_resultats(
     if connect.sys_mod in namelist:
         sys_mod = connect.sys_mod
     if connect.sys_gid in namelist:
-        sys_mod = connect.sys_gid
+        sys_gid = connect.sys_gid
     tget = time.time()
     decile = connect.decile
     base = connect.base

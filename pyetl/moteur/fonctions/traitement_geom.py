@@ -697,7 +697,7 @@ def h_splitcouleur(regle):
 def f_splitcouleur(regle, obj):
     """#aide||decoupe la geometrie selon la couleur
     #aide_spec||  une liste de couleurs ou par couleur si aucune couleur n'est precisee
-    #aide_spec2||  ajoute des sorties par couleur si une liste est donnee
+              ||  ajoute des sorties par couleur si une liste est donnee les sorties sont precedees par #
     #pattern||A;;;split_couleur;?LC;
     #test||obj;asc_c||^C;;;split_couleur||cnt;2;
     """

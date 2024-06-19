@@ -360,7 +360,7 @@ def ecrire_schema_xml(
     stock_param=None,
 ):
     """ecrit un schema en xml"""
-    print("ecrire schema xml",schema.nom, rep)
+    # print("ecrire schema xml",schema.nom, rep)
     alias = ESC_XML(alias)
     if stock_param and stock_param.mode.startswith("web"):
         # print("schemas en # mode webstore: idpyetl", stock_param.idpyetl, rep)

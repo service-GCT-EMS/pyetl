@@ -405,7 +405,7 @@ class SqlWriter(CsvWriter):
         gensql = self.schema.dbsql
         gensql.regle_ref = self.regle_ref
         type_geom = self.schemaclasse.info["type_geom"]
-        courbe = self.schemaclasse.info["courbe"]
+        courbe = self.schemaclasse.info["courbe"] == "1"
         dim = self.schemaclasse.info["dimension"]
         if not gensql:
             print(

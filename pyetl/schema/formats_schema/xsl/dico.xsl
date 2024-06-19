@@ -22,7 +22,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=9;IE=10;IE=EDGE"/>
 <title>Dictionnaire de données</title>
 <link rel="stylesheet" href="xsl/css/ems.css" type="text/css"/>
 </head>
@@ -37,80 +36,37 @@
 
 		<div id="contenu">
 			<div id="paragraphe">
+				<span  class="pavedroit">
+					<P id="date"><xsl:value-of select="structure/metas/@date_extraction"/></P>
+				</span>
 				<span  class="pavegauche">
 					<h1 id="sommaire1"><xsl:value-of select="structure/@alias"/></h1>
 				</span>
+				
 
 				<span  class="pavegauche">
-					<h1 id="sommaire">Sommaire  </h1>
+					<h1 id="sommaire">Sommaire</h1>
 				</span>
-				
-				<span  class="pavegauche">
-					<h2>
-					<xsl:choose>
-						<xsl:when test="structure/@type='B'"> Schemas base </xsl:when>
-						<xsl:when test="structure/@type='S'"> Groupes sortie </xsl:when>
-						<xsl:otherwise> Groupes </xsl:otherwise>
-					</xsl:choose>
-					<xsl:value-of select="structure/@nom"/></h2>
-				</span>
-				<span  class="pavegauche">
-					<ul>
-					<xsl:for-each select="structure/schemas/schema">
-						<span class="pavegauche">
-							
-								<a href="#{@nom}">
-									<xsl:value-of select="@nom"/>
-								</a>
-								&nbsp;
-								<i class="italique"><xsl:value-of  select="@alias"/></i>
-						</span>
-					</xsl:for-each>
-					</ul>
-				</span>	
+
 				<span  class="pavegauche">
 					<h2>Tables</h2>
 				</span>
 					<span  class="pavegauche">
 						<ul>
-						<xsl:for-each select="structure/schemas/schema">
-							<span class="pavegauche">
-								
-									<i id="{@nom}">
-										<h3><xsl:value-of select="@nom"/>
-										&nbsp;
-										<i class="italique"><xsl:value-of  select="@alias"/></i>
-										</h3>
-									</i>
-							</span>
-							<xsl:for-each select="classes/classe">
+							<xsl:for-each select="structure/schemas/schema/classes/classe">
 								<li>
-										<a href="#{@groupe}_{@nom}">
-											
-											<xsl:value-of select="@nom"/>
-										</a>
+										<a href="#{@groupe}_{@nom}"><xsl:value-of select="@nom"/></a>
 										<i class="italique">
-										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 										<xsl:choose>
 											<xsl:when test="@type='ALPHA'"> (Alphanumérique - </xsl:when>
 											<xsl:when test="@type='POINT'"> (Point - </xsl:when>
 											<xsl:when test="@type='LIGNE'"> (Ligne - </xsl:when>
 											<xsl:when test="@type='SURFACE'"> (Polygone - </xsl:when>
-											<xsl:when test="@type='GEOMETRIE'"> (geometrie - </xsl:when>
-											<xsl:otherwise> (Indéfini - </xsl:otherwise>
 										</xsl:choose>
-										<xsl:choose>
-											<xsl:when test="@type_table='vue'"> vue)</xsl:when>
-											<xsl:otherwise>
-												<xsl:value-of select='format-number(@nb_objets, "0")'/> objets)
-											</xsl:otherwise>
-										</xsl:choose>
-										<br/>
-										<xsl:value-of select="@alias"/>
-										</i>
+										<xsl:value-of select='format-number(@nb_objets, "###,###")'/> objets)
+											</i>
 								</li>
 							</xsl:for-each>
-						</xsl:for-each>
 						</ul>
 					</span>
 
@@ -141,8 +97,6 @@
 											<xsl:when test="@type='POINT'"> (Vectoriel : Point)</xsl:when>
 											<xsl:when test="@type='LIGNE'"> (Vectoriel : Ligne)</xsl:when>
 											<xsl:when test="@type='SURFACE'"> (Vectoriel : Polygone)</xsl:when>
-											<xsl:when test="@type='GEOMETRIE'"> (Vectoriel)</xsl:when>
-											<xsl:otherwise> (Indéfini)</xsl:otherwise>
 										</xsl:choose>
 									</h2>
 									</span>
@@ -174,7 +128,6 @@
 													</li>
 													<li class="texte">Nombre d'objets : <xsl:value-of select='format-number(@nb_objets, "###,###")'/></li>
 													<li class="texte">Schéma : <xsl:value-of select="@groupe"/></li>
-													<li class="texte">Stockage : <xsl:value-of select="@type_table"/></li>
 												</ul>
 											</p>
 										</span>
@@ -196,7 +149,7 @@
 									  <xsl:for-each select="attribut">
 										  <tr>
 										    <td>
-										    	<xsl:if test="@clef_primaire = 'oui'"><img src="xsl/images/cle_primaire.svg" width="16px" height="16px"/></xsl:if>
+										    	<xsl:if test="@clef_primaire = 'oui'"><img src="xsl/images/cle_primaire.svg" width="16px"/></xsl:if>
 										    	<xsl:if test="@clef_etrangere != ''">#</xsl:if>
 										    </td>
 										    <td>
@@ -266,14 +219,6 @@
 											  </xsl:for-each>
 											  </table>
 										</span>
-										<p> utilisations </p>
-										<xsl:for-each select="usage">
-											<span class= 'pavegauche'>
-												<a href="#{@schema}_{@classe}">
-													<xsl:value-of select="@classe"/>
-												</a>
-											</span>
-										</xsl:for-each>
 										<span  class="pavedroit">
 									  		<a href="#null" onclick="javascript:history.back();">Retour</a> - <a href="#sommaire">Sommaire</a>
 										</span>

@@ -624,7 +624,7 @@ class PgrGenSql(DbGenSql):
             attname = attribut.nom.lower()
             attname = self.reserves.get(attname, attname)
             attype = attribut.type_att
-            defaut = None
+            defaut = attribut.defaut
             if (
                 attribut.defaut == "S"
                 or attribut.defaut == "BS"
@@ -726,11 +726,11 @@ class PgrGenSql(DbGenSql):
                 pass
             # gestion des defauts
             # if attribut.defaut:
-            #     print ('gestion des defauts',defaut,attype,attribut.defaut)
-            if defaut is None and attribut.defaut:
+            # print ('gestion des defauts',defaut,attype,nomconf,attribut.defaut)
+            if defaut:
                 if attype == "T":
-                    if attribut.defaut.startswith("="):
-                        predef = attribut.defaut[1:].replace('"', "'")
+                    if defaut.startswith("="):
+                        predef = defaut[1:].replace('"', "'")
                         if "::" in predef:  # il y a un typecast, on force le schema
                             nom, typedef = predef.split("::", 1)
                             if "." in typedef:
@@ -744,8 +744,8 @@ class PgrGenSql(DbGenSql):
                             predef = "'" + nom + "'::" + typedef
                         defaut = " DEFAULT " + predef
                 if nomconf:
-                    if "::" in attribut.defaut:  # il y a un typecast
-                        val, typedef = attribut.defaut.split("::", 1)
+                    if "::" in defaut:  # il y a un typecast
+                        val, typedef = defaut.split("::", 1)
                         if "." in typedef:
                             ts, tn = typedef.split(".")
                             if ts != classe.identclasse[0]:
@@ -753,19 +753,20 @@ class PgrGenSql(DbGenSql):
                             typedef = ts + "." + tn
                         else:
                             typedef = self.schema_conf + "." + typedef
-                        attribut.defaut = val + "::" + typedef
-                    defaut = " DEFAULT " + attribut.defaut
-                else:
-                    if attribut.defaut.startswith("'") or attribut.defaut.startswith(
-                        '"'
-                    ):
-                        attribut.defaut = attribut.defaut[1:]
-                    if attribut.defaut.endswith("'") or attribut.defaut.endswith('"'):
-                        attribut.defaut = attribut.defaut[:1]
-                    if attribut.defaut=='curent_user' or attribut.defaut=='current_timestamp':
-                        defaut = " DEFAULT " + attribut.defaut
                     else:
-                        defaut = " DEFAULT '" + attribut.defaut + "'"
+                        typedef = self.schema_conf + "." + nomconf
+                    defaut = " DEFAULT " + defaut + "::" + typedef
+                else:
+                    if defaut.startswith("'") or defaut.startswith('"'):
+                        defaut = defaut[1:]
+                    if defaut.endswith("'") or defaut.endswith('"'):
+                        defaut = defaut[:1]
+                    if defaut.startswith(" DEFAULT"):
+                        pass
+                    elif defaut=='curent_user' or defaut=='current_timestamp':
+                        defaut = " DEFAULT " + defaut
+                    else:
+                        defaut = " DEFAULT '" + defaut + "'"
             elif defaut is None:
                 defaut = ""
             if self.types_db.get(attype) == "integer":
@@ -1273,6 +1274,7 @@ class PgrGenSql(DbGenSql):
             prefix = prefix + self._commande_geom_strict(
                 niveau, classe, True, gtyp=gtyp, dim=dim, courbe=courbe
             )
+            print ('tail_charge: traitement courbes:' , courbe,'->', prefix)
         if "S" in reinit:
             prefix = prefix + self._commande_sequence(niveau, classe)
         if "I" in reinit and gtyp > "0":

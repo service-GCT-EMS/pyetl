@@ -163,7 +163,7 @@ def f_force_alias(regle, obj):
     # types_entiers = {'E':1, 'entier':1}
 
     schem = obj.schema
-    mode = regle.params.cmp1.num
+    mode = int(regle.params.cmp1.num)
     if schem:
         if mode and schem.schema.defmodeconf != mode:
             schem.schema.defmodeconf = mode
@@ -183,8 +183,9 @@ def f_force_alias(regle, obj):
                 val = obj.attributs[i]
                 #                attr.type_att_base = 'T'
                 obj.attributs[i] = conf.ajuste_valeur(val)
-        #                if obj.attributs['#classe'] == 'as_bassin':
-        #                    print("dans force_alias", conf.nom, val, '->', obj.attributs[i])
+                
+                # print("dans force_alias", mode, conf.nom, val, '->', obj.attributs[i])
+
 
         return True
     else:

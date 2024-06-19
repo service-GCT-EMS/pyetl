@@ -519,9 +519,9 @@ class ElyConnect(ora.OrwConnect):
             resultat = "S." + compteur
             self.schemabase.compteurs[compteur] += 1
             return resultat
-        elif defaut.startswith("!GENSUR"):
-            resultat = "TIN." + defaut[8:-2]
-            return resultat
+        # elif defaut.startswith("!GENSUR"):
+        #     resultat = "TIN." + defaut[8:-2]
+        #     return resultat
         elif defaut.startswith("!AUTEUR"):
             resultat = "current_user"
             return resultat

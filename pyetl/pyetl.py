@@ -747,6 +747,7 @@ class Pyetl(object):
             petl.setvar("_sortie", rep_sortie)
         if entree is not None:
             #            print ("entree getpyetl",type(entree))
+            petl.setvar('sans_entree',False)
             petl.setvar("_entree", entree)
         # print ('getpyetl entree:', petl.getvar('_entree'),'parent:', self.getvar('_entree'))
         if nom:
@@ -754,8 +755,10 @@ class Pyetl(object):
         petl.mode = mode
         # print("appel initpyetl", petl.inited, petl.mode, petl.done)
         if petl.initpyetl(regles, liste_params):
-            # print("apres initpyetl:", petl.inited, petl.mode, petl.done, petl.regles)
-
+            # print("apres initpyetl:", petl.inited, petl.mode, petl.done)
+            # print('=====entrees===', petl.getvar('_entree'),
+            #         'regles',petl.regles[0].getvar('_entree'),
+            #         'parent:',  self.getvar('_entree'))
             return petl
         self.logger.critical("erreur getpyetl %s", str(regles))
         # print("erreur getpyetl", regles)
@@ -1140,12 +1143,12 @@ class Pyetl(object):
         self.debug = self.debug or debug
         abort = False
         dt, _ = next(self.maintimer)
-        entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+        entree = None if self.istrue("sans_entree") else self.getvar("_entree", None)
         self.macro_entree()
-        entree = None if self.getvar("sans_entree") else self.getvar("_entree", None)
+        entree = None if self.istrue("sans_entree") else self.getvar("_entree", None)
         if isinstance(entree, list):
             entree = ",".join(entree)
-        # print("process E:",entree,'S:',self.getvar("sortie"),'regles', self.regles)
+        # print("process E:",entree,self.getvar('_entree'),'S:',self.getvar("sortie"),'regles', self.regles)
 
         if self.done and not self.regles:
             self.logger.info("traitments termines a l initialisation")

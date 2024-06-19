@@ -8,7 +8,7 @@ commandes disponibles :
     * lecture des structures
     * extraction multitables et par selection sur un attribut
 
-necessite la librairie cx_Oracle et un client oracle 64 bits
+necessite la librairie cx_Oracle ou oracledb et un client oracle 64 bits
 
 il est necessaire de positionner les parametres suivant:
 
@@ -17,24 +17,19 @@ il est necessaire de positionner les parametres suivant:
 import os
 
 os.environ["NLS_LANG"] = "FRENCH_FRANCE.UTF8"
-# from cx_Oracle import connect as oraconnect, Error as OraError, init_oracle_client
 
-# from pyetl.formats.geometrie.format_ewkt import geom_from_ewkt, ecrire_geom_ewkt
-
-# from pyetl.formats.csv import geom_from_ewkt, ecrire_geom_ewkt
 from .database import DbConnect
 from .gensql import DbGenSql
-
+oracle=None
 try:
-    import cx_Oracle
+    import oracledb as oracle
+    MODE='oracledb'
 except ImportError:
-    cx_Oracle = None
-# global cx_Oracle
-
-
-# def importer():
-
-#     import cx_Oracle
+    try:
+        import cx_Oracle as oracle
+        MODE='cx_Oracle'
+    except ImportError:
+        pass
 
 
 TYPES_A = {
@@ -79,6 +74,10 @@ class OraConnect(DbConnect):
         super().__init__(serveur, base, user, passwd, debug, system, params, code)
         # importer()
         self.oracle_env()
+        if MODE=="oracledb":
+            env = os.environ
+            orahome = env["ORACLE_HOME"]
+            oracle.init_oracle_client(lib_dir=orahome)
         self.connect()
         #        self.errdef = errdef
         self.type_base = "oracle"
@@ -91,8 +90,8 @@ class OraConnect(DbConnect):
             "info_attributs": self.req_attributs,
             "info_vues": self.req_vues,
         }
-        if cx_Oracle:
-            self.DBError = cx_Oracle.Error
+        if oracle:
+            self.DBError = oracle.Error
 
     def oracle_env(self):
         """positionne les variables d'environnement pour le connecteur"""
@@ -133,14 +132,14 @@ class OraConnect(DbConnect):
         #     "*" * len(self.passwd),
         # )
         def output_type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == cx_Oracle.DB_TYPE_CLOB:
-                return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
-            if default_type == cx_Oracle.DB_TYPE_BLOB:
-                return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
+            if default_type == oracle.DB_TYPE_CLOB:
+                return cursor.var(oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
+            if default_type == oracle.DB_TYPE_BLOB:
+                return cursor.var(oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
 
 
-        if not cx_Oracle:
-            raise NotImplemented("Cx_oracle non disponible")
+        if not oracle:
+            raise NotImplemented("acces oracle non disponible")
         try:
             """positionne les variables d'environnement pour les programmes externes"""
             # lib_oracle=r"C:\dev\mapper\autres\instantclient_19_9"
@@ -148,13 +147,13 @@ class OraConnect(DbConnect):
             # env = os.environ
             # env["ORACLE_HOME"]=lib_oracle
 
+            configdir= self.regle.getvar("oracle_config_dir")
 
-
-            connection = cx_Oracle.connect(self.user, self.passwd, self.serveur)
+            connection = oracle.connect(user=self.user, password=self.passwd, dsn=self.serveur, config_dir=configdir)
             connection.autocommit = True
             connection.outputtypehandler = output_type_handler
             self.connection = connection
-        except self.DBError as err:
+        except Exception as err:
             self.params.logger.exception("erreur connection oracle", exc_info=err)
             # print("error: oracle: utilisateur ou mot de passe errone sur la base ", err)
 

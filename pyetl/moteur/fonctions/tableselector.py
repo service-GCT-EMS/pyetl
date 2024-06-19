@@ -549,20 +549,24 @@ class TableSelector(object):
 
     def idbase(self, base):
         """identifie une base de donnees"""
-        if not self.dbref:
-            self.setdbref()
-        if not base:
-            print("idbase: pas de base definie", base)
-        if base in self.dbref:
-            base = self.dbref[base]
-        elif base == "*":
-            pass
-        elif base.startswith("*"):  # service
-            pass
-        elif base == "__filedb":  # fichier
-            pass
-        else:
-            print("idbase: base inconnue", base)
+        try:
+            if not self.dbref:
+                self.setdbref()
+            if not base:
+                print("idbase: pas de base definie", base)
+            if base in self.dbref:
+                base = self.dbref[base]
+            elif base == "*" or isinstance(base, tuple):
+                print ('inconnu', base,self.dbref)
+                pass
+            elif base.startswith("*"):  # service
+                pass
+            elif base == "__filedb":  # fichier
+                pass
+            else:
+                print("idbase: base inconnue", base)
+        except:
+            print ('erreur base',base)
         return base
 
     def resolve(self, obj=None):
@@ -669,6 +673,8 @@ def select_in(regle, fichier, base, nom=""):
     """
     stock_param = regle.stock_param
     # print("select in ", fichier, base, classe)
+    if fichier is None:
+        fichier=""
     if fichier.startswith("in:"):
         fichier = fichier[3:]
     fichier = fichier.strip()
@@ -686,8 +692,8 @@ def select_in(regle, fichier, base, nom=""):
         "element a lire: %s base: %s -> %s %s",
         fichier,
         base,
-        repr(liste_valeurs),
-        repr(liste_atts),
+        # repr(liste_valeurs),
+        # repr(liste_atts),
     )
 
     if fichier.startswith("#sel:"):  # selecteur externe
@@ -778,13 +784,25 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
         with opener(fichier, "r", encoding=codec) as fich:
             # LOGGER.info("projet %s", fichier)
             # print("----------------select projet qgs", fichier)
+            line=""
+            datasource = ""
             for i in fich:
-                if "datasource" in i and not "<datasource></datasource>" in i:
-                    table = _extract(i, "table=")
-                    database = _extract(i, "dbname=")
-                    service = _extract(i, "service=")
-                    host = _extract(i, "host=").lower()
-                    port = _extract(i, "port=").lower()
+                if line:
+                    line += i[:-1]
+                    if "</datasource>" in line:
+                        datasource=line
+                        line=""
+                elif "<datasource>" in i:
+                    line = i[:-1]
+                else:
+                    datasource = ""
+                    continue
+                if datasource and not "<datasource></datasource>" in datasource:
+                    table = _extract(datasource, "table=")
+                    database = _extract(datasource, "dbname=")
+                    service = _extract(datasource, "service=")
+                    host = _extract(datasource, "host=").lower()
+                    port = _extract(datasource, "port=").lower()
                     niveau, classe = (
                         table.split(".") if "." in table else ("tmp", table)
                     )
@@ -795,14 +813,16 @@ def _select_from_qgs(fichier, selecteur, codec=DEFCODEC):
                     elif service:
                         base = "*" + service
                     else:
-                        LOGGER.info("analyse qgs: identification filedb %s", i)
+                        filedb=i
+                        tmp = re.match('.*<datasource>(.*)</datasource>',datasource)
+                        if tmp:
+                            filedb=tmp.group(1)
+                        LOGGER.info("analyse qgs: %s identification filedb %s",os.path.basename(fichier), filedb)
                         base = "__filedb"
                     selecteur.add_descripteur(base, niveau, [classe], fonction="=")
                     # print("qgs : descripteur", base, niveau, [classe])
                     LOGGER.debug("descripteur %s %s %s", base, niveau, classe)
-                elif "provider" in i:
-                    pass
-                # print(" provider", i)
+ 
     except FileNotFoundError:
         LOGGER.error("fichier qgs introuvable %s", fichier)
         # print("fichier qgs introuvable ", fichier)

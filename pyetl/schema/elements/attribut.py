@@ -133,6 +133,9 @@ class Conformite(object):
             self.ordre = dict()
             self.stock = dict()
             self.ajust = dict()
+            self.ajust1= dict()
+            self.ajust2= dict()
+            self.ajust3= dict()
             self.valide = set()
             self.defaut = ""
             self.vmax = vmax
@@ -155,7 +158,13 @@ class Conformite(object):
         #        print ("schema stocke valeur ", self.nom, valeur,alias,mode_force)
         valeur = str(valeur)
         alias = str(alias)
-
+        try:
+            int(valeur)
+            self.ajust1[valeur]=valeur
+        except ValueError:
+            self.ajust1[valeur]=alias
+        self.ajust2[valeur]=alias
+        self.ajust3[alias]=valeur
         if valeur == alias:  # les 2 sont identiques le forcage n'a pas de sens
             mode_force = 0
         #            raise

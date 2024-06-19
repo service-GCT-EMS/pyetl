@@ -34,7 +34,7 @@ def att_to_text(obj, liste, transtable):
     try:
         aliste = (
             [
-                (attmap.get(i, i).upper(), str(obj.attributs[i]))
+                (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
                 for i in a_sortir
                 if i not in obj.attributs_speciaux
             ]
@@ -52,7 +52,7 @@ def att_to_text(obj, liste, transtable):
         print(
             "------------->",
             [
-                (attmap.get(i, i).upper(), str(obj.attributs[i]).translate(transtable))
+                (attmap.get(i, i).upper(), str(obj.attributs.get(i,'???')))
                 for i in a_sortir
             ],
         )
@@ -118,6 +118,7 @@ def att_to_text(obj, liste, transtable):
             ("2" + i + ",NG" + str(len(j)) + "," + j + ";" for i, j in tflist)
         )
         attlist = attlist + "\n" + flist
+    # print ("asc attlist", attlist,obj)
     return attlist
 
 
@@ -277,7 +278,7 @@ def ajout_attribut_asc(attributs, attr, speciaux):
     else:
         print("error: asc  : code inconnu", liste_elts)
 
-    attributs[nom] = vatt
+    attributs[nom] = vatt if nom not in attributs else attributs[nom]+';'+vatt
     return nom, suite
     # print l, l[-1].strip()
     # print 1/0
@@ -457,6 +458,7 @@ def ecrire_entete_asc(obj) -> str:
         entete = code + idobj + chaine + fin_ent + ";\n"
     else:
         entete = type_geom_sortie + idobj + fin_ent + ";\n"
+        # print ('entete asc',entete,dmod, obj)
     return entete
 
 
@@ -512,7 +514,7 @@ class AscWriter(FileWriter):
         else:
             geometrie = self.geomwriter(obj.geom_v)
 
-        attlist = att_to_text(obj, liste, transtable)
+        attlist = att_to_text(obj, liste, transtable or self.transtable)
         return entete + geometrie + attlist
 
 

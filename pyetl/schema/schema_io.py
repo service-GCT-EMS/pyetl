@@ -425,7 +425,7 @@ def ecrire_schemas(stock_param, rep_sortie, mode="util", formats="csv", confs=-1
                 stock_param.logger.debug(
                     "mode %s: %s %d classes", mode, i, len(schemas[i].classes)
                 )
-                print("________________________ecriture schema", i, len(schemas[i].classes),formats_a_sortir )
+                # print("________________________ecriture schema", i, len(schemas[i].classes),formats_a_sortir )
                 # schemas[i].printelements_specifiques()
 
                 ecrire_au_format(

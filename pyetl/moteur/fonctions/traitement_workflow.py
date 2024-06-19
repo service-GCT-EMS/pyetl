@@ -617,7 +617,7 @@ def _prepare_batch_from_object(regle, obj):
         else:
             params.update(i.split('"=>"', 1) for i in re.split('" *, *"', parametres[1:-1]))
         # print("recuperation parametres hstore", parametres, params)
-    # print("commande batch", numero, commande, entree, sortie, params)
+    print("commande batch", numero, commande, entree, sortie, params)
 
     return (numero, commande, entree, sortie, params)
 
@@ -630,6 +630,7 @@ def _execbatch(regle, obj):
         # on lui donne un nom
     _, commande, entree, sortie, params = regle.prepare(regle, obj)
     # print("------------------------- appel batch", commande, "\n", params)
+    print("lancement commande batch",  commande, entree, sortie, params)
     processor = regle.stock_param.getpyetl(
         commande, liste_params=params, entree=entree, rep_sortie=sortie
     )

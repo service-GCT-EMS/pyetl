@@ -365,7 +365,7 @@ class PgsGenSql(PgrGenSql):
 
     # ==== initialiseurs pour la gestion de la geometrie ====
     @staticmethod
-    def _commande_geom_strict(niveau, classe, strict, gtyp="0", dim="2"):
+    def _commande_geom_strict(niveau, classe, strict, gtyp="0", dim="2", courbe=False):
         """manipulation de la geometrie pour la discretisation des courbes"""
         #        print ('geom strict ',niveau, classe, strict, gtyp)
         cmpz = "Z" if dim == "3" else ""
@@ -380,13 +380,18 @@ class PgsGenSql(PgrGenSql):
                 + ",3948);\n"
             )
         else:
-            geom = "MultiLinestring" if gtyp == "2" else "Multipolygon"
+            if courbe:
+                geom = "MultiCurve" if gtyp == "2" else "MultiSurface"
+                fonction = " SET geometrie = ST_ForceCurve(geometrie); \n"
+            else:
+                geom = "MultiLinestring" if gtyp == "2" else "Multipolygon"
+                fonction = " SET geometrie = ST_CurveToLine(geometrie); \n"
             return (
                 "UPDATE "
                 + niveau.lower()
                 + "."
                 + classe.lower()
-                + " SET geometrie = ST_CurveToLine(geometrie); \n"
+                + fonction
                 + "ALTER TABLE "
                 + niveau.lower()
                 + "."
@@ -397,29 +402,29 @@ class PgsGenSql(PgrGenSql):
                 + ",3948);\n"
             )
 
-    @staticmethod
-    def _commande_geom_courbe(niveau, classe, gtyp="0", dim="2", courbe=False):
-        """manipulation de la geometrie pour la conservation des courbes"""
-        cmpz = "Z" if dim == "3" else ""
-        if courbe:
-            geom = "MultiCurve" if gtyp == "2" else "MultiSurface"
-        else:
-            geom = "MultiLinestring" if gtyp == "2" else "Multipolygon"
-        return (
-            "UPDATE "
-            + niveau.lower()
-            + "."
-            + classe.lower()
-            + " SET geometrie = ST_ForceCurve(geometrie); \n"
-            + "ALTER TABLE "
-            + niveau.lower()
-            + "."
-            + classe.lower()
-            + " ALTER COLUMN geometrie TYPE Geometry("
-            + geom
-            + cmpz
-            + ",3948);\n"
-        )
+    # @staticmethod
+    # def _commande_geom_courbe(niveau, classe, gtyp="0", dim="2", courbe=False):
+    #     """manipulation de la geometrie pour la conservation des courbes"""
+    #     cmpz = "Z" if dim == "3" else ""
+    #     if courbe:
+    #         geom = "MultiCurve" if gtyp == "2" else "MultiSurface"
+    #     else:
+    #         geom = "MultiLinestring" if gtyp == "2" else "Multipolygon"
+    #     return (
+    #         "UPDATE "
+    #         + niveau.lower()
+    #         + "."
+    #         + classe.lower()
+    #         + " SET geometrie = ST_ForceCurve(geometrie); \n"
+    #         + "ALTER TABLE "
+    #         + niveau.lower()
+    #         + "."
+    #         + classe.lower()
+    #         + " ALTER COLUMN geometrie TYPE Geometry("
+    #         + geom
+    #         + cmpz
+    #         + ",3948);\n"
+    #     )
 
     @staticmethod
     def _commande_index_gist(niveau, classe, drop):

@@ -221,17 +221,21 @@ jsonsplit
 
    transforme un attribut json en attributs
 
-   gere les dictionnaires et les iterables imbriques
+   en mode flat la decompositione est recursive
 
 **syntaxes acceptees**
 
-+------+------+------+---------+------+--------+
-|sortie|defaut|entree|commande |param1|param2  |
-+======+======+======+=========+======+========+
-|H     |?     |A     |jsonsplit|      |        |
-+------+------+------+---------+------+--------+
-|=*    |?     |A     |jsonsplit|      |        |
-+------+------+------+---------+------+--------+
++--------+--------+--------+-----------+--------+----------+
+|sortie  |defaut  |entree  |commande   |param1  |param2    |
++========+========+========+===========+========+==========+
+|        |?       |A       |jsonsplit  |        |?=flat    |
++--------+--------+--------+-----------+--------+----------+
+| *gere les dictionnaires et les iterables imbriques*      |
++--------+--------+--------+-----------+--------+----------+
+|H       |?       |A       |jsonsplit  |        |?=flat    |
++--------+--------+--------+-----------+--------+----------+
+|L       |?       |A       |jsonsplit  |LC      |          |
++--------+--------+--------+-----------+--------+----------+
 
 
 
@@ -373,7 +377,7 @@ set
 +----------------+--------------+--------------+----------------+--------------+----------------+
 | *cree une geometrie texte*                                                                    |
 +----------------+--------------+--------------+----------------+--------------+----------------+
-|S               |              |              |set             |=match        |                |
+|S               |              |              |set             |=match        |?C              |
 +----------------+--------------+--------------+----------------+--------------+----------------+
 | *remplacement d'une valeur d'attribut par les valeurs retenues dans la selection*             |
 | *par expression regulieres (recupere toute la selection)*                                     |
@@ -403,7 +407,7 @@ set
 +----------------+--------------+--------------+----------------+--------------+----------------+
 | *change le schema de reference d'un objet et passe en majuscule*                              |
 +----------------+--------------+--------------+----------------+--------------+----------------+
-|M               |              |              |set             |=match        |                |
+|M               |              |              |set             |=match        |?C              |
 +----------------+--------------+--------------+----------------+--------------+----------------+
 | *remplacement d'une liste de valeurs d'attribut par les valeurs retenues dans la selection*   |
 | *par expression regulieres (recupere les groupes de selections)*                              |
@@ -872,6 +876,27 @@ fonctions de cryptage
 fonctions de cryptage
 
 .. index::
+  double: .traitement_crypt;b64_to_file
+
+b64_to_file
+...........
+
+   decode un attribut en b64 el le stocle en fichier
+
+
+**syntaxes acceptees**
+
++------+------+------+-----------+------+--------+
+|sortie|defaut|entree|commande   |param1|param2  |
++======+======+======+===========+======+========+
+|      |      |A     |b64_to_file|C     |?C      |
++------+------+------+-----------+------+--------+
+
+
+
+
+
+.. index::
   double: .traitement_crypt;crypt
 
 crypt
@@ -908,6 +933,27 @@ decrypt
 +======+======+======+========+======+========+
 |A     |?     |A     |decrypt |C?    |        |
 +------+------+------+--------+------+--------+
+
+
+
+
+
+.. index::
+  double: .traitement_crypt;file_to_b64
+
+file_to_b64
+...........
+
+   encode un fichier en b64 et le stocke dans un attribut
+
+
+**syntaxes acceptees**
+
++------+------+------+-----------+------+--------+
+|sortie|defaut|entree|commande   |param1|param2  |
++======+======+======+===========+======+========+
+|A     |      |      |file_to_b64|C     |?C      |
++------+------+------+-----------+------+--------+
 
 
 
@@ -1361,15 +1407,15 @@ dbreq
 +---------+---------+---------+-----------+---------+-----------+
 |?A       |?        |?L       |dbreq      |C        |A          |
 +---------+---------+---------+-----------+---------+-----------+
-|         |         |=#       |dbreq      |C        |?A         |
+|=#       |?        |?L       |dbreq      |C        |?A         |
 +---------+---------+---------+-----------+---------+-----------+
-|         |         |=#       |dbreq      |C        |?A.C       |
+|=#       |?        |?L       |dbreq      |C        |?A.C       |
 +---------+---------+---------+-----------+---------+-----------+
-|         |         |=#       |dbreq      |C        |=#         |
+|=#       |?        |?L       |dbreq      |C        |=#         |
 +---------+---------+---------+-----------+---------+-----------+
 |         |         |         |dbreq      |C        |=#         |
 +---------+---------+---------+-----------+---------+-----------+
-|LP       |         |         |dbreq      |C        |?L         |
+|LP       |         |         |dbreq      |C        |?LC        |
 +---------+---------+---------+-----------+---------+-----------+
 |=mws:    |         |         |dbreq      |C        |?LC        |
 +---------+---------+---------+-----------+---------+-----------+
@@ -2370,16 +2416,18 @@ split_couleur
    decoupe la geometrie selon la couleur
 
      une liste de couleurs ou par couleur si aucune couleur n'est precisee
+     ajoute des sorties par couleur si une liste est donnee les sorties sont precedees par #
 
 **syntaxes acceptees**
 
-+-----------+-----------+-----------+------------------+-----------+-------------+
-|sortie     |defaut     |entree     |commande          |param1     |param2       |
-+===========+===========+===========+==================+===========+=============+
-|A          |           |           |split_couleur     |?LC        |             |
-+-----------+-----------+-----------+------------------+-----------+-------------+
-| *  une liste de couleurs ou par couleur si aucune couleur n'est precisee*      |
-+-----------+-----------+-----------+------------------+-----------+-------------+
++--------------+--------------+--------------+---------------------+--------------+----------------+
+|sortie        |defaut        |entree        |commande             |param1        |param2          |
++==============+==============+==============+=====================+==============+================+
+|A             |              |              |split_couleur        |?LC           |                |
++--------------+--------------+--------------+---------------------+--------------+----------------+
+| *  une liste de couleurs ou par couleur si aucune couleur n'est precisee*                        |
+| *  ajoute des sorties par couleur si une liste est donnee les sorties sont precedees par #*      |
++--------------+--------------+--------------+---------------------+--------------+----------------+
 
 
 
@@ -2470,15 +2518,15 @@ hget
 +-------+-------+-------+---------+-------+---------+
 |sortie |defaut |entree |commande |param1 |param2   |
 +=======+=======+=======+=========+=======+=========+
-|S      |?      |A      |hget     |A      |         |
+|S      |?      |A      |hget     |C      |         |
 +-------+-------+-------+---------+-------+---------+
 | *destination;defaut;hstore;hget;clef;*            |
 +-------+-------+-------+---------+-------+---------+
-|M      |?      |A      |hget     |L      |         |
+|M      |?      |A      |hget     |LC     |         |
 +-------+-------+-------+---------+-------+---------+
 | *destination;defaut;hstore;hget;liste clefs;*     |
 +-------+-------+-------+---------+-------+---------+
-|D      |?      |A      |hget     |?L     |         |
+|D      |?      |A      |hget     |?LC    |         |
 +-------+-------+-------+---------+-------+---------+
 | *destination;defaut;clef;hget;hstore;*            |
 +-------+-------+-------+---------+-------+---------+
@@ -3481,7 +3529,7 @@ download
    ?A :  attribut contenant l'url (optionnel)
    download :  
 
-trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifies
+trust;si vrai(1,t,true...) les certificats ssl du site ne sont pas verifiesrq.get
 http_encoding;force l encoding du rettour par defaut c est celui de l entete http
 
 **autres variables utilisees**
@@ -3564,6 +3612,27 @@ geocode
 | *en entree clef et liste des champs adresse a geocoder score min pour un succes*      |
 +-------------+-------------+-------------+---------------+-------------+---------------+
 
+
+
+
+
+.. index::
+  double: .traitement_web;post
+
+post
+....
+
+   envoie des element en mode post
+
+   l'entete du retour est stocke dans l'attribut #http_header
+
+**syntaxes acceptees**
+
++------+------+------+--------+------+--------+
+|sortie|defaut|entree|commande|param1|param2  |
++======+======+======+========+======+========+
+|A     |?C    |?A    |post    |C     |        |
++------+------+------+--------+------+--------+
 
 
 

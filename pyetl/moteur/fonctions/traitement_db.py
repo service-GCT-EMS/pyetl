@@ -39,7 +39,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
     base = resolve_att(base, obj)
     if obj and obj.attributs.get("#base"):
         base = "__filedb"
-    print("--------------------param base ", base, regle.params.base)
+    # print("--------------------param base ", base, regle.params.base)
     if not base:
         base = "*"
     # elif os.path.isfile(base): #filedb
@@ -84,7 +84,7 @@ def param_base(regle, nom="", geo=False, req=False, mods=True, obj=None):
 
     if niv.lower().startswith("in:"):  # mode in
         nivdef = resolve_att(niv[3:], obj)
-        if nivdef.startswith("["):
+        if nivdef and nivdef.startswith("["):
             nivdef = niv
         selecteur = select_in(regle, nivdef, base, nom=nom)
         # print("------------------------------recup selecteur", selecteur)
@@ -978,16 +978,16 @@ def f_recup_schema(regle, obj):
         return True
     valide = True
     selecteur = setdb(regle, obj)
-    print("recup selecteur", selecteur.nom, len(selecteur.baseselectors))
+    # print("recup selecteur", selecteur.nom, len(selecteur.baseselectors))
     multibase = len(selecteur.baseselectors) > 1 and not regle.istrue("groupe_bases")
     for base, baseselecteur in selecteur.baseselectors.items():
-        print("base selecteur", base, baseselecteur)
+        # print("base selecteur", base, baseselecteur)
         if baseselecteur:
             nomselecteur = (
                 selecteur.nom if not multibase else selecteur.nom + "_" + base
             )
             schema_travail = baseselecteur.getschematravail(regle, nomselecteur)
-            print("schema_travail", baseselecteur.base, schema_travail)
+            # print("schema_travail", baseselecteur.base, schema_travail)
         else:
             valide = False
 

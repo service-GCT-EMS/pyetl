@@ -446,7 +446,7 @@ class PgrConnect(DbConnect):
         return numtypes
 
     def getdatatype(self, datatype):
-        """recupere le type interne associe a un type cx_oracle"""
+        """recupere le type interne associe a un type postgres"""
         typebase = self.numtypes.get(datatype, "T").upper().strip("_")
         # print ('recup numtype',self.numtypes.get(datatype,'inconnu'), self.types_base.get(typebase))
         return self.types_base.get(typebase, "T")

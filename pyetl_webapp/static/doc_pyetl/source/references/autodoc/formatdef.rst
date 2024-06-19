@@ -63,6 +63,7 @@ postgres                           oui           oui
 sigli                              oui           oui
 spatialite                         oui           oui
 sql                                oui           oui
+sqlalc                             oui           oui
 sqlite                             oui           oui
 wfs                                oui           oui
 wfs2                               oui           oui
@@ -196,7 +197,7 @@ commandes disponibles :
     * lecture des structures
     * extraction multitables et par selection sur un attribut
 
-necessite la librairie cx_Oracle et un client oracle 64 bits
+necessite la librairie cx_Oracle ou oracledb et un client oracle 64 bits
 
 il est necessaire de positionner les parametres suivant:
 
@@ -300,6 +301,28 @@ sql
 
 
 Acces aux bases de donnees postgis
+
+commandes disponibles :
+
+    * lecture des structures et de droits
+    * lecture des fonctions et des triggers et tables distantes gestion des clefs etrangeres
+    * extraction multitables et par selection sur un attribut et par geometrie
+    * ecriture de structures en fichier sql
+    * ecritures de donnees au format copy et chargment en base par psql
+    * passage de requetes sql
+    * insert et updates en base '(beta)'
+
+necessite la librairie psycopg2 et l acces au loader psql pour le chargement de donnees
+
+il est necessaire de positionner les parametres suivant:
+
+
+
+sqlalc
+......
+
+
+Acces aux bases de donnees via sqlalchemy
 
 commandes disponibles :
 
