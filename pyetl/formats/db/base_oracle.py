@@ -148,8 +148,10 @@ class OraConnect(DbConnect):
             # env["ORACLE_HOME"]=lib_oracle
 
             configdir= self.regle.getvar("oracle_config_dir")
-
-            connection = oracle.connect(user=self.user, password=self.passwd, dsn=self.serveur, config_dir=configdir)
+            if MODE == 'oracledb':
+                connection = oracle.connect(user=self.user, password=self.passwd, dsn=self.serveur, config_dir=configdir)
+            else:
+                connection = oracle.connect(self.user, self.passwd, self.serveur)
             connection.autocommit = True
             connection.outputtypehandler = output_type_handler
             self.connection = connection

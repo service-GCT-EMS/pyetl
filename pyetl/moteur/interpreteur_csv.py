@@ -196,6 +196,8 @@ def description_schema(regle):
     modele.defaut = valeur_defaut
     modele.ordre = position
     modele.def_index = def_index
+    if def_index == 'PK':
+        modele.oblig=True
     regle.params.def_sortie = modele
 
 

@@ -640,6 +640,7 @@ class PgrGenSql(DbGenSql):
                 elif self.types_db.get(attype) == "bigint":
                     attype = "BS"  # sequence
                 if attype not in {"S", "BS"}:
+                    print ("erreur generation table",table,"attribut",attname)
                     print(
                         "type serial incompatible avec le type", attype, attribut.defaut
                     )
@@ -727,7 +728,10 @@ class PgrGenSql(DbGenSql):
             # gestion des defauts
             # if attribut.defaut:
             # print ('gestion des defauts',defaut,attype,nomconf,attribut.defaut)
-            if defaut:
+            if defaut is not None and defaut != "":
+                if attype == "B":
+                    defaut = " DEFAULT true" if defaut else " DEFAULT false"
+                
                 if attype == "T":
                     if defaut.startswith("="):
                         predef = defaut[1:].replace('"', "'")
@@ -739,8 +743,8 @@ class PgrGenSql(DbGenSql):
                                 )
                             if nom.startswith("'") or nom.startswith('"'):
                                 nom = nom[1:]
-                            if nom.endswith("'") or nom.endswith('"'):
-                                nom = nom[:1]
+                                if nom.endswith("'") or nom.endswith('"'):
+                                    nom = nom[:-1]
                             predef = "'" + nom + "'::" + typedef
                         defaut = " DEFAULT " + predef
                 if nomconf:
@@ -759,8 +763,8 @@ class PgrGenSql(DbGenSql):
                 else:
                     if defaut.startswith("'") or defaut.startswith('"'):
                         defaut = defaut[1:]
-                    if defaut.endswith("'") or defaut.endswith('"'):
-                        defaut = defaut[:1]
+                        if defaut.endswith("'") or defaut.endswith('"'):
+                            defaut = defaut[:-1]
                     if defaut.startswith(" DEFAULT"):
                         pass
                     elif defaut=='curent_user' or defaut=='current_timestamp':
@@ -773,10 +777,10 @@ class PgrGenSql(DbGenSql):
                 #                print ('test pk',attribut.nom, classe.getpkey)
                 if seq and not self.basic:
                     attype = "S"
-                    defaut = ""
             elif self.types_db.get(attype) == "bigint":
                 if seq and not self.basic:
                     attype = "BS"
+            if attype == 'S' or attype == 'BS':
                     defaut = ""
             if attype not in self.types_db and not nomconf:
                 LOGGER.warning(
@@ -1274,7 +1278,7 @@ class PgrGenSql(DbGenSql):
             prefix = prefix + self._commande_geom_strict(
                 niveau, classe, True, gtyp=gtyp, dim=dim, courbe=courbe
             )
-            print ('tail_charge: traitement courbes:' , courbe,'->', prefix)
+            # print ('tail_charge: traitement courbes:' , courbe,'->', prefix)
         if "S" in reinit:
             prefix = prefix + self._commande_sequence(niveau, classe)
         if "I" in reinit and gtyp > "0":
